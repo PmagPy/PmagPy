@@ -67,11 +67,11 @@ def main():
     if "-h" in args:
         print(main.__doc__)
         sys.exit()
-    #version_num = pmag.get_version()
+    version_num = pmag.get_version()
     verbose = pmagplotlib.verbose
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
     num_bootstraps = pmag.get_named_arg_from_sys("-nb", 1000)
-    #user = pmag.get_named_arg_from_sys("-usr", "")
+    user = pmag.get_named_arg_from_sys("-usr", "")
     ipar = pmag.get_flag_arg_from_sys("-par", true=1, false=0)
     ihext = pmag.get_flag_arg_from_sys("-x", true=1, false=0)
     ivec = pmag.get_flag_arg_from_sys("-v", true=1, false=0)
@@ -182,7 +182,7 @@ def main():
             if 'location' in sdata.columns:
                 loc_name = sdata['location'][0]
         csrecs = sdata[sdata['aniso_tilt_correction'] == CS]
-        #anitypes = csrecs['aniso_type'].unique()
+        anitypes = csrecs['aniso_type'].unique()
         for name in ['citations', 'location', 'site', 'sample']:
             if name not in csrecs:
                 csrecs[name] = ""
@@ -195,10 +195,30 @@ def main():
             s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
             if s[0] <= 1.0:
                 Ss.append(s) # protect against crap
+            ResRec = {}
+            ResRec['specimen'] = rec['specimen']
+            ResRec['sample'] = rec['sample']
+            ResRec['analysts'] = user
+            ResRec['citations'] = rec['citations']
+            ResRec['software_packages'] = version_num
+            ResRec['dir_tilt_correction'] = CS
+            ResRec["aniso_type"] = rec["aniso_type"]
             # tau,Vdirs=pmag.doseigs(s)
-            # do we need fpars somewhere???
-            # fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
+            fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
+            aniso_v1 = " : ".join([str(i) for i in [fpars['t1'], fpars['v1_dec'], fpars['v1_inc']]])
+            aniso_v2 = " : ".join([str(i) for i in [fpars['t2'], fpars['v2_dec'], fpars['v2_inc']]])
+            aniso_v3 = " : ".join([str(i) for i in [fpars['t3'], fpars['v3_dec'], fpars['v3_inc']]])
+            ResRec['aniso_v1'] = aniso_v1
+            ResRec['aniso_v2'] = aniso_v2
+            ResRec['aniso_v3'] = aniso_v3
+            ResRec['aniso_ftest'] = fpars['F']
+            ResRec['aniso_ftest12'] = fpars['F12']
+            ResRec['aniso_ftest23'] = fpars['F23']
+            ResRec['description'] = 'F_crit: '+fpars['F_crit']+'; F12,F23_crit: '+fpars['F12_crit']
+            ResRec['aniso_type'] = pmag.makelist(anitypes)
             # fill in ResRecs (ignoring this for now, grab it from aniso_magic if needed)
+            # MUST ADD BACK IN
+            ResRecs.append(ResRec)
         if len(Ss) > 1:
             if pmagplotlib.isServer: # use server plot naming convention
                 title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
@@ -206,6 +226,7 @@ def main():
                 title = "{}_{}_{}".format(loc_name, site, crd)
             bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
                                                 title, iplot, comp, vec, Dir, num_bootstraps)
+
             if len(PDir) > 0:
                 pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                 pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
@@ -216,38 +237,81 @@ def main():
 
             if hpars != [] and ihext == 1:
                 HextRec = {}
-                #for key in ResRec.keys():HextRec[key]=ResRec[key]   # copy over stuff
-                HextRec["anisotropy_v1_dec"] = '%7.1f'%(hpars["v1_dec"])
-                HextRec["anisotropy_v2_dec"] = '%7.1f'%(hpars["v2_dec"])
-                HextRec["anisotropy_v3_dec"] = '%7.1f'%(hpars["v3_dec"])
-                HextRec["anisotropy_v1_inc"] = '%7.1f'%(hpars["v1_inc"])
-                HextRec["anisotropy_v2_inc"] = '%7.1f'%(hpars["v2_inc"])
-                HextRec["anisotropy_v3_inc"] = '%7.1f'%(hpars["v3_inc"])
+                for key in ResRec.keys():
+                    HextRec[key]=ResRec[key]
+                # copy over stuff
+                # group these into HextRec['aniso_v1']
+                anisotropy_t1 = hpars["t1"]
+                anisotropy_v1_dec = hpars["v1_dec"]
+                anisotropy_v1_inc = hpars["v1_inc"]
+                eta_zeta = "eta/zeta"
+                anisotropy_v1_eta_dec = hpars["v2_dec"]
+                anisotropy_v1_eta_inc = hpars["v2_inc"]
+                anisotropy_v1_eta_semi_angle = hpars["e12"]
+                anisotropy_v1_zeta_dec = hpars["v3_dec"]
+                anisotropy_v1_zeta_inc = hpars["v3_inc"]
+                anisotropy_v1_zeta_semi_angle = hpars["e13"]
+                aniso_v1_list = [anisotropy_t1, anisotropy_v1_dec, anisotropy_v1_inc, eta_zeta,
+                                 anisotropy_v1_eta_dec, anisotropy_v1_eta_inc, anisotropy_v1_eta_semi_angle,
+                                 anisotropy_v1_zeta_dec, anisotropy_v1_zeta_inc, anisotropy_v1_zeta_semi_angle]
+                aniso_v1 = " : ".join([str(i) for i in aniso_v1_list])
+                HextRec['aniso_v1'] = aniso_v1
+
+                # for printing
                 HextRec["anisotropy_t1"] = '%10.8f'%(hpars["t1"])
-                HextRec["anisotropy_t2"] = '%10.8f'%(hpars["t2"])
-                HextRec["anisotropy_t3"] = '%10.8f'%(hpars["t3"])
-                HextRec["anisotropy_hext_F"] = '%7.1f '%(hpars["F"])
-                HextRec["anisotropy_hext_F12"] = '%7.1f '%(hpars["F12"])
-                HextRec["anisotropy_hext_F23"] = '%7.1f '%(hpars["F23"])
+                HextRec["anisotropy_v1_dec"] = '%7.1f'%(hpars["v1_dec"])
+                HextRec["anisotropy_v1_inc"] = '%7.1f'%(hpars["v1_inc"])
                 HextRec["anisotropy_v1_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
                 HextRec["anisotropy_v1_eta_dec"] = '%7.1f '%(hpars["v2_dec"])
                 HextRec["anisotropy_v1_eta_inc"] = '%7.1f '%(hpars["v2_inc"])
                 HextRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f '%(hpars["e13"])
                 HextRec["anisotropy_v1_zeta_dec"] = '%7.1f '%(hpars["v3_dec"])
                 HextRec["anisotropy_v1_zeta_inc"] = '%7.1f '%(hpars["v3_inc"])
+
+                # group these into HextRec['aniso_v2']
+                aniso_v2 = " : ".join([str(i) for i in [hpars["t2"], hpars["v2_dec"], hpars["v2_inc"]]])
+                aniso_v2 += " : eta/zeta : "
+                aniso_v2 +=  " : ".join([str(i) for i in [hpars['v1_dec'], hpars['v1_inc'], hpars['e12'],
+                                                          hpars['v3_dec'], hpars['v3_inc'], hpars['e23']]])
+                HextRec["aniso_v2"] = aniso_v2
+                # for printing
+                HextRec["anisotropy_v2_dec"] = '%7.1f'%(hpars["v2_dec"])
+                HextRec["anisotropy_v2_inc"] = '%7.1f'%(hpars["v2_inc"])
+                HextRec["anisotropy_t2"] = '%10.8f'%(hpars["t2"])
                 HextRec["anisotropy_v2_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
                 HextRec["anisotropy_v2_eta_dec"] = '%7.1f '%(hpars["v1_dec"])
                 HextRec["anisotropy_v2_eta_inc"] = '%7.1f '%(hpars["v1_inc"])
                 HextRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f '%(hpars["e23"])
                 HextRec["anisotropy_v2_zeta_dec"] = '%7.1f '%(hpars["v3_dec"])
                 HextRec["anisotropy_v2_zeta_inc"] = '%7.1f '%(hpars["v3_inc"])
+
+                # group these into HextRec['aniso_v3']
+                aniso_v3 = " : ".join([str(i) for i in [hpars["t3"], hpars["v3_dec"], hpars["v3_inc"]]])
+                aniso_v3 += " : eta/zeta : "
+                aniso_v3 += " : ".join([str(i) for i in [hpars["v1_dec"],
+                                                         hpars["v1_inc"],
+                                                         hpars["e12"],
+                                                         hpars["v2_dec"],
+                                                         hpars["v2_inc"],
+                                                         hpars["e23"]]])
+                HextRec["aniso_v3"] = aniso_v3
+                # for printing
+                HextRec["anisotropy_v3_dec"] = '%7.1f'%(hpars["v3_dec"])
+                HextRec["anisotropy_v3_inc"] = '%7.1f'%(hpars["v3_inc"])
+                HextRec["anisotropy_t3"] = '%10.8f'%(hpars["t3"])
                 HextRec["anisotropy_v3_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
                 HextRec["anisotropy_v3_eta_dec"] = '%7.1f '%(hpars["v1_dec"])
                 HextRec["anisotropy_v3_eta_inc"] = '%7.1f '%(hpars["v1_inc"])
                 HextRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f '%(hpars["e23"])
                 HextRec["anisotropy_v3_zeta_dec"] = '%7.1f '%(hpars["v2_dec"])
                 HextRec["anisotropy_v3_zeta_inc"] = '%7.1f '%(hpars["v2_inc"])
-                HextRec["magic_method_codes"] = 'LP-AN:AE-H'
+
+                # not valid MagIC columns (2.5 or 3)
+                HextRec["anisotropy_hext_F"] = '%7.1f '%(hpars["F"])
+                HextRec["anisotropy_hext_F12"] = '%7.1f '%(hpars["F12"])
+                HextRec["anisotropy_hext_F23"] = '%7.1f '%(hpars["F23"])
+                #
+                HextRec["method_codes"] = 'LP-AN:AE-H'
                 if verbose:
                     print("Hext Statistics: ")
                     print(" tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
@@ -268,11 +332,29 @@ def main():
                     print(HextRec["anisotropy_v3_eta_dec"], HextRec["anisotropy_v3_eta_inc"], end=' ')
                     print(HextRec["anisotropy_v3_zeta_semi_angle"], HextRec["anisotropy_v3_zeta_dec"], end=' ')
                     print(HextRec["anisotropy_v3_zeta_inc"])
-                #HextRec['magic_software_packages']=version_num
-                #ResRecs.append(HextRec)
+                HextRec['software_packages']=version_num
+                # strip out invalid keys
+                for key in HextRec.copy():
+                    if key.startswith('anisotropy_'): #and 'hext' not in key:
+                        HextRec.pop(key)
+                ResRecs.append(HextRec)
             if bpars != []:
                 BootRec = {}
-                #for key in ResRec.keys():BootRec[key]=ResRec[key]   # copy over stuff
+                for key in ResRec.keys():
+                    BootRec[key]=ResRec[key]
+                # copy over stuff
+
+                aniso_v1 = " : ".join([str(i) for i in [bpars['t1'], bpars['v1_dec'],
+                                                        bpars['v1_inc']]])
+                aniso_v1 += " : eta/zeta : "
+                aniso_v1 += " : ".join([str(i) for i in [bpars['v1_eta_dec'],
+                                                         bpars['v1_eta_inc'],
+                                                         bpars['v1_eta'],
+                                                         bpars['v1_zeta_dec'],
+                                                         bpars['v1_zeta_inc'],
+                                                         bpars['v1_zeta']]])
+                BootRec['aniso_v1'] = aniso_v1
+                # for printing
                 BootRec["anisotropy_v1_dec"] = '%7.1f'%(bpars["v1_dec"])
                 BootRec["anisotropy_v2_dec"] = '%7.1f'%(bpars["v2_dec"])
                 BootRec["anisotropy_v3_dec"] = '%7.1f'%(bpars["v3_dec"])
@@ -288,24 +370,56 @@ def main():
                 BootRec["anisotropy_v1_zeta_inc"] = '%7.1f '%(bpars["v1_zeta_inc"])
                 BootRec["anisotropy_v1_zeta_dec"] = '%7.1f '%(bpars["v1_zeta_dec"])
                 BootRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f '%(bpars["v1_zeta"])
+
+                # group these into aniso_v2
+                aniso_v2 = " : ".join([str(i) for i in [bpars["t2"], bpars["v2_dec"], bpars["v2_inc"]]])
+                aniso_v2 += " : eta/zeta : "
+                aniso_v2 +=  " : ".join([str(i) for i in [bpars['v2_eta_dec'],
+                                                          bpars['v2_eta_inc'],
+                                                          bpars['v2_eta'],
+                                                          bpars['v2_zeta_dec'],
+                                                          bpars['v2_zeta_inc'],
+                                                          bpars['v2_zeta']]])
+                BootRec['aniso_v2'] = aniso_v2
+                # for printing
                 BootRec["anisotropy_v2_eta_inc"] = '%7.1f '%(bpars["v2_eta_inc"])
                 BootRec["anisotropy_v2_eta_dec"] = '%7.1f '%(bpars["v2_eta_dec"])
                 BootRec["anisotropy_v2_eta_semi_angle"] = '%7.1f '%(bpars["v2_eta"])
                 BootRec["anisotropy_v2_zeta_inc"] = '%7.1f '%(bpars["v2_zeta_inc"])
                 BootRec["anisotropy_v2_zeta_dec"] = '%7.1f '%(bpars["v2_zeta_dec"])
                 BootRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f '%(bpars["v2_zeta"])
+
+
+                # group into aniso_v3
+                aniso_v3 = " : ".join([str(i) for i in [bpars["t3"], bpars["v3_dec"], bpars["v3_inc"]]])
+                aniso_v3 += " : eta/zeta : "
+                aniso_v3 += " : ".join([str(i) for i in [bpars["v3_eta_dec"],
+                                                         bpars["v3_eta_inc"],
+                                                         bpars["v3_eta"],
+                                                         bpars["v3_zeta_dec"],
+                                                         bpars["v3_zeta_inc"],
+                                                         bpars["v3_zeta"]]])
+                BootRec["aniso_v3"] = aniso_v3
+
+
+                # for printing
                 BootRec["anisotropy_v3_eta_inc"] = '%7.1f '%(bpars["v3_eta_inc"])
                 BootRec["anisotropy_v3_eta_dec"] = '%7.1f '%(bpars["v3_eta_dec"])
                 BootRec["anisotropy_v3_eta_semi_angle"] = '%7.1f '%(bpars["v3_eta"])
                 BootRec["anisotropy_v3_zeta_inc"] = '%7.1f '%(bpars["v3_zeta_inc"])
                 BootRec["anisotropy_v3_zeta_dec"] = '%7.1f '%(bpars["v3_zeta_dec"])
                 BootRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f '%(bpars["v3_zeta"])
+
+
+                # not valid MagIC columns
                 BootRec["anisotropy_hext_F"] = ''
                 BootRec["anisotropy_hext_F12"] = ''
                 BootRec["anisotropy_hext_F23"] = ''
-                BootRec["magic_method_codes"] = 'LP-AN:AE-H:AE-BS' # regular bootstrap
+                #
+                BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS' # regular bootstrap
+
                 if ipar == 1:
-                    BootRec["magic_method_codes"] = 'LP-AN:AE-H:AE-BS-P' # parametric bootstrap
+                    BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS-P' # parametric bootstrap
                 if verbose:
                     print("Boostrap Statistics: ")
                     print(" tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
@@ -324,7 +438,13 @@ def main():
                     print(BootRec["anisotropy_v3_eta_semi_angle"], BootRec["anisotropy_v3_eta_dec"], end=' ')
                     print(BootRec["anisotropy_v3_eta_inc"], BootRec["anisotropy_v3_zeta_semi_angle"], end=' ')
                     print(BootRec["anisotropy_v3_zeta_dec"], BootRec["anisotropy_v3_zeta_inc"])
-                #BootRec['magic_software_packages'] = version_num
+                BootRec['software_packages'] = version_num
+                # strip out invalid keys
+                for key in BootRec.copy():
+                    if key.startswith('anisotropy_'):# and 'hext' not in key:
+                        BootRec.pop(key)
+                print('adding a bootstrap record')
+                # THESE SHOULD BE AT A DIFFERENT LEVEL??? MAYBE SITE?
                 ResRecs.append(BootRec)
             k += 1
             goon = 1
@@ -482,8 +602,16 @@ def main():
                 print('skipping plot - not enough data points')
             k += 1
     #   put rmag_results stuff here
-    #if len(ResRecs)>0:
-    #    ResOut,keylist=pmag.fillkeys(ResRecs)
+    if len(ResRecs)>0:
+        #for rec in ResRecs:
+        #    con.add_item('specimens', rec, rec['specimen'])
+        # sort records so that they are grouped by specimen ?
+        #con.write_table_to_file('specimens', 'custom_specimens.txt')
+        #ResOut,keylist=pmag.fillkeys(ResRecs)
+        # just make a fresh one
+        con.add_magic_table_from_data('specimens', ResRecs)
+        con.write_table_to_file('specimens', 'anisotropy_specimens.txt')
+
     #    pmag.magic_write(outfile,ResOut,'rmag_results')
     if verbose:
         print(" Good bye ")
