@@ -5047,7 +5047,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 MagRec["er_location_name"] = ""
 
         # the following keys are taken directly from OrRec dictionary:
-        for key in ["sample_height", "er_sample_alternatives"]:
+        for key in ["sample_height", "er_sample_alternatives", "sample_orientation_flag"]:
             if key in list(OrRec.keys()) and OrRec[key] != "":
                 MagRec[key] = OrRec[key]
             elif key in list(Prev_MagRec.keys()):
