@@ -3959,7 +3959,10 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         locs = set(locations)
         locs = sorted(locs)[:3]
         #location = locations[0].replace(' ', '_')
-        locs = [loc.replace(' ', '-') for loc in locs]
+        try:
+            locs = [loc.replace(' ', '-') for loc in locs]
+        except AttributeError:
+            locs = ["unknown_location"]
         location = "_".join(locs)
         new_up = location + '_' + time.strftime(format_string) + '.txt'
     else:
