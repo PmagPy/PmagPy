@@ -46,6 +46,9 @@ def main():
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         infile, dir_path, input_dir_path, overwrite, sep = extractor.get_vars(['f', 'WD', 'ID', 'O', 'sep'], checked_args)
 
+    if '-ID' not in sys.argv and '-WD' in sys.argv:
+        input_dir_path = dir_path
+
     data_model = float(pmag.get_named_arg_from_sys("-DM", 3))
     ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, True, data_model, sep)
 
