@@ -277,6 +277,8 @@ class ErMagicCheckFrame3(wx.Frame):
         reqd_headers = dmodel.get_reqd_headers(grid_name)
         df = self.contribution.tables[grid_name].df
         df = df.replace('', np.nan) # python does not view empty strings as null
+        if df.empty:
+            return {}
         col_names = set(df.columns)
         missing_headers = set(reqd_headers) - col_names
         present_headers = set(reqd_headers) - set(missing_headers)

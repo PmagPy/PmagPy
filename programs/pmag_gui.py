@@ -713,27 +713,27 @@ class MagMainFrame(wx.Frame):
             dlg.Destroy()
 
         if self.data_model_num == 3:
-            from programs import magic_gui
-            self.Disable()
-            self.Hide()
-            self.magic_gui_frame = magic_gui.MainFrame(self.WD,
-                                                       dmodel=self.data_model,
-                                                       title="Validations",
-                                                       contribution=self.contribution)
+            if not res:
+                from programs import magic_gui
+                self.Disable()
+                self.Hide()
+                self.magic_gui_frame = magic_gui.MainFrame(self.WD,
+                                                           dmodel=self.data_model,
+                                                           title="Validations",
+                                                           contribution=self.contribution)
 
-
-            self.magic_gui_frame.validation_mode = ['specimens']
-            self.magic_gui_frame.failing_items = all_failing_items
-            self.magic_gui_frame.change_dir_button.Disable()
-            self.magic_gui_frame.Centre()
-            self.magic_gui_frame.Show()
-            self.magic_gui_frame.highlight_problems(has_problems)
-            #
-            # change name of upload button to 'exit validation mode'
-            self.magic_gui_frame.bSizer2.GetStaticBox().SetLabel('return to main GUI')
-            self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
-            # bind that button to quitting magic gui and re-enabling Pmag GUI
-            self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
+                self.magic_gui_frame.validation_mode = ['specimens']
+                self.magic_gui_frame.failing_items = all_failing_items
+                self.magic_gui_frame.change_dir_button.Disable()
+                self.magic_gui_frame.Centre()
+                self.magic_gui_frame.Show()
+                self.magic_gui_frame.highlight_problems(has_problems)
+                #
+                # change name of upload button to 'exit validation mode'
+                self.magic_gui_frame.bSizer2.GetStaticBox().SetLabel('return to main GUI')
+                self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
+                # bind that button to quitting magic gui and re-enabling Pmag GUI
+                self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
 
     def on_end_validation(self, event):
         self.Enable()
