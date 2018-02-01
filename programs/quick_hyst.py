@@ -111,12 +111,11 @@ def main():
         spec = hyst_data[hyst_data['specimen'] == s]
         # get names
         if 'location' in spec:
-            locname = spec['location'][0]
+            locname = spec['location'].iloc[0]
         if 'site' in spec:
-            site = spec['sample'][0]
+            site = spec['sample'].iloc[0]
         if 'sample' in spec:
-            sample = spec['sample'][0]
-
+            sample = spec['sample'].iloc[0]
         # get all records with non-blank values in any intlist column
         # find intensity data
         for int_column in intlist:
