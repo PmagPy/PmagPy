@@ -5595,22 +5595,55 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     return True, None
 
 
-def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
+def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.',
+                       input_dir_path='.', data_model_num=3):
     """
     iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
     Default is to overwrite er_samples.txt in your output working directory.
     To specify an er_samples file to append to, use output_samp_file.
     """
+    samp_file_name = "samples.txt"
+    sample_alternatives = "sample_alternatives"
+    method_codes = "method_codes"
+    sample_name = "sample"
+    site_name = "site"
+    expedition_name = "expedition_name"
+    location_name = "location"
+    citation_name = "citation"
+    dip = "dip"
+    azimuth = "azimuth"
+    core_depth = "core_depth"
+    composite_depth = "composite_depth"
+    timestamp = "timestamp"
+    file_type = "samples"
+    data_model_num = int(float(data_model_num))
+    if data_model_num == 2:
+        samp_file_name = "er_samples.txt"
+        sample_alternatives = "sample_alternatives"
+        method_codes = "magic_method_codes"
+        sample_name = "er_sample_name"
+        site_name = "er_site_name"
+        expedition_name = "er_expedition_name"
+        location_name = "er_location_name"
+        citation_name = "er_citation_name"
+        dip = "sample_dip"
+        azimuth = "sample_azimuth"
+        core_depth = "sample_core_depth"
+        composite_depth = "sample_composite_depth"
+        timestamp = "sample_date"
+        file_type = "er_samples"
+
+
     text_key = None
     comp_depth_key = ""
-    samp_file = os.path.join(input_dir_path, samp_file)
+    samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
     Samps = []
-    if output_samp_file:
+    if os.path.exists(output_samp_file):
         samp_out = os.path.join(output_dir_path, output_samp_file)
         Samps, file_type = pmag.magic_read(samp_out)
         print(len(Samps), ' read in from: ', samp_out)
     else:
-        samp_out = os.path.join(output_dir_path, 'er_samples.txt')
+        samp_out = os.path.join(output_dir_path, samp_file_name)
     fin = open(samp_file, "r")
     file_input = fin.readlines()
     fin.close()
@@ -5660,7 +5693,7 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
                 break
             for k in range(len(keys)):
                 ODPRec[keys[k]] = rec[k].strip('"')
-            SampRec['er_sample_alternatives'] = ODPRec[text_key]
+            SampRec[sample_alternatives] = ODPRec[text_key]
             if "Label Id" in keys:  # old format
                 label = ODPRec['Label Id'].split()
                 if len(label) > 1:
@@ -5677,30 +5710,30 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
                     '.')[0].strip()  # only integers allowed!
                 core = ODPRec['Core'] + ODPRec['Type']
             if core != "" and interval != "":
-                SampRec['magic_method_codes'] = 'FS-C-DRILL-IODP:SP-SS-C:SO-V'
+                SampRec[method_codes] = 'FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 if file_format == 'old':
-                    SampRec['er_sample_name'] = pieces[0] + '-' + pieces[1] + \
+                    SampRec[sample_name] = pieces[0] + '-' + pieces[1] + \
                         '-' + core + '-' + pieces[3] + \
                         '-' + pieces[4] + '-' + interval
                 else:
-                    SampRec['er_sample_name'] = pieces[0] + '-' + pieces[1] + '-' + core + '-' + \
+                    SampRec[sample_name] = pieces[0] + '-' + pieces[1] + '-' + core + '-' + \
                         pieces[3] + '_' + pieces[4] + '_' + \
                         interval  # change in sample name convention
-                SampRec['er_site_name'] = SampRec['er_sample_name']
+                SampRec[site_name] = SampRec[sample_name]
                 # pieces=SampRec['er_sample_name'].split('-')
-                SampRec['er_expedition_name'] = pieces[0]
-                SampRec['er_location_name'] = pieces[1]
-                SampRec['er_citation_names'] = "This study"
-                SampRec['sample_dip'] = "0"
-                SampRec['sample_azimuth'] = "0"
-                SampRec['sample_core_depth'] = ODPRec[depth_key]
+                SampRec[expedition_name] = pieces[0]
+                SampRec[location_name] = pieces[1]
+                SampRec[citation_name] = "This study"
+                SampRec[dip] = "0"
+                SampRec[azimuth] = "0"
+                SampRec[core_depth] = ODPRec[depth_key]
                 if ODPRec[volume_key] != "":
                     SampRec['sample_volume'] = str(
                         float(ODPRec[volume_key]) * 1e-6)
                 else:
                     SampRec['sample_volume'] = '1'
                 if comp_depth_key != "":
-                    SampRec['sample_composite_depth'] = ODPRec[comp_depth_key]
+                    SampRec[composite_depth] = ODPRec[comp_depth_key]
                 dates = ODPRec[date_key].split()
                 if '/' in dates[0]:  # have a date
                     mmddyy = dates[0].split('/')
@@ -5715,15 +5748,15 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
                         dd + ':' + dates[1] + ":00.00"
                 else:
                     date = ""
-                SampRec['sample_date'] = date
+                SampRec[timestamp] = date
                 ErSamples.append(SampRec)
-                samples.append(SampRec['er_sample_name'])
+                samples.append(SampRec[sample_name])
     if len(Samps) > 0:
         for samp in Samps:
-            if samp['er_sample_name'] not in samples:
+            if samp[sample_name] not in samples:
                 ErSamples.append(samp)
     Recs, keys = pmag.fillkeys(ErSamples)
-    pmag.magic_write(samp_out, Recs, 'er_samples')
+    pmag.magic_write(samp_out, Recs, file_type)
     print('sample information written to: ', samp_out)
     return True, samp_out
 
