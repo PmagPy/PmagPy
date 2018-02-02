@@ -443,7 +443,6 @@ def main():
                 for key in BootRec.copy():
                     if key.startswith('anisotropy_'):# and 'hext' not in key:
                         BootRec.pop(key)
-                print('adding a bootstrap record')
                 # THESE SHOULD BE AT A DIFFERENT LEVEL??? MAYBE SITE?
                 ResRecs.append(BootRec)
             k += 1
