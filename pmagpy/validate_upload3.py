@@ -90,6 +90,7 @@ def isIn(row, col_name, arg, dm, df, con=None):
     """
     #grade = df.apply(func, args=(validation_name, arg, dm), axis=1)
     cell_value = row[col_name]
+    cell_value = str(cell_value)
     if not cell_value:
         return None
     elif not con:

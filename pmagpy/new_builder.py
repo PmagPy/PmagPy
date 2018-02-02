@@ -199,7 +199,7 @@ class Contribution(object):
                 if num < (len(names_list) - 1):
                     parent = names_list[num+1]
                     if parent in meas_df.columns:
-                        df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
+                        df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values.astype(str)
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
                 self.write_table_to_file(name + "s")
 
@@ -219,7 +219,7 @@ class Contribution(object):
             parent_name, child_name = self.get_parent_and_child(table_name)
             if parent_name:
                 if parent_name[:-1] in df.columns:
-                    parents = sorted(set(df[parent_name[:-1]].dropna().values))
+                    parents = sorted(set(df[parent_name[:-1]].dropna().values.astype(str)))
                     if parent_name in self.tables: # if there is a parent table, update it
                         parent_df = self.tables[parent_name].df
                         missing_parents = set(parents) - set(parent_df.index)
@@ -385,7 +385,7 @@ class Contribution(object):
                     # use first value if multiple values returned, but don't shorten a string
                     if not (isinstance(old_value, str)):
                         try:
-                            old_value = old_value.values[0]
+                            old_value = old_value.values.astype(str)[0]
                         except (TypeError,IndexError,AttributeError) as e: # if only one value, or np.nan, or NoneType
                             pass
                     if is_null(old_value):
@@ -1913,6 +1913,11 @@ class MagicDataFrame(object):
         # if indexing column was put in, remove it
         if "num" in self.df.columns:
             self.df = self.df.drop("num", axis=1)
+        #
+        # make sure name is a string
+        name = self.get_singular_and_plural_dtype(self.dtype)[0]
+        if name in self.df.columns:
+            self.df[name] = self.df[name].astype(str)
         #
         df = self.df
         # get full file path
