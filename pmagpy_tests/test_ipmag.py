@@ -183,7 +183,7 @@ class Test_iodp_samples_magic(unittest.TestCase):
         reference_file = os.path.join(WD, 'testing', 'odp_magic',
                                       'odp_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.iodp_samples_magic(infile)
+        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=2)
         self.assertTrue(program_ran)
         expected_file = os.path.join('.', 'er_samples.txt')
         self.assertEqual(outfile, expected_file)
@@ -194,13 +194,19 @@ class Test_iodp_samples_magic(unittest.TestCase):
         reference_file = os.path.join(WD, 'data_files', 'testing',
                                       'odp_magic', 'odp_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.iodp_samples_magic(infile)
+        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=2)
         with open(reference_file) as ref_file:
             ref_lines = ref_file.readlines()
         with open(outfile) as out_file:
             out_lines = out_file.readlines()
         self.assertTrue(program_ran)
         self.assertEqual(ref_lines, out_lines)
+
+    def test_with_data_model3(self):
+        infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
+        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=3)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath('samples.txt'), os.path.realpath(outfile))
 
 
 

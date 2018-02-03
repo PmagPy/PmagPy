@@ -5619,13 +5619,13 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.',
     data_model_num = int(float(data_model_num))
     if data_model_num == 2:
         samp_file_name = "er_samples.txt"
-        sample_alternatives = "sample_alternatives"
+        sample_alternatives = "er_sample_alternatives"
         method_codes = "magic_method_codes"
         sample_name = "er_sample_name"
         site_name = "er_site_name"
         expedition_name = "er_expedition_name"
         location_name = "er_location_name"
-        citation_name = "er_citation_name"
+        citation_name = "er_citation_names"
         dip = "sample_dip"
         azimuth = "sample_azimuth"
         core_depth = "sample_core_depth"
@@ -5638,10 +5638,11 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.',
     comp_depth_key = ""
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
     Samps = []
-    if os.path.exists(output_samp_file):
-        samp_out = os.path.join(output_dir_path, output_samp_file)
-        Samps, file_type = pmag.magic_read(samp_out)
-        print(len(Samps), ' read in from: ', samp_out)
+    if output_samp_file:
+        if os.path.exists(output_samp_file):
+            samp_out = os.path.join(output_dir_path, output_samp_file)
+            Samps, file_type = pmag.magic_read(samp_out)
+            print(len(Samps), ' read in from: ', samp_out)
     else:
         samp_out = os.path.join(output_dir_path, samp_file_name)
     fin = open(samp_file, "r")
