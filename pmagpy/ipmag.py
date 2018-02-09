@@ -5638,13 +5638,12 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.',
     comp_depth_key = ""
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
     Samps = []
+    samp_out = os.path.join(output_dir_path, samp_file_name)
     if output_samp_file:
         if os.path.exists(output_samp_file):
             samp_out = os.path.join(output_dir_path, output_samp_file)
             Samps, file_type = pmag.magic_read(samp_out)
             print(len(Samps), ' read in from: ', samp_out)
-    else:
-        samp_out = os.path.join(output_dir_path, samp_file_name)
     fin = open(samp_file, "r")
     file_input = fin.readlines()
     fin.close()
