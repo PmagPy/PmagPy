@@ -2651,7 +2651,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         for i in range(len(criteria_list)):
             crit = criteria_list[i]
             value, accept = dia.get_value_for_crit(crit, self.acceptance_criteria)
-            self.acceptance_criteria.update(accept)
+            if accept:
+                self.acceptance_criteria.update(accept)
         #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue() == True:
@@ -2700,12 +2701,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
     # only a valid number can be entered to boxes
     # used by On_close_criteria_box
 
-    def show_message(self, key):
-        dlg1 = wx.MessageDialog(self, caption="Error:",
-                                message="non-vaild value for box %s" % key, style=wx.OK)
-        result = self.show_dlg(dlg1)
-        if result == wx.ID_OK:
-            dlg1.Destroy()
 
     def recalculate_satistics(self):
         '''
@@ -2869,41 +2864,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
     def calculate_anisotropy_tensors(self, **kwargs):
 
-        def tauV(T):
-            """
-            gets the eigenvalues (tau) and eigenvectors (V) from matrix T
-            """
-            t, V, tr = [], [], 0.
-            ind1, ind2, ind3 = 0, 1, 2
-            evalues, evectmps = eig(T)
-            # to make compatible with Numeric convention
-            evectors = transpose(evectmps)
-            for tau in evalues:
-                tr += tau
-            if tr != 0:
-                for i in range(3):
-                    evalues[i] = evalues[i] / tr
-            else:
-                return t, V
-        # sort evalues,evectors
-            t1, t2, t3 = 0., 0., 1.
-            for k in range(3):
-                if evalues[k] > t1:
-                    t1, ind1 = evalues[k], k
-                if evalues[k] < t3:
-                    t3, ind3 = evalues[k], k
-            for k in range(3):
-                if evalues[k] != t1 and evalues[k] != t3:
-                    t2, ind2 = evalues[k], k
-            V.append(evectors[ind1])
-            V.append(evectors[ind2])
-            V.append(evectors[ind3])
-            t.append(t1)
-            t.append(t2)
-            t.append(t3)
-            return t, V
+        # removed function tauV because it wasn't used
 
-        # def main():
 
         def calculate_aniso_parameters(B, K):
             """
