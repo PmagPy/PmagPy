@@ -5654,6 +5654,7 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.',
         comp_depth_key = "Top depth CSF-B (m)"
     # incorporate changes to LIMS data model, while maintaining backward
     # compatibility
+    keys = [key.strip('"').strip("'") for key in keys]
     if "Top Depth (m)" in keys:
         depth_key = "Top Depth (m)"
     elif "CSF-A Top (m)" in keys:
