@@ -136,7 +136,7 @@ def get_orient(samp_data, er_sample_name,**kwargs):
     EX = ["SO-ASC", "SO-POM"]
     samp_key,az_key,dip_key='er_sample_name','sample_azimuth','sample_dip'
     disc_key,or_key,meth_key='sample_description','sample_orientation_flag',\
-             'magic_method_codes' 
+             'magic_method_codes'
     if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
         samp_key,az_key,dip_key='sample','azimuth','dip'
         disc_key,or_key,meth_key='description','orientation_quality',\
@@ -8988,10 +8988,10 @@ def get_TS(ts):
 
 def execute(st,**kwargs):
     """
-    Work around for Python3 exec function which doesn't allow changes to the local namespace because of scope. 
-    This breaks a lot of the old functionality in the code which was origionally in Python2. So this function 
-    runs just like exec except that it returns the output of the input statement to the local namespace. It may 
-    break if you start feeding it multiline monoliths of statements (haven't tested) but you shouldn't do that 
+    Work around for Python3 exec function which doesn't allow changes to the local namespace because of scope.
+    This breaks a lot of the old functionality in the code which was origionally in Python2. So this function
+    runs just like exec except that it returns the output of the input statement to the local namespace. It may
+    break if you start feeding it multiline monoliths of statements (haven't tested) but you shouldn't do that
     anyway (bad programming).
 
     Parameters
