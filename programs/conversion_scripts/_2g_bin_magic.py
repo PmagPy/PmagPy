@@ -13,12 +13,12 @@ OPTIONS
     -h: prints the help message and quits.
     -usr USER: Colon delimited list of analysts, default is ""
     -ID: directory for input file if not included in -f flag
-    -f FILE: specify .sam format input file, required
+    -f FILE: specify input file, required
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt
-    -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
+    -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -ncn NCON:  specify naming convention: default is #2 below
     -ocn OCON:  specify orientation convention, default is #5 below
@@ -255,7 +255,7 @@ def convert(**kwargs):
             SpecRec["specimen"]=specname
             SpecRec["sample"]=sample
             if vcc.strip()!="":vol=float(vcc)*1e-6 # convert to m^3 from cc
-            SpecRec["volumne"]='%10.3e'%(vol) #
+            SpecRec["volume"]='%10.3e'%(vol) #
             SpecRec["geologic_classes"]=sclass
             SpecRec["lithologies"]=lithology
             SpecRec["geologic_types"]=_type
@@ -292,9 +292,9 @@ def convert(**kwargs):
                 LocRec['lon_e'] = lon
                 LocRec['lat_s'] = lat
                 LocRec['lon_w'] = lon
-                LocRec["geologic_classes"]=sclass
-                LocRec["lithologies"]=lithology
-                LocRec["geologic_types"]=_type
+                #LocRec["geologic_classes"]=sclass
+                #LocRec["lithologies"]=lithology
+                #LocRec["geologic_types"]=_type
                 LocRecs.append(LocRec)
 
         else:
