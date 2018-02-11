@@ -3928,7 +3928,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                 failing.append(dtype)
     # write out the data
             if len(df):
-                container.write_magic_file(up, append=True)
+                container.write_magic_file(up, append=True, multi_type=True)
     # write out the file separator
             if last_file_type != file_type:
                 f = open(up, 'a')

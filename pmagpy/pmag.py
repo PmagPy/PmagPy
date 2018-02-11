@@ -9611,7 +9611,7 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
     crit_list.sort()
     if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
         code_key = 'criterion'
-        definition_key = 'definition'
+        definition_key = 'description'
         citation_key = 'citations'
     else:
         code_key = 'pmag_criteria_code'

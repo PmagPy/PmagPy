@@ -1895,7 +1895,8 @@ class MagicDataFrame(object):
 
     ## Methods for writing self.df out to tab-delimited file
 
-    def write_magic_file(self, custom_name=None, dir_path=".", append=False):
+    def write_magic_file(self, custom_name=None, dir_path=".",
+                         append=False, multi_type=False):
         """
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
@@ -1903,6 +1904,23 @@ class MagicDataFrame(object):
         By default will write to custom_name if custom_name is a full path,
         or will write to dir_path + custom_name if custom_name
         is not a full path.
+
+        Parameters
+        ----------
+        self : MagIC DataFrame
+        custom_name : str
+            custom file name
+        dir_path : str
+            dir_path (used if custom_name is not a full path), default "."
+        append : bool
+            append to existing file, default False
+        multi_type : bool
+            for creating upload file
+
+        Return
+        --------
+        fname : str
+            output file name
         """
         # don't let custom name start with "./"
         if custom_name:
@@ -1944,7 +1962,11 @@ class MagicDataFrame(object):
             mode = "w"
         f = open(fname, mode)
         if append:
-            df.to_csv(f, sep="\t", header=False, index=False)
+            header = False
+            if multi_type:
+                header = True
+                f.write('tab\t{}\n'.format(self.dtype))
+            df.to_csv(f, sep="\t", header=header, index=False)
         else:
             f.write('tab\t{}\n'.format(self.dtype))
             df.to_csv(f, sep="\t", header=True, index=False)

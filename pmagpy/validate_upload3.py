@@ -93,6 +93,10 @@ def isIn(row, col_name, arg, dm, df, con=None):
     cell_value = str(cell_value)
     if not cell_value:
         return None
+    elif cell_value == 'None':
+        return None
+    elif cell_value == 'nan':
+        return None
     elif not con:
         return None
     # if it's in another table
