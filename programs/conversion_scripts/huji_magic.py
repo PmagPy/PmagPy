@@ -384,7 +384,7 @@ def convert(**kwargs):
                 else:
                     print("Dont supprot AARM in HUJI format yet. sorry... do be DONE")
                 MeasRec["method_codes"]=methcode
-                MeasRec["experiments"]=specimen+ ":" + LPcode
+                MeasRec["experiment"]=specimen+ ":" + LPcode
                 MeasRec["treat_step_num"]="%i"%i
                 MeasRec["description"]=""
 
@@ -409,7 +409,7 @@ def convert(**kwargs):
                 #----------------------------------------
 
                 if LPcode == "LP-PI-TRM"  : # Thelllier experiment
-                    MeasRec["experiments"]=specimen+ ":" + LPcode
+                    MeasRec["experiment"]=specimen+ ":" + LPcode
                     methcode=LPcode
                     if treatment_type=="N" or ( (treatment[1]=='0' or  treatment[1]=='00') and float(treatment[0])==0):
                             LT_code="LT-NO"
@@ -472,7 +472,7 @@ def convert(**kwargs):
                 #----------------------------------------
 
                 if LPcode == "LP-DIR-T"  :
-                    MeasRec["experiments"]=specimen+ ":" + LPcode
+                    MeasRec["experiment"]=specimen+ ":" + LPcode
                     methcode=LPcode
                     if treatment_type=="N":
                         LT_code="LT-NO"
@@ -496,7 +496,7 @@ def convert(**kwargs):
                 #----------------------------------------
 
                 if LPcode =="LP-AN-TRM":
-                    MeasRec["experiments"]=specimen+ ":" + LPcode
+                    MeasRec["experiment"]=specimen+ ":" + LPcode
                     methcode=LPcode
 
                     if float(treatment[1])==0:
@@ -546,7 +546,7 @@ def convert(**kwargs):
                 #----------------------------------------
 
                 if LPcode == "LP-TRM"  :
-                    MeasRec["experiments"]=specimen+ ":" + LPcode
+                    MeasRec["experiment"]=specimen+ ":" + LPcode
                     MeasRec["method_codes"]="LP-TRM:LT-T-I"
                     if float(treatment[1])==0:
                         labfield=0
@@ -578,7 +578,7 @@ def convert(**kwargs):
                             meas_type="LT-T-I:LP-CR-TRM"
                             CR_cooling_time=CR_cooling_times[index-1]
                     MeasRec["method_codes"]=meas_type
-                    MeasRec["experiments"]=specimen+ ":" + LPcode
+                    MeasRec["experiment"]=specimen+ ":" + LPcode
                     MeasRec["treat_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                     MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
