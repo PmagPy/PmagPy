@@ -310,42 +310,49 @@ def convert_lat(Recs):
     return New
 
 
-def convert_ages(Recs):
+def convert_ages(Recs,**kwargs):
     """
     converts ages to Ma
     """
-    New = []
-    for rec in Recs:
-        age = ''
+    if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
+        site_key='site'
+        agekey="age"
+        keybase=""
+    else:
+        site_key='er_site_names'
         agekey = find('age', list(rec.keys()))
         if agekey != "":
             keybase = agekey.split('_')[0] + '_'
-            if rec[keybase + 'age'] != "":
-                age = float(rec[keybase + "age"])
-            elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
-                age = np.mean([rec[keybase + 'age_high'], rec[keybase + "age_low"]])
-                #age = float(rec[keybase + 'age_low']) + old_div(
-                #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
-            if age != '':
-                rec[keybase + 'age_unit']
-                if rec[keybase + 'age_unit'] == 'Ma':
-                    rec[keybase + 'age'] = '%10.4e' % (age)
-                elif rec[keybase + 'age_unit'] == 'ka' or rec[keybase + 'age_unit'] == 'Ka':
-                    rec[keybase + 'age'] = '%10.4e' % (age * .001)
-                elif rec[keybase + 'age_unit'] == 'Years AD (+/-)':
-                    rec[keybase + 'age'] = '%10.4e' % ((2011 - age) * 1e-6)
-                elif rec[keybase + 'age_unit'] == 'Years BP':
-                    rec[keybase + 'age'] = '%10.4e' % ((age) * 1e-6)
-                rec[keybase + 'age_unit'] = 'Ma'
-                New.append(rec)
-            else:
-                if 'er_site_names' in list(rec.keys()):
-                    print('problem in convert_ages:', rec['er_site_names'])
-                elif 'er_site_name' in list(rec.keys()):
-                    print('problem in convert_ages:', rec['er_site_name'])
-                else:
-                    print('problem in convert_ages:', rec)
+        
+    New = []
+    for rec in Recs:
+        age = ''
+        if rec[keybase + 'age'] != "":
+            age = float(rec[keybase + "age"])
+        elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
+            age = np.mean([rec[keybase + 'age_high'], rec[keybase + "age_low"]])
+            #age = float(rec[keybase + 'age_low']) + old_div(
+            #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
+        if age != '':
+            rec[keybase + 'age_unit']
+            if rec[keybase + 'age_unit'] == 'Ma':
+                rec[keybase + 'age'] = '%10.4e' % (age)
+            elif rec[keybase + 'age_unit'] == 'ka' or rec[keybase + 'age_unit'] == 'Ka':
+                rec[keybase + 'age'] = '%10.4e' % (age * .001)
+            elif rec[keybase + 'age_unit'] == 'Years AD (+/-)':
+                rec[keybase + 'age'] = '%10.4e' % ((2011 - age) * 1e-6)
+            elif rec[keybase + 'age_unit'] == 'Years BP':
+                rec[keybase + 'age'] = '%10.4e' % ((age) * 1e-6)
+            rec[keybase + 'age_unit'] = 'Ma'
+            New.append(rec)
         else:
+            if 'site_key' in list(rec.keys()):
+                print('problem in convert_ages:', rec['site_key'])
+            elif 'er_site_name' in list(rec.keys()):
+                print('problem in convert_ages:', rec['site_key'])
+            else:
+                print('problem in convert_ages:', rec)
+        if len(New)==0:
             print('no age key:', rec)
     return New
 
