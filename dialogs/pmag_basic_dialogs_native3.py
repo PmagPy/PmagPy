@@ -1277,7 +1277,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             replicate = '-A'
 
         COMMAND = "huji_magic_new.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
-        program_ran, error_message = huji_magic_new.convert(**options)
+        program_ran, error_message = huji_magic.convert(**options)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1414,20 +1414,20 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
         else:
             replicate = ''
             options_dict['noave'] = 1
-        spec_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_specimens.txt"
-        options_dict['spec_file'] = spec_outfile
-        samp_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_samples.txt"
-        options_dict['samp_file'] = samp_outfile
-        sites_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_sites.txt"
-        options_dict['site_file'] = sites_outfile
-        loc_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_locations.txt"
-        options_dict['loc_file'] = loc_outfile
         for f in files:
             file_2g_bin = f
             outfile = file_2g_bin + ".magic"
             options_dict['meas_file'] = outfile
             options_dict['mag_file'] = f
-            COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_bin, outfile, spec_outfile, samp_outfile, sites_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
+            spec_outfile = file_2g_bin + "_specimens.txt"
+            samp_outfile = file_2g_bin + "_samples.txt"
+            site_outfile = file_2g_bin + "_sites.txt"
+            loc_outfile = file_2g_bin + "_locations.txt"
+            options_dict['spec_file'] = spec_outfile
+            options_dict['samp_file'] = samp_outfile
+            options_dict['site_file'] = site_outfile
+            options_dict['loc_file'] = loc_outfile
+            COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_bin, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
                 if _2g_bin_magic.convert(**options_dict):

@@ -729,11 +729,15 @@ class Criteria_Dialog(wx.Dialog):
             try:
                 acceptance_criteria[crit]['value'] = float(value)
             except:
-                self.show_message(crit)
+                msg = "non-valid value for box {}".format(crit)
+                pw.simple_warning(msg)
+                return None, False
         elif type(value) == float or type(value) == int:
             acceptance_criteria[crit]['value'] = float(value)
         else:
-            self.show_message(crit)
+            msg = "non-valid value for box {}".format(crit)
+            pw.simple_warning(msg)
+            return None, False
         if (crit == 'sample_int_sigma' or crit == 'site_int_sigma') and str(value) != "":
             acceptance_criteria[crit]['value'] = float(value) * 1e-6
         return value, acceptance_criteria
@@ -900,7 +904,8 @@ class Consistency_Test(wx.Frame):
         for i in range(len(criteria_list)):
             crit = criteria_list[i]
             value, accept = dia.get_value_for_crit(crit, self.acceptance_criteria)
-            self.acceptance_criteria.update(accept)
+            if accept:
+                self.acceptance_criteria.update(accept)
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue() == True:
             self.acceptance_criteria['interpreter_method']['value'] = 'stdev_opt'
@@ -938,14 +943,6 @@ class Consistency_Test(wx.Frame):
 
     # only valid naumber can be entered to boxes
     # used by On_close_criteria_box
-    def show_messege(self, key):
-        dlg1 = wx.MessageDialog(self, caption="Error:",
-                                message="non-vaild value for box %s" % key, style=wx.OK)
-        # dlg1.ShowModal()
-        result = dlg1.ShowModal()
-        if result == wx.ID_OK:
-            dlg1.Destroy()
-
     def init_optimizer_frame(self):
 
         Text = "Set Consistency Test function parameters"

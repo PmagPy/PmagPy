@@ -897,13 +897,13 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
 
 class ChooseOne(wx.Dialog):
 
-    def __init__(self, parent, yes, no, text=""):
+    def __init__(self, parent, yes, no, text="", title="Choose one"):
         super(ChooseOne, self).__init__(parent)
         self.yes = yes
         self.no = no
         self.text = text
         self.InitUI()
-        self.SetTitle("Choose one")
+        self.SetTitle(title)
 
 
     def InitUI(self):
@@ -1081,6 +1081,9 @@ def on_cookbook(event):
 
 def on_git(event):
     webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
+
+def on_database_upload(event=None):
+    webbrowser.open("https://www.earthref.org/MagIC/upload", new=2)
 
 def on_show_output(event):
     outframe = get_output_frame()
