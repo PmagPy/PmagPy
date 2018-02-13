@@ -947,7 +947,9 @@ class GridBuilder(object):
         # if there is a MagicDataFrame, extract data from it
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             # get columns and reorder slightly
-            col_labels = list(self.magic_dataframe.df.columns.difference(self.exclude_cols))
+            col_labels = list(self.magic_dataframe.df.columns)
+            for ex_col in self.exclude_cols:
+                col_labels.pop(ex_col)
             if self.grid_type == 'ages':
                 levels = ['specimen', 'sample', 'site', 'location']
                 for label in levels[:]:

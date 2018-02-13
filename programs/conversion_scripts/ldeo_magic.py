@@ -215,7 +215,7 @@ def convert(**kwargs):
             mass = float(rec[12])
             if mass > 0: susc_chi_mass='%10.3e'%(old_div((float(rec[11])*1e-5),mass)) #convert to SI (assume Bartington, 10-5 SI)
             else: susc_chi_mass='%10.3e'%(float(rec[11])*1e-5) #convert to SI (assume Bartington, 10-5 SI)
-        print((specimen,sample,site,samp_con,Z))
+        #print((specimen,sample,site,samp_con,Z))
 
         #fill tables besides measurements
         if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
@@ -260,7 +260,11 @@ def convert(**kwargs):
         MeasRec["specimen"]=specimen
 #        if mv=='v': MeasRec["susc_chi_volume"]=susc_chi_volume
 #        else: MeasRec["susc_chi_mass"]=susc_chi_mass
-        MeasRec["dir_csd"]=rec[3]
+        try:
+            float(rec[3])
+            MeasRec["dir_csd"]=rec[3]
+        except ValueError:
+            MeasRec["dir_csd"]=''
         MeasRec["magn_moment"]='%10.3e'% (float(rec[4])*1e-7)
         MeasRec["dir_dec"]=rec[5]
         MeasRec["dir_inc"]=rec[6]
