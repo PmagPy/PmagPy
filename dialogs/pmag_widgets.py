@@ -1095,7 +1095,7 @@ def on_hide_output(event):
     outframe.Hide()
 
 def get_output_frame():
-    print('-I- Fetching output frame')
+    #print('-I- Fetching output frame')
     wins = wx.GetTopLevelWindows()
     for win in wins:
         if win.Name == 'frame':

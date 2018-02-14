@@ -176,6 +176,7 @@ def convert(**kwargs):
                     SampRec['core_depth']=InRec[depth_key]
                     if comp_depth_key!='':
                         SampRec['composite_depth']=InRec[comp_depth_key]
+                        SiteRec['composite_depth']=InRec[comp_depth_key]
                     if "SHLF" not in InRec[text_id]:
                         SampRec['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                     else:
@@ -188,6 +189,7 @@ def convert(**kwargs):
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
+                    SiteRec['core_depth'] = InRec[depth_key]
                 if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                     LocRec['location']=location
                     LocRec['citations']=citations
@@ -199,7 +201,7 @@ def convert(**kwargs):
                     LocRecs.append(LocRec)
 
                 MeasRec['specimen'] = specimen
-                MeasRec['magic_software_packages']=version_num
+                MeasRec['software_packages']=version_num
                 MeasRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
                 MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
                 MeasRec["treat_ac_field"]=0
