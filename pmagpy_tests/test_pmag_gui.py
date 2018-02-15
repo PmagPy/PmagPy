@@ -434,7 +434,7 @@ class TestMainFrame3(unittest.TestCase):
         self.assertTrue(window.IsShown())
 
 
-    @unittest.skip("segfault happening...")
+    #@unittest.skip("segfault happening...")
     def test_click_thellier_gui(self):
         """
         make sure thellier_gui window is created when users clicks btn
