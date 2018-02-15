@@ -8,6 +8,7 @@
 
 import os
 import sys
+import pandas as pd
 import wx
 import wx.grid
 import wx.html
@@ -92,11 +93,16 @@ class MagIC_model_builder3(wx.Frame):
                 actual_headers = df_container.df.columns.union(reqd_headers)
             else:
                 actual_headers = reqd_headers
-            optional_headers = dmodel.dm[table].index.difference(actual_headers)
             # add any extra headers (i.e., reqd but not present), into the table
             add_headers = actual_headers.difference(df_container.df.columns)
+            if table in ['sites', 'locations']:
+                if 'age' not in add_headers and 'age' not in actual_headers:
+                    add_headers = add_headers.append(pd.Index(['age']))
             for head in add_headers:
                 df_container.df[head] = None
+            # define actual (includes reqd) vs optional headers
+            actual_headers = df_container.df.columns
+            optional_headers = dmodel.dm[table].index.difference(actual_headers)
 
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,
                                                         table), wx.VERTICAL)
