@@ -3938,9 +3938,9 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                 f.close()
                 print("-I-", file_type, 'written to ', up)
             else:  # last file, no newline at end of file
-                f = open(up, 'a')
-                f.write('>>>>>>>>>>')
-                f.close()
+                #f = open(up, 'a')
+                #f.write('>>>>>>>>>>')
+                #f.close()
                 print("-I-", file_type, 'written to ', up)
     # if there was no understandable data
         else:
