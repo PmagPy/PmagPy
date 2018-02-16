@@ -236,7 +236,7 @@ def convert(**kwargs):
             MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
-            MeasRec["experiments"] = location + site + spec_name
+            MeasRec["experiment"] = location + site + spec_name # will be overwritten by measurements_methods3
             MeasRec["treat_step_num"] = location + site + spec_name + items[0]
             MeasRec["specimen"] = spec_name
             # MeasRec["treat_ac_field"] = '0'
