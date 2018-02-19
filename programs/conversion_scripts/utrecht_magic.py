@@ -100,7 +100,7 @@ def convert(**kwargs):
 
     # format variables
     if not mag_file:
-        return False, 'You must provide a Utrecht formated file'
+        return False, 'You must provide a Utrecht format file'
     mag_file = os.path.join(input_dir_path, mag_file)
 
     # parse data
