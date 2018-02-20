@@ -55,7 +55,6 @@ class TestGenericMagic(unittest.TestCase):
         options['experiment'] = 'Demag'
         program_ran, outfile_name = generic_magic.convert(**options)
         self.assertTrue(program_ran)
-        print('outfile_name', outfile_name)
         print(os.path.realpath(options['meas_file']))
         self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
 
@@ -297,6 +296,10 @@ class TestIodpSrmMagic(unittest.TestCase):
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, dir_path)
+        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import', 'iodp_srm_magic')
+        pmag.remove_files(filelist, dir_path)
+        dir_path = WD
+        pmag.remove_files(filelist, dir_path)
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
@@ -304,14 +307,21 @@ class TestIodpSrmMagic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
-    @unittest.skip("iodp_srm_magic is missing an example datafile")
+    #@unittest.skip("iodp_srm_magic is missing an example datafile")
     def test_iodp_with_files(self):
         options = {}
         dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
                                 'iodp_srm_magic')
         options['dir_path'] = dir_path
-        program_ran, outfile = iodp_srm_magic.convert(**options)
-        self.assertTrue(program_ran)
+        files = os.listdir(dir_path)
+        files = ['IODP_Janus_312_U1256.csv', 'SRM_318_U1359_B_A.csv' ] # this one takes way too long: IODP_LIMS_SRMsection_344_1414A.csv
+        info = []
+        for f in files:
+            if f.endswith('csv') and 'summary' not in f and 'discrete' not in f and 'sample' not in f:
+                options['csv_file'] = f
+                program_ran, outfile = iodp_srm_magic.convert(**options)
+                meas_df = nb.MagicDataFrame(pmag.resolve_file_name(outfile, dir_path))
+                self.assertTrue(len(meas_df.df) > 0)
 
     #@unittest.skip("iodp_srm_magic is missing an example datafile")
     def test_iodp_with_one_file(self):

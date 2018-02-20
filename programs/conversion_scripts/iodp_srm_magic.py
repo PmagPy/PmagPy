@@ -4,7 +4,7 @@ NAME
     iodp_srm_magic.py
 
 DESCRIPTION
-    converts IODP LIMS and LORE SRM archive half sample format files to magic_measurements format files
+    converts IODP LIMS and LORE SRM archive half sample format files to measurements format files
 
 SYNTAX
     iodp_srm_magic.py [command line options]
@@ -89,6 +89,7 @@ def convert(**kwargs):
                 interval_key = "Offset (cm)"
             else:
                 print("couldn't find interval or offset amount")
+            # get depth key
             if "Top Depth (m)" in keys:
                 depth_key = "Top Depth (m)"
             elif "CSF-A Top (m)" in keys:
@@ -97,6 +98,7 @@ def convert(**kwargs):
                 depth_key = "Depth CSF-A (m)"
             else:
                 print("couldn't find depth")
+            # get comp depth key
             if "CSF-B Top (m)" in keys:
                 comp_depth_key = "CSF-B Top (m)"  # use this model if available
             elif "Depth CSF-B (m)" in keys:
@@ -112,6 +114,7 @@ def convert(**kwargs):
                 demag_key = "Treatment Value"
             else:
                 print("couldn't find demag type")
+            # Get inclination key
             if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in keys:
                 inc_key = "Inclination (Tray- and Bkgrd-Corrected) (deg)"
             elif "Inclination background + tray corrected  (deg)" in keys:
@@ -124,10 +127,15 @@ def convert(**kwargs):
                 inc_key = "Inclination background & tray corrected (deg)"
             elif "Inclination background & drift corrected (deg)" in keys:
                 inc_key = "Inclination background & drift corrected (deg)"
+            elif "Inclination background + tray corrected  (\N{DEGREE SIGN})" in keys:
+                inc_key = "Inclination background + tray corrected  (\N{DEGREE SIGN})"
             else:
                 print("couldn't find inclination")
+            # get declination key
             if "Declination (Tray- and Bkgrd-Corrected) (deg)" in keys:
                 dec_key = "Declination (Tray- and Bkgrd-Corrected) (deg)"
+            elif "Declination background + tray corrected (\N{DEGREE SIGN})" in keys:
+                dec_key = "Declination background + tray corrected (\N{DEGREE SIGN})"
             elif "Declination background + tray corrected (deg)" in keys:
                 dec_key = "Declination background + tray corrected (deg)"
             elif "Declination background + tray corrected (\xc2\xb0)" in keys:
@@ -337,9 +345,18 @@ def convert(**kwargs):
                     elif "T" in InRec['Treatment Type'].upper():
                         MeasRec['method_codes'] = 'LT-T-Z'
                         inst = inst+':IODP-TDS'  # measured on shipboard Schonstedt thermal demagnetizer
-                        treatment_value = float(
-                            InRec['Treatment Value'])+273  # convert C => K
-                        MeasRec["treat_temp"] = treatment_value
+                        try:
+                            treatment_value = float(
+                                InRec['Treatment Value'])+273  # convert C => K
+                        except KeyError:
+                            try:
+                                treatment_value = float(
+                                    InRec["Treatment value<br> (mT or \N{DEGREE SIGN}C)"]) + 273
+                            except KeyError:
+                                print([k for k in InRec.keys() if 'treat' in k.lower()])
+                                print("-W- Couldn't find column for Treatment Value")
+                                treatment_value = ""
+                        MeasRec["treat_temp"] = str(treatment_value)
                     elif 'Alternating Frequency' in InRec['Treatment Type']:
                         MeasRec['method_codes'] = 'LT-AF-Z'
                         inst = inst+':IODP-DTECH'  # measured on shipboard Dtech D2000
