@@ -220,7 +220,11 @@ def convert(**kwargs):
                 if dmy_flag: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
                 else: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
             except ValueError:
-                naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                try:
+                    naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                except ValueError:
+                    print('-W- Could not parse date format')
+                    return False, 'Could not parse date format'
             local_dt = local.localize(naive, is_dst=None)
             utc_dt = local_dt.astimezone(pytz.utc)
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
