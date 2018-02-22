@@ -141,8 +141,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.add_many_rows_button.Disable()
             self.rows_spin_ctrl.Disable()
             self.remove_row_button.Disable()
-            #
-            self.add_cols_button.Disable()
+            # can't yet remove cols, but can add them
+            #self.add_cols_button.Disable()
             self.remove_cols_button.Disable()
 
 

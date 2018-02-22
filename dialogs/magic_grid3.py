@@ -89,9 +89,13 @@ class HugeTable(gridlib.GridTableBase):
             self.dataframe.rename(columns={col_name: str(value)}, inplace=True)
         return None
 
-    ## this one doesn't seem to work right... just hangs...
-    #def AppendCols(self, *args):
-    #    pass
+    def AppendCols(self, *args):
+        self.num_cols += 1
+        msg = gridlib.GridTableMessage(self,  # The table
+                               gridlib.GRIDTABLE_NOTIFY_COLS_APPENDED, # what we did to it
+                               1)                                       # how many
+        self.GetView().ProcessTableMessage(msg)
+        return True
 
 
 class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
@@ -280,9 +284,6 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
                 self.add_row()
         # ignore excess columns if present
         col_length_diff = len(text_df.columns) - (len(self.col_labels) - col_ind)
-        #print "len(text_df.columns) -  (len(self.col_labels) - col_ind)"
-        #print len(text_df.columns), " - ", "(", len(self.col_labels), "-", col_ind, ")"
-        #print 'col_length_diff', col_length_diff
         if col_length_diff > 0:
             text_df = text_df.iloc[:, :-col_length_diff].copy()
         # go through copied text and parse it into the grid rows
@@ -347,17 +348,6 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
                 updated_rows.append(changed_row)
         self.changes = set(updated_rows)
 
-    def add_col(self, label):
-        """
-        Add a new column to the grid.
-        Resize grid to display the column.
-        """
-        self.AppendCols(1, updateLabels=False)
-        last_col = self.GetNumberCols() - 1
-        self.SetColLabelValue(last_col, label)
-        self.col_labels.append(label)
-        self.size_grid()
-        return last_col
 
     def remove_col(self, col_num):
         """
@@ -472,6 +462,27 @@ class MagicGrid(BaseMagicGrid):
         # set scrollbars
         self.set_scrollbars()
 
+    def add_col(self, label):
+        """
+        Add a new column to the grid.
+        Resize grid to display the column.
+
+        Parameters
+        ----------
+        label : str
+
+        Returns
+        ---------
+        last_col: int
+            index column number of added col
+
+        """
+        self.AppendCols(1, updateLabels=False)
+        last_col = self.GetNumberCols() - 1
+        self.SetColLabelValue(last_col, label)
+        self.col_labels.append(label)
+        self.size_grid()
+        return last_col
 
     def add_items(self, dataframe, hide_cols=()):
         """
@@ -530,7 +541,6 @@ class MagicGrid(BaseMagicGrid):
 
 
 
-
 class HugeMagicGrid(BaseMagicGrid):
 
     def __init__(self, parent, name, row_labels, col_labels, size=0):
@@ -571,6 +581,27 @@ class HugeMagicGrid(BaseMagicGrid):
         in self.table
         """
         self.table.SetColumnValues(col, data)
+
+    def add_col(self, label):
+        """
+        Update table dataframe, and append a new column
+
+        Parameters
+        ----------
+        label : str
+
+        Returns
+        ---------
+        last_col: int
+            index column number of added col
+        """
+        self.table.dataframe[label] = ''
+        self.AppendCols(1, updateLabels=False)
+        last_col = self.table.GetNumberCols() - 1
+        self.SetColLabelValue(last_col, label)
+        self.col_labels.append(label)
+        self.size_grid()
+        return last_col
 
     def OnRightDown(self, event):
         print(self.GetSelectedRows())
