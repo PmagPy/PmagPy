@@ -92,14 +92,19 @@ def convert(**kwargs):
     else: Z = 1
 
     # format variables
-    mag_file = os.path.join(input_dir_path,mag_file)
-    meas_file = os.path.join(output_dir_path,meas_file)
-    spec_file = os.path.join(output_dir_path,spec_file)
-    samp_file = os.path.join(output_dir_path,samp_file)
-    site_file = os.path.join(output_dir_path,site_file)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
 
     # parse data
-    data=open(mag_file,'r').readlines() # read in data from file
+    try:
+        with open(mag_file, 'r') as f:
+            data = f.readlines()
+    except IOError:
+        print('mag_file field is required option')
+        return False, 'mag_file field is required option'
     comment=data[0]
     line=data[1].strip()
     line=line.replace("=","= ")  # make finding orientations easier

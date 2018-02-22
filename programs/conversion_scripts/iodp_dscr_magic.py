@@ -100,11 +100,20 @@ def convert(**kwargs):
             sect_key="Sect"
             half_key="A/W"
 # need to add volume_key to LORE format!
-            if "Sample volume (cm^3)" in keys:volume_key="Sample volume (cm^3)"
-            elif "Sample volume (cc)" in keys:volume_key="Sample volume (cc)"
-            elif "Sample volume (cm&sup3;)" in keys:volume_key="Sample volume (cm&sup3;)"
-            elif "Sample volume (cm\xc2\xb3)" in keys:volume_key="Sample volume (cm\xc2\xb3)"
-            else: volume_key=""
+            if "Sample volume (cm^3)" in keys:
+                volume_key="Sample volume (cm^3)"
+            elif "Sample volume (cc)" in keys:
+                volume_key="Sample volume (cc)"
+            elif "Sample volume (cm&sup3;)" in keys:
+                volume_key="Sample volume (cm&sup3;)"
+            elif "Sample volume (cm\xc2\xb3)" in keys:
+                volume_key="Sample volume (cm\xc2\xb3)"
+            elif "Sample volume (cm{})".format(chr(0x00B2)) in keys:
+                volume_key = "Sample volume (cm{})".format(chr(0x00B2))
+            elif "Sample volume (cm\xb3)" in keys:
+                volume_key = "Sample volume (cm\xb3)"
+            else:
+                volume_key=""
             for line in indata[1:]:
                 InRec={}
                 MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
@@ -122,7 +131,8 @@ def convert(**kwargs):
                 specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 sample = expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]
                 site = expedition+'-'+location
-                if volume_key in list(InRec.keys()): volume=InRec[volume_key]
+                if volume_key in list(InRec.keys()):
+                    volume=InRec[volume_key]
 
                 if not InRec[dec_key].strip(""" " ' """) or not InRec[inc_key].strip(""" " ' """):
                     print("No dec or inc found for specimen %s, skipping"%specimen)
@@ -201,7 +211,11 @@ def convert(**kwargs):
                     treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
                     MeasRec["treat_ac_field"]=treatment_value # AF demag in treat mT => T
                 MeasRec["standard"]='u' # assume all data are "good"
-                vol=float(volume)
+                try:
+                    vol=float(volume)
+                except ValueError:
+                    print('-W- No volume information provided, guessing 2.5cm cube')
+                    vol = (2.5**3)*1e-6 #default volume is a 2.5cm cube
                 if run_key in list(InRec.keys()):
                     run_number=InRec[run_key]
                     MeasRec['external_database_ids']={'LIMS':run_number}

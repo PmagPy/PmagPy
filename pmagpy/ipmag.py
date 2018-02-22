@@ -3855,8 +3855,10 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
               'Site', 'Object Number', 'version')
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
-                    'specimens': ['site', 'location', 'age', 'age_unit', 'age_high', 'age_low', 'age_sigma'],
-                    'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low', 'age_sigma']}
+                    'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
+                                  'age_low', 'age_sigma'],
+                    'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
+                                   'age_sigma', 'core_depth', 'composite_depth']}
 
     failing = []
     all_failing_items = {}
@@ -3936,9 +3938,9 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                 f.close()
                 print("-I-", file_type, 'written to ', up)
             else:  # last file, no newline at end of file
-                f = open(up, 'a')
-                f.write('>>>>>>>>>>')
-                f.close()
+                #f = open(up, 'a')
+                #f.write('>>>>>>>>>>')
+                #f.close()
                 print("-I-", file_type, 'written to ', up)
     # if there was no understandable data
         else:

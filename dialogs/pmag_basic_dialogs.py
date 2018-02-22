@@ -149,7 +149,7 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_nextButton(self,event):
         self.Destroy()
-        combine_dia = combine_magic_dialog(self.WD, self.parent)
+        combine_dia = combine_magic_dialog(self.WD, self.parent, data_model=2.5)
         combine_dia.Show()
         combine_dia.Center()
 
@@ -243,7 +243,7 @@ class combine_magic_dialog(wx.Frame):
         # to run as module:
         #print "-I- Running equivalent of Python command:\n %s"%COMMAND
 
-        if ipmag.combine_magic(files, 'magic_measurements.txt'):
+        if ipmag.combine_magic(files, 'magic_measurements.txt', data_model=2.5):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
             MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal/message window for errors"%(len(files))
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
@@ -358,7 +358,7 @@ class combine_everything_dialog(wx.Frame):
             files = full_list.strip('\n').replace(" ", "")
             if files:
                 files = files.split('\n')
-            if ipmag.combine_magic(files, file_name):
+            if ipmag.combine_magic(files, file_name, data_model=2.5):
                 new_files.append(file_name)  # add to the list of successfully combined files
             else:
                 success = False

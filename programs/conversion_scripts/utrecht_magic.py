@@ -100,7 +100,7 @@ def convert(**kwargs):
 
     # format variables
     if not mag_file:
-        return False, 'You must provide a Utrecht formated file'
+        return False, 'You must provide a Utrecht format file'
     mag_file = os.path.join(input_dir_path, mag_file)
 
     # parse data
@@ -220,7 +220,11 @@ def convert(**kwargs):
                 if dmy_flag: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
                 else: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
             except ValueError:
-                naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                try:
+                    naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                except ValueError:
+                    print('-W- Could not parse date format')
+                    return False, 'Could not parse date format'
             local_dt = local.localize(naive, is_dst=None)
             utc_dt = local_dt.astimezone(pytz.utc)
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
@@ -236,7 +240,7 @@ def convert(**kwargs):
             MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
-            MeasRec["experiments"] = location + site + spec_name
+            MeasRec["experiment"] = location + site + spec_name # will be overwritten by measurements_methods3
             MeasRec["treat_step_num"] = location + site + spec_name + items[0]
             MeasRec["specimen"] = spec_name
             # MeasRec["treat_ac_field"] = '0'

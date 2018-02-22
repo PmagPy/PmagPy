@@ -5,7 +5,7 @@ NAME
     tdt_magic.py
 
 DESCRIPTION
-    converts TDT formatted files to magic_measurements format files
+    converts TDT formatted files to measurements format files
 
 SYNTAX
     tdt_magic.py -WD <PATH>
@@ -76,7 +76,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.output_file_path = wx.TextCtrl(self.panel, id=-1, size=(1000,25))
         #self.output_file_path.SetEditable(False)
         bSizer0.Add(self.output_file_path,wx.ALIGN_LEFT)
-        self.output_file_path.SetValue(os.path.join(self.WD, "magic_measurements.txt"))
+        self.output_file_path.SetValue(os.path.join(self.WD, "measurements.magic"))
         #---sizer 1 ----
         TEXT="\n choose a path\n with no spaces in name"
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )

@@ -919,17 +919,16 @@ class ChooseOne(wx.Dialog):
             hbox1.Add(textBox, flag=wx.ALL, border=5)
 
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(btn_yes)
-        hbox2.Add(btn_no, flag=wx.LEFT, border=20)
+        hbox2.Add(btn_yes, flag=wx.LEFT, border=20)
+        hbox2.Add(btn_no, flag=wx.LEFT|wx.RIGHT, border=20)
 
         self.Bind(wx.EVT_BUTTON, self.on_yes, btn_yes)
         self.Bind(wx.EVT_BUTTON, self.on_no, btn_no)
         vbox.Add(hbox1,
-                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
-
+                 flag=wx.ALIGN_CENTER|wx.ALL, border=20)
 
         vbox.Add(hbox2,
-                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
 
         self.SetSizer(vbox)
         vbox.Fit(self)
@@ -1095,7 +1094,7 @@ def on_hide_output(event):
     outframe.Hide()
 
 def get_output_frame():
-    print('-I- Fetching output frame')
+    #print('-I- Fetching output frame')
     wins = wx.GetTopLevelWindows()
     for win in wins:
         if win.Name == 'frame':

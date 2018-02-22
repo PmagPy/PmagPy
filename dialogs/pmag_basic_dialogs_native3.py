@@ -354,7 +354,8 @@ class combine_everything_dialog(wx.Frame):
             files = full_list.strip('\n').replace(" ", "")
             if files:
                 files = files.split('\n')
-            if ipmag.combine_magic(files, file_name, data_model=3.0):
+            res = ipmag.combine_magic(files, file_name, data_model=3.0)
+            if res:
                 new_files.append(file_name)  # add to the list of successfully combined files
             else:
                 success = False
@@ -1695,7 +1696,8 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
     def on_okButton(self, event):
         os.chdir(self.WD)
-        wait = wx.BusyInfo("Please wait, working...")
+        wait = wx.BusyInfo("Please wait, working...\nFor large files, this may take a few minutes")
+        wx.Yield()
         options = {}
         wd = self.WD
         options['dir_path'] = wd
