@@ -97,6 +97,18 @@ class HugeTable(gridlib.GridTableBase):
         self.GetView().ProcessTableMessage(msg)
         return True
 
+    # this currently fails with segfault
+    def DeleteCols(self, pos, numCols, updateLabels=True):
+        self.num_cols -= 1
+        grid = self.GetView()
+        grid.BeginBatch()
+        msg = gridlib.GridTableMessage(self,
+                                       gridlib.GRIDTABLE_NOTIFY_COLS_DELETED,
+                                       numCols)
+        grid.ProcessTableMessage(msg)
+        grid.EndBatch()
+        return True
+
 
 class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
@@ -602,6 +614,20 @@ class HugeMagicGrid(BaseMagicGrid):
         self.col_labels.append(label)
         self.size_grid()
         return last_col
+
+    # this currently fails with segfault
+    def remove_col(self, col_num):
+        """
+        update table dataframe, and remove a column.
+        resize grid to display correctly
+        """
+        label_value = self.GetColLabelValue(col_num).strip('**').strip('^^')
+        self.col_labels.remove(label_value)
+        del self.table.dataframe[label_value]
+        result = self.DeleteCols(pos=col_num, numCols=1, updateLabels=True)
+        self.size_grid()
+        return result
+
 
     def OnRightDown(self, event):
         print(self.GetSelectedRows())
