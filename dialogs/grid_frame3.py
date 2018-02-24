@@ -143,7 +143,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.remove_row_button.Disable()
             # can't remove cols (seg fault), but can add them
             #self.add_cols_button.Disable()
-            #self.remove_cols_button.Disable()
+            self.remove_cols_button.Disable()
 
 
         ## Data management buttons
