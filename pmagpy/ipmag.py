@@ -3856,9 +3856,10 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
-                                  'age_low', 'age_sigma'],
+                                  'age_low', 'age_sigma', 'specimen_core_depth'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
-                                   'age_sigma', 'core_depth', 'composite_depth']}
+                                   'age_sigma', 'core_depth', 'composite_depth'],
+                     'ages': ['level']}
 
     failing = []
     all_failing_items = {}
