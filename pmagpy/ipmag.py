@@ -3838,6 +3838,8 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         print("-W- No tables found in your contribution, file not created".format(dir_path))
         return False, "-W- No tables found in your contribution, file not created", None, None
 
+    con.propagate_cols(['core_depth', 'composite_depth'], 'sites', 'samples', down=False)
+
     # take out any extra added columns
     #con.remove_non_magic_cols()
 
