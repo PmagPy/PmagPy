@@ -135,7 +135,7 @@ class TestUploadMagic(unittest.TestCase):
                 files.append(f)
         pmag.remove_files(files, dir_path)
 
-
+    @unittest.skipIf(sys.platform in ['win32', 'win62'], "data file isn't properly moved on windows")
     def test_depth_propagation(self):
         dir_path = os.path.join(WD, 'data_files', 'core_depthplot')
         #con = nb.Contribution(dir_path)
