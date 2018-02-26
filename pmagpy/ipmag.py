@@ -2856,19 +2856,20 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         con.propagate_name_down('sample', 'measurements')
         con.propagate_name_down('site', 'measurements')
         con.propagate_location_to_measurements()
-        if 'measurements' in con.tables:
-            con.write_table_to_file('measurements')
+
+        # propagate depth info from sites --> samples
+        con.propagate_cols(['core_depth', 'composite_depth'], 'samples', 'sites')
 
         if meas_file:
             meas_file = os.path.join(input_dir_path, meas_file)
         if spc_file:
             spc_file = os.path.join(input_dir_path, spc_file)
 
-
         if age_file == "":
-            if samp_file:
-                samp_file = os.path.join(input_dir_path, samp_file)
-            Samps3, file_type = pmag.magic_read(samp_file)
+            # get sample data straight from the contribution
+            Samps3 = []
+            if 'samples' in con.tables:
+                Samps3 = con.tables['samples'].convert_to_pmag_data_list()
             #translate samp records to MagIC 2.5
             Samps = []
             for samp in Samps3:
@@ -2876,22 +2877,30 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
         else:
             depth_scale = 'age'
-            if age_file:
-                age_file = os.path.join(input_dir_path, age_file)
-            Samps3, file_type = pmag.magic_read(age_file)
+            Samps3 = []
+            # get age data from contribution
+            if 'ages' in con.tables:
+                # we need to get sample in here
+                # this doesn't do the trick by itself
+                con.propagate_ages()
+                con.propagate_cols(['age', 'age_unit'], 'samples', 'sites')
+
+                #Samps3 = con.tables['ages'].convert_to_pmag_data_list()
+                Samps3 = con.tables['samples'].convert_to_pmag_data_list()
             #translate samp records to MagIC 2.5
             Samps = []
             for samp in Samps3:
                 Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
             age_unit = ""
         if spc_file:
-            Specs3, file_type = pmag.magic_read(spc_file)
+            Specs3 = []
+            # get specimen data from contribution
+            if 'specimens' in con.tables:
+                Specs3 = con.tables['specimens'].convert_to_pmag_data_list()
             #translate specimen records to MagIC 2.5
             Specs = []
             for spec in Specs3:
                 Specs.append(map_magic.mapping(spec, map_magic.spec_magic3_2_magic2_map))
-
-
 
         if res_file:
             warn = '-W- result file option is not currently available for MagIC data model 3'
@@ -3000,7 +3009,10 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
     if pltSus and os.path.isfile(meas_file):  # plot the bulk measurement data
         if data_model_num == 3:
-            Meas3, file_type = pmag.magic_read(meas_file)
+            #Meas3, file_type = pmag.magic_read(meas_file)
+            Meas3 = []
+            if 'measurements' in con.tables:
+                Meas3 = con.tables['measurements'].convert_to_pmag_data_list()
             #translate meas records to MagIC 2.5
             Meas = []
             for meas in Meas3:
@@ -3039,6 +3051,9 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                     D = pmag.get_dictitem(
                         Samps, 'er_site_name', rec['er_site_name'], 'T')
                 depth = pmag.get_dictitem(D, depth_scale, '', 'F')
+                #if data_model_num == 3 and not len(depth):
+                #    depth_scale = depth_scale.strip("_sample")
+                #    depth = pmag.get_dictitem(D, depth_scale, '', 'F')
                 if len(depth) > 0:
                     if ylab == 'Age':
                         # get units of ages - assume they are all the same!
@@ -3094,7 +3109,6 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     SpecDepths, SpecDecs, SpecIncs = [], [], []
     FDepths, FDecs, FIncs = [], [], []
     if spc_file:  # add depths to spec data
-        print('spec file found')
         # get all the discrete data with best fit lines
         BFLs = pmag.get_dictitem(Specs, 'magic_method_codes', 'DE-BFL', 'has')
         for spec in BFLs:
