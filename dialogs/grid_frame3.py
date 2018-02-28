@@ -183,7 +183,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
 
         if self.grid_type == 'measurements':
-            self.default_msg_text = "Edit measurements here.\nIn general, measurements should be imported directly into Pmag GUI,\nwhich has protocols for converting many lab formats into the MagIC format.\nIf we are missing your particular lab format, please let us know: https://github.com/PmagPy/PmagPy/issues.\nThis grid is just meant for looking at your measurements and doing small edits.\nCurrently, you can't add/remove rows or columns here, but you can edit individual cell values."
+            self.default_msg_text = "Edit measurements here.\nIn general, measurements should be imported directly into Pmag GUI,\nwhich has protocols for converting many lab formats into the MagIC format.\nIf we are missing your particular lab format, please let us know: https://github.com/PmagPy/PmagPy/issues.\nThis grid is just meant for looking at your measurements and doing small edits.\nCurrently, you can't add/remove rows here.  You can add columns and edit cell values."
         else:
             self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nSuggested vocabularies are indicated by ^^, and also have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
         txt = ''

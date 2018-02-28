@@ -554,11 +554,10 @@ SYNTAX
     magic_gui_anaconda [command line options]
 
 OPTIONS
-    -DM NUM: MagIC data model number, default 3
     -WD DIR: working directory, default current directory
 
 EXAMPLE
-    magic_gui.py -DM 2 -WD projects/my_old_project
+    magic_gui.py -WD projects/my_project
 
 INFORMATION
     See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial
