@@ -125,7 +125,7 @@ def windows_install(path_to_python=""):
     running .py files
     """
     if not path_to_python:
-        print("Please enter the path to your python.exe you wish Windows to use to run python files. If you do not, this script will not be able to set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. For more information, rerun script with -h flag.")
+        print("Please enter the path to your python.exe you wish Windows to use to run python files. If you do not, this script will not be able to set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. Otherwise, you will need to run dev_setup.py again with the command line option '-p' followed by the correct full path to python.\nRun dev_setup.py with the -h flag for more details"
         print("Would you like to continue? [y/N] ")
         ans = input()
         if ans == 'y':
@@ -137,7 +137,7 @@ def windows_install(path_to_python=""):
     if os.path.isdir(path_to_python):
         path_to_python = os.path.join(path_to_python, "python.exe")
     if not os.path.isfile(path_to_python):
-        print("The path to python provided is not a full path to the python.exe file or this path does not exist, was given %s.\nPlease run again with the correct full path, run with -h flag for help" % path_to_python)
+        print("The path to python provided is not a full path to the python.exe file or this path does not exist, was given %s.\nPlease run again with the command line option '-p' followed by the correct full path to python.\nRun dev_setup.py with the -h flag for more details" % path_to_python)
         return
 
     # make windows associate .py with python

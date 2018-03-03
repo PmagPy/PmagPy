@@ -226,9 +226,12 @@ class TestContribution(unittest.TestCase):
         files = os.listdir(WD)
         for table in tables:
             fname = table + ".txt"
-            if table in files:
-                try: os.remove(os.path.join(WD, fname))
-                except OSError: print("error when removing files for empty directory test in test_new_builder")
+            if fname in files:
+                try:
+                    print(os.path.join(WD, fname))
+                    os.remove(os.path.join(WD, fname))
+                except OSError:
+                    print("error when removing files for empty directory test in test_new_builder")
         con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 

@@ -715,7 +715,8 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
                         #now the measurement Rec
                         MeasRec['citations']="This study"
-                        MeasRec["experiments"]=""
+                        # experiment is set in pmag.measurements_methods3
+                        #MeasRec["experiments"]=""
                         MeasRec["specimen"]=specimen
                         MeasRec['analysts']=Data[specimen][Experiment_Type]['user_name']
                         MeasRec["quality"]='g'
@@ -860,8 +861,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     for i in range(len(tmp_MeasRecs)):
                         STRING=":".join([tmp_MeasRecs[i]["method_codes"],method_codes])
                         tmp_MeasRecs[i]["method_codes"]=STRING
-                        STRING=":".join([tmp_MeasRecs[i]["specimen"],method_codes])
-                        tmp_MeasRecs[i]["experiments"]=STRING
+                        # experiment is set in pmag.measurements_methods3
+                        #STRING=":".join([tmp_MeasRecs[i]["specimen"],method_codes])
+                        #tmp_MeasRecs[i]["experiments"]=STRING
                         MeasRecs.append(tmp_MeasRecs[i])
 
 

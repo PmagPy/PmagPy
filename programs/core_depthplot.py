@@ -35,7 +35,7 @@ def main():
         -fsum FILE: specify input LIMS database (IODP) core summary csv file
         -fwig FILE: specify input depth,wiggle to plot, in magic format with sample_core_depth key for depth
         -fsa FILE: specify input er_samples format file from magic for depth
-        -fa FILE: specify input er_ages format file from magic for age
+        -fa FILE: specify input ages format file from magic for age
               NB: must have either -fsa OR -fa (not both)
         -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size
               NB: PCAs will have specified color, while fisher means will be white with specified color as the edgecolor

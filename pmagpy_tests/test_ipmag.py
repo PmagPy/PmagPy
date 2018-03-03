@@ -54,6 +54,15 @@ class TestUploadMagic(unittest.TestCase):
             if pattern.match(f):
                 remove.append(f)
         pmag.remove_files(remove, WD)
+        # and any in core_depthplot
+        core_depthplot_dir = os.path.join(WD, 'data_files', 'core_depthplot')
+        possible_files = os.listdir(core_depthplot_dir)
+        remove = []
+        for f in possible_files:
+            if pattern.match(f):
+                remove.append(f)
+        pmag.remove_files(remove, core_depthplot_dir)
+        # return to WD
         os.chdir(WD)
 
 
@@ -126,6 +135,23 @@ class TestUploadMagic(unittest.TestCase):
                 files.append(f)
         pmag.remove_files(files, dir_path)
 
+    @unittest.skipIf(sys.platform in ['win32', 'win62'], "data file isn't properly moved on windows")
+    def test_depth_propagation(self):
+        dir_path = os.path.join(WD, 'data_files', 'core_depthplot')
+        #con = nb.Contribution(dir_path)
+        #self.assertNotIn('core_depth', con.tables['sites'].df.index)
+        #con.propagate_cols(['core_depth'], 'sites', 'samples', down=False)
+        #self.assertIn('core_depth', con.tables['sites'].df.columns)
+        #self.assertEqual(con.tables['sites'].df.loc['15-1-013', 'core_depth'], 55.23)
+        #
+        outfile, error_message, errors, all_errors = ipmag.upload_magic3(dir_path=dir_path)
+        print('mv {} {}'.format(outfile, WD))
+        os.system('mv {} {}'.format(outfile, WD))
+        outfile = os.path.join(WD, os.path.split(outfile)[1])
+        ipmag.download_magic(outfile)
+        con = nb.Contribution(WD)
+        self.assertIn('core_depth', con.tables['sites'].df.columns)
+        self.assertEqual(con.tables['sites'].df.loc['15-1-013', 'core_depth'], 55.23)
 
 class TestCombineMagic(unittest.TestCase):
 
