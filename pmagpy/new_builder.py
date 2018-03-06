@@ -1343,7 +1343,13 @@ class MagicDataFrame(object):
             print("    This may cause strange behavior in the analysis GUIs")
             self.df['treat_step_num'] = ''
         treat_step = lambda x: str(x) if not_null(x) else ""
-        self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].apply(treat_step)
+        if 'measurement' in self.df.columns:
+            print('measurement already in self.df.columns!')
+        else:
+            print('adding measurement column to measurements table!')
+            self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].apply(treat_step)
+            self.write_magic_file()
+
 
     def update_row(self, ind, row_data):
         """

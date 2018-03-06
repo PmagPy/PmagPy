@@ -6,10 +6,14 @@ from MagIC 2 column names --> MagIC 3 column names.
 """
 
 import unittest
+import os
 from pmagpy.mapping import map_magic
 from pmagpy.mapping import maps
 from pmagpy.data_model3 import DataModel
+from pmagpy import new_builder as nb
+from pmagpy import pmag
 DM = DataModel()
+TEST_DIR = pmag.get_test_WD()
 
 
 class TestMapping(unittest.TestCase):
@@ -19,7 +23,7 @@ class TestMapping(unittest.TestCase):
                        'measurement_flag', 'treatment_temp',
                        'measurement_pos_z'}
         magic2_dict = {key: '' for key in magic2_keys}
-        magic3_keys = {'analysts', 'treat_step_num',
+        magic3_keys = {'analysts', 'measurement',
                        'quality', 'treat_temp',
                        'meas_pos_z'}
         output = map_magic.mapping(magic2_dict,
@@ -123,3 +127,63 @@ class TestMapping(unittest.TestCase):
                     ignore.append(val + "s")
                 if val not in ignore:
                     self.assertTrue(val in DM.dm[map_type].index)
+
+
+class TestThellierGUIMapping(unittest.TestCase):
+
+    def setUp(self):
+        self.magic_file = os.path.join(TEST_DIR, 'data_files', '3_0',
+                                       'McMurdo', 'measurements.txt')
+
+    def test_get_thellier_gui_meas_mapping(self):
+        # MagIC 3 --> 2 with 'treat_step_num'
+        meas_data3_0 = nb.MagicDataFrame(self.magic_file).df
+        meas_data3_0.iloc[0, meas_data3_0.columns.get_loc('measurement')] = 'custom'
+        meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
+        self.assertEqual('custom',
+                         meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+        self.assertEqual(1,
+                         meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement_number')])
+
+        # and back
+        meas_data3_again = map_magic.convert_meas_df_thellier_gui(meas_data2_5, output=3)
+        self.assertEqual('custom',
+                         meas_data3_again.iloc[0, meas_data3_again.columns.get_loc('measurement')])
+        self.assertEqual(1,
+                         meas_data3_again.iloc[0, meas_data3_again.columns.get_loc('treat_step_num')])
+
+        # MagIC 3 --> 2 without 'treat_step_num'
+        del meas_data3_0['treat_step_num']
+        self.assertEqual('custom',
+                         meas_data3_0.iloc[0, meas_data3_0.columns.get_loc('measurement')])
+        meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
+        self.assertIn('measurement_number', meas_data2_5.columns)
+        self.assertEqual('custom',
+                 meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+        self.assertEqual('custom',
+                         meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement_number')])
+
+        # and back to 3
+        meas_data3_0_again = map_magic.convert_meas_df_thellier_gui(meas_data2_5, output=3)
+        self.assertEqual('custom',
+                         meas_data3_0_again.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+        self.assertNotIn('treat_step_num', meas_data3_0_again.columns)
+
+
+    def test_with_numeric_measurement_name(self):
+        # set up meas df with numeric measurement names
+        meas_data3 = nb.MagicDataFrame(self.magic_file).df
+        del meas_data3['treat_step_num']
+        meas_names = range(1001, len(meas_data3) + 1001)
+        meas_data3['measurement'] = meas_names
+        # convert from MagIC 3 --> MagIC 2.5
+        meas_data2 = map_magic.convert_meas_df_thellier_gui(meas_data3, output=2)
+        self.assertEqual(1001,
+                         meas_data2.iloc[0, meas_data2.columns.get_loc('measurement')])
+        self.assertEqual(1001,
+                         meas_data2.iloc[0, meas_data2.columns.get_loc('measurement_number')])
+        # and back
+        meas_data3_again = map_magic.convert_meas_df_thellier_gui(meas_data2, output=3)
+        self.assertNotIn('treat_step_num', meas_data3_again.columns)
+        self.assertEqual(1001,
+                         meas_data3_again.iloc[0, meas_data3_again.columns.get_loc('measurement')])
