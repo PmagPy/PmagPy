@@ -6341,7 +6341,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if 'measurements' not in self.contribution.tables:
                 print("-W- No meaurements found")
                 return ({}, {})
-
             self.contribution.propagate_location_to_measurements()
             meas_container = self.contribution.tables['measurements']
             meas_data3_0 = meas_container.df
@@ -6379,8 +6378,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()]
             # now convert back to 2.5  changing only those keys that are
             # necessary for thellier_gui
-            meas_data2_5 = meas_data3_0.rename(
-                columns=map_magic.meas_magic3_2_magic2_map)
+
+            meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
+
             # make a list of dictionaries to maintain backward compatibility
             meas_data = meas_data2_5.to_dict("records")
         else:

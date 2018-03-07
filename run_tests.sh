@@ -29,14 +29,14 @@ pythonw -m unittest -v pmagpy_tests.test_ipmag
 echo Do Test Thellier GUI
 pythonw -m unittest -v pmagpy_tests.test_thellier_gui
 echo Do Test Demag GUI
-#pythonw -m unittest -v pmagpy_tests.test_demag_gui
+pythonw -m unittest -v pmagpy_tests.test_demag_gui
 echo Do Test Magic GUI
 pythonw -m unittest -v pmagpy_tests.test_magic_gui
 echo Do Test Builder
 pythonw -m unittest -v pmagpy_tests.test_builder
 echo Do Test Validations
 pythonw -m unittest -v pmagpy_tests.test_validations
-echo Do Test Programs
+#echo Do Test Programs
 #pythonw -m unittest -v pmagpy_tests.test_programs
 echo Do Test Magic GUI 2
 pythonw -m unittest -v pmagpy_tests.test_magic_gui2

@@ -143,15 +143,73 @@ add_to_all = {'er_location_name': 'location', 'er_site_name': 'site',
               'er_sample_name': 'sample', 'er_specimen_name': 'specimen',
               'er_sample_names': 'samples', 'er_specimen_names': 'specimens'}
 
-#measurement data translation measurements.txt -> magic_measurements.txt
+#measurement data translation magic_measurements.txt -> measurements.txt
 meas_magic2_2_magic3_map = maps.all_maps['measurements']
 meas_magic2_2_magic3_map.update(add_to_all)
-#measurement data translation magic_measurements.txt -> measurements.txt
+#measurement data translation measurements.txt -> magic_measurements.txt
 meas_magic3_2_magic2_map = {v:k for k,v in list(meas_magic2_2_magic3_map.items())}
 measurements = {'timestamp': 'measurement_date',
-                'specimen': 'er_specimen_name',
-                'number': 'measurement_number'}
+                'specimen': 'er_specimen_name'}
+                #'number': 'measurement_number'} # treat_step_num: measurement_number
 meas_magic3_2_magic2_map.update(measurements)
+
+
+def get_thellier_gui_meas_mapping(input_df, output=2):
+    """
+    Get the appropriate mapping for translating measurements in Thellier GUI.
+    This requires special handling for treat_step_num/measurement/measurement_number.
+
+    Parameters
+    ----------
+    input_dict : dict
+        MagIC record
+    output : int
+        output to this MagIC data model (2 or 3)
+
+    Output
+    --------
+    mapping : dict  (used in convert_meas_df_thellier_gui)
+    """
+    if int(output) == 2:
+        thellier_gui_meas3_2_meas2_map = meas_magic3_2_magic2_map.copy()
+        if 'treat_step_num' in input_df.columns:
+            thellier_gui_meas3_2_meas2_map.update({'treat_step_num': 'measurement_number'})
+            thellier_gui_meas3_2_meas2_map.pop('measurement')
+        return thellier_gui_meas3_2_meas2_map
+    # 2 --> 3
+    else:
+        thellier_gui_meas2_2_meas3_map = meas_magic2_2_magic3_map.copy()
+        if 'measurement' in input_df.columns:
+            thellier_gui_meas2_2_meas3_map.pop('measurement_number')
+            try:
+                res = int(input_df.iloc[0]['measurement_number'])
+                if res < 100:
+                    thellier_gui_meas2_2_meas3_map['measurement_number'] = 'treat_step_num'
+            except ValueError as ex:
+                pass
+        return thellier_gui_meas2_2_meas3_map
+
+
+def convert_meas_df_thellier_gui(meas_df_in, output):
+    """
+    Take a measurement dataframe and convert column names
+    from MagIC 2 --> 3 or vice versa.
+    Use treat_step_num --> measurement_number if available,
+    otherwise measurement --> measurement_number.
+
+    Parameters
+    ----------
+    meas_df_in : pandas DataFrame
+        input dataframe with measurement data
+    output : int
+        output to MagIC 2 or MagIC 3
+    """
+    output = int(output)
+    meas_mapping = get_thellier_gui_meas_mapping(meas_df_in, output)
+    meas_df_out = meas_df_in.rename(columns=meas_mapping)
+    if 'measurement' not in meas_df_out.columns:
+        meas_df_out['measurement'] = meas_df_in['measurement']
+    return meas_df_out
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
