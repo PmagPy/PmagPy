@@ -1336,6 +1336,8 @@ class MagicDataFrame(object):
     ## Methods to change self.df inplace
 
     def add_measurement_names(self):
+        if 'measurement' in self.df.columns:
+            return
         if 'number' in self.df.columns:
             self.df.rename(columns={'number':'treat_step_num'}, inplace=True)
         if 'treat_step_num' not in self.df.columns:
