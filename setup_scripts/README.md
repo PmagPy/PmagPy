@@ -48,11 +48,20 @@ pyi-makespec --onefile --windowed --icon=.\programs\images\PmagPy.ico
 
 This should make a .spec file in the PmagPy main directory called PmagGUI.spec, you should then open that file and replace the line `datas=None` with `datas=[('./pmagpy/data_model/*','./data_model')]` so that pyinstaller knows where to retrieve data files. Then you can run the following to tell pyinstaller to use the data in the .spec file to build the binary. **Note:** the version file is not strictly necessary but it allows windows to better populate the properties menu for the file, an example can be found [here](http://stackoverflow.com/questions/14624245/what-does-a-version-file-look-like) and documentation [here](https://msdn.microsoft.com/en-us/library/ff468916(v=vs.85).aspx).
 
+
 ```bash
 pyinstaller --clean PmagGUI.spec
 ```
 
 The executable will be in the dist directory. If you're having trouble because your computer can't find pyinstaller try replacing pyinstaller with a direct path the the pyinstaller.exe usually in the scripts file of wherever your python environment is installed. If dependencies are not being bundled make sure all dependencies are in your $PATH variable or added to the -p flag like so -p="PATH1;PATH2".
+
+Optional: To reduce the application size, you can download [UPX](https://github.com/upx/upx/releases/latest), which is a tool for compressing executables.  After downloading, you will unzip it by selecting "extract all".  Then, you'll need to specify the full path to upx.exe in your call to pyinstaller.  So, if upx.exe is C:\path\to\upx\upx394w\upx.exe, your call will look like this:
+
+```bash
+pyinstaller --clean PmagGUI.spec --upx-dir C:\path\to\upx\upx394w
+```
+
+(Not like this: `--upx-dir C:\path\to\upx\upx394w\upx.exe` or this: `C:\path\to\upx`!)
 
 ## Compiling on Linux
 
