@@ -3396,10 +3396,7 @@ class Demag_GUI(wx.Frame):
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-            meas_con_dict = map_magic.meas_magic3_2_magic2_map
-            meas_con_dict['sample'] = 'er_sample_name'
-            meas_con_dict['site'] = 'er_site_name'
-            meas_con_dict['location'] = 'er_location_name'
+            meas_con_dict = map_magic.get_thellier_gui_meas_mapping(meas_data3_0, output=2)
             meas_data2_5=meas_data3_0.rename(columns=meas_con_dict)
             mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
