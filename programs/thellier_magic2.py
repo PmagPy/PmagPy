@@ -425,7 +425,7 @@ def main():
                        print("""
                s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
                """)
-                       ans=raw_input('Return for next specimen \n')
+                       ans=input('Return for next specimen \n')
                        if ans=="": 
                            specimen +=1
                        if ans=="d": 
@@ -448,7 +448,7 @@ def main():
                            ans=""
                        if ans=='s':
                            keepon=1
-                           spec=raw_input('Enter desired specimen name (or first part there of): ')
+                           spec=input('Enter desired specimen name (or first part there of): ')
                            while keepon==1:
                                try:
                                    specimen =sids.index(spec)
@@ -459,16 +459,16 @@ def main():
                                        if spec in sids[qq]:tmplist.append(sids[qq])
                                    print(specimen," not found, but this was: ")
                                    print(tmplist)
-                                   spec=raw_input('Select one or try again\n ')
+                                   spec=input('Select one or try again\n ')
                            ans=""
                        if  ans=='b':
                            if end==0 or end >=len(zijdblock):end=len(zijdblock)-1
                            GoOn=0
                            while GoOn==0:
-                               answer=raw_input('Enter index of first point for calculation: ['+str(start)+']  ')
+                               answer=input('Enter index of first point for calculation: ['+str(start)+']  ')
                                try:
                                    start=int(answer)
-                                   answer=raw_input('Enter index  of last point for calculation: ['+str(end)+']  ')
+                                   answer=input('Enter index  of last point for calculation: ['+str(end)+']  ')
                                    end=int(answer)
                                    if start >=0 and start <len(zijdblock)-2 and end >0 and end <len(zijdblock) or start>=end:
                                        GoOn=1
@@ -550,7 +550,7 @@ def main():
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
-                           saveit=raw_input("Save this interpretation? [y]/n \n")
+                           saveit=input("Save this interpretation? [y]/n \n")
                            if saveit!='n':
                                PriorRecs.append(PmagSpecRec) # put back an interpretation
                                specimen+=1
@@ -586,7 +586,7 @@ def main():
                 PriorRecs.append(rec)
         CurrRec=[]
     if plots!=1 and verbose:
-        ans=raw_input(" Save last plot? 1/[0] ")
+        ans=input(" Save last plot? 1/[0] ")
         if ans=="1":
             if fmt != ".pmag":
                 files={}
