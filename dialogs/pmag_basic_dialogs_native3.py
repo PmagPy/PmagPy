@@ -354,6 +354,9 @@ class combine_everything_dialog(wx.Frame):
             files = full_list.strip('\n').replace(" ", "")
             if files:
                 files = files.split('\n')
+            else:
+                print('No files of {} type found, skipping'.format(file_name))
+                continue
             res = ipmag.combine_magic(files, file_name, data_model=3.0)
             if res:
                 new_files.append(file_name)  # add to the list of successfully combined files

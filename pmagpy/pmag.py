@@ -1950,6 +1950,8 @@ def magic_write(ofile, Recs, file_type):
             except KeyError:
                 if 'er_specimen_name' in list(Rec.keys()):
                     print(Rec['er_specimen_name'])
+                elif 'specimen' in list(Rec.keys()):
+                    print(Rec['specimen'])
                 elif 'er_specimen_names' in list(Rec.keys()):
                     print('specimen names:', Rec['er_specimen_names'])
                 print("No data for %s" % key)

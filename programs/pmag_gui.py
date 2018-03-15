@@ -613,6 +613,17 @@ class MagMainFrame(wx.Frame):
                 pw.simple_warning("Your working directory must have a 3.0. format measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.")
                 return False
 
+            wd_files = os.listdir(self.WD)
+            for ftype in ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']:
+                if ftype not in wd_files:
+                    for f in wd_files:
+                        if f.endswith('_' + ftype):
+                            msg = 'It looks like you may have uncombined files of {} type in your working directory.\nYou may want to go back to Step 1 and finish combining all files.'.format(ftype)
+                            dlg = pw.ChooseOne(self, 'Continue anyway', 'Go back', msg, title="Warning!")
+                            res = dlg.ShowModal()
+                            if res == wx.ID_NO:
+                                return
+                            break
             wait = wx.BusyInfo('Compiling required data, please wait...')
             wx.Yield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)

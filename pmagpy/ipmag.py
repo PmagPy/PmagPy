@@ -2135,6 +2135,9 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         output_dir_path, file_name = os.path.split(outfile)
         con = nb.Contribution(output_dir_path, read_tables=[])
         # figure out file type from first of files to join
+        if not filenames:
+            print("You have provided no files, so nothing will be combined".format(magic_table))
+            return False
         with open(filenames[0]) as f:
             file_type = f.readline().split()[1]
         if file_type in ['er_specimens', 'er_samples', 'er_sites',
@@ -6280,7 +6283,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     return True, measfile
 
 
-def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.', data_model_num=2):
+def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='measurements.txt', sampfile="samples.txt", aniso_outfile='specimens.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.', data_model_num=3):
     """
     def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfle="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
 
@@ -6299,8 +6302,8 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
         -f KFILE: specify .k15 format input file
         -F MFILE: specify magic_measurements format output file
         -Fsa SFILE, specify er_samples format file for output
-        -Fa AFILE, specify rmag_anisotropy format file for output
-        -Fr RFILE, specify rmag_results format file for output
+        -Fa AFILE, specify anisotropy file for output # default rmag_anisotropy for data model 2, specimens file for data model 3
+        -Fr RFILE, specify rmag_results format file for output # data model 2 only
         -loc LOC: specify location name for study
     #-ins INST: specify instrument that measurements were made on # not implemented
         -spc NUM: specify number of digits for specimen ID, default is 0
@@ -6343,9 +6346,6 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     citation = 'This study'
 
     data_model_num = int(float(data_model_num))
-    if data_model_num != 2:
-        print("-E- k15_magic is not yet implemented for MagIC data model 3")
-        return False, "-E- k15_magic is not yet implemented for MagIC data model 3"
 
     # set column names for MagIC 3
     spec_name_col = 'specimen'  #
@@ -6392,6 +6392,14 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     aniso_mean_col = 'aniso_s_mean'
     result_description_col = "description"
 
+    # set defaults correctly for MagIC 2
+    if data_model_num == 2:
+        if measfile == 'measurements.txt':
+            measfile = 'magic_measurements.txt'
+        if sampfile == 'samples.txt':
+            sampfile = 'er_samples.txt'
+        if aniso_outfile == 'specimens.txt':
+            aniso_outfile = 'rmag_anisotropy.txt'
 
     # set column names for MagIC 2
     if data_model_num == 2:
@@ -6514,7 +6522,10 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             SpecRec[spec_name_col] = rec[0]
             AnisRec[spec_name_col] = rec[0]
             SampRec[spec_name_col] = rec[0]
-            ResRec[description_col] = rec[0]
+            if data_model_num == 2:
+                ResRec[description_col] = rec[0]
+            if data_model_num == 3:
+                ResRec[spec_name_col] = rec[0]
             specnum = int(specnum)
             if specnum != 0:
                 MeasRec[samp_name_col] = rec[0][:-specnum]
@@ -6523,7 +6534,10 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             SampRec[samp_name_col] = MeasRec[samp_name_col]
             SpecRec[samp_name_col] = MeasRec[samp_name_col]
             AnisRec[samp_name_col] = MeasRec[samp_name_col]
-            ResRec[samp_name_col + "s"] = MeasRec[samp_name_col]
+            if data_model_num == 3:
+                ResRec[samp_name_col] = MeasRec[samp_name_col]
+            else:
+                ResRec[samp_name_col + "s"] = MeasRec[samp_name_col]
             if sample_naming_con == "6":
                 for samp in Samps:
                     if samp[samp_name_col] == AnisRec[samp_name_col]:
@@ -6537,11 +6551,15 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             SampRec[site_name_col] = MeasRec[site_name_col]
             SpecRec[site_name_col] = MeasRec[site_name_col]
             AnisRec[site_name_col] = MeasRec[site_name_col]
-            ResRec[site_name_col + "s"] = MeasRec[site_name_col]
+            ResRec[loc_name_col] = er_location_name
+            ResRec[site_name_col] = MeasRec[site_name_col]
+            if data_model_num == 2:
+                ResRec[site_name_col + "s"] = MeasRec[site_name_col]
             SampRec[loc_name_col] = MeasRec[loc_name_col]
             SpecRec[loc_name_col] = MeasRec[loc_name_col]
             AnisRec[loc_name_col] = MeasRec[loc_name_col]
-            ResRec[loc_name_col + "s"] = MeasRec[loc_name_col]
+            if data_model_num == 2 :
+                ResRec[loc_name_col + "s"] = MeasRec[loc_name_col]
             if len(rec) >= 3:
                 SampRec[azimuth_col], SampRec[samp_dip_col] = rec[1], rec[2]
                 az, pl, igeo = float(rec[1]), float(rec[2]), 1
@@ -6578,12 +6596,12 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 SpecRecs.append(SpecRec)
                 AnisRec[aniso_type_col] = "AMS"
                 ResRec[aniso_type_col] = "AMS"
-                s1_val = '%12.10f' % (sbar[0])
-                s2_val = '%12.10f' % (sbar[1])
-                s3_val = '%12.10f' % (sbar[2])
-                s4_val = '%12.10f' % (sbar[3])
-                s5_val = '%12.10f' % (sbar[4])
-                s6_val = '%12.10f' % (sbar[5])
+                s1_val = '{:12.10f}'.format(sbar[0])
+                s2_val = '{:12.10f}'.format(sbar[1])
+                s3_val = '{:12.10f}'.format(sbar[2])
+                s4_val = '{:12.10f}'.format(sbar[3])
+                s5_val = '{:12.10f}'.format(sbar[4])
+                s6_val = '{:12.10f}'.format(sbar[5])
                 # MAgIC 2
                 if data_model_num == 2:
                     AnisRec["anisotropy_s1"] = s1_val
@@ -6598,6 +6616,8 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     AnisRec['aniso_s'] = ":".join([str(v).strip() for v in vals])
                 AnisRec[aniso_mean_col] = '%12.10f' % (bulk)
                 AnisRec[aniso_sigma_col] = '%12.10f' % (sigma)
+                AnisRec[aniso_mean_col] = '{:12.10f}'.format(bulk)
+                AnisRec[aniso_sigma_col] = '{:12.10f}'.format(sigma)
                 AnisRec[aniso_unit_col] = 'SI'
                 AnisRec[aniso_n_col] = '15'
                 AnisRec[aniso_tilt_corr_col] = '-1'
@@ -6605,76 +6625,100 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 AnisRecs.append(AnisRec)
                 ResRec[method_col] = 'LP-X:AE-H:LP-AN-MS'
                 ResRec[aniso_tilt_corr_col] = '-1'
-                ResRec["anisotropy_t1"] = '%12.10f' % (hpars['t1'])
-                ResRec["anisotropy_t2"] = '%12.10f' % (hpars['t2'])
-                ResRec["anisotropy_t3"] = '%12.10f' % (hpars['t3'])
-                ResRec["anisotropy_fest"] = '%12.10f' % (hpars['F'])
-                ResRec["anisotropy_ftest12"] = '%12.10f' % (hpars['F12'])
-                ResRec["anisotropy_ftest23"] = '%12.10f' % (hpars['F23'])
-                ResRec["anisotropy_v1_dec"] = '%7.1f' % (hpars['v1_dec'])
-                ResRec["anisotropy_v2_dec"] = '%7.1f' % (hpars['v2_dec'])
-                ResRec["anisotropy_v3_dec"] = '%7.1f' % (hpars['v3_dec'])
-                ResRec["anisotropy_v1_inc"] = '%7.1f' % (hpars['v1_inc'])
-                ResRec["anisotropy_v2_inc"] = '%7.1f' % (hpars['v2_inc'])
-                ResRec["anisotropy_v3_inc"] = '%7.1f' % (hpars['v3_inc'])
-                ResRec['anisotropy_v1_eta_dec'] = ResRec['anisotropy_v2_dec']
-                ResRec['anisotropy_v1_eta_inc'] = ResRec['anisotropy_v2_inc']
-                ResRec['anisotropy_v1_zeta_dec'] = ResRec['anisotropy_v3_dec']
-                ResRec['anisotropy_v1_zeta_inc'] = ResRec['anisotropy_v3_inc']
-                ResRec['anisotropy_v2_eta_dec'] = ResRec['anisotropy_v1_dec']
-                ResRec['anisotropy_v2_eta_inc'] = ResRec['anisotropy_v1_inc']
-                ResRec['anisotropy_v2_zeta_dec'] = ResRec['anisotropy_v3_dec']
-                ResRec['anisotropy_v2_zeta_inc'] = ResRec['anisotropy_v3_inc']
-                ResRec['anisotropy_v3_eta_dec'] = ResRec['anisotropy_v1_dec']
-                ResRec['anisotropy_v3_eta_inc'] = ResRec['anisotropy_v1_inc']
-                ResRec['anisotropy_v3_zeta_dec'] = ResRec['anisotropy_v2_dec']
-                ResRec['anisotropy_v3_zeta_inc'] = ResRec['anisotropy_v2_inc']
-                ResRec["anisotropy_v1_eta_semi_angle"] = '%7.1f' % (
-                    hpars['e12'])
-                ResRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f' % (
-                    hpars['e13'])
-                ResRec["anisotropy_v2_eta_semi_angle"] = '%7.1f' % (
-                    hpars['e12'])
-                ResRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f' % (
-                    hpars['e23'])
-                ResRec["anisotropy_v3_eta_semi_angle"] = '%7.1f' % (
-                    hpars['e13'])
-                ResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f' % (
-                    hpars['e23'])
-                ResRec[result_description_col] = 'Critical F: ' + \
-                    hpars["F_crit"] + ';Critical F12/F13: ' + hpars["F12_crit"]
+
+                if data_model_num == 3:
+                    aniso_v1 = ':'.join([str(i) for i in (hpars['t1'], hpars['v1_dec'], hpars['v1_inc'],  hpars['v2_dec'], hpars['v2_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e13'])])
+                    aniso_v2 = ':'.join([str(i) for i in (hpars['t2'], hpars['v2_dec'], hpars['v2_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e12'], hpars['v3_dec'], hpars['v3_inc'], hpars['e23'])])
+                    aniso_v3 = ':'.join([str(i) for i in (hpars['t3'], hpars['v3_dec'], hpars['v3_inc'], hpars['v1_dec'], hpars['v1_inc'], hpars['e13'], hpars['v2_dec'], hpars['v2_inc'], hpars['e23'])])
+                    ResRec['aniso_v1'] = aniso_v1
+                    ResRec['aniso_v2'] = aniso_v2
+                    ResRec['aniso_v3'] = aniso_v3
+                else: # data model 2
+                    ResRec["anisotropy_t1"] = '%12.10f' % (hpars['t1'])
+                    ResRec["anisotropy_t2"] = '%12.10f' % (hpars['t2'])
+                    ResRec["anisotropy_t3"] = '%12.10f' % (hpars['t3'])
+                    ResRec["anisotropy_fest"] = '%12.10f' % (hpars['F'])
+                    ResRec["anisotropy_ftest12"] = '%12.10f' % (hpars['F12'])
+                    ResRec["anisotropy_ftest23"] = '%12.10f' % (hpars['F23'])
+                    ResRec["anisotropy_v1_dec"] = '%7.1f' % (hpars['v1_dec'])
+                    ResRec["anisotropy_v2_dec"] = '%7.1f' % (hpars['v2_dec'])
+                    ResRec["anisotropy_v3_dec"] = '%7.1f' % (hpars['v3_dec'])
+                    ResRec["anisotropy_v1_inc"] = '%7.1f' % (hpars['v1_inc'])
+                    ResRec["anisotropy_v2_inc"] = '%7.1f' % (hpars['v2_inc'])
+                    ResRec["anisotropy_v3_inc"] = '%7.1f' % (hpars['v3_inc'])
+                    ResRec['anisotropy_v1_eta_dec'] = ResRec['anisotropy_v2_dec']
+                    ResRec['anisotropy_v1_eta_inc'] = ResRec['anisotropy_v2_inc']
+                    ResRec['anisotropy_v1_zeta_dec'] = ResRec['anisotropy_v3_dec']
+                    ResRec['anisotropy_v1_zeta_inc'] = ResRec['anisotropy_v3_inc']
+                    ResRec['anisotropy_v2_eta_dec'] = ResRec['anisotropy_v1_dec']
+                    ResRec['anisotropy_v2_eta_inc'] = ResRec['anisotropy_v1_inc']
+                    ResRec['anisotropy_v2_zeta_dec'] = ResRec['anisotropy_v3_dec']
+                    ResRec['anisotropy_v2_zeta_inc'] = ResRec['anisotropy_v3_inc']
+                    ResRec['anisotropy_v3_eta_dec'] = ResRec['anisotropy_v1_dec']
+                    ResRec['anisotropy_v3_eta_inc'] = ResRec['anisotropy_v1_inc']
+                    ResRec['anisotropy_v3_zeta_dec'] = ResRec['anisotropy_v2_dec']
+                    ResRec['anisotropy_v3_zeta_inc'] = ResRec['anisotropy_v2_inc']
+                    ResRec["anisotropy_v1_eta_semi_angle"] = '%7.1f' % (
+                        hpars['e12'])
+                    ResRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f' % (
+                        hpars['e13'])
+                    ResRec["anisotropy_v2_eta_semi_angle"] = '%7.1f' % (
+                        hpars['e12'])
+                    ResRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f' % (
+                        hpars['e23'])
+                    ResRec["anisotropy_v3_eta_semi_angle"] = '%7.1f' % (
+                        hpars['e13'])
+                    ResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f' % (
+                        hpars['e23'])
+                ResRec[result_description_col] = 'Critical F: ' + hpars["F_crit"] + ';Critical F12/F13: ' + hpars["F12_crit"]
+                #
                 ResRecs.append(ResRec)
                 if igeo == 1:
                     sbarg = pmag.dosgeo(sbar, az, pl)
                     hparsg = pmag.dohext(9, sigma, sbarg)
                     AnisRecG = copy.copy(AnisRec)
                     ResRecG = copy.copy(ResRec)
-                    AnisRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
-                    AnisRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
-                    AnisRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
-                    AnisRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
-                    AnisRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
-                    AnisRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
+                    if data_model_num == 3:
+                        AnisRecG["aniso_s"] = ":".join('{:12.10f}'.format(i) for i in sbarg)
+                    if data_model_num == 2:
+                        AnisRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
+                        AnisRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
+                        AnisRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
+                        AnisRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
+                        AnisRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
+                        AnisRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
+
                     AnisRecG[aniso_tilt_corr_col] = '0'
                     ResRecG[aniso_tilt_corr_col] = '0'
-                    ResRecG["anisotropy_v1_dec"] = '%7.1f' % (hparsg['v1_dec'])
-                    ResRecG["anisotropy_v2_dec"] = '%7.1f' % (hparsg['v2_dec'])
-                    ResRecG["anisotropy_v3_dec"] = '%7.1f' % (hparsg['v3_dec'])
-                    ResRecG["anisotropy_v1_inc"] = '%7.1f' % (hparsg['v1_inc'])
-                    ResRecG["anisotropy_v2_inc"] = '%7.1f' % (hparsg['v2_inc'])
-                    ResRecG["anisotropy_v3_inc"] = '%7.1f' % (hparsg['v3_inc'])
-                    ResRecG['anisotropy_v1_eta_dec'] = ResRecG['anisotropy_v2_dec']
-                    ResRecG['anisotropy_v1_eta_inc'] = ResRecG['anisotropy_v2_inc']
-                    ResRecG['anisotropy_v1_zeta_dec'] = ResRecG['anisotropy_v3_dec']
-                    ResRecG['anisotropy_v1_zeta_inc'] = ResRecG['anisotropy_v3_inc']
-                    ResRecG['anisotropy_v2_eta_dec'] = ResRecG['anisotropy_v1_dec']
-                    ResRecG['anisotropy_v2_eta_inc'] = ResRecG['anisotropy_v1_inc']
-                    ResRecG['anisotropy_v2_zeta_dec'] = ResRecG['anisotropy_v3_dec']
-                    ResRecG['anisotropy_v2_zeta_inc'] = ResRecG['anisotropy_v3_inc']
-                    ResRecG['anisotropy_v3_eta_dec'] = ResRecG['anisotropy_v1_dec']
-                    ResRecG['anisotropy_v3_eta_inc'] = ResRecG['anisotropy_v1_inc']
-                    ResRecG['anisotropy_v3_zeta_dec'] = ResRecG['anisotropy_v2_dec']
-                    ResRecG['anisotropy_v3_zeta_inc'] = ResRecG['anisotropy_v2_inc']
+
+                    if data_model_num == 3:
+                        aniso_v1 = ':'.join([str(i) for i in (hparsg['t1'], hparsg['v1_dec'], hparsg['v1_inc'],  hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e13'])])
+                        aniso_v2 = ':'.join([str(i) for i in (hparsg['t2'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e12'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['e23'])])
+                        aniso_v3 = ':'.join([str(i) for i in (hparsg['t3'], hparsg['v3_dec'], hparsg['v3_inc'], hparsg['v1_dec'], hparsg['v1_inc'], hparsg['e13'], hparsg['v2_dec'], hparsg['v2_inc'], hparsg['e23'])])
+                        ResRecG['aniso_v1'] = aniso_v1
+                        ResRecG['aniso_v2'] = aniso_v2
+                        ResRecG['aniso_v3'] = aniso_v3
+                    #
+                    if data_model_num == 2:
+                        ResRecG["anisotropy_v1_dec"] = '%7.1f' % (hparsg['v1_dec'])
+                        ResRecG["anisotropy_v2_dec"] = '%7.1f' % (hparsg['v2_dec'])
+                        ResRecG["anisotropy_v3_dec"] = '%7.1f' % (hparsg['v3_dec'])
+                        ResRecG["anisotropy_v1_inc"] = '%7.1f' % (hparsg['v1_inc'])
+                        ResRecG["anisotropy_v2_inc"] = '%7.1f' % (hparsg['v2_inc'])
+                        ResRecG["anisotropy_v3_inc"] = '%7.1f' % (hparsg['v3_inc'])
+                        ResRecG['anisotropy_v1_eta_dec'] = ResRecG['anisotropy_v2_dec']
+                        ResRecG['anisotropy_v1_eta_inc'] = ResRecG['anisotropy_v2_inc']
+                        ResRecG['anisotropy_v1_zeta_dec'] = ResRecG['anisotropy_v3_dec']
+                        ResRecG['anisotropy_v1_zeta_inc'] = ResRecG['anisotropy_v3_inc']
+                        ResRecG['anisotropy_v2_eta_dec'] = ResRecG['anisotropy_v1_dec']
+                        ResRecG['anisotropy_v2_eta_inc'] = ResRecG['anisotropy_v1_inc']
+                        ResRecG['anisotropy_v2_zeta_dec'] = ResRecG['anisotropy_v3_dec']
+                        ResRecG['anisotropy_v2_zeta_inc'] = ResRecG['anisotropy_v3_inc']
+                        ResRecG['anisotropy_v3_eta_dec'] = ResRecG['anisotropy_v1_dec']
+                        ResRecG['anisotropy_v3_eta_inc'] = ResRecG['anisotropy_v1_inc']
+                        ResRecG['anisotropy_v3_zeta_dec'] = ResRecG['anisotropy_v2_dec']
+                        ResRecG['anisotropy_v3_zeta_inc'] = ResRecG['anisotropy_v2_inc']
+                    #
                     ResRecG[result_description_col] = 'Critical F: ' + \
                         hpars["F_crit"] + ';Critical F12/F13: ' + \
                         hpars["F12_crit"]
@@ -6685,44 +6729,67 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     hparst = pmag.dohext(9, sigma, sbart)
                     AnisRecT = copy.copy(AnisRec)
                     ResRecT = copy.copy(ResRec)
-                    AnisRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
-                    AnisRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
-                    AnisRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
-                    AnisRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
-                    AnisRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
-                    AnisRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
-                    AnisRecT["anisotropy_tilt_correction"] = '100'
-                    ResRecT["anisotropy_v1_dec"] = '%7.1f' % (hparst['v1_dec'])
-                    ResRecT["anisotropy_v2_dec"] = '%7.1f' % (hparst['v2_dec'])
-                    ResRecT["anisotropy_v3_dec"] = '%7.1f' % (hparst['v3_dec'])
-                    ResRecT["anisotropy_v1_inc"] = '%7.1f' % (hparst['v1_inc'])
-                    ResRecT["anisotropy_v2_inc"] = '%7.1f' % (hparst['v2_inc'])
-                    ResRecT["anisotropy_v3_inc"] = '%7.1f' % (hparst['v3_inc'])
-                    ResRecT['anisotropy_v1_eta_dec'] = ResRecT['anisotropy_v2_dec']
-                    ResRecT['anisotropy_v1_eta_inc'] = ResRecT['anisotropy_v2_inc']
-                    ResRecT['anisotropy_v1_zeta_dec'] = ResRecT['anisotropy_v3_dec']
-                    ResRecT['anisotropy_v1_zeta_inc'] = ResRecT['anisotropy_v3_inc']
-                    ResRecT['anisotropy_v2_eta_dec'] = ResRecT['anisotropy_v1_dec']
-                    ResRecT['anisotropy_v2_eta_inc'] = ResRecT['anisotropy_v1_inc']
-                    ResRecT['anisotropy_v2_zeta_dec'] = ResRecT['anisotropy_v3_dec']
-                    ResRecT['anisotropy_v2_zeta_inc'] = ResRecT['anisotropy_v3_inc']
-                    ResRecT['anisotropy_v3_eta_dec'] = ResRecT['anisotropy_v1_dec']
-                    ResRecT['anisotropy_v3_eta_inc'] = ResRecT['anisotropy_v1_inc']
-                    ResRecT['anisotropy_v3_zeta_dec'] = ResRecT['anisotropy_v2_dec']
-                    ResRecT['anisotropy_v3_zeta_inc'] = ResRecT['anisotropy_v2_inc']
-                    ResRecT["anisotropy_tilt_correction"] = '100'
-                    ResRecT["result_description"] = 'Critical F: ' + \
-                        hpars["F_crit"] + ';Critical F12/F13: ' + \
-                        hpars["F12_crit"]
+                    if data_model_num == 3:
+                        aniso_v1 = ':'.join([str(i) for i in (hparst['t1'], hparst['v1_dec'], hparst['v1_inc'],  hparst['v2_dec'], hparst['v2_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e13'])])
+                        aniso_v2 = ':'.join([str(i) for i in (hparst['t2'], hparst['v2_dec'], hparst['v2_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e12'], hparst['v3_dec'], hparst['v3_inc'], hparst['e23'])])
+                        aniso_v3 = ':'.join([str(i) for i in (hparst['t3'], hparst['v3_dec'], hparst['v3_inc'], hparst['v1_dec'], hparst['v1_inc'], hparst['e13'], hparst['v2_dec'], hparst['v2_inc'], hparst['e23'])])
+                        ResRecT['aniso_v1'] = aniso_v1
+                        ResRecT['aniso_v2'] = aniso_v2
+                        ResRecT['aniso_v3'] = aniso_v3
+                    #
+                    if data_model_num == 2:
+                        AnisRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
+                        AnisRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
+                        AnisRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
+                        AnisRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
+                        AnisRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
+                        AnisRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
+                        AnisRecT["anisotropy_tilt_correction"] = '100'
+                        ResRecT["anisotropy_v1_dec"] = '%7.1f' % (hparst['v1_dec'])
+                        ResRecT["anisotropy_v2_dec"] = '%7.1f' % (hparst['v2_dec'])
+                        ResRecT["anisotropy_v3_dec"] = '%7.1f' % (hparst['v3_dec'])
+                        ResRecT["anisotropy_v1_inc"] = '%7.1f' % (hparst['v1_inc'])
+                        ResRecT["anisotropy_v2_inc"] = '%7.1f' % (hparst['v2_inc'])
+                        ResRecT["anisotropy_v3_inc"] = '%7.1f' % (hparst['v3_inc'])
+                        ResRecT['anisotropy_v1_eta_dec'] = ResRecT['anisotropy_v2_dec']
+                        ResRecT['anisotropy_v1_eta_inc'] = ResRecT['anisotropy_v2_inc']
+                        ResRecT['anisotropy_v1_zeta_dec'] = ResRecT['anisotropy_v3_dec']
+                        ResRecT['anisotropy_v1_zeta_inc'] = ResRecT['anisotropy_v3_inc']
+                        ResRecT['anisotropy_v2_eta_dec'] = ResRecT['anisotropy_v1_dec']
+                        ResRecT['anisotropy_v2_eta_inc'] = ResRecT['anisotropy_v1_inc']
+                        ResRecT['anisotropy_v2_zeta_dec'] = ResRecT['anisotropy_v3_dec']
+                        ResRecT['anisotropy_v2_zeta_inc'] = ResRecT['anisotropy_v3_inc']
+                        ResRecT['anisotropy_v3_eta_dec'] = ResRecT['anisotropy_v1_dec']
+                        ResRecT['anisotropy_v3_eta_inc'] = ResRecT['anisotropy_v1_inc']
+                        ResRecT['anisotropy_v3_zeta_dec'] = ResRecT['anisotropy_v2_dec']
+                        ResRecT['anisotropy_v3_zeta_inc'] = ResRecT['anisotropy_v2_inc']
+                    #
+                    ResRecT[aniso_tilt_corr_col] = '100'
+                    ResRecT[result_description_col] = 'Critical F: ' + \
+                        hparst["F_crit"] + ';Critical F12/F13: ' + \
+                        hparst["F12_crit"]
                     ResRecs.append(ResRecT)
                     AnisRecs.append(AnisRecT)
                 k15, linecnt = [], 0
                 MeasRec, SpecRec, SampRec, SiteRec, AnisRec = {}, {}, {}, {}, {}
+
+    # samples
     pmag.magic_write(sampfile, SampRecs, samp_table_name)
-    pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')  # add to specimens?
-    pmag.magic_write(result_file, ResRecs, 'rmag_results') # add to sites?
+    # specimens / rmag_anisotropy / rmag_results
+    if data_model_num == 3:
+        AnisRecs.extend(ResRecs)
+        SpecRecs = AnisRecs.copy()
+        SpecRecs, keys = pmag.fillkeys(SpecRecs)
+        pmag.magic_write(aniso_outfile, SpecRecs, 'specimens')
+        flist = [measfile, aniso_outfile, sampfile]
+    else:
+        pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')  # add to specimens?
+        pmag.magic_write(result_file, ResRecs, 'rmag_results') # added to specimens (NOT sites)
+        flist = [measfile, sampfile, aniso_outfile, result_file]
+    # measurements
     pmag.magic_write(measfile, MeasRecs, meas_table_name)
-    print("Data saved to: ", sampfile, aniso_outfile, result_file, measfile)
+
+    print("Data saved to: " + ", ".join(flist))
     return True, measfile
 
 
