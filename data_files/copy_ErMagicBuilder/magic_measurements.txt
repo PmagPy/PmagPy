@@ -1,286 +1,286 @@
 tab	magic_measurements
-er_specimen_name	er_sample_name	er_site_name	er_location_name	magic_experiment_name	measurement_number	measurement_inc	measurement_dec	er_citation_names	measurement_sd_z	magic_instrument_codes	measurement_positions	measurement_magn_moment	measurement_sd_y	treatment_temp	treatment_dc_field_theta	measurement_description	measurement_temp	measurement_csd	magic_method_codes	measurement_standard	magic_software_packages	treatment_dc_field	treatment_dc_field_phi	er_analyst_mail_names	measurement_sd_x	treatment_ac_field	measurement_flag
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	1	-53.2	37.2	This study	2.14e-09		1	3.93e-07	8.63e-09	273			273	2.3	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			1.35e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	2	-50.9	36.7	This study	2.78e-09		1	4.29e-07	7.51e-09	77			273	2.0	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			1.25e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	3	-48.5	34.8	This study	3.42e-09		1	5.32e-07	1.28e-08	373.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.65e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	4	-47.6	029.3	This study	1.04e-08	hargrave 2014-10-22 15:53:24	1	6.71e-07	2.34e-08	423.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.39e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	5	-47.3	028.6	This study	7.42e-09	hargrave 2014-10-27 16:19:50	1	6.55e-07	1.31e-08	473.0			273	2.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.00e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	6	-49.3	028.5	This study	4.18e-09	hargrave 2014-10-28 13:42:19	1	5.27e-07	2.17e-08	523.0			273	3.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.81e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	7	-52.8	034.0	This study	2.98e-09	hargrave 2014-10-28 20:40:03	1	3.81e-07	1.36e-08	573.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.42e-08	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	8	-57.3	040.3	This study	1.87e-09	hargrave 2014-10-29 20:53:02	1	2.40e-07	3.67e-09	623.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.58e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	9	-58.4	043.8	This study	1.36e-09	hargrave 2014-11-03 17:13:00	1	1.97e-07	5.83e-09	673.0			273	3.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.19e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	10	-59.9	046.8	This study	1.36e-09	hargrave 2014-11-04 12:03:42	1	1.78e-07	2.86e-09	698.0			273	2.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.82e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	11	-61.0	049.9	This study	8.90e-10	hargrave 2014-11-10 12:53:05	1	1.64e-07	3.62e-09	723.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.48e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	12	-63.2	053.3	This study	5.24e-10	hargrave 2014-11-10 22:11:56	1	1.52e-07	2.88e-09	748.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.62e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	13	-64.0	059.3	This study	1.20e-09	hargrave 2014-11-13 11:46:05	1	1.41e-07	3.57e-09	773.0			273	2.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.59e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	14	-65.4	064.8	This study	5.73e-10	hargrave 2014-11-17 17:26:46	1	1.33e-07	1.35e-09	788.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.75e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	15	-66.0	065.5	This study	6.38e-10	hargrave 2014-11-24 18:17:16	1	1.29e-07	8.48e-10	803.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.51e-10	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	16	-66.2	069.9	This study	7.35e-10	hargrave 2014-12-01 16:59:18	1	1.28e-07	7.81e-10	818.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.06e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	17	-66.0	069.3	This study	8.68e-10	hargrave 2014-12-02 00:45:16	1	1.23e-07	1.01e-09	823.0			273	0.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.19e-10	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	18	-66.3	075.0	This study	1.06e-09	hargrave 2014-12-05 13:40:46	1	1.18e-07	9.15e-10	828.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.51e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	19	-66.7	072.8	This study	2.61e-10	hargrave 2014-12-06 11:57:52	1	1.14e-07	8.36e-10	833.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.26e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	20	-66.9	080.1	This study	5.56e-10	hargrave 2014-12-08 15:18:37	1	1.10e-07	6.62e-10	838.0			273	0.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.12e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	21	-66.2	078.7	This study	7.95e-10	hargrave 2014-12-08 22:11:29	1	1.08e-07	7.31e-10	843.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.35e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	22	-67.5	084.0	This study	5.65e-10	hargrave 2015-01-12 11:02:24	1	1.05e-07	1.00e-09	846.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.28e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	23	-66.7	081.2	This study	5.64e-10	hargrave 2015-01-14 14:20:25	1	1.03e-07	1.08e-09	849.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.54e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	24	-67.4	085.7	This study	7.59e-10	hargrave 2015-01-15 14:35:19	1	1.01e-07	1.24e-09	852.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.21e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	25	-67.5	089.6	This study	7.00e-10	hargrave 2015-01-18 12:57:56	1	1.02e-07	6.58e-10	855.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.74e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	26	-66.4	087.5	This study	6.51e-10	hargrave 2015-01-20 12:16:30	1	9.91e-08	7.64e-10	858.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.06e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	27	-67.4	088.4	This study	5.05e-10	hargrave 2015-02-10 17:23:31	1	9.79e-08	1.22e-09	863.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.42e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	28	-67.9	094.8	This study	4.10e-10	hargrave 2015-02-11 17:21:10	1	9.37e-08	1.22e-09	883.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.19e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	29	-67.2	102.3	This study	5.94e-10	hargrave 2015-02-12 15:33:34	1	8.44e-08	1.15e-09	903.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.09e-10	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	30	-66.6	108.1	This study	5.27e-10	hargrave 2015-02-13 17:49:53	1	7.68e-08	6.64e-10	923.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.16e-09	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	31	-65.7	106.8	This study	3.30e-10	hargrave 2015-02-17 11:25:45	1	6.02e-08	5.40e-10	933.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.58e-10	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	32	-66.1	104.4	This study	2.09e-10	hargrave 2015-02-18 09:43:40	1	2.82e-08	3.79e-10	943.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.19e-10	0	g
-Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	33	-55.4	113.9	This study	6.39e-11	hargrave 2015-02-19 12:52:13	1	4.99e-09	6.41e-11	953.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.64e-11	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	1	-50.4	46.5	This study	9.82e-09		1	1.12e-06	4.00e-08	273			273	2.6	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			3.14e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	2	-50.9	46.3	This study	1.09e-08		1	1.16e-06	3.25e-08	77			273	2.0	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			2.20e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	3	-51.6	44.8	This study	1.11e-08		1	1.33e-06	1.88e-08	373.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.96e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	4	-51.8	043.8	This study	9.49e-09	hargrave 2014-10-22 15:54:56	1	1.16e-06	4.26e-08	423.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.83e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	5	-51.0	043.6	This study	7.43e-09	hargrave 2014-10-27 16:21:23	1	1.05e-06	2.78e-08	473.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.89e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	6	-51.0	045.6	This study	6.48e-09	hargrave 2014-10-28 13:44:04	1	7.52e-07	3.76e-08	523.0			273	3.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.14e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	7	-50.2	050.3	This study	3.34e-09	hargrave 2014-10-28 20:41:45	1	4.57e-07	1.47e-08	573.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.28e-08	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	8	-48.8	051.3	This study	1.26e-09	hargrave 2014-10-29 20:54:34	1	2.19e-07	6.53e-09	623.0			273	2.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.51e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	9	-48.1	053.2	This study	1.13e-09	hargrave 2014-11-03 17:14:38	1	1.67e-07	4.98e-09	673.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.32e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	10	-47.3	053.9	This study	7.89e-10	hargrave 2014-11-04 12:05:10	1	1.38e-07	1.53e-09	698.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.25e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	11	-45.6	057.1	This study	7.35e-10	hargrave 2014-11-10 12:54:47	1	1.18e-07	2.76e-09	723.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.22e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	12	-42.6	059.6	This study	9.36e-10	hargrave 2014-11-10 22:13:28	1	9.94e-08	2.36e-09	748.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.09e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	13	-40.9	065.7	This study	8.86e-10	hargrave 2014-11-13 11:47:43	1	8.35e-08	2.99e-09	773.0			273	3.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.95e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	14	-38.7	067.1	This study	5.83e-10	hargrave 2014-11-17 17:28:20	1	7.25e-08	1.73e-09	788.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.33e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	15	-37.4	068.7	This study	5.21e-10	hargrave 2014-11-24 18:19:01	1	6.70e-08	3.52e-10	803.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.35e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	16	-36.7	069.2	This study	4.84e-10	hargrave 2014-12-01 17:00:52	1	6.56e-08	3.27e-10	818.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.17e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	17	-35.7	070.3	This study	4.23e-10	hargrave 2014-12-02 00:46:50	1	6.27e-08	3.20e-10	823.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.61e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	18	-33.0	073.5	This study	4.07e-10	hargrave 2014-12-05 13:42:16	1	5.59e-08	6.07e-10	828.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.98e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	19	-33.1	075.5	This study	3.89e-10	hargrave 2014-12-06 11:59:31	1	5.14e-08	2.40e-10	833.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.15e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	20	-32.9	072.8	This study	3.15e-10	hargrave 2014-12-08 15:20:12	1	4.91e-08	1.65e-10	838.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.60e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	21	-34.0	074.5	This study	2.57e-10	hargrave 2014-12-08 22:13:06	1	4.54e-08	2.71e-10	843.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.54e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	22	-32.9	078.8	This study	3.74e-10	hargrave 2015-01-12 11:03:59	1	4.43e-08	3.39e-10	846.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.14e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	23	-32.8	076.7	This study	2.92e-10	hargrave 2015-01-14 14:21:59	1	4.29e-08	2.38e-10	849.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.72e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	24	-32.4	077.3	This study	2.36e-10	hargrave 2015-01-15 14:36:53	1	4.17e-08	2.78e-10	852.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.05e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	25	-31.8	080.0	This study	3.76e-10	hargrave 2015-01-18 12:59:19	1	4.07e-08	5.23e-10	855.0			273	3.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.34e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	26	-31.2	079.6	This study	3.20e-10	hargrave 2015-01-20 12:17:56	1	3.86e-08	4.01e-10	858.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.81e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	27	-30.8	078.9	This study	1.58e-10	hargrave 2015-02-10 17:25:23	1	3.77e-08	7.32e-10	863.0			273	4.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.90e-09	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	28	-27.2	084.8	This study	2.06e-10	hargrave 2015-02-11 17:23:32	1	3.17e-08	3.69e-10	883.0			273	1.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.51e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	29	-20.5	089.5	This study	2.97e-10	hargrave 2015-02-12 15:35:25	1	2.74e-08	2.18e-10	903.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.27e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	30	-19.7	091.4	This study	3.72e-10	hargrave 2015-02-13 17:51:30	1	2.51e-08	5.53e-10	923.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.37e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	31	-18.5	094.7	This study	2.26e-10	hargrave 2015-02-17 11:27:15	1	2.19e-08	3.33e-10	933.0			273	1.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.58e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	32	-20.2	088.9	This study	2.69e-10	hargrave 2015-02-18 09:45:10	1	1.42e-08	2.31e-10	943.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.92e-10	0	g
-Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	33	-28.3	086.8	This study	2.48e-11	hargrave 2015-02-19 12:53:47	1	3.86e-09	7.04e-11	953.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.27e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	1	-72.0	200.8	This study	6.25e-09		1	1.20e-06	1.04e-08	273			273	0.8	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			1.31e-08	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	2	-71.7	204.4	This study	7.00e-09		1	1.24e-06	6.09e-09	77			273	0.8	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			1.64e-08	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	3	-71.4	204.2	This study	9.78e-09		1	1.41e-06	1.53e-08	373.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.89e-08	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	4	-71.2	203.4	This study	4.70e-09	hargrave 2014-10-22 15:56:39	1	1.20e-06	6.67e-09	423.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.59e-08	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	5	-71.6	204.3	This study	5.22e-09	hargrave 2014-10-27 16:23:12	1	1.09e-06	6.07e-09	473.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.43e-08	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	6	-70.9	206.4	This study	4.05e-09	hargrave 2014-10-28 13:46:02	1	8.29e-07	2.68e-08	523.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.76e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	7	-71.1	216.7	This study	1.42e-09	hargrave 2014-10-28 20:43:28	1	4.91e-07	4.95e-09	573.0			273	0.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.91e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	8	-70.3	220.4	This study	6.53e-10	hargrave 2014-10-29 20:56:10	1	2.37e-07	1.44e-09	623.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.74e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	9	-69.3	223.1	This study	4.59e-10	hargrave 2014-11-03 17:16:16	1	1.75e-07	9.03e-10	673.0			273	0.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.13e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	10	-67.9	226.1	This study	4.77e-10	hargrave 2014-11-04 12:06:45	1	1.47e-07	1.14e-09	698.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.97e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	11	-67.4	232.2	This study	6.52e-10	hargrave 2014-11-10 12:56:31	1	1.27e-07	6.21e-10	723.0			273	0.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.41e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	12	-66.4	237.0	This study	9.05e-10	hargrave 2014-11-10 22:15:06	1	1.08e-07	5.24e-10	748.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.75e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	13	-66.3	239.9	This study	1.10e-09	hargrave 2014-11-13 11:49:17	1	9.09e-08	7.52e-10	773.0			273	2.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.51e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	14	-63.3	241.3	This study	5.60e-10	hargrave 2014-11-17 17:29:58	1	7.92e-08	5.09e-10	788.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.47e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	15	-62.2	243.8	This study	4.71e-10	hargrave 2014-11-24 18:20:46	1	7.32e-08	1.38e-09	803.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.70e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	16	-60.5	246.2	This study	7.77e-10	hargrave 2014-12-01 17:02:30	1	7.02e-08	1.03e-09	818.0			273	1.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.63e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	17	-60.8	243.9	This study	7.28e-10	hargrave 2014-12-02 00:48:29	1	6.62e-08	6.15e-10	823.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.21e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	18	-59.4	249.4	This study	5.85e-10	hargrave 2014-12-05 13:44:45	1	5.84e-08	4.57e-10	828.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.46e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	19	-58.2	250.2	This study	5.62e-10	hargrave 2014-12-06 12:02:05	1	5.23e-08	7.19e-10	833.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.22e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	20	-57.9	253.2	This study	7.35e-10	hargrave 2014-12-08 15:22:41	1	4.87e-08	7.20e-10	838.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.54e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	21	-57.3	254.6	This study	7.55e-10	hargrave 2014-12-08 22:14:48	1	4.64e-08	7.83e-10	843.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.61e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	22	-55.6	256.1	This study	6.24e-10	hargrave 2015-01-12 11:05:30	1	4.28e-08	4.78e-10	846.0			273	3.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.27e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	23	-56.1	254.4	This study	5.87e-10	hargrave 2015-01-14 14:23:37	1	4.12e-08	5.21e-10	849.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.39e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	24	-56.3	252.7	This study	6.97e-10	hargrave 2015-01-15 14:38:32	1	3.81e-08	5.00e-10	852.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.04e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	25	-55.3	258.8	This study	3.84e-10	hargrave 2015-01-18 13:00:44	1	3.78e-08	7.83e-10	855.0			273	2.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.22e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	26	-56.0	260.1	This study	2.67e-10	hargrave 2015-01-20 12:19:24	1	3.42e-08	5.92e-10	858.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.36e-09	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	27	-56.2	257.0	This study	5.78e-10	hargrave 2015-02-10 17:27:18	1	3.33e-08	6.74e-10	863.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.62e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	28	-49.2	264.3	This study	6.94e-10	hargrave 2015-02-11 17:25:27	1	2.76e-08	6.02e-10	883.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.98e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	29	-46.0	265.6	This study	2.81e-10	hargrave 2015-02-12 15:37:20	1	1.97e-08	2.53e-10	903.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.34e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	30	-40.0	269.1	This study	2.16e-10	hargrave 2015-02-13 17:53:58	1	1.99e-08	2.92e-10	923.0			273	2.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.01e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	31	-42.4	268.6	This study	3.07e-10	hargrave 2015-02-17 11:28:49	1	1.78e-08	3.16e-10	933.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.97e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	32	-39.3	272.3	This study	3.35e-10	hargrave 2015-02-18 09:46:48	1	1.35e-08	3.34e-10	943.0			273	2.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.89e-10	0	g
-Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	33	-27.9	234.4	This study	9.14e-11	hargrave 2015-02-19 12:55:38	1	3.99e-09	1.06e-10	953.0			273	3.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.07e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	1	-44.9	77.2	This study	2.46e-09		1	2.46e-07	1.06e-09	273			273	3.0	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			1.26e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	2	-46.1	73.1	This study	3.48e-09		1	2.72e-07	1.30e-09	77			273	2.5	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			1.12e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	3	-49.3	66.0	This study	6.14e-09		1	3.68e-07	4.82e-09	373.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.03e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	4	-51.8	057.3	This study	7.78e-09	hargrave 2014-10-22 15:58:15	1	5.06e-07	2.52e-09	423.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.08e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	5	-52.1	061.1	This study	1.03e-08	hargrave 2014-10-27 16:24:50	1	5.02e-07	2.75e-09	473.0			273	3.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.17e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	6	-51.9	066.0	This study	7.43e-09	hargrave 2014-10-28 13:47:48	1	4.01e-07	5.43e-09	523.0			273	5.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.67e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	7	-50.3	069.5	This study	3.89e-09	hargrave 2014-10-28 20:45:11	1	2.63e-07	3.27e-09	573.0			273	4.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.20e-08	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	8	-51.0	077.3	This study	1.56e-09	hargrave 2014-10-29 20:57:46	1	1.59e-07	5.81e-10	623.0			273	3.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.67e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	9	-49.9	081.7	This study	1.49e-09	hargrave 2014-11-03 17:17:53	1	1.25e-07	5.86e-10	673.0			273	4.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.78e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	10	-49.3	083.5	This study	1.12e-09	hargrave 2014-11-04 12:08:13	1	1.13e-07	5.18e-10	698.0			273	3.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.17e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	11	-47.8	089.4	This study	9.47e-10	hargrave 2014-11-10 12:58:13	1	1.01e-07	6.20e-10	723.0			273	4.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.02e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	12	-46.9	092.2	This study	7.45e-10	hargrave 2014-11-10 22:16:43	1	9.23e-08	4.97e-10	748.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.65e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	13	-44.6	099.3	This study	9.94e-10	hargrave 2014-11-13 11:50:50	1	8.52e-08	1.36e-09	773.0			273	4.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.65e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	14	-42.8	101.8	This study	6.72e-10	hargrave 2014-11-17 17:31:35	1	7.92e-08	9.47e-10	788.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.04e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	15	-42.7	103.3	This study	5.65e-10	hargrave 2014-11-24 18:22:26	1	7.67e-08	5.01e-10	803.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.10e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	16	-41.8	103.7	This study	8.06e-10	hargrave 2014-12-01 17:04:09	1	7.61e-08	7.70e-10	818.0			273	1.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.39e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	17	-41.7	103.3	This study	6.66e-10	hargrave 2014-12-02 00:50:08	1	7.05e-08	6.73e-10	823.0			273	1.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.33e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	18	-41.4	105.8	This study	6.06e-10	hargrave 2014-12-05 13:46:21	1	6.86e-08	1.42e-09	828.0			273	3.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.01e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	19	-39.4	106.3	This study	5.00e-10	hargrave 2014-12-06 12:03:37	1	6.56e-08	2.97e-10	833.0			273	0.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.49e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	20	-40.2	107.1	This study	6.00e-10	hargrave 2014-12-08 15:24:19	1	6.34e-08	5.57e-10	838.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.97e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	21	-39.2	106.6	This study	6.18e-10	hargrave 2014-12-08 22:16:29	1	6.09e-08	5.48e-10	843.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.10e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	22	-39.3	111.5	This study	3.90e-10	hargrave 2015-01-12 11:07:07	1	5.92e-08	1.59e-09	846.0			273	3.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.29e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	23	-39.5	110.9	This study	3.95e-10	hargrave 2015-01-14 14:25:16	1	5.86e-08	8.67e-10	849.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.85e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	24	-39.3	110.1	This study	6.83e-10	hargrave 2015-01-15 14:40:11	1	5.84e-08	5.93e-10	852.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.07e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	25	-40.2	113.1	This study	5.04e-10	hargrave 2015-01-18 13:02:08	1	5.75e-08	1.35e-09	855.0			273	2.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.53e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	26	-39.4	113.4	This study	4.12e-10	hargrave 2015-01-20 12:21:08	1	5.74e-08	6.22e-10	858.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.35e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	27	-38.0	113.4	This study	3.27e-10	hargrave 2015-02-10 17:29:40	1	5.53e-08	7.29e-10	863.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.47e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	28	-36.7	115.9	This study	4.53e-10	hargrave 2015-02-11 17:27:24	1	5.22e-08	7.00e-10	883.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.42e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	29	-34.3	116.6	This study	4.96e-10	hargrave 2015-02-12 15:39:33	1	4.54e-08	6.33e-10	903.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.51e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	30	-32.9	122.8	This study	2.07e-10	hargrave 2015-02-13 17:55:58	1	4.10e-08	3.56e-10	923.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.04e-09	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	31	-33.6	122.6	This study	2.55e-10	hargrave 2015-02-17 11:30:40	1	3.27e-08	3.88e-10	933.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.21e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	32	-34.3	122.0	This study	1.02e-10	hargrave 2015-02-18 09:48:39	1	1.56e-08	6.76e-10	943.0			273	4.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.59e-10	0	g
-Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	33	-37.5	128.2	This study	1.85e-11	hargrave 2015-02-19 12:57:15	1	3.94e-09	1.22e-10	953.0			273	2.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.21e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	1	-38.2	15.6	This study	1.49e-09		1	4.09e-07	2.01e-08	273			273	3.0	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			7.33e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	2	-37.5	14.5	This study	1.64e-09		1	4.63e-07	1.25e-08	77			273	1.7	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			5.05e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	3	-38.2	7.1	This study	2.55e-09		1	6.21e-07	3.58e-09	373.0			273	0.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.61e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	4	-38.7	003.2	This study	6.47e-09	hargrave 2014-10-22 15:59:53	1	7.92e-07	2.75e-08	423.0			273	2.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.56e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	5	-39.1	002.7	This study	4.23e-09	hargrave 2014-10-27 16:26:22	1	7.70e-07	1.87e-08	473.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.90e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	6	-41.2	004.0	This study	3.25e-09	hargrave 2014-10-28 13:49:35	1	5.77e-07	3.21e-08	523.0			273	3.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.53e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	7	-43.6	009.1	This study	1.64e-09	hargrave 2014-10-28 20:46:49	1	3.38e-07	1.46e-08	573.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.92e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	8	-47.7	003.1	This study	7.48e-10	hargrave 2014-10-29 20:59:18	1	2.10e-07	6.33e-09	623.0			273	1.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.44e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	9	-48.9	004.7	This study	7.48e-10	hargrave 2014-11-03 17:19:27	1	1.86e-07	7.30e-09	673.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.47e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	10	-51.2	003.4	This study	9.38e-10	hargrave 2014-11-04 12:09:44	1	1.70e-07	4.39e-09	698.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.53e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	11	-52.6	006.6	This study	7.23e-10	hargrave 2014-11-10 12:59:52	1	1.56e-07	4.41e-09	723.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.23e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	12	-54.3	005.0	This study	7.26e-10	hargrave 2014-11-10 22:18:21	1	1.40e-07	3.73e-09	748.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.48e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	13	-56.9	009.2	This study	8.08e-10	hargrave 2014-11-13 11:52:27	1	1.22e-07	3.97e-09	773.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.47e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	14	-60.2	009.5	This study	4.09e-10	hargrave 2014-11-17 17:33:08	1	1.04e-07	2.96e-09	788.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.23e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	15	-61.7	010.6	This study	3.32e-10	hargrave 2014-11-24 18:24:04	1	9.46e-08	1.14e-09	803.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.33e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	16	-64.2	013.4	This study	4.61e-10	hargrave 2014-12-01 17:05:43	1	8.90e-08	8.66e-10	818.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.25e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	17	-65.4	010.6	This study	5.17e-10	hargrave 2014-12-02 00:51:42	1	8.17e-08	7.78e-10	823.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.05e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	18	-68.1	008.5	This study	3.97e-10	hargrave 2014-12-05 13:48:00	1	7.61e-08	7.97e-10	828.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.54e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	19	-70.7	013.8	This study	4.56e-10	hargrave 2014-12-06 12:05:58	1	6.99e-08	8.73e-10	833.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.47e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	20	-71.9	015.8	This study	3.77e-10	hargrave 2014-12-08 15:25:53	1	6.66e-08	6.73e-10	838.0			273	0.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.84e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	21	-72.1	014.2	This study	4.03e-10	hargrave 2014-12-08 22:18:06	1	6.25e-08	6.31e-10	843.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.49e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	22	-72.6	012.4	This study	4.41e-10	hargrave 2015-01-12 11:08:38	1	6.17e-08	6.47e-10	846.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.23e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	23	-74.0	016.3	This study	5.04e-10	hargrave 2015-01-14 14:26:50	1	6.06e-08	9.91e-10	849.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.27e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	24	-75.4	012.8	This study	4.34e-10	hargrave 2015-01-15 14:41:46	1	5.88e-08	5.97e-10	852.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.30e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	25	-75.3	017.9	This study	6.04e-10	hargrave 2015-01-18 13:03:31	1	5.71e-08	7.91e-10	855.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.08e-09	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	26	-74.9	017.4	This study	3.06e-10	hargrave 2015-01-20 12:22:38	1	5.57e-08	7.83e-10	858.0			273	1.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.65e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	27	-78.2	021.7	This study	3.63e-10	hargrave 2015-02-10 17:31:37	1	5.14e-08	6.37e-10	863.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.31e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	28	-81.2	025.0	This study	3.79e-10	hargrave 2015-02-11 17:29:26	1	4.76e-08	4.79e-10	883.0			273	1.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.49e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	29	-81.9	021.0	This study	3.59e-10	hargrave 2015-02-12 15:41:30	1	3.95e-08	3.83e-10	903.0			273	0.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.24e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	30	-85.2	044.7	This study	1.89e-10	hargrave 2015-02-13 17:57:36	1	3.54e-08	3.74e-10	923.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.06e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	31	-86.8	002.6	This study	2.69e-10	hargrave 2015-02-17 11:32:15	1	2.82e-08	2.80e-10	933.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.30e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	32	-77.8	330.8	This study	8.97e-11	hargrave 2015-02-18 09:51:41	1	1.61e-08	2.29e-10	943.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.62e-10	0	g
-Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	33	-70.2	167.9	This study	3.25e-11	hargrave 2015-02-19 12:58:47	1	3.90e-09	4.52e-11	953.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.01e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	1	-65.1	169.5	This study	9.09e-10		1	2.87e-07	7.03e-09	273			273	1.6	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			3.49e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	2	-66.4	170.7	This study	9.45e-10		1	3.30e-07	7.33e-09	77			273	1.4	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			3.37e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	3	-71.4	173.3	This study	2.26e-09		1	4.62e-07	5.49e-09	373.0			273	0.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.21e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	4	-73.4	175.4	This study	8.78e-10	hargrave 2014-10-22 16:01:25	1	6.26e-07	1.37e-08	423.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.16e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	5	-72.5	172.6	This study	1.66e-09	hargrave 2014-10-27 16:28:07	1	6.10e-07	1.23e-08	473.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.71e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	6	-71.2	179.4	This study	2.29e-09	hargrave 2014-10-28 13:51:20	1	4.71e-07	1.31e-08	523.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.84e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	7	-65.3	183.5	This study	1.48e-09	hargrave 2014-10-28 20:48:26	1	2.75e-07	4.08e-09	573.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.58e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	8	-59.0	184.8	This study	5.44e-10	hargrave 2014-10-29 21:00:50	1	1.59e-07	4.15e-09	623.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.01e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	9	-57.3	181.4	This study	4.01e-10	hargrave 2014-11-03 17:20:59	1	1.23e-07	3.49e-09	673.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.70e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	10	-54.9	183.7	This study	3.93e-10	hargrave 2014-11-04 12:11:18	1	1.09e-07	4.11e-09	698.0			273	2.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.55e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	11	-52.2	183.6	This study	6.19e-10	hargrave 2014-11-10 13:01:28	1	9.41e-08	2.98e-09	723.0			273	1.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.74e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	12	-49.9	183.8	This study	9.71e-10	hargrave 2014-11-10 22:19:54	1	8.32e-08	1.39e-09	748.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.05e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	13	-46.7	186.6	This study	9.68e-10	hargrave 2014-11-13 11:54:22	1	7.35e-08	4.62e-09	773.0			273	3.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.40e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	14	-43.4	183.2	This study	3.06e-10	hargrave 2014-11-17 17:34:47	1	6.76e-08	1.96e-09	788.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.04e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	15	-41.1	185.0	This study	3.03e-10	hargrave 2014-11-24 18:25:43	1	6.36e-08	1.15e-09	803.0			273	1.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.71e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	16	-39.9	184.9	This study	6.37e-10	hargrave 2014-12-01 17:07:16	1	6.30e-08	1.79e-09	818.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.50e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	17	-38.9	183.4	This study	5.95e-10	hargrave 2014-12-02 00:53:16	1	5.76e-08	9.75e-10	823.0			273	1.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.37e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	18	-37.6	183.0	This study	6.93e-10	hargrave 2014-12-05 13:50:05	1	5.68e-08	3.39e-09	828.0			273	3.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.01e-09	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	19	-35.8	186.2	This study	4.36e-10	hargrave 2014-12-06 12:07:29	1	5.43e-08	1.22e-09	833.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.53e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	20	-35.2	184.0	This study	3.98e-10	hargrave 2014-12-08 15:27:26	1	5.30e-08	1.17e-09	838.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.65e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	21	-34.2	183.1	This study	5.30e-10	hargrave 2014-12-08 22:19:44	1	5.16e-08	1.29e-09	843.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.98e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	22	-33.9	185.8	This study	7.72e-10	hargrave 2015-01-12 11:10:18	1	5.00e-08	7.49e-10	846.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.56e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	23	-33.3	182.6	This study	6.17e-10	hargrave 2015-01-14 14:28:30	1	4.86e-08	1.05e-09	849.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.63e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	24	-32.5	181.9	This study	7.65e-10	hargrave 2015-01-15 14:43:20	1	4.83e-08	9.70e-10	852.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.27e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	25	-32.6	185.6	This study	3.95e-10	hargrave 2015-01-18 13:04:52	1	4.67e-08	1.16e-09	855.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.82e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	26	-31.8	186.5	This study	3.13e-10	hargrave 2015-01-20 12:24:04	1	4.62e-08	1.37e-09	858.0			273	1.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.29e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	27	-32.2	184.2	This study	1.09e-09	hargrave 2015-02-10 17:33:39	1	4.43e-08	1.21e-09	863.0			273	2.1	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.71e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	28	-27.3	184.3	This study	7.18e-10	hargrave 2015-02-11 17:31:29	1	4.06e-08	1.11e-09	883.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.38e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	29	-27.0	183.5	This study	8.83e-10	hargrave 2015-02-12 15:43:23	1	3.76e-08	5.60e-10	903.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.80e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	30	-24.9	186.8	This study	4.99e-10	hargrave 2015-02-13 17:59:10	1	3.19e-08	7.10e-10	923.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.29e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	31	-24.1	185.4	This study	3.41e-10	hargrave 2015-02-17 11:33:47	1	2.76e-08	3.33e-10	933.0			273	1.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.38e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	32	-30.3	184.6	This study	1.34e-10	hargrave 2015-02-18 09:53:13	1	1.35e-08	8.70e-10	943.0			273	3.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.61e-10	0	g
-Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	33	-33.5	177.9	This study	1.23e-10	hargrave 2015-02-19 13:00:15	1	5.46e-09	2.04e-10	953.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.16e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	1	-75.3	97.9	This study	3.00e-09		1	4.90e-07	1.46e-08	273			273	2.3	LT-NO:LP-DIR-T		pmagpy-3.2.1	0			1.31e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	2	-76.9	99.4	This study	2.94e-09		1	5.30e-07	1.67e-08	77			273	2.2	LT-LT-Z:LP-DIR-T		pmagpy-3.2.1	0			1.06e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	3	-79.2	102.5	This study	3.50e-09		1	6.93e-07	2.08e-08	373.0			273	2.2	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.62e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	4	-80.9	109.8	This study	4.51e-09	hargrave 2014-10-22 16:03:00	1	8.13e-07	2.67e-08	423.0			273	2.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			9.83e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	5	-79.9	110.5	This study	3.87e-09	hargrave 2014-10-27 16:29:43	1	7.81e-07	2.60e-08	473.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.34e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	6	-80.5	116.6	This study	2.82e-09	hargrave 2014-10-28 13:53:01	1	6.36e-07	2.29e-08	523.0			273	2.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.00e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	7	-78.6	126.4	This study	2.20e-09	hargrave 2014-10-28 20:50:09	1	3.98e-07	1.29e-08	573.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.15e-08	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	8	-76.6	130.7	This study	1.10e-09	hargrave 2014-10-29 21:02:25	1	2.17e-07	8.46e-09	623.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.73e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	9	-74.1	131.6	This study	8.69e-10	hargrave 2014-11-03 17:22:35	1	1.60e-07	6.73e-09	673.0			273	2.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.43e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	10	-72.0	137.9	This study	7.78e-10	hargrave 2014-11-04 12:12:56	1	1.32e-07	4.90e-09	698.0			273	2.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.36e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	11	-70.1	143.0	This study	7.31e-10	hargrave 2014-11-10 13:03:06	1	1.09e-07	5.14e-09	723.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.31e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	12	-67.3	146.4	This study	1.10e-09	hargrave 2014-11-10 22:21:30	1	9.24e-08	3.91e-09	748.0			273	2.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.73e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	13	-63.5	149.2	This study	1.16e-09	hargrave 2014-11-13 11:56:06	1	7.94e-08	6.07e-09	773.0			273	4.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.88e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	14	-58.7	149.1	This study	5.82e-10	hargrave 2014-11-17 17:36:30	1	6.94e-08	4.07e-09	788.0			273	3.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.27e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	15	-57.7	149.5	This study	4.62e-10	hargrave 2014-11-24 18:27:42	1	6.35e-08	3.00e-09	803.0			273	2.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.05e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	16	-56.6	157.8	This study	8.40e-10	hargrave 2014-12-01 17:08:53	1	6.12e-08	1.13e-09	818.0			273	1.5	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.53e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	17	-55.2	152.6	This study	8.33e-10	hargrave 2014-12-02 00:54:54	1	5.49e-08	1.14e-09	823.0			273	1.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			6.42e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	18	-54.9	151.8	This study	5.03e-10	hargrave 2014-12-05 13:51:47	1	5.14e-08	4.15e-09	828.0			273	5.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			1.71e-09	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	19	-52.8	153.9	This study	5.28e-10	hargrave 2014-12-06 12:09:00	1	4.70e-08	1.79e-09	833.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.70e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	20	-52.2	157.8	This study	5.15e-10	hargrave 2014-12-08 15:29:03	1	4.51e-08	9.01e-10	838.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.89e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	21	-50.6	156.5	This study	7.07e-10	hargrave 2014-12-08 22:21:25	1	4.41e-08	1.24e-09	843.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.29e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	22	-52.4	155.9	This study	6.23e-10	hargrave 2015-01-12 11:11:57	1	4.18e-08	1.20e-09	846.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.65e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	23	-50.8	156.7	This study	5.93e-10	hargrave 2015-01-14 14:30:08	1	3.93e-08	1.14e-09	849.0			273	1.9	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.74e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	24	-51.3	153.0	This study	7.91e-10	hargrave 2015-01-15 14:44:58	1	3.87e-08	1.82e-09	852.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.86e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	25	-50.2	155.0	This study	4.36e-10	hargrave 2015-01-18 13:06:16	1	3.74e-08	1.82e-09	855.0			273	3.0	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.65e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	26	-49.9	155.9	This study	2.84e-10	hargrave 2015-01-20 12:25:28	1	3.53e-08	1.26e-09	858.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			8.06e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	27	-48.2	160.5	This study	5.54e-10	hargrave 2015-02-10 17:35:38	1	3.27e-08	5.26e-10	863.0			273	1.4	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			5.30e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	28	-42.7	156.8	This study	6.25e-10	hargrave 2015-02-11 17:33:46	1	2.73e-08	8.72e-10	883.0			273	2.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			4.47e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	29	-36.7	157.6	This study	4.34e-10	hargrave 2015-02-12 15:45:13	1	2.28e-08	5.97e-10	903.0			273	1.8	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			2.75e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	30	-36.2	163.4	This study	4.16e-10	hargrave 2015-02-13 18:00:41	1	2.11e-08	4.50e-10	923.0			273	1.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.72e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	31	-31.1	167.7	This study	2.00e-10	hargrave 2015-02-17 11:35:15	1	2.23e-08	4.15e-10	933.0			273	1.3	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.87e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	32	-33.8	160.7	This study	1.56e-10	hargrave 2015-02-18 09:54:42	1	1.50e-08	9.46e-10	943.0			273	3.7	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			3.18e-10	0	g
-Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	33	-35.3	167.4	This study	7.00e-11	hargrave 2015-02-19 13:01:41	1	4.06e-09	1.58e-10	953.0			273	2.6	LT-T-Z:LP-DIR-T		pmagpy-3.2.1	0			7.87e-11	0	g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	0	-42.799999	295.600006	This study				5.267117e-05		273.	0		273.		LT-NO:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	1	-42.400002	302.399994	This study				4.808001e-05		4.730e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	2	-46.299999	303.000000	This study				5.114643e-05		4.730e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	3	-42.599998	296.500000	This study				4.813084e-05		4.730e+02	0		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	4	-40.700001	300.200012	This study				4.657222e-05		5.230e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	5	-33.900002	300.200012	This study				4.254014e-05		5.230e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	6	-42.099998	297.399994	This study				4.438677e-05		5.730e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	7	-49.500000	293.799988	This study				5.045183e-05		5.730e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	8	-42.299999	297.899994	This study				4.228602e-05		6.130e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	9	-34.700001	293.100006	This study				3.842335e-05		5.230e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	10	-29.100000	295.000000	This study				3.600072e-05		6.130e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	11	-37.200001	296.500000	This study				3.938902e-05		5.230e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	12	-42.000000	297.100006	This study				4.050716e-05		6.430e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	13	-51.799999	298.700012	This study				4.907957e-05		6.430e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	14	-42.000000	298.200012	This study				4.047328e-05		6.430e+02	90		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	15	-41.900002	298.600006	This study				3.916878e-05		6.730e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	16	-27.400000	298.200012	This study				3.345949e-05		6.130e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	17	-23.200001	296.899994	This study				3.201946e-05		6.730e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	18	-38.299999	300.600006	This study				3.716968e-05		6.130e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	19	-41.799999	298.100006	This study				3.749157e-05		7.030e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	20	-54.799999	299.500000	This study				4.845273e-05		7.030e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	21	-41.500000	303.000000	This study				3.733910e-05		7.030e+02	90		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	22	-40.799999	297.100006	This study				3.528917e-05		7.330e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	23	-20.200001	303.899994	This study				2.873281e-05		6.730e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	24	-12.900000	301.899994	This study				2.739443e-05		7.330e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	25	-35.799999	301.299988	This study				3.266324e-05		6.730e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	26	-41.599998	303.000000	This study				3.256159e-05		7.630e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	27	-59.299999	301.100006	This study				4.750400e-05		7.630e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	28	-42.200001	306.299988	This study				3.252771e-05		7.630e+02	90		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	29	-41.599998	300.700012	This study				2.995260e-05		7.830e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	30	-7.800000	303.100006	This study				2.319293e-05		7.330e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	31	5.500000	306.000000	This study				2.324376e-05		7.830e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	32	-31.500000	302.799988	This study				2.675065e-05		7.330e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	33	-41.000000	298.200012	This study				2.636100e-05		8.030e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	34	-66.000000	306.600006	This study				4.760565e-05		8.030e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	35	-41.799999	303.299988	This study				2.625935e-05		8.030e+02	90		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	36	-41.500000	301.700012	This study				2.161737e-05		8.180e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	37	24.600000	303.600006	This study				1.853402e-05		7.830e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	38	46.500000	300.700012	This study				2.429413e-05		8.180e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	39	-15.800000	299.500000	This study				1.672805e-05		7.830e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	40	-42.099998	299.000000	This study				1.524906e-05		8.280e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	41	-75.900002	300.200012	This study				4.843579e-05		8.280e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	42	-44.000000	306.500000	This study				1.574544e-05		8.280e+02	90		273.		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	43	-46.799999	310.600006	This study				2.334541e-07		8.380e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	44	88.800003	303.000000	This study				3.198558e-05		8.180e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	45	89.099998	294.299988	This study				5.304388e-05		8.380e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	46	88.500000	307.100006	This study				2.136325e-05		8.180e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	47	57.200001	308.399994	This study				4.946922e-08		8.480e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	48	-88.900002	217.500000	This study				5.295917e-05		8.480e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	49	-47.900002	2.000000	This study				3.549247e-08		8.730e+02	0		273.		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		0	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	50	89.400002	38.700001	This study				5.348436e-05		8.380e+02	90		273.		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	51	88.500000	304.200012	This study				5.360295e-05		8.730e+02	90		273.		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
-MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	52	81.599998	2.700000	This study				1.567768e-07		8.380e+02	90		273.		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	u		6.000e-05	0				g
+er_specimen_name	er_sample_name	er_site_name	er_location_name	magic_experiment_name	measurement_number	measurement_sd_x	treatment_temp	treatment_ac_field	magic_software_packages	measurement_flag	measurement_inc	treatment_dc_field_phi	measurement_positions	magic_method_codes	measurement_sd_z	magic_instrument_codes	er_analyst_mail_names	measurement_description	treatment_dc_field_theta	er_citation_names	measurement_magn_moment	measurement_dec	measurement_sd_y	measurement_csd	measurement_temp	treatment_dc_field	measurement_standard
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	1	1.35e-08	273	0	pmagpy-3.2.1	g	-53.2		1	LT-NO:LP-DIR-T	2.14e-09					This study	3.93e-07	37.2	8.63e-09	2.3	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	2	1.25e-08	77	0	pmagpy-3.2.1	g	-50.9		1	LT-LT-Z:LP-DIR-T	2.78e-09					This study	4.29e-07	36.7	7.51e-09	2.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	3	1.65e-08	373.0	0	pmagpy-3.2.1	g	-48.5		1	LT-T-Z:LP-DIR-T	3.42e-09					This study	5.32e-07	34.8	1.28e-08	2.3	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	4	2.39e-08	423.0	0	pmagpy-3.2.1	g	-47.6		1	LT-T-Z:LP-DIR-T	1.04e-08	hargrave 2014-10-22 15:53:24				This study	6.71e-07	029.3	2.34e-08	3.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	5	2.00e-08	473.0	0	pmagpy-3.2.1	g	-47.3		1	LT-T-Z:LP-DIR-T	7.42e-09	hargrave 2014-10-27 16:19:50				This study	6.55e-07	028.6	1.31e-08	2.2	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	6	1.81e-08	523.0	0	pmagpy-3.2.1	g	-49.3		1	LT-T-Z:LP-DIR-T	4.18e-09	hargrave 2014-10-28 13:42:19				This study	5.27e-07	028.5	2.17e-08	3.1	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	7	1.42e-08	573.0	0	pmagpy-3.2.1	g	-52.8		1	LT-T-Z:LP-DIR-T	2.98e-09	hargrave 2014-10-28 20:40:03				This study	3.81e-07	034.0	1.36e-08	3.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	8	7.58e-09	623.0	0	pmagpy-3.2.1	g	-57.3		1	LT-T-Z:LP-DIR-T	1.87e-09	hargrave 2014-10-29 20:53:02				This study	2.40e-07	040.3	3.67e-09	2.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	9	9.19e-09	673.0	0	pmagpy-3.2.1	g	-58.4		1	LT-T-Z:LP-DIR-T	1.36e-09	hargrave 2014-11-03 17:13:00				This study	1.97e-07	043.8	5.83e-09	3.2	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	10	5.82e-09	698.0	0	pmagpy-3.2.1	g	-59.9		1	LT-T-Z:LP-DIR-T	1.36e-09	hargrave 2014-11-04 12:03:42				This study	1.78e-07	046.8	2.86e-09	2.1	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	11	5.48e-09	723.0	0	pmagpy-3.2.1	g	-61.0		1	LT-T-Z:LP-DIR-T	8.90e-10	hargrave 2014-11-10 12:53:05				This study	1.64e-07	049.9	3.62e-09	2.3	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	12	3.62e-09	748.0	0	pmagpy-3.2.1	g	-63.2		1	LT-T-Z:LP-DIR-T	5.24e-10	hargrave 2014-11-10 22:11:56				This study	1.52e-07	053.3	2.88e-09	1.7	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	13	5.59e-09	773.0	0	pmagpy-3.2.1	g	-64.0		1	LT-T-Z:LP-DIR-T	1.20e-09	hargrave 2014-11-13 11:46:05				This study	1.41e-07	059.3	3.57e-09	2.7	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	14	3.75e-09	788.0	0	pmagpy-3.2.1	g	-65.4		1	LT-T-Z:LP-DIR-T	5.73e-10	hargrave 2014-11-17 17:26:46				This study	1.33e-07	064.8	1.35e-09	1.7	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	15	9.51e-10	803.0	0	pmagpy-3.2.1	g	-66.0		1	LT-T-Z:LP-DIR-T	6.38e-10	hargrave 2014-11-24 18:17:16				This study	1.29e-07	065.5	8.48e-10	0.5	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	16	1.06e-09	818.0	0	pmagpy-3.2.1	g	-66.2		1	LT-T-Z:LP-DIR-T	7.35e-10	hargrave 2014-12-01 16:59:18				This study	1.28e-07	069.9	7.81e-10	0.5	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	17	9.19e-10	823.0	0	pmagpy-3.2.1	g	-66.0		1	LT-T-Z:LP-DIR-T	8.68e-10	hargrave 2014-12-02 00:45:16				This study	1.23e-07	069.3	1.01e-09	0.6	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	18	1.51e-09	828.0	0	pmagpy-3.2.1	g	-66.3		1	LT-T-Z:LP-DIR-T	1.06e-09	hargrave 2014-12-05 13:40:46				This study	1.18e-07	075.0	9.15e-10	0.8	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	19	1.26e-09	833.0	0	pmagpy-3.2.1	g	-66.7		1	LT-T-Z:LP-DIR-T	2.61e-10	hargrave 2014-12-06 11:57:52				This study	1.14e-07	072.8	8.36e-10	0.7	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	20	1.12e-09	838.0	0	pmagpy-3.2.1	g	-66.9		1	LT-T-Z:LP-DIR-T	5.56e-10	hargrave 2014-12-08 15:18:37				This study	1.10e-07	080.1	6.62e-10	0.6	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	21	1.35e-09	843.0	0	pmagpy-3.2.1	g	-66.2		1	LT-T-Z:LP-DIR-T	7.95e-10	hargrave 2014-12-08 22:11:29				This study	1.08e-07	078.7	7.31e-10	0.8	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	22	2.28e-09	846.0	0	pmagpy-3.2.1	g	-67.5		1	LT-T-Z:LP-DIR-T	5.65e-10	hargrave 2015-01-12 11:02:24				This study	1.05e-07	084.0	1.00e-09	1.4	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	23	2.54e-09	849.0	0	pmagpy-3.2.1	g	-66.7		1	LT-T-Z:LP-DIR-T	5.64e-10	hargrave 2015-01-14 14:20:25				This study	1.03e-07	081.2	1.08e-09	1.5	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	24	2.21e-09	852.0	0	pmagpy-3.2.1	g	-67.4		1	LT-T-Z:LP-DIR-T	7.59e-10	hargrave 2015-01-15 14:35:19				This study	1.01e-07	085.7	1.24e-09	1.4	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	25	2.74e-09	855.0	0	pmagpy-3.2.1	g	-67.5		1	LT-T-Z:LP-DIR-T	7.00e-10	hargrave 2015-01-18 12:57:56				This study	1.02e-07	089.6	6.58e-10	1.6	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	26	1.06e-09	858.0	0	pmagpy-3.2.1	g	-66.4		1	LT-T-Z:LP-DIR-T	6.51e-10	hargrave 2015-01-20 12:16:30				This study	9.91e-08	087.5	7.64e-10	0.7	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	27	1.42e-09	863.0	0	pmagpy-3.2.1	g	-67.4		1	LT-T-Z:LP-DIR-T	5.05e-10	hargrave 2015-02-10 17:23:31				This study	9.79e-08	088.4	1.22e-09	1.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	28	1.19e-09	883.0	0	pmagpy-3.2.1	g	-67.9		1	LT-T-Z:LP-DIR-T	4.10e-10	hargrave 2015-02-11 17:21:10				This study	9.37e-08	094.8	1.22e-09	1.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	29	9.09e-10	903.0	0	pmagpy-3.2.1	g	-67.2		1	LT-T-Z:LP-DIR-T	5.94e-10	hargrave 2015-02-12 15:33:34				This study	8.44e-08	102.3	1.15e-09	0.9	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	30	1.16e-09	923.0	0	pmagpy-3.2.1	g	-66.6		1	LT-T-Z:LP-DIR-T	5.27e-10	hargrave 2015-02-13 17:49:53				This study	7.68e-08	108.1	6.64e-10	1.0	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	31	7.58e-10	933.0	0	pmagpy-3.2.1	g	-65.7		1	LT-T-Z:LP-DIR-T	3.30e-10	hargrave 2015-02-17 11:25:45				This study	6.02e-08	106.8	5.40e-10	0.8	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	32	5.19e-10	943.0	0	pmagpy-3.2.1	g	-66.1		1	LT-T-Z:LP-DIR-T	2.09e-10	hargrave 2015-02-18 09:43:40				This study	2.82e-08	104.4	3.79e-10	1.3	273	0	
+Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	33	9.64e-11	953.0	0	pmagpy-3.2.1	g	-55.4		1	LT-T-Z:LP-DIR-T	6.39e-11	hargrave 2015-02-19 12:52:13				This study	4.99e-09	113.9	6.41e-11	1.4	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	1	3.14e-08	273	0	pmagpy-3.2.1	g	-50.4		1	LT-NO:LP-DIR-T	9.82e-09					This study	1.12e-06	46.5	4.00e-08	2.6	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	2	2.20e-08	77	0	pmagpy-3.2.1	g	-50.9		1	LT-LT-Z:LP-DIR-T	1.09e-08					This study	1.16e-06	46.3	3.25e-08	2.0	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	3	8.96e-09	373.0	0	pmagpy-3.2.1	g	-51.6		1	LT-T-Z:LP-DIR-T	1.11e-08					This study	1.33e-06	44.8	1.88e-08	1.0	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	4	2.83e-08	423.0	0	pmagpy-3.2.1	g	-51.8		1	LT-T-Z:LP-DIR-T	9.49e-09	hargrave 2014-10-22 15:54:56				This study	1.16e-06	043.8	4.26e-08	2.6	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	5	1.89e-08	473.0	0	pmagpy-3.2.1	g	-51.0		1	LT-T-Z:LP-DIR-T	7.43e-09	hargrave 2014-10-27 16:21:23				This study	1.05e-06	043.6	2.78e-08	1.9	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	6	3.14e-08	523.0	0	pmagpy-3.2.1	g	-51.0		1	LT-T-Z:LP-DIR-T	6.48e-09	hargrave 2014-10-28 13:44:04				This study	7.52e-07	045.6	3.76e-08	3.7	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	7	1.28e-08	573.0	0	pmagpy-3.2.1	g	-50.2		1	LT-T-Z:LP-DIR-T	3.34e-09	hargrave 2014-10-28 20:41:45				This study	4.57e-07	050.3	1.47e-08	2.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	8	6.51e-09	623.0	0	pmagpy-3.2.1	g	-48.8		1	LT-T-Z:LP-DIR-T	1.26e-09	hargrave 2014-10-29 20:54:34				This study	2.19e-07	051.3	6.53e-09	2.4	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	9	5.32e-09	673.0	0	pmagpy-3.2.1	g	-48.1		1	LT-T-Z:LP-DIR-T	1.13e-09	hargrave 2014-11-03 17:14:38				This study	1.67e-07	053.2	4.98e-09	2.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	10	1.25e-09	698.0	0	pmagpy-3.2.1	g	-47.3		1	LT-T-Z:LP-DIR-T	7.89e-10	hargrave 2014-11-04 12:05:10				This study	1.38e-07	053.9	1.53e-09	0.8	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	11	2.22e-09	723.0	0	pmagpy-3.2.1	g	-45.6		1	LT-T-Z:LP-DIR-T	7.35e-10	hargrave 2014-11-10 12:54:47				This study	1.18e-07	057.1	2.76e-09	1.7	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	12	2.09e-09	748.0	0	pmagpy-3.2.1	g	-42.6		1	LT-T-Z:LP-DIR-T	9.36e-10	hargrave 2014-11-10 22:13:28				This study	9.94e-08	059.6	2.36e-09	1.9	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	13	3.95e-09	773.0	0	pmagpy-3.2.1	g	-40.9		1	LT-T-Z:LP-DIR-T	8.86e-10	hargrave 2014-11-13 11:47:43				This study	8.35e-08	065.7	2.99e-09	3.4	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	14	3.33e-09	788.0	0	pmagpy-3.2.1	g	-38.7		1	LT-T-Z:LP-DIR-T	5.83e-10	hargrave 2014-11-17 17:28:20				This study	7.25e-08	067.1	1.73e-09	3.0	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	15	6.35e-10	803.0	0	pmagpy-3.2.1	g	-37.4		1	LT-T-Z:LP-DIR-T	5.21e-10	hargrave 2014-11-24 18:19:01				This study	6.70e-08	068.7	3.52e-10	0.7	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	16	4.17e-10	818.0	0	pmagpy-3.2.1	g	-36.7		1	LT-T-Z:LP-DIR-T	4.84e-10	hargrave 2014-12-01 17:00:52				This study	6.56e-08	069.2	3.27e-10	0.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	17	1.61e-09	823.0	0	pmagpy-3.2.1	g	-35.7		1	LT-T-Z:LP-DIR-T	4.23e-10	hargrave 2014-12-02 00:46:50				This study	6.27e-08	070.3	3.20e-10	1.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	18	6.98e-10	828.0	0	pmagpy-3.2.1	g	-33.0		1	LT-T-Z:LP-DIR-T	4.07e-10	hargrave 2014-12-05 13:42:16				This study	5.59e-08	073.5	6.07e-10	0.9	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	19	1.15e-09	833.0	0	pmagpy-3.2.1	g	-33.1		1	LT-T-Z:LP-DIR-T	3.89e-10	hargrave 2014-12-06 11:59:31				This study	5.14e-08	075.5	2.40e-10	1.3	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	20	5.60e-10	838.0	0	pmagpy-3.2.1	g	-32.9		1	LT-T-Z:LP-DIR-T	3.15e-10	hargrave 2014-12-08 15:20:12				This study	4.91e-08	072.8	1.65e-10	0.7	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	21	7.54e-10	843.0	0	pmagpy-3.2.1	g	-34.0		1	LT-T-Z:LP-DIR-T	2.57e-10	hargrave 2014-12-08 22:13:06				This study	4.54e-08	074.5	2.71e-10	1.0	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	22	1.14e-09	846.0	0	pmagpy-3.2.1	g	-32.9		1	LT-T-Z:LP-DIR-T	3.74e-10	hargrave 2015-01-12 11:03:59				This study	4.43e-08	078.8	3.39e-10	1.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	23	5.72e-10	849.0	0	pmagpy-3.2.1	g	-32.8		1	LT-T-Z:LP-DIR-T	2.92e-10	hargrave 2015-01-14 14:21:59				This study	4.29e-08	076.7	2.38e-10	0.8	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	24	1.05e-09	852.0	0	pmagpy-3.2.1	g	-32.4		1	LT-T-Z:LP-DIR-T	2.36e-10	hargrave 2015-01-15 14:36:53				This study	4.17e-08	077.3	2.78e-10	1.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	25	2.34e-09	855.0	0	pmagpy-3.2.1	g	-31.8		1	LT-T-Z:LP-DIR-T	3.76e-10	hargrave 2015-01-18 12:59:19				This study	4.07e-08	080.0	5.23e-10	3.4	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	26	5.81e-10	858.0	0	pmagpy-3.2.1	g	-31.2		1	LT-T-Z:LP-DIR-T	3.20e-10	hargrave 2015-01-20 12:17:56				This study	3.86e-08	079.6	4.01e-10	1.0	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	27	2.90e-09	863.0	0	pmagpy-3.2.1	g	-30.8		1	LT-T-Z:LP-DIR-T	1.58e-10	hargrave 2015-02-10 17:25:23				This study	3.77e-08	078.9	7.32e-10	4.5	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	28	5.51e-10	883.0	0	pmagpy-3.2.1	g	-27.2		1	LT-T-Z:LP-DIR-T	2.06e-10	hargrave 2015-02-11 17:23:32				This study	3.17e-08	084.8	3.69e-10	1.1	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	29	5.27e-10	903.0	0	pmagpy-3.2.1	g	-20.5		1	LT-T-Z:LP-DIR-T	2.97e-10	hargrave 2015-02-12 15:35:25				This study	2.74e-08	089.5	2.18e-10	1.3	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	30	4.37e-10	923.0	0	pmagpy-3.2.1	g	-19.7		1	LT-T-Z:LP-DIR-T	3.72e-10	hargrave 2015-02-13 17:51:30				This study	2.51e-08	091.4	5.53e-10	1.4	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	31	6.58e-10	933.0	0	pmagpy-3.2.1	g	-18.5		1	LT-T-Z:LP-DIR-T	2.26e-10	hargrave 2015-02-17 11:27:15				This study	2.19e-08	094.7	3.33e-10	1.8	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	32	3.92e-10	943.0	0	pmagpy-3.2.1	g	-20.2		1	LT-T-Z:LP-DIR-T	2.69e-10	hargrave 2015-02-18 09:45:10				This study	1.42e-08	088.9	2.31e-10	1.9	273	0	
+Z35.2a	Z35.2	Z35.	locale	Z35.2a:LP-DIR-T	33	1.27e-10	953.0	0	pmagpy-3.2.1	g	-28.3		1	LT-T-Z:LP-DIR-T	2.48e-11	hargrave 2015-02-19 12:53:47				This study	3.86e-09	086.8	7.04e-11	2.0	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	1	1.31e-08	273	0	pmagpy-3.2.1	g	-72.0		1	LT-NO:LP-DIR-T	6.25e-09					This study	1.20e-06	200.8	1.04e-08	0.8	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	2	1.64e-08	77	0	pmagpy-3.2.1	g	-71.7		1	LT-LT-Z:LP-DIR-T	7.00e-09					This study	1.24e-06	204.4	6.09e-09	0.8	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	3	2.89e-08	373.0	0	pmagpy-3.2.1	g	-71.4		1	LT-T-Z:LP-DIR-T	9.78e-09					This study	1.41e-06	204.2	1.53e-08	1.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	4	1.59e-08	423.0	0	pmagpy-3.2.1	g	-71.2		1	LT-T-Z:LP-DIR-T	4.70e-09	hargrave 2014-10-22 15:56:39				This study	1.20e-06	203.4	6.67e-09	0.8	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	5	1.43e-08	473.0	0	pmagpy-3.2.1	g	-71.6		1	LT-T-Z:LP-DIR-T	5.22e-09	hargrave 2014-10-27 16:23:12				This study	1.09e-06	204.3	6.07e-09	0.8	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	6	3.76e-09	523.0	0	pmagpy-3.2.1	g	-70.9		1	LT-T-Z:LP-DIR-T	4.05e-09	hargrave 2014-10-28 13:46:02				This study	8.29e-07	206.4	2.68e-08	1.9	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	7	1.91e-09	573.0	0	pmagpy-3.2.1	g	-71.1		1	LT-T-Z:LP-DIR-T	1.42e-09	hargrave 2014-10-28 20:43:28				This study	4.91e-07	216.7	4.95e-09	0.6	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	8	1.74e-09	623.0	0	pmagpy-3.2.1	g	-70.3		1	LT-T-Z:LP-DIR-T	6.53e-10	hargrave 2014-10-29 20:56:10				This study	2.37e-07	220.4	1.44e-09	0.5	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	9	1.13e-09	673.0	0	pmagpy-3.2.1	g	-69.3		1	LT-T-Z:LP-DIR-T	4.59e-10	hargrave 2014-11-03 17:16:16				This study	1.75e-07	223.1	9.03e-10	0.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	10	6.97e-10	698.0	0	pmagpy-3.2.1	g	-67.9		1	LT-T-Z:LP-DIR-T	4.77e-10	hargrave 2014-11-04 12:06:45				This study	1.47e-07	226.1	1.14e-09	0.5	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	11	6.41e-10	723.0	0	pmagpy-3.2.1	g	-67.4		1	LT-T-Z:LP-DIR-T	6.52e-10	hargrave 2014-11-10 12:56:31				This study	1.27e-07	232.2	6.21e-10	0.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	12	2.75e-09	748.0	0	pmagpy-3.2.1	g	-66.4		1	LT-T-Z:LP-DIR-T	9.05e-10	hargrave 2014-11-10 22:15:06				This study	1.08e-07	237.0	5.24e-10	1.6	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	13	4.51e-09	773.0	0	pmagpy-3.2.1	g	-66.3		1	LT-T-Z:LP-DIR-T	1.10e-09	hargrave 2014-11-13 11:49:17				This study	9.09e-08	239.9	7.52e-10	2.9	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	14	2.47e-09	788.0	0	pmagpy-3.2.1	g	-63.3		1	LT-T-Z:LP-DIR-T	5.60e-10	hargrave 2014-11-17 17:29:58				This study	7.92e-08	241.3	5.09e-10	1.9	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	15	7.70e-10	803.0	0	pmagpy-3.2.1	g	-62.2		1	LT-T-Z:LP-DIR-T	4.71e-10	hargrave 2014-11-24 18:20:46				This study	7.32e-08	243.8	1.38e-09	1.3	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	16	6.63e-10	818.0	0	pmagpy-3.2.1	g	-60.5		1	LT-T-Z:LP-DIR-T	7.77e-10	hargrave 2014-12-01 17:02:30				This study	7.02e-08	246.2	1.03e-09	1.2	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	17	1.21e-09	823.0	0	pmagpy-3.2.1	g	-60.8		1	LT-T-Z:LP-DIR-T	7.28e-10	hargrave 2014-12-02 00:48:29				This study	6.62e-08	243.9	6.15e-10	1.3	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	18	1.46e-09	828.0	0	pmagpy-3.2.1	g	-59.4		1	LT-T-Z:LP-DIR-T	5.85e-10	hargrave 2014-12-05 13:44:45				This study	5.84e-08	249.4	4.57e-10	1.6	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	19	3.22e-10	833.0	0	pmagpy-3.2.1	g	-58.2		1	LT-T-Z:LP-DIR-T	5.62e-10	hargrave 2014-12-06 12:02:05				This study	5.23e-08	250.2	7.19e-10	1.0	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	20	4.54e-10	838.0	0	pmagpy-3.2.1	g	-57.9		1	LT-T-Z:LP-DIR-T	7.35e-10	hargrave 2014-12-08 15:22:41				This study	4.87e-08	253.2	7.20e-10	1.3	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	21	3.61e-10	843.0	0	pmagpy-3.2.1	g	-57.3		1	LT-T-Z:LP-DIR-T	7.55e-10	hargrave 2014-12-08 22:14:48				This study	4.64e-08	254.6	7.83e-10	1.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	22	2.27e-09	846.0	0	pmagpy-3.2.1	g	-55.6		1	LT-T-Z:LP-DIR-T	6.24e-10	hargrave 2015-01-12 11:05:30				This study	4.28e-08	256.1	4.78e-10	3.2	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	23	7.39e-10	849.0	0	pmagpy-3.2.1	g	-56.1		1	LT-T-Z:LP-DIR-T	5.87e-10	hargrave 2015-01-14 14:23:37				This study	4.12e-08	254.4	5.21e-10	1.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	24	1.04e-09	852.0	0	pmagpy-3.2.1	g	-56.3		1	LT-T-Z:LP-DIR-T	6.97e-10	hargrave 2015-01-15 14:38:32				This study	3.81e-08	252.7	5.00e-10	2.0	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	25	1.22e-09	855.0	0	pmagpy-3.2.1	g	-55.3		1	LT-T-Z:LP-DIR-T	3.84e-10	hargrave 2015-01-18 13:00:44				This study	3.78e-08	258.8	7.83e-10	2.2	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	26	1.36e-09	858.0	0	pmagpy-3.2.1	g	-56.0		1	LT-T-Z:LP-DIR-T	2.67e-10	hargrave 2015-01-20 12:19:24				This study	3.42e-08	260.1	5.92e-10	2.5	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	27	5.62e-10	863.0	0	pmagpy-3.2.1	g	-56.2		1	LT-T-Z:LP-DIR-T	5.78e-10	hargrave 2015-02-10 17:27:18				This study	3.33e-08	257.0	6.74e-10	1.7	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	28	2.98e-10	883.0	0	pmagpy-3.2.1	g	-49.2		1	LT-T-Z:LP-DIR-T	6.94e-10	hargrave 2015-02-11 17:25:27				This study	2.76e-08	264.3	6.02e-10	1.9	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	29	4.34e-10	903.0	0	pmagpy-3.2.1	g	-46.0		1	LT-T-Z:LP-DIR-T	2.81e-10	hargrave 2015-02-12 15:37:20				This study	1.97e-08	265.6	2.53e-10	1.6	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	30	8.01e-10	923.0	0	pmagpy-3.2.1	g	-40.0		1	LT-T-Z:LP-DIR-T	2.16e-10	hargrave 2015-02-13 17:53:58				This study	1.99e-08	269.1	2.92e-10	2.4	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	31	5.97e-10	933.0	0	pmagpy-3.2.1	g	-42.4		1	LT-T-Z:LP-DIR-T	3.07e-10	hargrave 2015-02-17 11:28:49				This study	1.78e-08	268.6	3.16e-10	2.3	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	32	4.89e-10	943.0	0	pmagpy-3.2.1	g	-39.3		1	LT-T-Z:LP-DIR-T	3.35e-10	hargrave 2015-02-18 09:46:48				This study	1.35e-08	272.3	3.34e-10	2.8	273	0	
+Z35.3a	Z35.3	Z35.	locale	Z35.3a:LP-DIR-T	33	2.07e-10	953.0	0	pmagpy-3.2.1	g	-27.9		1	LT-T-Z:LP-DIR-T	9.14e-11	hargrave 2015-02-19 12:55:38				This study	3.99e-09	234.4	1.06e-10	3.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	1	1.26e-08	273	0	pmagpy-3.2.1	g	-44.9		1	LT-NO:LP-DIR-T	2.46e-09					This study	2.46e-07	77.2	1.06e-09	3.0	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	2	1.12e-08	77	0	pmagpy-3.2.1	g	-46.1		1	LT-LT-Z:LP-DIR-T	3.48e-09					This study	2.72e-07	73.1	1.30e-09	2.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	3	1.03e-08	373.0	0	pmagpy-3.2.1	g	-49.3		1	LT-T-Z:LP-DIR-T	6.14e-09					This study	3.68e-07	66.0	4.82e-09	2.0	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	4	2.08e-08	423.0	0	pmagpy-3.2.1	g	-51.8		1	LT-T-Z:LP-DIR-T	7.78e-09	hargrave 2014-10-22 15:58:15				This study	5.06e-07	057.3	2.52e-09	2.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	5	3.17e-08	473.0	0	pmagpy-3.2.1	g	-52.1		1	LT-T-Z:LP-DIR-T	1.03e-08	hargrave 2014-10-27 16:24:50				This study	5.02e-07	061.1	2.75e-09	3.8	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	6	3.67e-08	523.0	0	pmagpy-3.2.1	g	-51.9		1	LT-T-Z:LP-DIR-T	7.43e-09	hargrave 2014-10-28 13:47:48				This study	4.01e-07	066.0	5.43e-09	5.4	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	7	2.20e-08	573.0	0	pmagpy-3.2.1	g	-50.3		1	LT-T-Z:LP-DIR-T	3.89e-09	hargrave 2014-10-28 20:45:11				This study	2.63e-07	069.5	3.27e-09	4.9	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	8	9.67e-09	623.0	0	pmagpy-3.2.1	g	-51.0		1	LT-T-Z:LP-DIR-T	1.56e-09	hargrave 2014-10-29 20:57:46				This study	1.59e-07	077.3	5.81e-10	3.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	9	8.78e-09	673.0	0	pmagpy-3.2.1	g	-49.9		1	LT-T-Z:LP-DIR-T	1.49e-09	hargrave 2014-11-03 17:17:53				This study	1.25e-07	081.7	5.86e-10	4.1	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	10	7.17e-09	698.0	0	pmagpy-3.2.1	g	-49.3		1	LT-T-Z:LP-DIR-T	1.12e-09	hargrave 2014-11-04 12:08:13				This study	1.13e-07	083.5	5.18e-10	3.7	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	11	8.02e-09	723.0	0	pmagpy-3.2.1	g	-47.8		1	LT-T-Z:LP-DIR-T	9.47e-10	hargrave 2014-11-10 12:58:13				This study	1.01e-07	089.4	6.20e-10	4.6	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	12	3.65e-09	748.0	0	pmagpy-3.2.1	g	-46.9		1	LT-T-Z:LP-DIR-T	7.45e-10	hargrave 2014-11-10 22:16:43				This study	9.23e-08	092.2	4.97e-10	2.3	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	13	6.65e-09	773.0	0	pmagpy-3.2.1	g	-44.6		1	LT-T-Z:LP-DIR-T	9.94e-10	hargrave 2014-11-13 11:50:50				This study	8.52e-08	099.3	1.36e-09	4.6	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	14	3.04e-09	788.0	0	pmagpy-3.2.1	g	-42.8		1	LT-T-Z:LP-DIR-T	6.72e-10	hargrave 2014-11-17 17:31:35				This study	7.92e-08	101.8	9.47e-10	2.3	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	15	1.10e-09	803.0	0	pmagpy-3.2.1	g	-42.7		1	LT-T-Z:LP-DIR-T	5.65e-10	hargrave 2014-11-24 18:22:26				This study	7.67e-08	103.3	5.01e-10	0.9	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	16	1.39e-09	818.0	0	pmagpy-3.2.1	g	-41.8		1	LT-T-Z:LP-DIR-T	8.06e-10	hargrave 2014-12-01 17:04:09				This study	7.61e-08	103.7	7.70e-10	1.2	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	17	1.33e-09	823.0	0	pmagpy-3.2.1	g	-41.7		1	LT-T-Z:LP-DIR-T	6.66e-10	hargrave 2014-12-02 00:50:08				This study	7.05e-08	103.3	6.73e-10	1.2	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	18	4.01e-09	828.0	0	pmagpy-3.2.1	g	-41.4		1	LT-T-Z:LP-DIR-T	6.06e-10	hargrave 2014-12-05 13:46:21				This study	6.86e-08	105.8	1.42e-09	3.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	19	4.49e-10	833.0	0	pmagpy-3.2.1	g	-39.4		1	LT-T-Z:LP-DIR-T	5.00e-10	hargrave 2014-12-06 12:03:37				This study	6.56e-08	106.3	2.97e-10	0.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	20	7.97e-10	838.0	0	pmagpy-3.2.1	g	-40.2		1	LT-T-Z:LP-DIR-T	6.00e-10	hargrave 2014-12-08 15:24:19				This study	6.34e-08	107.1	5.57e-10	0.9	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	21	5.10e-10	843.0	0	pmagpy-3.2.1	g	-39.2		1	LT-T-Z:LP-DIR-T	6.18e-10	hargrave 2014-12-08 22:16:29				This study	6.09e-08	106.6	5.48e-10	0.8	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	22	3.29e-09	846.0	0	pmagpy-3.2.1	g	-39.3		1	LT-T-Z:LP-DIR-T	3.90e-10	hargrave 2015-01-12 11:07:07				This study	5.92e-08	111.5	1.59e-09	3.5	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	23	1.85e-09	849.0	0	pmagpy-3.2.1	g	-39.5		1	LT-T-Z:LP-DIR-T	3.95e-10	hargrave 2015-01-14 14:25:16				This study	5.86e-08	110.9	8.67e-10	2.0	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	24	1.07e-09	852.0	0	pmagpy-3.2.1	g	-39.3		1	LT-T-Z:LP-DIR-T	6.83e-10	hargrave 2015-01-15 14:40:11				This study	5.84e-08	110.1	5.93e-10	1.3	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	25	2.53e-09	855.0	0	pmagpy-3.2.1	g	-40.2		1	LT-T-Z:LP-DIR-T	5.04e-10	hargrave 2015-01-18 13:02:08				This study	5.75e-08	113.1	1.35e-09	2.8	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	26	1.35e-09	858.0	0	pmagpy-3.2.1	g	-39.4		1	LT-T-Z:LP-DIR-T	4.12e-10	hargrave 2015-01-20 12:21:08				This study	5.74e-08	113.4	6.22e-10	1.4	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	27	1.47e-09	863.0	0	pmagpy-3.2.1	g	-38.0		1	LT-T-Z:LP-DIR-T	3.27e-10	hargrave 2015-02-10 17:29:40				This study	5.53e-08	113.4	7.29e-10	1.7	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	28	7.42e-10	883.0	0	pmagpy-3.2.1	g	-36.7		1	LT-T-Z:LP-DIR-T	4.53e-10	hargrave 2015-02-11 17:27:24				This study	5.22e-08	115.9	7.00e-10	1.0	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	29	9.51e-10	903.0	0	pmagpy-3.2.1	g	-34.3		1	LT-T-Z:LP-DIR-T	4.96e-10	hargrave 2015-02-12 15:39:33				This study	4.54e-08	116.6	6.33e-10	1.4	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	30	1.04e-09	923.0	0	pmagpy-3.2.1	g	-32.9		1	LT-T-Z:LP-DIR-T	2.07e-10	hargrave 2015-02-13 17:55:58				This study	4.10e-08	122.8	3.56e-10	1.4	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	31	4.21e-10	933.0	0	pmagpy-3.2.1	g	-33.6		1	LT-T-Z:LP-DIR-T	2.55e-10	hargrave 2015-02-17 11:30:40				This study	3.27e-08	122.6	3.88e-10	1.0	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	32	9.59e-10	943.0	0	pmagpy-3.2.1	g	-34.3		1	LT-T-Z:LP-DIR-T	1.02e-10	hargrave 2015-02-18 09:48:39				This study	1.56e-08	122.0	6.76e-10	4.2	273	0	
+Z35.4a	Z35.4	Z35.	locale	Z35.4a:LP-DIR-T	33	1.21e-10	953.0	0	pmagpy-3.2.1	g	-37.5		1	LT-T-Z:LP-DIR-T	1.85e-11	hargrave 2015-02-19 12:57:15				This study	3.94e-09	128.2	1.22e-10	2.4	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	1	7.33e-09	273	0	pmagpy-3.2.1	g	-38.2		1	LT-NO:LP-DIR-T	1.49e-09					This study	4.09e-07	15.6	2.01e-08	3.0	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	2	5.05e-09	77	0	pmagpy-3.2.1	g	-37.5		1	LT-LT-Z:LP-DIR-T	1.64e-09					This study	4.63e-07	14.5	1.25e-08	1.7	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	3	3.61e-09	373.0	0	pmagpy-3.2.1	g	-38.2		1	LT-T-Z:LP-DIR-T	2.55e-09					This study	6.21e-07	7.1	3.58e-09	0.4	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	4	4.56e-09	423.0	0	pmagpy-3.2.1	g	-38.7		1	LT-T-Z:LP-DIR-T	6.47e-09	hargrave 2014-10-22 15:59:53				This study	7.92e-07	003.2	2.75e-08	2.1	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	5	4.90e-09	473.0	0	pmagpy-3.2.1	g	-39.1		1	LT-T-Z:LP-DIR-T	4.23e-09	hargrave 2014-10-27 16:26:22				This study	7.70e-07	002.7	1.87e-08	1.4	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	6	5.53e-09	523.0	0	pmagpy-3.2.1	g	-41.2		1	LT-T-Z:LP-DIR-T	3.25e-09	hargrave 2014-10-28 13:49:35				This study	5.77e-07	004.0	3.21e-08	3.2	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	7	3.92e-09	573.0	0	pmagpy-3.2.1	g	-43.6		1	LT-T-Z:LP-DIR-T	1.64e-09	hargrave 2014-10-28 20:46:49				This study	3.38e-07	009.1	1.46e-08	2.6	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	8	1.44e-09	623.0	0	pmagpy-3.2.1	g	-47.7		1	LT-T-Z:LP-DIR-T	7.48e-10	hargrave 2014-10-29 20:59:18				This study	2.10e-07	003.1	6.33e-09	1.8	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	9	1.47e-09	673.0	0	pmagpy-3.2.1	g	-48.9		1	LT-T-Z:LP-DIR-T	7.48e-10	hargrave 2014-11-03 17:19:27				This study	1.86e-07	004.7	7.30e-09	2.3	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	10	8.53e-10	698.0	0	pmagpy-3.2.1	g	-51.2		1	LT-T-Z:LP-DIR-T	9.38e-10	hargrave 2014-11-04 12:09:44				This study	1.70e-07	003.4	4.39e-09	1.5	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	11	7.23e-10	723.0	0	pmagpy-3.2.1	g	-52.6		1	LT-T-Z:LP-DIR-T	7.23e-10	hargrave 2014-11-10 12:59:52				This study	1.56e-07	006.6	4.41e-09	1.6	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	12	1.48e-09	748.0	0	pmagpy-3.2.1	g	-54.3		1	LT-T-Z:LP-DIR-T	7.26e-10	hargrave 2014-11-10 22:18:21				This study	1.40e-07	005.0	3.73e-09	1.6	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	13	1.47e-09	773.0	0	pmagpy-3.2.1	g	-56.9		1	LT-T-Z:LP-DIR-T	8.08e-10	hargrave 2014-11-13 11:52:27				This study	1.22e-07	009.2	3.97e-09	2.0	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	14	5.23e-10	788.0	0	pmagpy-3.2.1	g	-60.2		1	LT-T-Z:LP-DIR-T	4.09e-10	hargrave 2014-11-17 17:33:08				This study	1.04e-07	009.5	2.96e-09	1.6	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	15	4.33e-10	803.0	0	pmagpy-3.2.1	g	-61.7		1	LT-T-Z:LP-DIR-T	3.32e-10	hargrave 2014-11-24 18:24:04				This study	9.46e-08	010.6	1.14e-09	0.7	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	16	1.25e-09	818.0	0	pmagpy-3.2.1	g	-64.2		1	LT-T-Z:LP-DIR-T	4.61e-10	hargrave 2014-12-01 17:05:43				This study	8.90e-08	013.4	8.66e-10	0.9	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	17	1.05e-09	823.0	0	pmagpy-3.2.1	g	-65.4		1	LT-T-Z:LP-DIR-T	5.17e-10	hargrave 2014-12-02 00:51:42				This study	8.17e-08	010.6	7.78e-10	0.8	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	18	9.54e-10	828.0	0	pmagpy-3.2.1	g	-68.1		1	LT-T-Z:LP-DIR-T	3.97e-10	hargrave 2014-12-05 13:48:00				This study	7.61e-08	008.5	7.97e-10	0.9	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	19	5.47e-10	833.0	0	pmagpy-3.2.1	g	-70.7		1	LT-T-Z:LP-DIR-T	4.56e-10	hargrave 2014-12-06 12:05:58				This study	6.99e-08	013.8	8.73e-10	0.9	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	20	5.84e-10	838.0	0	pmagpy-3.2.1	g	-71.9		1	LT-T-Z:LP-DIR-T	3.77e-10	hargrave 2014-12-08 15:25:53				This study	6.66e-08	015.8	6.73e-10	0.7	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	21	9.49e-10	843.0	0	pmagpy-3.2.1	g	-72.1		1	LT-T-Z:LP-DIR-T	4.03e-10	hargrave 2014-12-08 22:18:06				This study	6.25e-08	014.2	6.31e-10	1.0	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	22	1.23e-09	846.0	0	pmagpy-3.2.1	g	-72.6		1	LT-T-Z:LP-DIR-T	4.41e-10	hargrave 2015-01-12 11:08:38				This study	6.17e-08	012.4	6.47e-10	1.3	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	23	1.27e-09	849.0	0	pmagpy-3.2.1	g	-74.0		1	LT-T-Z:LP-DIR-T	5.04e-10	hargrave 2015-01-14 14:26:50				This study	6.06e-08	016.3	9.91e-10	1.5	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	24	1.30e-09	852.0	0	pmagpy-3.2.1	g	-75.4		1	LT-T-Z:LP-DIR-T	4.34e-10	hargrave 2015-01-15 14:41:46				This study	5.88e-08	012.8	5.97e-10	1.4	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	25	1.08e-09	855.0	0	pmagpy-3.2.1	g	-75.3		1	LT-T-Z:LP-DIR-T	6.04e-10	hargrave 2015-01-18 13:03:31				This study	5.71e-08	017.9	7.91e-10	1.4	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	26	6.65e-10	858.0	0	pmagpy-3.2.1	g	-74.9		1	LT-T-Z:LP-DIR-T	3.06e-10	hargrave 2015-01-20 12:22:38				This study	5.57e-08	017.4	7.83e-10	1.1	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	27	6.31e-10	863.0	0	pmagpy-3.2.1	g	-78.2		1	LT-T-Z:LP-DIR-T	3.63e-10	hargrave 2015-02-10 17:31:37				This study	5.14e-08	021.7	6.37e-10	1.0	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	28	9.49e-10	883.0	0	pmagpy-3.2.1	g	-81.2		1	LT-T-Z:LP-DIR-T	3.79e-10	hargrave 2015-02-11 17:29:26				This study	4.76e-08	025.0	4.79e-10	1.2	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	29	4.24e-10	903.0	0	pmagpy-3.2.1	g	-81.9		1	LT-T-Z:LP-DIR-T	3.59e-10	hargrave 2015-02-12 15:41:30				This study	3.95e-08	021.0	3.83e-10	0.8	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	30	5.06e-10	923.0	0	pmagpy-3.2.1	g	-85.2		1	LT-T-Z:LP-DIR-T	1.89e-10	hargrave 2015-02-13 17:57:36				This study	3.54e-08	044.7	3.74e-10	1.0	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	31	3.30e-10	933.0	0	pmagpy-3.2.1	g	-86.8		1	LT-T-Z:LP-DIR-T	2.69e-10	hargrave 2015-02-17 11:32:15				This study	2.82e-08	002.6	2.80e-10	0.9	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	32	3.62e-10	943.0	0	pmagpy-3.2.1	g	-77.8		1	LT-T-Z:LP-DIR-T	8.97e-11	hargrave 2015-02-18 09:51:41				This study	1.61e-08	330.8	2.29e-10	1.5	273	0	
+Z35.5a	Z35.5	Z35.	locale	Z35.5a:LP-DIR-T	33	1.01e-10	953.0	0	pmagpy-3.2.1	g	-70.2		1	LT-T-Z:LP-DIR-T	3.25e-11	hargrave 2015-02-19 12:58:47				This study	3.90e-09	167.9	4.52e-11	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	1	3.49e-09	273	0	pmagpy-3.2.1	g	-65.1		1	LT-NO:LP-DIR-T	9.09e-10					This study	2.87e-07	169.5	7.03e-09	1.6	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	2	3.37e-09	77	0	pmagpy-3.2.1	g	-66.4		1	LT-LT-Z:LP-DIR-T	9.45e-10					This study	3.30e-07	170.7	7.33e-09	1.4	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	3	5.21e-09	373.0	0	pmagpy-3.2.1	g	-71.4		1	LT-T-Z:LP-DIR-T	2.26e-09					This study	4.62e-07	173.3	5.49e-09	0.9	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	4	4.16e-09	423.0	0	pmagpy-3.2.1	g	-73.4		1	LT-T-Z:LP-DIR-T	8.78e-10	hargrave 2014-10-22 16:01:25				This study	6.26e-07	175.4	1.37e-08	1.3	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	5	5.71e-09	473.0	0	pmagpy-3.2.1	g	-72.5		1	LT-T-Z:LP-DIR-T	1.66e-09	hargrave 2014-10-27 16:28:07				This study	6.10e-07	172.6	1.23e-08	1.3	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	6	4.84e-09	523.0	0	pmagpy-3.2.1	g	-71.2		1	LT-T-Z:LP-DIR-T	2.29e-09	hargrave 2014-10-28 13:51:20				This study	4.71e-07	179.4	1.31e-08	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	7	2.58e-09	573.0	0	pmagpy-3.2.1	g	-65.3		1	LT-T-Z:LP-DIR-T	1.48e-09	hargrave 2014-10-28 20:48:26				This study	2.75e-07	183.5	4.08e-09	1.0	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	8	1.01e-09	623.0	0	pmagpy-3.2.1	g	-59.0		1	LT-T-Z:LP-DIR-T	5.44e-10	hargrave 2014-10-29 21:00:50				This study	1.59e-07	184.8	4.15e-09	1.5	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	9	9.70e-10	673.0	0	pmagpy-3.2.1	g	-57.3		1	LT-T-Z:LP-DIR-T	4.01e-10	hargrave 2014-11-03 17:20:59				This study	1.23e-07	181.4	3.49e-09	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	10	5.55e-10	698.0	0	pmagpy-3.2.1	g	-54.9		1	LT-T-Z:LP-DIR-T	3.93e-10	hargrave 2014-11-04 12:11:18				This study	1.09e-07	183.7	4.11e-09	2.2	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	11	4.74e-10	723.0	0	pmagpy-3.2.1	g	-52.2		1	LT-T-Z:LP-DIR-T	6.19e-10	hargrave 2014-11-10 13:01:28				This study	9.41e-08	183.6	2.98e-09	1.8	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	12	1.05e-09	748.0	0	pmagpy-3.2.1	g	-49.9		1	LT-T-Z:LP-DIR-T	9.71e-10	hargrave 2014-11-10 22:19:54				This study	8.32e-08	183.8	1.39e-09	1.3	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	13	1.40e-09	773.0	0	pmagpy-3.2.1	g	-46.7		1	LT-T-Z:LP-DIR-T	9.68e-10	hargrave 2014-11-13 11:54:22				This study	7.35e-08	186.6	4.62e-09	3.8	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	14	5.04e-10	788.0	0	pmagpy-3.2.1	g	-43.4		1	LT-T-Z:LP-DIR-T	3.06e-10	hargrave 2014-11-17 17:34:47				This study	6.76e-08	183.2	1.96e-09	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	15	2.71e-10	803.0	0	pmagpy-3.2.1	g	-41.1		1	LT-T-Z:LP-DIR-T	3.03e-10	hargrave 2014-11-24 18:25:43				This study	6.36e-08	185.0	1.15e-09	1.1	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	16	3.50e-10	818.0	0	pmagpy-3.2.1	g	-39.9		1	LT-T-Z:LP-DIR-T	6.37e-10	hargrave 2014-12-01 17:07:16				This study	6.30e-08	184.9	1.79e-09	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	17	3.37e-10	823.0	0	pmagpy-3.2.1	g	-38.9		1	LT-T-Z:LP-DIR-T	5.95e-10	hargrave 2014-12-02 00:53:16				This study	5.76e-08	183.4	9.75e-10	1.1	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	18	1.01e-09	828.0	0	pmagpy-3.2.1	g	-37.6		1	LT-T-Z:LP-DIR-T	6.93e-10	hargrave 2014-12-05 13:50:05				This study	5.68e-08	183.0	3.39e-09	3.6	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	19	4.53e-10	833.0	0	pmagpy-3.2.1	g	-35.8		1	LT-T-Z:LP-DIR-T	4.36e-10	hargrave 2014-12-06 12:07:29				This study	5.43e-08	186.2	1.22e-09	1.3	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	20	3.65e-10	838.0	0	pmagpy-3.2.1	g	-35.2		1	LT-T-Z:LP-DIR-T	3.98e-10	hargrave 2014-12-08 15:27:26				This study	5.30e-08	184.0	1.17e-09	1.3	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	21	2.98e-10	843.0	0	pmagpy-3.2.1	g	-34.2		1	LT-T-Z:LP-DIR-T	5.30e-10	hargrave 2014-12-08 22:19:44				This study	5.16e-08	183.1	1.29e-09	1.5	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	22	6.56e-10	846.0	0	pmagpy-3.2.1	g	-33.9		1	LT-T-Z:LP-DIR-T	7.72e-10	hargrave 2015-01-12 11:10:18				This study	5.00e-08	185.8	7.49e-10	1.4	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	23	5.63e-10	849.0	0	pmagpy-3.2.1	g	-33.3		1	LT-T-Z:LP-DIR-T	6.17e-10	hargrave 2015-01-14 14:28:30				This study	4.86e-08	182.6	1.05e-09	1.5	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	24	5.27e-10	852.0	0	pmagpy-3.2.1	g	-32.5		1	LT-T-Z:LP-DIR-T	7.65e-10	hargrave 2015-01-15 14:43:20				This study	4.83e-08	181.9	9.70e-10	1.6	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	25	6.82e-10	855.0	0	pmagpy-3.2.1	g	-32.6		1	LT-T-Z:LP-DIR-T	3.95e-10	hargrave 2015-01-18 13:04:52				This study	4.67e-08	185.6	1.16e-09	1.6	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	26	5.29e-10	858.0	0	pmagpy-3.2.1	g	-31.8		1	LT-T-Z:LP-DIR-T	3.13e-10	hargrave 2015-01-20 12:24:04				This study	4.62e-08	186.5	1.37e-09	1.8	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	27	4.71e-10	863.0	0	pmagpy-3.2.1	g	-32.2		1	LT-T-Z:LP-DIR-T	1.09e-09	hargrave 2015-02-10 17:33:39				This study	4.43e-08	184.2	1.21e-09	2.1	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	28	4.38e-10	883.0	0	pmagpy-3.2.1	g	-27.3		1	LT-T-Z:LP-DIR-T	7.18e-10	hargrave 2015-02-11 17:31:29				This study	4.06e-08	184.3	1.11e-09	1.9	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	29	3.80e-10	903.0	0	pmagpy-3.2.1	g	-27.0		1	LT-T-Z:LP-DIR-T	8.83e-10	hargrave 2015-02-12 15:43:23				This study	3.76e-08	183.5	5.60e-10	1.7	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	30	2.29e-10	923.0	0	pmagpy-3.2.1	g	-24.9		1	LT-T-Z:LP-DIR-T	4.99e-10	hargrave 2015-02-13 17:59:10				This study	3.19e-08	186.8	7.10e-10	1.6	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	31	2.38e-10	933.0	0	pmagpy-3.2.1	g	-24.1		1	LT-T-Z:LP-DIR-T	3.41e-10	hargrave 2015-02-17 11:33:47				This study	2.76e-08	185.4	3.33e-10	1.0	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	32	2.61e-10	943.0	0	pmagpy-3.2.1	g	-30.3		1	LT-T-Z:LP-DIR-T	1.34e-10	hargrave 2015-02-18 09:53:13				This study	1.35e-08	184.6	8.70e-10	3.8	273	0	
+Z35.6a	Z35.6	Z35.	locale	Z35.6a:LP-DIR-T	33	1.16e-10	953.0	0	pmagpy-3.2.1	g	-33.5		1	LT-T-Z:LP-DIR-T	1.23e-10	hargrave 2015-02-19 13:00:15				This study	5.46e-09	177.9	2.04e-10	2.6	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	1	1.31e-08	273	0	pmagpy-3.2.1	g	-75.3		1	LT-NO:LP-DIR-T	3.00e-09					This study	4.90e-07	97.9	1.46e-08	2.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	2	1.06e-08	77	0	pmagpy-3.2.1	g	-76.9		1	LT-LT-Z:LP-DIR-T	2.94e-09					This study	5.30e-07	99.4	1.67e-08	2.2	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	3	1.62e-08	373.0	0	pmagpy-3.2.1	g	-79.2		1	LT-T-Z:LP-DIR-T	3.50e-09					This study	6.93e-07	102.5	2.08e-08	2.2	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	4	9.83e-09	423.0	0	pmagpy-3.2.1	g	-80.9		1	LT-T-Z:LP-DIR-T	4.51e-09	hargrave 2014-10-22 16:03:00				This study	8.13e-07	109.8	2.67e-08	2.0	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	5	2.34e-08	473.0	0	pmagpy-3.2.1	g	-79.9		1	LT-T-Z:LP-DIR-T	3.87e-09	hargrave 2014-10-27 16:29:43				This study	7.81e-07	110.5	2.60e-08	2.6	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	6	2.00e-08	523.0	0	pmagpy-3.2.1	g	-80.5		1	LT-T-Z:LP-DIR-T	2.82e-09	hargrave 2014-10-28 13:53:01				This study	6.36e-07	116.6	2.29e-08	2.7	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	7	1.15e-08	573.0	0	pmagpy-3.2.1	g	-78.6		1	LT-T-Z:LP-DIR-T	2.20e-09	hargrave 2014-10-28 20:50:09				This study	3.98e-07	126.4	1.29e-08	2.5	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	8	4.73e-09	623.0	0	pmagpy-3.2.1	g	-76.6		1	LT-T-Z:LP-DIR-T	1.10e-09	hargrave 2014-10-29 21:02:25				This study	2.17e-07	130.7	8.46e-09	2.6	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	9	4.43e-09	673.0	0	pmagpy-3.2.1	g	-74.1		1	LT-T-Z:LP-DIR-T	8.69e-10	hargrave 2014-11-03 17:22:35				This study	1.60e-07	131.6	6.73e-09	2.9	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	10	2.36e-09	698.0	0	pmagpy-3.2.1	g	-72.0		1	LT-T-Z:LP-DIR-T	7.78e-10	hargrave 2014-11-04 12:12:56				This study	1.32e-07	137.9	4.90e-09	2.4	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	11	2.31e-09	723.0	0	pmagpy-3.2.1	g	-70.1		1	LT-T-Z:LP-DIR-T	7.31e-10	hargrave 2014-11-10 13:03:06				This study	1.09e-07	143.0	5.14e-09	3.0	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	12	3.73e-10	748.0	0	pmagpy-3.2.1	g	-67.3		1	LT-T-Z:LP-DIR-T	1.10e-09	hargrave 2014-11-10 22:21:30				This study	9.24e-08	146.4	3.91e-09	2.5	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	13	1.88e-09	773.0	0	pmagpy-3.2.1	g	-63.5		1	LT-T-Z:LP-DIR-T	1.16e-09	hargrave 2014-11-13 11:56:06				This study	7.94e-08	149.2	6.07e-09	4.6	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	14	1.27e-09	788.0	0	pmagpy-3.2.1	g	-58.7		1	LT-T-Z:LP-DIR-T	5.82e-10	hargrave 2014-11-17 17:36:30				This study	6.94e-08	149.1	4.07e-09	3.5	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	15	1.05e-09	803.0	0	pmagpy-3.2.1	g	-57.7		1	LT-T-Z:LP-DIR-T	4.62e-10	hargrave 2014-11-24 18:27:42				This study	6.35e-08	149.5	3.00e-09	2.9	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	16	7.53e-10	818.0	0	pmagpy-3.2.1	g	-56.6		1	LT-T-Z:LP-DIR-T	8.40e-10	hargrave 2014-12-01 17:08:53				This study	6.12e-08	157.8	1.13e-09	1.5	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	17	6.42e-10	823.0	0	pmagpy-3.2.1	g	-55.2		1	LT-T-Z:LP-DIR-T	8.33e-10	hargrave 2014-12-02 00:54:54				This study	5.49e-08	152.6	1.14e-09	1.6	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	18	1.71e-09	828.0	0	pmagpy-3.2.1	g	-54.9		1	LT-T-Z:LP-DIR-T	5.03e-10	hargrave 2014-12-05 13:51:47				This study	5.14e-08	151.8	4.15e-09	5.0	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	19	4.70e-10	833.0	0	pmagpy-3.2.1	g	-52.8		1	LT-T-Z:LP-DIR-T	5.28e-10	hargrave 2014-12-06 12:09:00				This study	4.70e-08	153.9	1.79e-09	2.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	20	2.89e-10	838.0	0	pmagpy-3.2.1	g	-52.2		1	LT-T-Z:LP-DIR-T	5.15e-10	hargrave 2014-12-08 15:29:03				This study	4.51e-08	157.8	9.01e-10	1.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	21	3.29e-10	843.0	0	pmagpy-3.2.1	g	-50.6		1	LT-T-Z:LP-DIR-T	7.07e-10	hargrave 2014-12-08 22:21:25				This study	4.41e-08	156.5	1.24e-09	1.9	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	22	4.65e-10	846.0	0	pmagpy-3.2.1	g	-52.4		1	LT-T-Z:LP-DIR-T	6.23e-10	hargrave 2015-01-12 11:11:57				This study	4.18e-08	155.9	1.20e-09	1.9	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	23	4.74e-10	849.0	0	pmagpy-3.2.1	g	-50.8		1	LT-T-Z:LP-DIR-T	5.93e-10	hargrave 2015-01-14 14:30:08				This study	3.93e-08	156.7	1.14e-09	1.9	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	24	4.86e-10	852.0	0	pmagpy-3.2.1	g	-51.3		1	LT-T-Z:LP-DIR-T	7.91e-10	hargrave 2015-01-15 14:44:58				This study	3.87e-08	153.0	1.82e-09	3.0	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	25	8.65e-10	855.0	0	pmagpy-3.2.1	g	-50.2		1	LT-T-Z:LP-DIR-T	4.36e-10	hargrave 2015-01-18 13:06:16				This study	3.74e-08	155.0	1.82e-09	3.0	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	26	8.06e-10	858.0	0	pmagpy-3.2.1	g	-49.9		1	LT-T-Z:LP-DIR-T	2.84e-10	hargrave 2015-01-20 12:25:28				This study	3.53e-08	155.9	1.26e-09	2.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	27	5.30e-10	863.0	0	pmagpy-3.2.1	g	-48.2		1	LT-T-Z:LP-DIR-T	5.54e-10	hargrave 2015-02-10 17:35:38				This study	3.27e-08	160.5	5.26e-10	1.4	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	28	4.47e-10	883.0	0	pmagpy-3.2.1	g	-42.7		1	LT-T-Z:LP-DIR-T	6.25e-10	hargrave 2015-02-11 17:33:46				This study	2.73e-08	156.8	8.72e-10	2.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	29	2.75e-10	903.0	0	pmagpy-3.2.1	g	-36.7		1	LT-T-Z:LP-DIR-T	4.34e-10	hargrave 2015-02-12 15:45:13				This study	2.28e-08	157.6	5.97e-10	1.8	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	30	3.72e-10	923.0	0	pmagpy-3.2.1	g	-36.2		1	LT-T-Z:LP-DIR-T	4.16e-10	hargrave 2015-02-13 18:00:41				This study	2.11e-08	163.4	4.50e-10	1.7	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	31	3.87e-10	933.0	0	pmagpy-3.2.1	g	-31.1		1	LT-T-Z:LP-DIR-T	2.00e-10	hargrave 2015-02-17 11:35:15				This study	2.23e-08	167.7	4.15e-10	1.3	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	32	3.18e-10	943.0	0	pmagpy-3.2.1	g	-33.8		1	LT-T-Z:LP-DIR-T	1.56e-10	hargrave 2015-02-18 09:54:42				This study	1.50e-08	160.7	9.46e-10	3.7	273	0	
+Z35.7a	Z35.7	Z35.	locale	Z35.7a:LP-DIR-T	33	7.87e-11	953.0	0	pmagpy-3.2.1	g	-35.3		1	LT-T-Z:LP-DIR-T	7.00e-11	hargrave 2015-02-19 13:01:41				This study	4.06e-09	167.4	1.58e-10	2.6	273	0	
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	0		273.			g	-42.799999	0		LT-NO:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	5.267117e-05	295.600006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	1		4.730e+02			g	-42.400002	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.808001e-05	302.399994			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	2		4.730e+02			g	-46.299999	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.114643e-05	303.000000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	3		4.730e+02			g	-42.599998	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.813084e-05	296.500000			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	4		5.230e+02			g	-40.700001	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.657222e-05	300.200012			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	5		5.230e+02			g	-33.900002	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.254014e-05	300.200012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	6		5.730e+02			g	-42.099998	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.438677e-05	297.399994			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	7		5.730e+02			g	-49.500000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.045183e-05	293.799988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	8		6.130e+02			g	-42.299999	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.228602e-05	297.899994			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	9		5.230e+02			g	-34.700001	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.842335e-05	293.100006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	10		6.130e+02			g	-29.100000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.600072e-05	295.000000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	11		5.230e+02			g	-37.200001	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.938902e-05	296.500000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	12		6.430e+02			g	-42.000000	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.050716e-05	297.100006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	13		6.430e+02			g	-51.799999	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.907957e-05	298.700012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	14		6.430e+02			g	-42.000000	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.047328e-05	298.200012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	15		6.730e+02			g	-41.900002	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	3.916878e-05	298.600006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	16		6.130e+02			g	-27.400000	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.345949e-05	298.200012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	17		6.730e+02			g	-23.200001	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.201946e-05	296.899994			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	18		6.130e+02			g	-38.299999	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.716968e-05	300.600006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	19		7.030e+02			g	-41.799999	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	3.749157e-05	298.100006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	20		7.030e+02			g	-54.799999	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.845273e-05	299.500000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	21		7.030e+02			g	-41.500000	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.733910e-05	303.000000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	22		7.330e+02			g	-40.799999	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	3.528917e-05	297.100006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	23		6.730e+02			g	-20.200001	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.873281e-05	303.899994			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	24		7.330e+02			g	-12.900000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.739443e-05	301.899994			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	25		6.730e+02			g	-35.799999	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.266324e-05	301.299988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	26		7.630e+02			g	-41.599998	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	3.256159e-05	303.000000			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	27		7.630e+02			g	-59.299999	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.750400e-05	301.100006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	28		7.630e+02			g	-42.200001	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.252771e-05	306.299988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	29		7.830e+02			g	-41.599998	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	2.995260e-05	300.700012			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	30		7.330e+02			g	-7.800000	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.319293e-05	303.100006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	31		7.830e+02			g	5.500000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.324376e-05	306.000000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	32		7.330e+02			g	-31.500000	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.675065e-05	302.799988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	33		8.030e+02			g	-41.000000	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	2.636100e-05	298.200012			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	34		8.030e+02			g	-66.000000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.760565e-05	306.600006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	35		8.030e+02			g	-41.799999	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.625935e-05	303.299988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	36		8.180e+02			g	-41.500000	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	2.161737e-05	301.700012			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	37		7.830e+02			g	24.600000	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	1.853402e-05	303.600006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	38		8.180e+02			g	46.500000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.429413e-05	300.700012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	39		7.830e+02			g	-15.800000	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	1.672805e-05	299.500000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	40		8.280e+02			g	-42.099998	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	1.524906e-05	299.000000			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	41		8.280e+02			g	-75.900002	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	4.843579e-05	300.200012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	42		8.280e+02			g	-44.000000	0		LT-PTRM-MD:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	1.574544e-05	306.500000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	43		8.380e+02			g	-46.799999	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	2.334541e-07	310.600006			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	44		8.180e+02			g	88.800003	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	3.198558e-05	303.000000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	45		8.380e+02			g	89.099998	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.304388e-05	294.299988			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	46		8.180e+02			g	88.500000	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	2.136325e-05	307.100006			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	47		8.480e+02			g	57.200001	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	4.946922e-08	308.399994			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	48		8.480e+02			g	-88.900002	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.295917e-05	217.500000			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	49		8.730e+02			g	-47.900002	0		LT-T-Z:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					0	This study	3.549247e-08	2.000000			273.	0	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	50		8.380e+02			g	89.400002	0		LT-PTRM-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.348436e-05	38.700001			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	51		8.730e+02			g	88.500000	0		LT-T-I:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	5.360295e-05	304.200012			273.	6.000e-05	u
+MGH1	MGH1	MGH1	Munich	MGH1:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT	52		8.380e+02			g	81.599998	0		LT-PTRM-AC:LP-PI-TRM:LP-PI-TRM-ZI:LP-PI-ALT:LP-PI-BT-MD:LP-PI-BT					90	This study	1.567768e-07	2.700000			273.	6.000e-05	u

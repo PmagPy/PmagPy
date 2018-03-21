@@ -246,3 +246,4 @@ data_files/aarm_magic/specimens.txt
 data_files/aarm_magic/samples.txt
 data_files/aarm_magic/sites.txt
 data_files/aarm_magic/locations.txt
+data_files/k15_magic/*.txt

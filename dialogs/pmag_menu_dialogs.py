@@ -523,11 +523,15 @@ class ImportK15(wx.Frame):
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
+        data_model_num = self.Parent.data_model_num
         os.chdir(self.WD)
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
-        samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
+        if data_model_num == 3:
+            samp_outfile = infile[:infile.find('.')] + "_samples.txt"
+        else:
+            samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         WD = self.WD
         specnum = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -537,15 +541,22 @@ class ImportK15(wx.Frame):
             loc = "-loc " + loc
         else:
             location = "unknown"
-        aniso_outfile = infile + '_rmag_anisotropy.txt'
+        if data_model_num == 3:
+            aniso_outfile = infile + '_specimens.txt'
+        else:
+            aniso_outfile = infile + '_rmag_anisotropy.txt'
+        # result file is only used in data model 3, otherwise ignored
         aniso_results_file = infile + '_rmag_results.txt'
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        DM = ""
+        if data_model_num == 2:
+            DM = "-DM 2"
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {} {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file, DM)
         program_ran, error_message = ipmag.k15_magic(infile, specnum, ncn, location, outfile, samp_outfile, aniso_outfile, aniso_results_file, ID, WD)
         print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
             outfiles = [f for f in [outfile, samp_outfile, aniso_outfile] if f]
-            pw.simple_warning('k15_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
+            #pw.simple_warning('k15_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
 
         else:
             pw.simple_warning(error_message)
