@@ -350,8 +350,8 @@ def main():
         ind = sys.argv.index("-ncn")
         kwargs['samp_con'] = sys.argv[ind + 1]
     if "-u" in sys.argv:
-        ind = args.index("-u")
-        units = args[ind + 1]
+        ind = sys.argv.index("-u")
+        units = sys.argv[ind + 1]
 
     convert(**kwargs)
 

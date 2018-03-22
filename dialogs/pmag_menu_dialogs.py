@@ -18,7 +18,7 @@ import dialogs.pmag_widgets as pw
 #import thellier_gui_dialogs
 #import thellier_gui
 #import ErMagicBuilder
-
+from programs.conversion_scripts import agm_magic
 
 class ImportAzDipFile(wx.Frame):
 
@@ -785,11 +785,13 @@ class ImportAgmFile(wx.Frame):
 
     def on_okButton(self, event):
         os.chdir(self.WD)
+        options_dict={}
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
-        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        #spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
         usr = self.bSizer1.return_value()
         user = usr
         if usr:
@@ -813,15 +815,33 @@ class ImportAgmFile(wx.Frame):
         if self.bSizer7.return_value():
             bak = "-bak"
             backfield_curve = True
+        magicoutfile=os.path.split(infile)[1]+".magic"
 
+        SPEC_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_specimens.txt"
+        SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_samples.txt"
+        SITE_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_sites.txt"
+        LOC_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_locations.txt"
+        options_dict['meas_file'] = outfile
+        options_dict['agm_file'] = infile
+        options_dict['spec_file'] = SPEC_OUTFILE
+        options_dict['samp_file'] = SAMP_OUTFILE
+        options_dict['site_file'] = SITE_OUTFILE
+        options_dict['loc_file'] = LOC_OUTFILE
+        options_dict['specnum'] =spc 
         COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
         samp_infile = None
-        program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
-        if program_ran:
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning(error_message)
+        #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
+        #if program_ran:
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning(error_message)
         #pw.run_command_and_close_window(self, COMMAND, outfile)
+        print("COMMAND: ",COMMAND)
+        if agm_magic.convert(**options_dict):
+            pw.close_window(self,COMMAND,outfile)
+        else:
+            pw.simple_warning()
+            
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -919,6 +939,8 @@ class ImportAgmFolder(wx.Frame):
         loc_name = self.bSizer4.return_value()
         if loc_name:
             loc = "-loc " + loc_name
+        else:
+            loc=""
         ins = self.bSizer5.return_value()
         #if ins:
         #    ins = "-ins " + ins
@@ -936,13 +958,35 @@ class ImportAgmFolder(wx.Frame):
                 bak = ""
                 bak_curve = False
             outfile = f + ".magic"
-            COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, usr, spc, ncn, loc, ins, units, bak)
-            if files.index(f) == (len(files) - 1): # terminate process on last file call
-                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
-                pw.close_window(self, COMMAND, outfile) # close window
-            else: # continue through
-                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
-
+            #if files.index(f) == (len(files) - 1): # terminate process on last file call
+                #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
+                #pw.close_window(self, COMMAND, outfile) # close window
+            #else: # continue through
+                #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
+            stem =  outfile.split('.')[0]
+            SPEC_OUTFILE =  stem + "_specimens.txt"
+            SAMP_OUTFILE =  stem + "_samples.txt"
+            SITE_OUTFILE =  stem + "_sites.txt"
+            LOC_OUTFILE =  stem + "_locations.txt"
+            options_dict={}
+            options_dict['meas_file'] = outfile
+            options_dict['agm_file'] = f
+            options_dict['spec_file'] = SPEC_OUTFILE
+            options_dict['samp_file'] = SAMP_OUTFILE
+            options_dict['site_file'] = SITE_OUTFILE
+            COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, SPEC_OUTFILE, usr, spc, ncn, loc, ins, units, bak)
+            samp_infile = None
+        #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
+        #if program_ran:
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning(error_message)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
+            print("COMMAND: ",COMMAND)
+            if agm_magic.convert(**options_dict):
+                pw.close_window(self,COMMAND,outfile)
+            else:
+                pw.simple_warning()
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()

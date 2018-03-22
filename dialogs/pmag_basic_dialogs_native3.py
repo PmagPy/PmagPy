@@ -30,6 +30,7 @@ from programs.conversion_scripts import jr6_jr6_magic
 from programs.conversion_scripts import iodp_jr6_magic
 from programs.conversion_scripts import utrecht_magic
 from programs.conversion_scripts import bgc_magic
+from programs.conversion_scripts import agm_magic
 from pmagpy.mapping import map_magic
 
 
