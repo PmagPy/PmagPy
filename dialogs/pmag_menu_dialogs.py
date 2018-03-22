@@ -1734,7 +1734,7 @@ class Core_depthplot(wx.Frame):
                 return input_dir_path
 
         wait = wx.BusyInfo('Making plots, please wait...')
-        wx.Yield()
+        wx.SafeYield()
 
         os.chdir(self.WD)
         input_dir_path = None
@@ -2044,7 +2044,7 @@ class Ani_depthplot(wx.Frame):
 
     def on_okButton(self, event):
         wait = wx.BusyInfo('Making plots, please wait...')
-        wx.Yield()
+        wx.SafeYield()
 
         os.chdir(self.WD)
         ani_file = self.bSizer0.return_value()

@@ -69,7 +69,7 @@ class MainFrame(wx.Frame):
         self.reset_highlights()
 
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
-        wx.Yield()
+        wx.SafeYield()
         print('-I- Read in any available data from working directory')
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         # propagate names from measurements into other tables
@@ -281,7 +281,7 @@ class MainFrame(wx.Frame):
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
-        wx.Yield()
+        wx.SafeYield()
         # propagate site lat/lon info into locations if necessary
         if grid_type == 'locations' and 'sites' in self.contribution.tables:
             self.contribution.get_min_max_lat_lon()
@@ -365,7 +365,7 @@ class MainFrame(wx.Frame):
         if not hasattr(self, "contribution"):
             self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         wait = wx.BusyInfo('Validating data, please wait...')
-        wx.Yield()
+        wx.SafeYield()
         res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
                                                                                   vocab=self.contribution.vocab)
         self.failing_items = all_failing_items

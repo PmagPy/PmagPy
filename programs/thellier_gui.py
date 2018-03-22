@@ -340,7 +340,7 @@ DESCRIPTION
         # init wait dialog
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo('Compiling required data, please wait...')
-        wx.Yield()
+        wx.SafeYield()
 
         # initalize necessary variables
         self.list_bound_loc = 0
@@ -608,9 +608,9 @@ DESCRIPTION
         self.zijplot = self.fig2.add_subplot(111)
         self.eqplot = self.fig3.add_subplot(111)
         self.sampleplot = self.fig4.add_axes(
-            [0.2, 0.3, 0.7, 0.6], frameon=True, axisbg='None')
+            [0.2, 0.3, 0.7, 0.6], frameon=True, facecolor='None')
         self.mplot = self.fig5.add_axes(
-            [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+            [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
 
         #--------------------------------------------------------------------
         # text box displaying measurement data
@@ -2271,7 +2271,7 @@ else:
             thellier_gui_dialogs.SaveMyPlot(self.fig5, self.pars, "M_T")
             self.fig5.clear()
             self.mplot = self.fig5.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
             self.fig5.text(0.02, 0.96, "M/T", {'family': self.font_type,
                                                'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.draw_figure(self.s)
@@ -2287,7 +2287,7 @@ else:
         self.fig4.text(0.02, 0.96, "Sample data", {
                        'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
         self.sampleplot = self.fig4.add_axes(
-            [0.2, 0.3, 0.7, 0.6], frameon=True, axisbg='None')
+            [0.2, 0.3, 0.7, 0.6], frameon=True, facecolor='None')
         self.draw_figure(self.s)
         self.update_selection()
 
@@ -2298,7 +2298,7 @@ else:
             thellier_gui_dialogs.SaveMyPlot(self.fig5, self.pars, "NLT")
             self.fig5.clear()
             self.mplot = self.fig5.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
             self.fig5.text(0.02, 0.96, "Non-linear TRM check", {
                            'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.draw_figure(self.s)
@@ -2313,7 +2313,7 @@ else:
             thellier_gui_dialogs.SaveMyPlot(self.fig3, self.pars, "CR")
             self.fig3.clear()
             self.eqplot = self.fig3.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
             self.fig3.text(0.02, 0.96, "Cooling rate correction", {
                            'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.draw_figure(self.s)
@@ -3502,7 +3502,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
     def on_menu_run_interpreter(self, event):
         busy_frame = wx.BusyInfo(
             "Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
-        wx.Yield()
+        wx.AppConsole.Yield()
         thellier_auto_interpreter = thellier_interpreter.thellier_auto_interpreter(
             self.Data, self.Data_hierarchy, self.WD, self.acceptance_criteria, self.preferences, self.GUI_log, THERMAL, MICROWAVE)
         thellier_auto_interpreter.run_interpreter()
@@ -5523,7 +5523,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.fig3.text(0.02, 0.96, "Cooling rate experiment", {
                            'family': self.font_type, 'fontsize': FONTSIZE, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.eqplot = self.fig3.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
             if 'cooling_rate_data' in list(self.Data[self.s].keys()) and\
                 'ancient_cooling_rate' in list(self.Data[self.s]['cooling_rate_data'].keys()) and\
                     'lab_cooling_rate' in list(self.Data[self.s]['cooling_rate_data'].keys()):
@@ -5580,7 +5580,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.fig5.text(0.02, 0.96, "M/T", {'family': self.font_type,
                                                'fontsize': FONTSIZE, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.mplot = self.fig5.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
 
             self.mplot.clear()
             NRMS = self.Data[self.s]['NRMS']
@@ -5642,7 +5642,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.fig5.text(0.02, 0.96, "Non-linear TRM check", {
                            'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
             self.mplot = self.fig5.add_axes(
-                [0.2, 0.15, 0.7, 0.7], frameon=True, axisbg='None')
+                [0.2, 0.15, 0.7, 0.7], frameon=True, facecolor='None')
             # self.mplot.clear()
             self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT']) * 1e6, self.Data[self.s]
                                ['NLT_parameters']['M_NLT_norm'], marker='o', facecolor='b', edgecolor='k', s=15, clip_on=False)
@@ -8109,7 +8109,7 @@ def main(WD=None, standalone_app=True, parent=None, DM=2.5):
     # to run as module, i.e. with Pmag GUI:
     if not standalone_app:
         wait = wx.BusyInfo('Compiling required data, please wait...')
-        wx.Yield()
+        wx.SafeYield()
         frame = Arai_GUI(WD, parent, standalone=False, DM=DM)
         frame.Centre()
         frame.Show()

@@ -25,7 +25,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY,
                                         name=frame_name, title=title)
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
         self.remove_cols_mode = False
         self.deleteRowButton = None
         self.selected_rows = set()

@@ -39,7 +39,7 @@ class ErMagicCheckFrame3(wx.Frame):
         as well as which sample a specimen belongs to
         """
         #wait = wx.BusyInfo("Please wait, working...")
-        #wx.Yield()
+        #wx.SafeYield()
         self.contribution.propagate_lithology_cols()
         spec_df = self.contribution.tables['specimens'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
@@ -294,7 +294,7 @@ class ErMagicCheckFrame3(wx.Frame):
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
 
         if self.grid_frame.drop_down_menu:  # unhighlight selected columns, etc.
             self.grid_frame.drop_down_menu.clean_up()
@@ -325,7 +325,7 @@ class ErMagicCheckFrame3(wx.Frame):
                 return
         # go back to previous grid
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
         if current_dia == self.InitLocCheck:
             pass
         #elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
@@ -1028,7 +1028,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
-            wx.Yield()
+            wx.SafeYield()
             wx.CallAfter(self.panel.Destroy) # no segfault here!
             next_dia()
             # need to wait to process the resize:
@@ -1037,7 +1037,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             del wait
         else:
             wait = wx.BusyInfo("Please wait, writing data to files...")
-            wx.Yield()
+            wx.SafeYield()
             # actually write data:
             self.er_magic_data.write_files()
             self.Destroy()
@@ -1047,7 +1047,7 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
 
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up()
@@ -1082,7 +1082,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
     def on_backButton(self, event, previous_dia, current_dia=None):
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
         if current_dia == self.InitLocCheck:
             pass
         elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:

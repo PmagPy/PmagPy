@@ -1701,7 +1701,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
     def on_okButton(self, event):
         os.chdir(self.WD)
         wait = wx.BusyInfo("Please wait, working...\nFor large files, this may take a few minutes")
-        wx.Yield()
+        wx.SafeYield()
         options = {}
         wd = self.WD
         options['dir_path'] = wd

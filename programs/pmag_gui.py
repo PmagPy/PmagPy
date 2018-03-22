@@ -483,7 +483,7 @@ class MagMainFrame(wx.Frame):
             self.Hide()
             # show busyinfo
             wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.Yield()
+            wx.SafeYield()
             # create custom Thellier GUI closing event and bind it
             ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
             self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
@@ -509,7 +509,7 @@ class MagMainFrame(wx.Frame):
             self.Hide()
             # show busyinfo
             wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.Yield()
+            wx.SafeYield()
             # create custom Demag GUI closing event and bind it
             DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
             self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
@@ -606,7 +606,7 @@ class MagMainFrame(wx.Frame):
 
             #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
             wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.Yield()
+            wx.SafeYield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         elif self.data_model_num == 3:
             if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
@@ -625,7 +625,7 @@ class MagMainFrame(wx.Frame):
                                 return
                             break
             wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.Yield()
+            wx.SafeYield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
 
         self.ErMagic_frame.Show()
@@ -645,7 +645,7 @@ class MagMainFrame(wx.Frame):
 
     def on_orientation_button(self, event):
         wait = wx.BusyInfo('Compiling required data, please wait...')
-        wx.Yield()
+        wx.SafeYield()
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
@@ -679,7 +679,7 @@ class MagMainFrame(wx.Frame):
         # run as module:
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
         ex = None
         try:
             if ipmag.download_magic(f, self.WD, input_dir, overwrite=True, data_model=self.data_model):
@@ -703,7 +703,7 @@ class MagMainFrame(wx.Frame):
         outstring="upload_magic.py"
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
-        wx.Yield()
+        wx.SafeYield()
         if self.data_model_num == 3:
             res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
                                                                                       vocab=self.contribution.vocab,

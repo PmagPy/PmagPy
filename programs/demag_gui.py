@@ -161,7 +161,7 @@ class Demag_GUI(wx.Frame):
         #init wait dialog
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo('Compiling required data, please wait...')
-        wx.Yield()
+        wx.SafeYield()
 
         #set icon
         if not self.parent:

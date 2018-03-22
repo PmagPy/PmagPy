@@ -6,7 +6,7 @@
 Tests for new ErMagicBuilder
 """
 
-from builtins import str
+#from builtins import str
 import unittest
 import os
 from pmagpy import pmag
