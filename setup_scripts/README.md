@@ -8,7 +8,7 @@ Install pyinstaller from the developer branch (certain needed bug fixes are here
 
     pip install git+https://github.com/pyinstaller/pyinstaller.git
 
-Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046):
+Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046)):
 
     conda install nomkl
 
@@ -35,6 +35,33 @@ Then run:
 
 This will create pmag\_gui.app in PmagPy/dist.  You can then move pmag\_gui.app to PmagPy\_Standalone\_OSX, commit, and push it to Github.  Make a new release on Github, and you're done!
 
+
+### For a more compact OS X executable
+
+You can create an executable that is over 100MB smaller by installing a more minimal Python distribution using homebrew and pip.  To do so, follow these steps:
+
+- Install brew
+  - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+- Install Python
+  - `brew install python`
+- Link python3 --> python
+   - `ln -s /usr/local/bin/python3 /usr/local/bin/python`
+- Use pip to install required packages
+  - `conda install future matplotlib numpy scipy pandas`
+- Use pip to install wxPython
+  - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
+- Install Basemap # see https://github.com/matplotlib/basemap/issues/251 for details
+  - `brew install geos`
+  - `sudo -H pip3 install https://github.com/matplotlib/basemap/archive/v1.1.0.tar.gz`
+- Use pip to install Pyinstaller
+  - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
+- Then you can generate a .spec file and run Pyinstaller, as explained above!
+
+- NB: to brew uninstall this python, you must first delete the symlink you created:
+  - `rm /usr/local/bin/python`
+  - `brew uninstall python`
+
+- NB:  with miniconda you have to do pip install setuptools --upgrade
 
 ## Compiling on Windows
 
