@@ -47,7 +47,7 @@ You can create an executable that is over 100MB smaller by installing a more min
 - Link python3 --> python
    - `ln -s /usr/local/bin/python3 /usr/local/bin/python`
 - Use pip to install required packages
-  - `conda install future matplotlib numpy scipy pandas`
+  - `pip install future matplotlib numpy scipy pandas`
 - Use pip to install wxPython
   - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Install Basemap # see https://github.com/matplotlib/basemap/issues/251 for details
@@ -61,7 +61,24 @@ You can create an executable that is over 100MB smaller by installing a more min
   - `rm /usr/local/bin/python`
   - `brew uninstall python`
 
-- NB:  with miniconda you have to do pip install setuptools --upgrade
+Same idea but with miniconda, (a stripped down version of Anaconda Python):
+
+- Download miniconda for Python 3
+  - https://conda.io/miniconda.html
+- Install Python 3.5.1 # see: https://github.com/pyinstaller/pyinstaller/issues/3192
+   - `conda install python=3.5.1`
+- Use conda to install required packages
+  - `pip install future matplotlib numpy scipy pandas`
+- Use pip to install wxPython
+  - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
+- Install Basemap
+  - `conda install basemap --channel conda-forge`
+- Use pip to install Pyinstaller
+  - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
+- Upgrade setuptools
+    - `pip install setuptools --upgrade`
+- Then you can generate a .spec file and run Pyinstaller, as explained above!
+
 
 ## Compiling on Windows
 
