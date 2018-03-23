@@ -3502,7 +3502,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
     def on_menu_run_interpreter(self, event):
         busy_frame = wx.BusyInfo(
             "Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
-        wx.AppConsole.Yield()
+        wx.SafeYield()
         thellier_auto_interpreter = thellier_interpreter.thellier_auto_interpreter(
             self.Data, self.Data_hierarchy, self.WD, self.acceptance_criteria, self.preferences, self.GUI_log, THERMAL, MICROWAVE)
         thellier_auto_interpreter.run_interpreter()
