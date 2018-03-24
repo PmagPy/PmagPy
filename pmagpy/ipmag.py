@@ -8695,7 +8695,7 @@ def iplotHYS(fignum, B, M, s):
     fignum : reference number for matplotlib figure being created
     B : list of B (flux density) values of hysteresis experiment
     M : list of M (magnetization) values of hysteresis experiment
-    s : sample name
+    s : specimen name
     """
     import pmagpy.spline as spline
     from matplotlib.pylab import polyfit
@@ -8754,19 +8754,20 @@ def iplotHYS(fignum, B, M, s):
 # split into upper and lower loops for splining
     Mupper, Bupper, Mlower, Blower = [], [], [], []
     deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
-    for k in range(kmin - 2, 0, -1):
+    for k in range(kmin - 2, 0, -2):
         Mupper.append(old_div(Moff[k], Msat))
         Bupper.append(B[k])
-    for k in range(kmin + 2, len(B)):
-        Mlower.append(old_div(Moff[k], Msat))
+    for k in range(kmin + 2, len(B)-1):
+        Mlower.append(Moff[k]/ Msat)
         Blower.append(B[k])
     Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
     Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
-    for b in np.arange(B[0], step=.01):  # get range of field values
+    for b in np.arange(B[0]):  # get range of field values
         Mpos = ((Iupper(b) - Ilower(b)))  # evaluate on both sides of B
         Mneg = ((Iupper(-b) - Ilower(-b)))
         Bdm.append(b)
         deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
+    print ('whew')
     for k in range(Npts):
         MadjN.append(old_div(Moff[k], Msat))
         Mnorm.append(old_div(M[k], Msat))
@@ -8790,7 +8791,7 @@ def iplotHYS(fignum, B, M, s):
     return hpars, deltaM, Bdm, B, Mnorm, MadjN
 
 
-def hysteresis_magic(path_to_file='.', hyst_file="rmag_hysteresis.txt",
+def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                      save=False, save_folder='.',
                      fmt="svg", plots=True):
     """
@@ -8983,6 +8984,250 @@ def hysteresis_magic(path_to_file='.', hyst_file="rmag_hysteresis.txt",
             plt.savefig(save_folder + '/' + sample + '_hysteresis.' + fmt)
         plt.show()
         sample_num += 1
+
+def hysteresis_magic(path_to_file='.',meas_file='measurements.txt', spec_file="specimens.txt",
+           pltspec="", save=False, save_folder='.',
+                     fmt="svg", plots=True):
+    """
+    Calculates hysteresis parameters, saves them in specimens format file.
+    If selected, this function also plots hysteresis loops, delta M curves,
+    d (Delta M)/dB curves, and IRM backfield curves.
+
+    Parameters (defaults are used if not specified)
+    ----------
+    path_to_file : path to directory that contains files (default is current directory, '.')
+    meas_file : measurement file (default is 'measurements.txt')
+    spec_file : hysteresis file (default is 'specimens.txt')
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    plots: whether or not to display the plots (default is true)
+    """
+
+    PLT=1
+    version_num=pmag.get_version()
+    verbose=1
+    if not plots:
+        PLT=0
+        irm_init,imag_init=-1,-1
+    if save:
+        verbose=0
+        plots=1
+    if pltspec:
+        verbose=0
+        plots=1
+    spec_file=path_to_file+'/'+spec_file
+    meas_file=path_to_file+'/'+meas_file
+    SpecRecs=[]
+    #
+    #
+    meas_data,file_type=pmag.magic_read(meas_file)
+    if file_type!='measurements':
+        print(help(hysteresis_magic))
+        print('bad file')
+        return
+    #
+    # initialize some variables
+    # define figure numbers for hyst,deltaM,DdeltaM curves
+    HystRecs,RemRecs=[],[]
+    HDD={}
+    if PLT:
+        HDD['hyst'],HDD['deltaM'],HDD['DdeltaM']=1,2,3
+        plt.figure(HDD['hyst'],(5,5))
+        plt.figure(HDD['deltaM'],(5,5))
+        plt.figure(HDD['DdeltaM'],(5,5))
+        imag_init=0
+        irm_init=0
+    else:
+        HDD['hyst'],HDD['deltaM'],HDD['DdeltaM'],HDD['irm'],HDD['imag']=0,0,0,0,0
+    #
+    if spec_file: prior_data,file_type=pmag.magic_read(spec_file)
+    #
+    # get list of unique experiment names and specimen names
+    #
+    experiment_names,sids=[],[]
+    hys_data=pmag.get_dictitem(meas_data,'method_codes','LP-HYS','has')
+    dcd_data=pmag.get_dictitem(meas_data,'method_codes','LP-IRM-DCD','has')
+    imag_data=pmag.get_dictitem(meas_data,'method_codes','LP-IMAG','has')
+    for rec in hys_data:
+        if rec['experiment'] not in experiment_names:experiment_names.append(rec['experiment'])
+        if rec['specimen'] not in sids:sids.append(rec['specimen'])
+    #
+    spec_num,fignum=0,1
+    if pltspec:
+        spec_num=sids.index(pltspec)
+        print(sids[spec_num])
+    while spec_num < len(sids):
+        specimen=sids[spec_num]
+        HystRec={'specimen':specimen,'experiment':""} # initialize a new specimen hysteresis record
+        print(specimen, spec_num+1 , 'out of ',len(sids))
+    #
+    #
+        B,M,Bdcd,Mdcd=[],[],[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
+        Bimag,Mimag=[],[] #Bimag,Mimag for initial magnetization curves
+        spec_data=pmag.get_dictitem(hys_data,'specimen',specimen,'T') # fish out all the LP-HYS data for this specimen
+        if len(spec_data)>0:
+            meths=spec_data[0]['method_codes'].split(':')
+            e=spec_data[0]['experiment']
+            HystRec['experiment']=spec_data[0]['experiment']
+            for rec in  spec_data:
+                B.append(float(rec['meas_field_dc']))
+                M.append(float(rec['magn_moment']))
+        spec_data=pmag.get_dictitem(dcd_data,'specimen',specimen,'T') # fish out all the data for this specimen
+        if len(spec_data)>0:
+            HystRec['experiment']=HystRec['experiment']+':'+spec_data[0]['experiment']
+            irm_exp=spec_data[0]['experiment']
+            for rec in  spec_data:
+                Bdcd.append(float(rec['treat_dc_field']))
+                Mdcd.append(float(rec['magn_moment']))
+        spec_data=pmag.get_dictitem(imag_data,'specimen',specimen,'T') # fish out all the data for this specimen
+        if len(spec_data)>0:
+            imag_exp=spec_data[0]['experiment']
+            for rec in  spec_data:
+                Bimag.append(float(rec['meas_field_dc']))
+                Mimag.append(float(rec['magn_moment']))
+    #
+    # now plot the hysteresis curve
+    #
+        if len(B)>0:
+            hmeths=[]
+            for meth in meths: hmeths.append(meth)
+            #hpars=pmagplotlib.plotHDD(HDD,B,M,e)
+            fig = plt.figure(figsize=(8, 8))
+            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplotHYS(1, B, M, specimen)
+            ax1 = fig.add_subplot(2, 2, 1)
+            ax1.axhline(0, color='k')
+            ax1.axvline(0, color='k')
+            ax1.plot(B, Mnorm, 'r')
+            ax1.plot(B, MadjN, 'b')
+            ax1.set_xlabel('B (T)')
+            ax1.set_ylabel("M/Msat")
+    #         ax1.set_title(sample)
+            ax1.set_xlim(-1, 1)
+            ax1.set_ylim(-1, 1)
+            bounds = ax1.axis()
+            n4 = 'Ms: ' + \
+                '%8.2e' % (float(hpars['hysteresis_ms_moment'])) + ' Am^2'
+            ax1.text(bounds[1] - .9 * bounds[1], -.9, n4, fontsize=9)
+            n1 = 'Mr: ' + \
+                '%8.2e' % (float(hpars['hysteresis_mr_moment'])) + ' Am^2'
+            ax1.text(bounds[1] - .9 * bounds[1], -.7, n1, fontsize=9)
+            n2 = 'Bc: ' + '%8.2e' % (float(hpars['hysteresis_bc'])) + ' T'
+            ax1.text(bounds[1] - .9 * bounds[1], -.5, n2, fontsize=9)
+            if 'hysteresis_xhf' in list(hpars.keys()):
+                n3 = r'Xhf: ' + \
+                    '%8.2e' % (float(hpars['hysteresis_xhf'])) + ' m^3'
+                ax1.text(bounds[1] - .9 * bounds[1], -.3, n3, fontsize=9)
+    #         plt.subplot(1,2,2)
+    #         plt.subplot(1,3,3)
+        DdeltaM = []
+        Mhalf = ""
+        for k in range(2, len(Bdm)):
+            # differnential
+            DdeltaM.append(
+                old_div(abs(deltaM[k] - deltaM[k - 2]), (Bdm[k] - Bdm[k - 2])))
+        for k in range(len(deltaM)):
+            if old_div(deltaM[k], deltaM[0]) < 0.5:
+                Mhalf = k
+                break
+        try:
+            Bhf = Bdm[Mhalf - 1:Mhalf + 1]
+            Mhf = deltaM[Mhalf - 1:Mhalf + 1]
+            # best fit line through two bounding points
+            poly = polyfit(Bhf, Mhf, 1)
+            Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
+            hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
+            hpars['magic_method_codes'] = "LP-BCR-HDM"
+            if HDD['deltaM'] != 0:
+                ax2 = fig.add_subplot(2, 2, 2)
+                ax2.plot(Bdm, deltaM, 'b')
+                ax2.set_xlabel('B (T)')
+                ax2.set_ylabel('Delta M')
+                linex = [0, Bcr, Bcr]
+                liney = [old_div(deltaM[0], 2.), old_div(deltaM[0], 2.), 0]
+                ax2.plot(linex, liney, 'r')
+    #             ax2.set_title(sample)
+                ax3 = fig.add_subplot(2, 2, 3)
+                ax3.plot(Bdm[(len(Bdm) - len(DdeltaM)):], DdeltaM, 'b')
+                ax3.set_xlabel('B (T)')
+                ax3.set_ylabel('d (Delta M)/dB')
+    #             ax3.set_title(sample)
+
+                ax4 = fig.add_subplot(2, 2, 4)
+                ax4.plot(Bdcd, Mdcd)
+                ax4.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
+                ax4.axhline(0, color='k')
+                ax4.axvline(0, color='k')
+                ax4.set_xlabel('B (T)')
+                ax4.set_ylabel('M/Mr')
+        except:
+            print("not doing it")
+            hpars['hysteresis_bcr'] = '0'
+            hpars['magic_method_codes'] = ""
+        plt.gcf()
+        plt.gca()
+        plt.tight_layout()
+        if save:
+            plt.savefig(save_folder + '/' + sample + '_hysteresis.' + fmt)
+        plt.show()
+        spec_num += 1
+        HystRec['hyst_mr_moment']=hpars['hysteresis_mr_moment']
+        HystRec['hyst_ms_moment']=hpars['hysteresis_ms_moment']
+        HystRec['hyst_bc']=hpars['hysteresis_bc']
+        HystRec['hyst_bcr']=hpars['hysteresis_bcr']
+        HystRec['hyst_xhf']=hpars['hysteresis_xhf']
+        HystRec['experiments']=e
+        HystRec['software_packages']=version_num
+        if hpars["magic_method_codes"] not in hmeths:hmeths.append(hpars["magic_method_codes"])
+        methods=""
+        for meth in hmeths:
+            methods=methods+meth.strip()+":"
+        HystRec["method_codes"]=methods[:-1]
+        HystRec["citations"]="This study"
+    
+        if len(Bdcd)>0: 
+            rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp)
+            rmeths=[]
+            for meth in meths: rmeths.append(meth)
+            HystRec['rem_mr_moment']=rpars['remanence_mr_moment']
+            HystRec['rem_bcr']=rpars['remanence_bcr']
+            HystRec['experiments']=specimen+':'+irm_exp
+            if rpars["magic_method_codes"] not in meths:meths.append(rpars["magic_method_codes"])
+            methods=""
+            for meth in rmeths:
+                methods=methods+meth.strip()+":"
+            HystRec["method_codes"]=HystRec['method_codes']+':'+methods[:-1]
+            HystRec["citations"]="This study"
+        HystRecs.append(HystRec)
+    if len(HystRecs)>0:
+    #  go through prior_data, clean out prior results and save combined file as spec_file
+        SpecRecs,keys=[],list(HystRecs[0].keys())
+        if len(prior_data)>0:
+            prior_keys=list(prior_data[0].keys())
+        else: prior_keys=[]
+        for rec in prior_data:
+            for key in keys:
+                if key not in list(rec.keys()):rec[key]=""
+            if  'LP-HYS' not in rec['method_codes']:
+                SpecRecs.append(rec)
+        for rec in HystRecs:
+            for key in prior_keys:
+                if key not in list(rec.keys()):rec[key]=""
+            prior=pmag.get_dictitem(prior_data,'specimen',rec['specimen'],'T')
+            if len(prior)>0 and 'sample' in list(prior[0].keys()):
+                rec['sample']=prior[0]['sample'] # pull sample name from prior specimens table
+            SpecRecs.append(rec)
+        # drop unnecessary/duplicate rows
+        dir_path = os.path.split(spec_file)[0]
+        con = nb.Contribution(dir_path, read_tables=[])
+        con.add_magic_table_from_data('specimens', SpecRecs)
+        con.tables['specimens'].drop_duplicate_rows(ignore_cols=['specimen', 'sample', 'citations', 'software_packages'])
+        con.tables['specimens'].df = con.tables['specimens'].df.drop_duplicates()
+        con.write_table_to_file('specimens', custom_name=spec_file)
+        # old way:
+        ##pmag.magic_write(spec_file,SpecRecs,"specimens")
+        print("hysteresis parameters saved in ",spec_file)
+
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
@@ -9314,11 +9559,15 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
        zeq.py
   
     DESCRIPTION
-       plots demagnetization data. The equal area projection has the X direction (usually North in geographic coordinates)
-          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere. 
-          The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
+       plots demagnetization data for a single specimen: 
+          - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
           fractional remanence remaining after each step. The green line is the fraction of the total remaence removed 
-          between each step.        
+          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation. 
+
+          -The equal area projection has the X direction (usually North in geographic coordinates)
+          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere. 
+          
+          - red dots and blue line is the remanence remaining after each step.  The green line is the partial TRM removed in each interval
 
     INPUT FORMAT
        reads from  file_name or takes a  Pandas DataFrame data with specimen treatment intensity declination inclination   as columns
@@ -9332,7 +9581,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         begin_pca [step number] treatment step for beginning of PCA calculation, default
         end_pca [step number] treatment step for end of PCA calculation, last step is default
         calculation_type [DE-BFL,DE-BFP,DE-FM] Calculation Type: best-fit line,  plane or fisher mean; line is default
-        angle=[0-360]: angle to rotate in horizontal plane, default is 0
+        angle=[0-360]: angle to subtract from declination to rotate in horizontal plane, default is 0
 
     """
     if units=="C":SIunits="K"
@@ -9341,25 +9590,23 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
     if file!="":
         f=pd.read_csv(os.path.join(path_to_file, file),delim_whitespace=True,header=None)
         f.columns=['specimen','treatment','intensity','declination','inclination']
+        f['declination']=(f['declination']-angle)%360 # adjust for angle rotation
         f['quality']='g'
         f['type']=''
 #
         s=f['specimen'].tolist()[0]
+        if units=='mT': f['treatment']=f['treatment']*1e-3
+        if units=='C': f['treatment']=f['treatment']+273
         data=f[['treatment','declination','inclination','intensity','type','quality']]
     print (s)
-    if units=='mT': f['intensity']=f['intensity']*1e-3
-    if units=='C': f['intensity']=f['intensity']+273
     datablock=data.values.tolist()
 # define figure numbers in a dictionary for equal area, zijderveld,  
 #  and intensity vs. demagnetiztion step respectively
     ZED={}
-    ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
-    plt.figure(num=ZED['eqarea'], figsize=(5, 5))
+    ZED['eqarea'],ZED['zijd'],  ZED['demag']=2,1,3 
     plt.figure(num=ZED['zijd'], figsize=(5, 5))
+    plt.figure(num=ZED['eqarea'], figsize=(5, 5))
     plt.figure(num=ZED['demag'], figsize=(5, 5))
-    #pmagplotlib.plot_init(ZED['eqarea'],5,5)
-    #pmagplotlib.plot_init(ZED['zijd'],5,5)
-    #pmagplotlib.plot_init(ZED['demag'],5,5)
 #
 #
     pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
@@ -9367,6 +9614,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
 # print out data for this sample to screen
 #
     recnum=0
+    print('step treat  intensity  dec    inc')
     for plotrec in datablock:
         if units=='mT':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2]))
         if units=='C':
@@ -9374,77 +9622,16 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         if units=='U':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2]))
         recnum += 1
         pmagplotlib.drawFIGS(ZED)
-#    if save:
-#      while 1:
-        if begin_pca!="" and end_pca!="" and calculation_type!="":
-                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-                mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
-                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
-                print('Specimen, calc_type, N, min, max, MAD, dec, inc')
-                if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-                if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-                if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-        if end_pca=="":end_pca=len(datablock)-1 # initialize end_pca, begin_pca to first and last measurement
-        if begin_pca=="":begin_pca=0
-#        ans=input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
-#        if ans =='q':
-#            return    
-#        if  ans=='a':
-#            files={}
-#            for key in list(ZED.keys()):
-#                files[key]=s+'_'+key+'.'+fmt 
-#            pmagplotlib.saveP(ZED,files)
-#        if ans=='h':
-#            angle=float(input(" Declination to project onto horizontal axis? "))
-#            pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-#
-#        if ans=='b':
-#            GoOn=0
-#            while GoOn==0: # keep going until reasonable bounds are set
-#                print('Enter index of first point for pca: ','[',begin_pca,']')
-#                answer=input('return to keep default  ')
-#                if answer != "":begin_pca=int(answer)
-#                print('Enter index  of last point for pca: ','[',end_pca,']')
-#                answer=input('return to keep default  ')
-#                if answer != "":
-#                    end_pca=int(answer) 
-#                if begin_pca >=0 and begin_pca<=len(datablock)-2 and end_pca>0 and end_pca<len(datablock): 
-#                    GoOn=1
-#                else:
-#                    print("Bad entry of indices - try again")
-#                    end_pca=len(datablock)-1
-#                    begin_pca=0
-#            GoOn=0
-#            while GoOn==0:
-#                ct=input('Enter Calculation Type: best-fit line,  plane or fisher mean [l]/p/f :  ' )
-#                if ct=="" or ct=="l": 
-#                    calculation_type="DE-BFL"
-#                    GoOn=1 # all good
-#                elif ct=='p':
-#                    calculation_type="DE-BFP"
-#                    GoOn=1 # all good
-#                elif ct=='f':
-#                    calculation_type="DE-FM"
-#                    GoOn=1 # all good
-#                else: 
-#                    print("bad entry of calculation type: try again. ") # keep going
-#                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-#                mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
-#                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
-#                print('Specimen, calc_type, N, min, max, MAD, dec, inc')
-#                if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#                if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#                if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#    else:
-#        if begin_pca!="" and end_pca!="":
-#            pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-#            mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
-#            pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
-#            print('Specimen, calc_type, N, min, max, MAD, dec, inc')
-#            if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#            if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#            if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-#        files={}
-#        for key in list(ZED.keys()):
-#            files[key]=s+'_'+key+'.'+fmt 
-#        pmagplotlib.saveP(ZED,files)
+    if begin_pca!="" and end_pca!="" and calculation_type!="":
+        pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+        mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
+        pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+        print('Specimen, calc_type, N, min, max, MAD, dec, inc')
+        if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+        if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+        if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+        if save:
+              files={}
+              for key in list(ZED.keys()):
+                  files[key]=s+'_'+key+'.'+fmt 
+              pmagplotlib.saveP(ZED,files)

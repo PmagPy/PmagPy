@@ -635,9 +635,13 @@ def plotZ(fignum, datablock, angle, s, norm):
         pylab.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
         pylab.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
     pylab.plot(gXYZ['X'], gXYZ['Y'], 'ro')
-    pylab.plot(gXYZ['X'], gXYZ['Z'], 'bs')
+    pylab.plot(gXYZ['X'], gXYZ['Z'], 'ws',markeredgecolor='blue')
     pylab.plot(gXYZ['X'], gXYZ['Y'], 'r-')
     pylab.plot(gXYZ['X'], gXYZ['Z'], 'b-')
+    for k in range(len(gXYZ)):
+        pylab.annotate(str(k),(gXYZ['X'][k],gXYZ['Z'][k]),ha='left',va='bottom')
+
+ 
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
