@@ -595,6 +595,7 @@ def plotZ(fignum, datablock, angle, s, norm):
     global globals
     """
     function to make Zijderveld diagrams
+    
     """
     pylab.figure(num=fignum)
     pylab.clf()
@@ -605,7 +606,7 @@ def plotZ(fignum, datablock, angle, s, norm):
         fact = 1.
     else:
         fact = (1./datablock[0][3])   # normalize to NRM=1
-    # convert datablock to array data with  dec,inc, int
+    # convert datablock to DataFrame data with  dec,inc, int
     data=pd.DataFrame(datablock)
     if len(data.columns)==6:
         data.columns=['treat','dec','inc','int','type','quality']

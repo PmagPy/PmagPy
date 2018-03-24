@@ -7854,7 +7854,7 @@ def deriv1(x, y, i, n):
 
 
 def curie(path_to_file='.', file_name='magic_measurements.txt',
-          window_length=3, save=False, save_folder='.', fmt='svg'):
+          window_length=3, save=False, save_folder='.', fmt='svg', t_begin="",t_end=""):
     """
     Plots and interprets curie temperature data.
     ***
@@ -7875,12 +7875,11 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     save : boolean argument to save plots (default is False)
     save_folder : relative directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures
+    t_begin: start of truncated window for search
+    t_end: end of truncated window for search
     """
-
     plot = 0
     window_len = window_length
-    t_begin = ''
-    t_end = ''
 
     # read data from file
     complete_path = os.path.join(path_to_file, file_name)
@@ -7890,7 +7889,7 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     T = list(T)
     M = list(M)
     # cut the data if -t is one of the flags
-    if t_begin:
+    if t_begin!="":
         while T[0] < t_begin:
             M.pop(0)
             T.pop(0)
@@ -9307,3 +9306,145 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     print("97.5th percentile is: " +
           str(round(ninetysevenpointfive_percentile, 2)) + " cm/yr")
     return rate[0], twopointfive_percentile, ninetysevenpointfive_percentile
+
+def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
+          save=False, save_folder='.', fmt='svg', begin_pca="",end_pca="",angle=0):
+    """
+    NAME
+       zeq.py
+  
+    DESCRIPTION
+       plots demagnetization data. The equal area projection has the X direction (usually North in geographic coordinates)
+          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere. 
+          The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
+          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed 
+          between each step.        
+
+    INPUT FORMAT
+       reads from  file_name or takes a  Pandas DataFrame data with specimen treatment intensity declination inclination   as columns
+
+    Keywords:
+        file= FILE   a space or tab delimited file with
+            specimen  treatment  declination inclination intensity 
+        units= [mT,C] specify units of mT OR C, default is unscaled
+        save=[True,False]  save figure and quit, default is False
+        fmt [svg,jpg,png,pdf] set figure format [default is svg]
+        begin_pca [step number] treatment step for beginning of PCA calculation, default
+        end_pca [step number] treatment step for end of PCA calculation, last step is default
+        calculation_type [DE-BFL,DE-BFP,DE-FM] Calculation Type: best-fit line,  plane or fisher mean; line is default
+        angle=[0-360]: angle to rotate in horizontal plane, default is 0
+
+    """
+    if units=="C":SIunits="K"
+    if units=="mT":SIunits="T"
+    if units=="U": SIunits="U"
+    if file!="":
+        f=pd.read_csv(os.path.join(path_to_file, file),delim_whitespace=True,header=None)
+        f.columns=['specimen','treatment','intensity','declination','inclination']
+        f['quality']='g'
+        f['type']=''
+#
+        s=f['specimen'].tolist()[0]
+        data=f[['treatment','declination','inclination','intensity','type','quality']]
+    print (s)
+    if units=='mT': f['intensity']=f['intensity']*1e-3
+    if units=='C': f['intensity']=f['intensity']+273
+    datablock=data.values.tolist()
+# define figure numbers in a dictionary for equal area, zijderveld,  
+#  and intensity vs. demagnetiztion step respectively
+    ZED={}
+    ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
+    plt.figure(num=ZED['eqarea'], figsize=(5, 5))
+    plt.figure(num=ZED['zijd'], figsize=(5, 5))
+    plt.figure(num=ZED['demag'], figsize=(5, 5))
+    #pmagplotlib.plot_init(ZED['eqarea'],5,5)
+    #pmagplotlib.plot_init(ZED['zijd'],5,5)
+    #pmagplotlib.plot_init(ZED['demag'],5,5)
+#
+#
+    pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+#
+# print out data for this sample to screen
+#
+    recnum=0
+    for plotrec in datablock:
+        if units=='mT':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2]))
+        if units=='C':
+            print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2]))
+        if units=='U':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2]))
+        recnum += 1
+        pmagplotlib.drawFIGS(ZED)
+#    if save:
+#      while 1:
+        if begin_pca!="" and end_pca!="" and calculation_type!="":
+                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+                mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
+                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+                print('Specimen, calc_type, N, min, max, MAD, dec, inc')
+                if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+                if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+                if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+        if end_pca=="":end_pca=len(datablock)-1 # initialize end_pca, begin_pca to first and last measurement
+        if begin_pca=="":begin_pca=0
+#        ans=input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
+#        if ans =='q':
+#            return    
+#        if  ans=='a':
+#            files={}
+#            for key in list(ZED.keys()):
+#                files[key]=s+'_'+key+'.'+fmt 
+#            pmagplotlib.saveP(ZED,files)
+#        if ans=='h':
+#            angle=float(input(" Declination to project onto horizontal axis? "))
+#            pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+#
+#        if ans=='b':
+#            GoOn=0
+#            while GoOn==0: # keep going until reasonable bounds are set
+#                print('Enter index of first point for pca: ','[',begin_pca,']')
+#                answer=input('return to keep default  ')
+#                if answer != "":begin_pca=int(answer)
+#                print('Enter index  of last point for pca: ','[',end_pca,']')
+#                answer=input('return to keep default  ')
+#                if answer != "":
+#                    end_pca=int(answer) 
+#                if begin_pca >=0 and begin_pca<=len(datablock)-2 and end_pca>0 and end_pca<len(datablock): 
+#                    GoOn=1
+#                else:
+#                    print("Bad entry of indices - try again")
+#                    end_pca=len(datablock)-1
+#                    begin_pca=0
+#            GoOn=0
+#            while GoOn==0:
+#                ct=input('Enter Calculation Type: best-fit line,  plane or fisher mean [l]/p/f :  ' )
+#                if ct=="" or ct=="l": 
+#                    calculation_type="DE-BFL"
+#                    GoOn=1 # all good
+#                elif ct=='p':
+#                    calculation_type="DE-BFP"
+#                    GoOn=1 # all good
+#                elif ct=='f':
+#                    calculation_type="DE-FM"
+#                    GoOn=1 # all good
+#                else: 
+#                    print("bad entry of calculation type: try again. ") # keep going
+#                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+#                mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
+#                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+#                print('Specimen, calc_type, N, min, max, MAD, dec, inc')
+#                if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#                if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#                if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#    else:
+#        if begin_pca!="" and end_pca!="":
+#            pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+#            mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
+#            pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+#            print('Specimen, calc_type, N, min, max, MAD, dec, inc')
+#            if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#            if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#            if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+#        files={}
+#        for key in list(ZED.keys()):
+#            files[key]=s+'_'+key+'.'+fmt 
+#        pmagplotlib.saveP(ZED,files)

@@ -401,7 +401,7 @@ def convert(**kwargs):
     if not experiment:
         print("-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT")
         print(__doc__)
-        return False, "-exp is required option"
+       return False, "-exp is required option"
 
     if experiment=='ATRM':
         if command_line:
