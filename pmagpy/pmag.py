@@ -2009,7 +2009,7 @@ def dotilt(dec, inc, bed_az, bed_dip):
 
 def dotilt_V(indat):
     """
-    Does a tilt correction on dec,inc using bedding dip direction and dip.
+    Does a tilt correction on an array with rows of dec,inc bedding dip direction and dip.
 
     Parameters
     ----------
@@ -4453,6 +4453,15 @@ def doflip(dec, inc):
 def doincfish(inc):
     """
     gets fisher mean inc from inc only data
+    input: list of inclination values
+    output: dictionary of
+        'n' : number of inclination values supplied
+        'ginc' : gaussian mean of inclinations
+        'inc' : estimated Fisher mean
+        'r' : estimated Fisher R value
+        'k' : estimated Fisher kappa
+        'alpha95' : estimated fisher alpha_95
+        'csd' : estimated circular standard deviation
     """
     rad, SCOi, SSOi = old_div(np.pi, 180.), 0., 0.  # some definitions
     abinc = []
@@ -5331,7 +5340,7 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up f from ftables F(row,col), where row is number of degrees of freedom - this is 95% confidence (p=0.05)
+  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).  
     """
 #
     if row > 200:
