@@ -161,6 +161,7 @@ class TestCombineMagic(unittest.TestCase):
     def tearDown(self):
         outfiles = ['custom_outfile.txt']
         pmag.remove_files(outfiles, self.input_dir)
+        pmag.remove_files(['custom.out'], WD)
 
 
     def test_with_custom_name(self):
@@ -183,6 +184,7 @@ class TestCombineMagic(unittest.TestCase):
         with open(os.path.join(WD, 'custom.out')) as f:
             n = len(f.readlines()) - 2
         self.assertEqual(n, 2747)
+
 
 
 
@@ -487,7 +489,11 @@ class TestAgmMagic(unittest.TestCase):
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
         pmag.remove_files(filelist, WD)
-        pmag.remove_files(filelist, os.path.join(WD, 'data_files', 'agm_magic'))
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files', 'Measurement_import', 'agm_magic'))
+        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import', 'agm_magic')
+        for f in os.listdir(dir_path):
+            if 'IS0' in f:
+                os.remove(os.path.join(dir_path, f))
         os.chdir(WD)
 
     def test_agm_with_no_files(self):
