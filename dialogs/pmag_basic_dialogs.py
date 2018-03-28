@@ -149,7 +149,7 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_nextButton(self,event):
         self.Destroy()
-        combine_dia = combine_magic_dialog(self.WD, self.parent, data_model=2.5)
+        combine_dia = combine_magic_dialog(self.WD, self.parent)#, data_model=2.5)
         combine_dia.Show()
         combine_dia.Center()
 
