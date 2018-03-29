@@ -1736,7 +1736,7 @@ def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='si
         # calculate the longitudinal difference between the pole and the site
         # (beta)
         dataframe['beta'] = np.degrees(np.arcsin(old_div((np.sin(np.radians(dataframe['colatitude'])) *
-                                                          np.sin(np.radians(dataframe['dec_is']))),
+                                                          np.sin(np.radians(dataframe[dec_is]))),
                                                          (np.cos(np.radians(dataframe['vgp_lat']))))))
         # generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         # and then calculate pole longitude using the site location and
@@ -1752,6 +1752,7 @@ def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='si
         # but aren't of further use and are deleted
         del dataframe['colatitude']
         del dataframe['beta']
+    return(dataframe)
 
 
 def sb_vgp_calc(dataframe, site_correction='yes', dec_tc='dec_tc', inc_tc='inc_tc'):
