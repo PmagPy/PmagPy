@@ -1667,7 +1667,7 @@ def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='si
     """
     This function calculates paleomagnetic poles using directional data and site
     location data within a pandas.DataFrame. The function adds the columns
-    'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev'
+    'paleolatitude', 'vgp_lat', 'vgp_lon', 'vgp_lat_rev', and 'vgp_lon_rev'
     to the dataframe. The '_rev' columns allow for subsequent choice as to which
     polarity will be used for the VGPs.
 
