@@ -2867,3 +2867,50 @@ def plotEQcont(fignum, DIblock):
         x, y = [], []
     # the axes
     pylab.axis("equal")
+
+def plot_ts(ax,agemin,agemax,timescale='gts12'):
+    """
+    Make a time scale plot between specified ages. 
+
+    Parameters:
+    ------------
+    ax : figure object
+    agemin : Minimum age for timescale
+    agemax : Maximum age for timescale
+    timescale : Time Scale [ default is Gradstein et al., (2012)]
+    """
+    ax.set_title(timescale.upper())
+    ax.axis([-.25,1.5,agemax,agemin])
+    ax.axes.get_xaxis().set_visible(False)
+    TS,Chrons=pmag.get_ts(timescale) # get dates and chron names for timescale
+    X,Y,Y2=[0,1],[],[]
+    cnt=0
+    if agemin<TS[1]: # in the Brunhes
+                Y=[agemin,agemin] # minimum age
+                Y1=[TS[1],TS[1]] # age of the B/M boundary
+                ax.fill_between(X,Y,Y1,facecolor='black') # color in Brunhes, black
+    for d in TS[1:]:
+                pol=cnt%2
+                cnt+=1
+                if d<=agemax and d>=agemin:
+                    ind=TS.index(d)
+                    Y=[TS[ind],TS[ind]]
+                    Y1=[TS[ind+1],TS[ind+1]]
+                    if pol: ax.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
+    ax.plot([0,1,1,0,0],[agemin,agemin,agemax,agemax,agemin],'k-')
+    pylab.yticks(numpy.arange(agemin,agemax+1,1))
+    ax.set_ylabel("Age (Ma): "+timescale)
+    ax2=ax.twinx()
+    ax2.axis('off')
+    for k in range(len(Chrons)-1):
+                c=Chrons[k]
+                cnext=Chrons[k+1]
+                d=cnext[1]-(cnext[1]-c[1])/3.
+                if d>=agemin and d<agemax:
+                    ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
+                    ax2.text(1.05,d,c[0]) #
+    ax2.axis([-.25,1.5,agemax,agemin])
+
+
+
+
