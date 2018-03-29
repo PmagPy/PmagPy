@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-#
+
 from __future__ import division
 from __future__ import print_function
-from past.utils import old_div
 import sys
+from past.utils import old_div
 import pmagpy.pmag as pmag
 
 
@@ -33,7 +33,7 @@ def main():
         -n first column has specimen name
         -crd [s,g,t], specify coordinate system of data
            s=specimen,g=geographic,t=tilt adjusted, default is 's'
-        -ncn NCON: naming conventionconvention NCON
+        -ncn NCON: naming convention
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -67,78 +67,56 @@ def main():
         print(main.__doc__)
         sys.exit()
     data_model_num = pmag.get_named_arg_from_sys("-DM", 3)
-
-    sfile, anisfile = "", "rmag_anisotropy.txt"
-    location = 'unknown'
-    user = ""
-    sitename, specnum = 'unknown', 0
+    sfile = pmag.get_named_arg_from_sys("-f", reqd=True)
+    if data_model_num == 2:
+        anisfile = pmag.get_named_arg_from_sys("-F", "rmag_anisotropy.txt")
+    else:
+        anisfile = pmag.get_named_arg_from_sys("-F", "specimens.txt")
+    location = pmag.get_named_arg_from_sys("-loc", "unknown")
+    user = pmag.get_named_arg_from_sys("-usr", "")
+    sitename = pmag.get_named_arg_from_sys("unknown", "")
+    specnum = pmag.get_named_arg_from_sys("-spc", 0)
+    specnum = -specnum
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    name = pmag.get_flag_arg_from_sys("-n")
+    sigma = pmag.get_flag_arg_from_sys("-sig")
+    print('sigma', sigma)
+    spec = pmag.get_named_arg_from_sys("-spn", "unknown")
+    atype = pmag.get_named_arg_from_sys("-typ", 'AMS')
+    #if '-sig' in sys.argv:
+    #    sigma = 1
+    print('name', name)
+    print('sigma', sigma)
+    #if "-n" in sys.argv:
+    #    name = 1
+    coord_type = pmag.get_named_arg_from_sys("-crd", 's')
+    coord_dict = {'s': '-1', 't': '100', 'g': '0'}
+    coord = coord_dict.get(coord_type, '-1')
     samp_con, Z = "", 1
-    user = ""
-    dir_path = '.'
-    name, sigma, spec = 0, 0, 'unknown'
-    type = 'AMS'
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path = sys.argv[ind+1]
-    if "-spc" in sys.argv:
-        ind = sys.argv.index("-spc")
-        specnum = int(sys.argv[ind+1])
-        if specnum != 0:
-            specnum = -specnum
-    if "-spn" in sys.argv:
-        ind = sys.argv.index("-spn")
-        spec = sys.argv[ind+1]
-    if '-f' in sys.argv:
-        ind = sys.argv.index('-f')
-        sfile = sys.argv[ind+1]
-    if '-sig' in sys.argv:
-        sigma = 1
-    if '-typ' in sys.argv:
-        ind = sys.argv.index('-typ')
-        type = sys.argv[ind+1]
-    if '-F' in sys.argv:
-        ind = sys.argv.index('-F')
-        anisfile = sys.argv[ind+1]
-    if '-usr' in sys.argv:
-        ind = sys.argv.index('-usr')
-        user = sys.argv[ind+1]
-    if '-loc' in sys.argv:
-        ind = sys.argv.index('-loc')
-        location = sys.argv[ind+1]
-    if "-n" in sys.argv:
-        name = 1
-    coord = '-1'
-    if "-crd" in sys.argv:
-        ind = sys.argv.index("-crd")
-        coord = sys.argv[ind+1]
-        if coord == 's':
-            coord = '-1'
-        if coord == 'g':
-            coord = '0'
-        if coord == 't':
-            coord = '100'
     if "-ncn" in sys.argv:
         ind = sys.argv.index("-ncn")
         samp_con = sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
                 print("option [4] must be in form 4-Z where Z is an integer")
-                sys.exit()
+                return
             else:
                 Z = samp_con.split("-")[1]
                 samp_con = "4"
         if samp_con == '6':
-            Samps, filetype = pmag.magic_read(dirpath+'/er_samples.txt')
+            print("option [6] is not currently supported")
+            return
+            #Samps, filetype = pmag.magic_read(dirpath+'/er_samples.txt')
     #
     # get down to bidness
-    sfile = dir_path+'/'+sfile
-    anisfile = dir_path+'/'+anisfile
-    input = open(sfile, 'r')
+    sfile = pmag.resolve_file_name(sfile, dir_path)
+    anisfile = pmag.resolve_file_name(anisfile, dir_path)
+    with open(sfile, 'r') as f:
+        lines = f.readlines()
     AnisRecs = []
-    linecnt = 0
     citation = "This study"
     # read in data
-    for line in input.readlines():
+    for line in lines:
         AnisRec = {}
         rec = line.split()
         if name == 1:
@@ -159,22 +137,22 @@ def main():
             AnisRec["er_sample_name"] = spec[:specnum]
         else:
             AnisRec["er_sample_name"] = spec
-        if samp_con == "6":
-            for samp in Samps:
-                if samp['er_sample_name'] == AnisRec["er_sample_name"]:
-                    sitename = samp['er_site_name']
-                    location = samp['er_location_name']
-        elif samp_con != "":
+        #if samp_con == "6":
+        #    for samp in Samps:
+        #        if samp['er_sample_name'] == AnisRec["er_sample_name"]:
+        #            sitename = samp['er_site_name']
+        #            location = samp['er_location_name']
+        if samp_con != "":
             sitename = pmag.parse_site(AnisRec['er_sample_name'], samp_con, Z)
         AnisRec["er_location_name"] = location
         AnisRec["er_site_name"] = sitename
         AnisRec["er_anylist_mail_names"] = user
-        if type == 'AMS':
+        if atype == 'AMS':
             AnisRec["anisotropy_type"] = "AMS"
             AnisRec["magic_experiment_names"] = spec+":LP-X"
         else:
-            AnisRec["anisotropy_type"] = type
-            AnisRec["magic_experiment_names"] = spec+":LP-"+type
+            AnisRec["anisotropy_type"] = atype
+            AnisRec["magic_experiment_names"] = spec+":LP-"+atype
         AnisRec["anisotropy_s1"] = s1
         AnisRec["anisotropy_s2"] = s2
         AnisRec["anisotropy_s3"] = s3
@@ -186,7 +164,7 @@ def main():
                 old_div(float(rec[k+6]), trace))
         AnisRec["anisotropy_unit"] = 'SI'
         AnisRec["anisotropy_tilt_correction"] = coord
-        AnisRec["magic_method_codes"] = 'LP-'+type
+        AnisRec["magic_method_codes"] = 'LP-' + atype
         AnisRecs.append(AnisRec)
     pmag.magic_write(anisfile, AnisRecs, 'rmag_anisotropy')
     print('data saved in ', anisfile)
