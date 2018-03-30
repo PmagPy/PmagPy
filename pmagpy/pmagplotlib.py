@@ -1648,7 +1648,7 @@ def plotVs(fignum, Xs, c, ls):
 
 def plotTS(fignum, dates, ts):
     Vplot_init(fignum, 10, 3)
-    TS, Chrons = pmag.get_TS(ts)
+    TS, Chrons = pmag.get_ts(ts)
     p = 1
     X, Y = [], []
     for d in TS:

@@ -517,7 +517,7 @@ def main():
             ax1=pylab.subplot(1,pcol,plt)
             ax1.axis([-.25,1.5,amax,amin])
             plt+=1
-            TS,Chrons=pmag.get_TS(ts)
+            TS,Chrons=pmag.get_ts(ts)
             X,Y,Y2=[0,1],[],[]
             cnt=0
             if amin<TS[1]: # in the Brunhes 

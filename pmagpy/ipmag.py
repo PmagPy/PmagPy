@@ -3394,7 +3394,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         ax1 = plt.subplot(1, pcol, plot)
         ax1.axis([-.25, 1.5, amax, amin])
         plot += 1
-        TS, Chrons = pmag.get_TS(timescale)
+        TS, Chrons = pmag.get_ts(timescale)
         X, Y, Y2 = [0, 1], [], []
         cnt = 0
         if amin < TS[1]:  # in the Brunhes
