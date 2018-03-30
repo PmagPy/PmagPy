@@ -27,14 +27,15 @@ def main():
            - default is "fixed south africa"
            Dplate should be one of: [nwaf, neaf,saf,aus, eur, ind, sam, ant, grn, nam]
         -ff file Efile,   file  has lat lon data file and Efile has sequential rotation poles: Elat Elon Omega 
-        -F OFILE, output pmag_results formatted file with rotated points stored in vgp_lon, vgp_lat
+        -F OFILE, output sites (pmag_results) formatted file with rotated points stored in pole_lon, pole_lat (vgp_lon, vgp_lat).  (data_model=2.5)
            default is to print out rotated lon, lat to standard output
-    
+        -dm [2.5,3] set data model for output.  Default is 3 
     """
     dir_path='.'
     PTS=[]
     ResRecs=[]
     ofile=""
+    data_model=3
     Dplates=['nwaf', 'neaf','saf','aus', 'eur', 'ind', 'sam', 'ant', 'grn', 'nam']
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -45,6 +46,9 @@ def main():
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         ofile=dir_path+'/'+sys.argv[ind+1]
+    if '-dm' in sys.argv:
+        ind = sys.argv.index('-dm')
+        data_model=dir_path+'/'+sys.argv[ind+1]
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
@@ -65,6 +69,9 @@ def main():
              Poles.append(pole)
     else:
         data=sys.stdin.readlines()
+    polelatkey,polelonkey='pole_lat','pole_lon'
+    if data_model!=3:
+        polelatkey,polelonkey='vgp_lat','vgp_lon'
     for line in data:
         PtRec={}
         rec=line.split()
@@ -79,7 +86,7 @@ def main():
             if ofile=="":
                 print(ptrot[1][0], ptrot[0][0])
             else:
-                ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
+                ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
                 ResRecs.append(ResRec)
         else:
             PtRec['cont']=rec[2]
@@ -113,7 +120,7 @@ def main():
                 if ofile=="":
                     print(ptrot[1][0], ptrot[0][0])
                 else:
-                    ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
+                    ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
                     ResRecs.append(ResRec)
             else:
                 if 'dcont' in list(pt.keys()):
@@ -124,16 +131,19 @@ def main():
                     if ofile=="":
                         print(ptrot[1][0], ptrot[0][0]) 
                     else:
-                        ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
+                        ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)
                 else:
                     if ofile=="":
                         print(ptrot[1][0], ptrot[0][0])
                     else:
-                        ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
+                        ResRec={polelonkey: '%7.1f'%(ptrot[0][0]),polelatkey:'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)
     if len(ResRecs)>0:
-        pmag.magic_write(ofile,ResRecs,'pmag_results')
+        if data_model==3:
+            pmag.magic_write(ofile,ResRecs,'locations')
+        else:
+            pmag.magic_write(ofile,ResRecs,'pmag_results')
 
 if __name__ == "__main__":
     main()
