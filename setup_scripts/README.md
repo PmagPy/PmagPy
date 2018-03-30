@@ -68,7 +68,7 @@ Same idea but with miniconda, (a stripped down version of Anaconda Python):
 - Install Python 3.5.1 # see: https://github.com/pyinstaller/pyinstaller/issues/3192
    - `conda install python=3.5.1`
 - Use conda to install required packages
-  - `pip install future matplotlib numpy scipy pandas`
+  - `conda install future matplotlib numpy scipy pandas`
 - Use pip to install wxPython
   - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Install Basemap
