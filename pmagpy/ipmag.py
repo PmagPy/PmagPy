@@ -3394,7 +3394,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         ax1 = plt.subplot(1, pcol, plot)
         ax1.axis([-.25, 1.5, amax, amin])
         plot += 1
-        TS, Chrons = pmag.get_TS(timescale)
+        TS, Chrons = pmag.get_ts(timescale)
         X, Y, Y2 = [0, 1], [], []
         cnt = 0
         if amin < TS[1]:  # in the Brunhes
@@ -9185,8 +9185,8 @@ def hysteresis_magic(path_to_file='.',meas_file='measurements.txt', spec_file="s
             methods=methods+meth.strip()+":"
         HystRec["method_codes"]=methods[:-1]
         HystRec["citations"]="This study"
-    
-        if len(Bdcd)>0: 
+
+        if len(Bdcd)>0:
             rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp)
             rmeths=[]
             for meth in meths: rmeths.append(meth)
@@ -9558,16 +9558,16 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
     """
     NAME
        zeq.py
-  
+
     DESCRIPTION
-       plots demagnetization data for a single specimen: 
+       plots demagnetization data for a single specimen:
           - The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
-          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed 
-          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation. 
+          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed
+          between each step.  If the principle direction is desired, specify begin_pca and end_pca steps as bounds for calculation.
 
           -The equal area projection has the X direction (usually North in geographic coordinates)
-          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere. 
-          
+          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere.
+
           - red dots and blue line is the remanence remaining after each step.  The green line is the partial TRM removed in each interval
 
     INPUT FORMAT
@@ -9575,7 +9575,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
 
     Keywords:
         file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity 
+            specimen  treatment  declination inclination intensity
         units= [mT,C] specify units of mT OR C, default is unscaled
         save=[True,False]  save figure and quit, default is False
         fmt [svg,jpg,png,pdf] set figure format [default is svg]
@@ -9601,10 +9601,10 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         data=f[['treatment','declination','inclination','intensity','type','quality']]
     print (s)
     datablock=data.values.tolist()
-# define figure numbers in a dictionary for equal area, zijderveld,  
+# define figure numbers in a dictionary for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
     ZED={}
-    ZED['eqarea'],ZED['zijd'],  ZED['demag']=2,1,3 
+    ZED['eqarea'],ZED['zijd'],  ZED['demag']=2,1,3
     plt.figure(num=ZED['zijd'], figsize=(5, 5))
     plt.figure(num=ZED['eqarea'], figsize=(5, 5))
     plt.figure(num=ZED['demag'], figsize=(5, 5))
@@ -9634,5 +9634,5 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         if save:
               files={}
               for key in list(ZED.keys()):
-                  files[key]=s+'_'+key+'.'+fmt 
+                  files[key]=s+'_'+key+'.'+fmt
               pmagplotlib.saveP(ZED,files)
