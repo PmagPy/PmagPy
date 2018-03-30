@@ -595,7 +595,7 @@ def plotZ(fignum, datablock, angle, s, norm):
     global globals
     """
     function to make Zijderveld diagrams
-    
+
     """
     pylab.figure(num=fignum)
     pylab.clf()
@@ -641,7 +641,7 @@ def plotZ(fignum, datablock, angle, s, norm):
     for k in range(len(gXYZ)):
         pylab.annotate(str(k),(gXYZ['X'][k],gXYZ['Z'][k]),ha='left',va='bottom')
 
- 
+
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
@@ -2870,7 +2870,7 @@ def plotEQcont(fignum, DIblock):
 
 def plot_ts(ax,agemin,agemax,timescale='gts12'):
     """
-    Make a time scale plot between specified ages. 
+    Make a time scale plot between specified ages.
 
     Parameters:
     ------------
@@ -2910,7 +2910,3 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) #
     ax2.axis([-.25,1.5,agemax,agemin])
-
-
-
-
