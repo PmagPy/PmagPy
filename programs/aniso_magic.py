@@ -49,7 +49,7 @@ def main():
         -crd [s,g,t] coordinate system, default is specimen (g=geographic, t=tilt corrected)
         -P don't make any plots - just fill in the specimens, samples, sites tables
         -sav don't make the tables - just save all the plots
-        -fmt [svg, jpg, eps] format for output images, pdf default
+        -fmt [svg, jpg, eps] format for output images, png default
         -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
         -nb N; specifies the number of bootstraps - default is 1000
