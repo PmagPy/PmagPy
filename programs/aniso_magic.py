@@ -82,7 +82,7 @@ def main():
     samp_file = pmag.get_named_arg_from_sys('-fsa', 'samples.txt')
     site_file = pmag.get_named_arg_from_sys('-fsi', 'sites.txt')
     #outfile = pmag.get_named_arg_from_sys("-F", "rmag_results.txt")
-    fmt = pmag.get_named_arg_from_sys("-fmt", "pdf")
+    fmt = pmag.get_named_arg_from_sys("-fmt", "png")
     hpars, bpars = [], []
     CS, crd = -1, 's'
     ResRecs = []
