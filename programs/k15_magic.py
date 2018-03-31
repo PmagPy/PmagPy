@@ -19,11 +19,12 @@ def main():
 
     OPTIONS
         -h prints help message and quits
+        -DM DATA_MODEL: specify data model 2 or 3 (default 3)
         -f KFILE: specify .k15 format input file
-        -F MFILE: specify magic_measurements format output file
-        -Fsa SFILE, specify er_samples format file for output
-        -Fa AFILE, specify rmag_anisotropy format file for output
-        -Fr RFILE, specify rmag_results format file for output
+        -F MFILE: specify measurement output file
+        -Fsa SFILE, specify sample file for output
+        -Fa AFILE, specify specimen file for output
+        -Fr RFILE, specify rmag_results format file for output (Data model 2 only!)
         -loc LOC: specify location name for study
     #-ins INST: specify instrument that measurements were made on # not implemented
         -spc NUM: specify number of digits for specimen ID, default is 0
