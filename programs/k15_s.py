@@ -36,6 +36,11 @@ def main():
     firstline,itilt,igeo,linecnt,key=1,0,0,0,""
     out=""
     data,k15=[],[]
+    dir='./'
+    ofile=""
+    if '-WD' in sys.argv:
+        ind=sys.argv.index('-WD')
+        dir=sys.argv[ind+1]+'/'
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
@@ -54,7 +59,7 @@ def main():
             igeo,itilt=1,1
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        file=sys.argv[ind+1]
+        file=dir+sys.argv[ind+1]
         f=open(file,'r')
         data=f.readlines()
         f.close()
@@ -65,8 +70,8 @@ def main():
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
-        file=sys.argv[ind+1]
-        out=open(file,'w')
+        ofile=dir+sys.argv[ind+1]
+        out=open(ofile,'w')
     if '-crd' in sys.argv:
         ind=sys.argv.index('-crd')
         tg=sys.argv[ind+1] 
@@ -95,6 +100,7 @@ def main():
                 else:
                     out.write(outstring+'\n')
                 linecnt,firstline,k15=0,1,[]
+    if ofile!="":print ('Output saved in ',ofile)
 #
 if __name__ == "__main__":
     main()
