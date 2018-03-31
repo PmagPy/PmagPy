@@ -204,6 +204,8 @@ def main():
             ResRec['dir_tilt_correction'] = CS
             ResRec["aniso_type"] = rec["aniso_type"]
             # tau,Vdirs=pmag.doseigs(s)
+            if "aniso_s_n_measurements" not in rec.keys():rec["aniso_s_n_measurements"]="6"
+            if "aniso_s_sigma" not in rec.keys():rec["aniso_s_sigma"]="0"
             fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
             aniso_v1 = " : ".join([str(i) for i in [fpars['t1'], fpars['v1_dec'], fpars['v1_inc']]])
             aniso_v2 = " : ".join([str(i) for i in [fpars['t2'], fpars['v2_dec'], fpars['v2_inc']]])
