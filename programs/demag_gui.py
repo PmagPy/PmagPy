@@ -3309,7 +3309,8 @@ class Demag_GUI(wx.Frame):
                 ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
                 self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()
-                try: samp_ncr = int(ui_data[1]["# of characters to remove"])
+                try:
+                    samp_ncr = int(ui_data[1]["# of characters to remove"])
                 except ValueError:
                     self.user_warning("Invalid input specimen names will be used for sample names instead")
                     samp_ncr = 0
@@ -3327,8 +3328,11 @@ class Demag_GUI(wx.Frame):
                     site_ncr = int(ui_data[1]["# of characters to remove"])
                     self.samp_data['site'] = [x[:-site_ncr] for x in self.spec_data['specimen']]
                 except ValueError:
-                    sd = ui_data[1]["site delimiter"]
-                    self.samp_data['site'] = [x.split(sd)[0] for x in self.spec_data['specimen']]
+                    try:
+                        sd = ui_data[1]["site delimiter"]
+                        self.samp_data['site'] = [x.split(sd)[0] for x in self.spec_data['specimen']]
+                    except ValueError:
+                        self.samp_data['site'] = [x for x in self.spec_data['specimen']]
 
                 self.site_data['site'] = self.samp_data['site']
                 self.site_data.drop_duplicates(inplace=True)
