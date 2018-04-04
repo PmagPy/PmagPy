@@ -852,7 +852,7 @@ class MagMainFrame(wx.Frame):
         else:
             meas_file_name = "measurements.txt"
             dm = "3.0"
-        if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
+        if not os.path.isfile(os.path.join(self.WD, meas_file_name)):
             pw.simple_warning("Your working directory must have a {} format {} file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.".format(dm, meas_file_name))
             return False
         return True
