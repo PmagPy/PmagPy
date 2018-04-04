@@ -98,7 +98,11 @@ class ImportAzDipFile(wx.Frame):
         output_dir = self.WD
         full_infile = self.bSizer0.return_value()
         input_dir, infile = os.path.split(full_infile)
-        Fsa = os.path.splitext(infile)[0] + "_er_samples.txt"
+        data_model_num = self.Parent.data_model_num
+        if data_model_num == 2:
+            Fsa = os.path.splitext(infile)[0] + "_er_samples.txt"
+        else:
+            Fsa = os.path.splitext(infile)[0] + "_samples.txt"
         mcd = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
@@ -117,9 +121,12 @@ class ImportAzDipFile(wx.Frame):
         else:
             Z = 1
 
-        program_completed, error_message = ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app, output_dir, input_dir)
+        program_completed, error_message = ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc,
+                                                             app, output_dir, input_dir, data_model_num)
         if program_completed:
-            pw.close_window(self, 'ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app)', Fsa)
+            args = [str(arg) for arg in [infile, Fsa, ncn, Z, mcd, loc, app] if arg]
+            pw.close_window(self, 'ipmag.azdip_magic({}))'.format(", ".join(args)), Fsa)
+            pw.simple_warning('You have created new MagIC files.\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
         else:
             pw.simple_warning(error_message)
         #pw.run_command_and_close_window(self, COMMAND, Fsa)

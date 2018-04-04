@@ -5477,7 +5477,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
 
-def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=2):
+def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=3):
     """
     azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
