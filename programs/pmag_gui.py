@@ -38,7 +38,7 @@ from programs import thellier_gui
 class MagMainFrame(wx.Frame):
     """"""
     try:
-        version= pmag.get_version()
+        version = pmag.get_version()
     except:
         version = ""
     title = "Pmag GUI   version: %s"%version
@@ -99,6 +99,7 @@ class MagMainFrame(wx.Frame):
         # and working directory
         wx.CallAfter(self.get_dm_and_wd, DM, WD)
 
+
     def get_dm_and_wd(self, DM=None, WD=None):
         """
         If DM and/or WD are missing, call user-input dialogs
@@ -117,8 +118,7 @@ class MagMainFrame(wx.Frame):
         if not DM:
             self.get_dm_num()
         if not WD:
-            self.get_DIR()
-            # no need to get wd_data
+            self.get_dir()
             return
         if self.data_model_num == 2:
             self.get_wd_data2()
@@ -130,7 +130,8 @@ class MagMainFrame(wx.Frame):
         Show dialog to get user input for which data model to use,
         2 or 3.
         Set self.data_model_num, and create 3.0 contribution or
-        2.5 ErMagicBuilder as needed.
+        2.5 ErMagicBuilder as needed
+        Called by self.get_dm_and_wd
         """
         ui_dialog = demag_dialogs.user_input(self,['data_model'],
                                              parse_funcs=[float],
@@ -149,7 +150,8 @@ class MagMainFrame(wx.Frame):
     def set_dm(self, num):
         """
         Make GUI changes based on data model num.
-        Get info from WD in appropriate format
+        Get info from WD in appropriate format.
+        Called by self.get_dm_and_wd
         """
         #enable or disable self.btn1a
         if self.data_model_num == 3:
@@ -174,6 +176,7 @@ class MagMainFrame(wx.Frame):
         """
         Show dialog to get user input for which directory
         to set as working directory.
+        Called by self.get_dm_and_wd
         """
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         #wx.Yield()
@@ -182,6 +185,11 @@ class MagMainFrame(wx.Frame):
         del wait
 
     def get_wd_data2(self):
+        """
+        Get 2.5 data from self.WD and put it into
+        ErMagicBuilder object.
+        Called by get_dm_and_wd
+        """
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         #wx.Yield()
         print('-I- Read in any available data from working directory (data model 2)')
@@ -191,6 +199,9 @@ class MagMainFrame(wx.Frame):
         del wait
 
     def InitUI(self):
+        """
+        Build the mainframe
+        """
         menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
         self.SetMenuBar(menubar)
 
@@ -252,18 +263,18 @@ class MagMainFrame(wx.Frame):
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_orientation, self.btn2)
         text = "3. (optional) Add MagIC metadata for uploading data to MagIC "
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_metadata, self.btn3)
 
         text = "Unpack txt file downloaded from MagIC"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(330, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_unpack, self.btn4)
 
 
         text = "Convert directory to 3.0. format (legacy data only)"
@@ -271,7 +282,7 @@ class MagMainFrame(wx.Frame):
                                        size=(330, 50), name='step 1a')
         self.btn1a.SetBackgroundColour("#FDC68A")
         self.btn1a.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_convert_3, self.btn1a)
 
         #str = "OR"
         OR = wx.StaticText(self.panel, -1, "or", (20, 120))
@@ -314,13 +325,13 @@ class MagMainFrame(wx.Frame):
         self.btn_demag_gui = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='demag gui')
         self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
         self.btn_demag_gui.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_run_demag_gui, self.btn_demag_gui)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_demag_gui, self.btn_demag_gui)
 
         text = "Thellier GUI"
         self.btn_thellier_gui = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='thellier gui')
         self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
         self.btn_thellier_gui.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_run_thellier_gui, self.btn_thellier_gui)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_thellier_gui, self.btn_thellier_gui)
 
         bSizer2.AddSpacer(20)
         bSizer2.Add(self.btn_demag_gui, 0, wx.ALIGN_CENTER, 0)
@@ -368,9 +379,10 @@ class MagMainFrame(wx.Frame):
 
     #----------------------------------------------------------------------
 
-    def get_DIR(self):
+    def get_dir(self):
         """
-        Choose a working directory dialog
+        Choose a working directory dialog.
+        Called by self.get_dm_and_wd.
         """
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind = sys.argv.index('-WD')
@@ -471,8 +483,14 @@ class MagMainFrame(wx.Frame):
 #            self.last_saved_time.Clear()
 #            self.last_saved_time.write("not saved")
 
-    def on_run_thellier_gui(self, event):
-
+    def on_btn_thellier_gui(self, event):
+        """
+        Open Thellier GUI
+        """
+        if not self.check_for_meas_file():
+            return
+        if not self.check_for_uncombined_files():
+            return
         outstring = "thellier_gui.py -WD %s"%self.WD
         print("-I- running python script:\n %s"%(outstring))
         if self.data_model_num == 2.5:
@@ -498,7 +516,15 @@ class MagMainFrame(wx.Frame):
             del wait
 
 
-    def on_run_demag_gui(self, event):
+    def on_btn_demag_gui(self, event):
+        """
+        Open Demag GUI
+        """
+        if not self.check_for_meas_file():
+            return
+        if not self.check_for_uncombined_files():
+            return
+
         outstring = "demag_gui.py -WD %s"%self.WD
         print("-I- running python script:\n %s"%(outstring))
         if self.data_model_num == 2:
@@ -544,7 +570,12 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
         self.Hide()
 
-    def on_convert_3(self, event):
+    def on_btn_convert_3(self, event):
+        """
+        Open dialog for rough conversion of
+        2.5 files to 3.0 files.
+        Offer link to earthref for proper upgrade.
+        """
         dia = pw.UpgradeDialog(None)
         dia.Center()
         res = dia.ShowModal()
@@ -570,17 +601,6 @@ class MagMainFrame(wx.Frame):
         self.contribution = nb.Contribution(self.WD)
         # make skeleton files with specimen, sample, site, location data
         self.contribution.propagate_measurement_info()
-        #
-        # note what DIDN'T upgrade
-        #no_upgrade = []
-        #for fname in os.listdir(self.WD):
-        #    if 'rmag' in fname:
-        #        no_upgrade.append(fname)
-        #    elif fname in ['pmag_results.txt', 'pmag_criteria.txt',
-        #                   'er_synthetics.txt', 'er_images.txt',
-        #                   'er_plots.txt', 'er_ages.txt']:
-        #        no_upgrade.append(fname)
-
         # pop up
         upgraded_string = ", ".join(upgraded)
         if no_upgrade:
@@ -596,54 +616,56 @@ class MagMainFrame(wx.Frame):
             wx.MessageBox(msg, 'Info', wx.OK | wx.ICON_INFORMATION)
 
 
-
-    def on_er_data(self, event):
+    def on_btn_metadata(self, event):
+        """
+        Initiate the series of windows to add metadata
+        to the contribution.
+        """
+        # make sure we have a measurements file
+        if not self.check_for_meas_file():
+            return
+        # make sure all files of the same type have been combined
+        if not self.check_for_uncombined_files():
+            return
         if self.data_model_num == 2:
-            if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-                print('-W- {} is missing'.format(os.path.join(self.WD, 'magic_measurements.txt')))
-                pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
-                return False
-
-            #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
             wait = wx.BusyInfo('Compiling required data, please wait...')
             wx.SafeYield()
-            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
+            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)
         elif self.data_model_num == 3:
-            if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
-                pw.simple_warning("Your working directory must have a 3.0. format measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.")
-                return False
-
-            wd_files = os.listdir(self.WD)
-            for ftype in ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']:
-                if ftype not in wd_files:
-                    for f in wd_files:
-                        if f.endswith('_' + ftype):
-                            msg = 'It looks like you may have uncombined files of {} type in your working directory.\nYou may want to go back to Step 1 and finish combining all files.'.format(ftype)
-                            dlg = pw.ChooseOne(self, 'Continue anyway', 'Go back', msg, title="Warning!")
-                            res = dlg.ShowModal()
-                            if res == wx.ID_NO:
-                                return
-                            break
             wait = wx.BusyInfo('Compiling required data, please wait...')
             wx.SafeYield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
-
+        #
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
-
+        # gets total available screen space - 10%
         size = wx.DisplaySize()
-        size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1]) # gets total available screen space - 10%
+        size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1])
         self.ErMagic_frame.Raise()
         del wait
 
+    def init_check_window2(self):
+        """
+        initiates the object that will control steps 1-6
+        of checking headers, filling in cell values, etc.
+        """
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data',
+                                                                 self.WD, self.er_magic)
+
     def init_check_window(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.er_magic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        """
+        initiates the object that will control steps 1-6
+        of checking headers, filling in cell values, etc.
+        """
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame3(self, 'Check Data',
+                                                                  self.WD, self.contribution)
 
-    def init_check_window3(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame3(self, 'Check Data', self.WD, self.contribution)
 
-
-    def on_orientation_button(self, event):
+    def on_btn_orientation(self, event):
+        """
+        Create and fill wxPython grid for entering
+        orientation data.
+        """
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
         #dw, dh = wx.DisplaySize()
@@ -661,7 +683,12 @@ class MagMainFrame(wx.Frame):
         self.Hide()
         del wait
 
-    def on_unpack(self, event):
+    def on_btn_unpack(self, event):
+        """
+        Create dialog to choose a file to unpack
+        with download magic.
+        Then run download_magic and create self.contribution.
+        """
         dlg = wx.FileDialog(
             None, message = "choose txt file to unpack",
             defaultDir=self.WD,
@@ -700,6 +727,12 @@ class MagMainFrame(wx.Frame):
 
 
     def on_btn_upload(self, event):
+        """
+        Try to run upload_magic.
+        Open validation mode if the upload file has problems.
+        """
+        if not self.check_for_uncombined_files():
+            return
         outstring="upload_magic.py"
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
@@ -752,13 +785,19 @@ class MagMainFrame(wx.Frame):
                 self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
 
     def on_end_validation(self, event):
+        """
+        Switch back from validation mode to main Pmag GUI mode.
+        Hide validation frame and show main frame.
+        """
         self.Enable()
         self.Show()
         self.magic_gui_frame.Destroy()
 
 
-
     def on_menu_exit(self, event):
+        """
+        Exit the GUI
+        """
         # also delete appropriate copy file
         try:
             self.help_window.Destroy()
@@ -773,6 +812,51 @@ class MagMainFrame(wx.Frame):
                 pass
             else:
                 raise ex
+
+    def check_for_uncombined_files(self):
+        """
+        Go through working directory and check for uncombined files.
+        (I.e., location1_specimens.txt and location2_specimens.txt but no specimens.txt.)
+        Show a warning if uncombined files are found.
+        Return True if no uncombined files are found OR user elects
+        to continue anyway.
+        """
+        wd_files = os.listdir(self.WD)
+        if self.data_model_num == 2:
+            ftypes = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt', 'pmag_specimens.txt', 'pmag_samples.txt', 'pmag_sites.txt', 'rmag_specimens.txt', 'rmag_results.txt', 'rmag_anisotropy.txt']
+        else:
+            ftypes = ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        uncombined = set()
+        for ftype in ftypes:
+            if ftype not in wd_files:
+                for f in wd_files:
+                    if f.endswith('_' + ftype):
+                        uncombined.add(ftype)
+        if uncombined:
+            msg = 'It looks like you may have uncombined files of type(s) {} in your working directory.\nYou may want to go back to Step 1 and finish combining all files.\nIf you continue, the program will try to extract as much information as possible from your measurement file.'.format(", ".join(list(uncombined)))
+            dlg = pw.ChooseOne(self, 'Continue anyway', 'Go back', msg, title="Warning!")
+            res = dlg.ShowModal()
+            if res == wx.ID_NO:
+                return
+        return True
+
+    def check_for_meas_file(self):
+        """
+        Check the working directory for a measurement file.
+        If not found, show a warning and return False.
+        Otherwise return True.
+        """
+        if self.data_model_num == 2:
+            meas_file_name = "magic_measurements.txt"
+            dm = "2.5"
+        else:
+            meas_file_name = "measurements.txt"
+            dm = "3.0"
+        if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
+            pw.simple_warning("Your working directory must have a {} format {} file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.".format(dm, meas_file_name))
+            return False
+        return True
+
 
 def main():
     if '-h' in sys.argv:

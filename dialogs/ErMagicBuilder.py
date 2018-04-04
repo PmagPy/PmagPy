@@ -245,7 +245,7 @@ class MagIC_model_builder3(wx.Frame):
                     self.contribution.tables[table].df[header] = None
             # take out  unnecessary headers
 
-        self.main_frame.init_check_window3()
+        self.main_frame.init_check_window()
         self.Destroy()
 
     def on_cancelButton(self, event):
@@ -459,7 +459,7 @@ class MagIC_model_builder(wx.Frame):
             # take out 'er_specimen_name' and other unnecessary headers
             self.er_magic.headers[table]['er'][0] = builder.remove_list_headers(self.er_magic.headers[table]['er'][0])
 
-        self.main_frame.init_check_window()
+        self.main_frame.init_check_window2()
         self.Destroy()
 
     def on_cancelButton(self, event):
