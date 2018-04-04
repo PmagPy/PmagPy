@@ -3312,7 +3312,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     samp_ncr = int(ui_data[1]["# of characters to remove"])
                 except ValueError:
-                    self.user_warning("Invalid input specimen names will be used for sample names instead")
+                    self.user_warning("Invalid input, specimen names will be used for sample names instead")
                     samp_ncr = 0
                 self.spec_data['sample'] = [x[:-samp_ncr] for x in self.spec_data['specimen']]
 

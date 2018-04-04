@@ -64,7 +64,6 @@ class ImportAzDipFile(wx.Frame):
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
-
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -126,10 +125,10 @@ class ImportAzDipFile(wx.Frame):
         if program_completed:
             args = [str(arg) for arg in [infile, Fsa, ncn, Z, mcd, loc, app] if arg]
             pw.close_window(self, 'ipmag.azdip_magic({}))'.format(", ".join(args)), Fsa)
-            pw.simple_warning('You have created new MagIC files.\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
+            pw.simple_warning('You have created new MagIC files.\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!')
         else:
             pw.simple_warning(error_message)
-        #pw.run_command_and_close_window(self, COMMAND, Fsa)
+
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -258,6 +257,7 @@ class ImportIODPSampleSummary(wx.Frame):
         else:
             COMMAND = "iodp_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
             pw.close_window(self, COMMAND, Fsa)
+            pw.simple_warning('You have created new MagIC files.\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!')
         #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
@@ -457,6 +457,7 @@ class ImportKly4s(wx.Frame):
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
             outfiles = [f for f in [outfile, spec_outfile, ani_outfile] if f]
+            pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
         else:
             pw.simple_warning(error_message)
 
@@ -563,8 +564,7 @@ class ImportK15(wx.Frame):
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
             outfiles = [f for f in [outfile, samp_outfile, aniso_outfile] if f]
-            #pw.simple_warning('k15_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
-
+            pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
         else:
             pw.simple_warning(error_message)
         #print COMMAND
@@ -704,6 +704,9 @@ class ImportSufarAscii(wx.Frame):
         program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID, data_model_num)
         if program_ran:
             pw.close_window(self, COMMAND, meas_outfile)
+            outfiles = [meas_outfile, spec_outfile, samp_outfile, site_outfile]
+            pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(", ".join(outfiles)))
+
         else:
             pw.simple_warning(error_message)
 
@@ -834,7 +837,7 @@ class ImportAgmFile(wx.Frame):
         options_dict['samp_file'] = SAMP_OUTFILE
         options_dict['site_file'] = SITE_OUTFILE
         options_dict['loc_file'] = LOC_OUTFILE
-        options_dict['specnum'] =spc 
+        options_dict['specnum'] =spc
         COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
         samp_infile = None
         #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
@@ -846,9 +849,10 @@ class ImportAgmFile(wx.Frame):
         print("COMMAND: ",COMMAND)
         if agm_magic.convert(**options_dict):
             pw.close_window(self,COMMAND,outfile)
+            pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(outfile))
         else:
             pw.simple_warning()
-            
+
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -957,6 +961,8 @@ class ImportAgmFolder(wx.Frame):
         else:
             units = 'SI'
         # loop through all .agm and .irm files
+        warn = False
+        outfiles = []
         for f in files:
             if f.endswith('.irm'):
                 bak = "-bak"
@@ -964,20 +970,22 @@ class ImportAgmFolder(wx.Frame):
             else:
                 bak = ""
                 bak_curve = False
+            infile = os.path.join(ID, f)
             outfile = f + ".magic"
+            outfiles.append(outfile)
             #if files.index(f) == (len(files) - 1): # terminate process on last file call
                 #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
                 #pw.close_window(self, COMMAND, outfile) # close window
             #else: # continue through
                 #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
-            stem =  outfile.split('.')[0]
+            stem = infile.split('.')[0]
             SPEC_OUTFILE =  stem + "_specimens.txt"
             SAMP_OUTFILE =  stem + "_samples.txt"
             SITE_OUTFILE =  stem + "_sites.txt"
             LOC_OUTFILE =  stem + "_locations.txt"
             options_dict={}
             options_dict['meas_file'] = outfile
-            options_dict['agm_file'] = f
+            options_dict['agm_file'] = infile
             options_dict['spec_file'] = SPEC_OUTFILE
             options_dict['samp_file'] = SAMP_OUTFILE
             options_dict['site_file'] = SITE_OUTFILE
@@ -990,10 +998,22 @@ class ImportAgmFolder(wx.Frame):
         #    pw.simple_warning(error_message)
         #pw.run_command_and_close_window(self, COMMAND, outfile)
             print("COMMAND: ",COMMAND)
-            if agm_magic.convert(**options_dict):
-                pw.close_window(self,COMMAND,outfile)
+            print('options_dict', options_dict)
+            program_ran, error_msg = agm_magic.convert(**options_dict)
+            if program_ran:
+                pass
+                #pw.close_window(self,COMMAND,outfile)
             else:
-                pw.simple_warning()
+                warn = True
+                pw.simple_warning("Something went wrong.\n{}".format(error_msg))
+        if not warn:
+            ellipses = False
+            if len(outfiles) >= 8:
+                outfiles = outfiles[:8]
+                ellipses = True
+            pw.close_window(self,COMMAND,outfiles,ellipses)
+            pw.simple_warning('You have created MagIC files.  Make sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!')
+
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
