@@ -106,11 +106,12 @@ class VGP_Dialog(wx.Dialog):
         hbox0.Fit(self)
 
         #set hotkeys
-        randomId = wx.NewId()
-        randomId2 = wx.NewId()
-        self.Bind(wx.EVT_MENU, self.on_exit_hk, id=randomId)
-        self.Bind(wx.EVT_MENU, self.save_plot, id=randomId2)
-        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), randomId ),(wx.ACCEL_CTRL,  ord('S'), randomId2 )])
+        # the ids used are arbitrary but needed to bind the accel_table
+        cid = self.canvas.GetId()
+        pid = self.panel.GetId()
+        self.Bind(wx.EVT_MENU, self.on_exit_hk, id=cid)
+        self.Bind(wx.EVT_MENU, self.save_plot, id=pid)
+        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), cid ),(wx.ACCEL_CTRL,  ord('S'), pid )])
         self.SetAcceleratorTable(accel_tbl)
 
     def on_exit_hk(self,event):
@@ -1372,10 +1373,10 @@ class GBPopupMenu(wx.Menu):
         self.magic_file=magic_file
         #self.measurement_flag=measurement_flag
         wx.Menu.__init__(self)
-        item = wx.MenuItem(self, wx.NewId(), "'good measurement'")
+        item = wx.MenuItem(self, wx.ID_ANY, "'good measurement'")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnItemGood, item)
-        item = wx.MenuItem(self, wx.NewId(),"'bad measurement'")
+        item = wx.MenuItem(self, wx.ID_ANY,"'bad measurement'")
         self.AppendItem(item)
         self.Bind(wx.EVT_MENU, self.OnItemBad, item)
 
