@@ -1078,6 +1078,61 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
                            save=save, save_folder=save_folder, fmt=fmt)
 
 
+def conglomerate_test_Watson(R,n):
+    """
+    The Watson (1956) test of a directional data set for randomness compares the resultant vector (R)
+    of a group of directions to values of Ro. If R exceeds Ro, the null-hypothesis of randomness is
+    rejected. If R is less than Ro, the null-hypothesis is considered to not be disproved.
+
+    Parameters
+    ----------
+    R : the resultant vector length of the directions
+    n : the number of directions
+
+    Returns
+    -------
+    printed text : text describing test result
+    result : a dictionary with the Watson (1956) R values
+    """
+
+    Ro_values = {5:{95:3.50,99:4.02},6:{95:3.85,99:4.48},
+                       7:{95:4.18,99:4.89},8:{95:4.48,99:5.26},
+                       9:{95:4.76,99:5.61},10:{95:5.03,99:5.94},
+                       11:{95:5.29,99:6.25},12:{95:5.52,99:6.55},
+                       13:{95:5.75,99:6.84},14:{95:5.98,99:7.11},
+                       15:{95:6.19,99:7.36},16:{95:6.40,99:7.60},
+                       17:{95:6.60,99:7.84},18:{95:6.79,99:8.08},
+                       19:{95:6.98,99:8.33},20:{95:7.17,99:8.55}}
+
+    if n < 5:
+        print('too few directions for a conglomerate test')
+        return
+
+    elif n < 21:
+        Ro_95 = Ro_values[n][95]
+        Ro_99 = Ro_values[n][99]
+
+    else:
+        Ro_95 = np.sqrt(7.815*(n/3))
+        Ro_99 = np.sqrt(11.345*(n/3))
+
+    print('R = ' + str(R))
+    print('Ro_95 = ' + str(Ro_95))
+    print('Ro_99 = ' + str(Ro_99))
+
+    if R < Ro_95:
+        print('This population "passes" a conglomerate test as the null hypothesis of randomness cannot be rejected at the 95% confidence level')
+
+    if R > Ro_95:
+        print('The null hypothesis of randomness can be rejected at the 95% confidence level')
+
+    if R > Ro_99:
+        print('The null hypothesis of randomness can be rejected at the 99% confidence level')
+
+    result = {'n' : n, 'R' : R, 'Ro_95' : Ro_95, 'Ro_99' : Ro_99 }
+    return result
+
+
 def fishqq(lon=None, lat=None, di_block=None):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
