@@ -201,7 +201,7 @@ class Demag_GUI(wx.Frame):
         self.check_orient_on = False
         self.list_bound_loc = 0
         self.color_dict = {}
-        self.colors = ['#008000','#FFFF00','#800000','#00FFFF']
+        self.colors = ['#4ED740','#9840D7','#FFBD4C','#398AAD','#E96640',"#CB1A9F","55C2B6","FFD44C"]
         for name, hexval in matplotlib.colors.cnames.items():
             if name == 'black' or name == 'blue' or name == 'red': continue
             elif name == 'green' or name == 'yellow' or name == 'maroon' or name == 'cyan':
