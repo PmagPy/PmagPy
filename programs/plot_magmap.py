@@ -118,7 +118,7 @@ def main():
     if el=='I':
         levmax=Is.max()+lincr
         levmin=round(Is.min()-lincr)
-        cs=m.contourf(x,y,Is,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
+        cs=m.contourf(x,y,Is,levels=np.arange(-90,100,20),cmap=cmap)
         m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black')
         plt.title('Field inclination: '+str(date));
     if el=='D':

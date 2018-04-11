@@ -9956,7 +9956,8 @@ def do_mag_map(date, **kwargs):
         gh.append(lmgh[2][0])
         for i in range(1,lmgh.shape[1]):
             gh.append(lmgh[2][i])
-            gh.append(lmgh[3][i])
+            if lmgh[1][i]!=0:
+                gh.append(lmgh[3][i])
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
