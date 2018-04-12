@@ -1273,24 +1273,24 @@ class Demag_GUI(wx.Frame):
         selected_af_meas = [i for i in self.selected_meas if "T" in steps[i] or steps[i] == "0" and flags[i]!="b"]
         selected_T_meas = [i for i in self.selected_meas if "C" in steps[i] or steps[i] == "0" and flags[i]!="b"]
         data = array(self.Data[self.s]['zijdblock'])
-        af_x = data[selected_af_meas,0]
+        af_x = array(list(map(float,data[selected_af_meas,0])))
         af_y = array(list(map(float,data[selected_af_meas,3])))/float(data[0,3])
-        T_x = data[selected_T_meas,0]
+        T_x = array(list(map(float,data[selected_T_meas,0])))
         T_y = array(list(map(float,data[selected_T_meas,3])))/float(data[0,3])
 
         xmin,xmax = self.mplot.get_xlim()
         ymin,ymax = self.mplot.get_ylim()
         if T_x.astype(float).any() or T_y.astype(float).any():
             self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor=red_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
-        self.mplot.set_xlim(xmin,xmax)
-        self.mplot.set_ylim(ymin,ymax)
+        self.mplot.set_xlim([xmin,xmax])
+        self.mplot.set_ylim([ymin,ymax])
 
         xmin,xmax = self.mplot_af.get_xlim()
         ymin,ymax = self.mplot_af.get_ylim()
         if af_x.astype(float).any() or af_y.astype(float).any():
             self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor=blue_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
-        self.mplot_af.set_xlim(xmin,xmax)
-        self.mplot_af.set_ylim(ymin,ymax)
+        self.mplot_af.set_xlim([xmin,xmax])
+        self.mplot_af.set_ylim([ymin,ymax])
 
         self.canvas1.draw()
         self.canvas2.draw()
