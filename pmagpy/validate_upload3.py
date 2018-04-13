@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+import math
 from builtins import zip
 from builtins import str
 from builtins import range
@@ -259,15 +260,27 @@ def test_type(value, value_type):
         except ValueError:
             return '"{}" should be a number'.format(str(value))
     elif value_type == "Integer":
+        if isinstance(value, int):
+            return None
         try:
-            int(value)
+            flt = float(value)
         except ValueError:
             return '"{}" should be an integer'.format(str(value))
-        if isinstance(value, str):
-            if str(int(value)) == value:
-                return None
-            else:
-                return '"{}" should be an integer'.format(str(value))
+        if math.trunc(flt) == flt:
+            return None
+        return '"{}" should be an integer'.format(str(value))
+
+        #try:
+        #    int(value)
+        #except ValueError:
+        #    return '"{}" should be an integer'.format(str(value))
+        #if isinstance(value, str):
+        #    try:
+        #        str(int(float(value))
+        #    if str(int(value)) == value:
+        #        return None
+        #    else:
+        #        return '"{}" should be an integer'.format(str(value))
     else:
         return None
     #String, Number, Integer, List, Matrix, Dictionary, Text
