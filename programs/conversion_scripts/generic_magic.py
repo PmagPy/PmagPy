@@ -845,7 +845,7 @@ def convert(**kwargs):
 
         # add the right LP codes and fix experiment name
         for MeasRec in MeasRecs_this_specimen:
-            MeasRec["experiment"]=MeasRec["specimen"]+":"+":".join(LP_this_specimen)
+            #MeasRec["experiment"]=MeasRec["specimen"]+":"+":".join(LP_this_specimen)
             method_codes=MeasRec["method_codes"].split(":")
             LT=""
             for code in method_codes:

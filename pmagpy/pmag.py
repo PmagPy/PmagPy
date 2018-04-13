@@ -323,7 +323,7 @@ def convert_ages(Recs,**kwargs):
         agekey = find('age', list(rec.keys()))
         if agekey != "":
             keybase = agekey.split('_')[0] + '_'
-        
+
     New = []
     for rec in Recs:
         age = ''
@@ -5340,7 +5340,7 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).  
+  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
     """
 #
     if row > 200:
@@ -7892,6 +7892,8 @@ def measurements_methods3(meas_data, noave):
 # done with first pass, collect and assign provisional method codes
             if "description" not in list(rec.keys()):
                 rec["description"] = ""
+            if "standard" not in list(rec.keys()):
+                rec["standard"] = "s"
             rec["citations"] = "This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.

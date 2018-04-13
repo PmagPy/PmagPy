@@ -737,6 +737,7 @@ class MagMainFrame(wx.Frame):
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.SafeYield()
+        self.contribution.tables['measurements'].add_measurement_names()
         if self.data_model_num == 3:
             res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
                                                                                       vocab=self.contribution.vocab,
