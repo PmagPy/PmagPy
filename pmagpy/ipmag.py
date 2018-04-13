@@ -3323,6 +3323,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             plot += 1
             pmagplotlib.delticks(ax)  # dec xticks are too crowded otherwise
     else:
+        print('no data!')
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
         plt.subplot(1, pcol, plot)

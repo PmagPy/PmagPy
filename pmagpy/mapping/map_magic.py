@@ -119,7 +119,8 @@ def cache_mappings(file_path):
                         add_to_dict(previous_value, label, dictionary)
                     elif previous_table in ["pmag_results", "rmag_results"]:
                         if label not in dictionary.values():
-                            add_to_dict(previous_value, label, dictionary)
+                            if previous_value not in dictionary.keys():
+                                add_to_dict(previous_value, label, dictionary)
         return dictionary
 
     def add_to_dict(key, value, dictionary):
