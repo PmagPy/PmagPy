@@ -3927,7 +3927,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version')
+              'Site', 'Object Number', 'version', 'site_definition')
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
