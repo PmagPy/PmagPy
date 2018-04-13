@@ -3935,6 +3935,8 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                   'age_low', 'age_sigma', 'specimen_core_depth'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
                                    'age_sigma', 'core_depth', 'composite_depth'],
+                     'sites' : ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
+                                'orientation_quality', 'sample_alternatives', 'timestamp'],
                      'ages': ['level']}
 
     failing = []
