@@ -222,8 +222,8 @@ def convert_meas_df_thellier_gui(meas_df_in, output):
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
 spec_magic2_2_magic3_map.update(add_to_all)
-spec_magic2_2_magic3_map['specimen_inferred_age'] = 'age'
 spec_magic3_2_magic2_map = {v:k for k,v in list(spec_magic2_2_magic3_map.items())}
+spec_magic2_2_magic3_map['specimen_inferred_age'] = 'age'
 specimens = {'external_database_ids': 'external_database_ids',
              'dir_comp': 'specimen_comp_name', 'specimen': 'er_specimen_name'}
 spec_magic3_2_magic2_map.update(specimens)
@@ -231,9 +231,9 @@ spec_magic3_2_magic2_map.update(specimens)
 # sample data translation pmag_samples/er_samples => samples
 samp_magic2_2_magic3_map = maps.all_maps['samples']
 samp_magic2_2_magic3_map.update(add_to_all)
-samp_magic2_2_magic3_map['sample_inferred_age'] = 'age'
 #sample data translation samples => pmag_samples/er_samples
 samp_magic3_2_magic2_map = {v:k for k,v in list(samp_magic2_2_magic3_map.items())}
+samp_magic2_2_magic3_map['sample_inferred_age'] = 'age'
 samples = {'specimens': 'er_specimen_names', 'dir_comp_name': 'sample_comp_name',
            'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids',
            'core_depth': 'sample_core_depth', 'composite_depth': 'sample_composite_depth'}
