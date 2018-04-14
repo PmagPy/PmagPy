@@ -2877,7 +2877,8 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
     ax : figure object
     agemin : Minimum age for timescale
     agemax : Maximum age for timescale
-    timescale : Time Scale [ default is Gradstein et al., (2012)]
+    timescale : Time Scale [ default is Gradstein et al., (2012)] 
+       for other options see pmag.get_ts()
     """
     ax.set_title(timescale.upper())
     ax.axis([-.25,1.5,agemax,agemin])
