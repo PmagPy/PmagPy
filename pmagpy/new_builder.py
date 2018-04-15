@@ -982,10 +982,13 @@ class Contribution(object):
                 minimum = minimum.reindex(target_df.df.index)
                 maximum = maximum.reindex(target_df.df.index)
                 # update target_df without overwriting existing values
-                target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
+                cond_min = target_df.df[min_col].apply(not_null)
+                cond_max = target_df.df[max_col].apply(not_null)
+                #
+                target_df.df[min_col] = np.where(cond_min,
                                                  target_df.df[min_col],
                                                  minimum[col])
-                target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
+                target_df.df[max_col] = np.where(cond_max,
                                                  target_df.df[max_col],
                                                  maximum[col])
         # update contribution
