@@ -976,7 +976,11 @@ class Contribution(object):
             if target_name not in source_df.df.columns:
                 print('-W- {} table missing {} column, cannot propagate age info'.format(target_name, source_df_name))
                 return
-            grouped = source_df.df[[col, target_name]].groupby(target_name)
+            # make sure source is appropriately filled
+            source = source_df.front_and_backfill([col], inplace=False)
+            # add target_name back into front/backfilled source
+            source[target_name] = source_df.df[target_name]
+            grouped = source[[col, target_name]].groupby(target_name)
             if len(grouped):
                 minimum, maximum = grouped.min(), grouped.max()
                 minimum = minimum.reindex(target_df.df.index)
@@ -1597,7 +1601,7 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
-    def front_and_backfill(self, cols):
+    def front_and_backfill(self, cols, inplace=True):
         """
         Groups dataframe by index name then replaces null values in selected
         columns with front/backfilled values if available.
@@ -1623,8 +1627,10 @@ class MagicDataFrame(object):
             short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         else:
             print('-W- Was not able to front/back fill table {} with these columns: {}'.format(self.dtype, ', '.join(cols)))
-        self.df[cols] = short_df[cols]
-        return self.df
+        if inplace:
+            self.df[cols] = short_df[cols]
+            return self.df
+        return short_df
 
 
     def sort_dataframe_cols(self):
