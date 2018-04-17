@@ -5338,11 +5338,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             SiteRec["er_site_name"] = site
             SiteRec["site_definition"] = "s"
 
-            for key in ["er_location_name"]:
-                if key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
-                    SiteRec[key] = Prev_MagRec[key]
-                else:
-                    SiteRec[key] = ""
+            if "er_location_name" in SiteRec and SiteRec.get("er_location_name"):
+                pass
+            elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
+                SiteRec[key] = Prev_MagRec[key]
+            else:
+                print('setting location name to ""')
+                SiteRec[key] = ""
 
             for key in ["lat", "lon", "height"]:
                 if "site_" + key in list(Prev_MagRec.keys()) and Prev_MagRec["site_" + key] != "":

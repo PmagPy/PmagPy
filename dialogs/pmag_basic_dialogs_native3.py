@@ -2914,6 +2914,8 @@ class OrientFrameGrid3(wx.Frame):
         os.chdir(self.WD)
         if os.path.exists(os.path.join(self.WD, 'er_samples.txt')) or os.path.exists(os.path.join(self.WD, 'er_sites.txt')):
             append = True
+        elif os.path.exists(os.path.join(self.WD, 'samples.txt')) or os.path.exists(os.path.join(self.WD, 'sites.txt')):
+            append = True
         else:
             append = False
         samp_file = "er_samples.txt"
