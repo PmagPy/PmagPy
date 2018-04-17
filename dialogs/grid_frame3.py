@@ -971,7 +971,7 @@ class GridBuilder(object):
                     self.magic_dataframe.df[col] = None
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
             self.magic_dataframe.sort_dataframe_cols()
-            col_labels = self.magic_dataframe.columns
+            col_labels = list(self.magic_dataframe.df.columns)
             row_labels = self.magic_dataframe.df.index
             # make sure minimum defaults are present
             for header in self.reqd_headers:
