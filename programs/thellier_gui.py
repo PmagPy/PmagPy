@@ -3833,17 +3833,17 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
                         print("-W- No intensity data found for specimens")
-                    cond2 = self.spec_data['int_abs'].notnull() == True
+                    cond2 = self.spec_data['int_abs'].apply(nb.not_null) #notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
                     self.spec_data = self.spec_container.update_record(
                         specimen, new_data, condition)
-                    # delete essentially blank records
-                    condition = self.spec_data['method_codes'].isnull().astype(
+                    ## delete essentially blank records
+                    #condition = self.spec_data['method_codes'].isnull().astype(
                         bool)  # find the blank records
-                    info_str = "specimen rows with blank method codes"
-                    self.spec_data = self.spec_container.delete_rows(
-                        condition, info_str)  # delete them
+                    #info_str = "specimen rows with blank method codes"
+                    #self.spec_data = self.spec_container.delete_rows(
+                    #    condition, info_str)  # delete them
 
         if self.data_model != 3:  # write out pmag_specimens.txt file
             fout = open(os.path.join(self.WD, "pmag_specimens.txt"), 'w')
