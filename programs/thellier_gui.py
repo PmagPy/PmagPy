@@ -3840,7 +3840,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         specimen, new_data, condition)
                     ## delete essentially blank records
                     #condition = self.spec_data['method_codes'].isnull().astype(
-                        bool)  # find the blank records
+                    #bool)  # find the blank records
                     #info_str = "specimen rows with blank method codes"
                     #self.spec_data = self.spec_container.delete_rows(
                     #    condition, info_str)  # delete them
