@@ -970,6 +970,8 @@ class GridBuilder(object):
                 if col not in self.magic_dataframe.df.columns:
                     self.magic_dataframe.df[col] = None
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
+            self.magic_dataframe.sort_dataframe_cols()
+            col_labels = self.magic_dataframe.columns
             row_labels = self.magic_dataframe.df.index
             # make sure minimum defaults are present
             for header in self.reqd_headers:
