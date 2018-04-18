@@ -99,6 +99,14 @@ class MagMainFrame(wx.Frame):
         # and working directory
         wx.CallAfter(self.get_dm_and_wd, DM, WD)
 
+        # if specified directory doesn't exist, try to make it
+        try:
+            if not os.path.exists(self.WD):
+                os.mkdir(self.WD)
+        except FileNotFoundError:
+            pw.simple_warning("You have provided a directory that does not exist and cannot be created.\n Please pick a different directory.")
+            print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
+
 
     def get_dm_and_wd(self, DM=None, WD=None):
         """
