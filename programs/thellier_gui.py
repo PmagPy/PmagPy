@@ -4413,22 +4413,23 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             magic_method_codes.append(code)
             fin.close()
 
-        magic_method_codes.sort()
-        # print magic_method_codes
-        magic_methods_header_1 = ["magic_method_code"]
-        fout = open(os.path.join(self.WD, "magic_methods.txt"), 'w')
-        fout.write("tab\tmagic_methods\n")
-        fout.write("magic_method_code\n")
-        for code in magic_method_codes:
-            fout.write("%s\n" % code)
-        fout.close
+        if self.data_model == 2:
+            magic_method_codes.sort()
+            # print magic_method_codes
+            magic_methods_header_1 = ["magic_method_code"]
+            fout = open(os.path.join(self.WD, "magic_methods.txt"), 'w')
+            fout.write("tab\tmagic_methods\n")
+            fout.write("magic_method_code\n")
+            for code in magic_method_codes:
+                fout.write("%s\n" % code)
+            fout.close
 
-        # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
-            Fout = open(os.path.join(self.WD, "pmag_criteria.txt"), 'w')
-            Fout.write("tab\tpmag_criteria\n")
-            Fout.write("er_citation_names\tpmag_criteria_code\n")
-            Fout.write("This study\tACCEPT\n")
+            # make pmag_criteria.txt if it does not exist
+            if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+                Fout = open(os.path.join(self.WD, "pmag_criteria.txt"), 'w')
+                Fout.write("tab\tpmag_criteria\n")
+                Fout.write("er_citation_names\tpmag_criteria_code\n")
+                Fout.write("This study\tACCEPT\n")
 
         dlg1 = wx.MessageDialog(
             self, caption="Message:", message="MagIC files are saved in MagIC project folder", style=wx.OK | wx.ICON_INFORMATION)
