@@ -4382,6 +4382,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #    condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
             #    self.samp_container.df = self.samp_container.df.loc[condition]
 
+
+
+            # remove sample only columns that have been put into sites
+            if BY_SAMPLES:
+                #ignore = ['cooling_rate_corr', 'cooling_rate_mcd']
+                self.site_container.remove_non_magic_cols_from_table(ignore_cols=[]) #ignore)
             #  write out the data
             self.samp_container.write_magic_file(dir_path=self.WD)
             self.site_container.write_magic_file(dir_path=self.WD)

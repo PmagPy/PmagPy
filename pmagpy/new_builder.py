@@ -1094,13 +1094,7 @@ class Contribution(object):
         """
         for table_name in self.tables:
             table = self.tables[table_name]
-            unrecognized_cols = table.get_non_magic_cols()
-            if unrecognized_cols:
-                print('-I- Removing non-MagIC column names from {}:'.format(table_name), end=' ')
-                for col in unrecognized_cols:
-                    self.tables[table_name].df.drop(col, axis='columns', inplace=True)
-                    print(col, end=' ')
-                print("\n")
+            table.remove_non_magic_cols_from_table()
 
     def write_table_to_file(self, dtype, custom_name=None, append=False):
         """
@@ -1341,6 +1335,35 @@ class MagicDataFrame(object):
 
 
     ## Methods to change self.df inplace
+
+    def remove_non_magic_cols_from_table(self, ignore_cols=None):
+        """
+        Remove all non-magic columns from self.df.
+        Changes in place.
+
+        Parameters
+        ----------
+        ignore_cols : list-like
+            columns not to remove, whether they are proper
+            MagIC columns or not
+
+        Returns
+        ---------
+        unrecognized_cols : list
+            any columns that were removed
+        """
+        unrecognized_cols = self.get_non_magic_cols()
+        for col in ignore_cols:
+            if col in unrecognized_cols:
+                unrecognized_cols.remove(col)
+        if unrecognized_cols:
+            print('-I- Removing non-MagIC column names from {}:'.format(self.dtype), end=' ')
+            for col in unrecognized_cols:
+                self.df.drop(col, axis='columns', inplace=True)
+                print(col, end=' ')
+            print("\n")
+        return unrecognized_cols
+
 
     def add_measurement_names(self):
         if 'measurement' in self.df.columns:
