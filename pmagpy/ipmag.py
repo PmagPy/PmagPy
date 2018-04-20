@@ -3548,6 +3548,10 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
             filenum += 1
         LN += 1
         line = File[LN]
+        # skip empty tables
+        if line == ">>>>>>>>>>":
+            LN += 1
+            continue
         keys = line.replace('\n', '').split('\t')
         if keys[0][0] == '.':
             keys = line.replace('\n', '').replace('.', '').split('\t')
