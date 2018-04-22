@@ -1379,7 +1379,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning('You must select a directory containing 2g binary files')
             return False
         files = os.listdir(directory)
-        files = [str(f) for f in files if str(f).endswith('.dat')]
+        files = [str(f) for f in files if str(f).endswith('.dat') or str(f).endswith('.DAT')]
         if not files:
             pw.simple_warning('No .dat files found in {}'.format(directory))
             return False
