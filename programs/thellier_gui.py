@@ -4093,9 +4093,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
             MagIC_results_data['pmag_results'][sample_or_site] = {}
             if self.data_model == 3:
                 if BY_SAMPLES:
-                    MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SAMP"
+                    if len(self.test_for_criteria()):
+                        MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SAMP"
                 if BY_SITES:
-                    MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SITE"
+                    if len(self.test_for_criteria()):
+                        MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SITE"
             else:
                 MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "ACCEPT"
             MagIC_results_data['pmag_results'][sample_or_site]["er_location_names"] = MagIC_results_data[
@@ -4295,7 +4297,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if BY_SAMPLES:
                     new_data = map_magic.convert_samp(
                         'magic3', new_sample_or_site_data)  # convert to 3.0
-                    new_data['criteria'] = 'IE-SPEC:IE-SAMP'
+                    if len(self.test_for_criteria()):
+                        new_data['criteria'] = 'IE-SPEC:IE-SAMP'
                     new_data['result_quality'] = 'g'
                     new_data['result_type'] = 'i'
                     self.samp_data = self.samp_container.df
@@ -8106,6 +8109,25 @@ You can combine multiple measurement files into one measurement file using Pmag 
             continue_bool = False
         dlg.Destroy()
         return continue_bool
+
+
+    def test_for_criteria(self):
+        """
+        Return any criteria values that have actually been set,
+        not just "empty" values of -999.
+        Ignore interpreter_method, average_by_sample_or_site, and include_nrm,
+        becuase these have default values other than -999 and are only used
+        internal to Thellier GUI.
+
+        Returns
+        ---------
+        values : list
+            list of non -999 values in self.acceptance_criteria values
+        """
+        ignore = ['interpreter_method', 'average_by_sample_or_site', 'include_nrm']
+        values = ([dic['value'] for dic in self.acceptance_criteria.values() if (dic['criterion_name'] not in ignore and dic['value'] != -999)])
+        return values
+
 
 #--------------------------------------------------------------
 # Run the GUI
