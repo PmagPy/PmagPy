@@ -12,7 +12,7 @@ import pmagpy.pmag as pmag
 
 def main():
     """
-    NAME 
+    NAME
         strip_magic.py
 
     DESCRIPTION
@@ -23,6 +23,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
+        -DM NUM: specify data model num, options 2 (legacy) or 3 (default)
         -f FILE: specify input magic format file from magic,default='pmag_results.txt'
          supported types=[pmag_specimens, pmag_samples, pmag_sites, pmag_results, magic_web]
         -obj [sit,sam,all]: specify object to site,sample,all for pmag_result table, default is all
@@ -32,7 +33,7 @@ def main():
            (lat and lon are VGP lat and lon)
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
-           TS: [ck95, gts04] 
+           TS: [ck95, gts04]
         -mcd method_code, specify method code, default is first one encountered
         -sav  save plot and quit
     NOTES
@@ -43,26 +44,52 @@ def main():
     yaxis, Xinc = "", ""
     plot = 0
     obj = 'all'
-    supported = ['pmag_specimens', 'pmag_samples',
-                 'pmag_sites', 'pmag_results', 'magic_web']
-    Depth_keys = ['specimen_core_depth', 'specimen_height', 'specimen_elevation', 'specimen_composite_depth', 'sample_core_depth', 'sample_height',
-                  'sample_elevation', 'sample_composite_depth', 'site_core_depth', 'site_height', 'site_elevation', 'site_composite_depth', 'average_height']
-    Age_keys = ['specimen_inferred_age', 'sample_inferred_age',
-                'site_inferred_age', 'average_age']
-    Unit_keys = {'specimen_inferred_age': 'specimen_inferred_age_unit', 'sample_inferred_age': 'sample_inferred_age_unit',
-                 'site_inferred_age': 'site_inferred_age_unit', 'average_age': 'average_age_unit'}
-    Dec_keys = ['measurement_dec', 'specimen_dec',
-                'sample_dec', 'site_dec', 'average_dec']
-    Inc_keys = ['measurement_inc', 'specimen_inc',
-                'sample_inc', 'site_inc', 'average_inc']
-    Int_keys = ['measurement_magnitude', 'measurement_magn_moment', 'measurement_magn_volume', 'measurement_magn_mass',
-                'specimen_int', 'specimen_int_rel', 'sample_int', 'sample_int_rel', 'site_int', 'site_int_rel', 'average_int', 'average_int_rel']
-    Chi_keys = ['measurement_chi_volume', 'measurement_chi_mass']
-    Lat_keys = ['sample_lat', 'site_lat', 'average_lat']
-    VLat_keys = ['vgp_lat']
-    VLon_keys = ['vgp_lon']
-    Vdm_keys = ['vdm']
-    Vadm_keys = ['vadm']
+    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
+    # 2.5 keys
+    if data_model_num == 2:
+        supported = ['pmag_specimens', 'pmag_samples',
+                     'pmag_sites', 'pmag_results', 'magic_web'] # available file types
+        Depth_keys = ['specimen_core_depth', 'specimen_height', 'specimen_elevation',
+                      'specimen_composite_depth', 'sample_core_depth', 'sample_height',
+                      'sample_elevation', 'sample_composite_depth', 'site_core_depth',
+                      'site_height', 'site_elevation', 'site_composite_depth', 'average_height']
+        Age_keys = ['specimen_inferred_age', 'sample_inferred_age',
+                    'site_inferred_age', 'average_age']
+        Unit_keys = {'specimen_inferred_age': 'specimen_inferred_age_unit',
+                     'sample_inferred_age': 'sample_inferred_age_unit',
+                     'site_inferred_age': 'site_inferred_age_unit', 'average_age': 'average_age_unit'}
+        Dec_keys = ['measurement_dec', 'specimen_dec',
+                    'sample_dec', 'site_dec', 'average_dec']
+        Inc_keys = ['measurement_inc', 'specimen_inc',
+                    'sample_inc', 'site_inc', 'average_inc']
+        Int_keys = ['measurement_magnitude', 'measurement_magn_moment', 'measurement_magn_volume',
+                    'measurement_magn_mass', 'specimen_int', 'specimen_int_rel', 'sample_int',
+                    'sample_int_rel', 'site_int', 'site_int_rel', 'average_int', 'average_int_rel']
+        Chi_keys = ['measurement_chi_volume', 'measurement_chi_mass']
+        Lat_keys = ['sample_lat', 'site_lat', 'average_lat']
+        VLat_keys = ['vgp_lat']
+        VLon_keys = ['vgp_lon']
+        Vdm_keys = ['vdm']
+        Vadm_keys = ['vadm']
+        method_col_name = "magic_method_codes"
+    else:
+        # 3.0 keys
+        supported = ["specimens", "samples", "sites", "locations"] # available file types
+        Depth_keys = [ "height", "core_depth", "elevation", "composite_depth" ]
+        Age_keys = [ "age" ]
+        Unit_keys = [ "age" ]
+        Chi_keys = [ "susc_chi_volume", "susc_chi_mass" ]
+        Int_keys = [ "magn_moment", "magn_volume", "magn_mass", "int_abs", "int_rel" ]
+        Inc_keys = [ "dir_inc" ]
+        Dec_keys = [ "dir_dec" ]
+        Lat_Keys = [ "lat" ]
+        VLat_keys = [ "vgp_lat", "pole_lat" ]
+        VLon_keys = [ "vgp_lon", "pole_lon" ]
+        Vdm_keys = [ "vdm", "pdm" ]
+        Vadm_keys = [ "vadm", "padm" ]
+        method_col_name = "method_codes"
+
+    #
     X_keys = [Age_keys, Depth_keys]
     Y_keys = [Dec_keys, Inc_keys, Int_keys, Chi_keys,
               VLat_keys, VLon_keys, Vdm_keys, Vadm_keys]
@@ -129,13 +156,16 @@ def main():
         print("Unsupported file type, try again")
         sys.exit()
     PltObjs = ['all']
-    if file_type == 'pmag_results':  # find out what to plot
-        for rec in Results:
-            resname = rec['pmag_result_name'].split()
-            if 'Sample' in resname and 'sam' not in PltObjs:
-                PltObjs.append('sam')
-            if 'Site' in resname and 'sit' not in PltObjs:
-                PltObjs.append('sit')
+    if data_model_num == 2:
+        if file_type == 'pmag_results':  # find out what to plot
+            for rec in Results:
+                resname = rec['pmag_result_name'].split()
+                if 'Sample' in resname and 'sam' not in PltObjs:
+                    PltObjs.append('sam')
+                if 'Site' in resname and 'sit' not in PltObjs:
+                    PltObjs.append('sit')
+
+
     methcodes = []
     # need to know all the measurement types from method_codes
     if "magic_method_codes" in list(Results[0].keys()):
