@@ -103,6 +103,7 @@ class MagMainFrame(wx.Frame):
         try:
             if not os.path.exists(self.WD):
                 os.mkdir(self.WD)
+                pw.simple_warning("New directory: {}\nwill be created".format(self.WD))
         except FileNotFoundError:
             pw.simple_warning("You have provided a directory that does not exist and cannot be created.\n Please pick a different directory.")
             print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
