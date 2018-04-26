@@ -40,6 +40,9 @@ def main():
         when x and/or y are not specified, a list of possibilities will be presented to the user for choosing
 
     """
+    if '-h' in sys.argv:
+        print(main.__doc__)
+        sys.exit()
     xaxis, xplotind, yplotind = "", 0, 0  # (0 for strat pos)
     yaxis, Xinc = "", ""
     plot = 0
@@ -77,7 +80,7 @@ def main():
         supported = ["specimens", "samples", "sites", "locations"] # available file types
         Depth_keys = [ "height", "core_depth", "elevation", "composite_depth" ]
         Age_keys = [ "age" ]
-        Unit_keys = [ "age" ]
+        Unit_keys = { "age": "age" }
         Chi_keys = [ "susc_chi_volume", "susc_chi_mass" ]
         Int_keys = [ "magn_moment", "magn_volume", "magn_mass", "int_abs", "int_rel" ]
         Inc_keys = [ "dir_inc" ]
@@ -96,14 +99,13 @@ def main():
     method, fmt = "", 'svg'
     FIG = {'strat': 1}
     plotexp, pTS = 0, 0
-    dir_path = "./"
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path = sys.argv[ind+1]
-    res_file = dir_path+'/pmag_results.txt'
-    if '-h' in sys.argv:
-        print(main.__doc__)
-        sys.exit()
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    # default files
+    if data_model_num == 3:
+        res_file = pmag.get_named_arg_from_sys("-f", "specimens.txt")
+    else:
+        res_file = pmag.get_named_arg_from_sys("-f", "pmag_results.txt")
+    res_file = pmag.resolve_file_name(res_file, dir_path)
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         res_file = dir_path+'/'+sys.argv[ind+1]
@@ -251,7 +253,7 @@ def main():
     if method != "" and method not in methcodes:
         print('your method not available, but these are:  ')
         print(methcodes)
-        print('use ', methocodes[0], '? ^D to quit')
+        print('use ', methcodes[0], '? ^D to quit')
     if xaxis == 'age':
         for akey in Age_keys:
             for key in list(Results[0].keys()):
@@ -293,7 +295,10 @@ def main():
     if xaxis == "age":
         plotind = "1"
     if method == "":
-        method = methcodes[0]
+        try:
+            method = methcodes[0]
+        except IndexError:
+            method = ""
     if xaxis == 'pos':
         xlab = "Stratigraphic Height (meters)"
     else:
