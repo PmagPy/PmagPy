@@ -55,9 +55,14 @@ def main():
         method_key = 'method_codes'
         dec_key = 'dir_dec'
         inc_key = 'dir_inc'
+        tilt_corr_key = "dir_tilt_correction"
+        aniso_tilt_corr_key = "aniso_tilt_correction"
+        hyst_bcr_key = "hyst_bcr"
+        hyst_mr_key = "hyst_mr_moment"
+        hyst_ms_key = "hyst_ms_moment"
+        hyst_bc_key = "hyst_bc"
         Mkeys = ['magnitude', 'magn_moment', 'magn_volume', 'magn_mass']
         results_file = 'sites.txt'
-        tilt_key = 'direction_tilt_correction'
         hyst_file = 'specimens.txt'
         aniso_file = 'specimens.txt'
     else:
@@ -69,10 +74,15 @@ def main():
         method_key = 'magic_method_codes'
         dec_key = 'measurement_dec'
         inc_key = 'measurement_inc'
+        tilt_corr_key = "tilt_correction"
+        aniso_tilt_corr_key = "anisotropy_tilt_correction"
+        hyst_bcr_key = "hysteresis_bcr"
+        hyst_mr_key = "hysteresis_mr_moment"
+        hyst_ms_key = "hysteresis_ms_moment"
+        hyst_bc_key = "hysteresis_bc"
         Mkeys = ['measurement_magnitude', 'measurement_magn_moment',
                  'measurement_magn_volume', 'measurement_magn_mass']
         results_file = 'pmag_results.txt'
-        tilt_key = 'tilt_correction'
         hyst_file = 'rmag_hysteresis'
         aniso_file = 'rmag_anisotropy'
     if '-h' in sys.argv:
@@ -82,14 +92,16 @@ def main():
         print('working on: ', loc)
         os.chdir(loc)  # change working directories to each location
         crd = 's'
-        print(samp_file)
         if samp_file in filelist:  # find coordinate systems
-            print('found sample file')
+            print('found sample file', samp_file)
             samps, file_type = pmag.magic_read(samp_file)  # read in data
             # get all none blank sample orientations
             Srecs = pmag.get_dictitem(samps, azimuth_key, '', 'F')
             if len(Srecs) > 0:
                 crd = 'g'
+                print('using geographic coordinates')
+            else:
+                print('using specimen coordinates')
         if meas_file in filelist:  # start with measurement data
             print('working on measurements data')
             data, file_type = pmag.magic_read(meas_file)  # read in data
@@ -137,9 +149,9 @@ def main():
                 print(CMD)
                 os.system(CMD)
         if results_file in filelist:  # start with measurement data
+            print('result file found', results_file)
             data, file_type = pmag.magic_read(results_file)  # read in data
-            print('number of datapoints: ', len(data))
-            if loc == './':
+            if loc == './' and len(dirlist) > 1:
                 # get all the concatenated location names from data file
                 data = pmag.get_dictitem(data, loc_key, ':', 'has')
             print('number of datapoints: ', len(data), loc)
@@ -157,17 +169,30 @@ def main():
             SiteDIs = pmag.get_dictitem(
                 SiteDIs, inc_key, "", 'F')  # find decs and incs
             # only individual results - not poles
-            SiteDIs = pmag.get_dictitem(SiteDIs, 'data_type', 'i', 'has')
-            print('number of directions: ', len(SiteDIs))
+            if not new_model:
+                SiteDIs = pmag.get_dictitem(SiteDIs, 'data_type', 'i', 'has')
+            else:
+                # convert tilt_corr_key to correct format
+                old_SiteDIs = SiteDIs
+                SiteDIs = []
+                for rec in old_SiteDIs:
+                    if tilt_corr_key not in rec:
+                        break
+                    rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                    SiteDIs.append(rec)
+            print('individual number of directions: ', len(SiteDIs))
             # tilt corrected coordinates
-            SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_key, '100', 'T')
-            print('number of tilt corrected directions: ', len(SiteDIs))
+            SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100', 'T')
+            print('number of tilt corrected directions: ', len(SiteDIs_t))
             SiteDIs_g = pmag.get_dictitem(
-                SiteDIs, tilt_key, '0', 'T')  # geographic coordinates
+                SiteDIs, tilt_corr_key, '0', 'T')  # geographic coordinates
+            print('number of geographic  directions: ', len(SiteDIs_g))
             SiteDIs_s = pmag.get_dictitem(
-                SiteDIs, 'tilt_correction', '-1', 'T')  # sample coordinates
+                SiteDIs, tilt_corr_key, '-1', 'T')  # sample coordinates
+            print('number of sample  directions: ', len(SiteDIs_s))
             SiteDIs_x = pmag.get_dictitem(
-                SiteDIs, 'tilt_correction', '', 'T')  # no coordinates
+                SiteDIs, tilt_corr_key, '', 'T')  # no coordinates
+            print('number of no coordinates  directions: ', len(SiteDIs_x))
             if len(SiteDIs_t) > 0 or len(SiteDIs_g) > 0 or len(SiteDIs_s) > 0 or len(SiteDIs_x) > 0:
                 CRD = ""
                 if len(SiteDIs_t) > 0:
@@ -177,7 +202,7 @@ def main():
                 elif len(SiteDIs_s) > 0:
                     CRD = ' -crd s'
                 if new_model:
-                    CMD = 'eqarea_magic.py -sav -crd t -fmt ' + fmt + CRD
+                    CMD = 'eqarea_magic.py -sav -fmt ' + fmt + CRD
                 else:
                     CMD = 'eqarea_magic2.py -sav -crd t -fmt ' + fmt + CRD
                 print(CMD)
@@ -195,11 +220,12 @@ def main():
                 infile = ' tmp.txt'
             else:
                 infile = results_file
-            print(int_key)
             CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f ' + infile
+            print(CMD)
             os.system(CMD)
             CMD = "grab_magic_key.py -f tmp1.txt -key " + \
                 int_key + " | awk '{print $1*1e6}' >tmp2.txt"
+            print(CMD)
             os.system(CMD)
             data, file_type = pmag.magic_read('tmp1.txt')  # read in data
             if new_model:
@@ -216,34 +242,34 @@ def main():
                 "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " + histfile)
             os.system('rm tmp*.txt')
         if hyst_file in filelist:  # start with measurement data
-            print('working on hysteresis')
+            print('working on hysteresis', hyst_file)
             data, file_type = pmag.magic_read(hyst_file)  # read in data
-            if loc == './':
+            if loc == './' and len(dirlist) > 1:
                 # get all the blank location names from data file
                 data = pmag.get_dictitem(data, loc_key, '', 'T')
-            hdata = pmag.get_dictitem(data, 'hysteresis_bcr', '', 'F')
-            hdata = pmag.get_dictitem(hdata, 'hysteresis_mr_moment', '', 'F')
-            hdata = pmag.get_dictitem(hdata, 'hysteresis_ms_moment', '', 'F')
+            hdata = pmag.get_dictitem(data, hyst_bcr_key, '', 'F')
+            hdata = pmag.get_dictitem(hdata, hyst_mr_key, '', 'F')
+            hdata = pmag.get_dictitem(hdata, hyst_ms_key, '', 'F')
             # there are data for a dayplot
-            hdata = pmag.get_dictitem(hdata, 'hysteresis_bc', '', 'F')
+            hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
                 print('dayplot_magic.py -sav -fmt ' + fmt)
                 os.system('dayplot_magic.py -sav -fmt ' + fmt)
         if aniso_file in filelist:  # do anisotropy plots if possible
-            print('working on anisotropy')
+            print('working on anisotropy', aniso_file)
             data, file_type = pmag.magic_read(aniso_file)  # read in data
-            if loc == './':
+            if loc == './' and len(dirlist) > 1:
                 # get all the blank location names from data file
                 data = pmag.get_dictitem(data, loc_key, '', 'T')
             # get specimen coordinates
             sdata = pmag.get_dictitem(
-                data, 'anisotropy_tilt_correction', '-1', 'T')
+                data, aniso_tilt_corr_key, '-1', 'T')
             # get specimen coordinates
             gdata = pmag.get_dictitem(
-                data, 'anisotropy_tilt_correction', '0', 'T')
+                data, aniso_tilt_corr_key, '0', 'T')
             # get specimen coordinates
             tdata = pmag.get_dictitem(
-                data, 'anisotropy_tilt_correction', '100', 'T')
+                data, aniso_tilt_corr_key, '100', 'T')
             CRD = ""
             if new_model:
                 CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt

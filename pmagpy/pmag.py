@@ -14,6 +14,7 @@ from numpy import random
 from numpy import linalg
 import os
 import time
+import math
 import pandas as pd
 from .mapping import map_magic
 from pmagpy import new_builder as nb
@@ -61,11 +62,33 @@ def sort_diclist(undecorated, sort_on):
     return[undecorated[index] for (key, index) in decorated]
 
 
-def get_dictitem(In, k, v, flag):
+def get_dictitem(In, k, v, flag, float_to_int=False):
     """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
         requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F
         ,has or not and requires they be castable to float if flag is eval, min, or max.
+        float_to_int goes through the relvant values in In and truncates them,
+        (like "0.0" to "0") for evaluation, default is False
     """
+    if float_to_int:
+        try:
+            v = str(math.trunc(float(v)))
+        except ValueError: # catches non floatable strings
+            pass
+        except TypeError: # catches None
+            pass
+        fixed_In = []
+        for dictionary in In:
+            if k in dictionary:
+                val = dictionary[k]
+                try:
+                    val = str(math.trunc(float(val)))
+                except ValueError: # catches non floatable strings
+                    pass
+                except TypeError: # catches None
+                    pass
+                dictionary[k] = val
+            fixed_In.append(dictionary)
+        In = fixed_In
     if flag == "T":
         # return that which is
         return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(dictionary[k]).lower() == str(v).lower()]
@@ -8985,7 +9008,7 @@ def squish(incs, f):
 
 def get_ts(ts):
     """
-    returns GPTS timescales.  
+    returns GPTS timescales.
     options are:  ck95, gts04, and gts12
     returns timescales and Chron labels
     """

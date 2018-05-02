@@ -5,7 +5,7 @@ import pmagpy.pmag as pmag
 
 def main():
     """
-    NAME 
+    NAME
         magic_select.py
 
     DESCRIPTION
@@ -16,8 +16,8 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input magic format file 
-        -F FILE: specify output magic format file 
+        -f FILE: specify input magic format file
+        -F FILE: specify output magic format file
         -key KEY string [T,F,has, not, eval,min,max]
            returns records where the value of the key either:
                matches exactly the string (T)
@@ -28,7 +28,7 @@ def main():
                the value is greater than the numerical value of the string (min)
                the value is less than the numerical value of the string (max)
       NOTES
-         for age range: 
+         for age range:
              use KEY: age (converts to Ma, takes mid point of low, high if no value for age.
          for paleolat:
              use KEY: model_lat (uses lat, if age<5 Ma, else, model_lat, or attempts calculation from average_inc if no model_lat.) returns estimate in model_lat key
@@ -65,14 +65,14 @@ def main():
         sys.exit()
     #
     # get data read in
-    Data,file_type=pmag.magic_read(magic_file) 
-    if grab_key =='age': 
+    Data,file_type=pmag.magic_read(magic_file)
+    if grab_key =='age':
         grab_key='average_age'
         Data=pmag.convert_ages(Data)
-    if grab_key =='model_lat': 
+    if grab_key =='model_lat':
         Data=pmag.convert_lat(Data)
         Data=pmag.convert_ages(Data)
-    Selection=pmag.get_dictitem(Data,grab_key,v,flag)
+    Selection=pmag.get_dictitem(Data,grab_key,v,flag,float_to_int=True)
     if len(Selection)>0:
         pmag.magic_write(outfile,Selection,file_type)
     else:
