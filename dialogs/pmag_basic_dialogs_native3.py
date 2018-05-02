@@ -2654,14 +2654,17 @@ class OrientFrameGrid3(wx.Frame):
         # create grid
         self.create_sheet()
 
-        TEXT = """
-        A template file named 'demag_orient.txt', for sample-level orientation data, was created in MagIC working directory.
-        You can view/modify demag_orient.txt here.  You can edit all the values in a column by clicking on the column header and then entering your desired value, or selecting an item from the drop-down menu.
-        If you already have these data in MagIC format in Excel or Open Office, save the file as 'tab delimited' and then use the 'Import Orientation File' button below.
-        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation information out to the site and sample tables.
-"""
+        TEXT = """A template file named 'demag_orient.txt', for sample-level orientation data, was created in your MagIC working directory.
 
-        label = wx.StaticText(self.panel, label=TEXT)
+        You can view/modify demag_orient.txt here.  To edit all the values in a column, click on the column header and then enter your desired value, or select an item from the drop-down menu.
+
+        If you already have these data in MagIC format in Excel or Open Office, save the file as 'tab delimited' and then use the 'Import Orientation File' button below.
+
+        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation data to the site and sample tables.
+"""
+        label_boxsizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'input orientation data ' ), wx.VERTICAL )
+        # width, height
+        label = wx.StaticText(self.panel, label=TEXT, size=(600, 200))
         btn_box = wx.BoxSizer(wx.HORIZONTAL)
         save_btn = wx.Button(self.panel, wx.ID_ANY, "Save Orientation File")
         self.Bind(wx.EVT_BUTTON, self.on_m_save_file, save_btn)
@@ -2674,7 +2677,10 @@ class OrientFrameGrid3(wx.Frame):
         btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(label, flag=wx.CENTRE)
+        #
+        label_boxsizer.Add(label, flag=wx.CENTRE)
+        self.vbox.Add(label_boxsizer, flag=wx.CENTRE|wx.ALL, border=15)
+        #self.vbox.Add(label, flag=wx.CENTRE|wx.ALL, border=15)
         self.vbox.Add(btn_box, flag=wx.CENTRE)
         self.vbox.Add(self.grid, flag=wx.ALL, border=20)
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -3033,10 +3039,13 @@ class OrientFrameGrid(wx.Frame):
         self.create_sheet()
 
         TEXT = """
-        A template file named 'demag_orient.txt', for sample-level orientation data, was created in MagIC working directory.
+        A template file named 'demag_orient.txt', for sample-level orientation data, was created in your MagIC working directory.
+
         You can view/modify demag_orient.txt here.  You can edit all the values in a column by clicking on the column header and then entering your desired value, or selecting an item from the drop-down menu.
+
         If you already have these data in MagIC format in Excel or Open Office, save the file as 'tab delimited' and then use the 'Import Orientation File' button below.
-        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation information out to the site and sample tables.
+
+        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation data to the site and sample tables.
 """
 
         label = wx.StaticText(self.panel, label=TEXT)
