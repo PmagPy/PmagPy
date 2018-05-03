@@ -172,7 +172,10 @@ def main():
             if not new_model:
                 SiteDIs = pmag.get_dictitem(SiteDIs, 'data_type', 'i', 'has')
             else:
-                # convert tilt_corr_key to correct format
+                # get only individual results (if result_type col is available)
+                if 'result_type' in SiteDIs[0]:
+                    SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                # then convert tilt_corr_key to correct format
                 old_SiteDIs = SiteDIs
                 SiteDIs = []
                 for rec in old_SiteDIs:
@@ -262,8 +265,11 @@ def main():
                 # get all the blank location names from data file
                 data = pmag.get_dictitem(data, loc_key, '', 'T')
             # get specimen coordinates
-            sdata = pmag.get_dictitem(
-                data, aniso_tilt_corr_key, '-1', 'T')
+            if aniso_tilt_corr_key not in data[0]:
+                sdata = data
+            else:
+                sdata = pmag.get_dictitem(
+                    data, aniso_tilt_corr_key, '-1', 'T')
             # get specimen coordinates
             gdata = pmag.get_dictitem(
                 data, aniso_tilt_corr_key, '0', 'T')
