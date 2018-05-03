@@ -296,7 +296,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, dir_path)
-        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import', 'iodp_srm_magic')
+        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import', 'IODP_SRM_magic')
         pmag.remove_files(filelist, dir_path)
         dir_path = WD
         pmag.remove_files(filelist, dir_path)
@@ -311,7 +311,7 @@ class TestIodpSrmMagic(unittest.TestCase):
     def test_iodp_with_files(self):
         options = {}
         dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                'iodp_srm_magic')
+                                'IODP_SRM_magic')
         options['dir_path'] = dir_path
         files = os.listdir(dir_path)
         files = ['IODP_Janus_312_U1256.csv', 'SRM_318_U1359_B_A.csv' ] # this one takes way too long: IODP_LIMS_SRMsection_344_1414A.csv
