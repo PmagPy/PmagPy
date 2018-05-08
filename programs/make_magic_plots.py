@@ -95,7 +95,7 @@ def main():
         if samp_file in filelist:  # find coordinate systems
             print('found sample file', samp_file)
             samps, file_type = pmag.magic_read(samp_file)  # read in data
-            # get all none blank sample orientations
+            # get all non blank sample orientations
             Srecs = pmag.get_dictitem(samps, azimuth_key, '', 'F')
             if len(Srecs) > 0:
                 crd = 'g'
@@ -258,41 +258,49 @@ def main():
             if len(hdata) > 0:
                 print('dayplot_magic.py -sav -fmt ' + fmt)
                 os.system('dayplot_magic.py -sav -fmt ' + fmt)
+            else:
+                print('no hysteresis data found')
         if aniso_file in filelist:  # do anisotropy plots if possible
             print('working on anisotropy', aniso_file)
             data, file_type = pmag.magic_read(aniso_file)  # read in data
             if loc == './' and len(dirlist) > 1:
                 # get all the blank location names from data file
                 data = pmag.get_dictitem(data, loc_key, '', 'T')
-            # get specimen coordinates
-            if aniso_tilt_corr_key not in data[0]:
-                sdata = data
+
+            # make sure there is some anisotropy data
+            if 'aniso_s' not in data[0]:
+                print('No anisotropy data found')
             else:
-                sdata = pmag.get_dictitem(
-                    data, aniso_tilt_corr_key, '-1', 'T')
-            # get specimen coordinates
-            gdata = pmag.get_dictitem(
-                data, aniso_tilt_corr_key, '0', 'T')
-            # get specimen coordinates
-            tdata = pmag.get_dictitem(
-                data, aniso_tilt_corr_key, '100', 'T')
-            CRD = ""
-            if new_model:
-                CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt
-            else:
-                CMD = 'aniso_magic2.py -x -B -sav -fmt ' + fmt
-            if len(sdata) > 3:
-                CMD = CMD + ' -crd s'
-                print(CMD)
-                os.system(CMD)
-            if len(gdata) > 3:
-                CMD = CMD + ' -crd g'
-                print(CMD)
-                os.system(CMD)
-            if len(tdata) > 3:
-                CMD = CMD + ' -crd t'
-                print(CMD)
-                os.system(CMD)
+
+                # get specimen coordinates
+                if aniso_tilt_corr_key not in data[0]:
+                    sdata = data
+                else:
+                    sdata = pmag.get_dictitem(
+                        data, aniso_tilt_corr_key, '-1', 'T')
+                # get specimen coordinates
+                gdata = pmag.get_dictitem(
+                    data, aniso_tilt_corr_key, '0', 'T')
+                # get specimen coordinates
+                tdata = pmag.get_dictitem(
+                    data, aniso_tilt_corr_key, '100', 'T')
+                CRD = ""
+                if new_model:
+                    CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt
+                else:
+                    CMD = 'aniso_magic2.py -x -B -sav -fmt ' + fmt
+                if len(sdata) > 3:
+                    CMD = CMD + ' -crd s'
+                    print(CMD)
+                    os.system(CMD)
+                if len(gdata) > 3:
+                    CMD = CMD + ' -crd g'
+                    print(CMD)
+                    os.system(CMD)
+                if len(tdata) > 3:
+                    CMD = CMD + ' -crd t'
+                    print(CMD)
+                    os.system(CMD)
         if loc != './':
             os.chdir('..')  # change working directories to each location
 

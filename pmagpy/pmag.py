@@ -8616,7 +8616,7 @@ def set_priorities(SO_methods, ask):
      figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
-    SO_defaults = ['SO-SUN', 'SO-GPS-DIFF', 'SO-SIGHT', 'SO-SIGHT-BS',
+    SO_defaults = ['SO-SUN', 'SO-GPS-DIFF', 'SO-SUN-SIGHT', 'SO-SIGHT', 'SO-SIGHT-BS',
                    'SO-CMD-NORTH', 'SO-MAG', 'SO-SM', 'SO-REC', 'SO-V', 'SO-CORE', 'SO-NO']
     SO_priorities, prior_list = [], []
     if len(SO_methods) >= 1:
