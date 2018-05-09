@@ -32,7 +32,7 @@ If so, try:
 
     export LD_LIBRARY_PATH=~/anaconda3/lib/python3.6/site-packages/wx/
 
-And checkout [this blog post](https://wxpython.org/blog/2017-08-17-builds-for-linux-with-pip/) and this [issue](https://github.com/pyenv/pyenv/issues/691) for more information.
+If that works, you may want to add that line to the end of your .bashrc file.  And checkout [this blog post](https://wxpython.org/blog/2017-08-17-builds-for-linux-with-pip/) and this [issue](https://github.com/pyenv/pyenv/issues/691) for more information.
 
 #### Deal with pythonw/python issue:
 
@@ -40,6 +40,10 @@ And checkout [this blog post](https://wxpython.org/blog/2017-08-17-builds-for-li
 
 #### At this point, you should be able to run all PmagPy programs on the command line.
 
-#### To run pyinstaller:
+#### Pyinstaller:
+
+For install instructions, see [the setup_scripts README](https://github.com/PmagPy/PmagPy/blob/master/setup_scripts/README.md).
+
+Then use the command:
 
     rm -rf build dist && LD_LIBRARY_PATH=/home/parallels/anaconda3/lib pyinstaller pmag_gui.spec
