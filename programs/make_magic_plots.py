@@ -2,7 +2,9 @@
 from __future__ import print_function
 import sys
 import os
+import pandas as pd
 from pmagpy import pmag
+from pmagpy import new_builder as nb
 
 
 def main():

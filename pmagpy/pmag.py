@@ -181,7 +181,7 @@ def get_orient(samp_data, er_sample_name,**kwargs):
         meths = methcode.split(":")
         for meth in meths:
             if meth.strip() not in EX:
-                SO_methods.append(meth)
+                SO_methods.append(meth.strip())
     # find top priority orientation method
     if len(SO_methods) == 0:
         print("no orientation data for sample ", er_sample_name)
@@ -8616,6 +8616,7 @@ def set_priorities(SO_methods, ask):
      figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
+    SO_methods = [meth.strip() for meth in SO_methods]
     SO_defaults = ['SO-SUN', 'SO-GPS-DIFF', 'SO-SUN-SIGHT', 'SO-SIGHT', 'SO-SIGHT-BS',
                    'SO-CMD-NORTH', 'SO-MAG', 'SO-SM', 'SO-REC', 'SO-V', 'SO-CORE', 'SO-NO']
     SO_priorities, prior_list = [], []
