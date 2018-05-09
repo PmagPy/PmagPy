@@ -5070,7 +5070,7 @@ class Demag_GUI(wx.Frame):
         """
 
         self.clear_boxes()
-        self.clear_high_level_pars()
+        self.clear_high_level_pars() #commented out to allow propogation of higher level viewing state
 
         if self.UPPER_LEVEL_SHOW != "specimens":
             self.mean_type_box.SetValue("None")
@@ -5121,6 +5121,10 @@ class Demag_GUI(wx.Frame):
         if self.ie_open and new_string!=old_string:
             self.ie.level_names.SetValue(new_string)
             self.ie.on_select_level_name(-1,True)
+
+        #--------------------------
+        # update PCA box
+        #--------------------------
 
         self.update_PCA_box()
 
@@ -5386,16 +5390,16 @@ class Demag_GUI(wx.Frame):
         """
         self.mean_fit_box.Clear()
         #update high level mean fit box
-        self.all_fits_list = []
         fit_index = None
         if self.mean_fit in self.all_fits_list: fit_index = self.all_fits_list.index(self.mean_fit)
+        self.all_fits_list = []
         for specimen in self.specimens:
             if specimen in self.pmag_results_data['specimens']:
                 for name in [x.name for x in self.pmag_results_data['specimens'][specimen]]:
                     if name not in self.all_fits_list: self.all_fits_list.append(name)
         self.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
         #select defaults
-        if fit_index:
+        if not isinstance(fit_index,type(None)):
             self.mean_fit_box.SetValue(self.all_fits_list[fit_index])
         elif self.mean_fit == 'All':
             self.mean_fit_box.SetValue('All')
