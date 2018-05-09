@@ -1939,7 +1939,7 @@ class MagicDataFrame(object):
     ## Methods for writing self.df out to tab-delimited file
 
     def write_magic_file(self, custom_name=None, dir_path=".",
-                         append=False, multi_type=False):
+                         append=False, multi_type=False, df=None):
         """
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
@@ -1980,7 +1980,8 @@ class MagicDataFrame(object):
         if name in self.df.columns:
             self.df[name] = self.df[name].astype(str)
         #
-        df = self.df
+        if df is None:
+            df = self.df
         # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:
