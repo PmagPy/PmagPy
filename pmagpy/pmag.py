@@ -14,6 +14,7 @@ from numpy import random
 from numpy import linalg
 import os
 import time
+import math
 import pandas as pd
 from .mapping import map_magic
 from pmagpy import new_builder as nb
@@ -61,11 +62,33 @@ def sort_diclist(undecorated, sort_on):
     return[undecorated[index] for (key, index) in decorated]
 
 
-def get_dictitem(In, k, v, flag):
+def get_dictitem(In, k, v, flag, float_to_int=False):
     """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
         requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F
         ,has or not and requires they be castable to float if flag is eval, min, or max.
+        float_to_int goes through the relvant values in In and truncates them,
+        (like "0.0" to "0") for evaluation, default is False
     """
+    if float_to_int:
+        try:
+            v = str(math.trunc(float(v)))
+        except ValueError: # catches non floatable strings
+            pass
+        except TypeError: # catches None
+            pass
+        fixed_In = []
+        for dictionary in In:
+            if k in dictionary:
+                val = dictionary[k]
+                try:
+                    val = str(math.trunc(float(val)))
+                except ValueError: # catches non floatable strings
+                    pass
+                except TypeError: # catches None
+                    pass
+                dictionary[k] = val
+            fixed_In.append(dictionary)
+        In = fixed_In
     if flag == "T":
         # return that which is
         return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(dictionary[k]).lower() == str(v).lower()]
@@ -158,7 +181,7 @@ def get_orient(samp_data, er_sample_name,**kwargs):
         meths = methcode.split(":")
         for meth in meths:
             if meth.strip() not in EX:
-                SO_methods.append(meth)
+                SO_methods.append(meth.strip())
     # find top priority orientation method
     if len(SO_methods) == 0:
         print("no orientation data for sample ", er_sample_name)
@@ -323,7 +346,7 @@ def convert_ages(Recs,**kwargs):
         agekey = find('age', list(rec.keys()))
         if agekey != "":
             keybase = agekey.split('_')[0] + '_'
-        
+
     New = []
     for rec in Recs:
         age = ''
@@ -5340,7 +5363,7 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).  
+  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
     """
 #
     if row > 200:
@@ -7892,6 +7915,8 @@ def measurements_methods3(meas_data, noave):
 # done with first pass, collect and assign provisional method codes
             if "description" not in list(rec.keys()):
                 rec["description"] = ""
+            if "standard" not in list(rec.keys()):
+                rec["standard"] = "s"
             rec["citations"] = "This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
@@ -8591,7 +8616,8 @@ def set_priorities(SO_methods, ask):
      figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
-    SO_defaults = ['SO-SUN', 'SO-GPS-DIFF', 'SO-SIGHT', 'SO-SIGHT-BS',
+    SO_methods = [meth.strip() for meth in SO_methods]
+    SO_defaults = ['SO-SUN', 'SO-GPS-DIFF', 'SO-SUN-SIGHT', 'SO-SIGHT', 'SO-SIGHT-BS',
                    'SO-CMD-NORTH', 'SO-MAG', 'SO-SM', 'SO-REC', 'SO-V', 'SO-CORE', 'SO-NO']
     SO_priorities, prior_list = [], []
     if len(SO_methods) >= 1:
@@ -8982,6 +9008,11 @@ def squish(incs, f):
 
 
 def get_ts(ts):
+    """
+    returns GPTS timescales.
+    options are:  ck95, gts04, and gts12
+    returns timescales and Chron labels
+    """
     if ts == 'ck95':
         TS = [0, 0.780, 0.990, 1.070, 1.770, 1.950, 2.140, 2.150, 2.581, 3.040, 3.110, 3.220, 3.330, 3.580, 4.180, 4.290, 4.480, 4.620, 4.800, 4.890, 4.980, 5.230, 5.894, 6.137, 6.269, 6.567, 6.935, 7.091, 7.135, 7.170, 7.341, 7.375, 7.432, 7.562, 7.650, 8.072, 8.225, 8.257, 8.699, 9.025, 9.230, 9.308, 9.580, 9.642, 9.740, 9.880, 9.920, 10.949, 11.052, 11.099, 11.476, 11.531, 11.935, 12.078, 12.184, 12.401, 12.678, 12.708, 12.775, 12.819, 12.991, 13.139, 13.302, 13.510, 13.703, 14.076, 14.178, 14.612, 14.800, 14.888, 15.034, 15.155, 16.014, 16.293, 16.327, 16.488, 16.556, 16.726, 17.277, 17.615, 18.281, 18.781, 19.048, 20.131, 20.518, 20.725, 20.996, 21.320, 21.768, 21.859, 22.151, 22.248, 22.459, 22.493, 22.588,
               22.750, 22.804, 23.069, 23.353, 23.535, 23.677, 23.800, 23.999, 24.118, 24.730, 24.781, 24.835, 25.183, 25.496, 25.648, 25.823, 25.951, 25.992, 26.554, 27.027, 27.972, 28.283, 28.512, 28.578, 28.745, 29.401, 29.662, 29.765, 30.098, 30.479, 30.939, 33.058, 33.545, 34.655, 34.940, 35.343, 35.526, 35.685, 36.341, 36.618, 37.473, 37.604, 37.848, 37.920, 38.113, 38.426, 39.552, 39.631, 40.130, 41.257, 41.521, 42.536, 43.789, 46.264, 47.906, 49.037, 49.714, 50.778, 50.946, 51.047, 51.743, 52.364, 52.663, 52.757, 52.801, 52.903, 53.347, 55.904, 56.391, 57.554, 57.911, 60.920, 61.276, 62.499, 63.634, 63.976, 64.745, 65.578, 67.610, 67.735, 68.737, 71.071, 71.338, 71.587, 73.004, 73.291, 73.374, 73.619, 79.075, 83.000]

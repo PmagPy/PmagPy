@@ -141,7 +141,7 @@ def main():
     #spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     spec_df = spec_container.df
     # get only anisotropy records
-    spec_df=spec_df.dropna(subset=['aniso_s'])
+    spec_df=spec_df.dropna(subset=['aniso_s']).copy()
     if 'aniso_tilt_correction' not in spec_df.columns:
         spec_df['aniso_tilt_correction'] = -1 # assume specimen coordinates
     orlist = spec_df['aniso_tilt_correction'].dropna().unique()

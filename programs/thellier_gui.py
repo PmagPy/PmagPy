@@ -3833,17 +3833,17 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
                         print("-W- No intensity data found for specimens")
-                    cond2 = self.spec_data['int_abs'].notnull() == True
+                    cond2 = self.spec_data['int_abs'].apply(nb.not_null) #notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
                     self.spec_data = self.spec_container.update_record(
                         specimen, new_data, condition)
-                    # delete essentially blank records
-                    condition = self.spec_data['method_codes'].isnull().astype(
-                        bool)  # find the blank records
-                    info_str = "specimen rows with blank method codes"
-                    self.spec_data = self.spec_container.delete_rows(
-                        condition, info_str)  # delete them
+                    ## delete essentially blank records
+                    #condition = self.spec_data['method_codes'].isnull().astype(
+                    #bool)  # find the blank records
+                    #info_str = "specimen rows with blank method codes"
+                    #self.spec_data = self.spec_container.delete_rows(
+                    #    condition, info_str)  # delete them
 
         if self.data_model != 3:  # write out pmag_specimens.txt file
             fout = open(os.path.join(self.WD, "pmag_specimens.txt"), 'w')
@@ -4093,9 +4093,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
             MagIC_results_data['pmag_results'][sample_or_site] = {}
             if self.data_model == 3:
                 if BY_SAMPLES:
-                    MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SAMP"
+                    if len(self.test_for_criteria()):
+                        MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SAMP"
                 if BY_SITES:
-                    MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SITE"
+                    if len(self.test_for_criteria()):
+                        MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "IE-SPEC:IE-SITE"
             else:
                 MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes'] = "ACCEPT"
             MagIC_results_data['pmag_results'][sample_or_site]["er_location_names"] = MagIC_results_data[
@@ -4295,7 +4297,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if BY_SAMPLES:
                     new_data = map_magic.convert_samp(
                         'magic3', new_sample_or_site_data)  # convert to 3.0
-                    new_data['criteria'] = 'IE-SPEC:IE-SAMP'
+                    if len(self.test_for_criteria()):
+                        new_data['criteria'] = 'IE-SPEC:IE-SAMP'
                     new_data['result_quality'] = 'g'
                     new_data['result_type'] = 'i'
                     self.samp_data = self.samp_container.df
@@ -4382,6 +4385,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #    condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
             #    self.samp_container.df = self.samp_container.df.loc[condition]
 
+
+
+            # remove sample only columns that have been put into sites
+            if BY_SAMPLES:
+                #ignore = ['cooling_rate_corr', 'cooling_rate_mcd']
+                self.site_container.remove_non_magic_cols_from_table(ignore_cols=[]) #ignore)
             #  write out the data
             self.samp_container.write_magic_file(dir_path=self.WD)
             self.site_container.write_magic_file(dir_path=self.WD)
@@ -4413,22 +4422,23 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             magic_method_codes.append(code)
             fin.close()
 
-        magic_method_codes.sort()
-        # print magic_method_codes
-        magic_methods_header_1 = ["magic_method_code"]
-        fout = open(os.path.join(self.WD, "magic_methods.txt"), 'w')
-        fout.write("tab\tmagic_methods\n")
-        fout.write("magic_method_code\n")
-        for code in magic_method_codes:
-            fout.write("%s\n" % code)
-        fout.close
+        if self.data_model == 2:
+            magic_method_codes.sort()
+            # print magic_method_codes
+            magic_methods_header_1 = ["magic_method_code"]
+            fout = open(os.path.join(self.WD, "magic_methods.txt"), 'w')
+            fout.write("tab\tmagic_methods\n")
+            fout.write("magic_method_code\n")
+            for code in magic_method_codes:
+                fout.write("%s\n" % code)
+            fout.close
 
-        # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
-            Fout = open(os.path.join(self.WD, "pmag_criteria.txt"), 'w')
-            Fout.write("tab\tpmag_criteria\n")
-            Fout.write("er_citation_names\tpmag_criteria_code\n")
-            Fout.write("This study\tACCEPT\n")
+            # make pmag_criteria.txt if it does not exist
+            if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+                Fout = open(os.path.join(self.WD, "pmag_criteria.txt"), 'w')
+                Fout.write("tab\tpmag_criteria\n")
+                Fout.write("er_citation_names\tpmag_criteria_code\n")
+                Fout.write("This study\tACCEPT\n")
 
         dlg1 = wx.MessageDialog(
             self, caption="Message:", message="MagIC files are saved in MagIC project folder", style=wx.OK | wx.ICON_INFORMATION)
@@ -8099,6 +8109,25 @@ You can combine multiple measurement files into one measurement file using Pmag 
             continue_bool = False
         dlg.Destroy()
         return continue_bool
+
+
+    def test_for_criteria(self):
+        """
+        Return any criteria values that have actually been set,
+        not just "empty" values of -999.
+        Ignore interpreter_method, average_by_sample_or_site, and include_nrm,
+        becuase these have default values other than -999 and are only used
+        internal to Thellier GUI.
+
+        Returns
+        ---------
+        values : list
+            list of non -999 values in self.acceptance_criteria values
+        """
+        ignore = ['interpreter_method', 'average_by_sample_or_site', 'include_nrm']
+        values = ([dic['value'] for dic in self.acceptance_criteria.values() if (dic['criterion_name'] not in ignore and dic['value'] != -999)])
+        return values
+
 
 #--------------------------------------------------------------
 # Run the GUI

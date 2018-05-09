@@ -8025,8 +8025,7 @@
                     "description": "Declination of the vector orthonganal to the best filt plane of the specimen demag in coordinates specified by tilt correction",
                     "validations": [
                         "min(0)",
-                        "max(360)",
-                        "requiredIfGroup(\"Direction\")"
+                        "max(360)"
                     ]
                 },
                 "dir_bfv_inc": {
@@ -8038,8 +8037,7 @@
                     "description": "Inclination of the vector orthonganal to the best filt plane of the specimen demag in coordinates specified by tilt correction",
                     "validations": [
                         "min(-90)",
-                        "max(90)",
-                        "requiredIfGroup(\"Direction\")"
+                        "max(90)"
                     ]
                 },
                 "dir_bfv_dec": {
@@ -8051,8 +8049,7 @@
                     "description": "Declination of the vector in the best filt plane of the specimen demag in coordinates specified by tilt correction",
                     "validations": [
                         "min(0)",
-                        "max(360)",
-                        "requiredIfGroup(\"Direction\")"
+                        "max(360)"
                     ]
                 },
                 "dir_bfv_inc": {
@@ -8064,8 +8061,7 @@
                     "description": "Inclination of the vector in the best filt plane of the specimen demag in coordinates specified by tilt correction",
                     "validations": [
                         "min(-90)",
-                        "max(90)",
-                        "requiredIfGroup(\"Direction\")"
+                        "max(90)"
                     ]
                 },
                 "dir_alpha95": {

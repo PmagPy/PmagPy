@@ -12,6 +12,7 @@ from . import magic_grid2 as magic_grid
 from . import grid_frame2
 from . import grid_frame3
 from pmagpy import find_pmag_dir
+from pmagpy import new_builder as nb
 
 
 class ErMagicCheckFrame3(wx.Frame):
@@ -151,6 +152,9 @@ class ErMagicCheckFrame3(wx.Frame):
         # propagate lithologies & geologic classes from sites table
         self.contribution.propagate_cols_up(['lithologies',
                                              'geologic_classes'], 'locations', 'sites')
+        res = self.contribution.propagate_min_max_up()
+        if nb.not_null(res):
+            self.contribution.propagate_cols_up(['age_unit'], 'locations', 'sites')
 
         # set up frame
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)

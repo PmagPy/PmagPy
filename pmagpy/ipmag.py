@@ -3323,6 +3323,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             plot += 1
             pmagplotlib.delticks(ax)  # dec xticks are too crowded otherwise
     else:
+        print('no data!')
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
         plt.subplot(1, pcol, plot)
@@ -3547,6 +3548,10 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
             filenum += 1
         LN += 1
         line = File[LN]
+        # skip empty tables
+        if line == ">>>>>>>>>>":
+            LN += 1
+            continue
         keys = line.replace('\n', '').split('\t')
         if keys[0][0] == '.':
             keys = line.replace('\n', '').replace('.', '').split('\t')
@@ -3927,13 +3932,15 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version')
+              'Site', 'Object Number', 'version', 'site_definition')
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
                                   'age_low', 'age_sigma', 'specimen_core_depth'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
                                    'age_sigma', 'core_depth', 'composite_depth'],
+                     'sites' : ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
+                                'orientation_quality', 'sample_alternatives', 'timestamp'],
                      'ages': ['level']}
 
     failing = []
@@ -5335,11 +5342,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             SiteRec["er_site_name"] = site
             SiteRec["site_definition"] = "s"
 
-            for key in ["er_location_name"]:
-                if key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
-                    SiteRec[key] = Prev_MagRec[key]
-                else:
-                    SiteRec[key] = ""
+            if "er_location_name" in SiteRec and SiteRec.get("er_location_name"):
+                pass
+            elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "":
+                SiteRec[key] = Prev_MagRec[key]
+            else:
+                print('setting location name to ""')
+                SiteRec[key] = ""
 
             for key in ["lat", "lon", "height"]:
                 if "site_" + key in list(Prev_MagRec.keys()) and Prev_MagRec["site_" + key] != "":

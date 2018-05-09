@@ -65,7 +65,7 @@ def main():
     pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Bcr1, Bcr1Bc, S1 = [], [], []
-    locations = ''
+    locations = []
 
     if 'location' in spec_df.columns:
         locations = spec_df['location'].unique()
@@ -104,8 +104,9 @@ def main():
     pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr, S, 'bs')
     pmagplotlib.plotSBc(DSC['S-Bc'], Bc, S, 'bs')
     files = {}
-    if len(locations) > 0:
-        locations = locations[:-1]
+    locations = "_".join(locations)
+    #if len(locations) > 1:
+    #    locations = locations[:-1]
     for key in list(DSC.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
             files[key] = 'LO:_' + locations + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt

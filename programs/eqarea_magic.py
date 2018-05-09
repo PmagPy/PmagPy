@@ -39,6 +39,7 @@ def main():
         -fsa FILE: specify sample file name, (required if you want to plot specimens by site)
                 default='samples.txt'
         -fsi FILE: specify site file name, default='sites.txt'
+        -flo FILE: specify location file name, default='locations.txt'
 
         -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
@@ -71,6 +72,7 @@ def main():
     spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
     samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
     site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
+    loc_file = pmag.get_named_arg_from_sys("-flo", default_val="locations.txt")
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -117,7 +119,8 @@ def main():
     #Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
 
     #
-    fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
+    fnames = {"specimens": spec_file, "samples": samp_file,
+              'sites': site_file, 'locations': loc_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames,
                                    single_file=in_file)
 

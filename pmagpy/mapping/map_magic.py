@@ -82,19 +82,16 @@ spd2magic_map = dict(list(zip(spd, magic)))
 magic2spd_map = dict(list(zip(magic, spd)))
 
 
-def cache_mappings(dir_path):
+def cache_mappings(file_path):
     """
     Make a full mapping for 2 --> 3 columns.
-    Output the mapping to json in the specified dir_path.
-    Note: This file is currently called maps.py
-    and lives in PmagPy/pmagpy/mapping.
-    To match the current format of maps.py,
-    you will need to add `all_maps = ` at the beginning
-    of the file.
+    Output the mapping to json in the specified file_path.
+    Note: This file is currently called maps.py,
+    full path is PmagPy/pmagpy/mapping/maps.py.
 
     Parameters
     ----------
-    dir_path : string with full file path to dump mapping json.
+    file_path : string with full file path to dump mapping json.
 
     Returns
     ---------
@@ -113,15 +110,27 @@ def cache_mappings(dir_path):
         table_names3 = table_names3_2_table_names2[dm_type]
         dictionary = {}
         for label, row in dm.iterrows():
+            # if there are one or more corresponding 2.5 columns:
             if isinstance(row['previous_columns'], list):
                 for previous_values in row['previous_columns']:
                     previous_table = previous_values['table']
                     previous_value = previous_values['column']
-                    #print 'previous_table', previous_table
                     if previous_table in table_names3:
-                        #print label, ":", row['previous_columns'][0]['column']
-                        dictionary[previous_value] = label
+                        add_to_dict(previous_value, label, dictionary)
+                    elif previous_table in ["pmag_results", "rmag_results"]:
+                        if label not in dictionary.values():
+                            if previous_value not in dictionary.keys():
+                                add_to_dict(previous_value, label, dictionary)
         return dictionary
+
+    def add_to_dict(key, value, dictionary):
+        if key in dictionary:
+            if value != dictionary[key]:
+                print('W- OVERWRITING')
+                print('was:', key, dictionary[key])
+                print('now:', key, value)
+        dictionary[key] = value
+
     # begin
     data_model = DataModel()
     maps = {}
@@ -130,7 +139,8 @@ def cache_mappings(dir_path):
         new_mapping = get_2_to_3(table_name, dm)
         maps[table_name] = new_mapping
     # write maps out to file
-    f = open(dir_path, 'w')
+    f = open(file_path, 'w')
+    f.write("all_maps = ")
     json.dump(maps, f)
     f.close()
     return maps
@@ -215,6 +225,7 @@ def convert_meas_df_thellier_gui(meas_df_in, output):
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
 spec_magic2_2_magic3_map.update(add_to_all)
 spec_magic3_2_magic2_map = {v:k for k,v in list(spec_magic2_2_magic3_map.items())}
+spec_magic2_2_magic3_map['specimen_inferred_age'] = 'age'
 specimens = {'external_database_ids': 'external_database_ids',
              'dir_comp': 'specimen_comp_name', 'specimen': 'er_specimen_name'}
 spec_magic3_2_magic2_map.update(specimens)
@@ -224,6 +235,7 @@ samp_magic2_2_magic3_map = maps.all_maps['samples']
 samp_magic2_2_magic3_map.update(add_to_all)
 #sample data translation samples => pmag_samples/er_samples
 samp_magic3_2_magic2_map = {v:k for k,v in list(samp_magic2_2_magic3_map.items())}
+samp_magic2_2_magic3_map['sample_inferred_age'] = 'age'
 samples = {'specimens': 'er_specimen_names', 'dir_comp_name': 'sample_comp_name',
            'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids',
            'core_depth': 'sample_core_depth', 'composite_depth': 'sample_composite_depth'}

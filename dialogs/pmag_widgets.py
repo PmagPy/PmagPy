@@ -1067,7 +1067,11 @@ def close_window(SELF, command, outfile, ellipses=False):
     if not outfile:
         outfile = ''
     end = ".." if ellipses else " "
-    msg = "file(s) converted to MagIC format file(s):\n{}.{}\n\nSee Terminal/message window for errors".format(", ".join(outfile), end)
+    if isinstance(outfile, list):
+        outfile_string = ", ".join(outfile)
+    else:
+        outfile_string = outfile
+    msg = "file(s) converted to MagIC format file(s):\n{}.{}\n\nSee Terminal/message window for errors".format(outfile_string, end)
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()

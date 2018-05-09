@@ -99,6 +99,15 @@ class MagMainFrame(wx.Frame):
         # and working directory
         wx.CallAfter(self.get_dm_and_wd, DM, WD)
 
+        # if specified directory doesn't exist, try to make it
+        try:
+            if not os.path.exists(self.WD):
+                os.mkdir(self.WD)
+                pw.simple_warning("New directory: {}\nwill be created".format(self.WD))
+        except FileNotFoundError:
+            pw.simple_warning("You have provided a directory that does not exist and cannot be created.\n Please pick a different directory.")
+            print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
+
 
     def get_dm_and_wd(self, DM=None, WD=None):
         """
@@ -737,6 +746,7 @@ class MagMainFrame(wx.Frame):
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.SafeYield()
+        self.contribution.tables['measurements'].add_measurement_names()
         if self.data_model_num == 3:
             res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
                                                                                       vocab=self.contribution.vocab,

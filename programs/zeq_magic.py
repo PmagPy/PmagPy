@@ -295,7 +295,7 @@ def main():
             if coord != '-1':  # need to transform coordinates to geographic
                 # get the azimuth
                 or_info,az_type=pmag.get_orient(samp_data,this_sample,data_model=3)
-                if 'azimuth' in or_info.keys() and or_info['azimuth']!="":
+                if 'azimuth' in or_info.keys() and nb.not_null(or_info['azimuth']):
                     #azimuths = pd.to_numeric(
                     #    this_specimen_measurements.azimuth).tolist()
                     #dips = pd.to_numeric(this_specimen_measurements.dip).tolist()

@@ -1379,7 +1379,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning('You must select a directory containing 2g binary files')
             return False
         files = os.listdir(directory)
-        files = [str(f) for f in files if str(f).endswith('.dat')]
+        files = [str(f) for f in files if str(f).endswith('.dat') or str(f).endswith('.DAT')]
         if not files:
             pw.simple_warning('No .dat files found in {}'.format(directory))
             return False
@@ -2617,11 +2617,11 @@ class OrientFrameGrid3(wx.Frame):
         self.header_display_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
                                      "field_dip", "bedding_dip_direction", "bedding_dip",
                                      "shadow_angle", "latitude", "longitude", "mm/dd/yy",
-                                     "hh:mm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+                                     "hh:mm", "GPS_baseline", "GPS_Az"]
         self.header_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
                              "field_dip", "bedding_dip_direction", "bedding_dip",
                              "shadow_angle", "lat", "long", "date",
-                             "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+                             "hhmm", "GPS_baseline", "GPS_Az"]
         self.headers = list(zip(self.header_names, self.header_display_names))
 
         # get sample table and convert relevant headers to orient.txt format
@@ -2654,15 +2654,17 @@ class OrientFrameGrid3(wx.Frame):
         # create grid
         self.create_sheet()
 
-        TEXT = """
-        A template for a file named 'demag_orient.txt', which contains samples orientation data, was created in MagIC working directory.
-        You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.
-        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into Pmag GUI.
-        If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
-        After orientation data is filled in, you can Calculate sample orientations.
-"""
+        TEXT = """A template file named 'demag_orient.txt', for sample-level orientation data, was created in your MagIC working directory.
 
-        label = wx.StaticText(self.panel, label=TEXT)
+        You can view/modify demag_orient.txt here.  To edit all the values in a column, click on the column header and then enter your desired value, or select an item from the drop-down menu.
+
+        If you already have these data in MagIC format in Excel or Open Office, save the file as 'tab delimited' and then use the 'Import Orientation File' button below.
+
+        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation data to the site and sample tables.
+"""
+        label_boxsizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'input orientation data ' ), wx.VERTICAL )
+        # width, height
+        label = wx.StaticText(self.panel, label=TEXT, size=(600, 200))
         btn_box = wx.BoxSizer(wx.HORIZONTAL)
         save_btn = wx.Button(self.panel, wx.ID_ANY, "Save Orientation File")
         self.Bind(wx.EVT_BUTTON, self.on_m_save_file, save_btn)
@@ -2675,7 +2677,10 @@ class OrientFrameGrid3(wx.Frame):
         btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(label, flag=wx.CENTRE)
+        #
+        label_boxsizer.Add(label, flag=wx.CENTRE)
+        self.vbox.Add(label_boxsizer, flag=wx.CENTRE|wx.ALL, border=15)
+        #self.vbox.Add(label, flag=wx.CENTRE|wx.ALL, border=15)
         self.vbox.Add(btn_box, flag=wx.CENTRE)
         self.vbox.Add(self.grid, flag=wx.ALL, border=20)
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -2914,6 +2919,8 @@ class OrientFrameGrid3(wx.Frame):
         os.chdir(self.WD)
         if os.path.exists(os.path.join(self.WD, 'er_samples.txt')) or os.path.exists(os.path.join(self.WD, 'er_sites.txt')):
             append = True
+        elif os.path.exists(os.path.join(self.WD, 'samples.txt')) or os.path.exists(os.path.join(self.WD, 'sites.txt')):
+            append = True
         else:
             append = False
         samp_file = "er_samples.txt"
@@ -3032,11 +3039,13 @@ class OrientFrameGrid(wx.Frame):
         self.create_sheet()
 
         TEXT = """
-        A template for a file named 'demag_orient.txt', which contains samples orientation data, was created in MagIC working directory.
-        You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.
-        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into Pmag GUI.
-        If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
-        After orientation data is filled in, you can Calculate sample orientations.
+        A template file named 'demag_orient.txt', for sample-level orientation data, was created in your MagIC working directory.
+
+        You can view/modify demag_orient.txt here.  You can edit all the values in a column by clicking on the column header and then entering your desired value, or selecting an item from the drop-down menu.
+
+        If you already have these data in MagIC format in Excel or Open Office, save the file as 'tab delimited' and then use the 'Import Orientation File' button below.
+
+        After orientation data is filled in, you can Calculate sample orientations.  Method codes will be added during this step.  This will write orientation data to the site and sample tables.
 """
 
         label = wx.StaticText(self.panel, label=TEXT)

@@ -976,16 +976,23 @@ class Contribution(object):
             if target_name not in source_df.df.columns:
                 print('-W- {} table missing {} column, cannot propagate age info'.format(target_name, source_df_name))
                 return
-            grouped = source_df.df[[col, target_name]].groupby(target_name)
+            # make sure source is appropriately filled
+            source = source_df.front_and_backfill([col], inplace=False)
+            # add target_name back into front/backfilled source
+            source[target_name] = source_df.df[target_name]
+            grouped = source[[col, target_name]].groupby(target_name)
             if len(grouped):
                 minimum, maximum = grouped.min(), grouped.max()
                 minimum = minimum.reindex(target_df.df.index)
                 maximum = maximum.reindex(target_df.df.index)
                 # update target_df without overwriting existing values
-                target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
+                cond_min = target_df.df[min_col].apply(not_null)
+                cond_max = target_df.df[max_col].apply(not_null)
+                #
+                target_df.df[min_col] = np.where(cond_min,
                                                  target_df.df[min_col],
                                                  minimum[col])
-                target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
+                target_df.df[max_col] = np.where(cond_max,
                                                  target_df.df[max_col],
                                                  maximum[col])
         # update contribution
@@ -1087,13 +1094,7 @@ class Contribution(object):
         """
         for table_name in self.tables:
             table = self.tables[table_name]
-            unrecognized_cols = table.get_non_magic_cols()
-            if unrecognized_cols:
-                print('-I- Removing non-MagIC column names from {}:'.format(table_name), end=' ')
-                for col in unrecognized_cols:
-                    self.tables[table_name].df.drop(col, axis='columns', inplace=True)
-                    print(col, end=' ')
-                print("\n")
+            table.remove_non_magic_cols_from_table()
 
     def write_table_to_file(self, dtype, custom_name=None, append=False):
         """
@@ -1334,6 +1335,35 @@ class MagicDataFrame(object):
 
 
     ## Methods to change self.df inplace
+
+    def remove_non_magic_cols_from_table(self, ignore_cols=None):
+        """
+        Remove all non-magic columns from self.df.
+        Changes in place.
+
+        Parameters
+        ----------
+        ignore_cols : list-like
+            columns not to remove, whether they are proper
+            MagIC columns or not
+
+        Returns
+        ---------
+        unrecognized_cols : list
+            any columns that were removed
+        """
+        unrecognized_cols = self.get_non_magic_cols()
+        for col in ignore_cols:
+            if col in unrecognized_cols:
+                unrecognized_cols.remove(col)
+        if unrecognized_cols:
+            print('-I- Removing non-MagIC column names from {}:'.format(self.dtype), end=' ')
+            for col in unrecognized_cols:
+                self.df.drop(col, axis='columns', inplace=True)
+                print(col, end=' ')
+            print("\n")
+        return unrecognized_cols
+
 
     def add_measurement_names(self):
         if 'measurement' in self.df.columns:
@@ -1594,7 +1624,7 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
-    def front_and_backfill(self, cols):
+    def front_and_backfill(self, cols, inplace=True):
         """
         Groups dataframe by index name then replaces null values in selected
         columns with front/backfilled values if available.
@@ -1620,8 +1650,10 @@ class MagicDataFrame(object):
             short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         else:
             print('-W- Was not able to front/back fill table {} with these columns: {}'.format(self.dtype, ', '.join(cols)))
-        self.df[cols] = short_df[cols]
-        return self.df
+        if inplace:
+            self.df[cols] = short_df[cols]
+            return self.df
+        return short_df
 
 
     def sort_dataframe_cols(self):
@@ -1907,7 +1939,7 @@ class MagicDataFrame(object):
     ## Methods for writing self.df out to tab-delimited file
 
     def write_magic_file(self, custom_name=None, dir_path=".",
-                         append=False, multi_type=False):
+                         append=False, multi_type=False, df=None):
         """
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
@@ -1948,7 +1980,8 @@ class MagicDataFrame(object):
         if name in self.df.columns:
             self.df[name] = self.df[name].astype(str)
         #
-        df = self.df
+        if df is None:
+            df = self.df
         # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:

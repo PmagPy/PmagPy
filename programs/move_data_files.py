@@ -27,7 +27,8 @@ def main():
         print("Alternatively, you may use the full path to the directory of your choice from anywhere in the file system: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
         sys.exit()
     dest = pmag.get_named_arg_from_sys('-d', None, True)
-    data_files = path.join(sys.prefix, 'data_files')
+    source = pmag.get_named_arg_from_sys('-s', sys.prefix, False)
+    data_files = path.join(source, 'data_files')
     copy_directory(data_files, dest)
 
 
