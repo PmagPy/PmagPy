@@ -236,7 +236,6 @@ data_files/hysteresis_magic/specimens.txt
 data_files/hysteresis_magic/samples.txt
 data_files/hysteresis_magic/sites.txt
 data_files/hysteresis_magic/locations.txt
-data_files/hysteresis_magic/measurements.txt
 data_files/hysteresis_magic/magic_measurements.txt
 data_files/irmaq_magic/specimens.txt
 data_files/irmaq_magic/samples.txt
