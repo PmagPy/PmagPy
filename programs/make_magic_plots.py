@@ -296,13 +296,14 @@ def main():
                     SiteDIs.append(rec)
             print('individual number of directions: ', len(SiteDIs))
             # tilt corrected coordinates
-            SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100', 'T')
+            SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100',
+                                          'T', float_to_int=True)
             print('number of tilt corrected directions: ', len(SiteDIs_t))
             SiteDIs_g = pmag.get_dictitem(
-                SiteDIs, tilt_corr_key, '0', 'T')  # geographic coordinates
+                SiteDIs, tilt_corr_key, '0', 'T', float_to_int=True)  # geographic coordinates
             print('number of geographic  directions: ', len(SiteDIs_g))
             SiteDIs_s = pmag.get_dictitem(
-                SiteDIs, tilt_corr_key, '-1', 'T')  # sample coordinates
+                SiteDIs, tilt_corr_key, '-1', 'T', float_to_int=True)  # sample coordinates
             print('number of sample  directions: ', len(SiteDIs_s))
             SiteDIs_x = pmag.get_dictitem(
                 SiteDIs, tilt_corr_key, '', 'T')  # no coordinates
@@ -408,13 +409,13 @@ def main():
                     sdata = data
                 else:
                     sdata = pmag.get_dictitem(
-                        data, aniso_tilt_corr_key, '-1', 'T')
+                        data, aniso_tilt_corr_key, '-1', 'T', float_to_int=True)
                 # get specimen coordinates
                 gdata = pmag.get_dictitem(
-                    data, aniso_tilt_corr_key, '0', 'T')
+                    data, aniso_tilt_corr_key, '0', 'T', float_to_int=True)
                 # get specimen coordinates
                 tdata = pmag.get_dictitem(
-                    data, aniso_tilt_corr_key, '100', 'T')
+                    data, aniso_tilt_corr_key, '100', 'T', float_to_int=True)
                 CRD = ""
                 if new_model:
                     CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt
