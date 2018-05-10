@@ -4291,9 +4291,9 @@ class Demag_GUI(wx.Frame):
         Opens a dialog allowing the user to pick a measurement file
         """
         dlg = wx.FileDialog(
-            self, message="No magic_measurements.txt found. Please choose a magic measurement file",
+            self, message="No measurements found. Please choose a measurement file",
             defaultDir=self.WD,
-            defaultFile="magic_measurements.txt",
+            defaultFile="measurements.txt",
             wildcard="*.magic|*.txt",
             style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
