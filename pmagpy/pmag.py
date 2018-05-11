@@ -252,7 +252,7 @@ def find_f(data):
     >>> directions = np.array([[140,21],[127,23],[142,19],[136,22]])
     >>> Es, Is, Fs, V2s = pmag.find_f(directions)
     """
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     Es, Is, Fs, V2s = [], [], [], []
     ppars = doprinc(data)
     D = ppars['dec']
@@ -3858,17 +3858,18 @@ def fisher_mean(data):
     fpars["n"] = N
     fpars["r"] = R
     if N != R:
-        k = old_div((N - 1.), (N - R))
+        k = (N - 1.)/ (N - R)
+        print (N,R)
         fpars["k"] = k
-        csd = old_div(81., np.sqrt(k))
+        csd = 81./np.sqrt(k)
     else:
         fpars['k'] = 'inf'
         csd = 0.
-    b = 20.**(old_div(1., (N - 1.))) - 1
+    b = 20.**(1./(N - 1.)) - 1
     a = 1 - b * (N - R) / R
     if a < -1:
         a = -1
-    a95 = np.arccos(a) * 180. / np.pi
+    a95 = np.degrees(np.arccos(a))
     fpars["alpha95"] = a95
     fpars["csd"] = csd
     if a < 0:
@@ -3889,7 +3890,7 @@ def gausspars(data):
         mean += old_div(data[j], float(N))
     for j in range(N):
         d += (data[j] - mean)**2
-    stdev = np.sqrt(d * (old_div(1., (float(N - 1)))))
+    stdev = np.sqrt(d * (1./(float(N - 1))))
     return mean, stdev
 
 
