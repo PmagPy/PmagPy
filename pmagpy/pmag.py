@@ -3859,7 +3859,6 @@ def fisher_mean(data):
     fpars["r"] = R
     if N != R:
         k = (N - 1.)/ (N - R)
-        print (N,R)
         fpars["k"] = k
         csd = 81./np.sqrt(k)
     else:
