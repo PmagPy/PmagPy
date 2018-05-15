@@ -87,7 +87,8 @@ def main():
     except ValueError:
         pass
     Nbins=old_div(len(D),binsize)
-    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
+    #n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
+    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',density=norm)
     pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()])
     pylab.xlabel(xlab)
     pylab.ylabel(ylab)
