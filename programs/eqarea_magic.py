@@ -415,7 +415,7 @@ def main():
             black     = '#000000'
             purple    = '#800080'
             titles={}
-            titles['eq']='Equal Area Plot'
+            titles['eqarea']='Equal Area Plot'
             FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
             pmagplotlib.saveP(FIG,files)
 
