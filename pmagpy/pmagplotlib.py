@@ -2623,8 +2623,15 @@ def addBorders(Figs, titles, border_color, text_color):
         fig = pylab.figure(Figs[key])
         plot_title = titles[key]
         fig.set_figheight(5.5)
-        (x, y, w, h) = fig.gca().get_position()
-        fig.gca().set_position([x, 1.3 * y, w, old_div(h, 1.1)])
+        # get returns Bbox with x0, y0, x1, y1
+        pos = fig.gca().get_position()
+        # tweak some of the default values
+        w = pos.x1 - pos.x0
+        h = (pos.y1 - pos.y0) / 1.1
+        x = pos.x0
+        y = pos.y0 * 1.3
+        # set takes: left, bottom, width, height
+        fig.gca().set_position([x, y, w, h])
 
         # add an axis covering the entire figure
         border_ax = fig.add_axes([0, 0, 1, 1])
@@ -2877,7 +2884,7 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
     ax : figure object
     agemin : Minimum age for timescale
     agemax : Maximum age for timescale
-    timescale : Time Scale [ default is Gradstein et al., (2012)] 
+    timescale : Time Scale [ default is Gradstein et al., (2012)]
        for other options see pmag.get_ts()
     """
     ax.set_title(timescale.upper())
