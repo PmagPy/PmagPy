@@ -1590,16 +1590,17 @@ else:
         update figures and text when a next button is selected
         """
         if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved'] != True:
-            del self.Data[self.s]['pars']
-            self.Data[self.s]['pars'] = {}
-            self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
-            self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
-            self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
-            # return to last saved interpretation if exist
-            if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
-                for key in list(self.last_saved_pars.keys()):
-                    self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
-                self.last_saved_pars = {}
+            self.on_save_interpretation_button(None)
+            #del self.Data[self.s]['pars']
+            #self.Data[self.s]['pars'] = {}
+            #self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
+            #self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
+            #self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
+            ## return to last saved interpretation if exist
+            #if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
+            #    for key in list(self.last_saved_pars.keys()):
+            #        self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
+            #    self.last_saved_pars = {}
 
         index = self.specimens.index(self.s)
         if index == len(self.specimens) - 1:
