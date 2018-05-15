@@ -102,13 +102,10 @@ def main():
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
     # default files
     if data_model_num == 3:
-        res_file = pmag.get_named_arg_from_sys("-f", "specimens.txt")
+        res_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
     else:
         res_file = pmag.get_named_arg_from_sys("-f", "pmag_results.txt")
     res_file = pmag.resolve_file_name(res_file, dir_path)
-    if '-f' in sys.argv:
-        ind = sys.argv.index('-f')
-        res_file = dir_path+'/'+sys.argv[ind+1]
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
         fmt = sys.argv[ind+1]
