@@ -281,19 +281,20 @@ def main():
                 SiteDIs = pmag.get_dictitem(SiteDIs, 'data_type', 'i', 'has')
             else:
                 # get only individual results (if result_type col is available)
-                if 'result_type' in SiteDIs[0]:
-                    SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
-                # then convert tilt_corr_key to correct format
-                old_SiteDIs = SiteDIs
-                SiteDIs = []
-                for rec in old_SiteDIs:
-                    if tilt_corr_key not in rec:
-                        break
-                    if nb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
-                        rec[tilt_corr_key] = ""
-                    else:
-                        rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
-                    SiteDIs.append(rec)
+                if SiteDIs:
+                    if 'result_type' in SiteDIs[0]:
+                        SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                    # then convert tilt_corr_key to correct format
+                    old_SiteDIs = SiteDIs
+                    SiteDIs = []
+                    for rec in old_SiteDIs:
+                        if tilt_corr_key not in rec:
+                            break
+                        if nb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
+                            rec[tilt_corr_key] = ""
+                        else:
+                            rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                        SiteDIs.append(rec)
             print('individual number of directions: ', len(SiteDIs))
             # tilt corrected coordinates
             SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100',
