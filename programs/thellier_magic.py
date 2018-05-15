@@ -338,6 +338,7 @@ def main():
                         titles['zijd'] = 'Zijderveld Plot'
                         titles['arai'] = 'Arai Plot'
                         titles['TRM'] = 'TRM Acquisition data'
+                        titles['eqarea'] = 'Equal Area Plot'
                         AZD = pmagplotlib.addBorders(
                             AZD, titles, black, purple)
                     pmagplotlib.saveP(AZD, files)
