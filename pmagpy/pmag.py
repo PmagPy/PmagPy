@@ -4705,7 +4705,16 @@ def doprinc(data):
 
 
 def PTrot(EP, Lats, Lons):
-    """ Does rotation of points on a globe  by finite rotations, using method of Cox and Hart 1986, box 7-3. """
+    """
+    Rotates points on a globe by an Euler pole rotation using method of
+    Cox and Hart 1986, box 7-3.
+
+    Parameters
+    ----------
+    EP : Euler pole list [lat,lon,angle]
+    Lats : list of latitudes of points to be rotated
+    Lons : list of longitudes of points to be rotated
+    """
 # gets user input of Rotation pole lat,long, omega for plate and converts
 # to radians
     E = dir2cart([EP[1], EP[0], 1.])  # EP is pole lat,lon omega
