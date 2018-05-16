@@ -32,6 +32,9 @@ version_num = pmag.get_version()
 # matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 
 import matplotlib
+# if running on a server use Agg to avoid $DISPLAY not found errors
+if isServer:
+    matplotlib.pyplot.switch_backend('Agg')
 
 # matplotlib >= 2.1 not yet available for Canopy (also not default with anaconda)
 if matplotlib.__version__ < '2.1':
