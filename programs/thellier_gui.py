@@ -1371,8 +1371,8 @@ else:
 
         menu_file.AppendSeparator()
 
-        m_new_sub_plots = menu_file.Append(-1,
-                                           "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.AppendSubMenu(submenu_save_plots,
+                                                  "&Save plot")
 
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(wx.ID_EXIT, "Quit", "Quit application")
@@ -1406,8 +1406,8 @@ else:
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file,
                   m_import_criteria_file)
 
-        m_new_sub = menu_Analysis.Append(-1,
-                                         "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.AppendSubMenu(submenu_criteria,
+                                         "Acceptance criteria")
 
         m_previous_interpretation = menu_Analysis.Append(
             -1, "&Import previous interpretation from a 'redo' file", "")
