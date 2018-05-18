@@ -97,7 +97,8 @@ matplotlib.rc('ytick', labelsize=10)
 matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-rcParams.update({"svg.fonttype":'svgfont'})
+# https://github.com/matplotlib/matplotlib/issues/10063
+#rcParams.update({"svg.fonttype":'svgfont'})
 
 class Demag_GUI(wx.Frame):
     """

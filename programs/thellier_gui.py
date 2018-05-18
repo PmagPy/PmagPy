@@ -234,8 +234,9 @@ matplotlib.rc('ytick', labelsize=10)
 matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-# matplotlib.rcParams.update({"svg.embed_char_paths":False})
-matplotlib.rcParams.update({"svg.fonttype": 'none'})
+# https://github.com/matplotlib/matplotlib/issues/10063
+#matplotlib.rcParams.update({"svg.fonttype": 'none'})
+
 try:
     version = pmag.get_version()
 except ImportError:
