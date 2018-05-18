@@ -6370,10 +6370,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 quality_flag = 'quality'
             elif 'flag' in meas_data3_0.columns:
                 quality_flag = 'flag'
+
             if quality_flag:
-                meas_data3_0 = meas_data3_0[meas_data3_0[quality_flag].str.contains('b')==False] # exclude 'bad' measurements
+                # exclude 'bad' measurements
+                meas_data3_0 = meas_data3_0[-meas_data3_0[quality_flag].str.contains('b').astype(bool)]
+            # fish out all the relavent data
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
-                'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]  # fish out all the relavent data
+                'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
@@ -6587,32 +6590,38 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     'LP-AN') == True]  # get the anisotropy records
                 # get the ones with anisotropy tensors that aren't blank
                 anis_data = anis_data[anis_data['aniso_s'].notnull()]
-                anis_data = anis_data[['specimen', 'aniso_s', 'aniso_ftest', 'aniso_ftest12',
-                                       'aniso_ftest23', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_type', 'description']]
-                L = ['specimen', 'aniso_s', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23',
-                     'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_type', 'description']
-                if 'aniso_alt' in anis_data.columns:
-                    L.append('aniso_alt')
-                anis_data = anis_data[L]
-                # rename column headers to 2.5
-                #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
-                # convert to list of dictionaries
-                anis_dict = anis_data.to_dict("records")
-                for AniSpec in anis_dict:  # slip aniso data into Data[s]
-                    AniSpec = map_magic.convert_aniso(
-                        'magic2', AniSpec)  # unpack aniso_s
-                    s = AniSpec['er_specimen_name']
-                    if 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) == float:
-                        AniSpec['anisotropy_alt'] = AniSpec['aniso_alt']
-                    elif 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) != float:
-                        AniSpec['anisotropy_alt'] = ""
+                anis_cols = ['specimen', 'aniso_s', 'aniso_ftest',
+                             'aniso_ftest12', 'aniso_s_n_measurements',
+                             'aniso_s_sigma', 'aniso_type', 'description']
+                missing_anis_cols = set(anis_cols).difference(anis_data.columns)
+                if any(missing_anis_cols):
+                    print('-W- Incomplete anisotropy data found, missing the following columns: {}'.format(', '.join(missing_anis_cols)))
+                    print('    Ignoring anisotropy data')
+                    anis_data = []
+                else:
+                    print('-I- Using anisotropy data')
+                    if 'aniso_alt' in anis_data.columns:
+                        anis_cols.append('aniso_alt')
+                    anis_data = anis_data[anis_cols]
+                    # rename column headers to 2.5
+                    #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
+                    # convert to list of dictionaries
+                    anis_dict = anis_data.to_dict("records")
+                    for AniSpec in anis_dict:  # slip aniso data into Data[s]
+                        AniSpec = map_magic.convert_aniso(
+                            'magic2', AniSpec)  # unpack aniso_s
+                        s = AniSpec['er_specimen_name']
+                        if 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) == float:
+                            AniSpec['anisotropy_alt'] = AniSpec['aniso_alt']
+                        elif 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) != float:
+                            AniSpec['anisotropy_alt'] = ""
 
-                    if 'AniSpec' not in list(Data[s].keys()):
-                        Data[s]['AniSpec'] = {}  # make a blank
-                    TYPE = AniSpec['anisotropy_type']
-                    Data[s]['AniSpec'][TYPE] = AniSpec
-                    if AniSpec['anisotropy_F_crit'] != "":
-                        Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
+                        if 'AniSpec' not in list(Data[s].keys()):
+                            Data[s]['AniSpec'] = {}  # make a blank
+                        TYPE = AniSpec['anisotropy_type']
+                        Data[s]['AniSpec'][TYPE] = AniSpec
+                        if AniSpec['anisotropy_F_crit'] != "":
+                            Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
         else:  # do data_model=2.5 way...
             rmag_anis_data = []
             results_anis_data = []
