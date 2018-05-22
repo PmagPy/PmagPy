@@ -441,7 +441,7 @@ def main():
                  change [h]orizontal projection angle,   change [c]oordinate systems, 
                  [d]elete current interpretation(s), [e]dit data,   [q]uit: 
                 """)
-                    ans=raw_input('<Return>  for  next specimen \n')
+                    ans=input('<Return>  for  next specimen \n')
                     setangle=0
                     if ans=='d': # delete this interpretation
                         CurrRecs=[]
@@ -450,7 +450,7 @@ def main():
                         changeS=1
                     if  ans=='q': 
                         if changeM==1:
-                            ans=raw_input('Save changes to magic_measurements.txt? y/[n] ')
+                            ans=input('Save changes to magic_measurements.txt? y/[n] ')
                             if ans=='y':
                                 pmag.magic_write(meas_file,meas_data,'magic_measurements')
                         print("Good bye")
@@ -475,7 +475,7 @@ def main():
                         if tilt==1 and geo ==1:print("You  are currently viewing stratigraphic  coordinates ")
                         if tilt==0 and geo ==0: print("You  are currently viewing sample coordinates ")
                         print("\n Which coordinate system do you wish to view? ")
-                        coord=raw_input(" <Return>  specimen, [g] geographic, [t] tilt corrected ")
+                        coord=input(" <Return>  specimen, [g] geographic, [t] tilt corrected ")
                         if coord=="g":geo,tilt=1,0
                         if coord=="t":
                             geo=1
@@ -485,7 +485,7 @@ def main():
                             geo=0
                             tilt=0
                         if geo==1 and sfile=="":
-                            samp_file=raw_input(" Input er_samples file for sample orientations [er_samples.txt] " )
+                            samp_file=input(" Input er_samples file for sample orientations [er_samples.txt] " )
                             if samp_file=="":samp_file="er_samples.txt"
                             samp_data,file_type=pmag.magic_read(samp_file)
                             if file_type != 'er_samples':
@@ -496,7 +496,7 @@ def main():
                         ans=""
                     if ans=='s':
                         keepon=1
-                        sample=raw_input('Enter desired specimen name (or first part there of): ')
+                        sample=input('Enter desired specimen name (or first part there of): ')
                         while keepon==1:
                             try:
                                 k =sids.index(sample)
@@ -507,13 +507,13 @@ def main():
                                     if sample in sids[qq]:tmplist.append(sids[qq])
                                 print(sample," not found, but this was: ")
                                 print(tmplist)
-                                sample=raw_input('Select one or try again\n ')
+                                sample=input('Select one or try again\n ')
                         angle,direction_type="",""
                         setangle=0
                         ans=""
                     if ans=='h':
                         k-=1
-                        angle=raw_input("Enter desired  declination for X axis 0-360 ")
+                        angle=input("Enter desired  declination for X axis 0-360 ")
                         angle=float(angle)
                         if angle==0:angle=0.001
                         s=sids[k]
@@ -527,7 +527,7 @@ def main():
                             if plotrec[0]<=200 and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2]))
                             if plotrec[0]>200 and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2]))
                             recnum += 1
-                        answer=raw_input('Enter index of point to change from bad to good or vice versa:  ')
+                        answer=input('Enter index of point to change from bad to good or vice versa:  ')
                         try: 
                                 ind=int(answer)
                                 meas_data=pmag.mark_dmag_rec(s,ind,meas_data)
@@ -541,11 +541,11 @@ def main():
                         GoOn=0
                         while GoOn==0:
                             print('Enter index of first point for pca: ','[',beg_pca,']')
-                            answer=raw_input('return to keep default  ')
+                            answer=input('return to keep default  ')
                             if answer != "":
                                 beg_pca=int(answer)
                             print('Enter index  of last point for pca: ','[',end_pca,']')
-                            answer=raw_input('return to keep default  ')
+                            answer=input('return to keep default  ')
                             try:
                                 end_pca=int(answer) 
                                 if plotblock[beg_pca][5]=='b' or plotblock[end_pca][5]=='b': 
@@ -566,7 +566,7 @@ def main():
                         while GoOn==0:
                             if calculation_type!="":
                                 print("Prior calculation type = ",calculation_type)
-                            ct=raw_input('Enter new Calculation Type: best-fit line,  plane or fisher mean [l]/p/f :  ' )
+                            ct=input('Enter new Calculation Type: best-fit line,  plane or fisher mean [l]/p/f :  ' )
                             if ct=="" or ct=="l": 
                                 direction_type="l"
                                 calculation_type="DE-BFL"
@@ -672,7 +672,7 @@ def main():
                                 print('%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             else:
                                 print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
-                        saveit=raw_input("Save this interpretation? [y]/n \n")
+                        saveit=input("Save this interpretation? [y]/n \n")
                         if saveit!="n":
                             changeS=1
 #
@@ -680,7 +680,7 @@ def main():
 #
                             angle,direction_type,setangle="","",0
                             if len(CurrRecs)>0:
-                                replace=raw_input(" [0] add new component, or [1] replace existing interpretation(s) [default is replace] ")
+                                replace=input(" [0] add new component, or [1] replace existing interpretation(s) [default is replace] ")
                                 if replace=="1" or replace=="":
                                     CurrRecs=[]
                                     PmagSpecRec['specimen_comp_name']='A'
@@ -688,7 +688,7 @@ def main():
                                 else:
                                     print('These are the current component names for this specimen: ')
                                     for trec in CurrRecs:print(trec['specimen_comp_name'])
-                                    compnum=raw_input("Enter new component name: ")
+                                    compnum=input("Enter new component name: ")
                                     PmagSpecRec['specimen_comp_name']=compnum
                                     print("Adding new component: ",PmagSpecRec['specimen_comp_name'])
                                     CurrRecs.append(PmagSpecRec)
