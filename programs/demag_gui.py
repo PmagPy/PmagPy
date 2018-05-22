@@ -3434,7 +3434,7 @@ class Demag_GUI(wx.Frame):
         prev_s = None
         cnt=-1
         # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
-        self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
+        self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-PI-ARM"]
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
 #        self.mag_meas_data.sort(key=meas_key)
         # asiigned default values for NRM
