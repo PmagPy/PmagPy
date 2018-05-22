@@ -334,9 +334,15 @@ def main():
                         ## this transposes the columns and rows of the list of lists
                         dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
                         decs, incs = pmag.dotilt_V(dirs_tilt)
-                        title = title + '_t'
+                        if pmagplotlib.isServer:
+                            title = title + "CO:_t_"
+                        else:
+                            title = title + '_t'
                     else:
-                        title = title + '_g'
+                        if pmagplotlib.isServer:
+                            title = title + "CO:_g_"
+                        else:
+                            title = title + '_g'
             if angle == "":
                 angle = decs[0]
             ints = pd.to_numeric(this_specimen_measurements[int_key]).tolist()
