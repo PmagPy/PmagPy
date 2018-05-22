@@ -72,7 +72,7 @@ def main():
     version_num = pmag.get_version()
     verbose = pmagplotlib.verbose
     calculation_type, fmt = "", "svg"
-    user, spec_keys, locname = "", [], ''
+    spec_keys = []
     geo, tilt, ask = 0, 0, 0
     PriorRecs = []  # empty list for prior interpretations
     backup = 0
@@ -222,7 +222,6 @@ def main():
         dtype='specimens', columns=specimen_cols)
     # this is for interpretations from this session
     current_spec_data = data_container.df
-    locname = 'LookItUp'
     if specimen == "":
         k = 0
     else:
@@ -240,9 +239,9 @@ def main():
         if setangle == 0:
             angle = ""
         this_specimen_measurements = meas_data[meas_data['specimen'].str.contains(
-            this_specimen) == True]  # fish out this specimen
-        this_specimen_measurements = this_specimen_measurements[this_specimen_measurements['quality'].str.contains(
-            'g') == True]  # fish out this specimen
+            this_specimen).astype(bool)]  # fish out this specimen
+        this_specimen_measurements = this_specimen_measurements[-this_specimen_measurements['quality'].str.contains(
+            'b').astype(bool)]  # remove bad measurements
         if len(this_specimen_measurements) != 0:  # if there are measurements
             meas_list=this_specimen_measurements.to_dict('records') # get a list of dictionaries
             this_sample=""
@@ -257,7 +256,10 @@ def main():
             # figure out the method codes
             #
             units, methods, title = "", "", this_specimen
-            # this is a list of all the specimen method codes`
+
+            if pmagplotlib.isServer:
+                title = "LO:__SI:__SA:__SP:_{}_".format(this_specimen)
+            # this is a list of all the specimen method codes
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
             if any(nb.is_null(treat, False) for treat in tr):
@@ -377,10 +379,15 @@ def main():
                             if 'DE-BFL-A' in m:
                                 calculation_type = 'DE-BFL-A'  # anchored best fit line
                         if len(beg_pcas)!=0:
-                            start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
+                            try:
+                                # getting the starting and ending points
+                                start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])
+                                mpars = pmag.domean(
+                                    datablock, start, end, calculation_type)
+                            except ValueError:
+                                print('-W- Specimen record contains invalid start/stop bounds:')
+                                mpars['specimen_direction_type'] = "Error"
                         # calculate direction/plane
-                            mpars = pmag.domean(
-                                datablock, start, end, calculation_type)
                             if mpars["specimen_direction_type"] != "Error":
                                 # put it on the plot
                                 pmagplotlib.plotDir(ZED, mpars, datablock, angle)
@@ -416,6 +423,8 @@ def main():
                 files = {}
                 for key in list(ZED.keys()):
                     files[key] = basename + '_' + key + '.' + fmt
+                    if pmagplotlib.isServer:
+                        files[key] = basename + "TY:_{}_.".format(key) + fmt
                 pmagplotlib.saveP(ZED, files)
                 if specimen != "":
                     sys.exit()
@@ -537,7 +546,7 @@ def main():
                 if verbose:
                     saveit = input("Save this interpretation? [y]/n \n")
         else:
-            print("no data")
+            print("no data", this_specimen)
         if verbose:
             res = input('  <return> for next specimen, [q]uit  ')
             if res == 'q':
