@@ -5335,6 +5335,15 @@ def a2s(a):
 def doseigs(s):
     """
     convert s format for eigenvalues and eigenvectors
+    Input:
+        The six tensor elements as a list:
+          s=[x11,x22,x33,x12,x23,x13]
+    Output:
+         tau,V:
+           tau is an list of eigenvalues in decreasing order:
+              [t1,t2,t3]
+           V is an list of the eigenvector directions 
+              [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
     """
 #
     A = s2a(s)  # convert s to a (see Tauxe 1998)
