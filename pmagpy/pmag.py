@@ -5363,6 +5363,16 @@ def doseigs(s):
 def doeigs_s(tau, Vdirs):
     """
      get elements of s from eigenvaulues - note that this is very unstable
+     Input: 
+         tau,V:
+           tau is an list of eigenvalues in decreasing order:
+              [t1,t2,t3]
+           V is an list of the eigenvector directions
+              [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
+    Output:
+        The six tensor elements as a list:
+          s=[x11,x22,x33,x12,x23,x13]
+
     """
 #
     V = []
