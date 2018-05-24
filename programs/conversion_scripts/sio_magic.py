@@ -715,7 +715,7 @@ def main():
         kwargs['mag_file']=sys.argv[ind+1]
     if "-dc" in sys.argv:
         ind=sys.argv.index("-dc")
-        kwargs['labfield']=float(sys.argv[ind+1])*1e-6
+        kwargs['labfield']=float(sys.argv[ind+1]) # *1e-6, no need to multilpy here, this is done in convert()
         kwargs['phi']=float(sys.argv[ind+2])
         kwargs['theta']=float(sys.argv[ind+3])
     if "-ac" in sys.argv:
