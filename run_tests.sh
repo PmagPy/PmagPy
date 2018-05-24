@@ -36,8 +36,8 @@ echo Do Test Builder
 pythonw -m unittest -v pmagpy_tests.test_builder
 echo Do Test Validations
 pythonw -m unittest -v pmagpy_tests.test_validations
-#echo Do Test Programs
-#pythonw -m unittest -v pmagpy_tests.test_programs
+echo Do Test Programs
+pythonw -m unittest -v pmagpy_tests.test_programs
 echo Do Test Magic GUI 2
 pythonw -m unittest -v pmagpy_tests.test_magic_gui2
 echo Do Test New Builder
