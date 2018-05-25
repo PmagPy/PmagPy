@@ -55,6 +55,7 @@ def main():
         azimuth_key = 'azimuth'
         meas_file = 'measurements.txt'
         loc_key = 'location'
+        loc_file = 'locations.txt'
         method_key = 'method_codes'
         dec_key = 'dir_dec'
         inc_key = 'dir_inc'
@@ -437,8 +438,17 @@ def main():
         if not onedir and loc != './':
             os.chdir('..')  # change working directories to each location
         os.system('rm tmp*.txt')
-
-
+    if loc_file in filelist:
+        data, file_type = pmag.magic_read(loc_file)  # read in data
+        print('working on pole map')
+        poles = pmag.get_dictitem(
+            data, 'pole_lat', "", 'F')  # are there any pole?
+        poles = pmag.get_dictitem(
+            poles, 'pole_lon', "", 'F')  # are there any pole?
+        if len(poles) > 0:  # YES!
+            CMD = 'polemap_magic.py -sav -fmt png'
+            print(CMD)
+            os.system(CMD)
 
 if __name__ == "__main__":
     main()
