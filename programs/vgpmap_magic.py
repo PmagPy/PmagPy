@@ -110,9 +110,14 @@ def main():
     site_container = con.tables['sites']
     site_df = site_container.df
     # use individual results
-    site_df = site_df[site_df['result_type'] == 'i']
+    if 'result_type' in site_df.columns:
+        site_df = site_df[site_df['result_type'] == 'i']
     # use records with vgp_lat and vgp_lon
-    cond1, cond2 = site_df['vgp_lat'].notnull(), site_df['vgp_lon'].notnull()
+    if 'vgp_lat' in site_df.columns and 'vgp_lon' in site_df.columns:
+        cond1, cond2 = site_df['vgp_lat'].notnull(), site_df['vgp_lon'].notnull()
+    else:
+        print ('nothing to plot')
+        sys.exit()
     Results = site_df[cond1 & cond2]
     # use tilt correction
     if coord and 'dir_tilt_correction' in Results.columns:
