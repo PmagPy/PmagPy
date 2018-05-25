@@ -50,7 +50,7 @@ def main():
         -fmt [pdf, png, eps...] specify output format, default is pdf
         -sav  save and quit
     DEFAULTS
-        FILE: pmag_results.txt
+        FILE: sites.txt
         res:  c
         prj: ortho
         ELAT,ELON = 0,0
@@ -119,8 +119,8 @@ def main():
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
     location = ":".join(Results['location'].unique())
-    if 'average_age' in Results.columns and ages == 1:
-        dates = Results['average_age'].unique()
+    if 'age' in Results.columns and ages == 1:
+        dates = Results['age'].unique()
 
     # go through rows and extract data
     for ind, row in Results.iterrows():

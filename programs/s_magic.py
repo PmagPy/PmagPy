@@ -24,7 +24,7 @@ def main():
         -f SFILE specifies the .s file name
         -sig last column has sigma
         -typ Anisotropy type:  AMS,AARM,ATRM (default is AMS)
-        -F RFILE specifies the rmag_anisotropy file name
+        -F FILE specifies the specimens formatted file name
         -usr USER specify username
         -loc location specify location/study name
         -spc NUM : specify number of characters to
@@ -49,7 +49,7 @@ def main():
 
 
     DEFAULT
-        RFILE:  rmag_anisotropy.txt
+        FILE:  specimens.txt
 
     INPUT
         X11,X22,X33,X12,X23,X13  (.s format file)
@@ -57,7 +57,7 @@ def main():
         SID, X11,X22,X33,X12,X23,X13  (.s format file with -n option)
 
     OUTPUT
-        rmag_anisotropy.txt format file
+        specimens.txt format file
 
     NOTE
         because .s files do not have specimen names or location information, the output MagIC files

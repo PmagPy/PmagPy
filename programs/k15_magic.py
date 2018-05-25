@@ -23,9 +23,7 @@ def main():
         -f KFILE: specify .k15 format input file
         -F MFILE: specify measurement output file
         -Fsa SFILE, specify sample file for output
-        -Fa AFILE, specify specimen file for output
-        -Fr RFILE, specify rmag_results format file for output (Data model 2 only!)
-        -loc LOC: specify location name for study
+        -Fa AFILE, specify specimen file for output [rmag_anisotropy for data model 2 only]
     #-ins INST: specify instrument that measurements were made on # not implemented
         -spc NUM: specify number of digits for specimen ID, default is 0
         -ncn NCOM: specify naming convention (default is #1)
@@ -44,12 +42,9 @@ def main():
 
 
     DEFAULTS
-        MFILE: k15_measurements.txt
-        SFILE: er_samples.txt
-        AFILE: rmag_anisotropy.txt
-        RFILE: rmag_results.txt
-        LOC: unknown
-        INST: unknown
+        MFILE: measurements.txt
+        SFILE: samples.txt
+        AFILE: specimens.txt
 
     INPUT
       name [az,pl,strike,dip], followed by
