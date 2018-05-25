@@ -483,15 +483,13 @@ def convert(**kwargs):
             #------------------
 
             if experiment in ['PI','NLT','CR']:
-
-                if float(treatment[1])==0:
+                if float(treatment[1]) in [0., 3.]: # zerofield step or tail check
                     MeasRec["treat_dc_field"]="0"
                     MeasRec["treat_dc_field_phi"]="0"
                     MeasRec["treat_dc_field_theta"]="0"
                 elif not labfield:
                     print("-W- WARNING: labfield (-dc) is a required argument for this experiment type")
                     return False, "labfield (-dc) is a required argument for this experiment type"
-
                 else:
                     MeasRec["treat_dc_field"]='%8.3e'%(float(labfield))
                     MeasRec["treat_dc_field_phi"]="%.2f"%(float(labfield_phi))
@@ -853,6 +851,7 @@ def convert(**kwargs):
                     LT=code;
                     break
             MeasRec["method_codes"]=LT+":"+":".join(LP_this_specimen)
+            MeasRec["method_codes"] = MeasRec["method_codes"].strip(":")
             MeasRecs.append(MeasRec)
 
     #--
@@ -938,7 +937,8 @@ def main():
     if "-lon" in sys.argv:
         ind = sys.argv.index("-lon")
         kwargs['lon'] = sys.argv[ind+1]
-    if "-A" in sys.argv: kwargs['noave']=True
+    if "-A" in sys.argv:
+        kwargs['noave']=True
 
     convert(**kwargs)
 
