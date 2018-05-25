@@ -4,10 +4,10 @@ NAME
     _2g_bin_magic.py
 
 DESCRIPTION
-    takes the binary 2g format magnetometer files and converts them to magic_measurements, er_samples.txt and er_sites.txt file
+    takes the binary 2g format magnetometer files and converts them to measurements, samples, and sites tables
 
 SYNTAX
-    2g_bin_magic.py [command line options]
+    _2g_bin_magic.py [command line options]
 
 OPTIONS
     -h: prints the help message and quits.
