@@ -46,7 +46,7 @@ def main():
         -rev RSYM RSIZE : flip reverse poles to normal antipode
         -S:  plot antipodes of all poles
         -age : plot the ages next to the poles
-        -crd [g,t] : choose coordinate system, default is to plot all location poles 
+        -crd [g,t] : choose coordinate system, default is to plot all location poles
         -fmt [pdf, png, eps...] specify output format, default is pdf
         -sav  save and quit
     DEFAULTS
@@ -110,7 +110,11 @@ def main():
     pole_container = con.tables['locations']
     pole_df = pole_container.df
     # use individual results
-    pole_df = pole_df[pole_df['result_type'] == 'a']
+    if 'result_type' in pole_df.columns:
+        pole_df = pole_df[pole_df['result_type'] == 'a']
+    if 'pole_lat' not in pole_df.columns or 'pole_lon' not in pole_df.columns:
+        print("-W- pole_lat and pole_lon are required columns to run polemap_magic.py")
+        return
     # use records with pole_lat and pole_lon
     cond1, cond2 = pole_df['pole_lat'].notnull(), pole_df['pole_lon'].notnull()
     Results = pole_df[cond1 & cond2]
