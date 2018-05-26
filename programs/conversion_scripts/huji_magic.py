@@ -126,8 +126,7 @@ def convert(**kwargs):
     phi = int(kwargs.get('phi', 0))
     theta = int(kwargs.get('theta', 0))
     peakfield = kwargs.get('peakfield', 0)
-    if peakfield:
-        peakfield = float(peakfield)*1e-3
+    peakfield = float(peakfield)*1e-3
     location = kwargs.get('location', '')
     samp_con = kwargs.get('samp_con', '1')
     codelist = kwargs.get('codelist', '')
@@ -652,7 +651,7 @@ def main():
         kwargs['theta']=float(sys.argv[ind+3])
     if "-ac" in sys.argv:
         ind=sys.argv.index("-ac")
-        kwargs['peakfield']=float(sys.argv[ind+1])*1e-3
+        kwargs['peakfield']=float(sys.argv[ind+1])
     if "-spc" in sys.argv:
         ind=sys.argv.index("-spc")
         kwargs['specnum']=int(sys.argv[ind+1])

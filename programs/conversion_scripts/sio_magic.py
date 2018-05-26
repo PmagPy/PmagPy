@@ -159,26 +159,14 @@ def convert(**kwargs):
     loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
     mag_file = kwargs.get('mag_file', '')
     mag_file = pmag.resolve_file_name(mag_file, dir_path)
-    labfield = kwargs.get('labfield', '')
-    if labfield:
-        labfield = float(labfield) *1e-6
-    else:
-        labfield = 0
+    labfield = kwargs.get('labfield', 0)
+    labfield = float(labfield) *1e-6
     phi = kwargs.get('phi', 0)
-    if phi:
-        phi = float(phi)
-    else:
-        phi = 0
+    phi = float(phi)
     theta = kwargs.get('theta', 0)
-    if theta:
-        theta=float(theta)
-    else:
-        theta = 0
+    theta=float(theta)
     peakfield = kwargs.get('peakfield', 0)
-    if peakfield:
-        peakfield=float(peakfield) *1e-3
-    else:
-        peakfield = 0
+    peakfield=float(peakfield) *1e-3
     specnum = kwargs.get('specnum', 0)
     samp_con = kwargs.get('samp_con', '1')
     location = kwargs.get('location', 'unknown')
@@ -720,7 +708,7 @@ def main():
         kwargs['theta']=float(sys.argv[ind+3])
     if "-ac" in sys.argv:
         ind=sys.argv.index("-ac")
-        kwargs['peakfield']=float(sys.argv[ind+1])*1e-3
+        kwargs['peakfield']=float(sys.argv[ind+1])
     if "-spc" in sys.argv:
         ind=sys.argv.index("-spc")
         kwargs['specnum']=int(sys.argv[ind+1])
