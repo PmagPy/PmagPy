@@ -165,7 +165,7 @@ def convert(**kwargs):
     phi = float(phi)
     theta = kwargs.get('theta', 0)
     theta=float(theta)
-    peakfield = kwargs.get('peakfield', 0)
+    peakfield = kwargs.get('peak_AF', 0)
     peakfield=float(peakfield) *1e-3
     specnum = kwargs.get('specnum', 0)
     samp_con = kwargs.get('samp_con', '1')

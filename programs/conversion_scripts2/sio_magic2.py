@@ -259,6 +259,7 @@ def main(command_line=True, **kwargs):
             print('not a valid coil specification')
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
+        print (mag_file)
         try:
             with open(mag_file,'r') as finput:
                 lines = finput.readlines()
