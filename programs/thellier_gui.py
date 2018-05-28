@@ -1236,7 +1236,7 @@ else:
 
 
     def on_right_click_listctrl(self, event):
-        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file manually.")
+        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be marked 'b' in  measurement file manually.")
         return
         index = int(event.GetText())
         current_flag = self.Data[self.s]['datablock'][index]['measurement_flag']
