@@ -2680,6 +2680,7 @@ def addBorders(Figs, titles, border_color, text_color):
 def plotMAP(fignum, lats, lons, Opts):
     """ makes a basemap with lats/lons """
     from mpl_toolkits.basemap import Basemap
+    from matplotlib import cm
     fig = pylab.figure(num=fignum)
     rgba_land = (255, 255, 150, 255)
     rgba_ocean = (200, 250, 255, 255)
@@ -2705,7 +2706,7 @@ def plotMAP(fignum, lats, lons, Opts):
             elons = numpy.loadtxt(EDIR + 'etopo20lons.gz')
             elats = numpy.loadtxt(EDIR + 'etopo20lats.gz')
             x, y = m(*meshgrid(elons, elats))
-            cs = m.contourf(x, y, etopo, 30)
+            cs = m.contourf(x, y, etopo, 30,cmap=cm.jet)
         if Opts['details']['coasts'] == 1:
             m.drawcoastlines(color='k')
         if Opts['details']['rivers'] == 1:
