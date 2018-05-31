@@ -434,7 +434,7 @@ def convert(**kwargs):
                         MeasRec["meas_n_orient"] = code1[7]
                     if user == "":
                         user = code1[5]
-                    if code1[2][-1] == 'C':
+                    if code1[2][-1].upper() == 'C':
                         demag = "T"
                         if code1[4] == 'microT' and float(code1[3]) != 0. and "LP-AN-ARM" not in methcode:
                             labfield = float(code1[3])*1e-6
