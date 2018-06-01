@@ -4359,6 +4359,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         self.site_data['int_abs'] = None
                     cond2 = self.site_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
+                    loc = None
+                    locs = self.site_data[cond1]['location']
+                    if any(locs):
+                        loc = locs.values[0]
+                    new_data['site'] = sample_or_site
+                    new_data['location'] = loc
                     self.site_data = self.site_container.update_record(
                         sample_or_site, new_data, condition)
                     # remove intensity data from sample level.   # need to look

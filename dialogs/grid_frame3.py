@@ -1122,8 +1122,10 @@ class GridBuilder(object):
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)
-            self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
-                                                  self.contribution.directory)
+
+            self.contribution.write_table_to_file(self.grid_type)
+            #self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
+            #                                      self.contribution.directory)
             # propagate age info if age table was edited
             if self.grid_type == 'ages':
                 self.contribution.propagate_ages()

@@ -1111,10 +1111,39 @@ class Contribution(object):
         else:
             fname = self.filenames[dtype]
         if dtype in self.tables:
+            write_df = self.remove_names(dtype)
             outfile = self.tables[dtype].write_magic_file(custom_name=fname,
                                                           dir_path=self.directory,
-                                                          append=append)
+                                                          append=append, df=write_df)
         return outfile
+
+    def remove_names(self, dtype):
+        """
+        Remove unneeded name columns ('specimen'/'sample'/etc)
+        from the specified table.
+
+        Parameters
+        ----------
+        dtype : str
+
+        Returns
+        ---------
+        pandas DataFrame without the unneeded columns
+
+        Example
+        ---------
+        Contribution.tables['specimens'].df = Contribution.remove_names('specimens')
+        # takes out 'location', 'site', and/or 'sample' columns from the
+        # specimens dataframe if those columns have been added
+        """
+        if dtype in self.tables:
+            # remove extra columns here
+            self_ind = self.ancestry.index(dtype)
+            parent_ind = self_ind + 1 if self_ind < (len(self.ancestry) -1) else self_ind
+            remove = set(self.ancestry).difference([self.ancestry[self_ind], self.ancestry[parent_ind]])
+            remove = [dtype[:-1] for dtype in remove]
+            columns = self.tables[dtype].df.columns.difference(remove)
+            return self.tables[dtype].df[columns]
 
 
     ## Methods for validating contributions
