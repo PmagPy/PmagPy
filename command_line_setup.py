@@ -41,8 +41,14 @@ print('packages', packages)
 
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+#with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+#    long_description = f.read()
+
+# skip the html part
+with open('README.md', encoding='utf-8') as f:
+    lines = f.readlines()[14:]
+    long_description = "\n".join(lines)
+
 
 
 class CustomInstall(install):

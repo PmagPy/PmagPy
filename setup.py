@@ -97,8 +97,10 @@ formatted, formatted_dict = parse_dict(data_files)
 #with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #        long_description = f.read()
 
+# skip the html part
 with open('README.md', encoding='utf-8') as f:
-    long_description = f.read()
+    lines = f.readlines()[14:]
+    long_description = "\n".join(lines)
 
 
 setup(
