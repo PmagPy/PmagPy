@@ -5422,7 +5422,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             # there are sun compass data
             if "shadow_angle" in list(OrRec.keys()) and OrRec["shadow_angle"] != "":
                 if hours_from_gmt == "":
-                    #hours_from_gmt=raw_input("Enter hours to SUBTRACT from time for  GMT: [0] ")
+                    #hours_from_gmt=raw_input("Enter hours to ADD from time for  GMT: [0] ")
                     hours_from_gmt = 0
                 SunRec, sundata = {}, {}
                 shad_az = float(OrRec["shadow_angle"])
@@ -5437,8 +5437,30 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #                else:
     #                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
                     sundata["delta_u"] = hours_from_gmt
-                    sundata["lon"] = '%7.1f' % (lon)
-                    sundata["lat"] = '%7.1f' % (lat)
+                    #sundata["lon"] = '%7.1f' % (lon)
+                    #sundata["lat"] = '%7.1f' % (lat)
+                    sundata["lon"] = lon # do not truncate!
+                    sundata["lat"] = lat # do not truncate!
+                    sundata["shadow_angle"] = OrRec["shadow_angle"]
+                    sundec = '%7.1f' % (pmag.dosundec(sundata)) # now you can truncate
+                    for key in list(MagRec.keys()):
+                        SunRec[key] = MagRec[key]  # make a copy of MagRec
+                    #SunRec["sample_azimuth"] = '%7.1f' % (sundec)
+                    SunRec["sample_azimuth"] = sundec # do not truncate!
+                    SunRec["sample_declination_correction"] = ''
+                    SunRec["magic_method_codes"] = methcodes + ':SO-SUN'
+                    SunRec["magic_method_codes"] = SunRec['magic_method_codes'].strip(
+                        ':')
+                    SampOuts.append(SunRec)
+    #
+    # check for differential GPS data
+    #
+            # there are diff GPS data
+            if "prism_angle" in list(OrRec.keys()) and OrRec["prism_angle"] != "":
+                GPSRec = {}
+                for key in list(MagRec.keys()):
+                    GPSRec[key] = MagRec[key]  # make a copy of MagRec
+                    prism_angle = float(OrRec["prism_angle"])
                     sundata["shadow_angle"] = OrRec["shadow_angle"]
                     sundec = pmag.dosundec(sundata)
                     for key in list(MagRec.keys()):
