@@ -611,7 +611,7 @@ def main():
         #ResOut,keylist=pmag.fillkeys(ResRecs)
         # just make a fresh one
         con.add_magic_table_from_data('specimens', ResRecs)
-        con.write_table_to_file('specimens', 'anisotropy_specimens.txt')
+    #   con.write_table_to_file('specimens', 'anisotropy_specimens.txt')
 
     #    pmag.magic_write(outfile,ResOut,'rmag_results')
     if verbose:
