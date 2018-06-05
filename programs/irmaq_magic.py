@@ -105,10 +105,13 @@ def main():
             return
         else:
             print('-I- Found {} information, continuing with plotting'.format(plot_key))
-        con.write_table_to_file('measurements')
-
+        # need to take the data directly from the contribution here, to keep
+        # location/site/sample columns in the measurements table
+        data = con.tables['measurements'].convert_to_pmag_data_list()
+        file_type = "measurements"
+    else:
+        data, file_type = pmag.magic_read(in_file)
     # read in data
-    data, file_type = pmag.magic_read(in_file)
     sids = pmag.get_specs(data)
     pmagplotlib.plot_init(FIG['exp'], 6, 6)
     #
