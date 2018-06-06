@@ -50,7 +50,7 @@ if matplotlib.__version__ < '2.1':
 
 
 def poly(X, Y, deg):
-    return plt.polyfit(X, Y, deg)
+    return numpy.polyfit(X, Y, deg)
 
 
 def showFIG(fig):
@@ -1180,7 +1180,7 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
     plt.plot(X, Y)
     plt.xlabel("TRM*")
     plt.ylabel("NRM")
-    spars = plt.polyfit(X, Y, 1)
+    spars = numpy.polyfit(X, Y, 1)
     Banc = spars[0] * field
     print(spars[0], field)
     print('Banc= ', Banc * 1e6, ' uT')
@@ -1730,12 +1730,12 @@ def plotHYS(fignum, B, M, s):
     Bslop = B[2:Nint + 2]
     Mslop = Mfix[2:Nint + 2]
     # best fit line to high field points
-    polyU = plt.polyfit(Bslop, Mslop, 1)
+    polyU = numpy.polyfit(Bslop, Mslop, 1)
     # adjust slope with first 30 points of ascending branch
     Bslop = B[kmin:kmin + (Nint + 1)]
     Mslop = Mfix[kmin:kmin + (Nint + 1)]
     # best fit line to high field points
-    polyL = plt.polyfit(Bslop, Mslop, 1)
+    polyL = numpy.polyfit(Bslop, Mslop, 1)
     xhf = 0.5 * (polyU[0] + polyL[0])  # mean of two slopes
     # convert B to A/m, high field slope in m^3
     hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * numpy.pi * 1e-7)
@@ -1789,10 +1789,10 @@ def plotHYS(fignum, B, M, s):
     Maz = Moff[Mazero - 1:Mazero + 1]
     try:
         # best fit line through two bounding points
-        poly = plt.polyfit(Bz, Mz, 1)
+        poly = numpy.polyfit(Bz, Mz, 1)
         Bc = old_div(-poly[1], poly[0])  # x intercept
         # best fit line through two bounding points
-        poly = plt.polyfit(Baz, Maz, 1)
+        poly = numpy.polyfit(Baz, Maz, 1)
         Bac = old_div(-poly[1], poly[0])  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
     except:
@@ -1871,7 +1871,7 @@ def plotHDD(HDD, B, M, s):
         Bhf = Bdm[Mhalf - 1:Mhalf + 1]
         Mhf = deltaM[Mhalf - 1:Mhalf + 1]
         # best fit line through two bounding points
-        poly = plt.polyfit(Bhf, Mhf, 1)
+        poly = numpy.polyfit(Bhf, Mhf, 1)
         Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
         hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
         hpars['magic_method_codes'] = "LP-BCR-HDM"
@@ -2029,7 +2029,7 @@ def plotIRM(fignum, B, M, title):
             backfield = 1
         Y.append(M[k])
     if backfield == 1:
-        poly = plt.polyfit(X, Y, 1)
+        poly = numpy.polyfit(X, Y, 1)
         if poly[0] != 0:
             bcr = (old_div(-poly[1], poly[0]))
         else:
@@ -2705,13 +2705,13 @@ def plotMAP(fignum, lats, lons, Opts):
                     projection=Opts['proj'], lat_0=Opts['lat_0'], lon_0=Opts['lon_0'], lat_ts=0., resolution=Opts['res'], boundinglat=Opts['boundinglat'])
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-            from plt import meshgrid
+            #from plt import meshgrid
             from mpl_toolkits.basemap import basemap_datadir
             EDIR = basemap_datadir + "/"
             etopo = numpy.loadtxt(EDIR + 'etopo20data.gz')
             elons = numpy.loadtxt(EDIR + 'etopo20lons.gz')
             elats = numpy.loadtxt(EDIR + 'etopo20lats.gz')
-            x, y = m(*meshgrid(elons, elats))
+            x, y = m(*numpy.meshgrid(elons, elats))
             cs = m.contourf(x, y, etopo, 30,cmap=cm.jet)
         if Opts['details']['coasts'] == 1:
             m.drawcoastlines(color='k')
@@ -2819,7 +2819,7 @@ def plotEQcont(fignum, DIblock):
     # this is to get an array (a list of list wont do) of x,y values
     xlist = plt.linspace(a1, a2, int(plt.ceil(num)))
     ylist = plt.linspace(b1, b2, int(plt.ceil(num)))
-    X, Y = plt.meshgrid(xlist, ylist)
+    X, Y = numpy.meshgrid(xlist, ylist)
     # to put z in the array I just multiply both x,y with zero.  I will add to
     # the zero values later
     Z = X * Y * 0.
