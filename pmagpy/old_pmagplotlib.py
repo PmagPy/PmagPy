@@ -23,8 +23,7 @@ verbose = set_env.verbose
 
 # wmpl_version=matplotlib.__version__
 import pmagpy.pmag as pmag
-#import pylab
-from matplotlib import pyplot as plt
+import pylab
 globals = 0
 graphmenu = 0
 global version_num
@@ -50,12 +49,12 @@ if matplotlib.__version__ < '2.1':
 
 
 def poly(X, Y, deg):
-    return plt.polyfit(X, Y, deg)
+    return pylab.polyfit(X, Y, deg)
 
 
 def showFIG(fig):
-    plt.figure(fig)
-    plt.show()
+    pylab.figure(fig)
+    pylab.show()
 
 
 def drawFIGS(FIGS):
@@ -63,20 +62,18 @@ def drawFIGS(FIGS):
     Can only be used if matplotlib backend is set to TKAgg
     Does not play well with wxPython
     """
-    plt.ion()
-    print(FIGS)
+    pylab.ion()
     for fig in list(FIGS.keys()):
-        plt.figure(FIGS[fig])
-        plt.draw()
-        plt.show()
-    plt.ioff()
+        pylab.figure(FIGS[fig])
+        pylab.draw()
+    pylab.ioff()
 
 
 def clearFIG(fignum):
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
 
 # def gui_init(gvars,interface):
 #	global globals, graphmenu
@@ -108,22 +105,22 @@ def plot_init(fignum, w, h):
     """
     global fig_x_pos, fig_y_pos, plt_num
     dpi = 80
-    # plt.ion()
+    # pylab.ion()
     plt_num += 1
-    plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
+    pylab.figure(num=fignum, figsize=(w, h), dpi=dpi)
     if not isServer:
-        plt.get_current_fig_manager().show()
-        # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
+        pylab.get_current_fig_manager().show()
+        # pylab.get_current_fig_manager().window.wm_geometry('+%d+%d' %
         # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
         fig_x_pos = fig_x_pos + dpi * (w) + 25
         if plt_num == 3:
             plt_num = 0
             fig_x_pos = 25
             fig_y_pos = fig_y_pos + dpi * (h) + 25
-        plt.figtext(.02, .01, version_num)
-# plt.connect('button_press_event',click)
+        pylab.figtext(.02, .01, version_num)
+# pylab.connect('button_press_event',click)
 #
-    # plt.ioff()
+    # pylab.ioff()
 
 
 def plot3d_init(fignum):
@@ -131,14 +128,14 @@ def plot3d_init(fignum):
     initializes 3D plot
     """
     from mpl_toolkits.mplot3d import Axes3D
-    fig = plt.figure(fignum)
+    fig = pylab.figure(fignum)
     ax = fig.add_subplot(111, projection='3d')
     return ax
 
 
 def plot_square(fignum):
-    plt.figure(num=fignum)
-    plt.axis('equal')
+    pylab.figure(num=fignum)
+    pylab.axis('equal')
 
 
 def gaussfunc(y, ybar, sigma):
@@ -203,18 +200,18 @@ def qsnorm(p):
 
 def plotNOTES(fignum, Notes):
     for note in Notes:
-        plt.text(note['X'], note['Y'], note['text'])
+        pylab.text(note['X'], note['Y'], note['text'])
 
 
 def plotPTS(fignum, PTs, x, y):
     for pt in PTs:
-        plt.scatter(pt[x], pt[y], marker=pt['marker'],
+        pylab.scatter(pt[x], pt[y], marker=pt['marker'],
                       c=pt['color'], s=pt['size'])
 
 
 def show(fig):
-    plt.figure(fig)
-    plt.show()
+    pylab.figure(fig)
+    pylab.show()
 
 
 def plot3dPTS(ax, PTs):
@@ -240,17 +237,17 @@ def plotLINES(fignum, line, sym, x, y):
     for l in line:
         X.append(l[x])
         Y.append(l[y])
-    plt.plot(X, Y, sym)
+    pylab.plot(X, Y, sym)
 
 
 def plotXY(fignum, X, Y, **kwargs):
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
 #    if 'poly' in kwargs.keys():
 #          coeffs=numpy.polyfit(X,Y,kwargs['poly'])
 #          polynomial=numpy.poly1d(coeffs)
 #          xs=numpy.arange(numpy.min(X),numpy.max(X))
 #          ys=polynomial(xs)
-#          plt.plot(xs,ys)
+#          pylab.plot(xs,ys)
 #          print coefs
 #          print polynomial
     if 'sym' in list(kwargs.keys()):
@@ -262,30 +259,30 @@ def plotXY(fignum, X, Y, **kwargs):
     else:
         lw = 1
     if 'xerr' in list(kwargs.keys()):
-        plt.errorbar(X, Y, fmt=sym, xerr=kwargs['xerr'])
+        pylab.errorbar(X, Y, fmt=sym, xerr=kwargs['xerr'])
     if 'yerr' in list(kwargs.keys()):
-        plt.errorbar(X, Y, fmt=sym, yerr=kwargs['yerr'])
+        pylab.errorbar(X, Y, fmt=sym, yerr=kwargs['yerr'])
     if 'axis' in list(kwargs.keys()):
         if kwargs['axis'] == 'semilogx':
-            plt.semilogx(X, Y, marker=sym[1], markerfacecolor=sym[0])
+            pylab.semilogx(X, Y, marker=sym[1], markerfacecolor=sym[0])
         if kwargs['axis'] == 'semilogy':
-            plt.semilogy(X, Y, marker=sym[1], markerfacecolor=sym[0])
+            pylab.semilogy(X, Y, marker=sym[1], markerfacecolor=sym[0])
         if kwargs['axis'] == 'loglog':
-            plt.loglog(X, Y, marker=sym[1], markerfacecolor=sym[0])
+            pylab.loglog(X, Y, marker=sym[1], markerfacecolor=sym[0])
     else:
-        plt.plot(X, Y, sym, linewidth=lw)
+        pylab.plot(X, Y, sym, linewidth=lw)
     if 'xlab' in list(kwargs.keys()):
-        plt.xlabel(kwargs['xlab'])
+        pylab.xlabel(kwargs['xlab'])
     if 'ylab' in list(kwargs.keys()):
-        plt.ylabel(kwargs['ylab'])
+        pylab.ylabel(kwargs['ylab'])
     if 'title' in list(kwargs.keys()):
-        plt.title(kwargs['title'])
+        pylab.title(kwargs['title'])
     if 'xmin' in list(kwargs.keys()):
-        plt.axis([kwargs['xmin'], kwargs['xmax'],
+        pylab.axis([kwargs['xmin'], kwargs['xmax'],
                     kwargs['ymin'], kwargs['ymax']])
     if 'notes' in list(kwargs.keys()):
         for note in kwargs['notes']:
-            plt.text(note[0], note[1], note[2])
+            pylab.text(note[0], note[1], note[2])
 
 
 def plotSITE(fignum, SiteRec, data, key):
@@ -310,7 +307,7 @@ def plotSITE(fignum, SiteRec, data, key):
 
 
 def plotQQnorm(fignum, Y, title):
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     Y.sort()  # data
     n = len(Y)
     d, mean, sigma = k_s(Y)
@@ -321,21 +318,21 @@ def plotQQnorm(fignum, Y, title):
     for i in range(1, n + 1):
         p = old_div(float(i), float(n + 1))
         X.append(qsnorm(p))
-    plt.plot(X, Y, 'ro')
-    plt.title(title)
-    plt.xlabel('Normal Quantile')
-    plt.ylabel('Data Quantile')
-    bounds = plt.axis()
+    pylab.plot(X, Y, 'ro')
+    pylab.title(title)
+    pylab.xlabel('Normal Quantile')
+    pylab.ylabel('Data Quantile')
+    bounds = pylab.axis()
     notestr = 'N: ' + '%i' % (n)
-    plt.text(-.9 * bounds[1], .9 * bounds[3], notestr)
+    pylab.text(-.9 * bounds[1], .9 * bounds[3], notestr)
     notestr = 'mean: ' + '%8.3e' % (mean)
-    plt.text(-.9 * bounds[1], .8 * bounds[3], notestr)
+    pylab.text(-.9 * bounds[1], .8 * bounds[3], notestr)
     notestr = 'std dev: ' + '%8.3e' % (sigma)
-    plt.text(-.9 * bounds[1], .7 * bounds[3], notestr)
+    pylab.text(-.9 * bounds[1], .7 * bounds[3], notestr)
     notestr = 'D: ' + '%8.3e' % (d)
-    plt.text(-.9 * bounds[1], .6 * bounds[3], notestr)
+    pylab.text(-.9 * bounds[1], .6 * bounds[3], notestr)
     notestr = 'Dc: ' + '%8.3e' % (dc)
-    plt.text(-.9 * bounds[1], .5 * bounds[3], notestr)
+    pylab.text(-.9 * bounds[1], .5 * bounds[3], notestr)
 
 
 def plotQQunf(fignum, D, title, subplot=False):
@@ -344,9 +341,9 @@ def plotQQunf(fignum, D, title, subplot=False):
     called with plotQQunf(fignum,D,title).
     """
     if subplot == True:
-        plt.subplot(1, 2, fignum)
+        pylab.subplot(1, 2, fignum)
     else:
-        plt.figure(num=fignum)
+        pylab.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
     for d in D:
         if d < 0:
@@ -365,27 +362,27 @@ def plotQQunf(fignum, D, title, subplot=False):
         ds = X[i] - (old_div(float(i - 1.), n))
         if dneg < ds:
             dneg = ds
-    plt.plot(Y, X, 'ro')
+    pylab.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16
     Mu = v * (numpy.sqrt(n) - 0.567 + (old_div(1.623, (numpy.sqrt(n)))))
-    plt.axis([0, 1., 0., 1.])
-    bounds = plt.axis()
+    pylab.axis([0, 1., 0., 1.])
+    bounds = pylab.axis()
     notestr = 'N: ' + '%i' % (n)
-    plt.text(.1 * bounds[1], .9 * bounds[3], notestr)
+    pylab.text(.1 * bounds[1], .9 * bounds[3], notestr)
     notestr = 'Mu: ' + '%7.3f' % (Mu)
-    plt.text(.1 * bounds[1], .8 * bounds[3], notestr)
+    pylab.text(.1 * bounds[1], .8 * bounds[3], notestr)
     if Mu > 1.347:
         notestr = "Non-uniform (99%)"
     elif Mu < 1.207:
         notestr = "Uniform (95%)"
     elif Mu > 1.207:
         notestr = "Uniform (99%)"
-    plt.text(.1 * bounds[1], .7 * bounds[3], notestr)
-    plt.text(.1 * bounds[1], .7 * bounds[3], notestr)
-    plt.title(title)
-    plt.xlabel('Uniform Quantile')
-    plt.ylabel('Data Quantile')
+    pylab.text(.1 * bounds[1], .7 * bounds[3], notestr)
+    pylab.text(.1 * bounds[1], .7 * bounds[3], notestr)
+    pylab.title(title)
+    pylab.xlabel('Uniform Quantile')
+    pylab.ylabel('Data Quantile')
     return Mu, 1.207
 
 
@@ -394,9 +391,9 @@ def plotQQexp(fignum, I, title, subplot=False):
     plots data against an exponential distribution in 0=>90.
     """
     if subplot == True:
-        plt.subplot(1, 2, fignum)
+        pylab.subplot(1, 2, fignum)
     else:
-        plt.figure(num=fignum)
+        pylab.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
     rad = old_div(numpy.pi, 180.)
     xsum = 0
@@ -424,21 +421,21 @@ def plotQQexp(fignum, I, title, subplot=False):
     Me = (ds - (old_div(0.2, n))) * (numpy.sqrt(n) + 0.26 +
                                      (old_div(0.5, (numpy.sqrt(n)))))  # Eq. 5.15 from Fisher et al. (1987)
 
-    plt.plot(Y, X, 'ro')
-    bounds = plt.axis()
-    plt.axis([0, bounds[1], 0., bounds[3]])
+    pylab.plot(Y, X, 'ro')
+    bounds = pylab.axis()
+    pylab.axis([0, bounds[1], 0., bounds[3]])
     notestr = 'N: ' + '%i' % (n)
-    plt.text(.1 * bounds[1], .9 * bounds[3], notestr)
+    pylab.text(.1 * bounds[1], .9 * bounds[3], notestr)
     notestr = 'Me: ' + '%7.3f' % (Me)
-    plt.text(.1 * bounds[1], .8 * bounds[3], notestr)
+    pylab.text(.1 * bounds[1], .8 * bounds[3], notestr)
     if Me > 1.094:
         notestr = "Not Exponential"
     else:
         notestr = "Exponential (95%)"
-    plt.text(.1 * bounds[1], .7 * bounds[3], notestr)
-    plt.title(title)
-    plt.xlabel('Exponential Quantile')
-    plt.ylabel('Data Quantile')
+    pylab.text(.1 * bounds[1], .7 * bounds[3], notestr)
+    pylab.title(title)
+    pylab.xlabel('Exponential Quantile')
+    pylab.ylabel('Data Quantile')
     return Me, 1.094
 
 
@@ -449,11 +446,11 @@ def plotNET(fignum):
 #
 # make the perimeter
 #
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.axis("off")
+        pylab.figtext(.02, .01, version_num)
+    pylab.axis("off")
     Dcirc = numpy.arange(0, 361.)
     Icirc = numpy.zeros(361, 'f')
     Xcirc, Ycirc = [], []
@@ -461,7 +458,7 @@ def plotNET(fignum):
         XY = pmag.dimap(Dcirc[k], Icirc[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'k')
+    pylab.plot(Xcirc, Ycirc, 'k')
 #
 # put on the tick marks
     Xsym, Ysym = [], []
@@ -469,35 +466,35 @@ def plotNET(fignum):
         XY = pmag.dimap(0., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    pylab.plot(Xsym, Ysym, 'k+')
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(90., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    pylab.plot(Xsym, Ysym, 'k+')
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(180., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    pylab.plot(Xsym, Ysym, 'k+')
     Xsym, Ysym = [], []
     for I in range(10, 90, 10):
         XY = pmag.dimap(270., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    pylab.plot(Xsym, Ysym, 'k+')
     for D in range(0, 360, 10):
         Xtick, Ytick = [], []
         for I in range(4):
             XY = pmag.dimap(D, I)
             Xtick.append(XY[0])
             Ytick.append(XY[1])
-        plt.plot(Xtick, Ytick, 'k')
+        pylab.plot(Xtick, Ytick, 'k')
     BoxX, BoxY = [-1.1, 1.1, 1.1, -1.1, -1.1], [-1.1, -1.1, 1.1, 1.1, -1.1]
-    plt.plot(BoxX, BoxY, 'k-', linewidth=.5)
-    plt.axis("equal")
+    pylab.plot(BoxX, BoxY, 'k-', linewidth=.5)
+    pylab.axis("equal")
 
 
 def plotDI(fignum, DIblock):
@@ -506,7 +503,7 @@ def plotDI(fignum, DIblock):
     plots directions on equal area net
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
 #
 #   plot the data - separate upper and lower hemispheres
 #
@@ -521,14 +518,14 @@ def plotDI(fignum, DIblock):
             Y_up.append(XY[1])
 #
     if len(X_down) > 0:
-        #        plt.scatter(X_down,Y_down,marker='s',c='r')
-        plt.scatter(X_down, Y_down, marker='o', c='blue')
+        #        pylab.scatter(X_down,Y_down,marker='s',c='r')
+        pylab.scatter(X_down, Y_down, marker='o', c='blue')
         if globals != 0:
             globals.DIlist = X_down
             globals.DIlisty = Y_down
     if len(X_up) > 0:
-        #        plt.scatter(X_up,Y_up,marker='s',facecolor='none',edgecolor='black')
-        plt.scatter(X_up, Y_up, marker='o', facecolor='white',edgecolor='blue')
+        #        pylab.scatter(X_up,Y_up,marker='s',facecolor='none',edgecolor='black')
+        pylab.scatter(X_up, Y_up, marker='o', facecolor='white',edgecolor='blue')
         if globals != 0:
             globals.DIlist = X_up
             globals.DIlisty = Y_up
@@ -540,7 +537,7 @@ def plotDIsym(fignum, DIblock, sym):
     plots directions on equal area net
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
 #
 #   plot the data - separate upper and lower hemispheres
 #
@@ -561,13 +558,13 @@ def plotDIsym(fignum, DIblock, sym):
     if 'edgecolor' not in list(sym.keys()):
         sym['edgecolor'] = 'k'
     if len(X_down) > 0:
-        plt.scatter(X_down, Y_down, marker=sym['lower'][0],
+        pylab.scatter(X_down, Y_down, marker=sym['lower'][0],
                       c=sym['lower'][1], s=size, edgecolor=sym['edgecolor'])
         if globals != 0:
             globals.DIlist = X_down
             globals.DIlisty = Y_down
     if len(X_up) > 0:
-        plt.scatter(X_up, Y_up, marker=sym['upper'][0],
+        pylab.scatter(X_up, Y_up, marker=sym['upper'][0],
                       c=sym['upper'][1], s=size, edgecolor=sym['edgecolor'])
         if globals != 0:
             globals.DIlist = X_up
@@ -578,7 +575,7 @@ def plotC(fignum, pole, ang, col):
     """
     function to put a small circle on an equal area projection plot, fig,fignum
     """
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     D_c, I_c = pmag.circ(pole[0], pole[1], ang)
     X_c_up, Y_c_up = [], []
     X_c_d, Y_c_d = [], []
@@ -590,8 +587,8 @@ def plotC(fignum, pole, ang, col):
         else:
             X_c_d.append(XY[0])
             Y_c_d.append(XY[1])
-    plt.plot(X_c_d, Y_c_d, col + '.', ms=5)
-    plt.plot(X_c_up, Y_c_up, 'c.', ms=2)
+    pylab.plot(X_c_d, Y_c_d, col + '.', ms=5)
+    pylab.plot(X_c_up, Y_c_up, 'c.', ms=2)
 
 
 #
@@ -603,10 +600,10 @@ def plotZ(fignum, datablock, angle, s, norm):
     function to make Zijderveld diagrams
 
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     amin, amax = 0., -100.
     if norm == 0:
         fact = 1.
@@ -638,32 +635,32 @@ def plotZ(fignum, datablock, angle, s, norm):
         globals.Zlisty = gXYZ['y'].tolist()
         globals.Zlistz = gXYZ['z'].tolist()
     if len(bXYZ) > 0:
-        plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
-        plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'ro')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'ws',markeredgecolor='blue')
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'r-')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'b-')
+        pylab.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
+        pylab.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
+    pylab.plot(gXYZ['X'], gXYZ['Y'], 'ro')
+    pylab.plot(gXYZ['X'], gXYZ['Z'], 'ws',markeredgecolor='blue')
+    pylab.plot(gXYZ['X'], gXYZ['Y'], 'r-')
+    pylab.plot(gXYZ['X'], gXYZ['Z'], 'b-')
     for k in range(len(gXYZ)):
-        plt.annotate(str(k),(gXYZ['X'][k],gXYZ['Z'][k]),ha='left',va='bottom')
+        pylab.annotate(str(k),(gXYZ['X'][k],gXYZ['Z'][k]),ha='left',va='bottom')
 
 
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
     zline = [0, 0]
-    plt.plot(xline, zline,'k-')
-    plt.plot(zline, xline,'k-')
+    pylab.plot(xline, zline,'k-')
+    pylab.plot(zline, xline,'k-')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
-    plt.xlabel(xlab)
-    plt.ylabel("Circles: Y; Squares: Z")
+    pylab.xlabel(xlab)
+    pylab.ylabel("Circles: Y; Squares: Z")
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
-    plt.axis([amin, amax, amax, amin])
-    plt.axis("equal")
-    plt.title(tstring)
+    pylab.axis([amin, amax, amax, amin])
+    pylab.axis("equal")
+    pylab.title(tstring)
 #
 #
 
@@ -673,7 +670,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
     for plotrec in datablock:
         Ints.append(plotrec[3])
     Ints.sort()
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     T, M, Tv, recnum = [], [], [], 0
     Mex, Tex, Vdif = [], [], []
     recbak = []
@@ -729,7 +726,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
             delta = .005 * M[0]
             if num == 1:
                 if recnum % 2 == 0:
-                    plt.text(T[-1] + delta, M[-1],
+                    pylab.text(T[-1] + delta, M[-1],
                                (' ' + str(recnum)), fontsize=9)
             recnum += 1
         else:
@@ -743,31 +740,31 @@ def plotMT(fignum, datablock, s, num, units, norm):
         globals.MTlist = T
         globals.MTlisty = M
     if len(Mex) > 0 and len(Tex) > 0:
-        plt.scatter(Tex, Mex, marker='d', color='k')
+        pylab.scatter(Tex, Mex, marker='d', color='k')
     if len(Vdif) > 0:
         Vdif.append(old_div(vdir[2], Ints[-1]))
         Vdif.append(0)
     Tv.append(Tv[-1])
-    plt.plot(T, M)
-    plt.plot(T, M, 'ro')
+    pylab.plot(T, M)
+    pylab.plot(T, M, 'ro')
     if len(Tv) == len(Vdif) and norm == 1:
-        plt.plot(Tv, Vdif, 'g-')
+        pylab.plot(Tv, Vdif, 'g-')
     if units == "T":
-        plt.xlabel("Step (mT)")
+        pylab.xlabel("Step (mT)")
     elif units == "K":
-        plt.xlabel("Step (C)")
+        pylab.xlabel("Step (C)")
     elif units == "J":
-        plt.xlabel("Step (J)")
+        pylab.xlabel("Step (J)")
     else:
-        plt.xlabel("Step [mT,C]")
+        pylab.xlabel("Step [mT,C]")
     if norm == 1:
-        plt.ylabel("Fractional Magnetization")
+        pylab.ylabel("Fractional Magnetization")
     if norm == 0:
-        plt.ylabel("Magnetization")
-    plt.axvline(0, color='k')
-    plt.axhline(0, color='k')
+        pylab.ylabel("Magnetization")
+    pylab.axvline(0, color='k')
+    pylab.axhline(0, color='k')
     tstring = s
-    plt.title(tstring)
+    pylab.title(tstring)
 
 #
 #
@@ -778,10 +775,10 @@ def plotZED(ZED, datablock, angle, s, units):
     function to make equal area plot and zijderveld plot
     """
     for fignum in list(ZED.keys()):
-        fig = plt.figure(num=ZED[fignum])
-        plt.clf()
+        fig = pylab.figure(num=ZED[fignum])
+        pylab.clf()
         if not isServer:
-            plt.figtext(.02, .01, version_num)
+            pylab.figtext(.02, .01, version_num)
     DIbad, DIgood = [], []
     for rec in datablock:
         if rec[5] == 'b':
@@ -802,12 +799,12 @@ def plotZED(ZED, datablock, angle, s, units):
     XY = pmag.dimap(angle, 0.)
     AngleX.append(XY[0])
     AngleY.append(XY[1])
-    plt.figure(num=ZED['eqarea'])
+    pylab.figure(num=ZED['eqarea'])
     # Draw a line for Zijderveld horizontal axis
-    plt.plot(AngleX, AngleY, 'r-')
+    pylab.plot(AngleX, AngleY, 'r-')
     if AngleX[-1] == 0:
         AngleX[-1] = 0.01
-    plt.text(AngleX[-1] + (old_div(AngleX[-1], abs(AngleX[-1]))) * .1,
+    pylab.text(AngleX[-1] + (old_div(AngleX[-1], abs(AngleX[-1]))) * .1,
                AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
@@ -825,11 +822,11 @@ def plotDir(ZED, pars, datablock, angle):
 #
     if pars["calculation_type"] == 'DE-FM':
         x, y = [], []
-        plt.figure(num=ZED['eqarea'])
+        pylab.figure(num=ZED['eqarea'])
         XY = pmag.dimap(pars["specimen_dec"], pars["specimen_inc"])
         x.append(XY[0])
         y.append(XY[1])
-        plt.scatter(x, y, marker='^', s=80, c='r')
+        pylab.scatter(x, y, marker='^', s=80, c='r')
         return
     StartDir, EndDir = [0, 0, 1.], [0, 0, 1.]
     for rec in datablock:
@@ -849,11 +846,11 @@ def plotDir(ZED, pars, datablock, angle):
 #
     x, y, z, pole = [], [], [], []
     if pars["calculation_type"] != 'DE-BFP':
-        plt.figure(num=ZED['eqarea'])
+        pylab.figure(num=ZED['eqarea'])
         XY = pmag.dimap(pars["specimen_dec"], pars["specimen_inc"])
         x.append(XY[0])
         y.append(XY[1])
-        plt.scatter(x, y, marker='d', s=80, c='b')
+        pylab.scatter(x, y, marker='d', s=80, c='b')
         x, y, z = [], [], []
         StartDir[0] = StartDir[0] - angle
         EndDir[0] = EndDir[0] - angle
@@ -869,11 +866,11 @@ def plotDir(ZED, pars, datablock, angle):
     #   z.append(-XYZe[2])
         y.append(XYZe[1])
         z.append(XYZe[2])
-        plt.figure(num=ZED['zijd'])
-        plt.scatter(x, y, marker='d', s=80, c='g')
-        plt.scatter(x, z, marker='d', s=80, c='g')
-        plt.scatter(x, y, marker='o', c='r', s=20)
-        plt.scatter(x, z, marker='s', c='w', s=20)
+        pylab.figure(num=ZED['zijd'])
+        pylab.scatter(x, y, marker='d', s=80, c='g')
+        pylab.scatter(x, z, marker='d', s=80, c='g')
+        pylab.scatter(x, y, marker='o', c='r', s=20)
+        pylab.scatter(x, z, marker='s', c='w', s=20)
 #
 # put on best fit line
 # new way (from Jeff Gee's favorite website http://GET THIS):
@@ -923,32 +920,32 @@ def plotDir(ZED, pars, datablock, angle):
 #       py.append(-(Xe[1]+cm[1]))
 #       pz.append(-(Xs[2]+cm[2]))
 #       pz.append(-(Xe[2]+cm[2]))
-        plt.plot(px, py, 'g', linewidth=2)
-        plt.plot(px, pz, 'g', linewidth=2)
-        plt.axis("equal")
+        pylab.plot(px, py, 'g', linewidth=2)
+        pylab.plot(px, pz, 'g', linewidth=2)
+        pylab.axis("equal")
     else:
-        plt.figure(num=ZED['eqarea'])
+        pylab.figure(num=ZED['eqarea'])
         XY = pmag.dimap(StartDir[0], StartDir[1])
         x.append(XY[0])
         y.append(XY[1])
         XY = pmag.dimap(EndDir[0], EndDir[1])
         x.append(XY[0])
         y.append(XY[1])
-        plt.scatter(x, y, marker='d', s=80, c='b')
+        pylab.scatter(x, y, marker='d', s=80, c='b')
         pole.append(pars["specimen_dec"])
         pole.append(pars["specimen_inc"])
         plotC(ZED['eqarea'], pole, 90., 'g')
-        plt.xlim((-1., 1.))
-        plt.ylim((-1., 1.))
-        plt.axis("equal")
+        pylab.xlim((-1., 1.))
+        pylab.ylim((-1., 1.))
+        pylab.axis("equal")
 
 
 def plotA(fignum, indata, s, units):
     global globals
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     x, y, x_zi, y_zi, x_iz, y_iz, xptrm, yptrm, xptrmt, yptrmt = [
     ], [], [], [], [], [], [], [], [], []
     xzptrm, yzptrm = [], []  # zero field ptrm checks
@@ -981,7 +978,7 @@ def plotA(fignum, indata, s, units):
         else:
             x_iz.append(old_div(irec[3], first_Z[0][3]))
             y_iz.append(old_div(zrec[3], first_Z[0][3]))
-        plt.text(x[-1], y[-1], (' ' + str(recnum)), fontsize=9)
+        pylab.text(x[-1], y[-1], (' ' + str(recnum)), fontsize=9)
         recnum += 1
 # now deal with ptrm checks.
     if len(ptrm_check) != 0:
@@ -1016,41 +1013,41 @@ def plotA(fignum, indata, s, units):
         return
     try:
         if len(x_zi) > 0:
-            plt.scatter(x_zi, y_zi, marker='o', c='r',
+            pylab.scatter(x_zi, y_zi, marker='o', c='r',
                           edgecolors="none")  # zero field-infield
         if len(x_iz) > 0:
-            plt.scatter(x_iz, y_iz, marker='s', c='b',
+            pylab.scatter(x_iz, y_iz, marker='s', c='b',
                           faceted="True")  # infield-zerofield
     except:
         if len(x_zi) > 0:
-            plt.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
+            pylab.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
         if len(x_iz) > 0:
-            plt.scatter(x_iz, y_iz, marker='s', c='b')  # infield-zerofield
-    plt.plot(x, y, 'r')
+            pylab.scatter(x_iz, y_iz, marker='s', c='b')  # infield-zerofield
+    pylab.plot(x, y, 'r')
     if globals != 0:
         globals.MTlist = x
         globals.MTlisty = y
     if len(xptrm) > 0:
-        plt.scatter(xptrm, yptrm, marker='^', c='g', s=80)
+        pylab.scatter(xptrm, yptrm, marker='^', c='g', s=80)
     if len(xzptrm) > 0:
-        plt.scatter(xzptrm, yzptrm, marker='v', c='c', s=80)
+        pylab.scatter(xzptrm, yzptrm, marker='v', c='c', s=80)
     if len(xptrmt) > 0:
-        plt.scatter(xptrmt, yptrmt, marker='s', c='b', s=80)
+        pylab.scatter(xptrmt, yptrmt, marker='s', c='b', s=80)
     try:
-        plt.axhline(0, color='k')
-        plt.axvline(0, color='k')
+        pylab.axhline(0, color='k')
+        pylab.axvline(0, color='k')
     except:
         pass
-    plt.xlabel("pTRM gained")
-    plt.ylabel("NRM remaining")
+    pylab.xlabel("pTRM gained")
+    pylab.ylabel("NRM remaining")
     tstring = s + ': NRM = ' + '%9.2e' % (first_Z[0][3])
-    plt.title(tstring)
+    pylab.title(tstring)
 # put on VDS
     vds = pmag.dovds(forVDS)
-    plt.axhline(vds, color='b')
-    plt.text(1., vds - .1, ('VDS '), fontsize=9)
-#    bounds=plt.axis()
-#    if bounds[1]<1:plt.axis([bounds[0], 1., bounds[2], bounds[3]])
+    pylab.axhline(vds, color='b')
+    pylab.text(1., vds - .1, ('VDS '), fontsize=9)
+#    bounds=pylab.axis()
+#    if bounds[1]<1:pylab.axis([bounds[0], 1., bounds[2], bounds[3]])
 #
 #
 
@@ -1058,10 +1055,10 @@ def plotA(fignum, indata, s, units):
 def plotNP(fignum, indata, s, units):
     global globals
     first_Z, first_I, ptrm_check, ptrm_tail = indata[0], indata[1], indata[2], indata[3]
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     X, Y, recnum = [], [], 0
 #
     for rec in first_Z:
@@ -1075,11 +1072,11 @@ def plotNP(fignum, indata, s, units):
         Y.append(old_div(rec[3], first_Z[0][3]))
         delta = .02 * Y[0]
         if recnum % 2 == 0:
-            plt.text(X[-1] - delta, Y[-1] + delta,
+            pylab.text(X[-1] - delta, Y[-1] + delta,
                        (' ' + str(recnum)), fontsize=9)
         recnum += 1
-    plt.plot(X, Y)
-    plt.scatter(X, Y, marker='o', color='b')
+    pylab.plot(X, Y)
+    pylab.scatter(X, Y, marker='o', color='b')
     X, Y = [], []
     for rec in first_I:
         if units == "K":
@@ -1093,17 +1090,17 @@ def plotNP(fignum, indata, s, units):
     if globals != 0:
         globals.DIlist = X
         globals.DIlisty = Y
-    plt.plot(X, Y)
-    plt.scatter(X, Y, marker='s', color='r')
-    plt.ylabel("Circles: NRM; Squares: pTRM")
+    pylab.plot(X, Y)
+    pylab.scatter(X, Y, marker='s', color='r')
+    pylab.ylabel("Circles: NRM; Squares: pTRM")
     if units == "K":
-        plt.xlabel("Temperature (C)")
+        pylab.xlabel("Temperature (C)")
     if units == "J":
-        plt.xlabel("Microwave Energy (J)")
+        pylab.xlabel("Microwave Energy (J)")
     title = s + ": NRM = " + '%9.2e' % (first_Z[0][3])
-    plt.title(title)
-    plt.axhline(y=0, xmin=0, xmax=1, color='k')
-    plt.axvline(x=0, ymin=0, ymax=1, color='k')
+    pylab.title(title)
+    pylab.axhline(y=0, xmin=0, xmax=1, color='k')
+    pylab.axvline(x=0, ymin=0, ymax=1, color='k')
 
 
 def plotAZ(ZED, araiblock, zijdblock, s, units):
@@ -1122,10 +1119,10 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
     plotZ(SHAW['zijd'], zijdblock, angle, s)
     NRM, TRM, ARM1, ARM2 = shawblock[0], shawblock[1], shawblock[2], shawblock[3]
     TRM_ADJ = shawblock[4]
-    plt.figure(num=SHAW['nrmtrm'])
-    plt.clf()
+    pylab.figure(num=SHAW['nrmtrm'])
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     X, Y, recnum = [], [], 0
     Nmax = NRM[0][1]
 #
@@ -1133,18 +1130,18 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
         Y.append(old_div(NRM[k][1], Nmax))
         X.append(old_div(TRM[k][1], Nmax))
 #        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
+#        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("TRM")
-    plt.ylabel("NRM")
+    pylab.scatter(X, Y, marker='o', color='r')
+    pylab.plot(X, Y)
+    pylab.xlabel("TRM")
+    pylab.ylabel("NRM")
     title = s + ": NRM = " + '%9.2e' % (Nmax)
-    plt.title(title)
-    plt.figure(num=SHAW['arm1arm2'])
-    plt.clf()
+    pylab.title(title)
+    pylab.figure(num=SHAW['arm1arm2'])
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     X, Y, recnum = [], [], 0
     Nmax = ARM1[0][1]
 #
@@ -1152,18 +1149,18 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
         Y.append(old_div(ARM2[k][1], Nmax))
         X.append(old_div(ARM1[k][1], Nmax))
 #        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
+#        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("ARM2")
-    plt.ylabel("ARM1")
+    pylab.scatter(X, Y, marker='o', color='r')
+    pylab.plot(X, Y)
+    pylab.xlabel("ARM2")
+    pylab.ylabel("ARM1")
     title = s + ": ARM1 = " + '%9.2e' % (Nmax)
-    plt.title(title)
-    plt.figure(num=SHAW['nrmtrmC'])
-    plt.clf()
+    pylab.title(title)
+    pylab.figure(num=SHAW['nrmtrmC'])
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     X, Y, recnum = [], [], 0
     Nmax = NRM[0][1]
 #
@@ -1171,18 +1168,18 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
         Y.append(old_div(NRM[k][1], Nmax))
         X.append(old_div(TRM_ADJ[k][1], Nmax))
 #        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
+#        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("TRM*")
-    plt.ylabel("NRM")
-    spars = plt.polyfit(X, Y, 1)
+    pylab.scatter(X, Y, marker='o', color='r')
+    pylab.plot(X, Y)
+    pylab.xlabel("TRM*")
+    pylab.ylabel("NRM")
+    spars = pylab.polyfit(X, Y, 1)
     Banc = spars[0] * field
     print(spars[0], field)
     print('Banc= ', Banc * 1e6, ' uT')
     notestr = 'Banc = ' + '%5.1f' % (Banc * 1e6) + ' uT'
-    plt.text(.5 * TRM[-1][1] + .2, .9, notestr)
+    pylab.text(.5 * TRM[-1][1] + .2, .9, notestr)
 
 
 def plotB(Figs, araiblock, zijdblock, pars):
@@ -1206,10 +1203,10 @@ def plotB(Figs, araiblock, zijdblock, pars):
         zy.append(cart[1])
         zz.append(cart[2])
     if len(zx) > 0:
-        plt.figure(num=Figs['zijd'])
-        plt.scatter(zx, zy, marker='d', s=100, c='y')
-        plt.scatter(zx, zz, marker='d', s=100, c='y')
-        plt.axis("equal")
+        pylab.figure(num=Figs['zijd'])
+        pylab.scatter(zx, zy, marker='d', s=100, c='y')
+        pylab.scatter(zx, zz, marker='d', s=100, c='y')
+        pylab.axis("equal")
     ax.append(old_div(first_I[0][3], first_Z[0][3]))
     ax.append(old_div(first_I[-1][3], first_Z[0][3]))
     ay.append(old_div(first_Z[0][3], first_Z[0][3]))
@@ -1232,8 +1229,8 @@ def plotB(Figs, araiblock, zijdblock, pars):
             new_I.append(irec)
     newblock = [new_Z, new_I]
     plotTEQ(Figs['eqarea'], newblock, "", pars)
-    plt.figure(num=Figs['arai'])
-    plt.scatter(ax, ay, marker='d', s=100, c='y')
+    pylab.figure(num=Figs['arai'])
+    pylab.scatter(ax, ay, marker='d', s=100, c='y')
 #
 #  find midpoint between two endpoints
 #
@@ -1242,13 +1239,13 @@ def plotB(Figs, araiblock, zijdblock, pars):
                old_div(pars["specimen_ytot"], first_Z[0][3])))
     sy.append((pars["specimen_b"] * ax[1] +
                old_div(pars["specimen_ytot"], first_Z[0][3])))
-    plt.plot(ax, sy, 'g', linewidth=2)
-    bounds = plt.axis()
+    pylab.plot(ax, sy, 'g', linewidth=2)
+    bounds = pylab.axis()
     if pars['specimen_grade'] != '':
         notestr = 'Grade: ' + pars["specimen_grade"]
-        plt.text(.7 * bounds[1], .9 * bounds[3], notestr)
+        pylab.text(.7 * bounds[1], .9 * bounds[3], notestr)
     notestr = 'B: ' + '%6.2f' % (pars["specimen_int"] * 1e6) + ' uT'
-    plt.text(.7 * bounds[1], .8 * bounds[3], notestr)
+    pylab.text(.7 * bounds[1], .8 * bounds[3], notestr)
 
 
 def plotSLNP(fignum, SiteRec, datablock, key):
@@ -1256,7 +1253,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
     plots lines and planes on a great  circle with alpha 95 and mean
     """
 # make the stereonet
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     plotNET(fignum)
     s = SiteRec['er_site_name']
 #
@@ -1290,8 +1287,8 @@ def plotSLNP(fignum, SiteRec, datablock, key):
     XY = pmag.dimap(float(SiteRec["site_dec"]), float(SiteRec["site_inc"]))
     x.append(XY[0])
     y.append(XY[1])
-    plt.scatter(x, y, marker='d', s=80, c='g')
-    plt.title(title)
+    pylab.scatter(x, y, marker='d', s=80, c='g')
+    pylab.title(title)
 #
 # get the alpha95
 #
@@ -1302,7 +1299,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
         XY = pmag.dimap(Da95[k], Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'g')
+    pylab.plot(Xcirc, Ycirc, 'g')
 
 
 def plotLNP(fignum, s, datablock, fpars, direction_type_key):
@@ -1340,9 +1337,9 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     XY = pmag.dimap(float(fpars["dec"]), float(fpars["inc"]))
     x.append(XY[0])
     y.append(XY[1])
-    plt.figure(num=fignum)
-    plt.scatter(x, y, marker='d', s=80, c='g')
-    plt.title(title)
+    pylab.figure(num=fignum)
+    pylab.scatter(x, y, marker='d', s=80, c='g')
+    pylab.title(title)
 #
 # get the alpha95
 #
@@ -1353,7 +1350,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
         XY = pmag.dimap(Da95[k], Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'g')
+    pylab.plot(Xcirc, Ycirc, 'g')
 
 
 def plotEQ(fignum, DIblock, s):
@@ -1361,19 +1358,19 @@ def plotEQ(fignum, DIblock, s):
     plots directions
     """
 # make the stereonet
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     if len(DIblock) < 1:
         return
-    # plt.clf()
+    # pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     plotNET(fignum)
 #
 #   put on the directions
 #
     plotDI(fignum, DIblock)  # plot directions
-    plt.axis("equal")
-    plt.text(-1.1, 1.15, s)
+    pylab.axis("equal")
+    pylab.text(-1.1, 1.15, s)
 
 
 def plotEQsym(fignum, DIblock, s, sym):
@@ -1381,19 +1378,19 @@ def plotEQsym(fignum, DIblock, s, sym):
     plots directions with specified symbol
     """
 # make the stereonet
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     if len(DIblock) < 1:
         return
-    # plt.clf()
+    # pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     plotNET(fignum)
 #
 #   put on the directions
 #
     plotDIsym(fignum, DIblock, sym)  # plot directions with symbols in sym
-    plt.axis("equal")
-    plt.text(-1.1, 1.15, s)
+    pylab.axis("equal")
+    pylab.text(-1.1, 1.15, s)
 #
 
 
@@ -1403,8 +1400,8 @@ def plotTEQ(fignum, araiblock, s, pars):
     """
     first_Z, first_I = araiblock[0], araiblock[1]
 # make the stereonet
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     ZIblock, IZblock, pTblock = [], [], []
     for zrec in first_Z:  # sort out the zerofield steps
         if zrec[4] == 1:  # this is a ZI step
@@ -1423,7 +1420,7 @@ def plotTEQ(fignum, araiblock, s, pars):
     if len(ZIblock) < 1 and len(IZblock) < 1 and len(pTblock) < 1:
         return
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
 #
 #   put on the directions
 #
@@ -1436,21 +1433,21 @@ def plotTEQ(fignum, araiblock, s, pars):
     sym = {'lower': ['^', 'g'], 'upper': ['^', 'y']}
     if len(pTblock) > 0:
         plotDIsym(fignum, pTblock, sym)  # plot pTRM directions
-    plt.axis("equal")
-    plt.text(-1.1, 1.15, s)
+    pylab.axis("equal")
+    pylab.text(-1.1, 1.15, s)
 
 
 def saveP(Figs, filenames, **kwargs):
     for key in list(Figs.keys()):
         try:
-            plt.figure(num=Figs[key])
+            pylab.figure(num=Figs[key])
             fname = filenames[key]
             if not isServer:  # remove illegal ':' character for windows
                 fname = fname.replace(':', '_')
             if 'dpi' in list(kwargs.keys()):
-                plt.savefig(fname.replace('/', '-'), dpi=kwargs['dpi'])
+                pylab.savefig(fname.replace('/', '-'), dpi=kwargs['dpi'])
             else:
-                plt.savefig(fname.replace('/', '-'))
+                pylab.savefig(fname.replace('/', '-'))
             if verbose:
                 print(Figs[key], " saved in ", fname.replace('/', '-'))
         except Exception as ex:
@@ -1466,8 +1463,8 @@ def plotEVEC(fignum, Vs, symsize, title):
     plots eigenvector directions of S vectors
     """
 #
-    plt.figure(num=fignum)
-    plt.text(-1.1, 1.15, title)
+    pylab.figure(num=fignum)
+    pylab.text(-1.1, 1.15, title)
     # plot V1s as squares, V2s as triangles and V3s as circles
     symb, symkey = ['s', 'v', 'o'], 0
     col = ['r', 'b', 'k']  # plot V1s rec, V2s blue, V3s black
@@ -1481,9 +1478,9 @@ def plotEVEC(fignum, Vs, symsize, title):
             XY = pmag.dimap(Vdirs[VEC][0], Vdirs[VEC][1])
             X.append(XY[0])
             Y.append(XY[1])
-        plt.scatter(X, Y, s=symsize,
+        pylab.scatter(X, Y, s=symsize,
                       marker=symb[VEC], c=col[VEC], edgecolors='none')
-    plt.axis("equal")
+    pylab.axis("equal")
 #
 
 
@@ -1491,7 +1488,7 @@ def plotELL(fignum, pars, col, lower, plot):
     """
     function to calculate points on an ellipse about Pdec,Pdip with angle beta,gamma
     """
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     rad = old_div(numpy.pi, 180.)
     Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
         1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]
@@ -1554,9 +1551,9 @@ def plotELL(fignum, pars, col, lower, plot):
             Y_ell.append(elli[0] * R)
     if plot == 1:
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, col)
+            pylab.plot(X_ell, Y_ell, col)
         if X_up != []:
-            plt.plot(X_up, Y_up, 'k-')
+            pylab.plot(X_up, Y_up, 'k-')
     else:
         return PTS
 
@@ -1570,10 +1567,10 @@ def Vplot_init(fignum, w, h):
     # this is same as plot_init, but stacks things  vertically
     global fig_y_pos
     dpi = 80
-    # plt.ion()
-    plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
+    # pylab.ion()
+    pylab.figure(num=fignum, figsize=(w, h), dpi=dpi)
 #    if not isServer:
-#        plt.get_current_fig_manager().window.wm_geometry('+%d+%d' % (25,fig_y_pos))
+#        pylab.get_current_fig_manager().window.wm_geometry('+%d+%d' % (25,fig_y_pos))
 #        fig_y_pos = fig_y_pos + dpi*(h) + 25
 
 
@@ -1587,11 +1584,11 @@ def plotSTRAT(fignum, data, labels):
     for rec in data:
         X.append(rec[0])
         Y.append(rec[1])
-    plt.plot(X, Y)
-    plt.plot(X, Y, 'ro')
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    plt.title(title)
+    pylab.plot(X, Y)
+    pylab.plot(X, Y, 'ro')
+    pylab.xlabel(xlab)
+    pylab.ylabel(ylab)
+    pylab.title(title)
 
 #
 #
@@ -1607,7 +1604,7 @@ this function returns x and y"""
 #
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
-    fig = plt.figure(num=fignum)
+    fig = pylab.figure(num=fignum)
     # sdata=numpy.array(data).sort()
     sdata = []
     for d in data:
@@ -1625,30 +1622,30 @@ this function returns x and y"""
     else:
         lw = 1
     if color != "":
-        plt.plot(X, Y, color=sym, linewidth=lw)
+        pylab.plot(X, Y, color=sym, linewidth=lw)
     else:
-        plt.plot(X, Y, sym, linewidth=lw)
+        pylab.plot(X, Y, sym, linewidth=lw)
 
-    plt.xlabel(xlab)
-    plt.ylabel('Cumulative Distribution')
-    plt.title(title)
+    pylab.xlabel(xlab)
+    pylab.ylabel('Cumulative Distribution')
+    pylab.title(title)
     return X, Y
 #
 
 
 def plotHs(fignum, Ys, c, ls):
-    fig = plt.figure(num=fignum)
+    fig = pylab.figure(num=fignum)
     for yv in Ys:
-        bounds = plt.axis()
-        plt.axhline(y=yv, xmin=0, xmax=1, linewidth=1, color=c, linestyle=ls)
+        bounds = pylab.axis()
+        pylab.axhline(y=yv, xmin=0, xmax=1, linewidth=1, color=c, linestyle=ls)
 #
 
 
 def plotVs(fignum, Xs, c, ls):
-    fig = plt.figure(num=fignum)
+    fig = pylab.figure(num=fignum)
     for xv in Xs:
-        bounds = plt.axis()
-        plt.axvline(
+        bounds = pylab.axis()
+        pylab.axvline(
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
 
@@ -1672,10 +1669,10 @@ def plotTS(fignum, dates, ts):
         else:
             X.append(dates[1])
             Y.append(p % 2)
-            plt.plot(X, Y, 'k')
+            pylab.plot(X, Y, 'k')
             plotVs(fignum, dates, 'w', '-')
             plotHs(fignum, [1.1, -.1], 'w', '-')
-            plt.xlabel("Age (Ma): " + ts)
+            pylab.xlabel("Age (Ma): " + ts)
             isign = -1
             for c in Chrons:
                 off = -.1
@@ -1683,7 +1680,7 @@ def plotTS(fignum, dates, ts):
                 if isign > 0:
                     off = 1.05
                 if c[1] >= X[0] and c[1] < X[-1]:
-                    plt.text(c[1] - .2, off, c[0])
+                    pylab.text(c[1] - .2, off, c[0])
             return
 
 
@@ -1693,10 +1690,10 @@ def plotHYS(fignum, B, M, s):
     """
     from . import spline
     if fignum != 0:
-        plt.figure(num=fignum)
-        plt.clf()
+        pylab.figure(num=fignum)
+        pylab.clf()
         if not isServer:
-            plt.figtext(.02, .01, version_num)
+            pylab.figtext(.02, .01, version_num)
     hpars = {}
 # close up loop
     Npts = len(M)
@@ -1727,12 +1724,12 @@ def plotHYS(fignum, B, M, s):
     Bslop = B[2:Nint + 2]
     Mslop = Mfix[2:Nint + 2]
     # best fit line to high field points
-    polyU = plt.polyfit(Bslop, Mslop, 1)
+    polyU = pylab.polyfit(Bslop, Mslop, 1)
     # adjust slope with first 30 points of ascending branch
     Bslop = B[kmin:kmin + (Nint + 1)]
     Mslop = Mfix[kmin:kmin + (Nint + 1)]
     # best fit line to high field points
-    polyL = plt.polyfit(Bslop, Mslop, 1)
+    polyL = pylab.polyfit(Bslop, Mslop, 1)
     xhf = 0.5 * (polyU[0] + polyL[0])  # mean of two slopes
     # convert B to A/m, high field slope in m^3
     hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * numpy.pi * 1e-7)
@@ -1769,13 +1766,13 @@ def plotHYS(fignum, B, M, s):
         MadjN.append(old_div(Moff[k], Msat))
         Mnorm.append(old_div(M[k], Msat))
     if fignum != 0:
-        plt.plot(B, Mnorm, 'r')
-        plt.plot(B, MadjN, 'b')
-        plt.xlabel('B (T)')
-        plt.ylabel("M/Msat")
-        plt.axhline(0, color='k')
-        plt.axvline(0, color='k')
-        plt.title(s)
+        pylab.plot(B, Mnorm, 'r')
+        pylab.plot(B, MadjN, 'b')
+        pylab.xlabel('B (T)')
+        pylab.ylabel("M/Msat")
+        pylab.axhline(0, color='k')
+        pylab.axvline(0, color='k')
+        pylab.title(s)
 # find Mr : average of two spline fits evaluted at B=0 (times Msat)
     Mr = Msat * 0.5 * (Iupper(0.) - Ilower(0.))
     hpars['hysteresis_mr_moment'] = '%8.3e' % (Mr)
@@ -1786,10 +1783,10 @@ def plotHYS(fignum, B, M, s):
     Maz = Moff[Mazero - 1:Mazero + 1]
     try:
         # best fit line through two bounding points
-        poly = plt.polyfit(Bz, Mz, 1)
+        poly = pylab.polyfit(Bz, Mz, 1)
         Bc = old_div(-poly[1], poly[0])  # x intercept
         # best fit line through two bounding points
-        poly = plt.polyfit(Baz, Maz, 1)
+        poly = pylab.polyfit(Baz, Maz, 1)
         Bac = old_div(-poly[1], poly[0])  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
     except:
@@ -1802,17 +1799,17 @@ def plotDM(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.plot(B, DM, 'b')
-    plt.xlabel('B (T)')
-    plt.ylabel('Delta M')
+        pylab.figtext(.02, .01, version_num)
+    pylab.plot(B, DM, 'b')
+    pylab.xlabel('B (T)')
+    pylab.ylabel('Delta M')
     linex = [0, Bcr, Bcr]
     liney = [old_div(DM[0], 2.), old_div(DM[0], 2.), 0]
-    plt.plot(linex, liney, 'r')
-    plt.title(s)
+    pylab.plot(linex, liney, 'r')
+    pylab.title(s)
 #
 
 
@@ -1820,15 +1817,15 @@ def plotDDM(fignum, Bdm, DdeltaM, s):
     """
     function to plot d (Delta M)/dB  curves
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
+        pylab.figtext(.02, .01, version_num)
     start = len(Bdm) - len(DdeltaM)
-    plt.plot(Bdm[start:], DdeltaM, 'b')
-    plt.xlabel('B (T)')
-    plt.ylabel('d (Delta M)/dB')
-    plt.title(s)
+    pylab.plot(Bdm[start:], DdeltaM, 'b')
+    pylab.xlabel('B (T)')
+    pylab.ylabel('d (Delta M)/dB')
+    pylab.title(s)
 #
 
 
@@ -1836,15 +1833,15 @@ def plotIMAG(fignum, Bimag, Mimag, s):
     """
     function to plot d (Delta M)/dB  curves
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.plot(Bimag, Mimag, 'r')
-    plt.xlabel('B (T)')
-    plt.ylabel('M/Ms')
-    plt.axvline(0, color='k')
-    plt.title(s)
+        pylab.figtext(.02, .01, version_num)
+    pylab.plot(Bimag, Mimag, 'r')
+    pylab.xlabel('B (T)')
+    pylab.ylabel('M/Ms')
+    pylab.axvline(0, color='k')
+    pylab.title(s)
 #
 
 
@@ -1868,14 +1865,14 @@ def plotHDD(HDD, B, M, s):
         Bhf = Bdm[Mhalf - 1:Mhalf + 1]
         Mhf = deltaM[Mhalf - 1:Mhalf + 1]
         # best fit line through two bounding points
-        poly = plt.polyfit(Bhf, Mhf, 1)
+        poly = pylab.polyfit(Bhf, Mhf, 1)
         Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
         hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
         hpars['magic_method_codes'] = "LP-BCR-HDM"
         if HDD['deltaM'] != 0:
             plotDM(HDD['deltaM'], Bdm, deltaM, Bcr, s)
-            plt.axhline(0, color='k')
-            plt.axvline(0, color='k')
+            pylab.axhline(0, color='k')
+            pylab.axvline(0, color='k')
             plotDDM(HDD['DdeltaM'], Bdm, DdeltaM, s)
     except:
         hpars['hysteresis_bcr'] = '0'
@@ -1888,19 +1885,19 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
     """
-    plt.figure(num=fignum)
-    plt.plot(BcrBc, S, sym)
-    plt.axhline(0, color='k')
-    plt.axhline(.05, color='k')
-    plt.axhline(.5, color='k')
-    plt.axvline(1, color='k')
-    plt.axvline(4, color='k')
-    plt.xlabel('Bcr/Bc')
-    plt.ylabel('Mr/Ms')
-    plt.title('Day Plot')
-    plt.xlim(0, 6)
-    #bounds= plt.axis()
-    #plt.axis([0, bounds[1],0, 1])
+    pylab.figure(num=fignum)
+    pylab.plot(BcrBc, S, sym)
+    pylab.axhline(0, color='k')
+    pylab.axhline(.05, color='k')
+    pylab.axhline(.5, color='k')
+    pylab.axvline(1, color='k')
+    pylab.axvline(4, color='k')
+    pylab.xlabel('Bcr/Bc')
+    pylab.ylabel('Mr/Ms')
+    pylab.title('Day Plot')
+    pylab.xlim(0, 6)
+    #bounds= pylab.axis()
+    #pylab.axis([0, bounds[1],0, 1])
     mu_o = 4. * numpy.pi * 1e-7
     Bc_sd = 46e-3  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
     Bc_md = 5.56e-3  # (041183) dunlop and carter-stiglitz 2006 (in T)
@@ -1923,11 +1920,11 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
     Bcr = old_div((f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md),
                   (f_sd * chi_r_sd + f_md * chi_r_md))  # eq. 11 in Dunlop 2002
     chi_sps = numpy.arange(1, 5) * chi_sd
-    plt.plot(old_div(Bcr, Bc), Mrat, 'r-')
+    pylab.plot(old_div(Bcr, Bc), Mrat, 'r-')
     if 'names' in list(kwargs.keys()):
         names = kwargs['names']
         for k in range(len(names)):
-            plt.text(BcrBc[k], S[k], names[k])  # ,'ha'='left'
+            pylab.text(BcrBc[k], S[k], names[k])  # ,'ha'='left'
 
 
 #
@@ -1935,13 +1932,13 @@ def plotSBc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
     """
-    plt.figure(num=fignum)
-    plt.plot(Bc, S, sym)
-    plt.xlabel('Bc')
-    plt.ylabel('Mr/Ms')
-    plt.title('Squareness-Coercivity Plot')
-    bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1])
+    pylab.figure(num=fignum)
+    pylab.plot(Bc, S, sym)
+    pylab.xlabel('Bc')
+    pylab.ylabel('Mr/Ms')
+    pylab.title('Squareness-Coercivity Plot')
+    bounds = pylab.axis()
+    pylab.axis([0, bounds[1], 0, 1])
 #
 
 
@@ -1949,13 +1946,13 @@ def plotSBcr(fignum, Bcr, S, sym):
     """
     function to plot Squareness,Coercivity of remanence
     """
-    plt.figure(num=fignum)
-    plt.plot(Bcr, S, sym)
-    plt.xlabel('Bcr')
-    plt.ylabel('Mr/Ms')
-    plt.title('Squareness-Bcr Plot')
-    bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1])
+    pylab.figure(num=fignum)
+    pylab.plot(Bcr, S, sym)
+    pylab.xlabel('Bcr')
+    pylab.ylabel('Mr/Ms')
+    pylab.title('Squareness-Bcr Plot')
+    bounds = pylab.axis()
+    pylab.axis([0, bounds[1], 0, 1])
 #
 
 
@@ -1963,46 +1960,46 @@ def plotBcr(fignum, Bcr1, Bcr2):
     """
     function to plot two estimates of Bcr against each other
     """
-    plt.figure(num=fignum)
-    plt.plot(Bcr1, Bcr2, 'ro')
-    plt.xlabel('Bcr1')
-    plt.ylabel('Bcr2')
-    plt.title('Compare coercivity of remanence')
+    pylab.figure(num=fignum)
+    pylab.plot(Bcr1, Bcr2, 'ro')
+    pylab.xlabel('Bcr1')
+    pylab.ylabel('Bcr2')
+    pylab.title('Compare coercivity of remanence')
 
 
 def plotHPARS(HDD, hpars, sym):
     """
     function to plot hysteresis parameters
     """
-    plt.figure(num=HDD['hyst'])
+    pylab.figure(num=HDD['hyst'])
     X, Y = [], []
     X.append(0)
     Y.append(old_div(float(hpars['hysteresis_mr_moment']), float(
         hpars['hysteresis_ms_moment'])))
     X.append(float(hpars['hysteresis_bc']))
     Y.append(0)
-    plt.plot(X, Y, sym)
-    bounds = plt.axis()
+    pylab.plot(X, Y, sym)
+    bounds = pylab.axis()
     n4 = 'Ms: ' + '%8.2e' % (float(hpars['hysteresis_ms_moment'])) + ' Am^2'
-    plt.text(bounds[1] - .9 * bounds[1], -.9, n4)
+    pylab.text(bounds[1] - .9 * bounds[1], -.9, n4)
     n1 = 'Mr: ' + '%8.2e' % (float(hpars['hysteresis_mr_moment'])) + ' Am^2'
-    plt.text(bounds[1] - .9 * bounds[1], -.7, n1)
+    pylab.text(bounds[1] - .9 * bounds[1], -.7, n1)
     n2 = 'Bc: ' + '%8.2e' % (float(hpars['hysteresis_bc'])) + ' T'
-    plt.text(bounds[1] - .9 * bounds[1], -.5, n2)
+    pylab.text(bounds[1] - .9 * bounds[1], -.5, n2)
     if 'hysteresis_xhf' in list(hpars.keys()):
         n3 = r'Xhf: ' + '%8.2e' % (float(hpars['hysteresis_xhf'])) + ' m^3'
-        plt.text(bounds[1] - .9 * bounds[1], -.3, n3)
-    plt.figure(num=HDD['deltaM'])
+        pylab.text(bounds[1] - .9 * bounds[1], -.3, n3)
+    pylab.figure(num=HDD['deltaM'])
     X, Y, Bcr = [], [], ""
     if 'hysteresis_bcr' in list(hpars.keys()):
         X.append(float(hpars['hysteresis_bcr']))
         Y.append(0)
         Bcr = float(hpars['hysteresis_bcr'])
-    plt.plot(X, Y, sym)
-    bounds = plt.axis()
+    pylab.plot(X, Y, sym)
+    bounds = pylab.axis()
     if Bcr != "":
         n1 = 'Bcr: ' + '%8.2e' % (Bcr) + ' T'
-        plt.text(bounds[1] - .5 * bounds[1], .9 * bounds[3], n1)
+        pylab.text(bounds[1] - .5 * bounds[1], .9 * bounds[3], n1)
 #
 
 
@@ -2026,7 +2023,7 @@ def plotIRM(fignum, B, M, title):
             backfield = 1
         Y.append(M[k])
     if backfield == 1:
-        poly = plt.polyfit(X, Y, 1)
+        poly = pylab.polyfit(X, Y, 1)
         if poly[0] != 0:
             bcr = (old_div(-poly[1], poly[0]))
         else:
@@ -2045,28 +2042,28 @@ def plotIRM(fignum, B, M, title):
             title = title + ':' + '%8.3e' % (M[-1])
 # do plots if desired
     if fignum != 0 and M[0] != 0:  # skip plot for fignum = 0
-        plt.figure(num=fignum)
-        plt.clf()
+        pylab.figure(num=fignum)
+        pylab.clf()
         if not isServer:
-            plt.figtext(.02, .01, version_num)
-        plt.plot(B, Mnorm)
-        plt.axhline(0, color='k')
-        plt.axvline(0, color='k')
-        plt.xlabel('B (T)')
-        plt.ylabel('M/Mr')
-        plt.title(title)
+            pylab.figtext(.02, .01, version_num)
+        pylab.plot(B, Mnorm)
+        pylab.axhline(0, color='k')
+        pylab.axvline(0, color='k')
+        pylab.xlabel('B (T)')
+        pylab.ylabel('M/Mr')
+        pylab.title(title)
         if backfield == 1:
-            plt.scatter([bcr], [0], marker='s', c='b')
-            bounds = plt.axis()
+            pylab.scatter([bcr], [0], marker='s', c='b')
+            bounds = pylab.axis()
             n1 = 'Bcr: ' + '%8.2e' % (-bcr) + ' T'
-            plt.figtext(.2, .5, n1)
+            pylab.figtext(.2, .5, n1)
             n2 = 'Mr: ' + '%8.2e' % (M[0]) + ' Am^2'
-            plt.figtext(.2, .45, n2)
+            pylab.figtext(.2, .45, n2)
     elif fignum != 0:
-        plt.figure(num=fignum)
-        # plt.clf()
+        pylab.figure(num=fignum)
+        # pylab.clf()
         if not isServer:
-            plt.figtext(.02, .01, version_num)
+            pylab.figtext(.02, .01, version_num)
         print('M[0]=0,  skipping specimen')
     return rpars
 
@@ -2074,9 +2071,9 @@ def plotIRM(fignum, B, M, title):
 def plotXTF(fignum, XTF, Fs, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
-    plt.figure(num=fignum)
-    plt.xlabel('Temperature (K)')
-    plt.ylabel('Susceptibility (m^3/kg)')
+    pylab.figure(num=fignum)
+    pylab.xlabel('Temperature (K)')
+    pylab.ylabel('Susceptibility (m^3/kg)')
     k = 0
     Flab = []
     for freq in XTF:
@@ -2084,21 +2081,21 @@ def plotXTF(fignum, XTF, Fs, e, b):
         for xt in freq:
             X.append(xt[0])
             T.append(xt[1])
-        plt.plot(T, X)
-        plt.text(T[-1], X[-1], str(int(Fs[k])) + ' Hz')
+        pylab.plot(T, X)
+        pylab.text(T[-1], X[-1], str(int(Fs[k])) + ' Hz')
 #        Flab.append(str(int(Fs[k]))+' Hz')
         k += 1
-    plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
-#    plt.legend(Flab,'upper left')
+    pylab.title(e + ': B = ' + '%8.1e' % (b) + ' T')
+#    pylab.legend(Flab,'upper left')
 #
 
 
 def plotXTB(fignum, XTB, Bs, e, f):
     """ function to plot series of chi measurements as a function of temperature, holding frequency constant and varying B
     """
-    plt.figure(num=fignum)
-    plt.xlabel('Temperature (K)')
-    plt.ylabel('Susceptibility (m^3/kg)')
+    pylab.figure(num=fignum)
+    pylab.xlabel('Temperature (K)')
+    pylab.ylabel('Susceptibility (m^3/kg)')
     k = 0
     Blab = []
     for field in XTB:
@@ -2106,54 +2103,54 @@ def plotXTB(fignum, XTB, Bs, e, f):
         for xt in field:
             X.append(xt[0])
             T.append(xt[1])
-        plt.plot(T, X)
-        plt.text(T[-1], X[-1], '%8.2e' % (Bs[k]) + ' T')
+        pylab.plot(T, X)
+        pylab.text(T[-1], X[-1], '%8.2e' % (Bs[k]) + ' T')
 #        Blab.append('%8.1e'%(Bs[k])+' T')
         k += 1
-    plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
-#    plt.legend(Blab,'upper left')
+    pylab.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
+#    pylab.legend(Blab,'upper left')
 #
 
 
 def plotXFT(fignum, XF, T, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Susceptibility (m^3/kg)')
+        pylab.figtext(.02, .01, version_num)
+    pylab.xlabel('Frequency (Hz)')
+    pylab.ylabel('Susceptibility (m^3/kg)')
     k = 0
     F, X = [], []
     for xf in XF:
         X.append(xf[0])
         F.append(xf[1])
-    plt.plot(F, X)
-    plt.semilogx()
-    plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
+    pylab.plot(F, X)
+    pylab.semilogx()
+    pylab.title(e + ': B = ' + '%8.1e' % (b) + ' T')
 
-    plt.legend(['%i' % (int(T)) + ' K'])
+    pylab.legend(['%i' % (int(T)) + ' K'])
 #
 
 
 def plotXBT(fignum, XB, T, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
-    plt.figure(num=fignum)
-    plt.clf()
+    pylab.figure(num=fignum)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.xlabel('Field (T)')
-    plt.ylabel('Susceptibility (m^3/kg)')
+        pylab.figtext(.02, .01, version_num)
+    pylab.xlabel('Field (T)')
+    pylab.ylabel('Susceptibility (m^3/kg)')
     k = 0
     B, X = [], []
     for xb in XB:
         X.append(xb[0])
         B.append(xb[1])
-    plt.plot(B, X)
-    plt.legend(['%i' % (int(T)) + ' K'])
-    plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
+    pylab.plot(B, X)
+    pylab.legend(['%i' % (int(T)) + ' K'])
+    pylab.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
 #
 
 
@@ -2166,23 +2163,23 @@ def plotzfcfc(MT, e):
     if len(ZFCM) > 2:
         if init == 0:
             plot_init(1, 5, 5)
-        plt.plot(ZFCT, ZFCM, 'b')
+        pylab.plot(ZFCT, ZFCM, 'b')
         leglist.append('ZFC')
         init = 1
     if len(FCM) > 2:
         if init == 0:
             plot_init(1, 5, 5)
-        plt.plot(FCT, FCM, 'r')
+        pylab.plot(FCT, FCM, 'r')
         leglist.append('FC')
     if init != 0:
-        plt.legend(leglist)
-        plt.xlabel('Temperature (K)')
-        plt.ylabel('Magnetization (Am^2/kg)')
+        pylab.legend(leglist)
+        pylab.xlabel('Temperature (K)')
+        pylab.ylabel('Magnetization (Am^2/kg)')
         if len(ZFCM) > 2:
-            plt.plot(ZFCT, ZFCM, 'bo')
+            pylab.plot(ZFCT, ZFCM, 'bo')
         if len(FCM) > 2:
-            plt.plot(FCT, FCM, 'ro')
-        plt.title(e)
+            pylab.plot(FCT, FCM, 'ro')
+        pylab.title(e)
 #
 
 
@@ -2194,29 +2191,29 @@ def plotltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
     if len(LTC_CM) > 2:
         if init == 0:
             plot_init(1, 5, 5)
-        plt.plot(LTC_CT, LTC_CM, 'b')
+        pylab.plot(LTC_CT, LTC_CM, 'b')
         leglist.append('RT SIRM, measured while cooling')
         init = 1
     if len(LTC_WM) > 2:
         if init == 0:
             plot_init(1, 5, 5)
-        plt.plot(LTC_WT, LTC_WM, 'r')
+        pylab.plot(LTC_WT, LTC_WM, 'r')
         leglist.append('RT SIRM, measured while warming')
     if init != 0:
-        plt.legend(leglist, 'lower left')
-        plt.xlabel('Temperature (K)')
-        plt.ylabel('Magnetization (Am^2/kg)')
+        pylab.legend(leglist, 'lower left')
+        pylab.xlabel('Temperature (K)')
+        pylab.ylabel('Magnetization (Am^2/kg)')
         if len(LTC_CM) > 2:
-            plt.plot(LTC_CT, LTC_CM, 'bo')
+            pylab.plot(LTC_CT, LTC_CM, 'bo')
         if len(LTC_WM) > 2:
-            plt.plot(LTC_WT, LTC_WM, 'ro')
-        plt.title(e)
+            pylab.plot(LTC_WT, LTC_WM, 'ro')
+        pylab.title(e)
 
 
 def plot_close(plot):
-    # plt.ion()
-    plt.close(plot)
-    # plt.ioff()
+    # pylab.ion()
+    pylab.close(plot)
+    # pylab.ioff()
 
 #
 
@@ -2235,10 +2232,10 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
     nf, sigma, avs = pmag.sbar(Ss)
     if plt == 1:
         for key in list(ANIS.keys()):
-            plt.figure(num=ANIS[key])
-            plt.clf()
+            pylab.figure(num=ANIS[key])
+            pylab.clf()
             if not isServer:
-                plt.figtext(.02, .01, version_num)
+                pylab.figtext(.02, .01, version_num)
         plotNET(ANIS['data'])  # draw the net
         plotEVEC(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
 #
@@ -2285,10 +2282,10 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
                 ellpars = [bpars["v3_dec"], bpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
                 plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
-            plt.figure(num=ANIS['tcdf'])
-            plt.clf()
+            pylab.figure(num=ANIS['tcdf'])
+            pylab.clf()
             if not isServer:
-                plt.figtext(.02, .01, version_num)
+                pylab.figtext(.02, .01, version_num)
             ts = []
             for t in Taus:
                 ts.append(t[0])
@@ -2299,8 +2296,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
             tbounds = []
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            plt.axvline(x=tbounds[0], linewidth=1, color='r', linestyle='--')
-            plt.axvline(x=tbounds[1], linewidth=1, color='r', linestyle='--')
+            pylab.axvline(x=tbounds[0], linewidth=1, color='r', linestyle='--')
+            pylab.axvline(x=tbounds[1], linewidth=1, color='r', linestyle='--')
             # plotVs(ANIS['tcdf'],tbounds,'r','-') # there is some bug in here
             # - can't figure it out
             ts = []
@@ -2314,8 +2311,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
             # plotVs(ANIS['tcdf'],tbounds,'b','-')
-            plt.axvline(x=tbounds[0], linewidth=1, color='b', linestyle='-.')
-            plt.axvline(x=tbounds[1], linewidth=1, color='b', linestyle='-.')
+            pylab.axvline(x=tbounds[0], linewidth=1, color='b', linestyle='-.')
+            pylab.axvline(x=tbounds[1], linewidth=1, color='b', linestyle='-.')
             ts = []
             for t in Taus:
                 ts.append(t[2])
@@ -2327,12 +2324,12 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
             plotVs(ANIS['tcdf'], tbounds, 'k', '-')
-            plt.axvline(x=tbounds[0], linewidth=1, color='k', linestyle='-')
-            plt.axvline(x=tbounds[1], linewidth=1, color='k', linestyle='-')
+            pylab.axvline(x=tbounds[0], linewidth=1, color='k', linestyle='-')
+            pylab.axvline(x=tbounds[1], linewidth=1, color='k', linestyle='-')
             if comp == 1:  # do eigenvector of choice
-                plt.figure(num=ANIS['conf'])
+                pylab.figure(num=ANIS['conf'])
                 XY = pmag.dimap(Dir[0], Dir[1])
-                plt.scatter([XY[0]], [XY[1]], marker='p', c='m', s=100)
+                pylab.scatter([XY[0]], [XY[1]], marker='p', c='m', s=100)
                 Ccart = pmag.dir2cart(Dir)
                 Vxs, Vys, Vzs = [], [], []
                 for v in BVs:
@@ -2340,10 +2337,10 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
                     Vxs.append(cart[0])
                     Vys.append(cart[1])
                     Vzs.append(cart[2])
-                plt.figure(num=ANIS['vxcdf'])
-                plt.clf()
+                pylab.figure(num=ANIS['vxcdf'])
+                pylab.clf()
                 if not isServer:
-                    plt.figtext(.02, .01, version_num)
+                    pylab.figtext(.02, .01, version_num)
                 plotCDF(ANIS['vxcdf'], Vxs, "V_" + str(vec + 1) + "1", 'r', "")
                 Vxs.sort()
                 vminind = int(0.025 * len(Vxs))
@@ -2351,13 +2348,13 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
                 vbounds = []
                 vbounds.append(Vxs[vminind])
                 vbounds.append(Vxs[vmaxind])
-                plt.axvline(x=vbounds[0], linewidth=1,
+                pylab.axvline(x=vbounds[0], linewidth=1,
                               color='r', linestyle='--')
-                plt.axvline(x=vbounds[1], linewidth=1,
+                pylab.axvline(x=vbounds[1], linewidth=1,
                               color='r', linestyle='--')
                 # plotVs(ANIS['vxcdf'],vbounds,'r','--')
                 # plotVs(ANIS['vxcdf'],[Ccart[0]],'r','-')
-                plt.axvline(x=Ccart[0][0], linewidth=1,
+                pylab.axvline(x=Ccart[0][0], linewidth=1,
                               color='r', linestyle='-')
                 plotCDF(ANIS['vycdf'], Vys, "V_" + str(vec + 1) + "2", 'b', "")
                 Vys.sort()
@@ -2366,11 +2363,11 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
                 vbounds = []
                 vbounds.append(Vys[vminind])
                 vbounds.append(Vys[vmaxind])
-                plt.axvline(x=vbounds[0], linewidth=1,
+                pylab.axvline(x=vbounds[0], linewidth=1,
                               color='b', linestyle='--')
-                plt.axvline(x=vbounds[1], linewidth=1,
+                pylab.axvline(x=vbounds[1], linewidth=1,
                               color='b', linestyle='--')
-                plt.axvline(x=Ccart[0][1], linewidth=1,
+                pylab.axvline(x=Ccart[0][1], linewidth=1,
                               color='b', linestyle='-')
                 # plotVs(ANIS['vycdf'],vbounds,'b','--')
                 # plotVs(ANIS['vycdf'],[Ccart[1]],'b','-')
@@ -2381,11 +2378,11 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
                 vbounds = []
                 vbounds.append(Vzs[vminind])
                 vbounds.append(Vzs[vmaxind])
-                plt.axvline(x=vbounds[0], linewidth=1,
+                pylab.axvline(x=vbounds[0], linewidth=1,
                               color='k', linestyle='--')
-                plt.axvline(x=vbounds[1], linewidth=1,
+                pylab.axvline(x=vbounds[1], linewidth=1,
                               color='k', linestyle='--')
-                plt.axvline(x=Ccart[0][2], linewidth=1,
+                pylab.axvline(x=Ccart[0][2], linewidth=1,
                               color='k', linestyle='-')
                 # plotVs(ANIS['vzcdf'],vbounds,'k','--')
                 # plotVs(ANIS['vzcdf'],[Ccart[2]],'k','-')
@@ -2413,23 +2410,23 @@ def plotPIE(fig, fracs, labels, title):
     explode = []
     for obj in labels:
         explode.append(.05)
-    plt.figure(num=fig)
-    plt.pie(fracs, labels=labels, colors=(
+    pylab.figure(num=fig)
+    pylab.pie(fracs, labels=labels, colors=(
         'r', 'y', 'b', 'g', 'm', 'c', 'w'), explode=explode)
-    plt.title(title)
+    pylab.title(title)
 #
 
 
 def plotTRM(fig, B, TRM, Bp, Mp, NLpars, title):
     #
     # plots TRM acquisition data and correction to B_estimated to B_ancient
-    plt.figure(num=fig)
-    plt.clf()
+    pylab.figure(num=fig)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.xlabel('B (uT)')
-    plt.ylabel('Fractional TRM ')
-    plt.title(title + ':TRM=' + '%8.2e' % (Mp[-1]))
+        pylab.figtext(.02, .01, version_num)
+    pylab.xlabel('B (uT)')
+    pylab.ylabel('Fractional TRM ')
+    pylab.title(title + ':TRM=' + '%8.2e' % (Mp[-1]))
 #
 # scale data
     Bnorm, Bpnorm = [], []
@@ -2442,41 +2439,41 @@ def plotTRM(fig, B, TRM, Bp, Mp, NLpars, title):
         Tnorm.append(old_div(t, Mp[-1]))
     for t in Mp:
         Mnorm.append(old_div(t, Mp[-1]))
-    plt.plot(Bnorm, Tnorm, 'go')
-    plt.plot(Bpnorm, Mnorm, 'g-')
+    pylab.plot(Bnorm, Tnorm, 'go')
+    pylab.plot(Bpnorm, Mnorm, 'g-')
     if NLpars['banc'] > 0:
-        plt.plot([0, NLpars['best'] * 1e6],
+        pylab.plot([0, NLpars['best'] * 1e6],
                    [0, old_div(NLpars['banc_npred'], Mp[-1])], 'b--')
-        plt.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [old_div(
+        pylab.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [old_div(
             NLpars['banc_npred'], Mp[-1]), old_div(NLpars['banc_npred'], Mp[-1])], 'r--')
-        plt.plot([NLpars['best'] * 1e6],
+        pylab.plot([NLpars['best'] * 1e6],
                    [old_div(NLpars['banc_npred'], Mp[-1])], 'bd')
-        plt.plot([NLpars['banc'] * 1e6],
+        pylab.plot([NLpars['banc'] * 1e6],
                    [old_div(NLpars['banc_npred'], Mp[-1])], 'rs')
     else:
-        plt.plot([0, NLpars['best'] * 1e6],
+        pylab.plot([0, NLpars['best'] * 1e6],
                    [0, old_div(NLpars['best_npred'], Mp[-1])], 'b--')
-        plt.plot([0, NLpars['best'] * 1e6],
+        pylab.plot([0, NLpars['best'] * 1e6],
                    [0, old_div(NLpars['best_npred'], Mp[-1])], 'bd')
 
 ###
 
 
 def plotTDS(fig, tdsblock, title):
-    plt.figure(num=fig)
-    plt.clf()
+    pylab.figure(num=fig)
+    pylab.clf()
     if not isServer:
-        plt.figtext(.02, .01, version_num)
-    plt.xlabel('Fraction TRM remaining')
-    plt.ylabel('Fraction NRM remaining')
-    plt.title(title)
+        pylab.figtext(.02, .01, version_num)
+    pylab.xlabel('Fraction TRM remaining')
+    pylab.ylabel('Fraction NRM remaining')
+    pylab.title(title)
     X, Y = [], []
     for rec in tdsblock:
         X.append(rec[2])  # TRM on X
         Y.append(rec[1])  # NRM on Y
-        plt.text(X[-1], Y[-1], ' %3.1f' % (float(rec[0]) - 273))
-    plt.plot(X, Y, 'ro')
-    plt.plot(X, Y)
+        pylab.text(X[-1], Y[-1], ' %3.1f' % (float(rec[0]) - 273))
+    pylab.plot(X, Y, 'ro')
+    pylab.plot(X, Y)
 
 
 def plotCONF(fignum, s, datablock, pars, new):
@@ -2501,15 +2498,15 @@ def plotCONF(fignum, s, datablock, pars, new):
     XY = pmag.dimap(float(pars[0]), float(pars[1]))
     x.append(XY[0])
     y.append(XY[1])
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     if new == 1:
-        plt.scatter(x, y, marker='d', s=80, c='r')
+        pylab.scatter(x, y, marker='d', s=80, c='r')
     else:
         if float(pars[1] > 0):
-            plt.scatter(x, y, marker='^', s=100, c='r')
+            pylab.scatter(x, y, marker='^', s=100, c='r')
         else:
-            plt.scatter(x, y, marker='^', s=100, c='y')
-    plt.title(s)
+            pylab.scatter(x, y, marker='^', s=100, c='y')
+    pylab.title(s)
 #
 # plot the ellipse
 #
@@ -2522,34 +2519,34 @@ maxE, minE, maxI, minI = 0, 10, 0, 90
 
 def plotEI(fignum, E, I, f):
     global EI_plot_num, maxE, minE, minI, maxI
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     if EI_plot_num == 0:
-        plt.plot(I, E, 'r')
-        plt.xlabel("Inclination")
-        plt.ylabel("Elongation")
+        pylab.plot(I, E, 'r')
+        pylab.xlabel("Inclination")
+        pylab.ylabel("Elongation")
         EI_plot_num += 1
-        plt.text(I[-1], E[-1], ' %3.1f' % (f))
-        plt.text(I[0] - 2, E[0], ' %s' % ('f=1'))
+        pylab.text(I[-1], E[-1], ' %3.1f' % (f))
+        pylab.text(I[0] - 2, E[0], ' %s' % ('f=1'))
     elif f == 1:
-        plt.plot(I, E, 'g-')
+        pylab.plot(I, E, 'g-')
     else:
-        plt.plot(I, E, 'y')
+        pylab.plot(I, E, 'y')
 
 
 def plotV2s(fignum, V2s, I, f):
-    plt.figure(num=fignum)
-    plt.plot(I, V2s, 'r')
-    plt.xlabel("Inclination")
-    plt.ylabel("Elongation direction")
+    pylab.figure(num=fignum)
+    pylab.plot(I, V2s, 'r')
+    pylab.xlabel("Inclination")
+    pylab.ylabel("Elongation direction")
 
 
 def plotX(fignum, x, y, xmin, xmax, ymin, ymax, sym):
-    plt.figure(num=fignum)
+    pylab.figure(num=fignum)
     X, Y = [x, x], [ymin, ymax]
-    plt.plot(X, Y, sym)
+    pylab.plot(X, Y, sym)
     X, Y = [xmin, xmax], [y, y]
-    plt.plot(X, Y, sym)
-    plt.axis([-5., 90., 0., 3.5])
+    pylab.plot(X, Y, sym)
+    pylab.axis([-5., 90., 0., 3.5])
 #
 
 
@@ -2626,7 +2623,7 @@ def addBorders(Figs, titles, border_color, text_color):
 
     for key in list(Figs.keys()):
 
-        fig = plt.figure(Figs[key])
+        fig = pylab.figure(Figs[key])
         plot_title = titles[key]
         fig.set_figheight(5.5)
         # get returns Bbox with x0, y0, x1, y1
@@ -2684,7 +2681,7 @@ def plotMAP(fignum, lats, lons, Opts):
     """ makes a basemap with lats/lons """
     from mpl_toolkits.basemap import Basemap
     from matplotlib import cm
-    fig = plt.figure(num=fignum)
+    fig = pylab.figure(num=fignum)
     rgba_land = (255, 255, 150, 255)
     rgba_ocean = (200, 250, 255, 255)
     ExMer = ['sinus', 'moll', 'lcc']
@@ -2702,7 +2699,7 @@ def plotMAP(fignum, lats, lons, Opts):
                     projection=Opts['proj'], lat_0=Opts['lat_0'], lon_0=Opts['lon_0'], lat_ts=0., resolution=Opts['res'], boundinglat=Opts['boundinglat'])
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-            from plt import meshgrid
+            from pylab import meshgrid
             from mpl_toolkits.basemap import basemap_datadir
             EDIR = basemap_datadir + "/"
             etopo = numpy.loadtxt(EDIR + 'etopo20data.gz')
@@ -2769,7 +2766,7 @@ def plotMAP(fignum, lats, lons, Opts):
         X, Y = m(lons, lats)
         if prn_name == 1:
             for pt in range(len(lats)):
-                T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
+                T.append(pylab.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
         m.plot(X, Y, Opts['sym'], markersize=symsize)
     else:  # for lines,  need to separate chunks using lat==100.
         chunk = 1
@@ -2781,7 +2778,7 @@ def plotMAP(fignum, lats, lons, Opts):
                 if y < 1e20:
                     Y.append(y)  # exclude off the map points
                 if prn_name == 1:
-                    T.append(plt.text(x + 5000, y - 5000, names[k]))
+                    T.append(pylab.text(x + 5000, y - 5000, names[k]))
                 k += 1
             else:  # need to skip 100.0s and move to next chunk
                 # plot previous chunk
@@ -2796,8 +2793,8 @@ def plotMAP(fignum, lats, lons, Opts):
 
 def plotEQcont(fignum, DIblock):
     import random
-    plt.figure(num=fignum)
-    plt.axis("off")
+    pylab.figure(num=fignum)
+    pylab.axis("off")
     XY = []
     centres = []
     counter = 0
@@ -2814,9 +2811,9 @@ def plotEQcont(fignum, DIblock):
     a1, a2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
     b1, b2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
     # this is to get an array (a list of list wont do) of x,y values
-    xlist = plt.linspace(a1, a2, int(plt.ceil(num)))
-    ylist = plt.linspace(b1, b2, int(plt.ceil(num)))
-    X, Y = plt.meshgrid(xlist, ylist)
+    xlist = pylab.linspace(a1, a2, int(pylab.ceil(num)))
+    ylist = pylab.linspace(b1, b2, int(pylab.ceil(num)))
+    X, Y = pylab.meshgrid(xlist, ylist)
     # to put z in the array I just multiply both x,y with zero.  I will add to
     # the zero values later
     Z = X * Y * 0.
@@ -2831,7 +2828,7 @@ def plotEQcont(fignum, DIblock):
     # contained in the net
     fraction = []
     beta, alpha = 0.001, 0.001  # to avoid those 'division by float' thingy
-    for i in range(0, int(plt.ceil(num))**2):
+    for i in range(0, int(pylab.ceil(num))**2):
         if numpy.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) - 1. < radius:
             for j in range(1, 1000):
                 rnd1 = random.uniform(
@@ -2852,23 +2849,23 @@ def plotEQcont(fignum, DIblock):
     # for every circle count the number of points lying in it
     count = 0
     dotspercircle = 0.
-    for j in range(0, int(plt.ceil(num))):
-        for i in range(0, int(plt.ceil(num))):
+    for j in range(0, int(pylab.ceil(num))):
+        for i in range(0, int(pylab.ceil(num))):
             for k in range(0, counter):
                 if (XY[k][0] - centres[count][0])**2 + (XY[k][1] - centres[count][1])**2 <= radius**2:
                     dotspercircle += 1.
             Z[i][j] = Z[i][j] + (dotspercircle * fraction[count])
             count += 1
             dotspercircle = 0.
-    im = plt.imshow(Z, interpolation='bilinear', origin='lower',
-                      cmap=plt.cm.hot, extent=(-1., 1., -1., 1.))
-    plt.colorbar()
+    im = pylab.imshow(Z, interpolation='bilinear', origin='lower',
+                      cmap=pylab.cm.hot, extent=(-1., 1., -1., 1.))
+    pylab.colorbar()
     x, y = [], []
     # Draws the border
     for i in range(0, 360):
         x.append(numpy.sin((old_div(numpy.pi, 180.)) * float(i)))
         y.append(numpy.cos((old_div(numpy.pi, 180.)) * float(i)))
-    plt.plot(x, y, 'w-')
+    pylab.plot(x, y, 'w-')
     x, y = [], []
     # the map will be a square of 1X1..this is how I erase the redundant area
     for j in range(1, 4):
@@ -2877,10 +2874,10 @@ def plotEQcont(fignum, DIblock):
                      * (1. + (old_div(float(j), 10.))))
             y.append(numpy.cos((old_div(numpy.pi, 180.)) * float(i))
                      * (1. + (old_div(float(j), 10.))))
-        plt.plot(x, y, 'w-', linewidth=26)
+        pylab.plot(x, y, 'w-', linewidth=26)
         x, y = [], []
     # the axes
-    plt.axis("equal")
+    pylab.axis("equal")
 
 def plot_ts(ax,agemin,agemax,timescale='gts12'):
     """
@@ -2913,7 +2910,7 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     Y1=[TS[ind+1],TS[ind+1]]
                     if pol: ax.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
     ax.plot([0,1,1,0,0],[agemin,agemin,agemax,agemax,agemin],'k-')
-    plt.yticks(numpy.arange(agemin,agemax+1,1))
+    pylab.yticks(numpy.arange(agemin,agemax+1,1))
     ax.set_ylabel("Age (Ma): "+timescale)
     ax2=ax.twinx()
     ax2.axis('off')
