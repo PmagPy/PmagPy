@@ -2224,7 +2224,7 @@ def plot_close(plot):
 #
 
 
-def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb):
+def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
     imeas, bpars, hpars = 1, [], []
     npts = len(Ss)  # number of data points
     plots = {}
@@ -2236,7 +2236,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
         tau, V = pmag.doseigs(s)
         Vs.append(V)
     nf, sigma, avs = pmag.sbar(Ss)
-    if plt == 1:
+    if plot == 1:
         for key in list(ANIS.keys()):
             plt.figure(num=ANIS[key])
             plt.clf()
@@ -2251,7 +2251,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
     mtau, mV = pmag.doseigs(avs)
     Vs.append(mV)
     hpars = pmag.dohext(nf, sigma, avs)
-    if plt == 1:
+    if plot == 1:
         title = ''
         if ihext == 1:
             title = title + "Hext"
@@ -2274,7 +2274,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
         bpars['t1'] = hpars['t1']
         bpars['t2'] = hpars['t2']
         bpars['t3'] = hpars['t3']
-        if plt == 1:
+        if plot == 1:
             if ivec == 1:
                 # put on the data eigenvectors
                 plotEVEC(ANIS['conf'], BVs, 5, '')
@@ -2398,7 +2398,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plt, comp, vec, Dir, nb)
         bpars['v1_inc'] = hpars['v1_inc']
         bpars['v2_inc'] = hpars['v2_inc']
         bpars['v3_inc'] = hpars['v3_inc']
-    if ihext == 1 and plt == 1:
+    if ihext == 1 and plot == 1:
         ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
                    hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
         plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
