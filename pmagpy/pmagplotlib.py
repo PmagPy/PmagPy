@@ -13,7 +13,7 @@ from past.utils import old_div
 import sys
 import os
 sys.path.insert(0, os.getcwd())
-import numpy
+import numpy as np
 import pandas as pd
 
 # no longer setting backend here
@@ -50,7 +50,7 @@ if matplotlib.__version__ < '2.1':
 
 
 def poly(X, Y, deg):
-    return numpy.polyfit(X, Y, deg)
+    return np.polyfit(X, Y, deg)
 
 
 def showFIG(fig):
@@ -99,7 +99,7 @@ def click(event):
 
 def delticks(fig):  # deletes half the x-axis tick marks
     locs = fig.xaxis.get_ticklocs()
-    nlocs = numpy.delete(locs, list(range(0, len(locs), 2)))
+    nlocs = np.delete(locs, list(range(0, len(locs), 2)))
     fig.set_xticks(nlocs)
 
 
@@ -154,9 +154,9 @@ def gaussfunc(y, ybar, sigma):
     uses expression 7.1.26 from Abramowitz & Stegun
     accuracy better than 1.5e-7 absolute
     """
-    x = old_div((y - ybar), (numpy.sqrt(2.) * sigma))
+    x = old_div((y - ybar), (np.sqrt(2.) * sigma))
     t = old_div(1.0, (1.0 + .3275911 * abs(x)))
-    erf = 1.0 - numpy.exp(-x * x) * t * (.254829592 - t * (.284496736 -
+    erf = 1.0 - np.exp(-x * x) * t * (.254829592 - t * (.284496736 -
                                                            t * (1.421413741 - t * (1.453152027 - t * 1.061405429))))
     erf = abs(erf)
     sign = old_div(x, abs(x))
@@ -198,8 +198,8 @@ def qsnorm(p):
     if (d - 0.5) > 0:
         d = 1. - d
     if (d - 0.5) < 0:
-        t2 = -2. * numpy.log(d)
-        t = numpy.sqrt(t2)
+        t2 = -2. * np.log(d)
+        t = np.sqrt(t2)
         x = t - old_div((2.515517 + .802853 * t + .010328 * t2),
                         (1. + 1.432788 * t + .189269 * t2 + .001308 * t * t2))
         if p < 0.5:
@@ -252,9 +252,9 @@ def plotLINES(fignum, line, sym, x, y):
 def plotXY(fignum, X, Y, **kwargs):
     plt.figure(num=fignum)
 #    if 'poly' in kwargs.keys():
-#          coeffs=numpy.polyfit(X,Y,kwargs['poly'])
-#          polynomial=numpy.poly1d(coeffs)
-#          xs=numpy.arange(numpy.min(X),numpy.max(X))
+#          coeffs=np.polyfit(X,Y,kwargs['poly'])
+#          polynomial=np.poly1d(coeffs)
+#          xs=np.arange(np.min(X),np.max(X))
 #          ys=polynomial(xs)
 #          plt.plot(xs,ys)
 #          print coefs
@@ -320,7 +320,7 @@ def plotQQnorm(fignum, Y, title):
     Y.sort()  # data
     n = len(Y)
     d, mean, sigma = k_s(Y)
-    dc = old_div(0.886, numpy.sqrt(float(n)))
+    dc = old_div(0.886, np.sqrt(float(n)))
     print('mean,sigma, d, Dc')
     print(mean, sigma, d, dc)
     X = []  # list for normal quantile
@@ -374,7 +374,7 @@ def plotQQunf(fignum, D, title, subplot=False):
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16
-    Mu = v * (numpy.sqrt(n) - 0.567 + (old_div(1.623, (numpy.sqrt(n)))))
+    Mu = v * (np.sqrt(n) - 0.567 + (old_div(1.623, (np.sqrt(n)))))
     plt.axis([0, 1., 0., 1.])
     bounds = plt.axis()
     notestr = 'N: ' + '%i' % (n)
@@ -404,19 +404,19 @@ def plotQQexp(fignum, I, title, subplot=False):
     else:
         plt.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
-    rad = old_div(numpy.pi, 180.)
+    rad = old_div(np.pi, 180.)
     xsum = 0
     for i in I:
         theta = (90. - i) * rad
-        X.append(1. - numpy.cos(theta))
+        X.append(1. - np.cos(theta))
         xsum += X[-1]
     X.sort()
     n = float(len(X))
     kappa = old_div((n - 1.), xsum)
     for i in range(len(X)):
         p = old_div((float(i) - 0.5), n)
-        Y.append(-numpy.log(1. - p))
-        f = 1. - numpy.exp(-kappa * X[i])
+        Y.append(-np.log(1. - p))
+        f = 1. - np.exp(-kappa * X[i])
         ds = old_div(float(i), n) - f
         if dpos < ds:
             dpos = ds
@@ -427,8 +427,8 @@ def plotQQexp(fignum, I, title, subplot=False):
         ds = dneg
     else:
         ds = dpos
-    Me = (ds - (old_div(0.2, n))) * (numpy.sqrt(n) + 0.26 +
-                                     (old_div(0.5, (numpy.sqrt(n)))))  # Eq. 5.15 from Fisher et al. (1987)
+    Me = (ds - (old_div(0.2, n))) * (np.sqrt(n) + 0.26 +
+                                     (old_div(0.5, (np.sqrt(n)))))  # Eq. 5.15 from Fisher et al. (1987)
 
     plt.plot(Y, X, 'ro')
     bounds = plt.axis()
@@ -460,8 +460,8 @@ def plotNET(fignum):
     if not isServer:
         plt.figtext(.02, .01, version_num)
     plt.axis("off")
-    Dcirc = numpy.arange(0, 361.)
-    Icirc = numpy.zeros(361, 'f')
+    Dcirc = np.arange(0, 361.)
+    Icirc = np.zeros(361, 'f')
     Xcirc, Ycirc = [], []
     for k in range(361):
         XY = pmag.dimap(Dcirc[k], Icirc[k])
@@ -631,8 +631,8 @@ def plotZ(fignum, datablock, angle, s, norm):
     forVDS=gdata[['dec','inc','int']].values
     gXYZ=pd.DataFrame(pmag.dir2cart(forVDS))
     gXYZ.columns=['X','Y','Z']
-    amax=numpy.maximum(gXYZ.X.max(),gXYZ.Z.max())
-    amin=numpy.minimum(gXYZ.X.min(),gXYZ.Z.min())
+    amax=np.maximum(gXYZ.X.max(),gXYZ.Z.max())
+    amin=np.minimum(gXYZ.X.min(),gXYZ.Z.min())
     if amin>0:amin=0
     bXYZ=pmag.dir2cart(bdata[['dec','inc','int']].values).transpose()
 # plotting stuff
@@ -900,7 +900,7 @@ def plotDir(ZED, pars, datablock, angle):
 #   old way:
         cm = pars["center_of_mass"]
         if cm != [0., 0., 0.]:
-            cm = numpy.array(pars["center_of_mass"])/datablock[0][3]
+            cm = np.array(pars["center_of_mass"])/datablock[0][3]
             cmDir = pmag.cart2dir(cm)
             cmDir[0] = cmDir[0] - angle
             #cmDir[2] = old_div(cmDir[2], (datablock[0][3]))
@@ -908,7 +908,7 @@ def plotDir(ZED, pars, datablock, angle):
             diff = []
             for i in range(3):
                 diff.append(XYZe[i] - XYZs[i])
-            R = numpy.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
+            R = np.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
             P = pmag.dir2cart(
                 ((pars["specimen_dec"] - angle), pars["specimen_inc"], old_div(R, 2.5)))
             px, py, pz = [], [], []
@@ -1183,7 +1183,7 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
     plt.plot(X, Y)
     plt.xlabel("TRM*")
     plt.ylabel("NRM")
-    spars = numpy.polyfit(X, Y, 1)
+    spars = np.polyfit(X, Y, 1)
     Banc = spars[0] * field
     print(spars[0], field)
     print('Banc= ', Banc * 1e6, ' uT')
@@ -1498,7 +1498,7 @@ def plotELL(fignum, pars, col, lower, plot):
     function to calculate points on an ellipse about Pdec,Pdip with angle beta,gamma
     """
     plt.figure(num=fignum)
-    rad = old_div(numpy.pi, 180.)
+    rad = old_div(np.pi, 180.)
     Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
         1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]
     if beta > 90. or gamma > 90:
@@ -1537,10 +1537,10 @@ def plotELL(fignum, pars, col, lower, plot):
 # set up v matrix
     v = [0, 0, 0]
     for i in range(nums):  # incremental point along ellipse
-        psi = float(i) * numpy.pi / xnum
-        v[0] = numpy.sin(beta) * numpy.cos(psi)
-        v[1] = numpy.sin(gamma) * numpy.sin(psi)
-        v[2] = numpy.sqrt(1. - v[0]**2 - v[1]**2)
+        psi = float(i) * np.pi / xnum
+        v[0] = np.sin(beta) * np.cos(psi)
+        v[1] = np.sin(gamma) * np.sin(psi)
+        v[2] = np.sqrt(1. - v[0]**2 - v[1]**2)
         elli = [0, 0, 0]
 # calculate points on the ellipse
         for j in range(3):
@@ -1549,8 +1549,8 @@ def plotELL(fignum, pars, col, lower, plot):
                 elli[j] = elli[j] + t[j][k] * v[k]
         PTS.append(pmag.cart2dir(elli))
         # put on an equal area projection
-        R = old_div(numpy.sqrt(
-            1. - abs(elli[2])), (numpy.sqrt(elli[0]**2 + elli[1]**2)))
+        R = old_div(np.sqrt(
+            1. - abs(elli[2])), (np.sqrt(elli[0]**2 + elli[1]**2)))
         if elli[2] < 0:
             #            for i in range(3): elli[i]=-elli[i]
             X_up.append(elli[1] * R)
@@ -1614,7 +1614,7 @@ this function returns x and y"""
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
     fig = plt.figure(num=fignum)
-    # sdata=numpy.array(data).sort()
+    # sdata=np.array(data).sort()
     sdata = []
     for d in data:
         sdata.append(d)  # have to copy the data to avoid overwriting it!
@@ -1733,15 +1733,15 @@ def plotHYS(fignum, B, M, s):
     Bslop = B[2:Nint + 2]
     Mslop = Mfix[2:Nint + 2]
     # best fit line to high field points
-    polyU = numpy.polyfit(Bslop, Mslop, 1)
+    polyU = np.polyfit(Bslop, Mslop, 1)
     # adjust slope with first 30 points of ascending branch
     Bslop = B[kmin:kmin + (Nint + 1)]
     Mslop = Mfix[kmin:kmin + (Nint + 1)]
     # best fit line to high field points
-    polyL = numpy.polyfit(Bslop, Mslop, 1)
+    polyL = np.polyfit(Bslop, Mslop, 1)
     xhf = 0.5 * (polyU[0] + polyL[0])  # mean of two slopes
     # convert B to A/m, high field slope in m^3
-    hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * numpy.pi * 1e-7)
+    hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * np.pi * 1e-7)
     meanint = 0.5 * (polyU[1] + polyL[1])  # mean of two intercepts
     Msat = 0.5 * (polyU[1] - polyL[1])  # mean of saturation remanence
     Moff = []
@@ -1766,7 +1766,7 @@ def plotHYS(fignum, B, M, s):
     Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
     Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
     incr = B[0] * .01
-    for b in numpy.arange(B[0], step=incr):  # get range of field values
+    for b in np.arange(B[0], step=incr):  # get range of field values
         Mpos = ((Iupper(b) - Ilower(b)))  # evaluate on both sides of B
         Mneg = ((Iupper(-b) - Ilower(-b)))
         Bdm.append(b)
@@ -1792,10 +1792,10 @@ def plotHYS(fignum, B, M, s):
     Maz = Moff[Mazero - 1:Mazero + 1]
     try:
         # best fit line through two bounding points
-        poly = numpy.polyfit(Bz, Mz, 1)
+        poly = np.polyfit(Bz, Mz, 1)
         Bc = old_div(-poly[1], poly[0])  # x intercept
         # best fit line through two bounding points
-        poly = numpy.polyfit(Baz, Maz, 1)
+        poly = np.polyfit(Baz, Maz, 1)
         Bac = old_div(-poly[1], poly[0])  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
     except:
@@ -1874,7 +1874,7 @@ def plotHDD(HDD, B, M, s):
         Bhf = Bdm[Mhalf - 1:Mhalf + 1]
         Mhf = deltaM[Mhalf - 1:Mhalf + 1]
         # best fit line through two bounding points
-        poly = numpy.polyfit(Bhf, Mhf, 1)
+        poly = np.polyfit(Bhf, Mhf, 1)
         Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
         hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
         hpars['magic_method_codes'] = "LP-BCR-HDM"
@@ -1907,7 +1907,7 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
     plt.xlim(0, 6)
     #bounds= plt.axis()
     #plt.axis([0, bounds[1],0, 1])
-    mu_o = 4. * numpy.pi * 1e-7
+    mu_o = 4. * np.pi * 1e-7
     Bc_sd = 46e-3  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
     Bc_md = 5.56e-3  # (041183) dunlop and carter-stiglitz 2006 (in T)
     chi_sd = 5.20e6 * mu_o  # now in T
@@ -1918,7 +1918,7 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
     Ms = 480e3  # A/m
     p = .1  # from Dunlop 2002
     N = old_div(1., 3.)  # demagnetizing factor
-    f_sd = numpy.arange(1., 0., -.01)  # fraction of sd
+    f_sd = np.arange(1., 0., -.01)  # fraction of sd
     f_md = 1. - f_sd  # fraction of md
     f_sp = 1. - f_sd  # fraction of sp
     # Mr/Ms ratios for USD,MD and Jax shaped
@@ -1928,7 +1928,7 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
                  (f_sd * chi_sd + f_md * chi_md))  # eq. 10 in Dunlop 2002
     Bcr = old_div((f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md),
                   (f_sd * chi_r_sd + f_md * chi_r_md))  # eq. 11 in Dunlop 2002
-    chi_sps = numpy.arange(1, 5) * chi_sd
+    chi_sps = np.arange(1, 5) * chi_sd
     plt.plot(old_div(Bcr, Bc), Mrat, 'r-')
     if 'names' in list(kwargs.keys()):
         names = kwargs['names']
@@ -2032,7 +2032,7 @@ def plotIRM(fignum, B, M, title):
             backfield = 1
         Y.append(M[k])
     if backfield == 1:
-        poly = numpy.polyfit(X, Y, 1)
+        poly = np.polyfit(X, Y, 1)
         if poly[0] != 0:
             bcr = (old_div(-poly[1], poly[0]))
         else:
@@ -2687,7 +2687,9 @@ def addBorders(Figs, titles, border_color, text_color):
 
 
 def plotMAP(fignum, lats, lons, Opts):
-    """ makes a basemap with lats/lons """
+    """ makes a basemap with lats/lons 
+        Windows 10 users, see plot_map
+    """
     from mpl_toolkits.basemap import Basemap
     from matplotlib import cm
     fig = plt.figure(num=fignum)
@@ -2711,10 +2713,10 @@ def plotMAP(fignum, lats, lons, Opts):
             #from plt import meshgrid
             from mpl_toolkits.basemap import basemap_datadir
             EDIR = basemap_datadir + "/"
-            etopo = numpy.loadtxt(EDIR + 'etopo20data.gz')
-            elons = numpy.loadtxt(EDIR + 'etopo20lons.gz')
-            elats = numpy.loadtxt(EDIR + 'etopo20lats.gz')
-            x, y = m(*numpy.meshgrid(elons, elats))
+            etopo = np.loadtxt(EDIR + 'etopo20data.gz')
+            elons = np.loadtxt(EDIR + 'etopo20lons.gz')
+            elats = np.loadtxt(EDIR + 'etopo20lats.gz')
+            x, y = m(*np.meshgrid(elons, elats))
             cs = m.contourf(x, y, etopo, 30,cmap=cm.jet)
         if Opts['details']['coasts'] == 1:
             m.drawcoastlines(color='k')
@@ -2735,13 +2737,13 @@ def plotMAP(fignum, lats, lons, Opts):
                 # hopefully will be fixed eventually.
                 pass
     if Opts['pltgrid'] == 0.:
-        circles = numpy.arange(Opts['latmin'], Opts['latmax'] + 15., 15.)
-        meridians = numpy.arange(Opts['lonmin'], Opts['lonmax'] + 30., 30.)
+        circles = np.arange(Opts['latmin'], Opts['latmax'] + 15., 15.)
+        meridians = np.arange(Opts['lonmin'], Opts['lonmax'] + 30., 30.)
     elif Opts['pltgrid'] > 0:
         if Opts['proj'] in ExMer or Opts['proj'] == 'lcc':
-            circles = numpy.arange(-90, 180. +
+            circles = np.arange(-90, 180. +
                                    Opts['gridspace'], Opts['gridspace'])
-            meridians = numpy.arange(0, 360., Opts['gridspace'])
+            meridians = np.arange(0, 360., Opts['gridspace'])
         else:
             g = Opts['gridspace']
             latmin, lonmin = g * \
@@ -2750,10 +2752,10 @@ def plotMAP(fignum, lats, lons, Opts):
             latmax, lonmax = g * \
                 int(old_div(Opts['latmax'], g)), g * \
                 int(old_div(Opts['lonmax'], g))
-            # circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
-            # meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
-            meridians = numpy.arange(0, 360, 30)
-            circles = numpy.arange(-90, 90, 30)
+            # circles=np.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
+            # meridians=np.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
+            meridians = np.arange(0, 360, 30)
+            circles = np.arange(-90, 90, 30)
     if Opts['pltgrid'] >= 0:
         # m.drawparallels(circles,color='black',labels=plabels)
         # m.drawmeridians(meridians,color='black',labels=mlabels)
@@ -2800,6 +2802,115 @@ def plotMAP(fignum, lats, lons, Opts):
             m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
 
 
+def plot_map(fignum, lats, lons, Opts):
+    """ 
+    makes a cartopy map  with lats/lons 
+    """
+    import cartopy
+    import cartopy.crs as ccrs
+    from cartopy import config
+    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    from cartopy import feature as cfeature
+    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    import matplotlib.ticker as mticker
+    from matplotlib import cm
+    # draw meridian labels on the bottom [left,right,top,bottom]
+    mlabels = [0, 0, 0, 1]
+    plabels = [1, 0, 0, 0]  # draw parallel labels on the left
+    if 'latmin' not in Opts.keys():Opts[latmin]=-70
+    if 'latmax' not in Opts.keys():Opts[latmax]=70
+    if Opts['proj'] == 'merc':
+        ax = plt.axes(projection=ccrs.Mercator(\
+            central_longitude=Opts['lat_0'], min_latitude=Opts['latmin'], \
+            max_latitude=Opts['latmax'], globe=None))
+        #fig = plt.figure(fignum,(5,3))
+    if Opts['proj'] == 'moll':
+        ax = plt.axes(projection=ccrs.Mollweide(\
+            central_longitude=Opts['lat_0'], globe=None))
+    if Opts['proj']== 'ortho':
+        #fig = plt.figure(num=fignum)
+        ax = plt.axes(projection=ccrs.Orthographic(Opts['lon_0'],Opts['lat_0']))
+    if 'details' in list(Opts.keys()):
+        if Opts['details']['fancy'] == 1:
+            print ('fancy option not yet implemented in plot_map')
+            # NEED NEW DEFINITION OF BASEMAP_DIR FOR CARTOPY
+            #EDIR = basemap_datadir + "/"
+            #etopo = np.loadtxt(EDIR + 'etopo20data.gz')
+            #elons = np.loadtxt(EDIR + 'etopo20lons.gz')
+            #elats = np.loadtxt(EDIR + 'etopo20lats.gz')
+            #xx, yy = np.meshgrid(elons,elats)
+            #levels=np.arange(-10000,8000,500) # define contour intervals
+            #m=ax.contourf(xx, yy, etopo,levels,\
+            #    transform=ccrs.PlateCarree(),
+            #    cmap=cm.jet)
+        if Opts['details']['coasts'] == 1:
+            ax.coastlines()
+        if Opts['details']['rivers'] == 1:
+            print ('rivers not yet implemented')
+        if Opts['details']['states'] == 1:
+            states_provinces = cfeature.NaturalEarthFeature(
+                category='cultural',
+                name='admin_1_states_provinces_lines',
+                scale='50m',
+                edgecolor='black',
+                facecolor='none',
+                linestyle='dotted')
+            ax.add_feature(states_provinces)
+        if Opts['details']['countries'] == 1:
+            ax.add_feature(BORDERS,linestyle='-',linewidth=2)
+        if Opts['details']['ocean'] == 1:
+             ax.add_feature(OCEAN,color='lightblue')
+             ax.add_feature(LAND,color='orange')
+    if Opts['pltgrid'] >= 0.:
+        if Opts['proj'] not in ['ortho','moll']:
+            gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
+        else:
+            gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
+        gl.ylocator=mticker.FixedLocator(np.arange(-80,81,20))
+        gl.xlocator=mticker.FixedLocator(np.arange(-180,180,60))
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
+        gl.xlabels_top = False
+    prn_name, symsize = 0, 5
+    #if 'names' in list(Opts.keys()) > 0:
+    #    names = Opts['names']
+    #    if len(names) > 0:
+    #        prn_name = 1
+##
+    X, Y, T, k = [], [], [],0
+    if 'symsize' in list(Opts.keys()):
+        symsize = Opts['symsize']
+    if Opts['sym'][-1] != '-':  # just plot points
+        ax.plot(lons,lats,Opts['sym'],\
+            markersize=symsize,transform=ccrs.Geodetic(),markeredgecolor='black')
+        if prn_name == 1:
+            print ('labels not yet implemented in plot_map')
+            #for pt in range(len(lats)):
+            #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
+    #else:  # for lines,  need to separate chunks using lat==100.
+    #    chunk = 1
+    #    while k < len(lats) - 1:
+    #        if lats[k] <= 90:  # part of string
+    #            x, y = m(lons[k], lats[k])
+    #            if x < 1e20:
+    #                X.append(x)
+    #            if y < 1e20:
+    #                Y.append(y)  # exclude off the map points
+    #            if prn_name == 1:
+    #                T.append(plt.text(x + 5000, y - 5000, names[k]))
+    #            k += 1
+    #        else:  # need to skip 100.0s and move to next chunk
+    #            # plot previous chunk
+    #            m.plot(X, Y, Opts['sym'], markersize=symsize)
+    #            chunk += 1
+    #            while lats[k] > 90. and k < len(lats) - 1:
+    #                k += 1  # skip bad points
+    #            X, Y, T = [], [], []
+    #    if len(X) > 0:
+    #        m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
+    ax.set_global()
+
 def plotEQcont(fignum, DIblock):
     import random
     plt.figure(num=fignum)
@@ -2811,10 +2922,10 @@ def plotEQcont(fignum, DIblock):
         counter = counter + 1
         X = pmag.dir2cart([rec[0], rec[1], 1.])
         # from Collinson 1983
-        R = old_div(numpy.sqrt(1. - X[2]), (numpy.sqrt(X[0]**2 + X[1]**2)))
+        R = old_div(np.sqrt(1. - X[2]), (np.sqrt(X[0]**2 + X[1]**2)))
         XY.append([X[0] * R, X[1] * R])
     # radius of the circle
-    radius = (old_div(3., (numpy.sqrt(numpy.pi * (9. + float(counter)))))) + 0.01
+    radius = (old_div(3., (np.sqrt(np.pi * (9. + float(counter)))))) + 0.01
     num = 2. * (old_div(1., radius))  # number of circles
     # a,b are the extent of the grids over which the circles are equispaced
     a1, a2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
@@ -2822,7 +2933,7 @@ def plotEQcont(fignum, DIblock):
     # this is to get an array (a list of list wont do) of x,y values
     xlist = plt.linspace(a1, a2, int(plt.ceil(num)))
     ylist = plt.linspace(b1, b2, int(plt.ceil(num)))
-    X, Y = numpy.meshgrid(xlist, ylist)
+    X, Y = np.meshgrid(xlist, ylist)
     # to put z in the array I just multiply both x,y with zero.  I will add to
     # the zero values later
     Z = X * Y * 0.
@@ -2838,7 +2949,7 @@ def plotEQcont(fignum, DIblock):
     fraction = []
     beta, alpha = 0.001, 0.001  # to avoid those 'division by float' thingy
     for i in range(0, int(plt.ceil(num))**2):
-        if numpy.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) - 1. < radius:
+        if np.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) - 1. < radius:
             for j in range(1, 1000):
                 rnd1 = random.uniform(
                     centres[i][0] - radius, centres[i][0] + radius)
@@ -2872,16 +2983,16 @@ def plotEQcont(fignum, DIblock):
     x, y = [], []
     # Draws the border
     for i in range(0, 360):
-        x.append(numpy.sin((old_div(numpy.pi, 180.)) * float(i)))
-        y.append(numpy.cos((old_div(numpy.pi, 180.)) * float(i)))
+        x.append(np.sin((old_div(np.pi, 180.)) * float(i)))
+        y.append(np.cos((old_div(np.pi, 180.)) * float(i)))
     plt.plot(x, y, 'w-')
     x, y = [], []
     # the map will be a square of 1X1..this is how I erase the redundant area
     for j in range(1, 4):
         for i in range(0, 360):
-            x.append(numpy.sin((old_div(numpy.pi, 180.)) * float(i))
+            x.append(np.sin((old_div(np.pi, 180.)) * float(i))
                      * (1. + (old_div(float(j), 10.))))
-            y.append(numpy.cos((old_div(numpy.pi, 180.)) * float(i))
+            y.append(np.cos((old_div(np.pi, 180.)) * float(i))
                      * (1. + (old_div(float(j), 10.))))
         plt.plot(x, y, 'w-', linewidth=26)
         x, y = [], []
@@ -2919,7 +3030,7 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     Y1=[TS[ind+1],TS[ind+1]]
                     if pol: ax.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
     ax.plot([0,1,1,0,0],[agemin,agemin,agemax,agemax,agemin],'k-')
-    plt.yticks(numpy.arange(agemin,agemax+1,1))
+    plt.yticks(np.arange(agemin,agemax+1,1))
     ax.set_ylabel("Age (Ma): "+timescale)
     ax2=ax.twinx()
     ax2.axis('off')

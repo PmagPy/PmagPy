@@ -16,7 +16,7 @@ def main():
     """
     NAME 
         basemap_magic.py
-        NB:  this program no longer maintained - use plot_mapPTS.py for greater functionality
+        NB:  this program no longer maintained - use plot_map_pts.py for greater functionality
 
     DESCRIPTION
         makes a map of locations in er_sites.txt
