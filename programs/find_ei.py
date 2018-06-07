@@ -77,7 +77,8 @@ def main():
     pmagplotlib.plot_init(PLTS['cdf'],5,5)
     pmagplotlib.plot_init(PLTS['v2'],5,5)
     pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
-    if plot==0:pmagplotlib.drawFIGS(PLTS)
+    # this is a problem
+    #if plot==0:pmagplotlib.drawFIGS(PLTS)
     ppars=pmag.doprinc(data)
     Io=ppars['inc']
     n=ppars["N"]
@@ -122,13 +123,16 @@ def main():
     pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
     if plot==0:
-        pmagplotlib.drawFIGS(PLTS)
-        print("Io Inc  I_lower, I_upper, Elon, E_lower, E_upper")
         print('%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper]))
-        ans= input("S[a]ve plots - <return> to quit:  ")
-        if ans!='a':
+        print("Io Inc  I_lower, I_upper, Elon, E_lower, E_upper")
+        pmagplotlib.drawFIGS(PLTS)
+        ans = ""
+        while ans not in ['q', 'a']:
+            ans= input("S[a]ve plots - <q> to quit:  ")
+        if ans=='q':
            print("\n Good bye\n")
            sys.exit()
+
     files={}
     files['eq']='findEI_eq.'+fmt
     files['ei']='findEI_ei.'+fmt

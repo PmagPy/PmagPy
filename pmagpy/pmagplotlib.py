@@ -66,13 +66,16 @@ def drawFIGS(FIGS):
     is_win = True if sys.platform in ['win32', 'win64'] else False
     if not is_win:
         plt.ion()
-    print(FIGS)
-    for fig in list(FIGS.keys()):
-        plt.figure(FIGS[fig])
-        plt.draw()
-        plt.show()
-    if not is_win:
+        for fig in list(FIGS.keys()):
+            plt.draw()
+            plt.show()
         plt.ioff()
+    if is_win:
+        # this style basically works for Windows
+        plt.draw()
+        print("You must manually close all plots to continue")
+        plt.show()
+
 
 
 def clearFIG(fignum):
