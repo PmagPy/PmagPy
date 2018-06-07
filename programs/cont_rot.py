@@ -10,15 +10,17 @@ if matplotlib.get_backend() != "TKAgg":
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.continents as continents
+from pmag_env import set_env
+IS_WIN = set_env.IS_WIN
 
 def main():
     """
-    NAME 
-        cont_rot.py 
+    NAME
+        cont_rot.py
 
     DESCRIPTION
         rotates continental fragments according to specified Euler pole
- 
+
     SYNTAX
         cont_rot.py [command line options]
 
@@ -26,7 +28,7 @@ def main():
         -h prints help and quits
         -con [af, congo, kala, aus, balt, eur, ind, sam, ant, grn, lau, nam, gond] , specify colon delimited list of continents to be displayed, e.g., af, af:aus], etc
         -age use finite rotations of Torsvik et al. 2008 for specific age (5 Ma increments <325Ma)
-             rotates to paleomagnetic reference frame 
+             rotates to paleomagnetic reference frame
              available conts: [congo kala aus eur ind sam ant grn nam]
         -sac include rotation of south african craton to pmag reference
         -sym [ro, bs, g^, r., b-, etc.] [1,5,10] symbol and size for continent
@@ -35,11 +37,11 @@ def main():
             -, for lines, -- for dotted lines, see matplotlib online documentation for plot()
         -eye  ELAT ELON [specify eyeball location]
         -pfr  PLAT PLON OMEGA  [specify pole of finite rotation lat,lon and degrees]
-        -ffr FFILE, specifies series of finite rotations 
-           vector in tab delimited file 
-        -sr treat poles as sequential rotations 
+        -ffr FFILE, specifies series of finite rotations
+           vector in tab delimited file
+        -sr treat poles as sequential rotations
         -fpp PFILE, specifies series of paleopoles from which
-           euler poles can be calculated: vector in tab delimited file 
+           euler poles can be calculated: vector in tab delimited file
         -pt LAT LON,  specify a point to rotate along with continent
         -fpt PTFILE, specifies file with a series of points to be plotted
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
@@ -71,14 +73,14 @@ def main():
             cass= Cassini-Soldner
             splaea = South-Polar Lambert Azimuthal
             robin = Robinson
-    
+
     DEFAULTS
         con: nam
         res:  c
-        prj: mollweide 
+        prj: mollweide
         ELAT,ELON = 0,0
         NB: high resolution or lines can be very slow
-    
+
     """
     dir_path='.'
     ocean=0
@@ -185,14 +187,16 @@ def main():
         Opts['latmax']=70
         Opts['lonmin']=-180
         Opts['lonmax']=180
+    print('plotmap1')
     pmagplotlib.plotMAP(FIG['map'],[],[],Opts) # plot the basemap
     Opts['pltgrid']=-1 # turn off replotting of gridlines
     if '-pt' in sys.argv:
         Opts['sym']=sym
         Opts['symsize']=symsize
         pmagplotlib.plotMAP(FIG['map'],[pt_lat],[pt_lon],Opts)
-        if plot==0:pmagplotlib.drawFIGS(FIG)
-    for cont in Conts: 
+        if plot==0 and not IS_WIN:
+            pmagplotlib.drawFIGS(FIG)
+    for cont in Conts:
         Opts['sym']=sym
         lats,lons=[],[]
         if age!=0:
@@ -229,7 +233,8 @@ def main():
             cnt+=1
         if len(lats)>0 and len(Poles)==0:
             pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
-            if plot==0:pmagplotlib.drawFIGS(FIG)
+            if plot==0 and not IS_WIN:
+                pmagplotlib.drawFIGS(FIG)
         newlats,newlons=[],[]
         for lat in lats:newlats.append(lat)
         for lon in lons:newlons.append(lon)
@@ -242,7 +247,8 @@ def main():
                  pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
              elif pole==Poles[-1]: # plot only last pole for sequential rotations
                  pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
-             if plot==0:pmagplotlib.drawFIGS(FIG)
+             if plot==0 and not IS_WIN:
+                 pmagplotlib.drawFIGS(FIG)
              if SEQ==1: # treat poles as sequential rotations
                  newlats,newlons=[],[]
                  for lat in Rlats:newlats.append(lat)
@@ -253,7 +259,8 @@ def main():
         Opts['sym']='r*'
         Opts['symsize']=5
         pmagplotlib.plotMAP(FIG['map'],[pt[0]],[pt[1]],Opts)
-        if plot==0:pmagplotlib.drawFIGS(FIG)
+        if plot==0 and not IS_WIN:
+            pmagplotlib.drawFIGS(FIG)
         Opts['pltgrid']=-1 # turns off replotting of meridians and parallels
         for pole in Poles:
             Opts['sym']=sym
@@ -261,14 +268,18 @@ def main():
             Rlats,Rlons=pmag.PTrot(pole,[pt_lat],[pt_lon])
             print(Rlats,Rlons)
             pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
-            if plot==0:pmagplotlib.drawFIGS(FIG)
+            if plot==0 and not IS_WIN:
+                pmagplotlib.drawFIGS(FIG)
         Opts['sym']='g^'
         Opts['symsize']=5
         pmagplotlib.plotMAP(FIG['map'],[pole[0]],[pole[1]],Opts)
-        if plot==0:pmagplotlib.drawFIGS(FIG)
+        if plot==0 and not IS_WIN:
+            pmagplotlib.drawFIGS(FIG)
     files={}
     for key in list(FIG.keys()):
         files[key]='Cont_rot'+'.'+fmt
+    if plot == 1:
+        pmagplotlib.drawFIGS(FIG)
     if plot==1:
         pmagplotlib.saveP(FIG,files)
         sys.exit()
@@ -281,7 +292,7 @@ def main():
         pmagplotlib.saveP(FIG,files)
     else:
         pmagplotlib.drawFIGS(FIG)
-        ans=input(" S[a]ve to save plot, Return to quit:  ")
+        ans=pmagplotlib.save_or_quit()
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
 
