@@ -2836,7 +2836,7 @@ def plot_map(fignum, lats, lons, Opts):
             #print ('fancy option not yet implemented in plot_map')
             from pmagpy import find_pmag_dir
             pmag_dir=find_pmag_dir.get_pmag_dir()
-            EDIR=os.path.join(pmag_dir,'data_files')+"/"
+            EDIR=os.path.join(pmag_dir,'data_files')+"/etopo20/"
             etopo = np.loadtxt(EDIR + 'etopo20data.gz')
             elons = np.loadtxt(EDIR + 'etopo20lons.gz')
             elats = np.loadtxt(EDIR + 'etopo20lats.gz')
@@ -3043,17 +3043,3 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) #
     ax2.axis([-.25,1.5,agemax,agemin])
-
-def save_or_quit(msg="S[a]ve plots - <q> to quit: "):
-    ans = ""
-    count = 0
-    while ans not in ['q', 'a']:
-        ans= input(msg)
-        count += 1
-        if count > 5:
-            ans = 'q'
-        if ans == 'a':
-            return('a')
-    if ans=='q':
-        print("\n Good bye\n")
-        sys.exit()
