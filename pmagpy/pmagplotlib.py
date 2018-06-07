@@ -2833,17 +2833,18 @@ def plot_map(fignum, lats, lons, Opts):
         ax = plt.axes(projection=ccrs.Orthographic(Opts['lon_0'],Opts['lat_0']))
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-            print ('fancy option not yet implemented in plot_map')
-            # NEED NEW DEFINITION OF BASEMAP_DIR FOR CARTOPY
-            #EDIR = basemap_datadir + "/"
-            #etopo = np.loadtxt(EDIR + 'etopo20data.gz')
-            #elons = np.loadtxt(EDIR + 'etopo20lons.gz')
-            #elats = np.loadtxt(EDIR + 'etopo20lats.gz')
-            #xx, yy = np.meshgrid(elons,elats)
-            #levels=np.arange(-10000,8000,500) # define contour intervals
-            #m=ax.contourf(xx, yy, etopo,levels,\
-            #    transform=ccrs.PlateCarree(),
-            #    cmap=cm.jet)
+            #print ('fancy option not yet implemented in plot_map')
+            from pmagpy import find_pmag_dir
+            pmag_dir=find_pmag_dir.get_pmag_dir()
+            EDIR=os.path.join(pmag_dir,'data_files')+"/"
+            etopo = np.loadtxt(EDIR + 'etopo20data.gz')
+            elons = np.loadtxt(EDIR + 'etopo20lons.gz')
+            elats = np.loadtxt(EDIR + 'etopo20lats.gz')
+            xx, yy = np.meshgrid(elons,elats)
+            levels=np.arange(-10000,8000,500) # define contour intervals
+            m=ax.contourf(xx, yy, etopo,levels,\
+                transform=ccrs.PlateCarree(),
+                cmap=cm.jet)
         if Opts['details']['coasts'] == 1:
             ax.coastlines()
         if Opts['details']['rivers'] == 1:
