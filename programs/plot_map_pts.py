@@ -24,6 +24,7 @@ def main():
 
     OPTIONS
         -h prints help and quits
+        -ctp use cartopy instead of basemap [only for ortho, mercator and mollweide so far - and requires installation of cartopy]
         -sym [ro, bs, g^, r., b-, etc.] [1,5,10] symbol and size for points
            colors are r=red,b=blue,g=green, etc.
            symbols are '.' for points, ^, for triangle, s for square, etc.
@@ -95,6 +96,7 @@ def main():
     latmin,latmax,lonmin,lonmax,lat_0,lon_0=-90,90,0.,360.,0.,0.
     padlat,padlon,gridspace=0,0,30
     lat_0,lon_0="",""
+    basemap=1
     prn_name,prn_loc,names,locs=0,0,[],[]
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -111,6 +113,7 @@ def main():
         if res!= 'c' and res!='l':
             print('this resolution will take a while - be patient')
     if '-etp' in sys.argv: fancy=1
+    if '-ctp' in sys.argv: basemap=0
     if '-sav' in sys.argv: plot=1
     if '-R' in sys.argv:rivers=0
     if '-B' in sys.argv:boundaries=0
@@ -199,12 +202,15 @@ def main():
     print('please wait to draw points')
     Opts['sym']=sym
     Opts['symsize']=symsize
-    pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
+    if basemap: 
+        pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
+    else:
+        pmagplotlib.plot_map(FIG['map'],Lats,Lons,Opts)
     files={}
     titles={}
     titles['map']='PT Map'
     for key in list(FIG.keys()):
-        files[key]='Map_PTS'+'.'+fmt
+        files[key]='map_pts'+'.'+fmt
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
