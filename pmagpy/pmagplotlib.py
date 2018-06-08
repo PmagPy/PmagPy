@@ -2778,7 +2778,7 @@ def plotMAP(fignum, lats, lons, Opts):
         if prn_name == 1:
             for pt in range(len(lats)):
                 T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-        m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor='black)
+        m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor='black')
     else:  # for lines,  need to separate chunks using lat==100.
         chunk = 1
         while k < len(lats) - 1:
