@@ -2254,8 +2254,8 @@ def angle(D1, D2):
 
     Parameters
     ----------
-    D1 : Direction 1 as (declination, inclination)
-    D2 : Direction 2 as (declination, inclination)
+    D1 : Direction 1 as an array of [declination, inclination] pair or pairs
+    D2 : Direction 2 as an array of [declination, inclination] pair or pairs
 
     Returns
     -------

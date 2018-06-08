@@ -1,4 +1,5 @@
 #!/usr/bin/env pythonw
+
 from __future__ import print_function
 from builtins import str
 import wx
