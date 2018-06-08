@@ -198,7 +198,6 @@ def main():
         Opts['latmax'] = 70
         Opts['lonmin'] = -180
         Opts['lonmax'] = 180
-    print('plotmap1')
     pmagplotlib.plotMAP(FIG['map'], [], [], Opts)  # plot the basemap
     Opts['pltgrid'] = -1  # turn off replotting of gridlines
     if '-pt' in sys.argv:
