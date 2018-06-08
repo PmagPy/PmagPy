@@ -25,7 +25,7 @@ def main():
     OPTIONS
         -h prints help message and quits
         -i allows interactive data entry
-        -f file: read plate, lat, lon, age data from file
+        f file: read plate, lat, lon, age data from file
         -F output_file: write output to output_file 
         -P [NA, SA, AF, IN, EU, AU, ANT, GL] plate
         -lat LAT specify present latitude (positive = North; negative=South)
