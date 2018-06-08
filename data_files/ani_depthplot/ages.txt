@@ -1,4 +1,4 @@
-tab     ages
+tab	ages
 age	age_unit	citations	description	location	method_codes	sample	site
 0.44	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H-2-W-35	318-U1361A-001H-2-W-35
 0.52	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H-3-W-90	318-U1361A-001H-3-W-90
@@ -37,10 +37,10 @@ age	age_unit	citations	description	location	method_codes	sample	site
 0.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.15	318-U1361A-001H_3A-0.15
 0.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.2	318-U1361A-001H_3A-0.2
 0.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.25	318-U1361A-001H_3A-0.25
-0.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.3	318-U1361A-001H_3A-0.3
-0.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.35	318-U1361A-001H_3A-0.35
-0.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.4	318-U1361A-001H_3A-0.4
-0.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.45	318-U1361A-001H_3A-0.45
+0.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.3	318-U1361A-001H_3A-0.3
+0.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.35	318-U1361A-001H_3A-0.35
+0.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.4	318-U1361A-001H_3A-0.4
+0.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.45	318-U1361A-001H_3A-0.45
 0.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.5	318-U1361A-001H_3A-0.5
 0.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.55	318-U1361A-001H_3A-0.55
 0.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_3A-0.6	318-U1361A-001H_3A-0.6
@@ -82,11 +82,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 0.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1	318-U1361A-001H_4A-1
 0.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.05	318-U1361A-001H_4A-1.05
 0.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.1	318-U1361A-001H_4A-1.1
+<<<<<<< HEAD
 0.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.15	318-U1361A-001H_4A-1.15
 0.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.2	318-U1361A-001H_4A-1.2
 0.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.25	318-U1361A-001H_4A-1.25
 0.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.3	318-U1361A-001H_4A-1.3
 0.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.35	318-U1361A-001H_4A-1.35
+=======
+0.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.15	318-U1361A-001H_4A-1.15
+0.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.2	318-U1361A-001H_4A-1.2
+0.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.25	318-U1361A-001H_4A-1.25
+0.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.3	318-U1361A-001H_4A-1.3
+0.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.35	318-U1361A-001H_4A-1.35
+>>>>>>> fix ani_depthplot (data model 3) example files
 0.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.4	318-U1361A-001H_4A-1.4
 0.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_4A-1.45	318-U1361A-001H_4A-1.45
 0.62	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_5A-0.1	318-U1361A-001H_5A-0.1
@@ -125,11 +133,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 0.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.35	318-U1361A-001H_6A-0.35
 0.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.4	318-U1361A-001H_6A-0.4
 0.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.45	318-U1361A-001H_6A-0.45
+<<<<<<< HEAD
 0.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.5	318-U1361A-001H_6A-0.5
 0.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.55	318-U1361A-001H_6A-0.55
 0.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.6	318-U1361A-001H_6A-0.6
 0.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.65	318-U1361A-001H_6A-0.65
 0.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.7	318-U1361A-001H_6A-0.7
+=======
+0.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.5	318-U1361A-001H_6A-0.5
+0.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.55	318-U1361A-001H_6A-0.55
+0.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.6	318-U1361A-001H_6A-0.6
+0.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.65	318-U1361A-001H_6A-0.65
+0.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.7	318-U1361A-001H_6A-0.7
+>>>>>>> fix ani_depthplot (data model 3) example files
 0.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.75	318-U1361A-001H_6A-0.75
 0.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.8	318-U1361A-001H_6A-0.8
 0.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-001H_6A-0.85	318-U1361A-001H_6A-0.85
@@ -149,24 +165,40 @@ age	age_unit	citations	description	location	method_codes	sample	site
 0.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-10	318-U1361A-002H-5-W-10
 1.03	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-108	318-U1361A-002H-5-W-108
 1.04	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-131	318-U1361A-002H-5-W-131
+<<<<<<< HEAD
 1.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-25	318-U1361A-002H-5-W-25
 1.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-53	318-U1361A-002H-5-W-53
 1.02	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-84	318-U1361A-002H-5-W-84
 1.06	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-11	318-U1361A-002H-6-W-11
 1.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-118	318-U1361A-002H-6-W-118
+=======
+1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-25	318-U1361A-002H-5-W-25
+1.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-53	318-U1361A-002H-5-W-53
+1.02	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-5-W-84	318-U1361A-002H-5-W-84
+1.06	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-11	318-U1361A-002H-6-W-11
+1.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-118	318-U1361A-002H-6-W-118
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-145	318-U1361A-002H-6-W-145
 1.07	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-40	318-U1361A-002H-6-W-40
 1.08	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-63	318-U1361A-002H-6-W-63
 1.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-6-W-91	318-U1361A-002H-6-W-91
 1.13	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-002H-7-W-34	318-U1361A-002H-7-W-34
 1.24	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-107	318-U1361A-003H-2-W-107
+<<<<<<< HEAD
 1.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-12	318-U1361A-003H-2-W-12
+=======
+1.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-12	318-U1361A-003H-2-W-12
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-129	318-U1361A-003H-2-W-129
 1.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-32	318-U1361A-003H-2-W-32
 1.22	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-58	318-U1361A-003H-2-W-58
 1.23	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-2-W-80	318-U1361A-003H-2-W-80
 1.26	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-10	318-U1361A-003H-3-W-10
+<<<<<<< HEAD
 1.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-100	318-U1361A-003H-3-W-100
+=======
+1.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-100	318-U1361A-003H-3-W-100
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-119	318-U1361A-003H-3-W-119
 1.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-135	318-U1361A-003H-3-W-135
 1.27	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-3-W-32	318-U1361A-003H-3-W-32
@@ -182,7 +214,11 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.44	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-132	318-U1361A-003H-5-W-132
 1.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-29	318-U1361A-003H-5-W-29
 1.38	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-5	318-U1361A-003H-5-W-5
+<<<<<<< HEAD
 1.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-53	318-U1361A-003H-5-W-53
+=======
+1.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-53	318-U1361A-003H-5-W-53
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-75	318-U1361A-003H-5-W-75
 1.42	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-5-W-89	318-U1361A-003H-5-W-89
 1.47	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-003H-6-W-66	318-U1361A-003H-6-W-66
@@ -190,6 +226,7 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.62	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-2-W-81	318-U1361A-004H-2-W-81
 1.68	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-3-W-81	318-U1361A-004H-3-W-81
 1.74	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-4-W-69	318-U1361A-004H-4-W-69
+<<<<<<< HEAD
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-5-W-70	318-U1361A-004H-5-W-70
 1.86	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-6-W-63	318-U1361A-004H-6-W-63
 1.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.1	318-U1361A-004H_2A-0.1
@@ -199,6 +236,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.3	318-U1361A-004H_2A-0.3
 1.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.35	318-U1361A-004H_2A-0.35
 1.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.4	318-U1361A-004H_2A-0.4
+=======
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-5-W-70	318-U1361A-004H-5-W-70
+1.86	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H-6-W-63	318-U1361A-004H-6-W-63
+1.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.1	318-U1361A-004H_2A-0.1
+1.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.15	318-U1361A-004H_2A-0.15
+1.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.2	318-U1361A-004H_2A-0.2
+1.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.25	318-U1361A-004H_2A-0.25
+1.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.3	318-U1361A-004H_2A-0.3
+1.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.35	318-U1361A-004H_2A-0.35
+1.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.4	318-U1361A-004H_2A-0.4
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.45	318-U1361A-004H_2A-0.45
 1.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.5	318-U1361A-004H_2A-0.5
 1.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_2A-0.55	318-U1361A-004H_2A-0.55
@@ -233,11 +281,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1	318-U1361A-004H_3A-1
 1.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.05	318-U1361A-004H_3A-1.05
 1.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.1	318-U1361A-004H_3A-1.1
+<<<<<<< HEAD
 1.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.15	318-U1361A-004H_3A-1.15
 1.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.2	318-U1361A-004H_3A-1.2
 1.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.25	318-U1361A-004H_3A-1.25
 1.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.3	318-U1361A-004H_3A-1.3
 1.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.35	318-U1361A-004H_3A-1.35
+=======
+1.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.15	318-U1361A-004H_3A-1.15
+1.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.2	318-U1361A-004H_3A-1.2
+1.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.25	318-U1361A-004H_3A-1.25
+1.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.3	318-U1361A-004H_3A-1.3
+1.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.35	318-U1361A-004H_3A-1.35
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.4	318-U1361A-004H_3A-1.4
 1.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_3A-1.45	318-U1361A-004H_3A-1.45
 1.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_4A-0.1	318-U1361A-004H_4A-0.1
@@ -277,11 +333,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.45	318-U1361A-004H_5A-0.45
 1.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.5	318-U1361A-004H_5A-0.5
 1.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.55	318-U1361A-004H_5A-0.55
+<<<<<<< HEAD
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.6	318-U1361A-004H_5A-0.6
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.65	318-U1361A-004H_5A-0.65
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.7	318-U1361A-004H_5A-0.7
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.75	318-U1361A-004H_5A-0.75
 1.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.8	318-U1361A-004H_5A-0.8
+=======
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.6	318-U1361A-004H_5A-0.6
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.65	318-U1361A-004H_5A-0.65
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.7	318-U1361A-004H_5A-0.7
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.75	318-U1361A-004H_5A-0.75
+1.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.8	318-U1361A-004H_5A-0.8
+>>>>>>> fix ani_depthplot (data model 3) example files
 1.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.85	318-U1361A-004H_5A-0.85
 1.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.9	318-U1361A-004H_5A-0.9
 1.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-004H_5A-0.95	318-U1361A-004H_5A-0.95
@@ -321,11 +385,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 1.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.4	318-U1361A-005H_2A-0.4
 1.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.45	318-U1361A-005H_2A-0.45
 1.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.5	318-U1361A-005H_2A-0.5
+<<<<<<< HEAD
 2.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.55	318-U1361A-005H_2A-0.55
 2.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.6	318-U1361A-005H_2A-0.6
 2.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.65	318-U1361A-005H_2A-0.65
 2.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.7	318-U1361A-005H_2A-0.7
 2.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.75	318-U1361A-005H_2A-0.75
+=======
+2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.55	318-U1361A-005H_2A-0.55
+2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.6	318-U1361A-005H_2A-0.6
+2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.65	318-U1361A-005H_2A-0.65
+2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.7	318-U1361A-005H_2A-0.7
+2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.75	318-U1361A-005H_2A-0.75
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.8	318-U1361A-005H_2A-0.8
 2.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.85	318-U1361A-005H_2A-0.85
 2.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_2A-0.9	318-U1361A-005H_2A-0.9
@@ -368,10 +440,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_3A-1.35	318-U1361A-005H_3A-1.35
 2.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_3A-1.4	318-U1361A-005H_3A-1.4
 2.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_3A-1.45	318-U1361A-005H_3A-1.45
+<<<<<<< HEAD
 2.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.1	318-U1361A-005H_4A-0.1
 2.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.15	318-U1361A-005H_4A-0.15
 2.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.2	318-U1361A-005H_4A-0.2
 2.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.25	318-U1361A-005H_4A-0.25
+=======
+2.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.1	318-U1361A-005H_4A-0.1
+2.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.15	318-U1361A-005H_4A-0.15
+2.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.2	318-U1361A-005H_4A-0.2
+2.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.25	318-U1361A-005H_4A-0.25
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.3	318-U1361A-005H_4A-0.3
 2.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.35	318-U1361A-005H_4A-0.35
 2.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_4A-0.4	318-U1361A-005H_4A-0.4
@@ -414,11 +493,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-0.85	318-U1361A-005H_5A-0.85
 2.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-0.9	318-U1361A-005H_5A-0.9
 2.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-0.95	318-U1361A-005H_5A-0.95
+<<<<<<< HEAD
 2.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1	318-U1361A-005H_5A-1
 2.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.05	318-U1361A-005H_5A-1.05
 2.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.1	318-U1361A-005H_5A-1.1
 2.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.15	318-U1361A-005H_5A-1.15
 2.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.2	318-U1361A-005H_5A-1.2
+=======
+2.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1	318-U1361A-005H_5A-1
+2.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.05	318-U1361A-005H_5A-1.05
+2.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.1	318-U1361A-005H_5A-1.1
+2.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.15	318-U1361A-005H_5A-1.15
+2.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.2	318-U1361A-005H_5A-1.2
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.25	318-U1361A-005H_5A-1.25
 2.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.3	318-U1361A-005H_5A-1.3
 2.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-005H_5A-1.35	318-U1361A-005H_5A-1.35
@@ -455,12 +542,20 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.32	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-1-W-55	318-U1361A-006H-1-W-55
 2.38	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-2-W-55	318-U1361A-006H-2-W-55
 2.44	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-3-W-54	318-U1361A-006H-3-W-54
+<<<<<<< HEAD
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-4-W-55	318-U1361A-006H-4-W-55
+=======
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-4-W-55	318-U1361A-006H-4-W-55
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.56	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-5-W-55	318-U1361A-006H-5-W-55
 2.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-6-W-55	318-U1361A-006H-6-W-55
 2.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-6-W-55a	318-U1361A-006H-6-W-55a
 2.67	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H-7-W-98	318-U1361A-006H-7-W-98
+<<<<<<< HEAD
 2.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_1A-0.2	318-U1361A-006H_1A-0.2
+=======
+2.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_1A-0.2	318-U1361A-006H_1A-0.2
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_1A-0.25	318-U1361A-006H_1A-0.25
 2.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_1A-0.3	318-U1361A-006H_1A-0.3
 2.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_1A-0.35	318-U1361A-006H_1A-0.35
@@ -504,11 +599,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-0.9	318-U1361A-006H_2A-0.9
 2.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-0.95	318-U1361A-006H_2A-0.95
 2.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1	318-U1361A-006H_2A-1
+<<<<<<< HEAD
 2.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.05	318-U1361A-006H_2A-1.05
 2.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.1	318-U1361A-006H_2A-1.1
 2.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.15	318-U1361A-006H_2A-1.15
 2.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.2	318-U1361A-006H_2A-1.2
 2.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.25	318-U1361A-006H_2A-1.25
+=======
+2.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.05	318-U1361A-006H_2A-1.05
+2.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.1	318-U1361A-006H_2A-1.1
+2.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.15	318-U1361A-006H_2A-1.15
+2.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.2	318-U1361A-006H_2A-1.2
+2.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.25	318-U1361A-006H_2A-1.25
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.3	318-U1361A-006H_2A-1.3
 2.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.35	318-U1361A-006H_2A-1.35
 2.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_2A-1.4	318-U1361A-006H_2A-1.4
@@ -545,11 +648,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.4	318-U1361A-006H_4A-0.4
 2.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.45	318-U1361A-006H_4A-0.45
 2.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.5	318-U1361A-006H_4A-0.5
+<<<<<<< HEAD
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.55	318-U1361A-006H_4A-0.55
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.6	318-U1361A-006H_4A-0.6
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.65	318-U1361A-006H_4A-0.65
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.7	318-U1361A-006H_4A-0.7
 2.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.75	318-U1361A-006H_4A-0.75
+=======
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.55	318-U1361A-006H_4A-0.55
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.6	318-U1361A-006H_4A-0.6
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.65	318-U1361A-006H_4A-0.65
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.7	318-U1361A-006H_4A-0.7
+2.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.75	318-U1361A-006H_4A-0.75
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.8	318-U1361A-006H_4A-0.8
 2.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.85	318-U1361A-006H_4A-0.85
 2.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_4A-0.9	318-U1361A-006H_4A-0.9
@@ -588,10 +699,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_5A-1.3	318-U1361A-006H_5A-1.3
 2.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_5A-1.35	318-U1361A-006H_5A-1.35
 2.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_5A-1.4	318-U1361A-006H_5A-1.4
+<<<<<<< HEAD
 2.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.1	318-U1361A-006H_6A-0.1
 2.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.15	318-U1361A-006H_6A-0.15
 2.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.2	318-U1361A-006H_6A-0.2
 2.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.25	318-U1361A-006H_6A-0.25
+=======
+2.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.1	318-U1361A-006H_6A-0.1
+2.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.15	318-U1361A-006H_6A-0.15
+2.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.2	318-U1361A-006H_6A-0.2
+2.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.25	318-U1361A-006H_6A-0.25
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.3	318-U1361A-006H_6A-0.3
 2.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.35	318-U1361A-006H_6A-0.35
 2.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-006H_6A-0.4	318-U1361A-006H_6A-0.4
@@ -635,11 +753,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.03	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H-7-W-20	318-U1361A-007H-7-W-20
 3.03	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H-7-W-20a	318-U1361A-007H-7-W-20a
 2.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.55	318-U1361A-007H_1A-0.55
+<<<<<<< HEAD
 2.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.6	318-U1361A-007H_1A-0.6
 2.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.65	318-U1361A-007H_1A-0.65
 2.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.7	318-U1361A-007H_1A-0.7
 2.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.75	318-U1361A-007H_1A-0.75
 2.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.8	318-U1361A-007H_1A-0.8
+=======
+2.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.6	318-U1361A-007H_1A-0.6
+2.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.65	318-U1361A-007H_1A-0.65
+2.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.7	318-U1361A-007H_1A-0.7
+2.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.75	318-U1361A-007H_1A-0.75
+2.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.8	318-U1361A-007H_1A-0.8
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.85	318-U1361A-007H_1A-0.85
 2.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.9	318-U1361A-007H_1A-0.9
 2.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_1A-0.95	318-U1361A-007H_1A-0.95
@@ -680,11 +806,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.78	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_2A-1.35	318-U1361A-007H_2A-1.35
 2.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_2A-1.4	318-U1361A-007H_2A-1.4
 2.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.1	318-U1361A-007H_3A-0.1
+<<<<<<< HEAD
 2.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.15	318-U1361A-007H_3A-0.15
 2.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.2	318-U1361A-007H_3A-0.2
 2.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.25	318-U1361A-007H_3A-0.25
 2.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.3	318-U1361A-007H_3A-0.3
 2.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.35	318-U1361A-007H_3A-0.35
+=======
+2.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.15	318-U1361A-007H_3A-0.15
+2.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.2	318-U1361A-007H_3A-0.2
+2.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.25	318-U1361A-007H_3A-0.25
+2.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.3	318-U1361A-007H_3A-0.3
+2.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.35	318-U1361A-007H_3A-0.35
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.4	318-U1361A-007H_3A-0.4
 2.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.45	318-U1361A-007H_3A-0.45
 2.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_3A-0.5	318-U1361A-007H_3A-0.5
@@ -726,11 +860,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.05	318-U1361A-007H_4A-1.05
 2.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.1	318-U1361A-007H_4A-1.1
 2.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.15	318-U1361A-007H_4A-1.15
+<<<<<<< HEAD
 2.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.2	318-U1361A-007H_4A-1.2
 2.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.25	318-U1361A-007H_4A-1.25
 2.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.3	318-U1361A-007H_4A-1.3
 2.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.35	318-U1361A-007H_4A-1.35
 2.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.4	318-U1361A-007H_4A-1.4
+=======
+2.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.2	318-U1361A-007H_4A-1.2
+2.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.25	318-U1361A-007H_4A-1.25
+2.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.3	318-U1361A-007H_4A-1.3
+2.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.35	318-U1361A-007H_4A-1.35
+2.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_4A-1.4	318-U1361A-007H_4A-1.4
+>>>>>>> fix ani_depthplot (data model 3) example files
 2.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_5A-0.1	318-U1361A-007H_5A-0.1
 2.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_5A-0.15	318-U1361A-007H_5A-0.15
 2.92	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_5A-0.2	318-U1361A-007H_5A-0.2
@@ -771,11 +913,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 2.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.6	318-U1361A-007H_6A-0.6
 2.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.65	318-U1361A-007H_6A-0.65
 2.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.7	318-U1361A-007H_6A-0.7
+<<<<<<< HEAD
 3.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.75	318-U1361A-007H_6A-0.75
 3.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.8	318-U1361A-007H_6A-0.8
 3.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.85	318-U1361A-007H_6A-0.85
 3.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.9	318-U1361A-007H_6A-0.9
 3.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.95	318-U1361A-007H_6A-0.95
+=======
+3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.75	318-U1361A-007H_6A-0.75
+3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.8	318-U1361A-007H_6A-0.8
+3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.85	318-U1361A-007H_6A-0.85
+3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.9	318-U1361A-007H_6A-0.9
+3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-0.95	318-U1361A-007H_6A-0.95
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-1	318-U1361A-007H_6A-1
 3.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-1.05	318-U1361A-007H_6A-1.05
 3.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-007H_6A-1.1	318-U1361A-007H_6A-1.1
@@ -799,12 +949,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.07	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-1-W-73	318-U1361A-008H-1-W-73
 3.07	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-1-W-73a	318-U1361A-008H-1-W-73a
 3.14	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-2-W-92	318-U1361A-008H-2-W-92
+<<<<<<< HEAD
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-3-W-102	318-U1361A-008H-3-W-102
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-3-W-102a	318-U1361A-008H-3-W-102a
 3.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-4-W-78	318-U1361A-008H-4-W-78
 3.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-4-W-78a	318-U1361A-008H-4-W-78a
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-5-W-67	318-U1361A-008H-5-W-67
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-5-W-67a	318-U1361A-008H-5-W-67a
+=======
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-3-W-102	318-U1361A-008H-3-W-102
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-3-W-102a	318-U1361A-008H-3-W-102a
+3.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-4-W-78	318-U1361A-008H-4-W-78
+3.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-4-W-78a	318-U1361A-008H-4-W-78a
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-5-W-67	318-U1361A-008H-5-W-67
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-5-W-67a	318-U1361A-008H-5-W-67a
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.37	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-6-W-83	318-U1361A-008H-6-W-83
 3.37	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-6-W-83a	318-U1361A-008H-6-W-83a
 3.38	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H-7-W-28	318-U1361A-008H-7-W-28
@@ -822,7 +981,11 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.08	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_1A-0.9	318-U1361A-008H_1A-0.9
 3.08	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_1A-0.95	318-U1361A-008H_1A-0.95
 3.08	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_1A-1	318-U1361A-008H_1A-1
+<<<<<<< HEAD
 3.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_1A-1.4	318-U1361A-008H_1A-1.4
+=======
+3.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_1A-1.4	318-U1361A-008H_1A-1.4
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_2A-0.1	318-U1361A-008H_2A-0.1
 3.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_2A-0.15	318-U1361A-008H_2A-0.15
 3.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_2A-0.2	318-U1361A-008H_2A-0.2
@@ -864,11 +1027,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.75	318-U1361A-008H_3A-0.75
 3.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.8	318-U1361A-008H_3A-0.8
 3.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.85	318-U1361A-008H_3A-0.85
+<<<<<<< HEAD
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.9	318-U1361A-008H_3A-0.9
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.95	318-U1361A-008H_3A-0.95
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1	318-U1361A-008H_3A-1
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.05	318-U1361A-008H_3A-1.05
 3.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.1	318-U1361A-008H_3A-1.1
+=======
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.9	318-U1361A-008H_3A-0.9
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-0.95	318-U1361A-008H_3A-0.95
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1	318-U1361A-008H_3A-1
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.05	318-U1361A-008H_3A-1.05
+3.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.1	318-U1361A-008H_3A-1.1
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.15	318-U1361A-008H_3A-1.15
 3.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.2	318-U1361A-008H_3A-1.2
 3.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_3A-1.25	318-U1361A-008H_3A-1.25
@@ -910,11 +1081,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.35	318-U1361A-008H_5A-0.35
 3.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.4	318-U1361A-008H_5A-0.4
 3.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.45	318-U1361A-008H_5A-0.45
+<<<<<<< HEAD
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.5	318-U1361A-008H_5A-0.5
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.55	318-U1361A-008H_5A-0.55
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.6	318-U1361A-008H_5A-0.6
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.65	318-U1361A-008H_5A-0.65
 3.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.7	318-U1361A-008H_5A-0.7
+=======
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.5	318-U1361A-008H_5A-0.5
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.55	318-U1361A-008H_5A-0.55
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.6	318-U1361A-008H_5A-0.6
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.65	318-U1361A-008H_5A-0.65
+3.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.7	318-U1361A-008H_5A-0.7
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.75	318-U1361A-008H_5A-0.75
 3.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.8	318-U1361A-008H_5A-0.8
 3.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_5A-0.85	318-U1361A-008H_5A-0.85
@@ -950,8 +1129,13 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.37	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-008H_6A-1	318-U1361A-008H_6A-1
 3.45	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-1-W-94	318-U1361A-009H-1-W-94
 3.45	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-1-W-94a	318-U1361A-009H-1-W-94a
+<<<<<<< HEAD
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-2-W-77	318-U1361A-009H-2-W-77
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-2-W-77a	318-U1361A-009H-2-W-77a
+=======
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-2-W-77	318-U1361A-009H-2-W-77
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-2-W-77a	318-U1361A-009H-2-W-77a
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.55	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-3-W-63	318-U1361A-009H-3-W-63
 3.55	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-3-W-63a	318-U1361A-009H-3-W-63a
 3.62	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H-4-W-107	318-U1361A-009H-4-W-107
@@ -994,12 +1178,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.55	318-U1361A-009H_2A-0.55
 3.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.6	318-U1361A-009H_2A-0.6
 3.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.65	318-U1361A-009H_2A-0.65
+<<<<<<< HEAD
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.7	318-U1361A-009H_2A-0.7
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.75	318-U1361A-009H_2A-0.75
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.8	318-U1361A-009H_2A-0.8
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.85	318-U1361A-009H_2A-0.85
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.9	318-U1361A-009H_2A-0.9
 3.50	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.95	318-U1361A-009H_2A-0.95
+=======
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.7	318-U1361A-009H_2A-0.7
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.75	318-U1361A-009H_2A-0.75
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.8	318-U1361A-009H_2A-0.8
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.85	318-U1361A-009H_2A-0.85
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.9	318-U1361A-009H_2A-0.9
+3.5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-0.95	318-U1361A-009H_2A-0.95
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-1	318-U1361A-009H_2A-1
 3.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-1.05	318-U1361A-009H_2A-1.05
 3.51	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_2A-1.1	318-U1361A-009H_2A-1.1
@@ -1043,11 +1236,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.2	318-U1361A-009H_4A-0.2
 3.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.25	318-U1361A-009H_4A-0.25
 3.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.3	318-U1361A-009H_4A-0.3
+<<<<<<< HEAD
 3.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.35	318-U1361A-009H_4A-0.35
 3.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.4	318-U1361A-009H_4A-0.4
 3.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.45	318-U1361A-009H_4A-0.45
 3.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.5	318-U1361A-009H_4A-0.5
 3.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.55	318-U1361A-009H_4A-0.55
+=======
+3.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.35	318-U1361A-009H_4A-0.35
+3.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.4	318-U1361A-009H_4A-0.4
+3.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.45	318-U1361A-009H_4A-0.45
+3.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.5	318-U1361A-009H_4A-0.5
+3.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.55	318-U1361A-009H_4A-0.55
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.6	318-U1361A-009H_4A-0.6
 3.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.65	318-U1361A-009H_4A-0.65
 3.62	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_4A-0.9	318-U1361A-009H_4A-0.9
@@ -1089,10 +1290,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_5A-1.3	318-U1361A-009H_5A-1.3
 3.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_5A-1.35	318-U1361A-009H_5A-1.35
 3.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_5A-1.4	318-U1361A-009H_5A-1.4
+<<<<<<< HEAD
 3.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_5A-1.45	318-U1361A-009H_5A-1.45
 3.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.1	318-U1361A-009H_6A-0.1
 3.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.15	318-U1361A-009H_6A-0.15
 3.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.2	318-U1361A-009H_6A-0.2
+=======
+3.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_5A-1.45	318-U1361A-009H_5A-1.45
+3.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.1	318-U1361A-009H_6A-0.1
+3.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.15	318-U1361A-009H_6A-0.15
+3.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.2	318-U1361A-009H_6A-0.2
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.25	318-U1361A-009H_6A-0.25
 3.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.3	318-U1361A-009H_6A-0.3
 3.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-009H_6A-0.35	318-U1361A-009H_6A-0.35
@@ -1145,11 +1353,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.12	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H-7-W-17a	318-U1361A-010H-7-W-17a
 3.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.5	318-U1361A-010H_1A-0.5
 3.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.55	318-U1361A-010H_1A-0.55
+<<<<<<< HEAD
 3.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.6	318-U1361A-010H_1A-0.6
 3.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.65	318-U1361A-010H_1A-0.65
 3.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.7	318-U1361A-010H_1A-0.7
 3.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.75	318-U1361A-010H_1A-0.75
 3.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.8	318-U1361A-010H_1A-0.8
+=======
+3.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.6	318-U1361A-010H_1A-0.6
+3.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.65	318-U1361A-010H_1A-0.65
+3.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.7	318-U1361A-010H_1A-0.7
+3.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.75	318-U1361A-010H_1A-0.75
+3.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.8	318-U1361A-010H_1A-0.8
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.85	318-U1361A-010H_1A-0.85
 3.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.9	318-U1361A-010H_1A-0.9
 3.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_1A-0.95	318-U1361A-010H_1A-0.95
@@ -1194,12 +1410,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.1	318-U1361A-010H_3A-0.1
 3.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.15	318-U1361A-010H_3A-0.15
 3.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.2	318-U1361A-010H_3A-0.2
+<<<<<<< HEAD
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.25	318-U1361A-010H_3A-0.25
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.3	318-U1361A-010H_3A-0.3
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.35	318-U1361A-010H_3A-0.35
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.4	318-U1361A-010H_3A-0.4
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.45	318-U1361A-010H_3A-0.45
 3.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.5	318-U1361A-010H_3A-0.5
+=======
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.25	318-U1361A-010H_3A-0.25
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.3	318-U1361A-010H_3A-0.3
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.35	318-U1361A-010H_3A-0.35
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.4	318-U1361A-010H_3A-0.4
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.45	318-U1361A-010H_3A-0.45
+3.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.5	318-U1361A-010H_3A-0.5
+>>>>>>> fix ani_depthplot (data model 3) example files
 3.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.55	318-U1361A-010H_3A-0.55
 3.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.6	318-U1361A-010H_3A-0.6
 3.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_3A-0.65	318-U1361A-010H_3A-0.65
@@ -1245,10 +1470,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 3.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.25	318-U1361A-010H_4A-1.25
 3.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.3	318-U1361A-010H_4A-1.3
 3.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.35	318-U1361A-010H_4A-1.35
+<<<<<<< HEAD
 4.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.4	318-U1361A-010H_4A-1.4
 4.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.45	318-U1361A-010H_4A-1.45
 4.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.1	318-U1361A-010H_5A-0.1
 4.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.15	318-U1361A-010H_5A-0.15
+=======
+4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.4	318-U1361A-010H_4A-1.4
+4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_4A-1.45	318-U1361A-010H_4A-1.45
+4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.1	318-U1361A-010H_5A-0.1
+4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.15	318-U1361A-010H_5A-0.15
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.2	318-U1361A-010H_5A-0.2
 4.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.25	318-U1361A-010H_5A-0.25
 4.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_5A-0.3	318-U1361A-010H_5A-0.3
@@ -1295,11 +1527,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-0.95	318-U1361A-010H_6A-0.95
 4.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1	318-U1361A-010H_6A-1
 4.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.05	318-U1361A-010H_6A-1.05
+<<<<<<< HEAD
 4.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.1	318-U1361A-010H_6A-1.1
 4.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.15	318-U1361A-010H_6A-1.15
 4.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.2	318-U1361A-010H_6A-1.2
 4.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.25	318-U1361A-010H_6A-1.25
 4.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.3	318-U1361A-010H_6A-1.3
+=======
+4.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.1	318-U1361A-010H_6A-1.1
+4.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.15	318-U1361A-010H_6A-1.15
+4.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.2	318-U1361A-010H_6A-1.2
+4.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.25	318-U1361A-010H_6A-1.25
+4.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.3	318-U1361A-010H_6A-1.3
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.35	318-U1361A-010H_6A-1.35
 4.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.4	318-U1361A-010H_6A-1.4
 4.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-010H_6A-1.45	318-U1361A-010H_6A-1.45
@@ -1360,11 +1600,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.15	318-U1361A-011H_2A-0.15
 4.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.2	318-U1361A-011H_2A-0.2
 4.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.25	318-U1361A-011H_2A-0.25
+<<<<<<< HEAD
 4.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.3	318-U1361A-011H_2A-0.3
 4.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.35	318-U1361A-011H_2A-0.35
 4.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.4	318-U1361A-011H_2A-0.4
 4.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.45	318-U1361A-011H_2A-0.45
 4.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.5	318-U1361A-011H_2A-0.5
+=======
+4.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.3	318-U1361A-011H_2A-0.3
+4.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.35	318-U1361A-011H_2A-0.35
+4.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.4	318-U1361A-011H_2A-0.4
+4.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.45	318-U1361A-011H_2A-0.45
+4.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.5	318-U1361A-011H_2A-0.5
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.55	318-U1361A-011H_2A-0.55
 4.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.6	318-U1361A-011H_2A-0.6
 4.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_2A-0.65	318-U1361A-011H_2A-0.65
@@ -1411,10 +1659,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_3A-1.3	318-U1361A-011H_3A-1.3
 4.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_3A-1.35	318-U1361A-011H_3A-1.35
 4.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_3A-1.4	318-U1361A-011H_3A-1.4
+<<<<<<< HEAD
 4.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_3A-1.45	318-U1361A-011H_3A-1.45
 4.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.1	318-U1361A-011H_4A-0.1
 4.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.15	318-U1361A-011H_4A-0.15
 4.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.2	318-U1361A-011H_4A-0.2
+=======
+4.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_3A-1.45	318-U1361A-011H_3A-1.45
+4.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.1	318-U1361A-011H_4A-0.1
+4.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.15	318-U1361A-011H_4A-0.15
+4.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.2	318-U1361A-011H_4A-0.2
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.25	318-U1361A-011H_4A-0.25
 4.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.3	318-U1361A-011H_4A-0.3
 4.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_4A-0.35	318-U1361A-011H_4A-0.35
@@ -1462,6 +1717,7 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.05	318-U1361A-011H_5A-1.05
 4.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.1	318-U1361A-011H_5A-1.1
 4.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.15	318-U1361A-011H_5A-1.15
+<<<<<<< HEAD
 4.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.2	318-U1361A-011H_5A-1.2
 4.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.25	318-U1361A-011H_5A-1.25
 4.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.3	318-U1361A-011H_5A-1.3
@@ -1470,6 +1726,16 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.45	318-U1361A-011H_5A-1.45
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-4-W-91	318-U1361A-012H-4-W-91
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-4-W-91a	318-U1361A-012H-4-W-91a
+=======
+4.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.2	318-U1361A-011H_5A-1.2
+4.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.25	318-U1361A-011H_5A-1.25
+4.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.3	318-U1361A-011H_5A-1.3
+4.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.35	318-U1361A-011H_5A-1.35
+4.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.4	318-U1361A-011H_5A-1.4
+4.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-011H_5A-1.45	318-U1361A-011H_5A-1.45
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-4-W-91	318-U1361A-012H-4-W-91
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-4-W-91a	318-U1361A-012H-4-W-91a
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.66	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-5-W-122	318-U1361A-012H-5-W-122
 4.66	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-5-W-122a	318-U1361A-012H-5-W-122a
 4.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H-6-W-107	318-U1361A-012H-6-W-107
@@ -1488,11 +1754,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.7	318-U1361A-012H_4A-0.7
 4.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.75	318-U1361A-012H_4A-0.75
 4.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.8	318-U1361A-012H_4A-0.8
+<<<<<<< HEAD
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.85	318-U1361A-012H_4A-0.85
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.9	318-U1361A-012H_4A-0.9
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.95	318-U1361A-012H_4A-0.95
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1	318-U1361A-012H_4A-1
 4.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1.05	318-U1361A-012H_4A-1.05
+=======
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.85	318-U1361A-012H_4A-0.85
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.9	318-U1361A-012H_4A-0.9
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-0.95	318-U1361A-012H_4A-0.95
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1	318-U1361A-012H_4A-1
+4.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1.05	318-U1361A-012H_4A-1.05
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1.1	318-U1361A-012H_4A-1.1
 4.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1.15	318-U1361A-012H_4A-1.15
 4.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_4A-1.2	318-U1361A-012H_4A-1.2
@@ -1535,12 +1809,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.4	318-U1361A-012H_6A-0.4
 4.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.45	318-U1361A-012H_6A-0.45
 4.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.5	318-U1361A-012H_6A-0.5
+<<<<<<< HEAD
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.55	318-U1361A-012H_6A-0.55
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.6	318-U1361A-012H_6A-0.6
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.65	318-U1361A-012H_6A-0.65
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.7	318-U1361A-012H_6A-0.7
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.75	318-U1361A-012H_6A-0.75
 4.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.8	318-U1361A-012H_6A-0.8
+=======
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.55	318-U1361A-012H_6A-0.55
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.6	318-U1361A-012H_6A-0.6
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.65	318-U1361A-012H_6A-0.65
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.7	318-U1361A-012H_6A-0.7
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.75	318-U1361A-012H_6A-0.75
+4.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.8	318-U1361A-012H_6A-0.8
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.85	318-U1361A-012H_6A-0.85
 4.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.9	318-U1361A-012H_6A-0.9
 4.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-012H_6A-0.95	318-U1361A-012H_6A-0.95
@@ -1602,12 +1885,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.2	318-U1361A-013H_2A-0.2
 4.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.25	318-U1361A-013H_2A-0.25
 4.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.3	318-U1361A-013H_2A-0.3
+<<<<<<< HEAD
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.35	318-U1361A-013H_2A-0.35
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.4	318-U1361A-013H_2A-0.4
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.45	318-U1361A-013H_2A-0.45
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.5	318-U1361A-013H_2A-0.5
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.55	318-U1361A-013H_2A-0.55
 4.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.6	318-U1361A-013H_2A-0.6
+=======
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.35	318-U1361A-013H_2A-0.35
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.4	318-U1361A-013H_2A-0.4
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.45	318-U1361A-013H_2A-0.45
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.5	318-U1361A-013H_2A-0.5
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.55	318-U1361A-013H_2A-0.55
+4.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.6	318-U1361A-013H_2A-0.6
+>>>>>>> fix ani_depthplot (data model 3) example files
 4.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.65	318-U1361A-013H_2A-0.65
 4.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.7	318-U1361A-013H_2A-0.7
 4.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_2A-0.75	318-U1361A-013H_2A-0.75
@@ -1652,11 +1944,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 4.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_3A-1.35	318-U1361A-013H_3A-1.35
 4.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_3A-1.4	318-U1361A-013H_3A-1.4
 4.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.1	318-U1361A-013H_4A-0.1
+<<<<<<< HEAD
 5.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.15	318-U1361A-013H_4A-0.15
 5.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.2	318-U1361A-013H_4A-0.2
 5.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.25	318-U1361A-013H_4A-0.25
 5.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.3	318-U1361A-013H_4A-0.3
 5.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.35	318-U1361A-013H_4A-0.35
+=======
+5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.15	318-U1361A-013H_4A-0.15
+5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.2	318-U1361A-013H_4A-0.2
+5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.25	318-U1361A-013H_4A-0.25
+5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.3	318-U1361A-013H_4A-0.3
+5	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.35	318-U1361A-013H_4A-0.35
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.4	318-U1361A-013H_4A-0.4
 5.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.45	318-U1361A-013H_4A-0.45
 5.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_4A-0.5	318-U1361A-013H_4A-0.5
@@ -1699,9 +1999,15 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_5A-1.25	318-U1361A-013H_5A-1.25
 5.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_5A-1.3	318-U1361A-013H_5A-1.3
 5.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_5A-1.35	318-U1361A-013H_5A-1.35
+<<<<<<< HEAD
 5.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_5A-1.4	318-U1361A-013H_5A-1.4
 5.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.1	318-U1361A-013H_6A-0.1
 5.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.15	318-U1361A-013H_6A-0.15
+=======
+5.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_5A-1.4	318-U1361A-013H_5A-1.4
+5.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.1	318-U1361A-013H_6A-0.1
+5.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.15	318-U1361A-013H_6A-0.15
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.2	318-U1361A-013H_6A-0.2
 5.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.25	318-U1361A-013H_6A-0.25
 5.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-013H_6A-0.3	318-U1361A-013H_6A-0.3
@@ -1743,12 +2049,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.55	318-U1361A-014H_1A-0.55
 5.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.6	318-U1361A-014H_1A-0.6
 5.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.65	318-U1361A-014H_1A-0.65
+<<<<<<< HEAD
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.7	318-U1361A-014H_1A-0.7
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.75	318-U1361A-014H_1A-0.75
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.8	318-U1361A-014H_1A-0.8
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.85	318-U1361A-014H_1A-0.85
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.9	318-U1361A-014H_1A-0.9
 5.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.95	318-U1361A-014H_1A-0.95
+=======
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.7	318-U1361A-014H_1A-0.7
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.75	318-U1361A-014H_1A-0.75
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.8	318-U1361A-014H_1A-0.8
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.85	318-U1361A-014H_1A-0.85
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.9	318-U1361A-014H_1A-0.9
+5.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-0.95	318-U1361A-014H_1A-0.95
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-1	318-U1361A-014H_1A-1
 5.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-1.05	318-U1361A-014H_1A-1.05
 5.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_1A-1.1	318-U1361A-014H_1A-1.1
@@ -1781,11 +2096,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.4	318-U1361A-014H_3A-0.4
 5.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.45	318-U1361A-014H_3A-0.45
 5.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.5	318-U1361A-014H_3A-0.5
+<<<<<<< HEAD
 5.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.55	318-U1361A-014H_3A-0.55
 5.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.6	318-U1361A-014H_3A-0.6
 5.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.65	318-U1361A-014H_3A-0.65
 5.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.7	318-U1361A-014H_3A-0.7
 5.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.75	318-U1361A-014H_3A-0.75
+=======
+5.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.55	318-U1361A-014H_3A-0.55
+5.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.6	318-U1361A-014H_3A-0.6
+5.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.65	318-U1361A-014H_3A-0.65
+5.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.7	318-U1361A-014H_3A-0.7
+5.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.75	318-U1361A-014H_3A-0.75
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.8	318-U1361A-014H_3A-0.8
 5.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.85	318-U1361A-014H_3A-0.85
 5.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_3A-0.9	318-U1361A-014H_3A-0.9
@@ -1831,12 +2154,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.2	318-U1361A-014H_5A-0.2
 5.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.25	318-U1361A-014H_5A-0.25
 5.39	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.3	318-U1361A-014H_5A-0.3
+<<<<<<< HEAD
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.35	318-U1361A-014H_5A-0.35
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.4	318-U1361A-014H_5A-0.4
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.45	318-U1361A-014H_5A-0.45
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.5	318-U1361A-014H_5A-0.5
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.55	318-U1361A-014H_5A-0.55
 5.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.6	318-U1361A-014H_5A-0.6
+=======
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.35	318-U1361A-014H_5A-0.35
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.4	318-U1361A-014H_5A-0.4
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.45	318-U1361A-014H_5A-0.45
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.5	318-U1361A-014H_5A-0.5
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.55	318-U1361A-014H_5A-0.55
+5.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.6	318-U1361A-014H_5A-0.6
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.65	318-U1361A-014H_5A-0.65
 5.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.7	318-U1361A-014H_5A-0.7
 5.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-014H_5A-0.75	318-U1361A-014H_5A-0.75
@@ -1934,11 +2266,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-0.9	318-U1361A-015H_2A-0.9
 5.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-0.95	318-U1361A-015H_2A-0.95
 5.59	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1	318-U1361A-015H_2A-1
+<<<<<<< HEAD
 5.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.05	318-U1361A-015H_2A-1.05
 5.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.1	318-U1361A-015H_2A-1.1
 5.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.15	318-U1361A-015H_2A-1.15
 5.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.2	318-U1361A-015H_2A-1.2
 5.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.25	318-U1361A-015H_2A-1.25
+=======
+5.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.05	318-U1361A-015H_2A-1.05
+5.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.1	318-U1361A-015H_2A-1.1
+5.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.15	318-U1361A-015H_2A-1.15
+5.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.2	318-U1361A-015H_2A-1.2
+5.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.25	318-U1361A-015H_2A-1.25
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.3	318-U1361A-015H_2A-1.3
 5.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.35	318-U1361A-015H_2A-1.35
 5.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_2A-1.4	318-U1361A-015H_2A-1.4
@@ -1985,12 +2325,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.75	318-U1361A-015H_4A-0.75
 5.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.8	318-U1361A-015H_4A-0.8
 5.69	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.85	318-U1361A-015H_4A-0.85
+<<<<<<< HEAD
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.9	318-U1361A-015H_4A-0.9
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.95	318-U1361A-015H_4A-0.95
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1	318-U1361A-015H_4A-1
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.05	318-U1361A-015H_4A-1.05
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.1	318-U1361A-015H_4A-1.1
 5.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.15	318-U1361A-015H_4A-1.15
+=======
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.9	318-U1361A-015H_4A-0.9
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-0.95	318-U1361A-015H_4A-0.95
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1	318-U1361A-015H_4A-1
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.05	318-U1361A-015H_4A-1.05
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.1	318-U1361A-015H_4A-1.1
+5.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.15	318-U1361A-015H_4A-1.15
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.2	318-U1361A-015H_4A-1.2
 5.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.25	318-U1361A-015H_4A-1.25
 5.71	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_4A-1.3	318-U1361A-015H_4A-1.3
@@ -2036,12 +2385,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.6	318-U1361A-015H_6A-0.6
 5.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.65	318-U1361A-015H_6A-0.65
 5.79	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.7	318-U1361A-015H_6A-0.7
+<<<<<<< HEAD
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.75	318-U1361A-015H_6A-0.75
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.8	318-U1361A-015H_6A-0.8
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.85	318-U1361A-015H_6A-0.85
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.9	318-U1361A-015H_6A-0.9
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.95	318-U1361A-015H_6A-0.95
 5.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-1	318-U1361A-015H_6A-1
+=======
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.75	318-U1361A-015H_6A-0.75
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.8	318-U1361A-015H_6A-0.8
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.85	318-U1361A-015H_6A-0.85
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.9	318-U1361A-015H_6A-0.9
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-0.95	318-U1361A-015H_6A-0.95
+5.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-1	318-U1361A-015H_6A-1
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-1.05	318-U1361A-015H_6A-1.05
 5.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-1.1	318-U1361A-015H_6A-1.1
 5.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-015H_6A-1.15	318-U1361A-015H_6A-1.15
@@ -2085,12 +2443,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_1A-1.35	318-U1361A-016H_1A-1.35
 5.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_1A-1.4	318-U1361A-016H_1A-1.4
 5.89	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.1	318-U1361A-016H_2A-0.1
+<<<<<<< HEAD
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.15	318-U1361A-016H_2A-0.15
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.2	318-U1361A-016H_2A-0.2
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.25	318-U1361A-016H_2A-0.25
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.3	318-U1361A-016H_2A-0.3
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.35	318-U1361A-016H_2A-0.35
 5.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.4	318-U1361A-016H_2A-0.4
+=======
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.15	318-U1361A-016H_2A-0.15
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.2	318-U1361A-016H_2A-0.2
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.25	318-U1361A-016H_2A-0.25
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.3	318-U1361A-016H_2A-0.3
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.35	318-U1361A-016H_2A-0.35
+5.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.4	318-U1361A-016H_2A-0.4
+>>>>>>> fix ani_depthplot (data model 3) example files
 5.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.45	318-U1361A-016H_2A-0.45
 5.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.5	318-U1361A-016H_2A-0.5
 5.91	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_2A-0.55	318-U1361A-016H_2A-0.55
@@ -2138,11 +2505,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 5.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_3A-1.3	318-U1361A-016H_3A-1.3
 5.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_3A-1.35	318-U1361A-016H_3A-1.35
 5.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_3A-1.4	318-U1361A-016H_3A-1.4
+<<<<<<< HEAD
 6.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.1	318-U1361A-016H_4A-0.1
 6.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.15	318-U1361A-016H_4A-0.15
 6.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.2	318-U1361A-016H_4A-0.2
 6.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.25	318-U1361A-016H_4A-0.25
 6.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.3	318-U1361A-016H_4A-0.3
+=======
+6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.1	318-U1361A-016H_4A-0.1
+6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.15	318-U1361A-016H_4A-0.15
+6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.2	318-U1361A-016H_4A-0.2
+6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.25	318-U1361A-016H_4A-0.25
+6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.3	318-U1361A-016H_4A-0.3
+>>>>>>> fix ani_depthplot (data model 3) example files
 6.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.35	318-U1361A-016H_4A-0.35
 6.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.4	318-U1361A-016H_4A-0.4
 6.01	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_4A-0.45	318-U1361A-016H_4A-0.45
@@ -2192,9 +2567,15 @@ age	age_unit	citations	description	location	method_codes	sample	site
 6.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_5A-1.3	318-U1361A-016H_5A-1.3
 6.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_5A-1.35	318-U1361A-016H_5A-1.35
 6.09	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_5A-1.4	318-U1361A-016H_5A-1.4
+<<<<<<< HEAD
 6.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.1	318-U1361A-016H_6A-0.1
 6.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.15	318-U1361A-016H_6A-0.15
 6.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.2	318-U1361A-016H_6A-0.2
+=======
+6.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.1	318-U1361A-016H_6A-0.1
+6.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.15	318-U1361A-016H_6A-0.15
+6.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.2	318-U1361A-016H_6A-0.2
+>>>>>>> fix ani_depthplot (data model 3) example files
 6.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.25	318-U1361A-016H_6A-0.25
 6.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.3	318-U1361A-016H_6A-0.3
 6.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-016H_6A-0.35	318-U1361A-016H_6A-0.35
@@ -2250,12 +2631,21 @@ age	age_unit	citations	description	location	method_codes	sample	site
 6.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.75	318-U1361A-017X_1A-0.75
 6.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.8	318-U1361A-017X_1A-0.8
 6.19	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.85	318-U1361A-017X_1A-0.85
+<<<<<<< HEAD
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.9	318-U1361A-017X_1A-0.9
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.95	318-U1361A-017X_1A-0.95
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1	318-U1361A-017X_1A-1
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.05	318-U1361A-017X_1A-1.05
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.1	318-U1361A-017X_1A-1.1
 6.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.15	318-U1361A-017X_1A-1.15
+=======
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.9	318-U1361A-017X_1A-0.9
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-0.95	318-U1361A-017X_1A-0.95
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1	318-U1361A-017X_1A-1
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.05	318-U1361A-017X_1A-1.05
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.1	318-U1361A-017X_1A-1.1
+6.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.15	318-U1361A-017X_1A-1.15
+>>>>>>> fix ani_depthplot (data model 3) example files
 6.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.2	318-U1361A-017X_1A-1.2
 6.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.25	318-U1361A-017X_1A-1.25
 6.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_1A-1.3	318-U1361A-017X_1A-1.3
@@ -2300,11 +2690,19 @@ age	age_unit	citations	description	location	method_codes	sample	site
 6.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.55	318-U1361A-017X_3A-0.55
 6.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.6	318-U1361A-017X_3A-0.6
 6.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.65	318-U1361A-017X_3A-0.65
+<<<<<<< HEAD
 6.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.9	318-U1361A-017X_3A-0.9
 6.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.95	318-U1361A-017X_3A-0.95
 6.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1	318-U1361A-017X_3A-1
 6.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.05	318-U1361A-017X_3A-1.05
 6.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.1	318-U1361A-017X_3A-1.1
+=======
+6.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.9	318-U1361A-017X_3A-0.9
+6.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-0.95	318-U1361A-017X_3A-0.95
+6.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1	318-U1361A-017X_3A-1
+6.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.05	318-U1361A-017X_3A-1.05
+6.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.1	318-U1361A-017X_3A-1.1
+>>>>>>> fix ani_depthplot (data model 3) example files
 6.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.15	318-U1361A-017X_3A-1.15
 6.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.2	318-U1361A-017X_3A-1.2
 6.31	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-017X_3A-1.25	318-U1361A-017X_3A-1.25
@@ -2368,7 +2766,11 @@ age	age_unit	citations	description	location	method_codes	sample	site
 8.06	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-3-W-65	318-U1361A-023X-3-W-65
 8.11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-4-W-71	318-U1361A-023X-4-W-71
 8.16	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-5-W-92	318-U1361A-023X-5-W-92
+<<<<<<< HEAD
 8.20	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-6-W-58	318-U1361A-023X-6-W-58
+=======
+8.2	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-6-W-58	318-U1361A-023X-6-W-58
+>>>>>>> fix ani_depthplot (data model 3) example files
 8.21	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-6-W-91	318-U1361A-023X-6-W-91
 8.22	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-7-W-18	318-U1361A-023X-7-W-18
 8.23	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-023X-7-W-48	318-U1361A-023X-7-W-48
@@ -2380,14 +2782,22 @@ age	age_unit	citations	description	location	method_codes	sample	site
 8.64	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-025X-3-W-32	318-U1361A-025X-3-W-32
 8.73	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-025X-5-W-60	318-U1361A-025X-5-W-60
 8.78	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-025X-6-W-60	318-U1361A-025X-6-W-60
+<<<<<<< HEAD
 8.80	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-025X-7-W-21	318-U1361A-025X-7-W-21
+=======
+8.8	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-025X-7-W-21	318-U1361A-025X-7-W-21
+>>>>>>> fix ani_depthplot (data model 3) example files
 8.86	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-1-W-146	318-U1361A-026X-1-W-146
 8.84	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-1-W-47	318-U1361A-026X-1-W-47
 8.88	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-2-W-41	318-U1361A-026X-2-W-41
 8.94	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-3-W-113	318-U1361A-026X-3-W-113
 8.96	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-4-W-33	318-U1361A-026X-4-W-33
 9.04	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-5-W-132	318-U1361A-026X-5-W-132
+<<<<<<< HEAD
 9.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-5-W-18	318-U1361A-026X-5-W-18
+=======
+9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-5-W-18	318-U1361A-026X-5-W-18
+>>>>>>> fix ani_depthplot (data model 3) example files
 9.07	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-6-W-116	318-U1361A-026X-6-W-116
 9.06	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-026X-6-W-80	318-U1361A-026X-6-W-80
 9.14	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-1-W-125	318-U1361A-027X-1-W-125
@@ -2395,14 +2805,24 @@ age	age_unit	citations	description	location	method_codes	sample	site
 9.22	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-3-W-114	318-U1361A-027X-3-W-114
 9.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-4-W-70	318-U1361A-027X-4-W-70
 9.29	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-5-W-45	318-U1361A-027X-5-W-45
+<<<<<<< HEAD
 9.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-5-W-92	318-U1361A-027X-5-W-92
 9.33	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-6-W-53	318-U1361A-027X-6-W-53
 9.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-1-W-84	318-U1361A-028X-1-W-84
+=======
+9.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-5-W-92	318-U1361A-027X-5-W-92
+9.33	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-027X-6-W-53	318-U1361A-027X-6-W-53
+9.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-1-W-84	318-U1361A-028X-1-W-84
+>>>>>>> fix ani_depthplot (data model 3) example files
 9.44	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-2-W-76	318-U1361A-028X-2-W-76
 9.48	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-3-W-52	318-U1361A-028X-3-W-52
 9.53	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-4-W-81	318-U1361A-028X-4-W-81
 9.56	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-5-W-40	318-U1361A-028X-5-W-40
+<<<<<<< HEAD
 9.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-6-W-49	318-U1361A-028X-6-W-49
+=======
+9.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-6-W-49	318-U1361A-028X-6-W-49
+>>>>>>> fix ani_depthplot (data model 3) example files
 9.64	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-028X-7-W-48	318-U1361A-028X-7-W-48
 9.68	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-029X-1-W-113	318-U1361A-029X-1-W-113
 10.44	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-032X-1-W-75	318-U1361A-032X-1-W-75
@@ -2411,14 +2831,22 @@ age	age_unit	citations	description	location	method_codes	sample	site
 10.57	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-032X-4-W-110	318-U1361A-032X-4-W-110
 10.61	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-032X-5-W-101	318-U1361A-032X-5-W-101
 10.64	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-032X-6-W-59	318-U1361A-032X-6-W-59
+<<<<<<< HEAD
 10.70	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-1-W-112	318-U1361A-033X-1-W-112
+=======
+10.7	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-1-W-112	318-U1361A-033X-1-W-112
+>>>>>>> fix ani_depthplot (data model 3) example files
 10.73	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-2-W-82	318-U1361A-033X-2-W-82
 10.78	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-3-W-119	318-U1361A-033X-3-W-119
 10.81	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-4-W-90	318-U1361A-033X-4-W-90
 10.84	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-5-W-38	318-U1361A-033X-5-W-38
 10.87	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-033X-6-W-12	318-U1361A-033X-6-W-12
 10.99	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-2-W-138	318-U1361A-034X-2-W-138
+<<<<<<< HEAD
 11.00	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-3-W-20	318-U1361A-034X-3-W-20
+=======
+11	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-3-W-20	318-U1361A-034X-3-W-20
+>>>>>>> fix ani_depthplot (data model 3) example files
 11.04	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-4-W-35	318-U1361A-034X-4-W-35
 11.08	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-5-W-61	318-U1361A-034X-5-W-61
 11.12	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-034X-6-W-49	318-U1361A-034X-6-W-49
@@ -2428,17 +2856,26 @@ age	age_unit	citations	description	location	method_codes	sample	site
 11.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-035X-3-W-73	318-U1361A-035X-3-W-73
 11.33	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-035X-5-W-108	318-U1361A-035X-5-W-108
 11.36	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-035X-6-W-91	318-U1361A-035X-6-W-91
+<<<<<<< HEAD
 11.40	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-1-W-50	318-U1361A-036X-1-W-50
+=======
+11.4	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-1-W-50	318-U1361A-036X-1-W-50
+>>>>>>> fix ani_depthplot (data model 3) example files
 11.46	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-2-W-141	318-U1361A-036X-2-W-141
 11.49	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-3-W-106	318-U1361A-036X-3-W-106
 11.52	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-4-W-68	318-U1361A-036X-4-W-68
 11.54	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-5-W-15	318-U1361A-036X-5-W-15
 11.58	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-6-W-19	318-U1361A-036X-6-W-19
+<<<<<<< HEAD
 11.60	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-7-W-26	318-U1361A-036X-7-W-26
+=======
+11.6	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-036X-7-W-26	318-U1361A-036X-7-W-26
+>>>>>>> fix ani_depthplot (data model 3) example files
 11.65	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-037X-1-W-114	318-U1361A-037X-1-W-114
 11.68	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-037X-2-W-85	318-U1361A-037X-2-W-85
 11.82	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-037X-6-W-122	318-U1361A-037X-6-W-122
 11.86	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-1-W-54	318-U1361A-038X-1-W-54
+<<<<<<< HEAD
 11.90	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-2-W-94	318-U1361A-038X-2-W-94
 11.94	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-3-W-95	318-U1361A-038X-3-W-95
 11.97	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-4-W-88	318-U1361A-038X-4-W-88
@@ -2448,6 +2885,17 @@ age	age_unit	citations	description	location	method_codes	sample	site
 12.10	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-039X-2-W-13	318-U1361A-039X-2-W-13
 12.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-039X-6-W-70	318-U1361A-039X-6-W-70
 12.30	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-040X-1-W-138	318-U1361A-040X-1-W-138
+=======
+11.9	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-2-W-94	318-U1361A-038X-2-W-94
+11.94	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-3-W-95	318-U1361A-038X-3-W-95
+11.97	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-4-W-88	318-U1361A-038X-4-W-88
+12	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-5-W-97	318-U1361A-038X-5-W-97
+12.02	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-038X-6-W-10	318-U1361A-038X-6-W-10
+12.07	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-039X-1-W-48	318-U1361A-039X-1-W-48
+12.1	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-039X-2-W-13	318-U1361A-039X-2-W-13
+12.25	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-039X-6-W-70	318-U1361A-039X-6-W-70
+12.3	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-040X-1-W-138	318-U1361A-040X-1-W-138
+>>>>>>> fix ani_depthplot (data model 3) example files
 12.33	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-040X-2-W-125	318-U1361A-040X-2-W-125
 12.36	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-040X-3-W-104	318-U1361A-040X-3-W-104
 12.41	Ma	10.1029/2012PA002308:This study	interpolation between pmag and biostrat tie points	U1361A	GM-FOSSIL:GM-INT:GM-POL	318-U1361A-040X-5-W-59	318-U1361A-040X-5-W-59
