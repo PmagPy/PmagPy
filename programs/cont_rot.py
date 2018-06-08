@@ -299,7 +299,7 @@ def main():
     files = {}
     for key in list(FIG.keys()):
         files[key] = 'Cont_rot'+'.'+fmt
-    if plot == 0:
+    if plot == 0 and not IS_WIN:
         pmagplotlib.drawFIGS(FIG)
     if plot == 1:
         pmagplotlib.saveP(FIG, files)
