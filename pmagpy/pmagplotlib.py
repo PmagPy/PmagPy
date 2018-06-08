@@ -2687,7 +2687,7 @@ def addBorders(Figs, titles, border_color, text_color):
 
 
 def plotMAP(fignum, lats, lons, Opts):
-    """ makes a basemap with lats/lons 
+    """ makes a basemap with lats/lons
         Windows 10 users, see plot_map
     """
     from mpl_toolkits.basemap import Basemap
@@ -2803,8 +2803,8 @@ def plotMAP(fignum, lats, lons, Opts):
 
 
 def plot_map(fignum, lats, lons, Opts):
-    """ 
-    makes a cartopy map  with lats/lons 
+    """
+    makes a cartopy map  with lats/lons
     """
     import cartopy
     import cartopy.crs as ccrs
@@ -3043,3 +3043,18 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) #
     ax2.axis([-.25,1.5,agemax,agemin])
+
+
+def save_or_quit(msg="S[a]ve plots - <q> to quit: "):
+     ans = ""
+     count = 0
+     while ans not in ['q', 'a']:
+         ans= input(msg)
+         count += 1
+         if count > 5:
+             ans = 'q'
+         if ans == 'a':
+             return('a')
+     if ans=='q':
+         print("\n Good bye\n")
+         sys.exit()
