@@ -125,7 +125,8 @@ def main():
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
-    if '-sav' in sys.argv: plot=1
+    if '-sav' in sys.argv:
+        plot=1
     if '-eye' in sys.argv:
         ind = sys.argv.index('-eye')
         lat_0=float(sys.argv[ind+1])
@@ -278,7 +279,7 @@ def main():
     files={}
     for key in list(FIG.keys()):
         files[key]='Cont_rot'+'.'+fmt
-    if plot == 1:
+    if plot == 0:
         pmagplotlib.drawFIGS(FIG)
     if plot==1:
         pmagplotlib.saveP(FIG,files)
