@@ -2258,7 +2258,7 @@ class PlotFrame(wx.Frame):
         self.standalone = standalone
         panel = wx.Panel(self, -1)
         canvas = FigureCanvas(panel, -1, self.figure)
-        btn_panel = self.make_btn_panel()
+        btn_panel = self.make_btn_panel(panel)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(canvas, 1, wx.LEFT | wx.TOP | wx.GROW) # having/removing wx.GROW doesn't matter
         sizer.Add(btn_panel, flag=wx.CENTRE|wx.ALL, border=5)
@@ -2268,11 +2268,11 @@ class PlotFrame(wx.Frame):
         self.Show()
 
 
-    def make_btn_panel(self):
+    def make_btn_panel(self, parent):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        btn_save = wx.Button(self, -1, "Save plot")
+        btn_save = wx.Button(parent, -1, "Save plot")
         self.Bind(wx.EVT_BUTTON, self.on_save, btn_save)
-        btn_discard = wx.Button(self, -1, "Discard plot")
+        btn_discard = wx.Button(parent, -1, "Discard plot")
         self.Bind(wx.EVT_BUTTON, self.on_discard, btn_discard)
         hbox.AddMany([(btn_save, 1, wx.RIGHT, 5), (btn_discard)])
         return hbox

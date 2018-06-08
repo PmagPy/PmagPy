@@ -2675,7 +2675,8 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         # dmax=dmax+.05*dmax
         # dmin=dmin-.05*dmax
 
-        main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
+        main_plot = plt.figure(1, figsize=(11, 7))  # make the figure
+        #main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
 
         version_num = pmag.get_version()
         plt.figtext(.02, .01, version_num)  # attach the pmagpy version number
