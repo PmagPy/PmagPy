@@ -614,14 +614,14 @@ class TestAnisoDepthplot(unittest.TestCase):
         os.chdir(WD)
 
     def test_aniso_depthplot_with_no_files(self):
-        program_ran, error_message = ipmag.aniso_depthplot()
+        program_ran, error_message = ipmag.ani_depthplot2()
         expected_file = pmag.resolve_file_name('rmag_anisotropy.txt')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
 
     def test_aniso_depthplot_with_files(self):
         #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
-        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD, sum_file='CoreSummary_XXX_UTESTA.csv')
+        main_plot, plot_name = ipmag.ani_depthplot2(dir_path=self.aniso_WD, sum_file='CoreSummary_XXX_UTESTA.csv')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
@@ -629,17 +629,17 @@ class TestAnisoDepthplot(unittest.TestCase):
     def test_aniso_depthplot_with_sum_file(self):
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'UTESTA_MagIC')
         sum_file = 'CoreSummary_XXX_UTESTA.csv'
-        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=dir_path, sum_file=sum_file)
+        main_plot, plot_name = ipmag.ani_depthplot2(dir_path=dir_path, sum_file=sum_file)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'UTESTA_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_age_option(self):
-        main_plot, plot_name = ipmag.aniso_depthplot(age_file='er_ages.txt', dir_path=self.aniso_WD)
+        main_plot, plot_name = ipmag.ani_depthplot2(age_file='er_ages.txt', dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_options(self):
-        main_plot, plot_name = ipmag.aniso_depthplot(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
+        main_plot, plot_name = ipmag.ani_depthplot2(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
@@ -655,20 +655,20 @@ class TestAnisoDepthplot3(unittest.TestCase):
         os.chdir(WD)
 
     def test_aniso_depthplot_with_no_files(self):
-        program_ran, error_message = ipmag.aniso_depthplot3()
+        program_ran, error_message = ipmag.ani_depthplot()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "missing required file type: specimen")
 
     def test_aniso_depthplot_with_files(self):
         #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
-        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
+        main_plot, plot_name = ipmag.ani_depthplot(dir_path=self.aniso_WD,
                                                       meas_file="fake.txt",
                                                       sum_file='CoreSummary_XXX_UTESTA.csv')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_meas_file(self):
-        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
+        main_plot, plot_name = ipmag.ani_depthplot(dir_path=self.aniso_WD,
                                                       sum_file='CoreSummary_XXX_UTESTA.csv')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
@@ -676,19 +676,19 @@ class TestAnisoDepthplot3(unittest.TestCase):
     def test_aniso_depthplot_with_sum_file(self):
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'UTESTA_MagIC3')
         sum_file = 'CoreSummary_XXX_UTESTA.csv'
-        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=dir_path,
+        main_plot, plot_name = ipmag.ani_depthplot(dir_path=dir_path,
                                                       sum_file=sum_file,
                                                       depth_scale='core_depth')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'UTESTA_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_age_option(self):
-        main_plot, plot_name = ipmag.aniso_depthplot3(age_file='ages.txt', dir_path=self.aniso_WD)
+        main_plot, plot_name = ipmag.ani_depthplot(age_file='ages.txt', dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_options(self):
-        main_plot, plot_name = ipmag.aniso_depthplot3(dmin=20, dmax=40,
+        main_plot, plot_name = ipmag.ani_depthplot(dmin=20, dmax=40,
                                                       depth_scale='core_depth',
                                                       fmt='png', dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
