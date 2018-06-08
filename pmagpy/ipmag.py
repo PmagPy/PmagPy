@@ -2239,7 +2239,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         return outfile
 
 
-def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
+def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'sample_composite_depth', 'sample_core_depth', or 'age' (you must provide an age file to use this option)
@@ -2479,7 +2479,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         return False, "No data to plot"
 
 
-def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
+def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
                      meas_file='measurements.txt', site_file='sites.txt',
                      age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
                      depth_scale='core_depth', dir_path='.'):
