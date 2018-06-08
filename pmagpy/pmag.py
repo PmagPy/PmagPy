@@ -8967,7 +8967,19 @@ def get_plate_data(plate):
 
 def bc02(data):
     """
-     get APWP from Besse and Courtillot 2002 paper
+    get APWP from Besse and Courtillot 2002 paper
+    
+    Parameters
+    ----------
+    Takes input as [plate, site_lat, site_lon, age]
+    plate : string (options: AF, ANT, AU, EU, GL, IN, NA, SA)
+    site_lat : float
+    site_lon : float
+    age : float in Myr
+
+    Returns
+    ----------
+     
     """
 
     plate, site_lat, site_lon, age = data[0], data[1], data[2], data[3]
