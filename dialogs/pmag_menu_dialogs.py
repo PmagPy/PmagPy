@@ -2100,7 +2100,7 @@ class Ani_depthplot(wx.Frame):
         dmax = self.bSizer6.return_value() or -1
 
         # for use as module:
-        fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
+        fig, figname = ipmag.ani_depthplot2(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
@@ -2118,7 +2118,7 @@ class Ani_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.aniso_depthplot.__doc__)
+        pw.on_helpButton(text=ipmag.ani_depthplot2.__doc__)
 
 
 

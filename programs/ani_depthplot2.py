@@ -87,7 +87,7 @@ def main():
     data_model = int(float(data_model))
     # MagIC 2
     if data_model == 2:
-        fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+        fig, figname = ipmag.ani_depthplot2(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
     # MagIC 3
     else:
         if meas_file == "magic_measurements.txt":
@@ -95,7 +95,7 @@ def main():
         if samp_file in ['er_samples.txt', 'pmag_samples.txt']:
             samp_file = "samples.txt"
         site_file = 'sites.txt'
-        fig, figname = ipmag.aniso_depthplot3(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+        fig, figname = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
     if save_quietly:
         if dir_path == '.':
             dir_path = os.getcwd()
