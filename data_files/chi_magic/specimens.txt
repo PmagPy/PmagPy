@@ -1,0 +1,3 @@
+tab 	specimens
+sample	specimen
+CS914	CS914.001

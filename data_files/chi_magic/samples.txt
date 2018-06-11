@@ -1,0 +1,3 @@
+tab 	samples
+sample	site
+CS914	CS914

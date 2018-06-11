@@ -1,0 +1,3 @@
+tab 	locations
+location
+"Yucca Mountain, NV, west flank, Topopah Springs SW"
