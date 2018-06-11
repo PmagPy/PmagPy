@@ -5057,6 +5057,8 @@ def dimap(D, I):
     -------
     XY : x, y values of directions for equal area projection [x,y]
     """
+    if len(D)>1: # is an array
+        return dimap_V(D,I)
 # DEFINE FUNCTION VARIABLES
     # initialize equal area projection x,y
     XY = [0., 0.]
