@@ -2787,7 +2787,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         return False, "No data to plot"
 
 
-def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
+def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file='',
                    samp_file='', age_file='', sum_file='', wt_file='',
                    depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',
                    size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
@@ -2796,7 +2796,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                    norm=False, data_model_num=3):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
-    if age file is provided, depth_scale will be set to 'age' by default
+    if age file is provided, depth_scale will be set to 'age' by defaula
+    This doesn't work for model 3 at all.  
     """
     #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
     #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
@@ -2814,8 +2815,6 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         samp_file = 'samples.txt'
     if data_model_num == 3 and age_file == 'er_ages.txt':
         age_file = 'ages.txt'
-    intlist = ['measurement_magnitude', 'measurement_magn_moment',
-               'measurement_magn_volume', 'measurement_magn_mass']
     width = 10
     Ssym, Ssize = 'cs', 5
     pcol = 3
@@ -2872,9 +2871,15 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         pcol+=1
         ind = sys.argv.index('-LP')
         if sys.argv[ind+2]=='mass':
-            suc_key='measurement_chi_mass'
+            if data_model_num!=3:
+                suc_key='measurement_chi_mass'
+            else:
+                suc_key='susc_chi_mass'
         elif sys.argv[ind+2]=='vol':
-            suc_key='measurement_chi_volume'
+            if data_model_num!=3:
+               suc_key='measurement_chi_volume'
+            else:
+                suc_key='susc_chi_volume'
         else:
             print('error in susceptibility units')
             return False, 'error in susceptibility units'
@@ -2902,8 +2907,10 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     #
     # read in 3.0 data and translate to 2.5
     if data_model_num == 3:
-        meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
-        input_dir_path = os.path.split(meas_file)[0]
+        if meas_file: meas_file = os.path.join(input_dir_path, meas_file)
+        if spc_file: spc_file = os.path.join(input_dir_path, spc_file)
+        if samp_file: samp_file = os.path.join(input_dir_path, samp_file)
+        if age_file: age_file = os.path.join(input_dir_path, age_file)
         fnames =  {'specimens': spc_file, 'samples': samp_file,
                    'ages': age_file, 'measurements': meas_file}
         fnames = {k: v for (k, v) in fnames.items() if v}
@@ -2920,10 +2927,6 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         # propagate depth info from sites --> samples
         con.propagate_cols(['core_depth', 'composite_depth'], 'samples', 'sites')
 
-        if meas_file:
-            meas_file = os.path.join(input_dir_path, meas_file)
-        if spc_file:
-            spc_file = os.path.join(input_dir_path, spc_file)
 
         if age_file == "":
             # get sample data straight from the contribution
@@ -3067,7 +3070,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     samples = []
     methods, steps, m2 = [], [], []
 
-    if pltSus and os.path.isfile(meas_file):  # plot the bulk measurement data
+    if  os.path.isfile(meas_file):  # plot the bulk measurement data
         if data_model_num == 3:
             #Meas3, file_type = pmag.magic_read(meas_file)
             Meas3 = []
@@ -3078,29 +3081,41 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             for meas in Meas3:
                 Meas.append(map_magic.mapping(meas, map_magic.meas_magic3_2_magic2_map))
             # has measurement_magn_mass ....
-
+            dec_key,inc_key='dir_dec','dir_inc'
+            meth_key,temp_key,ac_key,dc_key='method_codes','treat_temp','treat_ac_field','treat_dc_field'
+            intlist = ['magnitude', 'magn_moment',
+               'magn_volume', 'magn_mass']
         elif data_model_num == 2:
+            intlist = ['measurement_magnitude', 'measurement_magn_moment',
+               'measurement_magn_volume', 'measurement_magn_mass']
+            temp_key,ac_key,dc_key='treatment_temp','treatment_ac_field','treatment_dc_field'
+            meth_key='magic_method_codes'
+            dec_key,inc_key='measurement_dec','measurement_inc'
             Meas, file_type = pmag.magic_read(meas_file)
-
+         
         meas_key = 'measurement_magn_moment'
         #
         print(len(Meas), ' measurements read in from ', meas_file)
+        print(list(Meas[0].keys()))
         #
         for m in intlist:  # find the intensity key with data
             # get all non-blank data for this specimen
             meas_data = pmag.get_dictitem(Meas, m, '', 'F')
             if len(meas_data) > 0:
+                print (m)
                 meas_key = m
                 break
+        print (meas_key)
         # fish out the desired method code
-        m1 = pmag.get_dictitem(Meas, 'magic_method_codes', method, 'has')
+        m1 = pmag.get_dictitem(Meas, meth_key, method, 'has')
+      
         if method == 'LT-T-Z':
-            m2 = pmag.get_dictitem(m1, 'treatment_temp', str(
+            m2 = pmag.get_dictitem(m1, temp_key, str(
                 step), 'eval')  # fish out the desired step
         elif 'LT-AF' in method:
-            m2 = pmag.get_dictitem(m1, 'treatment_ac_field', str(step), 'eval')
+            m2 = pmag.get_dictitem(m1, ac_key, str(step), 'eval')
         elif 'LT-IRM' in method:
-            m2 = pmag.get_dictitem(m1, 'treatment_dc_field', str(step), 'eval')
+            m2 = pmag.get_dictitem(m1, dc_key, str(step), 'eval')
         elif 'LP-X' in method:
             m2 = pmag.get_dictitem(m1, suc_key, '', 'F')
         if len(m2) > 0:
@@ -3139,18 +3154,17 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                         pieces = rec['er_sample_name'].split('-')
                         location = rec.get('er_location_name', '')
                         title = location
-
-        SData = pmag.sort_diclist(Data, 'core_depth')
+        SData = pmag.sort_diclist(Data, depth_scale)
         for rec in SData:  # fish out bulk measurement data from desired depths
-            if dmax == -1 or float(rec['core_depth']) < dmax and float(rec['core_depth']) > dmin:
-                Depths.append((rec['core_depth']))
+            if dmax == -1 or float(rec[depth_scale]) < dmax and float(rec[depth_scale]) > dmin:
+                Depths.append((rec[depth_scale]))
                 if method == "LP-X":
                     SSucs.append(float(rec[suc_key]))
                 else:
                     if pltDec:
-                        Decs.append(float(rec['measurement_dec']))
+                        Decs.append(float(rec[dec_key]))
                     if pltInc:
-                        Incs.append(float(rec['measurement_inc']))
+                        Incs.append(float(rec[inc_key]))
                     if not norm and pltMag:
                         Ints.append(float(rec[meas_key]))
                     if norm and pltMag:

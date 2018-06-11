@@ -2687,8 +2687,32 @@ def addBorders(Figs, titles, border_color, text_color):
 
 
 def plotMAP(fignum, lats, lons, Opts):
-    """ makes a basemap with lats/lons
+    """ 
+    plotMAP(fignum, lats,lons,Opts)
+    makes a basemap with lats/lons
         Windows 10 users, see plot_map
+    Parameters:
+    _______________
+    fignum : matplotlib figure number
+    lats : array or list of latitudes
+    lons : array or list of longitudes
+    Opts : dictionary of plotting options: 
+        Opts.keys=
+            latmin : minimum latitude for plot
+            latmax : maximum latitude for plot
+            lonmin : minimum longitude for plot
+            lonmax : maximum longitude
+            lat_0 : central latitude
+            lon_0 : central longitude
+            proj : projection [basemap projections, e.g., moll=Mollweide, merc=Mercator, ortho=orthorhombic,
+                lcc=Lambert Conformal]
+            sym : matplotlib symbol
+            symsize : symbol size in pts
+            pltgrid : plot the grid [1,0]
+            res :  resolution [c,l,i,h] for crude, low, intermediate, high
+            boundinglat : bounding latitude
+       
+     
     """
     from mpl_toolkits.basemap import Basemap
     from matplotlib import cm
@@ -2778,7 +2802,7 @@ def plotMAP(fignum, lats, lons, Opts):
         if prn_name == 1:
             for pt in range(len(lats)):
                 T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-        m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor='black')
+        m.plot(X, Y, Opts['sym'], markersize=symsize)
     else:  # for lines,  need to separate chunks using lat==100.
         chunk = 1
         while k < len(lats) - 1:

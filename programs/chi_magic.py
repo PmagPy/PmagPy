@@ -91,7 +91,10 @@ def main():
                 if 'measurement_temp' not in list(rec.keys()):rec['measurement_temp']='300' # set defaults
                 if 'measurement_freq' not in list(rec.keys()):rec['measurement_freq']='0' # set defaults
                 if 'measurement_lab_field_ac' not in list(rec.keys()):rec['measurement_lab_field_ac']='0' # set default
-                X.append(float(rec['measurement_x']))
+                if 'measurement_x' in rec.keys():
+                    X.append(float(rec['measurement_x'])) # backward compatibility
+                else:
+                    X.append(float(rec['measurement_chi_volume'])) # data model 2.5
                 T.append(float(rec['measurement_temp']))
                 F.append(float(rec['measurement_freq']))
                 B.append(float(rec['measurement_lab_field_ac']))
