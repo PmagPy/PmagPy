@@ -7792,8 +7792,8 @@ class Site(object):
         return self.site_data
 
 
-def dayplot(path_to_file='.', hyst_file="rmag_hysteresis.txt",
-            rem_file="rmag_remanence.txt", save=False, save_folder='.', fmt='pdf'):
+def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
+            save=False, save_folder='.', fmt='pdf',data_model=3):
     """
     Makes 'day plots' (Day et al. 1977) and squareness/coercivity plots
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
@@ -7802,15 +7802,18 @@ def dayplot(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     Optional Parameters (defaults are used if not specified)
     ----------
     path_to_file : path to directory that contains files (default is current directory, '.')
-    hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
-    rem_file : remanence file (default is 'rmag_remanence.txt')
+    the default input file is 'specimens.txt' (data_model=3
+    if data_model = 2, then must these are the defaults:
+        hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
+        rem_file : remanence file (default is 'rmag_remanence.txt')
     save : boolean argument to save plots (default is False)
     save_folder : relative directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures (default is 'pdf')
     """
     args = sys.argv
     hyst_path = os.path.join(path_to_file, hyst_file)
-    rem_path = os.path.join(path_to_file, rem_file)
+    if data_model==2 and rem_file!='':
+        rem_path = os.path.join(path_to_file, rem_file)
     # hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
     dir_path = path_to_file
     verbose = pmagplotlib.verbose
@@ -7823,11 +7826,14 @@ def dayplot(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
     plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
     hyst_data, file_type = pmag.magic_read(hyst_path)
-    rem_data, file_type = pmag.magic_read(rem_path)
+    rem_data=[]
+    if data_model==2 and rem_file!="":
+        rem_data, file_type = pmag.magic_read(rem_path)
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Ms, Bcr1, Bcr1Bc, S1 = [], [], [], []
     locations = ''
-    for rec in hyst_data:
+    if data_model==2:
+      for rec in hyst_data:
         if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations:
             locations = locations + rec['er_location_name'] + '_'
         if rec['hysteresis_bcr'] != "" and rec['hysteresis_mr_moment'] != "":
@@ -7839,7 +7845,7 @@ def dayplot(path_to_file='.', hyst_file="rmag_hysteresis.txt",
             if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name'] != "":
                 rec['er_specimen_name'] = rec['er_synthetic_name']
             hsids.append(rec['er_specimen_name'])
-    if len(rem_data) > 0:
+      if len(rem_data) > 0:
         for rec in rem_data:
             if rec['remanence_bcr'] != "" and float(rec['remanence_bcr']) > 0:
                 try:
@@ -7852,10 +7858,42 @@ def dayplot(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                     if verbose:
                         print('hysteresis data for ',
                               rec['er_specimen_name'], ' not found')
+    else:
+        fnames = {'specimens': hyst_file}
+        con = nb.Contribution(dir_path, read_tables=['specimens'],
+                          custom_filenames=fnames)
+        spec_container = con.tables['specimens']
+        spec_df = spec_container.df
+
+        locations = []
+
+        if 'location' in spec_df.columns:
+            locations = spec_df['location'].unique()
+        do_rem = bool('rem_bcr' in spec_df.columns)
+
+        for ind, row in spec_df.iterrows():
+            if row['hyst_bcr'] and row['hyst_mr_moment']:
+                S.append(old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
+                Bcr.append(float(row['hyst_bcr']))
+                Bc.append(float(row['hyst_bc']))
+                BcrBc.append(old_div(Bcr[-1], Bc[-1]))
+                hsids.append(row['specimen'])
+            if do_rem:
+                if row['rem_bcr'] and float(row['rem_bcr']) > 0:
+                    try:
+                        Bcr1.append(float(row['rem_bcr']))
+                        Bcr1Bc.append(old_div(Bcr1[-1], Bc[-1]))
+                        S1.append(S[-1])
+                        Bcr2.append(Bcr[-1])
+                    except ValueError:
+                        if verbose:
+                            print('hysteresis data for ', row['specimen'], end=' ')
+                            print(' not found')
+
+
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
-    leglist = []
     if len(Bcr1) > 0:
         pmagplotlib.plotDay(DSC['day'], Bcr1Bc, S1, 'ro')
         pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr1, S1, 'ro')

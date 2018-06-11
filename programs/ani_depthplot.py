@@ -7,7 +7,7 @@ import matplotlib
 if matplotlib.get_backend() != "WXAgg":
   matplotlib.use("WXAgg")
 
-import matplotlib.pyplot as plt
+import matplotlib.pylab as plt
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
