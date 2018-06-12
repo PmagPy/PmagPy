@@ -647,7 +647,7 @@ class TestAnisoDepthplot(unittest.TestCase):
 class TestAnisoDepthplot3(unittest.TestCase):
 
     def setUp(self):
-        self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot3')
+        self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot')
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt']
