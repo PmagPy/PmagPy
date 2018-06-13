@@ -600,7 +600,12 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
 
-
+    def test_core_depthplot_data_model3_options(self):
+        path = os.path.join(WD, 'data_files', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path, samp_file='samples.txt',
+                                                      meth='AF', step=15)
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
 
 #@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
