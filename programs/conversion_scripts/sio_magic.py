@@ -50,7 +50,7 @@ OPTIONS
     -ac B : peak AF field (in mT) for ARM acquisition, default is none
     -ncn NCON:  specify naming convention: default is #1 below
     -A: don't average replicate measurements
-    -lat: site lattitude (will also be used for bounding lattitudes of location)
+    -lat: site latitude (will also be used for bounding lattitudes of location)
     -lon: site longitude (will also be used for bounding longitude of location)
    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y

@@ -31,7 +31,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input file, default is: magic_measurements.txt
+        -f FILE: specify input file, default is: measurements.txt
         -obj OBJ: specify  object  [loc, sit, sam, spc] for plot,
                default is by location
         -LT [AF,T,M]: specify lab treatment type, default AF
