@@ -608,7 +608,7 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
 
 #@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
-class TestAnisoDepthplot(unittest.TestCase):
+class TestAniDepthplot(unittest.TestCase):
 
     def setUp(self):
         self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot')
