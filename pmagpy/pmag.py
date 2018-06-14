@@ -5057,8 +5057,11 @@ def dimap(D, I):
     -------
     XY : x, y values of directions for equal area projection [x,y]
     """
-    if len(D)>1: # is an array
-        return dimap_V(D,I)
+    try:
+        D = float(D)
+        I = float(I)
+    except TypeError: # is an array
+        return dimap_V(D, I)
 # DEFINE FUNCTION VARIABLES
     # initialize equal area projection x,y
     XY = [0., 0.]
@@ -5344,7 +5347,7 @@ def doseigs(s):
          tau,V:
            tau is an list of eigenvalues in decreasing order:
               [t1,t2,t3]
-           V is an list of the eigenvector directions 
+           V is an list of the eigenvector directions
               [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
     """
 #
@@ -5365,7 +5368,7 @@ def doseigs(s):
 def doeigs_s(tau, Vdirs):
     """
      get elements of s from eigenvaulues - note that this is very unstable
-     Input: 
+     Input:
          tau,V:
            tau is an list of eigenvalues in decreasing order:
               [t1,t2,t3]
@@ -8970,7 +8973,7 @@ def get_plate_data(plate):
 def bc02(data):
     """
     get APWP from Besse and Courtillot 2002 paper
-    
+
     Parameters
     ----------
     Takes input as [plate, site_lat, site_lon, age]
@@ -8981,7 +8984,7 @@ def bc02(data):
 
     Returns
     ----------
-     
+
     """
 
     plate, site_lat, site_lon, age = data[0], data[1], data[2], data[3]
