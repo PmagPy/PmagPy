@@ -9853,11 +9853,11 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     if isite == 1:
         sitelist = spec_df['site'].unique()
         sitelist.sort()
-        plt = len(sitelist)
+        plot = len(sitelist)
     else:
-        plt = 1
+        plot = 1
     k = 0
-    while k < plt:
+    while k < plot:
         site = ""
         loc_name = ""
         sdata, Ss = [], [] # list of S format data
@@ -10260,7 +10260,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     k -= 2
                     goon = 0
                 if ans == "q":
-                    k = plt
+                    k = plot
                     goon = 0
                 if ans == "s":
                     keepon = 1
