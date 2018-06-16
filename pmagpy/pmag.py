@@ -6444,8 +6444,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V1s, len(V1s))
     bpars["v1_dec"] = kpars["dec"]
     bpars["v1_inc"] = kpars["inc"]
-    bpars["v1_zeta"] = kpars["Zeta"] * np.sqrt(nb)
-    bpars["v1_eta"] = kpars["Eta"] * np.sqrt(nb)
+    bpars["v1_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
+    bpars["v1_eta"] = (kpars["Eta"] * np.sqrt(nb))%360.
     bpars["v1_zeta_dec"] = kpars["Zdec"]
     bpars["v1_zeta_inc"] = kpars["Zinc"]
     bpars["v1_eta_dec"] = kpars["Edec"]
@@ -6453,8 +6453,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V2s, len(V2s))
     bpars["v2_dec"] = kpars["dec"]
     bpars["v2_inc"] = kpars["inc"]
-    bpars["v2_zeta"] = kpars["Zeta"] * np.sqrt(nb)
-    bpars["v2_eta"] = kpars["Eta"] * np.sqrt(nb)
+    bpars["v2_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
+    bpars["v2_eta"] = (kpars["Eta"] * np.sqrt(nb))%360.
     bpars["v2_zeta_dec"] = kpars["Zdec"]
     bpars["v2_zeta_inc"] = kpars["Zinc"]
     bpars["v2_eta_dec"] = kpars["Edec"]
@@ -6462,8 +6462,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V3s, len(V3s))
     bpars["v3_dec"] = kpars["dec"]
     bpars["v3_inc"] = kpars["inc"]
-    bpars["v3_zeta"] = kpars["Zeta"] * np.sqrt(nb)
-    bpars["v3_eta"] = kpars["Eta"] * np.sqrt(nb)
+    bpars["v3_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
+    bpars["v3_eta"] =(kpars["Eta"] * np.sqrt(nb))%360.
     bpars["v3_zeta_dec"] = kpars["Zdec"]
     bpars["v3_zeta_inc"] = kpars["Zinc"]
     bpars["v3_eta_dec"] = kpars["Edec"]

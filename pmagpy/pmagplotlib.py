@@ -1551,7 +1551,7 @@ def plotELL(fignum, pars, col, lower, plot):
         # put on an equal area projection
         R = old_div(np.sqrt(
             1. - abs(elli[2])), (np.sqrt(elli[0]**2 + elli[1]**2)))
-        if elli[2] < 0:
+        if elli[2] <= 0:
             #            for i in range(3): elli[i]=-elli[i]
             X_up.append(elli[1] * R)
             Y_up.append(elli[0] * R)
@@ -1559,10 +1559,11 @@ def plotELL(fignum, pars, col, lower, plot):
             X_ell.append(elli[1] * R)
             Y_ell.append(elli[0] * R)
     if plot == 1:
+        col=col[0]+'.'
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, col)
+            plt.plot(X_ell, Y_ell, col,markersize=5)
         if X_up != []:
-            plt.plot(X_up, Y_up, 'k-')
+            plt.plot(X_up, Y_up, col,markersize=3)
     else:
         return PTS
 
@@ -2282,13 +2283,13 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                 # put on the data eigenvectors
                 plotEVEC(ANIS['conf'], BVs, 5, '')
             else:
-                ellpars = [bpars["v1_dec"], bpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
+                ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
                 plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
-                ellpars = [bpars["v2_dec"], bpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
+                ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
                 plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
-                ellpars = [bpars["v3_dec"], bpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
+                ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
                 plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
             plt.figure(num=ANIS['tcdf'])

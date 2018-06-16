@@ -10309,3 +10309,183 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     #    pmag.magic_write(outfile,ResOut,'rmag_results')
     if verbose:
         print(" Good bye ")
+
+def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,\
+                ipar=0, ihext=1, ivec=0, isite=0, iloc=0, iboot=0, vec=0,\
+                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path="."):
+    """
+    Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
+    Inputs:
+        verbose : if True, print messages to output
+        Data Model 3.0 only formated files:
+            infile : specimens formatted file with aniso_s data
+            samp_file : samples formatted file with sample => site relationship
+            site_file : sites formatted file with site => location relationship
+        isite : if True plot by site, requires non-blank samp_file
+        iloc : if True plot by location, requires non-blank samp_file, and site_file
+        Dir : [Dec,Inc] list for comparison direction
+        PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
+        crd : ['s','g','t'], coordinate system for plotting whereby: 
+            s : specimen coordinates, aniso_tile_correction = -1, or unspecified 
+            g : geographic coordinates, aniso_tile_correction = 0
+            t : tilt corrected coordinates, aniso_tile_correction = 100
+        confidence bounds options:
+            ihext : if True - Hext ellipses 
+            iboot : if True - bootstrap ellipses
+            ivec : if True - plot bootstrapped eigenvectors instead of ellipses
+            ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
+    """ 
+
+    # initialize some variables
+    version_num = pmag.get_version()
+    hpars, bpars = [], []
+    # set aniso_tilt_correction value
+    CS = -1 # specimen
+    if crd == 'g': CS = 0
+    if crd == 't': CS = 100
+    #
+    # set up plots
+    #
+    ANIS = {}
+    initcdf, inittcdf = 0, 0
+    ANIS['data'], ANIS['conf'] = 1, 2
+    w,h=8,4
+    nrows,ncols=1,2
+    if iboot == 1: 
+        ANIS['tcdf'],w,ncols = 3,12,3
+    if len(Dir)>0 : 
+        ANIS['vxcdf'], ANIS['vycdf'], ANIS['vzcdf'] = 4, 5, 6
+        w,h=8,8
+        nrows,ncols=2,3
+    # read in the data
+    fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
+    dir_path = os.path.realpath(dir_path)
+    con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
+                          custom_filenames=fnames)
+    con.propagate_location_to_specimens()
+    spec_container = con.tables['specimens']
+    #spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
+    spec_df = spec_container.df
+    # get only anisotropy records
+    spec_df=spec_df.dropna(subset=['aniso_s']).copy()
+    if 'aniso_tilt_correction' not in spec_df.columns:
+        spec_df['aniso_tilt_correction'] = -1 # assume specimen coordinates
+    if "aniso_s_n_measurements" not in spec_df.columns:
+        spec_df["aniso_s_n_measurements"]="6"
+    if "aniso_s_sigma" not in spec_df.columns:
+        spec_df["aniso_sigma"]="0"
+    orlist = spec_df['aniso_tilt_correction'].dropna().unique()
+    if CS not in orlist:
+        if len(orlist) > 0:
+            CS = orlist[0]
+        else:
+            CS = -1
+        if CS == -1:
+            crd = 's'
+        if CS == 0:
+            crd = 'g'
+        if CS == 100:
+            crd = 't'
+        if verbose:
+            print("desired coordinate system not available, using available: ", crd)
+    #if isite == 1:
+    #    sitelist = spec_df['site'].unique()
+    #    sitelist.sort()
+    #    plt = len(sitelist)
+    #else:
+    #    plt = 1
+    #k = 0
+    #while k < plt:
+    #    site = ""
+    #    loc_name = ""
+    #    sdata, Ss = [], [] # list of S format data
+    #    if isite == 0:
+    #        sdata = spec_df
+    #        if 'location' in sdata.columns:
+    #            try:
+    #                loc_name = ':'.join(sdata['location'].unique())
+    #            except TypeError:
+    #                loc_name = ""
+    #    else:
+    #        site = sitelist[k]
+    #        sdata = spec_df[spec_df['site'] == site]
+    #        if 'location' in sdata.columns:
+    #            loc_name = sdata['location'][0]
+    #    anitypes = csrecs['aniso_type'].unique()
+    #    for name in ['citations', 'location', 'site', 'sample']:
+    #        if name not in csrecs:
+    #            csrecs[name] = ""
+    #    Locs = csrecs['location'].unique()
+        #Sites = csrecs['site'].unique()
+        #Samples = csrecs['sample'].unique()
+        #Specimens = csrecs['specimen'].unique()
+        #Cits = csrecs['citations'].unique()
+        #sdata = spec_df[spec_df['site'] == site]
+        
+# plotting all the data
+        csrecs = spec_df[spec_df['aniso_tilt_correction'] == CS]
+        Ss,V1,V2,V3=[],[],[],[]
+        for ind, rec in csrecs.iterrows():
+            s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
+            if s[0] <= 1.0:
+                Ss.append(s) # protect against crap
+            if "aniso_s_sigma" not in rec.keys():rec["aniso_s_sigma"]="0"
+            fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
+            # collect the eigenvectors 
+            V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
+            V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
+            V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
+        if len(Ss) > 1: 
+            # plot the data
+            plot_net(ANIS['data'])
+            plt.title('Eigenvectors: V1=squares,V2=triangles,V3=circles')
+            plot_di(di_block=V1, color='r', marker='s', markersize=20)
+            plot_di(di_block=V2, color='b', marker='^', markersize=20)
+            plot_di(di_block=V3, color='k', marker='o', markersize=20)
+            # plot the confidence 
+            nf,sigma,avs = pmag.sbar(Ss)
+            hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
+            plot_net(ANIS['conf'])
+            plt.title('Confidence Ellipses')
+            plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
+            plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
+            plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
+            # plot the confidence ellipses or vectors as desired
+            if ihext: # plot the Hext ellipses
+                ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
+                   hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
+                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
+                   hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
+                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
+                   hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
+                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
+            if iboot: # put on the bootstrapped confidence bounds
+                Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
+                if ivec:
+                    BVs=np.array(BVs).transpose()
+                    plot_di(dec=BVs[0][0],inc=BVs[1][0],color='r',marker='.')
+                    plot_di(dec=BVs[0][1],inc=BVs[1][1],color='b',marker='.')
+                    plot_di(dec=BVs[0][0],inc=BVs[1][2],color='k',marker='.')
+                    # to the eigenvalue cdfs   
+                    # START HERE
+                else:   # plot the ellipses
+                    bpars = pmag.sbootpars(Taus, BVs)
+                    ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
+                           bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
+                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                    ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
+                           bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
+                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                    ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
+                           bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
+                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
+
+
+
+            
+             
+            
+     
+
