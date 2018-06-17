@@ -1476,10 +1476,9 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             dec, inc, intensity = di_lists
         if len(di_lists) == 2:
             dec, inc = di_lists
-
     try:
         length = len(dec)
-        for n in range(0, len(dec)):
+        for n in range(len(dec)):
             XY = pmag.dimap(dec[n], inc[n])
             if inc[n] >= 0:
                 X_down.append(XY[0])
@@ -10346,17 +10345,6 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
     #
     # set up plots
     #
-    ANIS = {}
-    initcdf, inittcdf = 0, 0
-    ANIS['data'], ANIS['conf'] = 1, 2
-    w,h=8,4
-    nrows,ncols=1,2
-    if iboot == 1: 
-        ANIS['tcdf'],w,ncols = 3,12,3
-    if len(Dir)>0 : 
-        ANIS['vxcdf'], ANIS['vycdf'], ANIS['vzcdf'] = 4, 5, 6
-        w,h=8,8
-        nrows,ncols=2,3
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
     dir_path = os.path.realpath(dir_path)
@@ -10380,14 +10368,10 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             CS = orlist[0]
         else:
             CS = -1
-        if CS == -1:
-            crd = 's'
-        if CS == 0:
-            crd = 'g'
-        if CS == 100:
-            crd = 't'
-        if verbose:
-            print("desired coordinate system not available, using available: ", crd)
+        if CS == -1: crd = 's'
+        if CS == 0: crd = 'g'
+        if CS == 100: crd = 't'
+        if verbose: print("desired coordinate system not available, using available: ", crd)
     #if isite == 1:
     #    sitelist = spec_df['site'].unique()
     #    sitelist.sort()
@@ -10437,7 +10421,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
         if len(Ss) > 1: 
             # plot the data
-            plot_net(ANIS['data'])
+            plot_net(1)
             plt.title('Eigenvectors: V1=squares,V2=triangles,V3=circles')
             plot_di(di_block=V1, color='r', marker='s', markersize=20)
             plot_di(di_block=V2, color='b', marker='^', markersize=20)
@@ -10445,7 +10429,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             # plot the confidence 
             nf,sigma,avs = pmag.sbar(Ss)
             hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
-            plot_net(ANIS['conf'])
+            plot_net(2)
             plt.title('Confidence Ellipses')
             plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
             plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
@@ -10454,38 +10438,48 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             if ihext: # plot the Hext ellipses
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
                    hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                pmagplotlib.plotELL(2, ellpars, 'r-,', 1, 1)
                 ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
                    hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                pmagplotlib.plotELL(2, ellpars, 'b-,', 1, 1)
                 ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
                    hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-                pmagplotlib.plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
+                pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
+                if len(Dir)>0:   # plot the comparison direction components
+                    plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
             if iboot: # put on the bootstrapped confidence bounds
                 Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
                 if ivec:
-                    BVs=np.array(BVs).transpose()
-                    plot_di(dec=BVs[0][0],inc=BVs[1][0],color='r',marker='.')
-                    plot_di(dec=BVs[0][1],inc=BVs[1][1],color='b',marker='.')
-                    plot_di(dec=BVs[0][0],inc=BVs[1][2],color='k',marker='.')
-                    # to the eigenvalue cdfs   
-                    # START HERE
+                    BVs_trans=np.array(BVs).transpose()
+                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
+                    plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
+                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][2],color='k',marker='.')
+                    if len(Dir)>0:   # plot the comparison direction components
+                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+                    # do the eigenvalue cdfs   
+                    Taus=np.array(Taus).transpose()
+                    colors=['r','b','k']
+                    styles=['dotted','dashed','solid']
+                    for t in range(3):  # step through eigenvalues
+                        ts=np.sort(Taus[t]) # get a sorted list of this eigenvalue
+                        pmagplotlib.plotCDF(3,ts,"",colors[t],"") # plot the CDF
+                        plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
+                        plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
+                    plt.xlabel('Eigenvalues')
+                    if len(Dir)>0: # do cartesian coordinates of eigenvectors vs Dir
+                        print ('START HERE')
+                       
+                        #pmagplotlib.plotCDF(4,Xs[0],"",colors[0],"")
                 else:   # plot the ellipses
                     bpars = pmag.sbootpars(Taus, BVs)
                     ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                    pmagplotlib.plotELL(2, ellpars, 'r-,', 1, 1)
                     ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                    pmagplotlib.plotELL(2, ellpars, 'b-,', 1, 1)
                     ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                    pmagplotlib.plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
-
-
-
-            
-             
-            
-     
-
+                    pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
+                    if len(Dir)>0:   # plot the comparison direction components
+                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
