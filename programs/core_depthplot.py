@@ -31,7 +31,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input magic_measurments format file from magi
+        -f FILE: specify input measurments format file
         -fsum FILE: specify input LIMS database (IODP) core summary csv file
         -fwig FILE: specify input depth,wiggle to plot, in magic format with sample_core_depth key for depth
         -fsa FILE: specify input er_samples format file from magic for depth
@@ -58,8 +58,8 @@ def main():
         -sav save plot silently
 
      DEFAULTS:
-         Measurements file: magic_measurements.txt
-         Samples file: er_samples.txt
+         Measurements file: measurements.txt
+         Samples file: samples.txt
          NRM step
          Summary file: none
     """
@@ -69,7 +69,7 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([ ['f', False, 'magic_measurements.txt'], ['fsum', False, ''],
+    dataframe = extractor.command_line_dataframe([ ['f', False, 'measurements.txt'], ['fsum', False, ''],
                                                    ['fwig', False, ''], ['fsa', False, ''],
                                                    ['fa', False, ''], ['fsp', False, ''],
                                                    ['fres', False, '' ],  ['fmt', False, 'svg'],
