@@ -10323,6 +10323,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         isite : if True plot by site, requires non-blank samp_file
         iloc : if True plot by location, requires non-blank samp_file, and site_file
         Dir : [Dec,Inc] list for comparison direction
+        vec : eigenvector for comparison with Dir
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
         crd : ['s','g','t'], coordinate system for plotting whereby: 
             s : specimen coordinates, aniso_tile_correction = -1, or unspecified 
@@ -10429,11 +10430,13 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             # plot the confidence 
             nf,sigma,avs = pmag.sbar(Ss)
             hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
+            if len(PDir) > 0: pmagplotlib.plotC(1, PDir, 90., 'g')
             plot_net(2)
             plt.title('Confidence Ellipses')
             plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
             plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
             plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
+            if len(PDir) > 0: pmagplotlib.plotC(2, PDir, 90., 'g')
             # plot the confidence ellipses or vectors as desired
             if ihext: # plot the Hext ellipses
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
@@ -10446,14 +10449,16 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                    hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
                 pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
                 if len(Dir)>0:   # plot the comparison direction components
+                    # put in dimap and plot as white symbol with axis color? 
                     plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
             if iboot: # put on the bootstrapped confidence bounds
                 Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
+                BVs_trans=np.array(BVs).transpose()
                 if ivec:
-                    BVs_trans=np.array(BVs).transpose()
                     plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
                     plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
-                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][2],color='k',marker='.')
+                    plot_di(dec=BVs_trans[0][2],inc=BVs_trans[1][2],color='k',marker='.')
+                    # put in dimap and plot as white symbol with axis color? 
                     if len(Dir)>0:   # plot the comparison direction components
                         plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
                     # do the eigenvalue cdfs   
@@ -10466,11 +10471,17 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                         plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
                         plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
                     plt.xlabel('Eigenvalues')
-                    if len(Dir)>0: # do cartesian coordinates of eigenvectors vs Dir
-                        print ('START HERE')
-                       
-                        #pmagplotlib.plotCDF(4,Xs[0],"",colors[0],"")
-                else:   # plot the ellipses
+                    if len(Dir)>0: # do cartesian coordinates of selected eigenvectori [using vec] vs Dir
+                        V=[row[vec-1] for row in BVs]
+                        X=pmag.dir2cart(V)
+                        comp_X=pmag.dir2cart(Dir)
+                        for i in range(3):
+                            xs=np.sort(np.array([row[i] for row in X]))
+                            pmagplotlib.plotCDF(i+4,xs,"",colors[i],"") # plot the CDF
+                            plt.axvline(xs[int(0.025*len(xs))],color=colors[vec-1],linestyle=styles[i]) # minimum 95% conf bound
+                            plt.axvline(xs[int(0.975*len(xs))],color=colors[vec-1],linestyle=styles[i]) # max 95% conf bound
+                            plt.axvline(comp_X[0][i],color='lightgreen',linewidth=3) # put on the comparison direction
+                else:
                     bpars = pmag.sbootpars(Taus, BVs)
                     ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
