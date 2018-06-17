@@ -13,6 +13,7 @@ if matplotlib.get_backend() != "TKAgg":
 import pylab
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
+from pmag_env import set_env
 
 def main():
     """
@@ -32,25 +33,25 @@ def main():
         -h prints help message and quits
         -f pmag_sites  formatted file [default is pmag_sites.txt]
         -fsa er_samples  formatted file [default is er_samples.txt]
-        -fsi er_sites  formatted file 
+        -fsi er_sites  formatted file
         -exc use pmag_criteria.txt to set acceptance criteria
         -n NB, set number of bootstraps, default is 1000
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
         -sav saves plots and quits
-    
+
     OUTPUT
-        Geographic: is an equal area projection of the input data in 
+        Geographic: is an equal area projection of the input data in
                     original coordinates
-        Stratigraphic: is an equal area projection of the input data in 
+        Stratigraphic: is an equal area projection of the input data in
                     tilt adjusted coordinates
-        % Untilting: The dashed (red) curves are representative plots of 
+        % Untilting: The dashed (red) curves are representative plots of
                     maximum eigenvalue (tau_1) as a function of untilting
                     The solid line is the cumulative distribution of the
-                    % Untilting required to maximize tau for all the 
+                    % Untilting required to maximize tau for all the
                     bootstrapped data sets.  The dashed vertical lines
-                    are 95% confidence bounds on the % untilting that yields 
-                   the most clustered result (maximum tau_1).  
+                    are 95% confidence bounds on the % untilting that yields
+                   the most clustered result (maximum tau_1).
         Command line: prints out the bootstrapped iterations and
                    finally the confidence bounds on optimum untilting.
         If the 95% conf bounds include 0, then a pre-tilt magnetization is indicated
@@ -87,13 +88,13 @@ def main():
         max=int(sys.argv[ind+2])
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        infile=sys.argv[ind+1] 
+        infile=sys.argv[ind+1]
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
-        orfile=sys.argv[ind+1] 
+        orfile=sys.argv[ind+1]
     elif '-fsi' in sys.argv:
         ind=sys.argv.index('-fsi')
-        orfile=sys.argv[ind+1] 
+        orfile=sys.argv[ind+1]
         dipkey,azkey='site_bed_dip','site_bed_dip_direction'
     orfile=dir_path+'/'+orfile
     infile=dir_path+'/'+infile
@@ -109,9 +110,10 @@ def main():
 # get to work
 #
     PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
-    pmagplotlib.plot_init(PLTS['geo'],5,5)
-    pmagplotlib.plot_init(PLTS['strat'],5,5)
-    pmagplotlib.plot_init(PLTS['taus'],5,5)
+    if not set_env.IS_WIN:
+        pmagplotlib.plot_init(PLTS['geo'],5,5)
+        pmagplotlib.plot_init(PLTS['strat'],5,5)
+        pmagplotlib.plot_init(PLTS['taus'],5,5)
     GEOrecs=pmag.get_dictitem(data,'site_tilt_correction','0','T')
     if len(GEOrecs)>0: # have some geographic data
         DIDDs= [] # set up list for dec inc  dip_direction, dip
@@ -128,11 +130,11 @@ def main():
                     keep=1
                     for key in list(SiteCrit.keys()):
                         if 'site' in key  and SiteCrit[key]!="" and rec[key]!="" and key!='site_alpha95':
-                            if float(rec[key])<float(SiteCrit[key]): 
+                            if float(rec[key])<float(SiteCrit[key]):
                                 keep=0
                                 print(rec['er_site_name'],key,rec[key])
                         if key=='site_alpha95'  and SiteCrit[key]!="" and rec[key]!="":
-                            if float(rec[key])>float(SiteCrit[key]): 
+                            if float(rec[key])>float(SiteCrit[key]):
                                 keep=0
                     if keep==1:  DIDDs.append([Dec,Inc,dip_dir,dip])
                 else:
@@ -174,7 +176,7 @@ def main():
     pylab.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort() # now for CDF of tilt of maximum tau
     pylab.plot(Untilt,Cdf,'g')
-    lower=int(.025*nb)     
+    lower=int(.025*nb)
     upper=int(.975*nb)
     pylab.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
     pylab.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
