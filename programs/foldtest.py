@@ -12,6 +12,7 @@ if matplotlib.get_backend() != "TKAgg":
 
 import pylab
 import pmagpy.pmag as pmag
+from pmag_env import set_env
 import pmagpy.pmagplotlib as pmagplotlib
 
 def main():
@@ -109,7 +110,8 @@ nd the number of bootstrap samples
     D,I=pmag.dotilt_V(DIDDs)
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-    if plot==0:pmagplotlib.drawFIGS(PLTS)
+    if not set_env.IS_WIN:
+        if plot==0:pmagplotlib.drawFIGS(PLTS)
     Percs=list(range(min,max))
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
