@@ -8,10 +8,13 @@ import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
+from matplotlib import pyplot as plt
 
 import numpy
-import pylab
-pylab.ion()
+
+from pmagpy import pmagplotlib
+#import pylab
+#pylab.ion()
 
 
 def main():
@@ -86,19 +89,22 @@ def main():
           return
     except ValueError:
         pass
+    pmagplotlib.plot_init(1, 8, 7)
     Nbins=old_div(len(D),binsize)
-    #n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
-    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',density=norm)
-    pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()])
-    pylab.xlabel(xlab)
-    pylab.ylabel(ylab)
+    #n,bins,patches=plt.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
+    n,bins,patches=plt.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',density=norm)
+    plt.axis([D.min(),D.max(),0,n.max()+.1*n.max()])
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
     name='N = '+str(len(D))
-    pylab.title(name)
+    plt.title(name)
     if plot==0:
-        pylab.draw()
+        #plt.draw()
+        #plt.show()
+        pmagplotlib.drawFIGS({1: 'hist'})
         p=input('s[a]ve to save plot, [q]uit to exit without saving  ')
         if p!='a':  sys.exit()
-    pylab.savefig(outfile)
+    plt.savefig(outfile)
     print('plot saved in ',outfile)
 
 if __name__ == "__main__":
