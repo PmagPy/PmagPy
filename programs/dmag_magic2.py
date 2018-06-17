@@ -11,7 +11,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 def main():
     """
     NAME
-        dmag_magic.py
+        dmag_magic2.py
 
     DESCRIPTION
        plots intensity decay curves for demagnetization experiments
@@ -130,7 +130,7 @@ def main():
                 sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
-                ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
+                ans=input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
                 if ans=='q':sys.exit()
                 if ans=="a":
                     files={}
