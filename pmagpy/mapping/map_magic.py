@@ -40,8 +40,8 @@ def mapping(dictionary, mapping):
                             mapped_dictionary[new_key] = value
                         elif value.any() and mapped_dictionary[new_key].any():
                             # if both have values, choose which one to replace and warn
-                            print('-W- Two possible values found for {}'.format(new_key))
-                            print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
+                            #print('-W- Two possible values found for {}'.format(new_key))
+                            #print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                             mapped_dictionary[new_key] = value
                     else:
                         if value.any() and not mapped_dictionary[new_key].any():
@@ -49,8 +49,8 @@ def mapping(dictionary, mapping):
                             mapped_dictionary[new_key] = value
                         elif value.any() and mapped_dictionary[new_key].any():
                             # if both have values, choose which one to replace and warn
-                            print('-W- Two possible values found for {}'.format(new_key))
-                            print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
+                            #print('-W- Two possible values found for {}'.format(new_key))
+                            #print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                             mapped_dictionary[new_key] = value
                 else:
                     if not value:
@@ -61,8 +61,8 @@ def mapping(dictionary, mapping):
                         mapped_dictionary[new_key] = value
                     elif value and mapped_dictionary[new_key]:
                         # if both have values, choose which one to replace and warn
-                        print('-W- Two possible values found for {}'.format(new_key))
-                        print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
+                        #print('-W- Two possible values found for {}'.format(new_key))
+                        #print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                         mapped_dictionary[new_key] = value
             # if there is no mapped_value already:
             else:
