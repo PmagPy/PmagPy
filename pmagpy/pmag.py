@@ -8920,23 +8920,39 @@ def mktk03(terms, seed, G2, G3):
 
 def pinc(lat):
     """
-    calculate paleoinclination from latitude
+    calculate paleoinclination from latitude using dipole formula: tan(I) = 2tan(lat)
+    Parameters 
+    ________________
+    Input
+
+    lat : either a single value or an array of latitudes
+
+    Returns
+    
+    array of inclinations    
     """
-    rad = old_div(np.pi, 180.)
-    tanl = np.tan(lat * rad)
+    tanl = np.tan(np.radians(lat))
     inc = np.arctan(2. * tanl)
-    return old_div(inc, rad)
+    return np.degrees(inc)
 #
 
 
 def plat(inc):
     """
-    calculate paleolat from inclination
+    calculate paleolatitude from inclination using dipole formula: tan(I) = 2tan(lat)
+    Parameters 
+    ________________
+    Input
+
+    inc : either a single value or an array of inclinations
+
+    Returns
+    
+    array of latitudes    
     """
-    rad = old_div(np.pi, 180.)
-    tani = np.tan(inc * rad)
-    lat = np.arctan(old_div(tani, 2.))
-    return old_div(lat, rad)
+    tani = np.tan(np.radians(inc))
+    lat = np.arctan(tani/2.)
+    return np.degrees(lat)
 #
 #
 
