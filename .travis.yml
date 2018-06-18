@@ -1,15 +1,26 @@
 language: python
 python:
     #- "2.7"
-    - "3.6"
+    - "3.5.3"
     #  - "2.6" # fails because of discover
     # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 
 addons:
   apt:
     packages:
-      # for wxPython:
-      - python-wxgtk2.8
+    - libwebkitgtk-dev
+    - libjpeg-dev
+    - libtiff-dev
+    - libgtk2.0-dev
+    - libsdl1.2-dev
+    - libgstreamer-plugins-base0.10-dev
+    - freeglut3
+    - freeglut3-dev
+    - libnotify-dev
+#  apt:
+#    packages:
+#      # for wxPython:
+#      - python-wxgtk2.8
 #      - python-wxtools
 #      - wx2.8-doc
 #      - wx2.8-examples
