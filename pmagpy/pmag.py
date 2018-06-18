@@ -2037,11 +2037,11 @@ def dotilt_V(indat):
     Parameters
     ----------
     input : declination, inclination, bedding dip direction and bedding dip
-    values [dec, inc, bed_az, bed_dip]
+    nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
 
     Returns
     -------
-    dec,inc : a tuple of rotated dec, inc values
+    dec,inc : arrays of rotated declination, inclination
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
@@ -2111,8 +2111,18 @@ def dogeo(dec, inc, az, pl):
 
 def dogeo_V(indat):
     """
-    Rotates declination and inclination into geographic coordinates of an array
-    using the azimuth and plunge of the X direction (lab arrow) of a specimen.
+    Rotates declination and inclination into geographic coordinates using the
+    azimuth and plunge of the X direction (lab arrow) of a specimen.
+
+    Parameters
+    ----------
+    indat: nested list of [dec, inc, az, pl] data
+
+    Returns
+    -------
+    rotated_directions : arrays of Declinations and Inclinations
+
+    
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
@@ -2163,6 +2173,30 @@ def dodirot(D, I, Dbar, Ibar):
     if drot > 360.:
         drot = drot - 360.
     return drot, irot
+
+def dodirot_V(di_block,Dbar,Ibar):
+    """
+    Rotate an array of dec/inc pairs to coordinate system with Dec,Inc as 0,90
+
+    Parameters
+    ___________________
+    di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
+    Dbar : declination of desired center
+    Ibar : inclination of desired center
+   
+    Returns
+    __________
+    array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
+    """
+    N=di_block.shape[0]
+    DipDir,Dip=np.ones(N,dtype=np.float).transpose()*(Dbar-180.),np.ones(N,dtype=np.float).transpose()*(90.-Ibar)
+    di_block=di_block.transpose()
+    data=np.array([di_block[0],di_block[1],DipDir ,Dip]).transpose()
+    drot,irot=dotilt_V(data)
+    drot=(drot-180.)%360.  #
+    return np.column_stack((drot,irot))
+
+
 
 
 def find_samp_rec(s, data, az_type):
@@ -4668,6 +4702,17 @@ def doprinc(data):
     Returns
     -------
     ppars : dictionary with the principal components
+        dec : principal directiion declination
+        inc : principal direction inclination
+        V2dec : intermediate eigenvector declination        
+        V2inc : intermediate eigenvector inclination
+        V3dec : minor eigenvector declination        
+        V3inc : minor eigenvector inclination
+        tau1 : major eigenvalue
+        tau2 : intermediate eigenvalue
+        tau3 : minor eigenvalue
+        N  : number of points
+        Edir : elongation direction [dec, inc, length]
     """
     ppars = {}
     rad = old_div(np.pi, 180.)
