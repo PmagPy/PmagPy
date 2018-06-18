@@ -65,8 +65,10 @@ before_install:
 #virtualenv:
 #  system_site_packages: true
 install:
-  - pip install scripttest
-  - pip install pandas
+  - pip install scripttest pandas libtiff
+  - sudo apt-get update
+  - wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl"
+  - pip install wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl
   # command to run tests, e.g. python setup.py test
 script:
 
