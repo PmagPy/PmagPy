@@ -1359,8 +1359,10 @@ class MagicDataFrame(object):
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
+            print('\nmagic_file', magic_file)
             self.add_measurement_names()
         self.name = name
+
 
 
     ## Methods to change self.df inplace
@@ -1404,12 +1406,15 @@ class MagicDataFrame(object):
             print("    This may cause strange behavior in the analysis GUIs")
             self.df['treat_step_num'] = ''
         treat_step = lambda x: str(x) if not_null(x) else ""
+        print('\nself.dtype', self.dtype)
+        print('\nself.df.columns', self.df.columns)
         if 'measurement' in self.df.columns:
             print('measurement already in self.df.columns!')
         else:
             print('adding measurement column to measurements table!')
             self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].apply(treat_step)
             self.write_magic_file()
+
 
 
     def update_row(self, ind, row_data):
