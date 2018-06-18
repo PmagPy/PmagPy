@@ -1,7 +1,7 @@
 language: python
 python:
     #- "2.7"
-    - "3.5.3"
+    - "3.6"
     #  - "2.6" # fails because of discover
     # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 
@@ -85,5 +85,5 @@ script:
 
   #- python -m unittest unittests.test_ipmag unittests.test_imports SPD.tests.test_arai_plot_statistics SPD.tests.test_curvature SPD.tests.test_directional_statistics SPD.tests.test_ptrm_statistics SPD.tests.test_tail_check_statistics SPD.tests.test_additivity_check_statistics
   #- python -m unittest discover
-  #- python -m unittest pmagpy_tests.test_pmag
   - python -c "print('yay')"
+  - python -m unittest pmagpy_tests.test_pmag
