@@ -90,9 +90,11 @@ class TestSioMagic(unittest.TestCase):
         print('mag file', options['mag_file'])
         program_ran, file_name = sio_magic.convert(**options)
         self.assertTrue(program_ran)
+        print('\nprogram ran!!!')
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
-        meas_df = nb.MagicDataFrame(options['meas_file'])
+        print('\noutput file:', os.path.realpath(file_name))
+        meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)
         self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
 
