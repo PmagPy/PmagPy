@@ -62,8 +62,8 @@ before_install:
   # - export DISPLAY=unix:0.0
   # - export DISPLAY=localhost:0
   # - echo $DISPLAY
-virtualenv:
-  system_site_packages: true
+#virtualenv:
+#  system_site_packages: true
 install:
   - pip install scripttest
   - pip install pandas
