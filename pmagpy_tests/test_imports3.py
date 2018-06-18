@@ -94,6 +94,13 @@ class TestSioMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
         print('\noutput file:', os.path.realpath(file_name))
+        print('\n meas file', os.path.realpath(options['meas_file']))
+        print('output file exists?', os.path.exists(os.path.realpath(file_name)))
+        print('meas file exists?', os.path.exists(os.path.realpath(options['meas_file'])))
+        with open(os.path.realpath(options['meas_file'])) as f:
+            print(f.readline())
+            print(f.readline())
+        # possibly the output file doesn't actually exist in Travis CI testing environment....
         meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)
         self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
