@@ -85,6 +85,9 @@ class TestSioMagic(unittest.TestCase):
                                 'sio_magic')
         options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
+        print('dir path', dir_path)
+        print('what\'s in here', os.listdir(dir_path))
+        print('mag file', options['mag_file'])
         program_ran, file_name = sio_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),

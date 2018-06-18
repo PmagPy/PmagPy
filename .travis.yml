@@ -41,4 +41,4 @@ script:
   - python -c "print('yay')"
   #- python -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_pmag_gui
   #- python -m unittest discover  # runs, but some tests fail
-  - python -m unittest pmagpy_tests.test_imports3
+  - python -m unittest pmagpy_tests.test_imports3.TestSioMagic.test_sio_magic_success
