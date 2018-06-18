@@ -1361,6 +1361,7 @@ class MagicDataFrame(object):
         elif name == 'measurement' and len(self.df):
             self.add_measurement_names()
         self.name = name
+        print('\nmagic_file', magic_file)
 
 
     ## Methods to change self.df inplace
@@ -1412,7 +1413,7 @@ class MagicDataFrame(object):
             print('adding measurement column to measurements table!')
             self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].apply(treat_step)
             self.write_magic_file()
-        print('\nmagic_file', magic_file)
+
 
 
     def update_row(self, ind, row_data):
