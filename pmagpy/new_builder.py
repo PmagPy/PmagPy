@@ -1359,9 +1359,10 @@ class MagicDataFrame(object):
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
+            print('\nmagic_file', magic_file)
             self.add_measurement_names()
         self.name = name
-        print('\nmagic_file', magic_file)
+
 
 
     ## Methods to change self.df inplace
