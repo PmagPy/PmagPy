@@ -100,6 +100,7 @@ class TestSioMagic(unittest.TestCase):
         with open(os.path.realpath(options['meas_file'])) as f:
             print(f.readline())
             print(f.readline())
+            print(f.readline())
         # possibly the output file doesn't actually exist in Travis CI testing environment....
         meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)

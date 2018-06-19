@@ -2039,6 +2039,9 @@ class MagicDataFrame(object):
             print('-I- writing {} records to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
+        print('\ngoing to write out the file')
+        print('df.head(2)')
+        print(df.head(2), '\n')
         if append:
             header = False
             if multi_type:
