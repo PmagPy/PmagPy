@@ -190,7 +190,6 @@ class Contribution(object):
             if (name + "s") in self.tables:
                 continue
             elif name in meas_df.columns:
-                print("making new {} file".format(name))
                 items = meas_df[name].unique()
                 df = pd.DataFrame(columns=[name], index=items)
                 df[name] = df.index
@@ -1359,7 +1358,6 @@ class MagicDataFrame(object):
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
-            print('\nmagic_file', magic_file)
             self.add_measurement_names()
         self.name = name
 
@@ -1406,8 +1404,6 @@ class MagicDataFrame(object):
             print("    This may cause strange behavior in the analysis GUIs")
             self.df['treat_step_num'] = ''
         treat_step = lambda x: str(x) if not_null(x) else ""
-        print('\nself.dtype', self.dtype)
-        print('\nself.df.columns', self.df.columns)
         if 'measurement' in self.df.columns:
             print('measurement already in self.df.columns!')
         else:
@@ -2039,11 +2035,6 @@ class MagicDataFrame(object):
             print('-I- writing {} records to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
-        print('\ngoing to write out the file')
-        print('len(df)', len(df))
-        print('sorted cols', sorted(df.columns))
-        print('df.head(2)')
-        print(df.head(2), '\n')
         if append:
             header = False
             if multi_type:
