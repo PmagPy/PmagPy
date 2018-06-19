@@ -55,7 +55,6 @@ class TestGenericMagic(unittest.TestCase):
         options['experiment'] = 'Demag'
         program_ran, outfile_name = generic_magic.convert(**options)
         self.assertTrue(program_ran)
-        print(os.path.realpath(options['meas_file']))
         self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
 
 
@@ -85,23 +84,10 @@ class TestSioMagic(unittest.TestCase):
                                 'sio_magic')
         options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
-        print('dir path', dir_path)
-        print('what\'s in here', os.listdir(dir_path))
-        print('mag file', options['mag_file'])
         program_ran, file_name = sio_magic.convert(**options)
         self.assertTrue(program_ran)
-        print('\nprogram ran!!!')
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
-        print('\noutput file:', os.path.realpath(file_name))
-        print('\n meas file', os.path.realpath(options['meas_file']))
-        print('output file exists?', os.path.exists(os.path.realpath(file_name)))
-        print('meas file exists?', os.path.exists(os.path.realpath(options['meas_file'])))
-        with open(os.path.realpath(options['meas_file'])) as f:
-            print(f.readline())
-            print(f.readline())
-            print(f.readline())
-        # possibly the output file doesn't actually exist in Travis CI testing environment....
         meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)
         self.assertEqual(0, meas_df.df.iloc[0]['sequence'])

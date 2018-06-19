@@ -738,9 +738,7 @@ def convert(**kwargs):
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    print('MeasRecs[0] in sio_magic', sorted(MeasRecs[0].keys()))
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
-    print('MeasOuts[0] in sio_magic', sorted(MeasOuts[0].keys()))
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     # write MagIC tables to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
