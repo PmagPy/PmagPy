@@ -15,6 +15,7 @@ if matplotlib.get_backend() != "TKAgg":
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
+from pmag_env import set_env
 
 
 def main():
@@ -157,7 +158,8 @@ def main():
 
             hpars = pmagplotlib.plotHDD(HDD, B, M, e)
             if verbose and PLT:
-                pmagplotlib.drawFIGS(HDD)
+                if set_env.IS_WIN:
+                    pmagplotlib.drawFIGS(HDD)
     #
             if verbose:
                 pmagplotlib.plotHPARS(HDD, hpars, 'bs')
@@ -183,7 +185,7 @@ def main():
             if verbose and PLT:
                 print('plotting IRM')
             if irm_init == 0:
-                HDD['irm'] = 5
+                HDD['irm'] = 5 if 4 in HDD.values() else 4
                 pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
             rpars = pmagplotlib.plotIRM(HDD['irm'], Bdcd, Mdcd, irm_exp)
