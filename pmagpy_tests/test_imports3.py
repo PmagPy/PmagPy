@@ -106,6 +106,12 @@ class TestSioMagic(unittest.TestCase):
             print(f.readline())
             print(f.readline())
             print(f.readline())
+
+        with open(os.path.join(WD, 'locations.txt')) as f:
+            print(f.readline())
+            print(f.readline())
+            print(f.readline())
+
         # possibly the output file doesn't actually exist in Travis CI testing environment....
         meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)
