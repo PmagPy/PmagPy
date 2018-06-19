@@ -22,23 +22,22 @@ before_install:
   - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
   - "sh -e /etc/init.d/xvfb start"
 
-  # - echo $DISPLAY
-  # - export DISPLAY=unix:0.0
-  # - export DISPLAY=localhost:0
-  # - echo $DISPLAY
+# these lines were causing problems with wxPython
 #virtualenv:
 #  system_site_packages: true
 install:
-  - pip install scripttest pandas libtiff matplotlib numpy scipy future
+  - pip install scripttest pandas!=0.23.1 libtiff matplotlib numpy scipy future
   - sudo apt-get update
-  - wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl"
-  - pip install wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl
+  # older (working) version of wxPython
+  #- wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl" # older version
+  #- pip install wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl
+  # latest (working) version of wxPython (must be cp35)
+  - wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl"
+  - pip install wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl
   # command to run tests, e.g. python setup.py test
 script:
+  - python -c "print('starting tests')"
+  - python -m unittest discover
 
-  #- python -m unittest unittests.test_ipmag unittests.test_imports SPD.tests.test_arai_plot_statistics SPD.tests.test_curvature SPD.tests.test_directional_statistics SPD.tests.test_ptrm_statistics SPD.tests.test_tail_check_statistics SPD.tests.test_additivity_check_statistics
-  #- python -m unittest discover
-  - python -c "print('yay')"
-  #- python -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_pmag_gui
-  #- python -m unittest discover  # runs, but some tests fail
-  - python -m unittest pmagpy_tests.test_imports3.TestSioMagic.test_sio_magic_success
+
+# https://stackoverflow.com/questions/29290011/using-travis-ci-with-wxpython-tests
