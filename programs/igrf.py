@@ -16,10 +16,10 @@ def main():
     NAME
         igrf.py
     DESCRIPTION
-        This program calculates igrf field values 
-    using the routine of Malin and  Barraclough (1981) 
+        This program calculates igrf field values
+    using the routine of Malin and  Barraclough (1981)
     based on d/igrfs from 1900 to 2010.
-    between 1900 and 1000BCE, it uses CALS3K.4, ARCH3K.1 
+    between 1900 and 1000BCE, it uses CALS3K.4, ARCH3K.1
     Prior to 1000BCE, it uses PFM9k or CALS10k-4b
     Calculates reference field vector at  specified location and time.
 
@@ -28,7 +28,7 @@ def main():
     OPTIONS:
        -h prints help message and quits
        -i for interactive data entry
-       -f FILE  specify file name with input data 
+       -f FILE  specify file name with input data
        -fgh FILE specify file with custom field coefficients in format:  l m g h
        -F FILE  specify output file name
        -ages MIN MAX INCR: specify age minimum in years (+/- AD), maximum and increment, default is line by line
@@ -40,7 +40,7 @@ def main():
        -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k_2,shadif14k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
              NB:  program uses IGRF12 for dates 1900 to 2015.
 
-    INPUT FORMAT 
+    INPUT FORMAT
       interactive entry:
            date: decimal year
            alt:  altitude in km
@@ -53,7 +53,7 @@ def main():
     MODELS:  ARCH3K: (Korte et al., 2009);CALS3K (Korte & Contable, 2011); CALS10k (is .1b of Korte et al., 2011); PFM9K (Nilsson et al., 2014); HFM10k (is HFM.OL1.A1 of Constable et al., 2016); CALS10k_2 (is cals10k.2 of Constable et al., 2016), SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014).
     """
     plot, fmt = 0, 'svg'
-    mod, alt, plt, lat, lon = 'cals10k', 0, 0, 0, 0
+    mod, alt, make_plot, lat, lon = 'cals10k', 0, 0, 0, 0
     if '-loc' in sys.argv:
         ind = sys.argv.index('-loc')
         lat = float(sys.argv[ind+1])
@@ -136,7 +136,7 @@ def main():
     if '-sav' in sys.argv:
         plot = 1
     if '-plt' in sys.argv:
-        plt = 1
+        make_plot = 1
         import matplotlib
         matplotlib.use("TkAgg")
         import pylab
@@ -152,7 +152,7 @@ def main():
         if outfile != "":
             out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n' %
                       (Dir[0], Dir[1], f, line[0], line[1], line[2], line[3]))
-        elif plt:
+        elif make_plot:
             Ages.append(line[0])
             if Dir[0] > 180:
                 Dir[0] = Dir[0]-360.0
@@ -163,7 +163,7 @@ def main():
         else:
             print('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f' %
                   (Dir[0], Dir[1], f, line[0], line[1], line[2], line[3]))
-    if plt:
+    if make_plot:
         fig = pylab.figure(num=1, figsize=(7, 9))
         fig.add_subplot(411)
         pylab.plot(Ages, Decs)
@@ -178,12 +178,14 @@ def main():
         pylab.plot(Ages, VADMs)
         pylab.ylabel('VADMs (ZAm$^2$)')
         pylab.xlabel('Ages')
+        # show plot
         if plot == 0:
             pylab.draw()
             ans = input("S[a]ve to save figure, <Return>  to quit  ")
             if ans == 'a':
                 pylab.savefig('igrf.'+fmt)
                 print('Figure saved as: ', 'igrf.'+fmt)
+        # save plot without showing
         else:
             pylab.savefig('igrf.'+fmt)
             print('Figure saved as: ', 'igrf.'+fmt)
