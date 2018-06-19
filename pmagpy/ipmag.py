@@ -10494,3 +10494,50 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                     pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
                     if len(Dir)>0:   # plot the comparison direction components
                         plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+
+def plot_dmag(data="",title="",fignum=1,norm=1):
+    """
+    plots demagenetization data versus step for all specimens in pandas dataframe datablock
+
+    Parameters
+    ______________
+    data : Pandas dataframe with MagIC data model 3 columns:
+        fignum : figure number
+        specimen : specimen name
+        demag_key : one of these: ['treat_temp','treat_ac_field','treat_mw_energy']
+            selected using method_codes : ['LT_T-Z','LT-AF-Z','LT-M-Z'] respectively
+        intensity  : one of these: ['magn_moment', 'magn_volume', 'magn_mass']
+        quality : the quality column of the DataFrame
+     title : title for plot
+     norm : if True, normalize data to first step
+    Output : 
+      matptlotlib plot
+   """
+    plt.figure(num=fignum,figsize=(5,5))
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+    IntMeths = [col_name for col_name in data.columns if col_name in intlist] # get which key we have
+    int_key=IntMeths[0]
+    data=data[data[int_key].notnull()] # fish out all data with this key
+    units="U" # this  sets the units for plotting to undefined
+    if 'treat_temp' in data.columns: 
+        units="K" # kelvin
+        dmag_key='treat_temp'
+    elif 'treat_ac_field' in data.columns: 
+        units="T" # tesla
+        dmag_key='treat_ac_field'
+    elif 'treat_mw_energy' in data.columns: 
+        units="J" # joules
+        dmag_key='treat_mw_energy'
+    else:
+        print ('no data for plotting')
+        return
+    spcs=data.specimen.unique() # get a list of all specimens in DataFrame data
+    # step through specimens to put on plot
+    for spc in spcs:
+       spec_data=data[data.specimen.str.contains(spc)] 
+       INTblock = []
+       for ind,rec in spec_data.iterrows():
+           INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
+       if len(INTblock)>2:
+           pmagplotlib.plotMT(fignum,INTblock,title,0,units,norm)
+    
