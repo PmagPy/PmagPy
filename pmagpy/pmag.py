@@ -5424,17 +5424,17 @@ def doeigs_s(tau, Vdirs):
           s=[x11,x22,x33,x12,x23,x13]
 
     """
-#
-    V = []
     t = np.zeros((3, 3,), 'f')  # initialize the tau diagonal matrix
+    V = []
     for j in range(3):
-        t[j][j] = tau[j]  # diagonalize tau
+       t[j][j] = tau[j]  # diagonalize tau
     for k in range(3):
         V.append(dir2cart([Vdirs[k][0], Vdirs[k][1], 1.0]))
     V = np.transpose(V)
     tmp = np.dot(V, t)
     chi = np.dot(tmp, np.transpose(V))
     return a2s(chi)
+
 #
 #
 

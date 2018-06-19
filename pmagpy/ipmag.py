@@ -10540,4 +10540,30 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
            INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
        if len(INTblock)>2:
            pmagplotlib.plotMT(fignum,INTblock,title,0,units,norm)
-    
+   
+
+def eigs_s(infile="", dir_path='.'):
+    """ 
+    Converts eigenparamters format data to s format
+   
+    Parameters 
+    ___________________
+    Input: 
+        file : input file name with eigenvalues (tau) and eigenvectors (V) with  format: 
+            tau_1 V1_dec V1_inc tau_2 V2_dec V2_inc tau_3 V3_dec V3_inc 
+    Output
+         the six tensor elements as a nested array 
+          [[x11,x22,x33,x12,x23,x13],....]
+           
+    """
+    file=os.path.join(dir_path,infile)
+    eigs_data=np.loadtxt('../eigs_s/eigs_s_example.dat')
+    tau,Vdirs,Ss=[],[],[]
+    for ind in range(eigs_data.shape[0]):
+       for k in range(0,9,3): 
+           tau.append(eigs_data[ind][k])
+           Vdirs.append([eigs_data[ind][k+1],eigs_data[ind][k+2]])
+       s=list(pmag.doeigs_s(tau,Vdirs))
+       Ss.append(s)
+    return Ss
+
