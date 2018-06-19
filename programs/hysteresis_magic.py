@@ -158,7 +158,7 @@ def main():
 
             hpars = pmagplotlib.plotHDD(HDD, B, M, e)
             if verbose and PLT:
-                if set_env.IS_WIN:
+                if not set_env.IS_WIN:
                     pmagplotlib.drawFIGS(HDD)
     #
             if verbose:
