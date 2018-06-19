@@ -5,9 +5,10 @@ import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
-
+from matplotlib import pyplot as plt
 import numpy
 import pmagpy.pmag as pmag
+from pmagpy import pmagplotlib
 #
 
 
@@ -137,10 +138,6 @@ def main():
         plot = 1
     if '-plt' in sys.argv:
         make_plot = 1
-        import matplotlib
-        matplotlib.use("TkAgg")
-        import pylab
-        pylab.ion()
         Ages, Decs, Incs, Ints, VADMs = [], [], [], [], []
     for line in inp:
         if mod != 'custom':
@@ -164,30 +161,31 @@ def main():
             print('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f' %
                   (Dir[0], Dir[1], f, line[0], line[1], line[2], line[3]))
     if make_plot:
-        fig = pylab.figure(num=1, figsize=(7, 9))
+        pmagplotlib.plot_init(1, 7, 9)
+        fig = plt.figure(num=1, figsize=(7, 9))
         fig.add_subplot(411)
-        pylab.plot(Ages, Decs)
-        pylab.ylabel('Declination ($^{\circ}$)')
+        plt.plot(Ages, Decs)
+        plt.ylabel('Declination ($^{\circ}$)')
         fig.add_subplot(412)
-        pylab.plot(Ages, Incs)
-        pylab.ylabel('Inclination ($^{\circ}$)')
+        plt.plot(Ages, Incs)
+        plt.ylabel('Inclination ($^{\circ}$)')
         fig.add_subplot(413)
-        pylab.plot(Ages, Ints)
-        pylab.ylabel('Intensity ($\mu$T)')
+        plt.plot(Ages, Ints)
+        plt.ylabel('Intensity ($\mu$T)')
         fig.add_subplot(414)
-        pylab.plot(Ages, VADMs)
-        pylab.ylabel('VADMs (ZAm$^2$)')
-        pylab.xlabel('Ages')
+        plt.plot(Ages, VADMs)
+        plt.ylabel('VADMs (ZAm$^2$)')
+        plt.xlabel('Ages')
         # show plot
         if plot == 0:
-            pylab.draw()
+            pmagplotlib.drawFIGS({'time series': 1})
             ans = input("S[a]ve to save figure, <Return>  to quit  ")
             if ans == 'a':
-                pylab.savefig('igrf.'+fmt)
+                plt.savefig('igrf.'+fmt)
                 print('Figure saved as: ', 'igrf.'+fmt)
         # save plot without showing
         else:
-            pylab.savefig('igrf.'+fmt)
+            plt.savefig('igrf.'+fmt)
             print('Figure saved as: ', 'igrf.'+fmt)
         sys.exit()
 
