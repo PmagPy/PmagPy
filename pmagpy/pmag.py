@@ -4444,7 +4444,7 @@ def cdfout(data, file):
     f.close()
 
 
-def dobingham(data):
+def dobingham(di_block):
     """
     Calculates the Bingham mean and associated statistical parameters from
     directions that are input as a di_block
@@ -4458,13 +4458,13 @@ def dobingham(data):
     bpars : dictionary containing the Bingham mean and associated statistics
     """
     control, X, bpars = [], [], {}
-    N = len(data)
+    N = len(di_block)
     if N < 2:
         return bpars
 #
 #  get cartesian coordinates
 #
-    for rec in data:
+    for rec in di_block:
         X.append(dir2cart([rec[0], rec[1], 1.]))
 #
 #   put in T matrix
@@ -4582,7 +4582,25 @@ def doincfish(inc):
 
 def dokent(data, NN):
     """
-    gets Kent  parameters for data ([D,I],N)
+    gets Kent  parameters for data
+    Parameters
+    ___________________
+    Input :
+    data :  nested pairs of [Dec,Inc]
+    NN  : normalization
+        NN is the number of data for Kent ellipse
+        NN is 1 for Kent ellipses of bootstrapped mean directions
+    Output : 
+    kpars dictionary keys
+        dec : mean declination
+        inc : mean inclination
+        n : number of datapoints
+        Eta : major ellipse
+        Edec : declination of major ellipse axis
+        Einc : inclination of major ellipse axis
+        Zeta : minor ellipse
+        Zdec : declination of minor ellipse axis
+        Zinc : inclination of minor ellipse axis
     """
     X, kpars = [], {}
     N = len(data)
@@ -5090,8 +5108,7 @@ def watsonsV(Dir1, Dir2):
 
 def dimap(D, I):
     """
-    Function to map directions (declination, inclination) into an equal area
-    projection (x,y).
+    Function to map directions  to x,y pairs in equal area projection
 
     Parameters
     ----------
@@ -8976,16 +8993,23 @@ def pseudo(DIs):
     return D[Inds]
 
 
-def di_boot(DIs):
+def di_boot(DIs,nb=5000):
     """
-     returns bootstrap parameters for Directional data
+     returns bootstrap means  for Directional data
+     Parameters
+     _________________
+     Input :
+        DIs : nested list of Dec,Inc pairs
+        nb : number of bootstrap pseudosamples
+     Output :
+        nested list of bootstrapped mean Dec,Inc pairs 
     """
 # get average DI for whole dataset
     fpars = fisher_mean(DIs)
 #
 # now do bootstrap to collect BDIs  bootstrap means
 #
-    nb, BDIs = 5000, []  # number of bootstraps, list of bootstrap directions
+    BDIs = []  # number of bootstraps, list of bootstrap directions
 #
 
     for k in range(nb):  # repeat nb times
@@ -10113,6 +10137,52 @@ def do_mag_map(date, **kwargs):
             Bdec[j][i] = Dec  # store the declination value
             Brad[j][i]=z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
+
+def doeqdi(x,y,UP=0):
+    """
+    Takes digitized x,y, data and returns the dec,inc, assuming an
+    equal area projection
+    Parameters
+    __________________
+        x : array of digitized x from point on equal area projection
+        y : array of  igitized y from point on equal area projection
+        UP : if True, is an upper hemisphere projection
+    Output :
+        dec : declination
+        inc : inclination
+    """
+    xp,yp=y,x # need to switch into geographic convention
+    r=np.sqrt(xp**2+yp**2)
+    z=1.-r**2
+    t=np.arcsin(z)
+    if UP==1:t=-t
+    p=np.arctan2(yp,xp)
+    dec,inc=np.degrees(p)%360,np.degrees(t)
+    return dec,inc
+
+def separate_directions(di_block):
+    """
+    Separates set of directions into two modes based on principal direction
+
+    Parameters
+    _______________
+    Input 
+        di_block : block of nested dec,inc pairs
+    Ouput
+        mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
+    """
+    ppars=doprinc(di_block)
+    di_df=pd.DataFrame(di_block) # turn into a data frame for easy filtering
+    di_df.columns=['dec','inc']
+    di_df['pdec']=ppars['dec']
+    di_df['pinc']=ppars['inc']
+    di_df['angle']=angle(di_df[['dec','inc']].values,di_df[['pdec','pinc']].values)
+    mode1_df=di_df[di_df['angle']<=90]
+    mode2_df=di_df[di_df['angle']>90]
+    mode1=mode1_df[['dec','inc']].values.tolist()
+    mode2=mode2_df[['dec','inc']].values.tolist()
+    return mode1,mode2
+
 
 
 def main():
