@@ -46,6 +46,7 @@ def main():
     for line in input:
         rec=line.split()
         x,y=float(rec[1]),float(rec[0])  # swap x,y cartesian for x,y geographic
+        #d,i=pmag.doeqdi(x,y)
         r=math.sqrt(x**2+y**2)
         z=1.-r**2
         t=math.asin(z)

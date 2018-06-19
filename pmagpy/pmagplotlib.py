@@ -1547,7 +1547,8 @@ def plotELL(fignum, pars, col, lower, plot):
             for k in range(3):
                 # cartesian coordinate j of ellipse
                 elli[j] = elli[j] + t[j][k] * v[k]
-        PTS.append(pmag.cart2dir(elli))
+        pts=pmag.cart2dir(elli)
+        PTS.append([pts[0],pts[1]])
         # put on an equal area projection
         R = old_div(np.sqrt(
             1. - abs(elli[2])), (np.sqrt(elli[0]**2 + elli[1]**2)))
@@ -1561,7 +1562,7 @@ def plotELL(fignum, pars, col, lower, plot):
     if plot == 1:
         col=col[0]+'.'
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, col,markersize=5)
+            plt.plot(X_ell, Y_ell, col,markersize=3)
         if X_up != []:
             plt.plot(X_up, Y_up, col,markersize=3)
     else:
