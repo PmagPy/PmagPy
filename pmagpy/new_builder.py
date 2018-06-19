@@ -2040,6 +2040,8 @@ class MagicDataFrame(object):
             mode = "w"
         f = open(fname, mode)
         print('\ngoing to write out the file')
+        print('len(df)', len(df))
+        print('sorted cols', sorted(df.columns))
         print('df.head(2)')
         print(df.head(2), '\n')
         if append:

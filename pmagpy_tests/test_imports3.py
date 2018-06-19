@@ -85,6 +85,11 @@ class TestSioMagic(unittest.TestCase):
                                 'sio_magic')
         options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
+
+        from pmag_env import set_env
+        if not set_env.IS_WIN:
+            os.system('rm {}'.format(os.path.exists(os.path.realpath(options['meas_file']))))
+
         print('dir path', dir_path)
         print('what\'s in here', os.listdir(dir_path))
         print('mag file', options['mag_file'])
