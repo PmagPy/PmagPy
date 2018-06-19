@@ -185,7 +185,7 @@ def main():
             if verbose and PLT:
                 print('plotting IRM')
             if irm_init == 0:
-                HDD['irm'] = 5 if 4 in HDD.values() else 4
+                HDD['irm'] = 5 if 'imag' in HDD else 4
                 pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
             rpars = pmagplotlib.plotIRM(HDD['irm'], Bdcd, Mdcd, irm_exp)
@@ -272,6 +272,20 @@ def main():
             if verbose:
                 print('skipping this one - no hysteresis data')
             k += 1
+        if k < len(sids):
+            # must re-init figs for Windows to keep size
+            if PLT and set_env.IS_WIN:
+                pmagplotlib.plot_init(HDD['DdeltaM'], 5, 5)
+                pmagplotlib.plot_init(HDD['deltaM'], 5, 5)
+                pmagplotlib.plot_init(HDD['hyst'], 5, 5)
+                if len(Bimag) > 0:
+                    HDD['imag'] = 4
+                    pmagplotlib.plot_init(HDD['imag'], 5, 5)
+                if len(Bdcd) > 0:
+                    HDD['irm'] = 5 if 'imag' in HDD else 4
+                    pmagplotlib.plot_init(HDD['irm'], 5, 5)
+            elif not PLT and set_env.IS_WIN:
+                HDD['hyst'], HDD['deltaM'], HDD['DdeltaM'], HDD['irm'], HDD['imag'] = 0, 0, 0, 0, 0
     if len(HystRecs) > 0:
         #  go through prior_data, clean out prior results and save combined file as spec_file
         SpecRecs, keys = [], list(HystRecs[0].keys())
