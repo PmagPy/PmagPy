@@ -10575,3 +10575,16 @@ def eigs_s(infile="", dir_path='.'):
        Ss.append(s)
     return Ss
 
+def plot_gc(poles,color='g',fignum=1):
+    """
+    plots a great circle on an equal area projection
+    Parameters
+    ____________________
+    Input
+       fignum : number of matplotlib object
+       poles : nested list of [Dec,Inc] pairs of poles
+       color : color of lower hemisphere dots for great circle - must be in form: 'g','r','y','k',etc.
+               upper hemisphere is always cyan
+    """
+    for pole in poles:
+        pmagplotlib.plotC(fignum, pole, 90., color) 
