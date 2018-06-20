@@ -9425,7 +9425,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
     plot_di(di_block=data)
-
+    plt.title('Original')
     ppars = pmag.doprinc(data)
     Io = ppars['inc']
     n = ppars["N"]
@@ -9492,10 +9492,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         plt.figure(num=4, figsize=(4, 4))
         plot_net(4)
         plot_di(decs, unsquished_incs)
+        plt.title('Corrected for flattening')
     else:
         plt.figure(num=4, figsize=(4, 4))
         plot_net(4)
         plot_di(decs, incs)
+        plt.title('Corrected for flattening')
 
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
