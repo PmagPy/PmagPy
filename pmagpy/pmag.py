@@ -1740,8 +1740,8 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
             # composite file
             if rec != ['>>>>>>>>>>'] and 'delimited' not in rec[0]:
                 print("Warning: Uneven record lengths detected in {}: ".format(infile))
-                print(magic_keys)
-                print(rec)
+                print('keys:', magic_keys)
+                print('record:', rec)
         # modified by Ron Shaar:
         # add a health check:
         # if len(magic_keys) > len(rec): take rec
@@ -1971,7 +1971,7 @@ def magic_write(ofile, Recs, file_type):
         print(len(Recs), ' records written to file ', ofile)
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
-    pmag_out = open(ofile, 'w+')
+    pmag_out = open(ofile, 'w+', errors="backslashreplace")
     outstring = "tab \t" + file_type + "\n"
     pmag_out.write(outstring)
     keystring = ""

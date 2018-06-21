@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from builtins import input
+import os
 import sys
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
@@ -26,8 +27,9 @@ def main():
         -h prints help message and quits
         -i allows interactive entry of filename
         -f FILE specifies input file name
-        -sep write location data to separate subdirectories (Location_*)
+        -sep write location data to separate subdirectories (Location_*), (default False)
         -O do not overwrite duplicate Location_* directories while downloading
+        -DM data model (2 or 3, default 3)
     """
     if '-h' in sys.argv:
         print(main.__doc__)
@@ -42,14 +44,22 @@ def main():
         input_dir_path = '.'
     # non-interactive
     else:
-        dataframe = extractor.command_line_dataframe([['O', False, True], ['sep', False, False]])
-        checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
-        infile, dir_path, input_dir_path, overwrite, sep = extractor.get_vars(['f', 'WD', 'ID', 'O', 'sep'], checked_args)
+        infile = pmag.get_named_arg_from_sys("-f", reqd=True)
+        # if -O flag is present, overwrite is False
+        overwrite = pmag.get_flag_arg_from_sys("-O", true=False, false=True)
+        # if -sep flag is present, sep is True
+        sep = pmag.get_flag_arg_from_sys("-sep", true=True, false=False)
+        data_model = pmag.get_named_arg_from_sys("-DM", default_val=3, reqd=False)
+        dir_path = pmag.get_named_arg_from_sys("-WD", default_val=".", reqd=False)
+        input_dir_path = pmag.get_named_arg_from_sys("-ID", default_val=".", reqd=False)
 
-    if '-ID' not in sys.argv and '-WD' in sys.argv:
-        input_dir_path = dir_path
+    #if '-ID' not in sys.argv and '-WD' in sys.argv:
+    #    input_dir_path = dir_path
+    if "-WD" not in sys.argv and "-ID" not in sys.argv:
+        input_dir_path = os.path.split(infile)[0]
+    if not input_dir_path:
+        input_dir_path = "."
 
-    data_model = float(pmag.get_named_arg_from_sys("-DM", 3))
     ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, True, data_model, sep)
 
 
