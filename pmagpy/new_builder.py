@@ -2040,10 +2040,12 @@ class MagicDataFrame(object):
             if multi_type:
                 header = True
                 f.write('tab\t{}\n'.format(self.dtype))
-            df.to_csv(f, sep="\t", header=header, index=False)
+            f.flush()
+            df.to_csv(f, sep="\t", header=header, index=False, mode='a')
         else:
             f.write('tab\t{}\n'.format(self.dtype))
-            df.to_csv(f, sep="\t", header=True, index=False)
+            f.flush()
+            df.to_csv(f, sep="\t", header=True, index=False, mode='a')
         print('-I- {} records written to {} file'.format(len(df), self.dtype))
         f.close()
         return fname
