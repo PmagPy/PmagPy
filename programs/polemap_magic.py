@@ -216,8 +216,7 @@ def main():
                 pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
                 if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.drawFIGS(FIG)
-    if plot == 0 and set_env.IS_WIN:
-        pmagplotlib.drawFIGS(FIG)
+
     files = {}
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
