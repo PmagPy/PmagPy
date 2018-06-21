@@ -181,9 +181,9 @@ def main():
             ans = input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
             if ans == 'q':
                 sys.exit()
-            elif ans == "a":
+            if ans == "a":
                 pmagplotlib.saveP(FIG, files)
-            elif plt != plotlist[-1]: # if it isn't the last plot, init the next one
+            if plt != plotlist[-1]: # if it isn't the last plot, init the next one
                 pmagplotlib.plot_init(FIG['exp'], 6, 6)
         else:
             pmagplotlib.saveP(FIG, files)
