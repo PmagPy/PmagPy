@@ -46,7 +46,7 @@ def main():
     FIG['eqarea'] = 1  # eqarea is figure 1
     in_file, plot_key, coord = 'pmag_specimens.txt', 'er_site_name', "-1"
     out_file = ""
-    fmt, plt, plot = 'svg', 1, 0
+    fmt, make_plots, plot = 'svg', 1, 0
     Crits = ""
     M, N, acutoff, kcutoff = 180., 1, 180., 0.
     if '-h' in sys.argv:
@@ -86,7 +86,7 @@ def main():
         ind = sys.argv.index("-fmt")
         fmt = sys.argv[ind+1]
     if '-P' in sys.argv:
-        plt = 0
+        make_plots = 0
     if '-sav' in sys.argv:
         plot = 1
 #
@@ -100,11 +100,11 @@ def main():
         if rec['er_site_name'] not in sitelist:
             sitelist.append(rec['er_site_name'])
     sitelist.sort()
-    if plt == 1:
+    if make_plots == 1:
         EQ = {}
         EQ['eqarea'] = 1
-        pmagplotlib.plot_init(EQ['eqarea'], 4, 4)
     for site in sitelist:
+        pmagplotlib.plot_init(EQ['eqarea'], 4, 4)
         print(site)
         data = []
         for spec in Specs:
@@ -134,7 +134,7 @@ def main():
                     out.write('%s %s %s\n' %
                               (fpars["dec"], fpars['inc'], fpars['alpha95']))
             print('% tilt correction: ', coord)
-            if plt == 1:
+            if make_plots == 1:
                 files = {}
                 files['eqarea'] = site+'_'+crd+'_'+'eqarea'+'.'+fmt
                 pmagplotlib.plotLNP(EQ['eqarea'], site,
