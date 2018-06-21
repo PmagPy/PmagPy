@@ -1069,7 +1069,7 @@ def flip(di_block,combine=False):
     Input
     di_block : nested list of directions
     Return
-    D1 : normal mode 
+    D1 : normal mode
     D2 : flipped reverse mode as two DI blocks
     combine : if True return combined D1, D2, nested D,I pairs
     """
@@ -1085,7 +1085,7 @@ def flip(di_block,combine=False):
         else:
             D1.append([rec[0], rec[1]])
             if combine:D3.append([rec[0],rec[1]])
-    if combine: 
+    if combine:
         return D3
     else:
         return D1, D2
@@ -1972,7 +1972,8 @@ def magic_write(ofile, Recs, file_type):
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out = open(ofile, 'w+', errors="backslashreplace")
-    outstring = "tab \t" + file_type + "\n"
+    outstring = "tab \t" + file_type
+    outstring = outstring.strip("\n").strip("\r") + "\n" # make sure it's clean for Windows
     pmag_out.write(outstring)
     keystring = ""
     keylist = []
@@ -2133,7 +2134,7 @@ def dogeo_V(indat):
     -------
     rotated_directions : arrays of Declinations and Inclinations
 
-    
+
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
@@ -2194,7 +2195,7 @@ def dodirot_V(di_block,Dbar,Ibar):
     di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
     Dbar : declination of desired center
     Ibar : inclination of desired center
-   
+
     Returns
     __________
     array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
@@ -4612,7 +4613,7 @@ def dokent(data, NN):
     NN  : normalization
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
-    Return : 
+    Return :
     kpars dictionary keys
         dec : mean declination
         inc : mean inclination
@@ -4744,9 +4745,9 @@ def doprinc(data):
     ppars : dictionary with the principal components
         dec : principal directiion declination
         inc : principal direction inclination
-        V2dec : intermediate eigenvector declination        
+        V2dec : intermediate eigenvector declination
         V2inc : intermediate eigenvector inclination
-        V3dec : minor eigenvector declination        
+        V3dec : minor eigenvector declination
         V3inc : minor eigenvector inclination
         tau1 : major eigenvalue
         tau2 : intermediate eigenvalue
@@ -8970,15 +8971,15 @@ def mktk03(terms, seed, G2, G3):
 def pinc(lat):
     """
     calculate paleoinclination from latitude using dipole formula: tan(I) = 2tan(lat)
-    Parameters 
+    Parameters
     ________________
     Input
 
     lat : either a single value or an array of latitudes
 
     Returns
-    
-    array of inclinations    
+
+    array of inclinations
     """
     tanl = np.tan(np.radians(lat))
     inc = np.arctan(2. * tanl)
@@ -8989,15 +8990,15 @@ def pinc(lat):
 def plat(inc):
     """
     calculate paleolatitude from inclination using dipole formula: tan(I) = 2tan(lat)
-    Parameters 
+    Parameters
     ________________
     Input
 
     inc : either a single value or an array of inclinations
 
     Returns
-    
-    array of latitudes    
+
+    array of latitudes
     """
     tani = np.tan(np.radians(inc))
     lat = np.arctan(tani/2.)
@@ -9034,7 +9035,7 @@ def di_boot(DIs,nb=5000):
         DIs : nested list of Dec,Inc pairs
         nb : number of bootstrap pseudosamples
      Output :
-        nested list of bootstrapped mean Dec,Inc pairs 
+        nested list of bootstrapped mean Dec,Inc pairs
     """
 # get average DI for whole dataset
     fpars = fisher_mean(DIs)
@@ -10198,7 +10199,7 @@ def separate_directions(di_block):
 
     Parameters
     _______________
-    Input 
+    Input
         di_block : block of nested dec,inc pairs
     Ouput
         mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
