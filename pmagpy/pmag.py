@@ -1060,24 +1060,35 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 #
 
 
-def flip(D):
+def flip(di_block,combine=False):
     """
     determines principle direction and calculates the antipode of
     the reverse mode
-
-    input: a nested list of directions
-    returns a normal mode and flipped reverse mode as two DI blocks
+    Parameters
+    ___________
+    Input
+    di_block : nested list of directions
+    Return
+    D1 : normal mode 
+    D2 : flipped reverse mode as two DI blocks
+    combine : if True return combined D1, D2, nested D,I pairs
     """
-    ppars = doprinc(D)  # get principle direction
+    ppars = doprinc(di_block)  # get principle direction
+    if combine:D3 = []
     D1, D2 = [], []
-    for rec in D:
+    for rec in di_block:
         ang = angle([rec[0], rec[1]], [ppars['dec'], ppars['inc']])
         if ang > 90.:
             d, i = (rec[0] - 180.) % 360., -rec[1]
-            D2.append([d, i, 1.])
+            D2.append([d, i])
+            if combine:D3.append([d,i])
         else:
-            D1.append([rec[0], rec[1], 1.])
-    return D1, D2
+            D1.append([rec[0], rec[1]])
+            if combine:D3.append([rec[0],rec[1]])
+    if combine: 
+        return D3
+    else:
+        return D1, D2
 #
 
 
@@ -4456,6 +4467,17 @@ def dobingham(di_block):
     Returns
     -------
     bpars : dictionary containing the Bingham mean and associated statistics
+    dictionary keys
+        dec : mean declination
+        inc : mean inclination
+        n : number of datapoints
+        Eta : major ellipse
+        Edec : declination of major ellipse axis
+        Einc : inclination of major ellipse axis
+        Zeta : minor ellipse
+        Zdec : declination of minor ellipse axis
+        Zinc : inclination of minor ellipse axis
+
     """
     control, X, bpars = [], [], {}
     N = len(di_block)
@@ -4590,7 +4612,7 @@ def dokent(data, NN):
     NN  : normalization
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
-    Output : 
+    Return : 
     kpars dictionary keys
         dec : mean declination
         inc : mean inclination
@@ -5322,11 +5344,21 @@ def adjust_ages(AgesIn):
 #
 
 
-def gaussdev(mean, sigma):
+def gaussdev(mean, sigma, N=1):
     """
     returns a number randomly drawn from a gaussian distribution with the given mean, sigma
+    Parmeters:
+    _____________________________
+    Inputs
+       mean : mean of the gaussian distribution from which to draw deviates
+       sigma : standard deviation of same
+       N : number of deviates desired
+
+    Returns
+       N deviates from the normal distribution from
+.
     """
-    return random.normal(mean, sigma)  # return gaussian deviate
+    return random.normal(mean, sigma,N)  # return gaussian deviate
 #
 
 

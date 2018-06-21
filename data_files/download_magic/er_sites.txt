@@ -1,0 +1,29 @@
+tab 	er_sites
+er_citation_names	er_location_name	er_site_name	site_class	site_definition	site_lat	site_lithology	site_lon	site_type
+This study	Snake River	sr01	Extrusive : Igneous	s	42.60264	Basalt	245.602	Lava Flow
+This study	Snake River	sr02	Extrusive : Igneous	s	42.60264	Basalt	245.602	Lava Flow
+This study	Snake River	sr03	Extrusive : Igneous	s	42.60352	Basalt	245.599	Lava Flow
+This study	Snake River	sr04	Extrusive : Igneous	s	42.60104	Basalt	245.596	Lava Flow
+This study	Snake River	sr09	Extrusive : Igneous	s	42.73656	Basalt	245.165	Lava Flow
+This study	Snake River	sr11	Extrusive : Igneous	s	42.8418	Basalt	245.112	Lava Flow
+This study	Snake River	sr12	Extrusive : Igneous	s	42.8657	Basalt	245.127	Lava Flow
+This study	Snake River	sr16	Extrusive : Igneous	s	42.92031	Basalt	244.923	Lava Flow
+This study	Snake River	sr19	Extrusive : Igneous	s	42.56857	Basalt	245.701	Lava Flow
+This study	Snake River	sr20	Extrusive : Igneous	s	42.49964	Basalt	245.848	Lava Flow
+This study	Snake River	sr21	Extrusive : Igneous	s	42.49962	Basalt	245.851	Lava Flow
+This study	Snake River	sr22	Extrusive : Igneous	s	42.50001	Basalt	245.85	Lava Flow
+This study	Snake River	sr23	Extrusive : Igneous	s	42.52872	Basalt	245.979	Lava Flow
+This study	Snake River	sr24	Extrusive : Igneous	s	42.45559	Basalt	245.636	Lava Flow
+This study	Snake River	sr25	Extrusive : Igneous	s	42.48923	Basalt	245.6	Lava Flow
+This study	Snake River	sr26	Extrusive : Igneous	s	42.46186	Basalt	245.615	Lava Flow
+This study	Snake River	sr27	Extrusive : Igneous	s	42.69156	Basalt	247.036	Lava Flow
+This study	Snake River	sr28	Extrusive : Igneous	s	42.65289	Basalt	246.988	Lava Flow
+This study	Snake River	sr29	Extrusive : Igneous	s	43.30504	Basalt	247.732	Lava Flow
+This study	Snake River	sr30	Extrusive : Igneous	s	43.36817	Basalt	247.345	Lava Flow
+This study	Snake River	sr31	Extrusive : Igneous	s	43.42133	Basalt	247.256	Lava Flow
+This study	Snake River	sr34	Extrusive : Igneous	s	43.8859	Basalt	247.199	Lava Flow
+This study	Snake River	sr36	Extrusive : Igneous	s	43.84273	Basalt	247.376	Lava Flow
+This study	Snake River	sr37	Extrusive : Igneous	s	43.53289	Basalt	248.3	Lava Flow
+This study	Snake River	sr39	Extrusive : Igneous	s	43.57494	Basalt	248.266	Lava Flow
+This study	Snake River	sr40	Extrusive : Igneous	s	44.15663	Basalt	248.574	Lava Flow
+This study	Snake River	sr42	Extrusive : Igneous	s	44.18629	Basalt	248.672	Lava Flow

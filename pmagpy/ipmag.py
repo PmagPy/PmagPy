@@ -630,7 +630,6 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     >>> ipmag.bootstrap_fold_test(data_array)
     """
 
-    print('doing ', num_sims, ' iterations...please be patient.....')
 
     if bedding_error != 0:
         kappa = (old_div(81., bedding_error))**2
@@ -654,6 +653,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     if save == True:
         plt.savefig(os.path.join(save_folder, 'eq_tc') + '.' + fmt)
     plt.show()
+    print('doing ', num_sims, ' iterations...please be patient.....')
 
     Percs = list(range(min_untilt, max_untilt))
     Cdf = []
