@@ -77,6 +77,7 @@ def main():
         if spec not in sids:
             sids.append(spec)  # get list of unique specimen names
     for spc in sids:  # step through the specimen names
+        pmagplotlib.plot_init(FIG['lowrie'], 6, 6)
         print(spc)
         specdata = pmag.get_dictitem(
             PmagRecs, 'specimen', spc, 'T')  # get all this one's data
