@@ -774,6 +774,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
     plt.axhline(0, color='k')
     tstring = s
     plt.title(tstring)
+    plt.draw()
 
 #
 #
@@ -836,6 +837,7 @@ def plotDir(ZED, pars, datablock, angle):
         x.append(XY[0])
         y.append(XY[1])
         plt.scatter(x, y, marker='^', s=80, c='r')
+        plt.draw()
         return
     StartDir, EndDir = [0, 0, 1.], [0, 0, 1.]
     for rec in datablock:
@@ -947,6 +949,7 @@ def plotDir(ZED, pars, datablock, angle):
         plt.xlim((-1., 1.))
         plt.ylim((-1., 1.))
         plt.axis("equal")
+        plt.draw()
 
 
 def plotA(fignum, indata, s, units):
@@ -1380,6 +1383,7 @@ def plotEQ(fignum, DIblock, s):
     plotDI(fignum, DIblock)  # plot directions
     plt.axis("equal")
     plt.text(-1.1, 1.15, s)
+    plt.draw()
 
 
 def plotEQsym(fignum, DIblock, s, sym):
@@ -2689,7 +2693,7 @@ def addBorders(Figs, titles, border_color, text_color):
 
 
 def plotMAP(fignum, lats, lons, Opts):
-    """ 
+    """
     plotMAP(fignum, lats,lons,Opts)
     makes a basemap with lats/lons
         Windows 10 users, see plot_map
@@ -2698,7 +2702,7 @@ def plotMAP(fignum, lats, lons, Opts):
     fignum : matplotlib figure number
     lats : array or list of latitudes
     lons : array or list of longitudes
-    Opts : dictionary of plotting options: 
+    Opts : dictionary of plotting options:
         Opts.keys=
             latmin : minimum latitude for plot
             latmax : maximum latitude for plot
@@ -2713,8 +2717,8 @@ def plotMAP(fignum, lats, lons, Opts):
             pltgrid : plot the grid [1,0]
             res :  resolution [c,l,i,h] for crude, low, intermediate, high
             boundinglat : bounding latitude
-       
-     
+
+
     """
     from mpl_toolkits.basemap import Basemap
     from matplotlib import cm
