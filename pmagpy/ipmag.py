@@ -30,7 +30,7 @@ from pmagpy import new_builder as nb
 
 def igrf(input_list):
     """
-    Determine Declination, Inclination, Intensity from the IGRF model.
+    Determine Declination, Inclination and Intensity from the IGRF model.
     (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
 
     Parameters
@@ -10335,16 +10335,16 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         Dir : [Dec,Inc] list for comparison direction
         vec : eigenvector for comparison with Dir
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
-        crd : ['s','g','t'], coordinate system for plotting whereby: 
-            s : specimen coordinates, aniso_tile_correction = -1, or unspecified 
+        crd : ['s','g','t'], coordinate system for plotting whereby:
+            s : specimen coordinates, aniso_tile_correction = -1, or unspecified
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
         confidence bounds options:
-            ihext : if True - Hext ellipses 
+            ihext : if True - Hext ellipses
             iboot : if True - bootstrap ellipses
             ivec : if True - plot bootstrapped eigenvectors instead of ellipses
             ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
-    """ 
+    """
 
     # initialize some variables
     version_num = pmag.get_version()
@@ -10416,7 +10416,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         #Specimens = csrecs['specimen'].unique()
         #Cits = csrecs['citations'].unique()
         #sdata = spec_df[spec_df['site'] == site]
-        
+
 # plotting all the data
         csrecs = spec_df[spec_df['aniso_tilt_correction'] == CS]
         Ss,V1,V2,V3=[],[],[],[]
@@ -10426,18 +10426,18 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                 Ss.append(s) # protect against crap
             if "aniso_s_sigma" not in rec.keys():rec["aniso_s_sigma"]="0"
             fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
-            # collect the eigenvectors 
+            # collect the eigenvectors
             V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
             V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
             V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
-        if len(Ss) > 1: 
+        if len(Ss) > 1:
             # plot the data
             plot_net(1)
             plt.title('Eigenvectors: V1=squares,V2=triangles,V3=circles')
             plot_di(di_block=V1, color='r', marker='s', markersize=20)
             plot_di(di_block=V2, color='b', marker='^', markersize=20)
             plot_di(di_block=V3, color='k', marker='o', markersize=20)
-            # plot the confidence 
+            # plot the confidence
             nf,sigma,avs = pmag.sbar(Ss)
             hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
             if len(PDir) > 0: pmagplotlib.plotC(1, PDir, 90., 'g')
@@ -10459,7 +10459,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                    hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
                 pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
                 if len(Dir)>0:   # plot the comparison direction components
-                    # put in dimap and plot as white symbol with axis color? 
+                    # put in dimap and plot as white symbol with axis color?
                     plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
             if iboot: # put on the bootstrapped confidence bounds
                 Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
@@ -10468,10 +10468,10 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                     plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
                     plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
                     plot_di(dec=BVs_trans[0][2],inc=BVs_trans[1][2],color='k',marker='.')
-                    # put in dimap and plot as white symbol with axis color? 
+                    # put in dimap and plot as white symbol with axis color?
                     if len(Dir)>0:   # plot the comparison direction components
                         plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
-                    # do the eigenvalue cdfs   
+                    # do the eigenvalue cdfs
                     Taus=np.array(Taus).transpose()
                     colors=['r','b','k']
                     styles=['dotted','dashed','solid']
@@ -10520,7 +10520,7 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
         quality : the quality column of the DataFrame
      title : title for plot
      norm : if True, normalize data to first step
-    Output : 
+    Output :
       matptlotlib plot
    """
     plt.figure(num=fignum,figsize=(5,5))
@@ -10529,13 +10529,13 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
     int_key=IntMeths[0]
     data=data[data[int_key].notnull()] # fish out all data with this key
     units="U" # this  sets the units for plotting to undefined
-    if 'treat_temp' in data.columns: 
+    if 'treat_temp' in data.columns:
         units="K" # kelvin
         dmag_key='treat_temp'
-    elif 'treat_ac_field' in data.columns: 
+    elif 'treat_ac_field' in data.columns:
         units="T" # tesla
         dmag_key='treat_ac_field'
-    elif 'treat_mw_energy' in data.columns: 
+    elif 'treat_mw_energy' in data.columns:
         units="J" # joules
         dmag_key='treat_mw_energy'
     else:
@@ -10544,33 +10544,33 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
     spcs=data.specimen.unique() # get a list of all specimens in DataFrame data
     # step through specimens to put on plot
     for spc in spcs:
-       spec_data=data[data.specimen.str.contains(spc)] 
+       spec_data=data[data.specimen.str.contains(spc)]
        INTblock = []
        for ind,rec in spec_data.iterrows():
            INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
        if len(INTblock)>2:
            pmagplotlib.plotMT(fignum,INTblock,title,0,units,norm)
-   
+
 
 def eigs_s(infile="", dir_path='.'):
-    """ 
+    """
     Converts eigenparamters format data to s format
-   
-    Parameters 
+
+    Parameters
     ___________________
-    Input: 
-        file : input file name with eigenvalues (tau) and eigenvectors (V) with  format: 
-            tau_1 V1_dec V1_inc tau_2 V2_dec V2_inc tau_3 V3_dec V3_inc 
+    Input:
+        file : input file name with eigenvalues (tau) and eigenvectors (V) with  format:
+            tau_1 V1_dec V1_inc tau_2 V2_dec V2_inc tau_3 V3_dec V3_inc
     Output
-         the six tensor elements as a nested array 
+         the six tensor elements as a nested array
           [[x11,x22,x33,x12,x23,x13],....]
-           
+
     """
     file=os.path.join(dir_path,infile)
     eigs_data=np.loadtxt('../eigs_s/eigs_s_example.dat')
     tau,Vdirs,Ss=[],[],[]
     for ind in range(eigs_data.shape[0]):
-       for k in range(0,9,3): 
+       for k in range(0,9,3):
            tau.append(eigs_data[ind][k])
            Vdirs.append([eigs_data[ind][k+1],eigs_data[ind][k+2]])
        s=list(pmag.doeigs_s(tau,Vdirs))
@@ -10589,4 +10589,4 @@ def plot_gc(poles,color='g',fignum=1):
                upper hemisphere is always cyan
     """
     for pole in poles:
-        pmagplotlib.plotC(fignum, pole, 90., color) 
+        pmagplotlib.plotC(fignum, pole, 90., color)
