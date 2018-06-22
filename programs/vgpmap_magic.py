@@ -14,6 +14,7 @@ if matplotlib.get_backend() != "TKAgg":
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.new_builder as nb
+from pmag_env import set_env
 
 
 def main():
@@ -195,7 +196,7 @@ def main():
         Opts['symsize'] = rsize
         # add the lats and lons of the poles
         pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
-    if plot == 0:
+    if plot == 0 and not set_env.IS_WIN:
         pmagplotlib.drawFIGS(FIG)
     if ell == 1:  # add ellipses if desired.
         Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
@@ -212,7 +213,7 @@ def main():
                     elats.append(pt[1])
                 # make the base map with a blue triangle at the pole
                 pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
-                if plot == 0:
+                if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.drawFIGS(FIG)
     files = {}
     for key in list(FIG.keys()):
