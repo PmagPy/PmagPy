@@ -18,6 +18,7 @@ if matplotlib.get_backend() != "TKAgg":
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.new_builder as nb
+from pmag_env import set_env
 
 
 def save_redo(SpecRecs, inspec):
@@ -102,6 +103,8 @@ def main():
     saved_coord = coord
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     specimen = pmag.get_named_arg_from_sys("-spc", default_val="")
+    #if specimen: # just save plot and exit
+    #    plots, verbose = 1, 0
     beg_pca, end_pca = "", ""
     if '-dir' in sys.argv:
         ind = sys.argv.index('-dir')
@@ -353,7 +356,7 @@ def main():
             # this transposes the columns and rows of the list of lists
             datablock = list(map(list, list(zip(*datalist))))
             pmagplotlib.plotZED(ZED, datablock, angle, title, units)
-            if verbose:
+            if verbose and not set_env.IS_WIN:
                 pmagplotlib.drawFIGS(ZED)
 #
 #     collect info for current_specimen_interpretation dictionary
@@ -396,8 +399,9 @@ def main():
                         # calculate direction/plane
                             if mpars["specimen_direction_type"] != "Error":
                                 # put it on the plot
+                                print('plotting direction')
                                 pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                                if verbose:
+                                if verbose and not set_env.IS_WIN:
                                     pmagplotlib.drawFIGS(ZED)
 ### SKIP if no prior interpretation - this section should not be used:
 #            else:
@@ -421,6 +425,7 @@ def main():
 #                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
 #                    if verbose:
 #                        pmagplotlib.drawFIGS(ZED)
+
             if plots == 1 or specimen != "":
                 if plot_file == "":
                     basename = title
@@ -554,6 +559,7 @@ def main():
         else:
             print("no data", this_specimen)
         if verbose:
+            pmagplotlib.drawFIGS(ZED)
             res = input('  <return> for next specimen, [q]uit  ')
             if res == 'q':
                 return
