@@ -1711,6 +1711,18 @@ def plotTS(fignum, dates, ts):
 def plotHYS(fignum, B, M, s):
     """
    function to plot hysteresis data
+   Parameters:
+   _____________________
+   Input :
+       fignum : matplotlib figure number
+       B : list of field values (in tesla)
+       M : list of magnetizations
+   Output :
+       hpars : dictionary of hysteresis parameters
+           keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
+       deltaM : list of differences between down and upgoing loops
+       Bdm : field values
+   
     """
     from . import spline
     if fignum != 0:
@@ -1871,7 +1883,21 @@ def plotIMAG(fignum, Bimag, Mimag, s):
 
 def plotHDD(HDD, B, M, s):
     """
-    function to make hysteresis, deltaM and DdeltaM plots
+    Function to make hysteresis, deltaM and DdeltaM plots
+    Parameters:
+    _______________
+    Input
+        HDD :  dictionary with figure numbers for the keys:
+            'hyst' : hysteresis plot  normalized to maximum value
+            'deltaM' : Delta M plot
+            'DdeltaM' : differential of Delta M plot
+        B : list of field values in tesla
+        M : list of magnetizations in arbitrary units
+        s : specimen name string
+    Ouput
+      hpars : dictionary of hysteresis parameters with keys:
+        'hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc'
+
     """
     hpars, deltaM, Bdm = plotHYS(
         HDD['hyst'], B, M, s)  # Moff is the "fixed" loop data

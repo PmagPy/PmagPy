@@ -28,7 +28,7 @@ from .mapping import map_magic
 from pmagpy import new_builder as nb
 
 
-def igrf(input_list):
+def igrf(input_list,mod='',ghfile=""):
     """
     Determine Declination, Inclination and Intensity from the IGRF model.
     (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
@@ -37,10 +37,27 @@ def igrf(input_list):
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
         date must be in decimal year format XXXX.XXXX (A.D.)
+    mod :  desired model
+        "" : Use the IGRF
+        custom : use values supplied in ghfile
+        or choose from this list
+        ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b']
+        where:
+            arch3k (Korte et al., 2009)
+            cals3k (Korte and Constable, 2011)
+            cals10k.1b (Korte et al., 2011)
+            pfm9k  (Nilsson et al., 2014)
+            hfm10k is the hfm.OL1.A1 of Constable et al. (2016)
+            cals10k.2 (Constable et al., 2016)
+            the first four of these models, are constrained to agree
+            with gufm1 (Jackson et al., 2000) for the past four centuries
+
+         
+    gh : path to file with l m g h data 
 
     Returns
     -------
-    igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity)
+    igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity (in nT))
 
     Examples
     --------
@@ -52,8 +69,25 @@ def igrf(input_list):
     Inclination: 61.353
     Intensity: 48745.264 nT
     """
-    x, y, z, f = pmag.doigrf(
-        input_list[3] % 360., input_list[2], input_list[1], input_list[0])
+    if ghfile!="":
+        lmgh = numpy.loadtxt(ghfile)
+        gh = []
+        lmgh = numpy.loadtxt(ghfile).transpose()
+        gh.append(lmgh[2][0])
+        for i in range(1, lmgh.shape[1]):
+            gh.append(lmgh[2][i])
+            gh.append(lmgh[3][i])
+        if len(gh)==0:
+            print ('no valid gh file')
+            return
+        mod='custom'
+    if mod=="":
+        x, y, z, f = pmag.doigrf(input_list[3] % 360., input_list[2], input_list[1], input_list[0])
+    elif mod!='custom':
+        x, y, z, f = pmag.doigrf(input_list[3] % 360., input_list[2], input_list[1], input_list[0],mod=mod)
+    else:
+        x, y, z, f = pmag.docustom(input_list[3] % 360., input_list[2], input_list[1], gh)
+      
     igrf_array = pmag.cart2dir((x, y, z))
     return igrf_array
 
