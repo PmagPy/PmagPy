@@ -2951,7 +2951,7 @@ def plot_map(fignum, lats, lons, Opts):
     #        m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
     ax.set_global()
 
-def plotEQcont(fignum, DIblock):
+def plotEQcont(fignum, DIblock,color_map='coolwarm'):
     import random
     plt.figure(num=fignum)
     plt.axis("off")
@@ -2971,8 +2971,8 @@ def plotEQcont(fignum, DIblock):
     a1, a2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
     b1, b2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
     # this is to get an array (a list of list wont do) of x,y values
-    xlist = plt.linspace(a1, a2, int(plt.ceil(num)))
-    ylist = plt.linspace(b1, b2, int(plt.ceil(num)))
+    xlist = np.linspace(a1, a2, int(np.ceil(num)))
+    ylist = np.linspace(b1, b2, int(np.ceil(num)))
     X, Y = np.meshgrid(xlist, ylist)
     # to put z in the array I just multiply both x,y with zero.  I will add to
     # the zero values later
@@ -2988,7 +2988,7 @@ def plotEQcont(fignum, DIblock):
     # contained in the net
     fraction = []
     beta, alpha = 0.001, 0.001  # to avoid those 'division by float' thingy
-    for i in range(0, int(plt.ceil(num))**2):
+    for i in range(0, int(np.ceil(num))**2):
         if np.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) - 1. < radius:
             for j in range(1, 1000):
                 rnd1 = random.uniform(
@@ -3009,8 +3009,8 @@ def plotEQcont(fignum, DIblock):
     # for every circle count the number of points lying in it
     count = 0
     dotspercircle = 0.
-    for j in range(0, int(plt.ceil(num))):
-        for i in range(0, int(plt.ceil(num))):
+    for j in range(0, int(np.ceil(num))):
+        for i in range(0, int(np.ceil(num))):
             for k in range(0, counter):
                 if (XY[k][0] - centres[count][0])**2 + (XY[k][1] - centres[count][1])**2 <= radius**2:
                     dotspercircle += 1.
@@ -3018,7 +3018,8 @@ def plotEQcont(fignum, DIblock):
             count += 1
             dotspercircle = 0.
     im = plt.imshow(Z, interpolation='bilinear', origin='lower',
-                      cmap=plt.cm.hot, extent=(-1., 1., -1., 1.))
+                      #cmap=plt.cm.hot, extent=(-1., 1., -1., 1.))
+                      cmap=color_map, extent=(-1., 1., -1., 1.))
     plt.colorbar()
     x, y = [], []
     # Draws the border
