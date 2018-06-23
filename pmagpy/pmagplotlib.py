@@ -2952,6 +2952,17 @@ def plot_map(fignum, lats, lons, Opts):
     ax.set_global()
 
 def plotEQcont(fignum, DIblock,color_map='coolwarm'):
+    """
+    plots dec inc block as a color contour
+    Parameters
+    __________________
+    Input:
+        fignum :  figure number 
+        DIblock : nested pairs of [Declination, Inclination]
+        color_map : matplotlib color map [default is coolwarm]
+    Output:
+        figure
+    """
     import random
     plt.figure(num=fignum)
     plt.axis("off")

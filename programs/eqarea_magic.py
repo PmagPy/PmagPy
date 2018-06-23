@@ -47,6 +47,7 @@ def main():
         -fmt [svg,png,jpg] format for output plots
         -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
         -c plot as colour contour
+        -cm CM use color map CM [default is coolwarm]
         -sav save plot and quit quietly
     NOTE
         all: entire file; sit: site; sam: sample; spc: specimen
@@ -86,6 +87,11 @@ def main():
         plot_key = 'all'
     if '-c' in sys.argv:
         contour = 1
+        if '-cm' in sys.argv:
+            ind = sys.argv.index('-cm')
+            color_map = sys.argv[ind+1]
+        else:
+            color_map='coolwarm'
     else:
         contour = 0
     if '-sav' in sys.argv:
@@ -224,7 +230,7 @@ def main():
             if contour == 0:
                 pmagplotlib.plotEQ(FIG['eqarea'], DIblock, title)
             else:
-                pmagplotlib.plotEQcont(FIG['eqarea'], DIblock)
+                pmagplotlib.plotEQcont(FIG['eqarea'], DIblock,color_map=color_map)
         else:
             pmagplotlib.plotNET(FIG['eqarea'])
         if len(GCblock)>0:
