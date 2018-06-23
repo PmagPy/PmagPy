@@ -1451,6 +1451,15 @@ def plotTEQ(fignum, araiblock, s, pars):
 
 
 def saveP(Figs, filenames, **kwargs):
+    """
+    Parameters
+    ----------
+    Figs : dict
+        dictionary of plots, e.g. {'eqarea': 1, ...}
+    filenames : dict
+        dictionary of filenames, e.g. {'eqarea': 'mc01a_eqarea.svg', ...}
+        dict keys should correspond with Figs
+    """
     for key in list(Figs.keys()):
         try:
             plt.figure(num=Figs[key])

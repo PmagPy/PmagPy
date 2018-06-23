@@ -560,7 +560,12 @@ def main():
             print("no data", this_specimen)
         if verbose:
             pmagplotlib.drawFIGS(ZED)
-            res = input('  <return> for next specimen, [q]uit  ')
+            #res = input('  <return> for next specimen, [q]uit  ')
+            res = input("S[a]ve plots, [q]uit, or <return> to continue  ")
+            if res == 'a':
+                files = {plot_type: this_specimen + "_" + plot_type + "." + fmt for plot_type in ZED}
+                pmagplotlib.saveP(ZED, files)
+                print("")
             if res == 'q':
                 return
         k += 1
