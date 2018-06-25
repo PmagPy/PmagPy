@@ -674,6 +674,22 @@ def plotZ(fignum, datablock, angle, s, norm):
 #
 
 def plotMT(fignum, datablock, s, num, units, norm):
+    """
+    plots magnetization against (de)magnetizing temperature or field
+
+    Parameters
+    _________________
+    Input
+        fignum : matplotlib figure number for plotting
+        datablock : nested list of [step, 0, 0, magnetization, 1,quality]
+        s : string for title
+        num : no idea - set it to zero
+        units : [T,K,U] for tesla, kelvin or arbitrary
+        norm : [1,0] if 1, normalize, otherwise don't
+    Output  
+        figure
+    """
+
     global globals, graphmenu
     Ints = []
     for plotrec in datablock:
@@ -837,7 +853,7 @@ def plotDir(ZED, pars, datablock, angle):
         x.append(XY[0])
         y.append(XY[1])
         plt.scatter(x, y, marker='^', s=80, c='r')
-        plt.draw()
+        plt.show()
         return
     StartDir, EndDir = [0, 0, 1.], [0, 0, 1.]
     for rec in datablock:
