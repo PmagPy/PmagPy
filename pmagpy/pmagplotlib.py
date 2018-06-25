@@ -1333,13 +1333,27 @@ def plotSLNP(fignum, SiteRec, datablock, key):
 def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
+    
+    Parameters
+    Input 
+        fignum : number of plt.figure() object
+        datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
+            3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], direction_type_key =['p','l']
+            2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
+        fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
+        direction_type_key : key for dictionary direction_type ('specimen_direction_type')
+    Effects
+        plots the site level figure 
     """
 # make the stereonet
     plotNET(fignum)
 #
 #   plot on the data
 #
-    coord = datablock[0]['tilt_correction']
+    dec_key,inc_key,tilt_key='dec','inc','tilt_correction'
+    if 'dir_dec' in datablock[0].keys(): # this is data model 3.0
+        dec_key,inc_key,tilt_key='dir_dec','dir_inc','dir_tilt_correction'
+    coord = datablock[0][tilt_key]
     title = s
     if coord == '-1':
         title = title + ": specimen coordinates"
@@ -1350,9 +1364,9 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     DIblock, GCblock = [], []
     for plotrec in datablock:
         if plotrec[direction_type_key] == 'p':  # direction is pole to plane
-            GCblock.append((float(plotrec["dec"]), float(plotrec["inc"])))
+            GCblock.append((float(plotrec[dec_key]), float(plotrec[inc_key])))
         else:  # assume direction is a directed line
-            DIblock.append((float(plotrec["dec"]), float(plotrec["inc"])))
+            DIblock.append((float(plotrec[dec_key]), float(plotrec[inc_key])))
     if len(DIblock) > 0:
         plotDI(fignum, DIblock)  # plot directed lines
     if len(GCblock) > 0:

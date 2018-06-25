@@ -1927,6 +1927,15 @@ def first_rec(ofile, Rec, file_type):
 def magic_write_old(ofile, Recs, file_type):
     """
     writes out a magic format list of dictionaries to ofile
+
+    Parameters
+    _________
+    Input :
+        ofile : path to output file
+        Recs : list of dictionaries in MagIC format
+        file_type : MagIC table type (e.g., specimens)
+    Effects :
+        writes a MagIC formatted file from Recs
     """
 
     if len(Recs) < 1:
@@ -1962,8 +1971,18 @@ def magic_write_old(ofile, Recs, file_type):
 
 def magic_write(ofile, Recs, file_type):
     """
-    called by magic_write(outputfile,records_list,magic_file_type)
-    writes out a magic format list of dictionaries to ofile
+    Parameters
+    _________
+    Input :
+        ofile : path to output file
+        Recs : list of dictionaries in MagIC format
+        file_type : MagIC table type (e.g., specimens)
+    Output :
+        [True,False] : True if successful
+        ofile : same as input 
+    Effects :
+        writes a MagIC formatted file from Recs
+
     """
     if len(Recs) < 1:
         return False, 'No records to write to file {}'.format(ofile)
@@ -4072,13 +4091,28 @@ def fisher_by_pol(data):
 
 def dolnp3_0(Data):
     """
+    DEPRECATED!!  USE dolnp()
     Desciption: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
-
-    @param: Data -> list of dicts that must contain "dir_dec","dir_inc","dir_tilt_correction",and "method_codes" in all dicts keys for this function to run
-    @return: ReturnData -> dict that is the fisher mean of the dicts passed in
-    @effects: prints to screen in case of no data
+    Parameters
+    __________
+    Input  
+        Data : nested list of dictionarys with keys
+            dir_dec
+            dir_inc
+            dir_tilt_correction
+            method_codes
+    Returns
+        ReturnData : dictionary with keys 
+            dec : fisher mean dec of data in Data
+            inc : fisher mean inc of data in Data 
+            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
+            n_planes : number of best fit planes [method_code = DE-BFP]
+            alpha95  : fisher confidence circle from Data
+            R : fisher R value of Data
+            K : fisher k value of Data 
+    Effects 
+        prints to screen in case of no data
     """
-
     if len(Data) == 0:
         print("This function requires input Data have at least 1 entry")
         return {}
@@ -4116,11 +4150,42 @@ def dolnp3_0(Data):
 
 def dolnp(data, direction_type_key):
     """
-    returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
+    Returns fisher mean, a95 for data  using method of Mcfadden and Mcelhinny '88 for lines and planes
+
+    Parameters
+    __________
+    Input
+        Data : nested list of dictionaries with keys
+            Data model 3.0:
+                dir_dec
+                dir_inc
+                dir_tilt_correction
+                method_codes
+            Data model 2.5:
+                dec
+                inc
+                tilt_correction
+                magic_method_codes
+             direction_type_key :  ['specimen_direction_type']
+    Returns
+        ReturnData : dictionary with keys
+            dec : fisher mean dec of data in Data
+            inc : fisher mean inc of data in Data
+            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
+            n_planes : number of best fit planes [method_code = DE-BFP]
+            alpha95  : fisher confidence circle from Data
+            R : fisher R value of Data
+            K : fisher k value of Data
+    Effects
+        prints to screen in case of no data
     """
 
-    if "tilt_correction" in list(data[0].keys()):
-        tc = data[0]["tilt_correction"]
+    if 'dir_dec' in data[0].keys(): 
+        tilt_key='dir_tilt_correction' # this is data model 3.0
+    else: 
+        tilt_key='tilt_correction' # this is data model 3.0
+    if tilt_key in list(data[0].keys()):
+        tc = str(data[0][tilt_key])
     else:
         tc = '-1'
     dirV = [0, 0, 0]
@@ -4244,6 +4309,7 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
 def process_data_for_mean(data, direction_type_key):
     """
     takes list of dicts with dec and inc as well as direction_type if possible or method_codes and sorts the data into lines and planes and process it for fisher means
+    
     @param: data - list of dicts with dec inc and some manner of PCA type info
     @param: direction_type_key - key that indicates the direction type variable in the dictionaries of data
     @return: tuple with values - (
@@ -4254,6 +4320,9 @@ def process_data_for_mean(data, direction_type_key):
                                 list of sum of the cartezian components of all lines
                                 )
     """
+    dir_key,inc_key,meth_key='dec','inc','magic_method_codes' # data model 2.5
+    if 'dir_dec' in data[0].keys(): # this is data model 3.0
+        dec_key,inc_key,meth_key='dir_dec','dir_inc','method_codes'
 
     n_lines, n_planes = 0, 0
     L, fdata = [], []
@@ -4261,7 +4330,7 @@ def process_data_for_mean(data, direction_type_key):
 
     # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
-        cart = dir2cart([float(rec["dec"]), float(rec["inc"])])[0]
+        cart = dir2cart([float(rec[dec_key]), float(rec[inc_key])])[0]
         if direction_type_key in list(rec.keys()):
             if rec[direction_type_key] == 'p':  # this is a pole to a plane
                 n_planes += 1
@@ -4269,29 +4338,29 @@ def process_data_for_mean(data, direction_type_key):
             else:  # this is a line
                 n_lines += 1
                 # collect data for fisher calculation
-                fdata.append([float(rec["dec"]), float(rec["inc"]), 1.])
+                fdata.append([float(rec[dec_key]), float(rec[inc_key]), 1.])
                 E[0] += cart[0]
                 E[1] += cart[1]
                 E[2] += cart[2]
         elif 'method_codes' in list(rec.keys()):
-            if "DE-BFP" in rec['method_codes']:  # this is a pole to a plane
+            if "DE-BFP" in rec[meth_key]:  # this is a pole to a plane
                 n_planes += 1
                 L.append(cart)  # this is the "EL, EM, EN" array of MM88
             else:  # this is a line
                 n_lines += 1
                 # collect data for fisher calculation
-                fdata.append([rec["dec"], rec["inc"], 1.])
+                fdata.append([rec[dec_key], rec[inc_key], 1.])
                 E[0] += cart[0]
                 E[1] += cart[1]
                 E[2] += cart[2]
-        elif 'magic_method_codes' in list(rec.keys()):
-            if "DE-BFP" in rec['magic_method_codes']:  # this is a pole to a plane
+        elif meth_key in list(rec.keys()):
+            if "DE-BFP" in rec[meth_key]:  # this is a pole to a plane
                 n_planes += 1
                 L.append(cart)  # this is the "EL, EM, EN" array of MM88
             else:  # this is a line
                 n_lines += 1
                 # collect data for fisher calculation
-                fdata.append([rec["dec"], rec["inc"], 1.])
+                fdata.append([rec[dec_key], rec[inc_key], 1.])
                 E[0] += cart[0]
                 E[1] += cart[1]
                 E[2] += cart[2]
@@ -4299,7 +4368,7 @@ def process_data_for_mean(data, direction_type_key):
                 # EVERYTHING IS A LINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             n_lines += 1
             # collect data for fisher calculation
-            fdata.append([rec["dec"], rec["inc"], 1.])
+            fdata.append([rec[dec_key], rec[inc_key], 1.])
             E[0] += cart[0]
             E[1] += cart[1]
             E[2] += cart[2]
