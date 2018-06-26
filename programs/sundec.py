@@ -56,7 +56,7 @@ def main():
     if '-i' in sys.argv:
         while 1: # repeat this block until program killed
             sundata={}  # dictionary with sundata in it
-            print ("Time difference between Greenwich Mean Time (hrs to ADD from local time to get GMT): ")
+            print ("Time difference between Greenwich Mean Time (hrs to subtract from local time to get GMT): ")
             try:
                 sundata["delta_u"]=input("<cntl-D> to quit ")
             except:

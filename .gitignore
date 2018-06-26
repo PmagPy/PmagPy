@@ -150,6 +150,12 @@ data_files/lnp_magic/Location_1/pmag_samples.txt
 data_files/lnp_magic/Location_1/pmag_sites.txt
 data_files/lnp_magic/Location_1/pmag_specimens.txt
 data_files/lnp_magic/er_ages.txt
+data_files/lnp_magic/ages.txt
+data_files/lnp_magic/locations.txt
+data_files/lnp_magic/criteria.txt
+data_files/lnp_magic/samples.txt
+data_files/lnp_magic/sites.txt
+data_files/lnp_magic/specimens.txt
 data_files/lnp_magic/er_citations.txt
 data_files/lnp_magic/er_locations.txt
 data_files/lnp_magic/er_samples.txt

@@ -5490,7 +5490,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             # there are sun compass data
             if "shadow_angle" in list(OrRec.keys()) and OrRec["shadow_angle"] != "":
                 if hours_from_gmt == "":
-                    #hours_from_gmt=raw_input("Enter hours to ADD from time for  GMT: [0] ")
+                    #hours_from_gmt=raw_input("Enter hours to subtract from time for  GMT: [0] ")
                     hours_from_gmt = 0
                 SunRec, sundata = {}, {}
                 shad_az = float(OrRec["shadow_angle"])
