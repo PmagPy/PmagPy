@@ -1,0 +1,712 @@
+tab	samples
+sample	site	specimens	dir_dec	dir_inc	dir_n_specimens	dir_n_specimens_lines	dir_n_specimens_planes	dir_tilt_correction	lat	lon	geologic_classes	geologic_types	lithologies	criteria	description	azimuth	dip	citations	method_codes	location	sample_direction_type	age	sample_inferred_age_sigma	sample_inferred_age_unit
+sv01a	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			-19	-45	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv01a	sv01	sv01a1	348.4	-34.7	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv01b	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			-51	-23	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv01b	sv01	sv01b1	122.7	25.5	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv01c	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			284	-51	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01d	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			51	-35	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01e	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			328	-57	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01f	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			150	-6	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01g	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			87	-8	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv01g	sv01	sv01g1	162.4	36.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv01h	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			279	-24	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv01h	sv01	sv01h1	190.4	34.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv01i	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			325	-56	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01j	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			271	-49	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv01j	sv01	sv01j1	133.4	21.9	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv01k	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			310	-45	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv01l	sv01								35.3432	248.2524	Igneous	Lava Flow	Basalt			332	-60	This study	SO-MAG : FS-FD : SO-POM	San Francisco Volcanics				
+sv02a	sv02	sv02a1	330.3	30.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.75	0.17	Ma
+sv02a	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			81.3	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv02b	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			96.3	-47	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv02b	sv02	sv02b1	225.7	37	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.75	0.17	Ma
+sv02c	sv02	sv02c1	103.1	32.3	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.75	0.17	Ma
+sv02c	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			40	-43.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv02d	sv02	sv02d1	338.6	44.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.75	0.17	Ma
+sv02d	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			33.1	-41	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02e	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			71.1	-41.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02e	sv02	sv02e1	340.6	42.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.75	0.17	Ma
+sv02f	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			101.6	-65.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02g	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			53.1	-56	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02h	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			55.6	-65	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02i	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			64.1	-62.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02j	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			23.6	-73	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv02k	sv02								35.3734	248.2661	Igneous	Lava Flow	Basalt			69.3	-32.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv02k	sv02	sv02k1	337.7	40.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.75	0.17	Ma
+sv03a	sv03	sv03a1	344.6	52.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv03a	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			38	-50	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03b	sv03	sv03b1	39.5	-24.5	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv03b	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			38	-54.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03c	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			330.5	-50	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03d	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			348	-83	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03d	sv03	sv03d1	3.9	-33.5	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv03e	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			357	-83	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03e	sv03	sv03e1	8.8	-33.8	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv03f	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			32.5	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv03g	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			23	-74	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03g	sv03	sv03g1	352.8	52.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv03h	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			10.3	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv03h	sv03	sv03h1	349.1	55.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv03i	sv03	sv03i1	353.2	57.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv03i	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			1.7	-84	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv03j	sv03								35.375	248.269	Igneous	Lava Flow	Basalt			348	-78	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv03j	sv03	sv03j1	324.1	44.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04a	sv04	sv04a1	348.3	50.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04a	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			11	-59	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04b	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			65	-40.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04b	sv04	sv04b1	353	46.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04c	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			31	-36	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04d	sv04	sv04d1	342.6	48.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04d	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			2	-66	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04e	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			6	-61	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04e	sv04	sv04e1	342.2	56.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04f	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			52	-54	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04g	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			20	-52	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04h	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			94	-43	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04i	sv04	sv04i1	347.4	50.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv04i	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			17	-39	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv04j	sv04								35.39	248.26	Igneous	Lava Flow	Basalt			23	-82	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv05a	sv05	sv05a2	202.3	31.5	1	0	1	0							sample direction.			This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv05a	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			11.4	-31.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05b	sv05	sv05b1	160	-47.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv05b	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			21	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05c	sv05	sv05c1	168.4	37.3	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv05c	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			127.9	-3	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05d	sv05	sv05d2	161.2	-47.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv05d	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			348.5	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05e	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			41.8	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05f	sv05	sv05f1	72.5	-2.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv05f	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			346.1	-31	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05g	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			213.1	-14	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05h	sv05	sv05h1	172	-44.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv05h	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			208.4	-32	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05i	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			212.8	-34	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05i	sv05	sv05i1	166.6	-54.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv05j	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			240.5	-9	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv05j	sv05	sv05j1	157.8	-60	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv05k	sv05								35.184	247.808	Igneous	Lava Flow	Basalt			12.9	-26	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06a	sv06	sv06a1	246.5	-31.4	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv06a	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			317.3	-56.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06b	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			313.9	-52	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06c	sv06	sv06c3	278.3	24.5	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv06c	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			300.5	-52	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06d	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			270	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06e	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			275.6	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06f	sv06	sv06f1	357.8	-39.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv06f	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			335.9	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06g	sv06	sv06g1	59.6	24	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv06g	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			288.1	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06h	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			271.5	-73	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv06h	sv06	sv06h1	344.7	-25.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv06i	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			318	-57	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv06j	sv06								35.192	247.807	Igneous	Lava Flow	Basalt			291	-10	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07a	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			248	-12	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07a	sv07	sv07a1	4.1	57.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07b	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			215	-52	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07b	sv07	sv07b1	352.3	61.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07c	sv07	sv07c1	346.5	62.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07c	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			180	-62	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07d	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			225	-38	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07d	sv07	sv07d1	351.2	65.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07e	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			236	-39	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07f	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			252	-18	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07f	sv07	sv07f2	344.1	60.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07g	sv07	sv07g1	341.2	59.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07g	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			243	-12	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07h	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			219	-86	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07i	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			258	-53	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07i	sv07	sv07i1	352.3	64.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv07j	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			215	-59	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07j	sv07	sv07j1	200.3	24.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv07k	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			247	-51	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv07l	sv07								35.194	247.807	Igneous	Lava Flow	Basalt			193	-42	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08a	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			148.9	-19	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08a	sv08	sv08a1	173.5	-46.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08b	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			49.2	-27	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08b	sv08	sv08b1	165	-38.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08c	sv08	sv08c1	164.7	-41.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08c	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			35.5	-27	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08d	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			160.4	-14	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08d	sv08	sv08d1	160.9	-48.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08e	sv08	sv08e1	171.2	-53.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08e	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			146.2	-20	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08f	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			113.5	-13	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08g	sv08	sv08g1	169.4	-48.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08g	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			177	-19	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08h	sv08	sv08h1	156.6	-44.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.08	0.48	Ma
+sv08h	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			74.2	-20	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08i	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			357.7	-6	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv08j	sv08								35.17	247.77	Igneous	Lava Flow	Basalt			182.8	-13	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv09a	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			62.4	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09b	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			93.3	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09c	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			46.7	-31	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09d	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			73.2	-21	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09e	sv09	sv09e1	242.7	-69	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.14	0.17	Ma
+sv09e	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			72.6	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09f	sv09	sv09f1	277	-61.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.14	0.17	Ma
+sv09f	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			79.1	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09g	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			43.6	-33	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09h	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			81.1	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09i	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			96.1	-32	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09i	sv09	sv09i1	242.5	-68.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.14	0.17	Ma
+sv09j	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			68.7	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv09j	sv09	sv09j1	230.6	-67.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.14	0.17	Ma
+sv09k	sv09								35.442	248.081	Igneous	Lava Flow	Basalt			91.3	-33	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10a	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			58.6	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10a	sv10	sv10a1	222.6	45.2	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.44	0.18	Ma
+sv10b	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			43.8	-76.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10c	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			62.9	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10c	sv10	sv10c1	264.7	14.7	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.44	0.18	Ma
+sv10d	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			13.3	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10e	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			338.8	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10f	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			45.7	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10f	sv10	sv10f1	344.5	-34.7	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.44	0.18	Ma
+sv10g	sv10	sv10g1	139.9	27.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : LP-DIR-T : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.44	0.18	Ma
+sv10g	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			65	-44	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv10h	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			355.1	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10i	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			19.1	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10j	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			16.3	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv10j	sv10	sv10j1	93.7	6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.44	0.18	Ma
+sv10k	sv10								35.2631	248.173	Igneous	Lava Flow	Basalt			5.8	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv11a	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			35.6	-97	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv11a	sv11	sv11a1	206.7	45.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	1.29	0.15	Ma
+sv11b	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			41.7	-84	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv11b	sv11	sv11b1	149	42.9	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	1.29	0.15	Ma
+sv11d	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			37.3	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv11e	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			85	-49	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11f	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			79	-51	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11g	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			83	-71	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11h	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			65	-64	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11j	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			63	-59.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11k	sv11	sv11k1	193.6	-39	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.29	0.15	Ma
+sv11k	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			65	-51	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11l	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			45	-47	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11m	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			40	-50	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv11n	sv11	sv11n1	197.7	-51.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.29	0.15	Ma
+sv11n	sv11								35.263	248.174	Igneous	Lava Flow	Basalt			75	-62	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv12a	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			229.1	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12b	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			253.2	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12c	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			316.5	-42	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12d	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			300.6	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12e	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			315.2	-61.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12e	sv12	sv12e1	89.5	-21.1	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.34	0.21	Ma
+sv12f	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			312.3	-79	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12g	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			353.4	-78	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12h	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			339.4	-28	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12i	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			322.4	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12j	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			335	-75	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv12k	sv12								35.334	248.156	Igneous	Lava Flow	Basalt			12	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13a	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			267	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13b	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			290.2	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13c	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			297.5	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13d	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			288.4	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13e	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			214.7	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13f	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			225.9	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13g	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			263.2	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13h	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			347.8	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13i	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			285.1	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv13j	sv13								35.323	248.285	Igneous	Lava Flow	Basalt			215.6	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15a	sv15	sv15a1	345.5	24.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15a	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			159	-34	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15b	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			248.4	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15b	sv15	sv15b1	346.2	26.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15c	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			206.8	-32	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15c	sv15	sv15c1	351.3	24.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15d	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			227.2	-20	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15d	sv15	sv15d1	355.3	24.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15e	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			216.6	-23	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15f	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			202.8	-34	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15f	sv15	sv15f1	355.2	26.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15g	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			250.7	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15h	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			230.1	-30	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15h	sv15	sv15h1	3.4	26.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.33	0.08	Ma
+sv15i	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			201	-46	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv15j	sv15								35.249	248.31	Igneous	Lava Flow	Basalt			213.9	-52.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16a	sv16	sv16a1	350.6	28.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv16a	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			33	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16b	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			53.1	-45	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16b	sv16	sv16b1	352.3	28.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv16c	sv16	sv16c1	358.7	23.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv16c	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			65.6	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16d	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			38.2	-31	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16e	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			89.3	-38	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16e	sv16	sv16e1	359.8	19.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv16f	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			108.8	-53	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16g	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			118.4	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16h	sv16	sv16h1	48	-61.3	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv16h	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			91.5	-74.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16i	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			88	-90	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv16j	sv16								35.2401	248.317	Igneous	Lava Flow	Basalt			84.1	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17a	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			62.2	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17b	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			18.1	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17b	sv17	sv17b1	202.2	28.4	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv17c	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			0.3	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17d	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			29.1	-30	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17e	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			38.9	-32	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17f	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			7.7	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17g	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			6.4	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17h	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			0.3	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17i	sv17	sv17i1	131.9	62	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv17i	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			17.1	-47	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17j	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			28.8	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv17k	sv17								35.218	248.557	Igneous	Lava Flow	Basalt			10.7	-69	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv18a	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			116.5	-52	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv18b	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			46	-54	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18c	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			90	-48	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18c	sv18	sv18c1	195.9	-56.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv18d	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			105	-47	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18e	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			181	-10	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18f	sv18	sv18f1	192.5	-56.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv18f	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			273	-19	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18g	sv18	sv18g1	197.3	-55.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv18g	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			227	-21	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18h	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			282	-22.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18h	sv18	sv18h1	193.4	-57.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv18i	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			196	-20	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv18j	sv18								35.24	247.813	Igneous	Lava Flow	Basalt			191	-21	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv19a	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			88.9	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19b	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			29.4	-77	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19c	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			306.2	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19c	sv19	sv19c1	219	32.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv19d	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			42.9	-88	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19e	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			35.8	-90	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19f	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			49.8	-64	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19g	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			58.3	-76	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19h	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			76.6	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19i	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			24.6	-89.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv19j	sv19								35.664	248.446	Igneous	Lava Flow	Basalt			20.8	-94	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20a	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			253.6	-14.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20b	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			116.1	-41.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20c	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			68	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20c	sv20	sv20c1	355.8	42.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.04	0.14	Ma
+sv20d	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			92.5	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20e	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			263.8	-43.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20f	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			236.2	-34	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20h	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			259.8	-83.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20i	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			237.9	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20j	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			245.1	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv20k	sv20								35.66	248.462	Igneous	Lava Flow	Basalt			97.5	-66.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21a	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			215.9	-77	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21b	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			206.5	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21c	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			210.6	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21d	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			217.8	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21e	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			201.4	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21f	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			293.1	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21g	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			215.3	-38.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21g	sv21	sv21g1	76.7	-4.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.2	0.05	Ma
+sv21h	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			224.9	-24.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21i	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			257.6	-17.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21i	sv21	sv21i1	132.2	-0.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.2	0.05	Ma
+sv21j	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			264.9	-88.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv21k	sv21								35.645	248.49	Igneous	Lava Flow	Basalt			340.3	-10	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22a	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			199.7	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22b	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			199.2	-34.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22c	sv22	sv22c1	263.2	-2.7	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.43	0.32	Ma
+sv22c	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			253.5	-24	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22d	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			220.5	-24	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22e	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			283.5	-14	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22f	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			227.2	-64.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22g	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			230.7	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22h	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			246.9	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22i	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			228	-42	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv22j	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			191.8	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv22k	sv22								35.588	248.483	Igneous	Lava Flow	Basalt			186.3	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23a	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			310.3	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23a	sv23	sv23a1	20.6	28.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.07	0.15	Ma
+sv23b	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			283.9	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23b	sv23	sv23b1	17	29.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.07	0.15	Ma
+sv23c	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			8.4	-52	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23d	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			295.9	-39	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23e	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			261.4	-50.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23f	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			120.4	-82	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23f	sv23	sv23f1	18.2	26.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.07	0.15	Ma
+sv23g	sv23	sv23g1	25.1	29	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.07	0.15	Ma
+sv23g	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			122.2	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23h	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			136.7	-74.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23i	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			172.6	-33	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv23j	sv23								35.482	248.641	Igneous	Lava Flow	Basalt			134.1	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24a	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			50.8	-92	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24b	sv24	sv24b1	343	63.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24b	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			51.7	-85	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24c	sv24	sv24c1	356.8	58.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24c	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			69.7	-86	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24d	sv24	sv24d1	353.7	64.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24d	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			121	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24e	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			119.2	-55.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24f	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			118.9	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24g	sv24	sv24g1	317.5	63.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24g	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			347.8	-74.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24h	sv24	sv24h1	348.8	63.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24h	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			38	-88.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24i	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			16.4	-99.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24i	sv24	sv24i1	335.1	62.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24j	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			47.7	-64	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv24j	sv24	sv24j1	315.9	64.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv24k	sv24								35.4673	248.6415	Igneous	Lava Flow	Basalt			54.4	-60.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25a	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			350.5	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25b	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			292.5	-40	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25c	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			255.5	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25d	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			292.5	-39	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25e	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			298.8	-22	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25f	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			334.4	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25g	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			330	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25h	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			334.8	-48	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25i	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			300.5	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25j	sv25								35.6243	248.2548	Igneous	Lava Flow	Basalt			345.5	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv25j	sv25	sv25j1	274.6	36.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1.04	0.04	Ma
+sv26a	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			346.3	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26b	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			338.7	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26c	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			322.7	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26d	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			253.2	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26d	sv26	sv26d1	174.6	25.8	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv26e	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			294.9	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26f	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			299.7	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26g	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			270.1	-69	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26g	sv26	sv26g1	167.9	-62.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv26h	sv26	sv26h2	150.7	-71.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv26h	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			249.3	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26i	sv26	sv26i1	137.9	-66.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv26i	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			223.2	-74	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26j	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			224.3	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26k	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			210.5	-80.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26k	sv26	sv26k1	131.3	14.7	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv26l	sv26								35.5887	248.3583	Igneous	Lava Flow	Basalt			209.4	-82	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv26l	sv26	sv26l1	173.8	-75.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv27a	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			302.2	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27a	sv27	sv27a1	359.1	56.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.071		Ma
+sv27b	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			273.4	-71	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27c	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			52.5	-19.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27c	sv27	sv27c1	343.4	56.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.071		Ma
+sv27d	sv27	sv27d1	354.4	50.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.071		Ma
+sv27d	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			27.7	-28.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27e	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			35.8	-38	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27f	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			10.5	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27g	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			32.2	-49.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27h	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			89.9	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27i	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			78.6	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27j	sv27	sv27j1	1.2	58.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	0.071		Ma
+sv27j	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			38.7	-47	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27k	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			47.4	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27l	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			151.6	-79	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27l	sv27	sv27l1	41.8	-22.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	0.071		Ma
+sv27m	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			159.7	-85.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27n	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			90.2	-81	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27o	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			82.2	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv27p	sv27								35.5883	248.3669	Igneous	Lava Flow	Basalt			72.1	-69	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28a	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			90.8	-32.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28b	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			26.8	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28c	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			281.8	-45.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28d	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			291.6	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28e	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			231.3	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28f	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			318.6	-62.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28g	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			171	-60	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv28h	sv28	sv28h1	29.7	11.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv28h	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			17.1	-75	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28i	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			11	-74	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28j	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			251	-66.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv28k	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			40.2	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv28l	sv28								35.5838	248.3925	Igneous	Lava Flow	Basalt			70	-96	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29a	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			81.3	-86	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29b	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			119.1	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29c	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			114	-53	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29d	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			227.6	-64	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29e	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			67.2	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29f	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			63.4	-37	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29g	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			180.6	-34	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29h	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			250.6	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29i	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			219.4	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29j	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			220.2	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29k	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			197.2	-79	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv29l	sv29								35.5526	248.464	Igneous	Lava Flow	Basalt			202.2	-77	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30a	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			335.9	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30b	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			339.1	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30c	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			348.4	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30d	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			341.7	-78	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30e	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			326.8	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30f	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			37.4	-60	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30g	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			33.4	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30h	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			326.2	-73	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30h	sv30	sv30h1	180.5	-40.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv30i	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			344	-91	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv30i	sv30	sv30i2	0.5	-53.9	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv30j	sv30								35.5182	248.4563	Igneous	Lava Flow	Basalt			332.1	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31a	sv31	sv31a1	5.5	45.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv31a	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			179.5	-75	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31b	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			225.1	-61.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31b	sv31	sv31b1	11.9	45.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv31c	sv31	sv31c1	12.4	43.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv31c	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			225.8	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31d	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			221.8	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31e	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			244	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31e	sv31	sv31e2	17.4	48.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv31f	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			244	-46.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31g	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			239.2	-68	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31h	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			219	-53.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31i	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			226.8	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31j	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			225	-45.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31k	sv31	sv31k1	16.6	49.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv31k	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			280.2	-47.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv31l	sv31								35.3404	248.4426	Igneous	Lava Flow	Basalt			261.1	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv32a	sv32	sv32a1	348.3	60.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1080		Years AD (+/-)
+sv32a	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			97.6	-53	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv32b	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			96	-62.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv32b	sv32	sv32b1	336.3	62.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1080		Years AD (+/-)
+sv32c	sv32	sv32c1	339.6	56.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1080		Years AD (+/-)
+sv32c	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			55.5	-75	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv32d	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			145	-21.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv32d	sv32	sv32d1	346.4	57.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1080		Years AD (+/-)
+sv32e	sv32	sv32e1	343.7	64.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	1080		Years AD (+/-)
+sv32e	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			88	-73	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv32f	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			78	-70	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv32g	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			86.2	-73	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv32h	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			15.4	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv32i	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			11.2	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv32j	sv32								35.3708	248.4607	Igneous	Lava Flow	Basalt			38	-36	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv50a	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			64.2	-89.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50a	sv50	sv50a1	309.2	6.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv50b	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			67.6	-84	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50c	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			199	-60.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50d	sv50	sv50d3	224.7	33.3	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv50d	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			155.1	-77.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50e	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			121.7	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50f	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			111.5	-81	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50g	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			104.2	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50h	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			81.3	-74	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50i	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			129.3	-68.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50j	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			130.8	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50j	sv50	sv50j1	181.2	-42.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv50k	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			129.2	-64	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv50l	sv50								35.3508	247.5926	Igneous	Lava Flow	Basalt			62	-59	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv51a	sv51	sv51a1	302.1	11.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv51a	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			50.8	-106	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51c	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			358.4	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51d	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			301.2	-90	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51e	sv51	sv51e1	171.3	-38.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv51e	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			307.2	-76	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51f	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			9.6	-75	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51g	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			346.1	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51h	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			39	-69	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51i	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			39.9	-74.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51j	sv51	sv51j1	187.5	-40.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv51j	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			263.7	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51k	sv51	sv51k2	188.3	-37.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv51k	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			263.9	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51l	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			294	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv51m	sv51								35.3108	247.626	Igneous	Lava Flow	Basalt			103	-4.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52a	sv52	sv52a1	174	-56.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv52a	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			334.5	-45	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52b	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			335.9	-47.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52c	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			6	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52c	sv52	sv52c1	187.2	-56.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv52d	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			13.4	-76.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52e	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			310.2	-54	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52f	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			325	-46	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52g	sv52	sv52g1	192.6	-51.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv52g	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			7.5	-84	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52h	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			9.2	-83	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52i	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			357.6	-78.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52j	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			358.8	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52j	sv52	sv52j1	175.9	-55	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv52k	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			355.3	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv52l	sv52								35.2211	247.7281	Igneous	Lava Flow	Basalt			6.3	-70	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53a	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			197.9	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53b	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			203.1	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53b	sv53	sv53b1	171.4	29.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv53c	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			161.1	-41.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53d	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			176.5	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53e	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			101.9	-50.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53f	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			198.1	-58	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53g	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			202.2	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53h	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			186.1	-38.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53i	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			190.4	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53i	sv53	sv53i1	179.1	-49.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv53j	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			171.8	-66	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv53j	sv53	sv53j1	186.3	-52.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv53k	sv53								35.2221	247.7461	Igneous	Lava Flow	Basalt			179.3	-55	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54a	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			79.1	-23.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54b	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			70.3	-17	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54c	sv54	sv54c1	175.1	-45.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv54c	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			32.7	-53	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54d	sv54	sv54d1	175.4	-41	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv54d	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			31.1	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54e	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			25.7	-42.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54f	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			359.4	-33.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54g	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			44.9	-35	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54h	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			24	-31	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54h	sv54	sv54h1	167.9	-56.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv54i	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			65.6	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54i	sv54	sv54i1	188.5	-28	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv54j	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			57.2	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54k	sv54								35.3002	247.7293	Igneous	Lava Flow	Basalt			26.6	-17	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv54k	sv54	sv54k1	160.1	-60.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv55a	sv55	sv55a1	181.7	-50.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv55a	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			264.1	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55b	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			262.4	-44	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55c	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			229.8	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55d	sv55	sv55d2	180.3	-43.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv55d	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			230.2	-59.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55e	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			235.5	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55f	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			268.6	-48.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55g	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			271.5	-45	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55h	sv55	sv55h1	179.4	-42.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv55h	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			267.4	-85.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55i	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			273.4	-88.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55j	sv55	sv55j1	183.7	-44.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv55j	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			266.8	-52.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv55k	sv55								35.3195	247.8202	Igneous	Lava Flow	Basalt			272.1	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56a	sv56	sv56a2	174.9	-59.5	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv56a	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			38.4	-27	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56b	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			9.9	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56c	sv56	sv56c1	166.5	-52.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv56c	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			20.4	-43.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56d	sv56	sv56d2	167.2	-51.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv56d	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			16.7	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56e	sv56	sv56e1	193.1	35.2	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv56e	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			290.4	-82	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56f	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			294.2	-74	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56g	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			268.5	-78	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56h	sv56	sv56h1	352.7	-26.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv56h	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			281.6	-74.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56i	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			278.4	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56j	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			274.6	-66.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56k	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			274.8	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56l	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			283.9	-27	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv56n	sv56								35.3417	247.8424	Igneous	Lava Flow	Basalt			276.6	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57a	sv57	sv57a1	198	-53.8	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv57a	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			222.7	-82.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57b	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			231	-70.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57c	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			269.9	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57c	sv57	sv57c1	194.9	-54.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv57d	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			283.2	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57d	sv57	sv57d1	187.6	-57	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv57e	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			310.5	-47	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57f	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			321	-46.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57g	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			308.1	-92	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57h	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			252.6	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57i	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			222.9	-75	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57j	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			219.7	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv57k	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			206	-52	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv57k	sv57	sv57k1	203	-14.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv57l	sv57								35.26	247.7564	Igneous	Lava Flow	Basalt			253	-37	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv57l	sv57	sv57l2	210.3	-49.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv58a	sv58	sv58a1	181.6	-63.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv58a	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			238.2	-81.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58b	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			229.1	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58c	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			226.5	-86	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58d	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			225.8	-71	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58d	sv58	sv58d1	176.7	-60	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv58e	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			253.9	-80.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58f	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			244.6	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58g	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			221.9	-69.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58g	sv58	sv58g1	182.5	-60	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv58h	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			221.7	-72	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58i	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			254.1	-106.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58j	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			254	-96.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58k	sv58	sv58k1	188	-65.2	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv58k	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			243.9	-83	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv58l	sv58								35.2603	247.7564	Igneous	Lava Flow	Basalt			242.8	-83.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59a	sv59	sv59a1	181	-51.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv59a	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			37.1	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59b	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			46.9	-52	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59c	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			38.6	-38	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59d	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			52.4	-36.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59e	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			19.9	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59f	sv59	sv59f1	179.6	-53.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv59f	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			33.2	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59g	sv59	sv59g1	178.4	-52	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv59g	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			24.3	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59h	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			35.3	-63.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59i	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			46.6	-73.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59j	sv59	sv59j1	176.4	-48.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv59j	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			51.8	-62	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59k	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			325.7	-81	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv59l	sv59								35.2542	247.9934	Igneous	Lava Flow	Basalt			322	-57	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60a	sv60	sv60a1	219.1	-21	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv60a	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			18.4	-19	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60b	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			14.8	-19	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60c	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			335.7	-28	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60c	sv60	sv60c1	179.5	-28.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv60d	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			351.9	-20	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60e	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			8.4	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60f	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			42.6	-46	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60g	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			45.1	-43	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60h	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			2.5	-58	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60i	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			345.8	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60j	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			341.8	-28	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv60k	sv60								35.2535	248.0864	Igneous	Lava Flow	Basalt			14.7	-23	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61a	sv61	sv61a1	163.3	61	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv61a	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			17.3	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61b	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			21.3	-53	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61c	sv61	sv61c1	264.2	2.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv61c	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			4.4	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61d	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			4.5	-79	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61e	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			12	-62.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61f	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			16.1	-60	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61g	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			17.2	-48.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61g	sv61	sv61g1	348.2	63.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv61h	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			28.7	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61i	sv61								35.2031	248.2362	Igneous	Lava Flow	Basalt			64.9	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv61i	sv61	sv61i1	356.8	54.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv62a	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			46.9	-65	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62b	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			49	-51.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62b	sv62	sv62b1	68.8	19.6	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv62c	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			42.4	-61.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62d	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			33.3	-56	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62d	sv62	sv62d1	345.3	-35.3	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv62e	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			64.9	-94	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62f	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			105.6	-52.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62g	sv62	sv62g1	127.1	35.1	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv62g	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			46.4	-92.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62h	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			48.7	-84	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62i	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			61.1	-73.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62j	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			20.4	-45.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv62k	sv62								35.2078	248.2294	Igneous	Lava Flow	Basalt			62.1	-64	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63a	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			330.7	-36	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63a	sv63	sv63a1	354.9	43.6	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv63b	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			304	-31.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63c	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			34.3	-38	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63d	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			337.8	-28	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63e	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			339.1	-39	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63f	sv63	sv63f1	353	48	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv63f	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			341.3	-56.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63g	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			11.4	-50	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63h	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			12.7	-80	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63h	sv63	sv63h1	351.9	46.4	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv63i	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			342.9	-67.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv63j	sv63	sv63j1	346.5	42.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv63j	sv63								35.2582	247.9165	Igneous	Lava Flow	Basalt			2.2	-71	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64a	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			102.7	-60.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64b	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			178.6	-59	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64b	sv64	sv64b1	173.1	-51.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64c	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			179.5	-51	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64c	sv64	sv64c2	185.3	-45.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64d	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			171.9	-52.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64e	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			204.7	-63	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64e	sv64	sv64e1	162.4	-53	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64f	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			202.4	-67	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64g	sv64	sv64g1	167.9	-53.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64g	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			208.8	-61	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64h	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			200.4	-46.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64h	sv64	sv64h1	165.5	-52.9	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64i	sv64	sv64i1	165.9	-52.1	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv64i	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			198.5	-50.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64j	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			196.5	-58.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv64k	sv64								35.2569	248.0685	Igneous	Lava Flow	Basalt			186.3	-31	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv65a	sv65	sv65a1	32.7	65	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv65a	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			327	-49	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65b	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			335	-51	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65c	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			343	-68	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65c	sv65	sv65c1	33.1	49.7	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv65d	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			345	-57	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65d	sv65	sv65d1	25.9	45	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv65e	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			357	-54	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65e	sv65	sv65e1	29.9	58.3	1	1	0	0						DE-SPEC	sample direction.			This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	l	2.5	2.5	Ma
+sv65f	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			348.2	-41	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv65g	sv65	sv65g1	289.8	10.4	1	0	1	0							sample direction.			This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	p	2.5	2.5	Ma
+sv65g	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			1.9	-41.5	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv65h	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			27	-62.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65i	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			18	-48.5	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65j	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			23.4	-49	This study	SO-SUN : FS-FD : SO-POM	San Francisco Volcanics				
+sv65k	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			20	-35	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				
+sv65l	sv65								35.4088	248.5854	Igneous	Lava Flow	Basalt			44	-50	This study	SO-MAG : FS-FD : SO-POM : SO-CMD-NORTH	San Francisco Volcanics				

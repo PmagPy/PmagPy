@@ -1,0 +1,504 @@
+tab	specimens
+specimen	sample	experiments	dir_dec	dir_inc	dir_n_measurements	dir_tilt_correction	dir_mad_free	geologic_classes	geologic_types	lithologies	meas_step_max	meas_step_min	meas_step_unit	description	int_corr	citations	method_codes	location	site	specimen_direction_type
+sv01a1	sv01a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01a1	sv01a	sv01a1 : LP-DIR-AF	348.4	-34.7	12	0	5.1				0.14	0.005	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv01	p
+sv01b1	sv01b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01b1	sv01b	sv01b1 : LP-DIR-AF	122.7	25.5	15	0	3.8				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv01	p
+sv01g1	sv01g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01g1	sv01g	sv01g1 : LP-DIR-AF	162.4	36.6	13	0	3				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv01	p
+sv01g2	sv01g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01h1	sv01h	sv01h1 : LP-DIR-AF	190.4	34.6	13	0	5				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv01	p
+sv01h1	sv01h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01j1	sv01j	sv01j1 : LP-DIR-AF	133.4	21.9	8	0	5.4				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv01	p
+sv01j1	sv01j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv01j2	sv01j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv01	
+sv02a1	sv02a	sv02a1 : LP-DIR-AF	330.3	30.4	6	0	2.5				0.18	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv02	l
+sv02a1	sv02a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02b1	sv02b	sv02b1 : LP-DIR-AF	225.7	37	14	0	3.7				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv02	p
+sv02b1	sv02b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02b2	sv02b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02c1	sv02c	sv02c1 : LP-DIR-AF	103.1	32.3	11	0	3.8				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv02	p
+sv02c1	sv02c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02d1	sv02d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02d1	sv02d	sv02d1 : LP-DIR-AF	338.6	44.5	11	0	1.3				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv02	l
+sv02e1	sv02e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02e1	sv02e	sv02e1 : LP-DIR-AF	340.6	42.4	10	0	0.9				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv02	l
+sv02k1	sv02k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv02k1	sv02k	sv02k1 : LP-DIR-AF	337.7	40.3	12	0	2.6				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv02	l
+sv02k3	sv02k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv02	
+sv03a1	sv03a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03a1	sv03a	sv03a1 : LP-DIR-AF	344.6	52.1	4	0	1.3				0.15	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv03	l
+sv03b1	sv03b	sv03b1 : LP-DIR-AF	39.5	-24.5	6	0	3.8				0.18	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv03	p
+sv03b1	sv03b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03b2	sv03b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03d1	sv03d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03d1	sv03d	sv03d1 : LP-DIR-AF	3.9	-33.5	11	0	4.6				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv03	p
+sv03e1	sv03e	sv03e1 : LP-DIR-AF	8.8	-33.8	13	0	2.1				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv03	p
+sv03e1	sv03e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03g1	sv03g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03g1	sv03g	sv03g1 : LP-DIR-AF	352.8	52.2	7	0	0.9				0.18	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv03	l
+sv03h1	sv03h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03h1	sv03h	sv03h1 : LP-DIR-AF	349.1	55.5	8	0	0.9				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv03	l
+sv03h2	sv03h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03i1	sv03i	sv03i1 : LP-DIR-AF	353.2	57.3	8	0	0.7				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv03	l
+sv03i1	sv03i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03j1	sv03j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv03	
+sv03j1	sv03j	sv03j1 : LP-DIR-AF	324.1	44.6	8	0	1.9				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv03	l
+sv04a1	sv04a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04a1	sv04a	sv04a1 : LP-DIR-AF	348.3	50.2	12	0	1.5				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv04	l
+sv04b1	sv04b	sv04b1 : LP-DIR-AF	353	46.6	12	0	1.3				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv04	l
+sv04b1	sv04b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04c1	sv04c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04c2	sv04c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04d1	sv04d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04d1	sv04d	sv04d1 : LP-DIR-AF	342.6	48.7	9	0	2.6				0.18	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv04	l
+sv04e1	sv04e	sv04e1 : LP-DIR-AF	342.2	56.9	11	0	1.2				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv04	l
+sv04e1	sv04e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04f1	sv04f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04i1	sv04i	sv04i1 : LP-DIR-AF	347.4	50.6	5	0	2.4				0.15	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv04	l
+sv04i1	sv04i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv04j1	sv04j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv04	
+sv05a1	sv05a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05a2	sv05a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05a2	sv05a	sv05a2 : LP-DIR-AF	202.3	31.5	14	0	4.9				423	0.03	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv05	p
+sv05b1	sv05b	sv05b1 : LP-DIR-AF	160	-47.8	6	0	1.7				0.18	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv05	l
+sv05b1	sv05b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05c1	sv05c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05c1	sv05c	sv05c1 : LP-DIR-AF	168.4	37.3	6	0	3.2				0.18	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv05	p
+sv05c2	sv05c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05d2	sv05d	sv05d2 : LP-DIR-AF	161.2	-47.4	5	0	3.3				0.18	0.08	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv05	l
+sv05d2	sv05d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05e1	sv05e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05f1	sv05f	sv05f1 : LP-DIR-AF	72.5	-2.6	13	0	4.4				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv05	p
+sv05f1	sv05f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05h1	sv05h	sv05h1 : LP-DIR-AF	172	-44.3	7	0	4.3				0.15	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv05	l
+sv05h1	sv05h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05i1	sv05i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv05i1	sv05i	sv05i1 : LP-DIR-AF	166.6	-54.5	10	0	1.5				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv05	l
+sv05j1	sv05j	sv05j1 : LP-DIR-AF	157.8	-60	7	0	2.3				0.18	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv05	l
+sv05j1	sv05j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv05	
+sv06a1	sv06a	sv06a1 : LP-DIR-AF	246.5	-31.4	14	0	2				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv06	p
+sv06a1	sv06a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06c3	sv06c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06c3	sv06c	sv06c3 : LP-DIR-AF	278.3	24.5	12	0	3.8				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv06	p
+sv06e1	sv06e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06e2	sv06e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06f1	sv06f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06f1	sv06f	sv06f1 : LP-DIR-AF	357.8	-39.1	10	0	2.6				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv06	l
+sv06g1	sv06g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06g1	sv06g	sv06g1 : LP-DIR-AF	59.6	24	6	0	3.8				0.07	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv06	p
+sv06g2	sv06g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv06h1	sv06h	sv06h1 : LP-DIR-AF	344.7	-25.1	11	0	4.7				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv06	l
+sv06h1	sv06h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv06	
+sv07a1	sv07a	sv07a1 : LP-DIR-AF	4.1	57.1	10	0	3.1				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07a1	sv07a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07a2	sv07a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07b1	sv07b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07b1	sv07b	sv07b1 : LP-DIR-AF	352.3	61.6	12	0	1.9				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07c1	sv07c	sv07c1 : LP-DIR-AF	346.5	62.5	11	0	2.8				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07c1	sv07c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07d1	sv07d	sv07d1 : LP-DIR-AF	351.2	65.3	12	0	1.8				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07d1	sv07d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07f2	sv07f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07f2	sv07f	sv07f2 : LP-DIR-AF	344.1	60.2	8	0	2.3				0.15	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07g1	sv07g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07g1	sv07g	sv07g1 : LP-DIR-AF	341.2	59.3	9	0	1.5				0.15	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07i1	sv07i	sv07i1 : LP-DIR-AF	352.3	64.6	13	0	1.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv07	l
+sv07i1	sv07i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv07j1	sv07j	sv07j1 : LP-DIR-AF	200.3	24.6	13	0	5				0.16	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv07	p
+sv07j1	sv07j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv07	
+sv08a1	sv08a	sv08a1 : LP-DIR-AF	173.5	-46.7	7	0	1				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08a1	sv08a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08b1	sv08b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08b1	sv08b	sv08b1 : LP-DIR-AF	165	-38.2	13	0	0.9				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08c1	sv08c	sv08c1 : LP-DIR-AF	164.7	-41.1	7	0	0.7				0.15	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08c1	sv08c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08d1	sv08d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08d1	sv08d	sv08d1 : LP-DIR-AF	160.9	-48.9	12	0	2.4				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08e1	sv08e	sv08e1 : LP-DIR-AF	171.2	-53.8	13	0	1.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08e1	sv08e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08g1	sv08g	sv08g1 : LP-DIR-AF	169.4	-48.3	12	0	0.9				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08g1	sv08g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08h1	sv08h	sv08h1 : LP-DIR-AF	156.6	-44.8	7	0	2.7				0.18	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv08	l
+sv08h1	sv08h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv08h3	sv08h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv08	
+sv09a1	sv09a	sv09a1 : LP-DIR-AF	254	-10.3	20	0	26.5				723	0.03	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv09	l
+sv09a1	sv09a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09c1	sv09c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09d1	sv09d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09d2	sv09d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09e1	sv09e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09e1	sv09e	sv09e1 : LP-DIR-AF	242.7	-69	12	0	1.8				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv09	l
+sv09f1	sv09f	sv09f1 : LP-DIR-AF	277	-61.2	13	0	2.1				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv09	l
+sv09f1	sv09f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09g1	sv09g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09i1	sv09i	sv09i1 : LP-DIR-AF	242.5	-68.6	10	0	3.6				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv09	l
+sv09i1	sv09i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09j1	sv09j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09j1	sv09j	sv09j1 : LP-DIR-AF	230.6	-67.7	9	0	3.2				0.18	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv09	l
+sv09k1	sv09k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv09k2	sv09k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv09	
+sv10a1	sv10a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10a1	sv10a	sv10a1 : LP-DIR-AF	222.6	45.2	12	0	1.2				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv10	p
+sv10c1	sv10c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10c1	sv10c	sv10c1 : LP-DIR-AF	264.7	14.7	12	0	3				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv10	p
+sv10c2	sv10c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10f1	sv10f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10f1	sv10f	sv10f1 : LP-DIR-AF	344.5	-34.7	13	0	1.4				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv10	p
+sv10g1	sv10g	sv10g1 : LP-DIR-AF	139.9	27.6	10	0	4.5				0.12	0.01	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-CMD-NORTH : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv10	p
+sv10g1	sv10g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10j1	sv10j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv10	
+sv10j1	sv10j	sv10j1 : LP-DIR-AF	93.7	6	13	0	2.5				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv10	p
+sv11a1	sv11a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11a1	sv11a	sv11a1 : LP-DIR-AF	206.7	45.6	14	0	3.4				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv11	p
+sv11b1	sv11b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11b1	sv11b	sv11b1 : LP-DIR-AF	149	42.9	11	0	4.7				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv11	p
+sv11b2	sv11b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11e1	sv11e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11f1	sv11f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11h2	sv11h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11k1	sv11k	sv11k1 : LP-DIR-AF	193.6	-39	12	0	1.1				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv11	l
+sv11k1	sv11k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11n1	sv11n							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv11	
+sv11n1	sv11n	sv11n1 : LP-DIR-AF	197.7	-51.2	13	0	1.7				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv11	l
+sv12e1	sv12e	sv12e1 : LP-DIR-AF	89.5	-21.1	7	0	2.1				0.07	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv12	p
+sv12e1	sv12e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv12	
+sv12e2	sv12e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv12	
+sv12k1	sv12k	sv12k1 : LP-DIR-AF	42.6	44.2	20	0	31.2				873	0.07	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv12	l
+sv12k1	sv12k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv12	
+sv12k2	sv12k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv12	
+sv13i1	sv13i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv13	
+sv13i1	sv13i	sv13i1 : LP-DIR-AF	210.1	-21.8	2	0	0				373	0	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv13	p
+sv13i2	sv13i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv13	
+sv15a1	sv15a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15a1	sv15a	sv15a1 : LP-DIR-AF	345.5	24.2	11	0	0.9				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15b1	sv15b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15b1	sv15b	sv15b1 : LP-DIR-AF	346.2	26.6	9	0	1.8				0.15	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15c1	sv15c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15c1	sv15c	sv15c1 : LP-DIR-AF	351.3	24.5	11	0	3				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15c2	sv15c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15d1	sv15d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15d1	sv15d	sv15d1 : LP-DIR-AF	355.3	24.4	9	0	2.5				0.18	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15f1	sv15f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15f1	sv15f	sv15f1 : LP-DIR-AF	355.2	26.2	8	0	1.9				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15h1	sv15h	sv15h1 : LP-DIR-AF	3.4	26.5	8	0	2.3				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv15	l
+sv15h1	sv15h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv15h2	sv15h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv15	
+sv16a1	sv16a	sv16a1 : LP-DIR-AF	350.6	28.4	5	0	3.7				0.15	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv16	l
+sv16a1	sv16a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16b1	sv16b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16b1	sv16b	sv16b1 : LP-DIR-AF	352.3	28.9	5	0	2.7				0.15	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv16	l
+sv16c1	sv16c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16c1	sv16c	sv16c1 : LP-DIR-AF	358.7	23.6	9	0	4.2				0.18	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv16	l
+sv16c2	sv16c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16e1	sv16e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16e1	sv16e	sv16e1 : LP-DIR-AF	359.8	19.8	8	0	2.4				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv16	l
+sv16f2	sv16f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16h1	sv16h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv16h1	sv16h	sv16h1 : LP-DIR-AF	48	-61.3	14	0	3.7				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv16	p
+sv16h2	sv16h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv16	
+sv17b1	sv17b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv17	
+sv17b1	sv17b	sv17b1 : LP-DIR-AF	202.2	28.4	12	0	4.3				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv17	p
+sv17b2	sv17b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv17	
+sv17i1	sv17i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv17	
+sv17i1	sv17i	sv17i1 : LP-DIR-AF	131.9	62	12	0	3.9				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv17	l
+sv17i2	sv17i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv17	
+sv18c1	sv18c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18c1	sv18c	sv18c1 : LP-DIR-AF	195.9	-56.1	10	0	1.2				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv18	l
+sv18f1	sv18f	sv18f1 : LP-DIR-AF	192.5	-56.8	11	0	2.7				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv18	l
+sv18f1	sv18f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18g1	sv18g	sv18g1 : LP-DIR-AF	197.3	-55.5	12	0	1.5				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv18	l
+sv18g1	sv18g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18g2	sv18g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18h1	sv18h	sv18h1 : LP-DIR-AF	193.4	-57.4	13	0	0.7				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv18	l
+sv18h1	sv18h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18i1	sv18i	sv18i1 : LP-DIR-AF	185.3	-53.5	11	0	6.4				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv18	l
+sv18i1	sv18i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv18i2	sv18i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv18	
+sv19c1	sv19c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv19	
+sv19c1	sv19c	sv19c1 : LP-DIR-AF	219	32.4	11	0	2.6				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv19	l
+sv19c2	sv19c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv19	
+sv19g1	sv19g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv19	
+sv19g3	sv19g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv19	
+sv19g3	sv19g	sv19g3 : LP-DIR-AF	42.8	-7.6	13	0	16.5				373	0.03	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv19	p
+sv20c1	sv20c	sv20c1 : LP-DIR-AF	355.8	42.6	12	0	1.5				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv20	l
+sv20c1	sv20c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv20	
+sv20c2	sv20c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv20	
+sv20e1	sv20e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv20	
+sv20e3	sv20e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv20	
+sv21g1	sv21g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv21	
+sv21g1	sv21g	sv21g1 : LP-DIR-AF	76.7	-4.3	7	0	1.7				0.08	0.02	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv21	l
+sv21g2	sv21g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv21	
+sv21i1	sv21i	sv21i1 : LP-DIR-AF	132.2	-0.9	11	0	1.5				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv21	l
+sv21i1	sv21i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv21	
+sv22b1	sv22b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv22	
+sv22b1	sv22b	sv22b1 : LP-DIR-AF	111.7	-6.9	23	0	22.2				873	0.04	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv22	l
+sv22b2	sv22b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv22	
+sv22c1	sv22c	sv22c1 : LP-DIR-AF	263.2	-2.7	8	0	4.9				0.14	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv22	p
+sv22c1	sv22c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv22	
+sv22c2	sv22c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv22	
+sv22e1	sv22e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv22	
+sv23a1	sv23a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23a1	sv23a	sv23a1 : LP-DIR-AF	20.6	28.7	10	0	0.9				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv23	l
+sv23b1	sv23b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23b1	sv23b	sv23b1 : LP-DIR-AF	17	29.3	7	0	1.5				0.15	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv23	l
+sv23c1	sv23c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23c1	sv23c	sv23c1 : LP-DIR-AF	263.1	32.9	14	0	11.4				373	0.02	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv23	p
+sv23c2	sv23c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23d1	sv23d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23e1	sv23e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23e2	sv23e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23f1	sv23f	sv23f1 : LP-DIR-AF	18.2	26.7	11	0	1.4				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv23	l
+sv23f1	sv23f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23g1	sv23g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv23	
+sv23g1	sv23g	sv23g1 : LP-DIR-AF	25.1	29	11	0	1.7				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv23	l
+sv24b1	sv24b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24b1	sv24b	sv24b1 : LP-DIR-AF	343	63.4	7	0	1.3				0.1	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24c1	sv24c	sv24c1 : LP-DIR-AF	356.8	58.6	7	0	0.9				0.15	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24c1	sv24c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24d1	sv24d	sv24d1 : LP-DIR-AF	353.7	64.1	13	0	1.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24d1	sv24d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24d2	sv24d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24f3	sv24f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24g1	sv24g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24g1	sv24g	sv24g1 : LP-DIR-AF	317.5	63.2	13	0	0.5				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24h1	sv24h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24h1	sv24h	sv24h1 : LP-DIR-AF	348.8	63.6	13	0	0.6				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24i1	sv24i	sv24i1 : LP-DIR-AF	335.1	62.7	13	0	0.8				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24i1	sv24i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24j1	sv24j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv24j1	sv24j	sv24j1 : LP-DIR-AF	315.9	64.1	12	0	2.5				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv24	l
+sv24j2	sv24j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv24	
+sv25i1	sv25i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv25	
+sv25i2	sv25i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv25	
+sv25j1	sv25j	sv25j1 : LP-DIR-AF	274.6	36.6	6	0	4.1				0.16	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv25	l
+sv25j1	sv25j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv25	
+sv25j2	sv25j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv25	
+sv26d1	sv26d	sv26d1 : LP-DIR-AF	174.6	25.8	11	0	5.3				0.12	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv26	p
+sv26d1	sv26d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26d2	sv26d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26e1	sv26e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26f1	sv26f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26g1	sv26g	sv26g1 : LP-DIR-AF	167.9	-62.8	12	0	4.4				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv26	l
+sv26g1	sv26g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26h2	sv26h	sv26h2 : LP-DIR-AF	150.7	-71.5	6	0	2.5				0.1	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv26	l
+sv26h2	sv26h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26i1	sv26i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26i1	sv26i	sv26i1 : LP-DIR-AF	137.9	-66.4	11	0	2.8				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv26	l
+sv26j1	sv26j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26k1	sv26k	sv26k1 : LP-DIR-AF	131.3	14.7	13	0	2.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv26	p
+sv26k1	sv26k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26k2	sv26k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26l1	sv26l							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv26	
+sv26l1	sv26l	sv26l1 : LP-DIR-AF	173.8	-75.3	4	0	4.8				0.18	0.1	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv26	l
+sv27a1	sv27a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27a1	sv27a	sv27a1 : LP-DIR-AF	359.1	56.2	13	0	1.1				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv27	l
+sv27c1	sv27c	sv27c1 : LP-DIR-AF	343.4	56.7	12	0	0.9				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv27	l
+sv27c1	sv27c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27d1	sv27d	sv27d1 : LP-DIR-AF	354.4	50.5	13	0	1.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv27	l
+sv27d1	sv27d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27j1	sv27j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27j1	sv27j	sv27j1 : LP-DIR-AF	1.2	58.1	13	0	3.3				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv27	l
+sv27j2	sv27j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27l1	sv27l	sv27l1 : LP-DIR-AF	41.8	-22.6	14	0	4.2				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv27	p
+sv27l1	sv27l							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27l2	sv27l							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv27m1	sv27m							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv27	
+sv28a1	sv28a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv28	
+sv28a2	sv28a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv28	
+sv28h1	sv28h	sv28h1 : LP-DIR-AF	29.7	11.7	21	0	5.2				773	0.04	K	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : LP-DIR-T : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv28	l
+sv28h1	sv28h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv28	
+sv28h2	sv28h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv28	
+sv29a1	sv29a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv29d1	sv29d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv29d2	sv29d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv29e1	sv29e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv29e2	sv29e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv29g1	sv29g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv29	
+sv30d1	sv30d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30d2	sv30d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30g1	sv30g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30h1	sv30h	sv30h1 : LP-DIR-AF	180.5	-40.6	8	0	4.1				0.18	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv30	l
+sv30h1	sv30h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30i1	sv30i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30i2	sv30i	sv30i2 : LP-DIR-AF	0.5	-53.9	14	0	4				0.18	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv30	p
+sv30i2	sv30i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv30j1	sv30j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv30	
+sv31a1	sv31a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31a1	sv31a	sv31a1 : LP-DIR-AF	5.5	45.3	13	0	1.2				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv31	l
+sv31b1	sv31b	sv31b1 : LP-DIR-AF	11.9	45.1	13	0	0.9				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv31	l
+sv31b1	sv31b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31c1	sv31c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31c1	sv31c	sv31c1 : LP-DIR-AF	12.4	43.1	13	0	0.8				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv31	l
+sv31e2	sv31e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31e2	sv31e	sv31e2 : LP-DIR-AF	17.4	48.2	10	0	0.8				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv31	l
+sv31j1	sv31j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31k1	sv31k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv31	
+sv31k1	sv31k	sv31k1 : LP-DIR-AF	16.6	49.1	9	0	1.7				0.18	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv31	l
+sv32a1	sv32a	sv32a1 : LP-DIR-AF	348.3	60.8	11	0	1.1				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv32	l
+sv32a1	sv32a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32b1	sv32b	sv32b1 : LP-DIR-AF	336.3	62.5	11	0	0.5				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv32	l
+sv32b1	sv32b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32c1	sv32c	sv32c1 : LP-DIR-AF	339.6	56.4	11	0	0.8				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv32	l
+sv32c1	sv32c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32d1	sv32d	sv32d1 : LP-DIR-AF	346.4	57.1	7	0	1.4				0.18	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv32	l
+sv32d1	sv32d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32e1	sv32e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32e1	sv32e	sv32e1 : LP-DIR-AF	343.7	64.1	10	0	0.7				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv32	l
+sv32j1	sv32j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv32j2	sv32j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv32	
+sv50a1	sv50a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv50	
+sv50a1	sv50a	sv50a1 : LP-DIR-AF	309.2	6.6	6	0	2				0.1	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv50	l
+sv50d3	sv50d	sv50d3 : LP-DIR-AF	224.7	33.3	7	0	3.6				0.1	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv50	p
+sv50d3	sv50d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv50	
+sv50h1	sv50h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv50	
+sv50j1	sv50j	sv50j1 : LP-DIR-AF	181.2	-42.8	10	0	5.3				0.16	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv50	l
+sv50j1	sv50j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv50	
+sv51a1	sv51a	sv51a1 : LP-DIR-AF	302.1	11.7	11	0	0.9				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv51	l
+sv51a1	sv51a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv51	
+sv51e1	sv51e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv51	
+sv51e1	sv51e	sv51e1 : LP-DIR-AF	171.3	-38.1	9	0	1				0.14	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv51	l
+sv51f1	sv51f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv51	
+sv51j1	sv51j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv51	
+sv51j1	sv51j	sv51j1 : LP-DIR-AF	187.5	-40.3	8	0	0.7				0.12	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv51	l
+sv51k2	sv51k	sv51k2 : LP-DIR-AF	188.3	-37.1	9	0	1.1				0.14	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv51	l
+sv51k2	sv51k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv51	
+sv52a1	sv52a	sv52a1 : LP-DIR-AF	174	-56.1	11	0	1.3				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv52	l
+sv52a1	sv52a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv52	
+sv52b1	sv52b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv52	
+sv52c1	sv52c	sv52c1 : LP-DIR-AF	187.2	-56.2	11	0	1.1				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv52	l
+sv52c1	sv52c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv52	
+sv52g1	sv52g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv52	
+sv52g1	sv52g	sv52g1 : LP-DIR-AF	192.6	-51.1	6	0	5				0.1	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv52	l
+sv52j1	sv52j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv52	
+sv52j1	sv52j	sv52j1 : LP-DIR-AF	175.9	-55	10	0	1.3				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv52	l
+sv53b1	sv53b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv53b1	sv53b	sv53b1 : LP-DIR-AF	171.4	29.9	9	0	0.8				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv53	l
+sv53e1	sv53e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv53g1	sv53g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv53h1	sv53h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv53i1	sv53i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv53i1	sv53i	sv53i1 : LP-DIR-AF	179.1	-49.1	11	0	1.3				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv53	l
+sv53j1	sv53j	sv53j1 : LP-DIR-AF	186.3	-52.8	9	0	3.1				0.12	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv53	l
+sv53j1	sv53j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv53	
+sv54c1	sv54c	sv54c1 : LP-DIR-AF	175.1	-45.8	11	0	1.6				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv54	l
+sv54c1	sv54c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv54d1	sv54d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv54d1	sv54d	sv54d1 : LP-DIR-AF	175.4	-41	11	0	4.4				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv54	l
+sv54g2	sv54g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv54h1	sv54h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv54h1	sv54h	sv54h1 : LP-DIR-AF	167.9	-56.4	10	0	1.3				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv54	l
+sv54i1	sv54i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv54i1	sv54i	sv54i1 : LP-DIR-AF	188.5	-28	5	0	3.8				0.12	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv54	l
+sv54k1	sv54k	sv54k1 : LP-DIR-AF	160.1	-60.4	8	0	1.1				0.12	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv54	l
+sv54k1	sv54k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv54	
+sv55a1	sv55a	sv55a1 : LP-DIR-AF	181.7	-50.5	11	0	0.9				0.14	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv55	l
+sv55a1	sv55a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv55	
+sv55b1	sv55b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv55	
+sv55d2	sv55d	sv55d2 : LP-DIR-AF	180.3	-43.1	11	0	0.6				0.14	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv55	l
+sv55d2	sv55d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv55	
+sv55h1	sv55h	sv55h1 : LP-DIR-AF	179.4	-42.1	11	0	0.7				0.14	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv55	l
+sv55h1	sv55h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv55	
+sv55j1	sv55j	sv55j1 : LP-DIR-AF	183.7	-44.3	11	0	0.7				0.16	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv55	l
+sv55j1	sv55j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv55	
+sv56a2	sv56a	sv56a2 : LP-DIR-AF	174.9	-59.5	11	0	1.2				0.16	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv56	l
+sv56a2	sv56a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56b1	sv56b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56c1	sv56c	sv56c1 : LP-DIR-AF	166.5	-52.1	9	0	1				0.14	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv56	l
+sv56c1	sv56c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56d2	sv56d	sv56d2 : LP-DIR-AF	167.2	-51.4	9	0	1.9				0.14	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv56	l
+sv56d2	sv56d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56e1	sv56e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56e1	sv56e	sv56e1 : LP-DIR-AF	193.1	35.2	11	0	5.1				0.12	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv56	p
+sv56h1	sv56h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv56	
+sv56h1	sv56h	sv56h1 : LP-DIR-AF	352.7	-26.4	10	0	2.6				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv56	l
+sv57a1	sv57a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57a1	sv57a	sv57a1 : LP-DIR-AF	198	-53.8	10	0	1.1				0.16	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv57	l
+sv57b1	sv57b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57c1	sv57c	sv57c1 : LP-DIR-AF	194.9	-54.2	10	0	2				0.16	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv57	l
+sv57c1	sv57c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57d1	sv57d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57d1	sv57d	sv57d1 : LP-DIR-AF	187.6	-57	11	0	3.1				0.16	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv57	l
+sv57k1	sv57k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57k1	sv57k	sv57k1 : LP-DIR-AF	203	-14.6	6	0	5.4				0.12	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv57	l
+sv57l2	sv57l							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv57	
+sv57l2	sv57l	sv57l2 : LP-DIR-AF	210.3	-49.6	11	0	1.5				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv57	l
+sv58a1	sv58a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv58	
+sv58a1	sv58a	sv58a1 : LP-DIR-AF	181.6	-63.7	12	0	1				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv58	l
+sv58b1	sv58b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv58	
+sv58d1	sv58d	sv58d1 : LP-DIR-AF	176.7	-60	11	0	0.5				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv58	l
+sv58d1	sv58d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv58	
+sv58g1	sv58g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv58	
+sv58g1	sv58g	sv58g1 : LP-DIR-AF	182.5	-60	11	0	0.5				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv58	l
+sv58k1	sv58k	sv58k1 : LP-DIR-AF	188	-65.2	12	0	0.7				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv58	l
+sv58k1	sv58k							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv58	
+sv59a1	sv59a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv59	
+sv59a1	sv59a	sv59a1 : LP-DIR-AF	181	-51.7	11	0	1				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv59	l
+sv59f1	sv59f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv59	
+sv59f1	sv59f	sv59f1 : LP-DIR-AF	179.6	-53.1	11	0	0.8				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv59	l
+sv59g1	sv59g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv59	
+sv59g1	sv59g	sv59g1 : LP-DIR-AF	178.4	-52	11	0	1				0.18	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv59	l
+sv59h1	sv59h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv59	
+sv59j1	sv59j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv59	
+sv59j1	sv59j	sv59j1 : LP-DIR-AF	176.4	-48.3	12	0	1.4				0.18	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv59	l
+sv60a1	sv60a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv60	
+sv60a1	sv60a	sv60a1 : LP-DIR-AF	219.1	-21	7	0	2.3				0.08	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv60	l
+sv60c1	sv60c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv60	
+sv60c1	sv60c	sv60c1 : LP-DIR-AF	179.5	-28.9	5	0	0.7				0.06	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv60	l
+sv60d1	sv60d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv60	
+sv60e1	sv60e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv60	
+sv60g1	sv60g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv60	
+sv61a1	sv61a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61a1	sv61a	sv61a1 : LP-DIR-AF	163.3	61	10	0	1				0.18	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv61	l
+sv61c1	sv61c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61c1	sv61c	sv61c1 : LP-DIR-AF	264.2	2.6	9	0	4.8				0.08	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv61	p
+sv61d1	sv61d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61e1	sv61e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61g1	sv61g	sv61g1 : LP-DIR-AF	348.2	63.4	7	0	1.4				0.16	0.06	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv61	l
+sv61g1	sv61g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61h1	sv61h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv61i1	sv61i	sv61i1 : LP-DIR-AF	356.8	54.4	5	0	1.6				0.14	0.07	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv61	l
+sv61i1	sv61i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv61	
+sv62b1	sv62b	sv62b1 : LP-DIR-AF	68.8	19.6	9	0	2.2				0.08	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv62	p
+sv62b1	sv62b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv62	
+sv62d1	sv62d	sv62d1 : LP-DIR-AF	345.3	-35.3	11	0	2.3				0.12	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv62	p
+sv62d1	sv62d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv62	
+sv62g1	sv62g	sv62g1 : LP-DIR-AF	127.1	35.1	7	0	3.8				0.07	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv62	p
+sv62g1	sv62g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv62	
+sv62j1	sv62j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv62	
+sv63a1	sv63a	sv63a1 : LP-DIR-AF	354.9	43.6	8	0	1.3				0.12	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv63	l
+sv63a1	sv63a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv63	
+sv63f1	sv63f	sv63f1 : LP-DIR-AF	353	48	5	0	0.8				0.05	0.01	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv63	l
+sv63f1	sv63f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv63	
+sv63g1	sv63g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv63	
+sv63h1	sv63h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv63	
+sv63h1	sv63h	sv63h1 : LP-DIR-AF	351.9	46.4	6	0	0.9				0.08	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv63	l
+sv63j1	sv63j	sv63j1 : LP-DIR-AF	346.5	42.3	6	0	2				0.08	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv63	l
+sv63j1	sv63j							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv63	
+sv64a1	sv64a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64b1	sv64b	sv64b1 : LP-DIR-AF	173.1	-51.1	8	0	1.2				0.15	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv64b1	sv64b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64c2	sv64c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64c2	sv64c	sv64c2 : LP-DIR-AF	185.3	-45.3	10	0	1.2				0.18	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv64e1	sv64e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64e1	sv64e	sv64e1 : LP-DIR-AF	162.4	-53	11	0	0.6				0.16	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv64f1	sv64f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64g1	sv64g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64g1	sv64g	sv64g1 : LP-DIR-AF	167.9	-53.7	8	0	0.8				0.12	0.03	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv64h1	sv64h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64h1	sv64h	sv64h1 : LP-DIR-AF	165.5	-52.9	8	0	0.8				0.15	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv64i1	sv64i							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv64	
+sv64i1	sv64i	sv64i1 : LP-DIR-AF	165.9	-52.1	10	0	0.4				0.14	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv64	l
+sv65a1	sv65a	sv65a1 : LP-DIR-AF	32.7	65	6	0	0.8				0.07	0.02	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv65	l
+sv65a1	sv65a							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65b1	sv65b							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65c1	sv65c	sv65c1 : LP-DIR-AF	33.1	49.7	5	0	1				0.1	0.05	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv65	l
+sv65c1	sv65c							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65d1	sv65d	sv65d1 : LP-DIR-AF	25.9	45	6	0	2.5				0.1	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv65	l
+sv65d1	sv65d							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65e1	sv65e							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65e1	sv65e	sv65e1 : LP-DIR-AF	29.9	58.3	5	0	1.3				0.08	0.04	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-CMD-NORTH : DE-BFL : DA-DIR-GEO	San Francisco Volcanics	sv65	l
+sv65f2	sv65f							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65g1	sv65g							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	
+sv65g1	sv65g	sv65g1 : LP-DIR-AF	289.8	10.4	10	0	5				0.15	0	T	Recalculated from original measurements; supercedes published results.	u	This study	LP-DIR-AF : SO-SUN : DE-BFP : DA-DIR-GEO	San Francisco Volcanics	sv65	p
+sv65h1	sv65h							Igneous	Lava Flow	Basalt						This study		San Francisco Volcanics	sv65	

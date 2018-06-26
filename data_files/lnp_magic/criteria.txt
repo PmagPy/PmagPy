@@ -1,0 +1,21 @@
+tab	criteria
+table_column	criterion	criterion_operation	criterion_value	citations	description
+samples.dir_alpha95	DE-SAMP	<=	10.49	This study	Criteria for selection of sample direction
+site.dir_polarity	RPOLE	=	r	This study	Criteria for inclusion in reverse mean
+sites.dir_alpha95	DE-SITE	<=	180.0	This study	Criteria for selection of site direction
+sites.dir_k	DE-SITE	>=	100.0	This study	Criteria for selection of site direction
+sites.dir_n_samples	DE-SITE	>=	5.0	This study	Criteria for selection of site direction
+sites.dir_n_specimens_lines	DE-SITE	>=	4.0	This study	Criteria for selection of site direction
+sites.int_abs_sigma	IE-SITE	<=	5.5e-06	This study	Criteria for selection of site intensity
+sites.int_abs_sigma_perc	IE-SITE	<=	15.5	This study	Criteria for selection of site intensity
+sites.int_n_samples	IE-SITE	>=	2.0	This study	Criteria for selection of site intensity
+specimens.dir_mad_free	DE-SPEC	<=	5.49	This study	Criteria for selection of specimen direction
+specimens.dir_n_measurements	DE-SPEC	>=	4.0	This study	Criteria for selection of specimen direction
+specimens.int_b_beta	IE-SPEC	<=	0.1	This study	Criteria for selection of specimen intensity
+specimens.int_dang	IE-SPEC	<=	10.5	This study	Criteria for selection of specimen intensity
+specimens.int_drats	IE-SPEC	<=	20.5	This study	Criteria for selection of specimen intensity
+specimens.int_fvds	IE-SPEC	>=	0.7	This study	Criteria for selection of specimen intensity
+specimens.int_mad_free	IE-SPEC	<=	10.5	This study	Criteria for selection of specimen intensity
+specimens.int_maxdev	IE-SPEC	<=	15.0	This study	Criteria for selection of specimen intensity
+specimens.int_n_ptrm	IE-SPEC	>=	2.0	This study	Criteria for selection of specimen intensity
+specimens.int_q	IE-SPEC	>=	1.0	This study	Criteria for selection of specimen intensity

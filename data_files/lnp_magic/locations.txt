@@ -1,0 +1,3 @@
+tab	locations
+location	continent_ocean	country	lat_n	lat_s	lon_e	lon_w	region	plate_blocks	tectonic_settings	location_type	citations
+San Francisco Volcanics	North America	U.S.A.	35.66	35.17	247.5926	248.6415	southwestern US.	North American Plate	Stable Craton	Outcrop	This study

@@ -1,0 +1,84 @@
+tab	sites
+site	location	specimens	age	age_sigma	age_unit	dir_alpha95	dir_dec	dir_inc	dir_k	dir_n_samples	dir_n_specimens_lines	dir_n_specimens_planes	dir_polarity	dir_r	dir_tilt_correction	lat	lon	geologic_classes	geologic_types	lithologies	criteria	description	citations	method_codes	site_definition
+sv01	San Francisco Volcanics															35.3432	248.2524	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv01	San Francisco Volcanics	sv01a1 : sv01b1 : sv01g1 : sv01h1 : sv01j1	2.5	2.5	Ma	6.6	179	-54.3	286	5	0	5	r	4.9948	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv02	San Francisco Volcanics															35.3734	248.2661	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv02	San Francisco Volcanics	sv02a1 : sv02b1 : sv02c1 : sv02d1 : sv02e1 : sv02k1	0.75	0.17	Ma	6.6	338.8	38.6	113.4	6	4	2	n	5.9647	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv03	San Francisco Volcanics															35.375	248.269	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv03	San Francisco Volcanics	sv03a1 : sv03b1 : sv03d1 : sv03e1 : sv03g1 : sv03h1 : sv03i1 : sv03j1	2.5	2.5	Ma	5.5	344	53.1	108	8	5	3	n	7.9491	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv04	San Francisco Volcanics															35.39	248.26	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv04	San Francisco Volcanics	sv04a1 : sv04b1 : sv04d1 : sv04e1 : sv04i1	2.5	2.5	Ma	4.5	346.9	50.7	285.8	5	5	0	n	4.986	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv05	San Francisco Volcanics															35.184	247.808	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv05	San Francisco Volcanics	sv05a2 : sv05b1 : sv05c1 : sv05d2 : sv05f1 : sv05h1 : sv05i1 : sv05j1	2.5	2.5	Ma	4.5	164.1	-51.3	165.2	8	5	3	r	7.9667	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv06	San Francisco Volcanics															35.192	247.807	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv06	San Francisco Volcanics	sv06a1 : sv06c3 : sv06f1 : sv06g1 : sv06h1	2.5	2.5	Ma	9.7	351.4	-32	80.8	5	2	3	n	4.9691	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv07	San Francisco Volcanics															35.194	247.807	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv07	San Francisco Volcanics	sv07a1 : sv07b1 : sv07c1 : sv07d1 : sv07f2 : sv07g1 : sv07i1 : sv07j1	2.5	2.5	Ma	3.1	350.3	61.8	318	8	7	1	n	7.9796	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv08	San Francisco Volcanics	sv08a1 : sv08b1 : sv08c1 : sv08d1 : sv08e1 : sv08g1 : sv08h1	2.08	0.48	Ma	4.9	165.7	-46.1	151.1	7	7	0	r	6.9603	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv08	San Francisco Volcanics															35.17	247.77	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv09	San Francisco Volcanics															35.442	248.081	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv09	San Francisco Volcanics	sv09e1 : sv09f1 : sv09i1 : sv09j1	1.14	0.17	Ma	10.3	250	-67.7	80.7	4	4	0	r	3.9628	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv10	San Francisco Volcanics	sv10a1 : sv10c1 : sv10f1 : sv10g1 : sv10j1	0.44	0.18	Ma	13.9	188.9	-47.3	65.1	5	0	5	r	4.977	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv10	San Francisco Volcanics															35.2631	248.173	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv11	San Francisco Volcanics															35.263	248.174	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv11	San Francisco Volcanics	sv11a1 : sv11b1 : sv11k1 : sv11n1	1.29	0.15	Ma	10	193.6	-43.2	115.6	4	2	2	r	3.9827	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv12	San Francisco Volcanics															35.334	248.156	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv13	San Francisco Volcanics															35.323	248.285	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv15	San Francisco Volcanics	sv15a1 : sv15b1 : sv15c1 : sv15d1 : sv15f1 : sv15h1	0.33	0.08	Ma	5.1	352.8	25.5	174.9	6	6	0	n	5.9714	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv15	San Francisco Volcanics															35.249	248.31	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv16	San Francisco Volcanics	sv16a1 : sv16b1 : sv16c1 : sv16e1 : sv16h1	2.5	2.5	Ma	6.1	356	24.1	165.7	5	4	1	n	4.9789	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv16	San Francisco Volcanics															35.2401	248.317	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv17	San Francisco Volcanics															35.218	248.557	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv18	San Francisco Volcanics															35.24	247.813	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv18	San Francisco Volcanics	sv18c1 : sv18f1 : sv18g1 : sv18h1	2.5	2.5	Ma	1.7	194.8	-56.5	3001.5	4	4	0	r	3.999	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv19	San Francisco Volcanics															35.664	248.446	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv20	San Francisco Volcanics															35.66	248.462	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv21	San Francisco Volcanics															35.645	248.49	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv22	San Francisco Volcanics															35.588	248.483	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv23	San Francisco Volcanics															35.482	248.641	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv23	San Francisco Volcanics	sv23a1 : sv23b1 : sv23f1 : sv23g1	1.07	0.15	Ma	3.8	20.2	28.5	584.2	4	4	0	n	3.9949	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv24	San Francisco Volcanics	sv24b1 : sv24c1 : sv24d1 : sv24g1 : sv24h1 : sv24i1 : sv24j1	2.5	2.5	Ma	5.8	339.2	63.7	109.4	7	7	0	n	6.9452	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv24	San Francisco Volcanics															35.4673	248.6415	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv25	San Francisco Volcanics															35.6243	248.2548	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv26	San Francisco Volcanics															35.5887	248.3583	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv26	San Francisco Volcanics	sv26d1 : sv26g1 : sv26h2 : sv26i1 : sv26k1 : sv26l1	2.5	2.5	Ma	6.7	159	-69.1	109	6	4	2	r	5.9633	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv27	San Francisco Volcanics															35.5883	248.3669	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv27	San Francisco Volcanics	sv27a1 : sv27c1 : sv27d1 : sv27j1 : sv27l1	0.071		Ma	5.1	354	55.9	240.5	5	4	1	n	4.9854	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM-LP	
+sv28	San Francisco Volcanics															35.5838	248.3925	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv29	San Francisco Volcanics															35.5526	248.464	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv30	San Francisco Volcanics															35.5182	248.4563	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv31	San Francisco Volcanics															35.3404	248.4426	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv31	San Francisco Volcanics	sv31a1 : sv31b1 : sv31c1 : sv31e2 : sv31k1	2.5	2.5	Ma	3.9	12.7	46.2	394	5	5	0	n	4.9898	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv32	San Francisco Volcanics	sv32a1 : sv32b1 : sv32c1 : sv32d1 : sv32e1	1080		Years AD (+/-)	3.9	342.9	60.3	384.1	5	5	0	n	4.9896	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv32	San Francisco Volcanics															35.3708	248.4607	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv50	San Francisco Volcanics	sv50a1 : sv50d3 : sv50j1	2.5	2.5	Ma	180	266.8	-40.9	1.4	3	2	1	t	1.9606	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv50	San Francisco Volcanics															35.3508	247.5926	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv51	San Francisco Volcanics															35.3108	247.626	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv51	San Francisco Volcanics	sv51a1 : sv51e1 : sv51j1 : sv51k2	2.5	2.5	Ma	84.3	207.2	-39.4	2.2	4	4	0	r	2.6222	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv52	San Francisco Volcanics	sv52a1 : sv52c1 : sv52g1 : sv52j1	2.5	2.5	Ma	6.5	182.7	-54.9	199.4	4	4	0	r	3.985	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv52	San Francisco Volcanics															35.2211	247.7281	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv53	San Francisco Volcanics	sv53b1 : sv53i1 : sv53j1	2.5	2.5	Ma	86.4	178	-26.5	3.1	3	3	0	r	2.3622	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv53	San Francisco Volcanics															35.2221	247.7461	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv54	San Francisco Volcanics	sv54c1 : sv54d1 : sv54h1 : sv54i1 : sv54k1	2.5	2.5	Ma	14.1	175.3	-46.7	30.4	5	5	0	r	4.8684	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv54	San Francisco Volcanics															35.3002	247.7293	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv55	San Francisco Volcanics	sv55a1 : sv55d2 : sv55h1 : sv55j1	2.5	2.5	Ma	4.5	181.2	-45	409.3	4	4	0	r	3.9927	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv55	San Francisco Volcanics															35.3195	247.8202	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv56	San Francisco Volcanics	sv56a2 : sv56c1 : sv56d2 : sv56e1 : sv56h1	2.5	2.5	Ma	50.1	171.1	-68.8	3.3	5	4	1	r	3.9527	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv56	San Francisco Volcanics															35.3417	247.8424	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv57	San Francisco Volcanics	sv57a1 : sv57c1 : sv57d1 : sv57k1 : sv57l2	2.5	2.5	Ma	17.8	199.6	-46.4	19.5	5	5	0	r	4.795	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv57	San Francisco Volcanics															35.26	247.7564	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv58	San Francisco Volcanics	sv58a1 : sv58d1 : sv58g1 : sv58k1	2.5	2.5	Ma	3.9	182	-62.3	569.7	4	4	0	r	3.9947	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv58	San Francisco Volcanics															35.2603	247.7564	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv59	San Francisco Volcanics	sv59a1 : sv59f1 : sv59g1 : sv59j1	2.5	2.5	Ma	2.7	178.8	-51.3	1128.1	4	4	0	r	3.9973	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv59	San Francisco Volcanics															35.2542	247.9934	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv60	San Francisco Volcanics															35.2535	248.0864	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv61	San Francisco Volcanics															35.2031	248.2362	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv61	San Francisco Volcanics	sv61a1 : sv61c1 : sv61g1 : sv61i1	2.5	2.5	Ma	39.5	2.9	77.8	7	4	3	1	n	3.6408	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv62	San Francisco Volcanics															35.2078	248.2294	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv62	San Francisco Volcanics	sv62b1 : sv62d1 : sv62g1	2.5	2.5	Ma	38.3	133.7	-52.3	308.4	3	0	3	r	2.9984	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
+sv63	San Francisco Volcanics															35.2582	247.9165	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv63	San Francisco Volcanics	sv63a1 : sv63f1 : sv63h1 : sv63j1	2.5	2.5	Ma	4.2	351.5	45.1	489	4	4	0	n	3.9939	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM	
+sv64	San Francisco Volcanics															35.2569	248.0685	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv64	San Francisco Volcanics	sv64b1 : sv64c2 : sv64e1 : sv64g1 : sv64h1 : sv64i1	2.5	2.5	Ma	5.1	170.4	-51.6	172.4	6	6	0	r	5.971	0						DE-SPEC	Recalculated from original measurements; supercedes published results. Direction included in Pmag_Results.	This study	LP-DC5 : DE-FM	
+sv65	San Francisco Volcanics															35.4088	248.5854	Igneous	Lava Flow	Basalt			This study	FS-FD : FS-LOC-GPS : SO-SM	s
+sv65	San Francisco Volcanics	sv65a1 : sv65c1 : sv65d1 : sv65e1 : sv65g1	2.5	2.5	Ma	8.3	31	54.4	90.1	5	4	1	n	4.9611	0						DE-SPEC	Recalculated from original measurements; supercedes published results.	This study	LP-DC5 : DE-FM-LP	
