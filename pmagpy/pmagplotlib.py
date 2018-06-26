@@ -1649,14 +1649,20 @@ def plotSTRAT(fignum, data, labels):
 
 
 def plotCDF(fignum, data, xlab, sym, title, **kwargs):
-    """ Makes a plot of the cumulative distribution function.  Uses the call:
-x,y=plotCDF(fignum,data,xlab,sym,title,**kwargs) where fignum is the figure number.
-data is a list of data to be plotted, xlab is the label for the x axis.
-sym is the desired line style and color, title is the plot title
-and **kwargs is a dictionary: {'color': color, 'linewidth':linewidth}
-this function returns x and y"""
+    """ Makes a plot of the cumulative distribution function. 
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    data : list of data to be plotted - doesn't need to be sorted
+    sym : matplotlib symbol for plotting, e.g., 'r--' for a red dashed line
+    **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth}
+   
+    Returns
+    __________
+    x : sorted list of data
+    y : fraction of cdf 
+    """
 #
-# plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
     fig = plt.figure(num=fignum)
     # sdata=np.array(data).sort()
