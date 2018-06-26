@@ -1066,7 +1066,6 @@ def flip(di_block,combine=False):
     the reverse mode
     Parameters
     ___________
-    Input
     di_block : nested list of directions
     Return
     D1 : normal mode
@@ -1930,10 +1929,10 @@ def magic_write_old(ofile, Recs, file_type):
 
     Parameters
     _________
-    Input :
-        ofile : path to output file
-        Recs : list of dictionaries in MagIC format
-        file_type : MagIC table type (e.g., specimens)
+    ofile : path to output file
+    Recs : list of dictionaries in MagIC format
+    file_type : MagIC table type (e.g., specimens)
+    
     Effects :
         writes a MagIC formatted file from Recs
     """
@@ -1973,13 +1972,14 @@ def magic_write(ofile, Recs, file_type):
     """
     Parameters
     _________
-    Input :
-        ofile : path to output file
-        Recs : list of dictionaries in MagIC format
-        file_type : MagIC table type (e.g., specimens)
-    Output :
-        [True,False] : True if successful
-        ofile : same as input 
+    ofile : path to output file
+    Recs : list of dictionaries in MagIC format
+    file_type : MagIC table type (e.g., specimens)
+    
+    Return :
+    [True,False] : True if successful
+    ofile : same as input 
+    
     Effects :
         writes a MagIC formatted file from Recs
 
@@ -2511,7 +2511,7 @@ def domean(data, start, end, calculation_type):
 
     Parameters
     ----------
-    data : block of data as [treatment,dec,inc,int]
+    data : nest list of data: [[treatment,dec,inc,int,quality],...]
     start : step being used as start of fit (often temperature minimum)
     end : step being used as end of fit (often temperature maximum)
     calculation_type : string describing type of calculation to be made
@@ -4095,13 +4095,14 @@ def dolnp3_0(Data):
     Desciption: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
     Parameters
     __________
-    Input  
-        Data : nested list of dictionarys with keys
-            dir_dec
-            dir_inc
-            dir_tilt_correction
-            method_codes
+    Data : nested list of dictionarys with keys
+        dir_dec
+        dir_inc
+        dir_tilt_correction
+        method_codes
+    
     Returns
+    -------
         ReturnData : dictionary with keys 
             dec : fisher mean dec of data in Data
             inc : fisher mean inc of data in Data 
@@ -4154,20 +4155,20 @@ def dolnp(data, direction_type_key):
 
     Parameters
     __________
-    Input
-        Data : nested list of dictionaries with keys
-            Data model 3.0:
-                dir_dec
-                dir_inc
-                dir_tilt_correction
-                method_codes
-            Data model 2.5:
-                dec
-                inc
-                tilt_correction
-                magic_method_codes
-             direction_type_key :  ['specimen_direction_type']
+    Data : nested list of dictionaries with keys
+        Data model 3.0:
+            dir_dec
+            dir_inc
+            dir_tilt_correction
+            method_codes
+        Data model 2.5:
+            dec
+            inc
+            tilt_correction
+            magic_method_codes
+         direction_type_key :  ['specimen_direction_type']
     Returns
+    -------
         ReturnData : dictionary with keys
             dec : fisher mean dec of data in Data
             inc : fisher mean inc of data in Data
@@ -4478,7 +4479,7 @@ def vdm_b(vdm, lat):
     lat: latitude of site in degrees
 
     Returns
-    ----------
+    -------
     B: local magnetic field strength in tesla
     """
     rad = old_div(np.pi, 180.)
@@ -4677,12 +4678,12 @@ def dokent(data, NN):
     gets Kent  parameters for data
     Parameters
     ___________________
-    Input :
     data :  nested pairs of [Dec,Inc]
     NN  : normalization
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
-    Return :
+    
+    Return 
     kpars dictionary keys
         dec : mean declination
         inc : mean inclination
@@ -5419,13 +5420,14 @@ def gaussdev(mean, sigma, N=1):
     returns a number randomly drawn from a gaussian distribution with the given mean, sigma
     Parmeters:
     _____________________________
-    Inputs
-       mean : mean of the gaussian distribution from which to draw deviates
-       sigma : standard deviation of same
-       N : number of deviates desired
+    mean : mean of the gaussian distribution from which to draw deviates
+    sigma : standard deviation of same
+    N : number of deviates desired
 
     Returns
-       N deviates from the normal distribution from
+    -------
+
+    N deviates from the normal distribution from
 .
     """
     return random.normal(mean, sigma,N)  # return gaussian deviate
@@ -5504,15 +5506,16 @@ def a2s(a):
 def doseigs(s):
     """
     convert s format for eigenvalues and eigenvectors
-    Input:
-        The six tensor elements as a list:
-          s=[x11,x22,x33,x12,x23,x13]
-    Output:
-         tau,V:
+    
+    Parameters
+    _____________
+    s=[x11,x22,x33,x12,x23,x13] : the six tensor elements
+    
+    Return
+        tau : [t1,t2,t3]
            tau is an list of eigenvalues in decreasing order:
-              [t1,t2,t3]
-           V is an list of the eigenvector directions
-              [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
+        V : [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
+            is an list of the eigenvector directions
     """
 #
     A = s2a(s)  # convert s to a (see Tauxe 1998)
@@ -9042,11 +9045,11 @@ def pinc(lat):
     calculate paleoinclination from latitude using dipole formula: tan(I) = 2tan(lat)
     Parameters
     ________________
-    Input
 
     lat : either a single value or an array of latitudes
 
     Returns
+    -------
 
     array of inclinations
     """
@@ -9061,11 +9064,11 @@ def plat(inc):
     calculate paleolatitude from inclination using dipole formula: tan(I) = 2tan(lat)
     Parameters
     ________________
-    Input
 
     inc : either a single value or an array of inclinations
 
     Returns
+    -------
 
     array of latitudes
     """
@@ -9100,10 +9103,11 @@ def di_boot(DIs,nb=5000):
      returns bootstrap means  for Directional data
      Parameters
      _________________
-     Input :
-        DIs : nested list of Dec,Inc pairs
-        nb : number of bootstrap pseudosamples
-     Output :
+     DIs : nested list of Dec,Inc pairs
+     nb : number of bootstrap pseudosamples
+
+     Returns 
+    -------
         nested list of bootstrapped mean Dec,Inc pairs
     """
 # get average DI for whole dataset
@@ -10268,10 +10272,10 @@ def separate_directions(di_block):
 
     Parameters
     _______________
-    Input
-        di_block : block of nested dec,inc pairs
-    Ouput
-        mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
+    di_block : block of nested dec,inc pairs
+
+    Return
+    mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
     """
     ppars=doprinc(di_block)
     di_df=pd.DataFrame(di_block) # turn into a data frame for easy filtering
