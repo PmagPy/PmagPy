@@ -2192,5 +2192,124 @@ def is_null(val, zero_as_null=True):
     return not not_null(val, zero_as_null)
 
 
+def get_intensity_meth(data):
+    """
+    Check measurement dataframe for intensity columns 'magn_moment', 'magn_volume', 'magn_mass'.
+    Return the first intensity column that is in the dataframe AND has data.
+
+    Parameters
+    ----------
+    data : pandas DataFrame
+
+    Returns
+    ---------
+    str
+        intensity method column or ""
+    """
+    # possible intensity columns
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+    # intensity columns that are in the data
+    int_meths = [col_name for col_name in data.columns if col_name in intlist]
+    # drop fully null columns
+    data.dropna(axis='columns', how='all')
+    # ignore columns with only blank values (including "")
+    for col_name in int_meths[:]:
+        if not data[col_name].any():
+            int_meths.remove(col_name)
+    if len(int_meths):
+        return int_meths[0]
+    return ""
+
+
+def add_sites_to_meas_table(dir_path):
+    """
+    Add site columns to measurements table (e.g., to plot intensity data),
+    or generate an informative error message.
+
+    Parameters
+    ----------
+    dir_path : str
+        directory with data files
+
+
+    Returns
+    ----------
+    status : bool
+        True if successful, else False
+    data : pandas DataFrame
+        measurement data with site/sample
+    """
+    reqd_tables = ['measurements', 'specimens', 'samples', 'sites']
+    con = Contribution(dir_path, read_tables=reqd_tables)
+    # check that all required tables are available
+    missing_tables = []
+    for table in reqd_tables:
+        if table not in con.tables:
+            missing_tables.append(table)
+    if missing_tables:
+        return False, "You are missing {} tables".format(", ".join(missing_tables))
+
+    # put sample column into the measurements table
+    con.propagate_name_down('sample', 'measurements')
+    # put site column into the measurements table
+    con.propagate_name_down('site', 'measurements')
+    # check that column propagation was successful
+    if 'site' not in con.tables['measurements'].df.columns:
+        return False, "Something went wrong with propagating sites down to the measurement level"
+    return True, con.tables['measurements'].df
+
+
+def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
+    """
+    Strip down measurement data to what is needed for an intensity plot.
+    Find the column with intensity data.
+    Drop empty columns, and make sure required columns are present.
+    Keep only records with the specified method code.
+
+    Parameters
+    ----------
+    data : pandas DataFrame
+        measurement dataframe
+    meth_code : str
+        MagIC method code to include, i.e. 'LT-AF-Z'
+    dropna : list
+        columns that must not be empty
+    reqd_cols : list
+        columns that must be present
+
+    Returns
+    ----------
+    status : bool
+        True if successful, else False
+    data : pandas DataFrame
+        measurement data with required columns
+    """
+    # initialize
+    dropna = list(dropna)
+    reqd_cols = list(reqd_cols)
+    # get intensity column
+    magn_col = get_intensity_meth(data)
+    # drop empty columns
+    if magn_col not in dropna:
+        dropna.append(magn_col)
+    data = data.dropna(axis=0, subset=dropna)
+    # add to reqd_cols list
+    if 'method_codes' not in reqd_cols:
+        reqd_cols.append('method_codes')
+    if magn_col not in reqd_cols:
+        reqd_cols.append(magn_col)
+    # drop non reqd cols, make sure all reqd cols are present
+    try:
+        data = data[reqd_cols]
+    except KeyError as ex:
+        print(ex)
+        missing = set(reqd_cols).difference(data.columns)
+        return False, "missing these required columns: {}".format(", ".join(missing))
+    # filter out records without the correct method code
+    data = data[data['method_codes'].str.contains(meth_code)]
+    return True, data
+
+
+
 if __name__ == "__main__":
     pass

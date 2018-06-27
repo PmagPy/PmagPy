@@ -325,7 +325,7 @@ def plotQQnorm(fignum, Y, title):
     fignum : matplotlib figure number
     Y : list or array of data
     title : title string for plot
-    
+
     Returns
     ___________
     d,dc : the values for D and Dc (the critical value)
@@ -703,7 +703,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
         num : no idea - set it to zero
         units : [T,K,U] for tesla, kelvin or arbitrary
         norm : [1,0] if 1, normalize, otherwise don't
-    Output  
+    Output
         figure
     """
 
@@ -1350,9 +1350,9 @@ def plotSLNP(fignum, SiteRec, datablock, key):
 def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
-    
+
     Parameters
-    Input 
+    Input
         fignum : number of plt.figure() object
         datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
             3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], direction_type_key =['p','l']
@@ -1360,7 +1360,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
         fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
         direction_type_key : key for dictionary direction_type ('specimen_direction_type')
     Effects
-        plots the site level figure 
+        plots the site level figure
     """
 # make the stereonet
     plotNET(fignum)
@@ -1666,18 +1666,18 @@ def plotSTRAT(fignum, data, labels):
 
 
 def plotCDF(fignum, data, xlab, sym, title, **kwargs):
-    """ Makes a plot of the cumulative distribution function. 
+    """ Makes a plot of the cumulative distribution function.
     Parameters
     __________
     fignum : matplotlib figure number
     data : list of data to be plotted - doesn't need to be sorted
     sym : matplotlib symbol for plotting, e.g., 'r--' for a red dashed line
     **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth}
-   
+
     Returns
     __________
     x : sorted list of data
-    y : fraction of cdf 
+    y : fraction of cdf
     """
 #
     #if len(sym)==1:sym=sym+'-'
@@ -1777,6 +1777,7 @@ def plotHYS(fignum, B, M, s):
        Bdm : field values
    
     """
+    B = list(B)
     from . import spline
     if fignum != 0:
         plt.figure(num=fignum)
@@ -2810,19 +2811,19 @@ def plotMAP(fignum, lats, lons, Opts):
             symsize : matplotlib symbol size for plotting
             names : list of names for lats/lons (if empty, none will be plotted)
             pltgrd : if True, put on grid lines
-            padlat : padding of latitudes 
+            padlat : padding of latitudes
             padlon : padding of longitudes
-            gridspace : grid line spacing 
+            gridspace : grid line spacing
             details : dictionary with keys:
-                coasts : if True, plot coastlines 
-                rivers : if True, plot rivers 
-                states : if True, plot states 
-                countries : if True, plot countries 
-                ocean : if True, plot ocean 
-                fancy : if True, plot etopo 20 grid 
-                    NB:  etopo must be installed 
+                coasts : if True, plot coastlines
+                rivers : if True, plot rivers
+                states : if True, plot states
+                countries : if True, plot countries
+                ocean : if True, plot ocean
+                fancy : if True, plot etopo 20 grid
+                    NB:  etopo must be installed
         if Opts keys not set :these are the defaults:
-           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':'black'} 
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':'black'}
 
     """
     from mpl_toolkits.basemap import Basemap
@@ -2839,7 +2840,7 @@ def plotMAP(fignum, lats, lons, Opts):
                   'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
                   'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,\
                   'padlon':0,'padlat':0,'gridspace':30,\
-                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}} 
+                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
     for key in Opts_defaults.keys():
         if key not in Opts.keys() and key!='details':
              Opts[key]=Opts_defaults[key]
@@ -2848,7 +2849,7 @@ def plotMAP(fignum, lats, lons, Opts):
              for detail_key in Opts_defaults[key].keys():
                  if detail_key not in Opts[key].keys():
                      Opts[key][detail_key]=Opts_defaults[key][detail_key]
-        
+
     if Opts['proj'] in ExMer:
         mlabels = [0, 0, 0, 0]
     if Opts['proj'] not in ExMer:
@@ -3071,20 +3072,20 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     ____________
     fignum : matplotlib figure number
     element : field element array from pmag.do_mag_map for plotting
-    lons : longitude array from pmag.do_mag_map for plotting 
-    lats : latitude array from pmag.do_mag_map for plotting 
+    lons : longitude array from pmag.do_mag_map for plotting
+    lats : latitude array from pmag.do_mag_map for plotting
     element_type : [B,Br,I,D] geomagnetic element type
         B : field intensity
         Br : radial field intensity
         I : inclinations
         D : declinations
-    Optional 
+    Optional
     _________
         cmap : matplotlib color map
         lon_0 : central longitude of the Hammer projection
         date : date used for field evaluation,
                if custom ghfile was used, supply filename
- 
+
     Effects
     ______________
     plots a Hammer projection color contour with  the desired field element
@@ -3130,7 +3131,7 @@ def plotEQcont(fignum, DIblock,color_map='coolwarm'):
     Parameters
     __________________
     Input:
-        fignum :  figure number 
+        fignum :  figure number
         DIblock : nested pairs of [Declination, Inclination]
         color_map : matplotlib color map [default is coolwarm]
     Output:

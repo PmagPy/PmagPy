@@ -597,6 +597,48 @@ class TestNotNull(unittest.TestCase):
             self.assertEqual(correct, res)
 
 
+class TestMungeForPlotting(unittest.TestCase):
+
+    def setUp(self):
+        self.directory = os.path.join(WD, 'data_files', 'dmag_magic')
+
+    def tearDown(self):
+        os.chdir(WD)
+
+    def test_group_by_site(self):
+        dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
+        status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
+        self.assertTrue(status)
+        self.assertIn('site', meas_data.columns)
+        osler_dir = os.path.join(WD, 'data_files', '3_0', 'Osler')
+        status, warning = nb.add_sites_to_meas_table(osler_dir)
+        self.assertFalse(status)
+        self.assertEqual(warning, "You are missing measurements, specimens, samples tables")
+        mcmurdo_dir = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        status, meas_data = nb.add_sites_to_meas_table(mcmurdo_dir)
+        self.assertTrue(status)
+        self.assertIn('site', meas_data.columns)
+        orientation_dir = os.path.join(WD, 'data_files', 'orientation_magic')
+        status, warning = nb.add_sites_to_meas_table(orientation_dir)
+        self.assertFalse(status)
+        self.assertEqual(warning, "You are missing measurements, specimens, samples, sites tables")
+
+
+    def test_prep_for_intensity_plot(self):
+        dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
+        # method code to plot
+        meth_code = "LT-AF-Z"
+        # columns that must not be null
+        dropna = ['treat_ac_field'] #, magn_col]
+        # columns that must be present for plotting
+        reqd_cols = ['specimen', 'site', 'treat_ac_field','quality']
+        # add site column to measurement data
+        status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
+        # do the test
+        status, meas_data = nb.prep_for_intensity_plot(meas_data, meth_code, dropna, reqd_cols)
+        self.assertTrue(status)
+        self.assertTrue(all(meas_data['method_codes'].str.contains('LT-AF-Z')))
+
 
 if __name__ == '__main__':
     unittest.main()
