@@ -5513,10 +5513,11 @@ def doseigs(s):
     convert s format for eigenvalues and eigenvectors
     
     Parameters
-    _____________
+    __________
     s=[x11,x22,x33,x12,x23,x13] : the six tensor elements
     
     Return
+    __________
         tau : [t1,t2,t3]
            tau is an list of eigenvalues in decreasing order:
         V : [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
@@ -6425,7 +6426,37 @@ def sbar(Ss):
 def dohext(nf, sigma, s):
     """
     calculates hext parameters for nf, sigma and s
+ 
+    Parameters
+    __________
+    nf :  number of degrees of freedom (measurements - 6)
+    sigma : the sigma of the measurements
+    s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
+
+    Return
+    hpars : dictionary of Hext statistics with keys:
+        'F_crit' : critical value for anisotropy
+        'F12_crit' : critical value for tau1>tau2, tau2>3
+        'F' : value of F
+        'F12' : value of F12
+        'F23' : value of F23
+        'v1_dec': declination of principal vector
+        'v1_inc': inclinatino of principal vector
+        'v2_dec': declination of principal vector
+        'v2_inc': declination of principal vector
+        'v3_dec': declination of principal vector
+        'v3_inc': declination of principal vector
+        't1': declination of principal vector
+        't2': declination of principal vector
+        't3': declination of principal vector
+        'e12': declination of principal vector
+        'e23': declination of principal vector
+        'e13'
+  
+    If working with data set with no sigmas and the average is desired, use nf,sigma,avs=pmag.sbar(Ss) as input
+
     """
+
 #
     hpars = {}
     hpars['F_crit'] = '0'
@@ -6534,7 +6565,15 @@ def cross(v, w):
 
 def dosgeo(s, az, pl):
     """
-     rotates  matrix a to az,pl returns  s
+    rotates  matrix a to az,pl returns  s
+    Parameters
+    __________
+    s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
+    az : the azimuth of the specimen X direction
+    pl : the plunge (inclination) of the specimen X direction
+
+    Return
+    s_rot : [x11,x22,x33,x12,x23,x13] - after rotation
     """
 #
     a = s2a(s)  # convert to 3,3 matrix
@@ -6551,21 +6590,33 @@ def dosgeo(s, az, pl):
                 for l in range(3):
                     dum += A[i][k] * A[j][l] * a[k][l]
             b[i][j] = dum
-    return a2s(b)
+    s_rot=a2s(b) # afer rotation
+    return s_rot
 #
 #
 
 
 def dostilt(s, bed_az, bed_dip):
     """
-     rotate "s" data to stratigraphic coordinates
+    Rotates "s" tensor to stratigraphic coordinates
+
+    Parameters
+    __________
+    s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
+    bed_az : bedding dip direction
+    bed_dip :  bedding dip
+
+    Return
+    s_rot : [x11,x22,x33,x12,x23,x13] - after rotation
+
     """
     tau, Vdirs = doseigs(s)
     Vrot = []
     for evec in Vdirs:
         d, i = dotilt(evec[0], evec[1], bed_az, bed_dip)
         Vrot.append([d, i])
-    return doeigs_s(tau, Vrot)
+    s_rot= doeigs_s(tau, Vrot)
+    return s_rot
 #
 #
 
