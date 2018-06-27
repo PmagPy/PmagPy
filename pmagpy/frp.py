@@ -1,9 +1,9 @@
 def get_pole(continent,age):
     """
-    get_pole(continent,age)
     returns rotation poles and angles for specified continents and ages
     assumes fixed Africa.  
-    Parameters:
+    Parameters
+    __________
         continent : 
             aus : Australia
             eur : Eurasia
@@ -19,8 +19,9 @@ def get_pole(continent,age):
             [sac,sam] :  South America [choose one]
             ib : Iberia
             saf : South Africa
-      Outputs:
-          returns  [pole longitude, pole latitude, rotation angle] for the continent at specified age
+      Returns
+      _______
+          [pole longitude, pole latitude, rotation angle] : for the continent at specified age
     """
     age=int(age)
     if continent=='congo':continent='nwaf'

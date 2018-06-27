@@ -179,10 +179,10 @@ def main():
         proj=sys.argv[ind+1]
     FIG={'map':1}
     pmagplotlib.plot_init(FIG['map'],6,6)
-    if res=='c':skip=8
-    if res=='l':skip=5
-    if res=='i':skip=2
-    if res=='h':skip=1
+    #if res=='c':skip=8 # What are these for? 
+    #if res=='l':skip=5
+    #if res=='i':skip=2
+    #if res=='h':skip=1
     cnt=0
     Opts={'latmin':latmin,'latmax':latmax,'lonmin':lonmin,'lonmax':lonmax,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':sym,'symsize':3,'pltgrid':1,'res':res,'boundinglat':0.,'padlon':padlon,'padlat':padlat,'gridspace':gridspace}
     Opts['details']={}

@@ -15,6 +15,8 @@ import os
 sys.path.insert(0, os.getcwd())
 import numpy as np
 import pandas as pd
+import warnings
+warnings.filterwarnings("ignore") # what you don't know won't hurt you
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -316,13 +318,27 @@ def plotSITE(fignum, SiteRec, data, key):
 
 
 def plotQQnorm(fignum, Y, title):
+    """
+    makes a Quantile-Quantile plot for data
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    Y : list or array of data
+    title : title string for plot
+    
+    Returns
+    ___________
+    d,dc : the values for D and Dc (the critical value)
+       if d>dc, likely to be normally distributed (95\% confidence)
+    """
     plt.figure(num=fignum)
-    Y.sort()  # data
+    if type(Y)==list:Y=np.array(Y)
+    Y=np.sort(Y)  # sort the data
     n = len(Y)
     d, mean, sigma = k_s(Y)
     dc = old_div(0.886, np.sqrt(float(n)))
-    print('mean,sigma, d, Dc')
-    print(mean, sigma, d, dc)
+    #print('mean,sigma, d, Dc')
+    #print(mean, sigma, d, dc)
     X = []  # list for normal quantile
     for i in range(1, n + 1):
         p = old_div(float(i), float(n + 1))
@@ -342,6 +358,7 @@ def plotQQnorm(fignum, Y, title):
     plt.text(-.9 * bounds[1], .6 * bounds[3], notestr)
     notestr = 'Dc: ' + '%8.3e' % (dc)
     plt.text(-.9 * bounds[1], .5 * bounds[3], notestr)
+    return d,dc
 
 
 def plotQQunf(fignum, D, title, subplot=False):
@@ -2785,10 +2802,27 @@ def plotMAP(fignum, lats, lons, Opts):
                 lcc=Lambert Conformal]
             sym : matplotlib symbol
             symsize : symbol size in pts
+            edge : markeredgecolor
             pltgrid : plot the grid [1,0]
             res :  resolution [c,l,i,h] for crude, low, intermediate, high
             boundinglat : bounding latitude
-
+            sym : matplotlib symbol for plotting
+            symsize : matplotlib symbol size for plotting
+            names : list of names for lats/lons (if empty, none will be plotted)
+            pltgrd : if True, put on grid lines
+            padlat : padding of latitudes 
+            padlon : padding of longitudes
+            gridspace : grid line spacing 
+            details : dictionary with keys:
+                coasts : if True, plot coastlines 
+                rivers : if True, plot rivers 
+                states : if True, plot states 
+                countries : if True, plot countries 
+                ocean : if True, plot ocean 
+                fancy : if True, plot etopo 20 grid 
+                    NB:  etopo must be installed 
+        if Opts keys not set :these are the defaults:
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':'black'} 
 
     """
     from mpl_toolkits.basemap import Basemap
@@ -2800,6 +2834,21 @@ def plotMAP(fignum, lats, lons, Opts):
     # draw meridian labels on the bottom [left,right,top,bottom]
     mlabels = [0, 0, 0, 1]
     plabels = [1, 0, 0, 0]  # draw parallel labels on the left
+    # set default Options
+    Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
+                  'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
+                  'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,\
+                  'padlon':0,'padlat':0,'gridspace':30,\
+                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}} 
+    for key in Opts_defaults.keys():
+        if key not in Opts.keys() and key!='details':
+             Opts[key]=Opts_defaults[key]
+        if key=='details':
+             if key not in Opts.keys():Opts[key]=Opts_defaults[key]
+             for detail_key in Opts_defaults[key].keys():
+                 if detail_key not in Opts[key].keys():
+                     Opts[key][detail_key]=Opts_defaults[key][detail_key]
+        
     if Opts['proj'] in ExMer:
         mlabels = [0, 0, 0, 0]
     if Opts['proj'] not in ExMer:
@@ -2866,7 +2915,7 @@ def plotMAP(fignum, lats, lons, Opts):
         m.drawmeridians(meridians, color='black')
         m.drawmapboundary()
     prn_name, symsize = 0, 5
-    if 'names' in list(Opts.keys()) > 0:
+    if 'names' in Opts.keys() and len(Opts['names']) > 0:
         names = Opts['names']
         if len(names) > 0:
             prn_name = 1
@@ -2879,7 +2928,7 @@ def plotMAP(fignum, lats, lons, Opts):
         if prn_name == 1:
             for pt in range(len(lats)):
                 T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-        m.plot(X, Y, Opts['sym'], markersize=symsize)
+        m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])
     else:  # for lines,  need to separate chunks using lat==100.
         chunk = 1
         while k < len(lats) - 1:
@@ -2894,13 +2943,13 @@ def plotMAP(fignum, lats, lons, Opts):
                 k += 1
             else:  # need to skip 100.0s and move to next chunk
                 # plot previous chunk
-                m.plot(X, Y, Opts['sym'], markersize=symsize)
+                m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])
                 chunk += 1
                 while lats[k] > 90. and k < len(lats) - 1:
                     k += 1  # skip bad points
                 X, Y, T = [], [], []
         if len(X) > 0:
-            m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
+            m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])  # plot last chunk
 
 
 def plot_map(fignum, lats, lons, Opts):
@@ -3012,6 +3061,68 @@ def plot_map(fignum, lats, lons, Opts):
     #    if len(X) > 0:
     #        m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
     ax.set_global()
+
+
+def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
+    """
+    makes a color contour map of geomagnetic field element
+
+    Parameters
+    ____________
+    fignum : matplotlib figure number
+    element : field element array from pmag.do_mag_map for plotting
+    lons : longitude array from pmag.do_mag_map for plotting 
+    lats : latitude array from pmag.do_mag_map for plotting 
+    element_type : [B,Br,I,D] geomagnetic element type
+        B : field intensity
+        Br : radial field intensity
+        I : inclinations
+        D : declinations
+    Optional 
+    _________
+        cmap : matplotlib color map
+        lon_0 : central longitude of the Hammer projection
+        date : date used for field evaluation,
+               if custom ghfile was used, supply filename
+ 
+    Effects
+    ______________
+    plots a Hammer projection color contour with  the desired field element
+    """
+    from mpl_toolkits.basemap import Basemap # matplotlib's Basemap package
+    from pylab import meshgrid # matplotlib's meshgrid function
+    from matplotlib import cm # matplotlib's color map module
+    lincr=1
+    if type(date)!=str: date=str(date)
+    fig=plt.figure(fignum)
+    m = Basemap(projection='hammer',lon_0=lon_0)
+    x,y=m(*meshgrid(lons,lats))
+    m.drawcoastlines()
+    if element_type=='B':
+        levmax=element.max()+lincr
+        levmin=round(element.min()-lincr)
+        levels=np.arange(levmin,levmax,lincr)
+        cs=m.contourf(x,y,element,levels=levels,cmap=cmap)
+        plt.title('Field strength ($\mu$T): '+date);
+    if element_type=='Br':
+        levmax=element.max()+lincr
+        levmin=round(element.min()-lincr)
+        cs=m.contourf(x,y,element,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
+        plt.title('Radial field strength ($\mu$T): '+date);
+    if element_type=='I':
+        levmax=element.max()+lincr
+        levmin=round(element.min()-lincr)
+        cs=m.contourf(x,y,element,levels=np.arange(-90,100,20),cmap=cmap)
+        m.contour(x,y,element,levels=np.arange(-80,90,10),colors='black')
+        plt.title('Field inclination: '+date);
+    if element_type=='D':
+        #cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
+        cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
+        m.contour(x,y,element,levels=np.arange(-180,180,10),colors='black')
+        plt.title('Field declination: '+date);
+    cbar=m.colorbar(cs,location='bottom')
+    plt.show()
+
 
 def plotEQcont(fignum, DIblock,color_map='coolwarm'):
     """

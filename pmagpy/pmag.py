@@ -4870,6 +4870,11 @@ def PTrot(EP, Lats, Lons):
     EP : Euler pole list [lat,lon,angle]
     Lats : list of latitudes of points to be rotated
     Lons : list of longitudes of points to be rotated
+    
+    Returns
+    _________
+    RLats : rotated latitudes
+    RLons : rotated longitudes
     """
 # gets user input of Rotation pole lat,long, omega for plate and converts
 # to radians
@@ -10178,10 +10183,11 @@ def do_mag_map(date, **kwargs):
     ______________
     mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','custom')
     file = l m g h formatted filefor custom model
+    lon_0 : central longitude for Hammer projection
 
     alt  = altitude
 
-    Output:
+    Returns:
     ______________
     Bdec=list of declinations
     Binc=list of inclinations

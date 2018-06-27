@@ -97,36 +97,22 @@ def main():
         ind=sys.argv.index('-alt')
         alt=float(sys.argv[ind+1])
     else: alt=0
-    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,el=el,alt=alt,file=ghfile)
-    m = Basemap(projection='hammer',lon_0=lon_0)
-    x,y=m(*meshgrid(lons,lats))
-    m.drawcoastlines()
-    if mod=='custom':
-        d='Custom'
-    else: d=str(date)
-    if el=='B':
-        levmax=Bs.max()+lincr
-        levmin=round(Bs.min()-lincr)
-        levels=np.arange(levmin,levmax,lincr)
-        cs=m.contourf(x,y,Bs,levels=levels,cmap=cmap)
-        plt.title('Field strength ($\mu$T): '+d);
-    if el=='Br':
-        levmax=Brs.max()+lincr
-        levmin=round(Brs.min()-lincr)
-        cs=m.contourf(x,y,Brs,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
-        plt.title('Radial field strength ($\mu$T): '+str(date));
-    if el=='I':
-        levmax=Is.max()+lincr
-        levmin=round(Is.min()-lincr)
-        cs=m.contourf(x,y,Is,levels=np.arange(-90,100,20),cmap=cmap)
-        m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black')
-        plt.title('Field inclination: '+str(date));
+    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,alt=alt,file=ghfile)
     if el=='D':
-        #cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
-        cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
-        m.contour(x,y,Ds,levels=np.arange(-180,180,10),colors='black')
-        plt.title('Field declination: '+str(date));
-    cbar=m.colorbar(cs,location='bottom')
+        element=Ds
+    elif el=='I':
+        element=Is
+    elif el=='B':
+        element=Bs
+    elif el=='Br':
+        element=Brs
+    elif el=='I':
+        element=Is
+    else:
+        print(main.__doc__)
+        sys.exit()
+    plot_mag_map(1,element,lons,lats,el,lon_0=0,date=date)
+    
     plt.savefig('igrf'+d+'.'+fmt)
     print('Figure saved as: ','igrf'+d+'.'+fmt)
 
