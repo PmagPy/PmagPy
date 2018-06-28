@@ -157,21 +157,14 @@ If you are left with any questions about git and Github best practices, go ahead
 We try to make new releases of PmagPy several times per year.
 
 A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
-Making a new release has several steps:
 
-- Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
+- Make sure you are set up with PyPI.  You must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](https://github.com/PmagPy/PmagPy/blob/master/example_pypirc)).
 
 - Make sure all tests are passing and all new features are working.
 
-- Create a new release number by updating pmagpy/version.py.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
+- These are the steps to make a new pip release for pmagpy and pmagpy-cli:
 
-- Create a pip release.
-
-    + **Note:** Before you can make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](https://github.com/PmagPy/PmagPy/blob/master/example_pypirc)).
-
-    + These are the steps to make a pip release for pmagpy and pmagpy-cli.
-
-    + First, increment the version number pmagpy/version.py.  PYPI will reject a duplicate version number, so you need to update version.py each time.
+    + First, increment the version number pmagpy/version.py.  PYPI will reject a duplicate version number, so you need to update version.py each time.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
 
     + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
@@ -192,9 +185,6 @@ Making a new release has several steps:
     + This article has some more good information about uploading to PYPI, etc.: [clearest but slightly out of date](https://tom-christie.github.io/articles/pypi/), [official documentation](https://packaging.python.org/tutorials/distributing-packages/), [how to use testpypi](https://packaging.python.org/guides/using-testpypi/).
 
 - Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
-
-- If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
-
 
 ## Resources
 
