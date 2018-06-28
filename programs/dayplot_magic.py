@@ -62,7 +62,6 @@ def main():
     pmagplotlib.plot_init(DSC['day'], 5, 5)
     pmagplotlib.plot_init(DSC['S-Bc'], 5, 5)
     pmagplotlib.plot_init(DSC['S-Bcr'], 5, 5)
-    pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Bcr1, Bcr1Bc, S1 = [], [], []
     locations = []
