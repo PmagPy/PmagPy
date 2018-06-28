@@ -26,6 +26,7 @@ import re
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
 from pmagpy import new_builder as nb
+from pmag_env import set_env
 
 
 def igrf(input_list,mod='',ghfile=""):
