@@ -9643,6 +9643,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
+    if isite:
+        con.propagate_name_down('site', 'specimens')
     spec_container = con.tables['specimens']
     #spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     spec_df = spec_container.df
@@ -9665,9 +9667,15 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         if verbose:
             print("desired coordinate system not available, using available: ", crd)
     if isite == 1:
-        sitelist = spec_df['site'].unique()
-        sitelist.sort()
-        plot = len(sitelist)
+        if 'site' not in spec_df.columns:
+            print("cannot plot by site -- make sure you have a samples and site table available")
+            print("plotting all data instead")
+            isite = 0
+            plot = 1
+        else:
+            sitelist = spec_df['site'].unique()
+            sitelist.sort()
+            plot = len(sitelist)
     else:
         plot = 1
     k = 0
@@ -10066,6 +10074,11 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                             else:
                                 print("ummm - you are doing something wrong - i give up")
                                 sys.exit()
+                    if set_env.IS_WIN:
+                        # if windows, must re-draw everything
+                        pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
+                                             title, iplot, comp, vec, Dir, num_bootstraps)
+
                     pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
                     if verbose and plots == 0:
