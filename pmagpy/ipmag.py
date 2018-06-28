@@ -9938,7 +9938,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 if ipar == 1:
                     BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS-P' # parametric bootstrap
                 if verbose:
-                    print("Boostrap Statistics: ")
+                    print("Bootstrap Statistics: ")
                     print(" tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
                     print(BootRec["anisotropy_t1"], BootRec["anisotropy_v1_dec"], end=' ')
                     print(BootRec["anisotropy_v1_inc"], BootRec["anisotropy_v1_eta_semi_angle"], end=' ')
@@ -10059,6 +10059,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title,
                                                         iplot, comp, vec, Dir, num_bootstraps)
                     Dir, comp = [], 0
+                    if verbose and plots == 0:
+                        pmagplotlib.drawFIGS(ANIS)
                 if ans == 'g':
                     con, cnt = 1, 0
                     while con == 1:
