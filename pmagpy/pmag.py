@@ -927,11 +927,11 @@ def get_Sb(data):
     """
     Sb, N = 0., 0.
     for rec in data:
-        delta = 90. - abs(float(rec['vgp_lat']))
-        if rec['average_k'] != "0":
-            k = float(rec['average_k'])
-            L = float(rec['average_lat']) * np.pi / 180.  # latitude in radians
-            Nsi = float(rec['average_nn'])
+        delta = 90. - abs(rec['vgp_lat'])
+        if rec['average_k'] != 0:
+            k = rec['average_k']
+            L = rec['average_lat'] * np.pi / 180.  # latitude in radians
+            Nsi = rec['average_nn']
             K = old_div(k, (2. * (1. + 3. * np.sin(L)**2) /
                             (5. - 3. * np.sin(L)**2)))
             Sw = old_div(81., np.sqrt(K))
@@ -10346,6 +10346,31 @@ def separate_directions(di_block):
     mode2=mode2_df[['dec','inc']].values.tolist()
     return mode1,mode2
 
+def dovandamme(vgp_df):
+    """
+    determine the S_b value for VGPs using the Vandamme (1990) method 
+    for determining cutoff value for "outliers".  
+    Parameters
+    ___________
+    vgp_df : pandas DataFrame with required column "vgp_lat"
+             This should be in the desired coordinate system and assumes one polarity
+    
+    Returns
+    _________
+    vgp_df : after applying cutoff
+    cutoff : colatitude cutoff 
+    S_b : S_b of vgp_df  after applying cutoff
+    """
+    vgp_df['delta']=90.-vgp_df['vgp_lat'].values
+    S_B=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+    cutoff, A = 181., 180.
+    while cutoff>A:
+        A = 1.8 * S_B + 5
+        cutoff=float(vgp_df.delta.values.max())
+        if cutoff<A:
+            return vgp_df,cutoff,S_B
+        vgp_df=vgp_df[vgp_df.delta<cutoff]
+        S_B=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
 
 
 def main():
