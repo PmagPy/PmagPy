@@ -8,21 +8,16 @@ import numpy as np
 import pylab
 import pmagpy.pmag as pmag
 
-
 def main():
     """
     NAME
         scalc.py
-
     DESCRIPTION
        calculates Sb from VGP Long,VGP Lat,Directional kappa,Site latitude data
-
     SYNTAX
         scalc -h [command line options] [< standard input]
-
     INPUT
        takes space delimited files with PLong, PLat,[kappa, N_site, slat]
-
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input file
@@ -33,6 +28,8 @@ def main():
         -C:  use all data without regard to polarity
         -b: do a bootstrap for confidence
         -p: do relative to principle axis
+        -n: set minimum n for samples (specimens) per site
+        -MM97: correct for within site scatter (McElhinny & McFadden, 1997) 
     NOTES
         if kappa, N_site, lat supplied, will consider within site scatter
     OUTPUT
@@ -76,15 +73,17 @@ def main():
         v = 1
     if '-p' in sys.argv:
         spin = 0
+    if '-mm97' in sys.argv:
+        MM97=True
+    else:
+        MM97=False
     #
     #
     if len(list(vgp_df.columns))==2:
         vgp_df.columns=['vgp_lon','vgp_lat']
-        vgp_df['average_k'],vgp_df['average_nn']=0,0
-    elif len(list(vgp_df.columns))==4:
-        vgp_df.columns=[['vgp_lon','vgp_lat','average_k','average_nn']]
-    elif len(list(vgp_df.columns))==5:
-        vgp_df.columns=[['vgp_lon','vgp_lat','average_k','average_nn','average_lat']]
+        vgp_df['dir_k'],vgp_df['dir_n'],vgp_df['lat']=0,0,0
+    else:
+        vgp_df.columns=['vgp_lon','vgp_lat','dir_k','dir_n','lat']
     if anti == 1:
         vgp_rev=vgp_df[vgp_df.vgp_lat<0]
         vgp_norm=vgp_df[vgp_df.vgp_lat>=0]
@@ -93,10 +92,11 @@ def main():
         vgp_anti['vgp_lon']=(vgp_anti['vgp_lon']-180)%360
         vgp_df=pd.concat([vgp_norm,vgp_anti])
     # filter by cutoff, kappa, and n
-    vgp_df['delta']=90.-vgp_df.vgp_lat
+    vgp_df['delta']=90.-vgp_df.vgp_lat.values
+    
     vgp_df=vgp_df[vgp_df.delta<=cutoff]
-    vgp_df=vgp_df[vgp_df.average_k>=kappa]
-    vgp_df=vgp_df[vgp_df.average_nn>=n]
+    vgp_df=vgp_df[vgp_df.dir_k>=kappa]
+    vgp_df=vgp_df[vgp_df.dir_n>=n]
     if spin == 0:  # do transformation to pole
         Pvgps=vgp_df[['vgp_lon','vgp_lat']].values
         ppars = pmag.doprinc(Pvgps)
@@ -107,27 +107,27 @@ def main():
         vgp_df['vgp_lon']=lons
         vgp_df['vgp_lat']=lats
         vgp_df['delta']=90.-vgp_df.vgp_lat
-    if v == 1: vgp_df,cutoff,S_B=pmag.dovandamme(vgp_df)
-    Vgps=vgp_df.to_dict('records')
-    S_B = pmag.get_Sb(Vgps)
-    SBs, Ns = [], []
+    S_v=0
+    if v == 1: 
+        vgp_df,cutoff,S_v=pmag.dovandamme(vgp_df)
+    S_B = pmag.get_sb_df(vgp_df,MM97=MM97)
+    print (S_v,S_B)
+    N=vgp_df.shape[0]
+    SBs=[]
     if boot == 1:
         print('please be patient...   bootstrapping')
         for i in range(nb):  # now do bootstrap
-            BVgps = []
-            for k in range(len(Vgps)):
-                random.seed()
-                ind = random.randint(0, len(Vgps) - 1)
-                BVgps.append(Vgps[ind])
-            SBs.append(pmag.get_Sb(BVgps))
+            bs_df=vgp_df.sample(n=N,replace=True)
+            Sb_bs = pmag.get_sb_df(bs_df)
+            SBs.append(Sb_bs)
         SBs.sort()
         low = int(.025 * nb)
         high = int(.975 * nb)
-        print(len(Vgps), '%7.1f %7.1f  %7.1f %7.1f ' %
+        print(vgp_df.shape[0], '%7.1f %7.1f  %7.1f %7.1f ' %
               (S_B, SBs[low], SBs[high], cutoff))
     else:
-        print(len(Vgps), '%7.1f  %7.1f ' % (S_B, cutoff))
-#    slats=vgp_df.vgp_lat.values
+        print(vgp_df.shape[0], '%7.1f  %7.1f ' % (S_B, cutoff))
+#    slats=vgp_df.average_lat.values
 #    if slats.shape[0] > 2:
 #        print('mean lat = ', '%7.1f' % (slats.mean()))
 

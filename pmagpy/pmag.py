@@ -941,6 +941,37 @@ def get_Sb(data):
         N += 1.
     return np.sqrt(old_div(Sb, float(N - 1.)))
 
+def get_sb_df(df,MM97=False):
+    """
+    Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
+
+    Parameters
+    _________
+    df : Pandas Dataframe with columns
+        REQUIRED: 
+        vgp_lat :  VGP latitude
+        ONLY REQUIRED for MM97 correction:
+        dir_k : Fisher kappa estimate
+        dir_n : number of specimens (samples) per site
+        lat : latitude of the site
+    MM97 : if True, will do the correction for within site scatter
+
+    Returns:
+    _______
+    Sf : Sf
+    """
+    df['delta']=90.-df.vgp_lat
+    Sp2 = np.sum(df.delta**2)/(df.shape[0]-1)
+    if 'dir_k' in df.columns and MM97:
+        ks=df.dir_k
+        Ns=df.dir_n
+        Ls=np.radians(df.lat)
+        A95s=140./np.sqrt(ks*Ns)
+        Sw2_n=0.335*(A95s**2)*(2.*(1.+3.*np.sin(Ls)**2)/(5.-3.*np.sin(Ls)**2))
+        return np.sqrt(Sp2-Sw2_n.mean())
+    else: 
+        return np.sqrt(Sp2)
+
 
 def default_criteria(nocrit):
     Crits = {}
@@ -10348,7 +10379,7 @@ def separate_directions(di_block):
 
 def dovandamme(vgp_df):
     """
-    determine the S_b value for VGPs using the Vandamme (1990) method 
+    determine the S_b value for VGPs using the Vandamme (1994) method 
     for determining cutoff value for "outliers".  
     Parameters
     ___________
@@ -10362,15 +10393,16 @@ def dovandamme(vgp_df):
     S_b : S_b of vgp_df  after applying cutoff
     """
     vgp_df['delta']=90.-vgp_df['vgp_lat'].values
-    S_B=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
-    cutoff, A = 181., 180.
-    while cutoff>A:
-        A = 1.8 * S_B + 5
-        cutoff=float(vgp_df.delta.values.max())
-        if cutoff<A:
-            return vgp_df,cutoff,S_B
-        vgp_df=vgp_df[vgp_df.delta<cutoff]
-        S_B=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+    ASD=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+    A= 1.8 * ASD + 5.
+    delta_max=vgp_df.delta.max()
+    while delta_max>A:
+        delta_max=vgp_df.delta.max()
+        if delta_max<A:
+            return vgp_df,A,ASD
+        vgp_df=vgp_df[vgp_df.delta<delta_max]
+        ASD=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+        A= 1.8 * ASD + 5.
 
 
 def main():
