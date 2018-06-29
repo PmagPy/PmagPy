@@ -941,7 +941,7 @@ def get_Sb(data):
         N += 1.
     return np.sqrt(old_div(Sb, float(N - 1.)))
 
-def get_sb_df(df,MM97=False):
+def get_sb_df(df,mm97=False):
     """
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
 
@@ -954,7 +954,7 @@ def get_sb_df(df,MM97=False):
         dir_k : Fisher kappa estimate
         dir_n : number of specimens (samples) per site
         lat : latitude of the site
-    MM97 : if True, will do the correction for within site scatter
+    mm97 : if True, will do the correction for within site scatter
 
     Returns:
     _______
@@ -962,7 +962,7 @@ def get_sb_df(df,MM97=False):
     """
     df['delta']=90.-df.vgp_lat
     Sp2 = np.sum(df.delta**2)/(df.shape[0]-1)
-    if 'dir_k' in df.columns and MM97:
+    if 'dir_k' in df.columns and mm97:
         ks=df.dir_k
         Ns=df.dir_n
         Ls=np.radians(df.lat)
@@ -10404,6 +10404,69 @@ def dovandamme(vgp_df):
         ASD=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
         A= 1.8 * ASD + 5.
 
+def scalc_vgp_df(vgp_df,anti=0,rev=0,cutoff=180.,kappa=0,n=0,spin=0,v=0,boot=0,mm97=0,nb=1000):
+    """
+    Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
+
+    Parameters
+    _________
+    df : Pandas Dataframe with columns
+        REQUIRED:
+        vgp_lat :  VGP latitude
+        ONLY REQUIRED for MM97 correction:
+        dir_k : Fisher kappa estimate
+        dir_n_samples : number of samples per site
+        lat : latitude of the site
+        mm97 : if True, will do the correction for within site scatter
+        OPTIONAL:
+        boot : if True. do bootstrap
+        nb : number of bootstraps, default is 1000  
+    
+    Returns
+    _____________
+        N : number of VGPs used in calculation
+        S : S
+        low : 95% confidence lower bound [0 if boot=0]    
+        high  95% confidence upper bound [0 if boot=0]
+        cutoff : cutoff used in calculation of  S
+    """
+    vgp_df['delta']=90.-vgp_df.vgp_lat.values
+    # filter by cutoff, kappa, and n
+    vgp_df=vgp_df[vgp_df.delta<=cutoff]
+    vgp_df=vgp_df[vgp_df.dir_k>=kappa]
+    vgp_df=vgp_df[vgp_df.dir_n_samples>=n]
+    if spin:  # do transformation to pole
+        Pvgps=vgp_df[['vgp_lon','vgp_lat']].values
+        ppars = doprinc(Pvgps)
+        Bdirs=np.full((Pvgps.shape[0]),ppars['dec']-180.)
+        Bdips=np.full((Pvgps.shape[0]),90.-ppars['inc'])
+        Pvgps=np.column_stack((Pvgps,Bdirs,Bdips))
+        lons,lats=dotilt_V(Pvgps)
+        vgp_df['vgp_lon']=lons
+        vgp_df['vgp_lat']=lats
+        vgp_df['delta']=90.-vgp_df.vgp_lat
+    if anti:
+        print ('flipping reverse')
+        vgp_rev=vgp_df[vgp_df.vgp_lat<0]
+        vgp_norm=vgp_df[vgp_df.vgp_lat>=0]
+        vgp_anti=vgp_rev
+        vgp_anti['vgp_lat']=-vgp_anti['vgp_lat']
+        vgp_anti['vgp_lon']=(vgp_anti['vgp_lon']-180)%360
+        vgp_df=pd.concat([vgp_norm,vgp_anti])
+    if rev: vgp_df=vgp_df[vgp_df.vgp_lat<0] # use only reverse data
+    if v: vgp_df,cutoff,S_v=dovandamme(vgp_df) # do vandamme cutoff
+    S_B = get_sb_df(vgp_df,mm97=mm97) # get 
+    N=vgp_df.shape[0]
+    SBs,low,high=[],0,0
+    if boot:
+        for i in range(nb):  # now do bootstrap
+            bs_df=vgp_df.sample(n=N,replace=True)
+            Sb_bs = get_sb_df(bs_df)
+            SBs.append(Sb_bs)
+        SBs.sort()
+        low = SBs[int(.025 * nb)]
+        high = SBs[int(.975 * nb)]
+    return N,S_B,low,high,cutoff
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
