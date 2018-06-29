@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 from builtins import object
 import pandas as pd
 import sys
@@ -74,8 +73,8 @@ def check_args(arguments, data_frame):
     #condition = df['default'] != '' # don't need this, and sometimes the correct default argument IS ''
     default_args = df #[condition]
     using_defaults = []
-    for value in default_args.values:
-        arg_name, default = value[0], value[1]
+    for arg_name, row in default_args.iterrows():
+        default = row['default']
         if arg_name not in stripped_args:
             using_defaults.append(arg_name)
             arguments.append([arg_name, default])
