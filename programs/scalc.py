@@ -80,8 +80,10 @@ def main():
     #
     if len(list(vgp_df.columns))==2:
         vgp_df.columns=['vgp_lon','vgp_lat']
-        vgp_df['average_k'],vgp_df['average_nn'],vgp_df['average_lat']=0,0,0
-    else:
+        vgp_df['average_k'],vgp_df['average_nn']=0,0
+    elif len(list(vgp_df.columns))==4:
+        vgp_df.columns=[['vgp_lon','vgp_lat','average_k','average_nn']]
+    elif len(list(vgp_df.columns))==5:
         vgp_df.columns=[['vgp_lon','vgp_lat','average_k','average_nn','average_lat']]
     if anti == 1:
         vgp_rev=vgp_df[vgp_df.vgp_lat<0]
