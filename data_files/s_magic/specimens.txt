@@ -1,0 +1,10 @@
+tab 	specimens
+analysts	aniso_s	aniso_type	citations	experiments	location	sample	site	specimen
+	3.345571000e-01:3.319265900e-01:3.335163100e-01:-4.356200131e-04:9.277900278e-04:1.050060032e-03	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.358550066e-01:3.319156467e-01:3.322293467e-01:5.595999944e-04:-5.315999947e-05:6.473199935e-04	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.358666900e-01:3.308492300e-01:3.332840800e-01:1.422660000e-03:1.323400000e-04:9.203000000e-05	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.348866400e-01:3.313849300e-01:3.337284300e-01:-5.659700000e-04:-3.908500000e-04:4.873000000e-05	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.350660401e-01:3.312702099e-01:3.336637500e-01:-1.051930063e-03:-5.725700344e-04:-2.995900180e-04	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.340768700e-01:3.317756600e-01:3.341474700e-01:7.006999790e-05:1.844699945e-04:5.072999848e-05	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.348392500e-01:3.319785300e-01:3.331822200e-01:-2.844700000e-04:3.518000000e-05:-2.926200000e-04	AMS	This study	unknown:LP-X	unknown	unknown		unknown
+	3.351314299e-01:3.317503500e-01:3.331182200e-01:7.791399766e-04:-6.401999808e-05:4.611999862e-05	AMS	This study	unknown:LP-X	unknown	unknown		unknown
