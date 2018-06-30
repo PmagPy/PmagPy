@@ -57,7 +57,7 @@ def poly(X, Y, deg):
 
 def showFIG(fig):
     plt.figure(fig)
-    plt.show()
+    plt.show();
 
 
 def drawFIGS(FIGS):

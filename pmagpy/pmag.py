@@ -1488,18 +1488,22 @@ def get_specs(data):
 def vector_mean(data):
     """
     calculates the vector mean of a given set of vectors
+    Parameters
+    __________
+    data :  nested array of [dec,inc,M]
+    
+    Returns
+    _______
+    dir : array of [dec, inc, 1]
+    R : resultant vector length
+
     """
-    R, Xbar, X = 0, [0, 0, 0], []
-    for rec in data:
-        X.append(dir2cart(rec))
-    for i in range(len(X)):
-        for c in range(3):
-            Xbar[c] += X[i][c]
-    for c in range(3):
-        R += Xbar[c]**2
-    R = np.sqrt(R)
-    for c in range(3):
-        Xbar[c] = old_div(Xbar[c], R)
+    Xbar=np.zeros((3))
+    X=dir2cart(data).transpose()
+    for i in range(3):
+        Xbar[i]=X[i].sum()
+    R = np.sqrt(Xbar[0]**2+Xbar[1]**2+Xbar[2]**2)
+    Xbar = Xbar/R
     dir = cart2dir(Xbar)
     return dir, R
 
@@ -3793,16 +3797,18 @@ def magic_help(keyhelp):
 def dosundec(sundata):
     """
     returns the declination for a given set of suncompass data
-    INPUT:
-      sundata={'date':'yyyy:mm:dd:hr:min','delta_u':DU,'lat':LAT,'lon':LON,'shadow_angle':SHADAZ}
-      where:
-         DU is the hours to subtract from local time to get Greenwich Mean Time
-         LAT,LON are the site latitude,longitude (negative for south and west respectively)
-         SHADAZ is the shadow angle of the desired direction with respect to the sun.
-    OUTPUT:
-      the declination of the desired direction wrt true north.
+    Parameters
+    __________
+      sundata : dictionary with these keys:
+          date: time string with the format 'yyyy:mm:dd:hr:min'
+          delta_u: time to SUBTRACT from local time for Universal time
+          lat: latitude of location (negative for south)
+          lon: longitude of location (negative for west)
+          shadow_angle: shadow angle of the desired direction with respect to the sun.
+    Returns
+    ________
+       sunaz : the declination of the desired direction wrt true north.
     """
-    rad = old_div(np.pi, 180.)
     iday = 0
     timedate = sundata["date"]
     timedate = timedate.split(":")
@@ -3829,9 +3835,9 @@ def dosundec(sundata):
     if H > 90 and H < 270:
         lat = -lat
 # now do spherical trig to get azimuth to sun
-    lat = (lat) * rad
-    delta = (delta) * rad
-    H = H * rad
+    lat = np.radians(lat)
+    delta = np.radians(delta)
+    H = np.radians(H)
     ctheta = np.sin(lat) * np.sin(delta) + np.cos(lat) * \
         np.cos(delta) * np.cos(H)
     theta = np.arccos(ctheta)
@@ -3839,12 +3845,12 @@ def dosundec(sundata):
 #
 #       check which beta
 #
-    beta = old_div(np.arcsin(beta), rad)
+    beta = np.degrees(np.arcsin(beta))
     if delta < lat:
         beta = 180 - beta
     sunaz = 180 - beta
-    suncor = (sunaz + float(sundata["shadow_angle"])) % 360.  # mod 360
-    return suncor
+    sunaz = (sunaz + float(sundata["shadow_angle"])) % 360.  # mod 360
+    return sunaz
 
 
 def gha(julian_day, f):
@@ -5158,19 +5164,17 @@ def vgp_di(plat, plong, slat, slong):
     ----------
     dec,inc : tuple of declination and inclination
     """
-    if plong < 0:
-        plong = plong + 360
-    if slong < 0:
-        slong = slong + 360
-    rad, signdec = old_div(np.pi, 180.), 1.
+    plong=plong%360
+    slong = slong%360
+    signdec = 1.
     delphi = abs(plong - slong)
     if delphi != 0:
-        signdec = old_div((plong - slong), delphi)
+        signdec = (plong - slong)/ delphi
     if slat == 90.:
         slat = 89.99
-    thetaS = (90. - slat) * rad
-    thetaP = (90. - plat) * rad
-    delphi = delphi * rad
+    thetaS = np.radians(90. - slat)
+    thetaP = np.radians(90. - plat)
+    delphi = np.radians(delphi)
     cosp = np.cos(thetaS) * np.cos(thetaP) + np.sin(thetaS) * \
         np.sin(thetaP) * np.cos(delphi)
     thetaM = np.arccos(cosp)
@@ -5178,15 +5182,15 @@ def vgp_di(plat, plong, slat, slong):
                     np.cos(thetaS)), (np.sin(thetaM) * np.sin(thetaS)))
     C = abs(1. - cosd**2)
     if C != 0:
-        dec = -np.arctan(old_div(cosd, np.sqrt(abs(C)))) + old_div(np.pi, 2.)
+        dec = -np.arctan(cosd/np.sqrt(abs(C))) + (np.pi/2.)
     else:
         dec = np.arccos(cosd)
     if -np.pi < signdec * delphi and signdec < 0:
         dec = 2. * np.pi - dec  # checking quadrant
     if signdec * delphi > np.pi:
         dec = 2. * np.pi - dec
-    dec = (old_div(dec, rad)) % 360.
-    inc = old_div((np.arctan2(2. * np.cos(thetaM), np.sin(thetaM))), rad)
+    dec = np.degrees(dec)%360.
+    inc = np.degrees(np.arctan2(2. * np.cos(thetaM), np.sin(thetaM)))
     return dec, inc
 
 
@@ -5470,11 +5474,17 @@ def gaussdev(mean, sigma, N=1):
 #
 
 
-def get_unf(N):
+def get_unf(N=100):
     """
-    Called with get_unf(N).
- subroutine to retrieve N uniformly distributed directions
- using the way described in Fisher et al. (1987).
+    Generates N uniformly distributed directions
+    using the way described in Fisher et al. (1987).
+    Parameters
+    __________
+    N : number of directions, default is 100
+    
+    Returns 
+    ______
+    array of nested dec,inc pairs 
     """
 #
 # get uniform directions  [dec,inc]
@@ -10467,6 +10477,33 @@ def scalc_vgp_df(vgp_df,anti=0,rev=0,cutoff=180.,kappa=0,n=0,spin=0,v=0,boot=0,m
         low = SBs[int(.025 * nb)]
         high = SBs[int(.975 * nb)]
     return N,S_B,low,high,cutoff
+
+def watsons_f(DI1,DI2):
+    """
+    calculates Watson's F statistic (equation 11.16 in Essentials text book.
+
+    Parameters
+    _________
+    DI1 : nested array of [Dec,Inc] pairs
+    DI2 : nested array of [Dec,Inc] pairs
+    
+    Returns
+    _______
+    F : Watson's F
+    Fcrit : critical value from F table
+    """
+    # first calculate R for the combined data set, then R1 and R2 for each individually.
+    DI=np.concatenate((DI1,DI2),axis=0) # create a new array from two smaller ones
+    fpars=fisher_mean(DI) # re-use our functionfrom problem 1b
+    fpars1=fisher_mean(DI1)
+    fpars2=fisher_mean(DI2)
+    N=fpars['n']
+    R=fpars['r']
+    R1=fpars1['r']
+    R2=fpars2['r']
+    F=(N-2.)*((R1+R2-R)/(N-R1-R2))
+    Fcrit=fcalc(2,2*(N-2))
+    return F,Fcrit
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
