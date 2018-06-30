@@ -4358,7 +4358,7 @@ def process_data_for_mean(data, direction_type_key):
                                 list of sum of the cartezian components of all lines
                                 )
     """
-    dir_key,inc_key,meth_key='dec','inc','magic_method_codes' # data model 2.5
+    dec_key,inc_key,meth_key='dec','inc','magic_method_codes' # data model 2.5
     if 'dir_dec' in data[0].keys(): # this is data model 3.0
         dec_key,inc_key,meth_key='dir_dec','dir_inc','method_codes'
 
