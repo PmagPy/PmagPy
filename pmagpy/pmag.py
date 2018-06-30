@@ -72,9 +72,9 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
     if float_to_int:
         try:
             v = str(math.trunc(float(v)))
-        except ValueError: # catches non floatable strings
+        except ValueError:  # catches non floatable strings
             pass
-        except TypeError: # catches None
+        except TypeError:  # catches None
             pass
         fixed_In = []
         for dictionary in In:
@@ -82,9 +82,9 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
                 val = dictionary[k]
                 try:
                     val = str(math.trunc(float(val)))
-                except ValueError: # catches non floatable strings
+                except ValueError:  # catches non floatable strings
                     pass
-                except TypeError: # catches None
+                except TypeError:  # catches None
                     pass
                 dictionary[k] = val
             fixed_In.append(dictionary)
@@ -154,21 +154,21 @@ def find(f, seq):
     return ""
 
 
-def get_orient(samp_data, er_sample_name,**kwargs):
+def get_orient(samp_data, er_sample_name, **kwargs):
     # set orientation priorities
     EX = ["SO-ASC", "SO-POM"]
-    samp_key,az_key,dip_key='er_sample_name','sample_azimuth','sample_dip'
-    disc_key,or_key,meth_key='sample_description','sample_orientation_flag',\
-             'magic_method_codes'
+    samp_key, az_key, dip_key = 'er_sample_name', 'sample_azimuth', 'sample_dip'
+    disc_key, or_key, meth_key = 'sample_description', 'sample_orientation_flag',\
+        'magic_method_codes'
     if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
-        samp_key,az_key,dip_key='sample','azimuth','dip'
-        disc_key,or_key,meth_key='description','orientation_quality',\
-             'method_codes'
+        samp_key, az_key, dip_key = 'sample', 'azimuth', 'dip'
+        disc_key, or_key, meth_key = 'description', 'orientation_quality',\
+            'method_codes'
     orient = {samp_key: er_sample_name, az_key: "",
               dip_key: "", disc_key: ""}
     # get all the orientation data for this sample
     orients = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
-    if len(orients)>0 and or_key in list(orients[0].keys()):
+    if len(orients) > 0 and or_key in list(orients[0].keys()):
         # exclude all samples with bad orientation flag
         orients = get_dictitem(orients, or_key, 'b', 'F')
     if len(orients) > 0:
@@ -188,15 +188,16 @@ def get_orient(samp_data, er_sample_name,**kwargs):
         # preserve meta-data anyway even though orientation is bad
 # get all the orientation data for this sample
         orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
-        if len(orig_data)>0:
+        if len(orig_data) > 0:
             orig_data = orig_data[0]
         else:
-            orig_data=[]
+            orig_data = []
         az_type = "SO-NO"
     else:
         SO_priorities = set_priorities(SO_methods, 0)
         az_type = SO_methods[SO_methods.index(SO_priorities[0])]
-        orient = get_dictitem(orients, meth_key, az_type, 'has')[0]  # re-initialize to best one
+        orient = get_dictitem(orients, meth_key, az_type, 'has')[
+            0]  # re-initialize to best one
     return orient, az_type
 
 
@@ -333,16 +334,16 @@ def convert_lat(Recs):
     return New
 
 
-def convert_ages(Recs,**kwargs):
+def convert_ages(Recs, **kwargs):
     """
     converts ages to Ma
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
-        site_key='site'
-        agekey="age"
-        keybase=""
+        site_key = 'site'
+        agekey = "age"
+        keybase = ""
     else:
-        site_key='er_site_names'
+        site_key = 'er_site_names'
         agekey = find('age', list(rec.keys()))
         if agekey != "":
             keybase = agekey.split('_')[0] + '_'
@@ -353,8 +354,9 @@ def convert_ages(Recs,**kwargs):
         if rec[keybase + 'age'] != "":
             age = float(rec[keybase + "age"])
         elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
-            age = np.mean([rec[keybase + 'age_high'], rec[keybase + "age_low"]])
-            #age = float(rec[keybase + 'age_low']) + old_div(
+            age = np.mean([rec[keybase + 'age_high'],
+                           rec[keybase + "age_low"]])
+            # age = float(rec[keybase + 'age_low']) + old_div(
             #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
         if age != '':
             rec[keybase + 'age_unit']
@@ -375,7 +377,7 @@ def convert_ages(Recs,**kwargs):
                 print('problem in convert_ages:', rec['site_key'])
             else:
                 print('problem in convert_ages:', rec)
-        if len(New)==0:
+        if len(New) == 0:
             print('no age key:', rec)
     return New
 
@@ -941,7 +943,8 @@ def get_Sb(data):
         N += 1.
     return np.sqrt(old_div(Sb, float(N - 1.)))
 
-def get_sb_df(df,mm97=False):
+
+def get_sb_df(df, mm97=False):
     """
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
 
@@ -960,16 +963,17 @@ def get_sb_df(df,mm97=False):
     _______
     Sf : Sf
     """
-    df['delta']=90.-df.vgp_lat
+    df['delta'] = 90.-df.vgp_lat
     Sp2 = np.sum(df.delta**2)/(df.shape[0]-1)
     if 'dir_k' in df.columns and mm97:
-        ks=df.dir_k
-        Ns=df.dir_n
-        Ls=np.radians(df.lat)
-        A95s=140./np.sqrt(ks*Ns)
-        Sw2_n=0.335*(A95s**2)*(2.*(1.+3.*np.sin(Ls)**2)/(5.-3.*np.sin(Ls)**2))
+        ks = df.dir_k
+        Ns = df.dir_n
+        Ls = np.radians(df.lat)
+        A95s = 140./np.sqrt(ks*Ns)
+        Sw2_n = 0.335*(A95s**2)*(2.*(1.+3.*np.sin(Ls)**2) /
+                                 (5.-3.*np.sin(Ls)**2))
         return np.sqrt(Sp2-Sw2_n.mean())
-    else: 
+    else:
         return np.sqrt(Sp2)
 
 
@@ -1091,7 +1095,7 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 #
 
 
-def flip(di_block,combine=False):
+def flip(di_block, combine=False):
     """
     determines principle direction and calculates the antipode of
     the reverse mode
@@ -1104,17 +1108,20 @@ def flip(di_block,combine=False):
     combine : if True return combined D1, D2, nested D,I pairs
     """
     ppars = doprinc(di_block)  # get principle direction
-    if combine:D3 = []
+    if combine:
+        D3 = []
     D1, D2 = [], []
     for rec in di_block:
         ang = angle([rec[0], rec[1]], [ppars['dec'], ppars['inc']])
         if ang > 90.:
             d, i = (rec[0] - 180.) % 360., -rec[1]
             D2.append([d, i])
-            if combine:D3.append([d,i])
+            if combine:
+                D3.append([d, i])
         else:
             D1.append([rec[0], rec[1]])
-            if combine:D3.append([rec[0],rec[1]])
+            if combine:
+                D3.append([rec[0], rec[1]])
     if combine:
         return D3
     else:
@@ -1165,14 +1172,14 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
                      np.cos(slat) * np.sin(p) * np.cos(dec))
     beta = old_div((np.sin(p) * np.sin(dec)), np.cos(plat))
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # The deal with "boolmask":
     # We needed a quick way to assign matrix values based on a logic decision, in this case setting boundaries
     # on out-of-bounds conditions. Creating a matrix of boolean values the size of the original matrix and using
     # it to "mask" the assignment solves this problem nicely. The downside to this is that Numpy complains if you
     # attempt to mask a non-matrix, so we have to check for array type and do a normal assignment if the type is
     # scalar. These checks are made before calculating for the rest of the function.
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     boolmask = beta > 1.  # create a mask of boolean values
     if isinstance(beta, np.ndarray):
@@ -1491,17 +1498,17 @@ def vector_mean(data):
     Parameters
     __________
     data :  nested array of [dec,inc,M]
-    
+
     Returns
     _______
     dir : array of [dec, inc, 1]
     R : resultant vector length
 
     """
-    Xbar=np.zeros((3))
-    X=dir2cart(data).transpose()
+    Xbar = np.zeros((3))
+    X = dir2cart(data).transpose()
     for i in range(3):
-        Xbar[i]=X[i].sum()
+        Xbar[i] = X[i].sum()
     R = np.sqrt(Xbar[0]**2+Xbar[1]**2+Xbar[2]**2)
     Xbar = Xbar/R
     dir = cart2dir(Xbar)
@@ -1661,13 +1668,15 @@ def open_file(infile, verbose=True):
     # file might not exist
     except FileNotFoundError:
         if verbose:
-            print('-W- You are trying to open a file: {} that does not exist'.format(infile))
+            print(
+                '-W- You are trying to open a file: {} that does not exist'.format(infile))
         return []
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
             with codecs.open(infile, "r", "Latin-1") as f:
-                print('-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
+                print(
+                    '-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
         # if file exists, and encoding is correct, who knows what the problem is
         except Exception as ex:
@@ -1740,9 +1749,9 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
             file_type = d_line.split('\t')[2]
     line = lines[1].strip('\n').strip('\r')
     if delim == 'space':
-        line = line.split() #lines[1][:-1].split()
+        line = line.split()  # lines[1][:-1].split()
     if delim == 'tab':
-        line = line.split('\t') #lines[1][:-1].split('\t')
+        line = line.split('\t')  # lines[1][:-1].split('\t')
     for key in line:
         magic_keys.append(key)
     lines = lines[2:]
@@ -1967,7 +1976,7 @@ def magic_write_old(ofile, Recs, file_type):
     ofile : path to output file
     Recs : list of dictionaries in MagIC format
     file_type : MagIC table type (e.g., specimens)
-    
+
     Effects :
         writes a MagIC formatted file from Recs
     """
@@ -2010,11 +2019,11 @@ def magic_write(ofile, Recs, file_type):
     ofile : path to output file
     Recs : list of dictionaries in MagIC format
     file_type : MagIC table type (e.g., specimens)
-    
+
     Return :
     [True,False] : True if successful
     ofile : same as input 
-    
+
     Effects :
         writes a MagIC formatted file from Recs
 
@@ -2027,7 +2036,8 @@ def magic_write(ofile, Recs, file_type):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out = open(ofile, 'w+', errors="backslashreplace")
     outstring = "tab \t" + file_type
-    outstring = outstring.strip("\n").strip("\r") + "\n" # make sure it's clean for Windows
+    outstring = outstring.strip("\n").strip(
+        "\r") + "\n"  # make sure it's clean for Windows
     pmag_out.write(outstring)
     keystring = ""
     keylist = []
@@ -2240,7 +2250,8 @@ def dodirot(D, I, Dbar, Ibar):
         drot = drot - 360.
     return drot, irot
 
-def dodirot_V(di_block,Dbar,Ibar):
+
+def dodirot_V(di_block, Dbar, Ibar):
     """
     Rotate an array of dec/inc pairs to coordinate system with Dec,Inc as 0,90
 
@@ -2254,15 +2265,14 @@ def dodirot_V(di_block,Dbar,Ibar):
     __________
     array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
     """
-    N=di_block.shape[0]
-    DipDir,Dip=np.ones(N,dtype=np.float).transpose()*(Dbar-180.),np.ones(N,dtype=np.float).transpose()*(90.-Ibar)
-    di_block=di_block.transpose()
-    data=np.array([di_block[0],di_block[1],DipDir ,Dip]).transpose()
-    drot,irot=dotilt_V(data)
-    drot=(drot-180.)%360.  #
-    return np.column_stack((drot,irot))
-
-
+    N = di_block.shape[0]
+    DipDir, Dip = np.ones(N, dtype=np.float).transpose(
+    )*(Dbar-180.), np.ones(N, dtype=np.float).transpose()*(90.-Ibar)
+    di_block = di_block.transpose()
+    data = np.array([di_block[0], di_block[1], DipDir, Dip]).transpose()
+    drot, irot = dotilt_V(data)
+    drot = (drot-180.) % 360.  #
+    return np.column_stack((drot, irot))
 
 
 def find_samp_rec(s, data, az_type):
@@ -3011,19 +3021,19 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             if gamma[0] <= estep:
                 pars['specimen_gamma'] = gamma[1]
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # From here added By Ron Shaar 11-Dec 2012
     # New parameters defined in Shaar and Tauxe (2012):
     # FRAC (specimen_frac) - ranges from 0. to 1.
     # SCAT (specimen_scat) - takes 1/0
     # gap_max (specimen_gmax) - ranges from 0. to 1.
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # FRAC is similar to Fvds, but the numerator is the vds fraction:
     # FRAC= [ vds (start,end)] / total vds ]
     # gap_max= max [ (vector difference) /  vds (start,end)]
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
 
     # collect all zijderveld data to arrays and calculate VDS
 
@@ -3057,10 +3067,10 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
         old_div(vector_diffs_segment, sum(vector_diffs_segment)))
     pars[gmax_key] = max_FRAC_gap
 
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     # Calculate the "scat box"
     # all data-points, pTRM checks, and tail-checks, should be inside a "scat box"
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
 
     # intialization
     # fail scat due to arai plot data points
@@ -3069,7 +3079,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     pars["fail_tail_beta_box_scatter"] = False  # fail scat due to tail checks
     pars[scat_key] = "1"  # Pass by default
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect all Arai plot data points in arrays
 
     x_Arai, y_Arai, t_Arai, steps_Arai = [], [], [], []
@@ -3094,7 +3104,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     x_Arai = np.array(x_Arai)
     y_Arai = np.array(y_Arai)
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect all pTRM check to arrays
 
     x_ptrm_check, y_ptrm_check, ptrm_checks_temperatures, = [], [], []
@@ -3133,7 +3143,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     y_ptrm_check = np.array(y_ptrm_check)
     ptrm_checks_temperatures = np.array(ptrm_checks_temperatures)
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect tail checks to arrays
 
     x_tail_check, y_tail_check, tail_check_temperatures = [], [], []
@@ -3175,13 +3185,13 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     tail_checks_starting_temperatures = np.array(
         tail_checks_starting_temperatures)
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect the chosen segment in the Arai plot to arrays
 
     x_Arai_segment = x_Arai[start:end + 1]  # chosen segent in the Arai plot
     y_Arai_segment = y_Arai[start:end + 1]  # chosen segent in the Arai plot
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect pTRM checks in segment to arrays
     # notice, this is different than the conventional DRATS.
     # for scat calculation we take only the pTRM checks which were carried out
@@ -3196,7 +3206,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     x_ptrm_check_for_SCAT = np.array(x_ptrm_check_for_SCAT)
     y_ptrm_check_for_SCAT = np.array(y_ptrm_check_for_SCAT)
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # collect Tail checks in segment to arrays
     # for scat calculation we take only the tail checks which were carried out
     # before reaching the highest temperature in the chosen segment
@@ -3211,7 +3221,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     x_tail_check_for_SCAT = np.array(x_tail_check_for_SCAT)
     y_tail_check_for_SCAT = np.array(y_tail_check_for_SCAT)
 
-    #--------------------------------------------------------------
+    # --------------------------------------------------------------
     # calculate the lines that define the scat box:
 
     # if threshold value for beta is not defined, then scat cannot be calculated (pass)
@@ -3252,7 +3262,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
         pars['specimen_scat_bounding_line_high'] = [intercept2, slop2]
         pars['specimen_scat_bounding_line_low'] = [intercept1, slop1]
 
-        #--------------------------------------------------------------
+        # --------------------------------------------------------------
         # check if the Arai data points are in the 'box'
 
         # the two bounding lines
@@ -3267,7 +3277,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
         if (sum(check_1) + sum(check_2)) > 0:
             pars["fail_arai_beta_box_scatter"] = True
 
-        #--------------------------------------------------------------
+        # --------------------------------------------------------------
         # check if the pTRM checks data points are in the 'box'
 
         if len(x_ptrm_check_for_SCAT) > 0:
@@ -3284,7 +3294,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             if (sum(check_1) + sum(check_2)) > 0:
                 pars["fail_ptrm_beta_box_scatter"] = True
 
-        #--------------------------------------------------------------
+        # --------------------------------------------------------------
         # check if the tail checks data points are in the 'box'
 
         if len(x_tail_check_for_SCAT) > 0:
@@ -3301,7 +3311,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             if (sum(check_1) + sum(check_2)) > 0:
                 pars["fail_tail_beta_box_scatter"] = True
 
-        #--------------------------------------------------------------
+        # --------------------------------------------------------------
         # check if specimen_scat is PASS or FAIL:
 
         if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
@@ -3960,7 +3970,7 @@ def fisher_mean(data):
     fpars["n"] = N
     fpars["r"] = R
     if N != R:
-        k = (N - 1.)/ (N - R)
+        k = (N - 1.) / (N - R)
         fpars["k"] = k
         csd = 81./np.sqrt(k)
     else:
@@ -4137,7 +4147,7 @@ def dolnp3_0(Data):
         dir_inc
         dir_tilt_correction
         method_codes
-    
+
     Returns
     -------
         ReturnData : dictionary with keys 
@@ -4218,10 +4228,10 @@ def dolnp(data, direction_type_key):
         prints to screen in case of no data
     """
 
-    if 'dir_dec' in data[0].keys(): 
-        tilt_key='dir_tilt_correction' # this is data model 3.0
-    else: 
-        tilt_key='tilt_correction' # this is data model 3.0
+    if 'dir_dec' in data[0].keys():
+        tilt_key = 'dir_tilt_correction'  # this is data model 3.0
+    else:
+        tilt_key = 'tilt_correction'  # this is data model 3.0
     if tilt_key in list(data[0].keys()):
         tc = str(data[0][tilt_key])
     else:
@@ -4347,7 +4357,7 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
 def process_data_for_mean(data, direction_type_key):
     """
     takes list of dicts with dec and inc as well as direction_type if possible or method_codes and sorts the data into lines and planes and process it for fisher means
-    
+
     @param: data - list of dicts with dec inc and some manner of PCA type info
     @param: direction_type_key - key that indicates the direction type variable in the dictionaries of data
     @return: tuple with values - (
@@ -4358,9 +4368,9 @@ def process_data_for_mean(data, direction_type_key):
                                 list of sum of the cartezian components of all lines
                                 )
     """
-    dec_key,inc_key,meth_key='dec','inc','magic_method_codes' # data model 2.5
-    if 'dir_dec' in data[0].keys(): # this is data model 3.0
-        dec_key,inc_key,meth_key='dir_dec','dir_inc','method_codes'
+    dec_key, inc_key, meth_key = 'dec', 'inc', 'magic_method_codes'  # data model 2.5
+    if 'dir_dec' in data[0].keys():  # this is data model 3.0
+        dec_key, inc_key, meth_key = 'dir_dec', 'dir_inc', 'method_codes'
 
     n_lines, n_planes = 0, 0
     L, fdata = [], []
@@ -4719,7 +4729,7 @@ def dokent(data, NN):
     NN  : normalization
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
-    
+
     Return 
     kpars dictionary keys
         dec : mean declination
@@ -4907,7 +4917,7 @@ def PTrot(EP, Lats, Lons):
     EP : Euler pole list [lat,lon,angle]
     Lats : list of latitudes of points to be rotated
     Lons : list of longitudes of points to be rotated
-    
+
     Returns
     _________
     RLats : rotated latitudes
@@ -5164,12 +5174,12 @@ def vgp_di(plat, plong, slat, slong):
     ----------
     dec,inc : tuple of declination and inclination
     """
-    plong=plong%360
-    slong = slong%360
+    plong = plong % 360
+    slong = slong % 360
     signdec = 1.
     delphi = abs(plong - slong)
     if delphi != 0:
-        signdec = (plong - slong)/ delphi
+        signdec = (plong - slong) / delphi
     if slat == 90.:
         slat = 89.99
     thetaS = np.radians(90. - slat)
@@ -5189,7 +5199,7 @@ def vgp_di(plat, plong, slat, slong):
         dec = 2. * np.pi - dec  # checking quadrant
     if signdec * delphi > np.pi:
         dec = 2. * np.pi - dec
-    dec = np.degrees(dec)%360.
+    dec = np.degrees(dec) % 360.
     inc = np.degrees(np.arctan2(2. * np.cos(thetaM), np.sin(thetaM)))
     return dec, inc
 
@@ -5255,7 +5265,7 @@ def dimap(D, I):
     try:
         D = float(D)
         I = float(I)
-    except TypeError: # is an array
+    except TypeError:  # is an array
         return dimap_V(D, I)
 # DEFINE FUNCTION VARIABLES
     # initialize equal area projection x,y
@@ -5470,7 +5480,7 @@ def gaussdev(mean, sigma, N=1):
     N deviates from the normal distribution from
 .
     """
-    return random.normal(mean, sigma,N)  # return gaussian deviate
+    return random.normal(mean, sigma, N)  # return gaussian deviate
 #
 
 
@@ -5481,7 +5491,7 @@ def get_unf(N=100):
     Parameters
     __________
     N : number of directions, default is 100
-    
+
     Returns 
     ______
     array of nested dec,inc pairs 
@@ -5552,11 +5562,11 @@ def a2s(a):
 def doseigs(s):
     """
     convert s format for eigenvalues and eigenvectors
-    
+
     Parameters
     __________
     s=[x11,x22,x33,x12,x23,x13] : the six tensor elements
-    
+
     Return
     __________
         tau : [t1,t2,t3]
@@ -5596,7 +5606,7 @@ def doeigs_s(tau, Vdirs):
     t = np.zeros((3, 3,), 'f')  # initialize the tau diagonal matrix
     V = []
     for j in range(3):
-       t[j][j] = tau[j]  # diagonalize tau
+        t[j][j] = tau[j]  # diagonalize tau
     for k in range(3):
         V.append(dir2cart([Vdirs[k][0], Vdirs[k][1], 1.0]))
     V = np.transpose(V)
@@ -6467,7 +6477,7 @@ def sbar(Ss):
 def dohext(nf, sigma, s):
     """
     calculates hext parameters for nf, sigma and s
- 
+
     Parameters
     __________
     nf :  number of degrees of freedom (measurements - 6)
@@ -6493,7 +6503,7 @@ def dohext(nf, sigma, s):
         'e12': declination of principal vector
         'e23': declination of principal vector
         'e13'
-  
+
     If working with data set with no sigmas and the average is desired, use nf,sigma,avs=pmag.sbar(Ss) as input
 
     """
@@ -6631,7 +6641,7 @@ def dosgeo(s, az, pl):
                 for l in range(3):
                     dum += A[i][k] * A[j][l] * a[k][l]
             b[i][j] = dum
-    s_rot=a2s(b) # afer rotation
+    s_rot = a2s(b)  # afer rotation
     return s_rot
 #
 #
@@ -6656,7 +6666,7 @@ def dostilt(s, bed_az, bed_dip):
     for evec in Vdirs:
         d, i = dotilt(evec[0], evec[1], bed_az, bed_dip)
         Vrot.append([d, i])
-    s_rot= doeigs_s(tau, Vrot)
+    s_rot = doeigs_s(tau, Vrot)
     return s_rot
 #
 #
@@ -6708,8 +6718,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V1s, len(V1s))
     bpars["v1_dec"] = kpars["dec"]
     bpars["v1_inc"] = kpars["inc"]
-    bpars["v1_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
-    bpars["v1_eta"] = (kpars["Eta"] * np.sqrt(nb))%360.
+    bpars["v1_zeta"] = (kpars["Zeta"] * np.sqrt(nb)) % 360.
+    bpars["v1_eta"] = (kpars["Eta"] * np.sqrt(nb)) % 360.
     bpars["v1_zeta_dec"] = kpars["Zdec"]
     bpars["v1_zeta_inc"] = kpars["Zinc"]
     bpars["v1_eta_dec"] = kpars["Edec"]
@@ -6717,8 +6727,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V2s, len(V2s))
     bpars["v2_dec"] = kpars["dec"]
     bpars["v2_inc"] = kpars["inc"]
-    bpars["v2_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
-    bpars["v2_eta"] = (kpars["Eta"] * np.sqrt(nb))%360.
+    bpars["v2_zeta"] = (kpars["Zeta"] * np.sqrt(nb)) % 360.
+    bpars["v2_eta"] = (kpars["Eta"] * np.sqrt(nb)) % 360.
     bpars["v2_zeta_dec"] = kpars["Zdec"]
     bpars["v2_zeta_inc"] = kpars["Zinc"]
     bpars["v2_eta_dec"] = kpars["Edec"]
@@ -6726,8 +6736,8 @@ def sbootpars(Taus, Vs):
     kpars = dokent(V3s, len(V3s))
     bpars["v3_dec"] = kpars["dec"]
     bpars["v3_inc"] = kpars["inc"]
-    bpars["v3_zeta"] = (kpars["Zeta"] * np.sqrt(nb))%360.
-    bpars["v3_eta"] =(kpars["Eta"] * np.sqrt(nb))%360.
+    bpars["v3_zeta"] = (kpars["Zeta"] * np.sqrt(nb)) % 360.
+    bpars["v3_eta"] = (kpars["Eta"] * np.sqrt(nb)) % 360.
     bpars["v3_zeta_dec"] = kpars["Zdec"]
     bpars["v3_zeta_inc"] = kpars["Zinc"]
     bpars["v3_eta_dec"] = kpars["Edec"]
@@ -7283,7 +7293,8 @@ def sortmwarai(datablock, exp_type):
 
     #
 
-def docustom(lon, lat, alt,gh):
+
+def docustom(lon, lat, alt, gh):
     """
     Passes the coefficients to the Malin and Barraclough
     routine (function pmag.magsyn) to calculate the field from the coefficients.
@@ -7294,13 +7305,11 @@ def docustom(lon, lat, alt,gh):
     lat   = latitude in degrees (-90 to 90)
     alt   = height above mean sea level in km (itype = 1 assumed)
     """
-    model,date,itype=0,0,1
-    sv=np.zeros(len(gh))
+    model, date, itype = 0, 0, 1
+    sv = np.zeros(len(gh))
     colat = 90. - lat
     x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
-    return x,y,z,f
-
-
+    return x, y, z, f
 
 
 def doigrf(lon, lat, alt, date, **kwargs):
@@ -7516,7 +7525,8 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
         two = b2 * ct * ct
         three = one + two
         rho = np.sqrt(three)
-        r = np.sqrt(alt * (alt + 2.0 * rho) + old_div((a2 * one + b2 * two), three))
+        r = np.sqrt(alt * (alt + 2.0 * rho) +
+                    old_div((a2 * one + b2 * two), three))
         cd = old_div((alt + rho), r)
         sd = (a2 - b2) / rho * ct * st / r
         one = ct
@@ -8123,7 +8133,7 @@ def measurements_methods3(meas_data, noave):
             tmpmeths = rec['method_codes'].split(":")
             meths = []
             if 'LP-HYS' in tmpmeths:
-                HYS=1 # catch these!
+                HYS = 1  # catch these!
             if "LP-TRM" in tmpmeths:
                 TRM = 1  # catch these suckers here!
             if "LP-IRM-3D" in tmpmeths:
@@ -8195,7 +8205,7 @@ def measurements_methods3(meas_data, noave):
                 # measurement in presence of dc field and not susceptibility;
                 # hysteresis!
                 elif "meas_lab_dc_field" in list(rec.keys()) and rec["meas_lab_dc_field"] != 0:
-                    #if "LP-HYS" not in meths:
+                    # if "LP-HYS" not in meths:
                     #    hysq = input("Is this a hysteresis experiment? [1]/0")
                     #    if hysq == "" or hysq == "1":
                     #        meths.append("LP-HYS")
@@ -8203,7 +8213,8 @@ def measurements_methods3(meas_data, noave):
                     #        metha = input(
                     #            "Enter the lab protocol code that best describes this experiment ")
                     #        meths.append(metha)
-                    if HYS: meths.append("LP-HYS")
+                    if HYS:
+                        meths.append("LP-HYS")
                 methcode = ""
                 for meth in meths:
                     methcode = methcode + meth.strip() + ":"
@@ -9195,7 +9206,7 @@ def pseudo(DIs):
     return D[Inds]
 
 
-def di_boot(DIs,nb=5000):
+def di_boot(DIs, nb=5000):
     """
      returns bootstrap means  for Directional data
      Parameters
@@ -9361,14 +9372,14 @@ def get_ts(ts):
     if ts == 'gts12':
         TS = [0, 0.781, 0.988, 1.072, 1.173, 1.185, 1.778, 1.945, 2.128, 2.148, 2.581, 3.032, 3.116, 3.207, 3.330, 3.596, 4.187, 4.300, 4.493, 4.631, 4.799, 4.896, 4.997, 5.235, 6.033, 6.252, 6.436, 6.733, 7.140, 7.212, 7.251, 7.285, 7.454, 7.489, 7.528, 7.642, 7.695, 8.108, 8.254, 8.300, 8.771, 9.105, 9.311, 9.426, 9.647, 9.721, 9.786, 9.937, 9.984, 11.056, 11.146, 11.188, 11.592, 11.657, 12.049, 12.174, 12.272, 12.474, 12.735, 12.770, 12.829, 12.887, 13.032, 13.183, 13.363, 13.608, 13.739, 14.070, 14.163, 14.609, 14.775, 14.870, 15.032, 15.160, 15.974, 16.268, 16.303, 16.472, 16.543, 16.721, 17.235, 17.533, 17.717, 17.740, 18.056, 18.524, 18.748, 19.722, 20.040, 20.213, 20.439, 20.709, 21.083, 21.159, 21.403, 21.483, 21.659,
               21.688, 21.767, 21.936, 21.992, 22.268, 22.564, 22.754, 22.902, 23.030, 23.233, 23.295, 23.962, 24.000, 24.109, 24.474, 24.761, 24.984, 25.099, 25.264, 25.304, 25.987, 26.420, 27.439, 27.859, 28.087, 28.141, 28.278, 29.183, 29.477, 29.527, 29.970, 30.591, 31.034, 33.157, 33.705, 34.999, 35.294, 35.706, 35.892, 36.051, 36.700, 36.969, 37.753, 37.872, 38.093, 38.159, 38.333, 38.615, 39.627, 39.698, 40.145, 41.154, 41.390, 42.301, 43.432, 45.724, 47.349, 48.566, 49.344, 50.628, 50.835, 50.961, 51.833, 52.620, 53.074, 53.199, 53.274, 53.416, 53.983, 57.101, 57.656, 58.959, 59.237, 62.221, 62.517, 63.494, 64.667, 64.958, 65.688, 66.398, 68.196, 68.369, 69.269, 71.449, 71.689, 71.939, 73.649, 73.949, 74.049, 74.309, 79.900, 83.64]
-        Labels = [['C1n', 0.000], ['C1r', 0.781], ['C2n', 1.778], ['C2r',1.945], ['C2An', 2.581], ['C2Ar', 3.596], ['C3n', 4.187], ['C3r', 5.235], ['C3An', 6.033], ['C3Ar', 6.733], ['C3Bn', 7.140], ['C3Br', 7.212], ['C4n', 7.528], ['C4r', 8.108], ['C4An', 8.771], ['C4Ar', 9.105], ['C5n', 9.786], ['C5r', 11.056], ['C5An', 12.049], ['C5Ar', 12.474], ['C5AAn', 13.032], ['C5AAr', 13.183], ['C5ABn', 13.363], ['C5ABr', 13.608], ['C5ACn', 13.739], ['C5ACr', 14.070], ['C5ADn', 14.163], ['C5ADr', 14.609], ['C5Bn', 14.775], ['C5Br', 15.160], ['C5Cn', 15.974], ['C5Cr', 16.721], ['C5Dn', 17.235], ['C5Dr', 17.533], ['C5En', 18.056], ['C5Er', 18.524], ['C6n', 18.748], ['C6r', 19.722], ['C6An', 20.040], ['C6Ar', 20.709], ['C6AAn', 21.083], ['C6AAr', 21.159], ['C6Bn', 21.767], ['C6Br', 22.268], ['C6Cn', 22.564], ['C6Cr', 23.295], ['C7n', 23.962], ['C7r', 24.474], ['C7An', 24.761], ['C7Ar', 24.984], ['C8n', 25.099], [
+        Labels = [['C1n', 0.000], ['C1r', 0.781], ['C2n', 1.778], ['C2r', 1.945], ['C2An', 2.581], ['C2Ar', 3.596], ['C3n', 4.187], ['C3r', 5.235], ['C3An', 6.033], ['C3Ar', 6.733], ['C3Bn', 7.140], ['C3Br', 7.212], ['C4n', 7.528], ['C4r', 8.108], ['C4An', 8.771], ['C4Ar', 9.105], ['C5n', 9.786], ['C5r', 11.056], ['C5An', 12.049], ['C5Ar', 12.474], ['C5AAn', 13.032], ['C5AAr', 13.183], ['C5ABn', 13.363], ['C5ABr', 13.608], ['C5ACn', 13.739], ['C5ACr', 14.070], ['C5ADn', 14.163], ['C5ADr', 14.609], ['C5Bn', 14.775], ['C5Br', 15.160], ['C5Cn', 15.974], ['C5Cr', 16.721], ['C5Dn', 17.235], ['C5Dr', 17.533], ['C5En', 18.056], ['C5Er', 18.524], ['C6n', 18.748], ['C6r', 19.722], ['C6An', 20.040], ['C6Ar', 20.709], ['C6AAn', 21.083], ['C6AAr', 21.159], ['C6Bn', 21.767], ['C6Br', 22.268], ['C6Cn', 22.564], ['C6Cr', 23.295], ['C7n', 23.962], ['C7r', 24.474], ['C7An', 24.761], ['C7Ar', 24.984], ['C8n', 25.099], [
             'C8r', 25.987], ['C9n', 26.420], ['C9r', 27.439], ['C10n', 27.859], ['C10r', 28.278], ['C11n', 29.183], ['C11r', 29.970], ['C12n', 30.591], ['C12r', 31.034], ['C13n', 33.157], ['C13r', 33.705], ['C15n', 34.999], ['C15r', 35.294], ['C16n', 35.706], ['C16r', 36.700], ['C17n', 36.969], ['C17r', 38.333], ['C18n', 38.615], ['C18r', 40.145], ['C19n', 41.154], ['C19r', 41.390], ['C20n', 42.301], ['C20r', 43.432], ['C21n', 45.724], ['C21r', 47.349], ['C22n', 48.566], ['C22r', 49.344], ['C23n', 50.628], ['C23r', 51.833], ['C24n', 52.620], ['C24r', 53.983], ['C25n', 57.101], ['C25r', 57.656], ['C26n', 58.959], ['C26r', 59.237], ['C27n', 62.221], ['C27r', 62.517], ['C28n', 63.494], ['C28r', 64.667], ['C29n', 64.958], ['C29r', 65.688], ['C30n', 66.398], ['C30r', 68.196], ['C31n', 68.369], ['C31r', 69.269], ['C32n', 71.449], ['C32r', 73.649], ['C33n', 74.309], ['C33r', 79.900], ['C34n', 83.64]]
         return TS, Labels
     print("Time Scale Option Not Available")
     return
 
 
-def execute(st,**kwargs):
+def execute(st, **kwargs):
     """
     Work around for Python3 exec function which doesn't allow changes to the local namespace because of scope.
     This breaks a lot of the old functionality in the code which was origionally in Python2. So this function
@@ -9390,6 +9401,7 @@ def execute(st,**kwargs):
     return namespace['b']
 
 # Functions for dealing with acceptance criteria
+
 
 def initialize_acceptance_criteria(**kwargs):
     '''
@@ -10175,6 +10187,7 @@ def resolve_file_name(fname, dir_path='.'):
         full_file = fname
     return os.path.realpath(full_file)
 
+
 def remove_files(file_list, WD='.'):
     for f in file_list:
         full_file = os.path.join(WD, f)
@@ -10315,34 +10328,38 @@ def do_mag_map(date, **kwargs):
     Binc = np.zeros((len(lats), len(lons)))
     Bdec = np.zeros((len(lats), len(lons)))
     Brad = np.zeros((len(lats), len(lons)))
-    if mod=='custom' and file!='':
-        gh=[]
-        lmgh=np.loadtxt(file).transpose()
+    if mod == 'custom' and file != '':
+        gh = []
+        lmgh = np.loadtxt(file).transpose()
         gh.append(lmgh[2][0])
-        for i in range(1,lmgh.shape[1]):
+        for i in range(1, lmgh.shape[1]):
             gh.append(lmgh[2][i])
-            if lmgh[1][i]!=0:
+            if lmgh[1][i] != 0:
                 gh.append(lmgh[3][i])
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
-            if mod=='custom':
+            if mod == 'custom':
                 x, y, z, f = docustom(lons[i], lats[j], alt, gh)
             else:
-                x, y, z, f = doigrf(lons[i], lats[j], alt, date, mod=mod,file=file)
+                x, y, z, f = doigrf(
+                    lons[i], lats[j], alt, date, mod=mod, file=file)
             # turn them into polar coordinates
             Dec, Inc, Int = cart2dir([x, y, z])
-            if mod!='custom':
-                B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)
+            if mod != 'custom':
+                # convert the string to microtesla (from nT)
+                B[j][i] = Int * 1e-3
             else:
                 B[j][i] = Int  # convert the string to microtesla (from nT)
             Binc[j][i] = Inc  # store the inclination value
-            if Dec>180:Dec=Dec-360.
+            if Dec > 180:
+                Dec = Dec-360.
             Bdec[j][i] = Dec  # store the declination value
-            Brad[j][i]=z
+            Brad[j][i] = z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
 
-def doeqdi(x,y,UP=0):
+
+def doeqdi(x, y, UP=0):
     """
     Takes digitized x,y, data and returns the dec,inc, assuming an
     equal area projection
@@ -10355,14 +10372,16 @@ def doeqdi(x,y,UP=0):
         dec : declination
         inc : inclination
     """
-    xp,yp=y,x # need to switch into geographic convention
-    r=np.sqrt(xp**2+yp**2)
-    z=1.-r**2
-    t=np.arcsin(z)
-    if UP==1:t=-t
-    p=np.arctan2(yp,xp)
-    dec,inc=np.degrees(p)%360,np.degrees(t)
-    return dec,inc
+    xp, yp = y, x  # need to switch into geographic convention
+    r = np.sqrt(xp**2+yp**2)
+    z = 1.-r**2
+    t = np.arcsin(z)
+    if UP == 1:
+        t = -t
+    p = np.arctan2(yp, xp)
+    dec, inc = np.degrees(p) % 360, np.degrees(t)
+    return dec, inc
+
 
 def separate_directions(di_block):
     """
@@ -10375,17 +10394,19 @@ def separate_directions(di_block):
     Return
     mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
     """
-    ppars=doprinc(di_block)
-    di_df=pd.DataFrame(di_block) # turn into a data frame for easy filtering
-    di_df.columns=['dec','inc']
-    di_df['pdec']=ppars['dec']
-    di_df['pinc']=ppars['inc']
-    di_df['angle']=angle(di_df[['dec','inc']].values,di_df[['pdec','pinc']].values)
-    mode1_df=di_df[di_df['angle']<=90]
-    mode2_df=di_df[di_df['angle']>90]
-    mode1=mode1_df[['dec','inc']].values.tolist()
-    mode2=mode2_df[['dec','inc']].values.tolist()
-    return mode1,mode2
+    ppars = doprinc(di_block)
+    di_df = pd.DataFrame(di_block)  # turn into a data frame for easy filtering
+    di_df.columns = ['dec', 'inc']
+    di_df['pdec'] = ppars['dec']
+    di_df['pinc'] = ppars['inc']
+    di_df['angle'] = angle(di_df[['dec', 'inc']].values,
+                           di_df[['pdec', 'pinc']].values)
+    mode1_df = di_df[di_df['angle'] <= 90]
+    mode2_df = di_df[di_df['angle'] > 90]
+    mode1 = mode1_df[['dec', 'inc']].values.tolist()
+    mode2 = mode2_df[['dec', 'inc']].values.tolist()
+    return mode1, mode2
+
 
 def dovandamme(vgp_df):
     """
@@ -10395,26 +10416,27 @@ def dovandamme(vgp_df):
     ___________
     vgp_df : pandas DataFrame with required column "vgp_lat"
              This should be in the desired coordinate system and assumes one polarity
-    
+
     Returns
     _________
     vgp_df : after applying cutoff
     cutoff : colatitude cutoff 
     S_b : S_b of vgp_df  after applying cutoff
     """
-    vgp_df['delta']=90.-vgp_df['vgp_lat'].values
-    ASD=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
-    A= 1.8 * ASD + 5.
-    delta_max=vgp_df.delta.max()
-    while delta_max>A:
-        delta_max=vgp_df.delta.max()
-        if delta_max<A:
-            return vgp_df,A,ASD
-        vgp_df=vgp_df[vgp_df.delta<delta_max]
-        ASD=np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
-        A= 1.8 * ASD + 5.
+    vgp_df['delta'] = 90.-vgp_df['vgp_lat'].values
+    ASD = np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+    A = 1.8 * ASD + 5.
+    delta_max = vgp_df.delta.max()
+    while delta_max > A:
+        delta_max = vgp_df.delta.max()
+        if delta_max < A:
+            return vgp_df, A, ASD
+        vgp_df = vgp_df[vgp_df.delta < delta_max]
+        ASD = np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
+        A = 1.8 * ASD + 5.
 
-def scalc_vgp_df(vgp_df,anti=0,rev=0,cutoff=180.,kappa=0,n=0,spin=0,v=0,boot=0,mm97=0,nb=1000):
+
+def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=0, mm97=0, nb=1000):
     """
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
 
@@ -10431,7 +10453,7 @@ def scalc_vgp_df(vgp_df,anti=0,rev=0,cutoff=180.,kappa=0,n=0,spin=0,v=0,boot=0,m
         OPTIONAL:
         boot : if True. do bootstrap
         nb : number of bootstraps, default is 1000  
-    
+
     Returns
     _____________
         N : number of VGPs used in calculation
@@ -10440,45 +10462,48 @@ def scalc_vgp_df(vgp_df,anti=0,rev=0,cutoff=180.,kappa=0,n=0,spin=0,v=0,boot=0,m
         high  95% confidence upper bound [0 if boot=0]
         cutoff : cutoff used in calculation of  S
     """
-    vgp_df['delta']=90.-vgp_df.vgp_lat.values
+    vgp_df['delta'] = 90.-vgp_df.vgp_lat.values
     # filter by cutoff, kappa, and n
-    vgp_df=vgp_df[vgp_df.delta<=cutoff]
-    vgp_df=vgp_df[vgp_df.dir_k>=kappa]
-    vgp_df=vgp_df[vgp_df.dir_n_samples>=n]
+    vgp_df = vgp_df[vgp_df.delta <= cutoff]
+    vgp_df = vgp_df[vgp_df.dir_k >= kappa]
+    vgp_df = vgp_df[vgp_df.dir_n_samples >= n]
     if spin:  # do transformation to pole
-        Pvgps=vgp_df[['vgp_lon','vgp_lat']].values
+        Pvgps = vgp_df[['vgp_lon', 'vgp_lat']].values
         ppars = doprinc(Pvgps)
-        Bdirs=np.full((Pvgps.shape[0]),ppars['dec']-180.)
-        Bdips=np.full((Pvgps.shape[0]),90.-ppars['inc'])
-        Pvgps=np.column_stack((Pvgps,Bdirs,Bdips))
-        lons,lats=dotilt_V(Pvgps)
-        vgp_df['vgp_lon']=lons
-        vgp_df['vgp_lat']=lats
-        vgp_df['delta']=90.-vgp_df.vgp_lat
+        Bdirs = np.full((Pvgps.shape[0]), ppars['dec']-180.)
+        Bdips = np.full((Pvgps.shape[0]), 90.-ppars['inc'])
+        Pvgps = np.column_stack((Pvgps, Bdirs, Bdips))
+        lons, lats = dotilt_V(Pvgps)
+        vgp_df['vgp_lon'] = lons
+        vgp_df['vgp_lat'] = lats
+        vgp_df['delta'] = 90.-vgp_df.vgp_lat
     if anti:
-        print ('flipping reverse')
-        vgp_rev=vgp_df[vgp_df.vgp_lat<0]
-        vgp_norm=vgp_df[vgp_df.vgp_lat>=0]
-        vgp_anti=vgp_rev
-        vgp_anti['vgp_lat']=-vgp_anti['vgp_lat']
-        vgp_anti['vgp_lon']=(vgp_anti['vgp_lon']-180)%360
-        vgp_df=pd.concat([vgp_norm,vgp_anti])
-    if rev: vgp_df=vgp_df[vgp_df.vgp_lat<0] # use only reverse data
-    if v: vgp_df,cutoff,S_v=dovandamme(vgp_df) # do vandamme cutoff
-    S_B = get_sb_df(vgp_df,mm97=mm97) # get 
-    N=vgp_df.shape[0]
-    SBs,low,high=[],0,0
+        print('flipping reverse')
+        vgp_rev = vgp_df[vgp_df.vgp_lat < 0]
+        vgp_norm = vgp_df[vgp_df.vgp_lat >= 0]
+        vgp_anti = vgp_rev
+        vgp_anti['vgp_lat'] = -vgp_anti['vgp_lat']
+        vgp_anti['vgp_lon'] = (vgp_anti['vgp_lon']-180) % 360
+        vgp_df = pd.concat([vgp_norm, vgp_anti])
+    if rev:
+        vgp_df = vgp_df[vgp_df.vgp_lat < 0]  # use only reverse data
+    if v:
+        vgp_df, cutoff, S_v = dovandamme(vgp_df)  # do vandamme cutoff
+    S_B = get_sb_df(vgp_df, mm97=mm97)  # get
+    N = vgp_df.shape[0]
+    SBs, low, high = [], 0, 0
     if boot:
         for i in range(nb):  # now do bootstrap
-            bs_df=vgp_df.sample(n=N,replace=True)
+            bs_df = vgp_df.sample(n=N, replace=True)
             Sb_bs = get_sb_df(bs_df)
             SBs.append(Sb_bs)
         SBs.sort()
         low = SBs[int(.025 * nb)]
         high = SBs[int(.975 * nb)]
-    return N,S_B,low,high,cutoff
+    return N, S_B, low, high, cutoff
 
-def watsons_f(DI1,DI2):
+
+def watsons_f(DI1, DI2):
     """
     calculates Watson's F statistic (equation 11.16 in Essentials text book.
 
@@ -10486,24 +10511,26 @@ def watsons_f(DI1,DI2):
     _________
     DI1 : nested array of [Dec,Inc] pairs
     DI2 : nested array of [Dec,Inc] pairs
-    
+
     Returns
     _______
     F : Watson's F
     Fcrit : critical value from F table
     """
     # first calculate R for the combined data set, then R1 and R2 for each individually.
-    DI=np.concatenate((DI1,DI2),axis=0) # create a new array from two smaller ones
-    fpars=fisher_mean(DI) # re-use our functionfrom problem 1b
-    fpars1=fisher_mean(DI1)
-    fpars2=fisher_mean(DI2)
-    N=fpars['n']
-    R=fpars['r']
-    R1=fpars1['r']
-    R2=fpars2['r']
-    F=(N-2.)*((R1+R2-R)/(N-R1-R2))
-    Fcrit=fcalc(2,2*(N-2))
-    return F,Fcrit
+    # create a new array from two smaller ones
+    DI = np.concatenate((DI1, DI2), axis=0)
+    fpars = fisher_mean(DI)  # re-use our functionfrom problem 1b
+    fpars1 = fisher_mean(DI1)
+    fpars2 = fisher_mean(DI2)
+    N = fpars['n']
+    R = fpars['r']
+    R1 = fpars1['r']
+    R2 = fpars2['r']
+    F = (N-2.)*((R1+R2-R)/(N-R1-R2))
+    Fcrit = fcalc(2, 2*(N-2))
+    return F, Fcrit
+
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
