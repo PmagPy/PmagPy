@@ -70,7 +70,7 @@ def drawFIGS(FIGS):
         plt.ion()
         for fig in list(FIGS.keys()):
             plt.draw()
-            #plt.show()
+            plt.show()
         plt.ioff()
     if is_win:
         # this style basically works for Windows
@@ -3122,7 +3122,6 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
         m.contour(x,y,element,levels=np.arange(-180,180,10),colors='black')
         plt.title('Field declination: '+date);
     cbar=m.colorbar(cs,location='bottom')
-    plt.show()
 
 
 def plotEQcont(fignum, DIblock,color_map='coolwarm'):

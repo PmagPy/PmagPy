@@ -96,7 +96,13 @@ def main():
     if '-alt' in sys.argv:
         ind=sys.argv.index('-alt')
         alt=float(sys.argv[ind+1])
-    else: alt=0
+    else:
+        alt=0
+    save = pmag.get_flag_arg_from_sys("-sav")
+    if mod=='custom':
+        d='Custom'
+    else:
+        d=str(date)
     Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,alt=alt,file=ghfile)
     if el=='D':
         element=Ds
@@ -111,8 +117,15 @@ def main():
     else:
         print(main.__doc__)
         sys.exit()
-    plot_mag_map(1,element,lons,lats,el,lon_0=0,date=date)
-    
+    pmagplotlib.plot_mag_map(1,element,lons,lats,el,lon_0=0,date=date)
+    if not save:
+        pmagplotlib.drawFIGS({'map': 1})
+        res = pmagplotlib.save_or_quit()
+        if res == 'a':
+            figname = 'igrf'+d+'.'+fmt
+            print("1 saved in ", figname)
+            plt.savefig('igrf'+d+'.'+fmt)
+        sys.exit()
     plt.savefig('igrf'+d+'.'+fmt)
     print('Figure saved as: ','igrf'+d+'.'+fmt)
 
