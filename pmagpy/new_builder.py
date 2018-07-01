@@ -2259,6 +2259,42 @@ def add_sites_to_meas_table(dir_path):
     return True, con.tables['measurements'].df
 
 
+def add_sites_to_spec_table(dir_path):
+    """
+    Add site columns to specimens table (e.g., to plot intensity data),
+    or generate an informative error message.
+
+    Parameters
+    ----------
+    dir_path : str
+        directory with data files
+
+    Returns
+    ----------
+    status : bool
+        True if successful, else False
+    data : pandas DataFrame
+        specimen data with site/sample
+    """
+    reqd_tables = ['specimens', 'samples', 'sites']
+    con = Contribution(dir_path, read_tables=reqd_tables)
+    # check that all required tables are available
+    missing_tables = []
+    for table in reqd_tables:
+        if table not in con.tables:
+            missing_tables.append(table)
+    if missing_tables:
+        return False, "You are missing {} tables".format(", ".join(missing_tables))
+
+    # put site column into the specimens table
+    con.propagate_name_down('site', 'specimens')
+    # check that column propagation was successful
+    if 'site' not in con.tables['specimens'].df.columns:
+        return False, "Something went wrong with propagating sites down to the specimen level"
+    return True, con.tables['specimens'].df
+
+
+
 def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
     """
     Strip down measurement data to what is needed for an intensity plot.
