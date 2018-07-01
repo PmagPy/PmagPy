@@ -4,6 +4,7 @@ from __future__ import print_function
 from builtins import range
 import sys
 import pmagpy.pmag as pmag
+import numpy as np
 #import numpy.linalg
 
 def main():
@@ -32,29 +33,30 @@ def main():
      tau_3 tau_2_sigma V3_dec V3_inc V3_eta V3_eta_dec V3_eta_inc V3_zeta V3_zeta_dec V3_zeta_inc
     """
 # set options
-    ipar,nb=0,1000
+    ipar,nb=0,5000
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'r')
-        data=f.readlines()
+        Ss=np.loadtxt(file)
+        #f=open(file,'r')
+        #data=f.readlines()
     if '-par' in sys.argv:ipar=1
     if '-nb' in sys.argv:
         ind=sys.argv.index('-nb')
         nb=int(sys.argv[ind+1])
 # read in the data
     print("Doing bootstrap - be patient")
-    Ss=[]
-    for line in data:
-        s=[]
-        rec=line.split()
-        for i in range(6):
-            s.append(float(rec[i]))
-        Ss.append(s)
-    Tmean,Vmean,Taus,Vs=pmag.s_boot(Ss,ipar,nb)
+    #Ss=[]
+    #for line in data:
+    #    s=[]
+    #    rec=line.split()
+    #    for i in range(6):
+    #        s.append(float(rec[i]))
+    #    Ss.append(s)
+    Tmean,Vmean,Taus,Vs=pmag.s_boot(Ss,ipar=ipar,nb=nb)
     bpars=pmag.sbootpars(Taus,Vs) # calculate kent parameters for bootstrap
     bpars["v1_dec"]=Vmean[0][0]
     bpars["v1_inc"]=Vmean[0][1]

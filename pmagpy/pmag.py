@@ -4999,9 +4999,20 @@ def fshdev(k):
 
 def lowes(data):
     """
-    gets Lowe's power spectrum from infile - writes to ofile
+    gets Lowe's power spectrum  from gauss coefficients
+    
+    Parameters
+    _________
+    data : nested list of [[l,m,g,h],...] as from pmag.unpack()
+    
+    Returns
+    _______
+    Ls : list of degrees (l) 
+    Rs : power at  degree l 
+
     """
-    Ls = list(range(1, 9))
+    lmax=data[-1][0]
+    Ls = list(range(1, lmax+1))
     Rs = []
     recno = 0
     for l in Ls:
@@ -6446,8 +6457,8 @@ def sbar(Ss):
     """
     calculate average s,sigma from list of "s"s.
     """
-    npts = len(Ss)
-    Ss = np.array(Ss).transpose()
+    npts = Ss.shape[0]
+    Ss = Ss.transpose()
     avd, avs = [], []
     # D=np.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
     D = np.array([Ss[0], Ss[1], Ss[2], Ss[3] + 0.5 * (Ss[0] + Ss[1]),
@@ -6470,7 +6481,7 @@ def sbar(Ss):
     s0 = 0
     Dels = (D - avd)**2
     s0 = np.sum(Dels)
-    sigma = np.sqrt(old_div(s0, float(nf)))
+    sigma = np.sqrt(s0/float(nf))
     return nf, sigma, avs
 
 
@@ -6678,14 +6689,14 @@ def apseudo(Ss, ipar, sigma):
     """
 #
     Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
-    Ss = np.array(Ss)
+    #Ss = np.array(Ss)
     if ipar == 0:
         BSs = Ss[Is]
     else:  # need to recreate measurement - then do the parametric stuffr
-        A, B = design(6)  # get the design matrix for 6 measurements
+        A, B = design(6)  # get the design matrix for 6 measurementsa
         K, BSs = [], []
         for k in range(len(Ss)):
-            K.append(np.dot(A, Ss[k]))
+            K.append(np.dot(A, Ss[k][0:6]))
         Pars = np.random.normal(K, sigma)
         for k in range(len(Ss)):
             BSs.append(np.dot(B, Pars[k]))
@@ -6747,11 +6758,26 @@ def sbootpars(Taus, Vs):
 #
 
 
-def s_boot(Ss, ipar, nb):
+def s_boot(Ss, ipar=0, nb=1000):
     """
-     returns bootstrap parameters for S data
+    Returns bootstrap parameters for S data
+   
+    Parameters
+    __________
+    Ss : nested array of [x11 x22 x33 x12 x23 x13,....] data
+    ipar : if True, do a parametric bootstrap 
+    nb : number of bootstraps
+    
+    Returns
+    ________
+    Tmean : aveage eigenvalues
+    Vmean : average eigvectors
+    Taus : bootstrapped eigenvalues
+    Vs :  bootstrapped eigenvectors 
+
     """
-    npts = len(Ss)
+    #npts = len(Ss)
+    npts=Ss.shape[0]
 # get average s for whole dataset
     nf, Sigma, avs = sbar(Ss)
     Tmean, Vmean = doseigs(avs)  # get eigenvectors of mean tensor
@@ -6760,7 +6786,6 @@ def s_boot(Ss, ipar, nb):
 #
     Taus, Vs = [], []  # number of bootstraps, list of bootstrap taus and eigenvectors
 #
-
     for k in range(nb):  # repeat nb times
         #        if k%50==0:print k,' out of ',nb
         # get a pseudosample - if ipar=1, do a parametric bootstrap
@@ -7320,34 +7345,33 @@ def doigrf(lon, lat, alt, date, **kwargs):
 
     Parameters:
     -----------
-    lon  = east longitude in degrees (0 to 360 or -180 to 180)
-    lat   = latitude in degrees (-90 to 90)
-    alt   = height above mean sea level in km (itype = 1 assumed)
-    date  = Required date in years and decimals of a year (A.D.)
+    lon  : east longitude in degrees (0 to 360 or -180 to 180)
+    lat   : latitude in degrees (-90 to 90)
+    alt   : height above mean sea level in km (itype = 1 assumed)
+    date  : Required date in years and decimals of a year (A.D.)
 
     Optional Parameters:
     -----------
-    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b)
-
-    Output:
+    coeffs : if True, then return the gh coefficients
+    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b)
+        arch3k (Korte et al., 2009)
+        cals3k (Korte and Constable, 2011)
+        cals10k.1b (Korte et al., 2011)
+        pfm9k  (Nilsson et al., 2014)
+        hfm.OL1.A1 (Constable et al., 2016)
+        cals10k.2 (Constable et al., 2016)
+          NB : the first four of these models, are constrained to agree
+               with gufm1 (Jackson et al., 2000) for the past four centuries
+    Return
     -----------
-    x     = north component of the magnetic force in nT
-    y     = east component of the magnetic force in nT
-    z     = downward component of the magnetic force in nT
-    f     = total magnetic force in nT
+    x : north component of the magnetic force in nT
+    y : east component of the magnetic force in nT
+    z : downward component of the magnetic force in nT
+    f : total magnetic force in nT
 
     By default, igrf12 coefficients are used between 1900 and 2020
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
 
-    Otherwise, the following paleosecular variation models can be used:
-    arch3k (Korte et al., 2009)
-    cals3k (Korte and Constable, 2011)
-    cals10k.1b (Korte et al., 2011)
-    pfm9k  (Nilsson et al., 2014)
-    hfm.OL1.A1 (Constable et al., 2016)
-    cals10k.2 (Constable et al., 2016)
-    the first four of these models, are constrained to agree
-    with gufm1 (Jackson et al., 2000) for the past four centuries
 
     To check the results you can run the interactive program at the NGDC
     www.ngdc.noaa.gov/geomag-web
@@ -7445,6 +7469,14 @@ def doigrf(lon, lat, alt, date, **kwargs):
 def unpack(gh):
     """
     unpacks gh list into l m g h type list
+    
+    Parameters
+    _________
+    gh : list of gauss coefficients (as returned by, e.g., doigrf)
+
+    Returns
+   data : nested list of [[l,m,g,h],...]
+      
     """
     data = []
     k, l = 0, 1
@@ -7456,6 +7488,7 @@ def unpack(gh):
             else:
                 data.append([l, m, gh[k], gh[k + 1]])
                 k += 2
+        l+=1
     return data
 
 
