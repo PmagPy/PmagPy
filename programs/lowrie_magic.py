@@ -33,45 +33,62 @@ def main():
         -fmt [svg, pdf, eps, png] specify fmt, default is svg
         -sav saves plots and quits
     """
-    fmt, plot = 'svg', 0
+    if '-h' in sys.argv:
+        print(main.__doc__)
+        sys.exit()
+    if len(sys.argv) <= 1:
+        print(main.__doc__)
+        print('you must supply a file name')
+        sys.exit()
     FIG = {}  # plot dictionary
     FIG['lowrie'] = 1  # demag is figure 1
     pmagplotlib.plot_init(FIG['lowrie'], 6, 6)
     norm = 1  # default is to normalize by maximum axis
-    in_file, dir_path = 'magic_measurements.txt', '.'
-    if len(sys.argv) > 1:
-        if '-WD' in sys.argv:
-            ind = sys.argv.index('-WD')
-            dir_path = sys.argv[ind+1]
-        if '-h' in sys.argv:
-            print(main.__doc__)
-            sys.exit()
-        if '-N' in sys.argv:
-            norm = 0  # don't normalize
-        if '-sav' in sys.argv:
-            plot = 1  # don't normalize
-        if '-fmt' in sys.argv:  # sets input filename
-            ind = sys.argv.index("-fmt")
-            fmt = sys.argv[ind+1]
-        if '-f' in sys.argv:  # sets input filename
-            ind = sys.argv.index("-f")
-            in_file = sys.argv[ind+1]
+    in_file = pmag.get_named_arg_from_sys("-f", "measurements.txt")
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    in_file = pmag.resolve_file_name(in_file, dir_path)
+    data_model = pmag.get_named_arg_from_sys("-DM", 3)
+    data_model = int(float(data_model))
+    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+    if '-N' in sys.argv:
+        norm = 0  # don't normalize
+    if '-sav' in sys.argv:
+        plot = 1  # silently save and quit
     else:
-        print(main.__doc__)
-        print('you must supply a file name')
-        sys.exit()
-    in_file = dir_path+'/'+in_file
+        plot = 0 # generate plots
     print(in_file)
+    # read in data
     PmagRecs, file_type = pmag.magic_read(in_file)
-    if file_type != "magic_measurements":
-        print('bad input file')
+    if data_model == 2 and file_type != "magic_measurements":
+        print('bad input file', file_type)
         sys.exit()
+    if data_model == 3 and file_type != "measurements":
+        print('bad input file', file_type)
+        sys.exit()
+
+    if data_model == 2:
+        meth_code_col = 'magic_method_codes'
+        spec_col = 'er_specimen_name'
+        dec_col = "measurement_dec"
+        inc_col = 'measurement_inc'
+        moment_col = 'measurement_magn_moment'
+        temp_col = 'treatment_temp'
+    else:
+        meth_code_col = 'method_codes'
+        spec_col = 'specimen'
+        dec_col = 'dir_dec'
+        inc_col = 'dir_inc'
+        moment_col = 'magn_moment'
+        temp_col = "treat_temp"
+
     PmagRecs = pmag.get_dictitem(
-        PmagRecs, 'magic_method_codes', 'LP-IRM-3D', 'has')  # get all 3D IRM records
+        PmagRecs, meth_code_col, 'LP-IRM-3D', 'has')  # get all 3D IRM records
+
     if len(PmagRecs) == 0:
-        print('no records found')
+        print('no records found with the method code LP-IRM-3D')
         sys.exit()
-    specs = pmag.get_dictkey(PmagRecs, 'er_specimen_name', '')
+
+    specs = pmag.get_dictkey(PmagRecs, spec_col, '')
     sids = []
     for spec in specs:
         if spec not in sids:
@@ -79,12 +96,13 @@ def main():
     for spc in sids:  # step through the specimen names
         print(spc)
         specdata = pmag.get_dictitem(
-            PmagRecs, 'er_specimen_name', spc, 'T')  # get all this one's data
+            PmagRecs, spec_col, spc, 'T')  # get all this one's data
+
         DIMs, Temps = [], []
         for dat in specdata:  # step through the data
-            DIMs.append([float(dat['measurement_dec']), float(
-                dat['measurement_inc']), float(dat['measurement_magn_moment'])])
-            Temps.append(float(dat['treatment_temp'])-273.)
+            DIMs.append([float(dat[dec_col]), float(
+                dat[inc_col]), float(dat[moment_col])])
+            Temps.append(float(dat[temp_col])-273.)
         carts = pmag.dir2cart(DIMs).transpose()
         if norm == 1:  # want to normalize
             nrm = (DIMs[0][2])  # normalize by NRM
