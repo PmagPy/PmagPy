@@ -695,7 +695,7 @@ class Contribution(object):
                 new_group = group.fillna(method="ffill")
                 new_group = new_group.fillna(method="bfill")
                 new.append(new_group)
-            source_df = pd.concat(new)
+            source_df = pd.concat(new, sort=True)
 
         # if the groupby/fillna still doesn't work, we are out of luck
         if not len(source_df):
@@ -1512,7 +1512,7 @@ class MagicDataFrame(object):
         remove self.df row at ind
         inplace
         """
-        self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
+        self.df = pd.concat([self.df[:ind], self.df[ind+1:]], sort=True)
         return self.df
 
     def delete_rows(self, condition, info_str=None):

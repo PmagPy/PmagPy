@@ -33,7 +33,7 @@ class command_line_dataframe(object):
                 else:
                     #print 'putting in:', change
                     d = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
-                    self.df = pd.concat([self.df, d])
+                    self.df = pd.concat([self.df, d], sort=True)
 
 def extract_args(argv):
     """

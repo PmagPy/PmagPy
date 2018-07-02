@@ -2262,7 +2262,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
             file_type = magic_table
         infiles = [pd.read_csv(infile, sep='\t', header=1)
                    for infile in filenames]
-        df = pd.concat(infiles, ignore_index=True)
+        df = pd.concat(infiles, ignore_index=True, sort=True)
         # drop any fully duplicated rows
         df.drop_duplicates(inplace=True)
         con.add_magic_table(dtype=file_type, df=df)
