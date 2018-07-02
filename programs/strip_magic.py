@@ -152,7 +152,7 @@ def main():
     # get data read in
     Results, file_type = pmag.magic_read(res_file)
     if file_type not in supported:
-        print("Unsupported file type, try again")
+        print("Unsupported file type ({}), try again".format(file_type))
         sys.exit()
     PltObjs = ['all']
     if data_model_num == 2:
