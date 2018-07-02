@@ -6457,6 +6457,7 @@ def sbar(Ss):
     """
     calculate average s,sigma from list of "s"s.
     """
+    Ss = np.array(Ss)
     npts = Ss.shape[0]
     Ss = Ss.transpose()
     avd, avs = [], []
@@ -6777,6 +6778,7 @@ def s_boot(Ss, ipar=0, nb=1000):
 
     """
     #npts = len(Ss)
+    Ss = np.array(Ss)
     npts=Ss.shape[0]
 # get average s for whole dataset
     nf, Sigma, avs = sbar(Ss)
