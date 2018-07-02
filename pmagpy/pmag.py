@@ -5000,18 +5000,18 @@ def fshdev(k):
 def lowes(data):
     """
     gets Lowe's power spectrum  from gauss coefficients
-    
+
     Parameters
     _________
     data : nested list of [[l,m,g,h],...] as from pmag.unpack()
-    
+
     Returns
     _______
     Ls : list of degrees (l) 
     Rs : power at  degree l 
 
     """
-    lmax=data[-1][0]
+    lmax = data[-1][0]
     Ls = list(range(1, lmax+1))
     Rs = []
     recno = 0
@@ -6762,13 +6762,13 @@ def sbootpars(Taus, Vs):
 def s_boot(Ss, ipar=0, nb=1000):
     """
     Returns bootstrap parameters for S data
-   
+
     Parameters
     __________
     Ss : nested array of [x11 x22 x33 x12 x23 x13,....] data
     ipar : if True, do a parametric bootstrap 
     nb : number of bootstraps
-    
+
     Returns
     ________
     Tmean : aveage eigenvalues
@@ -6779,7 +6779,7 @@ def s_boot(Ss, ipar=0, nb=1000):
     """
     #npts = len(Ss)
     Ss = np.array(Ss)
-    npts=Ss.shape[0]
+    npts = Ss.shape[0]
 # get average s for whole dataset
     nf, Sigma, avs = sbar(Ss)
     Tmean, Vmean = doseigs(avs)  # get eigenvectors of mean tensor
@@ -7471,14 +7471,14 @@ def doigrf(lon, lat, alt, date, **kwargs):
 def unpack(gh):
     """
     unpacks gh list into l m g h type list
-    
+
     Parameters
     _________
     gh : list of gauss coefficients (as returned by, e.g., doigrf)
 
     Returns
    data : nested list of [[l,m,g,h],...]
-      
+
     """
     data = []
     k, l = 0, 1
@@ -7490,7 +7490,7 @@ def unpack(gh):
             else:
                 data.append([l, m, gh[k], gh[k + 1]])
                 k += 2
-        l+=1
+        l += 1
     return data
 
 
