@@ -359,11 +359,12 @@ def validate_for_controlled_vocab(key, value, complete_ref):
         #print 'key', key
         #print 'values', values
 
+        ## Not anymore
         # if we don't have the options for the needed controlled vocabulary,
         # fetch them from earthref
-        if key not in vocab.vocabularies:
-            add = vocab.get_controlled_vocabularies((key,))
-            vocab.vocabularies = pd.concat((vocab.vocabularies, add[0]))
+        #if key not in vocab.vocabularies:
+        #    add = vocab.get_controlled_vocabularies((key,))
+        #    vocab.vocabularies = pd.concat((vocab.vocabularies, add[0]), sort=True)
 
         ## for each value from a controlled vocabulary header,
         ## make sure it is within the controlled vocabulary list
