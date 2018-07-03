@@ -361,33 +361,40 @@ def plotQQnorm(fignum, Y, title):
     return d,dc
 
 
-def plotQQunf(fignum, D, title, subplot=False):
+def plotQQunf(fignum, D, title, subplot=False,degrees=True):
     """
     plots data against a uniform distribution in 0=>360.
-    called with plotQQunf(fignum,D,title).
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    D : data
+    title : title for plot
+    subplot : if True, make this number one of two subplots
+    degrees : if True, assume that these are degrees
+    
+    Return
+    Mu : Mu statistic (Fisher et al., 1987)
+    Mu_crit : critical value of Mu for uniform distribution 
+    
+    Effect
+    ______
+    makes a Quantile Quantile plot of data
     """
     if subplot == True:
         plt.subplot(1, 2, fignum)
     else:
         plt.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
-    for d in D:
-        if d < 0:
-            d = d + 360.
-        if d > 360.:
-            d = d - 360.
-        X.append(old_div(d, 360.))
-    X.sort()
-    n = float(len(X))
-    for i in range(len(X)):
-        # expected value from uniform distribution
-        Y.append(old_div((float(i) - 0.5), n))
-        ds = old_div(float(i), n) - X[i]  # calculated K-S test statistic
-        if dpos < ds:
-            dpos = ds
-        ds = X[i] - (old_div(float(i - 1.), n))
-        if dneg < ds:
-            dneg = ds
+    if degrees:
+        D=(np.array(D))%360
+    X=D/D.max()
+    X=np.sort(X)
+    n = float(len(D))
+    i=np.arange(0,len(D))
+    Y=(i-0.5)/n
+    ds=(i/n)-X
+    dpos=ds.max() 
+    dneg=ds.min() 
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import sys,numpy
+import sys
+import numpy as np
+import pmagpy.pmag as pmag
 #
 def main():
     """
@@ -43,19 +45,19 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        input=numpy.loadtxt(file)
+        input=np.loadtxt(file)
     else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        input=np.loadtxt(sys.stdin,dtype=np.float)
 # read in inclination data
-    for line in input: 
-        dec=float(line[0])
-        inc=float(line[1])*numpy.pi/180.
-        tincnew=flt*numpy.tan(inc)
-        incnew=numpy.arctan(tincnew)*180./numpy.pi
+    di=input.transpose()
+    decs,incs=di[0],di[1]
+    incnew=pmag.squish(incs,flt)
+    for k in range(input.shape[0]):
         if ofile=="":
-            print('%7.1f %7.1f'% (dec,incnew))
+            print('%7.1f %7.1f'% (decs[k],incnew[k]))
         else:
-            out.write('%7.1f %7.1f'% (dec,incnew)+'\n')
+            out.write('%7.1f %7.1f'% (decs[k],incnew[k])+'\n')
+    
 if __name__ == "__main__":
     main()
 

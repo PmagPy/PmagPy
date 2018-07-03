@@ -10250,7 +10250,8 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
             V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
             V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
-        if len(Ss) > 1:
+        Ss=np.array(Ss)
+        if Ss.shape[0] > 1:
             # plot the data
             plot_net(1)
             plt.title('Eigenvectors: V1=squares,V2=triangles,V3=circles')

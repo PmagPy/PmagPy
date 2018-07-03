@@ -6457,8 +6457,10 @@ def sbar(Ss):
     """
     calculate average s,sigma from list of "s"s.
     """
+    if type(Ss)==list:Ss=np.array(Ss)
     npts = Ss.shape[0]
     Ss = Ss.transpose()
+
     avd, avs = [], []
     # D=np.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
     D = np.array([Ss[0], Ss[1], Ss[2], Ss[3] + 0.5 * (Ss[0] + Ss[1]),
@@ -9377,13 +9379,41 @@ def linreg(x, y):
 
 def squish(incs, f):
     """
-    returns 'flattened' inclination, assuming factor, f and King (1955) formula
+    returns 'flattened' inclination, assuming factor, f and King (1955) formula:
+    tan (I_o) = f tan (I_f)
+    
+    Parameters
+    __________
+    incs : array of inclination (I_f)  data to flatten
+    f : flattening factor 
+   
+    Returns
+    _______
+    Io :  inclinations after flattening
     """
-    incs = incs * np.pi / 180.  # convert to radians
-    tincnew = f * np.tan(incs)  # multiply tangent by flattening factor
-    return np.arctan(tincnew) * 180. / np.pi
+    incs = np.radians(incs)
+    Io = f * np.tan(incs)  # multiply tangent by flattening factor
+    return np.degrees(np.arctan(Io))
 
 
+def unsquish(incs, f):
+    """
+    returns 'unflattened' inclination, assuming factor, f and King (1955) formula:
+    tan (I_o) = tan (I_f)/f
+    
+    Parameters
+    __________
+    incs : array of inclination (I_f)  data to unflatten
+    f : flattening factor 
+   
+    Returns
+    _______
+    Io :  inclinations after unflattening
+    """
+    incs = np.radians(incs)
+    Io = np.tan(incs)/f  # divide tangent by flattening factor
+    return np.degrees(np.arctan(Io))
+  
 def get_ts(ts):
     """
     returns GPTS timescales.
@@ -10563,7 +10593,6 @@ def watsons_f(DI1, DI2):
     F = (N-2.)*((R1+R2-R)/(N-R1-R2))
     Fcrit = fcalc(2, 2*(N-2))
     return F, Fcrit
-
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
