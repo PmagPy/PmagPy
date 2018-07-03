@@ -4991,9 +4991,9 @@ def fshdev(k):
     R2 = random.random()
     L = np.exp(-2 * k)
     a = R1 * (1 - L) + L
-    fac = np.sqrt(old_div((-np.log(a)), (2 * k)))
-    inc = 90. - 2 * np.arcsin(fac) * 180. / np.pi
-    dec = 2 * np.pi * R2 * 180. / np.pi
+    fac = np.sqrt(-np.log(a)/(2 * k))
+    inc = np.degrees(90. - 2 * np.arcsin(fac)) 
+    dec = np.degrees(2 * np.pi * R2) 
     return dec, inc
 
 
