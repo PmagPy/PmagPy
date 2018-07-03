@@ -2543,8 +2543,6 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
 
     """
-
-
     if depth_scale == 'sample_core_depth':
         depth_scale = 'core_depth'
     if depth_scale == 'sample_composite_depth':
@@ -2605,9 +2603,18 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     isbulk = 0  # tests if there are bulk susceptibility measurements
     ani_file = spec_file
 
-    #AniData, file_type = pmag.magic_read(ani_file)  # read in tensor elements
-    #AniData = con.tables['samples'].convert_to_pmag_data_list()
-    AniData = con.tables['specimens'].convert_to_pmag_data_list()
+    SampData = con.tables['samples'].df
+    AniData = con.tables['specimens'].df
+    # add sample into specimens (AniData)
+    AniData = pd.merge(AniData, SampData[['sample', depth_scale]], how='inner', on='sample')
+    # trim down AniData
+    cond = AniData[depth_scale].astype(bool)
+    AniData = AniData[cond]
+    if dmin != -1:
+        AniData = AniData[AniData[depth_scale] < dmax]
+    if dmax != -1:
+        AniData = AniData[AniData[depth_scale] > dmin]
+    AniData['core_depth'] = AniData[depth_scale]
 
     if not age_file:
         Samps = con.tables['samples'].convert_to_pmag_data_list()
@@ -2624,47 +2631,27 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
     if 'measurements' in con.tables:
         isbulk = 1
-        Meas = con.tables['measurements'].convert_to_pmag_data_list()
+        Meas = con.tables['measurements'].df #convert_to_pmag_data_list()
 
-    Data = []
-    Bulks = []
-    BulkDepths = []
+    if isbulk:
+        Meas = Meas[Meas['specimen'].astype('bool')]
+        Meas = Meas[Meas['susc_chi_volume'].astype(bool)]
+        # add core_depth into Measurements dataframe
+        Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[['specimen', 'core_depth']], how='inner', on='specimen')
+        Bulks = list(Meas['susc_chi_volume'] * 1e6)
+        BulkDepths = list(Meas['core_depth'])
+    else:
+        Bulks, BulkDepths = [], []
 
-    for rec in AniData:
-        # look for depth record for this sample
-        samprecs = pmag.get_dictitem(Samps, 'sample',
-                         rec['sample'].upper(), 'T')
-        # see if there are non-blank depth data
-        sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
-        if dmax != -1:
-            # fishes out records within depth bounds
-            sampdepths = pmag.get_dictitem(
-                sampdepths, depth_scale, dmax, 'max')
-            sampdepths = pmag.get_dictitem(
-                sampdepths, depth_scale, dmin, 'min')
-        if len(sampdepths) > 0:  # if there are any....
-            # set the core depth of this record
-            rec['core_depth'] = sampdepths[0][depth_scale]
-            Data.append(rec)  # fish out data with core_depth
-            if isbulk:  # if there are bulk data
-                chis = pmag.get_dictitem(
-                    Meas, 'specimen', rec['specimen'], 'T')
-                # get the non-zero values for this specimen
-                chis = pmag.get_dictitem(
-                    chis, 'susc_chi_volume', '', 'not_null')
-                chis = pmag.get_dictitem(
-                    chis, 'susc_chi_volume', '', 'F')
-                if len(chis) > 0:  # if there are any....
-                    # put in microSI
-                    Bulks.append(
-                        1e6 * float(chis[0]['susc_chi_volume']))
-                    BulkDepths.append(float(sampdepths[0][depth_scale]))
+    # now turn Data from pandas dataframe to a list of dicts
+    Data = list(AniData.T.apply(dict))
 
     if len(Bulks) > 0:  # set min and max bulk values
         bmin = min(Bulks)
         bmax = max(Bulks)
     xlab = "Depth (m)"
 
+    #
     if len(Data) > 0:
         location = Data[0].get('location', 'unknown')
         if nb.is_null(location):
