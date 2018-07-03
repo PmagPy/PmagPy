@@ -133,9 +133,6 @@ data_files/download_magic/pmag_criteria.txt
 data_files/eq_di/eq_di.out
 data_files/er_samples.txt
 data_files/gaussian/gaussian.out
-data_files/irmaq_magic/U1359A_IRM_coil2.magic
-data_files/irmaq_magic/U1359A_IRM_coil3.magic
-data_files/irmaq_magic/magic_measurements.txt
 data_files/kly4s_magic/er_specimens.txt
 data_files/kly4s_magic/magic_measurements.txt
 data_files/kly4s_magic/rmag_anisotropy.txt
@@ -243,10 +240,6 @@ data_files/hysteresis_magic/samples.txt
 data_files/hysteresis_magic/sites.txt
 data_files/hysteresis_magic/locations.txt
 data_files/hysteresis_magic/magic_measurements.txt
-data_files/irmaq_magic/specimens.txt
-data_files/irmaq_magic/samples.txt
-data_files/irmaq_magic/sites.txt
-data_files/irmaq_magic/locations.txt
 data_files/aarm_magic/specimens.txt
 data_files/aarm_magic/samples.txt
 data_files/aarm_magic/sites.txt
