@@ -40,24 +40,31 @@ def main():
         -P: do not plot
         -F FILE, specify output file of dec, inc, alpha95 data for plotting with plotdi_a and plotdi_e
         -exc use criteria in pmag_criteria.txt
+        -DM NUMBER MagIC data model (2 or 3, default 3)
     """
-    dir_path = '.'
-    FIG = {}  # plot dictionary
-    FIG['eqarea'] = 1  # eqarea is figure 1
-    in_file, plot_key, coord = 'pmag_specimens.txt', 'er_site_name', "-1"
-    out_file = ""
-    fmt, make_plots, plot = 'svg', 1, 0
-    Crits = ""
-    M, N, acutoff, kcutoff = 180., 1, 180., 0.
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path = sys.argv[ind+1]
-    if '-f' in sys.argv:
-        ind = sys.argv.index("-f")
-        in_file = sys.argv[ind+1]
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    data_model = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
+    fmt = pmag.get_named_arg_from_sys("-fmt", 'svg')
+    if data_model == 2:
+        in_file = pmag.get_named_arg_from_sys('-f', 'pmag_specimens.txt')
+    else:
+        in_file = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
+    in_file = pmag.resolve_file_name(in_file, dir_path)
+    if '-crd' in sys.argv:
+        ind = sys.argv.index("-crd")
+        crd = sys.argv[ind+1]
+        if crd == 's':
+            coord = "-1"
+        if crd == 'g':
+            coord = "0"
+        if crd == 't':
+            coord = "100"
+    else:
+        coord = "-1"
+
     if '-exc' in sys.argv:
         Crits, file_type = pmag.magic_read(dir_path+'/pmag_criteria.txt')
         for crit in Crits:
@@ -69,36 +76,41 @@ def main():
                 acutoff = float(crit['site_alpha95'])
             if 'site_k' in crit:
                 kcutoff = float(crit['site_k'])
-    if '-F' in sys.argv:
-        ind = sys.argv.index("-F")
-        out_file = sys.argv[ind+1]
+    else:
+        Crits = ""
+
+    out_file = pmag.get_named_arg_from_sys('-F', '')
+    if out_file:
         out = open(dir_path+'/'+out_file, 'w')
-    if '-crd' in sys.argv:
-        ind = sys.argv.index("-crd")
-        crd = sys.argv[ind+1]
-        if crd == 's':
-            coord = "-1"
-        if crd == 'g':
-            coord = "0"
-        if crd == 't':
-            coord = "100"
-    if '-fmt' in sys.argv:
-        ind = sys.argv.index("-fmt")
-        fmt = sys.argv[ind+1]
     if '-P' in sys.argv:
-        make_plots = 0
+        make_plots = 0  # do not plot
+    else:
+        make_plots = 1  # do plot
     if '-sav' in sys.argv:
-        plot = 1
+        plot = 1  # save plots and quit
+    else:
+        plot = 0 # show plots intereactively (if make_plots)
 #
-    in_file = dir_path+'/'+in_file
+
     Specs, file_type = pmag.magic_read(in_file)
-    if file_type != 'pmag_specimens':
-        print('Error opening file')
+    if 'specimens' not in file_type:
+        print('Error opening ', in_file, file_type)
         sys.exit()
     sitelist = []
+
+    # initialize some variables
+    FIG = {}  # plot dictionary
+    FIG['eqarea'] = 1  # eqarea is figure 1
+    M, N, acutoff, kcutoff = 180., 1, 180., 0.
+
+    if data_model == 2:
+        site_col = 'er_site_name'
+    else:
+        site_col = 'site'
+
     for rec in Specs:
-        if rec['er_site_name'] not in sitelist:
-            sitelist.append(rec['er_site_name'])
+        if rec[site_col] not in sitelist:
+            sitelist.append(rec[site_col])
     sitelist.sort()
     if make_plots == 1:
         EQ = {}
