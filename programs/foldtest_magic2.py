@@ -110,10 +110,9 @@ def main():
 # get to work
 #
     PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
-    if not set_env.IS_WIN:
-        pmagplotlib.plot_init(PLTS['geo'],5,5)
-        pmagplotlib.plot_init(PLTS['strat'],5,5)
-        pmagplotlib.plot_init(PLTS['taus'],5,5)
+    pmagplotlib.plot_init(PLTS['geo'],5,5)
+    pmagplotlib.plot_init(PLTS['strat'],5,5)
+    pmagplotlib.plot_init(PLTS['taus'],5,5)
     GEOrecs=pmag.get_dictitem(data,'site_tilt_correction','0','T')
     if len(GEOrecs)>0: # have some geographic data
         DIDDs= [] # set up list for dec inc  dip_direction, dip
@@ -147,7 +146,9 @@ def main():
     D,I=pmag.dotilt_V(data)
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-    if plot==0:pmagplotlib.drawFIGS(PLTS)
+    if not set_env.IS_WIN:
+        if plot==0:
+            pmagplotlib.drawFIGS(PLTS)
     Percs=list(range(min,max))
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
