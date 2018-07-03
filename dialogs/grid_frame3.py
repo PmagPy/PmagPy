@@ -714,7 +714,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             # concatenate if possible
             if not isinstance(old_df_container, type(None)):
                 df_container.df = pd.concat([old_df_container.df, df_container.df],
-                                            axis=0)
+                                            axis=0, sort=True)
             self.contribution.tables[df_container.dtype] = df_container
             self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                             self.panel, parent_type=self.parent_type,

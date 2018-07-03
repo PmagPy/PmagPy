@@ -527,7 +527,7 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
         else:
             pmag_df = pd.DataFrame()
         # combine the two Dataframes
-        full_df = pd.concat([er_df, pmag_df])
+        full_df = pd.concat([er_df, pmag_df], sort=True)
         # sort the DataFrame so that all records from one item are together
         full_df.sort_index(inplace=True)
 
@@ -951,7 +951,7 @@ def get_sb_df(df, mm97=False):
     Parameters
     _________
     df : Pandas Dataframe with columns
-        REQUIRED: 
+        REQUIRED:
         vgp_lat :  VGP latitude
         ONLY REQUIRED for MM97 correction:
         dir_k : Fisher kappa estimate
@@ -2022,7 +2022,7 @@ def magic_write(ofile, Recs, file_type):
 
     Return :
     [True,False] : True if successful
-    ofile : same as input 
+    ofile : same as input
 
     Effects :
         writes a MagIC formatted file from Recs
@@ -4150,15 +4150,15 @@ def dolnp3_0(Data):
 
     Returns
     -------
-        ReturnData : dictionary with keys 
+        ReturnData : dictionary with keys
             dec : fisher mean dec of data in Data
-            inc : fisher mean inc of data in Data 
+            inc : fisher mean inc of data in Data
             n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
             n_planes : number of best fit planes [method_code = DE-BFP]
             alpha95  : fisher confidence circle from Data
             R : fisher R value of Data
-            K : fisher k value of Data 
-    Effects 
+            K : fisher k value of Data
+    Effects
         prints to screen in case of no data
     """
     if len(Data) == 0:
@@ -4730,7 +4730,7 @@ def dokent(data, NN):
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
 
-    Return 
+    Return
     kpars dictionary keys
         dec : mean declination
         inc : mean inclination
@@ -5000,18 +5000,18 @@ def fshdev(k):
 def lowes(data):
     """
     gets Lowe's power spectrum  from gauss coefficients
-    
+
     Parameters
     _________
     data : nested list of [[l,m,g,h],...] as from pmag.unpack()
-    
+
     Returns
     _______
-    Ls : list of degrees (l) 
-    Rs : power at  degree l 
+    Ls : list of degrees (l)
+    Rs : power at  degree l
 
     """
-    lmax=data[-1][0]
+    lmax = data[-1][0]
     Ls = list(range(1, lmax+1))
     Rs = []
     recno = 0
@@ -5503,9 +5503,9 @@ def get_unf(N=100):
     __________
     N : number of directions, default is 100
 
-    Returns 
+    Returns
     ______
-    array of nested dec,inc pairs 
+    array of nested dec,inc pairs
     """
 #
 # get uniform directions  [dec,inc]
@@ -6763,23 +6763,24 @@ def sbootpars(Taus, Vs):
 def s_boot(Ss, ipar=0, nb=1000):
     """
     Returns bootstrap parameters for S data
-   
+
     Parameters
     __________
     Ss : nested array of [x11 x22 x33 x12 x23 x13,....] data
-    ipar : if True, do a parametric bootstrap 
+    ipar : if True, do a parametric bootstrap
     nb : number of bootstraps
-    
+
     Returns
     ________
     Tmean : aveage eigenvalues
     Vmean : average eigvectors
     Taus : bootstrapped eigenvalues
-    Vs :  bootstrapped eigenvectors 
+    Vs :  bootstrapped eigenvectors
 
     """
     #npts = len(Ss)
-    npts=Ss.shape[0]
+    Ss = np.array(Ss)
+    npts = Ss.shape[0]
 # get average s for whole dataset
     nf, Sigma, avs = sbar(Ss)
     Tmean, Vmean = doseigs(avs)  # get eigenvectors of mean tensor
@@ -7471,14 +7472,14 @@ def doigrf(lon, lat, alt, date, **kwargs):
 def unpack(gh):
     """
     unpacks gh list into l m g h type list
-    
+
     Parameters
     _________
     gh : list of gauss coefficients (as returned by, e.g., doigrf)
 
     Returns
    data : nested list of [[l,m,g,h],...]
-      
+
     """
     data = []
     k, l = 0, 1
@@ -7490,7 +7491,7 @@ def unpack(gh):
             else:
                 data.append([l, m, gh[k], gh[k + 1]])
                 k += 2
-        l+=1
+        l += 1
     return data
 
 
@@ -9249,7 +9250,7 @@ def di_boot(DIs, nb=5000):
      DIs : nested list of Dec,Inc pairs
      nb : number of bootstrap pseudosamples
 
-     Returns 
+     Returns
     -------
         nested list of bootstrapped mean Dec,Inc pairs
     """
@@ -10473,8 +10474,8 @@ def separate_directions(di_block):
 
 def dovandamme(vgp_df):
     """
-    determine the S_b value for VGPs using the Vandamme (1994) method 
-    for determining cutoff value for "outliers".  
+    determine the S_b value for VGPs using the Vandamme (1994) method
+    for determining cutoff value for "outliers".
     Parameters
     ___________
     vgp_df : pandas DataFrame with required column "vgp_lat"
@@ -10483,7 +10484,7 @@ def dovandamme(vgp_df):
     Returns
     _________
     vgp_df : after applying cutoff
-    cutoff : colatitude cutoff 
+    cutoff : colatitude cutoff
     S_b : S_b of vgp_df  after applying cutoff
     """
     vgp_df['delta'] = 90.-vgp_df['vgp_lat'].values
@@ -10515,13 +10516,13 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         mm97 : if True, will do the correction for within site scatter
         OPTIONAL:
         boot : if True. do bootstrap
-        nb : number of bootstraps, default is 1000  
+        nb : number of bootstraps, default is 1000
 
     Returns
     _____________
         N : number of VGPs used in calculation
         S : S
-        low : 95% confidence lower bound [0 if boot=0]    
+        low : 95% confidence lower bound [0 if boot=0]
         high  95% confidence upper bound [0 if boot=0]
         cutoff : cutoff used in calculation of  S
     """
@@ -10547,7 +10548,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         vgp_anti = vgp_rev
         vgp_anti['vgp_lat'] = -vgp_anti['vgp_lat']
         vgp_anti['vgp_lon'] = (vgp_anti['vgp_lon']-180) % 360
-        vgp_df = pd.concat([vgp_norm, vgp_anti])
+        vgp_df = pd.concat([vgp_norm, vgp_anti], sort=True)
     if rev:
         vgp_df = vgp_df[vgp_df.vgp_lat < 0]  # use only reverse data
     if v:
