@@ -125,7 +125,8 @@ def main():
     # get location name and average ages
     locations = ":".join(Results['location'].unique())
     if 'age' not in Results.columns and 'age_low' in Results.columns and 'age_high' in Results.columns:
-        Results['age']=Results['age_low']+0.5*(Results['age_high']-Results['age_low'])
+        Results['age'] = Results['age_low']+0.5 * \
+            (Results['age_high']-Results['age_low'])
     if 'age' in Results.columns and ages == 1:
         dates = Results['age'].unique()
 
@@ -220,7 +221,7 @@ def main():
     files = {}
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
-            files[key] = 'LO:_' + locations+ '_POLE_map.' + fmt
+            files[key] = 'LO:_' + locations + '_POLE_map.' + fmt
         else:  # use more readable naming convention
             files[key] = '{}_POLE_map.{}'.format(locations, fmt)
 
