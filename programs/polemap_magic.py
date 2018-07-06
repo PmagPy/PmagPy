@@ -125,7 +125,8 @@ def main():
     # get location name and average ages
     locations = ":".join(Results['location'].unique())
     if 'age' not in Results.columns and 'age_low' in Results.columns and 'age_high' in Results.columns:
-        Results['age']=Results['age_low']+0.5*(Results['age_high']-Results['age_low'])
+        Results['age'] = Results['age_low']+0.5 * \
+            (Results['age_high']-Results['age_low'])
     if 'age' in Results.columns and ages == 1:
         dates = Results['age'].unique()
 
@@ -174,40 +175,40 @@ def main():
             ppars.append(lons[-1] + 90.)
             ppars.append(0.)
             Pars.append(ppars)
-            locations = locations.strip(':')
-            if len(locations)>20: locations=locations[0:20] # truncate
-            Opts = {'latmin': -90, 'latmax': 90, 'lonmin': 0., 'lonmax': 360.,
-                'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'bs',
-                'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
-            Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
-                   'countries': 0, 'ocean': 1, 'fancy': fancy}
-        # make the base map with a blue triangle at the pole
-            pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
-            Opts['pltgrid'] = -1
-            Opts['sym'] = sym
-            Opts['symsize'] = size
-            if len(dates) > 0:
-                Opts['names'] = dates
-            if len(lats) > 0:
-                # add the lats and lons of the poles
-                pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
-            Opts['names'] = []
-            if len(rlats) > 0:
-                Opts['sym'] = rsym
-                Opts['symsize'] = rsize
-            # add the lats and lons of the poles
-                pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
-            if plot == 0 and not set_env.IS_WIN:
-                pmagplotlib.drawFIGS(FIG)
-            if ell == 1:  # add ellipses if desired.
-                Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
-                       'countries': 0, 'ocean': 0, 'fancy': fancy}
-            Opts['pltgrid'] = -1  # turn off meridian replotting
-            Opts['symsize'] = 2
-            Opts['sym'] = 'g-'
-            for ppars in Pars:
-                if ppars[2] != 0:
-                    PTS = pmagplotlib.plotELL(FIG['map'], ppars, 'g.', 0, 0)
+
+    locations = locations.strip(':')
+    Opts = {'latmin': -90, 'latmax': 90, 'lonmin': 0., 'lonmax': 360.,
+            'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'bs',
+            'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
+    Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
+                       'countries': 0, 'ocean': 1, 'fancy': fancy}
+    # make the base map with a blue triangle at the pole
+    pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
+    Opts['pltgrid'] = -1
+    Opts['sym'] = sym
+    Opts['symsize'] = size
+    if len(dates) > 0:
+        Opts['names'] = dates
+    if len(lats) > 0:
+        # add the lats and lons of the poles
+        pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+    Opts['names'] = []
+    if len(rlats) > 0:
+        Opts['sym'] = rsym
+        Opts['symsize'] = rsize
+        # add the lats and lons of the poles
+        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
+    if plot == 0 and not set_env.IS_WIN:
+        pmagplotlib.drawFIGS(FIG)
+    if ell == 1:  # add ellipses if desired.
+        Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
+                           'countries': 0, 'ocean': 0, 'fancy': fancy}
+        Opts['pltgrid'] = -1  # turn off meridian replotting
+        Opts['symsize'] = 2
+        Opts['sym'] = 'g-'
+        for ppars in Pars:
+            if ppars[2] != 0:
+                PTS = pmagplotlib.plotELL(FIG['map'], ppars, 'g.', 0, 0)
                 elats, elons = [], []
                 for pt in PTS:
                     elons.append(pt[0])
@@ -216,11 +217,11 @@ def main():
                 pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
                 if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.drawFIGS(FIG)
-        
-            files = {}
+
+    files = {}
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
-            files[key] = 'LO:_' + locations+ '_POLE_map.' + fmt
+            files[key] = 'LO:_' + locations + '_POLE_map.' + fmt
         else:  # use more readable naming convention
             files[key] = '{}_POLE_map.{}'.format(locations, fmt)
 
