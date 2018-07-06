@@ -2508,7 +2508,7 @@ def dir2cart(d):
     ints = np.ones(len(d)).transpose(
     )  # get an array of ones to plug into dec,inc pairs
     d = np.array(d)
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     if len(d.shape) > 1:  # array of vectors
         decs, incs = d[:, 0] * rad, d[:, 1] * rad
         if d.shape[1] == 3:
@@ -3949,7 +3949,14 @@ def fisher_mean(data):
 
     Returns
     -------
-    fisher_mean : dictionary containing the Fisher mean and statistics
+    fpars : dictionary containing the Fisher mean and statistics
+        dec : mean declination
+        inc : mean inclination
+        r : resultant vector length
+        n : number of data points
+        k : Fisher k value
+        csd : Fisher circular standard deviation
+        alpha95 : Fisher circle of 95% confidence  
     """
     R, Xbar, X, fpars = 0, [0, 0, 0], [], {}
     N = len(data)
@@ -3963,7 +3970,7 @@ def fisher_mean(data):
         R += Xbar[c]**2
     R = np.sqrt(R)
     for c in range(3):
-        Xbar[c] = old_div(Xbar[c], R)
+        Xbar[c] = Xbar[c]/R
     dir = cart2dir(Xbar)
     fpars["dec"] = dir[0]
     fpars["inc"] = dir[1]
@@ -4982,19 +4989,28 @@ def fshdev(k):
     Parameters
     ----------
     k : kappa (precision parameter) of the distribution
+        k can be a single number or an array of values
 
     Returns
     ----------
     dec, inc : declination and inclination of random Fisher distribution draw
+               if k is an array, dec, inc are returned as arrays, otherwise, single values
     """
-    R1 = random.random()
-    R2 = random.random()
+    k=np.array(k)
+    if len(k.shape)!=0:
+        n=k.shape[0]
+    else: n=1
+    R1 = random.random(size=n)
+    R2 = random.random(size=n)
     L = np.exp(-2 * k)
     a = R1 * (1 - L) + L
     fac = np.sqrt(-np.log(a)/(2 * k))
-    inc = np.degrees(90. - 2 * np.arcsin(fac)) 
+    inc = 90. - np.degrees(2 * np.arcsin(fac)) 
     dec = np.degrees(2 * np.pi * R2) 
-    return dec, inc
+    if n==1:
+        return dec[0], inc[0] # preserve backward compatibility
+    else:
+        return dec,inc
 
 
 def lowes(data):
@@ -9252,10 +9268,8 @@ def di_boot(DIs, nb=5000):
 
      Returns
     -------
-        nested list of bootstrapped mean Dec,Inc pairs
+     BDIs:   nested list of bootstrapped mean Dec,Inc pairs
     """
-# get average DI for whole dataset
-    fpars = fisher_mean(DIs)
 #
 # now do bootstrap to collect BDIs  bootstrap means
 #
@@ -9268,6 +9282,99 @@ def di_boot(DIs, nb=5000):
         bfpars = fisher_mean(pDIs)  # get bootstrap mean bootstrap sample
         BDIs.append([bfpars['dec'], bfpars['inc']])
     return BDIs
+
+def dir_df_boot(dir_df,nb=5000,par=False):
+    """
+    Performs a bootstrap for direction DataFrame with optional parametric bootstrap
+
+    Parameters
+    _________
+    dir_df : Pandas DataFrame with columns:
+        dir_dec : mean declination
+        dir_inc : mean inclination
+      Required for parametric bootstrap
+        dir_n : number of data points in mean
+        dir_k : Fisher k statistic for mean
+    nb : number of bootstraps, default is 5000
+    par : if True, do a parameteric bootstrap
+
+    Returns
+     _______
+     BDIs:   nested list of bootstrapped mean Dec,Inc pairs
+    """
+    N=dir_df.dir_dec.values.shape[0] # number of data points
+    BDIs=[]
+    for k in range(nb):
+        pdir_df = dir_df.sample(n=N,replace=True) # bootstrap pseudosample
+        pdir_df.reset_index(inplace=True) # reset the index
+        if par: # do a parametric bootstrap
+            for i in pdir_df.index: # set through the pseudosample
+                n=pdir_df.loc[i,'dir_n'] # get number of samples/site
+                ks=np.ones(shape=n)*pdir_df.loc[i,'dir_k'] # get ks for each sample
+                decs,incs=fshdev(ks) # draw a fisher distributed set of directions
+                di_block=np.column_stack((decs,incs)) 
+                #  rotate them to the mean
+                di_block=dodirot_V(di_block,pdir_df.loc[i,'dir_dec'],pdir_df.loc[i,'dir_inc'])
+                fpars = fisher_mean(di_block)  # get the new mean direction for the pseudosample
+                pdir_df.loc[i,'dir_dec']=fpars['dec'] # replace the pseudo sample mean direction
+                pdir_df.loc[i,'dir_inc']=fpars['inc']
+        bfpars = dir_df_fisher_mean(pdir_df)  # get bootstrap mean bootstrap sample
+        BDIs.append([bfpars['dec'], bfpars['inc']])
+    return BDIs
+ 
+   
+def dir_df_fisher_mean(dir_df):
+    """
+    calculates fisher mean for Pandas data frame
+    
+    Parameters
+    __________
+    dir_df: pandas data frame with columns:
+        dir_dec : declination
+        dir_inc : inclination
+    Returns
+    -------
+    fpars : dictionary containing the Fisher mean and statistics
+        dec : mean declination
+        inc : mean inclination
+        r : resultant vector length
+        n : number of data points
+        k : Fisher k value
+        csd : Fisher circular standard deviation
+        alpha95 : Fisher circle of 95% confidence  
+    """
+    N=dir_df.dir_dec.values.shape[0] # number of data points
+    fpars={}
+    if N < 2:
+        return fpars
+    dirs=dir_df[['dir_dec','dir_inc']].values
+    X = dir2cart(dirs).transpose()
+    Xbar=np.array([X[0].sum(),X[1].sum(),X[2].sum()])
+    R = np.sqrt(Xbar[0]**2+Xbar[1]**2+Xbar[2]**2)
+    Xbar=Xbar/R
+    dir = cart2dir(Xbar)
+    fpars["dec"] = dir[0]
+    fpars["inc"] = dir[1]
+    fpars["n"] = N
+    fpars["r"] = R
+    if N != R:
+        k = (N - 1.) / (N - R)
+        fpars["k"] = k
+        csd = 81./np.sqrt(k)
+    else:
+        fpars['k'] = 'inf'
+        csd = 0.
+    b = 20.**(1./(N - 1.)) - 1
+    a = 1 - b * (N - R) / R
+    if a < -1:
+        a = -1
+    a95 = np.degrees(np.arccos(a))
+    fpars["alpha95"] = a95
+    fpars["csd"] = csd
+    if a < 0:
+        fpars["alpha95"] = 180.0
+    return fpars
+
 
 
 def pseudosample(x):
