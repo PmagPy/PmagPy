@@ -33,10 +33,10 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f pmag_sites  formatted file [default is pmag_sites.txt]
-        -fsa er_samples  formatted file [default is er_samples.txt]
-        -fsi er_sites  formatted file
-        -exc use pmag_criteria.txt to set acceptance criteria
+        -f sites  formatted file [default for 3.0 is sites.txt, for 2.5, pmag_sites.txt]
+        -fsa samples  formatted file
+        -fsi sites  formatted file
+        -exc use criteria to set acceptance criteria
         -n NB, set number of bootstraps, default is 1000
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
@@ -68,7 +68,7 @@ def main():
         sys.exit()  # graceful quit
 
     kappa = 0
-    critfile = 'pmag_criteria.txt'
+
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
     nb = int(float(pmag.get_named_arg_from_sys("-n", 1000)))     # number of bootstraps
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
@@ -81,6 +81,8 @@ def main():
         inc_col = 'dir_inc'
         tilt_col = 'dir_tilt_correction'
         dipkey, azkey = 'bed_dip', 'bed_dip_direction'
+        crit_col = 'criterion'
+        critfile = 'criteria.txt'
     else:
         infile = pmag.get_named_arg_from_sys("-f", 'pmag_sites.txt')
         orfile = 'er_samples.txt'
@@ -89,6 +91,8 @@ def main():
         inc_col = 'site_inc'
         tilt_col = 'site_tilt_correction'
         dipkey, azkey = 'sample_bed_dip', 'sample_bed_dip_direction'
+        crit_col = 'pmag_criteria_code'
+        critfile = 'pmag_criteria.txt'
     if '-sav' in sys.argv:
         plot = 1
     else:
@@ -122,8 +126,7 @@ def main():
     data = data.where(data.notnull(), "")
     # turn into pmag data list
     data = data.T.apply(dict)
-    #data, file_type = pmag.magic_read(infile)
-
+    # get orientation data
     if data_model_num == 3:
         if orfile == infile:
             ordata = df[df[azkey].notnull()]
@@ -136,7 +139,7 @@ def main():
     if '-exc' in sys.argv:
         crits, file_type = pmag.magic_read(critfile)
         for crit in crits:
-            if crit['pmag_criteria_code'] == "DE-SITE":
+            if crit[crit_col] == "DE-SITE":
                 SiteCrit = crit
                 break
 # get to work
