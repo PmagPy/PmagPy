@@ -5,12 +5,13 @@ from builtins import input
 from builtins import range
 from past.utils import old_div
 import sys
-import numpy
+import numpy as np
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
+import pandas as pd
 
-import pylab
+from matplotlib import pyplot as plt
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 from pmag_env import set_env
@@ -40,6 +41,7 @@ def main():
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
         -sav saves plots and quits
+        -DM NUM MagIC data model number (2 or 3, default 3)
 
     OUTPUT
         Geographic: is an equal area projection of the input data in
@@ -61,48 +63,76 @@ def main():
                 possible as is vertical axis rotation or other pathologies
 
     """
-    kappa = 0
-    nb = 1000  # number of bootstraps
-    min, max = -10, 150
-    dir_path = '.'
-    infile, orfile = 'pmag_sites.txt', 'er_samples.txt'
-    critfile = 'pmag_criteria.txt'
-    dipkey, azkey = 'sample_bed_dip', 'sample_bed_dip_direction'
-    fmt = 'svg'
-    plot = 0
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path = sys.argv[ind+1]
     if '-h' in sys.argv:  # check if help is needed
         print(main.__doc__)
         sys.exit()  # graceful quit
-    if '-n' in sys.argv:
-        ind = sys.argv.index('-n')
-        nb = int(sys.argv[ind+1])
-    if '-fmt' in sys.argv:
-        ind = sys.argv.index('-fmt')
-        fmt = sys.argv[ind+1]
+
+    kappa = 0
+    critfile = 'pmag_criteria.txt'
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    nb = int(float(pmag.get_named_arg_from_sys("-n", 1000)))     # number of bootstraps
+    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+    data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
+    if data_model_num == 3:
+        infile = pmag.get_named_arg_from_sys("-f", 'sites.txt')
+        orfile = 'samples.txt'
+        site_col = 'site'
+        dec_col = 'dir_dec'
+        inc_col = 'dir_inc'
+        tilt_col = 'dir_tilt_correction'
+        dipkey, azkey = 'bed_dip', 'bed_dip_direction'
+    else:
+        infile = pmag.get_named_arg_from_sys("-f", 'pmag_sites.txt')
+        orfile = 'er_samples.txt'
+        site_col = 'er_site_name'
+        dec_col = 'site_dec'
+        inc_col = 'site_inc'
+        tilt_col = 'site_tilt_correction'
+        dipkey, azkey = 'sample_bed_dip', 'sample_bed_dip_direction'
     if '-sav' in sys.argv:
         plot = 1
+    else:
+        plot = 0
     if '-b' in sys.argv:
         ind = sys.argv.index('-b')
-        min = int(sys.argv[ind+1])
-        max = int(sys.argv[ind+2])
-    if '-f' in sys.argv:
-        ind = sys.argv.index('-f')
-        infile = sys.argv[ind+1]
+        untilt_min = int(sys.argv[ind+1])
+        untilt_max = int(sys.argv[ind+2])
+    else:
+        untilt_min, untilt_max = -10, 150
     if '-fsa' in sys.argv:
-        ind = sys.argv.index('-fsa')
-        orfile = sys.argv[ind+1]
+        orfile = pmag.get_named_arg_from_sys("-fsa", "")
     elif '-fsi' in sys.argv:
-        ind = sys.argv.index('-fsi')
-        orfile = sys.argv[ind+1]
-        dipkey, azkey = 'site_bed_dip', 'site_bed_dip_direction'
-    orfile = dir_path+'/'+orfile
-    infile = dir_path+'/'+infile
-    critfile = dir_path+'/'+critfile
-    data, file_type = pmag.magic_read(infile)
-    ordata, file_type = pmag.magic_read(orfile)
+        orfile = pmag.get_named_arg_from_sys("-fsi", "")
+        if data_model_num == 3:
+            dipkey, azkey = 'bed_dip', 'bed_dip_direction'
+        else:
+            dipkey, azkey = 'site_bed_dip', 'site_bed_dip_direction'
+    else:
+        if data_model_num == 3:
+            orfile = 'sites.txt'
+        else:
+            orfile = 'pmag_sites.txt'
+    orfile = pmag.resolve_file_name(orfile, dir_path)
+    infile = pmag.resolve_file_name(infile, dir_path)
+    critfile = pmag.resolve_file_name(critfile, dir_path)
+    df = pd.read_csv(infile, sep='\t', header=1)
+    # keep only records with tilt_col
+    data = df.copy()
+    data = data[data[tilt_col].notnull()]
+    data = data.where(data.notnull(), "")
+    # turn into pmag data list
+    data = data.T.apply(dict)
+    #data, file_type = pmag.magic_read(infile)
+
+    if data_model_num == 3:
+        if orfile == infile:
+            ordata = df[df[azkey].notnull()]
+            ordata = ordata[ordata[dipkey].notnull()]
+            ordata = ordata.T.apply(dict)
+        else:
+            ordata, file_type = pmag.magic_read(orfile)
+    else:
+        ordata, file_type = pmag.magic_read(orfile)
     if '-exc' in sys.argv:
         crits, file_type = pmag.magic_read(critfile)
         for crit in crits:
@@ -116,15 +146,18 @@ def main():
         pmagplotlib.plot_init(PLTS['geo'], 5, 5)
         pmagplotlib.plot_init(PLTS['strat'], 5, 5)
         pmagplotlib.plot_init(PLTS['taus'], 5, 5)
-    GEOrecs = pmag.get_dictitem(data, 'site_tilt_correction', '0', 'T')
+    if data_model_num == 2:
+        GEOrecs = pmag.get_dictitem(data, tilt_col, '0', 'T')
+    else:
+        GEOrecs = data
     if len(GEOrecs) > 0:  # have some geographic data
         DIDDs = []  # set up list for dec inc  dip_direction, dip
         for rec in GEOrecs:   # parse data
             dip, dip_dir = 0, -1
-            Dec = float(rec['site_dec'])
-            Inc = float(rec['site_inc'])
+            Dec = float(rec[dec_col])
+            Inc = float(rec[inc_col])
             orecs = pmag.get_dictitem(
-                ordata, 'er_site_name', rec['er_site_name'], 'T')
+                ordata, site_col, rec[site_col], 'T')
             if len(orecs) > 0:
                 if orecs[0][azkey] != "":
                     dip_dir = float(orecs[0][azkey])
@@ -137,7 +170,7 @@ def main():
                         if 'site' in key and SiteCrit[key] != "" and rec[key] != "" and key != 'site_alpha95':
                             if float(rec[key]) < float(SiteCrit[key]):
                                 keep = 0
-                                print(rec['er_site_name'], key, rec[key])
+                                print(rec[site_col], key, rec[key])
                         if key == 'site_alpha95' and SiteCrit[key] != "" and rec[key] != "":
                             if float(rec[key]) > float(SiteCrit[key]):
                                 keep = 0
@@ -149,15 +182,15 @@ def main():
         print('no geographic directional data found')
         sys.exit()
     pmagplotlib.plotEQ(PLTS['geo'], DIDDs, 'Geographic')
-    data = numpy.array(DIDDs)
+    data = np.array(DIDDs)
     D, I = pmag.dotilt_V(data)
-    TCs = numpy.array([D, I]).transpose()
+    TCs = np.array([D, I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'], TCs, 'Stratigraphic')
     if plot == 0:
         pmagplotlib.drawFIGS(PLTS)
-    Percs = list(range(min, max))
+    Percs = list(range(untilt_min, untilt_max))
     Cdf, Untilt = [], []
-    pylab.figure(num=PLTS['taus'])
+    plt.figure(num=PLTS['taus'])
     print('doing ', nb, ' iterations...please be patient.....')
     for n in range(nb):  # do bootstrap data sets - plot first 25 as dashed red line
         if n % 50 == 0:
@@ -171,28 +204,28 @@ def main():
                 PDs[k][2] = dipdir
                 PDs[k][3] = dip
         for perc in Percs:
-            tilt = numpy.array([1., 1., 1., 0.01*perc])
+            tilt = np.array([1., 1., 1., 0.01*perc])
             D, I = pmag.dotilt_V(PDs*tilt)
-            TCs = numpy.array([D, I]).transpose()
+            TCs = np.array([D, I]).transpose()
             ppars = pmag.doprinc(TCs)  # get principal directions
             Taus.append(ppars['tau1'])
         if n < 25:
-            pylab.plot(Percs, Taus, 'r--')
+            plt.plot(Percs, Taus, 'r--')
         # tilt that gives maximum tau
-        Untilt.append(Percs[Taus.index(numpy.max(Taus))])
+        Untilt.append(Percs[Taus.index(np.max(Taus))])
         Cdf.append(old_div(float(n), float(nb)))
-    pylab.plot(Percs, Taus, 'k')
-    pylab.xlabel('% Untilting')
-    pylab.ylabel('tau_1 (red), CDF (green)')
+    plt.plot(Percs, Taus, 'k')
+    plt.xlabel('% Untilting')
+    plt.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort()  # now for CDF of tilt of maximum tau
-    pylab.plot(Untilt, Cdf, 'g')
+    plt.plot(Untilt, Cdf, 'g')
     lower = int(.025*nb)
     upper = int(.975*nb)
-    pylab.axvline(x=Untilt[lower], ymin=0, ymax=1, linewidth=1, linestyle='--')
-    pylab.axvline(x=Untilt[upper], ymin=0, ymax=1, linewidth=1, linestyle='--')
+    plt.axvline(x=Untilt[lower], ymin=0, ymax=1, linewidth=1, linestyle='--')
+    plt.axvline(x=Untilt[upper], ymin=0, ymax=1, linewidth=1, linestyle='--')
     tit = '%i - %i %s' % (Untilt[lower], Untilt[upper], 'Percent Unfolding')
     print(tit)
-    pylab.title(tit)
+    plt.title(tit)
     if plot == 0:
         pmagplotlib.drawFIGS(PLTS)
         ans = input('S[a]ve all figures, <Return> to quit  \n ')
