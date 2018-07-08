@@ -41,9 +41,9 @@ def main():
         -sav save plot without review
         -fmt specfiy format for figures - default is svg
      DEFAULTS:
-         Anisotropy file: rmag_anisotropy.txt
-         Bulk susceptibility file: magic_measurements.txt
-         Samples file: er_samples.txt
+         Anisotropy file: specimens.txt
+         Bulk susceptibility file: measurements.txt
+         Samples file: samples.txt
     """
 
 
