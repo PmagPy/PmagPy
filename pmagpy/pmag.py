@@ -1724,7 +1724,7 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
-    d_line = lines[0][:-1].strip('\n').strip('\r')
+    d_line = lines[0][:-1].strip('\n').strip('\r').strip('\t')
     if not d_line:
         if return_keys:
             return [], 'empty_file', []
