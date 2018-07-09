@@ -1,3 +1,6 @@
 tab 	sites
-location	site
-"Yucca Mountain, NV, west flank, Topopah Springs SW"	CS914
+citations	description	geologic_classes	geologic_types	lat	lithologies	location	lon	site
+This study	VSP-SSD.	Extrusive	Lava Flow	36.8228	Rhyolitic Tuff	Yucca Mountain, NV, west flank, Topopah Springs SW	243.531	CS914
+This study	loess/paleosol section at Weinan; samples sent to IRM by Jeff Gee for pilot study of k (f, T).	Sedimentary	Sediment Layer	44.976	Loess	IRM_Mail-ins	266.768	Jeff Gee Weinan loess
+This study	samples made by mixing material from 12. 3 and 12. 6.	Extrusive	Lava Flow	36.8228	Rhyolitic Tuff	Yucca Mountain, NV, west flank, Topopah Springs SW	243.531	YM-TCTuff12.3/6
+This study	drill cores (3 holes, 8 specimens recovered) , taken in line of 1990 drillholes.	Extrusive	Lava Flow	36.8228	Rhyolitic Tuff	Yucca Mountain, NV, west flank, Topopah Springs SW	243.531	YM-TCTuff12.4

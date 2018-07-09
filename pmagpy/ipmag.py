@@ -753,6 +753,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     ----------
     Data1 : a nested list of directional data [dec,inc] (a di_block)
     Data2 : a nested list of directional data [dec,inc] (a di_block)
+            if Data2 is length of 1, treat as single direction
     NumSims : number of bootstrap samples (default is 1000)
     save : optional save of plots (default is False)
     save_folder : path to directory where plots should be saved
@@ -778,12 +779,15 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     """
     counter = 0
     BDI1 = pmag.di_boot(Data1)
-    BDI2 = pmag.di_boot(Data2)
-
     cart1 = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart1[0], cart1[1], cart1[2]
-    cart2 = pmag.dir2cart(BDI2).transpose()
-    X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
+    if np.array(Data2).shape[0]>2:
+        BDI2 = pmag.di_boot(Data2)
+        cart2 = pmag.dir2cart(BDI2).transpose()
+        X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
+    else: 
+        cart = pmag.dir2cart(Data2).transpose()
+        
 
     fignum = 1
     fig = plt.figure(figsize=figsize)
@@ -795,10 +799,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     X1, y = pmagplotlib.plotCDF(fignum, X1, "X component", 'r', "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
-
-    X2, y = pmagplotlib.plotCDF(fignum, X2, "X component", 'b', "")
-    bounds2 = [X2[minimum], X2[maximum]]
-    pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    if np.array(Data2).shape[0]>2:
+        X2, y = pmagplotlib.plotCDF(fignum, X2, "X component", 'b', "")
+        bounds2 = [X2[minimum], X2[maximum]]
+        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    else:
+        pmagplotlib.plotVs(fignum, [cart[0]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
 
@@ -807,12 +813,13 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     Y1, y = pmagplotlib.plotCDF(fignum, Y1, "Y component", 'r', "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
-
-    Y2, y = pmagplotlib.plotCDF(fignum, Y2, "Y component", 'b', "")
-    bounds2 = [Y2[minimum], Y2[maximum]]
-    pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    if np.array(Data2).shape[0]>2:
+        Y2, y = pmagplotlib.plotCDF(fignum, Y2, "Y component", 'b', "")
+        bounds2 = [Y2[minimum], Y2[maximum]]
+        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    else:
+        pmagplotlib.plotVs(fignum, [cart[1]], 'k', '--')
     plt.ylim(0, 1)
-    plt.locator_params(nbins=x_tick_bins)
 
     plt.subplot(1, 3, 3)
 
@@ -820,9 +827,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
 
-    Z2, y = pmagplotlib.plotCDF(fignum, Z2, "Z component", 'b', "")
-    bounds2 = [Z2[minimum], Z2[maximum]]
-    pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    if np.array(Data2).shape[0]>2:
+        Z2, y = pmagplotlib.plotCDF(fignum, Z2, "Z component", 'b', "")
+        bounds2 = [Z2[minimum], Z2[maximum]]
+        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+    else:
+        pmagplotlib.plotVs(fignum, [cart[2]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
 
@@ -831,6 +841,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
         plt.savefig(os.path.join(
             save_folder, 'common_mean_bootstrap') + '.' + fmt)
     plt.show()
+
 
 
 def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no', save=False, save_folder='.', fmt='svg'):

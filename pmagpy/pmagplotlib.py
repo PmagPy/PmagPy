@@ -2049,7 +2049,7 @@ def plotSBc(fignum, Bc, S, sym):
     plt.ylabel('Mr/Ms')
     plt.title('Squareness-Coercivity Plot')
     bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1])
+    plt.axis([0, bounds[1], 0, 1]);
 #
 
 
@@ -2063,7 +2063,7 @@ def plotSBcr(fignum, Bcr, S, sym):
     plt.ylabel('Mr/Ms')
     plt.title('Squareness-Bcr Plot')
     bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1])
+    plt.axis([0, bounds[1], 0, 1]);
 #
 
 

@@ -1,3 +1,7 @@
 tab 	locations
-location
-"Yucca Mountain, NV, west flank, Topopah Springs SW"
+citations	description	expedition_description	expedition_name	lat_n	lat_s	location	location_type	lon_e	lon_w
+This study	36. 82278N, 116. 46902W.			44.976	44.976	IRM_Mail-ins	Outcrop	266.768	266.768
+This study	specimens sent for measurement.			36.8228	36.8228	Yucca Mountain, NV, west flank, Topopah Springs SW	Outcrop	243.531	243.531
+This study		Tiva Canyon Tuff, focus on SP layers.	Yucca Mountain 2004						
+This study		IRM standards, reference materials, etc.	IRM						
+This study		Tiva Canyon Tuff, Yucca Mtn, JGR94 (B4) 6035-6052, 1991.	Charley Schlinger Tiva Canyon						

@@ -1,3 +1,7 @@
 tab 	samples
-sample	site
-CS914	CS914
+azimuth_dec_correction	citations	geologic_classes	geologic_types	institution	lat	lithologies	lon	material_type	orientation_quality	sample	site
+90	This study	Extrusive	Lava Flow		36.8228	Rhyolitic Tuff	243.531		g	CS914	CS914
+90	This study	Extrusive	Lava Flow		36.8228	Rhyolitic Tuff	243.531		g	TC04-12-03/6	YM-TCTuff12.3/6
+0	This study	Extrusive	Lava Flow		36.8228	Rhyolitic Tuff	243.531		g	TC04-12-04	YM-TCTuff12.4
+0	This study	Sedimentary	Sediment Layer		44.976	Loess	266.768		g	WN510	Jeff Gee Weinan loess
+				FerroTec (formerly Ferrofluidics)				Chemical Precipitate			
