@@ -70,7 +70,7 @@ def main():
     kappa = 0
 
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    nb = int(float(pmag.get_named_arg_from_sys("-n", 1000)))     # number of bootstraps
+    nboot = int(float(pmag.get_named_arg_from_sys("-n", 1000)))     # number of bootstraps
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
     if data_model_num == 3:
@@ -125,15 +125,18 @@ def main():
     data = data[data[tilt_col].notnull()]
     data = data.where(data.notnull(), "")
     # turn into pmag data list
-    data = data.T.apply(dict)
+    data = list(data.T.apply(dict))
     # get orientation data
     if data_model_num == 3:
+        # often orientation will be in infile (sites table)
         if orfile == infile:
             ordata = df[df[azkey].notnull()]
             ordata = ordata[ordata[dipkey].notnull()]
-            ordata = ordata.T.apply(dict)
+            ordata = list(ordata.T.apply(dict))
+        # sometimes orientation might be in a sample file instead
         else:
-            ordata, file_type = pmag.magic_read(orfile)
+            ordata = pd.read_csv(orfile, sep='\t', header=1)
+            ordata = list(ordata.T.apply(dict))
     else:
         ordata, file_type = pmag.magic_read(orfile)
     if '-exc' in sys.argv:
@@ -194,8 +197,8 @@ def main():
     Percs = list(range(untilt_min, untilt_max))
     Cdf, Untilt = [], []
     plt.figure(num=PLTS['taus'])
-    print('doing ', nb, ' iterations...please be patient.....')
-    for n in range(nb):  # do bootstrap data sets - plot first 25 as dashed red line
+    print('doing ', nboot, ' iterations...please be patient.....')
+    for n in range(nboot):  # do bootstrap data sets - plot first 25 as dashed red line
         if n % 50 == 0:
             print(n)
         Taus = []  # set up lists for taus
@@ -216,14 +219,14 @@ def main():
             plt.plot(Percs, Taus, 'r--')
         # tilt that gives maximum tau
         Untilt.append(Percs[Taus.index(np.max(Taus))])
-        Cdf.append(old_div(float(n), float(nb)))
+        Cdf.append(old_div(float(n), float(nboot)))
     plt.plot(Percs, Taus, 'k')
     plt.xlabel('% Untilting')
     plt.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort()  # now for CDF of tilt of maximum tau
     plt.plot(Untilt, Cdf, 'g')
-    lower = int(.025*nb)
-    upper = int(.975*nb)
+    lower = int(.025*nboot)
+    upper = int(.975*nboot)
     plt.axvline(x=Untilt[lower], ymin=0, ymax=1, linewidth=1, linestyle='--')
     plt.axvline(x=Untilt[upper], ymin=0, ymax=1, linewidth=1, linestyle='--')
     tit = '%i - %i %s' % (Untilt[lower], Untilt[upper], 'Percent Unfolding')
