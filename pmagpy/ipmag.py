@@ -10386,9 +10386,10 @@ def eigs_s(infile="", dir_path='.'):
 
     """
     file=os.path.join(dir_path,infile)
-    eigs_data=np.loadtxt('../eigs_s/eigs_s_example.dat')
-    tau,Vdirs,Ss=[],[],[]
+    eigs_data=np.loadtxt(file)
+    Ss=[]
     for ind in range(eigs_data.shape[0]):
+       tau,Vdirs=[],[]
        for k in range(0,9,3):
            tau.append(eigs_data[ind][k])
            Vdirs.append([eigs_data[ind][k+1],eigs_data[ind][k+2]])
