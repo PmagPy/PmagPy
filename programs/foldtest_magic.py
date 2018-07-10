@@ -4,6 +4,7 @@ from __future__ import print_function
 from builtins import input
 from builtins import range
 from past.utils import old_div
+import os
 import sys
 import numpy as np
 import matplotlib
@@ -132,7 +133,7 @@ def main():
     # get orientation data
     if data_model_num == 3:
         # often orientation will be in infile (sites table)
-        if orfile == infile:
+        if os.path.split(orfile)[1] == os.path.split(infile)[1]:
             ordata = df[df[azkey].notnull()]
             ordata = ordata[ordata[dipkey].notnull()]
             ordata = list(ordata.T.apply(dict))
