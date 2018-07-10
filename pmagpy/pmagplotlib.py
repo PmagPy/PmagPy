@@ -337,8 +337,6 @@ def plotQQnorm(fignum, Y, title):
     n = len(Y)
     d, mean, sigma = k_s(Y)
     dc = old_div(0.886, np.sqrt(float(n)))
-    #print('mean,sigma, d, Dc')
-    #print(mean, sigma, d, dc)
     X = []  # list for normal quantile
     for i in range(1, n + 1):
         p = old_div(float(i), float(n + 1))
@@ -703,15 +701,16 @@ def plotMT(fignum, datablock, s, num, units, norm):
 
     Parameters
     _________________
-    Input
-        fignum : matplotlib figure number for plotting
-        datablock : nested list of [step, 0, 0, magnetization, 1,quality]
-        s : string for title
-        num : no idea - set it to zero
-        units : [T,K,U] for tesla, kelvin or arbitrary
-        norm : [1,0] if 1, normalize, otherwise don't
-    Output
-        figure
+    fignum : matplotlib figure number for plotting
+    datablock : nested list of [step, 0, 0, magnetization, 1,quality]
+    s : string for title
+    num : no idea - set it to zero
+    units : [T,K,U] for tesla, kelvin or arbitrary
+    norm : [1,0] if 1, normalize, otherwise don't
+    
+    Effects
+    ______
+        plots figure
     """
 
     global globals, graphmenu
@@ -823,6 +822,25 @@ def plotMT(fignum, datablock, s, num, units, norm):
 def plotZED(ZED, datablock, angle, s, units):
     """
     function to make equal area plot and zijderveld plot
+   
+    Parameters
+    _________
+    ZED : dictionary with keys for plots
+        eqarea : figure number for equal area projection 
+        zijd   : figure number for  zijderveld plot
+        demag :  figure number for magnetization against demag step
+    datablock : nested list of [step, dec, inc, M (Am2), quality]
+        step : units assumed in SI
+        M    : units assumed Am2
+        quality : [g,b], good or bad measurement; if bad will be marked as such 
+    angle : angle for X axis in horizontal plane, if 0, x will be 0 declination
+    s : specimen name
+    units :  SI units ['K','T','U'] for kelvin, tesla or undefined
+
+    Effects
+    _______
+       calls plotting functions for equal area, zijderveld and demag figures 
+    
     """
     for fignum in list(ZED.keys()):
         fig = plt.figure(num=ZED[fignum])
@@ -1359,15 +1377,16 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     plots lines and planes on a great  circle with alpha 95 and mean
 
     Parameters
-    Input
-        fignum : number of plt.figure() object
-        datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
-            3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], direction_type_key =['p','l']
-            2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
-        fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
-        direction_type_key : key for dictionary direction_type ('specimen_direction_type')
+    _________
+    fignum : number of plt.figure() object
+    datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
+        3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], direction_type_key =['p','l']
+        2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
+    fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
+    direction_type_key : key for dictionary direction_type ('specimen_direction_type')
     Effects
-        plots the site level figure
+    _______
+    plots the site level figure
     """
 # make the stereonet
     plotNET(fignum)
