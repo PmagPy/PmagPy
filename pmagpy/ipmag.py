@@ -4962,7 +4962,7 @@ site_name sample_name mag_azimuth field_dip date lat long sample_lithology sampl
         3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height),
             you can leave the field blank and the program will fill in the last recorded information. BUT if you really want a blank stratigraphic_height, enter a '-1'.    These will not be inherited and must be specified for each entry: image_name, look, photographer or method_codes
         4) hhmm must be in the format:  hh:mm and the hh must be in 24 hour time.
-    date must be mm/dd/yy (years < 50 will be converted to  20yy and >50 will be assumed 19yy)
+    date must be mm/dd/yy (years < 50 will be converted to  20yy and >50 will be assumed 19yy).  hours_from_gmt is the number of hours to SUBTRACT from hh to get to  GMT.
         5) image_name, image_look and image_photographer are colon delimited lists of file name (e.g., IMG_001.jpg) image look direction and the name of the photographer respectively.  If all images had same look and photographer, just enter info once.  The images will be assigned to the site for which they were taken - not at the sample level.
         6) participants:  Names of who helped take the samples.  These must be a colon delimited list.
         7) method_codes:  Special method codes on a sample level, e.g., SO-GT5 which means the orientation is has an uncertainty of >5 degrees
@@ -5499,20 +5499,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 else:  # calculate sun declination
                     sundata["date"] = '%i:%s:%s:%s' % (
                         yy, mmddyy[0], mmddyy[1], OrRec["hhmm"])
-    #                if eval(hours_from_gmt)<0:
-    #                        MagRec["sample_time_zone"]='GMT'+hours_from_gmt+' hours'
-    #                else:
-    #                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
                     sundata["delta_u"] = hours_from_gmt
-                    #sundata["lon"] = '%7.1f' % (lon)
-                    #sundata["lat"] = '%7.1f' % (lat)
                     sundata["lon"] = lon # do not truncate!
                     sundata["lat"] = lat # do not truncate!
                     sundata["shadow_angle"] = OrRec["shadow_angle"]
                     sundec = '%7.1f' % (pmag.dosundec(sundata)) # now you can truncate
                     for key in list(MagRec.keys()):
                         SunRec[key] = MagRec[key]  # make a copy of MagRec
-                    #SunRec["sample_azimuth"] = '%7.1f' % (sundec)
                     SunRec["sample_azimuth"] = sundec # do not truncate!
                     SunRec["sample_declination_correction"] = ''
                     SunRec["magic_method_codes"] = methcodes + ':SO-SUN'
