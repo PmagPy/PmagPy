@@ -16,6 +16,9 @@ import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 from pmag_env import set_env
 
+import operator
+OPS = {'<' : operator.lt, '<=' : operator.le,
+       '>' : operator.gt, '>=': operator.ge, '=': operator.eq}
 
 def main():
     """
@@ -36,7 +39,7 @@ def main():
         -f sites  formatted file [default for 3.0 is sites.txt, for 2.5, pmag_sites.txt]
         -fsa samples  formatted file
         -fsi sites  formatted file
-        -exc use criteria to set acceptance criteria
+        -exc use criteria to set acceptance criteria (supported only for data model 3)
         -n NB, set number of bootstraps, default is 1000
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
@@ -139,12 +142,15 @@ def main():
             ordata = list(ordata.T.apply(dict))
     else:
         ordata, file_type = pmag.magic_read(orfile)
+
     if '-exc' in sys.argv:
         crits, file_type = pmag.magic_read(critfile)
+        SiteCrits = []
         for crit in crits:
             if crit[crit_col] == "DE-SITE":
-                SiteCrit = crit
-                break
+                SiteCrits.append(crit)
+                #break
+
 # get to work
 #
     PLTS = {'geo': 1, 'strat': 2, 'taus': 3}  # make plot dictionary
@@ -157,6 +163,7 @@ def main():
     else:
         GEOrecs = data
     if len(GEOrecs) > 0:  # have some geographic data
+        num_dropped = 0
         DIDDs = []  # set up list for dec inc  dip_direction, dip
         for rec in GEOrecs:   # parse data
             dip, dip_dir = 0, -1
@@ -172,21 +179,27 @@ def main():
             if dip != 0 and dip_dir != -1:
                 if '-exc' in sys.argv:
                     keep = 1
-                    for key in list(SiteCrit.keys()):
-                        if 'site' in key and SiteCrit[key] != "" and rec[key] != "" and key != 'site_alpha95':
-                            if float(rec[key]) < float(SiteCrit[key]):
+                    for site_crit in SiteCrits:
+                        crit_name = site_crit['table_column'].split('.')[1]
+                        if crit_name and crit_name in rec.keys() and rec[crit_name]:
+                            # get the correct operation (<, >=, =, etc.)
+                            op = OPS[site_crit['criterion_operation']]
+                            # then make sure the site record passes
+                            if op(float(rec[crit_name]), float(site_crit['criterion_value'])):
                                 keep = 0
-                                print(rec[site_col], key, rec[key])
-                        if key == 'site_alpha95' and SiteCrit[key] != "" and rec[key] != "":
-                            if float(rec[key]) > float(SiteCrit[key]):
-                                keep = 0
+
                     if keep == 1:
                         DIDDs.append([Dec, Inc, dip_dir, dip])
+                    else:
+                        num_dropped += 1
                 else:
                     DIDDs.append([Dec, Inc, dip_dir, dip])
+        if num_dropped:
+            print("-W- Dropped {} records because each failed one or more criteria".format(num_dropped))
     else:
         print('no geographic directional data found')
         sys.exit()
+
     pmagplotlib.plotEQ(PLTS['geo'], DIDDs, 'Geographic')
     data = np.array(DIDDs)
     D, I = pmag.dotilt_V(data)
