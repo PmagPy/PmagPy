@@ -3956,7 +3956,7 @@ def fisher_mean(data):
         n : number of data points
         k : Fisher k value
         csd : Fisher circular standard deviation
-        alpha95 : Fisher circle of 95% confidence  
+        alpha95 : Fisher circle of 95% confidence
     """
     R, Xbar, X, fpars = 0, [0, 0, 0], [], {}
     N = len(data)
@@ -5005,8 +5005,8 @@ def fshdev(k):
     L = np.exp(-2 * k)
     a = R1 * (1 - L) + L
     fac = np.sqrt(-np.log(a)/(2 * k))
-    inc = 90. - np.degrees(2 * np.arcsin(fac)) 
-    dec = np.degrees(2 * np.pi * R2) 
+    inc = 90. - np.degrees(2 * np.arcsin(fac))
+    dec = np.degrees(2 * np.pi * R2)
     if n==1:
         return dec[0], inc[0] # preserve backward compatibility
     else:
@@ -9312,7 +9312,7 @@ def dir_df_boot(dir_df,nb=5000,par=False):
                 n=pdir_df.loc[i,'dir_n'] # get number of samples/site
                 ks=np.ones(shape=n)*pdir_df.loc[i,'dir_k'] # get ks for each sample
                 decs,incs=fshdev(ks) # draw a fisher distributed set of directions
-                di_block=np.column_stack((decs,incs)) 
+                di_block=np.column_stack((decs,incs))
                 #  rotate them to the mean
                 di_block=dodirot_V(di_block,pdir_df.loc[i,'dir_dec'],pdir_df.loc[i,'dir_inc'])
                 fpars = fisher_mean(di_block)  # get the new mean direction for the pseudosample
@@ -9321,12 +9321,12 @@ def dir_df_boot(dir_df,nb=5000,par=False):
         bfpars = dir_df_fisher_mean(pdir_df)  # get bootstrap mean bootstrap sample
         BDIs.append([bfpars['dec'], bfpars['inc']])
     return BDIs
- 
-   
+
+
 def dir_df_fisher_mean(dir_df):
     """
     calculates fisher mean for Pandas data frame
-    
+
     Parameters
     __________
     dir_df: pandas data frame with columns:
@@ -9341,7 +9341,7 @@ def dir_df_fisher_mean(dir_df):
         n : number of data points
         k : Fisher k value
         csd : Fisher circular standard deviation
-        alpha95 : Fisher circle of 95% confidence  
+        alpha95 : Fisher circle of 95% confidence
     """
     N=dir_df.dir_dec.values.shape[0] # number of data points
     fpars={}
@@ -9489,12 +9489,12 @@ def squish(incs, f):
     """
     returns 'flattened' inclination, assuming factor, f and King (1955) formula:
     tan (I_o) = f tan (I_f)
-    
+
     Parameters
     __________
     incs : array of inclination (I_f)  data to flatten
-    f : flattening factor 
-   
+    f : flattening factor
+
     Returns
     _______
     Io :  inclinations after flattening
@@ -9508,12 +9508,12 @@ def unsquish(incs, f):
     """
     returns 'unflattened' inclination, assuming factor, f and King (1955) formula:
     tan (I_o) = tan (I_f)/f
-    
+
     Parameters
     __________
     incs : array of inclination (I_f)  data to unflatten
-    f : flattening factor 
-   
+    f : flattening factor
+
     Returns
     _______
     Io :  inclinations after unflattening
@@ -9521,7 +9521,7 @@ def unsquish(incs, f):
     incs = np.radians(incs)
     Io = np.tan(incs)/f  # divide tangent by flattening factor
     return np.degrees(np.arctan(Io))
-  
+
 def get_ts(ts):
     """
     returns GPTS timescales.
