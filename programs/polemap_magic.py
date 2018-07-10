@@ -220,6 +220,8 @@ def main():
 
     files = {}
     for key in list(FIG.keys()):
+        if len(locations) > 50:
+            locations = locations[:50]
         if pmagplotlib.isServer:  # use server plot naming convention
             files[key] = 'LO:_' + locations + '_POLE_map.' + fmt
         else:  # use more readable naming convention

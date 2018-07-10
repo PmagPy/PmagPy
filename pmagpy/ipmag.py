@@ -785,9 +785,9 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
         BDI2 = pmag.di_boot(Data2)
         cart2 = pmag.dir2cart(BDI2).transpose()
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
-    else: 
+    else:
         cart = pmag.dir2cart(Data2).transpose()
-        
+
 
     fignum = 1
     fig = plt.figure(figsize=figsize)
@@ -3662,7 +3662,12 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                 elif len(rec) - len(keys) == 1:
                     for k in range(len(rec))[:-1]:
                         Rec[keys[k]] = rec[k]
-                        Recs.append(Rec)
+                    Recs.append(Rec)
+                elif len(rec) < len(keys):
+                    for k in range(len(rec)):
+                        Rec[keys[k]] = rec[k]
+                    for k in range(len(rec), len(keys)):
+                        Rec[keys[k]] = ""
                 else:
                     print('WARNING:  problem in file with line: ')
                     print(line)
