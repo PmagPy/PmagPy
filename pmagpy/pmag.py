@@ -1550,6 +1550,24 @@ def find_dmag_rec(s, data, **kwargs):
     """
     Returns demagnetization data for specimen s from the data. Excludes other
     kinds of experiments and "bad" measurements
+    
+    Parameters
+    __________
+    s : specimen name
+    data : DataFrame with measurement data
+    **kwargs :
+        version : if not 3, assume data model = 2.5
+    Returns
+    ________
+    datablock : nested list of data for zijderveld plotting
+         [[tr, dec, inc, int, ZI, flag],...]
+         tr : treatment step
+         dec : declination
+         inc : inclination
+         int : intensity
+         ZI : whether zero-field first or infield-first step
+         flag : g or b , default is set to 'g'
+     units : list of units found ['T','K','J'] for tesla, kelvin or joules 
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         # convert dataframe to list of dictionaries
@@ -6972,6 +6990,21 @@ def cleanup(first_I, first_Z):
 def sortarai(datablock, s, Zdiff, **kwargs):
     """
      sorts data block in to first_Z, first_I, etc.
+    
+    Parameters
+    _________
+    datablock : Pandas DataFrame with Thellier-Tellier type data
+    s : specimen name
+    Zdiff : if True, take difference in Z values instead of vector difference
+            NB:  this should always be False
+    **kwargs :
+        version : data model.  if not 3, assume data model = 2.5
+
+    Returns   
+    _______
+    araiblock : [first_Z, first_I, ptrm_check,
+                 ptrm_tail, zptrm_check, GammaChecks]
+    field : lab field (in tesla) 
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         dec_key, inc_key = 'dir_dec', 'dir_inc'

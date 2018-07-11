@@ -626,11 +626,23 @@ def plotC(fignum, pole, ang, col):
 #
 #
 def plotZ(fignum, datablock, angle, s, norm):
-    global globals
     """
     function to make Zijderveld diagrams
+     
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    datablock : nested list of data from, e.g., pmag.find_dmag_rec()
+    angle : desired rotation in the horizontal plane (0 puts X on X axis)
+    s : specimen name
+    norm : if True, normalize to initial magnetization = unity
+
+    Effects
+    _______
+    makes a zijderveld plot
 
     """
+    global globals
     plt.figure(num=fignum)
     plt.clf()
     if not isServer:
@@ -1011,6 +1023,20 @@ def plotDir(ZED, pars, datablock, angle):
 
 
 def plotA(fignum, indata, s, units):
+    """
+    makes Arai plots for Thellier-Thellier type experiments
+
+    Parameters
+    __________
+    fignum : figure number of matplotlib plot object
+    indata : nested list of data for Arai plots:
+        the araiblock of data prepared by pmag.sortarai()
+    s : specimen name
+    units : units (either K or J for kelvin or Joules)
+    Effects
+    _______
+    makes the Arai plot
+    """
     global globals
     plt.figure(num=fignum)
     plt.clf()
@@ -1123,6 +1149,20 @@ def plotA(fignum, indata, s, units):
 
 
 def plotNP(fignum, indata, s, units):
+    """
+    makes plot of de(re)magnetization data for Thellier-Thellier type experiment
+    
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    indata :  araiblock from, e.g., pmag.sortarai()
+    s : specimen name
+    units : [K,J] (kelvin or joules)
+    
+    Effect
+    _______
+    Makes a plot
+    """
     global globals
     first_Z, first_I, ptrm_check, ptrm_tail = indata[0], indata[1], indata[2], indata[3]
     plt.figure(num=fignum)
@@ -1174,14 +1214,41 @@ def plotNP(fignum, indata, s, units):
 
 
 def plotAZ(ZED, araiblock, zijdblock, s, units):
-    plotNP(ZED['deremag'], araiblock, s, units)
+    """
+    calls the four plotting programs for Thellier-Thellier experiments
+        
+    Parameters
+    __________
+    ZED : dictionary with plotting figure keys: 
+        deremag : figure for de (re) magnezation plots
+        arai : figure for the Arai diagram
+        eqarea : equal area projection of data, color coded by
+            red circles: ZI steps
+            blue squares: IZ steps
+            yellow triangles : pTRM steps
+        zijd : Zijderveld diagram color coded by ZI, IZ steps
+        deremag : demagnetization and remagnetization versus temperature
+    araiblock : nested list of required data from Arai plots
+    zijdblock : nested list of required data for Zijderveld plots
+    s : specimen name
+    units : units for the arai and zijderveld plots
+  
+    Effects
+    ________
+    Makes four plots from the data by calling
+    plotA : Arai plots
+    plotTEQ : equal area projection for Thellier data
+    plotZ : Zijderveld diagram
+    plotNP : de (re) magnetization diagram
+    """  
     angle = zijdblock[0][1]
     norm = 1
     if units == "U":
         norm = 0
-    plotZ(ZED['zijd'], zijdblock, angle, s, norm)
     plotA(ZED['arai'], araiblock, s, units)
     plotTEQ(ZED['eqarea'], araiblock, s, "")
+    plotZ(ZED['zijd'], zijdblock, angle, s, norm)
+    plotNP(ZED['deremag'], araiblock, s, units)
 
 
 def plotSHAW(SHAW, shawblock, zijdblock, field, s):
@@ -1483,6 +1550,24 @@ def plotEQsym(fignum, DIblock, s, sym):
 def plotTEQ(fignum, araiblock, s, pars):
     """
     plots directions  of pTRM steps and zero field steps
+    
+    Parameters
+    __________
+    fignum : figure number for matplotlib object
+    araiblock : nested list of data from pmag.sortarai()
+    s : specimen name
+    pars : default is "", 
+        otherwise is dictionary with keys: 
+        'measurement_step_min' and 'measurement_step_max'
+
+    Effects
+    _______
+    makes the equal area projection with color coded symbols
+        red circles: ZI steps
+        blue squares: IZ steps
+        yellow : pTRM steps
+     
+ 
     """
     first_Z, first_I = araiblock[0], araiblock[1]
 # make the stereonet
