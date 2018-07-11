@@ -8,7 +8,7 @@ import numpy as np
 import sys
 
 
-import matpltolib.pylab as plt
+import matplotlib.pylab as plt
 import pmagpy.pmag as pmag
 plt.ion()
 

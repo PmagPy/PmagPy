@@ -10734,6 +10734,11 @@ def watsons_f(DI1, DI2):
     F = (N-2.)*((R1+R2-R)/(N-R1-R2))
     Fcrit = fcalc(2, 2*(N-2))
     return F, Fcrit
+ 
+
+
+
+
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
