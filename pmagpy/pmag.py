@@ -68,6 +68,17 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
         ,has or not and requires they be castable to float if flag is eval, min, or max.
         float_to_int goes through the relvant values in In and truncates them,
         (like "0.0" to "0") for evaluation, default is False
+
+    Parameters
+    __________
+        In : list of dictionaries to work on
+        k : key to test
+        v : key value to test
+        flag : [T,F,has, or not]
+        float_to int : if True, truncates to integer
+    Returns
+    ______
+        list of dictionaries that meet condition 
     """
     if float_to_int:
         try:
