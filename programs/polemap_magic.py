@@ -231,7 +231,7 @@ def main():
         black = '#000000'
         purple = '#800080'
         titles = {}
-        titles['eq'] = 'LO:_' + locations + '_POLE_map'
+        titles['map'] = 'LO:_' + locations + '_POLE_map'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
         pmagplotlib.saveP(FIG, files)
     elif plot == 0:
