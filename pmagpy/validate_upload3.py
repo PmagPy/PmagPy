@@ -105,7 +105,8 @@ def isIn(row, col_name, arg, dm, df, con=None):
     if "." in arg:
         table_name, table_col_name = arg.split(".")
         if table_name not in con.tables:
-            return "Must contain a value from {} table. Missing {} table.".format(table_name, table_name)
+            return None
+            #return "Must contain a value from {} table. Missing {} table.".format(table_name, table_name)
         if table_col_name not in con.tables[table_name].df.columns:
             return '{} table is missing "{}" column, which is required for validating "{}" column'.format(table_name, table_col_name, col_name)
         possible_values = con.tables[table_name].df[table_col_name].unique()
