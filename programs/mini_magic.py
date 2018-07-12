@@ -204,7 +204,6 @@ def main():
         MagOuts = pmag.measurements_methods(MagRecs, noave)
         pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
     else:
-        print(MagRecs[9:14])
         MagOuts = pmag.measurements_methods3(MagRecs, noave)
         pmag.magic_write(meas_file, MagRecs, 'measurements')
     print("results put in ", meas_file)
