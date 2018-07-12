@@ -65,6 +65,7 @@ def main():
 #
 # get command line arguments
 #
+    data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
     user = pmag.get_named_arg_from_sys("-usr", "")
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
     inst = pmag.get_named_arg_from_sys("-inst", "")
@@ -81,7 +82,10 @@ def main():
     except OSError:
         print("bad mag file name")
         sys.exit()
-    meas_file = pmag.get_named_arg_from_sys("-F", "magic_measurements.txt")
+    if data_model_num == 2:
+        meas_file = pmag.get_named_arg_from_sys("-F", "magic_measurements.txt")
+    else:
+        meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
     specnum = pmag.get_named_arg_from_sys("-spc", 0)
     specnum = -specnum
@@ -101,28 +105,51 @@ def main():
     version_num = pmag.get_version()
 
     #
-    spec_col = "er_specimen_name"
-    loc_col = "er_location_name"
-    site_col = "er_site_col"
-    samp_col = "er_sample_name"
-    software_col = "magic_software_packages"
-    treat_temp_col = "treatment_temp"
-    meas_temp_col = "measurement_temp"
-    treat_ac_col = "treatment_ac_field"
-    treat_dc_col = "treatment_dc_field"
-    treat_dc_phi_col = "treatment_dc_field_phi"
-    treat_dc_theta_col = "treatment_dc_field_theta"
-    treat_temp_col = "treatment_temp"
-    moment_col = "measurement_magn_moment"
-    dec_col = "measurement_dec"
-    inc_col = "measurement_inc"
-    instrument_col = "magic_instrument_codes"
-    analyst_col = "er_analyst_mail_names"
-    citations_col = "er_citation_names"
-    methods_col = "magic_method_codes"
-    quality_col = "measurement_flag"
-    meas_standard_col = "measurement_standard"
-    number_col = "measurement_number"
+    if data_model_num == 2:
+        spec_col = "er_specimen_name"
+        loc_col = "er_location_name"
+        site_col = "er_site_col"
+        samp_col = "er_sample_name"
+        software_col = "magic_software_packages"
+        treat_temp_col = "treatment_temp"
+        meas_temp_col = "measurement_temp"
+        treat_ac_col = "treatment_ac_field"
+        treat_dc_col = "treatment_dc_field"
+        treat_dc_phi_col = "treatment_dc_field_phi"
+        treat_dc_theta_col = "treatment_dc_field_theta"
+        moment_col = "measurement_magn_moment"
+        dec_col = "measurement_dec"
+        inc_col = "measurement_inc"
+        instrument_col = "magic_instrument_codes"
+        analyst_col = "er_analyst_mail_names"
+        citations_col = "er_citation_names"
+        methods_col = "magic_method_codes"
+        quality_col = "measurement_flag"
+        meas_standard_col = "measurement_standard"
+        meas_name_col = "measurement_number"
+    else:
+        spec_col = "specimen"
+        loc_col = "location"
+        site_col = "site"
+        samp_col = "sample"
+        software_col = "software_packages"
+        treat_temp_col = "treat_temp"
+        meas_temp_col = "meas_temp"
+        treat_ac_col = "treat_ac_field"
+        treat_dc_col = "treat_dc_field"
+        treat_dc_phi_col = "treat_dc_field_phi"
+        treat_dc_theta_col = "treat_dc_field_theta"
+        moment_col = "magn_moment"
+        dec_col = "dir_dec"
+        inc_col = "dir_inc"
+        instrument_col = "instrument_codes"
+        analyst_col = "analysts"
+        citations_col = "citations"
+        methods_col = "method_codes"
+        quality_col = "quality"
+        meas_standard_col = "standard"
+        meas_name_col = "measurement"
+
     # go through the measurements
     for line in lines:
         rec = line.split(',')
@@ -131,7 +158,7 @@ def main():
             IDs = rec[0].split('_')
             treat = IDs[1]
             MagRec[spec_col] = IDs[0]
-            print(MagRec[spec_col])
+            #print(MagRec[spec_col])
             sids = IDs[0].split('-')
             MagRec[loc_col] = sids[0]
             MagRec[site_col] = sids[0]+'-'+sids[1]
@@ -139,7 +166,7 @@ def main():
                 MagRec[samp_col] = IDs[0]
             else:
                 MagRec[samp_col] = sids[0]+'-'+sids[1]+'-'+sids[2]
-            print(MagRec)
+            #print(MagRec)
             MagRec[software_col] = version_num
             MagRec[treat_temp_col] = '%8.3e' % (273)  # room temp in kelvin
             MagRec[meas_temp_col] = '%8.3e' % (273)  # room temp in kelvin
@@ -170,10 +197,16 @@ def main():
             MagRec[methods_col] = methcode.strip(':')
             MagRec[quality_col] = 'g'
             MagRec[meas_standard_col] = 'u'
-            MagRec[number_col] = '1'
+            MagRec[meas_name_col] = '1'
             MagRecs.append(MagRec)
-    MagOuts = pmag.measurements_methods(MagRecs, noave)
-    pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
+
+    if data_model_num == 2:
+        MagOuts = pmag.measurements_methods(MagRecs, noave)
+        pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
+    else:
+        print(MagRecs[9:14])
+        MagOuts = pmag.measurements_methods3(MagRecs, noave)
+        pmag.magic_write(meas_file, MagRecs, 'measurements')
     print("results put in ", meas_file)
 
 
