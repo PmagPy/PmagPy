@@ -78,7 +78,7 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
         float_to int : if True, truncates to integer
     Returns
     ______
-        list of dictionaries that meet condition 
+        list of dictionaries that meet condition
     """
     if float_to_int:
         try:
@@ -1561,7 +1561,7 @@ def find_dmag_rec(s, data, **kwargs):
     """
     Returns demagnetization data for specimen s from the data. Excludes other
     kinds of experiments and "bad" measurements
-    
+
     Parameters
     __________
     s : specimen name
@@ -1578,7 +1578,7 @@ def find_dmag_rec(s, data, **kwargs):
          int : intensity
          ZI : whether zero-field first or infield-first step
          flag : g or b , default is set to 'g'
-     units : list of units found ['T','K','J'] for tesla, kelvin or joules 
+     units : list of units found ['T','K','J'] for tesla, kelvin or joules
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         # convert dataframe to list of dictionaries
@@ -2090,6 +2090,8 @@ def magic_write(ofile, Recs, file_type):
                 elif 'er_specimen_names' in list(Rec.keys()):
                     print('specimen names:', Rec['er_specimen_names'])
                 print("No data for %s" % key)
+                # just skip it:
+                outstring = outstring + "\t"
                 # raw_input()
         outstring = outstring + '\n'
         pmag_out.write(outstring[1:])
@@ -7001,7 +7003,7 @@ def cleanup(first_I, first_Z):
 def sortarai(datablock, s, Zdiff, **kwargs):
     """
      sorts data block in to first_Z, first_I, etc.
-    
+
     Parameters
     _________
     datablock : Pandas DataFrame with Thellier-Tellier type data
@@ -7011,11 +7013,11 @@ def sortarai(datablock, s, Zdiff, **kwargs):
     **kwargs :
         version : data model.  if not 3, assume data model = 2.5
 
-    Returns   
+    Returns
     _______
     araiblock : [first_Z, first_I, ptrm_check,
                  ptrm_tail, zptrm_check, GammaChecks]
-    field : lab field (in tesla) 
+    field : lab field (in tesla)
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         dec_key, inc_key = 'dir_dec', 'dir_inc'
@@ -10745,7 +10747,7 @@ def watsons_f(DI1, DI2):
     F = (N-2.)*((R1+R2-R)/(N-R1-R2))
     Fcrit = fcalc(2, 2*(N-2))
     return F, Fcrit
- 
+
 
 
 
