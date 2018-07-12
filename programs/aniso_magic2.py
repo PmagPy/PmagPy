@@ -42,7 +42,7 @@ def main():
         -fmt [svg, jpg, eps] format for output images, pdf default
         -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
-        -nb N; specifies the number of bootstraps - default is 1000
+        -n N; specifies the number of bootstraps - default is 1000
     DEFAULTS
        AFILE:  rmag_anisotropy.txt
        RFILE:  rmag_results.txt
@@ -74,8 +74,8 @@ def main():
     if '-WD' in args:
         ind=args.index('-WD')
         dir_path=args[ind+1]
-    if '-nb' in args:
-        ind=args.index('-nb')
+    if '-n' in args:
+        ind=args.index('-n')
         nb=int(args[ind+1])
     if '-usr' in args:
         ind=args.index('-usr')

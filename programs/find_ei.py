@@ -26,7 +26,7 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f FILE specify input file name
-        -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
+        -n N specify number of bootstraps - the more the better, but slower!, default is 1000
         -sc uses a "site-level" correction to a Fisherian distribution instead
             of a "study-level" correction to a TK03-consistent distribution.
             Note that many directions (~ 100) are needed for this correction to be reliable.
@@ -57,8 +57,8 @@ def main():
     else:
         print(main.__doc__)
         sys.exit()
-    if '-nb' in sys.argv:
-        ind=sys.argv.index('-nb')
+    if '-n' in sys.argv:
+        ind=sys.argv.index('-n')
         nb=int(sys.argv[ind+1])
     if '-sc' in sys.argv:
         site_correction = True

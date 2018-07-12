@@ -45,7 +45,7 @@ def main():
         -fmt [svg, jpg, eps] format for output images, png default
         -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
-        -nb N; specifies the number of bootstraps - default is 1000
+        -n N; specifies the number of bootstraps - default is 1000
     DEFAULTS
        AFILE:  specimens.txt
        plot bootstrap ellipses of Constable & Tauxe [1987]
@@ -62,7 +62,7 @@ def main():
         sys.exit()
     verbose = pmagplotlib.verbose
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    num_bootstraps = pmag.get_named_arg_from_sys("-nb", 1000)
+    num_bootstraps = pmag.get_named_arg_from_sys("-n", 1000)
     ipar = pmag.get_flag_arg_from_sys("-par", true=1, false=0)
     ihext = pmag.get_flag_arg_from_sys("-x", true=1, false=0)
     ivec = pmag.get_flag_arg_from_sys("-v", true=1, false=0)

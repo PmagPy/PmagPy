@@ -17,16 +17,16 @@ def main():
 
     SYNTAX
         bootams.py [-h][command line options]
-    
+
     OPTIONS:
         -h prints help message and quits
         -f FILE specifies input file name
         -par specifies parametric bootstrap [by whole data set]
-        -nb N  specifies the number of bootstrap samples, default is N=1000
-    
+        -n N  specifies the number of bootstrap samples, default is N=1000
+
     INPUT
          x11 x22 x33 x12 x23 x13
-     
+
     OUTPUT
      tau_1 tau_1_sigma V1_dec V1_inc V1_eta V1_eta_dec V1_eta_inc V1_zeta V1_zeta_dec V1_zeta_inc
      tau_2 tau_2_sigma V2_dec V2_inc V2_eta V2_eta_dec V2_eta_inc V2_zeta V2_zeta_dec V2_zeta_inc
@@ -44,8 +44,8 @@ def main():
         #f=open(file,'r')
         #data=f.readlines()
     if '-par' in sys.argv:ipar=1
-    if '-nb' in sys.argv:
-        ind=sys.argv.index('-nb')
+    if '-n' in sys.argv:
+        ind=sys.argv.index('-n')
         nb=int(sys.argv[ind+1])
 # read in the data
     print("Doing bootstrap - be patient")
@@ -78,5 +78,4 @@ tau tau_sigma V_dec V_inc V_eta V_eta_dec V_eta_inc V_zeta V_zeta_dec V_zeta_inc
     print(outstring)
 
 if __name__ == "__main__":
-    main() 
-
+    main()
