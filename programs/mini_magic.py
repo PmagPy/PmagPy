@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import sys
+import os
 import pmagpy.pmag as pmag
+from pmagpy import new_builder as nb
 
 
 def main():
@@ -205,7 +207,14 @@ def main():
         pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
     else:
         MagOuts = pmag.measurements_methods3(MagRecs, noave)
-        pmag.magic_write(meas_file, MagRecs, 'measurements')
+        pmag.magic_write(meas_file, MagOuts, 'measurements')
+        # nicely parse all the specimen/sample/site/location data
+        # and write it to file as well
+        dir_path = os.path.split(meas_file)[0]
+        con = nb.Contribution(dir_path, read_tables=['measurements'])
+        con.propagate_measurement_info()
+        for table in con.tables:
+            con.write_table_to_file(table)
     print("results put in ", meas_file)
 
 
