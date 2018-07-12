@@ -25,26 +25,8 @@ def main():
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
             T: thermal including thellier but not trm acquisition
-        -spc NUM : specify number of characters to designate a  specimen, default = 0
-        -ncn NCON:  specify naming convention: default is #1 below
         -A: don't average replicate measurements
-        -vol: volume assumed for measurement in cm^3
-       Sample naming convention:
-            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
-                is the single character sample designation.  e.g., TG001a is the
-                first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
-            [5] site name same as sample
-            [6] site is entered under a separate column NOT CURRENTLY SUPPORTED
-            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-            NB: all others you will have to customize your self
-                 or e-mail ltauxe@ucsd.edu for help.
-
-            [8] synthetic - has no site name
-            [9] ODP naming convention
-            [10] LL-SI-SA-SP_STEP where LL is location, SI is site, SA is sample and SP is specimen and STEP is demagnetization step
+        -vol: volume assumed for measurement in cm^3 (default 10 cc)
 
     INPUT
         Must put separate experiments (all AF, thermal,  etc.) in
@@ -62,7 +44,6 @@ def main():
 # initialize some stuff
     methcode = "LP-NO"
     demag = "N"
-    citation = 'This study'
 
 #
 # get command line arguments
@@ -78,21 +59,12 @@ def main():
     else:
         noave = 0
 
-    try:
-        finput = open(magfile, 'r')
-        lines = finput.readlines()
-    except OSError:
-        print("bad mag file name")
-        sys.exit()
     if data_model_num == 2:
         meas_file = pmag.get_named_arg_from_sys("-F", "magic_measurements.txt")
     else:
         meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
-    specnum = pmag.get_named_arg_from_sys("-spc", 0)
-    specnum = -specnum
     volume = pmag.get_named_arg_from_sys("-vol", 10) # assume a volume of 10 cc if not provided
-    volume = 1e-6 * volume
     if '-LP' in args:
         ind = args.index("-LP")
         codelist = args[ind+1]
@@ -103,10 +75,25 @@ def main():
         if "T" in codes:
             demag = "T"
     #
+    convert(magfile, dir_path, meas_file, data_model_num,
+            volume, noave, inst, user, demag, methcode)
+
+def convert(magfile, dir_path='.', meas_file='measurements.txt',
+            data_model_num=3, volume=10, noave=0,
+            inst="", user="", demag='N', methcode="LP-NO"):
+    # initialize
+    citation = 'This study'
     MagRecs = []
     version_num = pmag.get_version()
-
-    #
+    try:
+        finput = open(magfile, 'r')
+        lines = finput.readlines()
+    except OSError:
+        print("bad mag file name")
+        sys.exit()
+    # convert volume
+    volume = 1e-6 * float(volume)
+    # set col names based on MagIC 2 or 3
     if data_model_num == 2:
         spec_col = "er_specimen_name"
         loc_col = "er_location_name"
