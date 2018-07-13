@@ -2,8 +2,6 @@
 from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
-#
-#
 
 
 def main():
@@ -66,8 +64,6 @@ def main():
         sys.exit()
     #
     # initialize variables
-    version_num = pmag.get_version()
-    or_con = '3'
     Z = 1
     # get arguments from the command line
     orient_file = pmag.get_named_arg_from_sys("-f", reqd=True)
@@ -94,6 +90,13 @@ def main():
     else:
         ignore = 1
 
+    convert(orient_file, meths, location_name, samp_con, Z, ignore)
+
+
+def convert(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown',
+            samp_con="1", Z=1, ignore_dip=True, data_model_num=3,
+            samp_file="samples.txt", site_file="sites.txt"):
+    version_num = pmag.get_version()
     if data_model_num == 2:
         loc_col = "er_location_name"
         site_col = "er_site_name"
@@ -136,7 +139,6 @@ def main():
         site_lon_col = "lon"
         meth_col = "method_codes"
         software_col = "software_packages"
-
     #
     # read in file to convert
     #
@@ -147,7 +149,7 @@ def main():
     for line in AzDipDat[1:]:
         orec = line.split()
         if len(orec) > 1:
-            labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), or_con)
+            labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), '3')
             bed_dip_dir = (orec[3])
             bed_dip = (orec[4])
             SampRec = {}
@@ -168,7 +170,7 @@ def main():
             SampRec[sample_bed_dip_col] = orec[4]
             SiteRec[site_bed_dip_direction_col] = orec[3]
             SiteRec[site_bed_dip_col] = orec[4]
-            if ignore == 0:
+            if not ignore_dip:
                 SampRec[sample_dip_col] = '%7.1f' % (labdip)
                 SampRec[sample_az_col] = '%7.1f' % (labaz)
             else:
@@ -178,7 +180,6 @@ def main():
             SampRec[sample_lon_col] = orec[6]
             SiteRec[site_lat_col] = orec[5]
             SiteRec[site_lon_col] = orec[6]
-            methods = meths.split(":")
             SampRec[meth_col] = meths
             # parse out the site name
             site = pmag.parse_site(orec[0], samp_con, Z)
@@ -197,6 +198,9 @@ def main():
 
     print("Sample info saved in ", samp_file)
     print("Site info saved in ", site_file)
+
+
+
 
 
 if __name__ == "__main__":
