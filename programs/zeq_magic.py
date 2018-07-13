@@ -138,6 +138,8 @@ def main():
                      'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample', 'software_packages', 'specimen']
     if 'specimens' in contribution.tables:
         contribution.propagate_name_down('sample','measurements')
+        contribution.propagate_name_down('site', 'measurements')
+        contribution.propagate_name_down('location', 'measurements')
         spec_container = contribution.tables['specimens']
         if 'method_codes' not in spec_container.df.columns:
             spec_container.df['method_codes'] = None
@@ -261,7 +263,19 @@ def main():
             units, methods, title = "", "", this_specimen
 
             if pmagplotlib.isServer:
-                title = "LO:__SI:__SA:__SP:_{}_".format(this_specimen)
+                try:
+                    loc = this_specimen_measurements.loc[:, 'location'].values[0]
+                except:
+                    loc = ""
+                try:
+                    site = this_specimen_measurements.loc[:, 'site'].values[0]
+                except:
+                    site = ""
+                try:
+                    samp = this_specimen_measurements.loc[:, 'sample'].values[0]
+                except:
+                    samp = ""
+                title = "LO:_{}_SI:_{}_SA:_{}_SP:_{}_".format(loc, site, samp, this_specimen)
             # this is a list of all the specimen method codes
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
