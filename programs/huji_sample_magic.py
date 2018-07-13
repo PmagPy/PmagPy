@@ -19,8 +19,8 @@ def main():
 
     OPTIONS
         -f FILE: specify input file
-        -Fsa FILE: specify sample output file, default is: er_samples.txt 
-        -Fsi FILE: specify site output file, default is: er_sites.txt 
+        -Fsa FILE: specify sample output file, default is: er_samples.txt
+        -Fsi FILE: specify site output file, default is: er_sites.txt
         -Iso:  import sample orientation info - default is to set sample_az/dip to 0,0
         -ncn NCON:  specify naming convention: default is #1 below
         -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD:SO-POM]
@@ -35,13 +35,13 @@ def main():
 
     INPUT FORMAT
         Input files must be tab delimited:
-            Samp  Az Dip Dip_dir Dip 
+            Samp  Az Dip Dip_dir Dip
         Orientation convention:
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
                 e.g. field_dip is degrees from horizontal of drill direction
 
          Magnetic declination convention:
-             Az is already corrected in file 
+             Az is already corrected in file
 
          Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -57,68 +57,38 @@ def main():
                 self or e-mail ltauxe@ucsd.edu for help.
 
     OUTPUT
-            output saved in er_samples.txt  will overwrite any existing files 
+            output saved in er_samples.txt  will overwrite any existing files
     """
+    args = sys.argv
+    if "-h" in args:
+        print(main.__doc__)
+        sys.exit()
     #
     # initialize variables
     #
     version_num = pmag.get_version()
-    samp_file, or_con, corr = "er_samples.txt", "1", "1"
-    site_file = 'er_sites.txt'
-    args = sys.argv
-    # date of sampling, latitude (pos North), longitude (pos East)
-    date, lat, lon = "", "", ""
-    bed_dip, bed_dip_dir = "", ""
-    participantlist = ""
-    sites = []   # list of site names
-    Lats, Lons = [], []  # list of latitudes and longitudes
-    # lists of Sample records and Site records
-    SampRecs, SiteRecs, ImageRecs, imagelist = [], [], [], []
-    samp_con, Z, average_bedding = "1", 1, "0"
-    newbaseline, newbeddir, newbeddip = "", "", ""
-    meths = 'FS-FD:SO-POM:SO-SUN'
-    delta_u = "0"
-    sclass, lithology, type = "", "", ""
-    newclass, newlith, newtype = '', '', ''
-    user = ""
     or_con = '3'
-    corr == "3"
-    DecCorr = 0.
-    location_name = "unknown"
-    ignore = 1
     #
     #
-    if "-h" in args:
-        print(main.__doc__)
-        sys.exit()
-    if "-f" in args:
-        ind = args.index("-f")
-        orient_file = sys.argv[ind+1]
-    else:
-        "Must have orientation file name"
-        sys.exit()
-    if "-Fsa" in args:
-        ind = args.index("-Fsa")
-        samp_file = sys.argv[ind+1]
-    if "-ncn" in args:
-        ind = args.index("-ncn")
-        samp_con = sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print("option [4] must be in form 3-Z where Z is an integer")
-                sys.exit()
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "4"
-            print(samp_con, Z)
-    if "-mcd" in args:
-        ind = args.index("-mcd")
-        meths = (sys.argv[ind+1])
-    if "-loc" in args:
-        ind = args.index("-loc")
-        location_name = (sys.argv[ind+1])
+    orient_file = pmag.get_named_arg_from_sys("-f", reqd=True)
+    samp_file = pmag.get_named_arg_from_sys("-Fsa", "er_samples.txt")
+    site_file = pmag.get_named_arg_from_sys("-Fsi", "er_sites.txt")
+    samp_con = pmag.get_named_arg_from_sys("-ncn", "1")
+    Z = 1
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print("option [4] must be in form 3-Z where Z is an integer")
+            sys.exit()
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+        print(samp_con, Z)
+    meths = pmag.get_named_arg_from_sys("-mcd", 'FS-FD:SO-POM:SO-SUN')
+    location_name = pmag.get_named_arg_from_sys("-loc", "unknown")
     if "-Iso" in args:
         ignore = 0
+    else:
+        ignore = 1
     #
     # read in file to convert
     #
