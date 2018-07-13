@@ -10,7 +10,7 @@ def main():
     iodp_samples_magic.py
     OPTIONS:
         -f FILE, input csv file
-        -Fsa FILE, output er_samples.txt file for updating, default is to overwrite er_samples.txt
+        -Fsa FILE, output samples file for updating, default is to overwrite existing samples file
     """
     if "-h" in sys.argv:
         print(main.__doc__)
