@@ -138,8 +138,10 @@ def main():
                      'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample', 'software_packages', 'specimen']
     if 'specimens' in contribution.tables:
         contribution.propagate_name_down('sample','measurements')
-        contribution.propagate_name_down('site', 'measurements')
-        contribution.propagate_name_down('location', 'measurements')
+        # add location/site info to measurements table for naming plots
+        if pmagplotlib.isServer:
+            contribution.propagate_name_down('site', 'measurements')
+            contribution.propagate_name_down('location', 'measurements')
         spec_container = contribution.tables['specimens']
         if 'method_codes' not in spec_container.df.columns:
             spec_container.df['method_codes'] = None
