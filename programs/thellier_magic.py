@@ -130,6 +130,9 @@ def main():
 #
 #   create measurement dataframe
 #
+    if pmagplotlib.isServer:
+        contribution.propagate_location_to_measurements()
+
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
 #
@@ -203,6 +206,21 @@ def main():
         this_specimen = specimen_names[k]
         if verbose and this_specimen != "":
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
+        if pmagplotlib.isServer:
+            this_specimen_measurements = meas_data[meas_data['specimen'] == this_specimen]
+            try:
+                loc = this_specimen_measurements.loc[:, 'location'].values[0]
+            except:
+                loc = ""
+            try:
+                site = this_specimen_measurements.loc[:, 'site'].values[0]
+            except:
+                site = ""
+            try:
+                samp = this_specimen_measurements.loc[:, 'sample'].values[0]
+            except:
+                samp = ""
+
 #
 #    set up datablocks
 #
@@ -219,6 +237,8 @@ def main():
                 this_specimen) == True]  # fish out prior interpretation
         else:
             prior_specimen_interpretations = []
+
+
 #
 # sort data into types
 #
@@ -329,8 +349,11 @@ def main():
                 if fmt != "pmag":
                     files = {}
                     for key in list(AZD.keys()):
-                        files[key] = 'SP:_' + this_specimen + \
-                            '_TY:_' + key + '_' + '.' + fmt
+                        if pmagplotlib.isServer:
+                            files[key] = "LO:_{}_SI:_{}_SA:_{}_SP:_{}_TY:_{}_.{}".format(loc, site, samp, this_specimen, key, fmt)
+                        else:
+                            files[key] = 'SP:_' + this_specimen + \
+                              '_TY:_' + key + '_' + '.' + fmt
                     if pmagplotlib.isServer:
                         black = '#000000'
                         purple = '#800080'
