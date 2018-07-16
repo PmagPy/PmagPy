@@ -2324,7 +2324,10 @@ def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
     dropna = list(dropna)
     reqd_cols = list(reqd_cols)
     # get intensity column
-    magn_col = get_intensity_meth(data)
+    try:
+        magn_col = get_intensity_meth(data)
+    except AttributeError:
+        return False, "Could not get intensity method from data"
     # drop empty columns
     if magn_col not in dropna:
         dropna.append(magn_col)
