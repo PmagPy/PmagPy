@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 from pmagpy import pmag
+from pmagpy import ipmag
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
@@ -600,13 +601,19 @@ class TestNotNull(unittest.TestCase):
 class TestMungeForPlotting(unittest.TestCase):
 
     def setUp(self):
-        self.directory = os.path.join(WD, 'data_files', 'dmag_magic')
+        pass
 
     def tearDown(self):
+        dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
+        tables = ['measurements.txt', 'specimens.txt', 'samples.txt',
+                  'sites.txt', 'locations.txt', 'ages.txt', 'criteria.txt',
+                  'contribution.txt', 'images.txt']
+        pmag.remove_files(tables, dmag_dir)
         os.chdir(WD)
 
     def test_group_by_site(self):
         dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
+        ipmag.download_magic("magic_contribution_16436.txt", dir_path=dmag_dir, input_dir_path=dmag_dir)
         status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
         self.assertTrue(status)
         self.assertIn('site', meas_data.columns)
@@ -621,11 +628,12 @@ class TestMungeForPlotting(unittest.TestCase):
         orientation_dir = os.path.join(WD, 'data_files', 'orientation_magic')
         status, warning = nb.add_sites_to_meas_table(orientation_dir)
         self.assertFalse(status)
-        self.assertEqual(warning, "You are missing measurements, specimens, samples, sites tables")
+        self.assertEqual(warning, "You are missing measurements, specimens tables")
 
 
     def test_prep_for_intensity_plot(self):
         dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
+        ipmag.download_magic("magic_contribution_16436.txt", dir_path=dmag_dir, input_dir_path=dmag_dir)
         # method code to plot
         meth_code = "LT-AF-Z"
         # columns that must not be null
