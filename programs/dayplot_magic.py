@@ -51,6 +51,9 @@ def main():
     fnames = {'specimens': infile}
     con = nb.Contribution(dir_path, read_tables=['specimens'],
                           custom_filenames=fnames)
+    if pmagplotlib.isServer:
+        con.propagate_location_to_specimens()
+
     spec_container = con.tables['specimens']
     spec_df = spec_container.df
 
@@ -64,10 +67,11 @@ def main():
     pmagplotlib.plot_init(DSC['S-Bcr'], 5, 5)
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Bcr1, Bcr1Bc, S1 = [], [], []
-    locations = []
+    loc_list = []
+
 
     if 'location' in spec_df.columns:
-        locations = spec_df['location'].unique()
+        loc_list = spec_df['location'].unique()
     do_rem = bool('rem_bcr' in spec_df.columns)
 
     for ind, row in spec_df.iterrows():
@@ -103,12 +107,12 @@ def main():
     pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr, S, 'bs')
     pmagplotlib.plotSBc(DSC['S-Bc'], Bc, S, 'bs')
     files = {}
-    locations = "_".join(locations)
+    locations = "_".join(loc_list)
     #if len(locations) > 1:
     #    locations = locations[:-1]
     for key in list(DSC.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
-            files[key] = 'LO:_' + locations + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+            files[key] = 'LO:_' + ":".join(set(loc_list)) + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
         else: # use more readable plot naming convention
             files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
