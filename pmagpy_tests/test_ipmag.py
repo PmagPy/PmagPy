@@ -153,6 +153,30 @@ class TestUploadMagic(unittest.TestCase):
         self.assertIn('core_depth', con.tables['sites'].df.columns)
         self.assertEqual(con.tables['sites'].df.loc['15-1-013', 'core_depth'], 55.23)
 
+
+class TestDownloadMagic(unittest.TestCase):
+
+    def setUp(self):
+        dmag_dir = os.path.join(WD, 'data_files', "dmag_magic")
+        self.dmag_dir = dmag_dir
+
+    def tearDown(self):
+        tables = ['measurements.txt', 'specimens.txt', 'samples.txt',
+                  'sites.txt', 'locations.txt', 'ages.txt', 'criteria.txt',
+                  'contribution.txt']
+        pmag.remove_files(tables, self.dmag_dir)
+
+
+    def test_all_files_are_created(self):
+        files = ['locations.txt', 'sites.txt', 'samples.txt', 'specimens.txt',
+                 'measurements.txt', 'contribution.txt', 'images.txt']
+        pmag.remove_files(files, self.dmag_dir)
+        ipmag.download_magic('magic_contribution_16436.txt', dir_path=self.dmag_dir, input_dir_path=self.dmag_dir)
+        output_files = os.listdir(self.dmag_dir)
+        for f in files:
+            self.assertIn(f, output_files)
+
+
 class TestCombineMagic(unittest.TestCase):
 
     def setUp(self):
@@ -733,6 +757,7 @@ class TestPmagResultsExtract(unittest.TestCase):
         files = [os.path.join(self.result_WD, f) for f in outfiles]
         for f in files:
             self.assertTrue(os.path.exists(f))
+
 
     def test_extract_latex(self):
         direction_file = os.path.join(self.result_WD, 'Directions.tex')

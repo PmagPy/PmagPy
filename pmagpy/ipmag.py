@@ -3668,6 +3668,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                         Rec[keys[k]] = rec[k]
                     for k in range(len(rec), len(keys)):
                         Rec[keys[k]] = ""
+                    Recs.append(Rec)
                 else:
                     print('WARNING:  problem in file with line: ')
                     print(line)
