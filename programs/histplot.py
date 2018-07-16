@@ -43,7 +43,7 @@ def main():
        histplot.py [command line options] [<file]
 
     """
-    file, fmt = "", 'svg'
+    fname, fmt = "", 'svg'
     plot = 0
     if '-sav' in sys.argv:
         plot = 1
@@ -55,7 +55,7 @@ def main():
         fmt = sys.argv[ind+1]
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
-        file = sys.argv[ind+1]
+        fname = sys.argv[ind+1]
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         outfile = sys.argv[ind+1]
@@ -79,9 +79,10 @@ def main():
         xlab = sys.argv[ind+1]
     else:
         xlab = 'x'
-    if file != "":
-        D = numpy.loadtxt(file)
+    if fname != "":
+        D = numpy.loadtxt(fname)
     else:
+        print('-I- Trying to read from stdin... <ctrl>-c to quit')
         D = numpy.loadtxt(sys.stdin, dtype=numpy.float)
     # read in data
     #

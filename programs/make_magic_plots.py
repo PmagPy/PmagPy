@@ -360,8 +360,9 @@ def main():
                 locations = pmag.get_dictkey(data, loc_key + 's', "")
             if not locations:
                 locations = ['']
-            histfile = 'LO:_' + locations[0] + \
-                '_intensities_histogram:_.' + fmt
+            locations = set(locations)
+            histfile = 'LO:_' + ":".join(locations) + \
+                '_TY:_intensities_histogram:_.' + fmt
             os.system(
                 "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " + histfile)
             print(
