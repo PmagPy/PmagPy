@@ -1,4 +1,0 @@
-tab 	measurements
-citations	geologic_classes	geologic_types	lithologies	location	site
-10.1111/j.1365-246X.2012.05412.x:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	Hawaii 1960 Flow
-10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw241
