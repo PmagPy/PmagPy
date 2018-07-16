@@ -1,0 +1,3 @@
+tab 	contribution
+contributor	data_model_version	description	id	reference	timestamp	version
+@ltauxe	3.0	Upgraded to MagIC Data Model 3.0 by the MagIC Database Team	12848	10.1002/2016GC006307	2015-12-25T02:33:26.000Z	2

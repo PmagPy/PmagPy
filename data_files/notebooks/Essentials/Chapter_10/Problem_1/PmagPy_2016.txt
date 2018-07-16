@@ -1,0 +1,22 @@
+Study	doi	site	litholoy	LAT	LON	YEAR	B_exp
+Bowles et al. (2006)	10.1029/2005GC001141	1991-1992 Eruption Site	lava flow	9.8	-104.3	1991	36.2
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw226	lava flow	19.64	-155.51	1843	39.9
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw108	lava flow	19.8627	-155.9085	1859	39.3
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw123	lava flow	19.07262	-155.7141	1907	37.7
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw126	lava flow	19.69	-155.46	1935	36.4
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw128	lava flow	19.26	-155.87	1950	36.2
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw241	lava flow	19.52	-155.81	1960	36
+Cromwell et al. (2015)	10.1016/j.pepi.2014.12.007	hw201	lava flow	19.36	-154.97	1990	35.2
+Donadini et al. (2007)	10.1016/j.pepi.2007.10.002	BR06	brick	60.1	24.9	1906	49.7
+Muxworthy et al. (2011)	"10.1029/2010JB007844, 2011"	P	lava flow	19.3	-102.1	1943	44.6
+Muxworthy et al. (2011)	"10.1029/2010JB007844, 2013"	VM	lava flow	40.8	14.5	1944	43.8
+Pick and Tauxe (1993)	10.1029/93jb01160 	BBQ	submarine lava flow	9.8	-104.3	1990	36.2
+Shaar et al. (2010)	10.1016/j.epsl.2009.12.022	RS25	synthetic				30
+Shaar et al. (2010)	10.1016/j.epsl.2009.12.022	RS26	synthetic				60
+Shaar et al. (2010)	10.1016/j.epsl.2009.12.022	RS27	synthetic				90
+Shaar et al. (2011)	10.1016/j.epsl.2011.08.024	RS61	synthetic				60
+Shaar et al. (2011)	10.1016/j.epsl.2011.08.024	RS63	synthetic				80
+Tanaka et al. (2012)	10.1111/j.1365-246X.2012.05412.x	KF	lava flow	65.7	-16.8	1984	52
+Yamamoto et al. (2003)	10.1046/j.1365-246X.2003.01909.x	Hawaii 1960 Flow	lava flow	19.52	-155.81	1960	36
+Yamamoto and Hoshi (2008)	10.1016/j.pepi.2008.03.006	SW	lava flow	31.6	-130.6	1946	46.4
+Yamamoto and Hoshi (2008)	10.1016/j.pepi.2008.03.006	TS	lava flow	31.6	-130.6	1914	47.8

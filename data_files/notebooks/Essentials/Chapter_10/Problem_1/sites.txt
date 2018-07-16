@@ -1,0 +1,25 @@
+tab 	sites
+citations	geologic_classes	geologic_types	lithologies	location	site
+10.1029/2005GC001141:This study	Extrusive:Igneous	Glassy Margin	Submarine Basaltic Glass	EPR	1991-1992 Eruption Site
+10.1029/93jb01160:This study	Extrusive:Igneous	Glassy Margin	Submarine Basaltic Glass	EPR	BBQ
+10.1016/j.pepi.2014.12.007:This study	Archeologic	Brick	Not Specified	Finland	BR06
+10.1111/j.1365-246X.2012.05412.x:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	Hawaii 1960 Flow
+10.1029/2010JB007844:This study	Extrusive:Igneous	Lava Flow	Basalt	Paracutin	P
+10.1016/j.pepi.2008.03.006:This study	Extrusive:Igneous	Lava Flow	Andesite	Sakurajima	SW
+10.1016/j.pepi.2008.03.006:This study	Extrusive:Igneous	Lava Flow	Andesite	Sakurajima	TS
+10.1029/2010JB007844:This study	Extrusive:Igneous	Lava Flow	Basalt	Vesuvius	VM
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw108
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw123
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw126
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw128
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw201
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw226
+10.1029/2005GC001141:This study	Extrusive:Igneous	Lava Flow	Basalt	Hawaii	hw241
+10.1111/j.1365-246X.2012.05412.x:This study	Extrusive:Igneous	Lava Flow	Basalt	Krafla	kf
+10.1016/j.epsl.2011.08.024:This study	Synthetic	Slag	Not Specified	HUJI	remag-rs61
+10.1016/j.epsl.2011.08.024:This study	Synthetic	Slag	Not Specified	HUJI	remag-rs62
+10.1016/j.epsl.2011.08.024:This study	Synthetic	Slag	Not Specified	HUJI	remag-rs63
+10.1016/j.epsl.2011.08.024:This study	Synthetic	Slag	Not Specified	HUJI	remag-rs78
+10.1016/j.epsl.2009.12.022:This study	Synthetic	Slag	Not Specified	HUJI	rs25
+10.1016/j.epsl.2009.12.022:This study	Synthetic	Slag	Not Specified	HUJI	rs26
+10.1016/j.epsl.2009.12.022:This study	Synthetic	Slag	Not Specified	HUJI	rs27
