@@ -37,7 +37,7 @@ install:
   # command to run tests, e.g. python setup.py test
 script:
   - python -c "print('starting tests')"
-  - python -m unittest discover
+  - python -m unittest discover -v
 
 
 # https://stackoverflow.com/questions/29290011/using-travis-ci-with-wxpython-tests
