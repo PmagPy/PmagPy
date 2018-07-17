@@ -609,6 +609,8 @@ class TestMungeForPlotting(unittest.TestCase):
                   'sites.txt', 'locations.txt', 'ages.txt', 'criteria.txt',
                   'contribution.txt', 'images.txt']
         pmag.remove_files(tables, dmag_dir)
+        orientation_dir = os.path.join(WD, 'data_files', 'orientation_magic')
+        pmag.remove_files(['samples.txt', 'sites.txt'], orientation_dir)
         os.chdir(WD)
 
     def test_group_by_site(self):
@@ -626,6 +628,9 @@ class TestMungeForPlotting(unittest.TestCase):
         self.assertTrue(status)
         self.assertIn('site', meas_data.columns)
         orientation_dir = os.path.join(WD, 'data_files', 'orientation_magic')
+        ipmag.orientation_magic(orient_file='orient_example.txt',
+                                output_dir_path=orientation_dir,
+                                input_dir_path=orientation_dir)
         status, warning = nb.add_sites_to_meas_table(orientation_dir)
         self.assertFalse(status)
         self.assertEqual(warning, "You are missing measurements, specimens tables")
