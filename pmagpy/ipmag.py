@@ -1277,7 +1277,7 @@ def fishqq(lon=None, lat=None, di_block=None):
 
     if len(rDIs) >= 10 or len(nDIs) >= 10:
         D1, I1 = [], []
-        QQ = {'unf1': 1, 'exp1': 2}
+        QQ = {'unf': 1, 'exp': 2}
         if len(nDIs) < 10:
             ppars = pmag.doprinc(rDIs)  # get principal directions
             Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
@@ -1308,9 +1308,9 @@ def fishqq(lon=None, lat=None, di_block=None):
                 Itit = 'Mode 1 Inclinations'
         plt.figure(figsize=(6, 3))
         Mu_n, Mu_ncr = pmagplotlib.plotQQunf(
-            QQ['unf1'], D1, Dtit, subplot=True)  # make plot
+            QQ['unf'], D1, Dtit, subplot=True)  # make plot
         Me_n, Me_ncr = pmagplotlib.plotQQexp(
-            QQ['exp1'], I1, Itit, subplot=True)  # make plot
+            QQ['exp'], I1, Itit, subplot=True)  # make plot
         plt.tight_layout()
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'consistent with Fisherian model'
@@ -1328,8 +1328,6 @@ def fishqq(lon=None, lat=None, di_block=None):
 
     if len(rDIs) > 10 and len(nDIs) > 10:
         D2, I2 = [], []
-        QQ['unf2'] = 3
-        QQ['exp2'] = 4
         ppars = pmag.doprinc(rDIs)  # get principal directions
         Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
         Nr = len(rDIs)
@@ -1345,9 +1343,9 @@ def fishqq(lon=None, lat=None, di_block=None):
             Itit = 'Mode 2 Inclinations'
         plt.figure(figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plotQQunf(
-            QQ['unf2'], D2, Dtit, subplot=True)  # make plot
+            QQ['unf'], D2, Dtit, subplot=True)  # make plot
         Me_r, Me_rcr = pmagplotlib.plotQQexp(
-            QQ['exp2'], I2, Itit, subplot=True)  # make plot
+            QQ['exp'], I2, Itit, subplot=True)  # make plot
         plt.tight_layout()
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
