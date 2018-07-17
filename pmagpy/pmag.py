@@ -5678,7 +5678,15 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up f from ftables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
+  looks up F from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
+
+    Parameters
+    _________
+        col : degrees of freedom column
+        row : degrees of freedom row
+
+    Returns
+        F : value for 95% confidence from the F-table
     """
 #
     if row > 200:
