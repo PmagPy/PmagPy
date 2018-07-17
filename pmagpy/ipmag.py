@@ -3668,6 +3668,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                         Rec[keys[k]] = rec[k]
                     for k in range(len(rec), len(keys)):
                         Rec[keys[k]] = ""
+                    Recs.append(Rec)
                 else:
                     print('WARNING:  problem in file with line: ')
                     print(line)
@@ -9729,8 +9730,6 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             ResRec['aniso_ftest23'] = fpars['F23']
             ResRec['description'] = 'F_crit: '+fpars['F_crit']+'; F12,F23_crit: '+fpars['F12_crit']
             ResRec['aniso_type'] = pmag.makelist(anitypes)
-            # fill in ResRecs (ignoring this for now, grab it from aniso_magic if needed)
-            # MUST ADD BACK IN
             ResRecs.append(ResRec)
         if len(Ss) > 1:
             if pmagplotlib.isServer: # use server plot naming convention
