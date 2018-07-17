@@ -667,8 +667,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                                     no_treatments_yet = True
                                     for t in experiment_treatments:
+                                        t = float(t.strip())
                                         if t > 50:
-                                            no_treatments_yet-False
+                                            no_treatments_yet=False
                                     if no_treatments_yet:
                                         if meas_line['AF Demag/Remag Peak Field'] != "" and \
                                            float(meas_line['AF Demag/Remag Peak Field']) != 999 and \
