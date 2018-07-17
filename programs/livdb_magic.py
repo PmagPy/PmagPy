@@ -81,42 +81,32 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             self.panel, wx.ID_ANY, ""), wx.VERTICAL)
         bSizer1.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_TOP)
         bSizer1.AddSpacer(5)
+        self.dir_paths = {}
+        self.add_dir_btns = {}
+        self.bSizers_1 = {}
+        self.bSizers_2 = {}
         for i in range(self.max_files):
-            command = "self.dir_path_%i = wx.TextCtrl(self.panel, id=-1, size=(200,25), style=wx.TE_READONLY)" % i
-            exec(command)
-            command = "self.add_dir_button_%i =  wx.Button(self.panel, id=-1, label='add',name='add_%i')" % (
-                i, i)
-            exec(command)
-            command = "self.Bind(wx.EVT_BUTTON, self.on_add_dir_button_i, self.add_dir_button_%i)" % i
-            # print command
-            exec(command)
-            command = "bSizer1_%i = wx.BoxSizer(wx.HORIZONTAL)" % i
-            exec(command)
-            command = "bSizer1_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)" % (
-                i, i+1)
-            exec(command)
-
-            command = "bSizer1_%i.Add(self.dir_path_%i,wx.ALIGN_LEFT)" % (i, i)
-            exec(command)
-            command = "bSizer1_%i.Add(self.add_dir_button_%i,wx.ALIGN_LEFT)" % (
-                i, i)
-            exec(command)
-            command = "bSizer1.Add(bSizer1_%i,wx.ALIGN_TOP)" % i
-            exec(command)
+            self.dir_paths[i] = wx.TextCtrl(self.panel, id=-1, size=(200,25), style=wx.TE_READONLY)
+            self.add_dir_btns[i] = wx.Button(self.panel, id=-1, label='add',name='add_{}'.format(i))
+            self.Bind(wx.EVT_BUTTON, self.on_add_dir_button_i, self.add_dir_btns[i])
+            self.bSizers_1[i] = wx.BoxSizer(wx.HORIZONTAL)
+            self.bSizers_1[i].Add(wx.StaticText(pnl,label=('{}  '.format(i)[:2])),wx.ALIGN_LEFT)
+            self.bSizers_1[i].Add(self.dir_paths[i], wx.ALIGN_LEFT)
+            self.bSizers_1[i].Add(self.add_dir_btns[i], wx.ALIGN_LEFT)
+            bSizer1.Add(self.bSizers_1[i], wx.ALIGN_TOP)
             bSizer1.AddSpacer(5)
 
         # ---sizer 2 ----
 
-        TEXT = "\nLocation\nname:\n"
+        TEXT = "\nLocation:\n"
         bSizer2 = wx.StaticBoxSizer(wx.StaticBox(
             self.panel, wx.ID_ANY, ""), wx.VERTICAL)
         bSizer2.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_TOP)
         bSizer2.AddSpacer(5)
+        self.file_locations = {}
         for i in range(self.max_files):
-            command = "self.file_location_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))" % i
-            exec(command)
-            command = "bSizer2.Add(self.file_location_%i,wx.ALIGN_TOP)" % i
-            exec(command)
+            self.file_locations[i] = wx.TextCtrl(self.panel, id=-1, size=(60,25))
+            bSizer2.Add(self.file_locations[i], wx.ALIGN_TOP)
             bSizer2.AddSpacer(5)
 
 # ---sizer 3 ----
@@ -132,22 +122,15 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         self.sample_naming_conventions = [
             'sample=specimen', 'no. of terminate characters', 'charceter delimited']
         bSizer4.AddSpacer(5)
+        self.naming_con_boxes = {}
+        self.naming_con_char = {}
         for i in range(self.max_files):
-            command = "self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)" % i
-            exec(command)
-            command = "self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))" % i
-            exec(command)
-            command = "bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)" % i
-            exec(command)
-            command = "bSizer4_%i.Add(self.sample_naming_convention_%i,wx.ALIGN_LEFT)" % (
-                i, i)
-            exec(command)
-            command = "bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" % (
-                i, i)
-            exec(command)
-            command = "bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)" % i
-            exec(command)
-
+            self.naming_con_boxes[i] = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)
+            self.naming_con_char[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            bSizer = wx.BoxSizer(wx.HORIZONTAL)
+            bSizer.Add(self.naming_con_boxes[i], wx.ALIGN_LEFT)
+            bSizer.Add(self.naming_con_char[i], wx.ALIGN_LEFT)
+            bSizer4.Add(bSizer, wx.ALIGN_TOP)
             bSizer4.AddSpacer(5)
 
         # ---sizer 5 ----
@@ -159,21 +142,15 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         self.site_naming_conventions = [
             'site=sample', 'no. of terminate characters', 'charceter delimited']
         bSizer5.AddSpacer(5)
+        self.site_name_conventions = {}
+        self.site_name_chars = {}
         for i in range(self.max_files):
-            command = "self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))" % i
-            exec(command)
-            command = "self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(180,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)" % i
-            exec(command)
-            command = "bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)" % i
-            exec(command)
-            command = "bSizer5_%i.Add(self.site_naming_convention_%i,wx.ALIGN_LEFT)" % (
-                i, i)
-            exec(command)
-            command = "bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" % (
-                i, i)
-            exec(command)
-            command = "bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)" % i
-            exec(command)
+            self.site_name_chars[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            self.site_name_conventions[i] = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(180,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)
+            bSizer = wx.BoxSizer(wx.HORIZONTAL)
+            bSizer.Add(self.site_name_conventions[i], wx.ALIGN_LEFT)
+            bSizer.Add(self.site_name_chars[i], wx.ALIGN_LEFT)
+            bSizer5.Add(bSizer, wx.ALIGN_TOP)
             bSizer5.AddSpacer(5)
 
         # ------------------
@@ -241,8 +218,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         i = int((name).split("_")[-1])
         # print "The button's name is " + button.GetName()
 
-        command = "self.dir_path_%i.SetValue(FILE)" % i
-        exec(command)
+        self.dir_paths[i].SetValue(FILE)
 
     def read_generic_file(self, path):
         Data = {}
@@ -277,9 +253,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
 
             # read directiory path
-            dirpath = ""
-            command = "dirpath=self.dir_path_%i.GetValue()" % i
-            exec(command)
+            dirpath = self.dir_paths[i].GetValue()
             if dirpath != "":
                 dir_name = str(dirpath.split("/")[-1])
                 DIRS_data[dir_name] = {}
@@ -289,27 +263,22 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
             # get location
             user_name = ""
-            command = "location_name=self.file_location_%i.GetValue()" % i
-            exec(command)
+            location_name = self.file_locations[i].GetValue()
             DIRS_data[dir_name]['location_name'] = str(location_name)
 
             # get sample-specimen naming convention
 
-            sample_naming_convenstion = ["", ""]
-            command = "sample_naming_convenstion[0]=str(self.sample_naming_convention_%i.GetValue())" % i
-            exec(command)
-            command = "sample_naming_convenstion[1]=str(self.sample_naming_convention_char_%i.GetValue())" % i
-            exec(command)
-            DIRS_data[dir_name]["sample_naming_convenstion"] = sample_naming_convenstion
+            sample_naming_convention = ["", ""]
+            sample_naming_convention[0] = str(self.naming_con_boxes[i].GetValue())
+            sample_naming_convention[1] = str(self.naming_con_char[i].GetValue())
+            DIRS_data[dir_name]["sample_naming_convention"] = sample_naming_convention
 
             # get site-sample naming convention
 
-            site_naming_convenstion = ["", ""]
-            command = "site_naming_convenstion[0]=str(self.site_naming_convention_%i.GetValue())" % i
-            exec(command)
-            command = "site_naming_convenstion[1]=str(self.site_naming_convention_char_%i.GetValue())" % i
-            exec(command)
-            DIRS_data[dir_name]["site_naming_convenstion"] = site_naming_convenstion
+            site_naming_convention = ["", ""]
+            site_naming_convention[0] = str(self.site_name_conventions[i].GetValue())
+            site_naming_convention[1] = str(self.site_name_chars[i].GetValue())
+            DIRS_data[dir_name]["site_naming_convention"] = site_naming_convention
 
         # print "DIRS_data",DIRS_data
         self.convert_2_magic(DIRS_data)
@@ -317,14 +286,14 @@ class convert_livdb_files_to_MagIC(wx.Frame):
     def on_cancelButton(self, event):
         self.Destroy()
 
-    def get_sample_name(self, specimen, sample_naming_convenstion):
-        if sample_naming_convenstion[0] == "sample=specimen":
+    def get_sample_name(self, specimen, sample_naming_convention):
+        if sample_naming_convention[0] == "sample=specimen":
             sample = specimen
-        elif sample_naming_convenstion[0] == "no. of terminate characters":
-            n = int(sample_naming_convenstion[1])*-1
+        elif sample_naming_convention[0] == "no. of terminate characters":
+            n = int(sample_naming_convention[1])*-1
             sample = specimen[:n]
-        elif sample_naming_convenstion[0] == "charceter delimited":
-            d = sample_naming_convenstion[1]
+        elif sample_naming_convention[0] == "charceter delimited":
+            d = sample_naming_convention[1]
             sample_splitted = specimen.split(d)
             if len(sample_splitted) == 1:
                 sample = sample_splitted[0]
@@ -332,14 +301,14 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                 sample = d.join(sample_splitted[:-1])
         return sample
 
-    def get_site_name(self, sample, site_naming_convenstion):
-        if site_naming_convenstion[0] == "site=sample":
+    def get_site_name(self, sample, site_naming_convention):
+        if site_naming_convention[0] == "site=sample":
             site = sample
-        elif site_naming_convenstion[0] == "no. of terminate characters":
-            n = int(site_naming_convenstion[1])*-1
+        elif site_naming_convention[0] == "no. of terminate characters":
+            n = int(site_naming_convention[1])*-1
             site = sample[:n]
-        elif site_naming_convenstion[0] == "charceter delimited":
-            d = site_naming_convenstion[1]
+        elif site_naming_convention[0] == "charceter delimited":
+            d = site_naming_convention[1]
             site_splitted = sample.split(d)
             if len(site_splitted == 1):
                 site = site_splitted[0]
@@ -604,9 +573,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                     MagRec['er_citation_names'] = "This study"
                                     MagRec["er_specimen_name"] = header_line['Sample code']
                                     MagRec["er_sample_name"] = self.get_sample_name(
-                                        MagRec["er_specimen_name"], DIRS_data[dir_name]['sample_naming_convenstion'])
+                                        MagRec["er_specimen_name"], DIRS_data[dir_name]['sample_naming_convention'])
                                     MagRec["er_site_name"] = self.get_site_name(
-                                        MagRec["er_sample_name"], DIRS_data[dir_name]['site_naming_convenstion'])
+                                        MagRec["er_sample_name"], DIRS_data[dir_name]['site_naming_convention'])
                                     MagRec['er_location_name'] = DIRS_data[dir_name]['location_name']
                                     MagRec['er_analyst_mail_names'] = header_line['Name of measurer']
                                     MagRec["magic_instrument_codes"] = header_line['Magnetometer name'] + \
@@ -957,9 +926,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                 ErRec['er_citation_names'] = "This study"
                                 ErRec['er_specimen_name'] = header_line["Sample code"]
                                 ErRec["er_sample_name"] = self.get_sample_name(
-                                    MagRec["er_specimen_name"], DIRS_data[dir_name]['sample_naming_convenstion'])
+                                    MagRec["er_specimen_name"], DIRS_data[dir_name]['sample_naming_convention'])
                                 ErRec["er_site_name"] = self.get_site_name(
-                                    MagRec["er_sample_name"], DIRS_data[dir_name]['site_naming_convenstion'])
+                                    MagRec["er_sample_name"], DIRS_data[dir_name]['site_naming_convention'])
                                 ErRec['er_location_name'] = DIRS_data[dir_name]['location_name']
 
                                 ErRec['specimen_type'] = "Not Specified"
