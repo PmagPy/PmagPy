@@ -2294,15 +2294,24 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
             if not os.path.isfile(infile):
                 print("{} is not a valid file name".format(infile))
                 return False
-            dataset, file_type = pmag.magic_read(infile)
+            try:
+                dataset, file_type = pmag.magic_read(infile)
+            except IndexError:
+                print('-W- Could not get records from {}'.format(infile))
+                print('    Skipping...')
+                continue
             print("File ", infile, " read in with ", len(dataset), " records")
             for rec in dataset:
                 datasets.append(rec)
 
         Recs, keys = pmag.fillkeys(datasets)
-        pmag.magic_write(outfile, Recs, file_type)
-        print("All records stored in ", outfile)
-        return outfile
+        if Recs:
+            pmag.magic_write(outfile, Recs, file_type)
+            print("All records stored in ", outfile)
+            return outfile
+        print("No file could be created")
+        return False
+
 
 
 def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
