@@ -3316,7 +3316,7 @@ class OrientFrameGrid(wx.Frame):
             append = False
         samp_file = "er_samples.txt"
         site_file = "er_sites.txt"
-        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file=samp_file, site_file=site_file, input_dir_path=self.WD, output_dir_path=self.WD, append=append)
+        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file=samp_file, site_file=site_file, input_dir_path=self.WD, output_dir_path=self.WD, append=append, data_model=2)
 
         if not ran_successfully:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
