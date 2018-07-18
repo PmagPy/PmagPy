@@ -1,0 +1,3 @@
+tab 	contribution
+contributor	data_model_version	description	reference	timestamp	version
+@ltauxe	3.0	Combined sites rows.	10.1029/2008GC002072	2018-04-03T10:58:40.454Z	5
