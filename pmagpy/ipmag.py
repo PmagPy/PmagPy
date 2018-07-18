@@ -2234,7 +2234,7 @@ def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, fille
 
     return m
 
-def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'):
+def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a
     single file. Returns output filename if the operation was successful.

@@ -198,9 +198,13 @@ class Contribution(object):
                 if num < (len(names_list) - 1):
                     parent = names_list[num+1]
                     if parent in meas_df.columns:
+                        meas_df = meas_df.where(meas_df.notnull(), "")
                         df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values.astype(str)
-                self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
-                self.write_table_to_file(name + "s")
+                df = df.where(df != "", np.nan)
+                df = df.dropna(how='all', axis='rows')
+                if len(df):
+                    self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
+                    self.write_table_to_file(name + "s")
 
 
     def propagate_all_tables_info(self, write=True):
