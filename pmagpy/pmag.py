@@ -6844,7 +6844,7 @@ def s_boot(Ss, ipar=0, nb=1000):
 #
     Taus, Vs = [], []  # number of bootstraps, list of bootstrap taus and eigenvectors
 #
-    for k in range(nb):  # repeat nb times
+    for k in range(int(float(nb))):  # repeat nb times
         #        if k%50==0:print k,' out of ',nb
         # get a pseudosample - if ipar=1, do a parametric bootstrap
         BSs = apseudo(Ss, ipar, Sigma)
