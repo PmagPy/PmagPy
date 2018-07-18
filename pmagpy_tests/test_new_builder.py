@@ -615,7 +615,6 @@ class TestMungeForPlotting(unittest.TestCase):
 
     def test_group_by_site(self):
         dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
-        ipmag.download_magic("magic_contribution_16436.txt", dir_path=dmag_dir, input_dir_path=dmag_dir)
         status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
         self.assertTrue(status)
         self.assertIn('site', meas_data.columns)
@@ -638,7 +637,6 @@ class TestMungeForPlotting(unittest.TestCase):
 
     def test_prep_for_intensity_plot(self):
         dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
-        ipmag.download_magic("magic_contribution_16436.txt", dir_path=dmag_dir, input_dir_path=dmag_dir)
         # method code to plot
         meth_code = "LT-AF-Z"
         # columns that must not be null

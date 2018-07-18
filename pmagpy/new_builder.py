@@ -2345,7 +2345,7 @@ def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
         missing = set(reqd_cols).difference(data.columns)
         return False, "missing these required columns: {}".format(", ".join(missing))
     # filter out records without the correct method code
-    data = data[data['method_codes'].str.contains(meth_code)]
+    data = data[data['method_codes'].str.contains(meth_code).astype(bool)]
     return True, data
 
 
