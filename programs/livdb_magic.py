@@ -349,10 +349,22 @@ class convert_livdb_files_to_MagIC(wx.Frame):
     # Convert to MagIC format
     # ===========================================
 
-    #def convert_2_magic(self, DIRS_data):
     def convert_2_magic(self, dir_path, meas_out="magic_measurements.txt",
                         spec_out="er_specimens.txt", samp_name_con=1, samp_num_chars=0,
-                        site_name_con=1, site_num_chars=0, location_name=""):
+                        site_name_con=1, site_num_chars=0, location_name="", data_model_num=2):
+
+        if data_model_num == 2:
+            loc_col = "er_location_name"
+            site_col = "er_site_name"
+            samp_col = "er_sample_name"
+            spec_col = "er_specimen_name"
+            citation_col = "er_citation_names"
+        else:
+            loc_col = "location"
+            site_col = "site"
+            samp_col = "sample"
+            spec_col = "specimen"
+            citation_col = "citations"
 
         er_specimens_headers = []
         MagRecs = []
@@ -613,13 +625,13 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                                 MagRec = {}
                                 # header_data
-                                MagRec['er_citation_names'] = "This study"
-                                MagRec["er_specimen_name"] = header_line['Sample code']
-                                MagRec["er_sample_name"] = self.get_sample_name(
-                                    MagRec["er_specimen_name"], [samp_name_con, samp_num_chars])
-                                MagRec["er_site_name"] = self.get_site_name(
-                                    MagRec["er_sample_name"], [site_name_con, site_num_chars])
-                                MagRec['er_location_name'] = location_name
+                                MagRec[citation_col] = "This study"
+                                MagRec[spec_col] = header_line['Sample code']
+                                MagRec[samp_col] = self.get_sample_name(
+                                    MagRec[spec_col], [samp_name_con, samp_num_chars])
+                                MagRec[site_col] = self.get_site_name(
+                                    MagRec[samp_col], [site_name_con, site_num_chars])
+                                MagRec[loc_col] = location_name
                                 MagRec['er_analyst_mail_names'] = header_line['Name of measurer']
                                 MagRec["magic_instrument_codes"] = header_line['Magnetometer name'] + \
                                     ":"+header_line['Demagnetiser name']
