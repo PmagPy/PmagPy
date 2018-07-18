@@ -157,22 +157,23 @@ class TestUploadMagic(unittest.TestCase):
 class TestDownloadMagic(unittest.TestCase):
 
     def setUp(self):
-        dmag_dir = os.path.join(WD, 'data_files', "dmag_magic")
-        self.dmag_dir = dmag_dir
+        self.download_dir = os.path.join(WD, 'data_files', "download_magic")
 
     def tearDown(self):
         tables = ['measurements.txt', 'specimens.txt', 'samples.txt',
-                  'sites.txt', 'locations.txt', 'ages.txt', 'criteria.txt',
+                  'locations.txt', 'ages.txt', 'criteria.txt',
                   'contribution.txt']
-        pmag.remove_files(tables, self.dmag_dir)
+        pmag.remove_files(tables, self.download_dir)
 
 
     def test_all_files_are_created(self):
         files = ['locations.txt', 'sites.txt', 'samples.txt', 'specimens.txt',
-                 'measurements.txt', 'contribution.txt', 'images.txt']
-        pmag.remove_files(files, self.dmag_dir)
-        ipmag.download_magic('magic_contribution_16436.txt', dir_path=self.dmag_dir, input_dir_path=self.dmag_dir)
-        output_files = os.listdir(self.dmag_dir)
+                 'measurements.txt', 'contribution.txt']
+        pmag.remove_files(files, self.download_dir)
+        ipmag.download_magic('magic_contribution_15143.txt',
+                             dir_path=self.download_dir,
+                             input_dir_path=self.download_dir)
+        output_files = os.listdir(self.download_dir)
         for f in files:
             self.assertIn(f, output_files)
 
