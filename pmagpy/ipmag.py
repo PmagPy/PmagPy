@@ -9699,7 +9699,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             site = sitelist[k]
             sdata = spec_df[spec_df['site'] == site]
             if 'location' in sdata.columns:
-                loc_name = sdata['location'][0]
+                loc_name = sdata['location'].tolist()[0]
         csrecs = sdata[sdata['aniso_tilt_correction'] == CS]
         anitypes = csrecs['aniso_type'].unique()
         for name in ['citations', 'location', 'site', 'sample']:
@@ -10205,7 +10205,8 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         if CS == 0: crd = 'g'
         if CS == 100: crd = 't'
         if verbose: print("desired coordinate system not available, using available: ", crd)
-    #if isite == 1:
+    if isite == 1:
+        pass
     #    sitelist = spec_df['site'].unique()
     #    sitelist.sort()
     #    plt = len(sitelist)
@@ -10239,6 +10240,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         #Cits = csrecs['citations'].unique()
         #sdata = spec_df[spec_df['site'] == site]
 
+    else:
 # plotting all the data
         csrecs = spec_df[spec_df['aniso_tilt_correction'] == CS]
         Ss,V1,V2,V3=[],[],[],[]
@@ -10246,12 +10248,18 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
             if s[0] <= 1.0:
                 Ss.append(s) # protect against crap
-            if "aniso_s_sigma" not in rec.keys():rec["aniso_s_sigma"]="0"
-            fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
-            # collect the eigenvectors
-            V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
-            V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
-            V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
+            if "aniso_s_sigma" in rec.keys():
+                rec["aniso_s_sigma"]="0"
+                fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
+                # collect the eigenvectors
+                V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
+                V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
+                V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
+            else: # just plot the data
+                tau, Vdir = pmag.doseigs(s)
+                V1.append([Vdir[0][0],Vdir[0][1]])
+                V2.append([Vdir[1][0],Vdir[1][1]])
+                V3.append([Vdir[2][0],Vdir[2][1]])
         Ss=np.array(Ss)
         if Ss.shape[0] > 1:
             # plot the data
