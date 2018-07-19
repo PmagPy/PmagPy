@@ -10757,6 +10757,27 @@ def watsons_f(DI1, DI2):
     return F, Fcrit
 
 
+def apwp(data,print_results=False):
+    """
+    calculates expected pole positions and directions for given plate, location and age
+    Parameters 
+    _________
+        data : [plate,lat,lon,age]
+        print_results : if True will print out nicely formatted results
+    Returns
+    _________
+        if print_results is False, [Age,Paleolat, Dec, Inc, Pole_lat, Pole_lon]
+    """
+    pole_lat,pole_lon=bc02(data) # get the pole for these parameters
+    ExpDec,ExpInc=vgp_di(pole_lat,pole_lon,data[1],data[2]) # get the declination and inclination for that pole
+    paleo_lat=magnetic_lat(ExpInc) # convert the inclination to paleo latitude
+    if print_results:
+        print (' Age   Paleolat.   Dec.   Inc.   Pole_lat.  Pole_Long.') # print everything out
+        print ('%7.1f %7.1f %7.1f %7.1f %7.1f  %7.1f\n' \
+           %(data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon))
+    
+    else:
+        return [data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon]
 
 
 

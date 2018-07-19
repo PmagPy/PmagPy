@@ -27,6 +27,7 @@ def get_pole(continent,age):
     if continent=='congo':continent='nwaf'
     if continent=='kala':continent='neaf'
     if continent=='sam':continent='sac'
+    if continent=='ant':continent='eant'
     if continent=='af':
         return [0,0,0] # assume africa fixed
     if continent=='aus':

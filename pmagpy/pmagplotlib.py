@@ -2934,7 +2934,7 @@ def plotMAP(fignum, lats, lons, Opts):
                 fancy : if True, plot etopo 20 grid
                     NB:  etopo must be installed
         if Opts keys not set :these are the defaults:
-           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':'black'}
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None}
 
     """
     from mpl_toolkits.basemap import Basemap
@@ -2949,7 +2949,7 @@ def plotMAP(fignum, lats, lons, Opts):
     # set default Options
     Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
                   'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
-                  'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,\
+                  'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
                   'padlon':0,'padlat':0,'gridspace':30,\
                   'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
     for key in Opts_defaults.keys():
