@@ -183,7 +183,7 @@ class TestCitMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_cit_with_no_files(self):
-        program_ran, error_message = cit_magic.convert()
+        program_ran, error_message = convert.cit()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'bad sam file name')
 
@@ -193,7 +193,7 @@ class TestCitMagic(unittest.TestCase):
                                                  'Measurement_Import',
                                                  'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
-        program_ran, outfile = cit_magic.convert(**options)
+        program_ran, outfile = convert.cit(**options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
@@ -214,7 +214,7 @@ class TestCitMagic(unittest.TestCase):
                                             'Measurement_Import',
                                             'CIT_magic', 'PI47', 'custom_samples.txt')
         options['dir_path'] = os.path.join(WD, 'data_files')
-        program_ran, outfile = cit_magic.convert(**options)
+        program_ran, outfile = convert.cit(**options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
@@ -231,7 +231,7 @@ class TestCitMagic(unittest.TestCase):
                                                  'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4'
-        program_ran, error_message = cit_magic.convert(**options)
+        program_ran, error_message = convert.cit(**options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
 
@@ -242,7 +242,7 @@ class TestCitMagic(unittest.TestCase):
                                                  'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4-3'
-        program_ran, outfile = cit_magic.convert(**options)
+        program_ran, outfile = convert.cit(**options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
@@ -256,9 +256,9 @@ class TestCitMagic(unittest.TestCase):
         options['samp_con'] = '2'
         options['methods'] = ['SO-SM:SO-MAG']
         options['locname'] = 'location'
-        options['avg'] = 1
+        options['noave'] = 1
         options['specnum'] = 2
-        program_ran, outfile = cit_magic.convert(**options)
+        program_ran, outfile = convert.cit(**options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
@@ -272,9 +272,9 @@ class TestCitMagic(unittest.TestCase):
         options['samp_con'] = '1'
         options['methods'] = ['SO-SM:SO-MAG']
         options['locname'] = 'location'
-        options['avg'] = 1
+        options['noave'] = 1
         options['specnum'] = 2
-        program_ran, outfile = cit_magic.convert(**options)
+        program_ran, outfile = convert.cit(**options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
