@@ -2,8 +2,6 @@
 # -*- python-indent-offset: 4; -*-
 # define some variables
 
-from __future__ import division
-from __future__ import print_function
 from builtins import input
 from past.utils import old_div
 import sys
@@ -107,12 +105,14 @@ def main():
     lats, lons = [], []
     Pars = []
     dates, rlats, rlons = [], [], []
+    polarities = []
 
     pole_container = con.tables['locations']
     pole_df = pole_container.df
     # use individual results
-    if 'result_type' in pole_df.columns:
-        pole_df = pole_df[pole_df['result_type'] == 'a']
+    if not pmagplotlib.isServer:
+        if 'result_type' in pole_df.columns:
+            pole_df = pole_df[pole_df['result_type'] == 'a']
     if 'pole_lat' not in pole_df.columns or 'pole_lon' not in pole_df.columns:
         print("-W- pole_lat and pole_lon are required columns to run polemap_magic.py")
         return
@@ -123,6 +123,7 @@ def main():
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
+    loc_list = Results['location'].values
     locations = ":".join(Results['location'].unique())
     if 'age' not in Results.columns and 'age_low' in Results.columns and 'age_high' in Results.columns:
         Results['age'] = Results['age_low']+0.5 * \
@@ -133,6 +134,8 @@ def main():
     # go through rows and extract data
     for ind, row in Results.iterrows():
         lat, lon = float(row['pole_lat']), float(row['pole_lon'])
+        if 'dir_polarity' in row:
+            polarities.append(row['dir_polarity'])
         if anti == 1:
             lats.append(-lat)
             lon = lon + 180.
@@ -182,8 +185,11 @@ def main():
             'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
     Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
                        'countries': 0, 'ocean': 1, 'fancy': fancy}
+    base_Opts = Opts.copy()
+
     # make the base map with a blue triangle at the pole
     pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
+
     Opts['pltgrid'] = -1
     Opts['sym'] = sym
     Opts['symsize'] = size
@@ -193,6 +199,44 @@ def main():
         # add the lats and lons of the poles
         pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
     Opts['names'] = []
+
+    titles = {}
+    files = {}
+
+    if pmagplotlib.isServer:
+        # plot each indvidual pole for the server
+        for ind in range(len(lats)):
+            lat = lats[ind]
+            lon = lons[ind]
+            polarity = polarities[ind]
+            polarity = "_" + polarity if polarity else ""
+            location = loc_list[ind]
+            FIG["map_{}".format(ind)] = ind+2
+            pmagplotlib.plot_init(FIG['map'], 6, 6)
+            # if with baseOpts, lat/lon don't show
+            # if with Opts, grid lines don't show
+            pmagplotlib.plotMAP(ind+2, [90], [0.], base_Opts)
+            pmagplotlib.plotMAP(ind+2, [lat], [lon], Opts)
+            titles["map_{}".format(ind)] = location
+            files["map_{}".format(ind)] = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
+
+    # truncate location names so that ultra long filenames are not created
+    if len(locations) > 50:
+        locations = locations[:50]
+    if pmagplotlib.isServer:
+        # use server plot naming convention
+        if 'contribution' in con.tables:
+            # try to get contribution id
+            con_id = con.tables['contribution'].df.iloc[0].id
+            files['map'] = 'MC:_{}_TY:_POLE_map.{}'.format(con_id, fmt)
+        else:
+            # no contribution id available
+            files['map'] = 'LO:_' + locations + '_TY:_POLE_map.' + fmt
+    else:
+        # use readable naming convention for non-database use
+        files['map'] = '{}_POLE_map.{}'.format(locations, fmt)
+
+    #
     if len(rlats) > 0:
         Opts['sym'] = rsym
         Opts['symsize'] = rsize
@@ -218,20 +262,14 @@ def main():
                 if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.drawFIGS(FIG)
 
-    files = {}
-    for key in list(FIG.keys()):
-        if len(locations) > 50:
-            locations = locations[:50]
-        if pmagplotlib.isServer:  # use server plot naming convention
-            files[key] = 'LO:_' + locations + '_TY:_POLE_map.' + fmt
-        else:  # use more readable naming convention
-            files[key] = '{}_POLE_map.{}'.format(locations, fmt)
 
     if pmagplotlib.isServer:
         black = '#000000'
         purple = '#800080'
-        titles = {}
         titles['map'] = 'LO:_' + locations + '_POLE_map'
+        if 'contribution' in con.tables:
+            con_id = con.tables['contribution'].df.iloc[0].id
+            titles['map'] = "MagIC contribution {} all locations".format(con_id)
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
         pmagplotlib.saveP(FIG, files)
     elif plot == 0:
