@@ -8,13 +8,10 @@ from pmagpy import new_builder as nb
 from pmagpy import convert_2_magic as convert
 from programs.conversion_scripts import generic_magic
 from programs.conversion_scripts import sio_magic
-from programs.conversion_scripts import cit_magic
-from programs.conversion_scripts import _2g_bin_magic
 from programs.conversion_scripts import iodp_srm_magic
 from programs.conversion_scripts import iodp_dscr_magic
 from programs.conversion_scripts import iodp_jr6_magic
 from programs.conversion_scripts import pmd_magic
-from programs.conversion_scripts import huji_magic
 from programs.conversion_scripts import ldeo_magic
 from programs.conversion_scripts import jr6_txt_magic
 from programs.conversion_scripts import utrecht_magic
@@ -666,20 +663,56 @@ class TestHujiMagic(unittest.TestCase):
                                  'generic_magic')
         pmag.remove_files(filelist, directory)
         filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt']
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'Massada_AF_HUJI_new_format.magic']
         pmag.remove_files(filelist, WD)
         os.chdir(WD)
+
+    def test_with_bad_file(self):
+        program_ran, error_msg = convert.huji()
+        self.assertFalse(program_ran)
+        self.assertEqual(error_msg, "mag_file field is a required option")
+        program_ran, error_msg = convert.huji("fake")
+        self.assertFalse(program_ran)
+        self.assertEqual(error_msg, "bad mag file name")
 
     def test_huji_magic_success(self):
         dir_path = os.path.join('data_files', 'Measurement_Import',
                                 'HUJI_magic')
         options = {}
-        options['input_dir'] = dir_path
+        options['input_dir_path'] = dir_path
         options['magfile'] = "Massada_AF_HUJI_new_format.txt"
         options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
         options['codelist'] = 'AF'
-        program_ran, outfile = huji_magic.convert(**options)
+        program_ran, outfile = convert.huji(**options)
         self.assertTrue(program_ran)
+
+    def test_with_options(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'HUJI_magic')
+        options = {}
+        options['dir_path'] = dir_path
+        options['magfile'] = "Massada_AF_HUJI_new_format.txt"
+        options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
+        options['codelist'] = "AF"
+        options['location'] = "Massada"
+        options['noave'] = True
+        options['user'] = "me"
+        options['labfield'] = 40
+        options['phi'] = 0
+        options['theta'] = 90
+        program_ran, outfile = convert.huji(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, options['meas_file'])
+
+    def test_with_no_exp_type(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import', 'HUJI_magic')
+        mag_file = "Massada_AF_HUJI_new_format.txt"
+        res, error = convert.huji(mag_file, dir_path)
+        self.assertFalse(res)
+        self.assertEqual(error, "Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
+
+
 
 
 class TestLdeoMagic(unittest.TestCase):

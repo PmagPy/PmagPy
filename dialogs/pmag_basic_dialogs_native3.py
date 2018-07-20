@@ -1283,7 +1283,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             replicate = '-A'
 
         COMMAND = "huji_magic_new.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
-        program_ran, error_message = huji_magic.convert(**options)
+        program_ran, error_message = convert.huji(**options)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
