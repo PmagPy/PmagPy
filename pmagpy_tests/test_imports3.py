@@ -22,7 +22,7 @@ WD = pmag.get_test_WD()
 class TestGenericMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['generic_magic_example.magic']
@@ -60,7 +60,7 @@ class TestGenericMagic(unittest.TestCase):
 class TestSioMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['sio_af_example.magic']
@@ -162,7 +162,7 @@ class TestSioMagic(unittest.TestCase):
 class TestCitMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt',
@@ -281,7 +281,7 @@ class TestCitMagic(unittest.TestCase):
 class TestIodpSrmMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt', 'samples.txt',
@@ -352,7 +352,7 @@ class TestIodpSrmMagic(unittest.TestCase):
 class TestIodpDscrMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt', 'samples.txt',
@@ -398,6 +398,7 @@ class TestIodpDscrMagic(unittest.TestCase):
 class TestPmdMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'PMD_magic', 'PMD', )
 
@@ -426,7 +427,7 @@ class TestPmdMagic(unittest.TestCase):
 class TestJr6TxtMagic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt',
@@ -444,7 +445,7 @@ class TestJr6TxtMagic(unittest.TestCase):
 class TestIodpJr6Magic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt',
@@ -528,7 +529,7 @@ class TestIodpJr6Magic(unittest.TestCase):
 class Test2g_bin_magic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -656,8 +657,8 @@ class Test2g_bin_magic(unittest.TestCase):
 class TestHujiMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(
         print("\n")
-        pass
 
     def tearDown(self):
         filelist = ['generic_magic_example.magic']
@@ -726,6 +727,7 @@ class TestHujiMagic(unittest.TestCase):
 class TestLdeoMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'LDEO_magic')
 
@@ -756,6 +758,7 @@ class TestLdeoMagic(unittest.TestCase):
 class TestBgcMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'BGC_magic')
 
@@ -817,6 +820,7 @@ class TestBgcMagic(unittest.TestCase):
 class TestUtrechtMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'UTRECHT_magic')
 
@@ -846,6 +850,7 @@ class TestUtrechtMagic(unittest.TestCase):
 class TestMiniMagic(unittest.TestCase):
 
     def setUp(self):
+        os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
                               'Measurement_Import', 'MINI_magic')
 

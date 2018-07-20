@@ -1500,6 +1500,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
             print('input dir', input_dir_path)
             fname = pmag.resolve_file_name(magfile, input_dir_path)
             print('fname', fname)
+            print('os.listdir(fname))', os.listdir(fname))
             infile = open(fname, 'r')
         except IOError:
             print("bad mag file name")
