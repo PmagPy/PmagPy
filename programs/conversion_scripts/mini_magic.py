@@ -27,6 +27,7 @@ def main():
             T: thermal including thellier but not trm acquisition
         -A: don't average replicate measurements
         -vol: volume assumed for measurement in cm^3 (default 10 cc)
+        -DM NUM: MagIC data model (2 or 3, default 3)
 
     INPUT
         Must put separate experiments (all AF, thermal,  etc.) in
