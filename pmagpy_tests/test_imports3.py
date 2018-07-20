@@ -801,3 +801,42 @@ class TestUtrechtMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
+
+class TestMiniMagic(unittest.TestCase):
+
+    def setUp(self):
+        self.input_dir = os.path.join(WD, 'data_files',
+                              'Measurement_Import', 'mini_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+
+    def test_bad_file(self):
+        program_ran, error = convert.mini('fake_file')
+        self.assertFalse(program_ran)
+        self.assertEqual(error, "bad mag file name")
+
+    def test_success(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "measurements.txt")
+
+
+    def test_options(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
+                                            user="me", noave=1, volume=15,
+                                            methcode="LP:FAKE")
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "custom.out")
+
+    def test_dm_2(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
+                                            user="me", noave=1, volume=15,
+                                            methcode="LP:FAKE", data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "custom.out")
