@@ -656,6 +656,7 @@ class Test2g_bin_magic(unittest.TestCase):
 class TestHujiMagic(unittest.TestCase):
 
     def setUp(self):
+        print("\n")
         pass
 
     def tearDown(self):
