@@ -10,6 +10,7 @@ import subprocess
 import sys
 from pmagpy import pmag
 from pmagpy import ipmag
+from pmagpy import convert_2_magic as convert
 from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import drop_down_menus3
@@ -1435,14 +1436,14 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
             COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_bin, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
-                if _2g_bin_magic.convert(**options_dict):
+                if convert._2g_bin(**options_dict):
                     pw.close_window(self, COMMAND, outfile)
                 else:
                     pw.simple_warning()
 
             else:
                 print("Running equivalent of python command: ", COMMAND)
-                if _2g_bin_magic.convert(**options_dict):
+                if convert._2g_bin(**options_dict):
                     pass # success, continue on to next file
                 else:
                     pw.simple_warning()
