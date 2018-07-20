@@ -839,7 +839,7 @@ class TestMiniMagic(unittest.TestCase):
 
     def setUp(self):
         self.input_dir = os.path.join(WD, 'data_files',
-                              'Measurement_Import', 'mini_magic')
+                              'Measurement_Import', 'MINI_magic')
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt',
