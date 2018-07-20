@@ -17,7 +17,6 @@ from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
 sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 from programs.conversion_scripts import tdt_magic
-from programs.conversion_scripts import generic_magic
 from programs.conversion_scripts import sio_magic
 from programs.conversion_scripts import cit_magic
 from programs.conversion_scripts import huji_magic
@@ -693,7 +692,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE)#, lat, lon)
 
         print("-I- Running Python command:\n %s"%COMMAND)
-        program_run, error_message = generic_magic.convert(**options)
+        program_run, error_message = convert.generic_magic(**options)
 
         if program_run:
             pw.close_window(self, COMMAND, OUTFILE)

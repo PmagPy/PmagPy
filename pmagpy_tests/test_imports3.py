@@ -40,9 +40,10 @@ class TestGenericMagic(unittest.TestCase):
         options = {}
         options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
         options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
-        program_ran, error_message = generic_magic.convert(**options)
+        program_ran, error_message = convert.generic(**options)
         self.assertFalse(program_ran)
-        self.assertEqual("-exp is required option", error_message)
+        no_exp_error = "Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see help for format), NLT"
+        self.assertEqual(no_exp_error, error_message)
 
     def test_generic_magic_success(self):
         dir_path = os.path.join('data_files', 'Measurement_Import',
@@ -51,7 +52,7 @@ class TestGenericMagic(unittest.TestCase):
         options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
         options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
         options['experiment'] = 'Demag'
-        program_ran, outfile_name = generic_magic.convert(**options)
+        program_ran, outfile_name = convert.generic(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
 
@@ -660,7 +661,7 @@ class TestHujiMagic(unittest.TestCase):
     def tearDown(self):
         filelist = ['generic_magic_example.magic']
         directory = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'generic_magic')
+                                 'HUJI_magic')
         pmag.remove_files(filelist, directory)
         filelist = ['measurements.txt', 'specimens.txt',
                     'samples.txt', 'sites.txt', 'locations.txt',
@@ -679,6 +680,11 @@ class TestHujiMagic(unittest.TestCase):
     def test_huji_magic_success(self):
         dir_path = os.path.join('data_files', 'Measurement_Import',
                                 'HUJI_magic')
+        print('dir path', dir_path)
+        exists = os.path.exists(dir_path)
+        print('dir path exists?', exists)
+        if exists:
+            print('listing directory', os.listdir(dir_path))
         options = {}
         options['input_dir_path'] = dir_path
         options['magfile'] = "Massada_AF_HUJI_new_format.txt"
@@ -686,6 +692,7 @@ class TestHujiMagic(unittest.TestCase):
         options['codelist'] = 'AF'
         program_ran, outfile = convert.huji(**options)
         self.assertTrue(program_ran)
+        self.assertEqual(outfile, options['meas_file'])
 
     def test_with_options(self):
         dir_path = os.path.join('data_files', 'Measurement_Import',

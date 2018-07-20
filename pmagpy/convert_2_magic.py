@@ -6,6 +6,9 @@ import pmagpy.new_builder as nb
 from functools import reduce
 import pytz
 import datetime
+import copy
+import scipy
+from past.utils import old_div
 
 
 ### _2g_bin_magic conversion
@@ -740,6 +743,740 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     return True, meas_file
 
 
+### generic_magic conversion
+
+def generic(magfile="", dir_path=".", meas_file="measurements.txt",
+            spec_file="specimens.txt", samp_file="samples.txt", site_file = "sites.txt",
+            loc_file="locations.txt", user="", labfield=0, labfield_phi=0, labfield_theta=0,
+            experiment="", cooling_times_list=[], sample_nc=[1, 0], site_nc=[1, 0],
+            location="unknown", lat="", lon="", noave=False):
+
+    # --------------------------------------
+    # functions
+    # --------------------------------------
+
+
+    def sort_magic_file(path, ignore_lines_n, sort_by_this_name):
+        '''
+        reads a file with headers. Each line is stored as a dictionary following the headers.
+        Lines are sorted in DATA by the sort_by_this_name header
+        DATA[sort_by_this_name]=[dictionary1,dictionary2,...]
+        '''
+        DATA = {}
+        fin = open(path, 'r')
+        # ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        # header
+        line = fin.readline()
+        header = line.strip('\n').split('\t')
+        # print header
+        for line in fin.readlines():
+            if line[0] == "#":
+                continue
+            tmp_data = {}
+            tmp_line = line.strip('\n').split('\t')
+            # print tmp_line
+            for i in range(len(tmp_line)):
+                if i >= len(header):
+                    continue
+                tmp_data[header[i]] = tmp_line[i]
+            DATA[tmp_data[sort_by_this_name]] = tmp_data
+        fin.close()
+        return(DATA)
+
+
+    def read_generic_file(path, average_replicates):
+        '''
+        reads a generic file format. If average_replicates==True average replicate measurements.
+        Rrturns a Data dictionary with measurements line sorted by specimen
+        Data[specimen_name][dict1,dict2,...]
+        '''
+        Data = {}
+        Fin = open(path, 'r')
+        header = Fin.readline().strip('\n').split('\t')
+        duplicates = []
+        for line in Fin.readlines():
+            tmp_data = {}
+            # found_duplicate=False
+            l = line.strip('\n').split('\t')
+            for i in range(min(len(header), len(l))):
+                tmp_data[header[i]] = l[i]
+            specimen = tmp_data['specimen']
+            if specimen not in list(Data.keys()):
+                Data[specimen] = []
+            Data[specimen].append(tmp_data)
+        Fin.close()
+        # search from duplicates
+        for specimen in list(Data.keys()):
+            x = len(Data[specimen])-1
+            new_data = []
+            duplicates = []
+            for i in range(1, x):
+                while i < len(Data[specimen]) and Data[specimen][i]['treatment'] == Data[specimen][i-1]['treatment'] and Data[specimen][i]['treatment_type'] == Data[specimen][i-1]['treatment_type']:
+                    duplicates.append(Data[specimen][i])
+                    del(Data[specimen][i])
+                if len(duplicates) > 0:
+                    if average_replicates:
+                        duplicates.append(Data[specimen][i-1])
+                        Data[specimen][i-1] = average_duplicates(duplicates)
+                        print("-W- WARNING: averaging %i duplicates for specimen %s treatmant %s" %
+                              (len(duplicates), specimen, duplicates[-1]['treatment']))
+                        duplicates = []
+                    else:
+                        Data[specimen][i-1] = duplicates[-1]
+                        print("-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only" %
+                              (len(duplicates), specimen, duplicates[-1]['treatment']))
+                        duplicates = []
+
+                if i == len(Data[specimen])-1:
+                    break
+
+        return(Data)
+
+
+    def average_duplicates(duplicates):
+        '''
+        avarage replicate measurements.
+        '''
+        carts_s, carts_g, carts_t = [], [], []
+        for rec in duplicates:
+            moment = float(rec['moment'])
+            if 'dec_s' in list(rec.keys()) and 'inc_s' in list(rec.keys()):
+                if rec['dec_s'] != "" and rec['inc_s'] != "":
+                    dec_s = float(rec['dec_s'])
+                    inc_s = float(rec['inc_s'])
+                    cart_s = pmag.dir2cart([dec_s, inc_s, moment])
+                    carts_s.append(cart_s)
+            if 'dec_g' in list(rec.keys()) and 'inc_g' in list(rec.keys()):
+                if rec['dec_g'] != "" and rec['inc_g'] != "":
+                    dec_g = float(rec['dec_g'])
+                    inc_g = float(rec['inc_g'])
+                    cart_g = pmag.dir2cart([dec_g, inc_g, moment])
+                    carts_g.append(cart_g)
+            if 'dec_t' in list(rec.keys()) and 'inc_t' in list(rec.keys()):
+                if rec['dec_t'] != "" and rec['inc_t'] != "":
+                    dec_t = float(rec['dec_t'])
+                    inc_t = float(rec['inc_t'])
+                    cart_t = pmag.dir2cart([dec_t, inc_t, moment])
+                    carts_t.append(cart_t)
+        if len(carts_s) > 0:
+            carts = scipy.array(carts_s)
+            x_mean = scipy.mean(carts[:, 0])
+            y_mean = scipy.mean(carts[:, 1])
+            z_mean = scipy.mean(carts[:, 2])
+            mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
+            mean_dec_s = "%.2f" % mean_dir[0]
+            mean_inc_s = "%.2f" % mean_dir[1]
+            mean_moment = "%10.3e" % mean_dir[2]
+        else:
+            mean_dec_s, mean_inc_s = "", ""
+        if len(carts_g) > 0:
+            carts = scipy.array(carts_g)
+            x_mean = scipy.mean(carts[:, 0])
+            y_mean = scipy.mean(carts[:, 1])
+            z_mean = scipy.mean(carts[:, 2])
+            mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
+            mean_dec_g = "%.2f" % mean_dir[0]
+            mean_inc_g = "%.2f" % mean_dir[1]
+            mean_moment = "%10.3e" % mean_dir[2]
+        else:
+            mean_dec_g, mean_inc_g = "", ""
+
+        if len(carts_t) > 0:
+            carts = scipy.array(carts_t)
+            x_mean = scipy.mean(carts[:, 0])
+            y_mean = scipy.mean(carts[:, 1])
+            z_mean = scipy.mean(carts[:, 2])
+            mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
+            mean_dec_t = "%.2f" % mean_dir[0]
+            mean_inc_t = "%.2f" % mean_dir[1]
+            mean_moment = "%10.3e" % mean_dir[2]
+        else:
+            mean_dec_t, mean_inc_t = "", ""
+
+        meanrec = {}
+        for key in list(duplicates[0].keys()):
+            if key in ['dec_s', 'inc_s', 'dec_g', 'inc_g', 'dec_t', 'inc_t', 'moment']:
+                continue
+            else:
+                meanrec[key] = duplicates[0][key]
+        meanrec['dec_s'] = mean_dec_s
+        meanrec['dec_g'] = mean_dec_g
+        meanrec['dec_t'] = mean_dec_t
+        meanrec['inc_s'] = mean_inc_s
+        meanrec['inc_g'] = mean_inc_g
+        meanrec['inc_t'] = mean_inc_t
+        meanrec['moment'] = mean_moment
+        return meanrec
+
+
+    def get_upper_level_name(name, nc):
+        '''
+        get sample/site name from specimen/sample using naming convention
+        '''
+        if float(nc[0]) == 0:
+            if float(nc[1]) != 0:
+                number_of_char = int(nc[1])
+                high_name = name[:number_of_char]
+            else:
+                high_name = name
+        elif float(nc[0]) == 1:
+            if float(nc[1]) != 0:
+                number_of_char = int(nc[1])*-1
+                high_name = name[:number_of_char]
+            else:
+                high_name = name
+        elif float(nc[0]) == 2:
+            d = str(nc[1])
+            name_splitted = name.split(d)
+            if len(name_splitted) == 1:
+                high_name = name_splitted[0]
+            else:
+                high_name = d.join(name_splitted[:-1])
+        else:
+            high_name = name
+        return high_name
+
+
+    def merge_pmag_recs(old_recs):
+        recs = {}
+        recs = copy.deepcopy(old_recs)
+        headers = []
+        for rec in recs:
+            for key in list(rec.keys()):
+                if key not in headers:
+                    headers.append(key)
+        for rec in recs:
+            for header in headers:
+                if header not in list(rec.keys()):
+                    rec[header] = ""
+        return recs
+
+
+    # --------------------------------------
+    # start conversion from generic
+    # --------------------------------------
+
+
+    # format and validate variables
+    labfield = float(labfield)
+    labfield_phi = float(labfield_phi)
+    labfield_theta = float(labfield_theta)
+
+    if magfile:
+        try:
+            input = open(magfile, 'r')
+        except:
+            print("bad mag file:", magfile)
+            return False, "bad mag file"
+    else:
+        print("mag_file field is required option")
+        return False, "mag_file field is required option"
+
+    if not experiment:
+        print("-E- Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT")
+        return False, "Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see help for format), NLT"
+
+    if experiment == 'ATRM':
+        if command_line:
+            ind = sys.argv.index("ATRM")
+            atrm_n_pos = int(sys.argv[ind+1])
+        else:
+            atrm_n_pos = 6
+
+    if experiment == 'AARM':
+        if command_line:
+            ind = sys.argv.index("AARM")
+            aarm_n_pos = int(sys.argv[ind+1])
+        else:
+            aarm_n_pos = 6
+
+    if experiment == 'CR':
+        if command_line:
+            ind = sys.argv.index("CR")
+            cooling_times = sys.argv[ind+1]
+            cooling_times_list = cooling_times.split(',')
+        # if not command line, cooling_times_list is already set
+
+    # --------------------------------------
+    # read data from generic file
+    # --------------------------------------
+
+    mag_data = read_generic_file(magfile, not noave)
+
+    # --------------------------------------
+    # for each specimen get the data, and translate it to MagIC format
+    # --------------------------------------
+
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    specimens_list = sorted(mag_data.keys())
+    for specimen in specimens_list:
+        measurement_running_number = 0
+        this_specimen_treatments = []  # a list of all treatments
+        MeasRecs_this_specimen = []
+        LP_this_specimen = []  # a list of all lab protocols
+        IZ, ZI = 0, 0  # counter for IZ and ZI steps
+
+        for meas_line in mag_data[specimen]:
+
+            # ------------------
+            # trivial MeasRec data
+            # ------------------
+
+            MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+
+            specimen = meas_line['specimen']
+            sample = get_upper_level_name(specimen, sample_nc)
+            site = get_upper_level_name(sample, site_nc)
+            sample_method_codes = ""
+            azimuth, dip, DipDir, Dip = "", "", "", ""
+
+            MeasRec['citations'] = "This study"
+            MeasRec["specimen"] = specimen
+            MeasRec['analysts'] = user
+            MeasRec["instrument_codes"] = ""
+            MeasRec["quality"] = 'g'
+            MeasRec["treat_step_num"] = "%i" % measurement_running_number
+            MeasRec["magn_moment"] = '%10.3e' % (
+                float(meas_line["moment"])*1e-3)  # in Am^2
+            MeasRec["meas_temp"] = '273.'  # room temp in kelvin
+
+            # ------------------
+            #  decode treatments from treatment column in the generic file
+            # ------------------
+
+            treatment = []
+            treatment_code = str(meas_line['treatment']).split(".")
+            treatment.append(float(treatment_code[0]))
+            if len(treatment_code) == 1:
+                treatment.append(0)
+            else:
+                treatment.append(float(treatment_code[1]))
+
+            # ------------------
+            #  lab field direction
+            # ------------------
+
+            if experiment in ['PI', 'NLT', 'CR']:
+                if float(treatment[1]) in [0., 3.]:  # zerofield step or tail check
+                    MeasRec["treat_dc_field"] = "0"
+                    MeasRec["treat_dc_field_phi"] = "0"
+                    MeasRec["treat_dc_field_theta"] = "0"
+                elif not labfield:
+                    print(
+                        "-W- WARNING: labfield (-dc) is a required argument for this experiment type")
+                    return False, "labfield (-dc) is a required argument for this experiment type"
+                else:
+                    MeasRec["treat_dc_field"] = '%8.3e' % (float(labfield))
+                    MeasRec["treat_dc_field_phi"] = "%.2f" % (
+                        float(labfield_phi))
+                    MeasRec["treat_dc_field_theta"] = "%.2f" % (
+                        float(labfield_theta))
+            else:
+                MeasRec["treat_dc_field"] = ""
+                MeasRec["treat_dc_field_phi"] = ""
+                MeasRec["treat_dc_field_theta"] = ""
+
+            # ------------------
+            # treatment temperature/peak field
+            # ------------------
+
+            if experiment == 'Demag':
+                if meas_line['treatment_type'] == 'A':
+                    MeasRec['treat_temp'] = "273."
+                    MeasRec["treat_ac_field"] = "%.3e" % (treatment[0]*1e-3)
+                elif meas_line['treatment_type'] == 'N':
+                    MeasRec['treat_temp'] = "273."
+                    MeasRec["treat_ac_field"] = ""
+                else:
+                    MeasRec['treat_temp'] = "%.2f" % (treatment[0]+273.)
+                    MeasRec["treat_ac_field"] = ""
+            else:
+                MeasRec['treat_temp'] = "%.2f" % (treatment[0]+273.)
+                MeasRec["treat_ac_field"] = ""
+
+            # ---------------------
+            # Lab treatment
+            # Lab protocol
+            # ---------------------
+
+            # ---------------------
+            # Lab treatment and lab protocoal for NRM:
+            # ---------------------
+
+            if float(meas_line['treatment']) == 0:
+                LT = "LT-NO"
+                LP = ""  # will be filled later after finishing reading all measurements line
+
+            # ---------------------
+            # Lab treatment and lab protocoal for paleointensity experiment
+            # ---------------------
+
+            elif experiment == 'PI':
+                LP = "LP-PI-TRM"
+                if treatment[1] == 0:
+                    LT = "LT-T-Z"
+                elif treatment[1] == 1 or treatment[1] == 10:  # infield
+                    LT = "LT-T-I"
+                elif treatment[1] == 2 or treatment[1] == 20:  # pTRM check
+                    LT = "LT-PTRM-I"
+                    LP = LP+":"+"LP-PI-ALT-PTRM"
+                elif treatment[1] == 3 or treatment[1] == 30:  # Tail check
+                    LT = "LT-PTRM-MD"
+                    LP = LP+":"+"LP-PI-BT-MD"
+                elif treatment[1] == 4 or treatment[1] == 40:  # Additivity check
+                    LT = "LT-PTRM-AC"
+                    LP = LP+":"+"LP-PI-BT-MD"
+                else:
+                    print("-E- unknown measurement code specimen %s treatmemt %s" %
+                          (meas_line['specimen'], meas_line['treatment']))
+                    MeasRec = {}
+                    continue
+                # save all treatment in a list
+                # we will use this later to distinguidh between ZI / IZ / and IZZI
+
+                this_specimen_treatments.append(float(meas_line['treatment']))
+                if LT == "LT-T-Z":
+                    if float(treatment[0]+0.1) in this_specimen_treatments:
+                        LP = LP+":"+"LP-PI-IZ"
+                if LT == "LT-T-I":
+                    if float(treatment[0]+0.0) in this_specimen_treatments:
+                        LP = LP+":"+"LP-PI-ZI"
+            # ---------------------
+            # Lab treatment and lab protocoal for demag experiment
+            # ---------------------
+
+            elif "Demag" in experiment:
+                if meas_line['treatment_type'] == 'A':
+                    LT = "LT-AF-Z"
+                    LP = "LP-DIR-AF"
+                else:
+                    LT = "LT-T-Z"
+                    LP = "LP-DIR-T"
+
+            # ---------------------
+            # Lab treatment and lab protocoal for ATRM experiment
+            # ---------------------
+
+            elif experiment in ['ATRM', 'AARM']:
+
+                if experiment == 'ATRM':
+                    LP = "LP-AN-TRM"
+                    n_pos = atrm_n_pos
+                    if n_pos != 6:
+                        print(
+                            "the program does not support ATRM in %i position." % n_pos)
+                        continue
+
+                if experiment == 'AARM':
+                    LP = "LP-AN-ARM"
+                    n_pos = aarm_n_pos
+                    if n_pos != 6:
+                        print(
+                            "the program does not support AARM in %i position." % n_pos)
+                        continue
+
+                if treatment[1] == 0:
+                    if experiment == 'ATRM':
+                        LT = "LT-T-Z"
+                        MeasRec['treat_temp'] = "%.2f" % (treatment[0]+273.)
+                        MeasRec["treat_ac_field"] = ""
+
+                    else:
+                        LT = "LT-AF-Z"
+                        MeasRec['treat_temp'] = "273."
+                        MeasRec["treat_ac_field"] = "%.3e" % (
+                            treatment[0]*1e-3)
+                    MeasRec["treat_dc_field"] = '0'
+                    MeasRec["treat_dc_field_phi"] = '0'
+                    MeasRec["treat_dc_field_theta"] = '0'
+                else:
+                    if experiment == 'ATRM':
+                        # alteration check as final measurement
+                        if float(treatment[1]) == 70 or float(treatment[1]) == 7:
+                            LT = "LT-PTRM-I"
+                        else:
+                            LT = "LT-T-I"
+                    else:
+                        LT = "LT-AF-I"
+                    MeasRec["treat_dc_field"] = '%8.3e' % (float(labfield))
+
+                    # find the direction of the lab field in two ways:
+
+                    # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
+                    tdec = [0, 90, 0, 180, 270, 0, 0, 90, 0]
+                    tinc = [0, 0, 90, 0, 0, -90, 0, 0, 90]
+                    if treatment[1] < 10:
+                        ipos_code = int(treatment[1])-1
+                    else:
+                        ipos_code = int(old_div(treatment[1], 10))-1
+
+                    # (2) using the magnetization
+                    if meas_line["dec_s"] != "":
+                        DEC = float(meas_line["dec_s"])
+                        INC = float(meas_line["inc_s"])
+                    elif meas_line["dec_g"] != "":
+                        DEC = float(meas_line["dec_g"])
+                        INC = float(meas_line["inc_g"])
+                    elif meas_line["dec_t"] != "":
+                        DEC = float(meas_line["dec_t"])
+                        INC = float(meas_line["inc_t"])
+                    if DEC < 0 and DEC > -359:
+                        DEC = 360.+DEC
+
+                    if INC < 45 and INC > -45:
+                        if DEC > 315 or DEC < 45:
+                            ipos_guess = 0
+                        if DEC > 45 and DEC < 135:
+                            ipos_guess = 1
+                        if DEC > 135 and DEC < 225:
+                            ipos_guess = 3
+                        if DEC > 225 and DEC < 315:
+                            ipos_guess = 4
+                    else:
+                        if INC > 45:
+                            ipos_guess = 2
+                        if INC < -45:
+                            ipos_guess = 5
+                    # prefer the guess over the code
+                    ipos = ipos_guess
+                    # check it
+                    if treatment[1] != 7 and treatment[1] != 70:
+                        if ipos_guess != ipos_code:
+                            print("-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field" % (
+                                specimen, meas_line['treatment']))
+                    MeasRec["treat_dc_field_phi"] = '%7.1f' % (tdec[ipos])
+                    MeasRec["treat_dc_field_theta"] = '%7.1f' % (tinc[ipos])
+
+            # ---------------------
+            # Lab treatment and lab protocoal for cooling rate experiment
+            # ---------------------
+
+            elif experiment == "CR":
+
+                cooling_times_list
+                LP = "LP-CR-TRM"
+                MeasRec["treat_temp"] = '%8.3e' % (
+                    float(treatment[0])+273.)  # temp in kelvin
+
+                if treatment[1] == 0:
+                    LT = "LT-T-Z"
+                    MeasRec["treat_dc_field"] = "0"
+                    MeasRec["treat_dc_field_phi"] = '0'
+                    MeasRec["treat_dc_field_theta"] = '0'
+                else:
+                    if treatment[1] == 7:  # alteration check as final measurement
+                        LT = "LT-PTRM-I"
+                    else:
+                        LT = "LT-T-I"
+                    MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                    MeasRec["treat_dc_field_phi"] = '%7.1f' % (
+                        labfield_phi)  # labfield phi
+                    MeasRec["treat_dc_field_theta"] = '%7.1f' % (
+                        labfield_theta)  # labfield theta
+
+                    indx = int(treatment[1])-1
+                    # alteration check matjed as 0.7 in the measurement file
+                    if indx == 6:
+                        cooling_time = cooling_times_list[-1]
+                    else:
+                        cooling_time = cooling_times_list[indx]
+                    MeasRec["measurement_description"] = "cooling_rate" + \
+                        ":"+cooling_time+":"+"K/min"
+
+            # ---------------------
+            # Lab treatment and lab protocoal for NLT experiment
+            # ---------------------
+
+            elif 'NLT' in experiment:
+                print(
+                    "Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu")
+
+            # ---------------------
+            # method_codes for this measurement only
+            # LP will be fixed after all measurement lines are read
+            # ---------------------
+
+            MeasRec["method_codes"] = LT+":"+LP
+
+            # --------------------
+            # deal with specimen orientation and different coordinate system
+            # --------------------
+
+            found_s, found_geo, found_tilt = False, False, False
+            if "dec_s" in list(meas_line.keys()) and "inc_s" in list(meas_line.keys()):
+                if meas_line["dec_s"] != "" and meas_line["inc_s"] != "":
+                    found_s = True
+                MeasRec["dir_dec"] = meas_line["dec_s"]
+                MeasRec["dir_inc"] = meas_line["inc_s"]
+            if "dec_g" in list(meas_line.keys()) and "inc_g" in list(meas_line.keys()):
+                if meas_line["dec_g"] != "" and meas_line["inc_g"] != "":
+                    found_geo = True
+            if "dec_t" in list(meas_line.keys()) and "inc_t" in list(meas_line.keys()):
+                if meas_line["dec_t"] != "" and meas_line["inc_t"] != "":
+                    found_tilt = True
+
+            # -----------------------------
+            # specimen coordinates: no
+            # geographic coordinates: yes
+            # -----------------------------
+
+            if found_geo and not found_s:
+                MeasRec["dir_dec"] = meas_line["dec_g"]
+                MeasRec["dir_inc"] = meas_line["inc_g"]
+                azimuth = "0"
+                dip = "0"
+
+            # -----------------------------
+            # specimen coordinates: no
+            # geographic coordinates: no
+            # -----------------------------
+            if not found_geo and not found_s:
+                print("-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s " %
+                      (sample, specimen))
+                break
+
+            # -----------------------------
+            # specimen coordinates: yes
+            # geographic coordinates: yes
+            #
+            # commant: Ron, this need to be tested !!
+            # -----------------------------
+            if found_geo and found_s:
+                cdec, cinc = float(meas_line["dec_s"]), float(
+                    meas_line["inc_s"])
+                gdec, ginc = float(meas_line["dec_g"]), float(
+                    meas_line["inc_g"])
+                az, pl = pmag.get_azpl(cdec, cinc, gdec, ginc)
+                azimuth = "%.1f" % az
+                dip = "%.1f" % pl
+
+            # -----------------------------
+            # specimen coordinates: yes
+            # geographic coordinates: no
+            # -----------------------------
+            if not found_geo and found_s and "Demag" in experiment:
+                print("-W- WARNING: missing dip or azimuth for sample %s" % sample)
+
+            # -----------------------------
+            # tilt-corrected coordinates: yes
+            # geographic coordinates: no
+            # -----------------------------
+            if found_tilt and not found_geo:
+                print(
+                    "-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data " % sample)
+
+            # -----------------------------
+            # tilt-corrected coordinates: yes
+            # geographic coordinates: yes
+            # -----------------------------
+            if found_tilt and found_geo:
+                dec_geo, inc_geo = float(
+                    meas_line["dec_g"]), float(meas_line["inc_g"])
+                dec_tilt, inc_tilt = float(
+                    meas_line["dec_t"]), float(meas_line["inc_t"])
+                if dec_geo == dec_tilt and inc_geo == inc_tilt:
+                    DipDir, Dip = 0., 0.
+                else:
+                    DipDir, Dip = pmag.get_tilt(
+                        dec_geo, inc_geo, dec_tilt, inc_tilt)
+
+            # -----------------------------
+            # samples method codes
+            # geographic coordinates: no
+            # -----------------------------
+            if found_tilt or found_geo:
+                sample_method_codes = "SO-NO"
+
+            if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+                SpecRec['specimen'] = specimen
+                SpecRec['sample'] = sample
+                SpecRec['citations'] = "This study"
+                SpecRecs.append(SpecRec)
+            if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+                SampRec['sample'] = sample
+                SampRec['site'] = site
+                SampRec['citations'] = "This study"
+                SampRec['azimuth'] = azimuth
+                SampRec['dip'] = dip
+                SampRec['bed_dip_direction'] = DipDir
+                SampRec['bed_dip'] = Dip
+                SampRec['method_codes'] = sample_method_codes
+                SampRecs.append(SampRec)
+            if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+                SiteRec['site'] = site
+                SiteRec['location'] = location
+                SiteRec['citations'] = "This study"
+                SiteRec['lat'] = lat
+                SiteRec['lon'] = lon
+                SiteRecs.append(SiteRec)
+            if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+                LocRec['location'] = location
+                LocRec['citations'] = "This study"
+                LocRec['lat_n'] = lat
+                LocRec['lon_e'] = lon
+                LocRec['lat_s'] = lat
+                LocRec['lon_w'] = lon
+                LocRecs.append(LocRec)
+
+            MeasRecs_this_specimen.append(MeasRec)
+            measurement_running_number += 1
+            # -------
+
+        # -------
+        # after reading all the measurements lines for this specimen
+        # 1) add experiments
+        # 2) fix method_codes with the correct lab protocol
+        # -------
+        LP_this_specimen = []
+        for MeasRec in MeasRecs_this_specimen:
+            method_codes = MeasRec["method_codes"].split(":")
+            for code in method_codes:
+                if "LP" in code and code not in LP_this_specimen:
+                    LP_this_specimen.append(code)
+        # check IZ/ZI/IZZI
+        if "LP-PI-ZI" in LP_this_specimen and "LP-PI-IZ" in LP_this_specimen:
+            LP_this_specimen.remove("LP-PI-ZI")
+            LP_this_specimen.remove("LP-PI-IZ")
+            LP_this_specimen.append("LP-PI-BT-IZZI")
+
+        # add the right LP codes and fix experiment name
+        for MeasRec in MeasRecs_this_specimen:
+            # MeasRec["experiment"]=MeasRec["specimen"]+":"+":".join(LP_this_specimen)
+            method_codes = MeasRec["method_codes"].split(":")
+            LT = ""
+            for code in method_codes:
+                if code[:3] == "LT-":
+                    LT = code
+                    break
+            MeasRec["method_codes"] = LT+":"+":".join(LP_this_specimen)
+            MeasRec["method_codes"] = MeasRec["method_codes"].strip(":")
+            MeasRecs.append(MeasRec)
+
+    # --
+    # write tables to file
+    # --
+
+    con = nb.Contribution(dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+
+    return True, meas_file
+
+
+
 ### HUJI_magic conversion
 
 def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
@@ -769,7 +1506,6 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
             return False, "bad mag file name"
     else:
         print("mag_file field is a required option")
-        #print(__doc__)
         return False, "mag_file field is a required option"
 
     if specnum != 0:
