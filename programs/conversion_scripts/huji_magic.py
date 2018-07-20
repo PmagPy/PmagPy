@@ -168,8 +168,9 @@ def main():
     if '-A' in sys.argv:
         kwargs['noave'] = True
 
-    convert.huji(**kwargs)
-
+    res, error_message = convert.huji(**kwargs)
+    if not res:
+        print(__doc__)
 
 if __name__ == "__main__":
     main()
