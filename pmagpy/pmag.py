@@ -5363,7 +5363,7 @@ def dimap_V(D, I):
     X = dir2cart(DI).transpose()
 # CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
     # from Collinson 1983
-    R = old_div(np.sqrt(1. - abs(X[2])), (np.sqrt(X[0]**2 + X[1]**2)))
+    R = np.sqrt(1. - abs(X[2]))/(np.sqrt(X[0]**2 + X[1]**2))
     XY = np.array([X[1] * R, X[0] * R]).transpose()
 
 # RETURN XY[X,Y]
