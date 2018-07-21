@@ -661,7 +661,7 @@ class TestHujiMagic(unittest.TestCase):
         print("\n")
 
     def tearDown(self):
-        filelist = ['generic_magic_example.magic']
+        filelist = ['Massada_AF_HUJI_new_format.magic']
         directory = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'HUJI_magic')
         pmag.remove_files(filelist, directory)
@@ -687,6 +687,8 @@ class TestHujiMagic(unittest.TestCase):
         print('dir path exists?', exists)
         if exists:
             print('listing directory', os.listdir(dir_path))
+        full_file = os.path.join(dir_path, "Massada_AF_HUJI_new_format.txt")
+        print('does the file exist?', os.path.exists(full_file))
         options = {}
         options['input_dir_path'] = dir_path
         options['magfile'] = "Massada_AF_HUJI_new_format.txt"
