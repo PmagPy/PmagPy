@@ -6772,7 +6772,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     AnisRec["anisotropy_s6"] = s6_val
                 # MagIC 3
                 else:
-                    vals = [s1_val, s2_val, s3_val, s4_val, s5_val]
+                    vals = [s1_val, s2_val, s3_val, s4_val, s5_val, s6_val]
                     AnisRec['aniso_s'] = ":".join([str(v).strip() for v in vals])
                 AnisRec[aniso_mean_col] = '%12.10f' % (bulk)
                 AnisRec[aniso_sigma_col] = '%12.10f' % (sigma)
