@@ -38,6 +38,7 @@ install:
 script:
   - python -c "print('starting tests')"
   - python -m unittest discover -v
+  #- python -m unittest -v pmagpy_tests.test_imports3
 
 
 # https://stackoverflow.com/questions/29290011/using-travis-ci-with-wxpython-tests

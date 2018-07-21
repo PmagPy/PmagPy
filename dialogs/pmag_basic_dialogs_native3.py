@@ -10,13 +10,13 @@ import subprocess
 import sys
 from pmagpy import pmag
 from pmagpy import ipmag
+from pmagpy import convert_2_magic as convert
 from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
 sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 from programs.conversion_scripts import tdt_magic
-from programs.conversion_scripts import generic_magic
 from programs.conversion_scripts import sio_magic
 from programs.conversion_scripts import cit_magic
 from programs.conversion_scripts import huji_magic
@@ -692,7 +692,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE)#, lat, lon)
 
         print("-I- Running Python command:\n %s"%COMMAND)
-        program_run, error_message = generic_magic.convert(**options)
+        program_run, error_message = convert.generic_magic(**options)
 
         if program_run:
             pw.close_window(self, COMMAND, OUTFILE)
@@ -1103,7 +1103,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, peak_AF, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
         # to run as module:
-        program_ran, error_message = cit_magic.convert(**options_dict)
+        program_ran, error_message = convert.cit(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1282,7 +1282,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             replicate = '-A'
 
         COMMAND = "huji_magic_new.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
-        program_ran, error_message = huji_magic.convert(**options)
+        program_ran, error_message = convert.huji(**options)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1435,14 +1435,14 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
             COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_bin, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
-                if _2g_bin_magic.convert(**options_dict):
+                if convert._2g_bin(**options_dict):
                     pw.close_window(self, COMMAND, outfile)
                 else:
                     pw.simple_warning()
 
             else:
                 print("Running equivalent of python command: ", COMMAND)
-                if _2g_bin_magic.convert(**options_dict):
+                if convert._2g_bin(**options_dict):
                     pass # success, continue on to next file
                 else:
                     pw.simple_warning()
