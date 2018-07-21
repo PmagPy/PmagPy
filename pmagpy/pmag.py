@@ -8868,6 +8868,7 @@ def parse_site(sample, convention, Z):
     """
     parse the site name from the sample name using the specified convention
     """
+    convention = str(convention)
     site = sample  # default is that site = sample
 #
 #
@@ -10760,7 +10761,7 @@ def watsons_f(DI1, DI2):
 def apwp(data,print_results=False):
     """
     calculates expected pole positions and directions for given plate, location and age
-    Parameters 
+    Parameters
     _________
         data : [plate,lat,lon,age]
         print_results : if True will print out nicely formatted results
@@ -10775,7 +10776,7 @@ def apwp(data,print_results=False):
         print (' Age   Paleolat.   Dec.   Inc.   Pole_lat.  Pole_Long.') # print everything out
         print ('%7.1f %7.1f %7.1f %7.1f %7.1f  %7.1f\n' \
            %(data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon))
-    
+
     else:
         return [data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon]
 

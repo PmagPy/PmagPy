@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-from __future__ import division
-from __future__ import print_function
 import sys
-from past.utils import old_div
-import pmagpy.pmag as pmag
+from pmagpy import pmag
+from pmagpy import convert_2_magic as convert
 
 
 def main():
@@ -13,7 +11,7 @@ def main():
         s_magic.py
 
     DESCRIPTION
-        converts .s format data to magic_measurements  format.
+        converts .s format data to measurements  format.
 
     SYNTAX
         s_magic.py [command line options]
@@ -88,8 +86,6 @@ def main():
     #if "-n" in sys.argv:
     #    name = 1
     coord_type = pmag.get_named_arg_from_sys("-crd", 's')
-    coord_dict = {'s': '-1', 't': '100', 'g': '0'}
-    coord = coord_dict.get(coord_type, '-1')
     samp_con, Z = "", 1
     if "-ncn" in sys.argv:
         ind = sys.argv.index("-ncn")
@@ -105,98 +101,11 @@ def main():
             print("option [6] is not currently supported")
             return
             #Samps, filetype = pmag.magic_read(dirpath+'/er_samples.txt')
+    convert.s_magic(sfile, anisfile, dir_path, atype, name,
+            coord_type, sigma, samp_con, Z, specnum,
+            location, spec, sitename, user, data_model_num)
     #
-    if data_model_num == 2:
-        specimen_col = "er_specimen_name"
-        sample_col = "er_sample_name"
-        site_col = "er_site_name"
-        loc_col = "er_location_name"
-        citation_col = "er_citation_names"
-        analyst_col = "er_analyst_mail_names"
-        aniso_type_col = "anisotropy_type"
-        experiment_col = "magic_experiment_names"
-        sigma_col = "anisotropy_sigma"
-        unit_col = "anisotropy_unit"
-        tilt_corr_col = "anisotropy_tilt_correction"
-        method_col = "magic_method_codes"
-        outfile_type = "rmag_anisotropy"
-    else:
-        specimen_col = "specimen"
-        sample_col = "sample"
-        site_col = "site"
-        loc_col = "location"
-        citation_col = "citations"
-        analyst_col = "analysts"
-        aniso_type_col = "aniso_type"
-        experiment_col = "experiments"
-        sigma_col = "aniso_s_sigma"
-        unit_col = "aniso_s_unit"
-        tilt_corr_col = "aniso_tilt_correction"
-        method_col = "method_codes"
-        outfile_type = "specimens"
-    # get down to bidness
-    sfile = pmag.resolve_file_name(sfile, dir_path)
-    anisfile = pmag.resolve_file_name(anisfile, dir_path)
-    with open(sfile, 'r') as f:
-        lines = f.readlines()
-    AnisRecs = []
-    citation = "This study"
-    # read in data
-    for line in lines:
-        AnisRec = {}
-        rec = line.split()
-        if name == 1:
-            k = 1
-            spec = rec[0]
-        else:
-            k = 0
-        trace = float(rec[k])+float(rec[k+1])+float(rec[k+2])
-        s1 = '%10.9e' % (old_div(float(rec[k]), trace))
-        s2 = '%10.9e' % (old_div(float(rec[k+1]), trace))
-        s3 = '%10.9e' % (old_div(float(rec[k+2]), trace))
-        s4 = '%10.9e' % (old_div(float(rec[k+3]), trace))
-        s5 = '%10.9e' % (old_div(float(rec[k+4]), trace))
-        s6 = '%10.9e' % (old_div(float(rec[k+5]), trace))
-        AnisRec[citation_col] = citation
-        AnisRec[specimen_col] = spec
-        if specnum != 0:
-            AnisRec[sample_col] = spec[:specnum]
-        else:
-            AnisRec[sample_col] = spec
-        #if samp_con == "6":
-        #    for samp in Samps:
-        #        if samp['er_sample_name'] == AnisRec["er_sample_name"]:
-        #            sitename = samp['er_site_name']
-        #            location = samp['er_location_name']
-        if samp_con != "":
-            sitename = pmag.parse_site(AnisRec[sample_col], samp_con, Z)
-        AnisRec[loc_col] = location
-        AnisRec[site_col] = sitename
-        AnisRec[analyst_col] = user
-        if atype == 'AMS':
-            AnisRec[aniso_type_col] = "AMS"
-            AnisRec[experiment_col] = spec+":LP-X"
-        else:
-            AnisRec[aniso_type_col] = atype
-            AnisRec[experiment_col] = spec+":LP-"+atype
-        if data_model_num != 3:
-            AnisRec["anisotropy_s1"] = s1
-            AnisRec["anisotropy_s2"] = s2
-            AnisRec["anisotropy_s3"] = s3
-            AnisRec["anisotropy_s4"] = s4
-            AnisRec["anisotropy_s5"] = s5
-            AnisRec["anisotropy_s6"] = s6
-        else:
-            AnisRec['aniso_s'] = ":".join([str(s) for s in [s1,s2,s3,s4,s5,s6]])
-        if sigma:
-                AnisRec[sigma_col] = '%10.8e' % (
-                    old_div(float(rec[k+6]), trace))
-                AnisRec[unit_col] = 'SI'
-                AnisRec[tilt_corr_col] = coord
-                AnisRec[method_col] = 'LP-' + atype
-        AnisRecs.append(AnisRec)
-    pmag.magic_write(anisfile, AnisRecs, outfile_type)
-    print('data saved in ', anisfile)
+
 
 
     #

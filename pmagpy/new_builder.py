@@ -238,8 +238,21 @@ class Contribution(object):
                         if parents:
                             # create a parent_df with the names you got from the child
                             print("-I- Creating new {} table with data from {} table".format(parent_name, table_name))
-                            parent_df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
+                            # add in the grandparent if available
+                            grandparent_name = self.get_parent_and_child(parent_name)[0]
+                            if grandparent_name:
+                                grandparent = ""
+                                if grandparent_name in df.columns:
+                                    grandparent = df[df[parent_name] == item][grandparent_name].values[0]
+                                columns = [parent_name[:-1]]#, grandparent_name[:-1]]
+                            else:
+                                columns = [parent_name[:-1]]
+
+                            parent_df = pd.DataFrame(columns=columns, index=parents)
                             parent_df[parent_name[:-1]] = parent_df.index
+                            if grandparent_name:
+                                if grandparent_name[:-1] in df.columns:
+                                    parent_df = pd.merge(df[[parent_name[:-1], grandparent_name[:-1]]], parent_df, on=parent_name[:-1])
                             self.tables[parent_name] = MagicDataFrame(dtype=parent_name,
                                                                       df=parent_df)
                             if write:

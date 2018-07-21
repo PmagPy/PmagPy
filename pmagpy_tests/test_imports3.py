@@ -657,7 +657,7 @@ class Test2g_bin_magic(unittest.TestCase):
 class TestHujiMagic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(
+        os.chdir(WD)
         print("\n")
 
     def tearDown(self):
@@ -888,3 +888,39 @@ class TestMiniMagic(unittest.TestCase):
                                             methcode="LP:FAKE", data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, "custom.out")
+
+
+class TestSMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 's_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, self.input_dir)
+
+    def test_with_invalid_file(self):
+        res, error_msg = convert.s_magic('fake.txt')
+        self.assertFalse(res)
+        expected_file = os.path.join(WD, "fake.txt")
+        self.assertEqual(error_msg, "No such file: {}".format(expected_file))
+
+    def test_success(self):
+        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
+
+    def test_with_options(self):
+
+        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir,
+                                       specnum=1, location="place", spec="abcd-efg",
+                                       user="me", samp_con=2)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
+        self.assertTrue(os.path.exists(os.path.join(self.input_dir, "sites.txt")))
+        con = nb.Contribution(self.input_dir)
+        self.assertIn('sites', con.tables)
+        self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
