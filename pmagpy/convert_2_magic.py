@@ -1496,11 +1496,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
 
     if magfile:
         try:
-            print('magfile', magfile)
-            print('input dir', input_dir_path)
             fname = pmag.resolve_file_name(magfile, input_dir_path)
-            print('fname', fname)
-            print('os.path.exists(fname))', os.path.exists(fname))
             infile = open(fname, 'r')
         except IOError as ex:
             print(ex)
@@ -1759,7 +1755,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
                         return False, "ERROR in treatment field line %i... exiting until you fix the problem" % line_no
                 # AARM experiment
                 else:
-                    print("Dont supprot AARM in HUJI format yet. sorry... do be DONE")
+                    print("Don't support AARM in HUJI format yet. sorry... ")
                 MeasRec["method_codes"] = methcode
                 MeasRec["experiment"] = specimen + ":" + LPcode
                 MeasRec["treat_step_num"] = "%i" % i

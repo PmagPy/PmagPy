@@ -658,7 +658,6 @@ class TestHujiMagic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
-        print("\n")
 
     def tearDown(self):
         filelist = ['Massada_AF_HUJI_new_format.magic']
@@ -682,13 +681,7 @@ class TestHujiMagic(unittest.TestCase):
     def test_huji_magic_success(self):
         dir_path = os.path.join('data_files', 'Measurement_Import',
                                 'HUJI_magic')
-        print('dir path', dir_path)
-        exists = os.path.exists(dir_path)
-        print('dir path exists?', exists)
-        if exists:
-            print('listing directory', os.listdir(dir_path))
         full_file = os.path.join(dir_path, "Massada_AF_HUJI_new_format.txt")
-        print('does the file exist?', os.path.exists(full_file))
         options = {}
         options['input_dir_path'] = dir_path
         options['magfile'] = "Massada_AF_HUJI_new_format.txt"
