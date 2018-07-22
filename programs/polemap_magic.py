@@ -208,7 +208,9 @@ def main():
         for ind in range(len(lats)):
             lat = lats[ind]
             lon = lons[ind]
-            polarity = polarities[ind]
+            polarity=""
+            if 'polarites' in locals():
+                polarity = polarities[ind]
             polarity = "_" + polarity if polarity else ""
             location = loc_list[ind]
             FIG["map_{}".format(ind)] = ind+2
