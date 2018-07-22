@@ -1,0 +1,22 @@
+tab 	sites	
+site	citations	location
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+east	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
+west	This study	unknown
