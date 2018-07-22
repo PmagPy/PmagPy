@@ -10143,10 +10143,13 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,\
                 ipar=0, ihext=1, ivec=0, isite=0, iloc=0, iboot=0, vec=0,\
-                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path="."):
+                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".",fignum=1):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
-    Inputs:
+    All directions are on the lower hemisphere.
+ 
+    Parameters
+    __________
         verbose : if True, print messages to output
         Data Model 3.0 only formated files:
             infile : specimens formatted file with aniso_s data
@@ -10157,6 +10160,8 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         Dir : [Dec,Inc] list for comparison direction
         vec : eigenvector for comparison with Dir
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
+              green dots are on the lower hemisphere, cyan are on the upper hemisphere
+        fignum : matplotlib figure number
         crd : ['s','g','t'], coordinate system for plotting whereby:
             s : specimen coordinates, aniso_tile_correction = -1, or unspecified
             g : geographic coordinates, aniso_tile_correction = 0
@@ -10166,6 +10171,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
             iboot : if True - bootstrap ellipses
             ivec : if True - plot bootstrapped eigenvectors instead of ellipses
             ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
+
     """
 
     # initialize some variables
@@ -10185,7 +10191,6 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
     spec_container = con.tables['specimens']
-    #spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     spec_df = spec_container.df
     # get only anisotropy records
     spec_df=spec_df.dropna(subset=['aniso_s']).copy()
@@ -10205,136 +10210,20 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
         if CS == 0: crd = 'g'
         if CS == 100: crd = 't'
         if verbose: print("desired coordinate system not available, using available: ", crd)
-    if isite == 1:
-        pass
-    #    sitelist = spec_df['site'].unique()
-    #    sitelist.sort()
-    #    plt = len(sitelist)
-    #else:
-    #    plt = 1
-    #k = 0
-    #while k < plt:
-    #    site = ""
-    #    loc_name = ""
-    #    sdata, Ss = [], [] # list of S format data
-    #    if isite == 0:
-    #        sdata = spec_df
-    #        if 'location' in sdata.columns:
-    #            try:
-    #                loc_name = ':'.join(sdata['location'].unique())
-    #            except TypeError:
-    #                loc_name = ""
-    #    else:
-    #        site = sitelist[k]
-    #        sdata = spec_df[spec_df['site'] == site]
-    #        if 'location' in sdata.columns:
-    #            loc_name = sdata['location'][0]
-    #    anitypes = csrecs['aniso_type'].unique()
-    #    for name in ['citations', 'location', 'site', 'sample']:
-    #        if name not in csrecs:
-    #            csrecs[name] = ""
-    #    Locs = csrecs['location'].unique()
-        #Sites = csrecs['site'].unique()
-        #Samples = csrecs['sample'].unique()
-        #Specimens = csrecs['specimen'].unique()
-        #Cits = csrecs['citations'].unique()
-        #sdata = spec_df[spec_df['site'] == site]
-
+    cs_df = spec_df[spec_df['aniso_tilt_correction'] == CS]
+    if isite:
+        sites = cs_df['site'].unique()
+        for site in list(sites):
+            site_df=cs_df[cs_df.site==site]
+            plot_aniso(fignum,site_df,PDir=PDir,ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot, \
+                vec=vec,num_bootstraps=num_bootstraps,title=site)  
+            fignum+=2
+            if iboot:fignum+=1
+            if len(Dir)>0:fignum+=1 
     else:
-# plotting all the data
-        csrecs = spec_df[spec_df['aniso_tilt_correction'] == CS]
-        Ss,V1,V2,V3=[],[],[],[]
-        for ind, rec in csrecs.iterrows():
-            s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
-            if s[0] <= 1.0:
-                Ss.append(s) # protect against crap
-            if "aniso_s_sigma" in rec.keys():
-                rec["aniso_s_sigma"]="0"
-                fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
-                # collect the eigenvectors
-                V1.append([fpars['v1_dec'],fpars['v1_inc'],1.0])
-                V2.append([fpars['v2_dec'],fpars['v2_inc'],1.0])
-                V3.append([fpars['v3_dec'],fpars['v3_inc'],1.0])
-            else: # just plot the data
-                tau, Vdir = pmag.doseigs(s)
-                V1.append([Vdir[0][0],Vdir[0][1]])
-                V2.append([Vdir[1][0],Vdir[1][1]])
-                V3.append([Vdir[2][0],Vdir[2][1]])
-        Ss=np.array(Ss)
-        if Ss.shape[0] > 1:
-            # plot the data
-            plot_net(1)
-            plt.title('Eigenvectors: V1=squares,V2=triangles,V3=circles')
-            plot_di(di_block=V1, color='r', marker='s', markersize=20)
-            plot_di(di_block=V2, color='b', marker='^', markersize=20)
-            plot_di(di_block=V3, color='k', marker='o', markersize=20)
-            # plot the confidence
-            nf,sigma,avs = pmag.sbar(Ss)
-            hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
-            if len(PDir) > 0: pmagplotlib.plotC(1, PDir, 90., 'g')
-            plot_net(2)
-            plt.title('Confidence Ellipses')
-            plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
-            plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
-            plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
-            if len(PDir) > 0: pmagplotlib.plotC(2, PDir, 90., 'g')
-            # plot the confidence ellipses or vectors as desired
-            if ihext: # plot the Hext ellipses
-                ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
-                   hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-                pmagplotlib.plotELL(2, ellpars, 'r-,', 1, 1)
-                ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
-                   hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-                pmagplotlib.plotELL(2, ellpars, 'b-,', 1, 1)
-                ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
-                   hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-                pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
-                if len(Dir)>0:   # plot the comparison direction components
-                    # put in dimap and plot as white symbol with axis color?
-                    plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
-            if iboot: # put on the bootstrapped confidence bounds
-                Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
-                BVs_trans=np.array(BVs).transpose()
-                if ivec:
-                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
-                    plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
-                    plot_di(dec=BVs_trans[0][2],inc=BVs_trans[1][2],color='k',marker='.')
-                    # put in dimap and plot as white symbol with axis color?
-                    if len(Dir)>0:   # plot the comparison direction components
-                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
-                    # do the eigenvalue cdfs
-                    Taus=np.array(Taus).transpose()
-                    colors=['r','b','k']
-                    styles=['dotted','dashed','solid']
-                    for t in range(3):  # step through eigenvalues
-                        ts=np.sort(Taus[t]) # get a sorted list of this eigenvalue
-                        pmagplotlib.plotCDF(3,ts,"",colors[t],"") # plot the CDF
-                        plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
-                        plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
-                    plt.xlabel('Eigenvalues')
-                    if len(Dir)>0: # do cartesian coordinates of selected eigenvectori [using vec] vs Dir
-                        V=[row[vec-1] for row in BVs]
-                        X=pmag.dir2cart(V)
-                        comp_X=pmag.dir2cart(Dir)
-                        for i in range(3):
-                            xs=np.sort(np.array([row[i] for row in X]))
-                            pmagplotlib.plotCDF(i+4,xs,"",colors[i],"") # plot the CDF
-                            plt.axvline(xs[int(0.025*len(xs))],color=colors[vec-1],linestyle=styles[i]) # minimum 95% conf bound
-                            plt.axvline(xs[int(0.975*len(xs))],color=colors[vec-1],linestyle=styles[i]) # max 95% conf bound
-                            plt.axvline(comp_X[0][i],color='lightgreen',linewidth=3) # put on the comparison direction
-                else:
-                    bpars = pmag.sbootpars(Taus, BVs)
-                    ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
-                           bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                    pmagplotlib.plotELL(2, ellpars, 'r-,', 1, 1)
-                    ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
-                           bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                    pmagplotlib.plotELL(2, ellpars, 'b-,', 1, 1)
-                    ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
-                           bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                    pmagplotlib.plotELL(2, ellpars, 'k-,', 1, 1)
-                    if len(Dir)>0:   # plot the comparison direction components
-                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+        plot_aniso(fignum,cs_df,PDir=PDir,ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot, \
+            vec=vec,num_bootstraps=num_bootstraps)  
+
 
 def plot_dmag(data="",title="",fignum=1,norm=1):
     """
@@ -10422,3 +10311,90 @@ def plot_gc(poles,color='g',fignum=1):
     """
     for pole in poles:
         pmagplotlib.plotC(fignum, pole, 90., color)
+
+def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0, vec=0,num_bootstraps=1000,title=""):
+        Ss,V1,V2,V3=[],[],[],[]
+        for ind, rec in aniso_df.iterrows():
+            s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
+            if s[0] <= 1.0:
+                Ss.append(s) # protect against crap
+                tau, Vdir = pmag.doseigs(s)
+                V1.append([Vdir[0][0],Vdir[0][1]])
+                V2.append([Vdir[1][0],Vdir[1][1]])
+                V3.append([Vdir[2][0],Vdir[2][1]])
+        Ss=np.array(Ss)
+        if Ss.shape[0] > 1:
+            # plot the data
+            plot_net(fignum)
+            plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
+            plot_di(di_block=V1, color='r', marker='s', markersize=20)
+            plot_di(di_block=V2, color='b', marker='^', markersize=20)
+            plot_di(di_block=V3, color='k', marker='o', markersize=20)
+            # plot the confidence
+            nf,sigma,avs = pmag.sbar(Ss)
+            hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
+            if len(PDir) > 0: pmagplotlib.plotC(fignum+1, PDir, 90., 'g')
+            plot_net(fignum+1)
+            plt.title(title+':'+'Confidence Ellipses')
+            plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
+            plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
+            plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
+            if len(PDir) > 0: 
+                pmagplotlib.plotC(fignum+1, PDir, 90., 'g')
+            # plot the confidence ellipses or vectors as desired
+            if ihext: # plot the Hext ellipses
+                ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
+                   hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
+                pmagplotlib.plotELL(fignum+1, ellpars, 'r-,', 1, 1)
+                ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
+                   hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
+                pmagplotlib.plotELL(fignum+1, ellpars, 'b-,', 1, 1)
+                ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
+                   hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
+                pmagplotlib.plotELL(fignum+1, ellpars, 'k-,', 1, 1)
+                if len(Dir)>0:   # plot the comparison direction components
+                    # put in dimap and plot as white symbol with axis color?
+                    plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+            if iboot: # put on the bootstrapped confidence bounds
+                Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
+                BVs_trans=np.array(BVs).transpose()
+                if ivec:
+                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
+                    plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
+                    plot_di(dec=BVs_trans[0][2],inc=BVs_trans[1][2],color='k',marker='.')
+                    # put in dimap and plot as white symbol with axis color?
+                    if len(Dir)>0:   # plot the comparison direction components
+                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+                    # do the eigenvalue cdfs
+                    Taus=np.array(Taus).transpose()
+                    colors=['r','b','k']
+                    styles=['dotted','dashed','solid']
+                    for t in range(3):  # step through eigenvalues
+                        ts=np.sort(Taus[t]) # get a sorted list of this eigenvalue
+                        pmagplotlib.plotCDF(fignum+2,ts,"",colors[t],"") # plot the CDF
+                        plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
+                        plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
+                    plt.xlabel('Eigenvalues')
+                    if len(Dir)>0: # do cartesian coordinates of selected eigenvectori [using vec] vs Dir
+                        V=[row[vec-1] for row in BVs]
+                        X=pmag.dir2cart(V)
+                        comp_X=pmag.dir2cart(Dir)
+                        for i in range(3):
+                            xs=np.sort(np.array([row[i] for row in X]))
+                            pmagplotlib.plotCDF(fignum+i+3,xs,"",colors[i],"") # plot the CDF
+                            plt.axvline(xs[int(0.025*len(xs))],color=colors[vec-1],linestyle=styles[i]) # minimum 95% conf bound
+                            plt.axvline(xs[int(0.975*len(xs))],color=colors[vec-1],linestyle=styles[i]) # max 95% conf bound
+                            plt.axvline(comp_X[0][i],color='lightgreen',linewidth=3) # put on the comparison direction
+                else:
+                    bpars = pmag.sbootpars(Taus, BVs)
+                    ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
+                           bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
+                    pmagplotlib.plotELL(fignum+1, ellpars, 'r-,', 1, 1)
+                    ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
+                           bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
+                    pmagplotlib.plotELL(fignum+1, ellpars, 'b-,', 1, 1)
+                    ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
+                           bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
+                    pmagplotlib.plotELL(fignum+1, ellpars, 'k-,', 1, 1)
+                    if len(Dir)>0:   # plot the comparison direction components
+                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)

@@ -1,24 +1,22 @@
-tab 	samples
-azimuth	citations	dip	location	method_codes	sample	site	software_packages	specimen
-203.0000	This study	-78.00000	unknown		east-a1	east-a	pmagpy-3.22.1	east-a1
-203.0000	This study	-78.00000	unknown		east-a2	east-a	pmagpy-3.22.1	east-a2
-210.0	This study	-69.0	unknown		east-b1	east-b	pmagpy-3.22.1	east-b1
-210.0	This study	-69.0	unknown		east-b2	east-b	pmagpy-3.22.1	east-b2
-198.0000	This study	-53.00000	unknown		east-c1	east-c	pmagpy-3.22.1	east-c1
-191.0000	This study	-49.00000	unknown		east-d1	east-d	pmagpy-3.22.1	east-d1
-201.0000	This study	-83.00000	unknown		east-e1	east-e	pmagpy-3.22.1	east-e1
-199.0000	This study	-75.00000	unknown		west-g1	west-g	pmagpy-3.22.1	west-g1
-202.0000	This study	-71.00000	unknown		west-h1	west-h	pmagpy-3.22.1	west-h1
-206.0000	This study	-83.00000	unknown		west-i1	west-i	pmagpy-3.22.1	west-i1
-188.0	This study	-77.0	unknown		west-k2	west-k	pmagpy-3.22.1	west-k2
-188.0000	This study	-69.00000	unknown		west-l1	west-l	pmagpy-3.22.1	west-l1
-203.0000	This study	-78.00000	Troodos		east-a	east-	pmagpy-3.22.1	east-a1
-210.0	This study	-69.0	Troodos		east-b	east-	pmagpy-3.22.1	east-b1
-198.0000	This study	-53.00000	Troodos		east-c	east-	pmagpy-3.22.1	east-c1
-191.0000	This study	-49.00000	Troodos		east-d	east-	pmagpy-3.22.1	east-d1
-201.0000	This study	-83.00000	Troodos		east-e	east-	pmagpy-3.22.1	east-e1
-199.0000	This study	-75.00000	Troodos		west-g	west-	pmagpy-3.22.1	west-g1
-202.0000	This study	-71.00000	Troodos		west-h	west-	pmagpy-3.22.1	west-h1
-206.0000	This study	-83.00000	Troodos		west-i	west-	pmagpy-3.22.1	west-i1
-188.0	This study	-77.0	Troodos		west-k	west-	pmagpy-3.22.1	west-k2
-188.0000	This study	-69.00000	Troodos		west-l	west-	pmagpy-3.22.1	west-l1
+tab 	samples				
+azimuth	citations	dip	method_codes	sample	site
+203	This study	-78		east-a	east
+210	This study	-69		east-b	east
+198	This study	-53		east-c	east
+191	This study	-49		east-d	east
+201	This study	-83		east-e	east
+199	This study	-75		west-g	west
+202	This study	-71		west-h	west
+206	This study	-83		west-i	west
+188	This study	-77		west-k	west
+188	This study	-69		west-l	west
+203	This study	-78		east-a	east
+210	This study	-69		east-b	east
+198	This study	-53		east-c	east
+191	This study	-49		east-d	east
+201	This study	-83		east-e	east
+199	This study	-75		west-g	west
+202	This study	-71		west-h	west
+206	This study	-83		west-i	west
+188	This study	-77		west-k	west
+188	This study	-69		west-l	west

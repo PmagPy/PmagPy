@@ -1,0 +1,826 @@
+tab delimited	contribution
+id	version	timestamp	contributor	data_model_version	reference	author	description
+12166	2	2006-12-11T04:57:15.000Z	@ltauxe	3.0	Schwehr & Tauxe (2003)	@ltauxe	Upgraded to MagIC Data Model 3.0 by the MagIC Database Team
+>>>>>>>>>>
+tab delimited	locations
+location	location_type	citations	plate_blocks	terranes	tectonic_settings	lat_s	lat_n	lon_w	lon_e	continent_ocean	country	region
+Scripps Beach	Outcrop	This study	Pacific Plate	Baja California	Continental Shelf	32.8544	32.8544	242.7555	242.7555	North America	U.S.A.	Southern California
+>>>>>>>>>>
+tab delimited	sites
+site	location	samples	specimens	site_alternatives	method_codes	citations	geologic_classes	geologic_types	lithologies	lat	lon	aniso_type	aniso_v1	aniso_v2	aniso_v3	description
+as1	Scripps Beach	 as1b : as1c : as1d : as1e:as1a 	 as1a2 : as1a3 : as1b1 : as1b2 : as1b3 : as1c1 : as1c2 : as1c3 : as1d1 : as1d2 : as1d3 : as1e1 : as1e2:as1a1 	 Cryptoslump:Site B 	 AE-H:LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34364864:155:0.7:eta/zeta:64.9:7.8:37.7:249.8:82.2:3.5	0.34138933:64.9:7.8:eta/zeta:155:0.7:37.7:249.8:82.2:3.8	0.31496203:249.8:82.2:eta/zeta:155:0.7:37.7:64.9:7.8:3.8	as1:AMS
+as1	Scripps Beach	 as1b : as1c : as1d : as1e:as1a 	 as1a2 : as1a3 : as1b1 : as1b2 : as1b3 : as1c1 : as1c2 : as1c3 : as1d1 : as1d2 : as1d3 : as1e1 : as1e2:as1a1 	 Cryptoslump:Site B 	 AE-BS: AE-H :LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34364864:155:0.7:eta/zeta:249.4:80.1:1.1:63.4:9.8:11.3	0.34138933:64.9:7.8:eta/zeta:242.9:82.3:0.9:334.9:0.3:7.6	0.31496203:249.8:82.2:eta/zeta:114.6:5.5:0.7:24.1:5.4:1	as1:AMS
+as2	Scripps Beach	 as2b : as2c : as2d : as2e : as2f:as2a 	 as2a2 : as2a3 : as2a4 : as2b1 : as2b2 : as2b3 : as2b4 : as2c1 : as2c2 : as2c3 : as2c4 : as2d1 : as2d2 : as2e1 : as2e2 : as2f1 : as2f2:as2a1 	 Slumped:Site C 	 AE-H:LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34858122:358.4:5.6:eta/zeta:88.7:3.6:29.6:210.8:83.3:9.9	0.33781892:88.7:3.6:eta/zeta:358.4:5.6:29.6:210.8:83.3:14.2	0.31359982:210.8:83.3:eta/zeta:358.4:5.6:29.6:88.7:3.6:14.2	as2:AMS
+as2	Scripps Beach	 as2b : as2c : as2d : as2e : as2f:as2a 	 as2a2 : as2a3 : as2a4 : as2b1 : as2b2 : as2b3 : as2b4 : as2c1 : as2c2 : as2c3 : as2c4 : as2d1 : as2d2 : as2e1 : as2e2 : as2f1 : as2f2:as2a1 	 Slumped:Site C 	 AE-BS: AE-H :LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34858122:358.4:5.6:eta/zeta:182.8:84.4:2.5:88.4:0.4:4.3	0.33781892:88.7:3.6:eta/zeta:188.7:70.4:1.9:357.4:19.3:4.4	0.31359982:210.8:83.3:eta/zeta:68.2:5.3:2.1:337.8:4:2.6	as2:AMS
+as3	Scripps Beach	 as3b : as3c : as3d : as3e : as3f:as3a 	 as3a2 : as3a3 : as3b1 : as3b2 : as3b3 : as3c1 : as3c2 : as3c3 : as3d1 : as3d2 : as3d3 : as3e1 : as3e2 : as3e3 : as3f1 : as3f2:as3a1 	 Undeformed:Site A 	 AE-H:LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34502691:358:5.8:eta/zeta:88.6:5.2:43.4:220.5:82.2:14.6	0.337455:88.6:5.2:eta/zeta:358:5.8:43.4:220.5:82.2:19.7	0.31751812:220.5:82.2:eta/zeta:358:5.8:43.4:88.6:5.2:19.7	as3:AMS
+as3	Scripps Beach	 as3b : as3c : as3d : as3e : as3f:as3a 	 as3a2 : as3a3 : as3b1 : as3b2 : as3b3 : as3c1 : as3c2 : as3c3 : as3d1 : as3d2 : as3d3 : as3e1 : as3e2 : as3e3 : as3f1 : as3f2:as3a1 	 Undeformed:Site A 	 AE-BS: AE-H :LP-AN 	This study	Sedimentary	Sediment Layer	shale	32.8694	242.7463	AMS	0.34502691:358:5.8:eta/zeta:163.7:84.1:2.3:267.7:1.4:4.9	0.337455:88.6:5.2:eta/zeta:198.7:75:3:357.1:14:4.9	0.31751812:220.5:82.2:eta/zeta:360:5.9:2.3:90.5:5.1:3	as3:AMS
+>>>>>>>>>>
+tab delimited	samples
+sample	site	method_codes	citations	geologic_classes	geologic_types	lithologies	orientation_quality	azimuth	dip	height
+as1a	as1	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	95	-45	0
+as1b	as1	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	105	-39	0
+as1c	as1	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	90	-51	0
+as1d	as1	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	93	-49	0
+as1e	as1	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	90	-49	0
+as2a	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	85	-65	0
+as2b	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	86	-64	0
+as2c	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	85	-69	0
+as2d	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	81	-74	0
+as2e	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	81	-73	0
+as2f	as2	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	86	-59	0
+as3a	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	35	-64	0
+as3b	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	39	-63	0
+as3c	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	37	-61	0
+as3d	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	53	-66	0
+as3e	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	60	-62	0
+as3f	as3	 FS-FD : SO-CMD-NORTH: SO-POM :SO-MAG 	This study	Sedimentary	sedimentary layer	shale	g	77	-54	0
+>>>>>>>>>>
+tab delimited	specimens
+specimen	sample	experiments	result_quality	method_codes	citations	geologic_classes	geologic_types	lithologies	aniso_type	aniso_s	aniso_s_mean	aniso_s_sigma	aniso_s_n_measurements	aniso_s_unit
+as1a1	as1a	 AMS:as1a1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34406999:0.34145039:0.31447965:-0.00168019:0.00414139:0.00152697	0.000250466667	0.00052489	15	SI
+as1a2	as1a	 AMS:as1a2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34351686:0.34047559:0.31600755:-0.00129778:0.00339327:0.00125112	0.000229266667	0.00078145	15	SI
+as1a3	as1a	 AMS:as1a3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34317553:0.34108347:0.315741:-0.00083286:0.00326305:0.0007202	0.000235266667	0.00036582	15	SI
+as1b1	as1b	 AMS:as1b1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34141964:0.34004751:0.31853285:-0.0005353:0.00190212:0.00016655	0.000240866667	0.00054581	15	SI
+as1b2	as1b	 AMS:as1b2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34097505:0.34068653:0.31833842:-0.00101421:0.0022525:0.0011572	0.000230333333	0.00048239	15	SI
+as1b3	as1b	 AMS:as1b3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34512332:0.34413338:0.3107433:-0.00177674:0.0047107:0.00023523	0.0002538	0.000518	15	SI
+as1c1	as1c	 AMS:as1c1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.3430306:0.34192824:0.31504112:-0.000796:0.00393136:0.00098298	0.000263533333	0.00039998	15	SI
+as1c2	as1c	 AMS:as1c2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34327549:0.34130883:0.31541568:-0.00056881:0.00294627:0.00070241	0.0002766	0.00076218	15	SI
+as1c3	as1c	 AMS:as1c3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34189418:0.34063521:0.31747064:-0.00066421:0.00203405:0.00082024	0.000236866667	0.00050304	15	SI
+as1d1	as1d	 AMS:as1d1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34377083:0.34210697:0.3141222:-0.00068657:0.00420506:0.0016346	0.000262733333	0.00053494	15	SI
+as1d2	as1d	 AMS:as1d2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34193784:0.34051162:0.31755051:-0.00086076:0.00308701:0.0009102	0.000235	0.00057908	15	SI
+as1d3	as1d	 AMS:as1d3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34405649:0.34288949:0.31305403:-0.00178181:0.00397489:0.00324311	0.0002848	0.00084129	15	SI
+as1e1	as1e	 AMS:as1e1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34592408:0.34170985:0.31236601:-0.00087383:0.00340819:0.00234418	0.0002846	0.00088167	15	SI
+as1e2	as1e	 AMS:as1e2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34244603:0.34016421:0.31738976:-0.00094397:0.00348509:0.00108591	0.000231666667	0.00047962	15	SI
+as2a1	as2a	 AMS:as2a1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.36389422:0.33517885:0.30092686:0.00353046:-0.00354419:0.00431378	0.000555	0.00106408	15	SI
+as2a2	as2a	 AMS:as2a2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.36170322:0.33583695:0.30245984:0.0023445:-0.00090962:0.00568174	0.0004832	0.0015105	15	SI
+as2a3	as2a	 AMS:as2a3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35231003:0.33561212:0.31207782:0.00100424:0.00122943:0.00382133	0.000287066667	0.00095596	15	SI
+as2a4	as2a	 AMS:as2a4 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34708691:0.33623931:0.31667379:0.00094996:0.00161225:0.00251576	0.0002468	0.00062057	15	SI
+as2b1	as2b	 AMS:as2b1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34942445:0.33513805:0.3154375:9.725e-05:-0.0030497:0.00146765	0.000242933333	0.00062209	15	SI
+as2b2	as2b	 AMS:as2b2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34447342:0.33515152:0.32037506:0.00076163:-0.00126093:0.00146286	0.000214866667	0.00055455	15	SI
+as2b3	as2b	 AMS:as2b3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34808135:0.3321946:0.31972405:0.00099185:0.00134318:0.0036739	0.000290533333	0.00059247	15	SI
+as2b4	as2b	 AMS:as2b4 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34909812:0.3332268:0.31767508:0.00361469:5.312e-05:0.0047583	0.000490266667	0.00063498	15	SI
+as2c1	as2c	 AMS:as2c1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34608561:0.3341603:0.31975409:-0.00082277:-0.00118635:0.00221559	0.0002408	0.00043775	15	SI
+as2c2	as2c	 AMS:as2c2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.3527424:0.33137098:0.31588662:0.00034742:0.00011353:0.00215516	0.000414066667	0.00098959	15	SI
+as2c3	as2c	 AMS:as2c3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35414323:0.33323857:0.31261823:-7.562e-05:0.00037727:0.00638297	0.000599533333	0.00087714	15	SI
+as2c4	as2c	 AMS:as2c4 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35182214:0.33141348:0.31676438:0.00097282:-0.00022841:0.00701841	0.000987866667	0.00097017	15	SI
+as2d1	as2d	 AMS:as2d1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35195285:0.33339003:0.31465709:-0.00034904:-0.00071313:0.00062335	0.000284266667	0.00112947	15	SI
+as2d2	as2d	 AMS:as2d2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35509837:0.33150673:0.3133949:0.00112142:0.00167727:0.00262382	0.000177266667	0.00342454	15	SI
+as2e1	as2e	 AMS:as2e1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35800666:0.33223015:0.30976319:-0.00566446:-0.00162781:0.00515906	0.000376933333	0.00139358	15	SI
+as2e2	as2e	 AMS:as2e2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.35870659:0.33311459:0.30817878:-0.00515056:0.00130616:0.00679767	0.000333266667	0.00088837	15	SI
+as2f1	as2f	 AMS:as2f1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34933397:0.34440169:0.30626434:-0.00102886:0.00152818:0.01711998	0.0004084	0.00118902	15	SI
+as2f2	as2f	 AMS:as2f2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34469131:0.34519607:0.31011263:-0.00265236:0.00143709:0.01595598	0.0003126	0.0013812	15	SI
+as3a1	as3a	 AMS:as3a1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33294922:0.33564943:0.33140138:-0.00533521:0.00335696:0.00760978	0.000207	0.00080515	15	SI
+as3a2	as3a	 AMS:as3a2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33843949:0.33817899:0.32338148:-0.00020947:-0.00178141:0.00135121	0.000216666667	0.0009245	15	SI
+as3a3	as3a	 AMS:as3a3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33820483:0.3377558:0.32403934:-0.00059525:-0.00174375:0.00127366	0.000189533333	0.00069364	15	SI
+as3b1	as3b	 AMS:as3b1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33969876:0.33965841:0.32064283:-0.00180637:0.00534557:0.0010394	0.000202133333	0.00402628	15	SI
+as3b2	as3b	 AMS:as3b2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33569983:0.34147659:0.32282361:0.00083109:0.00515435:0.00038798	0.000209333333	0.00226752	15	SI
+as3b3	as3b	 AMS:as3b3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33669358:0.33759224:0.32571417:0.00218041:0.00134302:0.00211947	0.000125533333	0.00521015	15	SI
+as3c1	as3c	 AMS:as3c1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33873025:0.33836567:0.32290411:0.00109104:0.00154824:-0.0004876	0.000195733333	0.00220588	15	SI
+as3c2	as3c	 AMS:as3c2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33731282:0.33902717:0.32366002:0.00103064:0.00016768:-0.00079806	0.000197333333	0.00190944	15	SI
+as3c3	as3c	 AMS:as3c3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33759287:0.33830321:0.32410395:-0.00040597:0.00105278:6.708e-05	0.000141533333	0.00127797	15	SI
+as3d1	as3d	 AMS:as3d1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34114856:0.33937207:0.31947935:-0.00110861:0.00025925:-0.00134654	0.000185466667	0.00154491	15	SI
+as3d2	as3d	 AMS:as3d2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.34107029:0.32664222:0.33228749:-0.0004464:0.01045345:-0.0004164	0.000188933333	0.0022083	15	SI
+as3d3	as3d	 AMS:as3d3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33966753:0.32765597:0.3326765:4.264e-05:0.01038845:0.00122087	0.000185866667	0.00125396	15	SI
+as3e1	as3e	 AMS:as3e1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33978784:0.3407141:0.31949803:-0.00118344:0.00056415:0.00349775	0.000201733333	0.00219278	15	SI
+as3e2	as3e	 AMS:as3e2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33842105:0.33376026:0.32781869:-0.00187255:0.0022676:0.00420439	0.0001954	0.00217275	15	SI
+as3e3	as3e	 AMS:as3e3 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33827138:0.33604705:0.32568157:0.00149973:-0.00086203:0.00228208	0.0001892	0.00273253	15	SI
+as3f1	as3f	 AMS:as3f1 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33537519:0.33225599:0.33236882:-0.00123474:0.00144038:0.00432219	0.0001718	0.00299186	15	SI
+as3f2	as3f	 AMS:as3f2 	g	 AE-H:LP-X 	This study	Sedimentary	Sediment Layer	Shallow Marine Sediments	AMS	0.33931324:0.33790049:0.32278624:0.00023604:0.00046812:0.00049717	0.0001292	0.00204418	15	SI
+>>>>>>>>>>
+tab delimited	measurements
+specimen	experiment	quality	standard	measurement	treat_temp	meas_temp	meas_orient_phi	meas_orient_theta	method_codes	citations
+as1a1	as1a1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1a1	as1a1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1a2	as1a2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1a3	as1a3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3a1	as3a1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3a2	as3a2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3a3	as3a3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1b1	as1b1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1b2	as1b2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1b3	as1b3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1c1	as1c1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1c2	as1c2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1c3	as1c3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1d1	as1d1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1d2	as1d2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1d3	as1d3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1e1	as1e1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as1e2	as1e2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2a1	as2a1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2a2	as2a2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2a3	as2a3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2a4	as2a4:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2b1	as2b1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2b2	as2b2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2b3	as2b3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2b4	as2b4:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2c1	as2c1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2c2	as2c2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2c3	as2c3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2c4	as2c4:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2d1	as2d1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2d2	as2d2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2e1	as2e1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2e2	as2e2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2f1	as2f1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as2f2	as2f2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3b1	as3b1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3b2	as3b2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3b3	as3b3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3c1	as3c1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3c2	as3c2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3c3	as3c3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3d1	as3d1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3d2	as3d2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3d3	as3d3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3e1	as3e1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3e2	as3e2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3e3	as3e3:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3f1	as3f1:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	1	273	273	315	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	2	273	273	225	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	3	273	273	180	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	4	273	273	135	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	5	273	273	45	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	6	273	273	90	-45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	7	273	273	270	-45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	8	273	273	270	0	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	9	273	273	270	45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	10	273	273	90	45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	11	273	273	180	45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	12	273	273	180	-45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	13	273	273	0	-90	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	14	273	273	0	-45	LP-X	This study
+as3f2	as3f2:LP-AN-MS	g	u	15	273	273	0	45	LP-X	This study
