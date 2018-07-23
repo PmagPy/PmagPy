@@ -2192,12 +2192,12 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
         else:
             k = 0
         trace = float(rec[k])+float(rec[k+1])+float(rec[k+2])
-        s1 = '%10.9e' % (old_div(float(rec[k]), trace))
-        s2 = '%10.9e' % (old_div(float(rec[k+1]), trace))
-        s3 = '%10.9e' % (old_div(float(rec[k+2]), trace))
-        s4 = '%10.9e' % (old_div(float(rec[k+3]), trace))
-        s5 = '%10.9e' % (old_div(float(rec[k+4]), trace))
-        s6 = '%10.9e' % (old_div(float(rec[k+5]), trace))
+        s1 = '%10.9e' % (float(rec[k]) / trace)
+        s2 = '%10.9e' % (float(rec[k+1]) / trace)
+        s3 = '%10.9e' % (float(rec[k+2]) / trace)
+        s4 = '%10.9e' % (float(rec[k+3]) / trace)
+        s5 = '%10.9e' % (float(rec[k+4]) / trace)
+        s6 = '%10.9e' % (float(rec[k+5]) / trace)
         AnisRec[citation_col] = citation
         AnisRec[specimen_col] = spec
         if specnum != 0:

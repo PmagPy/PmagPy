@@ -101,9 +101,9 @@ def main():
             print("option [6] is not currently supported")
             return
             #Samps, filetype = pmag.magic_read(dirpath+'/er_samples.txt')
-    convert.s_magic(sfile, anisfile, dir_path, atype, name,
+    convert.s_magic(sfile, anisfile, dir_path, atype,
             coord_type, sigma, samp_con, Z, specnum,
-            location, spec, sitename, user, data_model_num)
+            location, spec, sitename, user, data_model_num, name)
     #
 
 
