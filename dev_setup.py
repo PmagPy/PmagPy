@@ -11,10 +11,13 @@ DESCRIPTION
     updates to PmagPy, it may be better to use the pip or binary installs of
     this software instructions here:
     (https://earthref.org/PmagPy/cookbook/#pip_install).
-    Also note for Windows users the windows_install function of this file
+    Note for Windows users: the windows_install function of this file
     requires administrative access so you will need to run in a command prompt
     with elevated privileges. See:
     (http://www.thewindowsclub.com/how-to-run-command-prompt-as-an-administrator)
+    Note for OSX users: you must use bash as your shell (not csh, zsh, etc.).
+    To switch to bash, select Terminal --> Preferences --> General,
+    and choose "default login shell".
     Last, this script MUST BE RUN FROM THE PMAGPY DIRECTORY.
 
 SYNTAX
