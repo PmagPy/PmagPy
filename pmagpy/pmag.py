@@ -8213,7 +8213,7 @@ def measurements_methods(meas_data, noave):
 
 def measurements_methods3(meas_data, noave):
     """
-    get list of unique specs
+    add necessary method codes, experiment names, sequence, etc.
     """
 #
     if noave:
@@ -8257,12 +8257,12 @@ def measurements_methods3(meas_data, noave):
                 # between 0 and 50C is room T measurement
                 if ("meas_dc_field" not in list(rec.keys()) or float(rec["meas_dc_field"]) == 0 or rec["meas_dc_field"] == "") and ("meas_ac_field" not in list(rec.keys()) or float(rec["meas_ac_field"]) == 0 or rec["meas_ac_field"] == ""):
                     # measurement done in zero field!
-                    if "treat_temp" not in list(rec.keys()) or rec["treat_temp"].strip() == "" or (float(rec["treat_temp"]) >= 273. and float(rec["treat_temp"]) < 298.):
+                    if "treat_temp" not in list(rec.keys()) or str(rec["treat_temp"]).strip() == "" or (float(rec["treat_temp"]) >= 273. and float(rec["treat_temp"]) < 298.):
                         # between 0 and 50C is room T treatment
-                        if "treat_ac_field" not in list(rec.keys()) or rec["treat_ac_field"] == "" or float(rec["treat_ac_field"]) == 0:
+                        if "treat_ac_field" not in list(rec.keys()) or str(rec["treat_ac_field"]) == "" or float(rec["treat_ac_field"]) == 0:
                             # no AF
                             # no IRM!
-                            if "treat_dc_field" not in list(rec.keys()) or rec["treat_dc_field"] == "" or float(rec["treat_dc_field"]) == 0:
+                            if "treat_dc_field" not in list(rec.keys()) or str(rec["treat_dc_field"]) == "" or float(rec["treat_dc_field"]) == 0:
                                 if "LT-NO" not in meths:
                                     meths.append("LT-NO")
                             elif "LT-IRM" not in meths:
@@ -8657,6 +8657,7 @@ def measurements_methods3(meas_data, noave):
                     rec["experiment"] = spec + ":" + experiment_name
                     rec['treat_step_num'] = '%i' % (
                         measnum)  # assign measurement numbers
+                    rec['sequence'] = rec['treat_step_num']
                     measnum += 1
                     SpecOuts.append(rec)
             elif experiment_name == "LP-PI-TRM:LP-PI-ALT-AFARM":  # is a Shaw experiment!
