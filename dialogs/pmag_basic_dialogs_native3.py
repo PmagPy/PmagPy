@@ -15,7 +15,8 @@ from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
-sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
+#sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
+from pmagpy import convert_2_magic as convert
 from programs.conversion_scripts import tdt_magic
 from programs.conversion_scripts import sio_magic
 from programs.conversion_scripts import cit_magic
@@ -1621,7 +1622,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['mv'] = mv
         COMMAND = "ldeo_magic.py -f {0} -F {1} -Fsp {2} -Fsa {3} -Fsi {4} -Flo {5} {6} {7} {8} -ncn {9} {10} {11} {12} {13} {14} {15} -mv {16}".format(LDEO_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, mv)
         # to run as module:
-        program_ran, error_message = ldeo_magic.convert(**options_dict)
+        program_ran, error_message = convert.ldeo(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -2481,7 +2482,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "utrecht_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
         # to run as module:
-        program_ran, error_message = utrecht_magic.convert(**options_dict)
+        program_ran, error_message = convert.utrecht_magic(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:

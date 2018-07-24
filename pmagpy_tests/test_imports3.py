@@ -731,23 +731,35 @@ class TestLdeoMagic(unittest.TestCase):
         #            'samples.txt', 'sites.txt']
         #pmag.remove_files(filelist, self.input_dir)
         filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt',
+                    'custom_measurements.txt']
         pmag.remove_files(filelist, WD)
         #pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
     def test_ldeo_with_no_files(self):
-        program_ran, error_message = ldeo_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag_file field is required option')
+        with self.assertRaises(TypeError):
+            convert.ldeo()
 
     def test_ldeo_success(self):
         options = {'input_dir_path': self.input_dir, 'magfile': 'ldeo_magic_example.dat'}
-        program_ran, outfile = ldeo_magic.convert(**options)
+        program_ran, outfile = convert.ldeo(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
+
+    def test_ldeo_options(self):
+        options = {'input_dir_path': self.input_dir, 'magfile': 'ldeo_magic_example.dat'}
+        options['noave'] = 1
+        options['specnum'] = 2
+        options['samp_con'] = 2
+        options['meas_file'] = "custom_measurements.txt"
+        options['location'] = "new place"
+        options['labfield'], options['phi'], options['theta'] = 40, 0, 90
+        program_ran, outfile = convert.ldeo(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(options['meas_file'], outfile)
 
 
 class TestBgcMagic(unittest.TestCase):
