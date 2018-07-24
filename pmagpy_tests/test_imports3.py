@@ -19,6 +19,38 @@ from programs.conversion_scripts import bgc_magic
 WD = pmag.get_test_WD()
 
 
+class TestAgmMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'agm_magic_example.magic', 'agm_magic_example_locations.txt',
+                    'agm_magic_example_specimens.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'agm_magic')
+        program_ran, filename = convert.agm('agm_magic_example.agm',
+                                            meas_outfile='agm_magic_example.magic',
+                                            input_dir_path=input_dir, fmt="old")
+        self.assertTrue(program_ran)
+
+    def test_backfield_success(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'agm_magic')
+        program_ran, filename = convert.agm('agm_magic_example.irm',
+                                            meas_outfile='agm_magic_example.magic',
+                                            input_dir_path=input_dir, fmt="old", bak=True,
+                                            instrument="SIO-FLO")
+
+
+
 class TestGenericMagic(unittest.TestCase):
 
     def setUp(self):
@@ -73,9 +105,8 @@ class TestSioMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_sio_magic_no_files(self):
-        program_ran, error_message = sio_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag_file field is required option')
+        with self.assertRaises(TypeError):
+            convert.sio()
 
     def test_sio_magic_success(self):
         options = {}
@@ -83,7 +114,7 @@ class TestSioMagic(unittest.TestCase):
                                 'sio_magic')
         options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
@@ -98,7 +129,7 @@ class TestSioMagic(unittest.TestCase):
         options['mag_file'] = os.path.join('sio_af_example.dat')
         options['meas_file'] = os.path.join('sio_af_example.magic')
         options['dir_path'] = dir_path
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(os.path.join(dir_path, options['meas_file'])))
@@ -114,7 +145,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4'
-        program_ran, error_message = sio_magic.convert(**options)
+        program_ran, error_message = convert.sio(**options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
 
@@ -127,7 +158,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4-2'
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(file_name, meas_file)
 
@@ -141,7 +172,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = 4
-        program_ran, error_message = sio_magic.convert(**options)
+        program_ran, error_message = convert.sio(**options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, '4 is not a valid coil specification')
 
@@ -154,7 +185,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = '1'
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(file_name, meas_file)
 
@@ -731,23 +762,35 @@ class TestLdeoMagic(unittest.TestCase):
         #            'samples.txt', 'sites.txt']
         #pmag.remove_files(filelist, self.input_dir)
         filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt',
+                    'custom_measurements.txt']
         pmag.remove_files(filelist, WD)
         #pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
     def test_ldeo_with_no_files(self):
-        program_ran, error_message = ldeo_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag_file field is required option')
+        with self.assertRaises(TypeError):
+            convert.ldeo()
 
     def test_ldeo_success(self):
         options = {'input_dir_path': self.input_dir, 'magfile': 'ldeo_magic_example.dat'}
-        program_ran, outfile = ldeo_magic.convert(**options)
+        program_ran, outfile = convert.ldeo(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
+
+    def test_ldeo_options(self):
+        options = {'input_dir_path': self.input_dir, 'magfile': 'ldeo_magic_example.dat'}
+        options['noave'] = 1
+        options['specnum'] = 2
+        options['samp_con'] = 2
+        options['meas_file'] = "custom_measurements.txt"
+        options['location'] = "new place"
+        options['labfield'], options['phi'], options['theta'] = 40, 0, 90
+        program_ran, outfile = convert.ldeo(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(options['meas_file'], outfile)
 
 
 class TestBgcMagic(unittest.TestCase):
@@ -769,13 +812,12 @@ class TestBgcMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_bgc_with_no_files(self):
-        program_ran, error_message = bgc_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'You must provide a BCG format file')
+        with self.assertRaises(TypeError):
+            convert.bgc()
 
     def test_bgc_success(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
@@ -787,7 +829,7 @@ class TestBgcMagic(unittest.TestCase):
         options['mag_file'] = os.path.join(self.input_dir, '96MT.05.01')
         options['spec_file'] = os.path.join(WD, 'custom_specimens.txt')
         options['dir_path'] = 'data_files'
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
         self.assertTrue(os.path.isfile(options['spec_file']))
         self.assertTrue(os.path.isfile(os.path.join(WD, 'data_files', 'samples.txt')))
@@ -795,17 +837,17 @@ class TestBgcMagic(unittest.TestCase):
 
     def test_bgc_alternate_infile(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
 
 
     def test_bgc_with_append(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         options['append'] = True
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         lines, file_type = pmag.magic_read(os.path.join(WD, 'specimens.txt'))
         self.assertEqual(len(lines), 2)

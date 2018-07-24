@@ -15,7 +15,8 @@ from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
-sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
+#sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
+from pmagpy import convert_2_magic as convert
 from programs.conversion_scripts import tdt_magic
 from programs.conversion_scripts import sio_magic
 from programs.conversion_scripts import cit_magic
@@ -885,7 +886,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
-        options_dict['inst'] = str(instrument)
+        options_dict['instrument'] = str(instrument)
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
@@ -919,7 +920,8 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
 
         # Force -A option on cooling rate correction experiment
         if cooling_rates !=""  and experiment_type =="-LP CR":
-            replicate = '-A';options_dict['noave'] = 1
+            replicate = '-A'
+            options_dict['noave'] = 1
 
         SPEC_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_specimens.txt"
         SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_samples.txt"
@@ -933,7 +935,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}".format(outfile, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, SIO_file, spc, ncn, user, experiment_type, cooling_rates, loc_name, lab_field, peak_AF, coil_number, instrument, replicate)#, lat, lon)
         print("COMMAND", COMMAND)
         # to run as module:
-        if sio_magic.convert(**options_dict):
+        if convert.sio(**options_dict):
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()
@@ -1621,7 +1623,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['mv'] = mv
         COMMAND = "ldeo_magic.py -f {0} -F {1} -Fsp {2} -Fsa {3} -Fsi {4} -Flo {5} {6} {7} {8} -ncn {9} {10} {11} {12} {13} {14} {15} -mv {16}".format(LDEO_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, mv)
         # to run as module:
-        program_ran, error_message = ldeo_magic.convert(**options_dict)
+        program_ran, error_message = convert.ldeo(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -2293,7 +2295,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         for key, value in list(options.items()):
             print(key, value)
 
-        COMMAND = "options = {}\nbgc_magic.convert(**options)".format(str(options))
+        COMMAND = "options = {}\convert.bgc(**options)".format(str(options))
 
         if infile=='':
             all_files=[f for f in os.listdir('.') if os.path.isfile(f)]
@@ -2310,11 +2312,15 @@ class convert_BGC_files_to_magic(wx.Frame):
                 options['site_file'] = site_outfile
                 loc_outfile = infile + "_locations.txt"
                 options['loc_file'] = loc_outfile
-                try: program_ran, error_message = bgc_magic.convert(**options)
-                except IndexError: continue
-                if program_ran: outfiles.append(outfile)
-            outfile=str(outfiles)
-        else: program_ran, error_message = bgc_magic.convert(**options)
+                try:
+                    program_ran, error_message = convert.bgc(**options)
+                except IndexError:
+                    continue
+                if program_ran:
+                    outfiles.append(outfile)
+            outfile = str(outfiles)
+        else:
+            program_ran, error_message = convert.bgc(**options)
 
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
@@ -2481,7 +2487,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "utrecht_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
         # to run as module:
-        program_ran, error_message = utrecht_magic.convert(**options_dict)
+        program_ran, error_message = convert.utrecht_magic(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
