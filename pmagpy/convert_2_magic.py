@@ -1,6 +1,7 @@
 #!/usr/bin/env/pythonw
 
-import sys, os
+import sys
+import os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from functools import reduce
@@ -9,10 +10,10 @@ import datetime
 import copy
 import scipy
 import numpy as np
+import pandas as pd
 
 
-
-### _2g_bin_magic conversion
+# _2g_bin_magic conversion
 
 def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
@@ -20,21 +21,24 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=0, input_dir="",
             lat="", lon=""):
 
-    def skip(N,ind,L):
+    def skip(N, ind, L):
         for b in range(N):
-            ind+=1
-            while L[ind]=="":ind+=1
-        ind+=1
-        while L[ind]=="":ind+=1
+            ind += 1
+            while L[ind] == "":
+                ind += 1
+        ind += 1
+        while L[ind] == "":
+            ind += 1
         return ind
 
     #
     # initialize variables
     #
-    bed_dip,bed_dip_dir="",""
-    sclass,lithology,_type="","",""
-    DecCorr=0.
-    months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    bed_dip, bed_dip_dir = "", ""
+    sclass, lithology, _type = "", "", ""
+    DecCorr = 0.
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     # format and fix variables
     if specnum != 0:
@@ -51,28 +55,28 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 print("option [4] must be in form 4-Z where Z is an integer")
                 return False, "option [4] must be in form 4-Z where Z is an integer"
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
         if "7" in samp_con:
             if "-" not in samp_con:
                 print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="7"
+                Z = samp_con.split("-")[1]
+                samp_con = "7"
         if "6" in samp_con:
             print('Naming convention option [6] not currently supported')
             return False, 'Naming convention option [6] not currently supported'
-            #Z=1
-            #try:
+            # Z=1
+            # try:
             #    SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
-            #except:
+            # except:
             #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
             #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-            #if file_type == 'bad_file':
+            # if file_type == 'bad_file':
             #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
             #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-        #else: Z=1
+        # else: Z=1
 
     if not mag_file:
         print("mag file is required input")
@@ -80,188 +84,216 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     output_dir_path = dir_path
     mag_file = os.path.join(input_dir_path, mag_file)
 
-    samplist=[]
+    samplist = []
     try:
-        SampRecs,file_type=pmag.magic_read(samp_file)
+        SampRecs, file_type = pmag.magic_read(samp_file)
     except:
-        SampRecs=[]
-    MeasRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
+        SampRecs = []
+    MeasRecs, SpecRecs, SiteRecs, LocRecs = [], [], [], []
     try:
-        f=open(mag_file,'br')
-        input=str(f.read()).strip("b '")
+        f = open(mag_file, 'br')
+        input = str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
         return False, "bad mag file"
-    firstline,date=1,""
-    d=input.split('\\xcd')
+    firstline, date = 1, ""
+    d = input.split('\\xcd')
     for line in d:
-        rec=line.split('\\x00')
-        if firstline==1:
-            firstline=0
-            spec,vol="",1
-            el=51
-            while line[el:el+1]!="\\": spec=spec+line[el];el+=1
+        rec = line.split('\\x00')
+        if firstline == 1:
+            firstline = 0
+            spec, vol = "", 1
+            el = 51
+            while line[el:el+1] != "\\":
+                spec = spec+line[el]
+                el += 1
             # check for bad sample name
-            test=spec.split('.')
-            date=""
-            if len(test)>1:
-                spec=test[0]
-                kk=24
-                while line[kk]!='\\x01' and line[kk]!='\\x00':
-                    kk+=1
-                vcc=line[24:kk]
-                el=10
-                while rec[el].strip()!='':el+=1
-                date,comments=rec[el+7],[]
+            test = spec.split('.')
+            date = ""
+            if len(test) > 1:
+                spec = test[0]
+                kk = 24
+                while line[kk] != '\\x01' and line[kk] != '\\x00':
+                    kk += 1
+                vcc = line[24:kk]
+                el = 10
+                while rec[el].strip() != '':
+                    el += 1
+                date, comments = rec[el+7], []
             else:
-                el=9
-                while rec[el]!='\\x01':el+=1
-                vcc,date,comments=rec[el-3],rec[el+7],[]
-            specname=spec.lower()
-            print('importing ',specname)
-            el+=8
-            while rec[el].isdigit()==False:
+                el = 9
+                while rec[el] != '\\x01':
+                    el += 1
+                vcc, date, comments = rec[el-3], rec[el+7], []
+            specname = spec.lower()
+            print('importing ', specname)
+            el += 8
+            while rec[el].isdigit() == False:
                 comments.append(rec[el])
-                el+=1
-            while rec[el]=="":el+=1
-            az=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            pl=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            bed_dip_dir=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            bed_dip=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            if rec[el]=='\\x01':
-                bed_dip=180.-bed_dip
-                el+=1
-                while rec[el]=="":el+=1
-            fold_az=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            fold_pl=rec[el]
-            el+=1
-            while rec[el]=="":el+=1
-            if rec[el]!="" and rec[el]!='\\x02' and rec[el]!='\\x01':
-                deccorr=float(rec[el])
-                az+=deccorr
-                bed_dip_dir+=deccorr
-                fold_az+=deccorr
-                if bed_dip_dir>=360:bed_dip_dir=bed_dip_dir-360.
-                if az>=360.:az=az-360.
-                if fold_az>=360.:fold_az=fold_az-360.
+                el += 1
+            while rec[el] == "":
+                el += 1
+            az = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            pl = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            bed_dip_dir = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            bed_dip = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            if rec[el] == '\\x01':
+                bed_dip = 180.-bed_dip
+                el += 1
+                while rec[el] == "":
+                    el += 1
+            fold_az = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            fold_pl = rec[el]
+            el += 1
+            while rec[el] == "":
+                el += 1
+            if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
+                deccorr = float(rec[el])
+                az += deccorr
+                bed_dip_dir += deccorr
+                fold_az += deccorr
+                if bed_dip_dir >= 360:
+                    bed_dip_dir = bed_dip_dir-360.
+                if az >= 360.:
+                    az = az-360.
+                if fold_az >= 360.:
+                    fold_az = fold_az-360.
             else:
-                deccorr=0
-            if specnum!=0:
-                sample=specname[:specnum]
+                deccorr = 0
+            if specnum != 0:
+                sample = specname[:specnum]
             else:
-                sample=specname
+                sample = specname
 
-            methods=gmeths.split(':')
-            if deccorr!="0":
-                if 'SO-MAG' in methods:del methods[methods.index('SO-MAG')]
+            methods = gmeths.split(':')
+            if deccorr != "0":
+                if 'SO-MAG' in methods:
+                    del methods[methods.index('SO-MAG')]
                 methods.append('SO-CMD-NORTH')
-            meths = reduce(lambda x,y: x+':'+y, methods)
-            method_codes=meths
-            site=pmag.parse_site(sample,samp_con,Z) # parse out the site name
-            SpecRec,SampRec,SiteRec,LocRec={},{},{},{}
-            SpecRec["specimen"]=specname
-            SpecRec["sample"]=sample
-            if vcc.strip()!="":vol=float(vcc)*1e-6 # convert to m^3 from cc
-            SpecRec["volume"]='%10.3e'%(vol) #
-            SpecRec["geologic_classes"]=sclass
-            SpecRec["lithologies"]=lithology
-            SpecRec["geologic_types"]=_type
+            meths = reduce(lambda x, y: x+':'+y, methods)
+            method_codes = meths
+            # parse out the site name
+            site = pmag.parse_site(sample, samp_con, Z)
+            SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
+            SpecRec["specimen"] = specname
+            SpecRec["sample"] = sample
+            if vcc.strip() != "":
+                vol = float(vcc)*1e-6  # convert to m^3 from cc
+            SpecRec["volume"] = '%10.3e' % (vol)
+            SpecRec["geologic_classes"] = sclass
+            SpecRec["lithologies"] = lithology
+            SpecRec["geologic_types"] = _type
             SpecRecs.append(SpecRec)
 
-            if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
-                SampRec["sample"]=sample
-                SampRec["site"]=site
-                labaz,labdip=pmag.orient(az,pl,or_con) # convert to labaz, labpl
-                SampRec["bed_dip"]='%7.1f'%(bed_dip)
-                SampRec["bed_dip_direction"]='%7.1f'%(bed_dip_dir)
-                SampRec["dip"]='%7.1f'%(labdip)
-                SampRec["azimuth"]='%7.1f'%(labaz)
-                SampRec["azimuth_dec_correction"]='%7.1f'%(deccorr)
-                SampRec["geologic_classes"]=sclass
-                SampRec["lithologies"]=lithology
-                SampRec["geologic_types"]=_type
-                SampRec["method_codes"]=method_codes
+            if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+                SampRec["sample"] = sample
+                SampRec["site"] = site
+                # convert to labaz, labpl
+                labaz, labdip = pmag.orient(az, pl, or_con)
+                SampRec["bed_dip"] = '%7.1f' % (bed_dip)
+                SampRec["bed_dip_direction"] = '%7.1f' % (bed_dip_dir)
+                SampRec["dip"] = '%7.1f' % (labdip)
+                SampRec["azimuth"] = '%7.1f' % (labaz)
+                SampRec["azimuth_dec_correction"] = '%7.1f' % (deccorr)
+                SampRec["geologic_classes"] = sclass
+                SampRec["lithologies"] = lithology
+                SampRec["geologic_types"] = _type
+                SampRec["method_codes"] = method_codes
                 SampRecs.append(SampRec)
 
-            if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+            if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
                 SiteRec['lat'] = lat
                 SiteRec['lon'] = lon
-                SiteRec["geologic_classes"]=sclass
-                SiteRec["lithologies"]=lithology
-                SiteRec["geologic_types"]=_type
+                SiteRec["geologic_classes"] = sclass
+                SiteRec["lithologies"] = lithology
+                SiteRec["geologic_types"] = _type
                 SiteRecs.append(SiteRec)
 
-            if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
-                LocRec['location']=location
+            if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+                LocRec['location'] = location
                 LocRec['lat_n'] = lat
                 LocRec['lon_e'] = lon
                 LocRec['lat_s'] = lat
                 LocRec['lon_w'] = lon
-                #LocRec["geologic_classes"]=sclass
-                #LocRec["lithologies"]=lithology
-                #LocRec["geologic_types"]=_type
+                # LocRec["geologic_classes"]=sclass
+                # LocRec["lithologies"]=lithology
+                # LocRec["geologic_types"]=_type
                 LocRecs.append(LocRec)
 
         else:
-            MeasRec={}
-            MeasRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
-            MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
-            MeasRec["treat_ac_field"]='0'
-            MeasRec["treat_dc_field"]='0'
-            MeasRec["treat_dc_field_phi"]='0'
-            MeasRec["treat_dc_field_theta"]='0'
-            meas_type="LT-NO"
-            MeasRec["quality"]='g'
-            MeasRec["standard"]='u'
-            MeasRec["treat_step_num"]='1'
-            MeasRec["specimen"]=specname
-            el,demag=1,''
-            treat=rec[el]
-            if treat[-1]=='C':
-                demag='T'
-            elif treat!='NRM':
-                demag='AF'
-            el+=1
-            while rec[el]=="":el+=1
-            MeasRec["dir_dec"]=rec[el]
-            cdec=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            MeasRec["dir_inc"]=rec[el]
-            cinc=float(rec[el])
-            el+=1
-            while rec[el]=="":el+=1
-            gdec=rec[el]
-            el+=1
-            while rec[el]=="":el+=1
-            ginc=rec[el]
-            el=skip(2,el,rec) # skip bdec,binc
+            MeasRec = {}
+            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["treat_ac_field"] = '0'
+            MeasRec["treat_dc_field"] = '0'
+            MeasRec["treat_dc_field_phi"] = '0'
+            MeasRec["treat_dc_field_theta"] = '0'
+            meas_type = "LT-NO"
+            MeasRec["quality"] = 'g'
+            MeasRec["standard"] = 'u'
+            MeasRec["treat_step_num"] = '1'
+            MeasRec["specimen"] = specname
+            el, demag = 1, ''
+            treat = rec[el]
+            if treat[-1] == 'C':
+                demag = 'T'
+            elif treat != 'NRM':
+                demag = 'AF'
+            el += 1
+            while rec[el] == "":
+                el += 1
+            MeasRec["dir_dec"] = rec[el]
+            cdec = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            MeasRec["dir_inc"] = rec[el]
+            cinc = float(rec[el])
+            el += 1
+            while rec[el] == "":
+                el += 1
+            gdec = rec[el]
+            el += 1
+            while rec[el] == "":
+                el += 1
+            ginc = rec[el]
+            el = skip(2, el, rec)  # skip bdec,binc
 #                el=skip(4,el,rec) # skip gdec,ginc,bdec,binc
 #                print 'moment emu: ',rec[el]
-            MeasRec["magn_moment"]='%10.3e'% (float(rec[el])*1e-3) # moment in Am^2 (from emu)
-            MeasRec["magn_volume"]='%10.3e'% (float(rec[el])*1e-3/vol) # magnetization in A/m
-            el=skip(2,el,rec) # skip to xsig
-            MeasRec["magn_x_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
-            el=skip(3,el,rec) # skip to ysig
-            MeasRec["magn_y_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
-            el=skip(3,el,rec) # skip to zsig
-            MeasRec["magn_z_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
-            el+=1 # skip to positions
-            MeasRec["meas_n_orient"]=rec[el]
+            MeasRec["magn_moment"] = '%10.3e' % (
+                float(rec[el])*1e-3)  # moment in Am^2 (from emu)
+            MeasRec["magn_volume"] = '%10.3e' % (
+                float(rec[el])*1e-3/vol)  # magnetization in A/m
+            el = skip(2, el, rec)  # skip to xsig
+            MeasRec["magn_x_sigma"] = '%10.3e' % (
+                float(rec[el])*1e-3)  # convert from emu
+            el = skip(3, el, rec)  # skip to ysig
+            MeasRec["magn_y_sigma"] = '%10.3e' % (
+                float(rec[el])*1e-3)  # convert from emu
+            el = skip(3, el, rec)  # skip to zsig
+            MeasRec["magn_z_sigma"] = '%10.3e' % (
+                float(rec[el])*1e-3)  # convert from emu
+            el += 1  # skip to positions
+            MeasRec["meas_n_orient"] = rec[el]
 #                    el=skip(5,el,rec) # skip to date
 #                    mm=str(months.index(date[0]))
 #                    if len(mm)==1:
@@ -270,27 +302,29 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 #                        mm=str(mm)
 #                    dstring=date[2]+':'+mm+':'+date[1]+":"+date[3]
 #                    MeasRec['measurement_date']=dstring
-            MeasRec["instrument_codes"]=inst
-            MeasRec["analysts"]=user
-            MeasRec["citations"]="This study"
-            MeasRec["method_codes"]=meas_type
-            if demag=="AF":
-                MeasRec["treat_ac_field"]='%8.3e' %(float(treat[:-2])*1e-3) # peak field in tesla
-                meas_type="LT-AF-Z"
-                MeasRec["treat_dc_field"]='0'
-            elif demag=="T":
-                MeasRec["treat_temp"]='%8.3e' % (float(treat[:-1])+273.) # temp in kelvin
-                meas_type="LT-T-Z"
-            MeasRec['method_codes']=meas_type
+            MeasRec["instrument_codes"] = inst
+            MeasRec["analysts"] = user
+            MeasRec["citations"] = "This study"
+            MeasRec["method_codes"] = meas_type
+            if demag == "AF":
+                MeasRec["treat_ac_field"] = '%8.3e' % (
+                    float(treat[:-2])*1e-3)  # peak field in tesla
+                meas_type = "LT-AF-Z"
+                MeasRec["treat_dc_field"] = '0'
+            elif demag == "T":
+                MeasRec["treat_temp"] = '%8.3e' % (
+                    float(treat[:-1])+273.)  # temp in kelvin
+                meas_type = "LT-T-Z"
+            MeasRec['method_codes'] = meas_type
             MeasRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path,read_tables=[])
+    con = nb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
     con.write_table_to_file('specimens', custom_name=spec_file)
@@ -300,7 +334,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
 
-## AGM magic conversion
+# AGM magic conversion
+
 
 def agm(agm_file, output_dir_path=".", input_dir_path="",
         meas_outfile="", spec_outfile="", samp_outfile="",
@@ -526,16 +561,216 @@ def agm(agm_file, output_dir_path=".", input_dir_path="",
 
     return True, meas_outfile
 
+# BGC_magic conversion
 
 
-###  CIT_magic conversion
+def bgc(mag_file, dir_path=".", input_dir_path="",
+        meas_file='measurements.txt', spec_file='specimens.txt', samp_file='samples.txt',
+        site_file='sites.txt', loc_file='locations.txt', append=False,
+        location="unknown", site="", samp_con='1', specnum=0,
+        meth_code="LP-NO", volume=0, user="", timezone='US/Pacific', noave=False):
+    version_num = pmag.get_version()
+    output_dir_path = dir_path
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    samp_con = str(samp_con)
+    specnum = - int(specnum)
+    if not volume:
+        volume = 0.025**3  # default volume is a 2.5 cm cube, translated to meters cubed
+    else:
+        volume *= 1e-6  # convert cm^3 to m^3
+
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = int(samp_con.split("-")[1])
+            samp_con = "4"
+    if "7" in samp_con:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = int(samp_con.split("-")[1])
+            samp_con = "7"
+    else:
+        Z = 1
+
+    # format variables
+    mag_file = os.path.join(input_dir_path, mag_file)
+    if not os.path.isfile(mag_file):
+        print("%s is not a BGC file" % mag_file)
+        return False, 'You must provide a BCG format file'
+
+    # Open up the BGC file and read the header information
+    print('mag_file in bgc_magic', mag_file)
+    pre_data = open(mag_file, 'r')
+    line = pre_data.readline()
+    line_items = line.split(' ')
+    specimen = line_items[2]
+    specimen = specimen.replace('\n', '')
+    line = pre_data.readline()
+    line = pre_data.readline()
+    line_items = line.split('\t')
+    azimuth = float(line_items[1])
+    dip = float(line_items[2])
+    bed_dip = line_items[3]
+    sample_bed_azimuth = line_items[4]
+    lon = line_items[5]
+    lat = line_items[6]
+    tmp_volume = line_items[7]
+    if tmp_volume != 0.0:
+        volume = float(tmp_volume) * 1e-6
+    pre_data.close()
+
+    data = pd.read_csv(mag_file, sep='\t', header=3, index_col=False)
+
+    cart = np.array([data['X'], data['Y'], data['Z']]).transpose()
+    direction = pmag.cart2dir(cart).transpose()
+
+    data['dir_dec'] = direction[0]
+    data['dir_inc'] = direction[1]
+    # the data are in EMU - this converts to Am^2
+    data['magn_moment'] = direction[2] / 1000
+    data['magn_volume'] = (direction[2] / 1000) / \
+        volume  # EMU  - data converted to A/m
+
+    # Configure the magic_measurements table
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    for rowNum, row in data.iterrows():
+        MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+
+        if specnum != 0:
+            sample = specimen[:specnum]
+        else:
+            sample = specimen
+        if site == '':
+            site = pmag.parse_site(sample, samp_con, Z)
+
+        if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+            SpecRec['specimen'] = specimen
+            SpecRec['sample'] = sample
+            SpecRec['volume'] = volume
+            SpecRec['analysts'] = user
+            SpecRec['citations'] = 'This study'
+            SpecRecs.append(SpecRec)
+        if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+            SampRec['sample'] = sample
+            SampRec['site'] = site
+            SampRec['azimuth'] = azimuth
+            SampRec['dip'] = dip
+            SampRec['bed_dip_direction'] = sample_bed_azimuth
+            SampRec['bed_dip'] = bed_dip
+            SampRec['method_codes'] = meth_code
+            SampRec['analysts'] = user
+            SampRec['citations'] = 'This study'
+            SampRecs.append(SampRec)
+        if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+            SiteRec['site'] = site
+            SiteRec['location'] = location
+            SiteRec['lat'] = lat
+            SiteRec['lon'] = lon
+            SiteRec['analysts'] = user
+            SiteRec['citations'] = 'This study'
+            SiteRecs.append(SiteRec)
+        if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+            LocRec['location'] = location
+            LocRec['analysts'] = user
+            LocRec['citations'] = 'This study'
+            LocRec['lat_n'] = lat
+            LocRec['lon_e'] = lon
+            LocRec['lat_s'] = lat
+            LocRec['lon_w'] = lon
+            LocRecs.append(LocRec)
+
+        MeasRec['description'] = 'Date: ' + \
+            str(row['Date']) + ' Time: ' + str(row['Time'])
+        if '.' in row['Date']:
+            datelist = row['Date'].split('.')
+        elif '/' in row['Date']:
+            datelist = row['Date'].split('/')
+        elif '-' in row['Date']:
+            datelist = row['Date'].split('-')
+        else:
+            print(
+                "unrecogized date formating on one of the measurement entries for specimen %s" % specimen)
+            datelist = ['', '', '']
+        if ':' in row['Time']:
+            timelist = row['Time'].split(':')
+        else:
+            print(
+                "unrecogized time formating on one of the measurement entries for specimen %s" % specimen)
+            timelist = ['', '', '']
+        datelist[2] = '19' + \
+            datelist[2] if len(datelist[2]) <= 2 else datelist[2]
+        dt = ":".join([datelist[1], datelist[0], datelist[2],
+                       timelist[0], timelist[1], timelist[2]])
+        local = pytz.timezone(timezone)
+        naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
+        local_dt = local.localize(naive, is_dst=None)
+        utc_dt = local_dt.astimezone(pytz.utc)
+        timestamp = utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+        MeasRec["timestamp"] = timestamp
+        MeasRec["citations"] = "This study"
+        MeasRec['software_packages'] = version_num
+        MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["quality"] = 'g'
+        MeasRec["standard"] = 'u'
+        MeasRec["treat_step_num"] = rowNum
+        MeasRec["specimen"] = specimen
+        MeasRec["treat_ac_field"] = '0'
+        if row['DM Val'] == '0':
+            meas_type = "LT-NO"
+        elif int(row['DM Type']) > 0.0:
+            meas_type = "LT-AF-Z"
+            treat = float(row['DM Val'])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif int(row['DM Type']) == -1:
+            meas_type = "LT-T-Z"
+            treat = float(row['DM Val'])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        else:
+            print("measurement type unknown:",
+                  row['DM Type'], " in row ", rowNum)
+        MeasRec["magn_moment"] = str(row['magn_moment'])
+        MeasRec["magn_volume"] = str(row['magn_volume'])
+        MeasRec["dir_dec"] = str(row['dir_dec'])
+        MeasRec["dir_inc"] = str(row['dir_inc'])
+        MeasRec['method_codes'] = meas_type
+        MeasRec['dir_csd'] = '0.0'  # added due to magic.write error
+        MeasRec['meas_n_orient'] = '1'  # added due to magic.write error
+        MeasRecs.append(MeasRec.copy())
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.write_table_to_file('specimens', custom_name=spec_file, append=append)
+    con.write_table_to_file('samples', custom_name=samp_file, append=append)
+    con.write_table_to_file('sites', custom_name=site_file, append=append)
+    con.write_table_to_file('locations', custom_name=loc_file, append=append)
+    meas_file = con.write_table_to_file(
+        'measurements', custom_name=meas_file, append=append)
+
+    return True, meas_file
+
+
+# CIT_magic conversion
 
 def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measurements.txt",
-            spec_file="specimens.txt", samp_file="samples.txt",
-            site_file="sites.txt", loc_file="locations.txt", locname="unknown",
-            sitename="", methods=['SO-MAG'], specnum=0, samp_con='3',
-            norm='cc', oersted=False, noave=False, meas_n_orient='8',
-            labfield=0, phi=0, theta=0):
+        spec_file="specimens.txt", samp_file="samples.txt",
+        site_file="sites.txt", loc_file="locations.txt", locname="unknown",
+        sitename="", methods=['SO-MAG'], specnum=0, samp_con='3',
+        norm='cc', oersted=False, noave=False, meas_n_orient='8',
+        labfield=0, phi=0, theta=0):
     """
     Converts CIT formated Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -971,10 +1206,10 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     return True, meas_file
 
 
-### generic_magic conversion
+# generic_magic conversion
 
 def generic(magfile="", dir_path=".", meas_file="measurements.txt",
-            spec_file="specimens.txt", samp_file="samples.txt", site_file = "sites.txt",
+            spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", user="", labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="", cooling_times_list=[], sample_nc=[1, 0], site_nc=[1, 0],
             location="unknown", lat="", lon="", noave=False):
@@ -982,7 +1217,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     # --------------------------------------
     # functions
     # --------------------------------------
-
 
     def sort_magic_file(path, ignore_lines_n, sort_by_this_name):
         '''
@@ -1012,7 +1246,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             DATA[tmp_data[sort_by_this_name]] = tmp_data
         fin.close()
         return(DATA)
-
 
     def read_generic_file(path, average_replicates):
         '''
@@ -1061,7 +1294,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
                     break
 
         return(Data)
-
 
     def average_duplicates(duplicates):
         '''
@@ -1138,7 +1370,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         meanrec['moment'] = mean_moment
         return meanrec
 
-
     def get_upper_level_name(name, nc):
         '''
         get sample/site name from specimen/sample using naming convention
@@ -1166,7 +1397,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             high_name = name
         return high_name
 
-
     def merge_pmag_recs(old_recs):
         recs = {}
         recs = copy.deepcopy(old_recs)
@@ -1181,11 +1411,9 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
                     rec[header] = ""
         return recs
 
-
     # --------------------------------------
     # start conversion from generic
     # --------------------------------------
-
 
     # format and validate variables
     labfield = float(labfield)
@@ -1704,8 +1932,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     return True, meas_file
 
 
-
-### HUJI_magic conversion
+# HUJI_magic conversion
 
 def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
          meas_file="measurements.txt", spec_file="specimens.txt",
@@ -1756,7 +1983,8 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
     if codelist:
         codes = codelist.split(':')
     else:
-        print("-E- Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
+        print(
+            "-E- Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
         return False, "Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])"
     if "AF" in codes:
         demag = 'AF'
@@ -2230,7 +2458,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
     return True, meas_file
 
 
-### LDEO_magic conversion
+# LDEO_magic conversion
 
 def ldeo(magfile, output_dir_path=".", input_dir_path="",
          meas_file="measurements.txt", spec_file="specimens.txt",
@@ -2246,7 +2474,6 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
     demag = "N"
     trm = 0
     irm = 0
-
 
     # format/organize variables
     if not input_dir_path:
@@ -2497,12 +2724,11 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
     return True, meas_file
 
 
-
-### MINI_magic conversion
+# MINI_magic conversion
 
 def mini(magfile, dir_path='.', meas_file='measurements.txt',
-            data_model_num=3, volume=10, noave=0,
-            inst="", user="", demag='N', methcode="LP-NO"):
+         data_model_num=3, volume=10, noave=0,
+         inst="", user="", demag='N', methcode="LP-NO"):
     # initialize
     citation = 'This study'
     MagRecs = []
@@ -2569,7 +2795,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
             IDs = rec[0].split('_')
             treat = IDs[1]
             MagRec[spec_col] = IDs[0]
-            #print(MagRec[spec_col])
+            # print(MagRec[spec_col])
             sids = IDs[0].split('-')
             MagRec[loc_col] = sids[0]
             MagRec[site_col] = sids[0]+'-'+sids[1]
@@ -2577,7 +2803,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
                 MagRec[samp_col] = IDs[0]
             else:
                 MagRec[samp_col] = sids[0]+'-'+sids[1]+'-'+sids[2]
-            #print(MagRec)
+            # print(MagRec)
             MagRec[software_col] = version_num
             MagRec[treat_temp_col] = '%8.3e' % (273)  # room temp in kelvin
             MagRec[meas_temp_col] = '%8.3e' % (273)  # room temp in kelvin
@@ -2629,7 +2855,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
     return True, meas_file
 
 
-### s_magic conversion
+# s_magic conversion
 
 def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
             coord_type="s", sigma=False, samp_con="1", Z=1, specnum=0,
@@ -2700,7 +2926,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
             AnisRec[sample_col] = spec[:specnum]
         else:
             AnisRec[sample_col] = spec
-        #if samp_con == "6":
+        # if samp_con == "6":
         #    for samp in Samps:
         #        if samp['er_sample_name'] == AnisRec["er_sample_name"]:
         #            sitename = samp['er_site_name']
@@ -2724,13 +2950,14 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
             AnisRec["anisotropy_s5"] = s5
             AnisRec["anisotropy_s6"] = s6
         else:
-            AnisRec['aniso_s'] = ":".join([str(s) for s in [s1,s2,s3,s4,s5,s6]])
+            AnisRec['aniso_s'] = ":".join(
+                [str(s) for s in [s1, s2, s3, s4, s5, s6]])
         if sigma:
-                AnisRec[sigma_col] = '%10.8e' % (
-                    float(rec[k+6]) / trace)
-                AnisRec[unit_col] = 'SI'
-                AnisRec[tilt_corr_col] = coord
-                AnisRec[method_col] = 'LP-' + atype
+            AnisRec[sigma_col] = '%10.8e' % (
+                float(rec[k+6]) / trace)
+            AnisRec[unit_col] = 'SI'
+            AnisRec[tilt_corr_col] = coord
+            AnisRec[method_col] = 'LP-' + atype
         AnisRecs.append(AnisRec)
     pmag.magic_write(anisfile, AnisRecs, outfile_type)
     print('data saved in ', anisfile)
@@ -2746,7 +2973,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
     return True, anisfile
 
 
-## Utrecht conversion
+# Utrecht conversion
 
 def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",

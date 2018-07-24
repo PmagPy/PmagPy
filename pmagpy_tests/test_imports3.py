@@ -813,13 +813,12 @@ class TestBgcMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_bgc_with_no_files(self):
-        program_ran, error_message = bgc_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'You must provide a BCG format file')
+        with self.assertRaises(TypeError):
+            convert.bgc()
 
     def test_bgc_success(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
@@ -831,7 +830,7 @@ class TestBgcMagic(unittest.TestCase):
         options['mag_file'] = os.path.join(self.input_dir, '96MT.05.01')
         options['spec_file'] = os.path.join(WD, 'custom_specimens.txt')
         options['dir_path'] = 'data_files'
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
         self.assertTrue(os.path.isfile(options['spec_file']))
         self.assertTrue(os.path.isfile(os.path.join(WD, 'data_files', 'samples.txt')))
@@ -839,17 +838,17 @@ class TestBgcMagic(unittest.TestCase):
 
     def test_bgc_alternate_infile(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
 
 
     def test_bgc_with_append(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         options['append'] = True
-        program_ran, outfile = bgc_magic.convert(**options)
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         lines, file_type = pmag.magic_read(os.path.join(WD, 'specimens.txt'))
         self.assertEqual(len(lines), 2)

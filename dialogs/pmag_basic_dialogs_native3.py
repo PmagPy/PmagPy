@@ -2294,7 +2294,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         for key, value in list(options.items()):
             print(key, value)
 
-        COMMAND = "options = {}\nbgc_magic.convert(**options)".format(str(options))
+        COMMAND = "options = {}\convert.bgc(**options)".format(str(options))
 
         if infile=='':
             all_files=[f for f in os.listdir('.') if os.path.isfile(f)]
@@ -2311,11 +2311,15 @@ class convert_BGC_files_to_magic(wx.Frame):
                 options['site_file'] = site_outfile
                 loc_outfile = infile + "_locations.txt"
                 options['loc_file'] = loc_outfile
-                try: program_ran, error_message = bgc_magic.convert(**options)
-                except IndexError: continue
-                if program_ran: outfiles.append(outfile)
-            outfile=str(outfiles)
-        else: program_ran, error_message = bgc_magic.convert(**options)
+                try:
+                    program_ran, error_message = convert.bgc(**options)
+                except IndexError:
+                    continue
+                if program_ran:
+                    outfiles.append(outfile)
+            outfile = str(outfiles)
+        else:
+            program_ran, error_message = convert.bgc(**options)
 
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
