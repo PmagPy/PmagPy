@@ -15,10 +15,8 @@ from matplotlib import pyplot as plt
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
-#import thellier_gui_dialogs
-#import thellier_gui
-#import ErMagicBuilder
 from programs.conversion_scripts import agm_magic
+from pmagpy import convert_2_magic as convert
 
 class ImportAzDipFile(wx.Frame):
 
@@ -831,12 +829,12 @@ class ImportAgmFile(wx.Frame):
         SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_samples.txt"
         SITE_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_sites.txt"
         LOC_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_locations.txt"
-        options_dict['meas_file'] = outfile
+        options_dict['meas_outfile'] = outfile
         options_dict['agm_file'] = infile
-        options_dict['spec_file'] = SPEC_OUTFILE
-        options_dict['samp_file'] = SAMP_OUTFILE
-        options_dict['site_file'] = SITE_OUTFILE
-        options_dict['loc_file'] = LOC_OUTFILE
+        options_dict['spec_outfile'] = SPEC_OUTFILE
+        options_dict['samp_outfile'] = SAMP_OUTFILE
+        options_dict['site_outfile'] = SITE_OUTFILE
+        options_dict['loc_outfile'] = LOC_OUTFILE
         options_dict['specnum'] =spc
         COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
         samp_infile = None
@@ -847,7 +845,7 @@ class ImportAgmFile(wx.Frame):
         #    pw.simple_warning(error_message)
         #pw.run_command_and_close_window(self, COMMAND, outfile)
         print("COMMAND: ",COMMAND)
-        if agm_magic.convert(**options_dict):
+        if convert.agm(**options_dict):
             pw.close_window(self,COMMAND,outfile)
             pw.simple_warning('You have created the following files: {}\nMake sure to go to Pmag GUI step 1 to combine and rename them before proceeding to analysis or upload!'.format(outfile))
         else:
@@ -859,7 +857,7 @@ class ImportAgmFile(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.agm_magic.__doc__)
+        pw.on_helpButton(text=agm_magic.do_help())
 
 
 class ImportAgmFolder(wx.Frame):
@@ -903,25 +901,32 @@ class ImportAgmFolder(wx.Frame):
         #---sizer 6---
         self.bSizer6 = pw.labeled_yes_or_no(pnl, "Units", "CGS units (default)", "SI units")
 
+        #---sizer 7---
+        self.bSizer7 = pw.labeled_yes_or_no(pnl, "Format", "New (default)", "Old")
+
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox1.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        hbox2.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox2.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
-
+        #
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.Add(vbox)
@@ -960,6 +965,12 @@ class ImportAgmFolder(wx.Frame):
             units = 'cgs'
         else:
             units = 'SI'
+        fmt = self.bSizer7.return_value()
+        if fmt:
+            fmt = "new"
+        else:
+            fmt = "old"
+
         # loop through all .agm and .irm files
         warn = False
         outfiles = []
@@ -984,11 +995,12 @@ class ImportAgmFolder(wx.Frame):
             SITE_OUTFILE =  stem + "_sites.txt"
             LOC_OUTFILE =  stem + "_locations.txt"
             options_dict={}
-            options_dict['meas_file'] = outfile
+            options_dict['meas_outfile'] = outfile
             options_dict['agm_file'] = infile
-            options_dict['spec_file'] = SPEC_OUTFILE
-            options_dict['samp_file'] = SAMP_OUTFILE
-            options_dict['site_file'] = SITE_OUTFILE
+            options_dict['spec_outfile'] = SPEC_OUTFILE
+            options_dict['samp_outfile'] = SAMP_OUTFILE
+            options_dict['site_outfile'] = SITE_OUTFILE
+            options_dict['fmt'] = fmt
             COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, SPEC_OUTFILE, usr, spc, ncn, loc, ins, units, bak)
             samp_infile = None
         #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
@@ -999,7 +1011,7 @@ class ImportAgmFolder(wx.Frame):
         #pw.run_command_and_close_window(self, COMMAND, outfile)
             print("COMMAND: ",COMMAND)
             print('options_dict', options_dict)
-            program_ran, error_msg = agm_magic.convert(**options_dict)
+            program_ran, error_msg = convert.agm(**options_dict)
             if program_ran:
                 pass
                 #pw.close_window(self,COMMAND,outfile)
@@ -1019,7 +1031,7 @@ class ImportAgmFolder(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.agm_magic.__doc__)
+        pw.on_helpButton(text=agm_magic.do_help())
 
 
 class ExportResults(wx.Frame):

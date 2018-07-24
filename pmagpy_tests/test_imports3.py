@@ -29,7 +29,7 @@ class TestAgmMagic(unittest.TestCase):
                     'samples.txt', 'sites.txt', 'locations.txt',
                     'agm_magic_example.magic', 'agm_magic_example_locations.txt',
                     'agm_magic_example_specimens.txt']
-        #pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
 
@@ -47,7 +47,7 @@ class TestAgmMagic(unittest.TestCase):
         program_ran, filename = convert.agm('agm_magic_example.irm',
                                             meas_outfile='agm_magic_example.magic',
                                             input_dir_path=input_dir, fmt="old", bak=True,
-                                            user="user1", instrument="SIO-FLO")
+                                            instrument="SIO-FLO")
 
 
 
