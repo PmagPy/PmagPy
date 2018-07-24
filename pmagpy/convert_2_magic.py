@@ -300,6 +300,233 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
 
+## AGM magic conversion
+
+def agm(agm_file, output_dir_path=".", input_dir_path="",
+        meas_outfile="", spec_outfile="", samp_outfile="",
+        site_outfile="", loc_outfile="", spec_infile="",
+        samp_infile="", site_infile="",
+        specimen="", specnum=0, samp_con="1", location="unknown",
+        instrument="", institution="", bak=False, syn=False, syntype="",
+        units="cgs", fmt='new'):
+    """
+    Parameters
+    ----------
+    Fmt: str, options ('new', 'old', 'xy', default 'new')
+    """
+    # initialize some stuff
+    citations = 'This study'
+    meth = "LP-HYS"
+    version_num = pmag.get_version()
+    Samps, Sites = [], []
+    #noave = 1
+
+    # get args
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    specnum = - int(specnum)
+    if not specimen:
+        # grab the specimen name from the input file name
+        specimen = agm_file.split('.')[0]
+    if not meas_outfile:
+        meas_outfile = specimen + '.magic'
+    if not spec_outfile:
+        spec_outfile = specimen + '_specimens.txt'
+    if not samp_outfile:
+        samp_file = specimen + '_samples.txt'
+    if not site_outfile:
+        site_file = specimen + '_sites.txt'
+    if not loc_outfile:
+        loc_outfile = specimen + '_locations.txt'
+    if bak:
+        meth = "LP-IRM-DCD"
+        output = output_dir_path + "/irm.magic"
+    if "4" == samp_con[0]:
+        if "-" not in samp_con:
+            print(
+                "naming convention option [4] must be in form 4-Z where Z is an integer")
+            print('---------------')
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    if "7" == samp_con[0]:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 0
+
+    # read stuff in
+    if site_infile:
+        Sites, file_type = pmag.magic_read(site_infile)
+    if samp_infile:
+        Samps, file_type = pmag.magic_read(samp_infile)
+    if spec_infile:
+        Specs, file_type = pmag.magic_read(spec_infile)
+    if agm_file:
+        agm_file = pmag.resolve_file_name(agm_file, input_dir_path)
+        Data = pmag.open_file(agm_file)
+        if not Data:
+            print("you must provide a valid agm_file")
+            return False, "you must provide a valid agm_file"
+    if not agm_file:
+        print(__doc__)
+        print("agm_file field is required option")
+        return False, "agm_file field is required option"
+    if "ASCII" not in Data[0] and fmt != 'xy':
+        fmt = 'new'
+    measnum, start, end = 1, 0, 0
+    if fmt == 'new':  # new Micromag formatted file
+        end = 2
+        for skip in range(len(Data)):
+            line = Data[skip]
+            rec = line.strip('\n').strip('\r').split()
+            if 'Units' in line:
+                units = rec[-1]
+            if "Raw" in rec:
+                start = skip + 2
+            if ("Field" in rec) and ("Moment" in rec) and (not start):
+                start = skip + 2
+                break
+    elif fmt == 'old':
+        start = 2
+        end = 1
+
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    version_num = pmag.get_version()
+
+    ##################################
+    # parse data
+    stop = len(Data) - end
+    for line in Data[start:stop]:  # skip header stuff
+        MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+        # take care of some paper work
+        if not syn:
+            MeasRec["specimen"] = specimen
+            if specnum != 0:
+                sample = specimen[:specnum]
+            else:
+                sample = specimen
+            if samp_infile and Samps:  # if samp_infile was provided AND yielded sample data
+                samp = pmag.get_dictitem(Samps, 'sample', sample, 'T')
+                if len(samp) > 0:
+                    site = samp[0]["site"]
+                else:
+                    site = ''
+            if site_infile and Sites:  # if samp_infile was provided AND yielded sample data
+                sites = pmag.get_dictitem(Sites, 'sample', sample, 'T')
+                if len(sites) > 0:
+                    site = sites[0]["site"]
+                else:
+                    site = ''
+            else:
+                site = pmag.parse_site(sample, samp_con, Z)
+            if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                LocRec['location'] = location
+                LocRecs.append(LocRec)
+            if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                SiteRec['location'] = location
+                SiteRec['site'] = site
+                SiteRecs.append(SiteRec)
+            if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                SampRec['site'] = site
+                SampRec['sample'] = sample
+                SampRecs.append(SampRec)
+            if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                SpecRec["specimen"] = specimen
+                SpecRec['sample'] = sample
+                SpecRecs.append(SpecRec)
+        else:
+            SampRec["material_type"] = syntype
+            MeasRec["specimen"] = specimen
+            if specnum != 0:
+                sample = specimen[:specnum]
+            else:
+                sample = specimen
+            site = pmag.parse_site(sample, samp_con, Z)
+            if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                LocRec['location'] = location
+                LocRecs.append(LocRec)
+            if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                SiteRec['location'] = location
+                SiteRec['site'] = site
+                SiteRecs.append(SiteRec)
+            if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                SampRec['site'] = site
+                SampRec['sample'] = sample
+                SampRecs.append(SampRec)
+            if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                SpecRec["specimen"] = specimen
+                SpecRec['sample'] = sample
+                SpecRecs.append(SpecRec)
+        MeasRec['instrument_codes'] = instrument
+        MeasRec['institution'] = institution
+        MeasRec['method_codes'] = meth
+        MeasRec['experiment'] = specimen + ':' + meth
+        if fmt == 'xy':
+            rec = list(line.strip('\n').split())
+        else:
+            rec = list(line.strip('\n').strip('\r').split(','))
+        #print (rec)
+        if rec[0] != "":
+            if units == 'cgs':
+                field = float(rec[0]) * 1e-4  # convert from oe to tesla
+            else:
+                field = float(rec[0])  # field in tesla
+            if meth == "LP-HYS":
+                MeasRec['meas_field_dc'] = '%10.3e' % (field)
+                MeasRec['treat_dc_field'] = '0'
+            else:
+                MeasRec['meas_field_dc'] = '0'
+                MeasRec['treat_dc_field'] = '%10.3e' % (field)
+            if units == 'cgs':
+                MeasRec['magn_moment'] = '%10.3e' % (
+                    float(rec[1]) * 1e-3)  # convert from emu to Am^2
+            else:
+                MeasRec['magn_moment'] = '%10.3e' % (float(rec[1]))  # Am^2
+            MeasRec['treat_temp'] = '273'  # temp in kelvin
+            MeasRec['meas_temp'] = '273'  # temp in kelvin
+            MeasRec['quality'] = 'g'
+            MeasRec['standard'] = 'u'
+            MeasRec['treat_step_num'] = '%i' % (measnum)
+            MeasRec['measurement'] = specimen + ":" + meth + '%i' % (measnum)
+            measnum += 1
+            MeasRec['software_packages'] = version_num
+            MeasRec['description'] = ""
+            MeasRecs.append(MeasRec)
+    # we have to relabel LP-HYS method codes.  initial loop is LP-IMT, minor
+    # loops are LP-M  - do this in measurements_methods function
+    if meth == 'LP-HYS':
+        recnum = 0
+        while float(MeasRecs[recnum]['meas_field_dc']) < float(MeasRecs[recnum + 1]['meas_field_dc']) and recnum + 1 < len(MeasRecs):  # this is LP-IMAG
+            MeasRecs[recnum]['method_codes'] = 'LP-IMAG'
+            MeasRecs[recnum]['experiment'] = MeasRecs[recnum]['specimen'] + \
+                ":" + 'LP-IMAG'
+            recnum += 1
+#
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    # create MagIC tables
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    # MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasRecs)
+    # write MagIC tables to file
+    con.write_table_to_file('specimens', custom_name=spec_outfile)
+    con.write_table_to_file('samples', custom_name=samp_outfile)
+    con.write_table_to_file('sites', custom_name=site_outfile)
+    con.write_table_to_file('locations', custom_name=loc_outfile)
+    con.write_table_to_file('measurements', custom_name=meas_outfile)
+
+    return True, meas_outfile
+
+
 
 ###  CIT_magic conversion
 

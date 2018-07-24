@@ -19,6 +19,38 @@ from programs.conversion_scripts import bgc_magic
 WD = pmag.get_test_WD()
 
 
+class TestAgmMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'agm_magic_example.magic', 'agm_magic_example_locations.txt',
+                    'agm_magic_example_specimens.txt']
+        #pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'agm_magic')
+        program_ran, filename = convert.agm('agm_magic_example.agm',
+                                            meas_outfile='agm_magic_example.magic',
+                                            input_dir_path=input_dir, fmt="old")
+        self.assertTrue(program_ran)
+
+    def test_backfield_success(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'agm_magic')
+        program_ran, filename = convert.agm('agm_magic_example.irm',
+                                            meas_outfile='agm_magic_example.magic',
+                                            input_dir_path=input_dir, fmt="old", bak=True,
+                                            user="user1", instrument="SIO-FLO")
+
+
+
 class TestGenericMagic(unittest.TestCase):
 
     def setUp(self):
