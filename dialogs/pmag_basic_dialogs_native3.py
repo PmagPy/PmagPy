@@ -886,7 +886,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
-        options_dict['inst'] = str(instrument)
+        options_dict['instrument'] = str(instrument)
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
@@ -920,7 +920,8 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
 
         # Force -A option on cooling rate correction experiment
         if cooling_rates !=""  and experiment_type =="-LP CR":
-            replicate = '-A';options_dict['noave'] = 1
+            replicate = '-A'
+            options_dict['noave'] = 1
 
         SPEC_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_specimens.txt"
         SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_samples.txt"
@@ -934,7 +935,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}".format(outfile, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, SIO_file, spc, ncn, user, experiment_type, cooling_rates, loc_name, lab_field, peak_AF, coil_number, instrument, replicate)#, lat, lon)
         print("COMMAND", COMMAND)
         # to run as module:
-        if sio_magic.convert(**options_dict):
+        if convert.sio(**options_dict):
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()

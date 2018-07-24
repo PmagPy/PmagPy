@@ -2855,7 +2855,615 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
     return True, meas_file
 
 
-# s_magic conversion
+### SIO_magic conversion
+
+def sio(mag_file, dir_path=".", input_dir_path="",
+        meas_file="measurements.txt", spec_file="specimens.txt",
+        samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+        samp_infile="", institution="", syn=False, syntype="", instrument="",
+        labfield=0, phi=0, theta=0, peakfield=0,
+        specnum=0, samp_con='1', location="unknown", lat="", lon="",
+        noave=False, codelist="", coil="", cooling_rates="", timezone="UTC",
+        user=""):
+
+    # initialize some stuff
+    methcode = "LP-NO"
+    pTRM, MD = 0, 0
+    dec = [315, 225, 180, 135, 45, 90, 270, 270, 270, 90, 180, 180, 0, 0, 0]
+    inc = [0, 0, 0, 0, 0, -45, -45, 0, 45, 45, 45, -45, -90, -45, 45]
+    tdec = [0, 90, 0, 180, 270, 0, 0, 90, 0]
+    tinc = [0, 0, 90, 0, 0, -90, 0, 0, 90]
+    missing = 1
+    demag = "N"
+    citations = 'This study'
+    fmt = 'old'
+    Samps = []
+    trm = 0
+    irm = 0
+
+    # get args
+    output_dir_path = dir_path
+    if not input_dir_path:
+        input_dir_path = dir_path
+    # measurement outfile
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    labfield = float(labfield) * 1e-6
+    phi = float(phi)
+    theta = float(theta)
+    peakfield = float(peakfield) * 1e-3
+    specnum = -int(specnum)
+    samp_con = str(samp_con)
+
+    # make sure all initial values are correctly set up (whether they come from the command line or a GUI)
+    if samp_infile:
+        Samps, file_type = pmag.magic_read(samp_infile)
+    if coil:
+        coil = str(coil)
+        methcode = "LP-IRM"
+        irmunits = "V"
+        if coil not in ["1", "2", "3"]:
+            print(__doc__)
+            print('not a valid coil specification')
+            return False, '{} is not a valid coil specification'.format(coil)
+    if mag_file:
+        lines = pmag.open_file(mag_file)
+        if not lines:
+            print("you must provide a valid mag_file")
+            return False, "you must provide a valid mag_file"
+    if not mag_file:
+        print(__doc__)
+        print("mag_file field is required option")
+        return False, "mag_file field is required option"
+    if specnum != 0:
+        specnum = -specnum
+    if "4" == samp_con[0]:
+        if "-" not in samp_con:
+            print(
+                "naming convention option [4] must be in form 4-Z where Z is an integer")
+            print('---------------')
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    if "7" == samp_con[0]:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 0
+
+    if codelist:
+        codes = codelist.split(':')
+        if "AF" in codes:
+            demag = 'AF'
+            if'-dc' not in sys.argv:
+                methcode = "LT-AF-Z"
+            if'-dc' in sys.argv:
+                methcode = "LT-AF-I"
+        if "T" in codes:
+            demag = "T"
+            if '-dc' not in sys.argv:
+                methcode = "LT-T-Z"
+            if '-dc' in sys.argv:
+                methcode = "LT-T-I"
+        if "I" in codes:
+            methcode = "LP-IRM"
+            irmunits = "mT"
+        if "I3d" in codes:
+            methcode = "LT-T-Z:LP-IRM-3D"
+        if "S" in codes:
+            demag = "S"
+            methcode = "LP-PI-TRM:LP-PI-ALT-AFARM"
+            trm_labfield = labfield
+            ans = input("DC lab field for ARM step: [50uT] ")
+            if ans == "":
+                arm_labfield = 50e-6
+            else:
+                arm_labfield = float(ans)*1e-6
+            ans = input("temperature for total trm step: [600 C] ")
+            if ans == "":
+                trm_peakT = 600+273  # convert to kelvin
+            else:
+                trm_peakT = float(ans)+273  # convert to kelvin
+        if "G" in codes:
+            methcode = "LT-AF-G"
+        if "D" in codes:
+            methcode = "LT-AF-D"
+        if "TRM" in codes:
+            demag = "T"
+            trm = 1
+        if "CR" in codes:
+            demag = "T"
+            cooling_rate_experiment = 1
+            # command_line does not exist in this code
+            cooling_rates_list = cooling_rates.split(',')
+            # if command_line:
+            #    ind=sys.argv.index("CR")
+            #    cooling_rates=sys.argv[ind+1]
+            #    cooling_rates_list=cooling_rates.split(',')
+            # else:
+            #    cooling_rates_list=str(cooling_rates).split(',')
+    if demag == "T" and "ANI" in codes:
+        methcode = "LP-AN-TRM"
+    if demag == "T" and "CR" in codes:
+        methcode = "LP-CR-TRM"
+    if demag == "AF" and "ANI" in codes:
+        methcode = "LP-AN-ARM"
+        if labfield == 0:
+            labfield = 50e-6
+        if peakfield == 0:
+            peakfield = .180
+
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    version_num = pmag.get_version()
+
+    ##################################
+
+    for line in lines:
+        instcode = ""
+        if len(line) > 2:
+            MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+            MeasRec['software_packages'] = version_num
+            MeasRec["description"] = ""
+            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+            MeasRec["treat_ac_field"] = '0'
+            MeasRec["treat_dc_field"] = '0'
+            MeasRec["treat_dc_field_phi"] = '0'
+            MeasRec["treat_dc_field_theta"] = '0'
+            meas_type = "LT-NO"
+            rec = line.split()
+            try:
+                float(rec[0])
+                print("No specimen name for line #%d in the measurement file" %
+                      lines.index(line))
+                continue
+            except ValueError:
+                pass
+            if rec[1] == ".00":
+                rec[1] = "0.00"
+            treat = rec[1].split('.')
+            if methcode == "LP-IRM":
+                if irmunits == 'mT':
+                    labfield = float(treat[0])*1e-3
+                else:
+                    labfield = pmag.getfield(irmunits, coil, treat[0])
+                if rec[1][0] != "-":
+                    phi, theta = 0., 90.
+                else:
+                    phi, theta = 0., -90.
+                meas_type = "LT-IRM"
+                MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                MeasRec["treat_dc_field_phi"] = '%7.1f' % (phi)
+                MeasRec["treat_dc_field_theta"] = '%7.1f' % (theta)
+            if len(rec) > 6:
+                # break e.g., 10/15/02;7:45 indo date and time
+                code1 = rec[6].split(';')
+                if len(code1) == 2:  # old format with AM/PM
+                    missing = 0
+                    code2 = code1[0].split('/')  # break date into mon/day/year
+                    # break e.g., AM;C34;200  into time;instr/axes/measuring pos;number of measurements
+                    code3 = rec[7].split(';')
+                    yy = int(code2[2])
+                    if yy < 90:
+                        yyyy = str(2000+yy)
+                    else:
+                        yyyy = str(1900+yy)
+                    mm = int(code2[0])
+                    if mm < 10:
+                        mm = "0"+str(mm)
+                    else:
+                        mm = str(mm)
+                    dd = int(code2[1])
+                    if dd < 10:
+                        dd = "0"+str(dd)
+                    else:
+                        dd = str(dd)
+                    time = code1[1].split(':')
+                    hh = int(time[0])
+                    if code3[0] == "PM":
+                        hh = hh+12
+                    if hh < 10:
+                        hh = "0"+str(hh)
+                    else:
+                        hh = str(hh)
+                    min = int(time[1])
+                    if min < 10:
+                        min = "0"+str(min)
+                    else:
+                        min = str(min)
+                    dt = yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
+                    local = pytz.timezone(timezone)
+                    naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                    local_dt = local.localize(naive, is_dst=None)
+                    utc_dt = local_dt.astimezone(pytz.utc)
+                    MeasRec["timestamp"] = utc_dt.strftime(
+                        "%Y-%m-%dT%H:%M:%S")+"Z"
+                    if inst == "":
+                        if code3[1][0] == 'C':
+                            instcode = 'SIO-bubba'
+                        if code3[1][0] == 'G':
+                            instcode = 'SIO-flo'
+                    else:
+                        instcode = ''
+                    MeasRec["meas_n_orient"] = code3[1][2]
+                elif len(code1) > 2:  # newest format (cryo7 or later)
+                    if "LP-AN-ARM" not in methcode:
+                        labfield = 0
+                    fmt = 'new'
+                    date = code1[0].split('/')  # break date into mon/day/year
+                    yy = int(date[2])
+                    if yy < 90:
+                        yyyy = str(2000+yy)
+                    else:
+                        yyyy = str(1900+yy)
+                    mm = int(date[0])
+                    if mm < 10:
+                        mm = "0"+str(mm)
+                    else:
+                        mm = str(mm)
+                    dd = int(date[1])
+                    if dd < 10:
+                        dd = "0"+str(dd)
+                    else:
+                        dd = str(dd)
+                    time = code1[1].split(':')
+                    hh = int(time[0])
+                    if hh < 10:
+                        hh = "0"+str(hh)
+                    else:
+                        hh = str(hh)
+                    min = int(time[1])
+                    if min < 10:
+                        min = "0"+str(min)
+                    else:
+                        min = str(min)
+                    dt = yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
+                    local = pytz.timezone(timezone)
+                    naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
+                    local_dt = local.localize(naive, is_dst=None)
+                    utc_dt = local_dt.astimezone(pytz.utc)
+                    MeasRec["timestamp"] = utc_dt.strftime(
+                        "%Y-%m-%dT%H:%M:%S")+"Z"
+                    if inst == "":
+                        if code1[6][0] == 'C':
+                            instcode = 'SIO-bubba'
+                        if code1[6][0] == 'G':
+                            instcode = 'SIO-flo'
+                    else:
+                        instcode = ''
+                    if len(code1) > 1:
+                        MeasRec["meas_n_orient"] = code1[6][2]
+                    else:
+                        # takes care of awkward format with bubba and flo being different
+                        MeasRec["meas_n_orient"] = code1[7]
+                    if user == "":
+                        user = code1[5]
+                    if code1[2][-1].upper() == 'C':
+                        demag = "T"
+                        if code1[4] == 'microT' and float(code1[3]) != 0. and "LP-AN-ARM" not in methcode:
+                            labfield = float(code1[3])*1e-6
+                    if code1[2] == 'mT' and methcode != "LP-IRM":
+                        demag = "AF"
+                        if code1[4] == 'microT' and float(code1[3]) != 0.:
+                            labfield = float(code1[3])*1e-6
+                    if code1[4] == 'microT' and labfield != 0. and meas_type != "LT-IRM":
+                        phi, theta = 0., -90.
+                        if demag == "T":
+                            meas_type = "LT-T-I"
+                        if demag == "AF":
+                            meas_type = "LT-AF-I"
+                        MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (phi)
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (theta)
+                    if code1[4] == '' or labfield == 0. and meas_type != "LT-IRM":
+                        if demag == 'T':
+                            meas_type = "LT-T-Z"
+                        if demag == "AF":
+                            meas_type = "LT-AF-Z"
+                        MeasRec["treat_dc_field"] = '0'
+            if not syn:
+                specimen = rec[0]
+                MeasRec["specimen"] = specimen
+                if specnum != 0:
+                    sample = rec[0][:specnum]
+                else:
+                    sample = rec[0]
+                if samp_infile and Samps:  # if samp_infile was provided AND yielded sample data
+                    samp = pmag.get_dictitem(Samps, 'sample', sample, 'T')
+                    if len(samp) > 0:
+                        location = samp[0]["location"]
+                        site = samp[0]["site"]
+                    else:
+                        location = ''
+                        site = ''
+                else:
+                    site = pmag.parse_site(sample, samp_con, Z)
+                if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                    LocRec['location'] = location
+                    LocRec['lat_n'] = lat
+                    LocRec['lat_s'] = lat
+                    LocRec['lon_e'] = lon
+                    LocRec['lon_w'] = lon
+                    LocRecs.append(LocRec)
+                if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                    SiteRec['location'] = location
+                    SiteRec['site'] = site
+                    SiteRec['lat'] = lat
+                    SiteRec['lon'] = lon
+                    SiteRecs.append(SiteRec)
+                if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                    SampRec['site'] = site
+                    SampRec['sample'] = sample
+                    SampRecs.append(SampRec)
+                if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                    SpecRec["specimen"] = specimen
+                    SpecRec['sample'] = sample
+                    SpecRecs.append(SpecRec)
+            else:
+                specimen = rec[0]
+                MeasRec["specimen"] = specimen
+                if specnum != 0:
+                    sample = rec[0][:specnum]
+                else:
+                    sample = rec[0]
+                site = pmag.parse_site(sample, samp_con, Z)
+                if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                    LocRec['location'] = location
+                    LocRec['lat_n'] = lat
+                    LocRec['lat_s'] = lat
+                    LocRec['lon_e'] = lon
+                    LocRec['lon_w'] = lon
+                    LocRecs.append(LocRec)
+                if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                    SiteRec['location'] = location
+                    SiteRec['site'] = site
+                    SiteRec['lat'] = lat
+                    SiteRec['lon'] = lon
+                    SiteRecs.append(SiteRec)
+                if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                    SampRec['site'] = site
+                    SampRec['sample'] = sample
+                    SampRecs.append(SampRec)
+                if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                    SpecRec["specimen"] = specimen
+                    SpecRec['sample'] = sample
+                    SpecRecs.append(SpecRec)
+                SampRec["institution"] = institution
+                SampRec["material_type"] = syntype
+            # MeasRec["sample"]=sample
+            if float(rec[1]) == 0:
+                pass
+            elif demag == "AF":
+                if methcode != "LP-AN-ARM":
+                    MeasRec["treat_ac_field"] = '%8.3e' % (
+                        float(rec[1])*1e-3)  # peak field in tesla
+                    if meas_type == "LT-AF-Z":
+                        MeasRec["treat_dc_field"] = '0'
+                else:  # AARM experiment
+                    if treat[1][0] == '0':
+                        meas_type = "LT-AF-Z:LP-AN-ARM:"
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            peakfield)  # peak field in tesla
+                        MeasRec["treat_dc_field"] = '%8.3e' % (0)
+                        if labfield != 0 and methcode != "LP-AN-ARM":
+                            print(
+                                "Warning - inconsistency in mag file with lab field - overriding file with 0")
+                    else:
+                        meas_type = "LT-AF-I:LP-AN-ARM"
+                        ipos = int(treat[0])-1
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (dec[ipos])
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (inc[ipos])
+                        MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            peakfield)  # peak field in tesla
+            elif demag == "T" and methcode == "LP-AN-TRM":
+                MeasRec["treat_temp"] = '%8.3e' % (
+                    float(treat[0])+273.)  # temp in kelvin
+                if treat[1][0] == '0':
+                    meas_type = "LT-T-Z:LP-AN-TRM"
+                    MeasRec["treat_dc_field"] = '%8.3e' % (0)
+                    MeasRec["treat_dc_field_phi"] = '0'
+                    MeasRec["treat_dc_field_theta"] = '0'
+                else:
+                    MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                    if treat[1][0] == '7':  # alteration check as final measurement
+                        meas_type = "LT-PTRM-I:LP-AN-TRM"
+                    else:
+                        meas_type = "LT-T-I:LP-AN-TRM"
+
+                    # find the direction of the lab field in two ways:
+                    # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
+                    ipos_code = int(treat[1][0])-1
+                    # (2) using the magnetization
+                    DEC = float(rec[4])
+                    INC = float(rec[5])
+                    if INC < 45 and INC > -45:
+                        if DEC > 315 or DEC < 45:
+                            ipos_guess = 0
+                        if DEC > 45 and DEC < 135:
+                            ipos_guess = 1
+                        if DEC > 135 and DEC < 225:
+                            ipos_guess = 3
+                        if DEC > 225 and DEC < 315:
+                            ipos_guess = 4
+                    else:
+                        if INC > 45:
+                            ipos_guess = 2
+                        if INC < -45:
+                            ipos_guess = 5
+                    # prefer the guess over the code
+                    ipos = ipos_guess
+                    MeasRec["treat_dc_field_phi"] = '%7.1f' % (tdec[ipos])
+                    MeasRec["treat_dc_field_theta"] = '%7.1f' % (tinc[ipos])
+                    # check it
+                    if ipos_guess != ipos_code and treat[1][0] != '7':
+                        print("-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!" %
+                              (rec[0], ".".join(list(treat))))
+
+            elif demag == "S":  # Shaw experiment
+                if treat[1][1] == '0':
+                    if int(treat[0]) != 0:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            float(treat[0])*1e-3)  # AF field in tesla
+                        MeasRec["treat_dc_field"] = '0'
+                        meas_type = "LT-AF-Z"  # first AF
+                    else:
+                        meas_type = "LT-NO"
+                        MeasRec["treat_ac_field"] = '0'
+                        MeasRec["treat_dc_field"] = '0'
+                elif treat[1][1] == '1':
+                    if int(treat[0]) == 0:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            peakfield)  # peak field in tesla
+                        MeasRec["treat_dc_field"] = '%8.3e' % (arm_labfield)
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (phi)
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (theta)
+                        meas_type = "LT-AF-I"
+                    else:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            float(treat[0])*1e-3)  # AF field in tesla
+                        MeasRec["treat_dc_field"] = '0'
+                        meas_type = "LT-AF-Z"
+                elif treat[1][1] == '2':
+                    if int(treat[0]) == 0:
+                        MeasRec["treat_ac_field"] = '0'
+                        MeasRec["treat_dc_field"] = '%8.3e' % (trm_labfield)
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (phi)
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (theta)
+                        MeasRec["treat_temp"] = '%8.3e' % (trm_peakT)
+                        meas_type = "LT-T-I"
+                    else:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            float(treat[0])*1e-3)  # AF field in tesla
+                        MeasRec["treat_dc_field"] = '0'
+                        meas_type = "LT-AF-Z"
+                elif treat[1][1] == '3':
+                    if int(treat[0]) == 0:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            peakfield)  # peak field in tesla
+                        MeasRec["treat_dc_field"] = '%8.3e' % (arm_labfield)
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (phi)
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (theta)
+                        meas_type = "LT-AF-I"
+                    else:
+                        MeasRec["treat_ac_field"] = '%8.3e' % (
+                            float(treat[0])*1e-3)  # AF field in tesla
+                        MeasRec["treat_dc_field"] = '0'
+                        meas_type = "LT-AF-Z"
+
+            # Cooling rate experient # added by rshaar
+            elif demag == "T" and methcode == "LP-CR-TRM":
+                MeasRec["treat_temp"] = '%8.3e' % (
+                    float(treat[0])+273.)  # temp in kelvin
+                if treat[1][0] == '0':
+                    meas_type = "LT-T-Z:LP-CR-TRM"
+                    MeasRec["treat_dc_field"] = '%8.3e' % (0)
+                    MeasRec["treat_dc_field_phi"] = '0'
+                    MeasRec["treat_dc_field_theta"] = '0'
+                else:
+                    MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                    if treat[1][0] == '7':  # alteration check as final measurement
+                        meas_type = "LT-PTRM-I:LP-CR-TRM"
+                    else:
+                        meas_type = "LT-T-I:LP-CR-TRM"
+                    MeasRec["treat_dc_field_phi"] = '%7.1f' % (
+                        phi)  # labfield phi
+                    MeasRec["treat_dc_field_theta"] = '%7.1f' % (
+                        theta)  # labfield theta
+
+                    indx = int(treat[1][0])-1
+                    # alteration check matjed as 0.7 in the measurement file
+                    if indx == 6:
+                        cooling_time = cooling_rates_list[-1]
+                    else:
+                        cooling_time = cooling_rates_list[indx]
+                    MeasRec["description"] = "cooling_rate" + \
+                        ":"+cooling_time+":"+"K/min"
+                    noave = 1
+            elif demag != 'N':
+                if len(treat) == 1:
+                    treat.append('0')
+                MeasRec["treat_temp"] = '%8.3e' % (
+                    float(treat[0])+273.)  # temp in kelvin
+                if trm == 0:  # demag=T and not trmaq
+                    if treat[1][0] == '0':
+                        meas_type = "LT-T-Z"
+                    else:
+                        # labfield in tesla (convert from microT)
+                        MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                        MeasRec["treat_dc_field_phi"] = '%7.1f' % (
+                            phi)  # labfield phi
+                        MeasRec["treat_dc_field_theta"] = '%7.1f' % (
+                            theta)  # labfield theta
+                        if treat[1][0] == '1':
+                            meas_type = "LT-T-I"  # in-field thermal step
+                        if treat[1][0] == '2':
+                            meas_type = "LT-PTRM-I"  # pTRM check
+                            pTRM = 1
+                        if treat[1][0] == '3':
+                            # this is a zero field step
+                            MeasRec["treat_dc_field"] = '0'
+                            meas_type = "LT-PTRM-MD"  # pTRM tail check
+                else:
+                    labfield = float(treat[1])*1e-6
+                    # labfield in tesla (convert from microT)
+                    MeasRec["treat_dc_field"] = '%8.3e' % (labfield)
+                    MeasRec["treat_dc_field_phi"] = '%7.1f' % (
+                        phi)  # labfield phi
+                    MeasRec["treat_dc_field_theta"] = '%7.1f' % (
+                        theta)  # labfield theta
+                    meas_type = "LT-T-I:LP-TRM"  # trm acquisition experiment
+
+            MeasRec["dir_csd"] = rec[2]
+            MeasRec["magn_moment"] = '%10.3e' % (
+                float(rec[3])*1e-3)  # moment in Am^2 (from emu)
+            MeasRec["dir_dec"] = rec[4]
+            MeasRec["dir_inc"] = rec[5]
+            MeasRec["instrument_codes"] = instcode
+            MeasRec["analysts"] = user
+            MeasRec["citations"] = citations
+            if "LP-IRM-3D" in methcode:
+                meas_type = methcode
+            # MeasRec["method_codes"]=methcode.strip(':')
+            MeasRec["method_codes"] = meas_type
+            MeasRec["quality"] = 'g'
+            if 'std' in rec[0]:
+                MeasRec["standard"] = 's'
+            else:
+                MeasRec["standard"] = 'u'
+            MeasRec["treat_step_num"] = '1'
+            # print MeasRec['treat_temp']
+            MeasRecs.append(MeasRec)
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    # create MagIC tables
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+    # write MagIC tables to file
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    meas_file = con.tables['measurements'].write_magic_file(
+        custom_name=meas_file)
+    return True, meas_file
+
+
+### s_magic conversion
 
 def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
             coord_type="s", sigma=False, samp_con="1", Z=1, specnum=0,
@@ -2973,7 +3581,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
     return True, anisfile
 
 
-# Utrecht conversion
+### Utrecht conversion
 
 def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",

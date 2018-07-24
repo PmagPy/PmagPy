@@ -105,9 +105,8 @@ class TestSioMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_sio_magic_no_files(self):
-        program_ran, error_message = sio_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag_file field is required option')
+        with self.assertRaises(TypeError):
+            convert.sio()
 
     def test_sio_magic_success(self):
         options = {}
@@ -115,7 +114,7 @@ class TestSioMagic(unittest.TestCase):
                                 'sio_magic')
         options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
@@ -130,7 +129,7 @@ class TestSioMagic(unittest.TestCase):
         options['mag_file'] = os.path.join('sio_af_example.dat')
         options['meas_file'] = os.path.join('sio_af_example.magic')
         options['dir_path'] = dir_path
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(os.path.join(dir_path, options['meas_file'])))
@@ -146,7 +145,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4'
-        program_ran, error_message = sio_magic.convert(**options)
+        program_ran, error_message = convert.sio(**options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
 
@@ -159,7 +158,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4-2'
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(file_name, meas_file)
 
@@ -173,7 +172,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = 4
-        program_ran, error_message = sio_magic.convert(**options)
+        program_ran, error_message = convert.sio(**options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, '4 is not a valid coil specification')
 
@@ -186,7 +185,7 @@ class TestSioMagic(unittest.TestCase):
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = '1'
-        program_ran, file_name = sio_magic.convert(**options)
+        program_ran, file_name = convert.sio(**options)
         self.assertTrue(program_ran)
         self.assertEqual(file_name, meas_file)
 
