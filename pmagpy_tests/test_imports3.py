@@ -830,13 +830,13 @@ class TestUtrechtMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_utrecht_with_no_files(self):
-        program_ran, error_message = utrecht_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'You must provide a Utrecht format file')
+        with self.assertRaises(TypeError):
+            convert.utrecht()
+
 
     def test_utrecht_success(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'Utrecht_Example.af'}
-        program_ran, outfile = utrecht_magic.convert(**options)
+        program_ran, outfile = convert.utrecht(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
