@@ -3087,7 +3087,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                     utc_dt = local_dt.astimezone(pytz.utc)
                     MeasRec["timestamp"] = utc_dt.strftime(
                         "%Y-%m-%dT%H:%M:%S")+"Z"
-                    if inst == "":
+                    if instrument == "":
                         if code3[1][0] == 'C':
                             instcode = 'SIO-bubba'
                         if code3[1][0] == 'G':
@@ -3133,7 +3133,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                     utc_dt = local_dt.astimezone(pytz.utc)
                     MeasRec["timestamp"] = utc_dt.strftime(
                         "%Y-%m-%dT%H:%M:%S")+"Z"
-                    if inst == "":
+                    if instrument == "":
                         if code1[6][0] == 'C':
                             instcode = 'SIO-bubba'
                         if code1[6][0] == 'G':
