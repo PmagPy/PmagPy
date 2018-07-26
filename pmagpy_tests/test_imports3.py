@@ -394,7 +394,7 @@ class TestIodpDscrMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
-        program_ran, error_message = iodp_dscr_magic.convert()
+        program_ran, error_message = convert.iodp_dscr()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
@@ -406,7 +406,7 @@ class TestIodpDscrMagic(unittest.TestCase):
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
-        program_ran, outfile = iodp_dscr_magic.convert(**options)
+        program_ran, outfile = convert.iodp_dscr(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, 'measurements.txt')
 
@@ -419,7 +419,7 @@ class TestIodpDscrMagic(unittest.TestCase):
         options['csv_file'] = os.path.join('data_files', 'UTESTA', 'SRM_data', 'srmdiscrete-XXX-UTEST-A.csv')
         options['meas_file'] = os.path.join(WD, 'data_files', 'custom_measurements.txt')
         options['samp_file'] = 'custom_samples.txt'
-        program_ran, outfile = iodp_dscr_magic.convert(**options)
+        program_ran, outfile = convert.iodp_dscr(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'custom_measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)

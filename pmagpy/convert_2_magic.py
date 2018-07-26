@@ -2457,6 +2457,265 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
 
     return True, meas_file
 
+
+### IODP_dscr_magic conversion
+
+def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
+              meas_file="measurements.txt", spec_file="specimens.txt",
+              samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+              lat='', lon='', volume=2.5**3, noave=False):
+    # initialize defaults
+    version_num = pmag.get_version()
+    # format variables
+    if not input_dir_path:
+        input_dir_path = dir_path
+    output_dir_path = dir_path  # rename dir_path after input_dir_path is set
+    # default volume is a 2.5cm cube
+    volume = volume * 1e-6
+    if csv_file == "":
+        # read in list of files to import
+        filelist = os.listdir(input_dir_path)
+    else:
+        csv_file = os.path.join(input_dir_path, csv_file)
+        filelist = [csv_file]
+
+    # parsing the data
+    file_found, citations = False, "This Study"
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    for fin in filelist:  # parse each file
+        if fin[-3:].lower() == 'csv':
+            file_found = True
+            print('processing: ', fin)
+            infile = open(fin, 'r')
+            indata = infile.readlines()
+            infile.close()
+            keys = indata[0].replace('\n', '').split(
+                ',')  # splits on underscores
+            keys = [k.strip('"') for k in keys]
+            interval_key = "Offset (cm)"
+            if "Treatment Value (mT or \xc2\xb0C)" in keys:
+                demag_key = "Treatment Value (mT or \xc2\xb0C)"
+            elif "Treatment Value" in keys:
+                demag_key = "Treatment Value"
+            elif "Treatment Value (mT or &deg;C)" in keys:
+                demag_key = "Treatment Value (mT or &deg;C)"
+            elif "Demag level (mT)" in keys:
+                demag_key = "Demag level (mT)"
+            else:
+                print("couldn't find demag level")
+            if "Treatment type" in keys:
+                treatment_type = "Treatment type"
+            elif "Treatment Type" in keys:
+                treatment_type = "Treatment Type"
+            else:
+                treatment_type = ""
+            run_key = "Test No."
+            if "Inclination background + tray corrected  (deg)" in keys:
+                inc_key = "Inclination background + tray corrected  (deg)"
+            elif "Inclination background &amp; tray corrected (deg)" in keys:
+                inc_key = "Inclination background &amp; tray corrected (deg)"
+            elif "Inclination background & tray corrected (deg)" in keys:
+                inc_key = "Inclination background & tray corrected (deg)"
+            elif "Inclination background & drift corrected (deg)" in keys:
+                inc_key = "Inclination background & drift corrected (deg)"
+            else:
+                print("couldn't find inclination")
+            if "Declination background + tray corrected (deg)" in keys:
+                dec_key = "Declination background + tray corrected (deg)"
+            elif "Declination background &amp; tray corrected (deg)" in keys:
+                dec_key = "Declination background &amp; tray corrected (deg)"
+            elif "Declination background & tray corrected (deg)" in keys:
+                dec_key = "Declination background & tray corrected (deg)"
+            elif "Declination background & drift corrected (deg)" in keys:
+                dec_key = "Declination background & drift corrected (deg)"
+            else:
+                print("couldn't find declination")
+            if "Intensity background + tray corrected  (A/m)" in keys:
+                int_key = "Intensity background + tray corrected  (A/m)"
+            elif "Intensity background &amp; tray corrected (A/m)" in keys:
+                int_key = "Intensity background &amp; tray corrected (A/m)"
+            elif "Intensity background & tray corrected (A/m)" in keys:
+                int_key = "Intensity background & tray corrected (A/m)"
+            elif "Intensity background & drift corrected (A/m)" in keys:
+                int_key = "Intensity background & drift corrected (A/m)"
+            else:
+                print("couldn't find magnetic moment")
+            type_val = "Type"
+            sect_key = "Sect"
+            half_key = "A/W"
+# need to add volume_key to LORE format!
+            if "Sample volume (cm^3)" in keys:
+                volume_key = "Sample volume (cm^3)"
+            elif "Sample volume (cc)" in keys:
+                volume_key = "Sample volume (cc)"
+            elif "Sample volume (cm&sup3;)" in keys:
+                volume_key = "Sample volume (cm&sup3;)"
+            elif "Sample volume (cm\xc2\xb3)" in keys:
+                volume_key = "Sample volume (cm\xc2\xb3)"
+            elif "Sample volume (cm{})".format(chr(0x00B2)) in keys:
+                volume_key = "Sample volume (cm{})".format(chr(0x00B2))
+            elif "Sample volume (cm\xb3)" in keys:
+                volume_key = "Sample volume (cm\xb3)"
+            else:
+                volume_key = ""
+            for line in indata[1:]:
+                InRec = {}
+                MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+                for k in range(len(keys)):
+                    InRec[keys[k]] = line.split(',')[k].strip('"')
+                inst = "IODP-SRM"
+                expedition = InRec['Exp']
+                location = InRec['Site']+InRec['Hole']
+                # maintain consistency with er_samples convention of using top interval
+                offsets = InRec[interval_key].split('.')
+                if len(offsets) == 1:
+                    offset = int(offsets[0])
+                else:
+                    offset = int(offsets[0])-1
+                # interval=str(offset+1)# maintain consistency with er_samples convention of using top interval
+                # maintain consistency with er_samples convention of using top interval
+                interval = str(offset)
+                specimen = expedition+'-'+location+'-' + \
+                    InRec['Core']+InRec[type_val]+"-"+InRec[sect_key] + \
+                    '-'+InRec[half_key]+'-'+str(InRec[interval_key])
+                sample = expedition+'-'+location + \
+                    '-'+InRec['Core']+InRec[type_val]
+                site = expedition+'-'+location
+                if volume_key in list(InRec.keys()):
+                    volume = InRec[volume_key]
+
+                if not InRec[dec_key].strip(""" " ' """) or not InRec[inc_key].strip(""" " ' """):
+                    print("No dec or inc found for specimen %s, skipping" % specimen)
+
+                if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+                    SpecRec['specimen'] = specimen
+                    SpecRec['sample'] = sample
+                    SpecRec['volume'] = volume
+                    SpecRec['citations'] = citations
+                    SpecRecs.append(SpecRec)
+                if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+                    SampRec['sample'] = sample
+                    SampRec['site'] = site
+                    SampRec['citations'] = citations
+                    SampRec['azimuth'] = '0'
+                    SampRec['dip'] = '0'
+                    SampRec['method_codes'] = 'FS-C-DRILL-IODP:SO-V'
+                    SampRecs.append(SampRec)
+                if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+                    SiteRec['site'] = site
+                    SiteRec['location'] = location
+                    SiteRec['citations'] = citations
+                    SiteRec['lat'] = lat
+                    SiteRec['lon'] = lon
+                    SiteRecs.append(SiteRec)
+                if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+                    LocRec['location'] = location
+                    LocRec['citations'] = citations
+                    LocRec['expedition_name'] = expedition
+                    LocRec['lat_n'] = lat
+                    LocRec['lon_e'] = lon
+                    LocRec['lat_s'] = lat
+                    LocRec['lon_w'] = lon
+                    LocRecs.append(LocRec)
+
+                MeasRec['specimen'] = specimen
+# set up measurement record - default is NRM
+                MeasRec['software_packages'] = version_num
+                MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+                MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+                MeasRec["treat_ac_field"] = '0'
+                MeasRec["treat_dc_field"] = '0'
+                MeasRec["treat_dc_field_phi"] = '0'
+                MeasRec["treat_dc_field_theta"] = '0'
+                MeasRec["quality"] = 'g'  # assume all data are "good"
+                MeasRec["standard"] = 'u'  # assume all data are "good"
+                MeasRec["dir_csd"] = '0'  # assume all data are "good"
+                MeasRec["method_codes"] = 'LT-NO'
+                sort_by = 'treat_ac_field'  # set default to AF demag
+                if treatment_type in list(InRec.keys()) and InRec[treatment_type] != "":
+                    if "AF" in InRec[treatment_type].upper():
+                        MeasRec['method_codes'] = 'LT-AF-Z'
+                        inst = inst+':IODP-SRM-AF'  # measured on shipboard in-line 2G AF
+                        treatment_value = float(
+                            InRec[demag_key].strip('"'))*1e-3  # convert mT => T
+                        MeasRec["treat_ac_field"] = str(
+                            treatment_value)  # AF demag in treat mT => T
+                    elif "T" in InRec[treatment_type].upper():
+                        MeasRec['method_codes'] = 'LT-T-Z'
+                        inst = inst+':IODP-TDS'  # measured on shipboard Schonstedt thermal demagnetizer
+                        treatment_value = float(
+                            InRec[demag_key].strip('"'))+273  # convert C => K
+                        MeasRec["treat_temp"] = str(treatment_value)
+                    elif "Lowrie" in InRec['Comments']:
+                        MeasRec['method_codes'] = 'LP-IRM-3D'
+                        treatment_value = float(
+                            InRec[demag_key].strip('"'))+273.  # convert C => K
+                        MeasRec["treat_temp"] = str(treatment_value)
+                        MeasRec["treat_ac_field"] = "0"
+                        sort_by = 'treat_temp'
+                    elif 'Isothermal' in InRec[treatment_type]:
+                        MeasRec['method_codes'] = 'LT-IRM'
+                        treatment_value = float(
+                            InRec[demag_key].strip('"'))*1e-3  # convert mT => T
+                        MeasRec["treat_dc_field"] = str(treatment_value)
+                        MeasRec["treat_ac_field"] = "0"
+                        sort_by = 'treat_dc_field'
+                # Assume AF if there is no Treatment typ info
+                elif InRec[demag_key] != "0" and InRec[demag_key] != "":
+                    MeasRec['method_codes'] = 'LT-AF-Z'
+                    inst = inst+':IODP-SRM-AF'  # measured on shipboard in-line 2G AF
+                    treatment_value = float(
+                        InRec[demag_key].strip('"'))*1e-3  # convert mT => T
+                    # AF demag in treat mT => T
+                    MeasRec["treat_ac_field"] = treatment_value
+                MeasRec["standard"] = 'u'  # assume all data are "good"
+                try:
+                    vol = float(volume)
+                except ValueError:
+                    print('-W- No volume information provided, guessing 2.5cm cube')
+                    vol = (2.5**3)*1e-6  # default volume is a 2.5cm cube
+                if run_key in list(InRec.keys()):
+                    run_number = InRec[run_key]
+                    MeasRec['external_database_ids'] = {'LIMS': run_number}
+                else:
+                    MeasRec['external_database_ids'] = ""
+                MeasRec['description'] = 'sample orientation: ' + \
+                    InRec['Sample orientation']
+                MeasRec['dir_inc'] = InRec[inc_key].strip('"')
+                MeasRec['dir_dec'] = InRec[dec_key].strip('"')
+                intens = InRec[int_key].strip('"')
+                # convert intensity from A/m to Am^2 using vol
+                MeasRec['magn_moment'] = '%8.3e' % (float(intens)*vol)
+                MeasRec['instrument_codes'] = inst
+                MeasRec['treat_step_num'] = '1'
+                MeasRec['meas_n_orient'] = ''
+                MeasRecs.append(MeasRec)
+    if not file_found:
+        print("No .csv files were found")
+        return False, "No .csv files were found"
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasSort = sorted(MeasRecs, key=lambda x: (
+        x['specimen'], float(x[sort_by])))
+    MeasFixed = pmag.measurements_methods3(MeasSort, noave)
+    MeasOuts, keys = pmag.fillkeys(MeasFixed)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+
+    return True, meas_file
+
+
+
 ### IODP_srm_magic conversion
 
 def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
