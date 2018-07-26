@@ -442,13 +442,12 @@ class TestPmdMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_pmd_with_no_files(self):
-        program_ran, error_message = pmd_magic.convert()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag_file field is required option')
+        with self.assertRaises(TypeError):
+            convert.pmd()
 
     def test_pmd_success(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
-        program_ran, outfile = pmd_magic.convert(**options)
+        program_ran, outfile = convert.pmd(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
@@ -461,7 +460,7 @@ class TestPmdMagic(unittest.TestCase):
         options['specnum'] = 2
         options['location'] = 'place'
         options['meas_file'] = 'custom_meas.txt'
-        program_ran, outfile = pmd_magic.convert(**options)
+        program_ran, outfile = convert.pmd(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'custom_meas.txt'))
         loc_df = nb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
