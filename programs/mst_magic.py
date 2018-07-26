@@ -22,6 +22,7 @@ def main():
         -fsa SFILE: name with sample, site, location information
         -F FILE: specify output file, default is measurements.txt
         -dc H: specify applied field during measurement, default is 0.5 T
+        -DM NUM: output to MagIC data model 2.5 or 3, default 3
         -syn  : This is a synthetic specimen and has no sample/site/location information
         -spn SPEC: specimen name
         -spc NUM : specify number of characters to designate a  specimen, default = 0
@@ -72,14 +73,15 @@ def main():
     if "-ncn" in args:
         ind = args.index("-ncn")
         samp_con = sys.argv[ind+1]
+    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
     mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
-        user, specnum, samp_con, labfield, location, syn)
+        user, specnum, samp_con, labfield, location, syn, data_model_num)
 
 
 def mst(infile, specimen_name, dir_path=".", input_dir_path="",
         meas_file="measurements.txt", samp_infile="samples.txt",
         user="", specnum=0, samp_con="1", labfield=0.5,
-        location='', syn=False):
+        location='', syn=False, data_model_num=3):
 
     # deal with input files
     if not input_dir_path:
@@ -125,72 +127,112 @@ def mst(infile, specimen_name, dir_path=".", input_dir_path="",
     MagRecs, specs = [], []
     version_num = pmag.get_version()
 
+    if data_model_num == 2:
+        loc_col = "er_location_name"
+        software_col = "magic_software_packages"
+        treat_dc_col = "treatment_dc_field"
+        meas_temp_col = "measurement_temp"
+        meth_codes_col = "magic_method_codes"
+        meas_magnitude_col = "measurement_magnitude"
+        spec_col = "er_specimen_name"
+        samp_col = "er_sample_name"
+        site_col = "er_site_name"
+        synthetic_name_col = "er_synthetic_name"
+        inst_col = "magic_instrument_codes"
+        analyst_col = "er_analyst_mail_names"
+        citation_col = "er_citation_names"
+        quality_col = "measurement_flag"
+        meas_name_col = "measurement_number"
+        experiment_col = "magic_experiment_name"
+        meas_file_type = "magic_measurements"
+        if meas_file == "measurements.txt":
+            meas_file = "magic_measurements.txt"
+    else:
+        loc_col = "location"
+        software_col = "software_packages"
+        treat_dc_col = "treat_dc_field"
+        meas_temp_col = "meas_temp"
+        meth_codes_col = "method_codes"
+        meas_magnitude_col = "magn_moment" # but this may be wrong...
+        spec_col = "specimen"
+        samp_col = "sample"
+        site_col = "site"
+        synthetic_name_col = "specimen"
+        inst_col = "instrument_codes"
+        analyst_col = "analysts"
+        citation_col = "citations"
+        quality_col = "quality"
+        meas_name_col = "measurement"
+        experiment_col = "experiment"
+        meas_file_type = "measurements"
+
     T0 = float(data[0].split()[0])
     for line in data:
         instcode = ""
         if len(line) > 1:
             MagRec = {}
             if syn == 0:
-                MagRec['er_location_name'] = location
-            MagRec['magic_software_packages'] = version_num
-            MagRec["treatment_dc_field"] = labfield
+                MagRec[loc_col] = location
+            MagRec[software_col] = version_num
+            MagRec[treat_dc_col] = labfield
             rec = line.split()
             T = float(rec[0])
-            MagRec["measurment_temp"] = '%8.3e' % (
+            MagRec[meas_temp_col] = '%8.3e' % (
                 float(rec[0])+273.)  # temp in kelvin
             if T > T0:
-                MagRec["magic_method_codes"] = 'LP-MW-I'
+                MagRec[meth_codes_col] = 'LP-MW-I'
             elif T < T0:
-                MagRec["magic_method_codes"] = 'LP-MC-I'
+                MagRec[meth_codes_col] = 'LP-MC-I'
                 T0 = T
             else:
                 print('skipping repeated temperature step')
-                MagRec["magic_method_codes"] = ''
+                MagRec[meth_codes_col] = ''
             T0 = T
-            MagRec["measurement_magnitude"] = '%10.3e' % (
+            MagRec[meas_magnitude_col] = '%10.3e' % (
                 float(rec[1]))  # uncalibrated magnitude
             if syn == 0:
-                MagRec["er_specimen_name"] = specimen_name
-                MagRec["er_site_name"] = ""
+                MagRec[spec_col] = specimen_name
+                MagRec[site_col] = ""
                 if specnum != 0:
-                    MagRec["er_sample_name"] = specimen_name[:specnum]
+                    MagRec[samp_col] = specimen_name[:specnum]
                 else:
-                    MagRec["er_sample_name"] = specimen_name
+                    MagRec[samp_col] = specimen_name
                 if Samps:
                     for samp in Samps:
-                        if samp["er_sample_name"] == MagRec["er_sample_name"]:
-                            MagRec["er_location_name"] = samp["er_location_name"]
-                            MagRec["er_site_name"] = samp["er_site_name"]
+                        if samp[samp_col] == MagRec[samp_col]:
+                            MagRec[loc_col] = samp[loc_col]
+                            MagRec[site_col] = samp[site_col]
                             break
                 elif int(samp_con) != 6:
                     site = pmag.parse_site(
-                        MagRec['er_sample_name'], samp_con, Z)
-                    MagRec["er_site_name"] = site
-                if MagRec['er_site_name'] == "":
+                        MagRec[samp_col], samp_con, Z)
+                    MagRec[site_col] = site
+                if MagRec[site_col] == "":
                     print('No site name found for: ',
-                          MagRec['er_specimen_name'], MagRec['er_sample_name'])
-                if MagRec["er_location_name"] == "":
-                    print('no location name for: ', MagRec["er_specimen_name"])
-            else:
-                MagRec["er_synthetic_name"] = specimen_name
-                MagRec["er_location_name"] = ""
-                MagRec["er_sample_name"] = ""
-                MagRec["er_site_name"] = ""
-                MagRec["er_specimen_name"] = ""
-            MagRec["magic_instrument_codes"] = instcode
-            MagRec["er_analyst_mail_names"] = user
-            MagRec["er_citation_names"] = citation
-            MagRec["measurement_flag"] = 'g'
-            MagRec["measurement_number"] = str(measnum)
+                          MagRec[spec_col], MagRec[samp_col])
+                if not MagRec[loc_col]:
+                    print('no location name for: ', MagRec[spec_col])
+            else: # synthetic
+                MagRec[loc_col] = ""
+                MagRec[samp_col] = ""
+                MagRec[site_col] = ""
+                MagRec[spec_col] = ""
+                MagRec[synthetic_name_col] = specimen_name
+
+            MagRec[inst_col] = instcode
+            MagRec[analyst_col] = user
+            MagRec[citation_col] = citation
+            MagRec[quality_col] = 'g'
+            MagRec[meas_name_col] = str(measnum)
             measnum += 1
             MagRecs.append(MagRec)
     for rec in MagRecs:  # sort out the measurements by experiment type
-        rec['magic_experiment_name'] = specimen_name
-        if rec['magic_method_codes'] == 'LP-MW-I':
-            rec["magic_experiment_name"] = specimen_name+':LP-MW-I:Curie'
-        elif rec['magic_method_codes'] == 'LP-MC-I':
-            rec["magic_experiment_name"] = specimen_name+':LP-MC-I'
-    pmag.magic_write(meas_file, MagRecs, 'magic_measurements')
+        rec[experiment_col] = specimen_name
+        if rec[meth_codes_col] == 'LP-MW-I':
+            rec[experiment_col] = specimen_name+':LP-MW-I:Curie'
+        elif rec[meth_codes_col] == 'LP-MC-I':
+            rec[experiment_col] = specimen_name+':LP-MC-I'
+    pmag.magic_write(meas_file, MagRecs, meas_file_type)
     print("results put in ", meas_file)
 
 
