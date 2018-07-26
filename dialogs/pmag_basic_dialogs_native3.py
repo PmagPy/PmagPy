@@ -1886,7 +1886,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             options['loc_file'] = loc_outfile
             COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, particulars, spc, replicate, ID, loc_name, lat, lon)
 
-            program_ran, error_message = pmd_magic.convert(**options)
+            program_ran, error_message = convert.pmd(**options)
             if not program_ran:
                 pw.simple_warning(error_message)
                 return False
