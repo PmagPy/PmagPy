@@ -435,7 +435,8 @@ class TestPmdMagic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt',
+                    'custom_meas.txt']
         pmag.remove_files(filelist, WD)
         pmag.remove_files(filelist, ".")
         os.chdir(WD)
@@ -453,6 +454,18 @@ class TestPmdMagic(unittest.TestCase):
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
+
+    def test_pmd_options(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
+        options['lat'], options['lon'] = 5, 10
+        options['specnum'] = 2
+        options['location'] = 'place'
+        options['meas_file'] = 'custom_meas.txt'
+        program_ran, outfile = pmd_magic.convert(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'custom_meas.txt'))
+        loc_df = nb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
+        self.assertEqual(loc_df.df.index.values[0], 'place')
 
 
 class TestJr6TxtMagic(unittest.TestCase):
