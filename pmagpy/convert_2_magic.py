@@ -2738,7 +2738,6 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
         new_file.close()
         return new_filename
 
-
     # initialize some stuff
     demag = "N"
     version_num = pmag.get_version()
@@ -3323,6 +3322,223 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
 
     return (True, meas_file)
 
+
+### JR6_txt_magic conversion
+
+def jr6_txt(mag_file, dir_path=".", input_dir_path="",
+            meas_file="measurements.txt", spec_file="specimens.txt",
+            samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+            user="", specnum=1, samp_con='1', location='unknown', lat='', lon='',
+            noave=False, volume=2.5, timezone="UTC", meth_code="LP-NO"):
+
+    version_num = pmag.get_version()
+    if not input_dir_path:
+        mag_file = pmag.resolve_file_name(mag_file, dir_path)
+        input_dir_path = os.path.split(mag_file)[0]
+    output_dir_path = dir_path
+    specnum = - int(specnum)
+    samp_con = str(samp_con)
+    volume = float(volume) * 1e-6
+
+    # format variables
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    if samp_con.startswith("4"):
+        if "-" not in samp_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    elif samp_con.startswith("7"):
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 1
+
+    # create data holders
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+
+    data = pmag.open_file(mag_file)
+    # remove garbage/blank lines
+    data = [i for i in data if len(i) >= 5]
+    if not len(data):
+        print('No data')
+        return
+
+    n = 0
+    end = False
+    # loop through records
+    while not end:
+        first_line = data[n].split()
+        sampleName = first_line[0]
+        demagLevel = first_line[2]
+        date = first_line[3] + ":0:0:0"
+        n += 2
+        third_line = data[n].split()
+        if not third_line[0].startswith('SPEC.ANGLES'):
+            print('third line of a block should start with SPEC.ANGLES')
+            print(third_line)
+            return
+        specimenAngleDec = third_line[1]
+        specimenAngleInc = third_line[2]
+        n += 4
+        while not data[n].startswith('MEAN'):
+            n += 1
+        mean_line = data[n]
+        Mx = mean_line[1]
+        My = mean_line[2]
+        Mz = mean_line[3]
+        n += 1
+        precision_line = data[n].split()
+        if not precision_line[0].startswith('Modulus'):
+            print('precision line should start with "Modulus"')
+            return
+        splitExp = precision_line[2].split('A')
+        intensityVolStr = precision_line[1] + splitExp[0]
+        intensityVol = float(intensityVolStr)
+        # check and see if Prec is too big and messes with the parcing.
+        precisionStr = ''
+        if len(precision_line) == 6:  # normal line
+            precisionStr = precision_line[5][0:-1]
+        else:
+            precisionStr = precision_line[4][0:-1]
+
+        precisionPer = float(precisionStr)
+        precision = intensityVol * precisionPer/100
+
+        while not data[n].startswith('SPEC.'):
+            n += 1
+        specimen_line = data[n].split()
+        specimenDec = specimen_line[2]
+        specimenInc = specimen_line[3]
+        n += 1
+        geographic_line = data[n]
+        if not geographic_line.startswith('GEOGR'):
+            geographic_dec = ''
+            geographic_inc = ''
+        else:
+            geographic_line = geographic_line.split()
+            geographicDec = geographic_line[1]
+            geographicInc = geographic_line[2]
+        # Add data to various MagIC data tables.
+        specimen = sampleName
+        if specnum != 0:
+            sample = specimen[:specnum]
+        else:
+            sample = specimen
+        site = pmag.parse_site(sample, samp_con, Z)
+
+        MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+
+        if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+            SpecRec['specimen'] = specimen
+            SpecRec['sample'] = sample
+            SpecRec["citations"] = "This study"
+            SpecRec["analysts"] = user
+            SpecRec['volume'] = volume
+            SpecRecs.append(SpecRec)
+        if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+            SampRec['sample'] = sample
+            SampRec['site'] = site
+            SampRec["citations"] = "This study"
+            SampRec["analysts"] = user
+            SampRec['azimuth'] = specimenAngleDec
+            # convert to magic orientation
+            sample_dip = str(float(specimenAngleInc)-90.0)
+            SampRec['dip'] = sample_dip
+            SampRec['method_codes'] = meth_code
+            SampRecs.append(SampRec)
+        if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+            SiteRec['site'] = site
+            SiteRec['location'] = location
+            SiteRec["citations"] = "This study"
+            SiteRec["analysts"] = user
+            SiteRec['lat'] = lat
+            SiteRec['lon'] = lon
+            SiteRecs.append(SiteRec)
+        if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+            LocRec['location'] = location
+            LocRec["citations"] = "This study"
+            LocRec["analysts"] = user
+            LocRec['lat_n'] = lat
+            LocRec['lon_e'] = lon
+            LocRec['lat_s'] = lat
+            LocRec['lon_w'] = lon
+            LocRecs.append(LocRec)
+
+        local = pytz.timezone(timezone)
+        naive = datetime.datetime.strptime(date, "%m-%d-%Y:%H:%M:%S")
+        local_dt = local.localize(naive, is_dst=None)
+        utc_dt = local_dt.astimezone(pytz.utc)
+        timestamp = utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+        MeasRec["specimen"] = specimen
+        MeasRec["timestamp"] = timestamp
+        MeasRec['description'] = ''
+        MeasRec["citations"] = "This study"
+        MeasRec['software_packages'] = version_num
+        MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["quality"] = 'g'
+        MeasRec["standard"] = 'u'
+        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_ac_field"] = '0'
+        if demagLevel == 'NRM':
+            meas_type = "LT-NO"
+        elif demagLevel[0] == 'A':
+            if demagLevel[:2] == 'AD':
+                treat = float(demagLevel[2:])
+            else:
+                treat = float(demagLevel[1:])
+            meas_type = "LT-AF-Z"
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif demagLevel[0] == 'T':
+            meas_type = "LT-T-Z"
+            treat = float(demagLevel[1:])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        else:
+            print("measurement type unknown", demagLevel)
+            return False, "measurement type unknown"
+
+        MeasRec["magn_moment"] = str(intensityVol*volume)  # Am^2
+        MeasRec["magn_volume"] = intensityVolStr  # A/m
+        MeasRec["dir_dec"] = specimenDec
+        MeasRec["dir_inc"] = specimenInc
+        MeasRec['method_codes'] = meas_type
+        MeasRecs.append(MeasRec)
+
+        # ignore all the rest of the special characters. Some data files not consistantly formatted.
+        n += 1
+        while ((len(data[n]) <= 5 and data[n] != '') or data[n].startswith('----')):
+            n += 1
+            if n >= len(data):
+                break
+        if n >= len(data):
+            # we're done!
+            end = True
+
+        # end of data while loop
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+
+    return True, meas_file
 
 
 
