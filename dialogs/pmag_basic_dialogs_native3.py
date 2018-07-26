@@ -2112,16 +2112,16 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 pw.simple_warning("You must provide a .txt format file")
                 return False
             if input_format == 'txt': # .txt format
-                program_ran, error_message = jr6_txt_magic.convert(**options)
+                program_ran, error_message = convert.jr6_txt(**options)
                 if program_ran:
-                    COMMAND = "options={}\njr6_txt_magic.convert(**options)".format(str(options))
+                    COMMAND = "options={}\nconvert.jr6_txt(**options)".format(str(options))
                     pw.close_window(self, COMMAND, meas_file)
                 else:
                     pw.simple_warning(error_message)
             else:
-                program_ran, error_message = jr6_jr6_magic.convert(**options)
+                program_ran, error_message = convert.jr6_jr6(**options)
                 if program_ran:
-                    COMMAND = "options={}\njr6_jr6_magic.convert(**options)".format(str(options))
+                    COMMAND = "options={}\nconvert.jr6_jr6(**options)".format(str(options))
                     pw.close_window(self, COMMAND, meas_file)
                 else:
                     pw.simple_warning(error_message)
