@@ -811,6 +811,29 @@ class TestHujiMagic(unittest.TestCase):
         self.assertEqual(error, "Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
 
 
+class TestHujiSampleMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['Massada_AF_HUJI_new_format.magic']
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'HUJI_magic')
+        pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'Massada_AF_HUJI_new_format.magic']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_success(self):
+        res, outfile = convert.huji_sample("magdelkrum_datafile.txt",
+                            dir_path=os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic'))
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic', 'samples.txt'))
+
+
 
 
 class TestLdeoMagic(unittest.TestCase):

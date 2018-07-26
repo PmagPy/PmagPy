@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
-import pmagpy.pmag as pmag
+from pmagpy import pmag
+from pmagpy import convert_2_magic as convert
 
 
 def main():
@@ -90,116 +90,7 @@ def main():
     else:
         ignore = 1
 
-    convert(orient_file, meths, location_name, samp_con, Z, ignore)
-
-
-def convert(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown',
-            samp_con="1", Z=1, ignore_dip=True, data_model_num=3,
-            samp_file="samples.txt", site_file="sites.txt"):
-    version_num = pmag.get_version()
-    if data_model_num == 2:
-        loc_col = "er_location_name"
-        site_col = "er_site_name"
-        samp_col = "er_sample_name"
-        citation_col = "er_citation_names"
-        class_col = "site_class"
-        lithology_col = "site_lithology"
-        definition_col = "site_definition"
-        type_col = "site_type"
-        sample_bed_dip_direction_col = "sample_bed_dip_direction"
-        sample_bed_dip_col = "sample_bed_dip"
-        site_bed_dip_direction_col = "site_bed_dip_direction"
-        site_bed_dip_col = "site_bed_dip"
-        sample_dip_col = "sample_dip"
-        sample_az_col = "sample_azimuth"
-        sample_lat_col = "sample_lat"
-        sample_lon_col = "sample_lon"
-        site_lat_col = "site_lat"
-        site_lon_col = "site_lon"
-        meth_col = "magic_method_codes"
-        software_col = "magic_software_packages"
-    else:
-        loc_col = "location"
-        site_col = "site"
-        samp_col = "sample"
-        citation_col = "citations"
-        class_col = "class"
-        lithology_col = "lithology"
-        definition_col = "definition"
-        type_col = "type"
-        sample_bed_dip_direction_col = 'bed_dip_direction'
-        sample_bed_dip_col = 'bed_dip'
-        site_bed_dip_direction_col = 'bed_dip_direction'
-        site_bed_dip_col = "bed_dip"
-        sample_dip_col = "dip"
-        sample_az_col = "azimuth"
-        sample_lat_col = "lat"
-        sample_lon_col = "lon"
-        site_lat_col = "lat"
-        site_lon_col = "lon"
-        meth_col = "method_codes"
-        software_col = "software_packages"
-    #
-    # read in file to convert
-    #
-    with open(orient_file, 'r') as azfile:
-        AzDipDat = azfile.readlines()
-    SampOut = []
-    SiteOut = []
-    for line in AzDipDat[1:]:
-        orec = line.split()
-        if len(orec) > 1:
-            labaz, labdip = pmag.orient(float(orec[1]), float(orec[2]), '3')
-            bed_dip_dir = (orec[3])
-            bed_dip = (orec[4])
-            SampRec = {}
-            SiteRec = {}
-            SampRec[loc_col] = location_name
-            SampRec[citation_col] = "This study"
-            SiteRec[loc_col] = location_name
-            SiteRec[citation_col] = "This study"
-            SiteRec[class_col] = ""
-            SiteRec[lithology_col] = ""
-            SiteRec[type_col] = ""
-            SiteRec[definition_col] = "s"
-    #
-    # parse information common to all orientation methods
-    #
-            SampRec[samp_col] = orec[0]
-            SampRec[sample_bed_dip_direction_col] = orec[3]
-            SampRec[sample_bed_dip_col] = orec[4]
-            SiteRec[site_bed_dip_direction_col] = orec[3]
-            SiteRec[site_bed_dip_col] = orec[4]
-            if not ignore_dip:
-                SampRec[sample_dip_col] = '%7.1f' % (labdip)
-                SampRec[sample_az_col] = '%7.1f' % (labaz)
-            else:
-                SampRec[sample_dip_col] = '0'
-                SampRec[sample_az_col] = '0'
-            SampRec[sample_lat_col] = orec[5]
-            SampRec[sample_lon_col] = orec[6]
-            SiteRec[site_lat_col] = orec[5]
-            SiteRec[site_lon_col] = orec[6]
-            SampRec[meth_col] = meths
-            # parse out the site name
-            site = pmag.parse_site(orec[0], samp_con, Z)
-            SampRec[site_col] = site
-            SampRec[software_col] = version_num
-            SiteRec[site_col] = site
-            SiteRec[software_col] = version_num
-            SampOut.append(SampRec)
-            SiteOut.append(SiteRec)
-    if data_model_num == 2:
-        pmag.magic_write(samp_file, SampOut, "er_samples")
-        pmag.magic_write(site_file, SiteOut, "er_sites")
-    else:
-        pmag.magic_write(samp_file, SampOut, "samples")
-        pmag.magic_write(site_file, SiteOut, "sites")
-
-    print("Sample info saved in ", samp_file)
-    print("Site info saved in ", site_file)
-
-
+    convert.huji_sample(orient_file, meths, location_name, samp_con, Z, ignore)
 
 
 
