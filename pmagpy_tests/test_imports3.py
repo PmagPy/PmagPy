@@ -332,7 +332,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
-        program_ran, error_message = iodp_srm_magic.convert()
+        program_ran, error_message = convert.iodp_srm()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
@@ -348,7 +348,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         for f in files:
             if f.endswith('csv') and 'summary' not in f and 'discrete' not in f and 'sample' not in f:
                 options['csv_file'] = f
-                program_ran, outfile = iodp_srm_magic.convert(**options)
+                program_ran, outfile = convert.iodp_srm(**options)
                 meas_df = nb.MagicDataFrame(pmag.resolve_file_name(outfile, dir_path))
                 self.assertTrue(len(meas_df.df) > 0)
 
@@ -361,7 +361,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         options['dir_path'] = dir_path
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
-        program_ran, outfile = iodp_srm_magic.convert(**options)
+        program_ran, outfile = convert.iodp_srm(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join('measurements.txt'))
         meas_df = nb.MagicDataFrame(os.path.join(dir_path, outfile))
@@ -375,7 +375,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         options['dir_path'] = WD #dir_path
         options['input_dir_path'] = "fake/path"
         options['csv_file'] = os.path.join(dir_path, 'srmsection-XXX-UTEST-A.csv')
-        program_ran, outfile = iodp_srm_magic.convert(**options)
+        program_ran, outfile = convert.iodp_srm(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join('measurements.txt'))
 
