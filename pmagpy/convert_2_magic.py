@@ -2580,7 +2580,6 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
     return True, samp_file
 
 
-
 ### IODP_dscr_magic conversion
 
 def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
@@ -4261,6 +4260,186 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
             con.write_table_to_file(table)
     print("results put in ", meas_file)
     return True, meas_file
+
+### MsT_magic conversion
+
+def mst(infile, spec_name, dir_path=".", input_dir_path="",
+        meas_file="measurements.txt", samp_infile="samples.txt",
+        user="", specnum=0, samp_con="1", labfield=0.5,
+        location='', syn=False, data_model_num=3):
+
+    # deal with input files
+    if not input_dir_path:
+        input_dir_path = dir_path
+
+    try:
+        infile = pmag.resolve_file_name(infile, input_dir_path)
+        with open(infile, 'r') as finput:
+            data = finput.readlines()
+    except (IOError, FileNotFoundError) as ex:
+        print(ex)
+        print("bad mag file name")
+        return False, "bad mag file name"
+
+    samp_file = pmag.resolve_file_name(samp_infile, input_dir_path)
+    if os.path.exists(samp_file):
+        Samps, file_type = pmag.magic_read(samp_file)
+    else:
+        Samps = []
+
+    # parse out samp_con
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    if "7" in samp_con:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+
+    # initialize some stuff
+    specnum = - int(specnum)
+    Z = "0"
+    citation = 'This study'
+    measnum = 1
+    MagRecs, specs = [], []
+    version_num = pmag.get_version()
+
+    if data_model_num == 2:
+        loc_col = "er_location_name"
+        software_col = "magic_software_packages"
+        treat_dc_col = "treatment_dc_field"
+        meas_temp_col = "measurement_temp"
+        meth_codes_col = "magic_method_codes"
+        meas_magnitude_col = "measurement_magnitude"
+        spec_col = "er_specimen_name"
+        samp_col = "er_sample_name"
+        site_col = "er_site_name"
+        synthetic_name_col = "er_synthetic_name"
+        inst_col = "magic_instrument_codes"
+        analyst_col = "er_analyst_mail_names"
+        citation_col = "er_citation_names"
+        quality_col = "measurement_flag"
+        meas_name_col = "measurement_number"
+        experiment_col = "magic_experiment_name"
+        meas_file_type = "magic_measurements"
+        if meas_file == "measurements.txt":
+            meas_file = "magic_measurements.txt"
+    else:
+        loc_col = "location"
+        software_col = "software_packages"
+        treat_dc_col = "treat_dc_field"
+        meas_temp_col = "meas_temp"
+        meth_codes_col = "method_codes"
+        meas_magnitude_col = "magn_moment" # but this may be wrong...
+        spec_col = "specimen"
+        samp_col = "sample"
+        site_col = "site"
+        synthetic_name_col = "specimen"
+        inst_col = "instrument_codes"
+        analyst_col = "analysts"
+        citation_col = "citations"
+        quality_col = "quality"
+        meas_name_col = "measurement"
+        experiment_col = "experiment"
+        meas_file_type = "measurements"
+
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
+    dir_path = os.path.split(meas_file)[0]
+
+    T0 = float(data[0].split()[0])
+    for line in data:
+        instcode = ""
+        if len(line) > 1:
+            MagRec = {}
+            if syn == 0:
+                MagRec[loc_col] = location
+            MagRec[software_col] = version_num
+            MagRec[treat_dc_col] = labfield
+            rec = line.split()
+            T = float(rec[0])
+            MagRec[meas_temp_col] = '%8.3e' % (
+                float(rec[0])+273.)  # temp in kelvin
+            if T > T0:
+                MagRec[meth_codes_col] = 'LP-MW-I'
+            elif T < T0:
+                MagRec[meth_codes_col] = 'LP-MC-I'
+                T0 = T
+            else:
+                print('skipping repeated temperature step')
+                MagRec[meth_codes_col] = ''
+            T0 = T
+            MagRec[meas_magnitude_col] = '%10.3e' % (
+                float(rec[1]))  # uncalibrated magnitude
+            if syn == 0:
+                MagRec[spec_col] = spec_name
+                MagRec[site_col] = ""
+                if specnum != 0:
+                    MagRec[samp_col] = spec_name[:specnum]
+                else:
+                    MagRec[samp_col] = spec_name
+                if Samps:
+                    for samp in Samps:
+                        if samp[samp_col] == MagRec[samp_col]:
+                            MagRec[loc_col] = samp[loc_col]
+                            MagRec[site_col] = samp[site_col]
+                            break
+                elif int(samp_con) != 6:
+                    site = pmag.parse_site(
+                        MagRec[samp_col], samp_con, Z)
+                    MagRec[site_col] = site
+                if MagRec[site_col] == "":
+                    print('No site name found for: ',
+                          MagRec[spec_col], MagRec[samp_col])
+                if not MagRec[loc_col]:
+                    print('no location name for: ', MagRec[spec_col])
+            else: # synthetic
+                MagRec[loc_col] = ""
+                MagRec[samp_col] = ""
+                MagRec[site_col] = ""
+                MagRec[spec_col] = ""
+                MagRec[synthetic_name_col] = spec_name
+
+            MagRec[inst_col] = instcode
+            MagRec[analyst_col] = user
+            MagRec[citation_col] = citation
+            MagRec[quality_col] = 'g'
+            MagRec[meas_name_col] = str(measnum)
+            if data_model_num == 3:
+                MagRec['sequence'] = measnum
+            MagRecs.append(MagRec)
+            measnum += 1
+    new_MagRecs = []
+    for rec in MagRecs:  # sort out the measurements by experiment type
+        rec[experiment_col] = spec_name
+        if rec[meth_codes_col] == 'LP-MW-I':
+            rec[experiment_col] = spec_name + ':LP-MW-I:Curie'
+        elif rec[meth_codes_col] == 'LP-MC-I':
+            rec[experiment_col] = spec_name +':LP-MC-I'
+        if data_model_num == 3:
+            rec[meas_name_col] = rec[experiment_col] + "_" + rec[meas_name_col]
+        new_MagRecs.append(rec)
+
+    pmag.magic_write(meas_file, new_MagRecs, meas_file_type)
+    print("results put in ", meas_file)
+    # try to extract location/site/sample/specimen info into tables
+    con = nb.Contribution(dir_path)
+    con.propagate_measurement_info()
+    for table in con.tables:
+        if table in ['samples', 'sites', 'locations']:
+            # add in location name by hand
+            if table == 'sites':
+                con.tables['sites'].df['location'] = location
+            con.write_table_to_file(table)
+
+    return True, meas_file
+
 
 
 ### PMD_magic conversion

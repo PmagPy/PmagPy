@@ -1045,3 +1045,48 @@ class TestSMagic(unittest.TestCase):
         con = nb.Contribution(self.input_dir)
         self.assertIn('sites', con.tables)
         self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
+
+
+class TestMstMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'MsT_magic')
+
+    def tearDown(self):
+        return
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+        #filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+        #            'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+        pmag.remove_files(filelist, '.')
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
+        os.chdir(WD)
+
+    def test_mst_with_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.mst()
+
+    def test_mst_success(self):
+        options = {'input_dir_path': self.input_dir, 'infile': 'curie_example.dat'}
+        options['spec_name'] = 'abcde'
+        options['location'] = 'place'
+        program_ran, outfile = convert.mst(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+        self.assertEqual(meas_df.df.location.values[0], 'place')
+        con = nb.Contribution(WD)
+        for table in ['measurements', 'specimens', 'samples', 'sites', 'locations']:
+            self.assertIn(table, con.tables)
+
+    def test_mst_synthetic(self):
+        options = {'input_dir_path': self.input_dir, 'infile': 'curie_example.dat'}
+        options['spec_name'] = 'abcde'
+        options['syn'] = True
+        program_ran, outfile = convert.mst(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
