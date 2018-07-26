@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import str
 import sys
+import os
 import pmagpy.pmag as pmag
 
 
@@ -11,7 +10,7 @@ def main():
         mst_magic.py
 
     DESCRIPTION
-        converts MsT data (T,M) to magic_measurements format files
+        converts MsT data (T,M) to measurements format files
 
     SYNTAX
         mst_magic.py [command line options]
@@ -21,10 +20,10 @@ def main():
         -usr USER:   identify user, default is ""
         -f FILE: specify T,M  format input file, required
         -fsa SFILE: name with sample, site, location information
-        -F FILE: specify output file, default is MsT_measurements.txt
+        -F FILE: specify output file, default is measurements.txt
         -dc H: specify applied field during measurement, default is 0.5 T
         -syn  : This is a synthetic specimen and has no sample/site/location information
-        -spn SPEC: specimen name 
+        -spn SPEC: specimen name
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
         -ncn NCON:  specify naming convention: default is #1 below
@@ -40,99 +39,99 @@ def main():
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
-        INPUT files: 
+        INPUT files:
             T M:  T is in Centigrade and M is uncalibrated magnitude
 
     """
-# initialize some stuff
-    samp_con, Z = "1", "0"
-    dir_path = '.'
-    citation = 'This study'
-    args = sys.argv
-    specnum, measnum = 0, 1
 #
 # get command line arguments
 #
-    user = ""
-    if '-WD' in args:
-        ind = args.index("-WD")
-        dir_path = args[ind+1]
-    meas_file = dir_path+"/MsT_measurements.txt"
+
+    args = sys.argv
     if "-h" in args:
         print(main.__doc__)
         sys.exit()
-    if "-usr" in args:
-        ind = args.index("-usr")
-        user = args[ind+1]
-    labfield = '0.5'
-    if "-dc" in args:
-        ind = args.index("-dc")
-        labfield = args[ind+1]
-    if '-F' in args:
-        ind = args.index("-F")
-        meas_file = dir_path+'/'+args[ind+1]
-    if "-fsa" in args:
-        ind = args.index("-fsa")
-        samp_file = dir_path+'/'+args[ind+1]
-        Samps, file_type = pmag.magic_read(samp_file)
-    if '-f' in args:
-        ind = args.index("-f")
-        infile = dir_path+'/'+args[ind+1]
-        try:
-            input = open(infile, 'r')
-        except:
-            print("bad mag file name")
-            sys.exit()
-    else:
+    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    user = pmag.get_named_arg_from_sys("-usr", "")
+    labfield = pmag.get_named_arg_from_sys("-dc", '0.5')
+    meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
+    samp_file = pmag.get_named_arg_from_sys("-fsa", "samples.txt")
+    try:
+        infile = pmag.get_named_arg_from_sys("-f", reqd=True)
+    except pmag.MissingCommandLineArgException:
         print(main.__doc__)
         print("-f  is required option")
         sys.exit()
-    if "-spc" in args:
-        ind = args.index("-spc")
-        specnum = int(args[ind+1])
-        if specnum != 0:
-            specnum = -specnum
-    er_location_name, syn, specimen_name = 'unknown', 0, 'unknown'
-    if "-loc" in args:
-        ind = args.index("-loc")
-        er_location_name = args[ind+1]
-    if "-spn" in args:
-        ind = args.index("-spn")
-        specimen_name = args[ind+1]
-    else:
-        print(main.__doc__)
-        print("-spn  is required option")
-        sys.exit()
+    specnum = int(pmag.get_named_arg_from_sys("-spc", 0))
+    location = pmag.get_named_arg_from_sys("-loc", "")
+    specimen_name = pmag.get_named_arg_from_sys("-spn", reqd=True)
+    syn = 0
     if "-syn" in args:
         syn = 1
+    samp_con = pmag.get_named_arg_from_sys("-ncn", "1")
     if "-ncn" in args:
         ind = args.index("-ncn")
         samp_con = sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print("option [4] must be in form 4-Z where Z is an integer")
-                sys.exit()
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "4"
-            samp_con = sys.argv[ind+1]
-        if "7" in samp_con:
-            if "-" not in samp_con:
-                print("option [7] must be in form 7-Z where Z is an integer")
-                sys.exit()
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "7"
+    mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
+        user, specnum, samp_con, labfield, location, syn)
+
+
+def mst(infile, specimen_name, dir_path=".", input_dir_path="",
+        meas_file="measurements.txt", samp_infile="samples.txt",
+        user="", specnum=0, samp_con="1", labfield=0.5,
+        location='', syn=False):
+
+    # deal with input files
+    if not input_dir_path:
+        input_dir_path = dir_path
+
+    try:
+        infile = pmag.resolve_file_name(infile, input_dir_path)
+        with open(infile, 'r') as finput:
+            data = finput.readlines()
+    except (IOError, FileNotFoundError) as ex:
+        print(ex)
+        print("bad mag file name")
+        return False, "bad mag file name"
+
+    samp_file = pmag.resolve_file_name(samp_infile, input_dir_path)
+    if os.path.exists(samp_file):
+        Samps, file_type = pmag.magic_read(samp_file)
+    else:
+        Samps = []
+
+    # parse out samp_con
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    if "7" in samp_con:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+
+
+    # initialize some stuff
+    specnum = - int(specnum)
+    Z = "0"
+    citation = 'This study'
+    measnum = 1
     MagRecs, specs = [], []
     version_num = pmag.get_version()
-    data = input.readlines()
+
     T0 = float(data[0].split()[0])
     for line in data:
         instcode = ""
         if len(line) > 1:
             MagRec = {}
             if syn == 0:
-                MagRec['er_location_name'] = er_location_name
+                MagRec['er_location_name'] = location
             MagRec['magic_software_packages'] = version_num
             MagRec["treatment_dc_field"] = labfield
             rec = line.split()
@@ -157,7 +156,7 @@ def main():
                     MagRec["er_sample_name"] = specimen_name[:specnum]
                 else:
                     MagRec["er_sample_name"] = specimen_name
-                if "-fsa" in args:
+                if Samps:
                     for samp in Samps:
                         if samp["er_sample_name"] == MagRec["er_sample_name"]:
                             MagRec["er_location_name"] = samp["er_location_name"]
@@ -193,6 +192,8 @@ def main():
             rec["magic_experiment_name"] = specimen_name+':LP-MC-I'
     pmag.magic_write(meas_file, MagRecs, 'magic_measurements')
     print("results put in ", meas_file)
+
+
 
 
 if __name__ == "__main__":
