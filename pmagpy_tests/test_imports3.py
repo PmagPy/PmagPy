@@ -817,7 +817,7 @@ class TestHujiSampleMagic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        filelist = ['Massada_AF_HUJI_new_format.magic']
+        filelist = ['samples.txt', 'sites.txt']
         directory = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'HUJI_magic')
         pmag.remove_files(filelist, directory)
@@ -1055,7 +1055,6 @@ class TestMstMagic(unittest.TestCase):
                                       'Measurement_Import', 'MsT_magic')
 
     def tearDown(self):
-        return
         filelist = ['measurements.txt', 'specimens.txt',
                     'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
         pmag.remove_files(filelist, WD)
