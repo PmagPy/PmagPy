@@ -2714,6 +2714,192 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
 
     return True, meas_file
 
+### IODP_jr6_magic
+
+def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
+             meas_file="measurements.txt", spec_file="specimens.txt",
+             samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+             site="unknown", expedition="unknown", lat="", lon="",
+             noave=False, volume=2.5**2, meth_code="LP-NO"):
+
+    def fix_separation(filename, new_filename):
+        old_file = open(filename, 'r')
+        new_file = open(new_filename, 'w')
+        data = old_file.readlines()
+        for line in data:
+            ldata = line.split()
+            if len(ldata[0]) > 10:
+                ldata.insert(1, ldata[0][10:])
+                ldata[0] = ldata[0][:10]
+            ldata = [ldata[0]]+[d.replace('-', ' -') for d in ldata[1:]]
+            new_line = ' '.join(ldata)+'\n'
+            new_file.write(new_line)
+        old_file.close()
+        new_file.close()
+        return new_filename
+
+
+    # initialize some stuff
+    demag = "N"
+    version_num = pmag.get_version()
+
+    if not input_dir_path:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    # default volume is a 2.5cm cube
+    volume = volume * 1e-6
+    meth_code = meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
+    meth_code = meth_code.strip(":")
+    if not mag_file:
+        print("-W- You must provide an IODP_jr6 format file")
+        return False, "You must provide an IODP_jr6 format file"
+
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+
+    # validate variables
+    if not os.path.isfile(mag_file):
+        print('The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file))
+        return False, 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file)
+
+    # parse data
+    temp = os.path.join(output_dir_path, 'temp.txt')
+    fix_separation(mag_file, temp)
+    infile = open(temp, 'r')
+    lines = infile.readlines()
+    infile.close()
+    try:
+        os.remove(temp)
+    except OSError:
+        print("problem with temp file")
+    citations = "This Study"
+    MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    for line in lines:
+        MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+        line = line.split()
+        spec_text_id = line[0]
+        specimen = spec_text_id
+        for dem in ['-', '_']:
+            if dem in spec_text_id:
+                sample = dem.join(spec_text_id.split(dem)[:-1])
+                break
+        location = expedition + site
+
+        if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+            SpecRec['specimen'] = specimen
+            SpecRec['sample'] = sample
+            SpecRec['volume'] = volume
+            SpecRec['citations'] = citations
+            SpecRecs.append(SpecRec)
+        if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+            SampRec['sample'] = sample
+            SampRec['site'] = site
+            SampRec['citations'] = citations
+            SampRec['azimuth'] = line[6]
+            SampRec['dip'] = line[7]
+            SampRec['bed_dip_direction'] = line[8]
+            SampRec['bed_dip'] = line[9]
+            SampRec['method_codes'] = meth_code
+            SampRecs.append(SampRec)
+        if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+            SiteRec['site'] = site
+            SiteRec['location'] = location
+            SiteRec['citations'] = citations
+            SiteRec['lat'] = lat
+            SiteRec['lon'] = lon
+            SiteRecs.append(SiteRec)
+        if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+            LocRec['location'] = location
+            LocRec['citations'] = citations
+            LocRec['expedition_name'] = expedition
+            LocRec['lat_n'] = lat
+            LocRec['lon_e'] = lon
+            LocRec['lat_s'] = lat
+            LocRec['lon_w'] = lon
+            LocRecs.append(LocRec)
+
+        MeasRec['specimen'] = specimen
+        MeasRec["citations"] = citations
+        MeasRec['software_packages'] = version_num
+        MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["quality"] = 'g'
+        MeasRec["standard"] = 'u'
+        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_ac_field"] = '0'
+
+        x = float(line[4])
+        y = float(line[3])
+        negz = float(line[2])
+        cart = np.array([x, y, -negz]).transpose()
+        direction = pmag.cart2dir(cart).transpose()
+        expon = float(line[5])
+        magn_volume = direction[2] * (10.0**expon)
+        moment = magn_volume * volume
+
+        MeasRec["magn_moment"] = str(moment)
+        # str(direction[2] * (10.0 ** expon))
+        MeasRec["magn_volume"] = str(magn_volume)
+        MeasRec["dir_dec"] = '%7.1f' % (direction[0])
+        MeasRec["dir_inc"] = '%7.1f' % (direction[1])
+
+        step = line[1]
+        if step == 'NRM':
+            meas_type = "LT-NO"
+        elif step[0:2] == 'AD':
+            meas_type = "LT-AF-Z"
+            treat = float(step[2:])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif step[0:2] == 'TD':
+            meas_type = "LT-T-Z"
+            treat = float(step[2:])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif step[0:3] == 'ARM':
+            meas_type = "LT-AF-I"
+            treat = float(row['step'][3:])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+            MeasRec["treat_dc_field"] = '%8.3e' % (
+                50e-6)  # assume 50uT DC field
+            MeasRec["measurement_description"] = 'Assumed DC field - actual unknown'
+        elif step[0] == 'A':
+            meas_type = "LT-AF-Z"
+            treat = float(step[1:])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif step[0] == 'T':
+            meas_type = "LT-T-Z"
+            treat = float(step[1:])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif step[0:3] == 'IRM':
+            meas_type = "LT-IRM"
+            treat = float(step[3:])
+            MeasRec["treat_dc_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        else:
+            print('unknown treatment type for ', row)
+            return False, 'unknown treatment type for ', row
+
+        MeasRec['method_codes'] = meas_type
+        MeasRecs.append(MeasRec.copy())
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+
+    return (True, meas_file)
+
 
 
 ### IODP_srm_magic conversion

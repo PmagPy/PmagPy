@@ -2128,9 +2128,9 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         else: # Joides Resolution
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
-            program_ran, error_message = iodp_jr6_magic.convert(**options)
+            program_ran, error_message = convert.iodp_jr6(**options)
             if program_ran:
-                COMMAND = "options={}\niodp_jr6_magic.convert(**options)".format(str(options))
+                COMMAND = "options={}\nconvert.iodp_jr6(**options)".format(str(options))
                 pw.close_window(self, COMMAND, meas_file)
             else:
                 pw.simple_warning(error_message)

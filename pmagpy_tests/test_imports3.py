@@ -492,7 +492,8 @@ class TestIodpJr6Magic(unittest.TestCase):
 
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt',
-                 'custom_locations.txt', 'samples.txt', 'sites.txt']
+                 'custom_locations.txt', 'samples.txt', 'sites.txt',
+                 'locations.txt', 'measurements.txt', 'specimens.txt']
         pmag.remove_files(files, WD)
         # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -505,15 +506,13 @@ class TestIodpJr6Magic(unittest.TestCase):
         os.chdir(WD)
 
     def test_iodp_jr6_with_no_files(self):
-        options = {}
-        program_ran, error_message = iodp_jr6_magic.convert(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, "You must provide an IODP_jr6 format file")
+        with self.assertRaises(TypeError):
+            convert.iodp_jr6()
 
     def test_iodp_jr6_with_invalid_mag_file(self):
         options = {'mag_file': 'fake'}
-        program_ran, error_message = iodp_jr6_magic.convert(**options)
-        expected_msg = 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.join('.', 'fake'))
+        program_ran, error_message = convert.iodp_jr6(**options)
+        expected_msg = 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.realpath(os.path.join('.', 'fake')))
         self.assertFalse(program_ran)
         self.assertEqual(error_message, expected_msg)
 
@@ -528,7 +527,7 @@ class TestIodpJr6Magic(unittest.TestCase):
         options['mag_file'] = 'test.jr6'
         meas_file = 'test.magic'
         options['meas_file'] = meas_file
-        program_ran, outfile = iodp_jr6_magic.convert(**options)
+        program_ran, outfile = convert.iodp_jr6(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
         meas_df = nb.MagicDataFrame(outfile)
@@ -546,7 +545,7 @@ class TestIodpJr6Magic(unittest.TestCase):
         options['loc_file'] = 'custom_locations.txt'
         meas_file = 'test.magic'
         options['meas_file'] = meas_file
-        program_ran, outfile = iodp_jr6_magic.convert(**options)
+        program_ran, outfile = convert.iodp_jr6(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
         for fname in [options['loc_file'], options['spec_file']]:
@@ -564,7 +563,10 @@ class TestIodpJr6Magic(unittest.TestCase):
         meas_file = 'test.magic'
         options['meas_file'] = meas_file
         options['noave'] = 1
-        program_ran, outfile = iodp_jr6_magic.convert(**options)
+        options['lat'] = 3
+        options['lon'] = 5
+        options['volume'] = 3
+        program_ran, outfile = convert.iodp_jr6(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
 
