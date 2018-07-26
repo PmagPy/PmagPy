@@ -3323,6 +3323,207 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
     return (True, meas_file)
 
 
+### JR6_jr6_magic conversion
+
+def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
+            meas_file="measurements.txt", spec_file="specimens.txt",
+            samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
+            specnum=1, samp_con='1', location='unknown', lat='', lon='',
+            noave=False, meth_code="LP-NO", volume=2.5, JR=False, user=""):
+
+    version_num = pmag.get_version()
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    output_dir_path = dir_path
+    specnum = - int(specnum)
+    samp_con = str(samp_con)
+    volume = float(volume) * 1e-6
+
+    if JR:
+        if meth_code == "LP-NO":
+            meth_code = ""
+        meth_code = meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
+        meth_code = meth_code.strip(":")
+        samp_con = '5'
+
+    # format variables
+    tmp_file = mag_file.split(os.extsep)[0]+os.extsep+'tmp'
+    mag_file = os.path.join(input_dir_path, mag_file)
+    if samp_con.startswith("4"):
+        if "-" not in samp_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    elif samp_con.startswith("7"):
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 1
+
+    # parse data
+    # fix .jr6 file so that there are spaces between all the columns.
+    pre_data = open(mag_file, 'r')
+    tmp_data = open(tmp_file, 'w')
+    if samp_con != '2':
+        fixed_data = pre_data.read().replace('-', ' -')
+    else:
+        fixed_data = ""
+        for line in pre_data.readlines():
+            entries = line.split()
+            if len(entries) < 2:
+                continue
+            fixed_line = entries[0] + ' ' + reduce(
+                lambda x, y: x+' '+y, [x.replace('-', ' -') for x in entries[1:]])
+            fixed_data += fixed_line+os.linesep
+    tmp_data.write(fixed_data)
+    tmp_data.close()
+    pre_data.close()
+
+    if not JR:
+        column_names = ['specimen', 'step', 'x', 'y', 'z', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
+                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
+    else:  # measured on the Joides Resolution JR6
+        column_names = ['specimen', 'step', 'negz', 'y', 'x', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
+                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
+    data = pd.read_csv(tmp_file, delim_whitespace=True,
+                       names=column_names, index_col=False)
+    if isinstance(data['x'][0], str):
+        column_names = ['specimen', 'step', 'step_unit', 'x', 'y', 'z', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
+                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
+        data = pd.read_csv(tmp_file, delim_whitespace=True,
+                           names=column_names, index_col=False)
+    if JR:
+        data['z'] = -data['negz']
+    cart = np.array([data['x'], data['y'], data['z']]).transpose()
+    dir_dat = pmag.cart2dir(cart).transpose()
+    data['dir_dec'] = dir_dat[0]
+    data['dir_inc'] = dir_dat[1]
+    # the data are in A/m - this converts to Am^2
+    data['magn_moment'] = dir_dat[2]*(10.0**data['expon'])*volume
+    data['magn_volume'] = dir_dat[2] * \
+        (10.0**data['expon'])  # A/m  - data in A/m
+    data['dip'] = -data['dip']
+
+    data['specimen']
+    # put data into magic tables
+    MagRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    for rowNum, row in data.iterrows():
+        MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+        specimen = row['specimen']
+        if specnum != 0:
+            sample = specimen[:specnum]
+        else:
+            sample = specimen
+        site = pmag.parse_site(sample, samp_con, Z)
+        if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
+            SpecRec['specimen'] = specimen
+            SpecRec['sample'] = sample
+            SpecRec["citations"] = "This study"
+            SpecRec["analysts"] = user
+            SpecRec['volume'] = volume
+            SpecRecs.append(SpecRec)
+        if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
+            SampRec['sample'] = sample
+            SampRec['site'] = site
+            SampRec["citations"] = "This study"
+            SampRec["analysts"] = user
+            SampRec['azimuth'] = row['azimuth']
+            SampRec['dip'] = row['dip']
+            SampRec['bed_dip_direction'] = row['bed_dip_direction']
+            SampRec['bed_dip'] = row['bed_dip']
+            SampRec['method_codes'] = meth_code
+            SampRecs.append(SampRec)
+        if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
+            SiteRec['site'] = site
+            SiteRec['location'] = location
+            SiteRec["citations"] = "This study"
+            SiteRec["analysts"] = user
+            SiteRec['lat'] = lat
+            SiteRec['lon'] = lon
+            SiteRecs.append(SiteRec)
+        if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
+            LocRec['location'] = location
+            LocRec["citations"] = "This study"
+            LocRec["analysts"] = user
+            LocRec['lat_n'] = lat
+            LocRec['lon_e'] = lon
+            LocRec['lat_s'] = lat
+            LocRec['lon_w'] = lon
+            LocRecs.append(LocRec)
+        MeasRec["citations"] = "This study"
+        MeasRec["analysts"] = user
+        MeasRec["specimen"] = specimen
+        MeasRec['software_packages'] = version_num
+        MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+        MeasRec["quality"] = 'g'
+        MeasRec["standard"] = 'u'
+        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_ac_field"] = '0'
+        if row['step'] == 'NRM':
+            meas_type = "LT-NO"
+        elif 'step_unit' in row and row['step_unit'] == 'C':
+            meas_type = "LT-T-Z"
+            treat = float(row['step'])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif row['step'][0:2] == 'AD':
+            meas_type = "LT-AF-Z"
+            treat = float(row['step'][2:])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif row['step'][0] == 'A':
+            meas_type = "LT-AF-Z"
+            treat = float(row['step'][1:])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
+        elif row['step'][0] == 'TD':
+            meas_type = "LT-T-Z"
+            treat = float(row['step'][2:])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif row['step'][0] == 'T':
+            meas_type = "LT-T-Z"
+            treat = float(row['step'][1:])
+            MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        else:  # need to add IRM, and ARM options
+            print("measurement type unknown", row['step'])
+            return False, "measurement type unknown"
+        MeasRec["magn_moment"] = str(row['magn_moment'])
+        MeasRec["magn_volume"] = str(row['magn_volume'])
+        MeasRec["dir_dec"] = str(row['dir_dec'])
+        MeasRec["dir_inc"] = str(row['dir_inc'])
+        MeasRec['method_codes'] = meas_type
+        MagRecs.append(MeasRec)
+
+    con = nb.Contribution(output_dir_path, read_tables=[])
+
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts = pmag.measurements_methods3(MagRecs, noave)
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+
+    con.tables['specimens'].write_magic_file(custom_name=spec_file)
+    con.tables['samples'].write_magic_file(custom_name=samp_file)
+    con.tables['sites'].write_magic_file(custom_name=site_file)
+    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+
+    try:
+        os.remove(tmp_file)
+    except (OSError, IOError) as e:
+        print("couldn't remove temperary fixed JR6 file %s" % tmp_file)
+
+    return True, meas_file
+
+
+
 ### JR6_txt_magic conversion
 
 def jr6_txt(mag_file, dir_path=".", input_dir_path="",

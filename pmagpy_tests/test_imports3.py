@@ -500,6 +500,39 @@ class TestJr6TxtMagic(unittest.TestCase):
         self.assertEqual(1, site_df.df.lat.values[0])
 
 
+class TestJr6Jr6Magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt',
+                 'measurements.txt', 'locations.txt', 'specimens.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        output = convert.jr6_jr6(**{'mag_file': 'AF.jr6', 'input_dir_path': input_dir})
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'measurements.txt')
+
+    def test_with_options(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        options = {'mag_file': 'SML07.JR6', 'input_dir_path': input_dir}
+        options['meas_file'] = "test.magic"
+        options['lat'] = 1
+        options['lon'] = 2
+        options['noave'] = True
+        output = convert.jr6_jr6(**options)
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'test.magic')
+        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
+        self.assertEqual(1, site_df.df.lat.values[0])
+
+
 
 class TestIodpJr6Magic(unittest.TestCase):
 
