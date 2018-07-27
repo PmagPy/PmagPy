@@ -5,6 +5,7 @@ import sys
 import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
 
+
 def main():
     """
     NAME
@@ -56,17 +57,19 @@ def main():
         print(do_help())
         sys.exit()
 
-    #def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+    # def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
 
-    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'measurements.txt'], ['Fsa', False, 'samples.txt'], ['Fa', False, 'specimens.txt'], ['Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3]])
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'measurements.txt'], ['Fsa', False, 'samples.txt'], ['Fa', False, 'specimens.txt'], [
+                                                 'Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
-    program_ran, error_message = ipmag.k15_magic(k15file, specnum=specnum, sample_naming_con=sample_naming_con, er_location_name=location_name, measfile=measfile, sampfile=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path, data_model_num=data_model_num)
+    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(
+        ['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
+    program_ran, error_message = ipmag.k15_magic(k15file, specnum=specnum, sample_naming_con=sample_naming_con, er_location_name=location_name, measfile=measfile,
+                                                 sampfile=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path, data_model_num=data_model_num)
 
-## assign values to variables based on their associated command-line flag
+# assign values to variables based on their associated command-line flag
 #fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
-#print "fmt:", fmt, "size:", size, "plot:", plot
-
+# print "fmt:", fmt, "size:", size, "plot:", plot
 
     """
 #
@@ -359,8 +362,10 @@ def main():
     print "Data saved to: ",sampfile,anisfile,resfile,measfile
 """
 
+
 def do_help():
     return main.__doc__
+
 
 if __name__ == "__main__":
     main()
