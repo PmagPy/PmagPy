@@ -8229,7 +8229,7 @@ def measurements_methods3(meas_data, noave):
     else:
         noave = 0
     version_num = get_version()
-    seqnum=1
+    seqnum=0
     sids = get_specs(meas_data)
 # list  of measurement records for this specimen
 #
@@ -8348,7 +8348,7 @@ def measurements_methods3(meas_data, noave):
         MD, pTRM, IZ, ZI = 0, 0, 0, 0  # these are flags for the lab protocol codes
         expcodes = ""
         NewSpecs, SpecMeths = [], []
-        experiment_name, measnum = "", 1
+        experiment_name, measnum = "", 0
         if IRM3D == 1:
             experiment_name = "LP-IRM-3D"
         if ATRM == 1:
