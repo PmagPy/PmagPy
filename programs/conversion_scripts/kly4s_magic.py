@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
 import pmagpy.command_line_extractor as extractor
-import pmagpy.ipmag as ipmag
+from pmagpy import convert_2_magic as convert
 
 def main():
     """
@@ -67,15 +66,27 @@ def main():
 
     """
 
-    #def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
     args = sys.argv
     if '-h' in args:
         print(main.__doc__)
         sys.exit()
-    dataframe = extractor.command_line_dataframe([['f', True, ''], ['fad', False, ''], ['fsa', False, ''], ['fsp', False, ''], ['Fsp', False, 'specimens.txt'], ['F', False, 'measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['ocn', False, '3'], ['usr', False, ''], ['loc', False, ''], ['ins', False, 'SIO-KLY4S'], ['spc', False, 0], ['ncn', False, '1'], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3 ]])
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['fad', False, ''],
+                                                  ['fsa', False, ''], ['fsp', False, ''],
+                                                  ['Fsp', False, 'specimens.txt'], ['F', False, 'measurements.txt'],
+                                                  ['Fa', False, 'rmag_anisotropy.txt'], ['ocn', False, '3'],
+                                                  ['usr', False, ''], ['loc', False, ''],
+                                                  ['ins', False, 'SIO-KLY4S'], ['spc', False, 0],
+                                                  ['ncn', False, '1'], ['WD', False, '.'],
+                                                  ['ID', False, '.'], ['DM', False, 3 ]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
     infile, azdip_infile, samp_infile, spec_infile, spec_outfile, measfile, aniso_outfile, or_con, user, locname, inst, specnum, samp_con, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(['f', 'fad', 'fsa', 'fsp', 'Fsp', 'F', 'Fa', 'ocn', 'usr', 'loc', 'ins', 'spc', 'ncn', 'WD', 'ID', 'DM'], checked_args)
-    ipmag.kly4s_magic(infile, specnum=specnum, locname=locname, inst=inst, user=user, measfile=measfile,or_con=or_con, samp_con=samp_con, aniso_outfile=aniso_outfile, samp_infile=samp_infile, spec_infile=spec_infile, spec_outfile=spec_outfile, azdip_infile=azdip_infile, output_dir_path=output_dir_path, input_dir_path=input_dir_path, data_model_num=data_model_num)
+    convert.kly4s(infile, specnum=specnum, locname=locname, inst=inst,
+                  user=user, measfile=measfile,or_con=or_con,
+                      samp_con=samp_con, aniso_outfile=aniso_outfile,
+                      samp_infile=samp_infile, spec_infile=spec_infile,
+                      spec_outfile=spec_outfile, azdip_infile=azdip_infile,
+                      output_dir_path=output_dir_path, input_dir_path=input_dir_path,
+                      data_model_num=data_model_num)
 
 
 if __name__ == "__main__":

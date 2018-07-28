@@ -475,6 +475,72 @@ class TestIodpSamplesMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath('samples.txt'), os.path.realpath(outfile))
 
 
+class TestKly4sMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        filelist= ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_kly4s_without_infile(self):
+        with self.assertRaises(TypeError):
+            convert.kly4s()
+
+    def test_kly4s_with_invalid_infile(self):
+        program_ran, error_message = convert.kly4s('hello.txt')
+        expected_file = os.path.join('.', 'hello.txt')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'Error opening file: {}'.format(expected_file))
+
+    def test_kly4s_with_valid_infile(self):
+        in_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 'kly4s_magic')
+        program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', output_dir_path=WD,
+                                                 input_dir_path=in_dir, data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join(WD, 'magic_measurements.txt'))
+
+    def test_kly4s_fail_option4(self):
+        in_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 'kly4s_magic')
+        program_ran, error_message = convert.kly4s('KLY4S_magic_example.dat', samp_con="4",
+                                                   output_dir_path=WD, input_dir_path=in_dir,
+                                                   data_model_num=2)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
+
+    def test_kly4s_succeed_option4(self):
+        in_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 'kly4s_magic')
+        program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', samp_con="4-2",
+                                             output_dir_path=WD, input_dir_path=in_dir,
+                                                 data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join(WD, 'magic_measurements.txt'))
+        self.assertTrue(os.path.isfile(os.path.join(WD, 'magic_measurements.txt')))
+
+    def test_kly4s_with_options(self):
+        in_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 'kly4s_magic')
+        program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', specnum=1,
+                                             locname="location", inst="instrument",
+                                             samp_con=3, or_con=2,
+                                             measfile='my_magic_measurements.txt',
+                                             aniso_outfile="my_rmag_anisotropy.txt",
+                                             output_dir_path=WD, input_dir_path=in_dir,
+                                             data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join(WD, 'my_magic_measurements.txt'))
+        self.assertTrue(os.path.isfile(os.path.join(WD, 'my_rmag_anisotropy.txt')))
+
+
+    def test_kly4s_with_valid_infile_data_model3(self):
+        in_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 'kly4s_magic')
+        program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', output_dir_path=WD,
+                                             input_dir_path=in_dir, data_model_num=3)
+
+        con = nb.Contribution(WD)
+        self.assertEqual(['measurements', 'samples', 'sites', 'specimens'], sorted(con.tables))
+
 
 class TestPmdMagic(unittest.TestCase):
 

@@ -439,19 +439,17 @@ class ImportKly4s(wx.Frame):
             ins = "-ins " + ins
         else:
             instrument='SIO-KLY4S'
-        print('self.Parent', self.Parent, type(self.Parent))
-        print(self.Parent.data_model_num)
         COMMAND = "kly4s_magic.py -WD {} -f {} -F {} -fsa {} -ncn {} {} {} {} {} -ID {} -fsp {} -DM {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile, self.Parent.data_model_num)
-        program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum,
-                                                       locname=location, inst=instrument,
-                                                       samp_con=ncn, user=user, measfile=outfile,
-                                                       aniso_outfile=ani_outfile,
-                                                       samp_infile=samp_file, spec_infile='',
-                                                       spec_outfile=spec_outfile,
-                                                       output_dir_path=self.WD, input_dir_path=ID,
-                                                       data_model_num=self.Parent.data_model_num,
-                                                       samp_outfile=samp_outfile,
-                                                       site_outfile=site_outfile)
+        program_ran, error_message = convert.kly4s(infile, specnum=specnum,
+                                                   locname=location, inst=instrument,
+                                                   samp_con=ncn, user=user, measfile=outfile,
+                                                   aniso_outfile=ani_outfile,
+                                                   samp_infile=samp_file, spec_infile='',
+                                                   spec_outfile=spec_outfile,
+                                                   output_dir_path=self.WD, input_dir_path=ID,
+                                                   data_model_num=self.Parent.data_model_num,
+                                                   samp_outfile=samp_outfile,
+                                                   site_outfile=site_outfile)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
             outfiles = [f for f in [outfile, spec_outfile, ani_outfile] if f]
@@ -464,7 +462,7 @@ class ImportKly4s(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.kly4s_magic.__doc__)
+        pw.on_helpButton(text=convert.kly4s.__doc__)
 
 
 class ImportK15(wx.Frame):
