@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 #import pmag,sys,string
-from __future__ import print_function
 import sys
-import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
+from pmagpy import convert_2_magic as convert
 
 def main():
     """
@@ -23,7 +22,8 @@ def main():
     data_model_num = int(float(data_model_num))
     if '-Fsa' not in args and data_model_num == 2:
         output_samp_file = "er_samples.txt"
-    ran, error = ipmag.iodp_samples_magic(samp_file, output_samp_file, output_dir_path, input_dir_path, data_model_num=data_model_num)
+    ran, error = convert.iodp_samples(samp_file, output_samp_file, output_dir_path,
+                                      input_dir_path, data_model_num=data_model_num)
     if not ran:
         print("-W- " + error)
 

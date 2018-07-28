@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 
-# _2g_bin_magic conversion
+### _2g_bin_magic conversion
 
 def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
@@ -3020,6 +3020,176 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
     con.tables['measurements'].write_magic_file(custom_name=meas_file)
 
     return (True, meas_file)
+
+### IODP_samples_magic conversion
+
+
+def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
+                 input_dir_path='.', data_model_num=3):
+    """
+    iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
+    Default is to overwrite er_samples.txt in your output working directory.
+    To specify an er_samples file to append to, use output_samp_file.
+    """
+    samp_file_name = "samples.txt"
+    sample_alternatives = "sample_alternatives"
+    method_codes = "method_codes"
+    sample_name = "sample"
+    site_name = "site"
+    expedition_name = "expedition_name"
+    location_name = "location"
+    citation_name = "citation"
+    dip = "dip"
+    azimuth = "azimuth"
+    core_depth = "core_depth"
+    composite_depth = "composite_depth"
+    timestamp = "timestamp"
+    file_type = "samples"
+    data_model_num = int(float(data_model_num))
+    if data_model_num == 2:
+        samp_file_name = "er_samples.txt"
+        sample_alternatives = "er_sample_alternatives"
+        method_codes = "magic_method_codes"
+        sample_name = "er_sample_name"
+        site_name = "er_site_name"
+        expedition_name = "er_expedition_name"
+        location_name = "er_location_name"
+        citation_name = "er_citation_names"
+        dip = "sample_dip"
+        azimuth = "sample_azimuth"
+        core_depth = "sample_core_depth"
+        composite_depth = "sample_composite_depth"
+        timestamp = "sample_date"
+        file_type = "er_samples"
+
+
+    text_key = None
+    comp_depth_key = ""
+    samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
+    Samps = []
+    samp_out = os.path.join(output_dir_path, samp_file_name)
+    if output_samp_file:
+        if os.path.exists(output_samp_file):
+            samp_out = os.path.join(output_dir_path, output_samp_file)
+            Samps, file_type = pmag.magic_read(samp_out)
+            print(len(Samps), ' read in from: ', samp_out)
+    fin = open(samp_file, "r")
+    file_input = fin.readlines()
+    fin.close()
+    keys = file_input[0].replace('\n', '').split(',')
+    if "CSF-B Top (m)" in keys:
+        comp_depth_key = "CSF-B Top (m)"
+    elif "Top depth CSF-B (m)" in keys:
+        comp_depth_key = "Top depth CSF-B (m)"
+    # incorporate changes to LIMS data model, while maintaining backward
+    # compatibility
+    keys = [key.strip('"').strip("'") for key in keys]
+    if "Top Depth (m)" in keys:
+        depth_key = "Top Depth (m)"
+    elif "CSF-A Top (m)" in keys:
+        depth_key = "CSF-A Top (m)"
+    elif "Top depth CSF-A (m)" in keys:
+        depth_key = "Top depth CSF-A (m)"
+    if "Text Id" in keys:
+        text_key = "Text Id"
+    elif "Text identifier" in keys:
+        text_key = "Text identifier"
+    elif "Text ID" in keys:
+        text_key = "Text ID"
+    if "Sample Date Logged" in keys:
+        date_key = "Sample Date Logged"
+    elif "Sample date logged" in keys:
+        date_key = "Sample date logged"
+    elif "Date sample logged" in keys:
+        date_key = "Date sample logged"
+    elif "Timestamp (UTC)" in keys:
+        date_key = "Timestamp (UTC)"
+    if 'Volume (cc)' in keys:
+        volume_key = 'Volume (cc)'
+    if 'Volume (cm^3)' in keys:
+        volume_key = 'Volume (cm^3)'
+    if 'Volume (cm3)' in keys:
+        volume_key = 'Volume (cm3)'
+    if not text_key:
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
+    ErSamples, samples, file_format = [], [], 'old'
+    for line in file_input[1:]:
+        if line[0] != '0':
+            ODPRec, SampRec = {}, {}
+            interval, core = "", ""
+            rec = line.replace('\n', '').split(',')
+            if len(rec) < 2:
+                print("Error in csv file, blank columns")
+                break
+            for k in range(len(keys)):
+                ODPRec[keys[k]] = rec[k].strip('"')
+            SampRec[sample_alternatives] = ODPRec[text_key]
+            if "Label Id" in keys:  # old format
+                label = ODPRec['Label Id'].split()
+                if len(label) > 1:
+                    interval = label[1].split('/')[0]
+                    pieces = label[0].split('-')
+                    core = pieces[2]
+                while len(core) < 4:
+                    core = '0' + core  # my way
+            else:  # new format
+                file_format = 'new'
+                pieces = [ODPRec['Exp'], ODPRec['Site'] + ODPRec['Hole'],
+                          ODPRec['Core'] + ODPRec['Type'], ODPRec['Sect'], ODPRec['A/W']]
+                interval = ODPRec['Top offset (cm)'].split(
+                    '.')[0].strip()  # only integers allowed!
+                core = ODPRec['Core'] + ODPRec['Type']
+            if core != "" and interval != "":
+                SampRec[method_codes] = 'FS-C-DRILL-IODP:SP-SS-C:SO-V'
+                if file_format == 'old':
+                    SampRec[sample_name] = pieces[0] + '-' + pieces[1] + \
+                        '-' + core + '-' + pieces[3] + \
+                        '-' + pieces[4] + '-' + interval
+                else:
+                    SampRec[sample_name] = pieces[0] + '-' + pieces[1] + '-' + core + '-' + \
+                        pieces[3] + '_' + pieces[4] + '_' + \
+                        interval  # change in sample name convention
+                SampRec[site_name] = SampRec[sample_name]
+                # pieces=SampRec['er_sample_name'].split('-')
+                SampRec[expedition_name] = pieces[0]
+                SampRec[location_name] = pieces[1]
+                SampRec[citation_name] = "This study"
+                SampRec[dip] = "0"
+                SampRec[azimuth] = "0"
+                SampRec[core_depth] = ODPRec[depth_key]
+                if ODPRec[volume_key] != "":
+                    SampRec['sample_volume'] = str(
+                        float(ODPRec[volume_key]) * 1e-6)
+                else:
+                    SampRec['sample_volume'] = '1'
+                if comp_depth_key != "":
+                    SampRec[composite_depth] = ODPRec[comp_depth_key]
+                dates = ODPRec[date_key].split()
+                if '/' in dates[0]:  # have a date
+                    mmddyy = dates[0].split('/')
+                    yyyy = '20' + mmddyy[2]
+                    mm = mmddyy[0]
+                    if len(mm) == 1:
+                        mm = '0' + mm
+                    dd = mmddyy[1]
+                    if len(dd) == 1:
+                        dd = '0' + dd
+                    date = yyyy + ':' + mm + ':' + \
+                        dd + ':' + dates[1] + ":00.00"
+                else:
+                    date = ""
+                SampRec[timestamp] = date
+                ErSamples.append(SampRec)
+                samples.append(SampRec[sample_name])
+    if len(Samps) > 0:
+        for samp in Samps:
+            if samp[sample_name] not in samples:
+                ErSamples.append(samp)
+    Recs, keys = pmag.fillkeys(ErSamples)
+    pmag.magic_write(samp_out, Recs, file_type)
+    print('sample information written to: ', samp_out)
+    return True, samp_out
+
 
 
 

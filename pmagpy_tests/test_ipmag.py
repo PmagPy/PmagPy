@@ -212,54 +212,6 @@ class TestCombineMagic(unittest.TestCase):
 
 
 
-class Test_iodp_samples_magic(unittest.TestCase):
-
-    def setUp(self):
-        self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                      'IODP_srm_magic')
-
-    def tearDown(self):
-        os.chdir(WD)
-        filelist = ['er_samples.txt']
-        pmag.remove_files(filelist, WD)
-
-    def test_with_wrong_format(self):
-        infile = os.path.join(self.input_dir, 'GCR_U1359_B_coresummary.csv')
-        program_ran, error_message = ipmag.iodp_samples_magic(infile)
-        self.assertFalse(program_ran)
-        expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file.'
-        self.assertEqual(error_message, expected_error)
-
-
-    def test_with_right_format(self):
-        reference_file = os.path.join(WD, 'testing', 'odp_magic',
-                                      'odp_magic_er_samples.txt')
-        infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=2)
-        self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'er_samples.txt')
-        self.assertEqual(outfile, expected_file)
-        self.assertTrue(os.path.isfile(outfile))
-
-
-    def test_content_with_right_format(self):
-        reference_file = os.path.join(WD, 'data_files', 'testing',
-                                      'odp_magic', 'odp_magic_er_samples.txt')
-        infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=2)
-        with open(reference_file) as ref_file:
-            ref_lines = ref_file.readlines()
-        with open(outfile) as out_file:
-            out_lines = out_file.readlines()
-        self.assertTrue(program_ran)
-        self.assertEqual(ref_lines, out_lines)
-
-    def test_with_data_model3(self):
-        infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.iodp_samples_magic(infile, data_model_num=3)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath('samples.txt'), os.path.realpath(outfile))
-
 
 
 class TestKly4s_magic(unittest.TestCase):
