@@ -977,6 +977,74 @@ class TestLdeoMagic(unittest.TestCase):
         self.assertEqual(options['meas_file'], outfile)
 
 
+class TestLivDbMagic(unittest.TestCase):
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'LIVDB_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt']
+        pmag.remove_files(filelist, WD)
+        #filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+        #            'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+        pmag.remove_files(filelist, '.')
+        #pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
+        os.chdir(WD)
+
+
+    def test_livdb_success(self):
+        res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"))
+        self.assertTrue(res)
+        self.assertEqual(meas_file, "measurements.txt")
+
+    def test_livdb_all_experiment_types(self):
+        for folder in ["TH_IZZI+", "MW_C+", "MW_IZZI+andC++", "MW_OT+", "MW_P"]:
+            res, meas_file = convert.livdb(os.path.join(self.input_dir, folder))
+            self.assertTrue(res)
+            self.assertEqual(meas_file, "measurements.txt")
+
+    def test_with_options(self):
+        # naming con 1
+        res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
+                                       location_name="place", samp_name_con=1, meas_out="custom.txt")
+        self.assertTrue(res)
+        self.assertEqual(meas_file, "custom.txt")
+        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
+        # naming con 2 without chars
+        res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
+                                       location_name="place", samp_name_con=2, site_name_con=2,
+                                       meas_out="custom.txt")
+        self.assertTrue(res)
+        self.assertEqual(meas_file, "custom.txt")
+        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
+        self.assertEqual("ATPIPV04-1A", df.df['site'].values[0])
+        # naming con 2 with chars
+
+    def test_naming_con_2(self):
+        res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
+                                       location_name="place", samp_name_con=2, samp_num_chars=1,
+                                       meas_out="custom.txt")
+        self.assertTrue(res)
+        self.assertEqual(meas_file, "custom.txt")
+        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        self.assertEqual("ATPIPV04-1", df.df['sample'].values[0])
+
+    def test_naming_con_3(self):
+        res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
+                                       location_name="place", samp_name_con=3, samp_num_chars="-",
+                                       meas_out="custom.txt")
+        self.assertTrue(res)
+        self.assertEqual(meas_file, "custom.txt")
+        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        self.assertEqual("ATPIPV04", df.df['sample'].values[0])
+        self.assertEqual("ATPIPV04", df.df['site'].values[0])
+
+
+
 class TestMstMagic(unittest.TestCase):
 
     def setUp(self):
