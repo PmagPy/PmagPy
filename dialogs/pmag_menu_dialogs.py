@@ -836,12 +836,6 @@ class ImportAgmFile(wx.Frame):
         options_dict['specnum'] =spc
         COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
         samp_infile = None
-        #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
-        #if program_ran:
-        #    pw.close_window(self, COMMAND, outfile)
-        #else:
-        #    pw.simple_warning(error_message)
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
         print("COMMAND: ",COMMAND)
         if convert.agm(**options_dict):
             pw.close_window(self,COMMAND,outfile)
@@ -982,11 +976,6 @@ class ImportAgmFolder(wx.Frame):
             infile = os.path.join(ID, f)
             outfile = f + ".magic"
             outfiles.append(outfile)
-            #if files.index(f) == (len(files) - 1): # terminate process on last file call
-                #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
-                #pw.close_window(self, COMMAND, outfile) # close window
-            #else: # continue through
-                #ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
             stem = infile.split('.')[0]
             SPEC_OUTFILE =  stem + "_specimens.txt"
             SAMP_OUTFILE =  stem + "_samples.txt"
@@ -1001,12 +990,6 @@ class ImportAgmFolder(wx.Frame):
             options_dict['fmt'] = fmt
             COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, SPEC_OUTFILE, usr, spc, ncn, loc, ins, units, bak)
             samp_infile = None
-        #program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
-        #if program_ran:
-        #    pw.close_window(self, COMMAND, outfile)
-        #else:
-        #    pw.simple_warning(error_message)
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
             print("COMMAND: ",COMMAND)
             print('options_dict', options_dict)
             program_ran, error_msg = convert.agm(**options_dict)

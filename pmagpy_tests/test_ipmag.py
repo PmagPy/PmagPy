@@ -210,39 +210,6 @@ class TestCombineMagic(unittest.TestCase):
         self.assertEqual(n, 2747)
 
 
-class TestAgmMagic(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
-        pmag.remove_files(filelist, WD)
-        pmag.remove_files(filelist, os.path.join(WD, 'data_files', 'Measurement_import', 'agm_magic'))
-        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import', 'agm_magic')
-        for f in os.listdir(dir_path):
-            if 'IS0' in f:
-                os.remove(os.path.join(dir_path, f))
-        os.chdir(WD)
-
-    def test_agm_with_no_files(self):
-        with self.assertRaises(TypeError):
-            ipmag.agm_magic()
-
-    def test_agm_with_bad_file(self):
-        program_ran, error_message = ipmag.agm_magic('bad_file.txt')
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'You must provide a valid agm file')
-
-    def test_agm_success(self):
-        input_dir = os.path.join(WD, 'data_files',
-                                 'Measurement_Import', 'agm_magic')
-        program_ran, filename = ipmag.agm_magic('agm_magic_example.agm',
-                                                outfile='agm_magic_example.magic',
-                                                input_dir_path=input_dir)
-        self.assertTrue(program_ran)
-        self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
-
 
 #@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestCoreDepthplot(unittest.TestCase):
