@@ -19,7 +19,6 @@ from programs.conversion_scripts import bgc_magic
 WD = pmag.get_test_WD()
 
 
-
 class Test2g_bin_magic(unittest.TestCase):
 
     def setUp(self):
@@ -177,7 +176,6 @@ class TestAgmMagic(unittest.TestCase):
                                             meas_outfile='agm_magic_example.magic',
                                             input_dir_path=input_dir, fmt="old", bak=True,
                                             instrument="SIO-FLO")
-
 
 
 class TestBgcMagic(unittest.TestCase):
@@ -397,6 +395,91 @@ class TestGenericMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
 
 
+class TestHujiMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['Massada_AF_HUJI_new_format.magic']
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'HUJI_magic')
+        pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'Massada_AF_HUJI_new_format.magic']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_with_bad_file(self):
+        program_ran, error_msg = convert.huji()
+        self.assertFalse(program_ran)
+        self.assertEqual(error_msg, "mag_file field is a required option")
+        program_ran, error_msg = convert.huji("fake")
+        self.assertFalse(program_ran)
+        self.assertEqual(error_msg, "bad mag file name")
+
+    def test_huji_magic_success(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'HUJI_magic')
+        full_file = os.path.join(dir_path, "Massada_AF_HUJI_new_format.txt")
+        options = {}
+        options['input_dir_path'] = dir_path
+        options['magfile'] = "Massada_AF_HUJI_new_format.txt"
+        options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
+        options['codelist'] = 'AF'
+        program_ran, outfile = convert.huji(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, options['meas_file'])
+
+    def test_with_options(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'HUJI_magic')
+        options = {}
+        options['dir_path'] = dir_path
+        options['magfile'] = "Massada_AF_HUJI_new_format.txt"
+        options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
+        options['codelist'] = "AF"
+        options['location'] = "Massada"
+        options['noave'] = True
+        options['user'] = "me"
+        options['labfield'] = 40
+        options['phi'] = 0
+        options['theta'] = 90
+        program_ran, outfile = convert.huji(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, options['meas_file'])
+
+    def test_with_no_exp_type(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import', 'HUJI_magic')
+        mag_file = "Massada_AF_HUJI_new_format.txt"
+        res, error = convert.huji(mag_file, dir_path)
+        self.assertFalse(res)
+        self.assertEqual(error, "Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
+
+
+class TestHujiSampleMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['samples.txt', 'sites.txt']
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'HUJI_magic')
+        pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt',
+                    'Massada_AF_HUJI_new_format.magic']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_success(self):
+        res, outfile = convert.huji_sample("magdelkrum_datafile.txt",
+                            dir_path=os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic'))
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic', 'samples.txt'))
+
 
 class TestIodpSrmMagic(unittest.TestCase):
 
@@ -513,6 +596,92 @@ class TestIodpDscrMagic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'custom_measurements.txt'))
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
+
+
+class TestIodpJr6Magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt',
+                 'locations.txt', 'measurements.txt', 'specimens.txt']
+        pmag.remove_files(files, WD)
+        # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'IODP_jr6_magic')
+        hidden_sampfile = os.path.join(input_dir, 'hidden_er_samples.txt')
+        sampfile = os.path.join(input_dir, 'er_samples.txt')
+        if os.path.exists(hidden_sampfile):
+            os.rename(hidden_sampfile, sampfile)
+        pmag.remove_files(['custom_specimens.txt'], 'data_files')
+        os.chdir(WD)
+
+    def test_iodp_jr6_with_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.iodp_jr6()
+
+    def test_iodp_jr6_with_invalid_mag_file(self):
+        options = {'mag_file': 'fake'}
+        program_ran, error_message = convert.iodp_jr6(**options)
+        expected_msg = 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.realpath(os.path.join('.', 'fake')))
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, expected_msg)
+
+
+    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
+    def test_iodp_jr6_with_magfile(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'IODP_jr6_magic')
+        options['input_dir_path'] = input_dir
+        mag_file = 'test.jr6'
+        options['mag_file'] = 'test.jr6'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        program_ran, outfile = convert.iodp_jr6(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, meas_file)
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
+
+    def test_iodp_jr6_with_path(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'IODP_jr6_magic')
+        #options['input_dir_path'] = input_dir
+        mag_file = os.path.join('data_files', 'Measurement_Import', 'IODP_jr6_magic', 'test.jr6')
+        options['mag_file'] = mag_file #'test.jr6'
+        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
+        options['loc_file'] = 'custom_locations.txt'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        program_ran, outfile = convert.iodp_jr6(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, meas_file)
+        for fname in [options['loc_file'], options['spec_file']]:
+            self.assertTrue(os.path.isfile(fname))
+
+
+    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
+    def test_iodp_jr6_with_options(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'IODP_jr6_magic')
+        options['input_dir_path'] = input_dir
+        mag_file = 'test.jr6'
+        options['mag_file'] = 'test.jr6'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        options['noave'] = 1
+        options['lat'] = 3
+        options['lon'] = 5
+        options['volume'] = 3
+        program_ran, outfile = convert.iodp_jr6(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, meas_file)
 
 
 class TestIodpSamplesMagic(unittest.TestCase):
@@ -697,222 +866,6 @@ class TestKly4sMagic(unittest.TestCase):
         self.assertEqual(['measurements', 'samples', 'sites', 'specimens'], sorted(con.tables))
 
 
-class TestPmdMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-        self.input_dir = os.path.join(WD, 'data_files',
-                                      'Measurement_Import', 'PMD_magic', 'PMD', )
-
-    def tearDown(self):
-        filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-                    'locations.txt', 'custom_specimens.txt', 'measurements.txt',
-                    'custom_meas.txt']
-        pmag.remove_files(filelist, WD)
-        pmag.remove_files(filelist, ".")
-        os.chdir(WD)
-
-    def test_pmd_with_no_files(self):
-        with self.assertRaises(TypeError):
-            convert.pmd()
-
-    def test_pmd_success(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
-        program_ran, outfile = convert.pmd(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
-        self.assertIn('sequence', meas_df.df.columns)
-
-
-    def test_pmd_options(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
-        options['lat'], options['lon'] = 5, 10
-        options['specnum'] = 2
-        options['location'] = 'place'
-        options['meas_file'] = 'custom_meas.txt'
-        program_ran, outfile = convert.pmd(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'custom_meas.txt'))
-        loc_df = nb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
-        self.assertEqual(loc_df.df.index.values[0], 'place')
-
-
-
-
-class TestIodpJr6Magic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        files = ['test.magic', 'other_er_samples.txt',
-                 'custom_locations.txt', 'samples.txt', 'sites.txt',
-                 'locations.txt', 'measurements.txt', 'specimens.txt']
-        pmag.remove_files(files, WD)
-        # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'IODP_jr6_magic')
-        hidden_sampfile = os.path.join(input_dir, 'hidden_er_samples.txt')
-        sampfile = os.path.join(input_dir, 'er_samples.txt')
-        if os.path.exists(hidden_sampfile):
-            os.rename(hidden_sampfile, sampfile)
-        pmag.remove_files(['custom_specimens.txt'], 'data_files')
-        os.chdir(WD)
-
-    def test_iodp_jr6_with_no_files(self):
-        with self.assertRaises(TypeError):
-            convert.iodp_jr6()
-
-    def test_iodp_jr6_with_invalid_mag_file(self):
-        options = {'mag_file': 'fake'}
-        program_ran, error_message = convert.iodp_jr6(**options)
-        expected_msg = 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.realpath(os.path.join('.', 'fake')))
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, expected_msg)
-
-
-    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
-    def test_iodp_jr6_with_magfile(self):
-        options = {}
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'IODP_jr6_magic')
-        options['input_dir_path'] = input_dir
-        mag_file = 'test.jr6'
-        options['mag_file'] = 'test.jr6'
-        meas_file = 'test.magic'
-        options['meas_file'] = meas_file
-        program_ran, outfile = convert.iodp_jr6(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, meas_file)
-        meas_df = nb.MagicDataFrame(outfile)
-        self.assertIn('sequence', meas_df.df.columns)
-
-
-    def test_iodp_jr6_with_path(self):
-        options = {}
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'IODP_jr6_magic')
-        #options['input_dir_path'] = input_dir
-        mag_file = os.path.join('data_files', 'Measurement_Import', 'IODP_jr6_magic', 'test.jr6')
-        options['mag_file'] = mag_file #'test.jr6'
-        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
-        options['loc_file'] = 'custom_locations.txt'
-        meas_file = 'test.magic'
-        options['meas_file'] = meas_file
-        program_ran, outfile = convert.iodp_jr6(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, meas_file)
-        for fname in [options['loc_file'], options['spec_file']]:
-            self.assertTrue(os.path.isfile(fname))
-
-
-    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
-    def test_iodp_jr6_with_options(self):
-        options = {}
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'IODP_jr6_magic')
-        options['input_dir_path'] = input_dir
-        mag_file = 'test.jr6'
-        options['mag_file'] = 'test.jr6'
-        meas_file = 'test.magic'
-        options['meas_file'] = meas_file
-        options['noave'] = 1
-        options['lat'] = 3
-        options['lon'] = 5
-        options['volume'] = 3
-        program_ran, outfile = convert.iodp_jr6(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, meas_file)
-
-
-
-class TestHujiMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        filelist = ['Massada_AF_HUJI_new_format.magic']
-        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'HUJI_magic')
-        pmag.remove_files(filelist, directory)
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt',
-                    'Massada_AF_HUJI_new_format.magic']
-        pmag.remove_files(filelist, WD)
-        os.chdir(WD)
-
-    def test_with_bad_file(self):
-        program_ran, error_msg = convert.huji()
-        self.assertFalse(program_ran)
-        self.assertEqual(error_msg, "mag_file field is a required option")
-        program_ran, error_msg = convert.huji("fake")
-        self.assertFalse(program_ran)
-        self.assertEqual(error_msg, "bad mag file name")
-
-    def test_huji_magic_success(self):
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                                'HUJI_magic')
-        full_file = os.path.join(dir_path, "Massada_AF_HUJI_new_format.txt")
-        options = {}
-        options['input_dir_path'] = dir_path
-        options['magfile'] = "Massada_AF_HUJI_new_format.txt"
-        options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
-        options['codelist'] = 'AF'
-        program_ran, outfile = convert.huji(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, options['meas_file'])
-
-    def test_with_options(self):
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                                'HUJI_magic')
-        options = {}
-        options['dir_path'] = dir_path
-        options['magfile'] = "Massada_AF_HUJI_new_format.txt"
-        options['meas_file'] = "Massada_AF_HUJI_new_format.magic"
-        options['codelist'] = "AF"
-        options['location'] = "Massada"
-        options['noave'] = True
-        options['user'] = "me"
-        options['labfield'] = 40
-        options['phi'] = 0
-        options['theta'] = 90
-        program_ran, outfile = convert.huji(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, options['meas_file'])
-
-    def test_with_no_exp_type(self):
-        dir_path = os.path.join('data_files', 'Measurement_Import', 'HUJI_magic')
-        mag_file = "Massada_AF_HUJI_new_format.txt"
-        res, error = convert.huji(mag_file, dir_path)
-        self.assertFalse(res)
-        self.assertEqual(error, "Must select experiment type (codelist/-LP, options are: [AF, T, ANI, TRM, CR])")
-
-
-class TestHujiSampleMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        filelist = ['samples.txt', 'sites.txt']
-        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'HUJI_magic')
-        pmag.remove_files(filelist, directory)
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt',
-                    'Massada_AF_HUJI_new_format.magic']
-        pmag.remove_files(filelist, WD)
-        os.chdir(WD)
-
-    def test_success(self):
-        res, outfile = convert.huji_sample("magdelkrum_datafile.txt",
-                            dir_path=os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic'))
-        self.assertTrue(res)
-        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'Measurement_Import', 'HUJI_magic', 'samples.txt'))
-
-
 class TestK15Magic(unittest.TestCase):
 
     def setUp(self):
@@ -1068,9 +1021,6 @@ class TestMstMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
 
 
-
-
-
 class TestMiniMagic(unittest.TestCase):
 
     def setUp(self):
@@ -1110,6 +1060,47 @@ class TestMiniMagic(unittest.TestCase):
                                             methcode="LP:FAKE", data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, "custom.out")
+
+
+class TestPmdMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'PMD_magic', 'PMD', )
+
+    def tearDown(self):
+        filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt',
+                    'custom_meas.txt']
+        pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, ".")
+        os.chdir(WD)
+
+    def test_pmd_with_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.pmd()
+
+    def test_pmd_success(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
+        program_ran, outfile = convert.pmd(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
+
+    def test_pmd_options(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'ss0207a.pmd'}
+        options['lat'], options['lon'] = 5, 10
+        options['specnum'] = 2
+        options['location'] = 'place'
+        options['meas_file'] = 'custom_meas.txt'
+        program_ran, outfile = convert.pmd(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'custom_meas.txt'))
+        loc_df = nb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
+        self.assertEqual(loc_df.df.index.values[0], 'place')
 
 
 class TestSioMagic(unittest.TestCase):
