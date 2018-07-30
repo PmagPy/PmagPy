@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
-import pmagpy.pmag as pmag
 import pmagpy.command_line_extractor as extractor
-import pmagpy.ipmag as ipmag
+from pmagpy import convert_2_magic as convert
 
 def main():
     """
@@ -62,7 +60,7 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([ ['WD', False, '.'], ['ID', False, '.'],
+    dataframe = extractor.command_line_dataframe([ ['WD', False, '.'], ['ID', False, ''],
                                                    ['usr', False, ''], ['ncn', False, '1'],
                                                    ['k15', False, False], ['ins', False, ''],
                                                    ['f', True, ''], ['F', False, 'measurements.txt'],
@@ -74,7 +72,11 @@ def main():
     checked_args = extractor.extract_and_check_args(args, dataframe)
     output_dir_path, input_dir_path, user, sample_naming_con, static_15_position_mode, instrument, ascfile, meas_output, aniso_output, spec_outfile, locname, specnum, spec_infile, data_model_num = extractor.get_vars(['WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc', 'fsi', 'DM'], checked_args)
 
-    ipmag.SUFAR4_magic(ascfile, meas_output, aniso_output, spec_infile, spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con, user=user, locname=locname, instrument=instrument, static_15_position_mode=static_15_position_mode, output_dir_path=output_dir_path, input_dir_path=input_dir_path, data_model_num=data_model_num)
+    convert.sufar4(ascfile, meas_output, aniso_output, spec_infile,
+                   spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con,
+                   user=user, locname=locname, instrument=instrument,
+                   static_15_position_mode=static_15_position_mode, output_dir_path=output_dir_path,
+                   input_dir_path=input_dir_path, data_model_num=data_model_num)
 
     # do we need -new flag??
 if __name__ == "__main__":

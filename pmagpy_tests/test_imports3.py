@@ -1249,7 +1249,7 @@ class TestSMagic(unittest.TestCase):
         self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
 
 
-class TestSUFAR_asc_magic(unittest.TestCase):
+class TestSufarAscMagic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -1266,7 +1266,7 @@ class TestSUFAR_asc_magic(unittest.TestCase):
 
     def test_SUFAR4_with_no_files(self):
         with self.assertRaises(TypeError):
-            convert.sufar()
+            convert.sufar4()
 
     def test_SUFAR4_with_invalid_file(self):
         input_dir = os.path.join(WD, 'data_files',
