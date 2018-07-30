@@ -19,6 +19,135 @@ from programs.conversion_scripts import bgc_magic
 WD = pmag.get_test_WD()
 
 
+
+class Test2g_bin_magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+        #'IODP_jr6_magic')
+        #files = ['test.magic', 'other_er_samples.txt']
+        files = ['mn001-1a.magic', 'samples.txt', 'sites.txt',
+                 'measurements.txt', 'locations.txt', 'specimens.txt']
+        pmag.remove_files(files, WD)
+        pmag.remove_files(['custom_specimens.txt', 'samples.txt',
+                           'sites.txt', 'locations.txt'], 'data_files')
+        pmag.remove_files(files, os.path.join(WD, 'data_files', 'Measurement_Import',
+                                              '2G_bin_magic', 'mn1'))
+        os.chdir(WD)
+
+    def test_2g_with_no_files(self):
+        options = {}
+        program_ran, error_message = convert._2g_bin(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'mag file is required input')
+
+    def test_2g_with_files(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] = 'mn001-1a.dat'
+        program_ran, outfile = convert._2g_bin(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
+        self.assertTrue(os.path.isfile(outfile))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
+
+    def test_2g_fail_option4(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files',
+                                            'Measurement_Import',
+                                            '2G_bin_magic', 'mn1')
+        options['mag_file'] =  'mn001-1a.dat'
+        options['samp_con'] = '4'
+        program_ran, error_message = convert._2g_bin(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'option [4] must be in form 4-Z where Z is an integer')
+
+    def test_2g_succeed_option4(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] =  'mn001-1a.dat'
+        options['samp_con'] = '4-3'
+        program_ran, outfile = convert._2g_bin(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
+
+    def test_2g_fail_option7(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] = 'mn001-1a.dat'
+        options['samp_con'] = '7'
+        program_ran, error_message = convert._2g_bin(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'option [7] must be in form 7-Z where Z is an integer')
+
+    def test_2g_succeed_option7(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] = 'mn001-1a.dat'
+        options['samp_con'] = '7-3'
+        program_ran, outfile = convert._2g_bin(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
+
+    def test_2g_fail_option6(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] =  'mn001-1a.dat'
+        options['samp_con'] = '6'
+        program_ran, error_message = convert._2g_bin(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'Naming convention option [6] not currently supported')
+
+    def test_2g_with_bad_file(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] =  'mn001-1ax.dat'
+        program_ran, error_message = convert._2g_bin(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "bad mag file")
+
+    def test_2g_with_options(self):
+        options = {}
+        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1')
+        options['mag_file'] = 'mn001-1a.dat'
+        options['meas_file'] = 'mn001-1a.magic'
+        options['samp_con'] = '4-3'
+        options['inst'] = 'instrument'
+        options['noave'] = 0
+        options['specnum'] = 2
+        options['location'] = 'location'
+        options['or_con'] = '4'
+        options['gmeths'] = 'FS-LOC-MAP:SO-POM'
+        program_ran, outfile = convert._2g_bin(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.split(outfile)[1], 'mn001-1a.magic')
+
+    def test_2g_with_path(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 '2G_bin_magic', 'mn1')
+        #options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+        #                             '2G_bin_magic', 'mn1')
+        options['mag_file'] = os.path.join(input_dir, 'mn001-1a.dat')
+        options['meas_file'] = os.path.join(input_dir, 'mn001-1a.magic')
+        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
+        options['dir_path'] = 'data_files'
+        program_ran, outfile = convert._2g_bin(**options)
+        self.assertEqual(outfile, options['meas_file'])
+
+
 class TestAgmMagic(unittest.TestCase):
 
     def setUp(self):
@@ -51,143 +180,64 @@ class TestAgmMagic(unittest.TestCase):
 
 
 
-class TestGenericMagic(unittest.TestCase):
+class TestBgcMagic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'BGC_magic')
 
     def tearDown(self):
-        filelist = ['generic_magic_example.magic']
-        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'generic_magic')
-        pmag.remove_files(filelist, directory)
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt']
+        filelist = ['96MT.05.01.magic', 'BC0-3A.magic',
+                    'measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt']
+        pmag.remove_files(filelist, self.input_dir)
+        filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
         pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
-    def test_generic_magic_no_exp(self):
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                                'generic_magic')
-        options = {}
-        options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
-        options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
-        program_ran, error_message = convert.generic(**options)
-        self.assertFalse(program_ran)
-        no_exp_error = "Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see help for format), NLT"
-        self.assertEqual(no_exp_error, error_message)
-
-    def test_generic_magic_success(self):
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                        'generic_magic')
-        options = {}
-        options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
-        options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
-        options['experiment'] = 'Demag'
-        program_ran, outfile_name = convert.generic(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
-
-
-class TestSioMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        filelist = ['sio_af_example.magic']
-        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic')
-        pmag.remove_files(filelist, directory)
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt']
-        pmag.remove_files(filelist, WD)
-        os.chdir(WD)
-
-    def test_sio_magic_no_files(self):
+    def test_bgc_with_no_files(self):
         with self.assertRaises(TypeError):
-            convert.sio()
+            convert.bgc()
 
-    def test_sio_magic_success(self):
-        options = {}
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                                'sio_magic')
-        options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
-        options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
-        program_ran, file_name = convert.sio(**options)
+    def test_bgc_success(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(file_name),
-                         os.path.realpath(options['meas_file']))
-        meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
+        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
-        self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
 
-    def test_sio_magic_success_with_wd(self):
+
+    def test_bgc_with_path(self):
         options = {}
-        dir_path = os.path.join('data_files', 'Measurement_Import',
-                                'sio_magic')
-        options['mag_file'] = os.path.join('sio_af_example.dat')
-        options['meas_file'] = os.path.join('sio_af_example.magic')
-        options['dir_path'] = dir_path
-        program_ran, file_name = convert.sio(**options)
+        options['mag_file'] = os.path.join(self.input_dir, '96MT.05.01')
+        options['spec_file'] = os.path.join(WD, 'custom_specimens.txt')
+        options['dir_path'] = 'data_files'
+        program_ran, outfile = convert.bgc(**options)
+        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
+        self.assertTrue(os.path.isfile(options['spec_file']))
+        self.assertTrue(os.path.isfile(os.path.join(WD, 'data_files', 'samples.txt')))
+
+
+    def test_bgc_alternate_infile(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(file_name),
-                         os.path.realpath(os.path.join(dir_path, options['meas_file'])))
+        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
 
 
-
-    def test_sio_magic_fail_option4(self):
-        options = {}
-        options['mag_file'] = os.path.join(WD, 'data_files',
-                                           'Measurement_Import', 'sio_magic',
-                                           'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic', 'sio_af_example.magic')
-        options['meas_file'] = meas_file
-        options['samp_con'] = '4'
-        program_ran, error_message = convert.sio(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
-
-    def test_sio_magic_succeed_option4(self):
-        options = {}
-        options['mag_file'] = os.path.join(WD, 'data_files',
-                                           'Measurement_Import', 'sio_magic',
-                                           'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic', 'sio_af_example.magic')
-        options['meas_file'] = meas_file
-        options['samp_con'] = '4-2'
-        program_ran, file_name = convert.sio(**options)
+    def test_bgc_with_append(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(file_name, meas_file)
-
-
-    def test_sio_magic_fail_with_coil(self):
-        options = {}
-        options['mag_file'] = os.path.join(WD, 'data_files',
-                                           'Measurement_Import', 'sio_magic',
-                                           'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic', 'sio_af_example.magic')
-        options['meas_file'] = meas_file
-        options['coil'] = 4
-        program_ran, error_message = convert.sio(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, '4 is not a valid coil specification')
-
-    def test_sio_magic_succeed_with_coil(self):
-        options = {}
-        options['mag_file'] = os.path.join(WD, 'data_files',
-                                           'Measurement_Import', 'sio_magic',
-                                           'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic', 'sio_af_example.magic')
-        options['meas_file'] = meas_file
-        options['coil'] = '1'
-        program_ran, file_name = convert.sio(**options)
+        options['append'] = True
+        program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(file_name, meas_file)
+        lines, file_type = pmag.magic_read(os.path.join(WD, 'specimens.txt'))
+        self.assertEqual(len(lines), 2)
 
 
 class TestCitMagic(unittest.TestCase):
@@ -307,6 +357,45 @@ class TestCitMagic(unittest.TestCase):
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
+
+
+class TestGenericMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['generic_magic_example.magic']
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'generic_magic')
+        pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_generic_magic_no_exp(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'generic_magic')
+        options = {}
+        options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
+        options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
+        program_ran, error_message = convert.generic(**options)
+        self.assertFalse(program_ran)
+        no_exp_error = "Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see help for format), NLT"
+        self.assertEqual(no_exp_error, error_message)
+
+    def test_generic_magic_success(self):
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                        'generic_magic')
+        options = {}
+        options['magfile'] = os.path.join(dir_path, 'generic_magic_example.txt')
+        options['meas_file'] = os.path.join(dir_path, 'generic_magic_example.magic')
+        options['experiment'] = 'Demag'
+        program_ran, outfile_name = convert.generic(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile_name), os.path.realpath(options['meas_file']))
+
 
 
 class TestIodpSrmMagic(unittest.TestCase):
@@ -475,6 +564,72 @@ class TestIodpSamplesMagic(unittest.TestCase):
         self.assertEqual(os.path.realpath('samples.txt'), os.path.realpath(outfile))
 
 
+class TestJr6TxtMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt',
+                 'measurements.txt', 'locations.txt', 'specimens.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        output = convert.jr6_txt(**{'mag_file': 'AP12.txt', 'input_dir_path': input_dir})
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'measurements.txt')
+
+    def test_with_options(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        options = {'mag_file': 'AP12.txt', 'input_dir_path': input_dir}
+        options['meas_file'] = "test.magic"
+        options['lat'] = 1
+        options['lon'] = 2
+        options['noave'] = True
+        output = convert.jr6_txt(**options)
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'test.magic')
+        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
+        self.assertEqual(1, site_df.df.lat.values[0])
+
+
+class TestJr6Jr6Magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt',
+                 'measurements.txt', 'locations.txt', 'specimens.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        output = convert.jr6_jr6(**{'mag_file': 'AF.jr6', 'input_dir_path': input_dir})
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'measurements.txt')
+
+    def test_with_options(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        options = {'mag_file': 'SML07.JR6', 'input_dir_path': input_dir}
+        options['meas_file'] = "test.magic"
+        options['lat'] = 1
+        options['lon'] = 2
+        options['noave'] = True
+        output = convert.jr6_jr6(**options)
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'test.magic')
+        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
+        self.assertEqual(1, site_df.df.lat.values[0])
+
+
 class TestKly4sMagic(unittest.TestCase):
 
     def setUp(self):
@@ -583,71 +738,6 @@ class TestPmdMagic(unittest.TestCase):
         self.assertEqual(loc_df.df.index.values[0], 'place')
 
 
-class TestJr6TxtMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        files = ['test.magic', 'other_er_samples.txt',
-                 'custom_locations.txt', 'samples.txt', 'sites.txt',
-                 'measurements.txt', 'locations.txt', 'specimens.txt']
-        pmag.remove_files(files, WD)
-
-    def test_success(self):
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'JR6_magic')
-        output = convert.jr6_txt(**{'mag_file': 'AP12.txt', 'input_dir_path': input_dir})
-        self.assertTrue(output[0])
-        self.assertEqual(output[1], 'measurements.txt')
-
-    def test_with_options(self):
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'JR6_magic')
-        options = {'mag_file': 'AP12.txt', 'input_dir_path': input_dir}
-        options['meas_file'] = "test.magic"
-        options['lat'] = 1
-        options['lon'] = 2
-        options['noave'] = True
-        output = convert.jr6_txt(**options)
-        self.assertTrue(output[0])
-        self.assertEqual(output[1], 'test.magic')
-        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
-        self.assertEqual(1, site_df.df.lat.values[0])
-
-
-class TestJr6Jr6Magic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        files = ['test.magic', 'other_er_samples.txt',
-                 'custom_locations.txt', 'samples.txt', 'sites.txt',
-                 'measurements.txt', 'locations.txt', 'specimens.txt']
-        pmag.remove_files(files, WD)
-
-    def test_success(self):
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'JR6_magic')
-        output = convert.jr6_jr6(**{'mag_file': 'AF.jr6', 'input_dir_path': input_dir})
-        self.assertTrue(output[0])
-        self.assertEqual(output[1], 'measurements.txt')
-
-    def test_with_options(self):
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'JR6_magic')
-        options = {'mag_file': 'SML07.JR6', 'input_dir_path': input_dir}
-        options['meas_file'] = "test.magic"
-        options['lat'] = 1
-        options['lon'] = 2
-        options['noave'] = True
-        output = convert.jr6_jr6(**options)
-        self.assertTrue(output[0])
-        self.assertEqual(output[1], 'test.magic')
-        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
-        self.assertEqual(1, site_df.df.lat.values[0])
-
 
 
 class TestIodpJr6Magic(unittest.TestCase):
@@ -735,133 +825,6 @@ class TestIodpJr6Magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
 
-
-class Test2g_bin_magic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-
-    def tearDown(self):
-        #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-        #'IODP_jr6_magic')
-        #files = ['test.magic', 'other_er_samples.txt']
-        files = ['mn001-1a.magic', 'samples.txt', 'sites.txt',
-                 'measurements.txt', 'locations.txt', 'specimens.txt']
-        pmag.remove_files(files, WD)
-        pmag.remove_files(['custom_specimens.txt', 'samples.txt',
-                           'sites.txt', 'locations.txt'], 'data_files')
-        pmag.remove_files(files, os.path.join(WD, 'data_files', 'Measurement_Import',
-                                              '2G_bin_magic', 'mn1'))
-        os.chdir(WD)
-
-    def test_2g_with_no_files(self):
-        options = {}
-        program_ran, error_message = convert._2g_bin(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'mag file is required input')
-
-    def test_2g_with_files(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] = 'mn001-1a.dat'
-        program_ran, outfile = convert._2g_bin(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
-        self.assertTrue(os.path.isfile(outfile))
-        meas_df = nb.MagicDataFrame(outfile)
-        self.assertIn('sequence', meas_df.df.columns)
-
-
-    def test_2g_fail_option4(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files',
-                                            'Measurement_Import',
-                                            '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
-        options['samp_con'] = '4'
-        program_ran, error_message = convert._2g_bin(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'option [4] must be in form 4-Z where Z is an integer')
-
-    def test_2g_succeed_option4(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
-        options['samp_con'] = '4-3'
-        program_ran, outfile = convert._2g_bin(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
-
-    def test_2g_fail_option7(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] = 'mn001-1a.dat'
-        options['samp_con'] = '7'
-        program_ran, error_message = convert._2g_bin(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'option [7] must be in form 7-Z where Z is an integer')
-
-    def test_2g_succeed_option7(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] = 'mn001-1a.dat'
-        options['samp_con'] = '7-3'
-        program_ran, outfile = convert._2g_bin(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
-
-    def test_2g_fail_option6(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
-        options['samp_con'] = '6'
-        program_ran, error_message = convert._2g_bin(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'Naming convention option [6] not currently supported')
-
-    def test_2g_with_bad_file(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1ax.dat'
-        program_ran, error_message = convert._2g_bin(**options)
-        self.assertFalse(program_ran)
-        self.assertEqual(error_message, "bad mag file")
-
-    def test_2g_with_options(self):
-        options = {}
-        options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2G_bin_magic', 'mn1')
-        options['mag_file'] = 'mn001-1a.dat'
-        options['meas_file'] = 'mn001-1a.magic'
-        options['samp_con'] = '4-3'
-        options['inst'] = 'instrument'
-        options['noave'] = 0
-        options['specnum'] = 2
-        options['location'] = 'location'
-        options['or_con'] = '4'
-        options['gmeths'] = 'FS-LOC-MAP:SO-POM'
-        program_ran, outfile = convert._2g_bin(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.split(outfile)[1], 'mn001-1a.magic')
-
-    def test_2g_with_path(self):
-        options = {}
-        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 '2G_bin_magic', 'mn1')
-        #options['input_dir'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-        #                             '2G_bin_magic', 'mn1')
-        options['mag_file'] = os.path.join(input_dir, 'mn001-1a.dat')
-        options['meas_file'] = os.path.join(input_dir, 'mn001-1a.magic')
-        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
-        options['dir_path'] = 'data_files'
-        program_ran, outfile = convert._2g_bin(**options)
-        self.assertEqual(outfile, options['meas_file'])
 
 
 class TestHujiMagic(unittest.TestCase):
@@ -1018,8 +981,6 @@ class TestK15Magic(unittest.TestCase):
         self.assertEqual(os.path.realpath('./measurements.txt'), os.path.realpath(outfile))
 
 
-
-
 class TestLdeoMagic(unittest.TestCase):
 
     def setUp(self):
@@ -1061,174 +1022,6 @@ class TestLdeoMagic(unittest.TestCase):
         program_ran, outfile = convert.ldeo(**options)
         self.assertTrue(program_ran)
         self.assertEqual(options['meas_file'], outfile)
-
-
-class TestBgcMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-        self.input_dir = os.path.join(WD, 'data_files',
-                                      'Measurement_Import', 'BGC_magic')
-
-    def tearDown(self):
-        filelist = ['96MT.05.01.magic', 'BC0-3A.magic',
-                    'measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt']
-        pmag.remove_files(filelist, self.input_dir)
-        filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
-        pmag.remove_files(filelist, WD)
-        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
-        os.chdir(WD)
-
-    def test_bgc_with_no_files(self):
-        with self.assertRaises(TypeError):
-            convert.bgc()
-
-    def test_bgc_success(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
-        program_ran, outfile = convert.bgc(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
-        self.assertIn('sequence', meas_df.df.columns)
-
-
-    def test_bgc_with_path(self):
-        options = {}
-        options['mag_file'] = os.path.join(self.input_dir, '96MT.05.01')
-        options['spec_file'] = os.path.join(WD, 'custom_specimens.txt')
-        options['dir_path'] = 'data_files'
-        program_ran, outfile = convert.bgc(**options)
-        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
-        self.assertTrue(os.path.isfile(options['spec_file']))
-        self.assertTrue(os.path.isfile(os.path.join(WD, 'data_files', 'samples.txt')))
-
-
-    def test_bgc_alternate_infile(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = convert.bgc(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
-
-
-    def test_bgc_with_append(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
-        program_ran, outfile = convert.bgc(**options)
-        self.assertTrue(program_ran)
-        options['append'] = True
-        program_ran, outfile = convert.bgc(**options)
-        self.assertTrue(program_ran)
-        lines, file_type = pmag.magic_read(os.path.join(WD, 'specimens.txt'))
-        self.assertEqual(len(lines), 2)
-
-
-
-class TestUtrechtMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-        self.input_dir = os.path.join(WD, 'data_files',
-                                      'Measurement_Import', 'UTRECHT_magic')
-
-    def tearDown(self):
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
-        pmag.remove_files(filelist, WD)
-        #filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
-        #            'locations.txt', 'custom_specimens.txt', 'measurements.txt']
-        pmag.remove_files(filelist, '.')
-        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
-        os.chdir(WD)
-
-    def test_utrecht_with_no_files(self):
-        with self.assertRaises(TypeError):
-            convert.utrecht()
-
-
-    def test_utrecht_success(self):
-        options = {'input_dir_path': self.input_dir, 'mag_file': 'Utrecht_Example.af'}
-        program_ran, outfile = convert.utrecht(**options)
-        self.assertTrue(program_ran)
-        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
-        self.assertIn('sequence', meas_df.df.columns)
-
-class TestMiniMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-        self.input_dir = os.path.join(WD, 'data_files',
-                              'Measurement_Import', 'MINI_magic')
-
-    def tearDown(self):
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
-        pmag.remove_files(filelist, WD)
-
-    def test_bad_file(self):
-        program_ran, error = convert.mini('fake_file')
-        self.assertFalse(program_ran)
-        self.assertEqual(error, "bad mag file name")
-
-    def test_success(self):
-        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
-        program_ran, outfile = convert.mini(magfile)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, "measurements.txt")
-
-
-    def test_options(self):
-        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
-        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
-                                            user="me", noave=1, volume=15,
-                                            methcode="LP:FAKE")
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, "custom.out")
-
-    def test_dm_2(self):
-        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
-        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
-                                            user="me", noave=1, volume=15,
-                                            methcode="LP:FAKE", data_model_num=2)
-        self.assertTrue(program_ran)
-        self.assertEqual(outfile, "custom.out")
-
-
-class TestSMagic(unittest.TestCase):
-
-    def setUp(self):
-        os.chdir(WD)
-        self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 's_magic')
-
-    def tearDown(self):
-        filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
-        pmag.remove_files(filelist, WD)
-        pmag.remove_files(filelist, self.input_dir)
-
-    def test_with_invalid_file(self):
-        res, error_msg = convert.s_magic('fake.txt')
-        self.assertFalse(res)
-        expected_file = os.path.join(WD, "fake.txt")
-        self.assertEqual(error_msg, "No such file: {}".format(expected_file))
-
-    def test_success(self):
-        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir)
-        self.assertTrue(res)
-        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
-
-    def test_with_options(self):
-
-        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir,
-                                       specnum=1, location="place", spec="abcd-efg",
-                                       user="me", samp_con=2)
-        self.assertTrue(res)
-        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
-        self.assertTrue(os.path.exists(os.path.join(self.input_dir, "sites.txt")))
-        con = nb.Contribution(self.input_dir)
-        self.assertIn('sites', con.tables)
-        self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
 
 
 class TestMstMagic(unittest.TestCase):
@@ -1273,3 +1066,319 @@ class TestMstMagic(unittest.TestCase):
         program_ran, outfile = convert.mst(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
+
+
+
+
+
+class TestMiniMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                              'Measurement_Import', 'MINI_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+
+    def test_bad_file(self):
+        program_ran, error = convert.mini('fake_file')
+        self.assertFalse(program_ran)
+        self.assertEqual(error, "bad mag file name")
+
+    def test_success(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "measurements.txt")
+
+
+    def test_options(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
+                                            user="me", noave=1, volume=15,
+                                            methcode="LP:FAKE")
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "custom.out")
+
+    def test_dm_2(self):
+        magfile = os.path.join(self.input_dir, "Peru_rev1.txt")
+        program_ran, outfile = convert.mini(magfile, meas_file="custom.out",
+                                            user="me", noave=1, volume=15,
+                                            methcode="LP:FAKE", data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "custom.out")
+
+
+class TestSioMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['sio_af_example.magic']
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'sio_magic')
+        pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_sio_magic_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.sio()
+
+    def test_sio_magic_success(self):
+        options = {}
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'sio_magic')
+        options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
+        options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
+        program_ran, file_name = convert.sio(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(file_name),
+                         os.path.realpath(options['meas_file']))
+        meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
+        self.assertIn('sequence', meas_df.df.columns)
+        self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
+
+    def test_sio_magic_success_with_wd(self):
+        options = {}
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'sio_magic')
+        options['mag_file'] = os.path.join('sio_af_example.dat')
+        options['meas_file'] = os.path.join('sio_af_example.magic')
+        options['dir_path'] = dir_path
+        program_ran, file_name = convert.sio(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(file_name),
+                         os.path.realpath(os.path.join(dir_path, options['meas_file'])))
+
+
+
+    def test_sio_magic_fail_option4(self):
+        options = {}
+        options['mag_file'] = os.path.join(WD, 'data_files',
+                                           'Measurement_Import', 'sio_magic',
+                                           'sio_af_example.dat')
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'sio_magic', 'sio_af_example.magic')
+        options['meas_file'] = meas_file
+        options['samp_con'] = '4'
+        program_ran, error_message = convert.sio(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
+
+    def test_sio_magic_succeed_option4(self):
+        options = {}
+        options['mag_file'] = os.path.join(WD, 'data_files',
+                                           'Measurement_Import', 'sio_magic',
+                                           'sio_af_example.dat')
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'sio_magic', 'sio_af_example.magic')
+        options['meas_file'] = meas_file
+        options['samp_con'] = '4-2'
+        program_ran, file_name = convert.sio(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(file_name, meas_file)
+
+
+    def test_sio_magic_fail_with_coil(self):
+        options = {}
+        options['mag_file'] = os.path.join(WD, 'data_files',
+                                           'Measurement_Import', 'sio_magic',
+                                           'sio_af_example.dat')
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'sio_magic', 'sio_af_example.magic')
+        options['meas_file'] = meas_file
+        options['coil'] = 4
+        program_ran, error_message = convert.sio(**options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, '4 is not a valid coil specification')
+
+    def test_sio_magic_succeed_with_coil(self):
+        options = {}
+        options['mag_file'] = os.path.join(WD, 'data_files',
+                                           'Measurement_Import', 'sio_magic',
+                                           'sio_af_example.dat')
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'sio_magic', 'sio_af_example.magic')
+        options['meas_file'] = meas_file
+        options['coil'] = '1'
+        program_ran, file_name = convert.sio(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(file_name, meas_file)
+
+
+class TestSMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import', 's_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, self.input_dir)
+
+    def test_with_invalid_file(self):
+        res, error_msg = convert.s_magic('fake.txt')
+        self.assertFalse(res)
+        expected_file = os.path.join(WD, "fake.txt")
+        self.assertEqual(error_msg, "No such file: {}".format(expected_file))
+
+    def test_success(self):
+        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
+
+    def test_with_options(self):
+
+        res, outfile = convert.s_magic("s_magic_example.dat", dir_path=self.input_dir,
+                                       specnum=1, location="place", spec="abcd-efg",
+                                       user="me", samp_con=2)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
+        self.assertTrue(os.path.exists(os.path.join(self.input_dir, "sites.txt")))
+        con = nb.Contribution(self.input_dir)
+        self.assertIn('sites', con.tables)
+        self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
+
+
+class TestSUFAR_asc_magic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt',
+                    'rmag_results.txt', 'my_rmag_results.txt', 'measurements.txt',
+                    'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+
+    def test_SUFAR4_with_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.sufar()
+
+    def test_SUFAR4_with_invalid_file(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'fake_sufar4-asc_magic_example.txt'
+        program_ran, error_message = convert.sufar4(infile,
+                                                    input_dir_path=input_dir,
+                                                    data_model_num=2)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message,
+                         'Error opening file: {}'.format(os.path.join(input_dir,
+                                                                      infile)))
+
+
+    def test_SUFAR4_with_infile(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = convert.sufar4(infile,
+                                              input_dir_path=input_dir,
+                                              data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        with open(outfile, 'r') as ofile:
+            lines = ofile.readlines()
+            self.assertEqual(292, len(lines))
+
+
+    def test_SUFAR4_succeed_data_model3(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = convert.sufar4(infile,
+                                              input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'measurements.txt'))
+        with open(outfile, 'r') as ofile:
+            lines = ofile.readlines()
+            self.assertEqual(292, len(lines))
+            self.assertEqual('measurements', lines[0].split('\t')[1].strip())
+        con = nb.Contribution(WD)
+        self.assertEqual(sorted(con.tables),
+                         sorted(['measurements', 'specimens',
+                                 'samples', 'sites']))
+
+
+    def test_SUFAR4_fail_option4(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, error_message = convert.sufar4(infile,
+                                                    input_dir_path=input_dir,
+                                                    sample_naming_con='4',
+                                                    data_model_num=2)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
+
+    def test_SUFAR4_succeed_option4(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'SUFAR_asc_magic')
+        print('WD', WD)
+        print('input_dir', input_dir)
+        infile = 'sufar4-asc_magic_example.txt'
+        ofile = 'my_magic_measurements.txt'
+        program_ran, outfile = convert.sufar4(infile,
+                                              meas_output=ofile,
+                                              input_dir_path=input_dir,
+                                              sample_naming_con='4-2',
+                                              data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', ofile))
+
+    def test_SUFAR4_with_options(self):
+        input_dir = os.path.join(WD, 'data_files',
+                                 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = convert.sufar4(infile, meas_output='my_magic_measurements.txt',
+                                              aniso_output="my_rmag_anisotropy.txt",
+                                              specnum=2, locname="Here", instrument="INST",
+                                              static_15_position_mode=True, input_dir_path=input_dir,
+                                              sample_naming_con='5',
+                                              data_model_num=2)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
+
+
+class TestUtrechtMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'UTRECHT_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+        #filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+        #            'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+        pmag.remove_files(filelist, '.')
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
+        os.chdir(WD)
+
+    def test_utrecht_with_no_files(self):
+        with self.assertRaises(TypeError):
+            convert.utrecht()
+
+
+    def test_utrecht_success(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'Utrecht_Example.af'}
+        program_ran, outfile = convert.utrecht(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
