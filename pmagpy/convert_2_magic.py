@@ -5557,6 +5557,8 @@ def mst(infile, spec_name, dir_path=".", input_dir_path="",
             elif T < T0:
                 MagRec[meth_codes_col] = 'LP-MC-I'
                 T0 = T
+            elif data.index(line) == 0: # NRM step
+                MagRec[meth_codes_col] = "LP-NO"
             else:
                 print('skipping repeated temperature step')
                 MagRec[meth_codes_col] = ''
@@ -5608,6 +5610,8 @@ def mst(infile, spec_name, dir_path=".", input_dir_path="",
             rec[experiment_col] = spec_name + ':LP-MW-I:Curie'
         elif rec[meth_codes_col] == 'LP-MC-I':
             rec[experiment_col] = spec_name +':LP-MC-I'
+        elif rec[meth_codes_col] == "LP-NO":
+            rec[experiment_col] = spec_name + ":LP-NO"
         if data_model_num == 3:
             rec[meas_name_col] = rec[experiment_col] + "_" + rec[meas_name_col]
         new_MagRecs.append(rec)
