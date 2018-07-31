@@ -1,6 +1,5 @@
 #!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
-from past.utils import old_div
 import wx
 import sys
 import os

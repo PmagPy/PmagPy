@@ -21,14 +21,15 @@ Log:
     Initial revision 4/24/2014
     some bug fix 06/12/2015
 """
-from __future__ import print_function
-from builtins import str
-from builtins import range
+import pmagpy_tests # without this import, everything just hangs.  I have no idea why.
 import wx
 import sys
 import os
+from dialogs import pmag_widgets as pw
+from pmagpy import convert_2_magic as convert
 import pmagpy.new_builder as nb
 import pmagpy.pmag as pmag
+from pmagpy import ipmag
 
 # ===========================================
 # GUI
@@ -381,104 +382,95 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
     def on_okButton(self, event):
 
-        DIRS_data = {}
+        outfiles = []
 
         for i in range(self.max_files):
 
             # read directiory path
-            dir_path = ""
             dir_path = self.dir_paths[i].GetValue()
-            if dir_path != "":
-                dir_name = str(dir_path.split("/")[-1])
-                DIRS_data[dir_name] = {}
-                DIRS_data[dir_name]['path'] = str(dir_path)
-            else:
+            if not os.path.exists(dir_path):
                 continue
 
             # get experiment
             experiment = self.protocol_infos[i].GetValue()
-            DIRS_data[dir_name]['experiment'] = str(experiment)
 
-            # get location
-            user_name = ""
+            # get location/user name
+            user_name = self.file_info_users[i].GetValue()
             location_name = self.file_locations[i].GetValue()
-            DIRS_data[dir_name]['location'] = str(location_name)
 
             # get Blab direction
-            labfield_DI = ["0.", "90."]
-            labfield_DI[0] = self.file_info_Blab_dec[i].GetValue()
-            labfield_DI[1] = self.file_info_Blab_inc[i].GetValue()
-            DIRS_data[dir_name]['labfield_DI'] = labfield_DI
+            lab_dec = self.file_info_Blab_dec[i].GetValue()
+            lab_inc = self.file_info_Blab_inc[i].GetValue()
 
             # get Moment units
             moment_units = self.moment_units[i].GetValue()
-            DIRS_data[dir_name]['moment_units'] = moment_units
 
             # get sample volume
             volume = self.volumes[i].GetValue()
-            DIRS_data[dir_name]['volume'] = volume
-
-            # get User_name
-            user_name = ""
-            user_name = self.file_info_users[i].GetValue()
-            DIRS_data[dir_name]['user_name'] = user_name
 
             # get sample-specimen naming convention
-
-            sample_naming_convention = ["", ""]
-            sample_naming_convention[0] = str(self.sample_naming[i].GetValue())
-            sample_naming_convention[1] = str(
+            samp_name_con = str(self.sample_naming[i].GetValue())
+            samp_name_chars = str(
                 self.sample_naming_char[i].GetValue())
-            DIRS_data[dir_name]["sample_naming_convention"] = sample_naming_convention
 
             # get site-sample naming convention
-
-            site_naming_convention = ["", ""]
-            site_naming_convention[0] = str(self.site_naming[i].GetValue())
-            site_naming_convention[1] = str(
+            site_name_con  = str(self.site_naming[i].GetValue())
+            site_name_chars = str(
                 self.site_naming_char[i].GetValue())
-            DIRS_data[dir_name]["site_naming_convention"] = site_naming_convention
 
-        self.convert_2_magic(DIRS_data)
+            # create temporary outfile name
+            meas_file = os.path.join(self.WD, 'measurements_{}.txt'.format(i))
+            spec_file = os.path.join(self.WD, 'specimens_{}.txt'.format(i))
+            samp_file = os.path.join(self.WD, 'samples_{}.txt'.format(i))
+            site_file = os.path.join(self.WD, 'sites_{}.txt'.format(i))
+            loc_file = os.path.join(self.WD, 'locations_{}.txt'.format(i))
+
+            if dir_path:
+                res, fname = self.tdt(dir_path, experiment, meas_file, spec_file, samp_file,
+                                      site_file, loc_file, user_name, location_name,
+                                      lab_dec, lab_inc, moment_units, samp_name_con, samp_name_chars,
+                                      site_name_con, site_name_chars, volume, output_dir_path=self.WD)
+                outfiles.append(fname)
+
+        # combine measurement files
+        ipmag.combine_magic(outfiles, self.output_file_path.GetValue(), magic_table="measurements")
+
+        # combine other types of files
+        fnames = os.listdir(self.WD)
+        for dtype in ['specimens', 'samples', 'sites', 'locations']:
+            outfile = os.path.join(self.WD, dtype + ".txt")
+            files = [f for f in fnames if dtype + "_" in f]
+            ipmag.combine_magic(files, outfile, magic_table=dtype)
+            for fname in files:
+                os.remove(os.path.join(self.WD, fname))
+
+        if res:
+            dlg1 = wx.MessageDialog(None, caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(
+                self.output_file_path.GetValue()), style=wx.OK | wx.ICON_INFORMATION)
+        else:
+            dlg1 = wx.MessageDialog(
+                None, caption="Warning:", message="No file was created.  Make sure you have selected folders that contain .tdt format files")
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        self.Destroy()
+
 
     def on_cancelButton(self, event):
         self.Destroy()
 
-    def get_sample_name(self, specimen, sample_naming_convention):
-        if sample_naming_convention[0] == "sample=specimen":
-            sample = specimen
-        elif sample_naming_convention[0] == "no. of terminate characters":
-            n = int(sample_naming_convention[1])*-1
-            sample = specimen[:n]
-        elif sample_naming_convention[0] == "charceter delimited":
-            d = sample_naming_convention[1]
-            sample_splitted = specimen.split(d)
-            if len(sample_splitted) == 1:
-                sample = sample_splitted[0]
-            else:
-                sample = d.join(sample_splitted[:-1])
-        return sample
-
-    def get_site_name(self, sample, site_naming_convention):
-        if site_naming_convention[0] == "site=sample":
-            site = sample
-        elif site_naming_convention[0] == "no. of terminate characters":
-            n = int(site_naming_convention[1])*-1
-            site = sample[:n]
-        elif site_naming_convention[0] == "charceter delimited":
-            d = site_naming_convention[1]
-            site_splitted = sample.split(d)
-            if len(site_splitted) == 1:
-                site = site_splitted[0]
-            else:
-                site = d.join(site_splitted[:-1])
-        return site
 
     # ===========================================
     # Convert to MagIC format
     # ===========================================
 
-    def convert_2_magic(self, DIRS_data):
+    def tdt(self, input_dir_path, experiment_name, meas_file_name="measurements.txt",
+            spec_file_name="specimens.txt", samp_file_name="samples.txt",
+            site_file_name="sites.txt", loc_file_name="locations.txt",
+            user="", location="", lab_dec=0, lab_inc=90, moment_units="mA/m",
+            samp_name_con="sample=specimen", samp_name_chars=0,
+            site_name_con="site=sample", site_name_chars=0, volume=1.287555e-5,
+            output_dir_path=""):
+
         # --------------------------------------
         # Read the files
         #
@@ -528,102 +520,151 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         # For questions and support: rshaar@ucsd.edu
         # -------------------------------------------------------------
 
+
+        def get_sample_name(specimen, sample_naming_convention):
+            if sample_naming_convention[0] == "sample=specimen":
+                sample = specimen
+            elif sample_naming_convention[0] == "no. of terminate characters":
+                n = int(sample_naming_convention[1])*-1
+                sample = specimen[:n]
+            elif sample_naming_convention[0] == "charceter delimited":
+                d = sample_naming_convention[1]
+                sample_splitted = specimen.split(d)
+                if len(sample_splitted) == 1:
+                    sample = sample_splitted[0]
+                else:
+                    sample = d.join(sample_splitted[:-1])
+            return sample
+
+        def get_site_name(sample, site_naming_convention):
+            if site_naming_convention[0] == "site=sample":
+                site = sample
+            elif site_naming_convention[0] == "no. of terminate characters":
+                n = int(site_naming_convention[1])*-1
+                site = sample[:n]
+            elif site_naming_convention[0] == "charceter delimited":
+                d = site_naming_convention[1]
+                site_splitted = sample.split(d)
+                if len(site_splitted) == 1:
+                    site = site_splitted[0]
+                else:
+                    site = d.join(site_splitted[:-1])
+            return site
+
+
+        if not output_dir_path:
+            output_dir_path = input_dir_path
+        samp_name_cons = {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}
+        if samp_name_con not in samp_name_cons.values():
+            samp_name_con =  samp_name_cons.get(int(samp_name_con), 'sample=specimen')
+        if samp_name_con == 'no. of terminate characters' and not samp_name_chars:
+            print("-W- You have selected the sample naming convention: 'no. of terminate characters',\n    but have provided the number of characters as 0.\n    Defaulting to use 'sample=specimen' instead.")
+            samp_name_con = 'sample=specimen'
+
+        site_name_cons =  {1: 'site=sample', 2: 'no. of terminate characters', 3: 'character delimited'}
+        if site_name_con not in site_name_cons.values():
+            site_name_con = site_name_cons.get(int(site_name_con), 'site=sample')
+        if site_name_con == 'no. of terminate characters' and not site_name_chars:
+            print("-W- You have selected the site naming convention: 'no. of terminate characters',\n    but have provided the number of characters as 0.\n    Defaulting to use 'site=sample' instead.")
+            site_name_con = 'site=sample'
+
+
         Data = {}
-        for dir_name in list(DIRS_data.keys()):
 
-            # -----------------------------------
-            # First, read all files and sort data by specimen and by Experiment type
-            # -----------------------------------
+        # -----------------------------------
+        # First, read all files and sort data by specimen and by Experiment type
+        # -----------------------------------
 
-            for files in os.listdir(DIRS_data[dir_name]["path"]):
-                if files.endswith(".tdt"):
-                    print("Open file: ", DIRS_data[dir_name]["path"]+"/"+files)
-                    fin = open(DIRS_data[dir_name]["path"]+"/"+files, 'r')
-                    header_codes = ['labfield', 'core_azimuth',
-                                    'core_plunge', 'bedding_dip_direction', 'bedding_dip']
-                    body_codes = ['specimen_name',
-                                  'treatment', 'moment', 'dec', 'inc']
-                    tmp_body = []
-                    tmp_header_data = {}
-                    line_number = 0
-                    continue_reading = True
-                    line = fin.readline()  # ignore first line
-                    lines = fin.readlines()
-                    fin.close()
-                    for line in lines:
+        for files in os.listdir(input_dir_path):
+            if files.endswith(".tdt"):
+                fname = os.path.join(input_dir_path, files)
+                print("Open file: ", fname)
+                fin = open(fname, 'r')
+                header_codes = ['labfield', 'core_azimuth',
+                                'core_plunge', 'bedding_dip_direction', 'bedding_dip']
+                body_codes = ['specimen_name',
+                              'treatment', 'moment', 'dec', 'inc']
+                tmp_body = []
+                tmp_header_data = {}
+                line_number = 0
+                continue_reading = True
+                line = fin.readline()  # ignore first line
+                lines = fin.readlines()
+                fin.close()
+                for line in lines:
 
-                        if "END" in line:
-                            break
+                    if "END" in line:
+                        break
 
-                        if line.strip('\n') == "":
-                            break
+                    if line.strip('\n') == "":
+                        break
 
-                        this_line = line.strip('\n').split()
+                    this_line = line.strip('\n').split()
 
-                        if len(this_line) < 5:
-                            continue
+                    if len(this_line) < 5:
+                        continue
 
-                        # ---------------------------------------------------
-                        # fix muxworthy funky data format
-                        # ---------------------------------------------------
-                        if len(this_line) < 5 and line_number != 0:
-                            new_line = []
-                            for i in range(len(this_line)):
-                                if i > 1 and "-" in this_line[i]:
-                                    tmp = this_line[i].replace("-", " -")
-                                    tmp1 = tmp.split()
-                                    for i in range(len(tmp1)):
-                                        new_line.append(tmp1[i])
-                                else:
-                                    new_line.append(this_line[i])
-                            this_line = list(copy(new_line))
+                    # ---------------------------------------------------
+                    # fix muxworthy funky data format
+                    # ---------------------------------------------------
+                    if len(this_line) < 5 and line_number != 0:
+                        new_line = []
+                        for i in range(len(this_line)):
+                            if i > 1 and "-" in this_line[i]:
+                                tmp = this_line[i].replace("-", " -")
+                                tmp1 = tmp.split()
+                                for i in range(len(tmp1)):
+                                    new_line.append(tmp1[i])
+                            else:
+                                new_line.append(this_line[i])
+                        this_line = list(copy(new_line))
 
-                        # -------------------------------
-                        # Read infromation from Header and body
-                        # The data is stored in a dictionary:
-                        # Data[specimen][Experiment_Type]['header_data']=tmp_header_data  --> a dictionary with header data
-                        # Data[specimen][Experiment_Type]['meas_data']=[dict1, dict2, ...] --> a list of dictionaries with measurement data
-                        # -------------------------------
+                    # -------------------------------
+                    # Read infromation from Header and body
+                    # The data is stored in a dictionary:
+                    # Data[specimen][Experiment_Type]['header_data']=tmp_header_data  --> a dictionary with header data
+                    # Data[specimen][Experiment_Type]['meas_data']=[dict1, dict2, ...] --> a list of dictionaries with measurement data
+                    # -------------------------------
 
-                        # ---------------------------------------------------
-                        # header
-                        # ---------------------------------------------------
-                        if line_number == 0:
+                    # ---------------------------------------------------
+                    # header
+                    # ---------------------------------------------------
+                    if line_number == 0:
 
-                            for i in range(len(this_line)):
-                                tmp_header_data[header_codes[i]] = this_line[i]
+                        for i in range(len(this_line)):
+                            tmp_header_data[header_codes[i]] = this_line[i]
 
-                            line_number += 1
+                        line_number += 1
 
-                        # ---------------------------------------------------
-                        # body
-                        # ---------------------------------------------------
+                    # ---------------------------------------------------
+                    # body
+                    # ---------------------------------------------------
 
-                        else:
-                            tmp_data = {}
-                            for i in range(min(len(this_line), len(body_codes))):
-                                tmp_data[body_codes[i]] = this_line[i]
-                            tmp_body.append(tmp_data)
+                    else:
+                        tmp_data = {}
+                        for i in range(min(len(this_line), len(body_codes))):
+                            tmp_data[body_codes[i]] = this_line[i]
+                        tmp_body.append(tmp_data)
 
-                            # ------------
+                        # ------------
 
-                            specimen = tmp_body[0]['specimen_name']
-                            line_number += 1
+                        specimen = tmp_body[0]['specimen_name']
+                        line_number += 1
 
-                    if specimen not in list(Data.keys()):
-                        Data[specimen] = {}
-                    Experiment_Type = DIRS_data[dir_name]['experiment']
-                    if Experiment_Type not in list(Data[specimen].keys()):
-                        Data[specimen][Experiment_Type] = {}
-                    Data[specimen][Experiment_Type]['meas_data'] = tmp_body
-                    Data[specimen][Experiment_Type]['header_data'] = tmp_header_data
-                    Data[specimen][Experiment_Type]['sample_naming_convention'] = DIRS_data[dir_name]['sample_naming_convention']
-                    Data[specimen][Experiment_Type]['site_naming_convention'] = DIRS_data[dir_name]['site_naming_convention']
-                    Data[specimen][Experiment_Type]['location'] = DIRS_data[dir_name]['location']
-                    Data[specimen][Experiment_Type]['user_name'] = DIRS_data[dir_name]['user_name']
-                    Data[specimen][Experiment_Type]['volume'] = DIRS_data[dir_name]['volume']
-                    Data[specimen][Experiment_Type]['moment_units'] = DIRS_data[dir_name]['moment_units']
-                    Data[specimen][Experiment_Type]['labfield_DI'] = DIRS_data[dir_name]['labfield_DI']
+                if specimen not in list(Data.keys()):
+                    Data[specimen] = {}
+                Experiment_Type = experiment_name
+                if Experiment_Type not in list(Data[specimen].keys()):
+                    Data[specimen][Experiment_Type] = {}
+                Data[specimen][Experiment_Type]['meas_data'] = tmp_body
+                Data[specimen][Experiment_Type]['header_data'] = tmp_header_data
+                Data[specimen][Experiment_Type]['sample_naming_convention'] = [samp_name_con, samp_name_chars]
+                Data[specimen][Experiment_Type]['site_naming_convention'] = [site_name_con, site_name_chars]
+                Data[specimen][Experiment_Type]['location'] = location
+                Data[specimen][Experiment_Type]['user_name'] = user
+                Data[specimen][Experiment_Type]['volume'] = volume
+                Data[specimen][Experiment_Type]['moment_units'] = moment_units
+                Data[specimen][Experiment_Type]['labfield_DI'] = [lab_dec, lab_inc]
 
         # -----------------------------------
         # Convert Data{} to MagIC
@@ -697,9 +738,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
                         # convert from microT to Tesla
                         labfield = float(header_line['labfield'])*1e-6
-                        sample = self.get_sample_name(
+                        sample = get_sample_name(
                             specimen, Data[specimen][Experiment_Type]['sample_naming_convention'])
-                        site = self.get_site_name(
+                        site = get_site_name(
                             sample, Data[specimen][Experiment_Type]['site_naming_convention'])
                         location = Data[specimen][Experiment_Type]['location']
                         if location == '':
@@ -758,10 +799,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MeasRec["meas_temp"] = '273.'  # room temp in kelvin
 
                         # Date and time
-##                                    date=meas_line['Measurement Date'].strip("\"").split('-')
-# yyyy=date[2];dd=date[1];mm=date[0]
-##                                    hour=meas_line['Measurement Time'].strip("\"")
-# MeasRec["measurement_date"]=yyyy+':'+mm+":"+dd+":"+hour
+    ##                                    date=meas_line['Measurement Date'].strip("\"").split('-')
+    # yyyy=date[2];dd=date[1];mm=date[0]
+    ##                                    hour=meas_line['Measurement Time'].strip("\"")
+    # MeasRec["measurement_date"]=yyyy+':'+mm+":"+dd+":"+hour
 
                         # lab field data: distinguish between PI experiments to AF/Thermal
                         treatments = meas_line['treatment'].split(".")
@@ -944,9 +985,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
                         # convert from microT to Tesla
                         labfield = float(header_line['labfield'])*1e-6
-                        sample = self.get_sample_name(
+                        sample = get_sample_name(
                             specimen, Data[specimen][Experiment_Type]['sample_naming_convention'])
-                        site = self.get_site_name(
+                        site = get_site_name(
                             sample, Data[specimen][Experiment_Type]['site_naming_convention'])
                         location = Data[specimen][Experiment_Type]['location']
 
@@ -1060,10 +1101,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         "-E- ERROR. sorry, file format %s is not supported yet. Please contact rshaar@ucsd.edu" % Experiment_Type)
 
         # -------------------------------------------
-        #  magic_measurements.txt
+        #  measurements.txt
         # -------------------------------------------
 
-        con = nb.Contribution(self.WD, read_tables=[])
+        con = nb.Contribution(output_dir_path, read_tables=[])
 
         con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
         con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -1071,24 +1112,15 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         con.add_magic_table_from_data(dtype='locations', data=LocRecs)
         MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
         con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
-
-        con.tables['specimens'].write_magic_file()
-        con.tables['samples'].write_magic_file()
-        con.tables['sites'].write_magic_file()
-        con.tables['locations'].write_magic_file()
-        res = con.tables['measurements'].write_magic_file()
+        con.write_table_to_file('specimens', spec_file_name)
+        con.write_table_to_file('samples', samp_file_name)
+        con.write_table_to_file('sites', site_file_name)
+        con.write_table_to_file('locations', loc_file_name)
+        meas_file = con.write_table_to_file('measurements', meas_file_name)
+        return True, meas_file
 
         # -------------------------------------------
 
-        if res:
-            dlg1 = wx.MessageDialog(None, caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(
-                self.output_file_path.GetValue()), style=wx.OK | wx.ICON_INFORMATION)
-        else:
-            dlg1 = wx.MessageDialog(
-                None, caption="Warning:", message="No file was created.  Make sure you have selected folders that contain .tdt format files")
-        dlg1.ShowModal()
-        dlg1.Destroy()
-        self.Destroy()
 
 
 class message_box(wx.Frame):
