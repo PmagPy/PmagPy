@@ -1435,7 +1435,7 @@ class TestTdtMagic(unittest.TestCase):
     def test_with_options(self):
         res, outfile = convert.tdt(self.input_dir, meas_file_name="custom.out", location="here",
                                    user="me", samp_name_con=2, samp_name_chars=1, site_name_con=2,
-                                   site_name_chars=1, moment_units="emu", lab_inc=-90)
+                                   site_name_chars=1, volume=15., lab_inc=-90)
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.input_dir, "custom.out"))
         df = nb.MagicDataFrame(os.path.join(self.input_dir, "samples.txt"))

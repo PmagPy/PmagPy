@@ -4,7 +4,7 @@ NAME
     bgc_magic.py
 
 DESCRIPTION
-    converts Berkeley Geochronology Center (BGC) format files to magic_measurements format files
+    converts Berkeley Geochronology Center (BGC) format files to measurements format files
 
 SYNTAX
     bgc_magic.py [command line options]
@@ -18,11 +18,11 @@ OPTIONS
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt
-    -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
+    -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -spc NUM : specify number of characters to designate a specimen, default = 0
     -loc LOCNAME : specify location/study name
-    -site SITENAME : specify site name (if site name can be generated from sample name see bellow conventions under the -ncn flag)
+    -site SITENAME : specify site name (if site name can be generated from sample name, see conventions list under the -ncn flag)
     -ncn NCON:  specify naming convention: default is #1 below
         Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -38,7 +38,7 @@ OPTIONS
                  or e-mail ltauxe@ucsd.edu for help.
     -A: don't average replicate measurements
     -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
-    -v NUM : specify the volume in cc of the sample, default 2.5^3cc. Will use vol in data file if volume!=0 in file.
+    -v NUM : specify the volume in cc of the sample, default 12cc. Will use vol in data file if volume!=0 in file.
     -tz: timezone in pytz library format. list of timzones can be found at http://pytz.sourceforge.net/. (default: US/Pacific)
     -append: append output files to existing files, don't overwrite.
 

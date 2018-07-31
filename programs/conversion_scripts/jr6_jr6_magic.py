@@ -28,7 +28,7 @@ OPTIONS
     -ncn NCON: specify sample naming convention (6 and 7 not yet implemented)
     -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
     -JR  IODP samples measured on the JOIDES RESOLUTION
-    -v NUM : specify the volume in cc of the sample, default 2.5^3cc
+    -v NUM : specify the volume in cc of the sample, default 12cc (rounded one inch diameter core, one inch length)
    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the

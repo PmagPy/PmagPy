@@ -22,7 +22,7 @@ OPTIONS
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
-    -v NUM: volume in cm^3, will be used if there is no volume in the input data (default : 15.625 cm^3 or a 2.5 cm cube)
+    -v NUM: volume in cc, will be used if there is no volume in the input data (default : 12cc (rounded one inch diameter core, one inch length))
 
 INPUTS
      IODP discrete sample .csv file format exported from LIMS database

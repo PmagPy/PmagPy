@@ -569,17 +569,14 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
         meas_file='measurements.txt', spec_file='specimens.txt', samp_file='samples.txt',
         site_file='sites.txt', loc_file='locations.txt', append=False,
         location="unknown", site="", samp_con='1', specnum=0,
-        meth_code="LP-NO", volume=0, user="", timezone='US/Pacific', noave=False):
+        meth_code="LP-NO", volume=12, user="", timezone='US/Pacific', noave=False):
     version_num = pmag.get_version()
     output_dir_path = dir_path
     if not input_dir_path:
         input_dir_path = output_dir_path
     samp_con = str(samp_con)
     specnum = - int(specnum)
-    if not volume:
-        volume = 0.025**3  # default volume is a 2.5 cm cube, translated to meters cubed
-    else:
-        volume *= 1e-6  # convert cm^3 to m^3
+    volume *= 1e-6  # convert cc to m^3
 
     if "4" in samp_con:
         if "-" not in samp_con:
@@ -2586,14 +2583,14 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
               meas_file="measurements.txt", spec_file="specimens.txt",
               samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
-              lat='', lon='', volume=2.5**3, noave=False):
+              lat='', lon='', volume=12, noave=False):
     # initialize defaults
     version_num = pmag.get_version()
     # format variables
     if not input_dir_path:
         input_dir_path = dir_path
     output_dir_path = dir_path  # rename dir_path after input_dir_path is set
-    # default volume is a 2.5cm cube
+    # convert cc to m^3
     volume = volume * 1e-6
     if csv_file == "":
         # read in list of files to import
@@ -2843,7 +2840,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
              meas_file="measurements.txt", spec_file="specimens.txt",
              samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
              site="unknown", expedition="unknown", lat="", lon="",
-             noave=False, volume=2.5**2, meth_code="LP-NO"):
+             noave=False, volume=12, meth_code="LP-NO"):
 
     def fix_separation(filename, new_filename):
         old_file = open(filename, 'r')
@@ -2868,7 +2865,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
     if not input_dir_path:
         input_dir_path = dir_path
     output_dir_path = dir_path
-    # default volume is a 2.5cm cube
+    # convert cc to m^3
     volume = volume * 1e-6
     meth_code = meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
     meth_code = meth_code.strip(":")
@@ -3622,7 +3619,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             meas_file="measurements.txt", spec_file="specimens.txt",
             samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
             specnum=1, samp_con='1', location='unknown', lat='', lon='',
-            noave=False, meth_code="LP-NO", volume=2.5, JR=False, user=""):
+            noave=False, meth_code="LP-NO", volume=12, JR=False, user=""):
 
     version_num = pmag.get_version()
     if not input_dir_path:
@@ -3823,7 +3820,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
             meas_file="measurements.txt", spec_file="specimens.txt",
             samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
             user="", specnum=1, samp_con='1', location='unknown', lat='', lon='',
-            noave=False, volume=2.5, timezone="UTC", meth_code="LP-NO"):
+            noave=False, volume=12, timezone="UTC", meth_code="LP-NO"):
 
     version_num = pmag.get_version()
     if not input_dir_path:
@@ -7801,7 +7798,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         site_file_name="sites.txt", loc_file_name="locations.txt",
         user="", location="", lab_dec=0, lab_inc=90, moment_units="mA/m",
         samp_name_con="sample=specimen", samp_name_chars=0,
-        site_name_con="site=sample", site_name_chars=0, volume=1.287555e-5,
+        site_name_con="site=sample", site_name_chars=0, volume=12.,
         output_dir_path=""):
 
     """
@@ -7831,7 +7828,6 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         default 90
     moment_units : str
         must be one of: ["mA/m", "emu", "Am^2"], default "mA/m"
-
     samp_name_con : str or int
         {1: "sample=specimen", 2: "no. of terminate characters", 3: "character delimited"}
     samp_name_chars : str or int
@@ -7841,7 +7837,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     site_name_chars : str or int
         number of characters to remove for site name, (or delimiting character), default 0
     volume : float
-        default 1.287555e-5
+        volume in cc, default 12
     output_dir_path : str
         path for file output, defaults to input_dir_path
 
@@ -7929,7 +7925,10 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                 site = d.join(site_splitted[:-1])
         return site
 
+    ## format some variables
 
+    # convert volume from cc to m^3
+    volume = float(volume) * 1e-6
     if not output_dir_path:
         output_dir_path = input_dir_path
     samp_name_cons = {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}

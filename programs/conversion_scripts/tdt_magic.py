@@ -163,7 +163,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
         # ---sizer 1d ----
 
-        TEXT = "\nvolume\n[cubic m]:"
+        TEXT = "\nvolume\n[cc]:"
         bSizer1d = wx.StaticBoxSizer(wx.StaticBox(
             self.panel, wx.ID_ANY, ""), wx.VERTICAL)
         bSizer1d.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_TOP)
@@ -171,7 +171,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.volumes = {}
         for i in range(self.max_files):
             self.volumes[i] = wx.TextCtrl(self.panel, id=-1, size=(80, 25))
-            self.volumes[i].SetValue('1.287555e-5')
+            self.volumes[i].SetValue('12.')
             bSizer1d.Add(self.volumes[i], wx.ALIGN_TOP)
             bSizer1d.AddSpacer(5)
 
