@@ -1412,6 +1412,37 @@ class TestSufarAscMagic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
 
+class TestTdtMagic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.input_dir = os.path.join(WD, 'data_files',
+                                      'Measurement_Import', 'TDT_magic')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt', 'custom.out']
+        pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, '.')
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
+        os.chdir(WD)
+
+    def test_success(self):
+        res, outfile = convert.tdt(self.input_dir)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "measurements.txt"))
+
+    def test_with_options(self):
+        res, outfile = convert.tdt(self.input_dir, meas_file_name="custom.out", location="here",
+                                   user="me", samp_name_con=2, samp_name_chars=1, site_name_con=2,
+                                   site_name_chars=1, moment_units="emu", lab_inc=-90)
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.input_dir, "custom.out"))
+        df = nb.MagicDataFrame(os.path.join(self.input_dir, "samples.txt"))
+        self.assertEqual("MG", df.df["site"].values[0])
+        self.assertEqual("MGH", df.df["sample"].values[0])
+
+
 class TestUtrechtMagic(unittest.TestCase):
 
     def setUp(self):

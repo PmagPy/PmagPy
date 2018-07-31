@@ -7796,13 +7796,60 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
     return True, meas_output
 
 
-def tdt(input_dir_path, experiment_name, meas_file_name="measurements.txt",
+def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements.txt",
         spec_file_name="specimens.txt", samp_file_name="samples.txt",
         site_file_name="sites.txt", loc_file_name="locations.txt",
         user="", location="", lab_dec=0, lab_inc=90, moment_units="mA/m",
         samp_name_con="sample=specimen", samp_name_chars=0,
         site_name_con="site=sample", site_name_chars=0, volume=1.287555e-5,
         output_dir_path=""):
+
+    """
+    Parameters
+    ----------
+    input_dir_path : str
+        directory with one or more .tdt files
+    experiment: str
+        one of: ["Thellier", "ATRM 6 pos", "NLT"], default "Thellier"
+    meas_file_name : str
+        default "measurements.txt"
+    spec_file_name : str
+        default "specimens.txt"
+    samp_file_name : str
+        default "samples.txt"
+    site_file_name : str
+        default "sites.txt"
+    loc_file_name : str
+        default "locations.txt"
+    user : str
+        default ""
+    location : str
+        default ""
+    lab_dec: int
+        default: 0
+    lab_inc: int
+        default 90
+    moment_units : str
+        must be one of: ["mA/m", "emu", "Am^2"], default "mA/m"
+
+    samp_name_con : str or int
+        {1: "sample=specimen", 2: "no. of terminate characters", 3: "character delimited"}
+    samp_name_chars : str or int
+        number of characters to remove for sample name, (or delimiting character), default 0
+    site_name_con : str or int
+        {1: "site=sample", 2: "no. of terminate characters", 3: "character delimited"}
+    site_name_chars : str or int
+        number of characters to remove for site name, (or delimiting character), default 0
+    volume : float
+        default 1.287555e-5
+    output_dir_path : str
+        path for file output, defaults to input_dir_path
+
+
+    Returns
+    ---------
+    tuple : (True if program ran else False, measurement outfile name or error message if failed)
+    """
 
     # --------------------------------------
     # Read the files
@@ -7850,8 +7897,6 @@ def tdt(input_dir_path, experiment_name, meas_file_name="measurements.txt",
     # (2) Alteration ckeck can be in any direction
     # (3) the order of the measurements is not important
     #
-    # For questions and support: rshaar@ucsd.edu
-    # -------------------------------------------------------------
 
 
     def get_sample_name(specimen, sample_naming_convention):
