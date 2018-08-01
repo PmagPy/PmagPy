@@ -3081,7 +3081,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
         if k > 0:
             vector_diffs.append(
                 np.sqrt(sum((np.array(zdata[-2]) - np.array(zdata[-1]))**2)))
-    # last vector differnce: from the last point to the origin.
+    # last vector difference: from the last point to the origin.
     vector_diffs.append(np.sqrt(sum(np.array(zdata[-1])**2)))
     vds = sum(vector_diffs)  # vds calculation
     zdata = np.array(zdata)
@@ -6866,7 +6866,7 @@ def designAARM(npos):
         print('Sorry - only 9 positions available')
         return
     Dec = [315., 225., 180., 135., 45., 90., 270.,
-           270., 270., 90., 180., 180., 0., 0., 0.]
+           270., 270., 90., 0., 0., 0., 180., 180.]
     Dip = [0., 0., 0., 0., 0., -45., -45., 0.,
            45., 45., 45., -45., -90., -45., 45.]
     index9 = [0, 1, 2, 5, 6, 7, 10, 11, 12]
