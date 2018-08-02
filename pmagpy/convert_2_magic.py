@@ -6121,7 +6121,7 @@ def livdb(dir_path, meas_out="measurements.txt",
 # MINI_magic conversion
 
 def mini(magfile, dir_path='.', meas_file='measurements.txt',
-         data_model_num=3, volume=10, noave=0,
+         data_model_num=3, volume=12, noave=0,
          inst="", user="", demag='N', methcode="LP-NO"):
     # initialize
     citation = 'This study'

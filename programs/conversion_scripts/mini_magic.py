@@ -24,7 +24,7 @@ def main():
             AF:  af demag
             T: thermal including thellier but not trm acquisition
         -A: don't average replicate measurements
-        -vol: volume assumed for measurement in cm^3 (default 10 cc)
+        -vol: volume assumed for measurement in cm^3 (default 12 cc)
         -DM NUM: MagIC data model (2 or 3, default 3)
 
     INPUT
@@ -63,7 +63,7 @@ def main():
     else:
         meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
-    volume = pmag.get_named_arg_from_sys("-vol", 10) # assume a volume of 10 cc if not provided
+    volume = pmag.get_named_arg_from_sys("-vol", 12) # assume a volume of 12 cc if not provided
     if '-LP' in args:
         ind = args.index("-LP")
         codelist = args[ind+1]
