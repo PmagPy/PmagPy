@@ -88,7 +88,7 @@ def main():
         size=int(sys.argv[ind+2])
     if '-l' in sys.argv: lines=1
     if '-S' in sys.argv: sym=''
-    skip = int(pmag.get_named_arg_from_sys('-skip', default_val=0))
+    skip = int(pmag.get_named_arg('-skip', default_val=0))
     X,Y=[],[]
     Xerrs,Yerrs=[],[]
     f=open(file,'r')

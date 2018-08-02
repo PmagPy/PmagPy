@@ -16,7 +16,7 @@ def main():
         print("-E- Could not import the basemap module...")
     else:
         # allow user to specify what directory to find the data_files in
-        custom_dir = pmag.get_named_arg_from_sys('-source-dir', default_val="")
+        custom_dir = pmag.get_named_arg('-source-dir', default_val="")
         if os.path.isdir(custom_dir):
             data_dir = custom_dir
         # if user didn't specify a directory, find the etopo20 directory

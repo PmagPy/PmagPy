@@ -1765,7 +1765,7 @@ class Result(object):
 
 
 if __name__ == '__main__':
-    wd = pmag.get_named_arg_from_sys('-WD', default_val=os.getcwd())
+    wd = pmag.get_named_arg('-WD', default_val=os.getcwd())
     builder = ErMagicBuilder(wd)
     builder.get_data()
 

@@ -61,22 +61,22 @@ def main():
         print(main.__doc__)
         sys.exit()
     verbose = pmagplotlib.verbose
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    num_bootstraps = pmag.get_named_arg_from_sys("-n", 1000)
+    dir_path = pmag.get_named_arg("-WD", ".")
+    num_bootstraps = pmag.get_named_arg("-n", 1000)
     ipar = pmag.get_flag_arg_from_sys("-par", true=1, false=0)
     ihext = pmag.get_flag_arg_from_sys("-x", true=1, false=0)
     ivec = pmag.get_flag_arg_from_sys("-v", true=1, false=0)
     iplot = pmag.get_flag_arg_from_sys("-P", true=0, false=1)
     isite = pmag.get_flag_arg_from_sys("-sit", true=1, false=0)
     iboot, vec = 1, 0
-    infile = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
-    samp_file = pmag.get_named_arg_from_sys('-fsa', 'samples.txt')
-    site_file = pmag.get_named_arg_from_sys('-fsi', 'sites.txt')
-    #outfile = pmag.get_named_arg_from_sys("-F", "rmag_results.txt")
-    fmt = pmag.get_named_arg_from_sys("-fmt", "png")
-    crd = pmag.get_named_arg_from_sys("-crd", "s")
+    infile = pmag.get_named_arg('-f', 'specimens.txt')
+    samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
+    site_file = pmag.get_named_arg('-fsi', 'sites.txt')
+    #outfile = pmag.get_named_arg("-F", "rmag_results.txt")
+    fmt = pmag.get_named_arg("-fmt", "png")
+    crd = pmag.get_named_arg("-crd", "s")
     comp, Dir, PDir = 0, [], []
-    user = pmag.get_named_arg_from_sys("-usr", "")
+    user = pmag.get_named_arg("-usr", "")
     if '-B' in args:
         iboot, ihext = 0, 1
     plots, verbose = 0, True

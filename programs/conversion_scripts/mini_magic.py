@@ -47,11 +47,11 @@ def main():
 #
 # get command line arguments
 #
-    data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
-    user = pmag.get_named_arg_from_sys("-usr", "")
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    inst = pmag.get_named_arg_from_sys("-inst", "")
-    magfile = pmag.get_named_arg_from_sys("-f", reqd=True)
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
+    user = pmag.get_named_arg("-usr", "")
+    dir_path = pmag.get_named_arg("-WD", ".")
+    inst = pmag.get_named_arg("-inst", "")
+    magfile = pmag.get_named_arg("-f", reqd=True)
     magfile = pmag.resolve_file_name(magfile, dir_path)
     if "-A" in args:
         noave = 1
@@ -59,11 +59,11 @@ def main():
         noave = 0
 
     if data_model_num == 2:
-        meas_file = pmag.get_named_arg_from_sys("-F", "magic_measurements.txt")
+        meas_file = pmag.get_named_arg("-F", "magic_measurements.txt")
     else:
-        meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
+        meas_file = pmag.get_named_arg("-F", "measurements.txt")
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
-    volume = pmag.get_named_arg_from_sys("-vol", 12) # assume a volume of 12 cc if not provided
+    volume = pmag.get_named_arg("-vol", 12) # assume a volume of 12 cc if not provided
     if '-LP' in args:
         ind = args.index("-LP")
         codelist = args[ind+1]

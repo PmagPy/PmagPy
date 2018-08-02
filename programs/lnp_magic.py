@@ -48,15 +48,15 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    data_model = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
-    fmt = pmag.get_named_arg_from_sys("-fmt", 'svg')
+    dir_path = pmag.get_named_arg("-WD", ".")
+    data_model = int(float(pmag.get_named_arg("-DM", 3)))
+    fmt = pmag.get_named_arg("-fmt", 'svg')
     if data_model == 2:
-        in_file = pmag.get_named_arg_from_sys('-f', 'pmag_specimens.txt')
+        in_file = pmag.get_named_arg('-f', 'pmag_specimens.txt')
         crit_file = "pmag_criteria.txt"
     else:
-        in_file = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
-        samp_file = pmag.get_named_arg_from_sys('-fsa', 'samples.txt')
+        in_file = pmag.get_named_arg('-f', 'specimens.txt')
+        samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
         crit_file = "criteria.txt"
     in_file = pmag.resolve_file_name(in_file, dir_path)
     dir_path = os.path.split(in_file)[0]
@@ -75,7 +75,7 @@ def main():
         coord = "-1"
 
 
-    out_file = pmag.get_named_arg_from_sys('-F', '')
+    out_file = pmag.get_named_arg('-F', '')
     if out_file:
         out = open(dir_path+'/'+out_file, 'w')
     if '-P' in sys.argv:

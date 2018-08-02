@@ -568,7 +568,7 @@ def main():
     # if "-WD" in sys.argv:
     #    ind=sys.argv.index("-WD")
     #    kwargs['wd']=sys.argv[ind+1]
-    wd = pmag.get_named_arg_from_sys('-WD', '.')
+    wd = pmag.get_named_arg('-WD', '.')
     kwargs['wd'] = wd
     if "-A" in sys.argv:
         kwargs['noave'] = True

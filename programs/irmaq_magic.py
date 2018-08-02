@@ -49,7 +49,7 @@ def main():
         if '-h' in sys.argv:
             print(main.__doc__)
             sys.exit()
-        data_model = int(pmag.get_named_arg_from_sys("-DM", 3))
+        data_model = int(pmag.get_named_arg("-DM", 3))
         if '-N' in sys.argv:
             norm = 0
         if '-sav' in sys.argv:
@@ -58,9 +58,9 @@ def main():
             ind = sys.argv.index("-fmt")
             fmt = sys.argv[ind + 1]
         if data_model == 3:
-            in_file = pmag.get_named_arg_from_sys("-f", 'measurements.txt')
+            in_file = pmag.get_named_arg("-f", 'measurements.txt')
         else:
-            in_file = pmag.get_named_arg_from_sys("-f", 'magic_measurements.txt')
+            in_file = pmag.get_named_arg("-f", 'magic_measurements.txt')
         if '-WD' in sys.argv:
             ind = sys.argv.index('-WD')
             dir_path = sys.argv[ind + 1]
@@ -68,7 +68,7 @@ def main():
         in_file = pmag.resolve_file_name(in_file, dir_path)
         if '-WD' not in sys.argv:
             dir_path = os.path.split(in_file)[0]
-        plot_by = pmag.get_named_arg_from_sys("-obj", "loc")
+        plot_by = pmag.get_named_arg("-obj", "loc")
         if data_model == 3:
             plot_key = 'location'
             if plot_by == 'sit':

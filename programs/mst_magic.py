@@ -52,28 +52,28 @@ def main():
     if "-h" in args:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    user = pmag.get_named_arg_from_sys("-usr", "")
-    labfield = pmag.get_named_arg_from_sys("-dc", '0.5')
-    meas_file = pmag.get_named_arg_from_sys("-F", "measurements.txt")
-    samp_file = pmag.get_named_arg_from_sys("-fsa", "samples.txt")
+    dir_path = pmag.get_named_arg("-WD", ".")
+    user = pmag.get_named_arg("-usr", "")
+    labfield = pmag.get_named_arg("-dc", '0.5')
+    meas_file = pmag.get_named_arg("-F", "measurements.txt")
+    samp_file = pmag.get_named_arg("-fsa", "samples.txt")
     try:
-        infile = pmag.get_named_arg_from_sys("-f", reqd=True)
+        infile = pmag.get_named_arg("-f", reqd=True)
     except pmag.MissingCommandLineArgException:
         print(main.__doc__)
         print("-f  is required option")
         sys.exit()
-    specnum = int(pmag.get_named_arg_from_sys("-spc", 0))
-    location = pmag.get_named_arg_from_sys("-loc", "")
-    specimen_name = pmag.get_named_arg_from_sys("-spn", reqd=True)
+    specnum = int(pmag.get_named_arg("-spc", 0))
+    location = pmag.get_named_arg("-loc", "")
+    specimen_name = pmag.get_named_arg("-spn", reqd=True)
     syn = 0
     if "-syn" in args:
         syn = 1
-    samp_con = pmag.get_named_arg_from_sys("-ncn", "1")
+    samp_con = pmag.get_named_arg("-ncn", "1")
     if "-ncn" in args:
         ind = args.index("-ncn")
         samp_con = sys.argv[ind+1]
-    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
+    data_model_num = int(pmag.get_named_arg("-DM", 3))
     convert.mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
         user, specnum, samp_con, labfield, location, syn, data_model_num)
 

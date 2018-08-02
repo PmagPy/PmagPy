@@ -44,12 +44,12 @@ def main():
     FIG['lowrie'] = 1  # demag is figure 1
     pmagplotlib.plot_init(FIG['lowrie'], 6, 6)
     norm = 1  # default is to normalize by maximum axis
-    in_file = pmag.get_named_arg_from_sys("-f", "measurements.txt")
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    in_file = pmag.get_named_arg("-f", "measurements.txt")
+    dir_path = pmag.get_named_arg("-WD", ".")
     in_file = pmag.resolve_file_name(in_file, dir_path)
-    data_model = pmag.get_named_arg_from_sys("-DM", 3)
+    data_model = pmag.get_named_arg("-DM", 3)
     data_model = int(float(data_model))
-    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+    fmt = pmag.get_named_arg("-fmt", "svg")
     if '-N' in sys.argv:
         norm = 0  # don't normalize
     if '-sav' in sys.argv:

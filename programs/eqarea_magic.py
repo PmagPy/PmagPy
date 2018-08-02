@@ -62,18 +62,18 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", default_val=".")
+    dir_path = pmag.get_named_arg("-WD", default_val=".")
     pmagplotlib.plot_init(FIG['eqarea'],5,5)
-    in_file = pmag.get_named_arg_from_sys("-f", default_val="sites.txt")
+    in_file = pmag.get_named_arg("-f", default_val="sites.txt")
     in_file = pmag.resolve_file_name(in_file, dir_path)
     if "-WD" not in sys.argv:
         dir_path = os.path.split(in_file)[0]
     #full_in_file = os.path.join(dir_path, in_file)
-    plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
-    spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
-    samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
-    site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
-    loc_file = pmag.get_named_arg_from_sys("-flo", default_val="locations.txt")
+    plot_by = pmag.get_named_arg("-obj", default_val="all").lower()
+    spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
+    samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
+    loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -101,7 +101,7 @@ def main():
         plotE = 1
         ind = sys.argv.index('-ell')
         ell_type = sys.argv[ind+1]
-        ell_type = pmag.get_named_arg_from_sys("-ell", "F")
+        ell_type = pmag.get_named_arg("-ell", "F")
         dist = ell_type.upper()
         # if dist type is unrecognized, use Fisher
         if dist not in ['F', 'K', 'B', 'BE', 'BV']:
@@ -109,7 +109,7 @@ def main():
         if dist == "BV":
             FIG['bdirs'] = 2
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
-    crd = pmag.get_named_arg_from_sys("-crd", default_val="g")
+    crd = pmag.get_named_arg("-crd", default_val="g")
     if crd == "s":
         coord = "-1"
     elif crd == "t":
@@ -117,7 +117,7 @@ def main():
     else:
         coord = "0"
 
-    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+    fmt = pmag.get_named_arg("-fmt", "svg")
 
     dec_key = 'dir_dec'
     inc_key = 'dir_inc'
@@ -386,7 +386,7 @@ def main():
 
         for key in list(FIG.keys()):
             files = {}
-            filename = pmag.get_named_arg_from_sys('-fname')
+            filename = pmag.get_named_arg('-fname')
             if filename: # use provided filename
                 filename+= '.' + fmt
             elif pmagplotlib.isServer: # use server plot naming convention

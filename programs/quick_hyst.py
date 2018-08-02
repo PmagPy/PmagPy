@@ -41,10 +41,10 @@ def main():
     pltspec = ""
     verbose = pmagplotlib.verbose
     #version_num = pmag.get_version()
-    dir_path = pmag.get_named_arg_from_sys('-WD', '.')
+    dir_path = pmag.get_named_arg('-WD', '.')
     dir_path = os.path.realpath(dir_path)
-    meas_file = pmag.get_named_arg_from_sys('-f', 'measurements.txt')
-    fmt = pmag.get_named_arg_from_sys('-fmt', 'png')
+    meas_file = pmag.get_named_arg('-f', 'measurements.txt')
+    fmt = pmag.get_named_arg('-fmt', 'png')
     if '-sav' in args:
         verbose = 0
         plots = 1

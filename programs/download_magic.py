@@ -44,14 +44,14 @@ def main():
         input_dir_path = '.'
     # non-interactive
     else:
-        infile = pmag.get_named_arg_from_sys("-f", reqd=True)
+        infile = pmag.get_named_arg("-f", reqd=True)
         # if -O flag is present, overwrite is False
         overwrite = pmag.get_flag_arg_from_sys("-O", true=False, false=True)
         # if -sep flag is present, sep is True
         sep = pmag.get_flag_arg_from_sys("-sep", true=True, false=False)
-        data_model = pmag.get_named_arg_from_sys("-DM", default_val=3, reqd=False)
-        dir_path = pmag.get_named_arg_from_sys("-WD", default_val=".", reqd=False)
-        input_dir_path = pmag.get_named_arg_from_sys("-ID", default_val=".", reqd=False)
+        data_model = pmag.get_named_arg("-DM", default_val=3, reqd=False)
+        dir_path = pmag.get_named_arg("-WD", default_val=".", reqd=False)
+        input_dir_path = pmag.get_named_arg("-ID", default_val=".", reqd=False)
 
     #if '-ID' not in sys.argv and '-WD' in sys.argv:
     #    input_dir_path = dir_path

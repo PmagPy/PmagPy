@@ -33,8 +33,8 @@ def main():
         sys.exit()
     zfile, tfile = 'zeq_redo', 'thellier_redo'
     zredo, tredo = "", ""
-    dir_path = pmag.get_named_arg_from_sys('-WD', '.')
-    inspec = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
+    dir_path = pmag.get_named_arg('-WD', '.')
+    inspec = pmag.get_named_arg('-f', 'specimens.txt')
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
         redo = sys.argv[ind + 1]

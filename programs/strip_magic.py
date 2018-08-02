@@ -47,7 +47,7 @@ def main():
     yaxis, Xinc = "", ""
     plot = 0
     obj = 'all'
-    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
+    data_model_num = int(pmag.get_named_arg("-DM", 3))
     # 2.5 keys
     if data_model_num == 2:
         supported = ['pmag_specimens', 'pmag_samples',
@@ -99,12 +99,12 @@ def main():
     method, fmt = "", 'svg'
     FIG = {'strat': 1}
     plotexp, pTS = 0, 0
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    dir_path = pmag.get_named_arg("-WD", ".")
     # default files
     if data_model_num == 3:
-        res_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
+        res_file = pmag.get_named_arg("-f", "sites.txt")
     else:
-        res_file = pmag.get_named_arg_from_sys("-f", "pmag_results.txt")
+        res_file = pmag.get_named_arg("-f", "pmag_results.txt")
     res_file = pmag.resolve_file_name(res_file, dir_path)
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')

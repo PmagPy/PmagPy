@@ -49,12 +49,12 @@ def main():
     # initialize variables from command line + defaults
     FIG = {}  # plot dictionary
     FIG['demag'] = 1  # demag is figure 1
-    in_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt")
-    plot_by = pmag.get_named_arg_from_sys("-obj", default_val="loc")
+    in_file = pmag.get_named_arg("-f", default_val="measurements.txt")
+    plot_by = pmag.get_named_arg("-obj", default_val="loc")
     name_dict = {'loc': 'location', 'sit': 'site',
                  'sam': 'sample', 'spc': 'specimen'}
     plot_key = name_dict[plot_by]
-    LT = "LT-" + pmag.get_named_arg_from_sys("-LT", "AF") + "-Z"
+    LT = "LT-" + pmag.get_named_arg("-LT", "AF") + "-Z"
     if LT == "LT-T-Z":
         units, dmag_key = 'K', 'treat_temp'
     elif LT == "LT-AF-Z":
@@ -67,12 +67,12 @@ def main():
     norm = 0 if no_norm else 1
     no_plot = pmag.get_flag_arg_from_sys("-sav")
     plot = 0 if no_plot else 1
-    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
-    XLP = pmag.get_named_arg_from_sys("-XLP", "")
-    dir_path = pmag.get_named_arg_from_sys("-WD", os.getcwd())
-    spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
-    samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
-    site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
+    fmt = pmag.get_named_arg("-fmt", "svg")
+    XLP = pmag.get_named_arg("-XLP", "")
+    dir_path = pmag.get_named_arg("-WD", os.getcwd())
+    spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
+    samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
 
     # create contribution and add required headers
     fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}

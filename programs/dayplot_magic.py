@@ -40,14 +40,14 @@ def main():
         print(main.__doc__)
         sys.exit()
     verbose = pmagplotlib.verbose
-    dir_path = pmag.get_named_arg_from_sys('-WD', '.')
-    fmt = pmag.get_named_arg_from_sys('-fmt', 'svg')
+    dir_path = pmag.get_named_arg('-WD', '.')
+    fmt = pmag.get_named_arg('-fmt', 'svg')
     if '-sav' in sys.argv:
         plots = 1
         verbose = False
     else:
         plots = 0
-    infile = pmag.get_named_arg_from_sys("-f", "specimens.txt")
+    infile = pmag.get_named_arg("-f", "specimens.txt")
     fnames = {'specimens': infile}
     con = nb.Contribution(dir_path, read_tables=['specimens'],
                           custom_filenames=fnames)

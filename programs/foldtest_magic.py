@@ -73,12 +73,12 @@ def main():
 
     kappa = 0
 
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-    nboot = int(float(pmag.get_named_arg_from_sys("-n", 1000)))     # number of bootstraps
-    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
-    data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
+    dir_path = pmag.get_named_arg("-WD", ".")
+    nboot = int(float(pmag.get_named_arg("-n", 1000)))     # number of bootstraps
+    fmt = pmag.get_named_arg("-fmt", "svg")
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
     if data_model_num == 3:
-        infile = pmag.get_named_arg_from_sys("-f", 'sites.txt')
+        infile = pmag.get_named_arg("-f", 'sites.txt')
         orfile = 'samples.txt'
         site_col = 'site'
         dec_col = 'dir_dec'
@@ -88,7 +88,7 @@ def main():
         crit_col = 'criterion'
         critfile = 'criteria.txt'
     else:
-        infile = pmag.get_named_arg_from_sys("-f", 'pmag_sites.txt')
+        infile = pmag.get_named_arg("-f", 'pmag_sites.txt')
         orfile = 'er_samples.txt'
         site_col = 'er_site_name'
         dec_col = 'site_dec'
@@ -108,9 +108,9 @@ def main():
     else:
         untilt_min, untilt_max = -10, 150
     if '-fsa' in sys.argv:
-        orfile = pmag.get_named_arg_from_sys("-fsa", "")
+        orfile = pmag.get_named_arg("-fsa", "")
     elif '-fsi' in sys.argv:
-        orfile = pmag.get_named_arg_from_sys("-fsi", "")
+        orfile = pmag.get_named_arg("-fsi", "")
         if data_model_num == 3:
             dipkey, azkey = 'bed_dip', 'bed_dip_direction'
         else:

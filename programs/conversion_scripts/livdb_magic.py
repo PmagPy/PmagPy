@@ -33,7 +33,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         self.WD = WD
         self.create_menu()
         self.InitUI()
-        self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
+        self.data_model_num = int(pmag.get_named_arg("-DM", 3))
 
         if "-WD" in sys.argv:
             ind = sys.argv.index('-WD')

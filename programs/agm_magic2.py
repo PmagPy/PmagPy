@@ -147,7 +147,7 @@ def main():
     if "-u" in args:
         ind=args.index("-u")
         units=args[ind+1]
-    dm = pmag.get_named_arg_from_sys("-DM", 2)
+    dm = pmag.get_named_arg("-DM", 2)
     ErSpecRecs,filetype=pmag.magic_read(specfile)
     ErSpecRec,MeasRec={},{}
     ErSpecRec['er_citation_names']="This study"

@@ -64,14 +64,14 @@ class MagMainFrame(wx.Frame):
             self.data_model_num = int(float(DM))
         # try to get DM from command line args
         if not DM:
-            self.data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 0)))
+            self.data_model_num = int(float(pmag.get_named_arg("-DM", 0)))
             DM = self.data_model_num
 
         # if WD was provided:
         if WD:
             self.WD = WD
         else:
-            WD = pmag.get_named_arg_from_sys("-WD", '')
+            WD = pmag.get_named_arg("-WD", '')
             self.WD = WD
 
         self.WD = os.path.realpath(self.WD)
@@ -898,7 +898,7 @@ INFORMATION
     else:
         app = wx.App(redirect=True)
     app.frame = MagMainFrame()
-    working_dir = pmag.get_named_arg_from_sys('-WD', '.')
+    working_dir = pmag.get_named_arg('-WD', '.')
     app.frame.Show()
     app.frame.Center()
     ## use for debugging:

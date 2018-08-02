@@ -62,12 +62,12 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    dir_path = pmag.get_named_arg("-WD", ".")
     # plot: default is 0, if -sav in sys.argv should be 1
     plot = pmag.get_flag_arg_from_sys("-sav", true=1, false=0)
-    fmt = pmag.get_named_arg_from_sys("-fmt", "pdf")
-    res = pmag.get_named_arg_from_sys("-res", "c")
-    proj = pmag.get_named_arg_from_sys("-prj", "ortho")
+    fmt = pmag.get_named_arg("-fmt", "pdf")
+    res = pmag.get_named_arg("-res", "c")
+    proj = pmag.get_named_arg("-prj", "ortho")
     anti = pmag.get_flag_arg_from_sys("-S", true=1, false=0)
     fancy = pmag.get_flag_arg_from_sys("-etp", true=1, false=0)
     ell = pmag.get_flag_arg_from_sys("-ell", true=1, false=0)
@@ -91,10 +91,10 @@ def main():
         lon_0 = float(sys.argv[ind + 2])
     else:
         lat_0, lon_0 = 90., 0.
-    crd = pmag.get_named_arg_from_sys("-crd", "")
+    crd = pmag.get_named_arg("-crd", "")
     coord_dict = {'g': 0, 't': 100}
     coord = coord_dict[crd] if crd else ""
-    results_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
+    results_file = pmag.get_named_arg("-f", "sites.txt")
 
     con = nb.Contribution(dir_path, single_file=results_file)
     if not list(con.tables.keys()):

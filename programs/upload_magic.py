@@ -33,7 +33,7 @@ def main():
         print(main.__doc__)
         sys.exit()
     else:
-        data_model_num = pmag.get_named_arg_from_sys("-DM", 3)
+        data_model_num = pmag.get_named_arg("-DM", 3)
         dataframe = extractor.command_line_dataframe([['cat', False, 0], ['F', False, ''], ['f', False, '']])
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         dir_path, concat = extractor.get_vars(['WD', 'cat'], checked_args)

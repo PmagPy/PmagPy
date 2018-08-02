@@ -321,7 +321,7 @@ DESCRIPTION
             self.data_model = int(DM)
         # otherwise try to get it from command line:
         elif '-DM' in args:
-            self.data_model = int(pmag.get_named_arg_from_sys('-DM', 0))
+            self.data_model = int(pmag.get_named_arg('-DM', 0))
         # otherwise get it from the user
         else:
             ui_dialog = demag_dialogs.user_input(self, ['data_model'], parse_funcs=[

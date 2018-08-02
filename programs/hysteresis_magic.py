@@ -42,24 +42,24 @@ def main():
     args = sys.argv
     PLT = 1
     plots = 0
-    fmt = pmag.get_named_arg_from_sys('-fmt', 'svg')
-    dir_path = pmag.get_named_arg_from_sys('-WD', '.')
+    fmt = pmag.get_named_arg('-fmt', 'svg')
+    dir_path = pmag.get_named_arg('-WD', '.')
     dir_path = os.path.realpath(dir_path)
     verbose = pmagplotlib.verbose
     version_num = pmag.get_version()
-    user = pmag.get_named_arg_from_sys('-usr', '')
+    user = pmag.get_named_arg('-usr', '')
     if "-h" in args:
         print(main.__doc__)
         sys.exit()
-    meas_file = pmag.get_named_arg_from_sys('-f', 'agm_measurements.txt')
-    spec_file = pmag.get_named_arg_from_sys('-F', 'specimens.txt')
+    meas_file = pmag.get_named_arg('-f', 'agm_measurements.txt')
+    spec_file = pmag.get_named_arg('-F', 'specimens.txt')
     if '-P' in args:
         PLT = 0
         irm_init, imag_init = -1, -1
     if '-sav' in args:
         verbose = 0
         plots = 1
-    pltspec = pmag.get_named_arg_from_sys('-spc', 0)
+    pltspec = pmag.get_named_arg('-spc', 0)
     if pltspec:
         #pltspec= args[ind+1]
         verbose = 0

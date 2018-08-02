@@ -64,28 +64,28 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    data_model_num = pmag.get_named_arg_from_sys("-DM", 3)
+    data_model_num = pmag.get_named_arg("-DM", 3)
     data_model_num = int(float(data_model_num))
-    sfile = pmag.get_named_arg_from_sys("-f", reqd=True)
+    sfile = pmag.get_named_arg("-f", reqd=True)
     if data_model_num == 2:
-       anisfile = pmag.get_named_arg_from_sys("-F", "rmag_anisotropy.txt")
+       anisfile = pmag.get_named_arg("-F", "rmag_anisotropy.txt")
     else:
-        anisfile = pmag.get_named_arg_from_sys("-F", "specimens.txt")
-    location = pmag.get_named_arg_from_sys("-loc", "unknown")
-    user = pmag.get_named_arg_from_sys("-usr", "")
-    sitename = pmag.get_named_arg_from_sys("unknown", "")
-    specnum = pmag.get_named_arg_from_sys("-spc", 0)
+        anisfile = pmag.get_named_arg("-F", "specimens.txt")
+    location = pmag.get_named_arg("-loc", "unknown")
+    user = pmag.get_named_arg("-usr", "")
+    sitename = pmag.get_named_arg("unknown", "")
+    specnum = pmag.get_named_arg("-spc", 0)
     specnum = -int(specnum)
-    dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+    dir_path = pmag.get_named_arg("-WD", ".")
     name = pmag.get_flag_arg_from_sys("-n")
     sigma = pmag.get_flag_arg_from_sys("-sig")
-    spec = pmag.get_named_arg_from_sys("-spn", "unknown")
-    atype = pmag.get_named_arg_from_sys("-typ", 'AMS')
+    spec = pmag.get_named_arg("-spn", "unknown")
+    atype = pmag.get_named_arg("-typ", 'AMS')
     #if '-sig' in sys.argv:
     #    sigma = 1
     #if "-n" in sys.argv:
     #    name = 1
-    coord_type = pmag.get_named_arg_from_sys("-crd", 's')
+    coord_type = pmag.get_named_arg("-crd", 's')
     samp_con, Z = "", 1
     if "-ncn" in sys.argv:
         ind = sys.argv.index("-ncn")

@@ -66,15 +66,15 @@ def main():
     # initialize variables
     Z = 1
     # get arguments from the command line
-    orient_file = pmag.get_named_arg_from_sys("-f", reqd=True)
-    data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 3)))
+    orient_file = pmag.get_named_arg("-f", reqd=True)
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
     if data_model_num == 2:
-        samp_file = pmag.get_named_arg_from_sys("-Fsa", "er_samples.txt")
-        site_file = pmag.get_named_arg_from_sys("-Fsi", "er_sites.txt")
+        samp_file = pmag.get_named_arg("-Fsa", "er_samples.txt")
+        site_file = pmag.get_named_arg("-Fsi", "er_sites.txt")
     else:
-        samp_file = pmag.get_named_arg_from_sys("-Fsa", "samples.txt")
-        site_file = pmag.get_named_arg_from_sys("-Fsi", "sites.txt")
-    samp_con = pmag.get_named_arg_from_sys("-ncn", "1")
+        samp_file = pmag.get_named_arg("-Fsa", "samples.txt")
+        site_file = pmag.get_named_arg("-Fsi", "sites.txt")
+    samp_con = pmag.get_named_arg("-ncn", "1")
     if "4" in samp_con:
         if "-" not in samp_con:
             print("option [4] must be in form 3-Z where Z is an integer")
@@ -83,8 +83,8 @@ def main():
             Z = samp_con.split("-")[1]
             samp_con = "4"
         print(samp_con, Z)
-    meths = pmag.get_named_arg_from_sys("-mcd", 'FS-FD:SO-POM:SO-SUN')
-    location_name = pmag.get_named_arg_from_sys("-loc", "unknown")
+    meths = pmag.get_named_arg("-mcd", 'FS-FD:SO-POM:SO-SUN')
+    location_name = pmag.get_named_arg("-loc", "unknown")
     if "-Iso" in args:
         ignore = 0
     else:

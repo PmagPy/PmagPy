@@ -572,7 +572,7 @@ INFORMATION
     else:
         app = wx.App(redirect=True)
 
-    working_dir = pmag.get_named_arg_from_sys('-WD', '')
+    working_dir = pmag.get_named_arg('-WD', '')
     app.frame = MainFrame(working_dir)
     app.frame.Show()
     app.frame.Center()

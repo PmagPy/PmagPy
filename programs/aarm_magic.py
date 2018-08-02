@@ -62,12 +62,12 @@ def main():
     #
     # get name of file from command line
     #
-    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
-    spec_file = pmag.get_named_arg_from_sys("-Fsi", "specimens.txt")
+    data_model_num = int(pmag.get_named_arg("-DM", 3))
+    spec_file = pmag.get_named_arg("-Fsi", "specimens.txt")
     if data_model_num == 3:
-        samp_file = pmag.get_named_arg_from_sys("-fsa", "samples.txt")
+        samp_file = pmag.get_named_arg("-fsa", "samples.txt")
     else:
-        samp_file = pmag.get_named_arg_from_sys("-fsa", "er_samples.txt")
+        samp_file = pmag.get_named_arg("-fsa", "er_samples.txt")
     if '-WD' in args:
         ind = args.index('-WD')
         dir_path = args[ind + 1]

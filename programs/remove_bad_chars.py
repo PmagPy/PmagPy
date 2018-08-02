@@ -6,7 +6,7 @@ def main():
     """
     Take out dos problem characters from any file
     """
-    filename = pmag.get_named_arg_from_sys('-f')
+    filename = pmag.get_named_arg('-f')
     if not filename:
         return
     with open(filename, 'rb+') as f:

@@ -87,21 +87,21 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
-    meas_file = pmag.get_named_arg_from_sys(
+    dir_path = pmag.get_named_arg("-WD", default_val=os.getcwd())
+    meas_file = pmag.get_named_arg(
         "-f", default_val="measurements.txt")
-    spec_file = pmag.get_named_arg_from_sys(
+    spec_file = pmag.get_named_arg(
         "-fsp", default_val="specimens.txt")
-    crit_file = pmag.get_named_arg_from_sys("-fcr", default_val="criteria.txt")
+    crit_file = pmag.get_named_arg("-fcr", default_val="criteria.txt")
     spec_file = os.path.join(dir_path, spec_file)
     meas_file = os.path.join(dir_path, meas_file)
     crit_file = os.path.join(dir_path, crit_file)
-    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+    fmt = pmag.get_named_arg("-fmt", "svg")
     if '-sav' in sys.argv:
         plots, verbose = 1, 0
     if '-z' in sys.argv:
         Zdiff = 1
-    specimen = pmag.get_named_arg_from_sys("-spc", default_val="")
+    specimen = pmag.get_named_arg("-spc", default_val="")
     if '-b' in sys.argv:
         ind = sys.argv.index('-b')
         start = int(sys.argv[ind + 1])

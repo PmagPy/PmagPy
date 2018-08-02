@@ -71,8 +71,8 @@ def main():
     if "-Fr" in args:
         ind = args.index("-Fr")
         rmag_res = args[ind + 1]
-    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
-    spec_file = pmag.get_named_arg_from_sys("-Fsi", "specimens.txt")
+    data_model_num = int(pmag.get_named_arg("-DM", 3))
+    spec_file = pmag.get_named_arg("-Fsi", "specimens.txt")
     spec_file = os.path.join(dir_path, spec_file)
 
     meas_file = dir_path + '/' + meas_file

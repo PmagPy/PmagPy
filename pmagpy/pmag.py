@@ -10358,11 +10358,27 @@ def add_flag(var, flag):
     return var
 
 
-def get_named_arg_from_sys(name, default_val=None, reqd=False):
+def get_named_arg(name, default_val=None, reqd=False):
     """
     Extract the value after a command-line flag such as '-f' and return it.
     If the command-line flag is missing, return default_val.
     If reqd == True and the command-line flag is missing, throw an error.
+
+    Parameters
+    ----------
+    name : str
+        command line flag, e.g. "-f"
+    default_val
+        value to use if command line flag is missing, e.g. "measurements.txt"
+        default is None
+    reqd : bool
+        throw error if reqd==True and command line flag is missing.
+        if reqd == True, default_val will be ignored.
+        default is False.
+
+    Returns
+    ---------
+    Desired value from sys.argv if available, otherwise default_val.
     """
     if name in sys.argv:  # if the command line flag is found in sys.argv
         ind = sys.argv.index(name)
