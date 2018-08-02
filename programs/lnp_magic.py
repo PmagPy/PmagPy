@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
+import numpy as np
 
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
+from pmagpy import new_builder as nb
 
 
 def main():
@@ -32,7 +33,9 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input file, default is 'pmag_specimens.txt'
+        -f FILE: specify input file, default is 'specimens.txt'
+        -fsa FILE: specify samples file, required to plot by site for data model 3 (otherwise will plot by sample)
+                default is 'samples.txt'
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
                 default is specimen
         -fmt [svg,png,jpg] format for plots, default is svg
@@ -52,7 +55,11 @@ def main():
         in_file = pmag.get_named_arg_from_sys('-f', 'pmag_specimens.txt')
     else:
         in_file = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
+        samp_file = pmag.get_named_arg_from_sys('-fsa', 'samples.txt')
     in_file = pmag.resolve_file_name(in_file, dir_path)
+    dir_path = os.path.split(in_file)[0]
+    if data_model == 3:
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
     if '-crd' in sys.argv:
         ind = sys.argv.index("-crd")
         crd = sys.argv[ind+1]
@@ -92,10 +99,33 @@ def main():
         plot = 0 # show plots intereactively (if make_plots)
 #
 
-    Specs, file_type = pmag.magic_read(in_file)
-    if 'specimens' not in file_type:
-        print('Error opening ', in_file, file_type)
-        sys.exit()
+
+    if data_model == 2:
+        Specs, file_type = pmag.magic_read(in_file)
+        if 'specimens' not in file_type:
+            print('Error opening ', in_file, file_type)
+            sys.exit()
+    else:
+        fnames = {'specimens': in_file, 'samples': samp_file}
+        con = nb.Contribution(dir_path, read_tables=['samples', 'specimens'],
+                              custom_filenames=fnames)
+        con.propagate_name_down('site', 'specimens')
+        if 'site' in con.tables['specimens'].df.columns:
+            site_col = 'site'
+        else:
+            site_col = 'sample'
+        tilt_corr_col = "dir_tilt_correction"
+        mad_col = "dir_mad_free"
+        alpha95_col = "dir_alpha95"
+        dec_col = "dir_dec"
+        inc_col = "dir_inc"
+        num_meas_col = "dir_n_measurements"
+        cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
+        con.tables['specimens'].front_and_backfill(cols)
+        con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
+        #con.tables['specimens'].df = np.where(con.tables['specimens'].df.apply(nb.not_null), con.tables['specimens'].df,  "")
+        Specs = con.tables['specimens'].convert_to_pmag_data_list()
+
     sitelist = []
 
     # initialize some variables
@@ -105,8 +135,14 @@ def main():
 
     if data_model == 2:
         site_col = 'er_site_name'
-    else:
-        site_col = 'site'
+        tilt_corr_col = "specimen_tilt_correction"
+        mad_col = "specimen_mad"
+        alpha95_col = 'specimen_alpha95'
+        dec_col = "specimen_dec"
+        inc_col = "specimen_inc"
+        num_meas_col = "specimen_n"
+    else: # data model 3
+        pass
 
     for rec in Specs:
         if rec[site_col] not in sitelist:
@@ -120,21 +156,23 @@ def main():
         print(site)
         data = []
         for spec in Specs:
-            if 'specimen_tilt_correction' not in list(spec.keys()):
-                spec['specimen_tilt_correction'] = '-1'  # assume unoriented
-            if spec['er_site_name'] == site:
-                if 'specimen_mad' not in list(spec.keys()) or spec['specimen_mad'] == "":
-                    if 'specimen_alpha95' in list(spec.keys()) and spec['specimen_alpha95'] != "":
-                        spec['specimen_mad'] = spec['specimen_alpha95']
+            if tilt_corr_col not in list(spec.keys()):
+                spec[tilt_corr_col] = '-1'  # assume unoriented
+            if spec[site_col] == site:
+                if mad_col not in list(spec.keys()) or spec[mad_col] == "":
+                    if alpha95_col in list(spec.keys()) and spec[alpha95_col] != "":
+                        spec[mad_col] = spec[alpha95_col]
                     else:
-                        spec['specimen_mad'] = '180'
-                if spec['specimen_tilt_correction'] == coord and float(spec['specimen_mad']) <= M and float(spec['specimen_n']) >= N:
+                        spec[mad_col] = '180'
+                if not spec[num_meas_col]:
+                    continue
+                if (float(spec[tilt_corr_col]) == float(coord)) and (float(spec[mad_col]) <= M) and (float(spec[num_meas_col]) >= N):
                     rec = {}
                     for key in list(spec.keys()):
                         rec[key] = spec[key]
-                    rec["dec"] = float(spec['specimen_dec'])
-                    rec["inc"] = float(spec['specimen_inc'])
-                    rec["tilt_correction"] = spec['specimen_tilt_correction']
+                    rec["dec"] = float(spec[dec_col])
+                    rec["inc"] = float(spec[inc_col])
+                    rec["tilt_correction"] = spec[tilt_corr_col]
                     data.append(rec)
         if len(data) > 2:
             fpars = pmag.dolnp(data, 'specimen_direction_type')
