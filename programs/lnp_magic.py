@@ -26,14 +26,14 @@ def main():
         lnp_magic [command line options]
 
     INPUT
-       takes magic formatted pmag_specimens file
+       takes magic formatted specimens file
 
     OUPUT
         prints site_name n_lines n_planes K alpha95 dec inc R
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input file, default is 'specimens.txt'
+        -f FILE: specify input file, default is 'specimens.txt', ('pmag_specimens.txt' for legacy data model 2)
         -fsa FILE: specify samples file, required to plot by site for data model 3 (otherwise will plot by sample)
                 default is 'samples.txt'
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
@@ -42,7 +42,7 @@ def main():
         -sav save plots and quit
         -P: do not plot
         -F FILE, specify output file of dec, inc, alpha95 data for plotting with plotdi_a and plotdi_e
-        -exc use criteria in pmag_criteria.txt
+        -exc use criteria in criteria table # NOT IMPLEMENTED
         -DM NUMBER MagIC data model (2 or 3, default 3)
     """
     if '-h' in sys.argv:
@@ -53,9 +53,11 @@ def main():
     fmt = pmag.get_named_arg_from_sys("-fmt", 'svg')
     if data_model == 2:
         in_file = pmag.get_named_arg_from_sys('-f', 'pmag_specimens.txt')
+        crit_file = "pmag_criteria.txt"
     else:
         in_file = pmag.get_named_arg_from_sys('-f', 'specimens.txt')
         samp_file = pmag.get_named_arg_from_sys('-fsa', 'samples.txt')
+        crit_file = "criteria.txt"
     in_file = pmag.resolve_file_name(in_file, dir_path)
     dir_path = os.path.split(in_file)[0]
     if data_model == 3:
@@ -72,19 +74,6 @@ def main():
     else:
         coord = "-1"
 
-    if '-exc' in sys.argv:
-        Crits, file_type = pmag.magic_read(dir_path+'/pmag_criteria.txt')
-        for crit in Crits:
-            if 'specimen_mad' in crit:
-                M = float(crit['specimen_mad'])
-            if 'specimen_n' in crit:
-                N = float(crit['specimen_n'])
-            if 'site_alpha95' in crit:
-                acutoff = float(crit['site_alpha95'])
-            if 'site_k' in crit:
-                kcutoff = float(crit['site_k'])
-    else:
-        Crits = ""
 
     out_file = pmag.get_named_arg_from_sys('-F', '')
     if out_file:
@@ -117,14 +106,32 @@ def main():
         tilt_corr_col = "dir_tilt_correction"
         mad_col = "dir_mad_free"
         alpha95_col = "dir_alpha95"
+        site_alpha95_col = "dir_alpha95"
         dec_col = "dir_dec"
         inc_col = "dir_inc"
         num_meas_col = "dir_n_measurements"
+        k_col = "dir_k"
         cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
         con.tables['specimens'].front_and_backfill(cols)
         con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
         #con.tables['specimens'].df = np.where(con.tables['specimens'].df.apply(nb.not_null), con.tables['specimens'].df,  "")
         Specs = con.tables['specimens'].convert_to_pmag_data_list()
+
+
+    ## using criteria file was never fully implemented
+    #if '-exc' in sys.argv:
+    #    Crits, file_type = pmag.magic_read(pmag.resolve_file_name(crit_file, dir_path))
+    #    for crit in Crits:
+    #        if mad_col in crit:
+    #            M = float(crit['specimen_mad'])
+    #        if num_meas_col in crit:
+    #            N = float(crit['specimen_n'])
+    #        if site_alpha95_col in crit and 'site' in crit:
+    #            acutoff = float(crit['site_alpha95'])
+    #        if k_col in crit:
+    #            kcutoff = float(crit['site_k'])
+    #else:
+    #    Crits = ""
 
     sitelist = []
 
@@ -141,6 +148,7 @@ def main():
         dec_col = "specimen_dec"
         inc_col = "specimen_inc"
         num_meas_col = "specimen_n"
+        site_alpha95_col = "site_alpha95"
     else: # data model 3
         pass
 
