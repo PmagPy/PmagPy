@@ -1,0 +1,10 @@
+tab	criteria				
+citations	criterion	criterion_operation	criterion_value	description	table_column
+This study	DE-SAMP	<=	180	Criteria for selection of sample direction	samples.dir_alpha95
+This study	DE-SITE	<=	180	Criteria for selection of site direction	sites.dir_alpha95
+This study	DE-SITE	>=	50	Criteria for selection of site direction	sites.dir_k
+This study	DE-SITE	>=	5	Criteria for selection of site direction	sites.dir_n_samples
+This study	DE-SITE	>=	4	Criteria for selection of site direction	sites.dir_n_specimens_lines
+This study	DE-SPEC	<=	180	Criteria for selection of specimen direction	specimens.dir_alpha95
+This study	DE-SPEC	<=	5	Criteria for selection of specimen direction	specimens.dir_mad_free
+This study	DE-SPEC	>=	4	Criteria for selection of specimen direction	specimens.dir_n_measurements
