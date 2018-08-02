@@ -1,13 +1,17 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
 import sys
+import os
+import math
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
+
+import operator
+OPS = {'<' : operator.lt, '<=' : operator.le,
+       '>' : operator.gt, '>=': operator.ge, '=': operator.eq}
 
 
 def main():
@@ -19,7 +23,7 @@ def main():
        calculates bootstrap statistics to test for antipodality
 
     INPUT FORMAT
-       takes dec/inc data from pmag_sites table 
+       takes dec/inc data from sites table
 
     SYNTAX
        revtest_magic.py [command line options]
@@ -28,67 +32,88 @@ def main():
        -h prints help message and quits
        -f FILE, sets pmag_sites filename on command line
        -crd [s,g,t], set coordinate system, default is geographic
-       -exc use pmag_criteria.txt to set acceptance criteria
+       -exc use criteria file to set acceptance criteria (only available for data model 3)
        -fmt [svg,png,jpg], sets format for image output
-       -sav saves plot and quits               
+       -sav saves plot and quits
+       -DM [2, 3] MagIC data model num, default is 3
 
     """
-    D, fmt, plot = [], 'svg', 0
-    coord = '0'
-    infile = 'pmag_sites.txt'
-    critfile = 'pmag_criteria.txt'
-    dir_path = '.'
     if '-h' in sys.argv:  # check if help is needed
         print(main.__doc__)
         sys.exit()  # graceful quit
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path = sys.argv[ind+1]
+    dir_path = pmag.get_named_arg("-WD", ".")
+    coord = pmag.get_named_arg("-crd", "0") # default to geographic coordinates
+    if coord == 's':
+        coord = '-1'
+    elif coord == 'g':
+        coord = '0'
+    elif coord == 't':
+        coord = '100'
+    fmt = pmag.get_named_arg("-fmt", "svg")
     if '-sav' in sys.argv:
         plot = 1
-    if '-f' in sys.argv:
-        ind = sys.argv.index('-f')
-        infile = sys.argv[ind+1]
-    if '-crd' in sys.argv:
-        ind = sys.argv.index('-crd')
-        coord = sys.argv[ind+1]
-        if coord == 's':
-            coord = '-1'
-        if coord == 'g':
-            coord = '0'
-        if coord == 't':
-            coord = '100'
-    if '-fmt' in sys.argv:
-        ind = sys.argv.index('-fmt')
-        fmt = sys.argv[ind+1]
+    data_model = int(float(pmag.get_named_arg("-DM")))
+    if data_model == 2:
+        infile = pmag.get_named_arg("-f", "pmag_sites.txt")
+        critfile = "pmag_criteria.txt"
+        tilt_corr_col = 'site_tilt_correction'
+        dec_col = "site_dec"
+        inc_col = "site_inc"
+        crit_code_col = "pmag_criteria_code"
+    else:
+        infile = pmag.get_named_arg("-f", "sites.txt")
+        critfile = "criteria.txt"
+        tilt_corr_col = "dir_tilt_correction"
+        dec_col = "dir_dec"
+        inc_col = "dir_inc"
+        crit_code_col = "criterion"
+    D = []
+
 #
-    infile = dir_path+'/'+infile
-    critfile = dir_path+'/'+critfile
-    Accept = ['site_k', 'site_alpha95', 'site_n', 'site_n_lines']
+    infile = pmag.resolve_file_name(infile, dir_path)
+    dir_path = os.path.split(infile)[0]
+    critfile = pmag.resolve_file_name(critfile, dir_path)
+    #
+    if data_model == 2:
+        Accept = ['site_k', 'site_alpha95', 'site_n', 'site_n_lines']
+    else:
+        Accept = ['dir_k', 'dir_alpha95', 'dir_n_samples', 'dir_n_specimens_line']
     data, file_type = pmag.magic_read(infile)
-    if file_type != 'pmag_sites':
-        print("Error opening file")
+    if 'sites' not in file_type:
+        print("Error opening file", file_type)
         sys.exit()
 #    ordata,file_type=pmag.magic_read(orfile)
-    if '-exc' in sys.argv:
+    SiteCrits = []
+    if '-exc' in sys.argv and data_model != 2:
         crits, file_type = pmag.magic_read(critfile)
         for crit in crits:
-            if crit['pmag_criteria_code'] == "DE-SITE":
+            if crit[crit_code_col] == "DE-SITE":
                 SiteCrit = crit
+                SiteCrits.append(SiteCrit)
+    elif '-exc' in sys.argv and data_model == 2:
+        print('-W- You have selected the -exc option, which is not available with MagIC data model 2.')
     for rec in data:
-        if rec['site_tilt_correction'] == coord:
-            Dec = float(rec['site_dec'])
-            Inc = float(rec['site_inc'])
-            if '-exc' in sys.argv:
-                for key in Accept:
-                    if SiteCrit[key] != "":
-                        if float(rec[key]) <= float(SiteCrit[key]):
-                            D.append([Dec, Inc, 1.])
+        if rec[tilt_corr_col] == coord:
+            Dec = float(rec[dec_col])
+            Inc = float(rec[inc_col])
+            if '-exc' in sys.argv and data_model != 2:
+                fail = False
+                for SiteCrit in SiteCrits:
+                    for key in Accept:
+                        if key not in SiteCrit['table_column']:
+                            continue
+                        if key not in rec:
+                            continue
+                        if SiteCrit['criterion_value'] != "":
+                            op = OPS[SiteCrit['criterion_operation']]
+                            if not op(float(rec[key]), float(SiteCrit['criterion_value'])):
+                                fail = True
+                if not fail:
+                    D.append([Dec, Inc, 1.])
             else:
                 D.append([Dec, Inc, 1.])
 # set up plots
 
-    d = ""
     CDF = {'X': 1, 'Y': 2, 'Z': 3}
     pmagplotlib.plot_init(CDF['X'], 5, 5)
     pmagplotlib.plot_init(CDF['Y'], 5, 5)
