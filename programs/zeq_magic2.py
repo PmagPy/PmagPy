@@ -361,7 +361,7 @@ def main():
             title=s+'_s'
             if geo==1 and tilt==0 and noorient!=1:title=s+'_g'
             if tilt==1 and noorient!=1:title=s+'_t'
-            pmagplotlib.plotZED(ZED,plotblock,angle,title,units)
+            pmagplotlib.plot_zed(ZED,plotblock,angle,title,units)
             if verbose:pmagplotlib.draw_figs(ZED)
             if len(CurrRecs)!=0:
                 for prec in CurrRecs:
@@ -385,17 +385,17 @@ def main():
                         if geo==1 and tilt==0:
                             mpars=pmag.domean(geoblock,beg_pca,end_pca,calculation_type)
                             if mpars["specimen_direction_type"]!="Error":
-                                pmagplotlib.plotDir(ZED,mpars,geoblock,angle)
+                                pmagplotlib.plot_dir(ZED,mpars,geoblock,angle)
                                 if verbose:pmagplotlib.draw_figs(ZED)
                         if geo==1 and tilt==1:
                             mpars=pmag.domean(tiltblock,beg_pca,end_pca,calculation_type)
                             if mpars["specimen_direction_type"]!="Error":
-                                pmagplotlib.plotDir(ZED,mpars,tiltblock,angle)
+                                pmagplotlib.plot_dir(ZED,mpars,tiltblock,angle)
                                 if verbose:pmagplotlib.draw_figs(ZED)
                         if geo==0 and tilt==0: 
                             mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type)
                         if mpars["specimen_direction_type"]!="Error":
-                                pmagplotlib.plotDir(ZED,mpars,plotblock,angle)
+                                pmagplotlib.plot_dir(ZED,mpars,plotblock,angle)
                                 if verbose:pmagplotlib.draw_figs(ZED)
     #
     # print out data for this sample to screen
@@ -581,7 +581,7 @@ def main():
                                 GoOn=1
                             else: 
                                 print("bad entry of calculation type: try again. ")
-                        pmagplotlib.plotZED(ZED,plotblock,angle,s,units)
+                        pmagplotlib.plot_zed(ZED,plotblock,angle,s,units)
                         if verbose:pmagplotlib.draw_figs(ZED)
                         if geo==1 and tilt==0:
                             mpars=pmag.domean(geoblock,beg_pca,end_pca,calculation_type)
@@ -593,7 +593,7 @@ def main():
                                 method_codes.append("DA-DIR-GEO")
                             else:
                                 PmagSpecRec["specimen_tilt_correction"]='-1'
-                            pmagplotlib.plotDir(ZED,mpars,geoblock,angle)
+                            pmagplotlib.plot_dir(ZED,mpars,geoblock,angle)
                             if verbose:pmagplotlib.draw_figs(ZED)
                         if geo==1 and  tilt==1:
                             mpars=pmag.domean(tiltblock,beg_pca,end_pca,calculation_type)
@@ -605,7 +605,7 @@ def main():
                                 method_codes.append("DA-DIR-TILT")
                             else:
                                 PmagSpecRec["specimen_tilt_correction"]='-1'
-                            pmagplotlib.plotDir(ZED,mpars,tiltblock,angle)
+                            pmagplotlib.plot_dir(ZED,mpars,tiltblock,angle)
                             if verbose:pmagplotlib.draw_figs(ZED)
                         if geo==0 and tilt==0: 
                             mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type)
@@ -613,7 +613,7 @@ def main():
                             PmagSpecRec["specimen_dec"]='%7.1f ' %(mpars["specimen_dec"])
                             PmagSpecRec["specimen_inc"]='%7.1f ' %(mpars["specimen_inc"])
                             PmagSpecRec["specimen_tilt_correction"]='-1'
-                            pmagplotlib.plotDir(ZED,mpars,plotblock,angle)
+                            pmagplotlib.plot_dir(ZED,mpars,plotblock,angle)
                             if verbose:pmagplotlib.draw_figs(ZED)
                         PmagSpecRec["measurement_step_min"]='%8.3e ' %(mpars["measurement_step_min"])
                         PmagSpecRec["measurement_step_max"]='%8.3e ' %(mpars["measurement_step_max"])

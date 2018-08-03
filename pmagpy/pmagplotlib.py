@@ -596,7 +596,7 @@ def plot_di_sym(fignum, DIblock, sym):
             globals.DIlisty = Y_up
 
 
-def plotC(fignum, pole, ang, col):
+def plot_circ(fignum, pole, ang, col):
     """
     function to put a small circle on an equal area projection plot, fig,fignum
     """
@@ -619,7 +619,7 @@ def plotC(fignum, pole, ang, col):
 #
 #
 #
-def plotZ(fignum, datablock, angle, s, norm):
+def plot_zij(fignum, datablock, angle, s, norm):
     """
     function to make Zijderveld diagrams
 
@@ -701,7 +701,7 @@ def plotZ(fignum, datablock, angle, s, norm):
 #
 #
 
-def plotMT(fignum, datablock, s, num, units, norm):
+def plot_mag(fignum, datablock, s, num, units, norm):
     """
     plots magnetization against (de)magnetizing temperature or field
 
@@ -825,7 +825,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
 #
 
 
-def plotZED(ZED, datablock, angle, s, units):
+def plot_zed(ZED, datablock, angle, s, units):
     """
     function to make equal area plot and zijderveld plot
 
@@ -882,11 +882,11 @@ def plotZED(ZED, datablock, angle, s, units):
                AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
-    plotMT(ZED['demag'], datablock, s, 1, units, norm)
-    plotZ(ZED['zijd'], datablock, angle, s, norm)
+    plot_mag(ZED['demag'], datablock, s, 1, units, norm)
+    plot_zij(ZED['zijd'], datablock, angle, s, norm)
 
 
-def plotDir(ZED, pars, datablock, angle):
+def plot_dir(ZED, pars, datablock, angle):
     """
     function to put the great circle on the equal area projection
     and plot start and end points of calculation
@@ -1009,14 +1009,14 @@ def plotDir(ZED, pars, datablock, angle):
         plt.scatter(x, y, marker='d', s=80, c='b')
         pole.append(pars["specimen_dec"])
         pole.append(pars["specimen_inc"])
-        plotC(ZED['eqarea'], pole, 90., 'g')
+        plot_circ(ZED['eqarea'], pole, 90., 'g')
         plt.xlim((-1., 1.))
         plt.ylim((-1., 1.))
         plt.axis("equal")
         plt.draw()
 
 
-def plotA(fignum, indata, s, units):
+def plot_arai(fignum, indata, s, units):
     """
     makes Arai plots for Thellier-Thellier type experiments
 
@@ -1230,7 +1230,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     Effects
     ________
     Makes four plots from the data by calling
-    plotA : Arai plots
+    plot_arai : Arai plots
     plotTEQ : equal area projection for Thellier data
     plotZ : Zijderveld diagram
     plotNP : de (re) magnetization diagram
@@ -1239,15 +1239,15 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     norm = 1
     if units == "U":
         norm = 0
-    plotA(ZED['arai'], araiblock, s, units)
+    plot_arai(ZED['arai'], araiblock, s, units)
     plotTEQ(ZED['eqarea'], araiblock, s, "")
-    plotZ(ZED['zijd'], zijdblock, angle, s, norm)
+    plot_zij(ZED['zijd'], zijdblock, angle, s, norm)
     plotNP(ZED['deremag'], araiblock, s, units)
 
 
 def plotSHAW(SHAW, shawblock, zijdblock, field, s):
     angle = zijdblock[0][1]
-    plotZ(SHAW['zijd'], zijdblock, angle, s)
+    plot_zij(SHAW['zijd'], zijdblock, angle, s)
     NRM, TRM, ARM1, ARM2 = shawblock[0], shawblock[1], shawblock[2], shawblock[3]
     TRM_ADJ = shawblock[4]
     plt.figure(num=SHAW['nrmtrm'])
@@ -1410,7 +1410,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
         plot_di(fignum, DIblock)  # plot directed lines
     if len(GCblock) > 0:
         for pole in GCblock:
-            plotC(fignum, pole, 90., 'g')  # plot directed lines
+            plot_circ(fignum, pole, 90., 'g')  # plot directed lines
 #
 # put on the mean direction
 #
@@ -1475,7 +1475,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
         plot_di(fignum, DIblock)  # plot directed lines
     if len(GCblock) > 0:
         for pole in GCblock:
-            plotC(fignum, pole, 90., 'g')  # plot directed lines
+            plot_circ(fignum, pole, 90., 'g')  # plot directed lines
 #
 # put on the mean direction
 #

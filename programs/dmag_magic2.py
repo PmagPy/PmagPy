@@ -142,7 +142,7 @@ def main():
                     INTblock.append([float(rec[dmag_key]), 0, 0, float(
                         rec[int_key]), 1, rec['measurement_flag']])
                 if len(INTblock) > 2:
-                    pmagplotlib.plotMT(
+                    pmagplotlib.plot_mag(
                         FIG['demag'], INTblock, title, 0, units, norm)
             if plot == 1:
                 files = {}

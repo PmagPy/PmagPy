@@ -233,7 +233,7 @@ def main():
             pmagplotlib.plot_net(FIG['eqarea'])
         if len(GCblock) > 0:
             for rec in GCblock:
-                pmagplotlib.plotC(FIG['eqarea'], rec, 90., 'g')
+                pmagplotlib.plot_circ(FIG['eqarea'], rec, 90., 'g')
         if plotE == 1:
             ppars = pmag.doprinc(DIblock)  # get principal directions
             nDIs, rDIs, npars, rpars = [], [], [], []

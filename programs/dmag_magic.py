@@ -127,7 +127,7 @@ def main():
                 for ind, rec in spec_data.iterrows():
                     INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
                 if len(INTblock) > 2:
-                    pmagplotlib.plotMT(FIG['demag'], INTblock,
+                    pmagplotlib.plot_mag(FIG['demag'], INTblock,
                                        title, 0, units, norm)
 
             if not plot:

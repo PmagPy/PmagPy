@@ -170,7 +170,7 @@ def main():
             for rec in sdata:
                 INTblock.append([float(rec[dmag_key]), 0, 0,
                                  float(rec[int_key]), 1, 'g'])
-            pmagplotlib.plotMT(FIG['exp'], INTblock, title, 0, units, norm)
+            pmagplotlib.plot_mag(FIG['exp'], INTblock, title, 0, units, norm)
         files = {}
         for key in list(FIG.keys()):
             files[key] = title + '_' + LP + '.' + fmt

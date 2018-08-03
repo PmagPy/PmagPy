@@ -235,7 +235,7 @@ def main():
             pmagplotlib.plot_net(FIG['eqarea'])
         if len(GCblock) > 0:
             for rec in GCblock:
-                pmagplotlib.plotC(FIG['eqarea'], rec, 90., 'g')
+                pmagplotlib.plot_circ(FIG['eqarea'], rec, 90., 'g')
         if len(DIblock) == 0 and len(GCblock) == 0:
             if verbose:
                 print("no records for plotting")

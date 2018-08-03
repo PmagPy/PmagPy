@@ -366,7 +366,7 @@ def main():
             datalist = [tr, decs, incs, ints, ZI, flags, codes]
             # this transposes the columns and rows of the list of lists
             datablock = list(map(list, list(zip(*datalist))))
-            pmagplotlib.plotZED(ZED, datablock, angle, title, units)
+            pmagplotlib.plot_zed(ZED, datablock, angle, title, units)
             if verbose and not set_env.IS_WIN:
                 pmagplotlib.draw_figs(ZED)
 #
@@ -411,7 +411,7 @@ def main():
                             if mpars["specimen_direction_type"] != "Error":
                                 # put it on the plot
                                 print('plotting direction')
-                                pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+                                pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
                                 if verbose and not set_env.IS_WIN:
                                     pmagplotlib.draw_figs(ZED)
 ### SKIP if no prior interpretation - this section should not be used:
@@ -433,7 +433,7 @@ def main():
 #                    k += 1
 #                if mpars["specimen_direction_type"] != "Error":
 #                    # put it on the plot
-#                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+#                    pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
 #                    if verbose:
 #                        pmagplotlib.draw_figs(ZED)
 

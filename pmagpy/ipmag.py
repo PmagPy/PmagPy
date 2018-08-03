@@ -7016,7 +7016,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
                         INTblock.append([float(rec[dmag_key]), 0, 0, float(
                             rec[int_key]), 1, rec['measurement_flag']])
                     if len(INTblock) > 2:
-                        pmagplotlib.plotMT(
+                        pmagplotlib.plot_mag(
                             FIG['demag'], INTblock, title, 0, units, norm)
             else:
                 AVGblock = {}
@@ -7036,7 +7036,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
                 for step in sorted(AVGblock.keys()):
                     INTblock.append([float(step), 0, 0, old_div(
                         float(sum(AVGblock[step])), float(len(AVGblock[step]))), 1, 'g'])
-                pmagplotlib.plotMT(FIG['demag'], INTblock,
+                pmagplotlib.plot_mag(FIG['demag'], INTblock,
                                    title, 0, units, norm)
         if save == True:
             plt.savefig(os.path.join(save_folder, title) + '.' + fmt)
@@ -7731,7 +7731,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
     plt.figure(num=ZED['demag'], figsize=(5, 5))
 #
 #
-    pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+    pmagplotlib.plot_zed(ZED,datablock,angle,s,SIunits) # plot the data
 #
 # print out data for this sample to screen
 #
@@ -7745,9 +7745,9 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         recnum += 1
         pmagplotlib.draw_figs(ZED)
     if begin_pca!="" and end_pca!="" and calculation_type!="":
-        pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+        pmagplotlib.plot_zed(ZED,datablock,angle,s,SIunits) # plot the data
         mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
-        pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+        pmagplotlib.plot_dir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
         if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
         if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
@@ -7912,8 +7912,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                                 title, iplot, comp, vec, Dir, num_bootstraps)
 
             if len(PDir) > 0:
-                pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
-                pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
+                pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
+                pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
             if verbose and plots == 0:
                 pmagplotlib.draw_figs(ANIS)
             if plots == 1:
@@ -8250,8 +8250,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                         pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
                                              title, iplot, comp, vec, Dir, num_bootstraps)
 
-                    pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
-                    pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
+                    pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
+                    pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == "p":
@@ -8435,7 +8435,7 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
        for ind,rec in spec_data.iterrows():
            INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
        if len(INTblock)>2:
-           pmagplotlib.plotMT(fignum,INTblock,title,0,units,norm)
+           pmagplotlib.plot_mag(fignum,INTblock,title,0,units,norm)
 
 
 def eigs_s(infile="", dir_path='.'):
@@ -8476,7 +8476,7 @@ def plot_gc(poles,color='g',fignum=1):
                upper hemisphere is always cyan
     """
     for pole in poles:
-        pmagplotlib.plotC(fignum, pole, 90., color)
+        pmagplotlib.plot_circ(fignum, pole, 90., color)
 
 def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0, vec=0,num_bootstraps=1000,title=""):
         Ss,V1,V2,V3=[],[],[],[]
@@ -8499,14 +8499,14 @@ def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0,
             # plot the confidence
             nf,sigma,avs = pmag.sbar(Ss)
             hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
-            if len(PDir) > 0: pmagplotlib.plotC(fignum+1, PDir, 90., 'g')
+            if len(PDir) > 0: pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
             plot_net(fignum+1)
             plt.title(title+':'+'Confidence Ellipses')
             plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
             plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
             plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
             if len(PDir) > 0:
-                pmagplotlib.plotC(fignum+1, PDir, 90., 'g')
+                pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
             # plot the confidence ellipses or vectors as desired
             if ihext: # plot the Hext ellipses
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\

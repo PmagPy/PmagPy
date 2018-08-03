@@ -263,8 +263,8 @@ def main():
             bpars, hpars = pmagplotlib.plotANIS(
                 ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot, comp, vec, Dir, nb)
             if len(PDir) > 0:
-                pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
-                pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
+                pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
+                pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
             if verbose and plots == 0:
                 pmagplotlib.draw_figs(ANIS)
             ResRec['er_location_names'] = pmag.makelist(Locs)
@@ -532,8 +532,8 @@ def main():
                                 print(
                                     "ummm - you are doing something wrong - i give up")
                                 sys.exit()
-                    pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
-                    pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
+                    pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
+                    pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == "p":
