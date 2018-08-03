@@ -13,8 +13,6 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.new_builder as nb
 
 
-
-
 def main():
     """
     NAME

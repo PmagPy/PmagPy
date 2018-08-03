@@ -1,10 +1,5 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import input
-from builtins import str
-from builtins import range
-from builtins import object
+#/usr/bin/env/pythonw
+
 from past.utils import old_div
 import codecs
 from . import pmag
@@ -8218,7 +8213,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                    Vi=2: major
                                    Vi=3: minor
                                    D= declination of comparison direction
-                                   I= inclination of comparison direction""")
+                                   I= inclination of comparison direction
+                             example input: 1 15 20""")
                     con = 1
                     while con == 1:
                         try:
