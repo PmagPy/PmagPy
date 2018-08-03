@@ -866,7 +866,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         if experiment_type:
             experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
-        if not lab_field:
+        if not lab_field.strip():
             lab_field = ""
             options_dict['labfield'] = 0
             options_dict['phi'] = 0
@@ -899,6 +899,8 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         else:
             replicate = '-A'
         peak_AF = self.bSizer8.return_value()
+        if not peak_AF:
+            peak_AF = 0
         options_dict['peakfield'] = peak_AF
         if peak_AF:
             peak_AF = "-ac " + peak_AF
