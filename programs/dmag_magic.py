@@ -2,8 +2,6 @@
 # -*- python-indent-offset: 4; -*-
 
 # -*- mode: python-mode; python-indent-offset: 4 -*-
-from __future__ import print_function
-from builtins import input
 import sys
 import os
 import matplotlib

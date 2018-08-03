@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
-from builtins import range
 import sys
-
 from pmag_env import set_env
 if not set_env.isServer:
     import pmagpy.nlt as nlt
@@ -18,20 +14,20 @@ def main():
     """
     NAME
         microwave_magic.py
-    
+
     DESCRIPTION
         plots microwave paleointensity data, allowing interactive setting of bounds.
         Saves and reads interpretations
         from a pmag_specimen formatted table, default: microwave_specimens.txt
 
-    SYNTAX 
+    SYNTAX
         microwave_magic.py [command line options]
 
     OPTIONS
         -h prints help message and quits
         -f MEAS, set magic_measurements input file
         -fsp PRIOR, set pmag_specimen prior interpretations file
-        -fcr CRIT, set criteria file for grading.  
+        -fcr CRIT, set criteria file for grading.
         -fmt [svg,png,jpg], format for images - default is svg
         -sav,  saves plots with out review (default format)
         -spc SPEC, plots single specimen SPEC, saves plot with specified format
@@ -39,13 +35,13 @@ def main():
         -b BEG END: sets  bounds for calculation
            BEG: starting step for slope calculation
            END: ending step for slope calculation
-        
+
     DEFAULTS
         MEAS: magic_measurements.txt
         CRIT: NONE
         PRIOR: microwave_specimens.txt
-  
-    OUTPUT 
+
+    OUTPUT
         figures:
             ALL:  numbers refer to temperature steps in command line window
             1) Arai plot:  closed circles are zero-field first/infield
@@ -63,7 +59,7 @@ def main():
             list is: temperature step numbers, power (J), Dec, Inc, Int (units of magic_measuements)
                      list of possible commands: type letter followed by return to select option
                      saving of plots creates .svg format files with specimen_name, plot type as name
-    """ 
+    """
 #
 #   initializations
 #
@@ -121,7 +117,7 @@ def main():
         accept={}
         accept['specimen_int_ptrm_n']=2.0
         for critrec in crit_data:
-            if critrec["pmag_criteria_code"]=="IE-SPEC": 
+            if critrec["pmag_criteria_code"]=="IE-SPEC":
                 for key in accept_keys:
                     if key not in list(critrec.keys()):
                         accept[key]=-1
@@ -132,7 +128,7 @@ def main():
         PriorRecs,file_type=pmag.magic_read(inspec)
         if file_type != 'pmag_specimens':
             print(file_type)
-            print(file_type,inspec," is not a valid pmag_specimens file ") 
+            print(file_type,inspec," is not a valid pmag_specimens file ")
             sys.exit()
         for rec in PriorRecs:
             if 'magic_software_packages' not in list(rec.keys()):rec['magic_software_packages']=""
@@ -142,10 +138,10 @@ def main():
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
         print(file_type)
-        print(file_type,"This is not a valid magic_measurements file ") 
+        print(file_type,"This is not a valid magic_measurements file ")
         sys.exit()
     backup=0
-    # define figure numbers for arai, zijderveld and 
+    # define figure numbers for arai, zijderveld and
     #   de-,re-magization diagrams
     AZD={}
     AZD['deremag'], AZD['zijd'],AZD['arai'],AZD['eqarea']=1,2,3,4
@@ -188,7 +184,7 @@ def main():
                     if meth.strip() not in methcodes and "LP-" in meth:methcodes.append(meth.strip())
                     methods=methods+meth+":"
                 methods=methods[:-1]
-                rec["magic_method_codes"]=methods 
+                rec["magic_method_codes"]=methods
                 if "LP-PI-M" in meths: datablock.append(rec)
                 if "LP-MRM" in meths: trmblock.append(rec)
         if len(trmblock)>2 and inspec!="":
@@ -224,7 +220,7 @@ def main():
                rec["magic_experiment_name"]=""
            else:
                PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-    
+
            meths=rec["magic_method_codes"].split(':')
        # sort data into types
            if "LP-PI-M-D" in meths: # this is a double heating experiment
@@ -322,7 +318,7 @@ def main():
                                print('error on specimen ',s)
                        except:
                          pass
-                   if pmagplotlib.verbose and found==0: print('    None found :(  ') 
+                   if pmagplotlib.verbose and found==0: print('    None found :(  ')
                if spc!="":
                    if BEG!="":
                        pars,errcode=pmag.PintPars(araiblock,zijdblock,BEG,END)
@@ -350,7 +346,7 @@ def main():
                                npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                    files={}
                    for key in list(AZD.keys()):
-                       files[key]=s+'_'+key+fmt 
+                       files[key]=s+'_'+key+fmt
                    pmagplotlib.saveP(AZD,files)
                    sys.exit()
                if plots==0:
@@ -360,9 +356,9 @@ def main():
                s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
                """)
                        ans=input('Return for next specimen \n')
-                       if ans=="": 
+                       if ans=="":
                            specimen +=1
-                       if ans=="d": 
+                       if ans=="d":
                            save_redo(PriorRecs,inspec)
                            CurrRec=[]
                            pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
@@ -370,7 +366,7 @@ def main():
                        if ans=='a':
                            files={}
                            for key in list(AZD.keys()):
-                               files[key]=s+'_'+key+fmt 
+                               files[key]=s+'_'+key+fmt
                            pmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
@@ -486,7 +482,7 @@ def main():
                        basename=s+'_microwave'+fmt
                        files={}
                        for key in list(AZD.keys()):
-                           files[key]=s+'_'+key+fmt 
+                           files[key]=s+'_'+key+fmt
                        if pmagplotlib.isServer:
                            black     = '#000000'
                            purple    = '#800080'

@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -32,6 +28,7 @@ def main():
         -N do not normalize by maximum magnetization
         -fmt [svg, pdf, eps, png] specify fmt, default is svg
         -sav saves plots and quits
+        -DM [2, 3] MagIC data model number
     """
     if '-h' in sys.argv:
         print(main.__doc__)
@@ -111,18 +108,12 @@ def main():
             nrm = 1.  # don't normalize
             ylab = "Magnetic moment (Am^2)"
         xlab = "Temperature (C)"
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[0]), nrm), sym='r-')
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[0]), nrm), sym='ro')  # X direction
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[1]), nrm), sym='c-')
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[1]), nrm), sym='cs')  # Y direction
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[2]), nrm), sym='k-')
-        pmagplotlib.plotXY(FIG['lowrie'], Temps, old_div(
-            abs(carts[2]), nrm), sym='k^', title=spc, xlab=xlab, ylab=ylab)  # Z direction
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[0]) / nrm), sym='r-')
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[0]) / nrm), sym='ro')  # X direction
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[1]) / nrm), sym='c-')
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[1]) / nrm), sym='cs')  # Y direction
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[2]) / nrm), sym='k-')
+        pmagplotlib.plotXY(FIG['lowrie'], Temps, abs(carts[2]) / nrm), sym='k^', title=spc, xlab=xlab, ylab=ylab)  # Z direction
         files = {'lowrie': 'lowrie:_'+spc+'_.'+fmt}
         if plot == 0:
             pmagplotlib.drawFIGS(FIG)

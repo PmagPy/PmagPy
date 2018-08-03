@@ -2,11 +2,6 @@
 
 # -*- python-indent-offset: 4; -*-
 
-from __future__ import print_function
-from builtins import input
-from builtins import map
-from builtins import zip
-from builtins import range
 import pandas as pd
 import numpy as np
 import sys

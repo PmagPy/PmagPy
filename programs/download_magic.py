@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
 import os
 import sys
 import pmagpy.command_line_extractor as extractor
@@ -19,9 +17,9 @@ def main():
     SYNTAX
         download_magic.py command line options]
     INPUT
-        takes either the upload.txt file created by upload_magic.py or the file
-        exported by the MagIC v2.2 console software (downloaded from the MagIC database
-        or output by the Console on your PC).
+        takes either the upload.txt file created by upload_magic.py or a file
+        downloaded from the MagIC database (http://earthref.org/MagIC)
+
 
     OPTIONS
         -h prints help message and quits

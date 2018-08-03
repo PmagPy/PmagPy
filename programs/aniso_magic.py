@@ -2,9 +2,6 @@
 #  -*- python-indent-offset: 4; -*-
 #pylint: disable=invalid-name,wrong-import-position,line-too-long
 #import draw
-from __future__ import print_function
-from builtins import input
-from builtins import range
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":

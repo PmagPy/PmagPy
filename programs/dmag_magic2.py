@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+    matplotlib.use("TKAgg")
 
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
+
 
 def main():
     """
@@ -34,110 +34,135 @@ def main():
     NOTE
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
-    FIG={} # plot dictionary
-    FIG['demag']=1 # demag is figure 1
-    in_file,plot_key,LT='magic_measurements.txt','er_location_name',"LT-AF-Z"
-    XLP=""
-    norm=1
-    LT='LT-AF-Z'
-    units,dmag_key='T','treatment_ac_field'
-    plot=0
-    fmt='svg'
-    if len(sys.argv)>1:
+    FIG = {}  # plot dictionary
+    FIG['demag'] = 1  # demag is figure 1
+    in_file, plot_key, LT = 'magic_measurements.txt', 'er_location_name', "LT-AF-Z"
+    XLP = ""
+    norm = 1
+    LT = 'LT-AF-Z'
+    units, dmag_key = 'T', 'treatment_ac_field'
+    plot = 0
+    fmt = 'svg'
+    if len(sys.argv) > 1:
         if '-h' in sys.argv:
             print(main.__doc__)
             sys.exit()
-        if '-N' in sys.argv: norm=0
+        if '-N' in sys.argv:
+            norm = 0
         if '-sav' in sys.argv:
-            plot=1
+            plot = 1
         if '-f' in sys.argv:
-            ind=sys.argv.index("-f")
-            in_file=sys.argv[ind+1]
+            ind = sys.argv.index("-f")
+            in_file = sys.argv[ind+1]
         if '-fmt' in sys.argv:
-            ind=sys.argv.index("-fmt")
-            fmt=sys.argv[ind+1]
+            ind = sys.argv.index("-fmt")
+            fmt = sys.argv[ind+1]
         if '-obj' in sys.argv:
-            ind=sys.argv.index('-obj')
-            plot_by=sys.argv[ind+1]
-            if plot_by=='sit':plot_key='er_site_name'
-            if plot_by=='sam':plot_key='er_sample_name'
-            if plot_by=='spc':plot_key='er_specimen_name'
+            ind = sys.argv.index('-obj')
+            plot_by = sys.argv[ind+1]
+            if plot_by == 'sit':
+                plot_key = 'er_site_name'
+            if plot_by == 'sam':
+                plot_key = 'er_sample_name'
+            if plot_by == 'spc':
+                plot_key = 'er_specimen_name'
         if '-XLP' in sys.argv:
-            ind=sys.argv.index("-XLP")
-            XLP=sys.argv[ind+1] # get lab protocol for excluding
+            ind = sys.argv.index("-XLP")
+            XLP = sys.argv[ind+1]  # get lab protocol for excluding
         if '-LT' in sys.argv:
-            ind=sys.argv.index("-LT")
-            LT='LT-'+sys.argv[ind+1]+'-Z' # get lab treatment for plotting
-            if  LT=='LT-T-Z':
-                units,dmag_key='K','treatment_temp'
-            elif  LT=='LT-AF-Z':
-                units,dmag_key='T','treatment_ac_field'
-            elif  LT=='LT-M-Z':
-                units,dmag_key='J','treatment_mw_energy'
+            ind = sys.argv.index("-LT")
+            LT = 'LT-'+sys.argv[ind+1]+'-Z'  # get lab treatment for plotting
+            if LT == 'LT-T-Z':
+                units, dmag_key = 'K', 'treatment_temp'
+            elif LT == 'LT-AF-Z':
+                units, dmag_key = 'T', 'treatment_ac_field'
+            elif LT == 'LT-M-Z':
+                units, dmag_key = 'J', 'treatment_mw_energy'
             else:
-                units='U'
-    data,file_type=pmag.magic_read(in_file)
-    sids=pmag.get_specs(data)
-    pmagplotlib.plot_init(FIG['demag'],5,5)
-    print(len(data),' records read from ',in_file)
+                units = 'U'
+    data, file_type = pmag.magic_read(in_file)
+    sids = pmag.get_specs(data)
+    pmagplotlib.plot_init(FIG['demag'], 5, 5)
+    print(len(data), ' records read from ', in_file)
     #
     #
     # find desired intensity data
     #
     #
-    plotlist,intlist=[],['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
-    IntMeths=[]
-    FixData=[]
-    for  rec in data:
-        meths=[]
-        methcodes=rec['magic_method_codes'].split(':')
-        for meth in methcodes:meths.append(meth.strip())
+    plotlist, intlist = [], ['measurement_magnitude', 'measurement_magn_moment',
+                             'measurement_magn_volume', 'measurement_magn_mass']
+    IntMeths = []
+    FixData = []
+    for rec in data:
+        meths = []
+        methcodes = rec['magic_method_codes'].split(':')
+        for meth in methcodes:
+            meths.append(meth.strip())
         for key in rec.keys():
-            if key in intlist and rec[key]!="":
-                if key not in IntMeths:IntMeths.append(key)
-                if rec[plot_key] not in plotlist and LT in meths: plotlist.append(rec[plot_key])
-                if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
+            if key in intlist and rec[key] != "":
+                if key not in IntMeths:
+                    IntMeths.append(key)
+                if rec[plot_key] not in plotlist and LT in meths:
+                    plotlist.append(rec[plot_key])
+                if 'measurement_flag' not in rec.keys():
+                    rec['measurement_flag'] = 'g'
                 FixData.append(rec)
         plotlist.sort()
-    if len(IntMeths)==0:
+    if len(IntMeths) == 0:
         print('No intensity information found')
         sys.exit()
-    data=FixData
-    int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    data = FixData
+    # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    int_key = IntMeths[0]
     for plt in plotlist:
-        if plot==0: print(plt,'plotting by: ',plot_key)
-        PLTblock=pmag.get_dictitem(data,plot_key,plt,'T') # fish out all the data for this type of plot
-        PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',LT,'has') # fish out all the dmag for this experiment type
-        PLTblock=pmag.get_dictitem(PLTblock,int_key,'','F') # get all with this intensity key non-blank
-        if XLP!="":PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',XLP,'not') # reject data with XLP in method_code
-        if len(PLTblock)>2:
-            title=PLTblock[0][plot_key]
-            spcs=[]
+        if plot == 0:
+            print(plt, 'plotting by: ', plot_key)
+        # fish out all the data for this type of plot
+        PLTblock = pmag.get_dictitem(data, plot_key, plt, 'T')
+        # fish out all the dmag for this experiment type
+        PLTblock = pmag.get_dictitem(PLTblock, 'magic_method_codes', LT, 'has')
+        # get all with this intensity key non-blank
+        PLTblock = pmag.get_dictitem(PLTblock, int_key, '', 'F')
+        if XLP != "":
+            # reject data with XLP in method_code
+            PLTblock = pmag.get_dictitem(
+                PLTblock, 'magic_method_codes', XLP, 'not')
+        if len(PLTblock) > 2:
+            title = PLTblock[0][plot_key]
+            spcs = []
             for rec in PLTblock:
-                if rec['er_specimen_name'] not in spcs:spcs.append(rec['er_specimen_name'])
+                if rec['er_specimen_name'] not in spcs:
+                    spcs.append(rec['er_specimen_name'])
             for spc in spcs:
-                SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
-                INTblock=[]
+                # plot specimen by specimen
+                SPCblock = pmag.get_dictitem(
+                    PLTblock, 'er_specimen_name', spc, 'T')
+                INTblock = []
                 for rec in SPCblock:
-                    INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
-                if len(INTblock)>2:
-                    pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
-            if plot==1:
-                files={}
+                    INTblock.append([float(rec[dmag_key]), 0, 0, float(
+                        rec[int_key]), 1, rec['measurement_flag']])
+                if len(INTblock) > 2:
+                    pmagplotlib.plotMT(
+                        FIG['demag'], INTblock, title, 0, units, norm)
+            if plot == 1:
+                files = {}
                 for key in FIG.keys():
-                    files[key]=title+'_'+LT+'.'+fmt
-                pmagplotlib.saveP(FIG,files)
+                    files[key] = title+'_'+LT+'.'+fmt
+                pmagplotlib.saveP(FIG, files)
                 sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
-                ans=input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
-                if ans=='q':sys.exit()
-                if ans=="a":
-                    files={}
+                ans = input(
+                    " S[a]ve to save plot, [q]uit,  Return to continue:  ")
+                if ans == 'q':
+                    sys.exit()
+                if ans == "a":
+                    files = {}
                     for key in FIG.keys():
-                        files[key]=title+'_'+LT+'.'+fmt
-                    pmagplotlib.saveP(FIG,files)
+                        files[key] = title+'_'+LT+'.'+fmt
+                    pmagplotlib.saveP(FIG, files)
             pmagplotlib.clearFIG(FIG['demag'])
+
 
 if __name__ == "__main__":
     main()

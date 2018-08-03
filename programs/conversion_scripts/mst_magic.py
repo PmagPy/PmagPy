@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 from pmagpy import pmag
-from pmagpy import convert_2_magic as convert
+from pmagpy import convert_2_magic
 
 
 def main():
@@ -76,6 +76,10 @@ def main():
     data_model_num = int(pmag.get_named_arg("-DM", 3))
     convert.mst(infile, specimen_name, dir_path, "", meas_file, samp_file,
         user, specnum, samp_con, labfield, location, syn, data_model_num)
+
+
+
+
 
 
 if __name__ == "__main__":

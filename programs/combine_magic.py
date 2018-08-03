@@ -17,8 +17,6 @@ OPTIONS
     -F specify output file name [must come BEFORE input file names]
     -f specify input file names [ must come last]
 """
-from __future__ import print_function
-from builtins import input
 import sys
 import os
 import pmagpy.ipmag as ipmag

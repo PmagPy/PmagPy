@@ -2,8 +2,6 @@
 # -*- python-indent-offset: 4; -*-
 # define some variables
 
-from builtins import input
-from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -172,7 +170,7 @@ def main():
             ppars.append(lats[-1])
             ppars.append(ell1)
             ppars.append(lons[-1])
-            isign = old_div(abs(lats[-1]), lats[-1])
+            isign = abs(lats[-1]) / lats[-1]
             ppars.append(lats[-1] - isign * 90.)
             ppars.append(ell2)
             ppars.append(lons[-1] + 90.)

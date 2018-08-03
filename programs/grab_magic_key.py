@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
 def main():
     """
-    NAME 
+    NAME
         grab_magic_key.py
 
     DESCRIPTION
@@ -16,12 +15,12 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input magic format file 
-        -key KEY: specify key to print to standard output 
+        -f FILE: specify input magic format file
+        -key KEY: specify key to print to standard output
 
     """
     dir_path="./"
-    if '-WD' in sys.argv: 
+    if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
@@ -42,7 +41,7 @@ def main():
     #
     #
     # get data read in
-    Data,file_type=pmag.magic_read(magic_file) 
+    Data,file_type=pmag.magic_read(magic_file)
     if len(Data)>0:
         for rec in Data: print(rec[grab_key])
     else:

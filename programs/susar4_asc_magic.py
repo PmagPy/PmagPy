@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
 from past.utils import old_div
 import sys
 import pmagpy.pmag as pmag

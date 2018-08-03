@@ -10,7 +10,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 
 def main():
     """
-    NAME 
+    NAME
         plot_magic_keys.py
 
     DESCRIPTION
@@ -21,14 +21,14 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input magic format file 
-        -xkey KEY: specify key for X 
+        -f FILE: specify input magic format file
+        -xkey KEY: specify key for X
         -ykey KEY: specify key  for Y
         -b xmin xmax ymin ymax, sets bounds
 
     """
     dir_path="./"
-    if '-WD' in sys.argv: 
+    if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
@@ -59,9 +59,9 @@ def main():
     #
     # get data read in
     X,Y=[],[]
-    Data,file_type=pmag.magic_read(magic_file) 
+    Data,file_type=pmag.magic_read(magic_file)
     if len(Data)>0:
-        for rec in Data: 
+        for rec in Data:
             if xkey in list(rec.keys()) and rec[xkey]!="" and ykey in list(rec.keys()) and rec[ykey]!="":
                 try:
                     X.append(float(rec[xkey]))
@@ -88,5 +88,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

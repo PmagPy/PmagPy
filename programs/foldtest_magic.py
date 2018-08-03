@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from builtins import range
-from past.utils import old_div
 import os
 import sys
 import numpy as np
@@ -233,7 +228,7 @@ def main():
             plt.plot(Percs, Taus, 'r--')
         # tilt that gives maximum tau
         Untilt.append(Percs[Taus.index(np.max(Taus))])
-        Cdf.append(old_div(float(n), float(nboot)))
+        Cdf.append(float(n) / float(nboot))
     plt.plot(Percs, Taus, 'k')
     plt.xlabel('% Untilting')
     plt.ylabel('tau_1 (red), CDF (green)')

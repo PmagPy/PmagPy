@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-from __future__ import print_function
+
 import sys
-#import os
-#import pmagpy.pmag as pmag
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 #
@@ -111,23 +109,6 @@ def main():
             dec_correction = 0
 
         ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, orient_file, samp_file, site_file, output_dir_path, input_dir_path, append, data_model)
-
-    #def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
-
-
-##example use:
-##make a pandas dataframe with three columns:
-## col 1 is the command-line flag (minus the '-'), common ones include f, F, fsa, Fsa, etc.
-## col 2 is a boolean for if the flag is required or not
-## col 3 is a default value to use if the flag is not provided
-#dataframe = command_line_dataframe([['sav', False, 0], ['fmt', False, 'svg'], ['s', False, 20]])
-## get the args from the command line:
-#args = sys.argv
-## check through the args to make sure that reqd args are present, defaults are used as needed, and invalid args are ignored
-#checked_args = extract_and_check_args(args, dataframe)
-## assign values to variables based on their associated command-line flag
-#fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
-#print "fmt:", fmt, "size:", size, "plot:", plot
 
 
 if __name__ == "__main__":

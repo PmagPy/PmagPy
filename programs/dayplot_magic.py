@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- python-indent-offset: 4; -*-
 
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -76,16 +72,16 @@ def main():
 
     for ind, row in spec_df.iterrows():
         if row['hyst_bcr'] and row['hyst_mr_moment']:
-            S.append(old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
+            S.append(float(row['hyst_mr_moment']) / float(row['hyst_ms_moment']))
             Bcr.append(float(row['hyst_bcr']))
             Bc.append(float(row['hyst_bc']))
-            BcrBc.append(old_div(Bcr[-1], Bc[-1]))
+            BcrBc.append(Bcr[-1] / Bc[-1])
             hsids.append(row['specimen'])
         if do_rem:
             if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                 try:
                     Bcr1.append(float(row['rem_bcr']))
-                    Bcr1Bc.append(old_div(Bcr1[-1], Bc[-1]))
+                    Bcr1Bc.append(Bcr1[-1] / Bc[-1])
                     S1.append(S[-1])
                     Bcr2.append(Bcr[-1])
                 except ValueError:

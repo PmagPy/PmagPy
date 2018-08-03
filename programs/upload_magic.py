@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import sys
 from pmagpy import pmag
 from pmagpy import ipmag
@@ -11,7 +10,7 @@ def main():
         upload_magic.py
 
     DESCRIPTION
-        This program will prepare your PMAG text files created by the programs nfo_magic.py,
+        This program will prepare your MagIC text files created by the programs nfo_magic.py,
         zeq_magic.py, thellier_magic.py, mag_magic, specimens_results_magic.py and so on.
         it will check for all the MagIC text files and skip the missing ones
 
@@ -27,7 +26,7 @@ def main():
         -DM specify which MagIC data model number to use (2 or 3).  Default is 3.
 
     OUTPUT
-        upload.txt:  file for uploading to MagIC database
+        upload file:  file for uploading to MagIC database
     """
     if '-h' in sys.argv:
         print(main.__doc__)

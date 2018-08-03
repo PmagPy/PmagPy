@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import range
-from past.utils import old_div
 import sys
 import os
 import numpy
@@ -119,7 +115,6 @@ def main():
     meas_data = pmag.get_dictitem(
         meas_data, 'magic_method_codes', 'LP-AN-ARM', 'has')
 
-    # figure out how to do this with 3 vs. 2.5
     if coord != '-1':  # need to read in sample data
         if data_model_num == 3:
             samp_data3, file_type = pmag.magic_read(samp_file)

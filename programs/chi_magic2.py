@@ -43,10 +43,10 @@ def main():
         print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv:
-        file = input(
+        fname = input(
             "Input magic_measurements file name? [magic_measurements.txt]  ")
-        if file != "":
-            meas_file = file
+        if fname != "":
+            meas_file = fname
     if '-e' in sys.argv:
         ind = sys.argv.index('-e')
         EXP = sys.argv[ind+1]
@@ -243,8 +243,6 @@ def main():
                     else:
                         sys.exit()
                 else:
-                    print(PLTS)
-                    print(files)
                     pmagplotlib.saveP(PLTS, files)
                     sys.exit()
 

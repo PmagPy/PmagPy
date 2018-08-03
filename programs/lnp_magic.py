@@ -18,7 +18,7 @@ def main():
 
     DESCRIPTION
        makes equal area projections site by site
-         from pmag_specimen formatted file with
+         from specimen formatted file with
          Fisher confidence ellipse using McFadden and McElhinny (1988)
          technique for combining lines and planes
 

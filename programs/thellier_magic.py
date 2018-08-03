@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from builtins import input
 import pandas as pd
 import numpy as np
 import sys

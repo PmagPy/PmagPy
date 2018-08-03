@@ -1,10 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
-from builtins import range
 import sys
-
-
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.nlt as nlt
@@ -16,7 +11,7 @@ def main():
 
     DESCTIPTION
         does non-linear trm acquisisiton correction
-  
+
     SYNTAX
         trmaq_magic.py [-h][-i][command line options]
 
@@ -41,9 +36,9 @@ def main():
         sys.exit()
     if '-i' in sys.argv:
         meas_file=input("Input magic_measurements file name? [trmaq_measurements.txt] ")
-        if meas_file=="":meas_file="trmaq_measurements.txt" 
+        if meas_file=="":meas_file="trmaq_measurements.txt"
         tspec=input(" thellier_specimens file name? [thellier_specimens.txt] ")
-        if tspec=="":tspec="thellier_specimens.txt" 
+        if tspec=="":tspec="thellier_specimens.txt"
         output=input("File for non-linear TRM adjusted specimen data: [NLTspecimens.txt] ")
         if output=="":output="NLT_specimens.txt"
     if '-f' in sys.argv:
@@ -55,7 +50,7 @@ def main():
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         output=sys.argv[ind+1]
-    # 
+    #
     PLT={'aq':1}
     pmagplotlib.plot_init(PLT['aq'],5,5)
     #
@@ -67,7 +62,7 @@ def main():
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
         print(file_type)
-        print(file_type,"This is not a valid magic_measurements file ") 
+        print(file_type,"This is not a valid magic_measurements file ")
         sys.exit()
     sids=pmag.get_specs(meas_data)
     specimen=0
@@ -102,7 +97,7 @@ def main():
                     meths=rec["magic_method_codes"].split(":")
                     methcodes=[]
                     for meth in meths:
-                        methcodes.append(meth.strip()) 
+                        methcodes.append(meth.strip())
                     if "LP-TRM" in methcodes: MeasRecs.append(rec)
             if len(MeasRecs) <2:
                specimen+=1

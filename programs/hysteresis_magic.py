@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- python-indent-offset: 4; -*-
 
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from builtins import range
-from past.utils import old_div
 import sys
 import os
 import matplotlib
@@ -208,7 +203,7 @@ def main():
 # first normalize by Ms
             Mnorm = []
             for m in Mimag:
-                Mnorm.append(old_div(m, float(hpars['hysteresis_ms_moment'])))
+                Mnorm.append(m / float(hpars['hysteresis_ms_moment']))
             if imag_init == 0:
                 HDD['imag'] = 4
                 pmagplotlib.plot_init(HDD['imag'], 5, 5)

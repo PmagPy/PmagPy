@@ -2,7 +2,6 @@
 """
 doc string
 """
-from __future__ import print_function
 
 # pylint: disable=C0103,E402
 print('-I- Importing MagIC GUI dependencies')
@@ -28,7 +27,6 @@ class MainFrame(wx.Frame):
     """
     MagIC GUI
     """
-
 
     def __init__(self, WD=None, name='Main Frame', dmodel=None):
         try:
