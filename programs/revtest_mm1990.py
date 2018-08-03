@@ -166,8 +166,8 @@ def main():
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
         p1 = pmagplotlib.plot_cdf(CDF['cdf'],Vp,"Watson's V",'r',"")
-        p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
-        p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
+        p2 = pmagplotlib.plot_vs(CDF['cdf'],[V],'g','-')
+        p3 = pmagplotlib.plot_vs(CDF['cdf'],[Vp[k]],'b','--')
         pmagplotlib.draw_figs(CDF)
         files,fmt={},'svg'
         if file2!="":

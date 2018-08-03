@@ -260,7 +260,7 @@ def main():
                 HDD['imag'] = 4
                 pmagplotlib.plot_init(HDD['imag'], 5, 5)
                 imag_init = 1
-            pmagplotlib.plotIMAG(HDD['imag'], Bimag, Mnorm, imag_exp)
+            pmagplotlib.plot_imag(HDD['imag'], Bimag, Mnorm, imag_exp)
         else:
             if imag_init:
                 pmagplotlib.clearFIG(HDD['imag'])

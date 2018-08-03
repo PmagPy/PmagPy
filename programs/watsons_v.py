@@ -129,8 +129,8 @@ def main():
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
         pmagplotlib.plot_cdf(CDF['cdf'],Vp,"Watson's V",'r',"")
-        pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
-        pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
+        pmagplotlib.plot_vs(CDF['cdf'],[V],'g','-')
+        pmagplotlib.plot_vs(CDF['cdf'],[Vp[k]],'b','--')
         if plot==0:pmagplotlib.draw_figs(CDF)
         files={}
         if pmagplotlib.isServer: # use server plot naming convention

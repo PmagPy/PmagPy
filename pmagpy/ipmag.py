@@ -793,13 +793,13 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
 
     X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", 'r', "")
     bounds1 = [X1[minimum], X1[maximum]]
-    pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
     if np.array(Data2).shape[0]>2:
         X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", 'b', "")
         bounds2 = [X2[minimum], X2[maximum]]
-        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
     else:
-        pmagplotlib.plotVs(fignum, [cart[0]], 'k', '--')
+        pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
 
@@ -807,27 +807,27 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
 
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", 'r', "")
     bounds1 = [Y1[minimum], Y1[maximum]]
-    pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
     if np.array(Data2).shape[0]>2:
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", 'b', "")
         bounds2 = [Y2[minimum], Y2[maximum]]
-        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
     else:
-        pmagplotlib.plotVs(fignum, [cart[1]], 'k', '--')
+        pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
     plt.ylim(0, 1)
 
     plt.subplot(1, 3, 3)
 
     Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", 'r', "")
     bounds1 = [Z1[minimum], Z1[maximum]]
-    pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
 
     if np.array(Data2).shape[0]>2:
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", 'b', "")
         bounds2 = [Z2[minimum], Z2[maximum]]
-        pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
     else:
-        pmagplotlib.plotVs(fignum, [cart[2]], 'k', '--')
+        pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
 
@@ -993,8 +993,8 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no
         # pmagplotlib.plot_init(CDF['cdf'],5,5)
         plt.figure(figsize=(3.5, 2.5))
         p1 = pmagplotlib.plot_cdf(CDF['cdf'], Vp, "Watson's V", 'r', "")
-        p2 = pmagplotlib.plotVs(CDF['cdf'], [V], 'g', '-')
-        p3 = pmagplotlib.plotVs(CDF['cdf'], [Vp[k]], 'b', '--')
+        p2 = pmagplotlib.plot_vs(CDF['cdf'], [V], 'g', '-')
+        p3 = pmagplotlib.plot_vs(CDF['cdf'], [Vp[k]], 'b', '--')
         # pmagplotlib.draw_figs(CDF)
         if save == True:
             plt.savefig(os.path.join(
@@ -7046,11 +7046,11 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
         plt.show()
 
 
-def iplotHYS(fignum, B, M, s):
+def iplot_hys(fignum, B, M, s):
     """
     function to plot hysteresis data
 
-    This function has been adapted from pmagplotlib.iplotHYS for specific use
+    This function has been adapted from pmagplotlib.iplot_hys for specific use
     within a Jupyter notebook.
 
     Parameters
@@ -7270,7 +7270,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 hmeths.append(meth)
     #         fignum = 1
             fig = plt.figure(figsize=(8, 8))
-            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplotHYS(1, B, M, sample)
+            hpars, deltaM, Bdm, B, Mnorm, MadjN = iplot_hys(1, B, M, sample)
             ax1 = fig.add_subplot(2, 2, 1)
             ax1.axhline(0, color='k')
             ax1.axvline(0, color='k')
@@ -7450,9 +7450,9 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
     pmagplotlib.plot_cdf(cdf_fig_num, I, 'Inclinations', 'r', title)
-    pmagplotlib.plotVs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
-    pmagplotlib.plotVs(cdf_fig_num, [Inc], 'g', '-')
-    pmagplotlib.plotVs(cdf_fig_num, [Io], 'k', '-')
+    pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
+    pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
 
     # plot corrected directional data
 

@@ -119,9 +119,9 @@ def main():
         title= '%7.1f [%7.1f, %7.1f]' %( Inc, I[lower],I[upper])
     pmagplotlib.plotEI(PLTS['ei'],Eexp,I,1)
     pmagplotlib.plot_cdf(PLTS['cdf'],I,'Inclinations','r',title)
-    pmagplotlib.plotVs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
-    pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
-    pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
+    pmagplotlib.plot_vs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
+    pmagplotlib.plot_vs(PLTS['cdf'],[Inc],'g','-')
+    pmagplotlib.plot_vs(PLTS['cdf'],[Io],'k','-')
     if plot==0:
         print('%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper]))
         print("Io Inc  I_lower, I_upper, Elon, E_lower, E_upper")

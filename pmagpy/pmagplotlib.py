@@ -1823,7 +1823,7 @@ def plot_hs(fignum, Ys, c, ls):
 #
 
 
-def plotVs(fignum, Xs, c, ls):
+def plot_vs(fignum, Xs, c, ls):
     fig = plt.figure(num=fignum)
     for xv in Xs:
         bounds = plt.axis()
@@ -1831,7 +1831,7 @@ def plotVs(fignum, Xs, c, ls):
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
 
-def plotTS(fignum, dates, ts):
+def plot_ts(fignum, dates, ts):
     vertical_plot_init(fignum, 10, 3)
     TS, Chrons = pmag.get_ts(ts)
     p = 1
@@ -1852,7 +1852,7 @@ def plotTS(fignum, dates, ts):
             X.append(dates[1])
             Y.append(p % 2)
             plt.plot(X, Y, 'k')
-            plotVs(fignum, dates, 'w', '-')
+            plot_vs(fignum, dates, 'w', '-')
             plot_hs(fignum, [1.1, -.1], 'w', '-')
             plt.xlabel("Age (Ma): " + ts)
             isign = -1
@@ -1866,7 +1866,7 @@ def plotTS(fignum, dates, ts):
             return
 
 
-def plotHYS(fignum, B, M, s):
+def plot_hys(fignum, B, M, s):
     """
    function to plot hysteresis data
    Parameters:
@@ -1990,7 +1990,7 @@ def plotHYS(fignum, B, M, s):
 #
 
 
-def plotDM(fignum, B, DM, Bcr, s):
+def plot_delta_m(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
     """
@@ -2008,7 +2008,7 @@ def plotDM(fignum, B, DM, Bcr, s):
 #
 
 
-def plotDDM(fignum, Bdm, DdeltaM, s):
+def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
     """
     function to plot d (Delta M)/dB  curves
     """
@@ -2024,7 +2024,7 @@ def plotDDM(fignum, Bdm, DdeltaM, s):
 #
 
 
-def plotIMAG(fignum, Bimag, Mimag, s):
+def plot_imag(fignum, Bimag, Mimag, s):
     """
     function to plot d (Delta M)/dB  curves
     """
@@ -2058,7 +2058,7 @@ def plotHDD(HDD, B, M, s):
         'hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc'
 
     """
-    hpars, deltaM, Bdm = plotHYS(
+    hpars, deltaM, Bdm = plot_hys(
         HDD['hyst'], B, M, s)  # Moff is the "fixed" loop data
     DdeltaM = []
     Mhalf = ""
@@ -2079,10 +2079,10 @@ def plotHDD(HDD, B, M, s):
         hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
         hpars['magic_method_codes'] = "LP-BCR-HDM"
         if HDD['deltaM'] != 0:
-            plotDM(HDD['deltaM'], Bdm, deltaM, Bcr, s)
+            plot_delta_m(HDD['deltaM'], Bdm, deltaM, Bcr, s)
             plt.axhline(0, color='k')
             plt.axvline(0, color='k')
-            plotDDM(HDD['DdeltaM'], Bdm, DdeltaM, s)
+            plot_d_delta_m(HDD['DdeltaM'], Bdm, DdeltaM, s)
     except:
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
@@ -2507,7 +2507,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             tbounds.append(ts[tmaxind])
             plt.axvline(x=tbounds[0], linewidth=1, color='r', linestyle='--')
             plt.axvline(x=tbounds[1], linewidth=1, color='r', linestyle='--')
-            # plotVs(ANIS['tcdf'],tbounds,'r','-') # there is some bug in here
+            # plot_vs(ANIS['tcdf'],tbounds,'r','-') # there is some bug in here
             # - can't figure it out
             ts = []
             for t in Taus:
@@ -2519,7 +2519,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             tbounds = []
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            # plotVs(ANIS['tcdf'],tbounds,'b','-')
+            # plot_vs(ANIS['tcdf'],tbounds,'b','-')
             plt.axvline(x=tbounds[0], linewidth=1, color='b', linestyle='-.')
             plt.axvline(x=tbounds[1], linewidth=1, color='b', linestyle='-.')
             ts = []
@@ -2532,7 +2532,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             tbounds = []
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            plotVs(ANIS['tcdf'], tbounds, 'k', '-')
+            plot_vs(ANIS['tcdf'], tbounds, 'k', '-')
             plt.axvline(x=tbounds[0], linewidth=1, color='k', linestyle='-')
             plt.axvline(x=tbounds[1], linewidth=1, color='k', linestyle='-')
             if comp == 1:  # do eigenvector of choice
@@ -2561,8 +2561,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                               color='r', linestyle='--')
                 plt.axvline(x=vbounds[1], linewidth=1,
                               color='r', linestyle='--')
-                # plotVs(ANIS['vxcdf'],vbounds,'r','--')
-                # plotVs(ANIS['vxcdf'],[Ccart[0]],'r','-')
+                # plot_vs(ANIS['vxcdf'],vbounds,'r','--')
+                # plot_vs(ANIS['vxcdf'],[Ccart[0]],'r','-')
                 plt.axvline(x=Ccart[0][0], linewidth=1,
                               color='r', linestyle='-')
                 plot_cdf(ANIS['vycdf'], Vys, "V_" + str(vec + 1) + "2", 'b', "")
@@ -2578,8 +2578,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                               color='b', linestyle='--')
                 plt.axvline(x=Ccart[0][1], linewidth=1,
                               color='b', linestyle='-')
-                # plotVs(ANIS['vycdf'],vbounds,'b','--')
-                # plotVs(ANIS['vycdf'],[Ccart[1]],'b','-')
+                # plot_vs(ANIS['vycdf'],vbounds,'b','--')
+                # plot_vs(ANIS['vycdf'],[Ccart[1]],'b','-')
                 plot_cdf(ANIS['vzcdf'], Vzs, "V_" + str(vec + 1) + "3", 'k', "")
                 Vzs.sort()
                 vminind = int(0.025 * len(Vzs))
@@ -2593,8 +2593,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                               color='k', linestyle='--')
                 plt.axvline(x=Ccart[0][2], linewidth=1,
                               color='k', linestyle='-')
-                # plotVs(ANIS['vzcdf'],vbounds,'k','--')
-                # plotVs(ANIS['vzcdf'],[Ccart[2]],'k','-')
+                # plot_vs(ANIS['vzcdf'],vbounds,'k','--')
+                # plot_vs(ANIS['vzcdf'],[Ccart[2]],'k','-')
         bpars['v1_dec'] = hpars['v1_dec']
         bpars['v2_dec'] = hpars['v2_dec']
         bpars['v3_dec'] = hpars['v3_dec']
@@ -2769,13 +2769,13 @@ def plotCOM(CDF, BDI1, BDI2, d):
     max = int(0.975 * len(X1))
     X1, y = plot_cdf(CDF['X'], X1, "X component", 'r', "")
     bounds1 = [X1[min], X1[max]]
-    plotVs(CDF['X'], bounds1, 'r', '-')
+    plot_vs(CDF['X'], bounds1, 'r', '-')
     Y1, y = plot_cdf(CDF['Y'], Y1, "Y component", 'r', "")
     bounds1 = [Y1[min], Y1[max]]
-    plotVs(CDF['Y'], bounds1, 'r', '-')
+    plot_vs(CDF['Y'], bounds1, 'r', '-')
     Z1, y = plot_cdf(CDF['Z'], Z1, "Z component", 'r', "")
     bounds1 = [Z1[min], Z1[max]]
-    plotVs(CDF['Z'], bounds1, 'r', '-')
+    plot_vs(CDF['Z'], bounds1, 'r', '-')
     # draw_figs(CDF)
     if d[0] == "":  # repeat for second data set
         bounds2 = []
@@ -2783,18 +2783,18 @@ def plotCOM(CDF, BDI1, BDI2, d):
         X2, Y2, Z2 = cart[0], cart[1], cart[2]
         X2, y = plot_cdf(CDF['X'], X2, "X component", 'b', "")
         bounds2 = [X2[min], X2[max]]
-        plotVs(CDF['X'], bounds2, 'b', '--')
+        plot_vs(CDF['X'], bounds2, 'b', '--')
         Y2, y = plot_cdf(CDF['Y'], Y2, "Y component", 'b', "")
         bounds2 = [Y2[min], Y2[max]]
-        plotVs(CDF['Y'], bounds2, 'b', '--')
+        plot_vs(CDF['Y'], bounds2, 'b', '--')
         Z2, y = plot_cdf(CDF['Z'], Z2, "Z component", 'b', "")
         bounds2 = [Z2[min], Z2[max]]
-        plotVs(CDF['Z'], bounds2, 'b', '--')
+        plot_vs(CDF['Z'], bounds2, 'b', '--')
     else:
         cart = pmag.dir2cart([d[0], d[1], 1.0])
-        plotVs(CDF['X'], [cart[0]], 'k', '--')
-        plotVs(CDF['Y'], [cart[1]], 'k', '--')
-        plotVs(CDF['Z'], [cart[2]], 'k', '--')
+        plot_vs(CDF['X'], [cart[0]], 'k', '--')
+        plot_vs(CDF['Y'], [cart[1]], 'k', '--')
+        plot_vs(CDF['Z'], [cart[2]], 'k', '--')
     return
 
 # functions for images - requires additional modules
