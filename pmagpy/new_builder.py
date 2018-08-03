@@ -1412,8 +1412,13 @@ class MagicDataFrame(object):
 
 
     def add_measurement_names(self):
+        # first add sequence column
+        if 'sequence' not in self.df.columns:
+            self.df['sequence'] = range(len(self.df))
+        # then, see if measurement is already present
         if 'measurement' in self.df.columns:
             return
+        # if measurement column is missing, try to add it
         if 'number' in self.df.columns:
             self.df.rename(columns={'number':'treat_step_num'}, inplace=True)
         if 'treat_step_num' not in self.df.columns:

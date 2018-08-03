@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from builtins import str
 import unittest
 import os
 import sys
@@ -209,6 +208,13 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(5, len(magic_df.df.loc['1']))
         magic_df.drop_stub_rows(['site', 'location'])
         self.assertEqual(4, len(magic_df.df.loc['1']))
+
+    def test_meas_dataframe(self):
+        meas_file = os.path.join(WD, "data_files", "3_0", "McMurdo", "measurements.txt")
+        df = pd.read_table(meas_file, skiprows=[0])
+        self.assertNotIn('sequence', df.columns)
+        magic_df = nb.MagicDataFrame(meas_file)
+        self.assertIn('sequence', magic_df.df.columns)
 
 
 class TestContribution(unittest.TestCase):
