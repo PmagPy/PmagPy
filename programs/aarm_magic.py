@@ -165,7 +165,7 @@ def main():
     #
     # find out the number of measurements (9, 12 or 15)
     #
-        npos = old_div(len(data), 2)
+        npos = int(len(data) / 2)
         if npos == 9:
             #
             # get dec, inc, int and convert to x,y,z
@@ -202,7 +202,7 @@ def main():
                     s[i] += B[i][j] * w[j]
             trace = s[0] + s[1] + s[2]   # normalize by the trace
             for i in range(6):
-                s[i] = old_div(s[i], trace)
+                s[i] = s[i] / trace
             a = pmag.s2a(s)
         #------------------------------------------------------------
         #  Calculating dels is different than in the Kappabridge
@@ -219,11 +219,11 @@ def main():
                         tmpH[i][1] + a[j][2] * tmpH[i][2]
                     comp[index] = compare
             for i in range(npos * 3):
-                d = old_div(w[i], trace) - comp[i]  # del values
+                d = (w[i] / trace) - comp[i]  # del values
                 S += d * d
             nf = float(npos * 3 - 6)  # number of degrees of freedom
             if S > 0:
-                sigma = numpy.sqrt(old_div(S, nf))
+                sigma = numpy.sqrt(S / nf)
             else:
                 sigma = 0
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
@@ -300,7 +300,7 @@ def main():
             RmagSpecRec["anisotropy_s4"] = '%8.6f' % (s[3])
             RmagSpecRec["anisotropy_s5"] = '%8.6f' % (s[4])
             RmagSpecRec["anisotropy_s6"] = '%8.6f' % (s[5])
-            RmagSpecRec["anisotropy_mean"] = '%8.3e' % (old_div(trace, 3))
+            RmagSpecRec["anisotropy_mean"] = '%8.3e' % (trace / 3)
             RmagSpecRec["anisotropy_sigma"] = '%8.6f' % (sigma)
             RmagSpecRec["anisotropy_unit"] = "Am^2"
             RmagSpecRec["anisotropy_n"] = '%i' % (npos)
