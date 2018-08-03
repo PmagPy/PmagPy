@@ -190,7 +190,7 @@ class MagMainFrame(wx.Frame):
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         #wx.Yield()
         print('-I- Read in any available data from working directory')
-        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
         del wait
 
     def get_wd_data2(self):
@@ -607,7 +607,7 @@ class MagMainFrame(wx.Frame):
             return
 
         # create a contribution
-        self.contribution = nb.Contribution(self.WD)
+        self.contribution = cb.Contribution(self.WD)
         # make skeleton files with specimen, sample, site, location data
         self.contribution.propagate_measurement_info()
         # pop up
@@ -732,7 +732,7 @@ class MagMainFrame(wx.Frame):
                 dlg.Destroy()
             if ex:
                 raise(ex)
-        self.contribution = nb.Contribution(self.WD)
+        self.contribution = cb.Contribution(self.WD)
 
 
     def on_btn_upload(self, event):

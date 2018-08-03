@@ -545,7 +545,7 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
     # fix the column names to be 3.0
     full_df.rename(columns=map_dict, inplace=True)
     # create a MagicDataFrame object, providing the dataframe and the data type
-    new_df = nb.MagicDataFrame(dtype=dtype, df=full_df, dmodel=data_model)
+    new_df = cb.MagicDataFrame(dtype=dtype, df=full_df, dmodel=data_model)
     # write out the data to file
     if len(new_df.df):
         new_df.write_magic_file(dir_path=output_dir)
@@ -570,7 +570,7 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
     Returns
     ---------
     outfile : string output criteria filename, or False
-    crit_container : nb.MagicDataFrame with 3.0 criteria table
+    crit_container : cb.MagicDataFrame with 3.0 criteria table
     """
     # get criteria from infile
     fname = os.path.join(input_dir, fname)
@@ -615,7 +615,7 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
     converted_df.drop(drop_cols, axis='columns', inplace=True)
     # move 'table_column' from being the index to being a column
     converted_df['table_column'] = converted_df.index
-    crit_container = nb.MagicDataFrame(dtype='criteria', df=converted_df)
+    crit_container = cb.MagicDataFrame(dtype='criteria', df=converted_df)
     crit_container.write_magic_file(dir_path=output_dir)
     return "criteria.txt", crit_container
 
@@ -1649,12 +1649,12 @@ def find_dmag_rec(s, data, **kwargs):
                 ZI = 1
             if tr != "":
                 dec, inc, int = "", "", ""
-                if dec_key in list(rec.keys()) and nb.not_null(rec[dec_key], False):
+                if dec_key in list(rec.keys()) and cb.not_null(rec[dec_key], False):
                     dec = float(rec[dec_key])
-                if inc_key in list(rec.keys()) and nb.not_null(rec[inc_key], False):
+                if inc_key in list(rec.keys()) and cb.not_null(rec[inc_key], False):
                     inc = float(rec[inc_key])
                 for key in Mkeys:
-                    if key in list(rec.keys()) and nb.not_null(rec[key], False):
+                    if key in list(rec.keys()) and cb.not_null(rec[key], False):
                         int = float(rec[key])
                 if inst_key not in list(rec.keys()):
                     rec[inst_key] = ''

@@ -137,7 +137,7 @@ class TestThellierGUIMapping(unittest.TestCase):
 
     def test_get_thellier_gui_meas_mapping(self):
         # MagIC 3 --> 2 with 'treat_step_num'
-        meas_data3_0 = nb.MagicDataFrame(self.magic_file).df
+        meas_data3_0 = cb.MagicDataFrame(self.magic_file).df
         meas_data3_0.iloc[0, meas_data3_0.columns.get_loc('measurement')] = 'custom'
         meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
         self.assertEqual('custom',
@@ -172,7 +172,7 @@ class TestThellierGUIMapping(unittest.TestCase):
 
     def test_with_numeric_measurement_name(self):
         # set up meas df with numeric measurement names
-        meas_data3 = nb.MagicDataFrame(self.magic_file).df
+        meas_data3 = cb.MagicDataFrame(self.magic_file).df
         del meas_data3['treat_step_num']
         meas_names = range(1001, len(meas_data3) + 1001)
         meas_data3['measurement'] = meas_names

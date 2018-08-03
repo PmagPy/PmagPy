@@ -303,7 +303,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         else:
             res = ipmag.combine_magic(meas_files, "measurements.txt", 2)
             ipmag.combine_magic(spec_files, "specimens.txt", 2)
-            con = nb.Contribution(".", read_tables=['measurements', 'specimens'])
+            con = cb.Contribution(".", read_tables=['measurements', 'specimens'])
             con.propagate_measurement_info()
             for dtype in ['samples', 'sites', 'locations']:
                 if dtype in con.tables:

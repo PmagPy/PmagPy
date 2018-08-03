@@ -45,7 +45,7 @@ def main():
         plots = 0
     infile = pmag.get_named_arg("-f", "specimens.txt")
     fnames = {'specimens': infile}
-    con = nb.Contribution(dir_path, read_tables=['specimens'],
+    con = cb.Contribution(dir_path, read_tables=['specimens'],
                           custom_filenames=fnames)
     if pmagplotlib.isServer:
         con.propagate_location_to_specimens()

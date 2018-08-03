@@ -319,7 +319,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             MeasRec['method_codes'] = meas_type
             MeasRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -544,7 +544,7 @@ def agm(agm_file, output_dir_path=".", input_dir_path="",
                 ":" + 'LP-IMAG'
             recnum += 1
 #
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     # create MagIC tables
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
@@ -742,7 +742,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
         MeasRec['meas_n_orient'] = '1'  # added due to magic.write error
         MeasRecs.append(MeasRec.copy())
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -1181,7 +1181,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
             sites.append(site)
             SiteRecs.append(SiteRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -1912,7 +1912,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     # write tables to file
     # --
 
-    con = nb.Contribution(dir_path, read_tables=[])
+    con = cb.Contribution(dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -2438,7 +2438,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
                     MeasRecs.append(MeasRec)
                     # continue
 
-    con = nb.Contribution(dir_path, read_tables=[])
+    con = cb.Contribution(dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -2814,7 +2814,7 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
         print("No .csv files were found")
         return False, "No .csv files were found"
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -3002,7 +3002,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec['method_codes'] = meas_type
         MeasRecs.append(MeasRec.copy())
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -3592,7 +3592,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
         print("No .csv files were found")
         return (False, "No .csv files were found")
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -3790,7 +3790,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec['method_codes'] = meas_type
         MagRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -4014,7 +4014,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
 
         # end of data while loop
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -5297,7 +5297,7 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
         MeasRec['method_codes'] = meas_type
         MeasRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -6240,7 +6240,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
         # nicely parse all the specimen/sample/site/location data
         # and write it to file as well
         dir_path = os.path.split(meas_file)[0]
-        con = nb.Contribution(dir_path, read_tables=['measurements'],
+        con = cb.Contribution(dir_path, read_tables=['measurements'],
                               custom_filenames={'measurements': meas_file})
         con.propagate_measurement_info()
         for table in con.tables:
@@ -6420,7 +6420,7 @@ def mst(infile, spec_name, dir_path=".", input_dir_path="",
     pmag.magic_write(meas_file, new_MagRecs, meas_file_type)
     print("results put in ", meas_file)
     # try to extract location/site/sample/specimen info into tables
-    con = nb.Contribution(dir_path)
+    con = cb.Contribution(dir_path)
     con.propagate_measurement_info()
     for table in con.tables:
         if table in ['samples', 'sites', 'locations']:
@@ -6584,7 +6584,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             MeasRec['method_codes'] = meas_type
             MeasRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -7191,7 +7191,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             # print MeasRec['treat_temp']
             MeasRecs.append(MeasRec)
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     # create MagIC tables
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
@@ -7317,7 +7317,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
     pmag.magic_write(anisfile, AnisRecs, outfile_type)
     print('data saved in ', anisfile)
     # try to extract location/site/sample info into tables
-    con = nb.Contribution(dir_path, custom_filenames={"specimens": anisfile})
+    con = cb.Contribution(dir_path, custom_filenames={"specimens": anisfile})
     con.propagate_all_tables_info()
     for table in con.tables:
         if table in ['samples', 'sites', 'locations']:
@@ -8491,7 +8491,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     #  measurements.txt
     # -------------------------------------------
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
@@ -8747,7 +8747,7 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
 
     data.close()
 
-    con = nb.Contribution(output_dir_path, read_tables=[])
+    con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)

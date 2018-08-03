@@ -153,7 +153,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.contribution.propagate_cols_up(['lithologies',
                                              'geologic_classes'], 'locations', 'sites')
         res = self.contribution.propagate_min_max_up()
-        if nb.not_null(res):
+        if cb.not_null(res):
             self.contribution.propagate_cols_up(['age_unit'], 'locations', 'sites')
 
         # set up frame

@@ -120,7 +120,7 @@ class TestUploadMagic(unittest.TestCase):
 
     def test3_with_contribution(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
-        con = nb.Contribution(directory=dir_path)
+        con = cb.Contribution(directory=dir_path)
         outfile, error_message, errors, all_errors = ipmag.upload_magic3(contribution=con)
         msg = "file validation has failed.  You may run into problems if you try to upload this file."
         self.assertEqual(error_message, msg)
@@ -137,7 +137,7 @@ class TestUploadMagic(unittest.TestCase):
     @unittest.skipIf(sys.platform in ['win32', 'win62'], "data file isn't properly moved on windows")
     def test_depth_propagation(self):
         dir_path = os.path.join(WD, 'data_files', 'core_depthplot')
-        #con = nb.Contribution(dir_path)
+        #con = cb.Contribution(dir_path)
         #self.assertNotIn('core_depth', con.tables['sites'].df.index)
         #con.propagate_cols(['core_depth'], 'sites', 'samples', down=False)
         #self.assertIn('core_depth', con.tables['sites'].df.columns)
@@ -148,7 +148,7 @@ class TestUploadMagic(unittest.TestCase):
         os.system('mv {} {}'.format(outfile, WD))
         outfile = os.path.join(WD, os.path.split(outfile)[1])
         ipmag.download_magic(outfile)
-        con = nb.Contribution(WD)
+        con = cb.Contribution(WD)
         self.assertIn('core_depth', con.tables['sites'].df.columns)
         self.assertEqual(con.tables['sites'].df.loc['15-1-013', 'core_depth'], 55.23)
 

@@ -306,7 +306,7 @@ def main():
             SpecRecs.append(rec)
         # drop unnecessary/duplicate rows
         dir_path = os.path.split(spec_file)[0]
-        con = nb.Contribution(dir_path, read_tables=[])
+        con = cb.Contribution(dir_path, read_tables=[])
         con.add_magic_table_from_data('specimens', SpecRecs)
         con.tables['specimens'].drop_duplicate_rows(
             ignore_cols=['specimen', 'sample', 'citations', 'software_packages'])

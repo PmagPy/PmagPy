@@ -31,14 +31,14 @@ class TestMagicDataFrame(unittest.TestCase):
     def test_init_with_data(self):
         data = [{'specimen': 'spec1', 'sample': 'samp1'},
                 {'specimen': 'spec2', 'sample': 'samp2'}]
-        magic_df = nb.MagicDataFrame(dtype='specimens', data=data)
+        magic_df = cb.MagicDataFrame(dtype='specimens', data=data)
         self.assertEqual(len(magic_df.df), 2)
         self.assertEqual(magic_df.dtype, 'specimens')
         self.assertEqual('specimen', magic_df.df.index.name)
         self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
 
     def test_init_then_add_data(self):
-        magic_df = nb.MagicDataFrame(dtype='specimens')
+        magic_df = cb.MagicDataFrame(dtype='specimens')
         data = [{'specimen': 'spec1', 'sample': 'samp1'},
                 {'specimen': 'spec2', 'sample': 'samp2'}]
         magic_df.add_data(data)
@@ -49,22 +49,22 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_init_blank(self):
-        magic_df = nb.MagicDataFrame()
+        magic_df = cb.MagicDataFrame()
         self.assertFalse(magic_df.df)
 
     def test_init_with_dtype(self):
-        magic_df = nb.MagicDataFrame(dtype='specimens',
+        magic_df = cb.MagicDataFrame(dtype='specimens',
                                      dmodel=DMODEL)
         self.assertEqual('specimens', magic_df.dtype)
 
     def test_init_with_file(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         self.assertEqual('sites', magic_df.dtype)
         self.assertEqual('1', magic_df.df.index[1])
 
     def test_update_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         self.assertEqual('Lava Flow', magic_df.df.iloc[3]['geologic_types'])
         magic_df.update_row(3, {'geologic_types': 'other type',
@@ -75,7 +75,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_add_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.add_row('new_site', {'new_col': 'new_val'})
@@ -84,7 +84,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_add_blank_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.add_blank_row('blank_site')
@@ -93,7 +93,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_delete_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.delete_row(5)
@@ -102,7 +102,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_delete_rows(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         cond = magic_df.df['description'].str.contains('VGP').astype(bool)
         # delete all rows that aren't described as VGPs
@@ -111,7 +111,7 @@ class TestMagicDataFrame(unittest.TestCase):
             self.assertTrue('VGP' in descr)
 
     def test_update_record(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         cond = magic_df.df['lithologies'] == 'Basalt'
         magic_df.update_record('2', new_data={'description': 'updated'},
@@ -119,14 +119,14 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
 
     def test_sort_dataframe_cols(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         self.assertEqual('bed_dip', magic_df.df.columns[0])
         magic_df.sort_dataframe_cols()
         self.assertEqual('site', magic_df.df.columns[0])
 
     def test_convert_to_pmag_data_list(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         lst = magic_df.convert_to_pmag_data_list('lst')
         self.assertEqual(list, type(lst))
@@ -139,7 +139,7 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual('1', str(dct['1']['site']))
 
     def test_get_name(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         val = magic_df.get_name('description')
         self.assertEqual('VGP:Site 1', val)
@@ -151,7 +151,7 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual('VGP:Site 21', val)
 
     def test_get_di_block(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         di_block = magic_df.get_di_block(df_slice='all')
         self.assertEqual([289.8, 43.6], di_block[0])
@@ -164,7 +164,7 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(1, len(di_block))
 
     def test_get_records_for_code(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         results = magic_df.get_records_for_code('LP-DC2')
         self.assertEqual(87, len(results))
@@ -180,7 +180,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_get_first_non_null_value(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         res = magic_df.get_first_non_null_value('1', 'bed_dip_direction')
         self.assertEqual(135, res)
@@ -190,7 +190,7 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_front_and_backfill(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         directions = magic_df.df.loc['1', 'bed_dip_direction']
         self.assertEqual(sorted(directions,key=lambda x,y=0: int(x-y) if (isinstance(x,float) or isinstance(x,int)) and (isinstance(y,float) or isinstance(y,int)) else -1), [None, 135, 135])
@@ -199,7 +199,7 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(sorted(directions), [135, 135, 135])
 
     def test_drop_stub_rows(self):
-        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+        magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         self.assertEqual(3, len(magic_df.df.loc['1']))
         magic_df.add_row('1', {'site': '1', 'location': 'new_loc'})
@@ -213,7 +213,7 @@ class TestMagicDataFrame(unittest.TestCase):
         meas_file = os.path.join(WD, "data_files", "3_0", "McMurdo", "measurements.txt")
         df = pd.read_table(meas_file, skiprows=[0])
         self.assertNotIn('sequence', df.columns)
-        magic_df = nb.MagicDataFrame(meas_file)
+        magic_df = cb.MagicDataFrame(meas_file)
         self.assertIn('sequence', magic_df.df.columns)
 
 
@@ -221,7 +221,7 @@ class TestContribution(unittest.TestCase):
 
     def setUp(self):
         self.directory = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
-        self.con = nb.Contribution(self.directory, dmodel=DMODEL)
+        self.con = cb.Contribution(self.directory, dmodel=DMODEL)
 
     def tearDown(self):
         os.chdir(WD)
@@ -239,11 +239,11 @@ class TestContribution(unittest.TestCase):
                     os.remove(os.path.join(WD, fname))
                 except OSError:
                     print("error when removing files for empty directory test in test_contribution_builder")
-        con = nb.Contribution(WD, dmodel=DMODEL)
+        con = cb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 
     def test_init(self):
-        self.assertEqual(type(self.con), nb.Contribution)
+        self.assertEqual(type(self.con), cb.Contribution)
         self.assertEqual(set(self.con.tables),
                          set(['measurements', 'specimens', 'samples',
                               'sites', 'locations', 'ages', 'criteria',
@@ -277,7 +277,7 @@ class TestContribution(unittest.TestCase):
 
 
     def test_add_empty_magic_table(self):
-        con = nb.Contribution(self.directory, read_tables=['specimens'],
+        con = cb.Contribution(self.directory, read_tables=['specimens'],
                               dmodel=DMODEL)
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_empty_magic_table('samples')
@@ -285,7 +285,7 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(0, len(con.tables['samples'].df))
 
     def test_add_magic_table(self):
-        con = nb.Contribution(self.directory, read_tables=['specimens'],
+        con = cb.Contribution(self.directory, read_tables=['specimens'],
                               dmodel=DMODEL)
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_magic_table('samples')
@@ -319,16 +319,16 @@ class TestContribution(unittest.TestCase):
         self.assertEqual("hz06", self.con.tables['sites'].df.loc['hz06']['site'])
 
     def test_get_min_max_lat_lon(self):
-        site_container = nb.MagicDataFrame(dtype='sites')
+        site_container = cb.MagicDataFrame(dtype='sites')
         site_container.add_row('site1', {'lat': 10, 'lon': 4, 'location': 'location1'})
         site_container.add_row('site2', {'lat': 10.2, 'lon': 5, 'location': 'location1'})
         site_container.add_row('site3', {'lat': 20, 'lon': '15', 'location': 'location2'})
         site_container.add_row('site4', {'lat': None, 'location': 'location1'})
-        loc_container = nb.MagicDataFrame(dtype='locations', columns=['lat_n', 'lat_s', 'lon_e', 'lon_w', 'location'])
+        loc_container = cb.MagicDataFrame(dtype='locations', columns=['lat_n', 'lat_s', 'lon_e', 'lon_w', 'location'])
         site_container.df
         loc_container.add_row('location1', {})
         loc_container.add_row('location2', {})
-        con = nb.Contribution(".", read_tables=['images'])
+        con = cb.Contribution(".", read_tables=['images'])
         con.tables['sites'] = site_container
         con.tables['locations'] = loc_container
         con.get_min_max_lat_lon()
@@ -360,7 +360,7 @@ class TestContribution(unittest.TestCase):
         Make sure propagation works correclty with limited tables provided
         """
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+        con = cb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
         self.assertEqual(['sites'], list(con.tables.keys()))
@@ -369,11 +369,11 @@ class TestContribution(unittest.TestCase):
         for fname in ['_locations.txt', '_samples.txt']:
             os.remove(os.path.join(directory, fname))
         #
-        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+        con = cb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
         samp_df = pd.DataFrame(index=['mc01b'], columns=['sample', 'site'], data=[['mc01b', 'fake site']])
-        samp_df = nb.MagicDataFrame(dtype='samples', df=samp_df)
+        samp_df = cb.MagicDataFrame(dtype='samples', df=samp_df)
         con.tables['samples'] = samp_df
         self.assertEqual('fake site', con.tables['samples'].df.loc['mc01b', 'site'])
         con.propagate_all_tables_info()
@@ -385,7 +385,7 @@ class TestContribution(unittest.TestCase):
         for fname in ['_locations.txt', '_samples.txt']:
             os.remove(os.path.join(directory, fname))
         #
-        con = nb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
+        con = cb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
         self.assertEqual(['sites'], list(con.tables.keys()))
@@ -396,7 +396,7 @@ class TestContribution(unittest.TestCase):
 
     def test_propagate_cols_up_old(self):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory, dmodel=DMODEL,
+        con = cb.Contribution(directory, dmodel=DMODEL,
                               read_tables=['sites', 'samples'])
         con.tables['sites'].df.loc[:, 'lithologies'] = None
         con.tables['sites'].df.loc[:, 'geologic_types'] = 'your type'
@@ -408,7 +408,7 @@ class TestContribution(unittest.TestCase):
 
     def test_propagate_cols_up(self):
         directory = os.path.join('data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'],
                               custom_filenames={'locations': '_locations.txt'})
         con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other:Trachyte'
         ind = con.tables['samples'].df.columns.get_loc('lithologies')
@@ -423,13 +423,13 @@ class TestContribution(unittest.TestCase):
         self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
         self.assertTrue(all(con.tables['sites'].df['lithologies']))
         # fail gracefully
-        con = nb.Contribution(directory, read_tables=['sites'])
+        con = cb.Contribution(directory, read_tables=['sites'])
         con.propagate_cols_up(cols, 'sites', 'samples')
 
 
     def test_propagate_average_up(self):
         directory = os.path.join('data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'])
         con.tables['sites'].df.drop(['lat', 'lon'], axis='columns',
                                     inplace=True)
         con.tables['samples'].df.loc['mc01a', 'lat'] = -60.
@@ -438,23 +438,23 @@ class TestContribution(unittest.TestCase):
         self.assertTrue(all(con.tables['sites'].df[['lat', 'lon']].values.ravel()))
         self.assertEqual([-75.61875], con.tables['sites'].df.loc['mc01', 'lat'].unique())
         # make sure does not overwrite existing values
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'])
         con.tables['sites'].df.loc['mc01', 'lon'] = 12
         con.propagate_average_up()
         self.assertEqual([12], con.tables['sites'].df.loc['mc01', 'lon'].unique())
         self.assertNotIn('new_lat', con.tables['sites'].df.columns)
         self.assertNotIn('new_lon', con.tables['sites'].df.columns)
         # make sure works with only some sample data available
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'])
         con.tables['samples'].df.drop(['lon'], axis='columns', inplace=True)
         con.propagate_average_up()
         # fails gracefully?
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'])
         con.tables['samples'].df.drop(['site'], axis='columns', inplace=True)
         con.tables['sites'].df.loc['mc01', 'lat'] = ''
         con.propagate_average_up()
         # fails gracefully?
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
+        con = cb.Contribution(directory, read_tables=['sites', 'samples'],
                               custom_filenames={'samples': '_samples.txt'})
         res = con.propagate_average_up()
         self.assertIsNone(res)
@@ -519,7 +519,7 @@ class TestContribution(unittest.TestCase):
 
     def test_propagate_ages_other_contribution(self):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory)
+        con = cb.Contribution(directory)
         con.propagate_ages()
 
     def test_propagate_ages_location_component(self):
@@ -543,14 +543,14 @@ class TestContribution(unittest.TestCase):
 
     def test_propagate_ages_extra_location_rows(self):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory)
+        con = cb.Contribution(directory)
         con.tables['locations'].add_row('McMurdo2', {})
         con.tables['sites'].df.loc['mc01', 'location'] = 'McMurdo2'
         con.propagate_ages()
 
     def test_propagate_name_down(self):
         directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')
-        con = nb.Contribution(directory)
+        con = cb.Contribution(directory)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
         # need to actually test this
         con.propagate_name_down('sample', 'measurements')
@@ -561,7 +561,7 @@ class TestContribution(unittest.TestCase):
     def test_propagate_name_down_fail(self):
         """fail gracefully"""
         directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')
-        con = nb.Contribution(directory)
+        con = cb.Contribution(directory)
         self.assertNotIn('sample', con.tables['measurements'].df.columns)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
         # missing link:
@@ -579,12 +579,12 @@ class TestContribution(unittest.TestCase):
         missing = self.con.find_missing_items('sites')
         self.assertEqual(set(['hz05']), missing)
 
-        con = nb.Contribution(PROJECT_WD)
+        con = cb.Contribution(PROJECT_WD)
         for table in con.tables:
             self.assertEqual(set(), con.find_missing_items(table))
 
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory)
+        con = cb.Contribution(directory)
         for table in con.tables:
             self.assertEqual(set(), con.find_missing_items(table))
 
@@ -598,7 +598,7 @@ class TestNotNull(unittest.TestCase):
                 pd.Series(['s']), pd.Series([]),
                 3., np.nan]
         for num, val in enumerate(vals):
-            res = nb.not_null(val)
+            res = cb.not_null(val)
             # all evens should be True, all odds should be False
             correct = (num % 2) == 0
             self.assertEqual(correct, res)
@@ -621,22 +621,22 @@ class TestMungeForPlotting(unittest.TestCase):
 
     def test_group_by_site(self):
         dmag_dir = os.path.join(WD, 'data_files', 'dmag_magic')
-        status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
+        status, meas_data = cb.add_sites_to_meas_table(dmag_dir)
         self.assertTrue(status)
         self.assertIn('site', meas_data.columns)
         osler_dir = os.path.join(WD, 'data_files', '3_0', 'Osler')
-        status, warning = nb.add_sites_to_meas_table(osler_dir)
+        status, warning = cb.add_sites_to_meas_table(osler_dir)
         self.assertFalse(status)
         self.assertEqual(warning, "You are missing measurements, specimens, samples tables")
         mcmurdo_dir = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        status, meas_data = nb.add_sites_to_meas_table(mcmurdo_dir)
+        status, meas_data = cb.add_sites_to_meas_table(mcmurdo_dir)
         self.assertTrue(status)
         self.assertIn('site', meas_data.columns)
         orientation_dir = os.path.join(WD, 'data_files', 'orientation_magic')
         ipmag.orientation_magic(orient_file='orient_example.txt',
                                 output_dir_path=orientation_dir,
                                 input_dir_path=orientation_dir)
-        status, warning = nb.add_sites_to_meas_table(orientation_dir)
+        status, warning = cb.add_sites_to_meas_table(orientation_dir)
         self.assertFalse(status)
         self.assertEqual(warning, "You are missing measurements, specimens tables")
 
@@ -650,9 +650,9 @@ class TestMungeForPlotting(unittest.TestCase):
         # columns that must be present for plotting
         reqd_cols = ['specimen', 'site', 'treat_ac_field','quality']
         # add site column to measurement data
-        status, meas_data = nb.add_sites_to_meas_table(dmag_dir)
+        status, meas_data = cb.add_sites_to_meas_table(dmag_dir)
         # do the test
-        status, meas_data = nb.prep_for_intensity_plot(meas_data, meth_code, dropna, reqd_cols)
+        status, meas_data = cb.prep_for_intensity_plot(meas_data, meth_code, dropna, reqd_cols)
         self.assertTrue(status)
         self.assertTrue(all(meas_data['method_codes'].str.contains('LT-AF-Z')))
 

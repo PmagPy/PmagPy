@@ -709,7 +709,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                 old_df_container = None
             old_col_names = self.grid.col_labels
             # read in new file and update contribution
-            df_container = nb.MagicDataFrame(filename, dmodel=self.dm,
+            df_container = cb.MagicDataFrame(filename, dmodel=self.dm,
                                              columns=old_col_names)
             # concatenate if possible
             if not isinstance(old_df_container, type(None)):
@@ -929,7 +929,7 @@ class GridBuilder(object):
         if grid_type in contribution.tables:
             self.magic_dataframe = contribution.tables[grid_type]
         else:
-            self.magic_dataframe = nb.MagicDataFrame(dtype=grid_type)
+            self.magic_dataframe = cb.MagicDataFrame(dtype=grid_type)
         self.grid_type = grid_type
         self.data_model = contribution.data_model
         self.reqd_headers = reqd_headers
@@ -945,7 +945,7 @@ class GridBuilder(object):
         """
         changes = None
         # if there is a MagicDataFrame, extract data from it
-        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
+        if isinstance(self.magic_dataframe, cb.MagicDataFrame):
             # get columns and reorder slightly
             col_labels = list(self.magic_dataframe.df.columns)
             for ex_col in self.exclude_cols:
@@ -1022,7 +1022,7 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None):
-        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
+        if isinstance(self.magic_dataframe, cb.MagicDataFrame):
             grid.add_items(self.magic_dataframe.df, self.exclude_cols)
 
         if not self.huge:
@@ -1050,7 +1050,7 @@ class GridBuilder(object):
         Add columns as needed:
         age, age_unit, specimen, sample, site, location.
         """
-        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
+        if isinstance(self.magic_dataframe, cb.MagicDataFrame):
             for col in ['age', 'age_unit']:
                 if col not in self.grid.col_labels:
                     self.grid.add_col(col)
@@ -1073,7 +1073,7 @@ class GridBuilder(object):
         # if there is one row, df MIGHT be empty
         else:
             # check all the non-null values
-            non_null_vals = [val for val in self.magic_dataframe.df.values[0] if nb.not_null(val)]
+            non_null_vals = [val for val in self.magic_dataframe.df.values[0] if cb.not_null(val)]
             for val in non_null_vals:
                 if not isinstance(val, str):
                     empty = False
@@ -1147,7 +1147,7 @@ class GridBuilder(object):
                     if col_name in self.contribution.tables[self.grid_type].df.columns:
                         old_vals = self.contribution.tables[self.grid_type].df[col_name]
                         # if column is completely filled in, skip
-                        if all([nb.not_null(val) for val in old_vals]):
+                        if all([cb.not_null(val) for val in old_vals]):
                             continue
                         new_val = defaults[col_name]
                         vals = list(np.where((old_vals.notnull()) & (old_vals != ''), old_vals, new_val))

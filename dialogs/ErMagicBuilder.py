@@ -50,7 +50,7 @@ class MagIC_model_builder3(wx.Frame):
         # create one based on the working directory
 
         if not contribution:
-            self.contribution = nb.Contribution(self.WD)
+            self.contribution = cb.Contribution(self.WD)
         else:
             self.contribution = contribution
 
@@ -63,7 +63,7 @@ class MagIC_model_builder3(wx.Frame):
         self.table_list = ["specimens", "samples", "sites", "locations", "ages"]
         for table in self.table_list:
             if table not in self.contribution.tables:
-                new_table = nb.MagicDataFrame(dtype=table,
+                new_table = cb.MagicDataFrame(dtype=table,
                                               dmodel=self.contribution.data_model)
                 self.contribution.tables[table] = new_table
 

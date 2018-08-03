@@ -71,7 +71,7 @@ class MainFrame(wx.Frame):
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         wx.SafeYield()
         print('-I- Read in any available data from working directory')
-        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
         # propagate names from measurements into other tables
         if "measurements" in self.contribution.tables:
             self.contribution.propagate_measurement_info()
@@ -363,7 +363,7 @@ class MainFrame(wx.Frame):
 
     def on_upload_file(self, event):
         if not hasattr(self, "contribution"):
-            self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+            self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.SafeYield()
         res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
@@ -506,7 +506,7 @@ class MagICMenu(wx.MenuBar):
         clear = dia.do_clear()
         if clear:
             print('-I- Clear data object')
-            self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+            self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
             self.edited = False
 
 

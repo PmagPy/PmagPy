@@ -74,7 +74,7 @@ def main():
 
     # create contribution and add required headers
     fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
-    contribution = nb.Contribution(dir_path, single_file=in_file,
+    contribution = cb.Contribution(dir_path, single_file=in_file,
                                    custom_filenames=fnames)
     file_type = list(contribution.tables.keys())[0]
     print(len(contribution.tables['measurements'].df), ' records read from ', in_file)

@@ -96,7 +96,7 @@ def main():
             sys.exit()
     else:
         fnames = {'specimens': in_file, 'samples': samp_file}
-        con = nb.Contribution(dir_path, read_tables=['samples', 'specimens'],
+        con = cb.Contribution(dir_path, read_tables=['samples', 'specimens'],
                               custom_filenames=fnames)
         con.propagate_name_down('site', 'specimens')
         if 'site' in con.tables['specimens'].df.columns:
@@ -114,7 +114,7 @@ def main():
         cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
         con.tables['specimens'].front_and_backfill(cols)
         con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
-        #con.tables['specimens'].df = np.where(con.tables['specimens'].df.apply(nb.not_null), con.tables['specimens'].df,  "")
+        #con.tables['specimens'].df = np.where(con.tables['specimens'].df.apply(cb.not_null), con.tables['specimens'].df,  "")
         Specs = con.tables['specimens'].convert_to_pmag_data_list()
 
 

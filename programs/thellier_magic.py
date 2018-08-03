@@ -108,7 +108,7 @@ def main():
         start, end = "", ""
     fnames = {'measurements': meas_file,
               'specimens': spec_file, 'criteria': crit_file}
-    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=[
+    contribution = cb.Contribution(dir_path, custom_filenames=fnames, read_tables=[
                                    'measurements', 'specimens', 'criteria'])
 #
 #   import  prior interpretations  from specimen file
@@ -176,7 +176,7 @@ def main():
 #
 # set up new DataFrame for this sessions specimen interpretations
 #
-    spec_container = nb.MagicDataFrame(
+    spec_container = cb.MagicDataFrame(
         dtype='specimens', columns=specimen_cols)
     # this is for interpretations from this session
     current_spec_data = spec_container.df
@@ -297,7 +297,7 @@ def main():
                                this_specimen, units[0])
             if verbose:
                 pmagplotlib.drawFIGS(AZD)
-            if nb.is_null(start, False) or nb.is_null(end, False):
+            if cb.is_null(start, False) or cb.is_null(end, False):
                 if verbose:
                     ans = input('Return for next specimen, q to quit:  ')
                     if ans == 'q':

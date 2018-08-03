@@ -52,7 +52,7 @@ class Test2g_bin_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
         self.assertTrue(os.path.isfile(outfile))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -205,7 +205,7 @@ class TestBgcMagic(unittest.TestCase):
         program_ran, outfile = convert.bgc(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -274,7 +274,7 @@ class TestCitMagic(unittest.TestCase):
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -521,7 +521,7 @@ class TestIodpSrmMagic(unittest.TestCase):
             if f.endswith('csv') and 'summary' not in f and 'discrete' not in f and 'sample' not in f:
                 options['csv_file'] = f
                 program_ran, outfile = convert.iodp_srm(**options)
-                meas_df = nb.MagicDataFrame(pmag.resolve_file_name(outfile, dir_path))
+                meas_df = cb.MagicDataFrame(pmag.resolve_file_name(outfile, dir_path))
                 self.assertTrue(len(meas_df.df) > 0)
 
     #@unittest.skip("iodp_srm_magic is missing an example datafile")
@@ -536,7 +536,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         program_ran, outfile = convert.iodp_srm(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join('measurements.txt'))
-        meas_df = nb.MagicDataFrame(os.path.join(dir_path, outfile))
+        meas_df = cb.MagicDataFrame(os.path.join(dir_path, outfile))
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -594,7 +594,7 @@ class TestIodpDscrMagic(unittest.TestCase):
         program_ran, outfile = convert.iodp_dscr(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'custom_measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -643,7 +643,7 @@ class TestIodpJr6Magic(unittest.TestCase):
         program_ran, outfile = convert.iodp_jr6(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -762,7 +762,7 @@ class TestJr6TxtMagic(unittest.TestCase):
         output = convert.jr6_txt(**options)
         self.assertTrue(output[0])
         self.assertEqual(output[1], 'test.magic')
-        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
+        site_df = cb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
         self.assertEqual(1, site_df.df.lat.values[0])
 
 
@@ -795,7 +795,7 @@ class TestJr6Jr6Magic(unittest.TestCase):
         output = convert.jr6_jr6(**options)
         self.assertTrue(output[0])
         self.assertEqual(output[1], 'test.magic')
-        site_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
+        site_df = cb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
         self.assertEqual(1, site_df.df.lat.values[0])
 
 
@@ -862,7 +862,7 @@ class TestKly4sMagic(unittest.TestCase):
         program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', output_dir_path=WD,
                                              input_dir_path=in_dir, data_model_num=3)
 
-        con = nb.Contribution(WD)
+        con = cb.Contribution(WD)
         self.assertEqual(['measurements', 'samples', 'sites', 'specimens'], sorted(con.tables))
 
 
@@ -961,7 +961,7 @@ class TestLdeoMagic(unittest.TestCase):
         program_ran, outfile = convert.ldeo(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
     def test_ldeo_options(self):
@@ -1011,7 +1011,7 @@ class TestLivDbMagic(unittest.TestCase):
                                        location_name="place", samp_name_con=1, meas_out="custom.txt")
         self.assertTrue(res)
         self.assertEqual(meas_file, "custom.txt")
-        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
         self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
         # naming con 2 without chars
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
@@ -1019,7 +1019,7 @@ class TestLivDbMagic(unittest.TestCase):
                                        meas_out="custom.txt")
         self.assertTrue(res)
         self.assertEqual(meas_file, "custom.txt")
-        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
         self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
         self.assertEqual("ATPIPV04-1A", df.df['site'].values[0])
         # naming con 2 with chars
@@ -1030,7 +1030,7 @@ class TestLivDbMagic(unittest.TestCase):
                                        meas_out="custom.txt")
         self.assertTrue(res)
         self.assertEqual(meas_file, "custom.txt")
-        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
         self.assertEqual("ATPIPV04-1", df.df['sample'].values[0])
 
     def test_naming_con_3(self):
@@ -1039,7 +1039,7 @@ class TestLivDbMagic(unittest.TestCase):
                                        meas_out="custom.txt")
         self.assertTrue(res)
         self.assertEqual(meas_file, "custom.txt")
-        df = nb.MagicDataFrame(os.path.join(WD, "custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
         self.assertEqual("ATPIPV04", df.df['sample'].values[0])
         self.assertEqual("ATPIPV04", df.df['site'].values[0])
 
@@ -1073,10 +1073,10 @@ class TestMstMagic(unittest.TestCase):
         program_ran, outfile = convert.mst(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
         self.assertEqual(meas_df.df.location.values[0], 'place')
-        con = nb.Contribution(WD)
+        con = cb.Contribution(WD)
         for table in ['measurements', 'specimens', 'samples', 'sites', 'locations']:
             self.assertIn(table, con.tables)
 
@@ -1154,7 +1154,7 @@ class TestPmdMagic(unittest.TestCase):
         program_ran, outfile = convert.pmd(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
 
@@ -1167,7 +1167,7 @@ class TestPmdMagic(unittest.TestCase):
         program_ran, outfile = convert.pmd(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'custom_meas.txt'))
-        loc_df = nb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
+        loc_df = cb.MagicDataFrame(os.path.join(WD, 'locations.txt'))
         self.assertEqual(loc_df.df.index.values[0], 'place')
 
 
@@ -1200,7 +1200,7 @@ class TestSioMagic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
-        meas_df = nb.MagicDataFrame(os.path.realpath(options['meas_file']))
+        meas_df = cb.MagicDataFrame(os.path.realpath(options['meas_file']))
         self.assertIn('sequence', meas_df.df.columns)
         self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
 
@@ -1303,7 +1303,7 @@ class TestSMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.input_dir, "specimens.txt"))
         self.assertTrue(os.path.exists(os.path.join(self.input_dir, "sites.txt")))
-        con = nb.Contribution(self.input_dir)
+        con = cb.Contribution(self.input_dir)
         self.assertIn('sites', con.tables)
         self.assertEqual('place', con.tables['sites'].df.loc[:, 'location'].values[0])
 
@@ -1366,7 +1366,7 @@ class TestSufarAscMagic(unittest.TestCase):
             lines = ofile.readlines()
             self.assertEqual(292, len(lines))
             self.assertEqual('measurements', lines[0].split('\t')[1].strip())
-        con = nb.Contribution(WD)
+        con = cb.Contribution(WD)
         self.assertEqual(sorted(con.tables),
                          sorted(['measurements', 'specimens',
                                  'samples', 'sites']))
@@ -1438,7 +1438,7 @@ class TestTdtMagic(unittest.TestCase):
                                    site_name_chars=1, volume=15., lab_inc=-90)
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.input_dir, "custom.out"))
-        df = nb.MagicDataFrame(os.path.join(self.input_dir, "samples.txt"))
+        df = cb.MagicDataFrame(os.path.join(self.input_dir, "samples.txt"))
         self.assertEqual("MG", df.df["site"].values[0])
         self.assertEqual("MGH", df.df["sample"].values[0])
 
@@ -1470,5 +1470,5 @@ class TestUtrechtMagic(unittest.TestCase):
         program_ran, outfile = convert.utrecht(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(outfile), os.path.join(WD, 'measurements.txt'))
-        meas_df = nb.MagicDataFrame(outfile)
+        meas_df = cb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)

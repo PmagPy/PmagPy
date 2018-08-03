@@ -95,7 +95,7 @@ def main():
         print('-W- You are trying to plot measurements by {}'.format(plot_key))
         print('    By default, this information is not available in your measurement file.')
         print('    Trying to acquire this information from {}'.format(dir_path))
-        con = nb.Contribution(dir_path)
+        con = cb.Contribution(dir_path)
         meas_df = con.propagate_location_to_measurements()
         if meas_df is None:
             print('-W- No data found in {}'.format(dir_path))

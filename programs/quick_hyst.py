@@ -54,7 +54,7 @@ def main():
         verbose = 0
         plots = 1
     #
-    con = nb.Contribution(dir_path, read_tables=['measurements'],
+    con = cb.Contribution(dir_path, read_tables=['measurements'],
                           custom_filenames={'measurements': meas_file})
     # get as much name data as possible (used for naming plots)
     if not 'measurements' in con.tables:

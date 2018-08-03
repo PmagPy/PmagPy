@@ -147,7 +147,7 @@ def checkMax(row, col_name, arg, *args):
             arg_val = row[arg]
         else:
             return None
-    if nb.is_null(arg_val):
+    if cb.is_null(arg_val):
         return None
     #arg = float(arg)
     try:
@@ -177,7 +177,7 @@ def checkMin(row, col_name, arg, *args):
             arg_val = row[arg]
         else:
             return None
-    if nb.is_null(arg_val):
+    if cb.is_null(arg_val):
         return None
     try:
         if float(cell_value) >= float(arg_val):

@@ -92,7 +92,7 @@ def main():
         print(main.__doc__)
         sys.exit()
     if new_model:
-        con = nb.Contribution()
+        con = cb.Contribution()
         con.propagate_location_to_measurements()
         con.propagate_location_to_specimens()
         con.propagate_location_to_samples()
@@ -121,35 +121,35 @@ def main():
     for loc in dirlist:
         print('\nworking on: ', loc)
         if onedir: # all info is in main directory, sort by location
-            if nb.not_null(all_data['measurements']):
+            if cb.not_null(all_data['measurements']):
                 meas_data_all = all_data['measurements']
                 meas_data_df = meas_data_all.df[meas_data_all.df['location'] == loc]
                 meas_data = meas_data_all.convert_to_pmag_data_list(df=meas_data_df)
                 meas_data_all.write_magic_file('tmp_measurements.txt', df=meas_data_df)
             else:
                 meas_data = []
-            if nb.not_null(all_data['specimens']):
+            if cb.not_null(all_data['specimens']):
                 spec_data_all = all_data['specimens']
                 spec_data_df = spec_data_all.df[spec_data_all.df['location'] == loc]
                 spec_data = spec_data_all.convert_to_pmag_data_list(df=spec_data_df)
                 spec_data_all.write_magic_file('tmp_specimens.txt', df=spec_data_df)
             else:
                 spec_data = []
-            if nb.not_null(all_data['samples']):
+            if cb.not_null(all_data['samples']):
                 samp_data_all = all_data['samples']
                 samp_data_df = samp_data_all.df[samp_data_all.df['location'] == loc]
                 samp_data = samp_data_all.convert_to_pmag_data_list(df=samp_data_df)
                 samp_data_all.write_magic_file('tmp_samples.txt', df=samp_data_df)
             else:
                 samp_data = []
-            if nb.not_null(all_data['sites']):
+            if cb.not_null(all_data['sites']):
                 site_data_all = all_data['sites']
                 site_data_df = site_data_all.df[site_data_all.df['location'] == loc]
                 site_data = site_data_all.convert_to_pmag_data_list(df=site_data_df)
                 site_data_all.write_magic_file('tmp_sites.txt', df=site_data_df)
             else:
                 site_data = []
-            if nb.not_null(all_data['locations']):
+            if cb.not_null(all_data['locations']):
                 location_data_all = all_data['locations']
                 location_data_df = location_data_all.df[location_data_all.df['location'] == loc]
                 #location_data = location_data_all.convert_to_pmag_data_list(df=location_data_df)
@@ -290,7 +290,7 @@ def main():
                     for rec in old_SiteDIs:
                         if tilt_corr_key not in rec:
                             break
-                        if nb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
+                        if cb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
                             rec[tilt_corr_key] = ""
                         else:
                             rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))

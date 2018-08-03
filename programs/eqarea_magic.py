@@ -124,7 +124,7 @@ def main():
     #
     fnames = {"specimens": spec_file, "samples": samp_file,
               'sites': site_file, 'locations': loc_file}
-    contribution = nb.Contribution(dir_path, custom_filenames=fnames,
+    contribution = cb.Contribution(dir_path, custom_filenames=fnames,
                                    single_file=in_file)
 
     try:

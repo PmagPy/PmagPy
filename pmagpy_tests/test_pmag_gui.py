@@ -381,7 +381,7 @@ class TestMainFrame3(unittest.TestCase):
         os.chdir(TEST_DIR)
 
     def test_data_object_is_created(self):
-        self.assertEqual(nb.Contribution, type(self.frame.contribution))
+        self.assertEqual(cb.Contribution, type(self.frame.contribution))
         self.assertIn('measurements', self.frame.contribution.tables)
         self.assertIn('specimens', self.frame.contribution.tables)
         self.assertIn('samples', self.frame.contribution.tables)

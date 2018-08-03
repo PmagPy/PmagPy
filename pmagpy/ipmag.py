@@ -2248,7 +2248,7 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     if float(data_model) == 3.0:
         outfile = pmag.resolve_file_name('.', outfile)
         output_dir_path, file_name = os.path.split(outfile)
-        con = nb.Contribution(output_dir_path, read_tables=[])
+        con = cb.Contribution(output_dir_path, read_tables=[])
         # figure out file type from first of files to join
         if not filenames:
             print("You have provided no files, so nothing will be combined".format(magic_table))
@@ -2606,7 +2606,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
     dir_path = os.path.split(spec_file)[0]
     tables = ['measurements', 'specimens', 'samples', 'sites']
-    con = nb.Contribution(dir_path, read_tables=tables,
+    con = cb.Contribution(dir_path, read_tables=tables,
                           custom_filenames={'measurements': meas_file, 'specimens': spec_file,
                                             'samples': samp_file, 'sites': site_file})
     con.propagate_cols(['core_depth'], 'samples', 'sites')
@@ -2667,7 +2667,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     #
     if len(Data) > 0:
         location = Data[0].get('location', 'unknown')
-        if nb.is_null(location):
+        if cb.is_null(location):
             location = 'unknown'
             try:
                 location = con.tables['sites'].df['location'][0]
@@ -2990,7 +2990,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         fnames =  {'specimens': spc_file, 'samples': samp_file,
                    'ages': age_file, 'measurements': meas_file}
         fnames = {k: v for (k, v) in fnames.items() if v}
-        con = nb.Contribution(input_dir_path, custom_filenames=fnames)
+        con = cb.Contribution(input_dir_path, custom_filenames=fnames)
         for dtype in ['measurements', 'specimens']:
             if dtype not in con.tables:
                 print('-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path))
@@ -3697,7 +3697,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     # look through locations table and create separate directories for each
     # location
     if separate_locs:
-        con = nb.Contribution(dir_path)
+        con = cb.Contribution(dir_path)
         con.propagate_location_to_measurements()
         con.propagate_name_down('location', 'samples')
         for dtype in con.tables:
@@ -3972,7 +3972,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
-    if isinstance(contribution, nb.Contribution):
+    if isinstance(contribution, cb.Contribution):
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
@@ -6083,7 +6083,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
                               rec['er_specimen_name'], ' not found')
     else:
         fnames = {'specimens': hyst_file}
-        con = nb.Contribution(dir_path, read_tables=['specimens'],
+        con = cb.Contribution(dir_path, read_tables=['specimens'],
                           custom_filenames=fnames)
         spec_container = con.tables['specimens']
         spec_df = spec_container.df
@@ -7810,7 +7810,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
     dir_path = os.path.realpath(dir_path)
-    con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
     if isite:
@@ -8353,7 +8353,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
     dir_path = os.path.realpath(dir_path)
-    con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
     spec_container = con.tables['specimens']

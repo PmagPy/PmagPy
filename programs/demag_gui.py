@@ -2415,7 +2415,7 @@ class Demag_GUI(wx.Frame):
         acceptance_criteria=pmag.initialize_acceptance_criteria()
         if self.data_model==3:
             if criteria_file_name==None: criteria_file_name = "criteria.txt"
-            contribution = nb.Contribution(self.WD, read_tables=['criteria'], custom_filenames={'criteria': criteria_file_name})
+            contribution = cb.Contribution(self.WD, read_tables=['criteria'], custom_filenames={'criteria': criteria_file_name})
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
@@ -3391,7 +3391,7 @@ class Demag_GUI(wx.Frame):
 #            col_names = ['specimen', 'sample', 'site', 'location']
 #            for col_name in col_names:
 #                if col_name in meas_data3_0.columns:
-#                    pruned = meas_data3_0[meas_data3_0[col_name].apply(nb.not_null)]
+#                    pruned = meas_data3_0[meas_data3_0[col_name].apply(cb.not_null)]
 #                    num_missing = len(meas_data3_0) - len(pruned)
 #                    if num_missing:
 #                        msg = "{} measurements cannot be associated with a {} and will be excluded\nTry using Pmag GUI (step 3) to make sure you have provided the full chain from specimen to location.".format(num_missing, col_name)
@@ -3542,15 +3542,15 @@ class Demag_GUI(wx.Frame):
                     else:
                         Data[s]['measurement_step_unit']=measurement_step_unit
                 dec,inc,inten = "","",""
-                if "measurement_dec" in list(rec.keys()) and nb.not_null(rec["measurement_dec"]):
+                if "measurement_dec" in list(rec.keys()) and cb.not_null(rec["measurement_dec"]):
                     dec=float(rec["measurement_dec"])
                 else:
                     continue
-                if "measurement_inc" in list(rec.keys()) and nb.not_null(rec["measurement_inc"]):
+                if "measurement_inc" in list(rec.keys()) and cb.not_null(rec["measurement_inc"]):
                     inc=float(rec["measurement_inc"])
                 else:
                     continue
-                if "measurement_magn_moment" in list(rec.keys()) and nb.not_null(rec["measurement_magn_moment"]):
+                if "measurement_magn_moment" in list(rec.keys()) and cb.not_null(rec["measurement_magn_moment"]):
                     intensity=float(rec["measurement_magn_moment"])
                 else:
                     intensity=1. #just assume a normal vector
@@ -3773,7 +3773,7 @@ class Demag_GUI(wx.Frame):
             Data_info["er_locations"]=[]
             Data_info["er_ages"]=[]
 
-            # self.magic_file may have a full path, but this breaks nb.Contribution
+            # self.magic_file may have a full path, but this breaks cb.Contribution
             # determine if magic_file exists in WD, and if it doesn't, copy it in
 
             magic_file_real = os.path.realpath(self.magic_file)
@@ -3785,7 +3785,7 @@ class Demag_GUI(wx.Frame):
                 # copy measurements file to WD, keeping original name
                 shutil.copy(magic_file_real, WD_file_real)
                 fnames = {'measurements': magic_file_short}
-            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'locations', 'criteria', 'ages'])
+            self.con = cb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'locations', 'criteria', 'ages'])
             if 'specimens' in self.con.tables:
                 spec_container = self.con.tables['specimens']
                 self.spec_data = spec_container.df

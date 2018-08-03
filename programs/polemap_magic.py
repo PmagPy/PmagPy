@@ -92,7 +92,7 @@ def main():
     coord = coord_dict[crd] if crd else ""
     results_file = pmag.get_named_arg("-f", "locations.txt")
 
-    con = nb.Contribution(dir_path, single_file=results_file)
+    con = cb.Contribution(dir_path, single_file=results_file)
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
         return

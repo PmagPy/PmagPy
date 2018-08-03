@@ -120,7 +120,7 @@ def main():
     first_save = 1
     fnames = {'measurements': meas_file, 'specimens': spec_file,
               'samples': samp_file, 'sites': site_file}
-    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=[
+    contribution = cb.Contribution(dir_path, custom_filenames=fnames, read_tables=[
                                    'measurements', 'specimens', 'samples', 'sites'])
 #
 #   import  specimens
@@ -220,7 +220,7 @@ def main():
 #
 # set up new DataFrame for this sessions specimen interpretations
 #
-    data_container = nb.MagicDataFrame(
+    data_container = cb.MagicDataFrame(
         dtype='specimens', columns=specimen_cols)
     # this is for interpretations from this session
     current_spec_data = data_container.df
@@ -276,7 +276,7 @@ def main():
             # this is a list of all the specimen method codes
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
-            if any(nb.is_null(treat, False) for treat in tr):
+            if any(cb.is_null(treat, False) for treat in tr):
                 print('-W- Missing required values in measurements.treatment for {}, skipping'.format(this_specimen))
                 if specimen:
                     return
@@ -311,7 +311,7 @@ def main():
             if coord != '-1':  # need to transform coordinates to geographic
                 # get the azimuth
                 or_info,az_type=pmag.get_orient(samp_data,this_sample,data_model=3)
-                if 'azimuth' in or_info.keys() and nb.not_null(or_info['azimuth']):
+                if 'azimuth' in or_info.keys() and cb.not_null(or_info['azimuth']):
                     #azimuths = pd.to_numeric(
                     #    this_specimen_measurements.azimuth).tolist()
                     #dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
@@ -320,11 +320,11 @@ def main():
                 # if azimuth/dip is missing, plot using specimen coordinates instead
                 else:
                     azimuths,dips=[],[]
-                if any([nb.is_null(az) for az in azimuths if az != 0]):
+                if any([cb.is_null(az) for az in azimuths if az != 0]):
                     coord = '-1'
                     print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
                     print("    Plotting with specimen coordinates instead")
-                elif any([nb.is_null(dip) for dip in dips if dip != 0]):
+                elif any([cb.is_null(dip) for dip in dips if dip != 0]):
                     coord = '-1'
                     print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
                     print("    Plotting with specimen coordinates instead")

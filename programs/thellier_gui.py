@@ -2739,9 +2739,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 data_model=self.data_model)
             self.add_thellier_gui_criteria()
             fnames = {'criteria': criteria_file}
-            contribution = nb.Contribution(
+            contribution = cb.Contribution(
                 self.WD, custom_filenames=fnames, read_tables=['criteria'])
-            contribution = nb.Contribution(
+            contribution = cb.Contribution(
                 self.WD, custom_filenames=fnames, read_tables=['criteria'])
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
@@ -3835,7 +3835,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
                         print("-W- No intensity data found for specimens")
-                    cond2 = self.spec_data['int_abs'].apply(nb.not_null) #notnull() == True
+                    cond2 = self.spec_data['int_abs'].apply(cb.not_null) #notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
                     self.spec_data = self.spec_container.update_record(
@@ -4646,16 +4646,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
         '''
         convert all age units to calendar year
         '''
-        if ("age" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age'], False)):
+        if ("age" not in list(er_ages_rec.keys())) or (cb.is_null(er_ages_rec['age'], False)):
             return(er_ages_rec)
-        if ("age_unit" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age_unit'])):
+        if ("age_unit" not in list(er_ages_rec.keys())) or (cb.is_null(er_ages_rec['age_unit'])):
             return(er_ages_rec)
-        if nb.is_null(er_ages_rec["age"], False):
+        if cb.is_null(er_ages_rec["age"], False):
             if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-                if nb.not_null(er_ages_rec["age_range_high"], False) and nb.not_null(er_ages_rec["age_range_low"], False):
+                if cb.not_null(er_ages_rec["age_range_high"], False) and cb.not_null(er_ages_rec["age_range_low"], False):
                     er_ages_rec["age"] = np.mean(
                         [float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
-        if nb.is_null(er_ages_rec["age"], False):
+        if cb.is_null(er_ages_rec["age"], False):
             return(er_ages_rec)
 
             # age_descriptier_ages_recon=er_ages_rec["age_description"]
@@ -4684,7 +4684,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         age_range_high = age
         age_sigma = 0
 
-        if "age_sigma" in list(er_ages_rec.keys()) and nb.not_null(er_ages_rec["age_sigma"], False):
+        if "age_sigma" in list(er_ages_rec.keys()) and cb.not_null(er_ages_rec["age_sigma"], False):
             age_sigma = float(er_ages_rec["age_sigma"]) * mutliplier
             if age_unit == "Years BP" or age_unit == "Years Cal BP":
                 age_sigma = 1950 - age_sigma
@@ -4692,7 +4692,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             age_range_high = age + age_sigma
 
         if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-            if nb.not_null(er_ages_rec["age_range_high"]) and nb.not_null(er_ages_rec["age_range_low"]):
+            if cb.not_null(er_ages_rec["age_range_high"]) and cb.not_null(er_ages_rec["age_range_low"]):
                 age_range_high = float(
                     er_ages_rec["age_range_high"]) * mutliplier
                 if age_unit == "Years BP" or age_unit == "Years Cal BP":
@@ -4902,7 +4902,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             else:
                 location = "unknown"
 
-            if nb.is_null(location):
+            if cb.is_null(location):
                 location = "unknown"
 
             if location not in list(plot_by_locations.keys()):
@@ -7428,7 +7428,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 shutil.copy(magic_file_real, WD_file_real)
                 fnames = {'measurements': magic_file_short}
             # create MagIC contribution
-            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=[
+            self.contribution = cb.Contribution(self.WD, custom_filenames=fnames, read_tables=[
                                                 'measurements', 'specimens', 'samples', 'sites'])
             if 'measurements' not in self.contribution.tables:
                 print("-W- No measurements found")
@@ -7444,7 +7444,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 self.spec_container.write_magic_file(
                     custom_name='specimens.bak', dir_path=self.WD)  # create backup file with original
             else:
-                self.spec_container = nb.MagicDataFrame(
+                self.spec_container = cb.MagicDataFrame(
                     dtype='specimens', columns=['specimen', 'aniso_type'])
             self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
@@ -7454,7 +7454,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     custom_name='samples.bak', dir_path=self.WD)  # create backup file with original
 
             else:
-                self.samp_container = nb.MagicDataFrame(dtype='samples',
+                self.samp_container = cb.MagicDataFrame(dtype='samples',
                                                         columns=['sample', 'site', 'cooling_rate'])
 
             self.samp_data = self.samp_container.df  # only need this for saving tables
@@ -7503,7 +7503,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_values = samp_rec
                         new_rec = {}
                         for k, v in old_values.items():
-                            if nb.not_null(v):
+                            if cb.not_null(v):
                                 new_rec[k] = v
                             else:
                                 new_rec[k] = new_values[k]
@@ -7582,7 +7582,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_values = site_rec
                         new_rec = {}
                         for k, v in old_values.items():
-                            if nb.not_null(v):
+                            if cb.not_null(v):
                                 new_rec[k] = v
                             else:
                                 new_rec[k] = new_values[k]
@@ -7591,7 +7591,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     else:
                         data_er_sites[name] = site_rec
             else:
-                self.site_container = nb.MagicDataFrame(
+                self.site_container = cb.MagicDataFrame(
                     dtype='sites', columns=['site'])
             self.site_data = self.site_container.df  # only need this for saving tables
 

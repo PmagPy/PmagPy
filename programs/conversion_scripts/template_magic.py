@@ -85,7 +85,7 @@ def convert(**kwargs):
     infile.close()
 
     #open a Contribution object
-    con = nb.Contribution(output_dir_path,read_tables=[])
+    con = cb.Contribution(output_dir_path,read_tables=[])
 
     #Create Magic Tables and add to a contribution
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
