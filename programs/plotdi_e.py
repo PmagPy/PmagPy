@@ -231,8 +231,8 @@ def main():
             if len(rDIs)>5:
                 BrDIs=pmag.di_boot(rDIs)
                 if len(nDIs)>5:  # plot on existing plots
-                    pmagplotlib.plotDI(EQ['eq'],rDIs)
-                    pmagplotlib.plotDI(EQ['bdirs'],BrDIs)
+                    pmagplotlib.plot_di(EQ['eq'],rDIs)
+                    pmagplotlib.plot_di(EQ['bdirs'],BrDIs)
                 else:
                     pmagplotlib.plotEQ(EQ['eq'],rDIs,'Data')
                     pmagplotlib.plotEQ(EQ['bdirs'],BrDIs,'Bootstrapped Eigenvectors')

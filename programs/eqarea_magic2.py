@@ -230,7 +230,7 @@ def main():
             else:
                 pmagplotlib.plotEQcont(FIG['eqarea'], DIblock)
         else:
-            pmagplotlib.plotNET(FIG['eqarea'])
+            pmagplotlib.plot_net(FIG['eqarea'])
         if len(GCblock) > 0:
             for rec in GCblock:
                 pmagplotlib.plotC(FIG['eqarea'], rec, 90., 'g')
@@ -387,7 +387,7 @@ def main():
                     if len(rDIs) > 5:
                         BrDIs = pmag.di_boot(rDIs)
                         if len(nDIs) > 5:  # plot on existing plots
-                            pmagplotlib.plotDIsym(FIG['bdirs'], BrDIs, sym)
+                            pmagplotlib.plot_di_sym(FIG['bdirs'], BrDIs, sym)
                         else:
                             pmagplotlib.plotEQ(
                                 FIG['bdirs'], BrDIs, 'Bootstrapped Eigenvectors')

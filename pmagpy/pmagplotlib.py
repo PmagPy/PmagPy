@@ -290,7 +290,7 @@ def plot_xy(fignum, X, Y, **kwargs):
             plt.text(note[0], note[1], note[2])
 
 
-def plotSITE(fignum, SiteRec, data, key):
+def plot_site(fignum, SiteRec, data, key):
     print('Site mean data: ')
     print('   dec    inc n_lines n_planes kappa R alpha_95 comp coord')
     print(SiteRec['site_dec'], SiteRec['site_inc'], SiteRec['site_n_lines'], SiteRec['site_n_planes'], SiteRec['site_k'],
@@ -311,7 +311,7 @@ def plotSITE(fignum, SiteRec, data, key):
         saveP(EQ, files)
 
 
-def plotQQnorm(fignum, Y, title):
+def plot_qq_norm(fignum, Y, title):
     """
     makes a Quantile-Quantile plot for data
     Parameters
@@ -353,7 +353,7 @@ def plotQQnorm(fignum, Y, title):
     return d,dc
 
 
-def plotQQunf(fignum, D, title, subplot=False,degrees=True):
+def plot_qq_unf(fignum, D, title, subplot=False,degrees=True):
     """
     plots data against a uniform distribution in 0=>360.
     Parameters
@@ -411,7 +411,7 @@ def plotQQunf(fignum, D, title, subplot=False,degrees=True):
     return Mu, 1.207
 
 
-def plotQQexp(fignum, I, title, subplot=False):
+def plot_qq_exp(fignum, I, title, subplot=False):
     """
     plots data against an exponential distribution in 0=>90.
     """
@@ -464,7 +464,7 @@ def plotQQexp(fignum, I, title, subplot=False):
     return Me, 1.094
 
 
-def plotNET(fignum):
+def plot_net(fignum):
     """
     draws circle and tick marks for equal area projection
     """
@@ -522,7 +522,7 @@ def plotNET(fignum):
     plt.axis("equal")
 
 
-def plotDI(fignum, DIblock):
+def plot_di(fignum, DIblock):
     global globals
     """
     plots directions on equal area net
@@ -556,7 +556,7 @@ def plotDI(fignum, DIblock):
             globals.DIlisty = Y_up
 
 
-def plotDIsym(fignum, DIblock, sym):
+def plot_di_sym(fignum, DIblock, sym):
     global globals
     """
     plots directions on equal area net
@@ -863,7 +863,7 @@ def plotZED(ZED, datablock, angle, s, units):
     if len(DIgood) > 0:
         plotEQ(ZED['eqarea'], DIgood, s)
         if len(DIbad) > 0:
-            plotDIsym(ZED['eqarea'], DIbad, badsym)
+            plot_di_sym(ZED['eqarea'], DIbad, badsym)
     elif len(DIbad) > 0:
         plotEQsym(ZED['eqarea'], DIbad, badsym)
     AngleX, AngleY = [], []
@@ -1385,7 +1385,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
     """
 # make the stereonet
     plt.figure(num=fignum)
-    plotNET(fignum)
+    plot_net(fignum)
     s = SiteRec['er_site_name']
 #
 #   plot on the data
@@ -1407,7 +1407,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
             DIblock.append(
                 (float(plotrec[key + "_dec"]), float(plotrec[key + "_inc"])))
     if len(DIblock) > 0:
-        plotDI(fignum, DIblock)  # plot directed lines
+        plot_di(fignum, DIblock)  # plot directed lines
     if len(GCblock) > 0:
         for pole in GCblock:
             plotC(fignum, pole, 90., 'g')  # plot directed lines
@@ -1450,7 +1450,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     plots the site level figure
     """
 # make the stereonet
-    plotNET(fignum)
+    plot_net(fignum)
 #
 #   plot on the data
 #
@@ -1472,7 +1472,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
         else:  # assume direction is a directed line
             DIblock.append((float(plotrec[dec_key]), float(plotrec[inc_key])))
     if len(DIblock) > 0:
-        plotDI(fignum, DIblock)  # plot directed lines
+        plot_di(fignum, DIblock)  # plot directed lines
     if len(GCblock) > 0:
         for pole in GCblock:
             plotC(fignum, pole, 90., 'g')  # plot directed lines
@@ -1510,11 +1510,11 @@ def plotEQ(fignum, DIblock, s):
     # plt.clf()
     if not isServer:
         plt.figtext(.02, .01, version_num)
-    plotNET(fignum)
+    plot_net(fignum)
 #
 #   put on the directions
 #
-    plotDI(fignum, DIblock)  # plot directions
+    plot_di(fignum, DIblock)  # plot directions
     plt.axis("equal")
     plt.text(-1.1, 1.15, s)
     plt.draw()
@@ -1531,11 +1531,11 @@ def plotEQsym(fignum, DIblock, s, sym):
     # plt.clf()
     if not isServer:
         plt.figtext(.02, .01, version_num)
-    plotNET(fignum)
+    plot_net(fignum)
 #
 #   put on the directions
 #
-    plotDIsym(fignum, DIblock, sym)  # plot directions with symbols in sym
+    plot_di_sym(fignum, DIblock, sym)  # plot directions with symbols in sym
     plt.axis("equal")
     plt.text(-1.1, 1.15, s)
 #
@@ -1573,7 +1573,7 @@ def plotTEQ(fignum, araiblock, s, pars):
             ZIblock.append([zrec[1], zrec[2]])
         else:
             IZblock.append([zrec[1], zrec[2]])
-    plotNET(fignum)
+    plot_net(fignum)
     if pars != "":
         min, max = float(pars["measurement_step_min"]), float(
             pars["measurement_step_max"])
@@ -1591,13 +1591,13 @@ def plotTEQ(fignum, araiblock, s, pars):
 #
     sym = {'lower': ['o', 'r'], 'upper': ['o', 'm']}
     if len(ZIblock) > 0:
-        plotDIsym(fignum, ZIblock, sym)  # plot ZI directions
+        plot_di_sym(fignum, ZIblock, sym)  # plot ZI directions
     sym = {'lower': ['s', 'b'], 'upper': ['s', 'c']}
     if len(IZblock) > 0:
-        plotDIsym(fignum, IZblock, sym)  # plot IZ directions
+        plot_di_sym(fignum, IZblock, sym)  # plot IZ directions
     sym = {'lower': ['^', 'g'], 'upper': ['^', 'y']}
     if len(pTblock) > 0:
-        plotDIsym(fignum, pTblock, sym)  # plot pTRM directions
+        plot_di_sym(fignum, pTblock, sym)  # plot pTRM directions
     plt.axis("equal")
     plt.text(-1.1, 1.15, s)
 
@@ -2445,7 +2445,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             plt.clf()
             if not isServer:
                 plt.figtext(.02, .01, version_num)
-        plotNET(ANIS['data'])  # draw the net
+        plot_net(ANIS['data'])  # draw the net
         plotEVEC(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
 #
 # plot mean eigenvectors
@@ -2464,7 +2464,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             title = title + ":Parametric"
         if title[0] == ":":
             title = title[1:]
-        plotNET(ANIS['conf'])  # draw the net
+        plot_net(ANIS['conf'])  # draw the net
         plotEVEC(ANIS['conf'], Vs, 36, title)  # put on the mean eigenvectors
 #
 # plot mean confidence
@@ -2691,7 +2691,7 @@ def plotCONF(fignum, s, datablock, pars, new):
     """
 # make the stereonet
     if new == 1:
-        plotNET(fignum)
+        plot_net(fignum)
 #
 #   plot the data
 #
@@ -2699,7 +2699,7 @@ def plotCONF(fignum, s, datablock, pars, new):
     for plotrec in datablock:
         DIblock.append((float(plotrec["dec"]), float(plotrec["inc"])))
     if len(DIblock) > 0:
-        plotDI(fignum, DIblock)  # plot directed lines
+        plot_di(fignum, DIblock)  # plot directed lines
 #
 # put on the mean direction
 #

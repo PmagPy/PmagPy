@@ -208,7 +208,7 @@ def main():
                 if len(rDIs)>5:
                     BrDIs=pmag.di_boot(rDIs)
                     if len(nDIs)>5:  # plot on existing plots
-                        pmagplotlib.plotDIsym(FIG['bdirs'],BrDIs,vsym)
+                        pmagplotlib.plot_di_sym(FIG['bdirs'],BrDIs,vsym)
                     else:
                         pmagplotlib.plotEQ(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors',vsym)
         if dist=='B':

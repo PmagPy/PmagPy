@@ -45,7 +45,7 @@ def main():
     if len(Data) >=10: 
         QQ={'unf1':1}
         pmagplotlib.plot_init(QQ['unf1'],5,5)
-        pmagplotlib.plotQQunf(QQ['unf1'],Data,'QQ-Uniform') # make plot
+        pmagplotlib.plot_qq_unf(QQ['unf1'],Data,'QQ-Uniform') # make plot
     else:
         print('you need N> 10')
         sys.exit()

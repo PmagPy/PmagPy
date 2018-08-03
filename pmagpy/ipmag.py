@@ -668,7 +668,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
     plt.figure(figsize=[5, 5])
     plot_net(1)
-    pmagplotlib.plotDI(1, Data)  # plot directions
+    pmagplotlib.plot_di(1, Data)  # plot directions
     plt.text(-1.1, 1.15, 'Geographic')
     if save == True:
         plt.savefig(os.path.join(save_folder, 'eq_geo') + '.' + fmt)
@@ -678,7 +678,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
     plt.figure(figsize=[5, 5])
     plot_net(2)
-    pmagplotlib.plotDI(2, TCs)  # plot directions
+    pmagplotlib.plot_di(2, TCs)  # plot directions
     plt.text(-1.1, 1.15, 'Tilt-corrected')
     if save == True:
         plt.savefig(os.path.join(save_folder, 'eq_tc') + '.' + fmt)
@@ -1302,9 +1302,9 @@ def fishqq(lon=None, lat=None, di_block=None):
                 Dtit = 'Mode 1 Declinations'
                 Itit = 'Mode 1 Inclinations'
         plt.figure(figsize=(6, 3))
-        Mu_n, Mu_ncr = pmagplotlib.plotQQunf(
+        Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D1, Dtit, subplot=True)  # make plot
-        Me_n, Me_ncr = pmagplotlib.plotQQexp(
+        Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I1, Itit, subplot=True)  # make plot
         plt.tight_layout()
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
@@ -1337,9 +1337,9 @@ def fishqq(lon=None, lat=None, di_block=None):
             Dtit = 'Mode 2 Declinations'
             Itit = 'Mode 2 Inclinations'
         plt.figure(figsize=(6, 3))
-        Mu_r, Mu_rcr = pmagplotlib.plotQQunf(
+        Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D2, Dtit, subplot=True)  # make plot
-        Me_r, Me_rcr = pmagplotlib.plotQQexp(
+        Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I2, Itit, subplot=True)  # make plot
         plt.tight_layout()
 
@@ -4246,7 +4246,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         pmagplotlib.plot_init(EQ['eqarea'], 5, 5)
         # I don't know why this has to be here, but otherwise the first plot
         # never plots...
-        pmagplotlib.plotNET(EQ['eqarea'])
+        pmagplotlib.plot_net(EQ['eqarea'])
         pmagplotlib.draw_figs(EQ)
 
     infile = os.path.join(dir_path, infile)
@@ -4642,7 +4642,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                             if plotsites:
                                 print(PmagSiteRec['er_site_name'])
                                 # plot and list the data
-                                pmagplotlib.plotSITE(
+                                pmagplotlib.plot_site(
                                     EQ['eqarea'], PmagSiteRec, siteD, key)
                                 pmagplotlib.draw_figs(EQ)
                             PmagSites.append(PmagSiteRec)
@@ -4679,7 +4679,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                             PmagSiteRec['site_comp_name'] = pmag.get_list(
                                 siteD, key + '_comp_name')
                         if plotsites:
-                            pmagplotlib.plotSITE(
+                            pmagplotlib.plot_site(
                                 EQ['eqarea'], PmagSiteRec, siteD, key)
                             pmagplotlib.draw_figs(EQ)
                         PmagSites.append(PmagSiteRec)

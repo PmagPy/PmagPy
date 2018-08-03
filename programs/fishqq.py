@@ -98,8 +98,8 @@ def main():
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
                 Itit='Mode 1 Inclinations'
-        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
-        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        Mu_n,Mu_ncr=pmagplotlib.plot_qq_unf(QQ['unf1'],D1,Dtit) # make plot
+        Me_n,Me_ncr=pmagplotlib.plot_qq_exp(QQ['exp1'],I1,Itit) # make plot
         #print Mu_n,Mu_ncr,Me_n, Me_ncr
         if outfile!="":
 #        Dec Inc N Mu Mu_crit Me Me_crit Y/N
@@ -129,8 +129,8 @@ def main():
             I2.append(irot) 
             Dtit='Mode 2 Declinations'
             Itit='Mode 2 Inclinations'
-        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
-        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        Mu_r,Mu_rcr=pmagplotlib.plot_qq_unf(QQ['unf2'],D2,Dtit) # make plot
+        Me_r,Me_rcr=pmagplotlib.plot_qq_exp(QQ['exp2'],I2,Itit) # make plot
         if outfile!="":
 #        Dec Inc N Mu Mu_crit Me Me_crit Y/N
             if Mu_r<=Mu_rcr and Me_r<=Me_rcr:

@@ -169,7 +169,7 @@ def main():
             EQ={}
             EQ['eqarea']=1
             pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
-            pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
+            pmagplotlib.plot_net(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
             pmagplotlib.draw_figs(EQ)
     if '-WD' in args:
         infile=dir_path+'/'+infile
@@ -443,7 +443,7 @@ def main():
                         PmagSiteRec['magic_method_codes'].strip(":")
                         if plotsites==1:
                             print(PmagSiteRec['er_site_name'])
-                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                            pmagplotlib.plot_site(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
                             pmagplotlib.draw_figs(EQ)
                         PmagSites.append(PmagSiteRec)
             else: # last component only
@@ -466,7 +466,7 @@ def main():
                     PmagSiteRec['magic_method_codes'].strip(":")
                     if Daverage==0:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
                     if plotsites==1:
-                        pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
+                        pmagplotlib.plot_site(EQ['eqarea'],PmagSiteRec,siteD,key)
                         pmagplotlib.draw_figs(EQ)
                     PmagSites.append(PmagSiteRec)
         else:
