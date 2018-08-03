@@ -334,7 +334,7 @@ def main():
                     outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out + '\n'
                 print(outstr)
                 print(outstring)
-                pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
+                pmagplotlib.plot_b(AZD, araiblock, zijdblock, pars)
                 mpars = pmag.domean(araiblock[1], start, end, 'DE-BFL')
                 if verbose:
                     pmagplotlib.draw_figs(AZD)

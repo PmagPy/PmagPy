@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
 import sys
 import os
 import numpy
@@ -72,7 +70,7 @@ def main():
     DI = numpy.loadtxt(fname)
     EQ = {'eq': 1}
     pmagplotlib.plot_init(EQ['eq'], 5, 5)
-    pmagplotlib.plotEQsym(EQ['eq'], DI, 'Equal Area Plot', sym)  # make plot
+    pmagplotlib.plot_eq_sym(EQ['eq'], DI, 'Equal Area Plot', sym)  # make plot
     if plot == 0:
         pmagplotlib.draw_figs(EQ)  # make it visible
     for key in list(EQ.keys()):

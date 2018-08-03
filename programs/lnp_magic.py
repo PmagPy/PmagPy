@@ -195,7 +195,7 @@ def main():
             if make_plots == 1:
                 files = {}
                 files['eqarea'] = site+'_'+crd+'_'+'eqarea'+'.'+fmt
-                pmagplotlib.plotLNP(EQ['eqarea'], site,
+                pmagplotlib.plot_lnp(EQ['eqarea'], site,
                                     data, fpars, 'specimen_direction_type')
                 if plot == 0:
                     pmagplotlib.draw_figs(EQ)

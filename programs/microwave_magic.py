@@ -294,7 +294,7 @@ def main():
                                if pmagplotlib.verbose:
                                    print('Saved interpretation: ')
                                pars=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
-                               pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                               pmagplotlib.plot_b(AZD,araiblock,zijdblock,pars)
                                if len(trmblock)>2:
                                    blab=field
                                    best=pars["specimen_int"]
@@ -327,7 +327,7 @@ def main():
                        pars["specimen_int"]=-1*field*pars["specimen_b"]
                        pars["er_specimen_name"]=s
                        pars['specimen_grade']='' # ungraded
-                       pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                       pmagplotlib.plot_b(AZD,araiblock,zijdblock,pars)
                        if len(trmblock)>2:
                            if inlt==0:
                                donlt()
@@ -451,7 +451,7 @@ def main():
                            PmagSpecRec["specimen_description"]=comment
                            PmagSpecRec["magic_software_packages"]=version_num
                            pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                           pmagplotlib.plot_b(AZD,araiblock,zijdblock,pars)
                            if len(trmblock)>2:
                                blab=field
                                best=pars["specimen_int"]

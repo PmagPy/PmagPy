@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -18,7 +14,7 @@ def main():
        plotdi_e.py
 
     DESCRIPTION
-       plots equal area projection  from dec inc data and cones of confidence 
+       plots equal area projection  from dec inc data and cones of confidence
            (Fisher, kent or Bingham or bootstrap).
 
     INPUT FORMAT
@@ -30,7 +26,7 @@ def main():
     OPTIONS
         -h prints help message and quits
         -i for interactive parameter entry
-        -f FILE, sets input filename on command line 
+        -f FILE, sets input filename on command line
         -Fish plots unit vector mean direction, alpha95
         -Bing plots Principal direction, Bingham confidence ellipse
         -Kent plots unit vector mean direction, confidence ellipse
@@ -72,9 +68,9 @@ def main():
             if '-Boot' in sys.argv:
                 ind=sys.argv.index('-Boot')
                 type=sys.argv[ind+1]
-                if type=='E': 
+                if type=='E':
                     dist='BE'
-                elif type=='V': 
+                elif type=='V':
                     dist='BV'
                     EQ['bdirs']=2
                     pmagplotlib.plot_init(EQ['bdirs'],5,5)
@@ -114,13 +110,13 @@ def main():
         for key in list(bpars.keys()):
             if key!='n':print("    ",key, '%7.1f'%(bpars[key]))
             if key=='n':print("    ",key, '       %i'%(bpars[key]))
-        npars.append(bpars['dec']) 
+        npars.append(bpars['dec'])
         npars.append(bpars['inc'])
-        npars.append(bpars['Zeta']) 
-        npars.append(bpars['Zdec']) 
+        npars.append(bpars['Zeta'])
+        npars.append(bpars['Zdec'])
         npars.append(bpars['Zinc'])
-        npars.append(bpars['Eta']) 
-        npars.append(bpars['Edec']) 
+        npars.append(bpars['Eta'])
+        npars.append(bpars['Edec'])
         npars.append(bpars['Einc'])
     if dist=='F':
         title="Fisher confidence cone"
@@ -131,13 +127,13 @@ def main():
                 if key!='n':print("    ",key, '%7.1f'%(fpars[key]))
                 if key=='n':print("    ",key, '       %i'%(fpars[key]))
             mode+=1
-            npars.append(fpars['dec']) 
+            npars.append(fpars['dec'])
             npars.append(fpars['inc'])
             npars.append(fpars['alpha95']) # Beta
-            npars.append(fpars['dec']) 
-            isign=old_div(abs(fpars['inc']),fpars['inc']) 
+            npars.append(fpars['dec'])
+            isign=abs(fpars['inc']) / fpars['inc']
             npars.append(fpars['inc']-isign*90.) #Beta inc
-            npars.append(fpars['alpha95']) # gamma 
+            npars.append(fpars['alpha95']) # gamma
             npars.append(fpars['dec']+90.) # Beta dec
             npars.append(0.) #Beta inc
         if len(rDIs)>3:
@@ -147,13 +143,13 @@ def main():
                 if key!='n':print("    ",key, '%7.1f'%(fpars[key]))
                 if key=='n':print("    ",key, '       %i'%(fpars[key]))
             mode+=1
-            rpars.append(fpars['dec']) 
+            rpars.append(fpars['dec'])
             rpars.append(fpars['inc'])
             rpars.append(fpars['alpha95']) # Beta
-            rpars.append(fpars['dec']) 
-            isign=old_div(abs(fpars['inc']),fpars['inc']) 
+            rpars.append(fpars['dec'])
+            isign=abs(fpars['inc']) / fpars['inc']
             rpars.append(fpars['inc']-isign*90.) #Beta inc
-            rpars.append(fpars['alpha95']) # gamma 
+            rpars.append(fpars['alpha95']) # gamma
             rpars.append(fpars['dec']+90.) # Beta dec
             rpars.append(0.) #Beta inc
     if dist=='K':
@@ -165,13 +161,13 @@ def main():
                 if key!='n':print("    ",key, '%7.1f'%(kpars[key]))
                 if key=='n':print("    ",key, '       %i'%(kpars[key]))
             mode+=1
-            npars.append(kpars['dec']) 
+            npars.append(kpars['dec'])
             npars.append(kpars['inc'])
-            npars.append(kpars['Zeta']) 
-            npars.append(kpars['Zdec']) 
+            npars.append(kpars['Zeta'])
+            npars.append(kpars['Zdec'])
             npars.append(kpars['Zinc'])
-            npars.append(kpars['Eta']) 
-            npars.append(kpars['Edec']) 
+            npars.append(kpars['Eta'])
+            npars.append(kpars['Edec'])
             npars.append(kpars['Einc'])
         if len(rDIs)>3:
             kpars=pmag.dokent(rDIs,len(rDIs))
@@ -180,13 +176,13 @@ def main():
                 if key!='n':print("    ",key, '%7.1f'%(kpars[key]))
                 if key=='n':print("    ",key, '       %i'%(kpars[key]))
             mode+=1
-            rpars.append(kpars['dec']) 
+            rpars.append(kpars['dec'])
             rpars.append(kpars['inc'])
-            rpars.append(kpars['Zeta']) 
-            rpars.append(kpars['Zdec']) 
+            rpars.append(kpars['Zeta'])
+            rpars.append(kpars['Zdec'])
             rpars.append(kpars['Zinc'])
-            rpars.append(kpars['Eta']) 
-            rpars.append(kpars['Edec']) 
+            rpars.append(kpars['Eta'])
+            rpars.append(kpars['Edec'])
             rpars.append(kpars['Einc'])
     else: # assume bootstrap
         if dist=='BE':
@@ -198,13 +194,13 @@ def main():
                     if key!='n':print("    ",key, '%7.1f'%(Bkpars[key]))
                     if key=='n':print("    ",key, '       %i'%(Bkpars[key]))
                 mode+=1
-                npars.append(Bkpars['dec']) 
+                npars.append(Bkpars['dec'])
                 npars.append(Bkpars['inc'])
-                npars.append(Bkpars['Zeta']) 
-                npars.append(Bkpars['Zdec']) 
+                npars.append(Bkpars['Zeta'])
+                npars.append(Bkpars['Zdec'])
                 npars.append(Bkpars['Zinc'])
-                npars.append(Bkpars['Eta']) 
-                npars.append(Bkpars['Edec']) 
+                npars.append(Bkpars['Eta'])
+                npars.append(Bkpars['Edec'])
                 npars.append(Bkpars['Einc'])
             if len(rDIs)>5:
                 BrDIs=pmag.di_boot(rDIs)
@@ -214,28 +210,28 @@ def main():
                     if key!='n':print("    ",key, '%7.1f'%(Bkpars[key]))
                     if key=='n':print("    ",key, '       %i'%(Bkpars[key]))
                 mode+=1
-                rpars.append(Bkpars['dec']) 
+                rpars.append(Bkpars['dec'])
                 rpars.append(Bkpars['inc'])
-                rpars.append(Bkpars['Zeta']) 
-                rpars.append(Bkpars['Zdec']) 
+                rpars.append(Bkpars['Zeta'])
+                rpars.append(Bkpars['Zdec'])
                 rpars.append(Bkpars['Zinc'])
-                rpars.append(Bkpars['Eta']) 
-                rpars.append(Bkpars['Edec']) 
+                rpars.append(Bkpars['Eta'])
+                rpars.append(Bkpars['Edec'])
                 rpars.append(Bkpars['Einc'])
             title="Bootstrapped confidence ellipse"
         elif dist=='BV':
             if len(nDIs)>5:
-                pmagplotlib.plotEQ(EQ['eq'],nDIs,'Data')
+                pmagplotlib.plot_eq(EQ['eq'],nDIs,'Data')
                 BnDIs=pmag.di_boot(nDIs)
-                pmagplotlib.plotEQ(EQ['bdirs'],BnDIs,'Bootstrapped Eigenvectors')
+                pmagplotlib.plot_eq(EQ['bdirs'],BnDIs,'Bootstrapped Eigenvectors')
             if len(rDIs)>5:
                 BrDIs=pmag.di_boot(rDIs)
                 if len(nDIs)>5:  # plot on existing plots
                     pmagplotlib.plot_di(EQ['eq'],rDIs)
                     pmagplotlib.plot_di(EQ['bdirs'],BrDIs)
                 else:
-                    pmagplotlib.plotEQ(EQ['eq'],rDIs,'Data')
-                    pmagplotlib.plotEQ(EQ['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
+                    pmagplotlib.plot_eq(EQ['eq'],rDIs,'Data')
+                    pmagplotlib.plot_eq(EQ['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
             pmagplotlib.draw_figs(EQ)
             ans=input('s[a]ve, [q]uit ')
             if ans=='q':sys.exit()
@@ -244,12 +240,12 @@ def main():
                 for key in list(EQ.keys()):
                     files[key]='BE_'+key+'.svg'
                 pmagplotlib.saveP(EQ,files)
-            sys.exit() 
+            sys.exit()
     if len(nDIs)>5:
         pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,npars,1)
-        if len(rDIs)>5 and dist!='B': 
+        if len(rDIs)>5 and dist!='B':
             pmagplotlib.plotCONF(EQ['eq'],title,[],rpars,0)
-    elif len(rDIs)>5 and dist!='B': 
+    elif len(rDIs)>5 and dist!='B':
         pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,rpars,1)
     pmagplotlib.draw_figs(EQ)
     ans=input('s[a]ve, [q]uit ')

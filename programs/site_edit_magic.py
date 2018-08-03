@@ -161,7 +161,7 @@ def main():
             if out_file!="":
                 if float(fpars["alpha95"])<=acutoff and float(fpars["K"])>=kcutoff:
                     out.write('%s %s %s\n'%(fpars["dec"],fpars['inc'],fpars['alpha95']))
-            pmagplotlib.plotLNP(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
+            pmagplotlib.plot_lnp(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
             pmagplotlib.draw_figs(EQ)
             if k!=0 and repeat!='y':
                 ans=input("s[a]ve plot, [q]uit, [e]dit specimens, [p]revious site, <return> to continue:\n ")

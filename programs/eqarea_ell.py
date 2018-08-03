@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from past.utils import old_div
 import sys
 import numpy
 import matplotlib
@@ -67,7 +63,7 @@ def main():
         fmt=sys.argv[ind+1]
     DIblock=numpy.array([data[0],data[1]]).transpose()
     if len(DIblock)>0:
-        pmagplotlib.plotEQsym(FIG['eq'],DIblock,title,sym)
+        pmagplotlib.plot_eq_sym(FIG['eq'],DIblock,title,sym)
         #if plot==0:pmagplotlib.draw_figs(FIG)
     else:
         print("no data to plot")
@@ -107,7 +103,7 @@ def main():
                 npars.append(fpars['inc'])
                 npars.append(fpars['alpha95']) # Beta
                 npars.append(fpars['dec'])
-                isign=old_div(abs(fpars['inc']),fpars['inc'])
+                isign=abs(fpars['inc']) / fpars['inc']
                 npars.append(fpars['inc']-isign*90.) #Beta inc
                 npars.append(fpars['alpha95']) # gamma
                 npars.append(fpars['dec']+90.) # Beta dec
@@ -123,7 +119,7 @@ def main():
                 rpars.append(fpars['inc'])
                 rpars.append(fpars['alpha95']) # Beta
                 rpars.append(fpars['dec'])
-                isign=old_div(abs(fpars['inc']),fpars['inc'])
+                isign=abs(fpars['inc']) / fpars['inc']
                 rpars.append(fpars['inc']-isign*90.) #Beta inc
                 rpars.append(fpars['alpha95']) # gamma
                 rpars.append(fpars['dec']+90.) # Beta dec
@@ -204,13 +200,13 @@ def main():
                 vsym={'lower':['+','k'],'upper':['x','k'],'size':5}
                 if len(nDIs)>5:
                     BnDIs=pmag.di_boot(nDIs)
-                    pmagplotlib.plotEQsym(FIG['bdirs'],BnDIs,'Bootstrapped Eigenvectors',vsym)
+                    pmagplotlib.plot_eq_sym(FIG['bdirs'],BnDIs,'Bootstrapped Eigenvectors',vsym)
                 if len(rDIs)>5:
                     BrDIs=pmag.di_boot(rDIs)
                     if len(nDIs)>5:  # plot on existing plots
                         pmagplotlib.plot_di_sym(FIG['bdirs'],BrDIs,vsym)
                     else:
-                        pmagplotlib.plotEQ(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors',vsym)
+                        pmagplotlib.plot_eq(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors',vsym)
         if dist=='B':
             if len(nDIs)> 3 or len(rDIs)>3: pmagplotlib.plotCONF(FIG['eq'],etitle,[],npars,0)
         elif len(nDIs)>3 and dist!='BV':

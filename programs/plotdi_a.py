@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from builtins import range
-from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -23,7 +18,7 @@ def main():
        takes dec, inc, alpha95 as first three columns in space delimited file
 
     SYNTAX
-       plotdi_a.py [-i][-f FILE] 
+       plotdi_a.py [-i][-f FILE]
 
     OPTIONS
         -f FILE to read file name from command line
@@ -56,7 +51,7 @@ def main():
         pars.append(float(rec[1]))
         pars.append(float(rec[2]))
         pars.append(float(rec[0]))
-        isign=old_div(abs(float(rec[1])),float(rec[1]))
+        isign=abs(float(rec[1])) / float(rec[1])
         pars.append(float(rec[1])-isign*90.) #Beta inc
         pars.append(float(rec[2])) # gamma
         pars.append(float(rec[0])+90.) # Beta dec
@@ -66,12 +61,12 @@ def main():
     EQ={'eq':1} # make plot dictionary
     pmagplotlib.plot_init(EQ['eq'],5,5)
     title='Equal area projection'
-    pmagplotlib.plotEQ(EQ['eq'],DIs,title)# plot directions
+    pmagplotlib.plot_eq(EQ['eq'],DIs,title)# plot directions
     for k in range(len(Pars)):
         pmagplotlib.plotELL(EQ['eq'],Pars[k],'b',0,1) # plot ellipses
     files={}
     for key in list(EQ.keys()):
-        files[key]=key+'.'+fmt 
+        files[key]=key+'.'+fmt
     titles={}
     titles['eq']='Equal Area Plot'
     if pmagplotlib.isServer:
@@ -83,10 +78,10 @@ def main():
         pmagplotlib.draw_figs(EQ)
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
-        if ans=="a": 
-            pmagplotlib.saveP(EQ,files) 
+        if ans=="a":
+            pmagplotlib.saveP(EQ,files)
     else:
-        pmagplotlib.saveP(EQ,files) 
+        pmagplotlib.saveP(EQ,files)
     #
 
 if __name__ == "__main__":

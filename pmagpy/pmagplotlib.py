@@ -299,7 +299,7 @@ def plot_site(fignum, SiteRec, data, key):
     for i in range(len(data)):
         print('%s: %s %s %s / %s | %s' % (data[i]['er_' + key + '_name'], data[i][key + '_dec'], data[i]
                                           [key + '_inc'], data[i][key + '_n'], data[i][key + '_alpha95'], data[i]['magic_method_codes']))
-    plotSLNP(fignum, SiteRec, data, key)
+    plot_slnp(fignum, SiteRec, data, key)
     plot = input("s[a]ve plot, [q]uit or <return> to continue:   ")
     if plot == 'q':
         print("CUL8R")
@@ -861,11 +861,11 @@ def plot_zed(ZED, datablock, angle, s, units):
             DIgood.append((rec[1], rec[2]))
     badsym = {'lower': ['+', 'g'], 'upper': ['x', 'c']}
     if len(DIgood) > 0:
-        plotEQ(ZED['eqarea'], DIgood, s)
+        plot_eq(ZED['eqarea'], DIgood, s)
         if len(DIbad) > 0:
             plot_di_sym(ZED['eqarea'], DIbad, badsym)
     elif len(DIbad) > 0:
-        plotEQsym(ZED['eqarea'], DIbad, badsym)
+        plot_eq_sym(ZED['eqarea'], DIbad, badsym)
     AngleX, AngleY = [], []
     XY = pmag.dimap(angle, 90.)
     AngleX.append(XY[0])
@@ -1142,7 +1142,7 @@ def plot_arai(fignum, indata, s, units):
 #
 
 
-def plotNP(fignum, indata, s, units):
+def plot_np(fignum, indata, s, units):
     """
     makes plot of de(re)magnetization data for Thellier-Thellier type experiment
 
@@ -1233,7 +1233,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     plot_arai : Arai plots
     plotTEQ : equal area projection for Thellier data
     plotZ : Zijderveld diagram
-    plotNP : de (re) magnetization diagram
+    plot_np : de (re) magnetization diagram
     """
     angle = zijdblock[0][1]
     norm = 1
@@ -1242,10 +1242,10 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     plot_arai(ZED['arai'], araiblock, s, units)
     plotTEQ(ZED['eqarea'], araiblock, s, "")
     plot_zij(ZED['zijd'], zijdblock, angle, s, norm)
-    plotNP(ZED['deremag'], araiblock, s, units)
+    plot_np(ZED['deremag'], araiblock, s, units)
 
-
-def plotSHAW(SHAW, shawblock, zijdblock, field, s):
+# not used
+def plot_shaw(SHAW, shawblock, zijdblock, field, s):
     angle = zijdblock[0][1]
     plot_zij(SHAW['zijd'], zijdblock, angle, s)
     NRM, TRM, ARM1, ARM2 = shawblock[0], shawblock[1], shawblock[2], shawblock[3]
@@ -1313,7 +1313,7 @@ def plotSHAW(SHAW, shawblock, zijdblock, field, s):
     plt.text(.5 * TRM[-1][1] + .2, .9, notestr)
 
 
-def plotB(Figs, araiblock, zijdblock, pars):
+def plot_b(Figs, araiblock, zijdblock, pars):
     angle = zijdblock[0][1]
     plotblock = []
     Dir, zx, zy, zz, ax, ay = [], [], [], [], [], []
@@ -1379,7 +1379,7 @@ def plotB(Figs, araiblock, zijdblock, pars):
     plt.text(.7 * bounds[1], .8 * bounds[3], notestr)
 
 
-def plotSLNP(fignum, SiteRec, datablock, key):
+def plot_slnp(fignum, SiteRec, datablock, key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
     """
@@ -1433,7 +1433,7 @@ def plotSLNP(fignum, SiteRec, datablock, key):
     plt.plot(Xcirc, Ycirc, 'g')
 
 
-def plotLNP(fignum, s, datablock, fpars, direction_type_key):
+def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
 
@@ -1499,7 +1499,7 @@ def plotLNP(fignum, s, datablock, fpars, direction_type_key):
     plt.plot(Xcirc, Ycirc, 'g')
 
 
-def plotEQ(fignum, DIblock, s):
+def plot_eq(fignum, DIblock, s):
     """
     plots directions
     """
@@ -1520,7 +1520,7 @@ def plotEQ(fignum, DIblock, s):
     plt.draw()
 
 
-def plotEQsym(fignum, DIblock, s, sym):
+def plot_eq_sym(fignum, DIblock, s, sym):
     """
     plots directions with specified symbol
     """
@@ -3229,7 +3229,7 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     cbar=m.colorbar(cs,location='bottom')
 
 
-def plotEQcont(fignum, DIblock,color_map='coolwarm'):
+def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
     """
     plots dec inc block as a color contour
     Parameters

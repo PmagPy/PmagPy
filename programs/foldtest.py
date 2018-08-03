@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import input
-from builtins import range
-from past.utils import old_div
 import sys
 import numpy
 import matplotlib
@@ -39,7 +34,7 @@ def main():
         -fmt FMT, specify format - default is svg
         -sav  save figures and quit
     INPUT FILE
-	Dec Inc Dip_Direction Dip  in space delimited file
+    Dec Inc Dip_Direction Dip  in space delimited file
 
     OUTPUT PLOTS
         Geographic: is an equal area projection of the input data in
@@ -98,7 +93,7 @@ nd the number of bootstrap samples
     if '-u' in sys.argv:
         ind=sys.argv.index('-u')
         csd=float(sys.argv[ind+1])
-        kappa=(old_div(81.,csd))**2
+        kappa=(81. / csd)**2
     #
     # get to work
     #
@@ -106,10 +101,10 @@ nd the number of bootstrap samples
     pmagplotlib.plot_init(PLTS['geo'],5,5)
     pmagplotlib.plot_init(PLTS['strat'],5,5)
     pmagplotlib.plot_init(PLTS['taus'],5,5)
-    pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
+    pmagplotlib.plot_eq(PLTS['geo'],DIDDs,'Geographic')
     D,I=pmag.dotilt_V(DIDDs)
     TCs=numpy.array([D,I]).transpose()
-    pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
+    pmagplotlib.plot_eq(PLTS['strat'],TCs,'Stratigraphic')
     if not set_env.IS_WIN:
         if plot==0:pmagplotlib.draw_figs(PLTS)
     Percs=list(range(min,max))
@@ -134,7 +129,7 @@ nd the number of bootstrap samples
                 Taus.append(ppars['tau1'])
             if n<25:pylab.plot(Percs,Taus,'r--')
             Untilt.append(Percs[Taus.index(numpy.max(Taus))]) # tilt that gives maximum tau
-            Cdf.append(old_div(float(n),float(nb)))
+            Cdf.append(float(n) / float(nb))
     pylab.plot(Percs,Taus,'k')
     pylab.xlabel('% Untilting')
     pylab.ylabel('tau_1 (red), CDF (green)')

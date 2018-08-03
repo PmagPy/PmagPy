@@ -396,7 +396,7 @@ def main():
                                         print('Saved interpretation: ')
                                     pars, kill = pmag.scoreit(
                                         pars, PmagSpecRec, accept, '', verbose)
-                                    pmagplotlib.plotB(
+                                    pmagplotlib.plot_b(
                                         AZD, araiblock, zijdblock, pars)
                                     if verbose:
                                         pmagplotlib.draw_figs(AZD)
@@ -456,7 +456,7 @@ def main():
                         pars["specimen_int"] = -1*field*pars["specimen_b"]
                         pars["er_specimen_name"] = s
                         pars['specimen_grade'] = ''  # ungraded
-                        pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
+                        pmagplotlib.plot_b(AZD, araiblock, zijdblock, pars)
                         if verbose:
                             pmagplotlib.draw_figs(AZD)
                         if len(trmblock) > 2:
@@ -633,7 +633,7 @@ def main():
                             PmagSpecRec["magic_software_packages"] = version_num
                             pmagplotlib.plotAZ(
                                 AZD, araiblock, zijdblock, s, units[0])
-                            pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
+                            pmagplotlib.plot_b(AZD, araiblock, zijdblock, pars)
                             if verbose:
                                 pmagplotlib.draw_figs(AZD)
                             if len(trmblock) > 2:

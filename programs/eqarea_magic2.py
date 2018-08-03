@@ -226,9 +226,9 @@ def main():
                     SPblock[k][0], SPblock[k][1], GCblock[k][0], GCblock[k][1]))
         if len(DIblock) > 0:
             if contour == 0:
-                pmagplotlib.plotEQ(FIG['eqarea'], DIblock, title)
+                pmagplotlib.plot_eq(FIG['eqarea'], DIblock, title)
             else:
-                pmagplotlib.plotEQcont(FIG['eqarea'], DIblock)
+                pmagplotlib.plot_eq_cont(FIG['eqarea'], DIblock)
         else:
             pmagplotlib.plot_net(FIG['eqarea'])
         if len(GCblock) > 0:
@@ -382,14 +382,14 @@ def main():
                         'o', 'g'], 'size': 3, 'edgecolor': 'face'}
                     if len(nDIs) > 5:
                         BnDIs = pmag.di_boot(nDIs)
-                        pmagplotlib.plotEQsym(
+                        pmagplotlib.plot_eq_sym(
                             FIG['bdirs'], BnDIs, 'Bootstrapped Eigenvectors', sym)
                     if len(rDIs) > 5:
                         BrDIs = pmag.di_boot(rDIs)
                         if len(nDIs) > 5:  # plot on existing plots
                             pmagplotlib.plot_di_sym(FIG['bdirs'], BrDIs, sym)
                         else:
-                            pmagplotlib.plotEQ(
+                            pmagplotlib.plot_eq(
                                 FIG['bdirs'], BrDIs, 'Bootstrapped Eigenvectors')
             if dist == 'B':
                 if len(nDIs) > 3 or len(rDIs) > 3:

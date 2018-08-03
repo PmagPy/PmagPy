@@ -76,7 +76,7 @@ def main():
     pmagplotlib.plot_init(PLTS['ei'],5,5)
     pmagplotlib.plot_init(PLTS['cdf'],5,5)
     pmagplotlib.plot_init(PLTS['v2'],5,5)
-    pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
+    pmagplotlib.plot_eq(PLTS['eq'],data,'Data')
     # this is a problem
     #if plot==0:pmagplotlib.draw_figs(PLTS)
     ppars=pmag.doprinc(data)

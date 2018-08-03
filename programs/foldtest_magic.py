@@ -196,11 +196,11 @@ def main():
         print('no geographic directional data found')
         sys.exit()
 
-    pmagplotlib.plotEQ(PLTS['geo'], DIDDs, 'Geographic')
+    pmagplotlib.plot_eq(PLTS['geo'], DIDDs, 'Geographic')
     data = np.array(DIDDs)
     D, I = pmag.dotilt_V(data)
     TCs = np.array([D, I]).transpose()
-    pmagplotlib.plotEQ(PLTS['strat'], TCs, 'Stratigraphic')
+    pmagplotlib.plot_eq(PLTS['strat'], TCs, 'Stratigraphic')
     if plot == 0:
         pmagplotlib.draw_figs(PLTS)
     Percs = list(range(untilt_min, untilt_max))
