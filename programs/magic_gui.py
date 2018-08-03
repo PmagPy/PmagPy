@@ -22,7 +22,7 @@ from dialogs import pmag_widgets as pw
 from dialogs import magic_grid3 as magic_grid
 from dialogs import pmag_menu_dialogs
 from dialogs import grid_frame3 as grid_frame
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 
 
 class MainFrame(wx.Frame):

@@ -10,7 +10,7 @@ import os
 from pmagpy.mapping import map_magic
 from pmagpy.mapping import maps
 from pmagpy.data_model3 import DataModel
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmagpy import pmag
 DM = DataModel()
 TEST_DIR = pmag.get_test_WD()

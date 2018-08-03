@@ -6,7 +6,7 @@ import wx
 import unittest
 import os
 from programs import magic_gui
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 import dialogs
 from dialogs import grid_frame3 as grid_frame
 #import dialogs.pmag_widgets as pmag_widgets

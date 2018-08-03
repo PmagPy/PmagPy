@@ -8,7 +8,7 @@ import numpy as np
 
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 
 
 def main():

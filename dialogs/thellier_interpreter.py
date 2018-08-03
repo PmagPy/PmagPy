@@ -28,7 +28,7 @@ import gzip
 import copy
 #from scipy.optimize import curve_fit
 from . import thellier_gui_lib
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 
 
 class thellier_auto_interpreter():

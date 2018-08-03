@@ -9,7 +9,7 @@ from dialogs import drop_down_menus3 as drop_down_menus
 from dialogs import pmag_widgets as pw
 from dialogs import magic_grid3 as magic_grid
 #from pmagpy.controlled_vocabularies3 import vocab
-import pmagpy.contribution_builder as nb
+import pmagpy.contribution_builder as cb
 
 
 class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):

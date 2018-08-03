@@ -15,7 +15,7 @@ from pmag_env import set_env
 if not set_env.isServer:
     import pmagpy.nlt as nlt
 
-import pmagpy.contribution_builder as nb
+import pmagpy.contribution_builder as cb
 
 
 def main():

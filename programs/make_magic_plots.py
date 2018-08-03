@@ -3,7 +3,7 @@ import sys
 import os
 import pandas as pd
 from pmagpy import pmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 
 
 def main():

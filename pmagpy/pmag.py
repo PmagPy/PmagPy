@@ -17,7 +17,7 @@ import time
 import math
 import pandas as pd
 from .mapping import map_magic
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 
 

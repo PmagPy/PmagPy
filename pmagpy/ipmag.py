@@ -20,7 +20,7 @@ import re
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmag_env import set_env
 
 

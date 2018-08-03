@@ -4,7 +4,7 @@ import unittest
 import os
 #import sys
 from pmagpy import pmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmagpy import convert_2_magic as convert
 from programs.conversion_scripts import generic_magic
 from programs.conversion_scripts import sio_magic

@@ -6,7 +6,7 @@ if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 
 import pmagpy.pmag as pmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 import pmagpy.pmagplotlib as pmagplotlib
 
 

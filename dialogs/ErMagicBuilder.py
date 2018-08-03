@@ -16,7 +16,7 @@ import wx.html
 from . import pmag_widgets as pw
 from pmagpy import find_pmag_dir
 from pmagpy import builder2 as builder
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmagpy import data_model3 as data_model
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \

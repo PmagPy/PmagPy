@@ -7,7 +7,7 @@ import unittest
 import os
 #import dialogs.pmag_widgets as pmag_widgets
 from pmagpy import pmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv3
 

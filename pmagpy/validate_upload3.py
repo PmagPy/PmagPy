@@ -7,7 +7,7 @@ from builtins import str
 from builtins import range
 import os
 import numpy as np
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 
 
 ## LOW-LEVEL VALIDATION FUNCTIONS

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pmagpy import pmag
 from pmagpy import ipmag
-from pmagpy import contribution_builder as nb
+from pmagpy import contribution_builder as cb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 
