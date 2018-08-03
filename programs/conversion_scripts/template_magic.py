@@ -19,7 +19,7 @@ OPTIONS
 from __future__ import print_function
 import os,sys
 import pmagpy.pmag as pmag
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 from pandas import DataFrame
 
 def convert(**kwargs):

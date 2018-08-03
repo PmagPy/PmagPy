@@ -40,8 +40,8 @@ echo Do Test Programs
 pythonw -m unittest -v pmagpy_tests.test_programs
 echo Do Test Magic GUI 2
 pythonw -m unittest -v pmagpy_tests.test_magic_gui2
-echo Do Test New Builder
-pythonw -m unittest -v pmagpy_tests.test_new_builder
+echo Do Test Contribution Builder
+pythonw -m unittest -v pmagpy_tests.test_contribution_builder
 echo Do Test Er Magic Dialogs
 pythonw -m unittest -v pmagpy_tests.test_er_magic_dialogs
 echo Do Test Find Pmag Dir

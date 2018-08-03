@@ -9,7 +9,7 @@ from scipy import *
 import programs
 from pmagpy import pmag
 from pmagpy import convert_2_magic as convert
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 from dialogs import pmag_widgets as pw
 from pmagpy import ipmag
 

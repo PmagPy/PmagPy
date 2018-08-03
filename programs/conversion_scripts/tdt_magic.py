@@ -27,7 +27,7 @@ import sys
 import os
 from dialogs import pmag_widgets as pw
 from pmagpy import convert_2_magic as convert
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 import pmagpy.pmag as pmag
 from pmagpy import ipmag
 from pmagpy import convert_2_magic

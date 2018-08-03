@@ -12,7 +12,7 @@ from . import magic_grid2 as magic_grid
 from . import grid_frame2
 from . import grid_frame3
 from pmagpy import find_pmag_dir
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 
 
 class ErMagicCheckFrame3(wx.Frame):

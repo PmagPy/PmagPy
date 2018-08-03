@@ -7,7 +7,7 @@ import re
 import matplotlib
 from pmagpy import pmag
 from pmagpy import ipmag
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 #from pmagpy import find_pmag_dir
 WD = pmag.get_test_WD()
 

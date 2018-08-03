@@ -8,7 +8,7 @@ import wx
 from . import pmag_widgets as pw
 from . import pmag_menu_dialogs
 from pmagpy import builder2 as builder
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 
 
 class MagICMenu(wx.MenuBar):

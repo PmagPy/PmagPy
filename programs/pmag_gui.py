@@ -18,7 +18,7 @@ import webbrowser
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import builder2 as builder
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 from dialogs import pmag_basic_dialogs_native3 as pbd3
 from dialogs import pmag_basic_dialogs as pbd2
 from dialogs import pmag_er_magic_dialogs

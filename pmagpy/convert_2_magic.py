@@ -11,7 +11,7 @@ import numpy as np
 import math
 import pandas as pd
 import pmagpy.pmag as pmag
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 
 
 ### _2g_bin_magic conversion

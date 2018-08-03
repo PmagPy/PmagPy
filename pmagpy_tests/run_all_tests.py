@@ -34,7 +34,7 @@ if (__name__ == "__main__") or (__name__ == 'pmagpy_tests.run_all_tests'):
     suite9 = unittest.TestLoader().loadTestsFromModule(pt.test_validations)
     suite10 = unittest.TestLoader().loadTestsFromModule(pt.test_programs)
     suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui2)
-    suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_new_builder)
+    suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_contribution_builder)
     suite14 = unittest.TestLoader().loadTestsFromModule(pt.test_er_magic_dialogs)
     suite15 = unittest.TestLoader().loadTestsFromModule(pt.test_find_pmag_dir)
     suite16 = unittest.TestLoader().loadTestsFromModule(pt.test_map_magic)

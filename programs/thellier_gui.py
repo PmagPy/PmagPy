@@ -202,7 +202,7 @@ import pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
 import pmagpy.find_pmag_dir as find_pmag_dir
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
 import pandas as pd

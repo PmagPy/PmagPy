@@ -4,7 +4,7 @@ from builtins import input
 from builtins import str
 import sys
 import pmagpy.pmag as pmag
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 import pytz, datetime
 
 def main():

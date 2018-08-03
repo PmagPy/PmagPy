@@ -5,7 +5,7 @@ import codecs
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from .new_builder import Contribution
+from .contribution_builder import Contribution
 from . import validate_upload3 as val_up3
 import copy
 import numpy as np
@@ -20,7 +20,7 @@ import re
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 from pmag_env import set_env
 
 
@@ -3950,7 +3950,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if not provided will be created (default None)
     vocab : pmagpy controlled_vocabularies3.Vocabulary object,
         if not provided will be created (default None)
-    contribution : pmagpy new_builder.Contribution object, if not provided will be created
+    contribution : pmagpy contribution_builder.Contribution object, if not provided will be created
         in directory (default None)
     Returns
     ----------

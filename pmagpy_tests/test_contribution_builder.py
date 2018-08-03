@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pmagpy import pmag
 from pmagpy import ipmag
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 
@@ -238,7 +238,7 @@ class TestContribution(unittest.TestCase):
                     print(os.path.join(WD, fname))
                     os.remove(os.path.join(WD, fname))
                 except OSError:
-                    print("error when removing files for empty directory test in test_new_builder")
+                    print("error when removing files for empty directory test in test_contribution_builder")
         con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 

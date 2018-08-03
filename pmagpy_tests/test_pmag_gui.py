@@ -9,7 +9,7 @@ from programs import pmag_gui
 from pmagpy import pmag
 from pmagpy import validate_upload2 as validate_upload
 from pmagpy import data_model3 as data_model
-from pmagpy import new_builder as nb
+from pmagpy import contribution_builder as nb
 
 #def set_consts(dmodel):
 #    global TEST_DIR, dmodel2, project2_WD, core_depthplot_WD

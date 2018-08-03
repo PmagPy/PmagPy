@@ -85,7 +85,7 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
-import pmagpy.new_builder as nb
+import pmagpy.contribution_builder as nb
 from pandas import DataFrame,Series
 from pmagpy.mapping import map_magic
 import help_files.demag_gui_help as dgh
