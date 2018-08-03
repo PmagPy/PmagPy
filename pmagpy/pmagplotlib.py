@@ -3064,7 +3064,7 @@ def plotMAP(fignum, lats, lons, Opts):
             m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])  # plot last chunk
 
 
-def plot_map(fignum, lats, lons, Opts):
+def plot_map_cartopy(fignum, lats, lons, Opts):
     """
     makes a cartopy map  with lats/lons
     """
