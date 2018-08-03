@@ -180,11 +180,11 @@ def main():
             if ans == 'q':
                 sys.exit()
             if ans == "a":
-                pmagplotlib.saveP(FIG, files)
+                pmagplotlib.save_plots(FIG, files)
             if plt != plotlist[-1]: # if it isn't the last plot, init the next one
                 pmagplotlib.plot_init(FIG['exp'], 6, 6)
         else:
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
         pmagplotlib.clearFIG(FIG['exp'])
 
 

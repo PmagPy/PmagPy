@@ -347,7 +347,7 @@ def main():
                    files={}
                    for key in list(AZD.keys()):
                        files[key]=s+'_'+key+fmt
-                   pmagplotlib.saveP(AZD,files)
+                   pmagplotlib.save_plots(AZD,files)
                    sys.exit()
                if plots==0:
                    ans='b'
@@ -367,7 +367,7 @@ def main():
                            files={}
                            for key in list(AZD.keys()):
                                files[key]=s+'_'+key+fmt
-                           pmagplotlib.saveP(AZD,files)
+                           pmagplotlib.save_plots(AZD,files)
                            ans=""
                        if ans=='q':
                            print("Good bye")
@@ -491,7 +491,7 @@ def main():
                            titles['zijd']='Zijderveld Plot'
                            titles['arai']='Arai Plot'
                            AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
-                       pmagplotlib.saveP(AZD,files)
+                       pmagplotlib.save_plots(AZD,files)
     #                   pmagplotlib.combineFigs(s,files,3)
         if len(CurrRec)>0:
             for rec in CurrRec:
@@ -504,7 +504,7 @@ def main():
                 files={}
                 for key in list(AZD.keys()):
                     files[key]=s+'_'+key+fmt
-                pmagplotlib.saveP(AZD,files)
+                pmagplotlib.save_plots(AZD,files)
         if len(CurrRec)>0:PriorRecs.append(CurrRec) # put back an interpretation
         if len(PriorRecs)>0:
             save_redo(PriorRecs,inspec)

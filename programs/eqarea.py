@@ -81,15 +81,15 @@ def main():
         titles = {}
         titles['eq'] = 'Equal Area Plot'
         EQ = pmagplotlib.addBorders(EQ, titles, black, purple)
-        pmagplotlib.saveP(EQ, files)
+        pmagplotlib.save_plots(EQ, files)
     elif plot == 1:
         fname = os.path.split(fname)[1].split('.')[0]
         files['eq'] = fname + '_eq.' + fmt
-        pmagplotlib.saveP(EQ, files)
+        pmagplotlib.save_plots(EQ, files)
     else:
         ans = input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans == "a":
-            pmagplotlib.saveP(EQ, files)
+            pmagplotlib.save_plots(EQ, files)
 
 
 if __name__ == "__main__":

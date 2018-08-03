@@ -65,13 +65,13 @@ def main():
         titles={}
         titles['eq']='Q-Q Plot'
         QQ = pmagplotlib.addBorders(EQ,titles,black,purple)
-        pmagplotlib.saveP(QQ,files)
+        pmagplotlib.save_plots(QQ,files)
     elif plot==0:
         ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": 
-            pmagplotlib.saveP(QQ,files) 
+            pmagplotlib.save_plots(QQ,files) 
     else:
-        pmagplotlib.saveP(QQ,files) 
+        pmagplotlib.save_plots(QQ,files) 
     #
 
 if __name__ == "__main__":

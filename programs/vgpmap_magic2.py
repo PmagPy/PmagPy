@@ -216,7 +216,7 @@ def main():
         Opts['sym'] = 'g-'
         for ppars in Pars:
             if ppars[2] != 0:
-                PTS = pmagplotlib.plotELL(FIG['map'], ppars, 'g.', 0, 0)
+                PTS = pmagplotlib.plot_ell(FIG['map'], ppars, 'g.', 0, 0)
                 elats, elons = [], []
                 for pt in PTS:
                     elons.append(pt[0])
@@ -238,17 +238,17 @@ def main():
         titles = {}
         titles['eq'] = 'LO:_'+location+'_VGP_map'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
     elif plot == 0:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
         else:
             print("Good bye")
             sys.exit()
     else:
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
 
 
 if __name__ == "__main__":

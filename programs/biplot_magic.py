@@ -199,7 +199,7 @@ def main():
                 if ans=='a':
                     files={}
                     for key in list(FIG.keys()): files[key]=plot+'_'+key+fmt
-                    pmagplotlib.saveP(FIG,files)
+                    pmagplotlib.save_plots(FIG,files)
                 if ans=='q':
                     print("Good-bye\n")
                     sys.exit()
@@ -212,7 +212,7 @@ def main():
                     titles={}
                     titles['fig']='X Y Plot'
                     FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
-                pmagplotlib.saveP(FIG,files)
+                pmagplotlib.save_plots(FIG,files)
         else:
             print('nothing to plot for ',plot)
 

@@ -154,5 +154,5 @@ nd the number of bootstrap samples
         if ans!='a':
             print("Good bye")
             sys.exit()
-    pmagplotlib.saveP(PLTS,files)
+    pmagplotlib.save_plots(PLTS,files)
 main()

@@ -63,7 +63,7 @@ def main():
     title='Equal area projection'
     pmagplotlib.plot_eq(EQ['eq'],DIs,title)# plot directions
     for k in range(len(Pars)):
-        pmagplotlib.plotELL(EQ['eq'],Pars[k],'b',0,1) # plot ellipses
+        pmagplotlib.plot_ell(EQ['eq'],Pars[k],'b',0,1) # plot ellipses
     files={}
     for key in list(EQ.keys()):
         files[key]=key+'.'+fmt
@@ -73,15 +73,15 @@ def main():
         black     = '#000000'
         purple    = '#800080'
         EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
-        pmagplotlib.saveP(EQ,files)
+        pmagplotlib.save_plots(EQ,files)
     elif plot==0:
         pmagplotlib.draw_figs(EQ)
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a":
-            pmagplotlib.saveP(EQ,files)
+            pmagplotlib.save_plots(EQ,files)
     else:
-        pmagplotlib.saveP(EQ,files)
+        pmagplotlib.save_plots(EQ,files)
     #
 
 if __name__ == "__main__":

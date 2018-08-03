@@ -301,7 +301,7 @@ def main():
     if plot == 0 and not IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if plot == 1:
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
         sys.exit()
     if pmagplotlib.isServer:
         black = '#000000'
@@ -309,12 +309,12 @@ def main():
         titles = {}
         titles['eq'] = 'Site Map'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
     else:
         pmagplotlib.draw_figs(FIG)
         ans = pmagplotlib.save_or_quit()
         if ans == "a":
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
 
 
 if __name__ == "__main__":

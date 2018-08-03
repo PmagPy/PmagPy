@@ -182,7 +182,7 @@ def main():
                     else:
                         files[key] = "{}_{}.{}".format(synth, key, fmt)
 
-            pmagplotlib.saveP(HDD, files)
+            pmagplotlib.save_plots(HDD, files)
             if pltspec != "":
                 sys.exit()
         if verbose:
@@ -204,7 +204,7 @@ def main():
                         filename += ".{}".format(fmt)
                         files[key] = filename
 
-                pmagplotlib.saveP(HDD, files)
+                pmagplotlib.save_plots(HDD, files)
             if ans == '':
                 k += 1
             if ans == "p":

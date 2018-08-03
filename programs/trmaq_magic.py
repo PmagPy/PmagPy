@@ -129,7 +129,7 @@ def main():
                 ans=input("Return for next specimen, s[a]ve plot  ")
                 if ans=='a':
                     Name={'aq':rec['er_specimen_name']+'_TRM.svg'}
-                    pmagplotlib.saveP(PLT,Name)
+                    pmagplotlib.save_plots(PLT,Name)
                 specimen+=1
     pmag.magic_write(output,PmagSpecRecs,'pmag_specimens')
 

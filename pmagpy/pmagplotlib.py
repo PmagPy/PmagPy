@@ -308,7 +308,7 @@ def plot_site(fignum, SiteRec, data, key):
         files = {}
         for key in list(EQ.keys()):
             files[key] = site + '_' + key + '.' + fmt
-        saveP(EQ, files)
+        save_plots(EQ, files)
 
 
 def plot_qq_norm(fignum, Y, title):
@@ -1231,7 +1231,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     ________
     Makes four plots from the data by calling
     plot_arai : Arai plots
-    plotTEQ : equal area projection for Thellier data
+    plot_teq : equal area projection for Thellier data
     plotZ : Zijderveld diagram
     plot_np : de (re) magnetization diagram
     """
@@ -1240,7 +1240,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     if units == "U":
         norm = 0
     plot_arai(ZED['arai'], araiblock, s, units)
-    plotTEQ(ZED['eqarea'], araiblock, s, "")
+    plot_teq(ZED['eqarea'], araiblock, s, "")
     plot_zij(ZED['zijd'], zijdblock, angle, s, norm)
     plot_np(ZED['deremag'], araiblock, s, units)
 
@@ -1359,7 +1359,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
         if irec[0] >= pars['measurement_step_min'] and irec[0] <= pars['measurement_step_max']:
             new_I.append(irec)
     newblock = [new_Z, new_I]
-    plotTEQ(Figs['eqarea'], newblock, "", pars)
+    plot_teq(Figs['eqarea'], newblock, "", pars)
     plt.figure(num=Figs['arai'])
     plt.scatter(ax, ay, marker='d', s=100, c='y')
 #
@@ -1541,7 +1541,7 @@ def plot_eq_sym(fignum, DIblock, s, sym):
 #
 
 
-def plotTEQ(fignum, araiblock, s, pars):
+def plot_teq(fignum, araiblock, s, pars):
     """
     plots directions  of pTRM steps and zero field steps
 
@@ -1602,7 +1602,7 @@ def plotTEQ(fignum, araiblock, s, pars):
     plt.text(-1.1, 1.15, s)
 
 
-def saveP(Figs, filenames, **kwargs):
+def save_plots(Figs, filenames, **kwargs):
     """
     Parameters
     ----------
@@ -1632,7 +1632,7 @@ def saveP(Figs, filenames, **kwargs):
 #
 
 
-def plotEVEC(fignum, Vs, symsize, title):
+def plot_evec(fignum, Vs, symsize, title):
     """
     plots eigenvector directions of S vectors
     """
@@ -1658,7 +1658,7 @@ def plotEVEC(fignum, Vs, symsize, title):
 #
 
 
-def plotELL(fignum, pars, col, lower, plot):
+def plot_ell(fignum, pars, col, lower, plot):
     """
     function to calculate points on an ellipse about Pdec,Pdip with angle beta,gamma
     """
@@ -1739,7 +1739,7 @@ def plotELL(fignum, pars, col, lower, plot):
 fig_y_pos = 25
 
 
-def Vplot_init(fignum, w, h):
+def vertical_plot_init(fignum, w, h):
     # this is same as plot_init, but stacks things  vertically
     global fig_y_pos
     dpi = 80
@@ -1750,11 +1750,11 @@ def Vplot_init(fignum, w, h):
 #        fig_y_pos = fig_y_pos + dpi*(h) + 25
 
 
-def plotSTRAT(fignum, data, labels):
+def plot_strat(fignum, data, labels):
     #
     # plots a time/depth series
     #
-    Vplot_init(fignum, 10, 3)
+    vertical_plot_init(fignum, 10, 3)
     xlab, ylab, title = labels[0], labels[1], labels[2]
     X, Y = [], []
     for rec in data:
@@ -1770,7 +1770,7 @@ def plotSTRAT(fignum, data, labels):
 #
 
 
-def plotCDF(fignum, data, xlab, sym, title, **kwargs):
+def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     """ Makes a plot of the cumulative distribution function.
     Parameters
     __________
@@ -1815,7 +1815,7 @@ def plotCDF(fignum, data, xlab, sym, title, **kwargs):
 #
 
 
-def plotHs(fignum, Ys, c, ls):
+def plot_hs(fignum, Ys, c, ls):
     fig = plt.figure(num=fignum)
     for yv in Ys:
         bounds = plt.axis()
@@ -1832,7 +1832,7 @@ def plotVs(fignum, Xs, c, ls):
 
 
 def plotTS(fignum, dates, ts):
-    Vplot_init(fignum, 10, 3)
+    vertical_plot_init(fignum, 10, 3)
     TS, Chrons = pmag.get_ts(ts)
     p = 1
     X, Y = [], []
@@ -1853,7 +1853,7 @@ def plotTS(fignum, dates, ts):
             Y.append(p % 2)
             plt.plot(X, Y, 'k')
             plotVs(fignum, dates, 'w', '-')
-            plotHs(fignum, [1.1, -.1], 'w', '-')
+            plot_hs(fignum, [1.1, -.1], 'w', '-')
             plt.xlabel("Age (Ma): " + ts)
             isign = -1
             for c in Chrons:
@@ -2446,7 +2446,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             if not isServer:
                 plt.figtext(.02, .01, version_num)
         plot_net(ANIS['data'])  # draw the net
-        plotEVEC(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
+        plot_evec(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
 #
 # plot mean eigenvectors
 #
@@ -2465,7 +2465,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
         if title[0] == ":":
             title = title[1:]
         plot_net(ANIS['conf'])  # draw the net
-        plotEVEC(ANIS['conf'], Vs, 36, title)  # put on the mean eigenvectors
+        plot_evec(ANIS['conf'], Vs, 36, title)  # put on the mean eigenvectors
 #
 # plot mean confidence
 #
@@ -2480,17 +2480,17 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
         if plot == 1:
             if ivec == 1:
                 # put on the data eigenvectors
-                plotEVEC(ANIS['conf'], BVs, 5, '')
+                plot_evec(ANIS['conf'], BVs, 5, '')
             else:
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                plot_ell(ANIS['conf'], ellpars, 'r-,', 1, 1)
                 ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                plot_ell(ANIS['conf'], ellpars, 'b-,', 1, 1)
                 ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
+                plot_ell(ANIS['conf'], ellpars, 'k-,', 1, 1)
             plt.figure(num=ANIS['tcdf'])
             plt.clf()
             if not isServer:
@@ -2498,7 +2498,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             ts = []
             for t in Taus:
                 ts.append(t[0])
-            plotCDF(ANIS['tcdf'], ts, "", 'r', "")
+            plot_cdf(ANIS['tcdf'], ts, "", 'r', "")
             ts.sort()
             tminind = int(0.025 * len(ts))
             tmaxind = int(0.975 * len(ts))
@@ -2512,7 +2512,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             ts = []
             for t in Taus:
                 ts.append(t[1])
-            plotCDF(ANIS['tcdf'], ts, "", 'b', "")
+            plot_cdf(ANIS['tcdf'], ts, "", 'b', "")
             ts.sort()
             tminind = int(0.025 * len(ts))
             tmaxind = int(0.975 * len(ts))
@@ -2525,7 +2525,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
             ts = []
             for t in Taus:
                 ts.append(t[2])
-            plotCDF(ANIS['tcdf'], ts, "Eigenvalues", 'k', "")
+            plot_cdf(ANIS['tcdf'], ts, "Eigenvalues", 'k', "")
             ts.sort()
             tminind = int(0.025 * len(ts))
             tmaxind = int(0.975 * len(ts))
@@ -2550,7 +2550,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                 plt.clf()
                 if not isServer:
                     plt.figtext(.02, .01, version_num)
-                plotCDF(ANIS['vxcdf'], Vxs, "V_" + str(vec + 1) + "1", 'r', "")
+                plot_cdf(ANIS['vxcdf'], Vxs, "V_" + str(vec + 1) + "1", 'r', "")
                 Vxs.sort()
                 vminind = int(0.025 * len(Vxs))
                 vmaxind = int(0.975 * len(Vxs))
@@ -2565,7 +2565,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                 # plotVs(ANIS['vxcdf'],[Ccart[0]],'r','-')
                 plt.axvline(x=Ccart[0][0], linewidth=1,
                               color='r', linestyle='-')
-                plotCDF(ANIS['vycdf'], Vys, "V_" + str(vec + 1) + "2", 'b', "")
+                plot_cdf(ANIS['vycdf'], Vys, "V_" + str(vec + 1) + "2", 'b', "")
                 Vys.sort()
                 vminind = int(0.025 * len(Vys))
                 vmaxind = int(0.975 * len(Vys))
@@ -2580,7 +2580,7 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
                               color='b', linestyle='-')
                 # plotVs(ANIS['vycdf'],vbounds,'b','--')
                 # plotVs(ANIS['vycdf'],[Ccart[1]],'b','-')
-                plotCDF(ANIS['vzcdf'], Vzs, "V_" + str(vec + 1) + "3", 'k', "")
+                plot_cdf(ANIS['vzcdf'], Vzs, "V_" + str(vec + 1) + "3", 'k', "")
                 Vzs.sort()
                 vminind = int(0.025 * len(Vzs))
                 vmaxind = int(0.975 * len(Vzs))
@@ -2604,13 +2604,13 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
     if ihext == 1 and plot == 1:
         ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
                    hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-        plotELL(ANIS['conf'], ellpars, 'r-,', 1, 1)
+        plot_ell(ANIS['conf'], ellpars, 'r-,', 1, 1)
         ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
                    hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-        plotELL(ANIS['conf'], ellpars, 'b-,', 1, 1)
+        plot_ell(ANIS['conf'], ellpars, 'b-,', 1, 1)
         ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
                    hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-        plotELL(ANIS['conf'], ellpars, 'k-,', 1, 1)
+        plot_ell(ANIS['conf'], ellpars, 'k-,', 1, 1)
     return bpars, hpars
 ####
 
@@ -2719,7 +2719,7 @@ def plotCONF(fignum, s, datablock, pars, new):
 #
 # plot the ellipse
 #
-    plotELL(fignum, pars, 'r-,', 0, 1)
+    plot_ell(fignum, pars, 'r-,', 0, 1)
 
 
 EI_plot_num = 0
@@ -2767,13 +2767,13 @@ def plotCOM(CDF, BDI1, BDI2, d):
     X1, Y1, Z1 = cart[0], cart[1], cart[2]
     min = int(0.025 * len(X1))
     max = int(0.975 * len(X1))
-    X1, y = plotCDF(CDF['X'], X1, "X component", 'r', "")
+    X1, y = plot_cdf(CDF['X'], X1, "X component", 'r', "")
     bounds1 = [X1[min], X1[max]]
     plotVs(CDF['X'], bounds1, 'r', '-')
-    Y1, y = plotCDF(CDF['Y'], Y1, "Y component", 'r', "")
+    Y1, y = plot_cdf(CDF['Y'], Y1, "Y component", 'r', "")
     bounds1 = [Y1[min], Y1[max]]
     plotVs(CDF['Y'], bounds1, 'r', '-')
-    Z1, y = plotCDF(CDF['Z'], Z1, "Z component", 'r', "")
+    Z1, y = plot_cdf(CDF['Z'], Z1, "Z component", 'r', "")
     bounds1 = [Z1[min], Z1[max]]
     plotVs(CDF['Z'], bounds1, 'r', '-')
     # draw_figs(CDF)
@@ -2781,13 +2781,13 @@ def plotCOM(CDF, BDI1, BDI2, d):
         bounds2 = []
         cart = pmag.dir2cart(BDI2).transpose()
         X2, Y2, Z2 = cart[0], cart[1], cart[2]
-        X2, y = plotCDF(CDF['X'], X2, "X component", 'b', "")
+        X2, y = plot_cdf(CDF['X'], X2, "X component", 'b', "")
         bounds2 = [X2[min], X2[max]]
         plotVs(CDF['X'], bounds2, 'b', '--')
-        Y2, y = plotCDF(CDF['Y'], Y2, "Y component", 'b', "")
+        Y2, y = plot_cdf(CDF['Y'], Y2, "Y component", 'b', "")
         bounds2 = [Y2[min], Y2[max]]
         plotVs(CDF['Y'], bounds2, 'b', '--')
-        Z2, y = plotCDF(CDF['Z'], Z2, "Z component", 'b', "")
+        Z2, y = plot_cdf(CDF['Z'], Z2, "Z component", 'b', "")
         bounds2 = [Z2[min], Z2[max]]
         plotVs(CDF['Z'], bounds2, 'b', '--')
     else:

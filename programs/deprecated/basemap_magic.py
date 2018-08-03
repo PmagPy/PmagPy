@@ -160,13 +160,13 @@ def main():
         titles = {}
         titles['map'] = 'Site Map'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
     elif verbose:
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
     else:
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
 
 
 main()

@@ -202,11 +202,11 @@ def main():
                     ans = input(
                         "s[a]ve plot, [q]uit, <return> to continue:\n ")
                     if ans == "a":
-                        pmagplotlib.saveP(EQ, files)
+                        pmagplotlib.save_plots(EQ, files)
                     if ans == "q":
                         sys.exit()
                 else:
-                    pmagplotlib.saveP(EQ, files)
+                    pmagplotlib.save_plots(EQ, files)
         else:
             print('skipping site - not enough data with specified coordinate system')
 

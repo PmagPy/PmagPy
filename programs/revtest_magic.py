@@ -141,9 +141,9 @@ def main():
         pmagplotlib.draw_figs(CDF)
         ans = input("s[a]ve plots, [q]uit: ")
         if ans == 'a':
-            pmagplotlib.saveP(CDF, files)
+            pmagplotlib.save_plots(CDF, files)
     else:
-        pmagplotlib.saveP(CDF, files)
+        pmagplotlib.save_plots(CDF, files)
         sys.exit()
 
 

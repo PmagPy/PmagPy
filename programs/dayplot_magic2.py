@@ -134,11 +134,11 @@ def main():
         pmagplotlib.draw_figs(DSC)
         ans = raw_input(" S[a]ve to save plots, return to quit:  ")
         if ans == "a":
-            pmagplotlib.saveP(DSC, files)
+            pmagplotlib.save_plots(DSC, files)
         else:
             sys.exit()
     if plots:
-        pmagplotlib.saveP(DSC, files)
+        pmagplotlib.save_plots(DSC, files)
     #
 
 

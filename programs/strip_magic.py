@@ -342,12 +342,12 @@ def main():
         title = Results[0]["er_location_name"]
     labels = [xlab, ylab, title]
     pmagplotlib.plot_init(FIG['strat'], 10, 5)
-    pmagplotlib.plotSTRAT(FIG['strat'], XY, labels)  # plot them
+    pmagplotlib.plot_strat(FIG['strat'], XY, labels)  # plot them
     if plotexp == 1:
-        pmagplotlib.plotHs(FIG['strat'], Xinc, 'b', '--')
+        pmagplotlib.plot_hs(FIG['strat'], Xinc, 'b', '--')
     if yaxis == 'inc' or yaxis == 'lat':
-        pmagplotlib.plotHs(FIG['strat'], [0], 'b', '-')
-        pmagplotlib.plotHs(FIG['strat'], [-90, 90], 'g', '-')
+        pmagplotlib.plot_hs(FIG['strat'], [0], 'b', '-')
+        pmagplotlib.plot_hs(FIG['strat'], [-90, 90], 'g', '-')
     if pTS == 1:
         FIG['ts'] = 2
         pmagplotlib.plot_init(FIG['ts'], 10, 5)
@@ -365,14 +365,14 @@ def main():
         titles['strat'] = 'Depth/Time Series Plot'
         titles['ts'] = 'Time Series Plot'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
     elif plot == 1:
-        pmagplotlib.saveP(FIG, files)
+        pmagplotlib.save_plots(FIG, files)
     else:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans == "a":
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
 
 
 if __name__ == "__main__":

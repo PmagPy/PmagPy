@@ -128,7 +128,7 @@ def main():
         print('   %10.1f %10.1f'%(V,Vp[k]))
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
-        pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
+        pmagplotlib.plot_cdf(CDF['cdf'],Vp,"Watson's V",'r',"")
         pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
         if plot==0:pmagplotlib.draw_figs(CDF)
@@ -150,12 +150,12 @@ def main():
             titles={}
             titles['cdf']='Cumulative Distribution'
             CDF = pmagplotlib.addBorders(CDF,titles,black,purple)
-            pmagplotlib.saveP(CDF,files)
+            pmagplotlib.save_plots(CDF,files)
         elif plot==0:
             ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
-            if ans=="a": pmagplotlib.saveP(CDF,files)
+            if ans=="a": pmagplotlib.save_plots(CDF,files)
         if plot==1: # save and quit silently
-            pmagplotlib.saveP(CDF,files)
+            pmagplotlib.save_plots(CDF,files)
 
 if __name__ == "__main__":
     main()

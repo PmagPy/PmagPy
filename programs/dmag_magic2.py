@@ -148,7 +148,7 @@ def main():
                 files = {}
                 for key in FIG.keys():
                     files[key] = title+'_'+LT+'.'+fmt
-                pmagplotlib.saveP(FIG, files)
+                pmagplotlib.save_plots(FIG, files)
                 sys.exit()
             else:
                 pmagplotlib.draw_figs(FIG)
@@ -160,7 +160,7 @@ def main():
                     files = {}
                     for key in FIG.keys():
                         files[key] = title+'_'+LT+'.'+fmt
-                    pmagplotlib.saveP(FIG, files)
+                    pmagplotlib.save_plots(FIG, files)
             pmagplotlib.clearFIG(FIG['demag'])
 
 

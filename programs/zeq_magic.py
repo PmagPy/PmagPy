@@ -447,7 +447,7 @@ def main():
                     files[key] = basename + '_' + key + '.' + fmt
                     if pmagplotlib.isServer:
                         files[key] = basename + "TY:_{}_.".format(key) + fmt
-                pmagplotlib.saveP(ZED, files)
+                pmagplotlib.save_plots(ZED, files)
                 if specimen != "":
                     sys.exit()
             if verbose:
@@ -575,7 +575,7 @@ def main():
             res = input("S[a]ve plots, [q]uit, or <return> to continue  ")
             if res == 'a':
                 files = {plot_type: this_specimen + "_" + plot_type + "." + fmt for plot_type in ZED}
-                pmagplotlib.saveP(ZED, files)
+                pmagplotlib.save_plots(ZED, files)
                 print("")
             if res == 'q':
                 return

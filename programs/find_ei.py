@@ -118,7 +118,7 @@ def main():
     else:
         title= '%7.1f [%7.1f, %7.1f]' %( Inc, I[lower],I[upper])
     pmagplotlib.plotEI(PLTS['ei'],Eexp,I,1)
-    pmagplotlib.plotCDF(PLTS['cdf'],I,'Inclinations','r',title)
+    pmagplotlib.plot_cdf(PLTS['cdf'],I,'Inclinations','r',title)
     pmagplotlib.plotVs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
     pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
@@ -138,7 +138,7 @@ def main():
     files['ei']='findEI_ei.'+fmt
     files['cdf']='findEI_cdf.'+fmt
     files['v2']='findEI_v2.'+fmt
-    pmagplotlib.saveP(PLTS,files)
+    pmagplotlib.save_plots(PLTS,files)
 
 if __name__ == "__main__":
     main()

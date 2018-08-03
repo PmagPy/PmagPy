@@ -239,7 +239,7 @@ def main():
                 files={}
                 for key in list(EQ.keys()):
                     files[key]='BE_'+key+'.svg'
-                pmagplotlib.saveP(EQ,files)
+                pmagplotlib.save_plots(EQ,files)
             sys.exit()
     if len(nDIs)>5:
         pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,npars,1)
@@ -254,7 +254,7 @@ def main():
         files={}
         for key in list(EQ.keys()):
             files[key]=key+'.svg'
-        pmagplotlib.saveP(EQ,files)
+        pmagplotlib.save_plots(EQ,files)
     #
 
 if __name__ == "__main__":

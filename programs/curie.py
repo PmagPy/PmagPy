@@ -279,8 +279,8 @@ def main():
         pmagplotlib.draw_figs(PLT)
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
-        if ans=="a": pmagplotlib.saveP(PLT,files)
-    else: pmagplotlib.saveP(PLT,files)
+        if ans=="a": pmagplotlib.save_plots(PLT,files)
+    else: pmagplotlib.save_plots(PLT,files)
     sys.exit()
 
 main()

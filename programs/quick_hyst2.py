@@ -170,7 +170,7 @@ def main():
                     files[key] = filename
 
 
-            pmagplotlib.saveP(HDD,files)
+            pmagplotlib.save_plots(HDD,files)
             if pltspec!="":sys.exit()
         if verbose:
             pmagplotlib.draw_figs(HDD)
@@ -193,7 +193,7 @@ def main():
                         filename += ".{}".format(fmt)
                         files[key] = filename
                 print('files', files)
-                pmagplotlib.saveP(HDD,files)
+                pmagplotlib.save_plots(HDD,files)
             if ans=='':k+=1
             if ans=="p":
                 del HystRecs[-1]

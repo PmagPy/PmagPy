@@ -215,13 +215,13 @@ def main():
         black     = '#000000'
         purple    = '#800080'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
-        pmagplotlib.saveP(FIG,files)
+        pmagplotlib.save_plots(FIG,files)
     if plot==1:
-        pmagplotlib.saveP(FIG,files)
+        pmagplotlib.save_plots(FIG,files)
     else:
         pmagplotlib.draw_figs(FIG)
         ans=input(" S[a]ve to save plot, Return to quit:  ")
-        if ans=="a": pmagplotlib.saveP(FIG,files)
+        if ans=="a": pmagplotlib.save_plots(FIG,files)
 
 if __name__ == "__main__":
     main()

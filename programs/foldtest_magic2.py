@@ -197,7 +197,7 @@ def main():
     files = {}
     for key in list(PLTS.keys()):
         files[key] = ('foldtest_'+'%s' % (key.strip()[:2])+'.'+fmt)
-    pmagplotlib.saveP(PLTS, files)
+    pmagplotlib.save_plots(PLTS, files)
 
 
 if __name__ == "__main__":

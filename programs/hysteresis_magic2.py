@@ -272,7 +272,7 @@ def main():
             files = {}
             for key in list(HDD.keys()):
                 files[key] = locname+'_'+s+'_'+key+'.'+fmt
-            pmagplotlib.saveP(HDD, files)
+            pmagplotlib.save_plots(HDD, files)
             if pltspec != "":
                 sys.exit()
         if verbose and PLT:
@@ -283,7 +283,7 @@ def main():
                 files = {}
                 for key in list(HDD.keys()):
                     files[key] = locname+'_'+s+'_'+key+'.'+fmt
-                pmagplotlib.saveP(HDD, files)
+                pmagplotlib.save_plots(HDD, files)
             if ans == '':
                 k += 1
             if ans == "p":

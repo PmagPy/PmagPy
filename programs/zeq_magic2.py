@@ -417,7 +417,7 @@ def main():
                 files={}
                 for key in ZED.keys():
                     files[key]=basename+'_'+key+'.'+fmt 
-                pmagplotlib.saveP(ZED,files)
+                pmagplotlib.save_plots(ZED,files)
                 sys.exit()
             else:  # interactive
               if plots==0:
@@ -463,7 +463,7 @@ def main():
                         files={}
                         for key in ZED.keys():
                             files[key]=basename+'_'+coord+'_'+key+'.'+fmt 
-                        pmagplotlib.saveP(ZED,files)
+                        pmagplotlib.save_plots(ZED,files)
                         ans=""
                     if  ans=='p':
                         k-=2
@@ -714,7 +714,7 @@ def main():
                       titles['zijd']='Zijderveld Plot'
                       titles['eqarea']='Equal Area Plot'
                       ZED = pmagplotlib.addBorders(ZED,titles,black,purple)
-                  pmagplotlib.saveP(ZED,files)
+                  pmagplotlib.save_plots(ZED,files)
             if len(CurrRecs)>0:
                 for rec in CurrRecs: PriorRecs.append(rec)
             if changeS==1:

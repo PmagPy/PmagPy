@@ -170,7 +170,7 @@ def main():
                         key = str(p)
                         files[key] = e+'_'+key+'.'+fmt
                         PLTS[key] = key
-                    pmagplotlib.saveP(PLTS, files)
+                    pmagplotlib.save_plots(PLTS, files)
                     cont = input(
                         "Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                 if cont == "":
@@ -229,7 +229,7 @@ def main():
                     if cont == "":
                         sys.exit()
                     if cont == 'a':
-                        pmagplotlib.saveP(PLTS, files)
+                        pmagplotlib.save_plots(PLTS, files)
                         cont = input(
                             "Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                         if cont == "":
@@ -238,12 +238,12 @@ def main():
                     ans = input(
                         "enter s[a]ve to save files,  [return] to quit ")
                     if ans == 'a':
-                        pmagplotlib.saveP(PLTS, files)
+                        pmagplotlib.save_plots(PLTS, files)
                         sys.exit()
                     else:
                         sys.exit()
                 else:
-                    pmagplotlib.saveP(PLTS, files)
+                    pmagplotlib.save_plots(PLTS, files)
                     sys.exit()
 
 

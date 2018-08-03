@@ -481,7 +481,7 @@ def main():
                     files = {}
                     for key in AZD.keys():
                         files[key] = s+'_'+key+fmt
-                    pmagplotlib.saveP(AZD, files, dpi=dpi)
+                    pmagplotlib.save_plots(AZD, files, dpi=dpi)
                     sys.exit()
                 if verbose:
                     ans = 'b'
@@ -506,7 +506,7 @@ def main():
                                     '_SA:_' + \
                                     PmagSpecRec['er_sample_name'] + \
                                     '_SP:_'+s+'_CO:_s_TY:_'+key+fmt
-                            pmagplotlib.saveP(AZD, files)
+                            pmagplotlib.save_plots(AZD, files)
                             ans = ""
                         if ans == 'q':
                             print("Good bye")
@@ -690,7 +690,7 @@ def main():
                             titles['arai'] = 'Arai Plot'
                             AZD = pmagplotlib.addBorders(
                                 AZD, titles, black, purple)
-                        pmagplotlib.saveP(AZD, files, dpi=dpi)
+                        pmagplotlib.save_plots(AZD, files, dpi=dpi)
     #                   pmagplotlib.combineFigs(s,files,3)
                     else:  # save in pmag format
                         script = "grep "+s+" output.mag | thellier -mfsi"
@@ -712,7 +712,7 @@ def main():
                 files = {}
                 for key in AZD.keys():
                     files[key] = s+'_'+key+fmt
-                pmagplotlib.saveP(AZD, files, dpi=dpi)
+                pmagplotlib.save_plots(AZD, files, dpi=dpi)
         else:
             print("\n Good bye\n")
             sys.exit()

@@ -363,7 +363,7 @@ def main():
                         titles['eqarea'] = 'Equal Area Plot'
                         AZD = pmagplotlib.addBorders(
                             AZD, titles, black, purple)
-                    pmagplotlib.saveP(AZD, files)
+                    pmagplotlib.save_plots(AZD, files)
                 else:  # save in pmag format
                     print('pmag format no longer supported')
                     #script="grep "+this_specimen+" output.mag | thellier -mfsi"

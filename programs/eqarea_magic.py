@@ -450,10 +450,10 @@ def main():
             titles = {}
             titles['eqarea'] = 'Equal Area Plot'
             FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
 
         if plt:
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
             continue
         if verbose:
             pmagplotlib.draw_figs(FIG)
@@ -461,7 +461,7 @@ def main():
             if ans == "q":
                 sys.exit()
             if ans == "a":
-                pmagplotlib.saveP(FIG, files)
+                pmagplotlib.save_plots(FIG, files)
         continue
 
 

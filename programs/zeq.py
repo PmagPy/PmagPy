@@ -127,7 +127,7 @@ def main():
             files={}
             for key in list(ZED.keys()):
                 files[key]=s+'_'+key+'.'+fmt 
-            pmagplotlib.saveP(ZED,files)
+            pmagplotlib.save_plots(ZED,files)
         if ans=='h':
             angle=float(input(" Declination to project onto horizontal axis? "))
             pmagplotlib.plot_zed(ZED,datablock,angle,s,SIunits) # plot the data
@@ -183,7 +183,7 @@ def main():
         files={}
         for key in list(ZED.keys()):
             files[key]=s+'_'+key+'.'+fmt 
-        pmagplotlib.saveP(ZED,files)
+        pmagplotlib.save_plots(ZED,files)
 
 if __name__ == "__main__":
     main()  # run the main program

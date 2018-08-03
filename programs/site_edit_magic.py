@@ -171,7 +171,7 @@ def main():
             if ans=="a":
                 files={}
                 files['eqarea']=site+'_'+crd+'_eqarea'+'.'+fmt
-                pmagplotlib.saveP(EQ,files)
+                pmagplotlib.save_plots(EQ,files)
             if ans=="q": sys.exit()
             if ans=="e" and Samps==[]:
                 print("can't edit samples without orientation file, sorry")

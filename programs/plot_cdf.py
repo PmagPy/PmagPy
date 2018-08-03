@@ -52,14 +52,14 @@ def main():
        title=sys.argv[ind+1] 
     CDF={'X':1}
     pmagplotlib.plot_init(CDF['X'],5,5)
-    pmagplotlib.plotCDF(CDF['X'],X,title,'r','')
+    pmagplotlib.plot_cdf(CDF['X'],X,title,'r','')
     files={'X':'CDF_.'+fmt}
     if plot==0:
         pmagplotlib.draw_figs(CDF)
         ans= input('S[a]ve  plot, <Return> to quit ')
         if ans=='a':
-            pmagplotlib.saveP(CDF,files)
+            pmagplotlib.save_plots(CDF,files)
     else:
-        pmagplotlib.saveP(CDF,files)
+        pmagplotlib.save_plots(CDF,files)
 if __name__ == "__main__":
     main()

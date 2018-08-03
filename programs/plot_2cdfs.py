@@ -51,8 +51,8 @@ def main():
        title=sys.argv[ind+1] 
     CDF={'X':1}
     pmagplotlib.plot_init(CDF['X'],5,5)
-    pmagplotlib.plotCDF(CDF['X'],X,'','r','')
-    pmagplotlib.plotCDF(CDF['X'],X2,title,'b','')
+    pmagplotlib.plot_cdf(CDF['X'],X,'','r','')
+    pmagplotlib.plot_cdf(CDF['X'],X2,title,'b','')
     D,p=scipy.stats.ks_2samp(X,X2)
     if p>=.05:
         print(D,p,' not rejected at 95%')
@@ -62,7 +62,7 @@ def main():
     ans= input('S[a]ve  plot, <Return> to quit ')
     if ans=='a':
         files={'X':'CDF_.'+fmt}
-        pmagplotlib.saveP(CDF,files)
+        pmagplotlib.save_plots(CDF,files)
 
 if __name__ == "__main__":
     main()

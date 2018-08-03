@@ -108,13 +108,13 @@ def main():
         ans = input(
             "enter s[a]ve to save files,  [return] to quit ")
         if ans == 'a':
-            pmagplotlib.saveP(figs, fnames)
+            pmagplotlib.save_plots(figs, fnames)
             sys.exit()
         else:
             sys.exit()
 
     else:
-        pmagplotlib.saveP(figs, fnames)
+        pmagplotlib.save_plots(figs, fnames)
 
 
 if __name__ == "__main__":

@@ -115,13 +115,13 @@ def main():
         titles['map']='Map'
         titles['vadms']='VADMs'
         FIG = pmagplotlib.addBorders(FIGS,titles,black,purple)
-        pmagplotlib.saveP(FIGS,files)
+        pmagplotlib.save_plots(FIGS,files)
     elif verbose:
         ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
-            pmagplotlib.saveP(FIGS,files)
+            pmagplotlib.save_plots(FIGS,files)
     else:
-        pmagplotlib.saveP(FIGS,files)
+        pmagplotlib.save_plots(FIGS,files)
 
 if __name__ == "__main__":
     main() 

@@ -14,7 +14,7 @@ def save(ANIS, fmt, title):
     files = {}
     for key in ANIS.keys():
         files[key] = title+'_TY:_aniso-'+key+'_.'+fmt
-    pmagplotlib.saveP(ANIS, files)
+    pmagplotlib.save_plots(ANIS, files)
 
 
 def main():

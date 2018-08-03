@@ -119,11 +119,11 @@ def main():
             pmagplotlib.draw_figs(FIG)
             ans = input('S[a]ve figure? [q]uit, <return> to continue   ')
             if ans == 'a':
-                pmagplotlib.saveP(FIG, files)
+                pmagplotlib.save_plots(FIG, files)
             elif ans == 'q':
                 sys.exit()
         else:
-            pmagplotlib.saveP(FIG, files)
+            pmagplotlib.save_plots(FIG, files)
         pmagplotlib.clearFIG(FIG['lowrie'])
 
 

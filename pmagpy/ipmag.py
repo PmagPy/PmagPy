@@ -791,11 +791,11 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     minimum = int(0.025 * len(X1))
     maximum = int(0.975 * len(X1))
 
-    X1, y = pmagplotlib.plotCDF(fignum, X1, "X component", 'r', "")
+    X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", 'r', "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
     if np.array(Data2).shape[0]>2:
-        X2, y = pmagplotlib.plotCDF(fignum, X2, "X component", 'b', "")
+        X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", 'b', "")
         bounds2 = [X2[minimum], X2[maximum]]
         pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
     else:
@@ -805,11 +805,11 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
 
     plt.subplot(1, 3, 2)
 
-    Y1, y = pmagplotlib.plotCDF(fignum, Y1, "Y component", 'r', "")
+    Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", 'r', "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
     if np.array(Data2).shape[0]>2:
-        Y2, y = pmagplotlib.plotCDF(fignum, Y2, "Y component", 'b', "")
+        Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", 'b', "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
     else:
@@ -818,12 +818,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
 
     plt.subplot(1, 3, 3)
 
-    Z1, y = pmagplotlib.plotCDF(fignum, Z1, "Z component", 'r', "")
+    Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", 'r', "")
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plotVs(fignum, bounds1, 'r', '-')
 
     if np.array(Data2).shape[0]>2:
-        Z2, y = pmagplotlib.plotCDF(fignum, Z2, "Z component", 'b', "")
+        Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", 'b', "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plotVs(fignum, bounds2, 'b', '--')
     else:
@@ -992,7 +992,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no
         CDF = {'cdf': 1}
         # pmagplotlib.plot_init(CDF['cdf'],5,5)
         plt.figure(figsize=(3.5, 2.5))
-        p1 = pmagplotlib.plotCDF(CDF['cdf'], Vp, "Watson's V", 'r', "")
+        p1 = pmagplotlib.plot_cdf(CDF['cdf'], Vp, "Watson's V", 'r', "")
         p2 = pmagplotlib.plotVs(CDF['cdf'], [V], 'g', '-')
         p3 = pmagplotlib.plotVs(CDF['cdf'], [Vp[k]], 'b', '--')
         # pmagplotlib.draw_figs(CDF)
@@ -1652,7 +1652,7 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
         plt.scatter(DI_dimap[0], DI_dimap[1],
                     edgecolors=color, facecolors=color,
                     marker=marker, s=markersize, label=label)
-    pmagplotlib.plotELL(fignum, pars, color, 0, 1)
+    pmagplotlib.plot_ell(fignum, pars, color, 0, 1)
 
 
 
@@ -7449,7 +7449,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
-    pmagplotlib.plotCDF(cdf_fig_num, I, 'Inclinations', 'r', title)
+    pmagplotlib.plot_cdf(cdf_fig_num, I, 'Inclinations', 'r', title)
     pmagplotlib.plotVs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plotVs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plotVs(cdf_fig_num, [Io], 'k', '-')
@@ -7756,7 +7756,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
               files={}
               for key in list(ZED.keys()):
                   files[key]=s+'_'+key+'.'+fmt
-              pmagplotlib.saveP(ZED,files)
+              pmagplotlib.save_plots(ZED,files)
 
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt',
                 ipar=1, ihext=1, ivec=1, iplot=0, isite=1, iboot=1, vec=0,
@@ -7772,7 +7772,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 files[key] = title + '_TY:_aniso-' + key + '_.' + fmt
             else:
                 files[key] = title.replace('__', '_') + "_aniso-" + key + "." + fmt
-        pmagplotlib.saveP(ANIS, files)
+        pmagplotlib.save_plots(ANIS, files)
 
 
     # initialize some variables
@@ -8511,13 +8511,13 @@ def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0,
             if ihext: # plot the Hext ellipses
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
                    hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-                pmagplotlib.plotELL(fignum+1, ellpars, 'r-,', 1, 1)
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
                 ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
                    hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-                pmagplotlib.plotELL(fignum+1, ellpars, 'b-,', 1, 1)
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
                 ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
                    hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-                pmagplotlib.plotELL(fignum+1, ellpars, 'k-,', 1, 1)
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
                 if len(Dir)>0:   # plot the comparison direction components
                     # put in dimap and plot as white symbol with axis color?
                     plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
@@ -8537,7 +8537,7 @@ def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0,
                     styles=['dotted','dashed','solid']
                     for t in range(3):  # step through eigenvalues
                         ts=np.sort(Taus[t]) # get a sorted list of this eigenvalue
-                        pmagplotlib.plotCDF(fignum+2,ts,"",colors[t],"") # plot the CDF
+                        pmagplotlib.plot_cdf(fignum+2,ts,"",colors[t],"") # plot the CDF
                         plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
                         plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
                     plt.xlabel('Eigenvalues')
@@ -8547,7 +8547,7 @@ def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0,
                         comp_X=pmag.dir2cart(Dir)
                         for i in range(3):
                             xs=np.sort(np.array([row[i] for row in X]))
-                            pmagplotlib.plotCDF(fignum+i+3,xs,"",colors[i],"") # plot the CDF
+                            pmagplotlib.plot_cdf(fignum+i+3,xs,"",colors[i],"") # plot the CDF
                             plt.axvline(xs[int(0.025*len(xs))],color=colors[vec-1],linestyle=styles[i]) # minimum 95% conf bound
                             plt.axvline(xs[int(0.975*len(xs))],color=colors[vec-1],linestyle=styles[i]) # max 95% conf bound
                             plt.axvline(comp_X[0][i],color='lightgreen',linewidth=3) # put on the comparison direction
@@ -8555,12 +8555,12 @@ def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0,
                     bpars = pmag.sbootpars(Taus, BVs)
                     ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                    pmagplotlib.plotELL(fignum+1, ellpars, 'r-,', 1, 1)
+                    pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
                     ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                    pmagplotlib.plotELL(fignum+1, ellpars, 'b-,', 1, 1)
+                    pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
                     ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                    pmagplotlib.plotELL(fignum+1, ellpars, 'k-,', 1, 1)
+                    pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
                     if len(Dir)>0:   # plot the comparison direction components
                         plot_di(di_block=[Dir],color='green',marker='*',markersize=200)

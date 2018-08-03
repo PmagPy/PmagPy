@@ -81,7 +81,7 @@ def main():
             files = {}
             for key in list(FIG.keys()):
                 files[key]=str(key) + ".svg"
-                pmagplotlib.saveP(FIG,files)
+                pmagplotlib.save_plots(FIG,files)
         sys.exit()
     else:
         print('no data to plot')

@@ -85,12 +85,12 @@ def main():
         pmagplotlib.draw_figs(CDF)
         ans=input("S[a]ve plots, <Return> to quit ")
         if ans=="a":
-            pmagplotlib.saveP(CDF,files)
+            pmagplotlib.save_plots(CDF,files)
         else:
             sys.exit()
         
     else: 
-        pmagplotlib.saveP(CDF,files)
+        pmagplotlib.save_plots(CDF,files)
         sys.exit()
 if __name__ == "__main__":
     main()
