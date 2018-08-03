@@ -369,7 +369,7 @@ def main():
     elif plot == 1:
         pmagplotlib.saveP(FIG, files)
     else:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans == "a":
             pmagplotlib.saveP(FIG, files)

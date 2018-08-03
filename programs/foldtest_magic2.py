@@ -149,7 +149,7 @@ def main():
     pmagplotlib.plotEQ(PLTS['strat'], TCs, 'Stratigraphic')
     if not set_env.IS_WIN:
         if plot == 0:
-            pmagplotlib.drawFIGS(PLTS)
+            pmagplotlib.draw_figs(PLTS)
     Percs = list(range(min, max))
     Cdf, Untilt = [], []
     pylab.figure(num=PLTS['taus'])
@@ -189,7 +189,7 @@ def main():
     print(tit)
     pylab.title(tit)
     if plot == 0:
-        pmagplotlib.drawFIGS(PLTS)
+        pmagplotlib.draw_figs(PLTS)
         ans = input('S[a]ve all figures, <Return> to quit  \n ')
         if ans != 'a':
             print("Good bye")

@@ -111,7 +111,7 @@ nd the number of bootstrap samples
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
     if not set_env.IS_WIN:
-        if plot==0:pmagplotlib.drawFIGS(PLTS)
+        if plot==0:pmagplotlib.draw_figs(PLTS)
     Percs=list(range(min,max))
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
@@ -154,7 +154,7 @@ nd the number of bootstrap samples
     for key in list(PLTS.keys()):
         files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
     if plot==0:
-        pmagplotlib.drawFIGS(PLTS)
+        pmagplotlib.draw_figs(PLTS)
         ans= input('S[a]ve all figures, <Return> to quit   ')
         if ans!='a':
             print("Good bye")

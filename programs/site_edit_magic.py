@@ -162,7 +162,7 @@ def main():
                 if float(fpars["alpha95"])<=acutoff and float(fpars["K"])>=kcutoff:
                     out.write('%s %s %s\n'%(fpars["dec"],fpars['inc'],fpars['alpha95']))
             pmagplotlib.plotLNP(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
-            pmagplotlib.drawFIGS(EQ)
+            pmagplotlib.draw_figs(EQ)
             if k!=0 and repeat!='y':
                 ans=input("s[a]ve plot, [q]uit, [e]dit specimens, [p]revious site, <return> to continue:\n ")
             elif k==0 and repeat!='y':
@@ -183,11 +183,11 @@ def main():
 # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i
                         d,i=pmag.dogeo(float(spec['specimen_dec']),float(spec['specimen_inc']),float(spec['sample_azimuth'])-180.,-float(spec['sample_dip']))
                         XY=pmag.dimap(d,i)
-                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],sym='g^')
+                        pmagplotlib.plot_xy(EQ['eqarea'],[XY[0]],[XY[1]],sym='g^')
 # first test wrong end of compass (take az-180.)
                         d,i=pmag.dogeo(float(spec['specimen_dec']),float(spec['specimen_inc']),float(spec['sample_azimuth'])-180.,float(spec['sample_dip']))
                         XY=pmag.dimap(d,i)
-                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],sym='kv')
+                        pmagplotlib.plot_xy(EQ['eqarea'],[XY[0]],[XY[1]],sym='kv')
 # did the sample spin in the hole?  
 # now spin around specimen's z
                         X_up,Y_up,X_d,Y_d=[],[],[],[]
@@ -200,9 +200,9 @@ def main():
                             else:
                                 X_up.append(XY[0])
                                 Y_up.append(XY[1])
-                        pmagplotlib.plotXY(EQ['eqarea'],X_d,Y_d,sym='b.')
-                        pmagplotlib.plotXY(EQ['eqarea'],X_up,Y_up,sym='c.')
-                        pmagplotlib.drawFIGS(EQ)
+                        pmagplotlib.plot_xy(EQ['eqarea'],X_d,Y_d,sym='b.')
+                        pmagplotlib.plot_xy(EQ['eqarea'],X_up,Y_up,sym='c.')
+                        pmagplotlib.draw_figs(EQ)
                         break
                 print("Triangle: wrong arrow for drill direction.")
                 print("Delta: wrong end of compass.")

@@ -315,7 +315,7 @@ def main():
                         recnum += 1
                 pmagplotlib.plotAZ(AZD, araiblock, zijdblock, s, units[0])
                 if verbose:
-                    pmagplotlib.drawFIGS(AZD)
+                    pmagplotlib.draw_figs(AZD)
                 if len(tdsrecs) > 2:  # a TDS experiment
                     tdsblock = []  # make a list for the TDS  data
                     Mkeys = ['measurement_magnitude', 'measurement_magn_moment',
@@ -356,7 +356,7 @@ def main():
                         pmagplotlib.plotTDS(
                             AZD['TDS'], tdsblock, s+':LP-PI-TDS:')
                         if verbose:
-                            pmagplotlib(drawFIGS(AZD))
+                            pmagplotlib(draw_figs(AZD))
                     else:
                         print("Something wrong here")
                 if anis == 1:   # look up anisotropy data for this specimen
@@ -399,7 +399,7 @@ def main():
                                     pmagplotlib.plotB(
                                         AZD, araiblock, zijdblock, pars)
                                     if verbose:
-                                        pmagplotlib.drawFIGS(AZD)
+                                        pmagplotlib.draw_figs(AZD)
                                     if len(trmblock) > 2:
                                         blab = field
                                         best = pars["specimen_int"]
@@ -425,7 +425,7 @@ def main():
                                         if verbose:
                                             print('Banc= ', float(
                                                 NLpars['banc'])*1e6)
-                                            pmagplotlib.drawFIGS(AZD)
+                                            pmagplotlib.draw_figs(AZD)
                                     mpars = pmag.domean(
                                         araiblock[1], start, end, 'DE-BFL')
                                     if verbose:
@@ -458,7 +458,7 @@ def main():
                         pars['specimen_grade'] = ''  # ungraded
                         pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
                         if verbose:
-                            pmagplotlib.drawFIGS(AZD)
+                            pmagplotlib.draw_figs(AZD)
                         if len(trmblock) > 2:
                             if inlt == 0:
                                 inlt = 1
@@ -498,7 +498,7 @@ def main():
                             pmagplotlib.plotAZ(
                                 AZD, araiblock, zijdblock, s, units[0])
                             if verbose:
-                                pmagplotlib.drawFIGS(AZD)
+                                pmagplotlib.draw_figs(AZD)
                         if ans == 'a':
                             files = {}
                             for key in AZD.keys():
@@ -635,7 +635,7 @@ def main():
                                 AZD, araiblock, zijdblock, s, units[0])
                             pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
                             if verbose:
-                                pmagplotlib.drawFIGS(AZD)
+                                pmagplotlib.draw_figs(AZD)
                             if len(trmblock) > 2:
                                 blab = field
                                 best = pars["specimen_int"]
@@ -660,7 +660,7 @@ def main():
                                     print(
                                         'Non-linear TRM corrected intensity= ', float(NLpars['banc'])*1e6)
                             if verbose:
-                                pmagplotlib.drawFIGS(AZD)
+                                pmagplotlib.draw_figs(AZD)
                             pars["specimen_lab_field_dc"] = field
                             pars["specimen_int"] = -1*field*pars["specimen_b"]
                             pars, kill = pmag.scoreit(

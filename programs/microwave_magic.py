@@ -313,7 +313,7 @@ def main():
                                    print('Banc= ',float(NLpars['banc'])*1e6)
                                    if pmagplotlib.verbose:
                                        print('Banc= ',float(NLpars['banc'])*1e6)
-                                   pmagplotlib.drawFIGS(AZD)
+                                   pmagplotlib.draw_figs(AZD)
                            else:
                                print('error on specimen ',s)
                        except:
@@ -362,7 +362,7 @@ def main():
                            save_redo(PriorRecs,inspec)
                            CurrRec=[]
                            pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           pmagplotlib.drawFIGS(AZD)
+                           pmagplotlib.draw_figs(AZD)
                        if ans=='a':
                            files={}
                            for key in list(AZD.keys()):
@@ -467,7 +467,7 @@ def main():
                                    Mp.append(npred)
                                pmagplotlib.plotTRM(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                print('Banc= ',float(NLpars['banc'])*1e6)
-                           pmagplotlib.drawFIGS(AZD)
+                           pmagplotlib.draw_figs(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            saveit=input("Save this interpretation? [y]/n \n")

@@ -266,7 +266,7 @@ def main():
                 pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                 pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
             if verbose and plots == 0:
-                pmagplotlib.drawFIGS(ANIS)
+                pmagplotlib.draw_figs(ANIS)
             ResRec['er_location_names'] = pmag.makelist(Locs)
             if plots == 1:
                 save(ANIS, fmt, title)
@@ -448,7 +448,7 @@ def main():
                     bpars, hpars = pmagplotlib.plotANIS(
                         ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot, comp, vec, Dir, nb)
                     if verbose and plots == 0:
-                        pmagplotlib.drawFIGS(ANIS)
+                        pmagplotlib.draw_figs(ANIS)
                 if ans == "c":
                     print("Current Coordinate system is: ")
                     if CS == '-1':
@@ -535,7 +535,7 @@ def main():
                     pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
                     if verbose and plots == 0:
-                        pmagplotlib.drawFIGS(ANIS)
+                        pmagplotlib.draw_figs(ANIS)
                 if ans == "p":
                     k -= 2
                     goon = 0

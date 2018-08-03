@@ -118,7 +118,7 @@ def main():
                     npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                     Mp.append(npred)
                 pmagplotlib.plotTRM(PLT['aq'],Bs,TRMs,Bp,Mp,NLpars,rec['magic_experiment_name'])
-                pmagplotlib.drawFIGS(PLT)
+                pmagplotlib.draw_figs(PLT)
                 print('Banc= ',float(NLpars['banc'])*1e6)
                 trmTC={}
                 for key in list(TrmRec.keys()):

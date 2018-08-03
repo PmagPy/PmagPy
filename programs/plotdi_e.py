@@ -236,7 +236,7 @@ def main():
                 else:
                     pmagplotlib.plotEQ(EQ['eq'],rDIs,'Data')
                     pmagplotlib.plotEQ(EQ['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
-            pmagplotlib.drawFIGS(EQ)
+            pmagplotlib.draw_figs(EQ)
             ans=input('s[a]ve, [q]uit ')
             if ans=='q':sys.exit()
             if ans=='a':
@@ -251,7 +251,7 @@ def main():
             pmagplotlib.plotCONF(EQ['eq'],title,[],rpars,0)
     elif len(rDIs)>5 and dist!='B': 
         pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,rpars,1)
-    pmagplotlib.drawFIGS(EQ)
+    pmagplotlib.draw_figs(EQ)
     ans=input('s[a]ve, [q]uit ')
     if ans=='q':sys.exit()
     if ans=='a':

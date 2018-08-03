@@ -995,11 +995,11 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no
         p1 = pmagplotlib.plotCDF(CDF['cdf'], Vp, "Watson's V", 'r', "")
         p2 = pmagplotlib.plotVs(CDF['cdf'], [V], 'g', '-')
         p3 = pmagplotlib.plotVs(CDF['cdf'], [Vp[k]], 'b', '--')
-        # pmagplotlib.drawFIGS(CDF)
+        # pmagplotlib.draw_figs(CDF)
         if save == True:
             plt.savefig(os.path.join(
                 save_folder, 'common_mean_watson') + '.' + fmt)
-        pmagplotlib.showFIG(CDF['cdf'])
+        pmagplotlib.show_fig(CDF['cdf'])
 
     return result, angle[0], critical_angle
 
@@ -4170,7 +4170,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     @param -> documentation incomplete if you know more about the purpose of the parameters in this function and it's side effects please extend and complete this string
     """
     # initialize some variables
-    plotsites = False  # cannot use drawFIGS from within ipmag
+    plotsites = False  # cannot use draw_figs from within ipmag
     Comps = []  # list of components
     version_num = pmag.get_version()
     args = sys.argv
@@ -4247,7 +4247,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         # I don't know why this has to be here, but otherwise the first plot
         # never plots...
         pmagplotlib.plotNET(EQ['eqarea'])
-        pmagplotlib.drawFIGS(EQ)
+        pmagplotlib.draw_figs(EQ)
 
     infile = os.path.join(dir_path, infile)
     measfile = os.path.join(dir_path, measfile)
@@ -4644,7 +4644,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                                 # plot and list the data
                                 pmagplotlib.plotSITE(
                                     EQ['eqarea'], PmagSiteRec, siteD, key)
-                                pmagplotlib.drawFIGS(EQ)
+                                pmagplotlib.draw_figs(EQ)
                             PmagSites.append(PmagSiteRec)
                 else:  # last component only
                     # get the last orientation system specified
@@ -4681,7 +4681,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         if plotsites:
                             pmagplotlib.plotSITE(
                                 EQ['eqarea'], PmagSiteRec, siteD, key)
-                            pmagplotlib.drawFIGS(EQ)
+                            pmagplotlib.draw_figs(EQ)
                         PmagSites.append(PmagSiteRec)
             else:
                 print('site information not found in er_sites for site, ',
@@ -6298,8 +6298,8 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     PLT = {'M_T': 1, 'der1': 2, 'der2': 3, 'Curie': 4}
     plt.figure(num=PLT['M_T'], figsize=(5, 5))
     string = 'M-T (sliding window=%i)' % int(window_len)
-    pmagplotlib.plotXY(PLT['M_T'], T, M_smooth, sym='-')
-    pmagplotlib.plotXY(PLT['M_T'], T, M, sym='--',
+    pmagplotlib.plot_xy(PLT['M_T'], T, M_smooth, sym='-')
+    pmagplotlib.plot_xy(PLT['M_T'], T, M, sym='--',
                        xlab='Temperature C', ylab='Magnetization', title=string)
 
     # calculate first derivative
@@ -6315,9 +6315,9 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     # plot the first derivative
     plt.figure(num=PLT['der1'], figsize=(5, 5))
     string = '1st derivative (sliding window=%i)' % int(window_len)
-    pmagplotlib.plotXY(PLT['der1'], T_d1, d1_smooth,
+    pmagplotlib.plot_xy(PLT['der1'], T_d1, d1_smooth,
                        sym='-', xlab='Temperature C', title=string)
-    pmagplotlib.plotXY(PLT['der1'], T_d1, d1, sym='b--')
+    pmagplotlib.plot_xy(PLT['der1'], T_d1, d1, sym='b--')
 
     # calculate second derivative
     d2, T_d2 = [], []
@@ -6333,7 +6333,7 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     # plot the second derivative
     plt.figure(num=PLT['der2'], figsize=(5, 5))
     string = '2nd derivative (sliding window=%i)' % int(window_len)
-    pmagplotlib.plotXY(PLT['der2'], T_d2, d2, sym='-',
+    pmagplotlib.plot_xy(PLT['der2'], T_d2, d2, sym='-',
                        xlab='Temperature C', title=string)
     d2 = list(d2)
     print('second derivative maximum is at T=%i' %
@@ -6371,7 +6371,7 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
 
     # plot Curie temp for different sliding window length
     plt.figure(num=PLT['Curie'], figsize=(5, 5))
-    pmagplotlib.plotXY(PLT['Curie'], wn, curie, sym='.',
+    pmagplotlib.plot_xy(PLT['Curie'], wn, curie, sym='.',
                        xlab='Sliding Window Width (degrees)', ylab='Curie Temp', title='Curie Statistics')
     files = {}
     for key in list(PLT.keys()):
@@ -6480,7 +6480,7 @@ def chi_magic(path_to_file='.', file_name='magic_measurements.txt',
                 plt.figure(num=plotnum, figsize=(5, 5))  # initialize plot
                 # call the plotting function
                 pmagplotlib.plotXTF(plotnum, XTF, Fs, e, b)
-                pmagplotlib.showFIG(plotnum)
+                pmagplotlib.show_fig(plotnum)
                 plotnum += 1  # increment plot number
             f = Fs[0]  # set frequency to minimum
             XTB = []  # initialize list if chi versus Temp and field
@@ -6494,7 +6494,7 @@ def chi_magic(path_to_file='.', file_name='magic_measurements.txt',
                 plt.figure(num=plotnum, figsize=(5, 5))  # set up plot
                 # call the plotting function
                 pmagplotlib.plotXTB(plotnum, XTB, Bs, e, f)
-                pmagplotlib.showFIG(plotnum)
+                pmagplotlib.show_fig(plotnum)
                 plotnum += 1  # increment plot number
             if save == True:
                 files = {}
@@ -7743,7 +7743,7 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
             print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2]))
         if units=='U':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2]))
         recnum += 1
-        pmagplotlib.drawFIGS(ZED)
+        pmagplotlib.draw_figs(ZED)
     if begin_pca!="" and end_pca!="" and calculation_type!="":
         pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
         mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
@@ -7915,7 +7915,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                 pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
             if verbose and plots == 0:
-                pmagplotlib.drawFIGS(ANIS)
+                pmagplotlib.draw_figs(ANIS)
             if plots == 1:
                 save(ANIS,fmt,title)
 
@@ -8163,7 +8163,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot,
                                                         comp, vec, Dir, num_bootstraps)
                     if verbose and plots == 0:
-                        pmagplotlib.drawFIGS(ANIS)
+                        pmagplotlib.draw_figs(ANIS)
                 if ans == "c":
                     print("Current Coordinate system is: ")
                     if CS == -1:
@@ -8228,7 +8228,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                                         iplot, comp, vec, Dir, num_bootstraps)
                     Dir, comp = [], 0
                     if verbose and plots == 0:
-                        pmagplotlib.drawFIGS(ANIS)
+                        pmagplotlib.draw_figs(ANIS)
                 if ans == 'g':
                     con, cnt = 1, 0
                     while con == 1:
@@ -8253,7 +8253,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     pmagplotlib.plotC(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plotC(ANIS['conf'], PDir, 90., 'g')
                     if verbose and plots == 0:
-                        pmagplotlib.drawFIGS(ANIS)
+                        pmagplotlib.draw_figs(ANIS)
                 if ans == "p":
                     k -= 2
                     goon = 0

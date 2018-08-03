@@ -103,8 +103,8 @@ def main():
         Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':1}
     Opts['details']['fancy']=fancy
     pmagplotlib.plotMAP(FIGS['map'],slats,slons,Opts)
-    pmagplotlib.plotXY(FIGS['vadms'],Age,Vadm,sym='bo',xlab='Age (Years CE)',ylab=r'VADM (ZAm$^2$)')
-    if verbose:pmagplotlib.drawFIGS(FIGS)
+    pmagplotlib.plot_xy(FIGS['vadms'],Age,Vadm,sym='bo',xlab='Age (Years CE)',ylab=r'VADM (ZAm$^2$)')
+    if verbose:pmagplotlib.draw_figs(FIGS)
     files={}
     for key in list(FIGS.keys()):
         files[key]=key+'.'+fmt

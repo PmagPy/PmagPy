@@ -192,9 +192,9 @@ def main():
                     Y.append(y)
         if len(X)>0:
             pmagplotlib.clearFIG(FIG['fig'])
-            pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=methx,ylab=methy,title=plot+':Biplot')
+            pmagplotlib.plot_xy(FIG['fig'],X,Y,sym='ro',xlab=methx,ylab=methy,title=plot+':Biplot')
             if not pmagplotlib.isServer and do_plot:
-                pmagplotlib.drawFIGS(FIG)
+                pmagplotlib.draw_figs(FIG)
                 ans=input('S[a]ve plots, [q]uit,  Return for next plot ' )
                 if ans=='a':
                     files={}

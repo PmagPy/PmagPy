@@ -170,7 +170,7 @@ def main():
             EQ['eqarea']=1
             pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
             pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
-            pmagplotlib.drawFIGS(EQ)
+            pmagplotlib.draw_figs(EQ)
     if '-WD' in args:
         infile=dir_path+'/'+infile
         measfile=dir_path+'/'+measfile
@@ -444,7 +444,7 @@ def main():
                         if plotsites==1:
                             print(PmagSiteRec['er_site_name'])
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
-                            pmagplotlib.drawFIGS(EQ)
+                            pmagplotlib.draw_figs(EQ)
                         PmagSites.append(PmagSiteRec)
             else: # last component only
                 siteD=tmp1[:] # get the last orientation system specified
@@ -467,7 +467,7 @@ def main():
                     if Daverage==0:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
                     if plotsites==1:
                         pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-                        pmagplotlib.drawFIGS(EQ)
+                        pmagplotlib.draw_figs(EQ)
                     PmagSites.append(PmagSiteRec)
         else:
             print('site information not found in er_sites for site, ',site,' site will be skipped')

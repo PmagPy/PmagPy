@@ -105,7 +105,7 @@ def main():
     if plot == 0:
         # plt.draw()
         # plt.show()
-        pmagplotlib.drawFIGS({1: 'hist'})
+        pmagplotlib.draw_figs({1: 'hist'})
         p = input('s[a]ve to save plot, [q]uit to exit without saving  ')
         if p != 'a':
             sys.exit()

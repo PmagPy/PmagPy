@@ -150,7 +150,7 @@ def main():
     Opts['details']['fancy'] = fancy
     pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
     if verbose:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
     files = {}
     for key in list(FIG.keys()):
         files[key] = 'Site_map'+'.'+fmt

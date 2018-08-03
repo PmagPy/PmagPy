@@ -78,7 +78,7 @@ def main():
     pmagplotlib.plot_init(PLTS['v2'],5,5)
     pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
     # this is a problem
-    #if plot==0:pmagplotlib.drawFIGS(PLTS)
+    #if plot==0:pmagplotlib.draw_figs(PLTS)
     ppars=pmag.doprinc(data)
     Io=ppars['inc']
     n=ppars["N"]
@@ -125,7 +125,7 @@ def main():
     if plot==0:
         print('%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper]))
         print("Io Inc  I_lower, I_upper, Elon, E_lower, E_upper")
-        pmagplotlib.drawFIGS(PLTS)
+        pmagplotlib.draw_figs(PLTS)
         ans = ""
         while ans not in ['q', 'a']:
             ans= input("S[a]ve plots - <q> to quit:  ")

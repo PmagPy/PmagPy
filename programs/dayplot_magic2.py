@@ -131,7 +131,7 @@ def main():
         else:  # use more readable plot naming convention
             files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
-        pmagplotlib.drawFIGS(DSC)
+        pmagplotlib.draw_figs(DSC)
         ans = raw_input(" S[a]ve to save plots, return to quit:  ")
         if ans == "a":
             pmagplotlib.saveP(DSC, files)

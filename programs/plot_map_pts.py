@@ -219,7 +219,7 @@ def main():
     if plot==1:
         pmagplotlib.saveP(FIG,files)
     else:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
         ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a": pmagplotlib.saveP(FIG,files)
 

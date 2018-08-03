@@ -178,7 +178,7 @@ def main():
         plt.xlabel('Ages')
         # show plot
         if plot == 0:
-            pmagplotlib.drawFIGS({'time series': 1})
+            pmagplotlib.draw_figs({'time series': 1})
             ans = input("S[a]ve to save figure, <Return>  to quit  ")
             if ans == 'a':
                 plt.savefig('igrf.'+fmt)

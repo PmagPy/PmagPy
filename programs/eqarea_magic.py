@@ -456,7 +456,7 @@ def main():
             pmagplotlib.saveP(FIG, files)
             continue
         if verbose:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
             ans = input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans == "q":
                 sys.exit()

@@ -168,7 +168,7 @@ def main():
         p1 = pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
         p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
-        pmagplotlib.drawFIGS(CDF)
+        pmagplotlib.draw_figs(CDF)
         files,fmt={},'svg'
         if file2!="":
             files['cdf']='WatsonsV_'+file1+'_'+file2+'.'+fmt

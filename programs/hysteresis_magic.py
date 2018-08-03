@@ -154,7 +154,7 @@ def main():
             hpars = pmagplotlib.plotHDD(HDD, B, M, e)
             if verbose and PLT:
                 if not set_env.IS_WIN:
-                    pmagplotlib.drawFIGS(HDD)
+                    pmagplotlib.draw_figs(HDD)
     #
             if verbose:
                 pmagplotlib.plotHPARS(HDD, hpars, 'bs')
@@ -228,7 +228,7 @@ def main():
             if pltspec:
                 sys.exit()
         if verbose and PLT:
-            pmagplotlib.drawFIGS(HDD)
+            pmagplotlib.draw_figs(HDD)
             ans = input(
                 "S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":

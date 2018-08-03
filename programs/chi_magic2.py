@@ -141,7 +141,7 @@ def main():
                 # call the plotting function
                 pmagplotlib.plotXTF(plotnum, XTF, Fs, e, b)
                 if plot == 0:
-                    pmagplotlib.drawFIGS({'fig': plotnum})  # make it visible
+                    pmagplotlib.draw_figs({'fig': plotnum})  # make it visible
                 plotnum += 1  # increment plot number
             f = Fs[0]  # set frequency to minimum
             XTB = []  # initialize list if chi versus Temp and field
@@ -156,7 +156,7 @@ def main():
                 # call the plotting function
                 pmagplotlib.plotXTB(plotnum, XTB, Bs, e, f)
                 if plot == 0:
-                    pmagplotlib.drawFIGS({'fig': plotnum})
+                    pmagplotlib.draw_figs({'fig': plotnum})
                 plotnum += 1  # increment plot number
             if '-i' in sys.argv:
                 for ind in range(len(Ts)):  # print list of temperatures available
@@ -192,7 +192,7 @@ def main():
                         plotnum += 1  # increment plotnum
                     pmagplotlib.plotXFT(XFplot, XF, Ts[Tind], e, b)
                     if plot == 0:
-                        pmagplotlib.drawFIGS({'fig': plotnum})
+                        pmagplotlib.draw_figs({'fig': plotnum})
                 else:
                     print(
                         '\n *** Skipping susceptibitily-frequency plot as a function of temperature *** \n')
@@ -209,7 +209,7 @@ def main():
                     # and call plotting function
                     pmagplotlib.plotXBT(plotnum, XB, Ts[Tind], e, f)
                     if plot == 0:
-                        pmagplotlib.drawFIGS({'fig': plotnum})
+                        pmagplotlib.draw_figs({'fig': plotnum})
                 else:
                     print(
                         'Skipping susceptibitily - AC field plot as a function of temperature')

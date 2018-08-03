@@ -55,7 +55,7 @@ def main():
     pmagplotlib.plotCDF(CDF['X'],X,title,'r','')
     files={'X':'CDF_.'+fmt}
     if plot==0:
-        pmagplotlib.drawFIGS(CDF)
+        pmagplotlib.draw_figs(CDF)
         ans= input('S[a]ve  plot, <Return> to quit ')
         if ans=='a':
             pmagplotlib.saveP(CDF,files)

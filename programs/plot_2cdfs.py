@@ -58,7 +58,7 @@ def main():
         print(D,p,' not rejected at 95%')
     else:
         print(D,p,' rejected at 95%')
-    pmagplotlib.drawFIGS(CDF)
+    pmagplotlib.draw_figs(CDF)
     ans= input('S[a]ve  plot, <Return> to quit ')
     if ans=='a':
         files={'X':'CDF_.'+fmt}

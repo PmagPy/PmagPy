@@ -205,7 +205,7 @@ def main():
         Opts['symsize'] = symsize
         pmagplotlib.plotMAP(FIG['map'], [pt_lat], [pt_lon], Opts)
         if plot == 0 and not IS_WIN:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
     for cont in Conts:
         Opts['sym'] = sym
         lats, lons = [], []
@@ -250,7 +250,7 @@ def main():
         if len(lats) > 0 and len(Poles) == 0:
             pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
             if plot == 0 and not IS_WIN:
-                pmagplotlib.drawFIGS(FIG)
+                pmagplotlib.draw_figs(FIG)
         newlats, newlons = [], []
         for lat in lats:
             newlats.append(lat)
@@ -266,7 +266,7 @@ def main():
             elif pole == Poles[-1]:  # plot only last pole for sequential rotations
                 pmagplotlib.plotMAP(FIG['map'], Rlats, Rlons, Opts)
             if plot == 0 and not IS_WIN:
-                pmagplotlib.drawFIGS(FIG)
+                pmagplotlib.draw_figs(FIG)
             if SEQ == 1:  # treat poles as sequential rotations
                 newlats, newlons = [], []
                 for lat in Rlats:
@@ -280,7 +280,7 @@ def main():
         Opts['symsize'] = 5
         pmagplotlib.plotMAP(FIG['map'], [pt[0]], [pt[1]], Opts)
         if plot == 0 and not IS_WIN:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
         Opts['pltgrid'] = -1  # turns off replotting of meridians and parallels
         for pole in Poles:
             Opts['sym'] = sym
@@ -289,17 +289,17 @@ def main():
             print(Rlats, Rlons)
             pmagplotlib.plotMAP(FIG['map'], Rlats, Rlons, Opts)
             if plot == 0 and not IS_WIN:
-                pmagplotlib.drawFIGS(FIG)
+                pmagplotlib.draw_figs(FIG)
         Opts['sym'] = 'g^'
         Opts['symsize'] = 5
         pmagplotlib.plotMAP(FIG['map'], [pole[0]], [pole[1]], Opts)
         if plot == 0 and not IS_WIN:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
     files = {}
     for key in list(FIG.keys()):
         files[key] = 'Cont_rot'+'.'+fmt
     if plot == 0 and not IS_WIN:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
     if plot == 1:
         pmagplotlib.saveP(FIG, files)
         sys.exit()
@@ -311,7 +311,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
         pmagplotlib.saveP(FIG, files)
     else:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
         ans = pmagplotlib.save_or_quit()
         if ans == "a":
             pmagplotlib.saveP(FIG, files)

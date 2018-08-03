@@ -74,7 +74,7 @@ def main():
     pmagplotlib.plot_init(EQ['eq'], 5, 5)
     pmagplotlib.plotEQsym(EQ['eq'], DI, 'Equal Area Plot', sym)  # make plot
     if plot == 0:
-        pmagplotlib.drawFIGS(EQ)  # make it visible
+        pmagplotlib.draw_figs(EQ)  # make it visible
     for key in list(EQ.keys()):
         files[key] = key + '.' + fmt
     if pmagplotlib.isServer:

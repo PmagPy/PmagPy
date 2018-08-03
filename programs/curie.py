@@ -203,8 +203,8 @@ def main():
     PLT={'M_T':1,'der1':2,'der2':3,'Curie':4}
     pmagplotlib.plot_init(PLT['M_T'],5,5)
     string='M-T (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
-    pmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
+    pmagplotlib.plot_xy(PLT['M_T'],T,M_smooth,sym='-')
+    pmagplotlib.plot_xy(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
 
     #calculate first derivative
     d1,T_d1=[],[]
@@ -219,8 +219,8 @@ def main():
     #plot the first derivative
     pmagplotlib.plot_init(PLT['der1'],5,5)
     string='1st derivative (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
-    pmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
+    pmagplotlib.plot_xy(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
+    pmagplotlib.plot_xy(PLT['der1'],T_d1,d1,sym='b--')
 
     #calculate second derivative
     d2,T_d2=[],[]
@@ -236,7 +236,7 @@ def main():
     #plot the second derivative
     pmagplotlib.plot_init(PLT['der2'],5,5)
     string='2nd derivative (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
+    pmagplotlib.plot_xy(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
     print('second derivative maximum is at T=%i'%int(T_d2[d2.index(max(d2))]))
 
@@ -272,11 +272,11 @@ def main():
 
     #plot Curie temp for different sliding window length
     pmagplotlib.plot_init(PLT['Curie'],5,5)
-    pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
+    pmagplotlib.plot_xy(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
     files = {}
     for key in list(PLT.keys()): files[key]=str(key) + "." +fmt
     if plot==0:
-        pmagplotlib.drawFIGS(PLT)
+        pmagplotlib.draw_figs(PLT)
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": pmagplotlib.saveP(PLT,files)

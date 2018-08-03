@@ -149,11 +149,11 @@ def main():
                     title = 'Hysteresis: ' + s
                 if t == Temps[0]:
                     pmagplotlib.clearFIG(HDD['hyst'])
-                pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title)
-                pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title)
-                pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plot_xy(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plot_xy(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plot_xy(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title)
                 if verbose and not set_env.IS_WIN:
-                    pmagplotlib.drawFIGS(HDD)
+                    pmagplotlib.draw_figs(HDD)
                 cnum += 1
                 if cnum == len(c):
                     cnum = 0
@@ -186,7 +186,7 @@ def main():
             if pltspec != "":
                 sys.exit()
         if verbose:
-            pmagplotlib.drawFIGS(HDD)
+            pmagplotlib.draw_figs(HDD)
             ans = input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":
                 files = {}

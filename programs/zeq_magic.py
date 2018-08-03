@@ -368,7 +368,7 @@ def main():
             datablock = list(map(list, list(zip(*datalist))))
             pmagplotlib.plotZED(ZED, datablock, angle, title, units)
             if verbose and not set_env.IS_WIN:
-                pmagplotlib.drawFIGS(ZED)
+                pmagplotlib.draw_figs(ZED)
 #
 #     collect info for current_specimen_interpretation dictionary
 #
@@ -413,7 +413,7 @@ def main():
                                 print('plotting direction')
                                 pmagplotlib.plotDir(ZED, mpars, datablock, angle)
                                 if verbose and not set_env.IS_WIN:
-                                    pmagplotlib.drawFIGS(ZED)
+                                    pmagplotlib.draw_figs(ZED)
 ### SKIP if no prior interpretation - this section should not be used:
 #            else:
 #                try:
@@ -435,7 +435,7 @@ def main():
 #                    # put it on the plot
 #                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
 #                    if verbose:
-#                        pmagplotlib.drawFIGS(ZED)
+#                        pmagplotlib.draw_figs(ZED)
 
             if plots == 1 or specimen != "":
                 if plot_file == "":
@@ -570,7 +570,7 @@ def main():
         else:
             print("no data", this_specimen)
         if verbose:
-            pmagplotlib.drawFIGS(ZED)
+            pmagplotlib.draw_figs(ZED)
             #res = input('  <return> for next specimen, [q]uit  ')
             res = input("S[a]ve plots, [q]uit, or <return> to continue  ")
             if res == 'a':

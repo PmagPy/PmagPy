@@ -138,7 +138,7 @@ def main():
     for key in list(CDF.keys()):
         files[key] = 'REV'+'_'+key+'.'+fmt
     if plot == 0:
-        pmagplotlib.drawFIGS(CDF)
+        pmagplotlib.draw_figs(CDF)
         ans = input("s[a]ve plots, [q]uit: ")
         if ans == 'a':
             pmagplotlib.saveP(CDF, files)

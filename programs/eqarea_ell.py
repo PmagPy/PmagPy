@@ -68,7 +68,7 @@ def main():
     DIblock=numpy.array([data[0],data[1]]).transpose()
     if len(DIblock)>0:
         pmagplotlib.plotEQsym(FIG['eq'],DIblock,title,sym)
-        #if plot==0:pmagplotlib.drawFIGS(FIG)
+        #if plot==0:pmagplotlib.draw_figs(FIG)
     else:
         print("no data to plot")
         sys.exit()
@@ -219,8 +219,8 @@ def main():
                 pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
         elif len(rDIs)>3 and dist!='BV':
             pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
-        #if plot==0:pmagplotlib.drawFIGS(FIG)
-    if plot==0:pmagplotlib.drawFIGS(FIG)
+        #if plot==0:pmagplotlib.draw_figs(FIG)
+    if plot==0:pmagplotlib.draw_figs(FIG)
         #
     files={}
     for key in list(FIG.keys()):

@@ -190,7 +190,7 @@ def main():
                 hmeths.append(meth)
             hpars = pmagplotlib.plotHDD(HDD, B, M, e)
             if verbose and PLT:
-                pmagplotlib.drawFIGS(HDD)
+                pmagplotlib.draw_figs(HDD)
     #
     # get prior interpretations from hyst_data
             if rmag_file != "":
@@ -276,7 +276,7 @@ def main():
             if pltspec != "":
                 sys.exit()
         if verbose and PLT:
-            pmagplotlib.drawFIGS(HDD)
+            pmagplotlib.draw_figs(HDD)
             ans = input(
                 "S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":

@@ -80,7 +80,7 @@ def main():
         EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
         pmagplotlib.saveP(EQ,files)
     elif plot==0:
-        pmagplotlib.drawFIGS(EQ)
+        pmagplotlib.draw_figs(EQ)
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": 

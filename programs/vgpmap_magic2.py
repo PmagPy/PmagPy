@@ -207,7 +207,7 @@ def main():
         # add the lats and lons of the poles
         pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
     if plot == 0:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
         Opts['details'] = {'coasts': 0, 'rivers': 0,
                            'states': 0, 'countries': 0, 'ocean': 0}
@@ -224,7 +224,7 @@ def main():
                 # make the base map with a blue triangle at the pole`
                 pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
                 if plot == 0:
-                    pmagplotlib.drawFIGS(FIG)
+                    pmagplotlib.draw_figs(FIG)
     files = {}
     for key in FIG.keys():
         if pmagplotlib.isServer:  # use server plot naming convention
@@ -240,7 +240,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
         pmagplotlib.saveP(FIG, files)
     elif plot == 0:
-        pmagplotlib.drawFIGS(FIG)
+        pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
             pmagplotlib.saveP(FIG, files)

@@ -98,7 +98,7 @@ def main():
 #
 #
     pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-    if plot==0:pmagplotlib.drawFIGS(ZED)
+    if plot==0:pmagplotlib.draw_figs(ZED)
 #
 # print out data for this sample to screen
 #
@@ -169,7 +169,7 @@ def main():
                 if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
                 if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
                 if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-        pmagplotlib.drawFIGS(ZED)
+        pmagplotlib.draw_figs(ZED)
     else:
         print(beg_pca,end_pca)
         if beg_pca!="" and end_pca!="":

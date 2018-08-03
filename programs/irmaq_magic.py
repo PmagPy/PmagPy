@@ -175,7 +175,7 @@ def main():
         for key in list(FIG.keys()):
             files[key] = title + '_' + LP + '.' + fmt
         if plot == 0:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
             ans = input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
             if ans == 'q':
                 sys.exit()

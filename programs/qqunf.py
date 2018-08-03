@@ -49,7 +49,7 @@ def main():
     else:
         print('you need N> 10')
         sys.exit()
-    pmagplotlib.drawFIGS(QQ) 
+    pmagplotlib.draw_figs(QQ) 
     files={}
     for key in list(QQ.keys()):
         files[key]=key+'.'+fmt 

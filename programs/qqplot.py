@@ -55,7 +55,7 @@ def main():
     pmagplotlib.plot_init(QQ['qq'],5,5)
     pmagplotlib.plotQQnorm(QQ['qq'],X,'Q-Q Plot') # make plot
     if plot==0:
-        pmagplotlib.drawFIGS(QQ)
+        pmagplotlib.draw_figs(QQ)
     files={}
     for key in list(QQ.keys()):
         files[key]=key+'.'+fmt 

@@ -104,7 +104,7 @@ def main():
         plt.title('B = '+'%7.2e' % (b) + ' T')
 
     if show_plots:
-        pmagplotlib.drawFIGS(figs)
+        pmagplotlib.draw_figs(figs)
         ans = input(
             "enter s[a]ve to save files,  [return] to quit ")
         if ans == 'a':

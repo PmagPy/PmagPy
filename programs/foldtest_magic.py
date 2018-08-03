@@ -202,7 +202,7 @@ def main():
     TCs = np.array([D, I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'], TCs, 'Stratigraphic')
     if plot == 0:
-        pmagplotlib.drawFIGS(PLTS)
+        pmagplotlib.draw_figs(PLTS)
     Percs = list(range(untilt_min, untilt_max))
     Cdf, Untilt = [], []
     plt.figure(num=PLTS['taus'])
@@ -242,7 +242,7 @@ def main():
     print(tit)
     plt.title(tit)
     if plot == 0:
-        pmagplotlib.drawFIGS(PLTS)
+        pmagplotlib.draw_figs(PLTS)
         ans = input('S[a]ve all figures, <Return> to quit  \n ')
         if ans != 'a':
             print("Good bye")

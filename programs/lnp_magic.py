@@ -198,7 +198,7 @@ def main():
                 pmagplotlib.plotLNP(EQ['eqarea'], site,
                                     data, fpars, 'specimen_direction_type')
                 if plot == 0:
-                    pmagplotlib.drawFIGS(EQ)
+                    pmagplotlib.draw_figs(EQ)
                     ans = input(
                         "s[a]ve plot, [q]uit, <return> to continue:\n ")
                     if ans == "a":

@@ -152,7 +152,7 @@ def main():
     elif plot==1:
         pmagplotlib.saveP(QQ,files)
     else:
-        pmagplotlib.drawFIGS(QQ) 
+        pmagplotlib.draw_figs(QQ) 
         ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(QQ,files)
 

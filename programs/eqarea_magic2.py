@@ -401,7 +401,7 @@ def main():
             elif len(rDIs) > 3 and dist != 'BV':
                 pmagplotlib.plotCONF(FIG['eqarea'], etitle, [], rpars, 0)
         if verbose:
-            pmagplotlib.drawFIGS(FIG)
+            pmagplotlib.draw_figs(FIG)
             #
         files = {}
         locations = locations[:-1]

@@ -296,7 +296,7 @@ def main():
             pmagplotlib.plotAZ(AZD, araiblock, zijdblock,
                                this_specimen, units[0])
             if verbose:
-                pmagplotlib.drawFIGS(AZD)
+                pmagplotlib.draw_figs(AZD)
             if cb.is_null(start, False) or cb.is_null(end, False):
                 if verbose:
                     ans = input('Return for next specimen, q to quit:  ')
@@ -337,7 +337,7 @@ def main():
                 pmagplotlib.plotB(AZD, araiblock, zijdblock, pars)
                 mpars = pmag.domean(araiblock[1], start, end, 'DE-BFL')
                 if verbose:
-                    pmagplotlib.drawFIGS(AZD)
+                    pmagplotlib.draw_figs(AZD)
                     print('pTRM direction= ', '%7.1f' % (mpars['specimen_dec']), ' %7.1f' % (
                         mpars['specimen_inc']), ' MAD:', '%7.1f' % (mpars['specimen_mad']))
             if len(anisblock) > 0:  # this specimen has anisotropy data

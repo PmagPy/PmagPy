@@ -82,7 +82,7 @@ def main():
     files['Y']='CD_Y.'+fmt
     files['Z']='CD_Z.'+fmt
     if plot==0:
-        pmagplotlib.drawFIGS(CDF)
+        pmagplotlib.draw_figs(CDF)
         ans=input("S[a]ve plots, <Return> to quit ")
         if ans=="a":
             pmagplotlib.saveP(CDF,files)

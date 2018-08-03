@@ -119,7 +119,7 @@ def main():
         sys.exit()
     pmagplotlib.plot_mag_map(1,element,lons,lats,el,lon_0=0,date=date)
     if not save:
-        pmagplotlib.drawFIGS({'map': 1})
+        pmagplotlib.draw_figs({'map': 1})
         res = pmagplotlib.save_or_quit()
         if res == 'a':
             figname = 'igrf'+d+'.'+fmt

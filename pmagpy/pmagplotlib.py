@@ -1,18 +1,13 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
+#/usr/bin/env pythonw
+
 # pylint: skip-file
 # pylint: disable-all
 # causes too many errors and crashes
 
 ##from Tkinter import *
-from builtins import input
-from builtins import str
-from builtins import range
 from past.utils import old_div
 import sys
 import os
-sys.path.insert(0, os.getcwd())
 import numpy as np
 import pandas as pd
 import warnings
@@ -39,7 +34,6 @@ import matplotlib
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
-# matplotlib >= 2.1 not yet available for Canopy (also not default with anaconda)
 if matplotlib.__version__ < '2.1':
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
@@ -55,12 +49,12 @@ def poly(X, Y, deg):
     return np.polyfit(X, Y, deg)
 
 
-def showFIG(fig):
+def show_fig(fig):
     plt.figure(fig)
     plt.show();
 
 
-def drawFIGS(FIGS):
+def draw_figs(FIGS):
     """
     Can only be used if matplotlib backend is set to TKAgg
     Does not play well with wxPython
@@ -208,13 +202,13 @@ def qsnorm(p):
             x = -x
     return x
 
-
-def plotNOTES(fignum, Notes):
+# not used
+def plot_notes(fignum, Notes):
     for note in Notes:
         plt.text(note['X'], note['Y'], note['text'])
 
-
-def plotPTS(fignum, PTs, x, y):
+# not used
+def plot_pts(fignum, pts, x, y):
     for pt in PTs:
         plt.scatter(pt[x], pt[y], marker=pt['marker'],
                       c=pt['color'], s=pt['size'])
@@ -224,8 +218,8 @@ def show(fig):
     plt.figure(fig)
     plt.show()
 
-
-def plot3dPTS(ax, PTs):
+# not used
+def plot_3d_pts(ax, PTs):
     Xs, Ys, Zs = [], [], []
     for pt in PTs:
         Xs.append(pt['X'])
@@ -233,8 +227,8 @@ def plot3dPTS(ax, PTs):
         Zs.append(pt['Z'])
     ax.scatter(Xs, Ys, Zs, marker=pt['marker'], c=pt['color'], s=pt['size'])
 
-
-def plot3dLINES(ax, line, sym):
+# not used
+def plot_3d_lines(ax, line, sym):
     Xs, Ys, Zs = [], [], []
     for l in line:
         Xs.append(l['X'])
@@ -242,8 +236,8 @@ def plot3dLINES(ax, line, sym):
         Zs.append(l['Z'])
     ax.plot(Xs, Ys, Zs, sym)
 
-
-def plotLINES(fignum, line, sym, x, y):
+# not used
+def plot_lines(fignum, line, sym, x, y):
     X, Y = [], []
     for l in line:
         X.append(l[x])
@@ -251,7 +245,7 @@ def plotLINES(fignum, line, sym, x, y):
     plt.plot(X, Y, sym)
 
 
-def plotXY(fignum, X, Y, **kwargs):
+def plot_xy(fignum, X, Y, **kwargs):
     plt.figure(num=fignum)
 #    if 'poly' in kwargs.keys():
 #          coeffs=np.polyfit(X,Y,kwargs['poly'])
@@ -369,11 +363,11 @@ def plotQQunf(fignum, D, title, subplot=False,degrees=True):
     title : title for plot
     subplot : if True, make this number one of two subplots
     degrees : if True, assume that these are degrees
-    
+
     Return
     Mu : Mu statistic (Fisher et al., 1987)
-    Mu_crit : critical value of Mu for uniform distribution 
-    
+    Mu_crit : critical value of Mu for uniform distribution
+
     Effect
     ______
     makes a Quantile Quantile plot of data
@@ -391,8 +385,8 @@ def plotQQunf(fignum, D, title, subplot=False,degrees=True):
     i=np.arange(0,len(D))
     Y=(i-0.5)/n
     ds=(i/n)-X
-    dpos=ds.max() 
-    dneg=ds.min() 
+    dpos=ds.max()
+    dneg=ds.min()
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16
@@ -628,7 +622,7 @@ def plotC(fignum, pole, ang, col):
 def plotZ(fignum, datablock, angle, s, norm):
     """
     function to make Zijderveld diagrams
-     
+
     Parameters
     __________
     fignum : matplotlib figure number
@@ -719,7 +713,7 @@ def plotMT(fignum, datablock, s, num, units, norm):
     num : no idea - set it to zero
     units : [T,K,U] for tesla, kelvin or arbitrary
     norm : [1,0] if 1, normalize, otherwise don't
-    
+
     Effects
     ______
         plots figure
@@ -834,25 +828,25 @@ def plotMT(fignum, datablock, s, num, units, norm):
 def plotZED(ZED, datablock, angle, s, units):
     """
     function to make equal area plot and zijderveld plot
-   
+
     Parameters
     _________
     ZED : dictionary with keys for plots
-        eqarea : figure number for equal area projection 
+        eqarea : figure number for equal area projection
         zijd   : figure number for  zijderveld plot
         demag :  figure number for magnetization against demag step
     datablock : nested list of [step, dec, inc, M (Am2), quality]
         step : units assumed in SI
         M    : units assumed Am2
-        quality : [g,b], good or bad measurement; if bad will be marked as such 
+        quality : [g,b], good or bad measurement; if bad will be marked as such
     angle : angle for X axis in horizontal plane, if 0, x will be 0 declination
     s : specimen name
     units :  SI units ['K','T','U'] for kelvin, tesla or undefined
 
     Effects
     _______
-       calls plotting functions for equal area, zijderveld and demag figures 
-    
+       calls plotting functions for equal area, zijderveld and demag figures
+
     """
     for fignum in list(ZED.keys()):
         fig = plt.figure(num=ZED[fignum])
@@ -1151,14 +1145,14 @@ def plotA(fignum, indata, s, units):
 def plotNP(fignum, indata, s, units):
     """
     makes plot of de(re)magnetization data for Thellier-Thellier type experiment
-    
+
     Parameters
     __________
     fignum : matplotlib figure number
     indata :  araiblock from, e.g., pmag.sortarai()
     s : specimen name
     units : [K,J] (kelvin or joules)
-    
+
     Effect
     _______
     Makes a plot
@@ -1216,10 +1210,10 @@ def plotNP(fignum, indata, s, units):
 def plotAZ(ZED, araiblock, zijdblock, s, units):
     """
     calls the four plotting programs for Thellier-Thellier experiments
-        
+
     Parameters
     __________
-    ZED : dictionary with plotting figure keys: 
+    ZED : dictionary with plotting figure keys:
         deremag : figure for de (re) magnezation plots
         arai : figure for the Arai diagram
         eqarea : equal area projection of data, color coded by
@@ -1232,7 +1226,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     zijdblock : nested list of required data for Zijderveld plots
     s : specimen name
     units : units for the arai and zijderveld plots
-  
+
     Effects
     ________
     Makes four plots from the data by calling
@@ -1240,7 +1234,7 @@ def plotAZ(ZED, araiblock, zijdblock, s, units):
     plotTEQ : equal area projection for Thellier data
     plotZ : Zijderveld diagram
     plotNP : de (re) magnetization diagram
-    """  
+    """
     angle = zijdblock[0][1]
     norm = 1
     if units == "U":
@@ -1550,14 +1544,14 @@ def plotEQsym(fignum, DIblock, s, sym):
 def plotTEQ(fignum, araiblock, s, pars):
     """
     plots directions  of pTRM steps and zero field steps
-    
+
     Parameters
     __________
     fignum : figure number for matplotlib object
     araiblock : nested list of data from pmag.sortarai()
     s : specimen name
-    pars : default is "", 
-        otherwise is dictionary with keys: 
+    pars : default is "",
+        otherwise is dictionary with keys:
         'measurement_step_min' and 'measurement_step_max'
 
     Effects
@@ -1566,8 +1560,8 @@ def plotTEQ(fignum, araiblock, s, pars):
         red circles: ZI steps
         blue squares: IZ steps
         yellow : pTRM steps
-     
- 
+
+
     """
     first_Z, first_I = araiblock[0], araiblock[1]
 # make the stereonet
@@ -1886,7 +1880,7 @@ def plotHYS(fignum, B, M, s):
            keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
        deltaM : list of differences between down and upgoing loops
        Bdm : field values
-   
+
     """
     B = list(B)
     from . import spline
@@ -2782,7 +2776,7 @@ def plotCOM(CDF, BDI1, BDI2, d):
     Z1, y = plotCDF(CDF['Z'], Z1, "Z component", 'r', "")
     bounds1 = [Z1[min], Z1[max]]
     plotVs(CDF['Z'], bounds1, 'r', '-')
-    # drawFIGS(CDF)
+    # draw_figs(CDF)
     if d[0] == "":  # repeat for second data set
         bounds2 = []
         cart = pmag.dir2cart(BDI2).transpose()

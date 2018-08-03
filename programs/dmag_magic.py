@@ -137,7 +137,7 @@ def main():
                 pmagplotlib.saveP(FIG, files)
                 #sys.exit()
             else:
-                pmagplotlib.drawFIGS(FIG)
+                pmagplotlib.draw_figs(FIG)
                 prompt = " S[a]ve to save plot, [q]uit,  Return to continue:  "
                 ans = input(prompt)
                 if ans == 'q':
