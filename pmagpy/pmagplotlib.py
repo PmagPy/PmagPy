@@ -2427,7 +2427,7 @@ def plot_close(plot):
 #
 
 
-def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
+def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
     imeas, bpars, hpars = 1, [], []
     npts = len(Ss)  # number of data points
     plots = {}
