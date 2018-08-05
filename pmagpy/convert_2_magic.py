@@ -842,12 +842,9 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 "What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): " % (str(specimen), str(treat_type))))))
         return GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD*1e-6, DC_PHI, DC_THETA
 
+    specnum = - int(specnum)
     if not input_dir_path:
-        try:
-            input_dir_path = os.path.split(magfile)[0]
-        except IndexError:
-            input_dir_path = dir_path
-
+        input_dir_path = dir_path
     output_dir_path = dir_path
     try:
         DC_FIELD = float(labfield) * 1e-6
@@ -884,7 +881,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     # get file names and open magfile to start reading data
     if input_dir_path == '':
         input_dir_path = '.'
-    magfile = os.path.join(input_dir_path, magfile)
+    magfile = pmag.resolve_file_name(magfile, input_dir_path)
     FIRST_GET_DC = True
     try:
         file_input = open(magfile, 'r')
