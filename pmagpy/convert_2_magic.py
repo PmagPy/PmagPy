@@ -882,6 +882,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     if input_dir_path == '':
         input_dir_path = '.'
     magfile = pmag.resolve_file_name(magfile, input_dir_path)
+    input_dir_path = os.path.split(magfile)[0]
     FIRST_GET_DC = True
     try:
         file_input = open(magfile, 'r')
