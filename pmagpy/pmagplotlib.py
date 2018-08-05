@@ -2040,7 +2040,7 @@ def plot_imag(fignum, Bimag, Mimag, s):
 #
 
 
-def plotHDD(HDD, B, M, s):
+def plot_hdd(HDD, B, M, s):
     """
     Function to make hysteresis, deltaM and DdeltaM plots
     Parameters:
@@ -2090,7 +2090,7 @@ def plotHDD(HDD, B, M, s):
 #
 
 
-def plotDay(fignum, BcrBc, S, sym, **kwargs):
+def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
     """
@@ -2137,7 +2137,7 @@ def plotDay(fignum, BcrBc, S, sym, **kwargs):
 
 
 #
-def plotSBc(fignum, Bc, S, sym):
+def plot_s_bc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
     """
@@ -2151,7 +2151,7 @@ def plotSBc(fignum, Bc, S, sym):
 #
 
 
-def plotSBcr(fignum, Bcr, S, sym):
+def plot_s_bcr(fignum, Bcr, S, sym):
     """
     function to plot Squareness,Coercivity of remanence
     """
@@ -2165,7 +2165,7 @@ def plotSBcr(fignum, Bcr, S, sym):
 #
 
 
-def plotBcr(fignum, Bcr1, Bcr2):
+def plot_bcr(fignum, Bcr1, Bcr2):
     """
     function to plot two estimates of Bcr against each other
     """

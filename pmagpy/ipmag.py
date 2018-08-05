@@ -6118,24 +6118,24 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
     # now plot the day and S-Bc, S-Bcr plots
     #
     if len(Bcr1) > 0:
-        pmagplotlib.plotDay(DSC['day'], Bcr1Bc, S1, 'ro')
-        pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
+        pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
+        pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
         pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
-        pmagplotlib.plotBcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
+        pmagplotlib.plot_bcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
         plt.show()
     else:
         del DSC['bcr1-bcr2']
     if save == True:
-        pmagplotlib.plotDay(DSC['day'], BcrBc, S, 'bs')
+        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
         plt.savefig(os.path.join(save_folder, 'Day.' + fmt))
-        pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr, S, 'bs')
+        pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         plt.savefig(os.path.join(save_folder, 'S-Bcr.' + fmt))
-        pmagplotlib.plotSBc(DSC['S-Bc'], Bc, S, 'bs')
+        pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
         plt.savefig(os.path.join(save_folder, 'S-Bc.' + fmt))
     else:
-        pmagplotlib.plotDay(DSC['day'], BcrBc, S, 'bs')
-        pmagplotlib.plotSBcr(DSC['S-Bcr'], Bcr, S, 'bs')
-        pmagplotlib.plotSBc(DSC['S-Bc'], Bc, S, 'bs')
+        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
+        pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
+        pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
         plt.show()
 
 

@@ -188,7 +188,7 @@ def main():
             hmeths = []
             for meth in meths:
                 hmeths.append(meth)
-            hpars = pmagplotlib.plotHDD(HDD, B, M, e)
+            hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
             if verbose and PLT:
                 pmagplotlib.draw_figs(HDD)
     #
