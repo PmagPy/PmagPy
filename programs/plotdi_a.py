@@ -72,7 +72,7 @@ def main():
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
-        EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
+        EQ = pmagplotlib.add_borders(EQ,titles,black,purple)
         pmagplotlib.save_plots(EQ,files)
     elif plot==0:
         pmagplotlib.draw_figs(EQ)

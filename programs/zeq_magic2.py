@@ -713,7 +713,7 @@ def main():
                       titles['demag']='DeMag Plot'
                       titles['zijd']='Zijderveld Plot'
                       titles['eqarea']='Equal Area Plot'
-                      ZED = pmagplotlib.addBorders(ZED,titles,black,purple)
+                      ZED = pmagplotlib.add_borders(ZED,titles,black,purple)
                   pmagplotlib.save_plots(ZED,files)
             if len(CurrRecs)>0:
                 for rec in CurrRecs: PriorRecs.append(rec)

@@ -308,7 +308,7 @@ def main():
                                        Bp.append(float(k)*1e-6)
                                        npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                        Mp.append(npred)
-                                   pmagplotlib.plotTRM(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
+                                   pmagplotlib.plot_trm(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                    print(npred)
                                    print('Banc= ',float(NLpars['banc'])*1e6)
                                    if pmagplotlib.verbose:
@@ -465,7 +465,7 @@ def main():
                                    Bp.append(float(k)*1e-6)
                                    npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                    Mp.append(npred)
-                               pmagplotlib.plotTRM(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
+                               pmagplotlib.plot_trm(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                print('Banc= ',float(NLpars['banc'])*1e6)
                            pmagplotlib.draw_figs(AZD)
                            pars["specimen_lab_field_dc"]=field
@@ -490,7 +490,7 @@ def main():
                            titles['deremag']='DeReMag Plot'
                            titles['zijd']='Zijderveld Plot'
                            titles['arai']='Arai Plot'
-                           AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
+                           AZD = pmagplotlib.add_borders(AZD,titles,black,purple)
                        pmagplotlib.save_plots(AZD,files)
     #                   pmagplotlib.combineFigs(s,files,3)
         if len(CurrRec)>0:

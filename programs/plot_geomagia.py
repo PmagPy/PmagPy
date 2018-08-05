@@ -102,7 +102,7 @@ def main():
     else:
         Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':1}
     Opts['details']['fancy']=fancy
-    pmagplotlib.plotMAP(FIGS['map'],slats,slons,Opts)
+    pmagplotlib.plot_map(FIGS['map'],slats,slons,Opts)
     pmagplotlib.plot_xy(FIGS['vadms'],Age,Vadm,sym='bo',xlab='Age (Years CE)',ylab=r'VADM (ZAm$^2$)')
     if verbose:pmagplotlib.draw_figs(FIGS)
     files={}
@@ -114,7 +114,7 @@ def main():
         titles={}
         titles['map']='Map'
         titles['vadms']='VADMs'
-        FIG = pmagplotlib.addBorders(FIGS,titles,black,purple)
+        FIG = pmagplotlib.add_borders(FIGS,titles,black,purple)
         pmagplotlib.save_plots(FIGS,files)
     elif verbose:
         ans=input(" S[a]ve to save plot, Return to quit:  ")

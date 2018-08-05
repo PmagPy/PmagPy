@@ -211,7 +211,7 @@ def main():
                     purple    = '#800080'
                     titles={}
                     titles['fig']='X Y Plot'
-                    FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
+                    FIG = pmagplotlib.add_borders(FIG,titles,black,purple)
                 pmagplotlib.save_plots(FIG,files)
         else:
             print('nothing to plot for ',plot)

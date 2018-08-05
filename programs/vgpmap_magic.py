@@ -176,7 +176,7 @@ def main():
     Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
                        'countries': 0, 'ocean': 1, 'fancy': fancy}
     # make the base map with a blue triangle at the pole
-    pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
+    pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
     Opts['pltgrid'] = -1
     Opts['sym'] = sym
     Opts['symsize'] = size
@@ -184,13 +184,13 @@ def main():
         Opts['names'] = dates
     if len(lats) > 0:
         # add the lats and lons of the poles
-        pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+        pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
     Opts['names'] = []
     if len(rlats) > 0:
         Opts['sym'] = rsym
         Opts['symsize'] = rsize
         # add the lats and lons of the poles
-        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
+        pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
     if plot == 0 and not set_env.IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
@@ -207,7 +207,7 @@ def main():
                     elons.append(pt[0])
                     elats.append(pt[1])
                 # make the base map with a blue triangle at the pole
-                pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
+                pmagplotlib.plot_map(FIG['map'], elats, elons, Opts)
                 if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.draw_figs(FIG)
     files = {}
@@ -222,7 +222,7 @@ def main():
         purple = '#800080'
         titles = {}
         titles['eq'] = 'LO:_' + location + '_VGP_map'
-        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:
         pmagplotlib.draw_figs(FIG)

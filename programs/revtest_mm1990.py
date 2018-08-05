@@ -179,7 +179,7 @@ def main():
             purple    = '#800080'
             titles={}
             titles['cdf']='Cumulative Distribution'
-            CDF = pmagplotlib.addBorders(CDF,titles,black,purple)
+            CDF = pmagplotlib.add_borders(CDF,titles,black,purple)
             pmagplotlib.save_plots(CDF,files)
         else:
             ans=input(" S[a]ve to save plot, [q]uit without saving:  ")

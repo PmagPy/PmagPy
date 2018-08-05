@@ -6479,7 +6479,7 @@ def chi_magic(path_to_file='.', file_name='magic_measurements.txt',
             if len(XT) > 1:  # if there are any temperature dependent data
                 plt.figure(num=plotnum, figsize=(5, 5))  # initialize plot
                 # call the plotting function
-                pmagplotlib.plotXTF(plotnum, XTF, Fs, e, b)
+                pmagplotlib.plot_xtf(plotnum, XTF, Fs, e, b)
                 pmagplotlib.show_fig(plotnum)
                 plotnum += 1  # increment plot number
             f = Fs[0]  # set frequency to minimum
@@ -6493,7 +6493,7 @@ def chi_magic(path_to_file='.', file_name='magic_measurements.txt',
             if len(XT) > 1:  # if there are any temperature dependent data
                 plt.figure(num=plotnum, figsize=(5, 5))  # set up plot
                 # call the plotting function
-                pmagplotlib.plotXTB(plotnum, XTB, Bs, e, f)
+                pmagplotlib.plot_xtb(plotnum, XTB, Bs, e, f)
                 pmagplotlib.show_fig(plotnum)
                 plotnum += 1  # increment plot number
             if save == True:
@@ -7908,7 +7908,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
             else: # use more readable plot naming convention
                 title = "{}_{}_{}".format(loc_name, site, crd)
-            bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
+            bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                                 title, iplot, comp, vec, Dir, num_bootstraps)
 
             if len(PDir) > 0:
@@ -8160,7 +8160,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                 ANIS['tcdf'] = 3
                                 pmagplotlib.plot_init(ANIS['tcdf'], 5, 5)
                                 inittcdf = 1
-                    bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot,
+                    bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot,
                                                         comp, vec, Dir, num_bootstraps)
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
@@ -8224,7 +8224,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                             con = 0
                         except IndexError:
                             print(" Incorrect entry, try again ")
-                    bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title,
+                    bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title,
                                                         iplot, comp, vec, Dir, num_bootstraps)
                     Dir, comp = [], 0
                     if verbose and plots == 0:
@@ -8247,7 +8247,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
-                        pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
+                        pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                              title, iplot, comp, vec, Dir, num_bootstraps)
 
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')

@@ -67,7 +67,7 @@ def main():
     BDI1=pmag.di_boot(D1)
     print('doing second mode, be patient')
     BDI2=pmag.di_boot(D2)
-    pmagplotlib.plotCOM(CDF,BDI1,BDI2,[""])
+    pmagplotlib.plot_com(CDF,BDI1,BDI2,[""])
     files={}
     for key in list(CDF.keys()):
         files[key]='REV'+'_'+key+'.'+fmt 

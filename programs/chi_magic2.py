@@ -139,7 +139,7 @@ def main():
             if len(XT) > 1:  # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum, 5, 5)  # initialize plot
                 # call the plotting function
-                pmagplotlib.plotXTF(plotnum, XTF, Fs, e, b)
+                pmagplotlib.plot_xtf(plotnum, XTF, Fs, e, b)
                 if plot == 0:
                     pmagplotlib.draw_figs({'fig': plotnum})  # make it visible
                 plotnum += 1  # increment plot number
@@ -154,7 +154,7 @@ def main():
             if len(XT) > 1:  # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum, 5, 5)  # set up plot
                 # call the plotting function
-                pmagplotlib.plotXTB(plotnum, XTB, Bs, e, f)
+                pmagplotlib.plot_xtb(plotnum, XTB, Bs, e, f)
                 if plot == 0:
                     pmagplotlib.draw_figs({'fig': plotnum})
                 plotnum += 1  # increment plot number
@@ -190,7 +190,7 @@ def main():
                         FTinit = 1
                         XFplot = plotnum
                         plotnum += 1  # increment plotnum
-                    pmagplotlib.plotXFT(XFplot, XF, Ts[Tind], e, b)
+                    pmagplotlib.plot_xft(XFplot, XF, Ts[Tind], e, b)
                     if plot == 0:
                         pmagplotlib.draw_figs({'fig': plotnum})
                 else:
@@ -207,7 +207,7 @@ def main():
                         pmagplotlib.plot_init(plotnum, 5, 5)  # do it
                         BTinit = 1
                     # and call plotting function
-                    pmagplotlib.plotXBT(plotnum, XB, Ts[Tind], e, f)
+                    pmagplotlib.plot_xbt(plotnum, XB, Ts[Tind], e, f)
                     if plot == 0:
                         pmagplotlib.draw_figs({'fig': plotnum})
                 else:

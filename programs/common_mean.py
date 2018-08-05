@@ -76,7 +76,7 @@ def main():
     pmagplotlib.plot_init(CDF['Y'],4,4)
     pmagplotlib.plot_init(CDF['Z'],4,4)
 # draw the cdfs
-    pmagplotlib.plotCOM(CDF,BDI1,BDI2,[d,i])
+    pmagplotlib.plot_com(CDF,BDI1,BDI2,[d,i])
     files={}
     files['X']='CD_X.'+fmt
     files['Y']='CD_Y.'+fmt

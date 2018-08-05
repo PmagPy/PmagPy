@@ -58,7 +58,7 @@ def main():
         purple    = '#800080'
         titles={}
         titles['eq']='Equal Area Plot'
-        EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
+        EQ = pmagplotlib.add_borders(EQ,titles,black,purple)
         pmagplotlib.save_plots(QQ,files)
     elif plot==1:
         files['qq']=file+'.'+fmt 

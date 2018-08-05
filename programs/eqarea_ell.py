@@ -208,13 +208,13 @@ def main():
                     else:
                         pmagplotlib.plot_eq(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors',vsym)
         if dist=='B':
-            if len(nDIs)> 3 or len(rDIs)>3: pmagplotlib.plotCONF(FIG['eq'],etitle,[],npars,0)
+            if len(nDIs)> 3 or len(rDIs)>3: pmagplotlib.plot_conf(FIG['eq'],etitle,[],npars,0)
         elif len(nDIs)>3 and dist!='BV':
-            pmagplotlib.plotCONF(FIG['eq'],etitle,[],npars,0)
+            pmagplotlib.plot_conf(FIG['eq'],etitle,[],npars,0)
             if len(rDIs)>3:
-                pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
+                pmagplotlib.plot_conf(FIG['eq'],etitle,[],rpars,0)
         elif len(rDIs)>3 and dist!='BV':
-            pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
+            pmagplotlib.plot_conf(FIG['eq'],etitle,[],rpars,0)
         #if plot==0:pmagplotlib.draw_figs(FIG)
     if plot==0:pmagplotlib.draw_figs(FIG)
         #
@@ -226,7 +226,7 @@ def main():
         purple    = '#800080'
         titles={}
         titles['eq']='Equal Area Plot'
-        FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
+        FIG = pmagplotlib.add_borders(FIG,titles,black,purple)
         pmagplotlib.save_plots(FIG,files)
     elif plot==0:
         ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")

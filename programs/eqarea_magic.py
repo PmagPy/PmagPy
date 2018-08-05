@@ -400,13 +400,13 @@ def main():
                                 FIG['bdirs'], BrDIs, 'Bootstrapped Eigenvectors')
             if dist == 'B':
                 if len(nDIs) > 3 or len(rDIs) > 3:
-                    pmagplotlib.plotCONF(FIG['eqarea'], etitle, [], npars, 0)
+                    pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], npars, 0)
             elif len(nDIs) > 3 and dist != 'BV':
-                pmagplotlib.plotCONF(FIG['eqarea'], etitle, [], npars, 0)
+                pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], npars, 0)
                 if len(rDIs) > 3:
-                    pmagplotlib.plotCONF(FIG['eqarea'], etitle, [], rpars, 0)
+                    pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], rpars, 0)
             elif len(rDIs) > 3 and dist != 'BV':
-                pmagplotlib.plotCONF(FIG['eqarea'], etitle, [], rpars, 0)
+                pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], rpars, 0)
 
         for key in list(FIG.keys()):
             files = {}
@@ -449,7 +449,7 @@ def main():
             purple = '#800080'
             titles = {}
             titles['eqarea'] = 'Equal Area Plot'
-            FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+            FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
             pmagplotlib.save_plots(FIG, files)
 
         if plt:

@@ -364,7 +364,7 @@ def main():
         titles = {}
         titles['strat'] = 'Depth/Time Series Plot'
         titles['ts'] = 'Time Series Plot'
-        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 1:
         pmagplotlib.save_plots(FIG, files)

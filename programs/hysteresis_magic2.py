@@ -204,10 +204,10 @@ def main():
                             hpars_prior['hysteresis_bcr'] = rec['hysteresis_bcr']
                             break
                 if verbose:
-                    pmagplotlib.plotHPARS(HDD, hpars_prior, 'ro')
+                    pmagplotlib.plot_hpars(HDD, hpars_prior, 'ro')
             else:
                 if verbose:
-                    pmagplotlib.plotHPARS(HDD, hpars, 'bs')
+                    pmagplotlib.plot_hpars(HDD, hpars, 'bs')
                 HystRec['hysteresis_mr_moment'] = hpars['hysteresis_mr_moment']
                 HystRec['hysteresis_ms_moment'] = hpars['hysteresis_ms_moment']
                 HystRec['hysteresis_bc'] = hpars['hysteresis_bc']
@@ -234,7 +234,7 @@ def main():
                 HDD['irm'] = 5
                 pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
-            rpars = pmagplotlib.plotIRM(HDD['irm'], Bdcd, Mdcd, irm_exp)
+            rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             RemRec['remanence_mr_moment'] = rpars['remanence_mr_moment']
             RemRec['remanence_bcr'] = rpars['remanence_bcr']
             RemRec['magic_experiment_names'] = irm_exp

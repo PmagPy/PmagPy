@@ -203,7 +203,7 @@ def main():
     Opts['sym']=sym
     Opts['symsize']=symsize
     if basemap: 
-        pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
+        pmagplotlib.plot_map(FIG['map'],Lats,Lons,Opts)
     else:
         pmagplotlib.plot_map(FIG['map'],Lats,Lons,Opts)
     files={}
@@ -214,7 +214,7 @@ def main():
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
-        FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
+        FIG = pmagplotlib.add_borders(FIG,titles,black,purple)
         pmagplotlib.save_plots(FIG,files)
     if plot==1:
         pmagplotlib.save_plots(FIG,files)

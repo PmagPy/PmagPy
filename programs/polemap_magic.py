@@ -186,7 +186,7 @@ def main():
     base_Opts = Opts.copy()
 
     # make the base map with a blue triangle at the pole
-    pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
+    pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
 
     Opts['pltgrid'] = -1
     Opts['sym'] = sym
@@ -195,7 +195,7 @@ def main():
         Opts['names'] = dates
     if len(lats) > 0:
         # add the lats and lons of the poles
-        pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+        pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
     Opts['names'] = []
 
     titles = {}
@@ -215,8 +215,8 @@ def main():
             pmagplotlib.plot_init(FIG['map'], 6, 6)
             # if with baseOpts, lat/lon don't show
             # if with Opts, grid lines don't show
-            pmagplotlib.plotMAP(ind+2, [90], [0.], base_Opts)
-            pmagplotlib.plotMAP(ind+2, [lat], [lon], Opts)
+            pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
+            pmagplotlib.plot_map(ind+2, [lat], [lon], Opts)
             titles["map_{}".format(ind)] = location
             files["map_{}".format(ind)] = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
 
@@ -241,7 +241,7 @@ def main():
         Opts['sym'] = rsym
         Opts['symsize'] = rsize
         # add the lats and lons of the poles
-        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
+        pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
     if plot == 0 and not set_env.IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
@@ -258,7 +258,7 @@ def main():
                     elons.append(pt[0])
                     elats.append(pt[1])
                 # make the base map with a blue triangle at the pole
-                pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
+                pmagplotlib.plot_map(FIG['map'], elats, elons, Opts)
                 if plot == 0 and not set_env.IS_WIN:
                     pmagplotlib.draw_figs(FIG)
 
@@ -270,7 +270,7 @@ def main():
         if 'contribution' in con.tables:
             con_id = con.tables['contribution'].df.iloc[0].id
             titles['map'] = "MagIC contribution {} all locations".format(con_id)
-        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:
         pmagplotlib.draw_figs(FIG)

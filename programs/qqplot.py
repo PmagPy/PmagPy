@@ -64,7 +64,7 @@ def main():
         purple    = '#800080'
         titles={}
         titles['eq']='Q-Q Plot'
-        QQ = pmagplotlib.addBorders(EQ,titles,black,purple)
+        QQ = pmagplotlib.add_borders(EQ,titles,black,purple)
         pmagplotlib.save_plots(QQ,files)
     elif plot==0:
         ans=input(" S[a]ve to save plot, [q]uit without saving:  ")

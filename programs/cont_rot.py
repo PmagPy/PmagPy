@@ -198,12 +198,12 @@ def main():
         Opts['latmax'] = 70
         Opts['lonmin'] = -180
         Opts['lonmax'] = 180
-    pmagplotlib.plotMAP(FIG['map'], [], [], Opts)  # plot the basemap
+    pmagplotlib.plot_map(FIG['map'], [], [], Opts)  # plot the basemap
     Opts['pltgrid'] = -1  # turn off replotting of gridlines
     if '-pt' in sys.argv:
         Opts['sym'] = sym
         Opts['symsize'] = symsize
-        pmagplotlib.plotMAP(FIG['map'], [pt_lat], [pt_lon], Opts)
+        pmagplotlib.plot_map(FIG['map'], [pt_lat], [pt_lon], Opts)
         if plot == 0 and not IS_WIN:
             pmagplotlib.draw_figs(FIG)
     for cont in Conts:
@@ -248,7 +248,7 @@ def main():
                 lons.append(float(line[1]))
             cnt += 1
         if len(lats) > 0 and len(Poles) == 0:
-            pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+            pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
             if plot == 0 and not IS_WIN:
                 pmagplotlib.draw_figs(FIG)
         newlats, newlons = [], []
@@ -262,9 +262,9 @@ def main():
             Opts['sym'] = sym
             Opts['symsize'] = 3
             if SEQ == 0:
-                pmagplotlib.plotMAP(FIG['map'], Rlats, Rlons, Opts)
+                pmagplotlib.plot_map(FIG['map'], Rlats, Rlons, Opts)
             elif pole == Poles[-1]:  # plot only last pole for sequential rotations
-                pmagplotlib.plotMAP(FIG['map'], Rlats, Rlons, Opts)
+                pmagplotlib.plot_map(FIG['map'], Rlats, Rlons, Opts)
             if plot == 0 and not IS_WIN:
                 pmagplotlib.draw_figs(FIG)
             if SEQ == 1:  # treat poles as sequential rotations
@@ -278,7 +278,7 @@ def main():
         pt_lon = pt[1]
         Opts['sym'] = 'r*'
         Opts['symsize'] = 5
-        pmagplotlib.plotMAP(FIG['map'], [pt[0]], [pt[1]], Opts)
+        pmagplotlib.plot_map(FIG['map'], [pt[0]], [pt[1]], Opts)
         if plot == 0 and not IS_WIN:
             pmagplotlib.draw_figs(FIG)
         Opts['pltgrid'] = -1  # turns off replotting of meridians and parallels
@@ -287,12 +287,12 @@ def main():
             Opts['symsize'] = symsize
             Rlats, Rlons = pmag.PTrot(pole, [pt_lat], [pt_lon])
             print(Rlats, Rlons)
-            pmagplotlib.plotMAP(FIG['map'], Rlats, Rlons, Opts)
+            pmagplotlib.plot_map(FIG['map'], Rlats, Rlons, Opts)
             if plot == 0 and not IS_WIN:
                 pmagplotlib.draw_figs(FIG)
         Opts['sym'] = 'g^'
         Opts['symsize'] = 5
-        pmagplotlib.plotMAP(FIG['map'], [pole[0]], [pole[1]], Opts)
+        pmagplotlib.plot_map(FIG['map'], [pole[0]], [pole[1]], Opts)
         if plot == 0 and not IS_WIN:
             pmagplotlib.draw_figs(FIG)
     files = {}
@@ -308,7 +308,7 @@ def main():
         purple = '#800080'
         titles = {}
         titles['eq'] = 'Site Map'
-        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     else:
         pmagplotlib.draw_figs(FIG)

@@ -157,7 +157,7 @@ def main():
                     pmagplotlib.draw_figs(HDD)
     #
             if verbose:
-                pmagplotlib.plotHPARS(HDD, hpars, 'bs')
+                pmagplotlib.plot_hpars(HDD, hpars, 'bs')
             HystRec['hyst_mr_moment'] = hpars['hysteresis_mr_moment']
             HystRec['hyst_ms_moment'] = hpars['hysteresis_ms_moment']
             HystRec['hyst_bc'] = hpars['hysteresis_bc']
@@ -183,7 +183,7 @@ def main():
                 HDD['irm'] = 5 if 'imag' in HDD else 4
                 pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
-            rpars = pmagplotlib.plotIRM(HDD['irm'], Bdcd, Mdcd, irm_exp)
+            rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             HystRec['rem_mr_moment'] = rpars['remanence_mr_moment']
             HystRec['rem_bcr'] = rpars['remanence_bcr']
             HystRec['experiments'] = specimen+':'+irm_exp

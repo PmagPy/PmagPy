@@ -1206,7 +1206,6 @@ def plot_np(fignum, indata, s, units):
     plt.axhline(y=0, xmin=0, xmax=1, color='k')
     plt.axvline(x=0, ymin=0, ymax=1, color='k')
 
-#lj
 def plotAZ(ZED, araiblock, zijdblock, s, units):
     """
     calls the four plotting programs for Thellier-Thellier experiments
@@ -2176,7 +2175,7 @@ def plot_bcr(fignum, Bcr1, Bcr2):
     plt.title('Compare coercivity of remanence')
 
 
-def plotHPARS(HDD, hpars, sym):
+def plot_hpars(HDD, hpars, sym):
     """
     function to plot hysteresis parameters
     """
@@ -2212,7 +2211,7 @@ def plotHPARS(HDD, hpars, sym):
 #
 
 
-def plotIRM(fignum, B, M, title):
+def plot_irm(fignum, B, M, title):
     """ function to plot IRM backfield curves
     """
     rpars = {}
@@ -2277,7 +2276,7 @@ def plotIRM(fignum, B, M, title):
     return rpars
 
 
-def plotXTF(fignum, XTF, Fs, e, b):
+def plot_xtf(fignum, XTF, Fs, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
     plt.figure(num=fignum)
@@ -2299,7 +2298,7 @@ def plotXTF(fignum, XTF, Fs, e, b):
 #
 
 
-def plotXTB(fignum, XTB, Bs, e, f):
+def plot_xtb(fignum, XTB, Bs, e, f):
     """ function to plot series of chi measurements as a function of temperature, holding frequency constant and varying B
     """
     plt.figure(num=fignum)
@@ -2321,7 +2320,7 @@ def plotXTB(fignum, XTB, Bs, e, f):
 #
 
 
-def plotXFT(fignum, XF, T, e, b):
+def plot_xft(fignum, XF, T, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
     plt.figure(num=fignum)
@@ -2343,7 +2342,7 @@ def plotXFT(fignum, XF, T, e, b):
 #
 
 
-def plotXBT(fignum, XB, T, e, b):
+def plot_xbt(fignum, XB, T, e, b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
     plt.figure(num=fignum)
@@ -2362,8 +2361,8 @@ def plotXBT(fignum, XB, T, e, b):
     plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
 #
 
-
-def plotzfcfc(MT, e):
+# not used
+def plot_zfcfc(MT, e):
     """
     function to plot zero-field cooled, field cooled data
     """
@@ -2392,7 +2391,7 @@ def plotzfcfc(MT, e):
 #
 
 
-def plotltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
+def plot_ltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
     """
     function to plot low temperature cycling experiments
     """
@@ -2419,6 +2418,7 @@ def plotltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
         plt.title(e)
 
 
+# not used
 def plot_close(plot):
     # plt.ion()
     plt.close(plot)
@@ -2614,8 +2614,8 @@ def plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb
     return bpars, hpars
 ####
 
-
-def plotPIE(fig, fracs, labels, title):
+# not used
+def plot_pie(fig, fracs, labels, title):
     explode = []
     for obj in labels:
         explode.append(.05)
@@ -2626,7 +2626,7 @@ def plotPIE(fig, fracs, labels, title):
 #
 
 
-def plotTRM(fig, B, TRM, Bp, Mp, NLpars, title):
+def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
     #
     # plots TRM acquisition data and correction to B_estimated to B_ancient
     plt.figure(num=fig)
@@ -2668,7 +2668,7 @@ def plotTRM(fig, B, TRM, Bp, Mp, NLpars, title):
 ###
 
 
-def plotTDS(fig, tdsblock, title):
+def plot_tds(fig, tdsblock, title):
     plt.figure(num=fig)
     plt.clf()
     if not isServer:
@@ -2685,7 +2685,7 @@ def plotTDS(fig, tdsblock, title):
     plt.plot(X, Y)
 
 
-def plotCONF(fignum, s, datablock, pars, new):
+def plot_conf(fignum, s, datablock, pars, new):
     """
     plots directions and confidence ellipses
     """
@@ -2726,7 +2726,7 @@ EI_plot_num = 0
 maxE, minE, maxI, minI = 0, 10, 0, 90
 
 
-def plotEI(fignum, E, I, f):
+def plot_ei(fignum, E, I, f):
     global EI_plot_num, maxE, minE, minI, maxI
     plt.figure(num=fignum)
     if EI_plot_num == 0:
@@ -2742,14 +2742,14 @@ def plotEI(fignum, E, I, f):
         plt.plot(I, E, 'y')
 
 
-def plotV2s(fignum, V2s, I, f):
+def plot_v2s(fignum, V2s, I, f):
     plt.figure(num=fignum)
     plt.plot(I, V2s, 'r')
     plt.xlabel("Inclination")
     plt.ylabel("Elongation direction")
 
-
-def plotX(fignum, x, y, xmin, xmax, ymin, ymax, sym):
+# not used
+def plot_x(fignum, x, y, xmin, xmax, ymin, ymax, sym):
     plt.figure(num=fignum)
     X, Y = [x, x], [ymin, ymax]
     plt.plot(X, Y, sym)
@@ -2759,7 +2759,7 @@ def plotX(fignum, x, y, xmin, xmax, ymin, ymax, sym):
 #
 
 
-def plotCOM(CDF, BDI1, BDI2, d):
+def plot_com(CDF, BDI1, BDI2, d):
     #
     #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
     #
@@ -2825,7 +2825,7 @@ def plotCOM(CDF, BDI1, BDI2, d):
 #        os.remove(filenames[key])
 
 
-def addBorders(Figs, titles, border_color, text_color):
+def add_borders(Figs, titles, border_color, text_color):
 
     import datetime
     now = datetime.datetime.now()
@@ -2886,9 +2886,9 @@ def addBorders(Figs, titles, border_color, text_color):
     return Figs
 
 
-def plotMAP(fignum, lats, lons, Opts):
+def plot_map(fignum, lats, lons, Opts):
     """
-    plotMAP(fignum, lats,lons,Opts)
+    plot_map(fignum, lats,lons,Opts)
     makes a basemap with lats/lons
         Windows 10 users, see plot_map
     Parameters:

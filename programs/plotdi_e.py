@@ -242,11 +242,11 @@ def main():
                 pmagplotlib.save_plots(EQ,files)
             sys.exit()
     if len(nDIs)>5:
-        pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,npars,1)
+        pmagplotlib.plot_conf(EQ['eq'],title,DiRecs,npars,1)
         if len(rDIs)>5 and dist!='B':
-            pmagplotlib.plotCONF(EQ['eq'],title,[],rpars,0)
+            pmagplotlib.plot_conf(EQ['eq'],title,[],rpars,0)
     elif len(rDIs)>5 and dist!='B':
-        pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,rpars,1)
+        pmagplotlib.plot_conf(EQ['eq'],title,DiRecs,rpars,1)
     pmagplotlib.draw_figs(EQ)
     ans=input('s[a]ve, [q]uit ')
     if ans=='q':sys.exit()

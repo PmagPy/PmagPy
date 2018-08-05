@@ -260,7 +260,7 @@ def main():
                     title += "_{}".format(site)
                 title += '_{}'.format(crd)
             ResRec['er_location_names'] = pmag.makelist(Locs)
-            bpars, hpars = pmagplotlib.plotANIS(
+            bpars, hpars = pmagplotlib.plot_anis(
                 ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot, comp, vec, Dir, nb)
             if len(PDir) > 0:
                 pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
@@ -445,7 +445,7 @@ def main():
                                 ANIS['tcdf'] = 3
                                 pmagplotlib.plot_init(ANIS['tcdf'], 5, 5)
                                 inittcdf = 1
-                    bpars, hpars = pmagplotlib.plotANIS(
+                    bpars, hpars = pmagplotlib.plot_anis(
                         ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot, comp, vec, Dir, nb)
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
@@ -510,7 +510,7 @@ def main():
                             con = 0
                         except IndexError:
                             print(" Incorrect entry, try again ")
-                    bpars, hpars = pmagplotlib.plotANIS(
+                    bpars, hpars = pmagplotlib.plot_anis(
                         ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot, comp, vec, Dir, nb)
                     Dir, comp = [], 0
                 if ans == 'g':

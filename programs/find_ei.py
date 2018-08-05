@@ -89,15 +89,15 @@ def main():
     else:
         Inc,Elong=Is[-1],Es[-1]
         flat_f = Fs[-1]
-    pmagplotlib.plotEI(PLTS['ei'],Es,Is,flat_f)
-    pmagplotlib.plotV2s(PLTS['v2'],V2s,Is,flat_f)
+    pmagplotlib.plot_ei(PLTS['ei'],Es,Is,flat_f)
+    pmagplotlib.plot_v2s(PLTS['v2'],V2s,Is,flat_f)
     b=0
     print("Bootstrapping.... be patient")
     while b<nb:
         bdata=pmag.pseudo(data)
         Esb,Isb,Fsb,V2sb=pmag.find_f(bdata)
         if b<25:
-            pmagplotlib.plotEI(PLTS['ei'],Esb,Isb,Fsb[-1])
+            pmagplotlib.plot_ei(PLTS['ei'],Esb,Isb,Fsb[-1])
         if Esb[-1]!=0:
             ppars=pmag.doprinc(bdata)
             if site_correction:
@@ -117,7 +117,7 @@ def main():
         title= 'Pathological Distribution: '+'[%7.1f, %7.1f]' %(I[lower],I[upper])
     else:
         title= '%7.1f [%7.1f, %7.1f]' %( Inc, I[lower],I[upper])
-    pmagplotlib.plotEI(PLTS['ei'],Eexp,I,1)
+    pmagplotlib.plot_ei(PLTS['ei'],Eexp,I,1)
     pmagplotlib.plot_cdf(PLTS['cdf'],I,'Inclinations','r',title)
     pmagplotlib.plot_vs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
     pmagplotlib.plot_vs(PLTS['cdf'],[Inc],'g','-')

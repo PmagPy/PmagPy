@@ -353,7 +353,7 @@ def main():
                                             [step, zrec[3]/Tnorm, Tint/Tnorm])
                                         break
                     if len(tdsblock) > 2:
-                        pmagplotlib.plotTDS(
+                        pmagplotlib.plot_tds(
                             AZD['TDS'], tdsblock, s+':LP-PI-TDS:')
                         if verbose:
                             pmagplotlib(draw_figs(AZD))
@@ -419,7 +419,7 @@ def main():
                                             npred = nlt.TRM(
                                                 Bp[-1], NLpars['xopt'][0], NLpars['xopt'][1])
                                             Mp.append(npred)
-                                        pmagplotlib.plotTRM(
+                                        pmagplotlib.plot_trm(
                                             AZD['TRM'], Bs, TRMs, Bp, Mp, NLpars, trec['magic_experiment_name'])
                                         PmagSpecRec['specimen_int'] = NLpars['banc']
                                         if verbose:
@@ -654,7 +654,7 @@ def main():
                                     npred = nlt.TRM(
                                         Bp[-1], NLpars['xopt'][0], NLpars['xopt'][1])
                                     Mp.append(npred)
-                                pmagplotlib.plotTRM(
+                                pmagplotlib.plot_trm(
                                     AZD['TRM'], Bs, TRMs, Bp, Mp, NLpars, trec['magic_experiment_name'])
                                 if verbose:
                                     print(
@@ -688,7 +688,7 @@ def main():
                             titles['deremag'] = 'DeReMag Plot'
                             titles['zijd'] = 'Zijderveld Plot'
                             titles['arai'] = 'Arai Plot'
-                            AZD = pmagplotlib.addBorders(
+                            AZD = pmagplotlib.add_borders(
                                 AZD, titles, black, purple)
                         pmagplotlib.save_plots(AZD, files, dpi=dpi)
     #                   pmagplotlib.combineFigs(s,files,3)

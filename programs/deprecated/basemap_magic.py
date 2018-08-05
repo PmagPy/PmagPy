@@ -148,7 +148,7 @@ def main():
         Opts['details']['states'] = 0
         Opts['details']['countries'] = 0
     Opts['details']['fancy'] = fancy
-    pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+    pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
     if verbose:
         pmagplotlib.draw_figs(FIG)
     files = {}
@@ -159,7 +159,7 @@ def main():
         purple = '#800080'
         titles = {}
         titles['map'] = 'Site Map'
-        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif verbose:
         ans = input(" S[a]ve to save plot, Return to quit:  ")
