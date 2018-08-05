@@ -6,16 +6,6 @@ import os
 from pmagpy import pmag
 from pmagpy import contribution_builder as cb
 from pmagpy import convert_2_magic as convert
-from programs.conversion_scripts import generic_magic
-from programs.conversion_scripts import sio_magic
-from programs.conversion_scripts import iodp_srm_magic
-from programs.conversion_scripts import iodp_dscr_magic
-from programs.conversion_scripts import iodp_jr6_magic
-from programs.conversion_scripts import pmd_magic
-from programs.conversion_scripts import ldeo_magic
-from programs.conversion_scripts import jr6_txt_magic
-from programs.conversion_scripts import utrecht_magic
-from programs.conversion_scripts import bgc_magic
 WD = pmag.get_test_WD()
 
 
