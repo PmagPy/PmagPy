@@ -2510,11 +2510,8 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
         input_dir_path = dir_path
     samp_file = pmag.resolve_file_name(samp_file, dir_path)
     site_file = pmag.resolve_file_name(site_file, dir_path)
-    print('dir path', dir_path)
-    print(input_dir_path)
-    print(orient_file)
     orient_file = pmag.resolve_file_name(orient_file, input_dir_path)
-    print(orient_file)
+    print("-I- reading in: {}".format(orient_file))
     #
     # read in file to convert
     #
@@ -2595,7 +2592,7 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
         # read in list of files to import
         filelist = os.listdir(input_dir_path)
     else:
-        csv_file = os.path.join(input_dir_path, csv_file)
+        csv_file = pmag.resolve_file_name(csv_file, input_dir_path)
         filelist = [csv_file]
 
     # parsing the data
@@ -2791,8 +2788,8 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
                 try:
                     vol = float(volume)
                 except ValueError:
-                    print('-W- No volume information provided, guessing 2.5cm cube')
-                    vol = (2.5**3)*1e-6  # default volume is a 2.5cm cube
+                    print('-W- No volume information provided, guessing 12 cc')
+                    vol = 12 * 1e-6  # default volume is a 2.5cm cube
                 if run_key in list(InRec.keys()):
                     run_number = InRec[run_key]
                     MeasRec['external_database_ids'] = {'LIMS': run_number}

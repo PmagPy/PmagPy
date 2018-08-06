@@ -157,7 +157,7 @@ INPUT
             inclination in tilt-corrected coordinate system (-90 to 90)
 """
 import sys
-
+from pmagpy import convert_2_magic as convert
 
 def do_help():
     return __doc__
