@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 from pmagpy import pmag
-from pmagpy import convert_2_magic
+from pmagpy import convert_2_magic as convert
 
 
 def main():

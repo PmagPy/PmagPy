@@ -30,7 +30,7 @@ INPUT
     JR6 .jr6 format file
 """
 import sys
-from pmagpy import convert_2_magic
+from pmagpy import convert_2_magic as convert
 
 
 def do_help():

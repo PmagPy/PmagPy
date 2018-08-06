@@ -3619,7 +3619,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
 
     version_num = pmag.get_version()
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
     output_dir_path = dir_path
     specnum = - int(specnum)
     samp_con = str(samp_con)
@@ -3634,7 +3634,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
 
     # format variables
     tmp_file = mag_file.split(os.extsep)[0]+os.extsep+'tmp'
-    mag_file = os.path.join(input_dir_path, mag_file)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
     if samp_con.startswith("4"):
         if "-" not in samp_con:
             print("option [4] must be in form 4-Z where Z is an integer")
