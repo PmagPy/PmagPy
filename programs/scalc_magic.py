@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import range
 import sys
-import random
-import pmagpy.pmag as pmag
 import pandas as pd
+from pmagpy import pmag
 
 
 def main():
@@ -54,16 +51,16 @@ def main():
     if '-dm' in sys.argv:
         ind = sys.argv.index("-dm")
         data_model = int(sys.argv[ind+1])
-    if data_model == 3:
+    if data_model == 2:
         coord_key = 'tilt_correction'
         in_file = 'pmag_results.txt'
-        type_key = 'result_type'
-        k_key, n_key, lat_key = 'dir_k', 'dir_n_samples`', 'lat'
+        type_key = 'data_type'
+        k_key, n_key, lat_key = 'average_k', 'average_nn', 'average_lat'
     else:
         coord_key = 'dir_tilt_correction'
         in_file = 'sites.txt'
-        type_key = 'data_type'
-        k_key, n_key, lat_key = 'average_k', 'average_nn', 'average_lat'
+        type_key = 'result_type'
+        k_key, n_key, lat_key = 'dir_k', 'dir_n_samples`', 'lat'
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
