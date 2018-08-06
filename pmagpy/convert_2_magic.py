@@ -83,7 +83,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
-    mag_file = os.path.join(input_dir_path, mag_file)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
 
     samplist = []
     try:
@@ -887,6 +887,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     try:
         file_input = open(magfile, 'r')
     except IOError as ex:
+        print(ex)
         print(("bad sam file name: ", magfile))
         return False, "bad sam file name"
     File = file_input.readlines()

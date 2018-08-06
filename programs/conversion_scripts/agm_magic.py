@@ -24,6 +24,7 @@ OPTIONS
     -Fsa SAMPFILE, specify samples.txt file relating samples to  site; default is SPEC_samples.txt
     -Fsi SITEFILE, specify sites.txt file relating site to location; default is SPEC_sites.txt
     -Flo LOCFILE, specify locations.txt file; default is SPEC_locations.txt
+    -old : infile is in old format
 
 OUTPUT
     MagIC format files: measurements, specimens, sample, site
@@ -98,6 +99,10 @@ def main():
         ind = sys.argv.index("-u")
         units = sys.argv[ind + 1]
         kwargs['units'] = units
+    if "-old" in sys.argv:
+        kwargs['fmt'] = 'old'
+    else:
+        kwargs['fmt'] = 'new'
 
     convert.agm(**kwargs)
 
