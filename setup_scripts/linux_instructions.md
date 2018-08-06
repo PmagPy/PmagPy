@@ -18,21 +18,29 @@ For complete and up to date instructions, please see the [Cookbook](https://eart
 
 #### Install wxPython according to these instructions:
 
-https://github.com/wxWidgets/Phoenix/blob/master/README.rst#how-to-build-phoenix
 
-https://github.com/wxWidgets/Phoenix/blob/e13273c5d939d993abf2a2649e90b3ea0d39382c/packaging/README-bdist.txt#L38-L57
+Read the information here and look for a compatible wheel for your distribution: https://wxpython.org/pages/downloads/
 
-#### Then, try to import wx.  if you can't import wx:
+If you aren't able to find a wheel that works, try [these instructions](https://wxpython.org/blog/2017-08-17-builds-for-linux-with-pip/)
+
+
+#### Then, try to import wx.
+
+Run `python` on your command line.  Once in the python interactive prompt, try: `import wx`
 
 You may have an error like this:
 
     ImportError: libwx_gtk3u_core-3.0.so.0: cannot open shared object file: No such file or directory
 
-If so, try:
+If so, exit the python interpreter (`quit()`) and try:
 
     export LD_LIBRARY_PATH=~/anaconda3/lib/python3.6/site-packages/wx/
 
-If that works, you may want to add that line to the end of your .bashrc file.  And checkout [this blog post](https://wxpython.org/blog/2017-08-17-builds-for-linux-with-pip/) and this [issue](https://github.com/pyenv/pyenv/issues/691) for more information.
+(If you are using a non-Anaconda Python, your path to wx may be different).
+
+If that works, you may want to add that line to the end of your .bashrc file.
+
+For more on this, see [this explanation](https://github.com/wxWidgets/Phoenix/blob/e13273c5d939d993abf2a2649e90b3ea0d39382c/packaging/README-bdist.txt#L38-L57) and [this Github issue](https://github.com/pyenv/pyenv/issues/691) for more information.
 
 #### Deal with pythonw/python issue:
 
