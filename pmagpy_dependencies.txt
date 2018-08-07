@@ -1,8 +1,14 @@
-# packages to run PmagPy
+# list of packages to run PmagPy
 #
-# most of these packages can be installed with conda
-# however, wxPython must be installed (4.0.3) via pip:
+# most of these packages can be installed with conda, e.g.:
+# $ conda install pandas
+# or upgraded:
+# $ conda upgrade pandas
+## however, wxPython must be installed (4.0.3) via pip:
 # $ pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython
+#
+# this dependencies file was created with the command:
+# $ conda list > pmagpy_dependencies.txt
 #
 # Name                    Version                   Build  Channel
 _ipyw_jlab_nb_ext_conf    0.1.0            py36h2fc01ae_0
