@@ -303,7 +303,7 @@ class InterpretationEditorFrame(wx.Frame):
         m_save_high_level = submenu_save_plots.Append(-1, "&Save high level plot", "")
         self.Bind(wx.EVT_MENU, self.parent.on_save_high_level, m_save_high_level,"Eq")
 
-        m_new_sub_plots = menu_file.Append(-1, "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.AppendSubMenu(submenu_save_plots, "&Save plot")
 
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
@@ -321,7 +321,7 @@ class InterpretationEditorFrame(wx.Frame):
         m_import_criteria_file =  submenu_criteria.Append(-1, "&Import criteria file", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_criteria_file, m_import_criteria_file)
 
-        m_new_sub = menu_Analysis.Append(-1, "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.AppendSubMenu(submenu_criteria, "Acceptance criteria")
 
         m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_read_from_LSQ, m_import_LSQ)
@@ -391,7 +391,7 @@ class InterpretationEditorFrame(wx.Frame):
             m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
             self.Bind(wx.EVT_MENU, self.parent.on_menu_change_tilt_coord, m_tilt)
 
-        m_coords = menu_edit.Append(-1, "&Coordinate Systems", menu_coordinates)
+        m_coords = menu_edit.AppendSubMenu(menu_coordinates, "&Coordinate Systems")
 
         #--------------------------------------------------------------------
 

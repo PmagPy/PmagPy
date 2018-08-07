@@ -860,8 +860,7 @@ class Demag_GUI(wx.Frame):
         m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
         self.Bind(wx.EVT_MENU, self.on_save_all_figures, m_save_all_plots)
 
-        m_new_sub_plots = menu_file.Append(-1,
-                                           "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.AppendSubMenu(submenu_save_plots, "&Save plot")
 
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
@@ -902,8 +901,7 @@ class Demag_GUI(wx.Frame):
         m_bad = menu_flag_meas.Append(-1, "&Bad Measurement\tCtrl-Alt-B", "")
         self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_bad, m_bad)
 
-        m_flag_meas = menu_edit.Append(-1,
-                                       "&Flag Measurement Data", menu_flag_meas)
+        m_flag_meas = menu_edit.AppendSubMenu(menu_flag_meas, "&Flag Measurement Data")
 
         menu_coordinates = wx.Menu()
 
@@ -919,8 +917,7 @@ class Demag_GUI(wx.Frame):
                                              "&Tilt-Corrected Coordinates\tCtrl-T", "")
             self.Bind(wx.EVT_MENU, self.on_menu_change_tilt_coord, m_tilt)
 
-        m_coords = menu_edit.Append(-1,
-                                    "&Coordinate Systems", menu_coordinates)
+        m_coords = menu_edit.AppendSubMenu(menu_coordinates, "&Coordinate Systems")
 
         # -----------------
         # Analysis Menu
@@ -940,8 +937,7 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file,
                   m_import_criteria_file)
 
-        m_new_sub = menu_Analysis.Append(-1,
-                                         "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.AppendSubMenu(submenu_criteria, "Acceptance criteria")
 
         menu_flag_fit = wx.Menu()
 
@@ -952,8 +948,7 @@ class Demag_GUI(wx.Frame):
                                          "&Bad Interpretation\tCtrl-Shift-B", "")
         self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_bad, m_bad_fit)
 
-        m_flag_fit = menu_Analysis.Append(-1,
-                                          "&Flag Interpretations", menu_flag_fit)
+        m_flag_fit = menu_Analysis.AppendSubMenu(menu_flag_fit, "&Flag Interpretations")
 
         submenu_sample_check = wx.Menu()
 
@@ -969,8 +964,7 @@ class Demag_GUI(wx.Frame):
             -1, "&Mark Sample Good\tCtrl-,", "")
         self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_good, m_mark_samp_good)
 
-        m_submenu = menu_Analysis.Append(-1,
-                                         "Sample Orientation", submenu_sample_check)
+        m_submenu = menu_Analysis.AppendSubMenu(submenu_sample_check, "Sample Orientation")
 
         submenu_toggle_mean_display = wx.Menu()
 
@@ -980,8 +974,8 @@ class Demag_GUI(wx.Frame):
         for line in lines:
             exec(line)
 
-        menu_Analysis.Append(-1, "Toggle Mean Display",
-                             submenu_toggle_mean_display)
+        menu_Analysis.AppendSubMenu(submenu_toggle_mean_display, "Toggle Mean Display")
+
 
         # -----------------
         # Tools Menu
@@ -6316,7 +6310,7 @@ class Demag_GUI(wx.Frame):
             exec(line)
 
         am.DestroyItem(am.GetMenuItems()[3])
-        am.Append(-1, "Toggle Mean Display", submenu_toggle_mean_display)
+        am.AppendSubMenu(submenu_toggle_mean_display, "Toggle Mean Display")
 
     def show_high_levels_pars(self, mpars):
         """
