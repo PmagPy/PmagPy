@@ -2210,7 +2210,7 @@ def is_null(val, zero_as_null=True):
     return not not_null(val, zero_as_null)
 
 
-def get_intensity_meth(data):
+def get_intensity_col(data):
     """
     Check measurement dataframe for intensity columns 'magn_moment', 'magn_volume', 'magn_mass'.
     Return the first intensity column that is in the dataframe AND has data.
@@ -2345,7 +2345,7 @@ def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
     reqd_cols = list(reqd_cols)
     # get intensity column
     try:
-        magn_col = get_intensity_meth(data)
+        magn_col = get_intensity_col(data)
     except AttributeError:
         return False, "Could not get intensity method from data"
     # drop empty columns

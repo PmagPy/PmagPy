@@ -3929,7 +3929,7 @@ class Demag_GUI(wx.Frame):
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
             meas_con_dict = map_magic.get_thellier_gui_meas_mapping(
                 meas_data3_0, output=2)
-            intensity_col = cb.get_intensity_meth(meas_data3_0)
+            intensity_col = cb.get_intensity_col(meas_data3_0)
             print('-I- Using {} for intensity'.format(intensity_col))
             self.intensity_col = meas_con_dict[intensity_col]
             meas_data2_5 = meas_data3_0.rename(columns=meas_con_dict)
