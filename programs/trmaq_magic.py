@@ -24,6 +24,7 @@ def main():
         -F OUT, sets output for non-linear TRM acquisition corrected data
         -sav save figures and quit
         -fmt [png, svg, pdf]
+        -DM [2, 3] MagIC data model, default 3
 
 
     DEFAULTS
@@ -34,6 +35,7 @@ def main():
     meas_file = 'trmaq_measurements.txt'
     tspec = "thellier_specimens.txt"
     output = 'NLT_specimens.txt'
+    data_model_num = int(float(pmag.get_named_arg("-DM", 3)))
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
@@ -75,9 +77,29 @@ def main():
     #
     #
     meas_data, file_type = pmag.magic_read(meas_file)
-    if file_type != 'magic_measurements':
-        print(file_type, "This is not a valid magic_measurements file ")
+    if 'measurements' not in file_type:
+        print(file_type, "This is not a valid measurements file ")
         sys.exit()
+
+    if data_model_num == 2:
+        spec_col = "er_specimen_name"
+        lab_field_dc_col = "specimen_lab_field_dc"
+        int_col = "specimen_int"
+        meth_col = "magic_method_codes"
+        treat_dc_col = "treatment_dc_field"
+        magn_moment_col = "measurement_magn_moment"
+        experiment_col = "magic_experiment_name"
+        outfile_type = "pmag_specimens"
+    else:
+        spec_col = "specimen"
+        lab_field_dc_col = "int_treat_dc_field"
+        int_col = "int_abs"
+        meth_col = "method_codes"
+        treat_dc_col = "treat_dc_field"
+        magn_moment_col = "magn_moment"
+        experiment_col = "experiment"
+        outfile_type = "specimens"
+
     sids = pmag.get_specs(meas_data)
     specimen = 0
     #
@@ -92,12 +114,12 @@ def main():
         s = sids[specimen]
         blab, best = "", ""
         for nrec in nrm:   # pick out the Banc data for this spec
-            if nrec["er_specimen_name"] == s:
+            if nrec[spec_col] == s:
                 try:
-                    blab = float(nrec["specimen_lab_field_dc"])
+                    blab = float(nrec[lab_field_dc_col])
                 except ValueError:
                     continue
-                best = float(nrec["specimen_int"])
+                best = float(nrec[int_col])
                 TrmRec = nrec
                 break
         if blab == "":
@@ -111,8 +133,8 @@ def main():
     # find the data from the meas_data file for this specimen
     #
             for rec in meas_data:
-                if rec["er_specimen_name"] == s:
-                    meths = rec["magic_method_codes"].split(":")
+                if rec[spec_col] == s:
+                    meths = rec[meth_col].split(":")
                     methcodes = []
                     for meth in meths:
                         methcodes.append(meth.strip())
@@ -127,8 +149,8 @@ def main():
             else:
                 TRMs, Bs = [], []
                 for rec in MeasRecs:
-                    Bs.append(float(rec['treatment_dc_field']))
-                    TRMs.append(float(rec['measurement_magn_moment']))
+                    Bs.append(float(rec[treat_dc_col]))
+                    TRMs.append(float(rec[magn_moment_col]))
                 # calculate best fit parameters through TRM acquisition data, and get new banc
                 NLpars = nlt.NLtrm(Bs, TRMs, best, blab, 0)
     #
@@ -140,7 +162,7 @@ def main():
                                     [0], NLpars['xopt'][1])
                     Mp.append(npred)
                 pmagplotlib.plot_trm(
-                    PLT['aq'], Bs, TRMs, Bp, Mp, NLpars, rec['magic_experiment_name'])
+                    PLT['aq'], Bs, TRMs, Bp, Mp, NLpars, rec[experiment_col])
                 if not save_plots:
                     pmagplotlib.draw_figs(PLT)
                 print('Banc= ', float(NLpars['banc'])*1e6)
@@ -148,20 +170,21 @@ def main():
                 for key in list(TrmRec.keys()):
                     # copy of info from thellier_specimens record
                     trmTC[key] = TrmRec[key]
-                trmTC['specimen_int'] = '%8.3e' % (NLpars['banc'])
-                trmTC['magic_method_codes'] = TrmRec["magic_method_codes"]+":DA-NL"
+                trmTC[int_col] = '%8.3e' % (NLpars['banc'])
+                trmTC[meth_col] = TrmRec[meth_col]+":DA-NL"
                 PmagSpecRecs.append(trmTC)
                 if not save_plots:
                     ans = input("Return for next specimen, s[a]ve plot  ")
                     if ans == 'a':
-                        Name = {'aq': rec['er_specimen_name']+'_TRM.{}'.format(fmt)}
+                        Name = {'aq': rec[spec_col]+'_TRM.{}'.format(fmt)}
                         pmagplotlib.save_plots(PLT, Name)
                 else:
-                    Name = {'aq': rec['er_specimen_name']+'_TRM.{}'.format(fmt)}
+                    Name = {'aq': rec[spec_col]+'_TRM.{}'.format(fmt)}
                     pmagplotlib.save_plots(PLT, Name)
 
                 specimen += 1
-    pmag.magic_write(output, PmagSpecRecs, 'pmag_specimens')
+
+    pmag.magic_write(output, PmagSpecRecs, outfile_type)
 
 
 if __name__ == "__main__":
