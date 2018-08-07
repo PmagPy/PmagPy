@@ -138,6 +138,8 @@ class Demag_GUI(wx.Frame):
         self.set_test_mode(test_mode_on)
         self.data_model = data_model
         self.evt_quit = evt_quit
+        # default intensity column
+        self.intensity_col = "measurement_magn_moment"
 
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -3399,9 +3401,13 @@ class Demag_GUI(wx.Frame):
 #                        print("-W- {} measurements are missing {} data and will be excluded".format(num_missing, col_name))
 #                        meas_data3_0 = pruned
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-            meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
+# fish out all the relavent data
+            meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True]
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
             meas_con_dict = map_magic.get_thellier_gui_meas_mapping(meas_data3_0, output=2)
+            intensity_col = cb.get_intensity_meth(meas_data3_0)
+            print('-I- Using {} for intensity'.format(intensity_col))
+            self.intensity_col = meas_con_dict[intensity_col]
             meas_data2_5=meas_data3_0.rename(columns=meas_con_dict)
             mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
@@ -3438,8 +3444,8 @@ class Demag_GUI(wx.Frame):
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
 #        self.mag_meas_data.sort(key=meas_key)
         # asiigned default values for NRM
-        if len(self.mag_meas_data) > 0 and "measurement_magn_moment" in list(self.mag_meas_data[0].keys()):
-            NRM=float(self.mag_meas_data[0]["measurement_magn_moment"])
+        if len(self.mag_meas_data) > 0 and self.intensity_col in list(self.mag_meas_data[0].keys()):
+            NRM=float(self.mag_meas_data[0][self.intensity_col])
         for rec in self.mag_meas_data:
             #if "measurement_number" in rec.keys() and str(rec['measurement_number']) == '1' and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
             #    NRM = 1 #not really sure how to handle this case but assume that data is already normalized
@@ -3481,8 +3487,8 @@ class Demag_GUI(wx.Frame):
             tr,LPcode,measurement_step_unit="","",""
             if "LT-NO" in methods:
                 tr=0
-                if prev_s!=s and "measurement_magn_moment" in rec:
-                    try: NRM = float(rec["measurement_magn_moment"])
+                if prev_s!=s and self.intensity_col in rec:
+                    try: NRM = float(rec[self.intensity_col])
                     except ValueError: NRM = 1
                 for method in methods:
                     if "AF" in method:
@@ -3516,8 +3522,8 @@ class Demag_GUI(wx.Frame):
                         LPcode="LP-DIR-AF"
                     else:
                         tr=0
-                        if prev_s!=s and "measurement_magn_moment" in rec:
-                            try: NRM = float(rec["measurement_magn_moment"])
+                        if prev_s!=s and self.intensity_col in rec:
+                            try: NRM = float(rec[self.intensity_col])
                             except ValueError: NRM = 1
                         for method in methods:
                             if "AF" in method:
@@ -3550,8 +3556,8 @@ class Demag_GUI(wx.Frame):
                     inc=float(rec["measurement_inc"])
                 else:
                     continue
-                if "measurement_magn_moment" in list(rec.keys()) and cb.not_null(rec["measurement_magn_moment"]):
-                    intensity=float(rec["measurement_magn_moment"])
+                if self.intensity_col in list(rec.keys()) and cb.not_null(rec[self.intensity_col]):
+                    intensity=float(rec[self.intensity_col])
                 else:
                     intensity=1. #just assume a normal vector
                 if 'magic_instrument_codes' not in list(rec.keys()):
@@ -7330,6 +7336,11 @@ def main():
     write_to_log_file = True
     if '-v' in sys.argv or '--verbose' in sys.argv:
         write_to_log_file = False
+    else:
+        print('-I- You are in log mode.')
+        print('    You can check your log output in "demag_gui.log"')
+        print('    If you prefer verbose output to your Terminal/Command prompt, run "demag_gui.py -v"')
+
     WD = None
     if "-WD" in sys.argv:
         ind=sys.argv.index('-WD')

@@ -171,8 +171,8 @@ def get_thellier_gui_meas_mapping(input_df, output=2):
 
     Parameters
     ----------
-    input_dict : dict
-        MagIC record
+    input_df : pandas DataFrame
+        MagIC records
     output : int
         output to this MagIC data model (2 or 3)
 

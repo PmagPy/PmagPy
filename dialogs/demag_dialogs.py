@@ -666,9 +666,9 @@ class magic_pmag_tables_dialog(wx.Dialog):
 # MagIC generic files conversion
 #--------------------------------------------------------------
 
-
+"""
 class convert_generic_files_to_MagIC(wx.Frame):
-    """"""
+
     title = "PmagPy Thellier GUI generic file conversion"
 
     def __init__(self,WD):
@@ -1359,11 +1359,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
         fin.close()
         return(DATA)
 
+"""
 
 #--------------------------------------------------------------
 # Popupmenu
 #--------------------------------------------------------------
-
+"""
 class GBPopupMenu(wx.Menu):
     def __init__(self,Data,magic_file,mag_meas_data,s,g_index,position):
         self.g_index=g_index
@@ -1400,7 +1401,7 @@ class GBPopupMenu(wx.Menu):
         #print "write_good_bad_magic_measurements"
         print("self.magic_file",self.magic_file)
         pmag.magic_write(self.magic_file,self.mag_meas_data,"magic_measurements")
-
+"""
 
 
 #--------------------------------------------------------------

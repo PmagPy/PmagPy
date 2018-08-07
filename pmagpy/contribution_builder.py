@@ -8,10 +8,6 @@ or you can read in one or more MagIC-format files.
 You can also extract specific data from a table --
 for instance, you can build a DIblock for plotting.
 """
-from __future__ import print_function
-from builtins import str
-from builtins import range
-from builtins import object
 import os
 import re
 import math
@@ -2239,6 +2235,8 @@ def get_intensity_meth(data):
         if not data[col_name].any():
             int_meths.remove(col_name)
     if len(int_meths):
+        if 'magn_moment' in int_meths:
+            return 'magn_moment'
         return int_meths[0]
     return ""
 
