@@ -19,7 +19,7 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import builder2 as builder
 from pmagpy import contribution_builder as cb
-from dialogs import pmag_basic_dialogs_native3 as pbd3
+from dialogs import pmag_gui_dialogs as pbd3
 from dialogs import pmag_basic_dialogs as pbd2
 from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
