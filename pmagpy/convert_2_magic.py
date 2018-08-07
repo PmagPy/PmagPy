@@ -4158,6 +4158,68 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             specnum=1, samp_con='1', location='unknown', lat='', lon='',
             noave=False, meth_code="LP-NO", volume=12, JR=False, user=""):
 
+    """
+    Convert JR6 .jr6 files to MagIC file(s)
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    meth_code : str
+        colon-delimited method codes, default "LP-NO"
+    volume : float
+        volume in ccs, default 12
+    JR : bool
+        IODP samples were measured on the JOIDES RESOLUTION, default False
+    user : str
+        user name, default ""
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name same as sample
+        [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+
+
+    """
+
     version_num = pmag.get_version()
     if not input_dir_path:
         input_dir_path = dir_path
