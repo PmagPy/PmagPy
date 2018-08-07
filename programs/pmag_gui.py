@@ -19,8 +19,8 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import builder2 as builder
 from pmagpy import contribution_builder as cb
-from dialogs import pmag_gui_dialogs as pbd3
-from dialogs import pmag_basic_dialogs as pbd2
+from dialogs import pmag_gui_dialogs as pgd3
+from dialogs import pmag_gui_dialogs2 as pgd2
 from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
 from dialogs import ErMagicBuilder
@@ -168,13 +168,13 @@ class MagMainFrame(wx.Frame):
         else:
             self.btn1a.Disable()
         #
-        # set pmag_basic_dialogs
-        global pmag_basic_dialogs
+        # set pmag_gui_dialogs
+        global pmag_gui_dialogs
         if self.data_model_num == 2:
-            pmag_basic_dialogs = pbd2
+            pmag_gui_dialogs = pgd2
             #wx.CallAfter(self.get_wd_data2)
         elif self.data_model_num == 3:
-            pmag_basic_dialogs = pbd3
+            pmag_gui_dialogs = pgd3
             #wx.CallAfter(self.get_wd_data)
 
         # do / re-do menubar
@@ -574,7 +574,7 @@ class MagMainFrame(wx.Frame):
 
 
     def on_convert_file(self, event):
-        pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
+        pmag_dialogs_dia = pmag_gui_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
         self.Hide()
@@ -681,11 +681,11 @@ class MagMainFrame(wx.Frame):
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
         if self.data_model_num == 3:
-            frame = pmag_basic_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
+            frame = pmag_gui_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
                                                         self.WD, self.contribution,
                                                         size)
         else:
-            frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',
+            frame = pmag_gui_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',
                                                         self.WD, self.er_magic, size)
         frame.Show(True)
         frame.Centre()

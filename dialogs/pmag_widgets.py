@@ -804,7 +804,7 @@ class AddItem(wx.Frame):
         self.title = title
         self.owner_items = owner_items
         self.belongs_to = belongs_to
-        self.onAdd = data_method # data parsing method passed in by pmag_basic_dialogs
+        self.onAdd = data_method # data parsing method passed in by pmag_gui_dialogs
         wx.Frame.__init__(self, parent, wx.ID_ANY, title=self.title)
         self.InitUI()
 
