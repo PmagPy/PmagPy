@@ -19,8 +19,95 @@ import pmagpy.contribution_builder as cb
 def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',
-            gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=0, input_dir="",
+            gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
             lat="", lon=""):
+
+    """
+    Convert 2G binary format file to MagIC file(s)
+
+    Parameters
+    ----------
+    dir_path : str
+        output directory, default "."
+    mag_file : str
+        input file name
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    or_con : number
+        orientation convention, default '3', see info below
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '2', see info below
+    corr: str
+        default '1'
+    gmeths : str
+        sampling method codes, default "FS-FD:SO-POM", see info below
+    location : str
+        location name, default "unknown"
+    inst : str
+        instrument, default ""
+    user : str
+        user name, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    input_dir : str
+        input file directory IF different from dir_path, default ""
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+
+    Info
+    ----------
+    Orientation convention:
+        [1] Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip
+            i.e., field_dip is degrees from vertical down - the hade [default]
+        [2] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip
+            i.e., mag_azimuth is strike and field_dip is hade
+        [3] Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+            i.e.,  lab arrow same as field arrow, but field_dip was a hade.
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip
+        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        [7] all others you will have to either customize your
+            self or e-mail ltauxe@ucsd.edu for help.
+
+   Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+    Sampling method codes:
+         FS-FD field sampling done with a drill
+         FS-H field sampling done with hand samples
+         FS-LOC-GPS  field location done with GPS
+         FS-LOC-MAP  field location done with map
+         SO-POM   a Pomeroy orientation device was used
+         SO-ASC   an ASC orientation device was used
+         SO-MAG   orientation with magnetic compass
+         SO-SUN   orientation with sun compass
+
+    """
 
     def skip(N, ind, L):
         for b in range(N):
@@ -338,7 +425,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 # AGM magic conversion
 
 
-def agm(agm_file, output_dir_path=".", input_dir_path="",
+def agm(agm_file, dir_path=".", input_dir_path="",
         meas_outfile="", spec_outfile="", samp_outfile="",
         site_outfile="", loc_outfile="", spec_infile="",
         samp_infile="", site_infile="",
@@ -346,9 +433,77 @@ def agm(agm_file, output_dir_path=".", input_dir_path="",
         instrument="", institution="", bak=False, syn=False, syntype="",
         units="cgs", fmt='new'):
     """
+    Convert AGM format file to MagIC file(s)
+
     Parameters
     ----------
-    Fmt: str, options ('new', 'old', 'xy', default 'new')
+    agm_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_outfile : str
+        output measurement file name, default ""
+        (default output is SPECNAME.magic)
+    spec_outfile : str
+        output specimen file name, default ""
+        (default output is SPEC_specimens.txt)
+    samp_outfile: str
+        output sample file name, default ""
+        (default output is SPEC_samples.txt)
+    site_outfile : str
+        output site file name, default ""
+        (default output is SPEC_sites.txt)
+    loc_outfile : str
+        output location file name, default ""
+        (default output is SPEC_locations.txt)
+    samp_infile : str
+        existing sample infile (not required), default ""
+    site_infile : str
+        existing site infile (not required), default ""
+    specimen : str
+        specimen name, default ""
+        (default is to take base of input file name, e.g. SPEC.agm)
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    instrument : str
+        instrument name, default ""
+    institution : str
+        institution name, default ""
+    bak : bool
+       IRM backfield curve, default False
+    syn : bool
+       synthetic, default False
+    syntype : str
+       synthetic type, default ""
+    units : str
+       units, default "cgs"
+    fmt: str
+        input format, options: ('new', 'old', 'xy', default 'new')
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
     """
     # initialize some stuff
     citations = 'This study'
@@ -359,7 +514,8 @@ def agm(agm_file, output_dir_path=".", input_dir_path="",
 
     # get args
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     specnum = - int(specnum)
     if not specimen:
         # grab the specimen name from the input file name
@@ -570,6 +726,70 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
         site_file='sites.txt', loc_file='locations.txt', append=False,
         location="unknown", site="", samp_con='1', specnum=0,
         meth_code="LP-NO", volume=12, user="", timezone='US/Pacific', noave=False):
+
+    """
+    Convert BGC format file to MagIC file(s)
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    append : bool
+        append output files to existing files instead of overwrite, default False
+    location : str
+        location name, default "unknown"
+    site : str
+        site name, default ""
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    specnum : int
+        number of characters to designate a specimen, default 0
+    meth_code : str
+        orientation method codes, default "LP-NO"
+        e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
+    volume : float
+        volume in ccs, default 12
+    user : str
+        user name, default ""
+    timezone : str
+        timezone in pytz library format, default "US/Pacific"
+        list of timezones can be found at http://pytz.sourceforge.net/
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name same as sample
+        [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+
+    """
+
     version_num = pmag.get_version()
     output_dir_path = dir_path
     if not input_dir_path:
