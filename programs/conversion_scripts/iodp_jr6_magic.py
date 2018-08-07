@@ -61,7 +61,7 @@ def main():
     if '-Fsi' in sys.argv:
         ind = sys.argv.index("-Fsi")
         kwargs['site_file'] = sys.argv[ind+1]
-    if '-Flo' in sys.argv:  # Kevin addition
+    if '-Flo' in sys.argv:
         ind = sys.argv.index("-Flo")
         kwargs['loc_file'] = sys.argv[ind+1]
     if '-f' in sys.argv:

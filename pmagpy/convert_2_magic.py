@@ -2861,9 +2861,69 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
 ### HUJI_sample_magic conversion
 
 def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown',
-                samp_con="1", Z=1, ignore_dip=True, data_model_num=3,
+                samp_con="1", ignore_dip=True, data_model_num=3,
                 samp_file="samples.txt", site_file="sites.txt",
                 dir_path=".", input_dir_path=""):
+    """
+    Convert HUJI sample file to MagIC file(s)
+
+    orient_file : str
+        input file name
+    meths : str
+       colon-delimited sampling methods, default FS-FD:SO-POM:SO-SUN
+       for more options, see info below
+    location : str
+        location name, default "unknown"
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    ignore_dip : bool
+        set sample az/dip to 0, default True
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+    samp_file : str
+        sample file name to output (default : samples.txt)
+    site_file : str
+        site file name to output (default : site.txt)
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+    Info
+    --------
+    Sampling method codes:
+        FS-FD field sampling done with a drill
+        FS-H field sampling done with hand samples
+        FS-LOC-GPS  field location done with GPS
+        FS-LOC-MAP  field location done with map
+        SO-POM   a Pomeroy orientation device was used
+        SO-ASC   an ASC orientation device was used
+        SO-MAG   orientation with magnetic compass
+
+     Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
+
+    try:
+        samp_con, Z = samp_con.split("-")
+    except ValueError:
+        samp_con = samp_con
+        Z = 1
+
     version_num = pmag.get_version()
     if data_model_num == 2:
         loc_col = "er_location_name"
@@ -2983,6 +3043,41 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
               meas_file="measurements.txt", spec_file="specimens.txt",
               samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
               lat='', lon='', volume=12, noave=False):
+    """
+    Convert IODP discrete measurement files in MagIC file(s)
+
+    Parameters
+    ----------
+    csv_file : str
+        input csv file, default ""
+        if no file name is provided, find any .csv files in the provided dir_path
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    volume : float
+        volume in ccs, default 12
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    """
     # initialize defaults
     version_num = pmag.get_version()
     # format variables
@@ -3240,6 +3335,49 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
              samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
              site="unknown", expedition="unknown", lat="", lon="",
              noave=False, volume=12, meth_code="LP-NO"):
+
+    """
+    Conversion for IODP jr6 format files into MagIC file(s)
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    site : str
+        hole name (i.e., U1456A), default "unknown"
+    expedition : str
+        expedition name, (i.e. 312), default "unknown"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    volume : float
+        volume in ccs, default 12
+    meth_code : str
+        default "LP-NO"
+        NB: additional codes "FS-C-DRILL-IODP:SP-SS-C:SO-V" will be added automatically
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    """
 
     def fix_separation(filename, new_filename):
         old_file = open(filename, 'r')

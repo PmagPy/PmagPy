@@ -21,7 +21,7 @@ def main():
         -Fsi FILE: specify site output file, default is: sites.txt
         -Iso:  import sample orientation info - default is to set sample_az/dip to 0,0
         -ncn NCON:  specify naming convention: default is #1 below
-        -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD:SO-POM]
+        -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD:SO-POM:SO-SUN]
              FS-FD field sampling done with a drill
              FS-H field sampling done with hand samples
              FS-LOC-GPS  field location done with GPS
@@ -81,8 +81,8 @@ def main():
             sys.exit()
         else:
             Z = samp_con.split("-")[1]
-            samp_con = "4"
-        print(samp_con, Z)
+            #samp_con = "4"
+        print(samp_con)#, Z)
     meths = pmag.get_named_arg("-mcd", 'FS-FD:SO-POM:SO-SUN')
     location_name = pmag.get_named_arg("-loc", "unknown")
     if "-Iso" in args:
@@ -90,7 +90,7 @@ def main():
     else:
         ignore = 1
 
-    convert.huji_sample(orient_file, meths, location_name, samp_con, Z, ignore)
+    convert.huji_sample(orient_file, meths, location_name, samp_con, ignore)
 
 
 
