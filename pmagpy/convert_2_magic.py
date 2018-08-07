@@ -995,8 +995,9 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     Parameters
     -----------
     dir_path : directory to output files to (default : current directory)
-    user : colon delimited list of analysts (default : "")
+    input_dir_path : directory to input files (only needed if different from dir_path!)
     magfile : magnetometer file (.sam) to convert to MagIC (required)
+    user : colon delimited list of analysts (default : "")
     meas_file : measurement file name to output (default : measurements.txt)
     spec_file : specimen file name to output (default : specimens.txt)
     samp_file : sample file name to output (default : samples.txt)
@@ -1431,6 +1432,112 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             experiment="", cooling_times_list=[], sample_nc=[1, 0], site_nc=[1, 0],
             location="unknown", lat="", lon="", noave=False):
 
+    """
+    Convert generic file to MagIC file(s)
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        output directory, default "."
+    input_dir : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    user : str
+        user name, default ""
+    labfield : float
+        dc lab field (in micro tesla)
+    labfield_phi : float
+        declination 0-360
+    labfield_theta : float
+        inclination -90 - 90
+    experiment : str
+        experiment type, see info below
+    cooling_times_list : list
+        cooling times in [K/minutes] seperated by comma,
+        ordered at the same order as XXX.10,XXX.20 ...XX.70
+    sample_nc : list
+        sample naming convention, default [1, 0], see info below
+    site_nc : list
+        site naming convention, default [1, 0], see info below
+    location : str
+        location name, default "unknown"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+
+
+    Info
+    --------
+    Experiment type:
+        Demag:
+            AF and/or Thermal
+        PI:
+            paleointenisty thermal experiment (ZI/IZ/IZZI)
+        ATRM n:
+
+            ATRM in n positions (n=6)
+
+        AARM n:
+            AARM in n positions
+        CR:
+            cooling rate experiment
+            The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+            where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+            XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+            if using this type, you must also provide cooling rates in [K/minutes] in cooling_times_list
+            seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+
+            No need to specify the cooling rate for the zerofield
+            But users need to make sure that there are no duplicate meaurements in the file
+
+        NLT:
+            non-linear-TRM experiment
+
+    Specimen-sample naming convention:
+        X determines which kind of convention (initial characters, terminal characters, or delimiter
+        Y determines how many characters to remove to go from specimen --> sample OR which delimiter to use
+        X=0 Y=n: specimen is distinguished from sample by n initial characters.
+                 (example: generic(samp_nc=[0, 4], ...)
+                  if n=4 then and specimen = mgf13a then sample = mgf13)
+        X=1 Y=n: specimen is distiguished from sample by n terminate characters.
+                 (example: generic(samp_nc=[1, 1], ...))
+                  if n=1 then and specimen = mgf13a then sample = mgf13)
+        X=2 Y=c: specimen is distinguishing from sample by a delimiter.
+                 (example: generic([2, "-"]))
+                  if c=- then and specimen = mgf13-a then sample = mgf13)
+        default: sample is the same as specimen name
+
+    Sample-site naming convention:
+        X determines which kind of convention (initial characters, terminal characters, or delimiter
+        Y determines how many characters to remove to go from sample --> site OR which delimiter to use
+        X=0 Y=n: sample is distiguished from site by n initial characters.
+                 (example: generic(site_nc=[0, 3]))
+                  if n=3 then and sample = mgf13 then sample = mgf)
+        X=1 Y=n: sample is distiguished from site by n terminate characters.
+                 (example: generic(site_nc=[1, 2]))
+                  if n=2 and sample = mgf13 then site = mgf)
+        X=2 Y=c: specimen is distiguishing from sample by a delimiter.
+                 (example: generic(site_nc=[2, "-"]))
+                  if c='-' and sample = 'mgf-13' then site = mgf)
+        default: site name is the same as sample name
+
+
+    """
+
     # --------------------------------------
     # functions
     # --------------------------------------
@@ -1670,6 +1777,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             ind = sys.argv.index("CR")
             cooling_times = sys.argv[ind+1]
             cooling_times_list = cooling_times.split(',')
+        noave = True
         # if not command line, cooling_times_list is already set
 
     # --------------------------------------
@@ -2154,15 +2262,90 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
 def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
          meas_file="measurements.txt", spec_file="specimens.txt",
          samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
-         user="", specnum=0, samp_con="1", labfield=0, phi=0, theta=0, peakfield=0,
+         user="", specnum=0, samp_con="1", labfield=0, phi=0, theta=0,
          location="", CR_cooling_times=None, noave=False):
+    """
+    Convert HUJI format file to MagIC file(s)
+
+    Parameters
+    ----------
+    magfile : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    datafile : str
+       HUJI datafile with sample orientations, default ""
+    codelist : str
+        colon-delimited protocols, include all that apply
+        see info below
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    user : str
+        user name, default ""
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    labfield : float
+        dc lab field (in micro tesla)
+    labfield_phi : float
+        declination 0-360
+    labfield_theta : float
+        inclination -90 - 90
+    location : str
+        location name, default "unknown"
+    CR_cooling_times : list
+        default None
+        cooling times in [K/minutes] seperated by comma,
+        ordered at the same order as XXX.10,XXX.20 ...XX.70
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+
+    Info
+    --------
+    Code list:
+        AF:  af demag
+        T: thermal including thellier but not trm acquisition
+        N: NRM only
+        TRM: trm acquisition
+        ANI: anisotropy experiment
+        CR: cooling rate experiment.
+            The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+            where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+            XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+            syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx
+            where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+            if you use a zerofield step then no need to specify the cooling rate for the zerofield
+
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
 
     # format and validate variables
     specnum = int(specnum)
     labfield = float(labfield) * 1e-6
     phi = int(theta)
     theta = int(theta)
-    peakfield = float(peakfield)*1e-3
     if not input_dir_path:
         input_dir_path = dir_path
 

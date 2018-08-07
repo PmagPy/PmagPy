@@ -1167,8 +1167,8 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
-        TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
+        #TEXT = "peak AF field (mT) if ARM: "
+        #self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 8 ---
         self.bSizer8 = pw.replicate_measurements(pnl)
@@ -1191,7 +1191,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
@@ -1274,8 +1274,8 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         options['location'] = loc_name
         if loc_name:
             loc_name = '-loc ' + loc_name
-        peak_AF = self.bSizer7.return_value()
-        options['peakfield'] = peak_AF
+        #peak_AF = self.bSizer7.return_value()
+        #options['peakfield'] = peak_AF
 
         replicate = self.bSizer8.return_value()
         if replicate:
@@ -1285,7 +1285,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             options['noave'] = 1
             replicate = '-A'
 
-        COMMAND = "huji_magic_new.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
+        COMMAND = "huji_magic_new.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, replicate)
         program_ran, error_message = convert.huji(**options)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)

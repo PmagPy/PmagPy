@@ -150,9 +150,9 @@ def main():
         kwargs['labfield'] = float(sys.argv[ind+1])
         kwargs['phi'] = float(sys.argv[ind+2])
         kwargs['theta'] = float(sys.argv[ind+3])
-    if "-ac" in sys.argv:
-        ind = sys.argv.index("-ac")
-        kwargs['peakfield'] = float(sys.argv[ind+1])
+    #if "-ac" in sys.argv:
+    #    ind = sys.argv.index("-ac")
+    #    kwargs['peakfield'] = float(sys.argv[ind+1])
     if "-spc" in sys.argv:
         ind = sys.argv.index("-spc")
         kwargs['specnum'] = int(sys.argv[ind+1])
