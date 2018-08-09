@@ -6923,7 +6923,7 @@ def mst(infile, spec_name, dir_path=".", input_dir_path="",
         treat_dc_col = "treat_dc_field"
         meas_temp_col = "meas_temp"
         meth_codes_col = "method_codes"
-        meas_magnitude_col = "magn_moment" # but this is technically wrong
+        meas_magnitude_col = "magn_uncal"
         spec_col = "specimen"
         samp_col = "sample"
         site_col = "site"
