@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import zip
-from builtins import object
 import pandas as pd
 from pandas import Series
 #import urllib2
@@ -52,7 +48,7 @@ class Vocabulary(object):
         #    print "-I- Couldn't connect to earthref.org, using cached method codes"
         #
         #print("-I- Using cached method codes")
-        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"), encoding='utf-8-sig')
         code_types = raw_codes.loc['label']
         all_codes = []
         for code_name in code_types.index:
@@ -137,8 +133,8 @@ class Vocabulary(object):
         #    data = pd.io.json.read_json(fname)
         #
         #print('-I- Using cached vocabularies')
-        fname = os.path.join(data_model_dir, "controlled_vocabularies_February_6_2017.json")
-        data = pd.io.json.read_json(fname)
+        fname = os.path.join(data_model_dir, "controlled_vocabularies_August_9_2018.json")
+        data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
         vocab_types = list(possible_vocabularies)
@@ -214,8 +210,8 @@ class Vocabulary(object):
         #    data = pd.io.json.read_json(fname)
         #
         #print('-I- Using cached suggested vocabularies')
-        fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
-        data = pd.io.json.read_json(fname)
+        fname = os.path.join(data_model_dir, "suggested_vocabularies_August_9_2018.json")
+        data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
         vocab_types = list(possible_vocabularies)
@@ -303,11 +299,11 @@ class Vocabulary(object):
             path = os.path.join(data_model_dir, 'code_types.txt')
             with open(path, 'r') as type_file:
                 raw_code_types = json.load(type_file)
-            code_types = pd.read_json(raw_code_types)
+            code_types = pd.read_json(raw_code_types, encoding='utf-8-sig')
             path = os.path.join(data_model_dir, 'all_codes.txt')
             with open(path, 'r') as code_file:
                 raw_all_codes = json.load(code_file)
-            all_codes = pd.read_json(raw_all_codes)
+            all_codes = pd.read_json(raw_all_codes, encoding='utf-8-sig')
 
         vocabularies = self.get_controlled_vocabularies()
         suggested = self.get_suggested_vocabularies()

@@ -1,0 +1,7808 @@
+{
+    "anisotropy_type": {
+        "label": "Anisotropy Types",
+        "items": [
+            {
+                "item": "AMS",
+                "label": "Anisotropy of Magnetic Susceptibility"
+            },
+            {
+                "item": "AARM",
+                "label": "Anisotropy of Anhysteretic Remanent Magnetization"
+            },
+            {
+                "item": "ATRM",
+                "label": "Anisotropy of Thermoremanent Magnetization"
+            },
+            {
+                "item": "AIRM",
+                "label": "Anisotropy of Isothermal Remanent Magnetization"
+            }
+        ]
+    },
+    "anisotropy_tensor_unit": {
+        "label": "Anisotropy Tensor Units",
+        "items": [
+            {
+                "item": "SI"
+            },
+            {
+                "item": "Am^2"
+            },
+            {
+                "item": "bulk in measurements table"
+            },
+            {
+                "item": "Normalized by trace"
+            },
+            {
+                "item": "m^3/kg"
+            }
+        ]
+    },
+    "data_type": {
+        "label": "Data Types",
+        "items": [
+            {
+                "item": "a",
+                "label": "Average"
+            },
+            {
+                "item": "i",
+                "label": "Individual"
+            },
+            {
+                "item": "m",
+                "label": "Model"
+            },
+            {
+                "item": "s",
+                "label": "Stacked"
+            }
+        ]
+    },
+    "data_correction": {
+        "label": "Data Corrections",
+        "items": [
+            {
+                "item": "c",
+                "label": "Corrected"
+            },
+            {
+                "item": "u",
+                "label": "Uncorrected"
+            }
+        ]
+    },
+    "data_quality": {
+        "label": "Data Qualities",
+        "items": [
+            {
+                "item": "b",
+                "label": "Bad"
+            },
+            {
+                "item": "g",
+                "label": "Good"
+            }
+        ]
+    },
+    "rotation_type": {
+        "label": "Rotation Type",
+        "items": [
+            {
+                "item": "DD",
+                "label": "Dip and Dip Direction"
+            },
+            {
+                "item": "DD1",
+                "label": "First Alternative Dip and Dip Direction"
+            },
+            {
+                "item": "TP",
+                "label": "Trend and Plunge"
+            },
+            {
+                "item": "TP1",
+                "label": "First Alternative Trend and Plunge"
+            },
+            {
+                "item": "ROT",
+                "label": "Nine value rotation tensor"
+            }
+        ]
+    },
+    "contact_test": {
+        "label": "Contact Test Codes",
+        "items": [
+            {
+                "item": "+",
+                "label": "Positive"
+            },
+            {
+                "item": "-",
+                "label": "Negative"
+            },
+            {
+                "item": "C+"
+            },
+            {
+                "item": "C-"
+            },
+            {
+                "item": "Co"
+            },
+            {
+                "item": "IC+"
+            },
+            {
+                "item": "IC-"
+            },
+            {
+                "item": "ICo"
+            },
+            {
+                "item": "ND",
+                "label": "Not Done"
+            },
+            {
+                "item": "o",
+                "label": "Indeterminate"
+            }
+        ]
+    },
+    "timescale_stage": {
+        "label": "Timescale Stages",
+        "items": [
+            {
+                "item": "Aalenian"
+            },
+            {
+                "item": "Aeronian"
+            },
+            {
+                "item": "Albian"
+            },
+            {
+                "item": "Anisian"
+            },
+            {
+                "item": "Aptian"
+            },
+            {
+                "item": "Aquitanian"
+            },
+            {
+                "item": "Artinskian"
+            },
+            {
+                "item": "Asselian"
+            },
+            {
+                "item": "Bajocian"
+            },
+            {
+                "item": "Barremian"
+            },
+            {
+                "item": "Bartonian"
+            },
+            {
+                "item": "Bashkirian"
+            },
+            {
+                "item": "Bathonian"
+            },
+            {
+                "item": "Berriasian"
+            },
+            {
+                "item": "Burdigalian"
+            },
+            {
+                "item": "Callovian"
+            },
+            {
+                "item": "Campanian"
+            },
+            {
+                "item": "Capitanian"
+            },
+            {
+                "item": "Carnian"
+            },
+            {
+                "item": "Cenomanian"
+            },
+            {
+                "item": "Changhsingian"
+            },
+            {
+                "item": "Chattian"
+            },
+            {
+                "item": "Coniacian"
+            },
+            {
+                "item": "Danian"
+            },
+            {
+                "item": "Darriwilian"
+            },
+            {
+                "item": "Early Pleistocene"
+            },
+            {
+                "item": "Eifelian"
+            },
+            {
+                "item": "Emsian"
+            },
+            {
+                "item": "Famennian"
+            },
+            {
+                "item": "Frasnian"
+            },
+            {
+                "item": "Gelasian"
+            },
+            {
+                "item": "Givetian"
+            },
+            {
+                "item": "Gorstian"
+            },
+            {
+                "item": "Gzhelan"
+            },
+            {
+                "item": "Hauterivian"
+            },
+            {
+                "item": "Hettangian"
+            },
+            {
+                "item": "Homerian"
+            },
+            {
+                "item": "Induan"
+            },
+            {
+                "item": "Kasimovian"
+            },
+            {
+                "item": "Kimmeridgian"
+            },
+            {
+                "item": "Kungurian"
+            },
+            {
+                "item": "Ladinian"
+            },
+            {
+                "item": "Langhian"
+            },
+            {
+                "item": "Late Pleistocene"
+            },
+            {
+                "item": "Lochkovian"
+            },
+            {
+                "item": "Ludfordian"
+            },
+            {
+                "item": "Lutetian"
+            },
+            {
+                "item": "Maastrichtian"
+            },
+            {
+                "item": "Messinian"
+            },
+            {
+                "item": "Middle Pleistocene"
+            },
+            {
+                "item": "Moscovian"
+            },
+            {
+                "item": "Norian"
+            },
+            {
+                "item": "Olenekian"
+            },
+            {
+                "item": "Oxfordian"
+            },
+            {
+                "item": "Paibian"
+            },
+            {
+                "item": "Piacenzian"
+            },
+            {
+                "item": "Pliensbachian"
+            },
+            {
+                "item": "Pragian"
+            },
+            {
+                "item": "Priabonian"
+            },
+            {
+                "item": "Rhaetian"
+            },
+            {
+                "item": "Rhuddanian"
+            },
+            {
+                "item": "Roadian"
+            },
+            {
+                "item": "Rupelian"
+            },
+            {
+                "item": "Sakmarian"
+            },
+            {
+                "item": "Santonian"
+            },
+            {
+                "item": "Selandian"
+            },
+            {
+                "item": "Serpukhovian"
+            },
+            {
+                "item": "Serravillian"
+            },
+            {
+                "item": "Sheinwoodian"
+            },
+            {
+                "item": "Sinemurian"
+            },
+            {
+                "item": "Telychian"
+            },
+            {
+                "item": "Thanetian"
+            },
+            {
+                "item": "Tithonian"
+            },
+            {
+                "item": "Toarcian"
+            },
+            {
+                "item": "Tortonian"
+            },
+            {
+                "item": "Tournaisian"
+            },
+            {
+                "item": "Tremadocian"
+            },
+            {
+                "item": "Turonian"
+            },
+            {
+                "item": "Valanginian"
+            },
+            {
+                "item": "Visean"
+            },
+            {
+                "item": "Wordian"
+            },
+            {
+                "item": "Wuchiapingian"
+            },
+            {
+                "item": "Ypresian"
+            },
+            {
+                "item": "Zanclean"
+            }
+        ]
+    },
+    "timescale_period": {
+        "label": "Timescale Periods",
+        "items": [
+            {
+                "item": "Calymmian"
+            },
+            {
+                "item": "Cambrian"
+            },
+            {
+                "item": "Carboniferous"
+            },
+            {
+                "item": "Cretaceous"
+            },
+            {
+                "item": "Cryogenian"
+            },
+            {
+                "item": "Devonian"
+            },
+            {
+                "item": "Ectasian"
+            },
+            {
+                "item": "Ediacaran"
+            },
+            {
+                "item": "Jurassic"
+            },
+            {
+                "item": "Neogene"
+            },
+            {
+                "item": "Ordovician"
+            },
+            {
+                "item": "Orosirian"
+            },
+            {
+                "item": "Paleogene"
+            },
+            {
+                "item": "Permian"
+            },
+            {
+                "item": "Quaternary"
+            },
+            {
+                "item": "Rhyacian"
+            },
+            {
+                "item": "Siderian"
+            },
+            {
+                "item": "Silurian"
+            },
+            {
+                "item": "Statherian"
+            },
+            {
+                "item": "Stenian"
+            },
+            {
+                "item": "Tonian"
+            },
+            {
+                "item": "Triassic"
+            }
+        ]
+    },
+    "timescale_era": {
+        "label": "Timescale Eras",
+        "items": [
+            {
+                "item": "Cenozoic"
+            },
+            {
+                "item": "Eoarchean"
+            },
+            {
+                "item": "Mesoarchean"
+            },
+            {
+                "item": "Mesoproterozoic"
+            },
+            {
+                "item": "Mesozoic"
+            },
+            {
+                "item": "Neoarchean"
+            },
+            {
+                "item": "Neoproterozoic"
+            },
+            {
+                "item": "Paleoarchean"
+            },
+            {
+                "item": "Paleoproterozoic"
+            },
+            {
+                "item": "Paleozoic"
+            }
+        ]
+    },
+    "image_type": {
+        "label": "Image Types",
+        "items": [
+            {
+                "item": "Bitter"
+            },
+            {
+                "item": "Hologram"
+            },
+            {
+                "item": "Landscape"
+            },
+            {
+                "item": "MFM Image"
+            },
+            {
+                "item": "Moke"
+            },
+            {
+                "item": "Outcrop"
+            },
+            {
+                "item": "Person(s)"
+            },
+            {
+                "item": "Sample"
+            },
+            {
+                "item": "Scanning Squid"
+            },
+            {
+                "item": "Thin Section"
+            },
+            {
+                "item": "ARAI Plot"
+            },
+            {
+                "item": "Anisotropy Confidence Plot"
+            },
+            {
+                "item": "Anisotropy Data Plot"
+            },
+            {
+                "item": "Coercivity of Remanence Plot"
+            },
+            {
+                "item": "Day Plot"
+            },
+            {
+                "item": "De-Remagnetization Plot"
+            },
+            {
+                "item": "Demagnetization Plot"
+            },
+            {
+                "item": "Equal Area Plot"
+            },
+            {
+                "item": "Hysteresis Loop"
+            },
+            {
+                "item": "Squareness-BCR Plot"
+            },
+            {
+                "item": "Squareness-Coercivity Plot"
+            },
+            {
+                "item": "Thermal Remanent Magnetization Plot"
+            },
+            {
+                "item": "Zijderveld Plot"
+            }
+        ]
+    },
+    "texture": {
+        "label": "Sample Textures",
+        "items": [
+            {
+                "item": "Agmatitic"
+            },
+            {
+                "item": "Amygdaloidal"
+            },
+            {
+                "item": "Angular"
+            },
+            {
+                "item": "Antiperthite"
+            },
+            {
+                "item": "Aphyric"
+            },
+            {
+                "item": "Augen"
+            },
+            {
+                "item": "Banded"
+            },
+            {
+                "item": "Bedded"
+            },
+            {
+                "item": "Bioclastic"
+            },
+            {
+                "item": "Bioturbated"
+            },
+            {
+                "item": "Blocky"
+            },
+            {
+                "item": "Brecciated"
+            },
+            {
+                "item": "Broken"
+            },
+            {
+                "item": "Cataclastic"
+            },
+            {
+                "item": "Cavity"
+            },
+            {
+                "item": "Cemented"
+            },
+            {
+                "item": "Charnokitic"
+            },
+            {
+                "item": "Chicken-Wire"
+            },
+            {
+                "item": "Clasts"
+            },
+            {
+                "item": "Coated Grains"
+            },
+            {
+                "item": "Condensed"
+            },
+            {
+                "item": "Crystalline"
+            },
+            {
+                "item": "Diagenetic Textures"
+            },
+            {
+                "item": "Disseminated"
+            },
+            {
+                "item": "Dolomite Cemented"
+            },
+            {
+                "item": "Enterolithic"
+            },
+            {
+                "item": "Eutaxitic"
+            },
+            {
+                "item": "Fault Rock Textures"
+            },
+            {
+                "item": "Fissile"
+            },
+            {
+                "item": "Fitted"
+            },
+            {
+                "item": "Flaggy"
+            },
+            {
+                "item": "Foliated"
+            },
+            {
+                "item": "Friable"
+            },
+            {
+                "item": "Glass-Bearing"
+            },
+            {
+                "item": "Glass-Rich"
+            },
+            {
+                "item": "Glassy"
+            },
+            {
+                "item": "Gneissose"
+            },
+            {
+                "item": "Gouge"
+            },
+            {
+                "item": "Grain Fabric"
+            },
+            {
+                "item": "Grain Supported"
+            },
+            {
+                "item": "Granoblastic"
+            },
+            {
+                "item": "Granofelsic"
+            },
+            {
+                "item": "Granophyric"
+            },
+            {
+                "item": "Granular"
+            },
+            {
+                "item": "Graphic"
+            },
+            {
+                "item": "Hawaiitic"
+            },
+            {
+                "item": "Highly-Distorted"
+            },
+            {
+                "item": "Holocrystalline"
+            },
+            {
+                "item": "Homogeneous"
+            },
+            {
+                "item": "Hornfelsed"
+            },
+            {
+                "item": "Imbricated"
+            },
+            {
+                "item": "Immature"
+            },
+            {
+                "item": "Indurated"
+            },
+            {
+                "item": "Induration"
+            },
+            {
+                "item": "Inequigranular"
+            },
+            {
+                "item": "Intergrowth"
+            },
+            {
+                "item": "Intraclastic"
+            },
+            {
+                "item": "Irregular"
+            },
+            {
+                "item": "Laminated"
+            },
+            {
+                "item": "Layered"
+            },
+            {
+                "item": "Lineated"
+            },
+            {
+                "item": "Lithoclastic"
+            },
+            {
+                "item": "Lithophyric"
+            },
+            {
+                "item": "Loosely Packed"
+            },
+            {
+                "item": "Massive"
+            },
+            {
+                "item": "Matrix Supported"
+            },
+            {
+                "item": "Mature"
+            },
+            {
+                "item": "Maturity"
+            },
+            {
+                "item": "Mesoperthite"
+            },
+            {
+                "item": "Metamorphic"
+            },
+            {
+                "item": "Miarolitic"
+            },
+            {
+                "item": "Micrographic"
+            },
+            {
+                "item": "Microocoidal"
+            },
+            {
+                "item": "Migmatitic"
+            },
+            {
+                "item": "Monogranulate"
+            },
+            {
+                "item": "Mylonitic"
+            },
+            {
+                "item": "Myrmekitic"
+            },
+            {
+                "item": "Nebulitic"
+            },
+            {
+                "item": "Nodular"
+            },
+            {
+                "item": "Oncoidal"
+            },
+            {
+                "item": "Ooidal"
+            },
+            {
+                "item": "Orbicular"
+            },
+            {
+                "item": "Oriented"
+            },
+            {
+                "item": "Papery"
+            },
+            {
+                "item": "Parataxitic"
+            },
+            {
+                "item": "Parting"
+            },
+            {
+                "item": "Pegmatitic"
+            },
+            {
+                "item": "Peloidal"
+            },
+            {
+                "item": "Perthitic"
+            },
+            {
+                "item": "Phyllitic"
+            },
+            {
+                "item": "Phyllonitic"
+            },
+            {
+                "item": "Phyric"
+            },
+            {
+                "item": "Pilotaxitic"
+            },
+            {
+                "item": "Pisoidal"
+            },
+            {
+                "item": "Platy"
+            },
+            {
+                "item": "Poikilitic"
+            },
+            {
+                "item": "Poreus"
+            },
+            {
+                "item": "Porphyritic"
+            },
+            {
+                "item": "Porphyroblastic"
+            },
+            {
+                "item": "Porphyroclastic"
+            },
+            {
+                "item": "Post-Depositional"
+            },
+            {
+                "item": "Ropy-Bedded"
+            },
+            {
+                "item": "Rounded"
+            },
+            {
+                "item": "Schelieric"
+            },
+            {
+                "item": "Schistose"
+            },
+            {
+                "item": "Seriate"
+            },
+            {
+                "item": "Sheared"
+            },
+            {
+                "item": "Slabby"
+            },
+            {
+                "item": "Slaty"
+            },
+            {
+                "item": "Sorting"
+            },
+            {
+                "item": "Spastolithic"
+            },
+            {
+                "item": "Sphericity"
+            },
+            {
+                "item": "Spherulitic"
+            },
+            {
+                "item": "Spinifex"
+            },
+            {
+                "item": "Stratification"
+            },
+            {
+                "item": "Striated"
+            },
+            {
+                "item": "Stromatic"
+            },
+            {
+                "item": "Subangular"
+            },
+            {
+                "item": "Subrounded"
+            },
+            {
+                "item": "Supermature"
+            },
+            {
+                "item": "Tepees"
+            },
+            {
+                "item": "Tightly Packed"
+            },
+            {
+                "item": "Travertine"
+            },
+            {
+                "item": "Tufa"
+            },
+            {
+                "item": "Variolitic"
+            },
+            {
+                "item": "Vesicular"
+            },
+            {
+                "item": "Volcanoclastic"
+            },
+            {
+                "item": "Welded"
+            }
+        ]
+    },
+    "instrument_atmosphere": {
+        "label": "Instrument Applied Atmosphere",
+        "items": [
+            {
+                "item": "Air"
+            },
+            {
+                "item": "Air/Gas"
+            },
+            {
+                "item": "Argon"
+            },
+            {
+                "item": "Helium"
+            },
+            {
+                "item": "Nitrogen"
+            },
+            {
+                "item": "Vacuum"
+            }
+        ]
+    },
+    "mineral_class": {
+        "label": "Mineral Classification Names",
+        "items": [
+            {
+                "item": "Actinolite"
+            },
+            {
+                "item": "Adularia"
+            },
+            {
+                "item": "Aegirine"
+            },
+            {
+                "item": "Albite"
+            },
+            {
+                "item": "Allanite"
+            },
+            {
+                "item": "Alleghanyite"
+            },
+            {
+                "item": "Allophane"
+            },
+            {
+                "item": "Alunite"
+            },
+            {
+                "item": "Amalgam"
+            },
+            {
+                "item": "Amphibole"
+            },
+            {
+                "item": "Analeime"
+            },
+            {
+                "item": "Anatase"
+            },
+            {
+                "item": "Andalusite"
+            },
+            {
+                "item": "Andesine"
+            },
+            {
+                "item": "Andradite"
+            },
+            {
+                "item": "Anglesite"
+            },
+            {
+                "item": "Anhydrite"
+            },
+            {
+                "item": "Ankerite"
+            },
+            {
+                "item": "Anorthite"
+            },
+            {
+                "item": "Anorthoclase"
+            },
+            {
+                "item": "Anthophyllite"
+            },
+            {
+                "item": "Antlerite"
+            },
+            {
+                "item": "Apatite"
+            },
+            {
+                "item": "Apophyllite"
+            },
+            {
+                "item": "Aragonite"
+            },
+            {
+                "item": "Argentite"
+            },
+            {
+                "item": "Arsenic"
+            },
+            {
+                "item": "Arsenopyrite"
+            },
+            {
+                "item": "Asbestos"
+            },
+            {
+                "item": "Atacamite"
+            },
+            {
+                "item": "Attapulgite"
+            },
+            {
+                "item": "Augite"
+            },
+            {
+                "item": "Awaruite"
+            },
+            {
+                "item": "Axinite"
+            },
+            {
+                "item": "Azurite"
+            },
+            {
+                "item": "Ballas"
+            },
+            {
+                "item": "Barite"
+            },
+            {
+                "item": "Barium Feldspar"
+            },
+            {
+                "item": "Bastnaesite"
+            },
+            {
+                "item": "Beidellite"
+            },
+            {
+                "item": "Bementite"
+            },
+            {
+                "item": "Beryl"
+            },
+            {
+                "item": "Beudantite"
+            },
+            {
+                "item": "Biotite"
+            },
+            {
+                "item": "Bismuth"
+            },
+            {
+                "item": "Bismuthinite"
+            },
+            {
+                "item": "Boehmite"
+            },
+            {
+                "item": "Bornite"
+            },
+            {
+                "item": "Bort"
+            },
+            {
+                "item": "Bournonite"
+            },
+            {
+                "item": "Brannerite"
+            },
+            {
+                "item": "Braunite"
+            },
+            {
+                "item": "Breunnerite"
+            },
+            {
+                "item": "Brucite"
+            },
+            {
+                "item": "Bytownite"
+            },
+            {
+                "item": "Calaverite"
+            },
+            {
+                "item": "Calcite"
+            },
+            {
+                "item": "Carbonado"
+            },
+            {
+                "item": "Carnallite"
+            },
+            {
+                "item": "Carnotite"
+            },
+            {
+                "item": "Carrollite"
+            },
+            {
+                "item": "Cassiterite"
+            },
+            {
+                "item": "Cation-Substituted Hematite (Generic)"
+            },
+            {
+                "item": "Cation-Substituted Magnetite (Generic)"
+            },
+            {
+                "item": "Celestite"
+            },
+            {
+                "item": "Cenissite"
+            },
+            {
+                "item": "Cerargyrite"
+            },
+            {
+                "item": "Chabazite"
+            },
+            {
+                "item": "Chalcanthite"
+            },
+            {
+                "item": "Chalcedony"
+            },
+            {
+                "item": "Chalcocite"
+            },
+            {
+                "item": "Chalcopyrite"
+            },
+            {
+                "item": "Chert"
+            },
+            {
+                "item": "Chromite"
+            },
+            {
+                "item": "Chrysoberyl"
+            },
+            {
+                "item": "Chrysocolla"
+            },
+            {
+                "item": "Chrysotile"
+            },
+            {
+                "item": "Cinnabar"
+            },
+            {
+                "item": "Clinozoisite"
+            },
+            {
+                "item": "Cobaltite"
+            },
+            {
+                "item": "Coffinite"
+            },
+            {
+                "item": "Coloradoite"
+            },
+            {
+                "item": "Columbite"
+            },
+            {
+                "item": "Cooperite"
+            },
+            {
+                "item": "Copper"
+            },
+            {
+                "item": "Cordierite"
+            },
+            {
+                "item": "Coronadite"
+            },
+            {
+                "item": "Covellite"
+            },
+            {
+                "item": "Cristobalite"
+            },
+            {
+                "item": "Cryolite"
+            },
+            {
+                "item": "Cryptomelane"
+            },
+            {
+                "item": "Cubanite"
+            },
+            {
+                "item": "Cummingtonite"
+            },
+            {
+                "item": "Cuprite"
+            },
+            {
+                "item": "Datolite"
+            },
+            {
+                "item": "Daubreelite"
+            },
+            {
+                "item": "Diamond"
+            },
+            {
+                "item": "Diaspore"
+            },
+            {
+                "item": "Dickitc"
+            },
+            {
+                "item": "Digenite"
+            },
+            {
+                "item": "Diopside"
+            },
+            {
+                "item": "Dolomite"
+            },
+            {
+                "item": "Durangite"
+            },
+            {
+                "item": "Emerald"
+            },
+            {
+                "item": "Enargite"
+            },
+            {
+                "item": "Enstatite"
+            },
+            {
+                "item": "Epidote"
+            },
+            {
+                "item": "Epsomite"
+            },
+            {
+                "item": "Fayalite"
+            },
+            {
+                "item": "Feldspar"
+            },
+            {
+                "item": "Feroxyhyte"
+            },
+            {
+                "item": "Ferrichromite"
+            },
+            {
+                "item": "Ferrihydrite"
+            },
+            {
+                "item": "Fluorapatite"
+            },
+            {
+                "item": "Fluorite"
+            },
+            {
+                "item": "Forsterite"
+            },
+            {
+                "item": "Franklinite"
+            },
+            {
+                "item": "Gahnite"
+            },
+            {
+                "item": "Galena"
+            },
+            {
+                "item": "Garnet"
+            },
+            {
+                "item": "Garnierite"
+            },
+            {
+                "item": "Gersdorffite"
+            },
+            {
+                "item": "Gibbsite"
+            },
+            {
+                "item": "Glauconite"
+            },
+            {
+                "item": "Glaucophane"
+            },
+            {
+                "item": "Goethite"
+            },
+            {
+                "item": "Gold"
+            },
+            {
+                "item": "Graphite"
+            },
+            {
+                "item": "Greenockite"
+            },
+            {
+                "item": "Greigite"
+            },
+            {
+                "item": "Grossularite"
+            },
+            {
+                "item": "Gypsum"
+            },
+            {
+                "item": "Halite"
+            },
+            {
+                "item": "Hausmannite"
+            },
+            {
+                "item": "Hectorite"
+            },
+            {
+                "item": "Hedenbergite"
+            },
+            {
+                "item": "Hematite"
+            },
+            {
+                "item": "Hemimorphite"
+            },
+            {
+                "item": "Hercynite"
+            },
+            {
+                "item": "Hessite"
+            },
+            {
+                "item": "Heulandite"
+            },
+            {
+                "item": "Hollandite"
+            },
+            {
+                "item": "Hornblende"
+            },
+            {
+                "item": "Huebnerite"
+            },
+            {
+                "item": "Hypersthene"
+            },
+            {
+                "item": "Ice"
+            },
+            {
+                "item": "Illite"
+            },
+            {
+                "item": "Ilmenite"
+            },
+            {
+                "item": "Iron (Metallic)"
+            },
+            {
+                "item": "Iron Oxy-Hydroxide (Generic)"
+            },
+            {
+                "item": "Iron Sulfide (Generic)"
+            },
+            {
+                "item": "Iron-Nickel (Metallic)"
+            },
+            {
+                "item": "Jacobsite"
+            },
+            {
+                "item": "Jadeite"
+            },
+            {
+                "item": "Jamesonite"
+            },
+            {
+                "item": "Jasper"
+            },
+            {
+                "item": "K Feldspar"
+            },
+            {
+                "item": "Kaolin"
+            },
+            {
+                "item": "Kaolinite"
+            },
+            {
+                "item": "Kyanite"
+            },
+            {
+                "item": "Labradorite"
+            },
+            {
+                "item": "Laurite"
+            },
+            {
+                "item": "Lawsonite"
+            },
+            {
+                "item": "Lazurite"
+            },
+            {
+                "item": "Lepidocrocite"
+            },
+            {
+                "item": "Lepidolite"
+            },
+            {
+                "item": "Leucite"
+            },
+            {
+                "item": "Leucoxene"
+            },
+            {
+                "item": "Limonite"
+            },
+            {
+                "item": "Loellingite"
+            },
+            {
+                "item": "Luzonite"
+            },
+            {
+                "item": "Mackinawite"
+            },
+            {
+                "item": "Maghemite"
+            },
+            {
+                "item": "Magnesioferrite"
+            },
+            {
+                "item": "Magnesite"
+            },
+            {
+                "item": "Magnetite"
+            },
+            {
+                "item": "Malachite"
+            },
+            {
+                "item": "Manganite"
+            },
+            {
+                "item": "Manganocalcite"
+            },
+            {
+                "item": "Marcasite"
+            },
+            {
+                "item": "Marjarite"
+            },
+            {
+                "item": "Maucherite"
+            },
+            {
+                "item": "Mercury"
+            },
+            {
+                "item": "Mica"
+            },
+            {
+                "item": "Microcline"
+            },
+            {
+                "item": "Millerite"
+            },
+            {
+                "item": "Mimetite"
+            },
+            {
+                "item": "Molybdenite"
+            },
+            {
+                "item": "Monazite"
+            },
+            {
+                "item": "Montmorillonite"
+            },
+            {
+                "item": "Muscovite"
+            },
+            {
+                "item": "Natrolite"
+            },
+            {
+                "item": "Naumannite"
+            },
+            {
+                "item": "Neotocite"
+            },
+            {
+                "item": "Nepheline"
+            },
+            {
+                "item": "Niocalite"
+            },
+            {
+                "item": "Nontronite"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Oligoclase"
+            },
+            {
+                "item": "Olivine"
+            },
+            {
+                "item": "Opal"
+            },
+            {
+                "item": "Orpiment"
+            },
+            {
+                "item": "Orthoclase"
+            },
+            {
+                "item": "Orthoferrosilite"
+            },
+            {
+                "item": "Orthopyroxene"
+            },
+            {
+                "item": "Pararammelsbergite"
+            },
+            {
+                "item": "Parisite"
+            },
+            {
+                "item": "Pectolite"
+            },
+            {
+                "item": "Pentlandite"
+            },
+            {
+                "item": "Perovskite"
+            },
+            {
+                "item": "Petalite"
+            },
+            {
+                "item": "Phenacite"
+            },
+            {
+                "item": "Phlogopite"
+            },
+            {
+                "item": "Pitchblende"
+            },
+            {
+                "item": "Plagioclase"
+            },
+            {
+                "item": "Platinum"
+            },
+            {
+                "item": "Prehnite"
+            },
+            {
+                "item": "Proustite"
+            },
+            {
+                "item": "Psilomelane"
+            },
+            {
+                "item": "Pyrargyrite"
+            },
+            {
+                "item": "Pyrite"
+            },
+            {
+                "item": "Pyrochlore"
+            },
+            {
+                "item": "Pyrolusite"
+            },
+            {
+                "item": "Pyrope"
+            },
+            {
+                "item": "Pyrophyllite"
+            },
+            {
+                "item": "Pyrrhotite"
+            },
+            {
+                "item": "Quartz"
+            },
+            {
+                "item": "Realgar"
+            },
+            {
+                "item": "Rhodochrosite"
+            },
+            {
+                "item": "Rhodonite"
+            },
+            {
+                "item": "Rhombehedral Oxide (Generic)"
+            },
+            {
+                "item": "Riebeckite"
+            },
+            {
+                "item": "Rutile"
+            },
+            {
+                "item": "Sanidine"
+            },
+            {
+                "item": "Saponite"
+            },
+            {
+                "item": "Scheelite"
+            },
+            {
+                "item": "Sericite"
+            },
+            {
+                "item": "Serpentine"
+            },
+            {
+                "item": "Siderite"
+            },
+            {
+                "item": "Silica"
+            },
+            {
+                "item": "Sillimanite"
+            },
+            {
+                "item": "Silver"
+            },
+            {
+                "item": "Skutterudite"
+            },
+            {
+                "item": "Smithsonite"
+            },
+            {
+                "item": "Sodalite"
+            },
+            {
+                "item": "Sperrylite"
+            },
+            {
+                "item": "Spessartine"
+            },
+            {
+                "item": "Sphalerite"
+            },
+            {
+                "item": "Sphene"
+            },
+            {
+                "item": "Spinel"
+            },
+            {
+                "item": "Spodumene"
+            },
+            {
+                "item": "Stannite"
+            },
+            {
+                "item": "Staurolite"
+            },
+            {
+                "item": "Stibnite"
+            },
+            {
+                "item": "Stilbite"
+            },
+            {
+                "item": "Strontianite"
+            },
+            {
+                "item": "Sulfur"
+            },
+            {
+                "item": "Sylvanite"
+            },
+            {
+                "item": "Sylvite"
+            },
+            {
+                "item": "Talc"
+            },
+            {
+                "item": "Tennantite"
+            },
+            {
+                "item": "Tetrahedrite"
+            },
+            {
+                "item": "Titanohematite"
+            },
+            {
+                "item": "Titanomaghemite"
+            },
+            {
+                "item": "Titanomagnetite"
+            },
+            {
+                "item": "Todorokite"
+            },
+            {
+                "item": "Topaz"
+            },
+            {
+                "item": "Tourmaline"
+            },
+            {
+                "item": "Tremolite"
+            },
+            {
+                "item": "Tridymite"
+            },
+            {
+                "item": "Trona"
+            },
+            {
+                "item": "Ulvospinel"
+            },
+            {
+                "item": "Uraninite"
+            },
+            {
+                "item": "Uvarovite"
+            },
+            {
+                "item": "Valeriite"
+            },
+            {
+                "item": "Vesuvianite"
+            },
+            {
+                "item": "Willemite"
+            },
+            {
+                "item": "Witherite"
+            },
+            {
+                "item": "Wolframite"
+            },
+            {
+                "item": "Wollastonite"
+            },
+            {
+                "item": "Zeolite"
+            },
+            {
+                "item": "Zincite"
+            },
+            {
+                "item": "Zircon"
+            },
+            {
+                "item": "Zoisite"
+            }
+        ]
+    },
+    "country": {
+        "label": "Countries",
+        "items": [
+            {
+                "item": "Afghanistan"
+            },
+            {
+                "item": "Albania"
+            },
+            {
+                "item": "Algeria"
+            },
+            {
+                "item": "American Samoa"
+            },
+            {
+                "item": "Andorra"
+            },
+            {
+                "item": "Angola"
+            },
+            {
+                "item": "Anguilla"
+            },
+            {
+                "item": "Antarctica"
+            },
+            {
+                "item": "Antigua and Barbuda"
+            },
+            {
+                "item": "Argentina"
+            },
+            {
+                "item": "Armenia"
+            },
+            {
+                "item": "Aruba"
+            },
+            {
+                "item": "Australia"
+            },
+            {
+                "item": "Austria"
+            },
+            {
+                "item": "Azerbaijan"
+            },
+            {
+                "item": "Bahamas"
+            },
+            {
+                "item": "Bahrain"
+            },
+            {
+                "item": "Bangladesh"
+            },
+            {
+                "item": "Barbados"
+            },
+            {
+                "item": "Belarus"
+            },
+            {
+                "item": "Belgium"
+            },
+            {
+                "item": "Belize"
+            },
+            {
+                "item": "Benin"
+            },
+            {
+                "item": "Bermuda"
+            },
+            {
+                "item": "Bhutan"
+            },
+            {
+                "item": "Bolivia"
+            },
+            {
+                "item": "Bosnia and Herzegovina"
+            },
+            {
+                "item": "Botswana"
+            },
+            {
+                "item": "Bouvet Island"
+            },
+            {
+                "item": "Brazil"
+            },
+            {
+                "item": "British Indian Ocean Territory"
+            },
+            {
+                "item": "British Virgin Islands"
+            },
+            {
+                "item": "Brunei Darussalam"
+            },
+            {
+                "item": "Bulgaria"
+            },
+            {
+                "item": "Burkina Faso"
+            },
+            {
+                "item": "Burma (Myanmar)"
+            },
+            {
+                "item": "Burundi"
+            },
+            {
+                "item": "Cambodia"
+            },
+            {
+                "item": "Cameroon"
+            },
+            {
+                "item": "Canada"
+            },
+            {
+                "item": "Cape Verde"
+            },
+            {
+                "item": "Cayman Islands"
+            },
+            {
+                "item": "Central African Republic"
+            },
+            {
+                "item": "Chad"
+            },
+            {
+                "item": "Chile"
+            },
+            {
+                "item": "China"
+            },
+            {
+                "item": "Christmas Island"
+            },
+            {
+                "item": "Cocos (Keeling) Islands"
+            },
+            {
+                "item": "Colombia"
+            },
+            {
+                "item": "Comores"
+            },
+            {
+                "item": "Comoros"
+            },
+            {
+                "item": "Congo"
+            },
+            {
+                "item": "Cook Islands"
+            },
+            {
+                "item": "Costa Rica"
+            },
+            {
+                "item": "Croatia"
+            },
+            {
+                "item": "Cuba"
+            },
+            {
+                "item": "Cyprus"
+            },
+            {
+                "item": "Czech Republic"
+            },
+            {
+                "item": "Côte D'Ivoire"
+            },
+            {
+                "item": "Democratic People's Republic of Korea"
+            },
+            {
+                "item": "Denmark"
+            },
+            {
+                "item": "Djibouti"
+            },
+            {
+                "item": "Dominica"
+            },
+            {
+                "item": "Dominican Republic"
+            },
+            {
+                "item": "East Timor"
+            },
+            {
+                "item": "Ecuador"
+            },
+            {
+                "item": "Egypt"
+            },
+            {
+                "item": "El Salvador"
+            },
+            {
+                "item": "Equatorial Guinea"
+            },
+            {
+                "item": "Eritrea"
+            },
+            {
+                "item": "Estonia"
+            },
+            {
+                "item": "Ethiopia"
+            },
+            {
+                "item": "Falkland Islands (Malvinas)"
+            },
+            {
+                "item": "Faroe Islands"
+            },
+            {
+                "item": "Faso"
+            },
+            {
+                "item": "Federated States of Micronesia"
+            },
+            {
+                "item": "Fiji"
+            },
+            {
+                "item": "Finland"
+            },
+            {
+                "item": "France"
+            },
+            {
+                "item": "French Guiana"
+            },
+            {
+                "item": "French Polynesia"
+            },
+            {
+                "item": "French Southern Territories"
+            },
+            {
+                "item": "Gabon"
+            },
+            {
+                "item": "Gambia"
+            },
+            {
+                "item": "Georgia"
+            },
+            {
+                "item": "Germany"
+            },
+            {
+                "item": "Ghana"
+            },
+            {
+                "item": "Gibraltar"
+            },
+            {
+                "item": "Greece"
+            },
+            {
+                "item": "Greenland"
+            },
+            {
+                "item": "Grenada"
+            },
+            {
+                "item": "Guadeloupe"
+            },
+            {
+                "item": "Guam"
+            },
+            {
+                "item": "Guatemala"
+            },
+            {
+                "item": "Guinea"
+            },
+            {
+                "item": "Guinea-Bissau"
+            },
+            {
+                "item": "Guyana"
+            },
+            {
+                "item": "Haiti"
+            },
+            {
+                "item": "Heard Island and Mcdonald Islands"
+            },
+            {
+                "item": "Holy See"
+            },
+            {
+                "item": "Honduras"
+            },
+            {
+                "item": "Hong Kong"
+            },
+            {
+                "item": "Hungary"
+            },
+            {
+                "item": "Iceland"
+            },
+            {
+                "item": "India"
+            },
+            {
+                "item": "Indonesia"
+            },
+            {
+                "item": "Iran"
+            },
+            {
+                "item": "Iraq"
+            },
+            {
+                "item": "Ireland"
+            },
+            {
+                "item": "Islamic Republic of Iran"
+            },
+            {
+                "item": "Israel"
+            },
+            {
+                "item": "Italy"
+            },
+            {
+                "item": "Jamaica"
+            },
+            {
+                "item": "Japan"
+            },
+            {
+                "item": "Jordan"
+            },
+            {
+                "item": "Kazakhstan"
+            },
+            {
+                "item": "Kenya"
+            },
+            {
+                "item": "Kiribati"
+            },
+            {
+                "item": "Kosovo"
+            },
+            {
+                "item": "Kuwait"
+            },
+            {
+                "item": "Kyrgyzstan"
+            },
+            {
+                "item": "Lao People's Democratic Republic"
+            },
+            {
+                "item": "Laos"
+            },
+            {
+                "item": "Latvia"
+            },
+            {
+                "item": "Lebanon"
+            },
+            {
+                "item": "Leone"
+            },
+            {
+                "item": "Lesotho"
+            },
+            {
+                "item": "Liberia"
+            },
+            {
+                "item": "Libya"
+            },
+            {
+                "item": "Libyan Arab Jamahiriya"
+            },
+            {
+                "item": "Liechtenstein"
+            },
+            {
+                "item": "Lithuania"
+            },
+            {
+                "item": "Luxembourg"
+            },
+            {
+                "item": "Macao"
+            },
+            {
+                "item": "Macedonia"
+            },
+            {
+                "item": "Madagascar"
+            },
+            {
+                "item": "Malawi"
+            },
+            {
+                "item": "Malaysia"
+            },
+            {
+                "item": "Maldives"
+            },
+            {
+                "item": "Mali"
+            },
+            {
+                "item": "Malta"
+            },
+            {
+                "item": "Marshall Islands"
+            },
+            {
+                "item": "Martinique"
+            },
+            {
+                "item": "Mauritania"
+            },
+            {
+                "item": "Mauritius"
+            },
+            {
+                "item": "Mayotte"
+            },
+            {
+                "item": "Mexico"
+            },
+            {
+                "item": "Micronesia"
+            },
+            {
+                "item": "Moldova"
+            },
+            {
+                "item": "Monaco"
+            },
+            {
+                "item": "Mongolia"
+            },
+            {
+                "item": "Montenegro and Serbia"
+            },
+            {
+                "item": "Montserrat"
+            },
+            {
+                "item": "Morocco"
+            },
+            {
+                "item": "Mozambique"
+            },
+            {
+                "item": "Myanmar"
+            },
+            {
+                "item": "Namibia"
+            },
+            {
+                "item": "Nauru"
+            },
+            {
+                "item": "Nepal"
+            },
+            {
+                "item": "Netherlands"
+            },
+            {
+                "item": "Netherlands Antilles"
+            },
+            {
+                "item": "New Caledonia"
+            },
+            {
+                "item": "New Zealand"
+            },
+            {
+                "item": "Nicaragua"
+            },
+            {
+                "item": "Niger"
+            },
+            {
+                "item": "Nigeria"
+            },
+            {
+                "item": "Niue"
+            },
+            {
+                "item": "Norfolk Island"
+            },
+            {
+                "item": "North Korea"
+            },
+            {
+                "item": "Northern Mariana Islands"
+            },
+            {
+                "item": "Norway"
+            },
+            {
+                "item": "Oman"
+            },
+            {
+                "item": "Pakistan"
+            },
+            {
+                "item": "Palau"
+            },
+            {
+                "item": "Palestine"
+            },
+            {
+                "item": "Palestinian Territory"
+            },
+            {
+                "item": "Panama"
+            },
+            {
+                "item": "Papua New Guinea"
+            },
+            {
+                "item": "Paraguay"
+            },
+            {
+                "item": "Peru"
+            },
+            {
+                "item": "Philippines"
+            },
+            {
+                "item": "Pitcairn"
+            },
+            {
+                "item": "Poland"
+            },
+            {
+                "item": "Portugal"
+            },
+            {
+                "item": "Puerto Rico"
+            },
+            {
+                "item": "Qatar"
+            },
+            {
+                "item": "Republic of Korea"
+            },
+            {
+                "item": "Republic of Moldova"
+            },
+            {
+                "item": "Republic of Yemen"
+            },
+            {
+                "item": "Romania"
+            },
+            {
+                "item": "Russia"
+            },
+            {
+                "item": "Russian Federation"
+            },
+            {
+                "item": "Rwanda"
+            },
+            {
+                "item": "Réunion"
+            },
+            {
+                "item": "Saint Helena"
+            },
+            {
+                "item": "Saint Kitts and Nevis"
+            },
+            {
+                "item": "Saint Lucia"
+            },
+            {
+                "item": "Saint Pierre and Miquelon"
+            },
+            {
+                "item": "Saint Vincent and the Grenadines"
+            },
+            {
+                "item": "Samoa"
+            },
+            {
+                "item": "San Marino"
+            },
+            {
+                "item": "Sao Tome and Principe"
+            },
+            {
+                "item": "Saudi Arabia"
+            },
+            {
+                "item": "Senegal"
+            },
+            {
+                "item": "Serbia and Montenegro"
+            },
+            {
+                "item": "Seychelles"
+            },
+            {
+                "item": "Sierra Leone"
+            },
+            {
+                "item": "Singapore"
+            },
+            {
+                "item": "Slovakia"
+            },
+            {
+                "item": "Slovenia"
+            },
+            {
+                "item": "Society Islands"
+            },
+            {
+                "item": "Solomon Islands"
+            },
+            {
+                "item": "Somalia"
+            },
+            {
+                "item": "South Africa"
+            },
+            {
+                "item": "South Georgia and the South Sandwich Islands"
+            },
+            {
+                "item": "South Korea"
+            },
+            {
+                "item": "Spain"
+            },
+            {
+                "item": "Sri Lanka"
+            },
+            {
+                "item": "St. Kitts and Nevis"
+            },
+            {
+                "item": "St. Lucia"
+            },
+            {
+                "item": "South Sudan"
+            },
+            {
+                "item": "Sudan"
+            },
+            {
+                "item": "Suriname"
+            },
+            {
+                "item": "Svalbard and Jan Mayen"
+            },
+            {
+                "item": "Swaziland"
+            },
+            {
+                "item": "Sweden"
+            },
+            {
+                "item": "Switzerland"
+            },
+            {
+                "item": "Syria"
+            },
+            {
+                "item": "Syrian Arab Republic"
+            },
+            {
+                "item": "São Tomé and Príncipe"
+            },
+            {
+                "item": "Taiwan"
+            },
+            {
+                "item": "Tajikistan"
+            },
+            {
+                "item": "Tanzania"
+            },
+            {
+                "item": "Thailand"
+            },
+            {
+                "item": "The Democratic Republic of the Congo"
+            },
+            {
+                "item": "The Democratic Republic of the Zaire"
+            },
+            {
+                "item": "The Former Yugoslav Republic of Macedonia"
+            },
+            {
+                "item": "The Grenadines"
+            },
+            {
+                "item": "The Netherlands"
+            },
+            {
+                "item": "The Philippines"
+            },
+            {
+                "item": "Timor-Leste"
+            },
+            {
+                "item": "Togo"
+            },
+            {
+                "item": "Tokelau"
+            },
+            {
+                "item": "Tonga"
+            },
+            {
+                "item": "Trinidad and Tobago"
+            },
+            {
+                "item": "Tunisia"
+            },
+            {
+                "item": "Turkey"
+            },
+            {
+                "item": "Turkmenistan"
+            },
+            {
+                "item": "Turks and Caicos Islands"
+            },
+            {
+                "item": "Tuvalu"
+            },
+            {
+                "item": "U.K."
+            },
+            {
+                "item": "U.S.A."
+            },
+            {
+                "item": "US Virgin Islands"
+            },
+            {
+                "item": "Uganda"
+            },
+            {
+                "item": "Ukraine"
+            },
+            {
+                "item": "United Arab Emirates"
+            },
+            {
+                "item": "United Kingdom"
+            },
+            {
+                "item": "United Republic of Tanzania"
+            },
+            {
+                "item": "United States"
+            },
+            {
+                "item": "United States of America"
+            },
+            {
+                "item": "Uruguay"
+            },
+            {
+                "item": "Uzbekistan"
+            },
+            {
+                "item": "Vanuatu"
+            },
+            {
+                "item": "Vatican City"
+            },
+            {
+                "item": "Venezuela"
+            },
+            {
+                "item": "Vietnam"
+            },
+            {
+                "item": "Virgin Islands"
+            },
+            {
+                "item": "Wallis and Futuna"
+            },
+            {
+                "item": "Western Sahara"
+            },
+            {
+                "item": "Yemen"
+            },
+            {
+                "item": "Yugoslavia"
+            },
+            {
+                "item": "Zaire"
+            },
+            {
+                "item": "Zambia"
+            },
+            {
+                "item": "Zimbabwe"
+            },
+            {
+                "item": "Åland Islands"
+            }
+        ]
+    },
+    "fold_test": {
+        "label": "Fold Test Codes",
+        "items": [
+            {
+                "item": "+",
+                "label": "Positive"
+            },
+            {
+                "item": "-",
+                "label": "Negative"
+            },
+            {
+                "item": "F+"
+            },
+            {
+                "item": "F-"
+            },
+            {
+                "item": "Fo"
+            },
+            {
+                "item": "ND",
+                "label": "Not Done"
+            },
+            {
+                "item": "RF+"
+            },
+            {
+                "item": "RF-"
+            },
+            {
+                "item": "RFo"
+            },
+            {
+                "item": "SF+"
+            },
+            {
+                "item": "SF-"
+            },
+            {
+                "item": "SFo"
+            },
+            {
+                "item": "o",
+                "label": "Indeterminate"
+            }
+        ]
+    },
+    "measurement_type": {
+        "label": "Measurement Type",
+        "items": [
+            {
+                "item": "s",
+                "label": "Standard"
+            },
+            {
+                "item": "u",
+                "label": "Unknown"
+            }
+        ]
+    },
+    "temp_type": {
+        "label": "Critical Temperature Types",
+        "items": [
+            {
+                "item": "Alteration"
+            },
+            {
+                "item": "Blocking"
+            },
+            {
+                "item": "Curie"
+            },
+            {
+                "item": "Ferrimagnetic Pyrrhotite"
+            },
+            {
+                "item": "Hopkinson"
+            },
+            {
+                "item": "Magnetocrystalline Isotropic"
+            },
+            {
+                "item": "Morin"
+            },
+            {
+                "item": "Neel"
+            },
+            {
+                "item": "Phase Transition"
+            },
+            {
+                "item": "Pyrrhotite"
+            },
+            {
+                "item": "Spin Glass"
+            },
+            {
+                "item": "Unblocking"
+            },
+            {
+                "item": "Unknown"
+            },
+            {
+                "item": "Verway"
+            }
+        ]
+    },
+    "nrm": {
+        "label": "NRM Origins",
+        "items": [
+            {
+                "item": "p",
+                "label": "Primary"
+            },
+            {
+                "item": "s",
+                "label": "Secondary"
+            }
+        ]
+    },
+    "lithology": {
+        "label": "Lithologies",
+        "items": [
+            {
+                "item": "Acapulcoite Primitive Achondrite"
+            },
+            {
+                "item": "Achondrite"
+            },
+            {
+                "item": "Adakite"
+            },
+            {
+                "item": "Adamellite"
+            },
+            {
+                "item": "Agate"
+            },
+            {
+                "item": "Agglomerate"
+            },
+            {
+                "item": "Alcrete"
+            },
+            {
+                "item": "Alkali Basalt"
+            },
+            {
+                "item": "Alkali-Feldspar Granite"
+            },
+            {
+                "item": "Alkali-Feldspar Rhyolite"
+            },
+            {
+                "item": "Alkali-Feldspar Syenite"
+            },
+            {
+                "item": "Alkali-Feldspar Trachyte"
+            },
+            {
+                "item": "Alkali Rhyolite"
+            },
+            {
+                "item": "Amphibolite"
+            },
+            {
+                "item": "Andesite"
+            },
+            {
+                "item": "Andesitic Lapilli Tuff"
+            },
+            {
+                "item": "Andesitic Lava"
+            },
+            {
+                "item": "Andesitic Tuff"
+            },
+            {
+                "item": "Andesitic Volcaniclastic Sandstone"
+            },
+            {
+                "item": "Angrite"
+            },
+            {
+                "item": "Anhydrite Stone"
+            },
+            {
+                "item": "Ankerite Boundstone"
+            },
+            {
+                "item": "Ankerite Framestone"
+            },
+            {
+                "item": "Ankerite Grainstone"
+            },
+            {
+                "item": "Ankerite Gravel"
+            },
+            {
+                "item": "Ankerite Micro-Oncolite"
+            },
+            {
+                "item": "Ankerite Microsparstone"
+            },
+            {
+                "item": "Ankerite Microstone"
+            },
+            {
+                "item": "Ankerite Mud"
+            },
+            {
+                "item": "Ankerite Mudstone"
+            },
+            {
+                "item": "Ankerite Oncolite"
+            },
+            {
+                "item": "Ankerite Oolite"
+            },
+            {
+                "item": "Ankerite Packstone"
+            },
+            {
+                "item": "Ankerite Peloidite"
+            },
+            {
+                "item": "Ankerite Pisolite"
+            },
+            {
+                "item": "Ankerite Pseudosparstone"
+            },
+            {
+                "item": "Ankerite Sand"
+            },
+            {
+                "item": "Ankerite Sparstone"
+            },
+            {
+                "item": "Ankerite Stone"
+            },
+            {
+                "item": "Ankerite Wackestone"
+            },
+            {
+                "item": "Anorthosite"
+            },
+            {
+                "item": "Anorthosite Lunar Meteorite"
+            },
+            {
+                "item": "Anthracite"
+            },
+            {
+                "item": "Aphanite"
+            },
+            {
+                "item": "Aplite"
+            },
+            {
+                "item": "Appinite"
+            },
+            {
+                "item": "Aragonite Boundstone"
+            },
+            {
+                "item": "Aragonite Framestone"
+            },
+            {
+                "item": "Aragonite Grainstone"
+            },
+            {
+                "item": "Aragonite Gravel"
+            },
+            {
+                "item": "Aragonite Micro-Oncolite"
+            },
+            {
+                "item": "Aragonite Microsparstone"
+            },
+            {
+                "item": "Aragonite Microstone"
+            },
+            {
+                "item": "Aragonite Mud"
+            },
+            {
+                "item": "Aragonite Mudstone"
+            },
+            {
+                "item": "Aragonite Oncolite"
+            },
+            {
+                "item": "Aragonite Oolite"
+            },
+            {
+                "item": "Aragonite Packstone"
+            },
+            {
+                "item": "Aragonite Peloidite"
+            },
+            {
+                "item": "Aragonite Pisolite"
+            },
+            {
+                "item": "Aragonite Pseudosparstone"
+            },
+            {
+                "item": "Aragonite Sand"
+            },
+            {
+                "item": "Aragonite Sparstone"
+            },
+            {
+                "item": "Aragonite Stone"
+            },
+            {
+                "item": "Aragonite Wackestone"
+            },
+            {
+                "item": "Arenite"
+            },
+            {
+                "item": "Ash Breccia"
+            },
+            {
+                "item": "Asteroidal Achondrite"
+            },
+            {
+                "item": "Ataxite Iron Meteorite"
+            },
+            {
+                "item": "Aubrite"
+            },
+            {
+                "item": "Baked Earths"
+            },
+            {
+                "item": "Banded Bright Coal"
+            },
+            {
+                "item": "Banded Coal"
+            },
+            {
+                "item": "Banded Dull Coal"
+            },
+            {
+                "item": "Barite Stone"
+            },
+            {
+                "item": "Basalt"
+            },
+            {
+                "item": "Basaltic Lava"
+            },
+            {
+                "item": "Basaltic Shergottite"
+            },
+            {
+                "item": "Basaltic Tuff"
+            },
+            {
+                "item": "Basaltic Volcanic Breccia"
+            },
+            {
+                "item": "Basaltic Volcaniclastic Sandstone"
+            },
+            {
+                "item": "Basaltic trachyandesite"
+            },
+            {
+                "item": "Basaltic Andesite"
+            },
+            {
+                "item": "Basaltic Trachyandesite"
+            },
+            {
+                "item": "Basanite"
+            },
+            {
+                "item": "Basanitic Foidite"
+            },
+            {
+                "item": "Basin Peat"
+            },
+            {
+                "item": "Bauxite"
+            },
+            {
+                "item": "Bauxitic Clay"
+            },
+            {
+                "item": "Benmoreite"
+            },
+            {
+                "item": "Biotite Feldspar Porphyry"
+            },
+            {
+                "item": "Bituminous Mudstone"
+            },
+            {
+                "item": "Bituminous Coal"
+            },
+            {
+                "item": "Black Lignite"
+            },
+            {
+                "item": "Blackband Ironstone"
+            },
+            {
+                "item": "Blanket Bog Peat"
+            },
+            {
+                "item": "Blastomylonite"
+            },
+            {
+                "item": "Block Tephra"
+            },
+            {
+                "item": "Blue Granite"
+            },
+            {
+                "item": "Blueschist"
+            },
+            {
+                "item": "Bomb Tephra"
+            },
+            {
+                "item": "Bone Coal"
+            },
+            {
+                "item": "Boninite"
+            },
+            {
+                "item": "Borax-Stone"
+            },
+            {
+                "item": "Borolanite"
+            },
+            {
+                "item": "Brachinite"
+            },
+            {
+                "item": "Breccia"
+            },
+            {
+                "item": "Bright Coal"
+            },
+            {
+                "item": "Brown Lignite"
+            },
+            {
+                "item": "CB Chondrite"
+            },
+            {
+                "item": "CH Chondrite"
+            },
+            {
+                "item": "CI Chondrite"
+            },
+            {
+                "item": "CK Chondrite"
+            },
+            {
+                "item": "CM Chondrite"
+            },
+            {
+                "item": "CO Chondrite"
+            },
+            {
+                "item": "CR Chondrite"
+            },
+            {
+                "item": "CV Chondrite"
+            },
+            {
+                "item": "Ca-Al rich Inclusion"
+            },
+            {
+                "item": "Calcarenite"
+            },
+            {
+                "item": "Calcareous Mudstone"
+            },
+            {
+                "item": "Calcareous Pelite"
+            },
+            {
+                "item": "Calcareous Psammite"
+            },
+            {
+                "item": "Calcareous Sandstone"
+            },
+            {
+                "item": "Calcareous Semipelite"
+            },
+            {
+                "item": "Calcareous Siltstone"
+            },
+            {
+                "item": "Calciocarbonatite"
+            },
+            {
+                "item": "Calcite Boundstone"
+            },
+            {
+                "item": "Calcite Carbonatite"
+            },
+            {
+                "item": "Calcite Framestone"
+            },
+            {
+                "item": "Calcite Grainstone"
+            },
+            {
+                "item": "Calcite Gravel"
+            },
+            {
+                "item": "Calcite Limestone"
+            },
+            {
+                "item": "Calcite Micro-Oncolite"
+            },
+            {
+                "item": "Calcite Microsparstone"
+            },
+            {
+                "item": "Calcite Microstone"
+            },
+            {
+                "item": "Calcite Mud"
+            },
+            {
+                "item": "Calcite Mudstone"
+            },
+            {
+                "item": "Calcite Oncolite"
+            },
+            {
+                "item": "Calcite Oolite"
+            },
+            {
+                "item": "Calcite Packstone"
+            },
+            {
+                "item": "Calcite Peloidite"
+            },
+            {
+                "item": "Calcite Pisolite"
+            },
+            {
+                "item": "Calcite Pseudosparstone"
+            },
+            {
+                "item": "Calcite Sand"
+            },
+            {
+                "item": "Calcite Sparstone"
+            },
+            {
+                "item": "Calcite Wackestone"
+            },
+            {
+                "item": "Calcsilicate Rock"
+            },
+            {
+                "item": "Camptonite"
+            },
+            {
+                "item": "Cannel Coal"
+            },
+            {
+                "item": "Cannel Mudstone"
+            },
+            {
+                "item": "Carbonaceous Chondrite"
+            },
+            {
+                "item": "Carbonaceous Ironstone"
+            },
+            {
+                "item": "Carbonaceous Mudstone"
+            },
+            {
+                "item": "Carbonaceous Sandstone"
+            },
+            {
+                "item": "Carbonaceous Siltstone"
+            },
+            {
+                "item": "Carbonatite"
+            },
+            {
+                "item": "Carnalite Stone"
+            },
+            {
+                "item": "Cataclasite"
+            },
+            {
+                "item": "Cementstone"
+            },
+            {
+                "item": "Chalk"
+            },
+            {
+                "item": "Chalk-Rich Diamicton"
+            },
+            {
+                "item": "Charnockite"
+            },
+            {
+                "item": "Chassignites"
+            },
+            {
+                "item": "Chert"
+            },
+            {
+                "item": "Chlorite Actinolite Metamafite"
+            },
+            {
+                "item": "Chondrite"
+            },
+            {
+                "item": "Chondrule"
+            },
+            {
+                "item": "Chondrule Silicate"
+            },
+            {
+                "item": "Chromitite"
+            },
+            {
+                "item": "Clarain"
+            },
+            {
+                "item": "Clay"
+            },
+            {
+                "item": "Clayey Gravel"
+            },
+            {
+                "item": "Clayey Sand"
+            },
+            {
+                "item": "Clinopyroxene Norite"
+            },
+            {
+                "item": "Clinopyroxenite"
+            },
+            {
+                "item": "Coal"
+            },
+            {
+                "item": "Coal Shale"
+            },
+            {
+                "item": "Coarse Silicate Sandstone"
+            },
+            {
+                "item": "Colemanite Stone"
+            },
+            {
+                "item": "Comendite"
+            },
+            {
+                "item": "Comenditic Rhyolite"
+            },
+            {
+                "item": "Comenditic Trachyte"
+            },
+            {
+                "item": "Conglomerate"
+            },
+            {
+                "item": "Cumulate Eucrite"
+            },
+            {
+                "item": "Dacite"
+            },
+            {
+                "item": "Dacitic Lapilli Tuff"
+            },
+            {
+                "item": "Dacitic Lava"
+            },
+            {
+                "item": "Dacitic Tuff"
+            },
+            {
+                "item": "Dacitic Volcaniclastic Sandstone"
+            },
+            {
+                "item": "Deep Marine Sediments"
+            },
+            {
+                "item": "Diabase"
+            },
+            {
+                "item": "Diamictite"
+            },
+            {
+                "item": "Diamicton"
+            },
+            {
+                "item": "Diatomaceous Ooze"
+            },
+            {
+                "item": "Diatomite"
+            },
+            {
+                "item": "Differentiated Achondrite"
+            },
+            {
+                "item": "Diogenite"
+            },
+            {
+                "item": "Diorite"
+            },
+            {
+                "item": "Dolerite"
+            },
+            {
+                "item": "Dolomite Boundstone"
+            },
+            {
+                "item": "Dolomite Carbonatite"
+            },
+            {
+                "item": "Dolomite Framestone"
+            },
+            {
+                "item": "Dolomite Grainstone"
+            },
+            {
+                "item": "Dolomite Gravel"
+            },
+            {
+                "item": "Dolomite Microsparstone"
+            },
+            {
+                "item": "Dolomite Microstone"
+            },
+            {
+                "item": "Dolomite Mud"
+            },
+            {
+                "item": "Dolomite Mudstone"
+            },
+            {
+                "item": "Dolomite Oncolite"
+            },
+            {
+                "item": "Dolomite Oolite"
+            },
+            {
+                "item": "Dolomite Packstone"
+            },
+            {
+                "item": "Dolomite Peloidite"
+            },
+            {
+                "item": "Dolomite Pisolite"
+            },
+            {
+                "item": "Dolomite Pseudosparstone"
+            },
+            {
+                "item": "Dolomite Sand"
+            },
+            {
+                "item": "Dolomite Sparstone"
+            },
+            {
+                "item": "Dolomite Wackestone"
+            },
+            {
+                "item": "Dolomitic Limestone"
+            },
+            {
+                "item": "Dolostone"
+            },
+            {
+                "item": "Dull Coal"
+            },
+            {
+                "item": "Dunite"
+            },
+            {
+                "item": "Durain"
+            },
+            {
+                "item": "Eclogite"
+            },
+            {
+                "item": "Enderbite"
+            },
+            {
+                "item": "Enstatite Chondrite"
+            },
+            {
+                "item": "Epidiorite"
+            },
+            {
+                "item": "Epidosite"
+            },
+            {
+                "item": "Essexite"
+            },
+            {
+                "item": "Eucrite"
+            },
+            {
+                "item": "Extrusives"
+            },
+            {
+                "item": "Fault Breccia"
+            },
+            {
+                "item": "Feldspar Porphyry"
+            },
+            {
+                "item": "Feldspathic Arenite"
+            },
+            {
+                "item": "Feldspathic Wacke"
+            },
+            {
+                "item": "Felsic Lava"
+            },
+            {
+                "item": "Felsic Tuff"
+            },
+            {
+                "item": "Felsic Tuffite"
+            },
+            {
+                "item": "Felsite"
+            },
+            {
+                "item": "Fen Peat"
+            },
+            {
+                "item": "Fenite"
+            },
+            {
+                "item": "Ferricrete"
+            },
+            {
+                "item": "Ferroan Carbonatite"
+            },
+            {
+                "item": "Ferrocarbonatite"
+            },
+            {
+                "item": "Ferruginous Limestone"
+            },
+            {
+                "item": "Ferruginous Mudstone"
+            },
+            {
+                "item": "Ferruginous Sandstone"
+            },
+            {
+                "item": "Ferruginous Silicate Mudstone"
+            },
+            {
+                "item": "Ferruginous Siltstone"
+            },
+            {
+                "item": "Flint"
+            },
+            {
+                "item": "Flinty Gravel"
+            },
+            {
+                "item": "Flowstone"
+            },
+            {
+                "item": "Foid-Bearing Alkali-Feldspar Microsyenite"
+            },
+            {
+                "item": "Foid-Bearing Alkali-Feldspar Microtrachyte"
+            },
+            {
+                "item": "Foid-Bearing Alkali-Feldspar Syenite"
+            },
+            {
+                "item": "Foid-Bearing Alkali-Feldspar Trachyte"
+            },
+            {
+                "item": "Foid-Bearing Anorthosite"
+            },
+            {
+                "item": "Foid-Bearing Diorite"
+            },
+            {
+                "item": "Foid-Bearing Gabbro"
+            },
+            {
+                "item": "Foid-Bearing Latite"
+            },
+            {
+                "item": "Foid-Bearing Micro-Anorthosite"
+            },
+            {
+                "item": "Foid-Bearing Microdiorite"
+            },
+            {
+                "item": "Foid-Bearing Microgabbro"
+            },
+            {
+                "item": "Foid-Bearing Micromonzodiorite"
+            },
+            {
+                "item": "Foid-Bearing Micromonzogabbro"
+            },
+            {
+                "item": "Foid-Bearing Micromonzonite"
+            },
+            {
+                "item": "Foid-Bearing Microsyenite"
+            },
+            {
+                "item": "Foid-Bearing Monzodiorite"
+            },
+            {
+                "item": "Foid-Bearing Monzogabbro"
+            },
+            {
+                "item": "Foid-Bearing Monzonite"
+            },
+            {
+                "item": "Foid-Bearing Syenite"
+            },
+            {
+                "item": "Foid-Bearing Trachyte"
+            },
+            {
+                "item": "Foid Gabbro"
+            },
+            {
+                "item": "Foid Microdiorite"
+            },
+            {
+                "item": "Foid Microgabbro"
+            },
+            {
+                "item": "Foid Micromonzodiorite"
+            },
+            {
+                "item": "Foid Micromonzogabbro"
+            },
+            {
+                "item": "Foid Micromonzosyenite"
+            },
+            {
+                "item": "Foid Microsyenite"
+            },
+            {
+                "item": "Foid Monzodiorite"
+            },
+            {
+                "item": "Foid Monzogabbro"
+            },
+            {
+                "item": "Foid Monzosyenite"
+            },
+            {
+                "item": "Foid Syenite"
+            },
+            {
+                "item": "Foidite"
+            },
+            {
+                "item": "Foidolite"
+            },
+            {
+                "item": "Forsterite Chondrite"
+            },
+            {
+                "item": "Fragmental Lunar Anorthosite Breccia"
+            },
+            {
+                "item": "Fusain"
+            },
+            {
+                "item": "Gabbro"
+            },
+            {
+                "item": "Gabbronorite"
+            },
+            {
+                "item": "Ganister"
+            },
+            {
+                "item": "Gaylussite"
+            },
+            {
+                "item": "Glacial Till"
+            },
+            {
+                "item": "Glauconitic Sandstone"
+            },
+            {
+                "item": "Gneiss"
+            },
+            {
+                "item": "Gossan"
+            },
+            {
+                "item": "Granite"
+            },
+            {
+                "item": "Granodiorite"
+            },
+            {
+                "item": "Granofels"
+            },
+            {
+                "item": "Granophyre"
+            },
+            {
+                "item": "Granophyric Granite"
+            },
+            {
+                "item": "Granulite"
+            },
+            {
+                "item": "Gravel"
+            },
+            {
+                "item": "Greenschist"
+            },
+            {
+                "item": "Greenstone"
+            },
+            {
+                "item": "Greisen"
+            },
+            {
+                "item": "Gypsum"
+            },
+            {
+                "item": "Gypsum Grainstone"
+            },
+            {
+                "item": "Gypsum Gravel"
+            },
+            {
+                "item": "Gypsum Mudstone"
+            },
+            {
+                "item": "Gypsum Packstone"
+            },
+            {
+                "item": "Gypsum Sand"
+            },
+            {
+                "item": "Gypsum Stone"
+            },
+            {
+                "item": "Gypsum Wackestone"
+            },
+            {
+                "item": "H Ordinary Chondrite"
+            },
+            {
+                "item": "Halite"
+            },
+            {
+                "item": "Halite Stone"
+            },
+            {
+                "item": "Harzburgite"
+            },
+            {
+                "item": "Hawaiite"
+            },
+            {
+                "item": "Hexahedrite Iron Meteorite"
+            },
+            {
+                "item": "Hill Peat"
+            },
+            {
+                "item": "Hornblende Gabbro"
+            },
+            {
+                "item": "Hornblende Microgabbro"
+            },
+            {
+                "item": "Hornblende Microperidotite"
+            },
+            {
+                "item": "Hornblende Micropyroxenite"
+            },
+            {
+                "item": "Hornblende Peridotite"
+            },
+            {
+                "item": "Hornblende Pyroxenite"
+            },
+            {
+                "item": "Hornblende Schist"
+            },
+            {
+                "item": "Hornblendite"
+            },
+            {
+                "item": "Hornfels"
+            },
+            {
+                "item": "Howardite"
+            },
+            {
+                "item": "Hyaloclastite"
+            },
+            {
+                "item": "IAB Iron Meteorite"
+            },
+            {
+                "item": "IC Iron Meteorite"
+            },
+            {
+                "item": "IIAB Iron Meteorite"
+            },
+            {
+                "item": "IIC Iron Meteorite"
+            },
+            {
+                "item": "IID Iron Meteorite"
+            },
+            {
+                "item": "IIE Iron Meteorite"
+            },
+            {
+                "item": "IIE-Iron Silicate"
+            },
+            {
+                "item": "IIF Iron Meteorite"
+            },
+            {
+                "item": "IIG Iron Meteorite"
+            },
+            {
+                "item": "IIIAB Iron Meteorite"
+            },
+            {
+                "item": "IIICD Iron Meteorite"
+            },
+            {
+                "item": "IIIE Iron Meteorite"
+            },
+            {
+                "item": "IIIF Iron Meteorite"
+            },
+            {
+                "item": "IVA Iron Meteorite"
+            },
+            {
+                "item": "IVB Iron Meteorite"
+            },
+            {
+                "item": "Icelandite"
+            },
+            {
+                "item": "Igneous Fault Breccia"
+            },
+            {
+                "item": "Ignimbrite"
+            },
+            {
+                "item": "Ijolite"
+            },
+            {
+                "item": "Illite Clay"
+            },
+            {
+                "item": "Illite Claystone"
+            },
+            {
+                "item": "Ilmenitite"
+            },
+            {
+                "item": "Impact Melt Lunar Anorthosite Breccia"
+            },
+            {
+                "item": "Impure Coal"
+            },
+            {
+                "item": "Intrusives"
+            },
+            {
+                "item": "Iron Meteorite"
+            },
+            {
+                "item": "Iron Boundstone"
+            },
+            {
+                "item": "Iron Framestone"
+            },
+            {
+                "item": "Iron Grainstone"
+            },
+            {
+                "item": "Iron Gravel"
+            },
+            {
+                "item": "Iron Micro-Oncolite"
+            },
+            {
+                "item": "Iron Microsparstone"
+            },
+            {
+                "item": "Iron Microstone"
+            },
+            {
+                "item": "Iron Mud"
+            },
+            {
+                "item": "Iron Mudstone"
+            },
+            {
+                "item": "Iron Oncolite"
+            },
+            {
+                "item": "Iron Oolite"
+            },
+            {
+                "item": "Iron Packstone"
+            },
+            {
+                "item": "Iron Peloidite"
+            },
+            {
+                "item": "Iron Pisolite"
+            },
+            {
+                "item": "Iron Pseudosparstone"
+            },
+            {
+                "item": "Iron Sand"
+            },
+            {
+                "item": "Iron Sandstone"
+            },
+            {
+                "item": "Iron Siltstone"
+            },
+            {
+                "item": "Iron Sparstone"
+            },
+            {
+                "item": "Iron Wackestone"
+            },
+            {
+                "item": "Ironstone"
+            },
+            {
+                "item": "Jadeitite"
+            },
+            {
+                "item": "Jasper"
+            },
+            {
+                "item": "Jasperoid"
+            },
+            {
+                "item": "Kainite-Stone"
+            },
+            {
+                "item": "Kalsilitite"
+            },
+            {
+                "item": "Kalsilitolite"
+            },
+            {
+                "item": "Kaolinite Clay"
+            },
+            {
+                "item": "Kaolinite Claystone"
+            },
+            {
+                "item": "Kenyte"
+            },
+            {
+                "item": "Kernite Stone"
+            },
+            {
+                "item": "Kersantite"
+            },
+            {
+                "item": "Kieserite Stone"
+            },
+            {
+                "item": "Kimberlite"
+            },
+            {
+                "item": "Komatiite"
+            },
+            {
+                "item": "L Ordinary Chondrite"
+            },
+            {
+                "item": "LL Ordinary Chondrite"
+            },
+            {
+                "item": "Lake Sediments"
+            },
+            {
+                "item": "Lamalginite"
+            },
+            {
+                "item": "Lamproite"
+            },
+            {
+                "item": "Lamprophyre"
+            },
+            {
+                "item": "Lapilli Ash"
+            },
+            {
+                "item": "Lapilli Tephra"
+            },
+            {
+                "item": "Lapilli Tuff"
+            },
+            {
+                "item": "Lapillistone"
+            },
+            {
+                "item": "Larvikite"
+            },
+            {
+                "item": "Laterite"
+            },
+            {
+                "item": "Latite"
+            },
+            {
+                "item": "Leucitite"
+            },
+            {
+                "item": "Leucitolite"
+            },
+            {
+                "item": "Leucogranite"
+            },
+            {
+                "item": "Leucomicrodiorite"
+            },
+            {
+                "item": "Leucomicromonzonite"
+            },
+            {
+                "item": "Leucomonzogranite"
+            },
+            {
+                "item": "Lherzolite"
+            },
+            {
+                "item": "Lherzolitic Shergottite"
+            },
+            {
+                "item": "Lignite"
+            },
+            {
+                "item": "Lime Boundstone"
+            },
+            {
+                "item": "Lime Framestone"
+            },
+            {
+                "item": "Lime Grainstone"
+            },
+            {
+                "item": "Lime Gravel"
+            },
+            {
+                "item": "Lime Micro-Oncolite"
+            },
+            {
+                "item": "Lime Microsparstone"
+            },
+            {
+                "item": "Lime Microstone"
+            },
+            {
+                "item": "Lime Mud"
+            },
+            {
+                "item": "Lime Mudstone"
+            },
+            {
+                "item": "Lime Oncolite"
+            },
+            {
+                "item": "Lime Oolite"
+            },
+            {
+                "item": "Lime Packstone"
+            },
+            {
+                "item": "Lime Peloidite"
+            },
+            {
+                "item": "Lime Pisolite"
+            },
+            {
+                "item": "Lime Pseudosparstone"
+            },
+            {
+                "item": "Lime Sand"
+            },
+            {
+                "item": "Lime Sparstone"
+            },
+            {
+                "item": "Lime Wackestone"
+            },
+            {
+                "item": "Limestone"
+            },
+            {
+                "item": "Limestone Gravel"
+            },
+            {
+                "item": "Limey shale"
+            },
+            {
+                "item": "Litchfieldite"
+            },
+            {
+                "item": "Lithic Arenite"
+            },
+            {
+                "item": "Lithic Wacke"
+            },
+            {
+                "item": "Lithomarge"
+            },
+            {
+                "item": "Loam"
+            },
+            {
+                "item": "Lodranite Primitive Achondrite"
+            },
+            {
+                "item": "Loess"
+            },
+            {
+                "item": "Lunar Achondrite"
+            },
+            {
+                "item": "Luxullianite"
+            },
+            {
+                "item": "Mafic Dike"
+            },
+            {
+                "item": "Mafic Lava"
+            },
+            {
+                "item": "Mafic Tuff"
+            },
+            {
+                "item": "Mafic Tuffite"
+            },
+            {
+                "item": "Mafite"
+            },
+            {
+                "item": "Magnesiocarbonatite"
+            },
+            {
+                "item": "Magnesite Stone"
+            },
+            {
+                "item": "Magnetiteite"
+            },
+            {
+                "item": "Main Pallasite"
+            },
+            {
+                "item": "Main Series Eucrite"
+            },
+            {
+                "item": "Mangerite"
+            },
+            {
+                "item": "Marble"
+            },
+            {
+                "item": "Mare Basalt Lunar Meteorite"
+            },
+            {
+                "item": "Mare Gabbro Lunar Meteorite"
+            },
+            {
+                "item": "Marine Clays"
+            },
+            {
+                "item": "Marine Marls"
+            },
+            {
+                "item": "Marls"
+            },
+            {
+                "item": "Martian Achondrite"
+            },
+            {
+                "item": "Meimechite"
+            },
+            {
+                "item": "Melamicrogranite"
+            },
+            {
+                "item": "Melilitite"
+            },
+            {
+                "item": "Melilitolite"
+            },
+            {
+                "item": "Melitite-rich Chondrule"
+            },
+            {
+                "item": "Mesosiderite"
+            },
+            {
+                "item": "Mesosiderite Silicate"
+            },
+            {
+                "item": "Meta Agglomerate"
+            },
+            {
+                "item": "Meta Andesite"
+            },
+            {
+                "item": "Meta Anorthosite"
+            },
+            {
+                "item": "Meta Arenite"
+            },
+            {
+                "item": "Meta Ash"
+            },
+            {
+                "item": "Meta Ash Breccia"
+            },
+            {
+                "item": "Meta Basaltic Trachyandesite"
+            },
+            {
+                "item": "Meta Olivine Clinopyroxenite"
+            },
+            {
+                "item": "Meta Olivine Gabbro"
+            },
+            {
+                "item": "Meta Olivine Hornblende-Pyroxenite"
+            },
+            {
+                "item": "Meta Olivine Melilitite"
+            },
+            {
+                "item": "Meta Olivine Melilitolite"
+            },
+            {
+                "item": "Meta Olivine Orthopyroxenite"
+            },
+            {
+                "item": "Meta Olivine Pyroxene-Melilitolite"
+            },
+            {
+                "item": "Meta Olivine Pyroxenite"
+            },
+            {
+                "item": "Meta Olivine Websterite"
+            },
+            {
+                "item": "Meta Orthopy oxenite"
+            },
+            {
+                "item": "Meta Ultramafitite"
+            },
+            {
+                "item": "Metabasalt"
+            },
+            {
+                "item": "Metabasaltic-Andesite"
+            },
+            {
+                "item": "Metabasanite"
+            },
+            {
+                "item": "Metablock Tephra"
+            },
+            {
+                "item": "Metabomb Tephra"
+            },
+            {
+                "item": "Metabreccia"
+            },
+            {
+                "item": "Metacalcite Carbonatite"
+            },
+            {
+                "item": "Metacalcite Limestone"
+            },
+            {
+                "item": "Metacalcite Mudstone"
+            },
+            {
+                "item": "Metacarbonate Rock"
+            },
+            {
+                "item": "Metacarbonatite"
+            },
+            {
+                "item": "Metachert"
+            },
+            {
+                "item": "Metaclinopyroxenite"
+            },
+            {
+                "item": "Metaconglomerate"
+            },
+            {
+                "item": "Metadacite"
+            },
+            {
+                "item": "Metadiamictite"
+            },
+            {
+                "item": "Metadiorite"
+            },
+            {
+                "item": "Metadolerite"
+            },
+            {
+                "item": "Metadolomite Carbonatite"
+            },
+            {
+                "item": "Metadolomitic Limestone"
+            },
+            {
+                "item": "Metadolostone"
+            },
+            {
+                "item": "Metadunite"
+            },
+            {
+                "item": "Metafeldspathic Arenite"
+            },
+            {
+                "item": "Metafeldspathic Wacke"
+            },
+            {
+                "item": "Metafelsite"
+            },
+            {
+                "item": "Metafoid Syenite"
+            },
+            {
+                "item": "Metafoidite"
+            },
+            {
+                "item": "Metafoidolite"
+            },
+            {
+                "item": "Metagabbro"
+            },
+            {
+                "item": "Metagranite"
+            },
+            {
+                "item": "Metagranodiorite"
+            },
+            {
+                "item": "Metaharzburgite"
+            },
+            {
+                "item": "Metahornblende Pyroxenite"
+            },
+            {
+                "item": "Metahyaloclastite"
+            },
+            {
+                "item": "Metakimberlite"
+            },
+            {
+                "item": "Metalamprophyre"
+            },
+            {
+                "item": "Metalapilli Ash"
+            },
+            {
+                "item": "Metalapilli Tephra"
+            },
+            {
+                "item": "Metalapilli Tuff"
+            },
+            {
+                "item": "Metalapillistone"
+            },
+            {
+                "item": "Metalatite"
+            },
+            {
+                "item": "Metalime Mudstone"
+            },
+            {
+                "item": "Metalimestone"
+            },
+            {
+                "item": "Metamafite"
+            },
+            {
+                "item": "Metamagnesite Stone"
+            },
+            {
+                "item": "Metamelilitite"
+            },
+            {
+                "item": "Metamelilitolite"
+            },
+            {
+                "item": "Metamicrogranite"
+            },
+            {
+                "item": "Metamonzonite"
+            },
+            {
+                "item": "Metamorphic Fault Breccia"
+            },
+            {
+                "item": "Metamorphosed Tuff"
+            },
+            {
+                "item": "Metamudstone"
+            },
+            {
+                "item": "Metanorite"
+            },
+            {
+                "item": "Metapegmatite"
+            },
+            {
+                "item": "Metaperidotite"
+            },
+            {
+                "item": "Metaphosphorite"
+            },
+            {
+                "item": "Metapyroclastic Sediment"
+            },
+            {
+                "item": "Metapyroclastic Breccia"
+            },
+            {
+                "item": "Metapyroxene Melilitolite"
+            },
+            {
+                "item": "Metapyroxene Olivine Melilitolite"
+            },
+            {
+                "item": "Metapyroxene Peridotite"
+            },
+            {
+                "item": "Metapyroxenite"
+            },
+            {
+                "item": "Metaquartz Arenite"
+            },
+            {
+                "item": "Metaquartz Diorite"
+            },
+            {
+                "item": "Metaquartz Wacke"
+            },
+            {
+                "item": "Metaquartzolite"
+            },
+            {
+                "item": "Metarhyodacite"
+            },
+            {
+                "item": "Metarhyolite"
+            },
+            {
+                "item": "Metasandstone"
+            },
+            {
+                "item": "Metashoshonite"
+            },
+            {
+                "item": "Metasilicate Claystone"
+            },
+            {
+                "item": "Metasilicate Conglomerate"
+            },
+            {
+                "item": "Metasilicate Mudstone"
+            },
+            {
+                "item": "Metasilicate Siltstone"
+            },
+            {
+                "item": "Metasiliciclastic Arenaceous Rock"
+            },
+            {
+                "item": "Metasiliciclastic Argillaceous Rock"
+            },
+            {
+                "item": "Metasiliciclastic Rudaceous Rock"
+            },
+            {
+                "item": "Metasiltstone"
+            },
+            {
+                "item": "Metasyenite"
+            },
+            {
+                "item": "Metatephra"
+            },
+            {
+                "item": "Metatephrite"
+            },
+            {
+                "item": "Metatonalite"
+            },
+            {
+                "item": "Metatrachyandesite"
+            },
+            {
+                "item": "Metatrachybasalt"
+            },
+            {
+                "item": "Metatrachydacite"
+            },
+            {
+                "item": "Metatrachyte"
+            },
+            {
+                "item": "Metatuffaceous Breccia"
+            },
+            {
+                "item": "Metatuffaceous Conglomerate"
+            },
+            {
+                "item": "Metatuffaceous Gravel"
+            },
+            {
+                "item": "Metatuffaceous Mud"
+            },
+            {
+                "item": "Metatuffaceous Mudstone"
+            },
+            {
+                "item": "Metatuffaceous Sand"
+            },
+            {
+                "item": "Metatuffaceous Sandstone"
+            },
+            {
+                "item": "Metatuffite"
+            },
+            {
+                "item": "Metatuffsite"
+            },
+            {
+                "item": "Metavolcaniclastic Siltstone"
+            },
+            {
+                "item": "Metavolcaniclastic Breccia"
+            },
+            {
+                "item": "Metavolcaniclastic Conglomerate"
+            },
+            {
+                "item": "Metavolcaniclastic Gravel"
+            },
+            {
+                "item": "Metavolcaniclastic Mud"
+            },
+            {
+                "item": "Metavolcaniclastic Mudstone"
+            },
+            {
+                "item": "Metavolcaniclastic Sand"
+            },
+            {
+                "item": "Metavolcaniclastic Sandstone"
+            },
+            {
+                "item": "Metawacke"
+            },
+            {
+                "item": "Metawebsterite"
+            },
+            {
+                "item": "Meteorite"
+            },
+            {
+                "item": "Mica Schist"
+            },
+            {
+                "item": "Micaceous Mudstone"
+            },
+            {
+                "item": "Micaceous Sandstone"
+            },
+            {
+                "item": "Micaceous Siltstone"
+            },
+            {
+                "item": "Micro Alkali-Feldspar Granite"
+            },
+            {
+                "item": "Micro Alkali-Feldspar Syenite"
+            },
+            {
+                "item": "Micro Anorthosite"
+            },
+            {
+                "item": "Micro Ilmenitite"
+            },
+            {
+                "item": "Micro Orthopyroxenite"
+            },
+            {
+                "item": "Microclinopyroxene Norite"
+            },
+            {
+                "item": "Microclinopyroxenite"
+            },
+            {
+                "item": "Microdiorite"
+            },
+            {
+                "item": "Microdunite"
+            },
+            {
+                "item": "Microfoidite"
+            },
+            {
+                "item": "Microfoidolite"
+            },
+            {
+                "item": "Microgabbro"
+            },
+            {
+                "item": "Microgabbronorite"
+            },
+            {
+                "item": "Microgranite"
+            },
+            {
+                "item": "Microgranodiorite"
+            },
+            {
+                "item": "Microharzburgite"
+            },
+            {
+                "item": "Microhornblendite"
+            },
+            {
+                "item": "Microkalsilitolite"
+            },
+            {
+                "item": "Microleucitolite"
+            },
+            {
+                "item": "Microlherzolite"
+            },
+            {
+                "item": "Micromagnetitite"
+            },
+            {
+                "item": "Micromelilitolite"
+            },
+            {
+                "item": "Micromonzodiorite"
+            },
+            {
+                "item": "Micromonzogabbro"
+            },
+            {
+                "item": "Micromonzogranite"
+            },
+            {
+                "item": "Micromonzonite"
+            },
+            {
+                "item": "Micromonzonorite"
+            },
+            {
+                "item": "Micronephelinolite"
+            },
+            {
+                "item": "Micronorite"
+            },
+            {
+                "item": "Microperidotite"
+            },
+            {
+                "item": "Micropyroxenite"
+            },
+            {
+                "item": "Microquartzolite"
+            },
+            {
+                "item": "Microsyenite"
+            },
+            {
+                "item": "Microsyenogranite"
+            },
+            {
+                "item": "Microtonalite"
+            },
+            {
+                "item": "Microtroctolite"
+            },
+            {
+                "item": "Microwebsterite"
+            },
+            {
+                "item": "Microwehrlite"
+            },
+            {
+                "item": "Migmatite"
+            },
+            {
+                "item": "Minette"
+            },
+            {
+                "item": "Monchiquite"
+            },
+            {
+                "item": "Monzodiorite"
+            },
+            {
+                "item": "Monzogabbro"
+            },
+            {
+                "item": "Monzogranite"
+            },
+            {
+                "item": "Monzonite"
+            },
+            {
+                "item": "Monzonorite"
+            },
+            {
+                "item": "Mud"
+            },
+            {
+                "item": "Muddy Gravel"
+            },
+            {
+                "item": "Muddy Sandstone"
+            },
+            {
+                "item": "Muddy Peat"
+            },
+            {
+                "item": "Mudstone"
+            },
+            {
+                "item": "Mugearite"
+            },
+            {
+                "item": "Mylonite"
+            },
+            {
+                "item": "Nakhlite"
+            },
+            {
+                "item": "Natrocarbonatite"
+            },
+            {
+                "item": "Natron"
+            },
+            {
+                "item": "Nepheline syenite"
+            },
+            {
+                "item": "Nephelinite"
+            },
+            {
+                "item": "Nephelinolite"
+            },
+            {
+                "item": "Norite"
+            },
+            {
+                "item": "Norite Lunar Meteorite"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Novaculite"
+            },
+            {
+                "item": "Nuevo Laredo Trend Eucrite"
+            },
+            {
+                "item": "Obsidian"
+            },
+            {
+                "item": "Octahedrite Iron Meteorite"
+            },
+            {
+                "item": "Olistostrome"
+            },
+            {
+                "item": "Olivine Chondrule"
+            },
+            {
+                "item": "Olivine Diorite"
+            },
+            {
+                "item": "Olivine Monzonite"
+            },
+            {
+                "item": "Olivine Clinopyroxene Micronorite"
+            },
+            {
+                "item": "Olivine Clinopyroxene Norite"
+            },
+            {
+                "item": "Olivine Clinopyroxenite"
+            },
+            {
+                "item": "Olivine Gabbro"
+            },
+            {
+                "item": "Olivine Gabbronorite"
+            },
+            {
+                "item": "Olivine Hornblende Micropyroxenite"
+            },
+            {
+                "item": "Olivine Hornblende Pyroxenite"
+            },
+            {
+                "item": "Olivine Hornblendite"
+            },
+            {
+                "item": "Olivine Melilitite"
+            },
+            {
+                "item": "Olivine Melilitolite"
+            },
+            {
+                "item": "Olivine Micro Orthopyroxenite"
+            },
+            {
+                "item": "Olivine Microclinopyroxenite"
+            },
+            {
+                "item": "Olivine Microgabbro"
+            },
+            {
+                "item": "Olivine Microgabbronorite"
+            },
+            {
+                "item": "Olivine Microhornblendite"
+            },
+            {
+                "item": "Olivine Micromelilitolite"
+            },
+            {
+                "item": "Olivine Micronorite"
+            },
+            {
+                "item": "Olivine Micropyroxenite"
+            },
+            {
+                "item": "Olivine Microwebsterite"
+            },
+            {
+                "item": "Olivine Norite"
+            },
+            {
+                "item": "Olivine Orthopyroxene Gabbro"
+            },
+            {
+                "item": "Olivine Orthopyroxene Microgabbro"
+            },
+            {
+                "item": "Olivine Orthopyroxenite"
+            },
+            {
+                "item": "Olivine Pyroxene Hornblendite"
+            },
+            {
+                "item": "Olivine Pyroxene Kalsilitolite"
+            },
+            {
+                "item": "Olivine Pyroxene Melilitolite"
+            },
+            {
+                "item": "Olivine Pyroxene Microhornblendite"
+            },
+            {
+                "item": "Olivine Pyroxene Microkalsilitolite"
+            },
+            {
+                "item": "Olivine Pyroxene Micromelilitolite"
+            },
+            {
+                "item": "Olivine Pyroxenite"
+            },
+            {
+                "item": "Olivine Websterite"
+            },
+            {
+                "item": "Oolitic Limestone"
+            },
+            {
+                "item": "Opaline Chert"
+            },
+            {
+                "item": "Opaline Porcellanite"
+            },
+            {
+                "item": "Ordinary Chondrite"
+            },
+            {
+                "item": "Organic Clay"
+            },
+            {
+                "item": "Organic Mud"
+            },
+            {
+                "item": "Organic Sand"
+            },
+            {
+                "item": "Organic Silt"
+            },
+            {
+                "item": "Ortho Amphibolite"
+            },
+            {
+                "item": "Orthogneiss"
+            },
+            {
+                "item": "Orthogranofels"
+            },
+            {
+                "item": "Orthopyroxene Gabbro"
+            },
+            {
+                "item": "Orthopyroxene Microgabbro"
+            },
+            {
+                "item": "Orthopyroxenite"
+            },
+            {
+                "item": "Orthoschist"
+            },
+            {
+                "item": "Pallasite"
+            },
+            {
+                "item": "Pallasite Olivine"
+            },
+            {
+                "item": "Pantellerite"
+            },
+            {
+                "item": "Pantelleritic Rhyolite"
+            },
+            {
+                "item": "Pantelleritic Trachyte"
+            },
+            {
+                "item": "Para-Amphibolite"
+            },
+            {
+                "item": "Paragneiss"
+            },
+            {
+                "item": "Paragranofels"
+            },
+            {
+                "item": "Paraschist"
+            },
+            {
+                "item": "Peat"
+            },
+            {
+                "item": "Pebbly Clay"
+            },
+            {
+                "item": "Pebbly Mudstone"
+            },
+            {
+                "item": "Pebbly Sandstone"
+            },
+            {
+                "item": "Pebbly Siltstone"
+            },
+            {
+                "item": "Pegmatite"
+            },
+            {
+                "item": "Pegmatitic Granite"
+            },
+            {
+                "item": "Pelite"
+            },
+            {
+                "item": "Peridotite"
+            },
+            {
+                "item": "Phonolite"
+            },
+            {
+                "item": "Phonolitic Basanite"
+            },
+            {
+                "item": "Phonolitic Foidite"
+            },
+            {
+                "item": "Phonolitic Tephrite"
+            },
+            {
+                "item": "Phosphate Boundstone"
+            },
+            {
+                "item": "Phosphate Framestone"
+            },
+            {
+                "item": "Phosphate Grainstone"
+            },
+            {
+                "item": "Phosphate Gravel"
+            },
+            {
+                "item": "Phosphate Micro-Oncolite"
+            },
+            {
+                "item": "Phosphate Microsparstone"
+            },
+            {
+                "item": "Phosphate Microstone"
+            },
+            {
+                "item": "Phosphate Mud"
+            },
+            {
+                "item": "Phosphate Mudstone"
+            },
+            {
+                "item": "Phosphate Oncolite"
+            },
+            {
+                "item": "Phosphate Oolite"
+            },
+            {
+                "item": "Phosphate Packstone"
+            },
+            {
+                "item": "Phosphate Peloidite"
+            },
+            {
+                "item": "Phosphate Pisolite"
+            },
+            {
+                "item": "Phosphate Pseudosparstone"
+            },
+            {
+                "item": "Phosphate Sand"
+            },
+            {
+                "item": "Phosphate Sandstone"
+            },
+            {
+                "item": "Phosphate Sparstone"
+            },
+            {
+                "item": "Phosphate Wackestone"
+            },
+            {
+                "item": "Phosphatic Mudstone"
+            },
+            {
+                "item": "Phosphorite"
+            },
+            {
+                "item": "Phyllite"
+            },
+            {
+                "item": "Phyllonite"
+            },
+            {
+                "item": "Picrite"
+            },
+            {
+                "item": "Pitchstone"
+            },
+            {
+                "item": "Polyhalite Stone"
+            },
+            {
+                "item": "Polymict Eucrite"
+            },
+            {
+                "item": "Porcellanite"
+            },
+            {
+                "item": "Porphyritic Basalt"
+            },
+            {
+                "item": "Porphyry"
+            },
+            {
+                "item": "Potassic Trachybasalt"
+            },
+            {
+                "item": "Primitive Achondrite"
+            },
+            {
+                "item": "Protocataclasite"
+            },
+            {
+                "item": "Protomylonite"
+            },
+            {
+                "item": "Psammite"
+            },
+            {
+                "item": "Pseudotachylite"
+            },
+            {
+                "item": "Pumice"
+            },
+            {
+                "item": "Pyroclastic Breccia"
+            },
+            {
+                "item": "Pyrolite"
+            },
+            {
+                "item": "Pyroxene Pallasite"
+            },
+            {
+                "item": "Pyroxene Hornblende Clinopyroxene Micronorite"
+            },
+            {
+                "item": "Pyroxene Hornblende Clinopyroxene Norite"
+            },
+            {
+                "item": "Pyroxene Hornblende Gabbro"
+            },
+            {
+                "item": "Pyroxene Hornblende Gabbronorite"
+            },
+            {
+                "item": "Pyroxene Hornblende Microgabbro"
+            },
+            {
+                "item": "Pyroxene Hornblende Microgabbronorite"
+            },
+            {
+                "item": "Pyroxene Hornblende Micronorite"
+            },
+            {
+                "item": "Pyroxene Hornblende Microperidotite"
+            },
+            {
+                "item": "Pyroxene Hornblende Norite"
+            },
+            {
+                "item": "Pyroxene Hornblende Orthopyroxene Gabbro"
+            },
+            {
+                "item": "Pyroxene Hornblende Orthopyroxene Microgabbro"
+            },
+            {
+                "item": "Pyroxene Hornblende Peridotite"
+            },
+            {
+                "item": "Pyroxene Hornblendite"
+            },
+            {
+                "item": "Pyroxene Melilitolite"
+            },
+            {
+                "item": "Pyroxene Microhornblendite"
+            },
+            {
+                "item": "Pyroxene Micromelilitolite"
+            },
+            {
+                "item": "Pyroxene Microperidotite"
+            },
+            {
+                "item": "Pyroxene Olivine Melilitolite"
+            },
+            {
+                "item": "Pyroxene Peridotite"
+            },
+            {
+                "item": "Pyroxenite"
+            },
+            {
+                "item": "Quartz Feldspar Porphyry"
+            },
+            {
+                "item": "Quartz diorite"
+            },
+            {
+                "item": "Quartz monzonite"
+            },
+            {
+                "item": "Quartz Alkali-Feldspar Microsyenite"
+            },
+            {
+                "item": "Quartz Alkali-Feldspar Syenite"
+            },
+            {
+                "item": "Quartz Alkali-Feldspar Trachyte"
+            },
+            {
+                "item": "Quartz Anorthosite"
+            },
+            {
+                "item": "Quartz Arenite"
+            },
+            {
+                "item": "Quartz Biotite Norite"
+            },
+            {
+                "item": "Quartz Diorite"
+            },
+            {
+                "item": "Quartz Gabbro"
+            },
+            {
+                "item": "Quartz Latite"
+            },
+            {
+                "item": "Quartz Micro-Anorthosite"
+            },
+            {
+                "item": "Quartz Microdiorite"
+            },
+            {
+                "item": "Quartz Microgabbro"
+            },
+            {
+                "item": "Quartz Micromonzodiorite"
+            },
+            {
+                "item": "Quartz Micromonzogabbro"
+            },
+            {
+                "item": "Quartz Micromonzonite"
+            },
+            {
+                "item": "Quartz Micronorite"
+            },
+            {
+                "item": "Quartz Microsyenite"
+            },
+            {
+                "item": "Quartz Monzodiorite"
+            },
+            {
+                "item": "Quartz Monzogabbro"
+            },
+            {
+                "item": "Quartz Monzonite"
+            },
+            {
+                "item": "Quartz Norite"
+            },
+            {
+                "item": "Quartz Syenite"
+            },
+            {
+                "item": "Quartz Trachyte"
+            },
+            {
+                "item": "Quartz Wacke"
+            },
+            {
+                "item": "Quartzite"
+            },
+            {
+                "item": "Quartzolite"
+            },
+            {
+                "item": "Quartzose Chert"
+            },
+            {
+                "item": "Quartzose Porcellanite"
+            },
+            {
+                "item": "Radiolarian Ooze"
+            },
+            {
+                "item": "Radiolarite"
+            },
+            {
+                "item": "Rapakivi granite"
+            },
+            {
+                "item": "Red Silt"
+            },
+            {
+                "item": "Redbeds"
+            },
+            {
+                "item": "Regolith Lunar Anorthosite Breccia"
+            },
+            {
+                "item": "Rhomb porphyry"
+            },
+            {
+                "item": "Rhyodacite"
+            },
+            {
+                "item": "Rhyodactic Lava"
+            },
+            {
+                "item": "Rhyodactic Tuff"
+            },
+            {
+                "item": "Rhyolite"
+            },
+            {
+                "item": "Rhyolitic Lapilli Tuff"
+            },
+            {
+                "item": "Rhyolitic Lava"
+            },
+            {
+                "item": "Rhyolitic Tuff"
+            },
+            {
+                "item": "Rhyolitic Volcaniclastic Sandstone"
+            },
+            {
+                "item": "Rodingites"
+            },
+            {
+                "item": "Rumurutiite Chondrite"
+            },
+            {
+                "item": "Sandstone"
+            },
+            {
+                "item": "Sandy Clay"
+            },
+            {
+                "item": "Sandy Dolostone"
+            },
+            {
+                "item": "Sandy Limestone"
+            },
+            {
+                "item": "Sandy Mudstone"
+            },
+            {
+                "item": "Sandy Clayey Gravel"
+            },
+            {
+                "item": "Sandy Clayey Sediment"
+            },
+            {
+                "item": "Sandy Peat"
+            },
+            {
+                "item": "Sannaite"
+            },
+            {
+                "item": "Sapropelic Lignite"
+            },
+            {
+                "item": "Sapropelite"
+            },
+            {
+                "item": "Schist"
+            },
+            {
+                "item": "Scoria"
+            },
+            {
+                "item": "Seatearth Claystone"
+            },
+            {
+                "item": "Seatearth Mudstone"
+            },
+            {
+                "item": "Seatearth Sandstone"
+            },
+            {
+                "item": "Seatearth Siltstone"
+            },
+            {
+                "item": "Sedimentary Fault Breccia"
+            },
+            {
+                "item": "Selenite"
+            },
+            {
+                "item": "Semipelite"
+            },
+            {
+                "item": "Serpentinite"
+            },
+            {
+                "item": "Shallow Marine Sediments"
+            },
+            {
+                "item": "Shell Marl"
+            },
+            {
+                "item": "Shell Lime Sediment"
+            },
+            {
+                "item": "Shelly Ironstone"
+            },
+            {
+                "item": "Shelly Sandstone"
+            },
+            {
+                "item": "Shelly Siltstone"
+            },
+            {
+                "item": "Shergottite"
+            },
+            {
+                "item": "Shonkinite"
+            },
+            {
+                "item": "Shoshonite"
+            },
+            {
+                "item": "Siderite Mudstone"
+            },
+            {
+                "item": "Silicate Clay"
+            },
+            {
+                "item": "Silicate Conglomerate"
+            },
+            {
+                "item": "Silicate Gravel"
+            },
+            {
+                "item": "Silicate Mud"
+            },
+            {
+                "item": "Silicate Mudstone"
+            },
+            {
+                "item": "Silicate Sand"
+            },
+            {
+                "item": "Silicate Sandstone"
+            },
+            {
+                "item": "Silicate Silt"
+            },
+            {
+                "item": "Silicate Siltstone"
+            },
+            {
+                "item": "Siliceous Organic Mudstone"
+            },
+            {
+                "item": "Siliceous Rocks"
+            },
+            {
+                "item": "Siliceous Ooze"
+            },
+            {
+                "item": "Silt"
+            },
+            {
+                "item": "Siltstone"
+            },
+            {
+                "item": "Silty Clay"
+            },
+            {
+                "item": "Silty Mudstone"
+            },
+            {
+                "item": "Silty Sand"
+            },
+            {
+                "item": "Silty Sandstone"
+            },
+            {
+                "item": "Sinter"
+            },
+            {
+                "item": "Skarn"
+            },
+            {
+                "item": "Slate"
+            },
+            {
+                "item": "Smectite Clay"
+            },
+            {
+                "item": "Smectite Claystone"
+            },
+            {
+                "item": "Soapstone"
+            },
+            {
+                "item": "Soil"
+            },
+            {
+                "item": "Sovite"
+            },
+            {
+                "item": "Spessartite"
+            },
+            {
+                "item": "Spiculite"
+            },
+            {
+                "item": "Sponge Spicular Ooze"
+            },
+            {
+                "item": "Stannern Trend Eucrite"
+            },
+            {
+                "item": "Stony Iron Meteorite"
+            },
+            {
+                "item": "Stony Meteorite"
+            },
+            {
+                "item": "Structurally Clasified Iron Meteorite"
+            },
+            {
+                "item": "Subfeldspathic-Arenite"
+            },
+            {
+                "item": "Sublithic-Arenite"
+            },
+            {
+                "item": "Submarine Basaltic Glass"
+            },
+            {
+                "item": "Suevite"
+            },
+            {
+                "item": "Syenite"
+            },
+            {
+                "item": "Syenogranite"
+            },
+            {
+                "item": "Sylvite-Stone"
+            },
+            {
+                "item": "Synthetic"
+            },
+            {
+                "item": "Tachylyte"
+            },
+            {
+                "item": "Taconite"
+            },
+            {
+                "item": "Talc Carbonate"
+            },
+            {
+                "item": "Talc Rock"
+            },
+            {
+                "item": "Telaginite"
+            },
+            {
+                "item": "Tephrite"
+            },
+            {
+                "item": "Tephritic Foidite"
+            },
+            {
+                "item": "Tephritic Phonolite"
+            },
+            {
+                "item": "Teschenite"
+            },
+            {
+                "item": "Theralite"
+            },
+            {
+                "item": "Thermonatrite"
+            },
+            {
+                "item": "Tholeiite"
+            },
+            {
+                "item": "Tholeiitic Basalt"
+            },
+            {
+                "item": "Tonalite"
+            },
+            {
+                "item": "Trachyandesite"
+            },
+            {
+                "item": "Trachybasalt"
+            },
+            {
+                "item": "Trachydacite"
+            },
+            {
+                "item": "Trachyte"
+            },
+            {
+                "item": "Trachytic Tuff"
+            },
+            {
+                "item": "Trachytic Lava"
+            },
+            {
+                "item": "Transitional Shergottite"
+            },
+            {
+                "item": "Troctolite"
+            },
+            {
+                "item": "Trona"
+            },
+            {
+                "item": "Trondhjemite"
+            },
+            {
+                "item": "Tuff"
+            },
+            {
+                "item": "Tuff Breccia"
+            },
+            {
+                "item": "Tuffaceous Breccia"
+            },
+            {
+                "item": "Tuffaceous Conglomerate"
+            },
+            {
+                "item": "Tuffaceous Gravel"
+            },
+            {
+                "item": "Tuffaceous Mud"
+            },
+            {
+                "item": "Tuffaceous Mudstone"
+            },
+            {
+                "item": "Tuffaceous Sand"
+            },
+            {
+                "item": "Tuffaceous Sandstone"
+            },
+            {
+                "item": "Tuffaceous Siltstone"
+            },
+            {
+                "item": "Tuffisite"
+            },
+            {
+                "item": "Tuffite"
+            },
+            {
+                "item": "Turbidites"
+            },
+            {
+                "item": "Ulexite Stone"
+            },
+            {
+                "item": "Ultracataclasite"
+            },
+            {
+                "item": "Ultramafitite"
+            },
+            {
+                "item": "Ultramylonite"
+            },
+            {
+                "item": "Uncategorized Achondrite"
+            },
+            {
+                "item": "Ureilite Primitive Achondrite"
+            },
+            {
+                "item": "Urelite"
+            },
+            {
+                "item": "Variolite"
+            },
+            {
+                "item": "Vesta Achondrite"
+            },
+            {
+                "item": "Vitrain"
+            },
+            {
+                "item": "Vogesite"
+            },
+            {
+                "item": "Volcaniclastic"
+            },
+            {
+                "item": "Volcaniclastic Breccia"
+            },
+            {
+                "item": "Volcaniclastic Conglomerate"
+            },
+            {
+                "item": "Volcaniclastic Gravel"
+            },
+            {
+                "item": "Volcaniclastic Mud"
+            },
+            {
+                "item": "Volcaniclastic Mudstone"
+            },
+            {
+                "item": "Volcaniclastic Sand"
+            },
+            {
+                "item": "Volcaniclastic Sandstone"
+            },
+            {
+                "item": "Volcaniclastic Siltstone"
+            },
+            {
+                "item": "Wacke"
+            },
+            {
+                "item": "Websterite"
+            },
+            {
+                "item": "Wehrlite"
+            },
+            {
+                "item": "Winonaite Primitive Achondrite"
+            }
+        ]
+    },
+      "database_name": {
+        "label": "External Database Names",
+        "items": [
+            {
+                "item": "20D"
+            },
+            {
+                "item": "ARCHEO00"
+            },
+            {
+                "item": "ARCHEOINTB"
+            },
+            {
+                "item": "ARCH_AU"
+            },
+            {
+                "item": "ARCH_BU"
+            },
+            {
+                "item": "ARCH_ES"
+            },
+            {
+                "item": "ARCH_HU"
+            },
+            {
+                "item": "ARCH_IT05"
+            },
+            {
+                "item": "ARCH_IT06"
+            },
+            {
+                "item": "ARCH_UK"
+            },
+            {
+                "item": "CALS7K.2"
+            },
+            {
+                "item": "DRAGON"
+            },
+            {
+                "item": "GEOMAGIA50"
+            },
+            {
+                "item": "GLOPIS"
+            },
+            {
+                "item": "GPMDB"
+            },
+            {
+                "item": "NAPIS"
+            },
+            {
+                "item": "NWUS"
+            },
+            {
+                "item": "PALEOMAGIA"
+            },
+            {
+                "item": "PINT"
+            },
+            {
+                "item": "PINT03"
+            },
+            {
+                "item": "PINT06"
+            },
+            {
+                "item": "PINT08"
+            },
+            {
+                "item": "PSVRL"
+            },
+            {
+                "item": "SAPIS"
+            },
+            {
+                "item": "SECVR"
+            },
+            {
+                "item": "SEDPI"
+            },
+            {
+                "item": "SINT200"
+            },
+            {
+                "item": "SINT2000"
+            },
+            {
+                "item": "SINT800"
+            },
+            {
+                "item": "SWUS"
+            },
+            {
+                "item": "TAFI"
+            },
+            {
+                "item": "TRANS"
+            }
+        ]
+    },
+    "external_result": {
+        "label": "External Results Type",
+        "items": [
+            {
+                "item": "DELTA-C13-PDB"
+            },
+            {
+                "item": "DELTA-O18-SMOW"
+            },
+            {
+                "item": "DELTA-O18-VSMOW"
+            },
+            {
+                "item": "DELTA-S34-CDT"
+            },
+            {
+                "item": "DELTA-S34-VCDT"
+            }
+        ]
+    },
+    "continent_ocean": {
+        "label": "Continents and Oceans",
+        "items": [
+            {
+                "item": "Africa"
+            },
+            {
+                "item": "Antarctica"
+            },
+            {
+                "item": "Arctic Ocean"
+            },
+            {
+                "item": "Asia"
+            },
+            {
+                "item": "Atlantic Ocean"
+            },
+            {
+                "item": "Australia"
+            },
+            {
+                "item": "Europe"
+            },
+            {
+                "item": "Greenland"
+            },
+            {
+                "item": "Indian Ocean"
+            },
+            {
+                "item": "Middle-East"
+            },
+            {
+                "item": "North America"
+            },
+            {
+                "item": "Pacific Ocean"
+            },
+            {
+                "item": "South America"
+            }
+        ]
+    },
+    "age_unit": {
+        "label": "Age Units",
+        "items": [
+            {
+                "item": "Ga"
+            },
+            {
+                "item": "ka"
+            },
+            {
+                "item": "Ma"
+            },
+            {
+                "item": "Years AD (+/-)"
+            },
+            {
+                "item": "Years BP"
+            },
+            {
+                "item": "Years Cal AD (+/-)"
+            },
+            {
+                "item": "Years Cal BP"
+            }
+        ]
+    },
+    "location_type": {
+        "label": "Location Type",
+        "items": [
+            {
+                "item": "Archeological Ashes"
+            },
+            {
+                "item": "Archeological Site"
+            },
+            {
+                "item": "Core"
+            },
+            {
+                "item": "Drill Site"
+            },
+            {
+                "item": "Laboratory"
+            },
+            {
+                "item": "Lake Core"
+            },
+            {
+                "item": "Land Section"
+            },
+            {
+                "item": "Lunar"
+            },
+            {
+                "item": "Martian"
+            },
+            {
+                "item": "Meteorite"
+            },
+            {
+                "item": "Outcrop"
+            },
+            {
+                "item": "Region"
+            },
+            {
+                "item": "Stratigraphic Section"
+            },
+            {
+                "item": "Submarine Site"
+            }
+        ]
+    },
+    "alteration_type": {
+        "label": "Sample Alteration Types",
+        "items": [
+            {
+                "item": "Acid Leaching"
+            },
+            {
+                "item": "Acid Oxidation"
+            },
+            {
+                "item": "Acid Sulphate"
+            },
+            {
+                "item": "Adularia"
+            },
+            {
+                "item": "Albitic"
+            },
+            {
+                "item": "Amphibole"
+            },
+            {
+                "item": "Argillic"
+            },
+            {
+                "item": "Biotitic"
+            },
+            {
+                "item": "Carbon Remobilisation"
+            },
+            {
+                "item": "Carbonate"
+            },
+            {
+                "item": "Carbonation"
+            },
+            {
+                "item": "Chloritic"
+            },
+            {
+                "item": "Clay"
+            },
+            {
+                "item": "Decalcification"
+            },
+            {
+                "item": "Decarbonisation"
+            },
+            {
+                "item": "Dedolomitisation"
+            },
+            {
+                "item": "Diagenetic"
+            },
+            {
+                "item": "Dolomitisation"
+            },
+            {
+                "item": "Feldspar Destruction"
+            },
+            {
+                "item": "Fenitisation"
+            },
+            {
+                "item": "Goethitic"
+            },
+            {
+                "item": "Greisen"
+            },
+            {
+                "item": "Hydrothermal"
+            },
+            {
+                "item": "Jasperoid"
+            },
+            {
+                "item": "K-Feldspar"
+            },
+            {
+                "item": "Kaolinitic"
+            },
+            {
+                "item": "Leaching"
+            },
+            {
+                "item": "Metamorphic"
+            },
+            {
+                "item": "Oxidation"
+            },
+            {
+                "item": "Phyllic"
+            },
+            {
+                "item": "Potassic"
+            },
+            {
+                "item": "Propylitic"
+            },
+            {
+                "item": "Pyritic"
+            },
+            {
+                "item": "Reduction"
+            },
+            {
+                "item": "Saussuritisation"
+            },
+            {
+                "item": "Seawater Alteration"
+            },
+            {
+                "item": "Sericite-Quartz"
+            },
+            {
+                "item": "Sericitic"
+            },
+            {
+                "item": "Serpentinised"
+            },
+            {
+                "item": "Silica-Carbonate"
+            },
+            {
+                "item": "Silicic"
+            },
+            {
+                "item": "Skarn"
+            },
+            {
+                "item": "Spilitic"
+            },
+            {
+                "item": "Sulphide"
+            },
+            {
+                "item": "Tourmalinitic"
+            },
+            {
+                "item": "Weathering"
+            }
+        ]
+    },
+    "mineral_type": {
+        "label": "Mineral Types",
+        "items": [
+            {
+                "item": "Alteration"
+            },
+            {
+                "item": "Antiferromagnetic"
+            },
+            {
+                "item": "Biogenic"
+            },
+            {
+                "item": "Canted Antiferromagnetic"
+            },
+            {
+                "item": "Detrital Clasts"
+            },
+            {
+                "item": "Diamagnetic"
+            },
+            {
+                "item": "Ferromagnetic"
+            },
+            {
+                "item": "Groundmass"
+            },
+            {
+                "item": "Inclusion"
+            },
+            {
+                "item": "Microcryst"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Paramagnetic"
+            },
+            {
+                "item": "Phenocryst"
+            },
+            {
+                "item": "Secondary Mineral"
+            },
+            {
+                "item": "Single Crystal"
+            },
+            {
+                "item": "Synthetic"
+            }
+        ]
+    },
+      "type": {
+        "label": "Sample Material Types",
+        "items": [
+            {
+                "item": "Baked Clay"
+            },
+            {
+                "item": "Baked Contact"
+            },
+            {
+                "item": "Baked Mud"
+            },
+            {
+                "item": "Baked Rock"
+            },
+            {
+                "item": "Bath"
+            },
+            {
+                "item": "Bell Mould"
+            },
+            {
+                "item": "Brick"
+            },
+            {
+                "item": "Burnt Earth"
+            },
+            {
+                "item": "Burnt Floor"
+            },
+            {
+                "item": "Burnt Pit"
+            },
+            {
+                "item": "Burnt Sediment"
+            },
+            {
+                "item": "Burnt Structure"
+            },
+            {
+                "item": "Burnt Castle Wall"
+            },
+            {
+                "item": "Charcoal Pile"
+            },
+            {
+                "item": "Ceramic"
+            },
+            {
+                "item": "Chilled Margin"
+            },
+            {
+                "item": "Concretion"
+            },
+            {
+                "item": "Conglomerate"
+            },
+            {
+                "item": "Delta"
+            },
+            {
+                "item": "Diabase"
+            },
+            {
+                "item": "Drift"
+            },
+            {
+                "item": "Flow Top"
+            },
+            {
+                "item": "Fresco"
+            },
+            {
+                "item": "Funeral Pyre"
+            },
+            {
+                "item": "Furnace"
+            },
+            {
+                "item": "Furnace Slag"
+            },
+            {
+                "item": "Glassy Margin"
+            },
+            {
+                "item": "Hearth"
+            },
+            {
+                "item": "Hypocaust"
+            },
+            {
+                "item": "Impact Melt"
+            },
+            {
+                "item": "Kamadogu"
+            },
+            {
+                "item": "Kiln"
+            },
+            {
+                "item": "Laccolith"
+            },
+            {
+                "item": "Lacustrine"
+            },
+            {
+                "item": "Lava"
+            },
+            {
+                "item": "Lava Flow"
+            },
+            {
+                "item": "Metallurgical Slag"
+            },
+            {
+                "item": "Mixed Archeological Objects"
+            },
+            {
+                "item": "Mosaic"
+            },
+            {
+                "item": "Mural"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Oven"
+            },
+            {
+                "item": "Oven or Hearth (GEOMAGIA Only)"
+            },
+            {
+                "item": "Pit Structure"
+            },
+            {
+                "item": "Pit House"
+            },
+            {
+                "item": "Pluton"
+            },
+            {
+                "item": "Porcelain"
+            },
+            {
+                "item": "Pot Rim"
+            },
+            {
+                "item": "Pot Sherd"
+            },
+            {
+                "item": "Pottery"
+            },
+            {
+                "item": "Pyroclastite"
+            },
+            {
+                "item": "Roof"
+            },
+            {
+                "item": "Room"
+            },
+            {
+                "item": "Salt Kiln"
+            },
+            {
+                "item": "Sauna"
+            },
+            {
+                "item": "Sediment Dike"
+            },
+            {
+                "item": "Sediment Layer"
+            },
+            {
+                "item": "Sill"
+            },
+            {
+                "item": "Single Crystal"
+            },
+            {
+                "item": "Slag"
+            },
+            {
+                "item": "Soil"
+            },
+            {
+                "item": "Sun-Dried Object"
+            },
+            {
+                "item": "Sun-Dried Object"
+            },
+            {
+                "item": "Synthetic"
+            },
+            {
+                "item": "Tapping Slag"
+            },
+            {
+                "item": "Temple"
+            },
+            {
+                "item": "Tile"
+            },
+            {
+                "item": "Tuff"
+            },
+            {
+                "item": "Tuyere"
+            },
+            {
+                "item": "Unbaked Sediment"
+            },
+            {
+                "item": "Vitrified Object"
+            },
+            {
+                "item": "Vitrified Stone"
+            },
+            {
+                "item": "Volcanic Ash"
+            },
+            {
+                "item": "Volcanic Dike"
+            },
+            {
+                "item": "Volcanic Dome"
+            },
+            {
+                "item": "Volcanic Other"
+            },
+            {
+                "item": "Volcanic Other or Undefined (GEOMAGIA Only)"
+            },
+            {
+                "item": "Volcanic Pillow"
+            },
+            {
+                "item": "Volcanic Vent"
+            },
+            {
+                "item": "Volcanic Undefined"
+            },
+            {
+                "item": "Wall"
+            }
+        ]
+    },
+    "class": {
+        "label": "Geologic Classes",
+        "items": [
+            {
+                "item": "Archeologic"
+            },
+            {
+                "item": "Extraterrestrial"
+            },
+            {
+                "item": "Extrusive"
+            },
+            {
+                "item": "Igneous"
+            },
+            {
+                "item": "Intrusive"
+            },
+            {
+                "item": "Lunar"
+            },
+            {
+                "item": "Martian"
+            },
+            {
+                "item": "Metamorphic"
+            },
+            {
+                "item": "Meteorite"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Sedimentary"
+            },
+            {
+                "item": "Subaerial"
+            },
+            {
+                "item": "Submarine"
+            },
+            {
+                "item": "Synthetic"
+            }
+        ]
+    },
+    "polarity": {
+        "label": "Magnetic Polarities",
+        "items": [
+            {
+                "item": "e",
+                "label": "Excursion"
+            },
+            {
+                "item": "i",
+                "label": "Intermediate"
+            },
+            {
+                "item": "n",
+                "label": "Normal"
+            },
+            {
+                "item": "r",
+                "label": "Reversed"
+            },
+            {
+                "item": "t",
+                "label": "Transitional"
+            }
+        ]
+    },
+    "plate_block": {
+        "label": "Tectonic Plates and Blocks",
+        "items": [
+            {
+                "item": "Adriatic Plate"
+            },
+            {
+                "item": "Aegean Sea Plate"
+            },
+            {
+                "item": "African Plate"
+            },
+            {
+                "item": "Altiplano Plate"
+            },
+            {
+                "item": "Altjawarra Craton"
+            },
+            {
+                "item": "Alxa Block"
+            },
+            {
+                "item": "Amazonian Craton"
+            },
+            {
+                "item": "Americas Supercontinent"
+            },
+            {
+                "item": "Amurian Plate"
+            },
+            {
+                "item": "Anatolian Plate"
+            },
+            {
+                "item": "Antarctic Plate"
+            },
+            {
+                "item": "Apulian Plate"
+            },
+            {
+                "item": "Arabian Plate"
+            },
+            {
+                "item": "Armorica Plate"
+            },
+            {
+                "item": "Atlantica Plate Craton"
+            },
+            {
+                "item": "Australian Plate"
+            },
+            {
+                "item": "Avalonia Plate"
+            },
+            {
+                "item": "Balmoral Reef Plate"
+            },
+            {
+                "item": "Baltic Plate"
+            },
+            {
+                "item": "Banda Sea Plate"
+            },
+            {
+                "item": "Bangweulu Block Craton"
+            },
+            {
+                "item": "Barrandian Plate"
+            },
+            {
+                "item": "Bellingshausen Plate"
+            },
+            {
+                "item": "Belomorian Craton"
+            },
+            {
+                "item": "Bhandara Craton"
+            },
+            {
+                "item": "Birds Head Plate"
+            },
+            {
+                "item": "Bundelkand Craton"
+            },
+            {
+                "item": "Burma Plate"
+            },
+            {
+                "item": "Capricorn Plate"
+            },
+            {
+                "item": "Caribbean Plate"
+            },
+            {
+                "item": "Carolina Plate"
+            },
+            {
+                "item": "Caroline Plate"
+            },
+            {
+                "item": "Central Craton"
+            },
+            {
+                "item": "Central Iberian Plate"
+            },
+            {
+                "item": "Charcot Plate"
+            },
+            {
+                "item": "Churchill Craton"
+            },
+            {
+                "item": "Cimmerian Plate"
+            },
+            {
+                "item": "Cocos Plate"
+            },
+            {
+                "item": "Columbia Supercontinent"
+            },
+            {
+                "item": "Congo Craton Craton"
+            },
+            {
+                "item": "Conway Reef Plate"
+            },
+            {
+                "item": "Curnamona Craton"
+            },
+            {
+                "item": "Dharwar Craton"
+            },
+            {
+                "item": "East Antarctic Craton"
+            },
+            {
+                "item": "East China Craton"
+            },
+            {
+                "item": "East European Craton"
+            },
+            {
+                "item": "Easter Plate"
+            },
+            {
+                "item": "Euramerica Supercontinent"
+            },
+            {
+                "item": "Eurasian Plate"
+            },
+            {
+                "item": "Explorer Plate"
+            },
+            {
+                "item": "Falklands Microplate"
+            },
+            {
+                "item": "Farallon Plate"
+            },
+            {
+                "item": "Florida Plate"
+            },
+            {
+                "item": "Futuna Plate"
+            },
+            {
+                "item": "Galapagos Plate"
+            },
+            {
+                "item": "Gawler Craton"
+            },
+            {
+                "item": "Gondwana Supercontinent"
+            },
+            {
+                "item": "Gonâve Microplate"
+            },
+            {
+                "item": "Gorda Plate"
+            },
+            {
+                "item": "Greenland Plate"
+            },
+            {
+                "item": "Halmahera Plate"
+            },
+            {
+                "item": "Hearne Craton"
+            },
+            {
+                "item": "Hellenic Plate"
+            },
+            {
+                "item": "Hunic Plate"
+            },
+            {
+                "item": "Iberian Plate"
+            },
+            {
+                "item": "Indian Craton"
+            },
+            {
+                "item": "Indian Plate"
+            },
+            {
+                "item": "Indo-Australian Plate"
+            },
+            {
+                "item": "Insular Plate"
+            },
+            {
+                "item": "Intermontane Plate"
+            },
+            {
+                "item": "Iranian Plate"
+            },
+            {
+                "item": "Izanagi Plate"
+            },
+            {
+                "item": "Juan Fernandez Plate"
+            },
+            {
+                "item": "Juan de Fuca Plate"
+            },
+            {
+                "item": "Junggar Plate"
+            },
+            {
+                "item": "Kaapvaal Craton"
+            },
+            {
+                "item": "Kalahari Craton"
+            },
+            {
+                "item": "Karelian Craton"
+            },
+            {
+                "item": "Kazakhstania Plate"
+            },
+            {
+                "item": "Kenorland Supercontinent"
+            },
+            {
+                "item": "Kerguelen Microcontinent"
+            },
+            {
+                "item": "Kermadec Plate"
+            },
+            {
+                "item": "Kola Craton"
+            },
+            {
+                "item": "Kula Plate"
+            },
+            {
+                "item": "Laurasia Supercontinent"
+            },
+            {
+                "item": "Laurentian Craton"
+            },
+            {
+                "item": "Lhasa Plate"
+            },
+            {
+                "item": "Londen-Brabant Plate"
+            },
+            {
+                "item": "Madagascar Plate"
+            },
+            {
+                "item": "Manus Plate"
+            },
+            {
+                "item": "Maoke Plate"
+            },
+            {
+                "item": "Mariana Plate"
+            },
+            {
+                "item": "Massif Central Plate"
+            },
+            {
+                "item": "Mexican Plate"
+            },
+            {
+                "item": "Midland Craton"
+            },
+            {
+                "item": "Moa Plate"
+            },
+            {
+                "item": "Moldanubian Plate"
+            },
+            {
+                "item": "Molucca Sea Plate"
+            },
+            {
+                "item": "Moravo Silesian Plate"
+            },
+            {
+                "item": "Nazca Plate"
+            },
+            {
+                "item": "Nena Supercontinent"
+            },
+            {
+                "item": "New Hebrides Plate"
+            },
+            {
+                "item": "Newfoundland Plate"
+            },
+            {
+                "item": "Niuafoou Plate"
+            },
+            {
+                "item": "North American Plate"
+            },
+            {
+                "item": "North Andes Plate"
+            },
+            {
+                "item": "North Atlantic Craton"
+            },
+            {
+                "item": "North Bismarck Plate"
+            },
+            {
+                "item": "North China Craton"
+            },
+            {
+                "item": "North Galapagos MicroPlate"
+            },
+            {
+                "item": "Nova Scotia Plate"
+            },
+            {
+                "item": "Nubian Plate"
+            },
+            {
+                "item": "Okhotsk Plate"
+            },
+            {
+                "item": "Okinawa Plate"
+            },
+            {
+                "item": "Ossa-Morena Plate"
+            },
+            {
+                "item": "Pacific Plate"
+            },
+            {
+                "item": "Panama Plate"
+            },
+            {
+                "item": "Pangea Supercontinent"
+            },
+            {
+                "item": "Pannotia Supercontinent"
+            },
+            {
+                "item": "Philippine Microplate"
+            },
+            {
+                "item": "Philippine Plate"
+            },
+            {
+                "item": "Phoenix Plate"
+            },
+            {
+                "item": "Piemont-Liguria Plate"
+            },
+            {
+                "item": "Pilbara Craton"
+            },
+            {
+                "item": "Proto-Gondwana Supercontinent"
+            },
+            {
+                "item": "Proto-Laurasia Supercontinent"
+            },
+            {
+                "item": "Qaidam Block"
+            },
+            {
+                "item": "Qiangtang Block"
+            },
+            {
+                "item": "Rae Craton"
+            },
+            {
+                "item": "Rhenohercynian Plate"
+            },
+            {
+                "item": "Rio Apas Craton"
+            },
+            {
+                "item": "Rio de la Plata Craton"
+            },
+            {
+                "item": "Rivera Plate"
+            },
+            {
+                "item": "Rodinia Supercontinent"
+            },
+            {
+                "item": "Saharan Craton"
+            },
+            {
+                "item": "San Francisco Craton"
+            },
+            {
+                "item": "Sangihe Plate"
+            },
+            {
+                "item": "Sarmatian Craton"
+            },
+            {
+                "item": "Sask Craton"
+            },
+            {
+                "item": "Saxothuringian Plate"
+            },
+            {
+                "item": "Sclavia Craton"
+            },
+            {
+                "item": "Scotia Plate"
+            },
+            {
+                "item": "Sebakwe Proto-Craton"
+            },
+            {
+                "item": "Seychelles Plate"
+            },
+            {
+                "item": "Shetland Plate"
+            },
+            {
+                "item": "Siberian Craton"
+            },
+            {
+                "item": "Singhbhum Craton"
+            },
+            {
+                "item": "Slave Craton"
+            },
+            {
+                "item": "Solomon Sea Plate"
+            },
+            {
+                "item": "Somali Plate"
+            },
+            {
+                "item": "Songpan-Ganzi Block"
+            },
+            {
+                "item": "South American Plate"
+            },
+            {
+                "item": "South Bismarck Plate"
+            },
+            {
+                "item": "South Portuguese Plate"
+            },
+            {
+                "item": "South Sandwich Plate"
+            },
+            {
+                "item": "Sri Lanka Plate"
+            },
+            {
+                "item": "Sunda Plate"
+            },
+            {
+                "item": "Superior Craton"
+            },
+            {
+                "item": "Tanzanian Craton"
+            },
+            {
+                "item": "Tarim Craton"
+            },
+            {
+                "item": "Timor Plate"
+            },
+            {
+                "item": "Tonga Plate"
+            },
+            {
+                "item": "Ur Supercontinent"
+            },
+            {
+                "item": "Vaalbara Supercontinent"
+            },
+            {
+                "item": "Valais Plate"
+            },
+            {
+                "item": "Volgo-Uralian Craton"
+            },
+            {
+                "item": "West African Craton"
+            },
+            {
+                "item": "Woodlark Plate"
+            },
+            {
+                "item": "Wyoming Craton"
+            },
+            {
+                "item": "Yakutai Craton"
+            },
+            {
+                "item": "Yangtze Craton"
+            },
+            {
+                "item": "Yangtze Plate"
+            },
+            {
+                "item": "Yilgarn Craton"
+            },
+            {
+                "item": "Zaire Craton"
+            },
+            {
+                "item": "Zealandia Plate"
+            },
+            {
+                "item": "Zimbabwe Craton"
+            }
+        ]
+    },
+      "tectonic_setting": {
+        "label": "Tectonic Settings",
+        "items": [
+            {
+                "item": "Accreted Terrain"
+            },
+            {
+                "item": "Accretionary Orogen"
+            },
+            {
+                "item": "Accretionary Prism"
+            },
+            {
+                "item": "Aseismic Ridge"
+            },
+            {
+                "item": "Back-Arc Basin"
+            },
+            {
+                "item": "Block Faults"
+            },
+            {
+                "item": "Collisional Orogen"
+            },
+            {
+                "item": "Continental Flood Basalt"
+            },
+            {
+                "item": "Continental Rift"
+            },
+            {
+                "item": "Continental Shelf"
+            },
+            {
+                "item": "Continental Volcanics"
+            },
+            {
+                "item": "Cratonic Basin"
+            },
+            {
+                "item": "Dome and Basin"
+            },
+            {
+                "item": "Forearc Basin"
+            },
+            {
+                "item": "Foreland Basin"
+            },
+            {
+                "item": "Gneissic Region"
+            },
+            {
+                "item": "Greenstone Belt"
+            },
+            {
+                "item": "Horst and Graben"
+            },
+            {
+                "item": "Hotspot Trail"
+            },
+            {
+                "item": "Intra-Plate Volcanism"
+            },
+            {
+                "item": "Mafic Dyke Swarms"
+            },
+            {
+                "item": "Mantled Gneiss Dome"
+            },
+            {
+                "item": "Mid-Oceanic Ridge"
+            },
+            {
+                "item": "Mylonite Zone"
+            },
+            {
+                "item": "Nappe Structure"
+            },
+            {
+                "item": "Ophiolite"
+            },
+            {
+                "item": "Orogen"
+            },
+            {
+                "item": "Orogenic Suture"
+            },
+            {
+                "item": "Passive Continental Margin"
+            },
+            {
+                "item": "Pull-Apart Basin"
+            },
+            {
+                "item": "Remnant Arc"
+            },
+            {
+                "item": "Retroarc Foreland Basin"
+            },
+            {
+                "item": "Salt Dome"
+            },
+            {
+                "item": "Seamount Trail"
+            },
+            {
+                "item": "Shallow Fold and Thrust Belt"
+            },
+            {
+                "item": "Slate Belt"
+            },
+            {
+                "item": "Stable Craton"
+            },
+            {
+                "item": "Subduction Zone"
+            },
+            {
+                "item": "Submarine Plateau"
+            },
+            {
+                "item": "Suspect Terrain"
+            },
+            {
+                "item": "Tectonic Melange"
+            },
+            {
+                "item": "Thrust Belt"
+            },
+            {
+                "item": "Transform Fault"
+            },
+            {
+                "item": "Trench"
+            },
+            {
+                "item": "Triple Junction"
+            },
+            {
+                "item": "Volcanic Island"
+            },
+            {
+                "item": "Wrench Fault Region"
+            }
+        ]
+    },
+    "alteration": {
+        "label": "Sample Alteration",
+        "items": [
+            {
+                "item": "Altered"
+            },
+            {
+                "item": "High"
+            },
+            {
+                "item": "Mild"
+            },
+            {
+                "item": "Severe"
+            },
+            {
+                "item": "Trace"
+            },
+            {
+                "item": "Unaltered"
+            }
+        ]
+    },
+    "ocean_sea": {
+        "label": "Oceans and Seas",
+        "items": [
+            {
+                "item": "Adriatic Sea"
+            },
+            {
+                "item": "Aegean Sea"
+            },
+            {
+                "item": "Alboran Sea"
+            },
+            {
+                "item": "Arabian Sea"
+            },
+            {
+                "item": "Arafura Sea"
+            },
+            {
+                "item": "Arctic Ocean"
+            },
+            {
+                "item": "Atlantic Ocean"
+            },
+            {
+                "item": "Baffin Bay"
+            },
+            {
+                "item": "Balearic Sea"
+            },
+            {
+                "item": "Baltic Sea"
+            },
+            {
+                "item": "Banda Sea"
+            },
+            {
+                "item": "Bay of Bengal"
+            },
+            {
+                "item": "Bay of Biscay"
+            },
+            {
+                "item": "Beaufort Sea"
+            },
+            {
+                "item": "Berentes Sea"
+            },
+            {
+                "item": "Bering Sea"
+            },
+            {
+                "item": "Black Sea"
+            },
+            {
+                "item": "Bristol Channel"
+            },
+            {
+                "item": "Burma Sea"
+            },
+            {
+                "item": "Caribbean Sea"
+            },
+            {
+                "item": "Celebes Sea"
+            },
+            {
+                "item": "Ceram Sea"
+            },
+            {
+                "item": "Chuckobi Sea"
+            },
+            {
+                "item": "Coral Sea"
+            },
+            {
+                "item": "Davis Strait"
+            },
+            {
+                "item": "East Siberian Sea"
+            },
+            {
+                "item": "Eastern China Sea"
+            },
+            {
+                "item": "English Channel"
+            },
+            {
+                "item": "Great Australian Bight"
+            },
+            {
+                "item": "Greenland Sea"
+            },
+            {
+                "item": "Gulf of Adon"
+            },
+            {
+                "item": "Gulf of Bothnia"
+            },
+            {
+                "item": "Gulf of Finland"
+            },
+            {
+                "item": "Gulf of Guinea"
+            },
+            {
+                "item": "Gulf of Iran"
+            },
+            {
+                "item": "Gulf of Mexico"
+            },
+            {
+                "item": "Gulf of Oman"
+            },
+            {
+                "item": "Gulf of Riga"
+            },
+            {
+                "item": "Gulf of St. Lawrence"
+            },
+            {
+                "item": "Gulf of Thailand"
+            },
+            {
+                "item": "Gulf of Tomini"
+            },
+            {
+                "item": "Hudson Bay"
+            },
+            {
+                "item": "Indian Ocean"
+            },
+            {
+                "item": "Ionian Sea"
+            },
+            {
+                "item": "Irish Sea"
+            },
+            {
+                "item": "Japan Sea"
+            },
+            {
+                "item": "Java Sea"
+            },
+            {
+                "item": "Kara Sea"
+            },
+            {
+                "item": "Kattegat"
+            },
+            {
+                "item": "Labrador Sea"
+            },
+            {
+                "item": "Laccadive Sea"
+            },
+            {
+                "item": "Laptov Sea"
+            },
+            {
+                "item": "Ligurian Sea"
+            },
+            {
+                "item": "Lincoln Sea"
+            },
+            {
+                "item": "Makassar Straits"
+            },
+            {
+                "item": "Malacca Strait"
+            },
+            {
+                "item": "Mediterranean Sea"
+            },
+            {
+                "item": "Molluka Sea"
+            },
+            {
+                "item": "Mozambique Channel"
+            },
+            {
+                "item": "North Sea"
+            },
+            {
+                "item": "Norwegian Sea"
+            },
+            {
+                "item": "Pacific Ocean"
+            },
+            {
+                "item": "Philippine Sea"
+            },
+            {
+                "item": "Red Sea"
+            },
+            {
+                "item": "Sea of Asov"
+            },
+            {
+                "item": "Sea of Okhotsk"
+            },
+            {
+                "item": "Singapore Strait"
+            },
+            {
+                "item": "Skagerakk"
+            },
+            {
+                "item": "South China Sea"
+            },
+            {
+                "item": "Southern Ocean"
+            },
+            {
+                "item": "Sulu Sea"
+            },
+            {
+                "item": "Tasman Sea"
+            },
+            {
+                "item": "The North Western Passages"
+            },
+            {
+                "item": "Timor Sea"
+            },
+            {
+                "item": "Tyrrhenian Sea"
+            },
+            {
+                "item": "White Sea"
+            },
+            {
+                "item": "Yellow Sea"
+            }
+        ]
+    },
+    "timescale_epoch": {
+        "label": "Timescale Epochs",
+        "items": [
+            {
+                "item": "Cisuralian"
+            },
+            {
+                "item": "Early Cambrian"
+            },
+            {
+                "item": "Early Cretaceous"
+            },
+            {
+                "item": "Early Devonian"
+            },
+            {
+                "item": "Early Jurassic"
+            },
+            {
+                "item": "Early Ordovician"
+            },
+            {
+                "item": "Early Triassic"
+            },
+            {
+                "item": "Eocene"
+            },
+            {
+                "item": "Furongian"
+            },
+            {
+                "item": "Guadalupian"
+            },
+            {
+                "item": "Holocene"
+            },
+            {
+                "item": "Late Cretaceous"
+            },
+            {
+                "item": "Late Devonian"
+            },
+            {
+                "item": "Late Jurassic"
+            },
+            {
+                "item": "Late Ordovician"
+            },
+            {
+                "item": "Late Triassic"
+            },
+            {
+                "item": "Llandovery"
+            },
+            {
+                "item": "Lopingian"
+            },
+            {
+                "item": "Ludlow"
+            },
+            {
+                "item": "Middle Cambrian"
+            },
+            {
+                "item": "Middle Devonian"
+            },
+            {
+                "item": "Middle Jurassic"
+            },
+            {
+                "item": "Middle Ordovician"
+            },
+            {
+                "item": "Middle Triassic"
+            },
+            {
+                "item": "Miocene"
+            },
+            {
+                "item": "Mississippian"
+            },
+            {
+                "item": "Oligocene"
+            },
+            {
+                "item": "Paleocene"
+            },
+            {
+                "item": "Pennsylvanian"
+            },
+            {
+                "item": "Pleistocene"
+            },
+            {
+                "item": "Pliocene"
+            },
+            {
+                "item": "Pridoli"
+            },
+            {
+                "item": "Wenlock"
+            }
+        ]
+    },
+    "assemblage": {
+        "label": "Mineral Assemblages",
+        "items": [
+            {
+                "item": "Aggregate"
+            },
+            {
+                "item": "In Situ"
+            },
+            {
+                "item": "Mineral Separate"
+            },
+            {
+                "item": "Polycrystalline"
+            },
+            {
+                "item": "Single Crystal"
+            }
+        ]
+    },
+    "conglomerate_test": {
+        "label": "Conglomerate Test Codes",
+        "items": [
+            {
+                "item": "+",
+                "label": "Positive"
+            },
+            {
+                "item": "-",
+                "label": "Negative"
+            },
+            {
+                "item": "G+"
+            },
+            {
+                "item": "G-"
+            },
+            {
+                "item": "Go"
+            },
+            {
+                "item": "IG+"
+            },
+            {
+                "item": "IG-"
+            },
+            {
+                "item": "IGo"
+            },
+            {
+                "item": "ND",
+                "label": "Not Done"
+            },
+            {
+                "item": "o",
+                "label": "Indeterminate"
+            }
+        ]
+    },
+    "synthetic_type": {
+        "label": "Synthetic Material Types",
+        "items": [
+            {
+                "item": "Annealed"
+            },
+            {
+                "item": "Ball Milled"
+            },
+            {
+                "item": "Biogenic"
+            },
+            {
+                "item": "Ceramic"
+            },
+            {
+                "item": "Chemical Precipitate"
+            },
+            {
+                "item": "Colloid"
+            },
+            {
+                "item": "Crushed"
+            },
+            {
+                "item": "Dispersed"
+            },
+            {
+                "item": "Glass"
+            },
+            {
+                "item": "Hydrothermal"
+            },
+            {
+                "item": "Nano"
+            },
+            {
+                "item": "Natural"
+            },
+            {
+                "item": "Not Specified"
+            },
+            {
+                "item": "Oriented"
+            },
+            {
+                "item": "Oxidized"
+            },
+            {
+                "item": "Polycrystalline"
+            },
+            {
+                "item": "Reduced"
+            },
+            {
+                "item": "Rock"
+            },
+            {
+                "item": "Single Crystal"
+            },
+            {
+                "item": "Sintered"
+            },
+            {
+                "item": "Thin Film"
+            }
+        ]
+    },
+    "reversal_test": {
+        "label": "Reversal Test Codes",
+        "items": [
+            {
+                "item": "+",
+                "label": "Positive"
+            },
+            {
+                "item": "-",
+                "label": "Negative"
+            },
+            {
+                "item": "ND",
+                "label": "Not Done"
+            },
+            {
+                "item": "R-"
+            },
+            {
+                "item": "Ra"
+            },
+            {
+                "item": "Rb"
+            },
+            {
+                "item": "Rc"
+            },
+            {
+                "item": "Ro"
+            },
+            {
+                "item": "o",
+                "label": "Indeterminate"
+            }
+        ]
+    },
+    "timescale_eon": {
+        "label": "Timescale Eons",
+        "items": [
+            {
+                "item": "Archean"
+            },
+            {
+                "item": "Phanerozoic"
+            },
+            {
+                "item": "Proterozoic"
+            }
+        ]
+    },
+    "rock_magnetic_test": {
+        "label": "Rock Magnetic Test Codes",
+        "items": [
+            {
+                "item": "M",
+                "label": "Done"
+            },
+            {
+                "item": "ND",
+                "label": "Not Done"
+            }
+        ]
+    },
+    "criterion_operation": {
+        "label": "Criterion Operations",
+        "items": [
+            {
+                "item": "<",
+                "label": "Numeric less than"
+            },
+            {
+                "item": "<=",
+                "label": "Numeric less than or equal to"
+            },
+            {
+                "item": "=",
+                "label": "Numeric equal to"
+            },
+            {
+                "item": ">",
+                "label": "Numeric greater than"
+            },
+            {
+                "item": ">=",
+                "label": "Numeric greater than or equal to"
+            },
+            {
+                "item": "begins with",
+                "label": "String begins with"
+            },
+            {
+                "item": "ends with",
+                "label": "String ends with"
+            },
+            {
+                "item": "does not contain",
+                "label": "String or list does not contain"
+            },
+            {
+                "item": "contains",
+                "label": "String or list contains"
+            },
+            {
+                "item": "equals",
+                "label": "String equals"
+            }
+        ]
+    },
+      "magic_version": {
+        "label": "MagIC Data Model Versions",
+        "items": [
+            {
+                "item": "2.2"
+            },
+            {
+                "item": "2.3"
+            },
+            {
+                "item": "2.4"
+            },
+            {
+                "item": "2.5"
+            },
+            {
+                "item": "3.0"
+            }
+        ]
+    },
+    "boolean": {
+        "label": "Boolean Flags",
+        "items": [
+            {
+                "item": "t",
+                "label": "True"
+            },
+            {
+                "item": "f",
+                "label": "False"
+            }
+        ]
+    }
+}
