@@ -217,6 +217,31 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertIn('sequence', magic_df.df.columns)
 
 
+    def test_convert_to_pmag_list(self):
+        # np.nan and None should both be converted to a string
+        directory = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+        fname = os.path.join(directory, "sites.txt")
+        df = cb.MagicDataFrame(fname)
+
+        df.df.loc['mgq04t1', 'age_high'] = np.nan
+        df.df.loc['mgq04t1', 'age_low'] = None
+        for val in df.df.loc['mgq04t1', 'age_high'].values:
+            self.assertTrue(np.isnan(val))
+
+        for val in df.df.loc['mgq04t1', 'age_low'].values:
+            self.assertTrue(val is None)
+
+        lst = df.convert_to_pmag_data_list()
+        relevant_lst = pmag.get_dictitem(lst, 'site', 'mgq04t1', 'T')
+        # make sure np.nan/None values are converted to ''
+        for i in relevant_lst:
+            self.assertEqual(i['age_high'], '')
+            self.assertEqual(i['age_low'], '')
+        # make sure numeric values are string-i-fied
+        self.assertEqual(str, type(relevant_lst[0]['age']))
+
+
+
 class TestContribution(unittest.TestCase):
 
     def setUp(self):

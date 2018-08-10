@@ -1782,6 +1782,11 @@ class MagicDataFrame(object):
         """
         if isinstance(df, type(None)):
             df = self.df
+        # replace np.nan / None with ""
+        df = df.where(df.notnull(), "")
+        # string-i-fy everything
+        df = df.astype(str)
+
         if lst_or_dict == "lst":
             return list(df.T.apply(dict))
         else:
