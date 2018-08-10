@@ -79,7 +79,7 @@ def main():
     if grab_key == 'model_lat':
         Data = pmag.convert_lat(Data)
         Data = pmag.convert_ages(Data)
-    print(Data[0])
+    #print(Data[0])
     Selection = pmag.get_dictitem(Data, grab_key, v, flag, float_to_int=True)
     if len(Selection) > 0:
         pmag.magic_write(outfile, Selection, file_type)

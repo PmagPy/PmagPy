@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
-import pandas as pd
+import datetime
 from pmagpy import pmag
 from pmagpy import contribution_builder as cb
 
@@ -178,13 +178,14 @@ def main():
                     site_data = None
         else: # if there are Location_* directories, change WD for each location
             os.chdir(loc)
+
         crd = 's'
         if samp_file in filelist:  # find coordinate systems
             if onedir:
                 samps = samp_data
                 file_type = "samples"
             else:
-                print('found sample file', samp_file)
+                print('-I- found sample file', samp_file)
                 samps, file_type = pmag.magic_read(samp_file)  # read in data
             # get all non blank sample orientations
             Srecs = pmag.get_dictitem(samps, azimuth_key, '', 'F')
@@ -254,6 +255,8 @@ def main():
                 os.system(CMD)
         if results_file in filelist:  # start with measurement data
             print('result file found', results_file)
+        if results_file in filelist: # site data
+            print('-I- result file found', results_file)
             if onedir:
                 data = site_data
                 file_type = 'sites'
@@ -264,12 +267,12 @@ def main():
                 data = pmag.get_dictitem(data, loc_key, ':', 'has')
             print('number of datapoints: ', len(data), loc)
             if new_model:
-                print('working on site directions')
+                print('-I- working on site directions')
                 dec_key = 'dir_dec'
                 inc_key = 'dir_inc'
                 int_key = 'int_abs'
             else:
-                print('working on results directions')
+                print('-I- working on results directions')
                 dec_key = 'average_dec'
                 inc_key = 'average_inc'
                 int_key = 'average_int'
@@ -295,7 +298,7 @@ def main():
                         else:
                             rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
                         SiteDIs.append(rec)
-            print('individual number of directions: ', len(SiteDIs))
+            print('number of individual directions: ', len(SiteDIs))
             # tilt corrected coordinates
             SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100',
                                           'T', float_to_int=True)
@@ -334,8 +337,10 @@ def main():
                     CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
                 else:
                     CMD = 'vgpmap_magic.py -prj moll -res c -sym ro 5 -sav -fmt png'
+            else:
+                print('-I- No vgps found')
 
-            print('working on intensities')
+            print('-I- Look for intensities')
             if not new_model:
                 CMD = 'magic_select.py -f ' + results_file + ' -key data_type i T -F tmp.txt'
                 os.system(CMD)
@@ -439,12 +444,12 @@ def main():
             os.chdir('..')  # change working directories to each location
         os.system('rm tmp*.txt')
     if loc_file in filelist:
-        data, file_type = pmag.magic_read(loc_file)  # read in data
-        print('working on pole map')
+        data, file_type = pmag.magic_read(loc_file)  # read in location data
+        print('-I- working on pole map')
         poles = pmag.get_dictitem(
-            data, 'pole_lat', "", 'F')  # are there any pole?
+            data, 'pole_lat', "", 'F')  # are there any poles?
         poles = pmag.get_dictitem(
-            poles, 'pole_lon', "", 'F')  # are there any pole?
+            poles, 'pole_lon', "", 'F')  # are there any poles?
         if len(poles) > 0:  # YES!
             CMD = 'polemap_magic.py -sav -fmt png'
             print(CMD)
