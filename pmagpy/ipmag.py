@@ -3605,6 +3605,9 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     filenum = 0
     while LN < len(File) - 1:
         line = File[LN]
+        if ">>>>" in line:
+            LN += 1
+            continue
         file_type = line.split('\t')[1]
         file_type = file_type.lower()
         if file_type[-1] == "\n":
