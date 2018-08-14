@@ -7,13 +7,26 @@ from pmagpy import contribution_builder as cb
 VERBOSE = True
 
 
-def error_log(msg, loc=""):
+def error_log(msg, loc="", program=""):
     with open('errors.txt', 'a') as log:
-        log.write(str(datetime.datetime.now()) + '\t' + loc + '\t' + msg + '\n')
+        log.write(str(datetime.datetime.now()) + '\t' + loc + '\t' + program + '\t' + msg + '\n')
+    if VERBOSE:
+        print('-W- ' + loc + '\t' + program + '\t' + msg + '\n')
 
-def info_log(msg, loc=""):
+def info_log(msg, loc="", program=""):
     with open('log.txt', 'a') as log:
-        log.write(str(datetime.datetime.now()) + "\t" + loc + "\t" + msg + '\n')
+        log.write(str(datetime.datetime.now()) + "\t" + loc + "\t" + program + '\t' + msg + '\n')
+
+def check_for_reqd_cols(data, reqd_cols):
+    """
+    Check data (PmagPy list of dicts) for required columns
+    """
+    missing = []
+    for col in reqd_cols:
+        if col not in data[0]:
+            missing.append(col)
+    return missing
+
 
 
 def main():
@@ -89,6 +102,7 @@ def main():
         print('-E- No MagIC tables could be found in this directory')
         error_log("No MagIC tables found")
         return
+    # check to see if propagation worked, otherwise plotting will be difficult
     lowest_table = None
     for table in con.ancestry:
         if table in con.tables:
@@ -110,7 +124,7 @@ def main():
     all_data['locations'] = con.tables.get('locations', None)
     if onedir:
         locations = con.tables['locations'].df.index.unique()
-        dirlist = locations
+        dirlist = [loc for loc in locations if cb.not_null(loc) and loc != 'nan']
 
 
     # go through all data by location
@@ -225,13 +239,18 @@ def main():
                 os.system(CMD)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
-                if onedir:
-                    CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                # check for reqd columns
+                missing = check_for_reqd_cols(data, ['treat_temp'])
+                if missing:
+                    error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py")
                 else:
-                    CMD = 'quick_hyst.py -f measurements.txt -sav -fmt ' + fmt
-                print(CMD)
-                info_log(CMD, loc)
-                os.system(CMD)
+                    if onedir:
+                        CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                    else:
+                        CMD = 'quick_hyst.py -f measurements.txt -sav -fmt ' + fmt
+                    print(CMD)
+                    info_log(CMD, loc)
+                    os.system(CMD)
         else:
             if VERBOSE:
                 print('-I- No measurement data found')
@@ -254,9 +273,7 @@ def main():
             SiteDIs = pmag.get_dictitem(data, dec_key, "", 'F')  # find decs
             SiteDIs = pmag.get_dictitem(
                 SiteDIs, inc_key, "", 'F')  # find decs and incs
-            dir_data_found = 0
-            if len(SiteDIs):
-                dir_data_found = len(SiteDIs)
+            dir_data_found = len(SiteDIs)
             # only individual results - not poles
             # get only individual results (if result_type col is available)
             if SiteDIs:
@@ -267,45 +284,47 @@ def main():
                 SiteDIs = []
                 for rec in old_SiteDIs:
                     if tilt_corr_key not in rec:
-                        error_log("Directional data found, but missing {}, can't plot directions".format(tilt_corr_key), loc)
+                        error_log("Directional data found, but missing {}, can't plot directions".format(tilt_corr_key), loc, "eqarea_magic.py")
                         break
                     if cb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
                         rec[tilt_corr_key] = ""
                     else:
                         rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
                     SiteDIs.append(rec)
-            print('number of individual directions: ', len(SiteDIs))
-            # tilt corrected coordinates
-            SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100',
-                                          'T', float_to_int=True)
-            print('number of tilt corrected directions: ', len(SiteDIs_t))
-            SiteDIs_g = pmag.get_dictitem(
-                SiteDIs, tilt_corr_key, '0', 'T', float_to_int=True)  # geographic coordinates
-            print('number of geographic  directions: ', len(SiteDIs_g))
-            SiteDIs_s = pmag.get_dictitem(
-                SiteDIs, tilt_corr_key, '-1', 'T', float_to_int=True)  # sample coordinates
-            print('number of sample  directions: ', len(SiteDIs_s))
-            SiteDIs_x = pmag.get_dictitem(
-                SiteDIs, tilt_corr_key, '', 'T')  # no coordinates
-            print('number of no coordinates  directions: ', len(SiteDIs_x))
-            if len(SiteDIs_t) > 0 or len(SiteDIs_g) > 0 or len(SiteDIs_s) > 0 or len(SiteDIs_x) > 0:
-                CRD = ""
-                if len(SiteDIs_t) > 0:
-                    CRD = ' -crd t'
-                elif len(SiteDIs_g) > 0:
-                    CRD = ' -crd g'
-                elif len(SiteDIs_s) > 0:
-                    CRD = ' -crd s'
-                if onedir:
-                    CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+
+                print('number of individual directions: ', len(SiteDIs))
+                # tilt corrected coordinates
+                SiteDIs_t = pmag.get_dictitem(SiteDIs, tilt_corr_key, '100',
+                                              'T', float_to_int=True)
+                print('number of tilt corrected directions: ', len(SiteDIs_t))
+                SiteDIs_g = pmag.get_dictitem(
+                    SiteDIs, tilt_corr_key, '0', 'T', float_to_int=True)  # geographic coordinates
+                print('number of geographic  directions: ', len(SiteDIs_g))
+                SiteDIs_s = pmag.get_dictitem(
+                    SiteDIs, tilt_corr_key, '-1', 'T', float_to_int=True)  # sample coordinates
+                print('number of sample  directions: ', len(SiteDIs_s))
+                SiteDIs_x = pmag.get_dictitem(
+                    SiteDIs, tilt_corr_key, '', 'T')  # no coordinates
+                print('number of no coordinates  directions: ', len(SiteDIs_x))
+                if len(SiteDIs_t) > 0 or len(SiteDIs_g) > 0 or len(SiteDIs_s) > 0 or len(SiteDIs_x) > 0:
+                    CRD = ""
+                    if len(SiteDIs_t) > 0:
+                        CRD = ' -crd t'
+                    elif len(SiteDIs_g) > 0:
+                        CRD = ' -crd g'
+                    elif len(SiteDIs_s) > 0:
+                        CRD = ' -crd s'
+                    if onedir:
+                        CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+                    else:
+                        CMD = 'eqarea_magic.py -sav -fmt ' + fmt + CRD
+                    print(CMD)
+                    info_log(CMD, loc)
+                    os.system(CMD)
                 else:
-                    CMD = 'eqarea_magic.py -sav -fmt ' + fmt + CRD
-                print(CMD)
-                info_log(CMD, loc)
-                os.system(CMD)
-            else:
-                if dir_data_found:
-                    error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc)
+                    if dir_data_found:
+                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equare_magic.py")
+            #
             print('-I- working on VGP map')
             VGPs = pmag.get_dictitem(
                 SiteDIs, 'vgp_lat', "", 'F')  # are there any VGPs?
@@ -354,7 +373,7 @@ def main():
                     print(CMD)
 
         ##
-        if hyst_file in filelist:  # start with measurement data
+        if hyst_file in filelist:
             print('working on hysteresis', hyst_file)
             if onedir:
                 data = spec_data
