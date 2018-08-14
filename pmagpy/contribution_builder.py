@@ -640,6 +640,7 @@ class Contribution(object):
             elif parent_name not in df.columns:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
+                df[parent_name] = df[parent_name].astype(str)
                 df = df.merge(add_df[[grandparent_name]],
                               left_on=[parent_name],
                               right_index=True, how="left")

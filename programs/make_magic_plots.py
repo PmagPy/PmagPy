@@ -11,7 +11,7 @@ def error_log(msg, loc=""):
     with open('errors.txt', 'a') as log:
         log.write(str(datetime.datetime.now()) + '\t' + loc + '\t' + msg + '\n')
 
-def info_log(msg, loc):
+def info_log(msg, loc=""):
     with open('log.txt', 'a') as log:
         log.write(str(datetime.datetime.now()) + "\t" + loc + "\t" + msg + '\n')
 
@@ -46,9 +46,11 @@ def main():
     dirlist = ['./']
     dir_path = os.getcwd()
     names = os.listdir(dir_path)
+    onedir = True
     for n in names:
         if 'Location' in n:
             dirlist.append(n)
+            onedir = False
     if '-fmt' in sys.argv:
         ind = sys.argv.index("-fmt")
         fmt = sys.argv[ind + 1]
@@ -60,7 +62,6 @@ def main():
     else:
         filelist = os.listdir(dir_path)
     ## initialize some variables
-    onedir = None
     samp_file = 'samples.txt'
     azimuth_key = 'azimuth'
     meas_file = 'measurements.txt'
@@ -94,57 +95,50 @@ def main():
             lowest_table = table
             break
     if 'location' in con.tables[lowest_table].df.columns:
-        print('propagation successful')
+        if not all(con.tables[lowest_table].df['location'].isnull()):
+            info_log('location names propagated to {}'.format(lowest_table))
+        else:
+            error_log('could not propagate location names down to {} table'.format(lowest_table))
+    else:
+        error_log('could not propagate location names down to {} table'.format(lowest_table))
+
+    all_data = {}
+    all_data['measurements'] = con.tables.get('measurements', None)
+    all_data['specimens'] = con.tables.get('specimens', None)
+    all_data['samples'] = con.tables.get('samples', None)
+    all_data['sites'] = con.tables.get('sites', None)
+    all_data['locations'] = con.tables.get('locations', None)
+    if onedir:
         locations = con.tables['locations'].df.index.unique()
         dirlist = locations
-        onedir = True
-        all_data = {}
-        all_data['measurements'] = con.tables.get('measurements', None)
-        all_data['specimens'] = con.tables.get('specimens', None)
-        all_data['samples'] = con.tables.get('samples', None)
-        all_data['sites'] = con.tables.get('sites', None)
-        all_data['locations'] = con.tables.get('locations', None)
+
+
     # go through all data by location
     # either use tmp_*.txt files to separate out by location
     # or Location_* directories
     for loc in dirlist:
         print('\nworking on: ', loc)
+
         if onedir: # all info is in main directory, sort by location
-            if cb.not_null(all_data['measurements']):
-                meas_data_all = all_data['measurements']
-                meas_data_df = meas_data_all.df[meas_data_all.df['location'] == loc]
-                meas_data = meas_data_all.convert_to_pmag_data_list(df=meas_data_df)
-                meas_data_all.write_magic_file('tmp_measurements.txt', df=meas_data_df)
-            else:
-                meas_data = []
-            if cb.not_null(all_data['specimens']):
-                spec_data_all = all_data['specimens']
-                spec_data_df = spec_data_all.df[spec_data_all.df['location'] == loc]
-                spec_data = spec_data_all.convert_to_pmag_data_list(df=spec_data_df)
-                spec_data_all.write_magic_file('tmp_specimens.txt', df=spec_data_df)
-            else:
-                spec_data = []
-            if cb.not_null(all_data['samples']):
-                samp_data_all = all_data['samples']
-                samp_data_df = samp_data_all.df[samp_data_all.df['location'] == loc]
-                samp_data = samp_data_all.convert_to_pmag_data_list(df=samp_data_df)
-                samp_data_all.write_magic_file('tmp_samples.txt', df=samp_data_df)
-            else:
-                samp_data = []
-            if cb.not_null(all_data['sites']):
-                site_data_all = all_data['sites']
-                site_data_df = site_data_all.df[site_data_all.df['location'] == loc]
-                site_data = site_data_all.convert_to_pmag_data_list(df=site_data_df)
-                site_data_all.write_magic_file('tmp_sites.txt', df=site_data_df)
-            else:
-                site_data = []
-            if cb.not_null(all_data['locations']):
-                location_data_all = all_data['locations']
-                location_data_df = location_data_all.df[location_data_all.df['location'] == loc]
-                #location_data = location_data_all.convert_to_pmag_data_list(df=location_data_df)
-                location_data_all.write_magic_file('tmp_locations.txt', df=location_data_df)
-            else:
-                location_data = []
+            def get_data(dtype, loc_name):
+                """
+                Extract data of type dtype for location loc_name.
+                Write tmp_dtype.txt files if possible.
+                """
+                if cb.not_null(all_data[dtype]):
+                    data_container = all_data[dtype]
+                    data_df = data_container.df[data_container.df['location'] == loc_name]
+                    data = data_container.convert_to_pmag_data_list(df=data_df)
+                    res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
+                    if not res:
+                        return []
+                    return data
+
+            meas_data = get_data('measurements', loc)
+            spec_data = get_data('specimens', loc)
+            samp_data = get_data('samples', loc)
+            site_data = get_data('sites', loc)
+            location_data = get_data('locations', loc)
 
 
         elif loc == "./":  # if you can't sort by location, do everything together
@@ -325,38 +319,39 @@ def main():
 
             print('-I- Look for intensities')
             # is there any intensity data?
-            if int_key in site_data[0].keys():
-                infile = results_file
-                if onedir:
-                    CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
-                else:
-                    CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f ' + infile
-                print(CMD)
-                info_log(CMD, loc)
-                os.system(CMD)
+            if site_data:
+                if int_key in site_data[0].keys():
+                    infile = results_file
+                    if onedir:
+                        CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
+                    else:
+                        CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f ' + infile
+                    print(CMD)
+                    info_log(CMD, loc)
+                    os.system(CMD)
 
 
-                ## should be able to do something like this instead of calling grab_magic_key
-                ##Selection = pmag.get_dictitem(site_data, int_key, '0.', 'has', float_to_int=True)
+                    ## should be able to do something like this instead of calling grab_magic_key
+                    ##Selection = pmag.get_dictitem(site_data, int_key, '0.', 'has', float_to_int=True)
 
-                CMD = "grab_magic_key.py -f tmp1.txt -key " + \
-                    int_key + " | awk '{print $1*1e6}' >tmp2.txt"
-                print(CMD)
-                info_log(CMD, loc)
-                os.system(CMD)
+                    CMD = "grab_magic_key.py -f tmp1.txt -key " + \
+                        int_key + " | awk '{print $1*1e6}' >tmp2.txt"
+                    print(CMD)
+                    info_log(CMD, loc)
+                    os.system(CMD)
 
-                data, file_type = pmag.magic_read('tmp1.txt')  # read in data
-                locations = pmag.get_dictkey(data, loc_key, "")
-                if not locations:
-                    locations = ['']
-                locations = set(locations)
-                histfile = 'LO:_' + ":".join(locations) + \
-                    '_TY:_intensities_histogram:_.' + fmt
-                # maybe run histplot.main here instead, so you can return an error message
-                CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " + histfile
-                os.system(CMD)
-                info_log(CMD, loc)
-                print(CMD)
+                    data, file_type = pmag.magic_read('tmp1.txt')  # read in data
+                    locations = pmag.get_dictkey(data, loc_key, "")
+                    if not locations:
+                        locations = ['']
+                    locations = set(locations)
+                    histfile = 'LO:_' + ":".join(locations) + \
+                        '_TY:_intensities_histogram:_.' + fmt
+                    # maybe run histplot.main here instead, so you can return an error message
+                    CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " + histfile
+                    os.system(CMD)
+                    info_log(CMD, loc)
+                    print(CMD)
 
         ##
         if hyst_file in filelist:  # start with measurement data
