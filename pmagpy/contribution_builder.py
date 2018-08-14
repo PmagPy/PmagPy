@@ -1827,7 +1827,7 @@ class MagicDataFrame(object):
 
     def get_di_block(self, df_slice=None, do_index=False,
                      item_names=None, tilt_corr='100',
-                     excl=None):
+                     excl=None, ignore_tilt=False):
         """
         Input either a DataFrame slice
         or
@@ -1853,14 +1853,15 @@ class MagicDataFrame(object):
 
         # once you have the slice, fix up the data
         # tilt correction must match
-        if tilt_corr != 0:
-            df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
-        else:
-            # if geographic ("0"),
-            # use records with no tilt_corr and assume geographic
-            cond1 = df_slice['dir_tilt_correction'] == None
-            cond2 = df_slice['dir_tilt_correction'] == tilt_corr
-            df_slice = df_slice[cond1 | cond2]
+        if not ignore_tilt:
+            if tilt_corr != 0:
+                df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+            else:
+                # if geographic ("0"),
+                # use records with no tilt_corr and assume geographic
+                cond1 = df_slice['dir_tilt_correction'] == None
+                cond2 = df_slice['dir_tilt_correction'] == tilt_corr
+                df_slice = df_slice[cond1 | cond2]
         # exclude data with unwanted codes
         if excl:
             for ex in excl:

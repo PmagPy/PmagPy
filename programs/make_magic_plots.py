@@ -251,11 +251,22 @@ def main():
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
+            # equal area plots of directional data
+            # at measurment level (by specimen)
+            missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
+            if not missing:
+                CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                print(CMD)
+                os.system(CMD)
+                info_log(CMD, loc, "eqarea_magic.py")
+
         else:
             if VERBOSE:
                 print('-I- No measurement data found')
 
-        if results_file in filelist: # site data
+
+        # site data
+        if results_file in filelist:
             print('-I- result file found', results_file)
             if onedir:
                 data = site_data
