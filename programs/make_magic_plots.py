@@ -222,7 +222,7 @@ def main():
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
                 if onedir:
-                    CMD = 'zeq_magic.py -fsp tmp_specimens.txt -sav -fmt ' + fmt + ' -crd ' + crd
+                    CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd
                 else:
                     CMD = 'zeq_magic.py -fsp specimens.txt -sav -fmt ' + fmt + ' -crd ' + crd
                 print(CMD)
@@ -231,7 +231,7 @@ def main():
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
                 if onedir:
-                    CMD = 'thellier_magic.py -fsp tmp_specimens.txt -sav -fmt ' + fmt
+                    CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
                 else:
                     CMD = 'thellier_magic.py -fsp specimens.txt -sav -fmt ' + fmt
                 print(CMD)
@@ -265,8 +265,8 @@ def main():
             if loc == './' and len(dirlist) > 1:
                 # get all the concatenated location names from data file
                 data = pmag.get_dictitem(data, loc_key, ':', 'has')
-            print('number of datapoints: ', len(data), loc)
             print('-I- working on site directions')
+            print('number of datapoints: ', len(data), loc)
             dec_key = 'dir_dec'
             inc_key = 'dir_inc'
             int_key = 'int_abs'
@@ -274,6 +274,7 @@ def main():
             SiteDIs = pmag.get_dictitem(
                 SiteDIs, inc_key, "", 'F')  # find decs and incs
             dir_data_found = len(SiteDIs)
+            print('{} Dec/inc pairs found'.format(dir_data_found))
             # only individual results - not poles
             # get only individual results (if result_type col is available)
             if SiteDIs:
