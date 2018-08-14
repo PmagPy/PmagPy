@@ -249,6 +249,7 @@ def main():
                     os.system(CMD)
             # equal area plots of directional data
             # at measurment level (by specimen)
+
             if data:
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
