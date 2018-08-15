@@ -1727,7 +1727,18 @@ def open_file(infile, verbose=True):
 
 def magic_read(infile, data=None, return_keys=False, verbose=False):
     """
-    Reads  a Magic template file, puts data in a list of dictionaries.
+    Reads  a Magic template file, returns  data in a list of dictionaries.
+    
+    Parameters
+    ___________
+        Required: 
+            infile : the MagIC formatted tab delimited data file
+                first line contains 'tab' in the first column and the data file type in the second (e.g., measurements, specimen, sample, etc.)
+        Optional:
+            data : data read in with, e.g., file.readlines()  
+    Returns
+    _______
+        list of dictionaries, file type
     """
     if infile:
         if not os.path.exists(infile):
