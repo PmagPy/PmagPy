@@ -425,13 +425,13 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 # AGM magic conversion
 
 
-def agm(agm_file, dir_path=".", input_dir_path="",
+def agm(agm_file, dir_path=".", input_dir_path="", 
         meas_outfile="", spec_outfile="", samp_outfile="",
         site_outfile="", loc_outfile="", spec_infile="",
         samp_infile="", site_infile="",
         specimen="", specnum=0, samp_con="1", location="unknown",
         instrument="", institution="", bak=False, syn=False, syntype="",
-        units="cgs", fmt='new'):
+        units="cgs", fmt='new', user=''):
     """
     Convert AGM format file to MagIC file(s)
 
@@ -485,6 +485,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
        units, default "cgs"
     fmt: str
         input format, options: ('new', 'old', 'xy', default 'new')
+    user : user name
 
     Returns
     ---------
@@ -635,6 +636,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         else:
             SampRec["material_type"] = syntype
             MeasRec["specimen"] = specimen
+            MeasRec["user"] = user
             if specnum != 0:
                 sample = specimen[:specnum]
             else:
@@ -1067,19 +1069,22 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     if not input_dir_path:
         input_dir_path = dir_path
     output_dir_path = dir_path
-    try:
-        DC_FIELD = float(labfield) * 1e-6
-        DC_PHI = float(phi)
-        DC_THETA = float(theta)
-    except ValueError:
-        raise ValueError(
-            'problem with your dc parameters. please provide a labfield in microTesla and a phi and theta in degrees.')
-    yn = ''
-    if DC_FIELD == 0 and DC_PHI == 0 and DC_THETA == 0:
-        print('-I- Required values for labfield, phi, and theta not provided!  Will try to get these interactively')
-        GET_DC_PARAMS = True
-    else:
-        GET_DC_PARAMS = False
+    DC_FIELD = float(labfield) * 1e-6
+    DC_PHI = float(phi)
+    DC_THETA = float(theta)
+    #try:
+    #    DC_FIELD = float(labfield) * 1e-6
+    #    DC_PHI = float(phi)
+    #    DC_THETA = float(theta)
+#    except ValueError:
+#        raise ValueError(
+#            'problem with your dc parameters. please provide a labfield in microTesla and a phi and theta in degrees.')
+#    yn = ''
+#    if DC_FIELD == 0 and DC_PHI == 0 and DC_THETA == 0:
+#        print('-I- Required values for labfield, phi, and theta not provided!  Will try to get these interactively')
+#        GET_DC_PARAMS = True
+#    else:
+#        GET_DC_PARAMS = False
     if locname == '' or locname == None:
         locname = 'unknown'
     if "4" in samp_con:
@@ -4642,7 +4647,7 @@ def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
 
     DESCRIPTION
         converts .k15 format data to magic_measurements  format.
-        assums Jelinek Kappabridge measurement scheme
+        assumes Jelinek Kappabridge measurement scheme
 
     SYNTAX
         k15_magic.py [-h] [command line options]
@@ -5154,7 +5159,6 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
           input_dir_path='', data_model_num=3, samp_outfile='samples.txt',
           site_outfile='sites.txt'):
     """
-    def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path=''):
 
     NAME
         kly4s_magic.py
@@ -6778,9 +6782,11 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
         methods_col = "method_codes"
         quality_col = "quality"
         meas_standard_col = "standard"
-        meas_name_col = "measurement"
+        meas_name_col = "experiment"
+        meas_seq_col = "sequence"
 
     # go through the measurements
+    seq=1
     for line in lines:
         rec = line.split(',')
         if len(rec) > 1:
@@ -6811,6 +6817,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
             if demag == "T":
                 meas_type = "LT-T-Z"
                 MagRec[treat_dc_col] = '%8.3e' % (0)
+                MagRec[treat_ac_col] = '0'
                 MagRec[treat_temp_col] = '%8.3e' % (
                     float(treat)+273.)  # temp in kelvin
             if demag == "N":
@@ -6849,10 +6856,10 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
 
 ### MsT_magic conversion
 
-def mst(infile, spec_name, dir_path=".", input_dir_path="",
+def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
         meas_file="measurements.txt", samp_infile="samples.txt",
         user="", specnum=0, samp_con="1", labfield=0.5,
-        location='', syn=False, data_model_num=3):
+        location='unknown', syn=False, data_model_num=3):
 
     # deal with input files
     if not input_dir_path:
@@ -7242,7 +7249,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     phi = float(phi)
     theta = float(theta)
     peakfield = float(peakfield) * 1e-3
-    specnum = -int(specnum)
+    specnum = int(specnum)
     samp_con = str(samp_con)
 
     # make sure all initial values are correctly set up (whether they come from the command line or a GUI)
@@ -7265,6 +7272,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
         print(__doc__)
         print("mag_file field is required option")
         return False, "mag_file field is required option"
+    print ('specnum: ',specnum)#DELETE ME
     if specnum != 0:
         specnum = -specnum
     if "4" == samp_con[0]:

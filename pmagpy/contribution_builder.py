@@ -2217,7 +2217,7 @@ def is_null(val, zero_as_null=True):
 
 def get_intensity_col(data):
     """
-    Check measurement dataframe for intensity columns 'magn_moment', 'magn_volume', 'magn_mass'.
+    Check measurement dataframe for intensity columns 'magn_moment', 'magn_volume', 'magn_mass','magn_uncal'.
     Return the first intensity column that is in the dataframe AND has data.
 
     Parameters
@@ -2230,7 +2230,7 @@ def get_intensity_col(data):
         intensity method column or ""
     """
     # possible intensity columns
-    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass','magn_uncal']
     # intensity columns that are in the data
     int_meths = [col_name for col_name in data.columns if col_name in intlist]
     # drop fully null columns

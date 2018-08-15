@@ -6216,7 +6216,7 @@ def deriv1(x, y, i, n):
     return(m)
 
 
-def curie(path_to_file='.', file_name='magic_measurements.txt',
+def curie(path_to_file='.', file_name='',magic=False,
           window_length=3, save=False, save_folder='.', fmt='svg', t_begin="",t_end=""):
     """
     Plots and interprets curie temperature data.
@@ -6230,25 +6230,35 @@ def curie(path_to_file='.', file_name='magic_measurements.txt',
     The estimated curie temp. is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
+    Parameters
+    __________
+    file_name : name of file to be opened 
+
     Optional Parameters (defaults are used if not specified)
     ----------
     path_to_file : path to directory that contains file (default is current directory, '.')
-    file_name : name of file to be opened (default is 'magic_measurements.txt')
     window_length : dimension of smoothing window (input to smooth() function)
     save : boolean argument to save plots (default is False)
     save_folder : relative directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures
     t_begin: start of truncated window for search
     t_end: end of truncated window for search
+    magic : True if MagIC formated measurements.txt file
     """
     plot = 0
     window_len = window_length
 
     # read data from file
     complete_path = os.path.join(path_to_file, file_name)
-    Data = np.loadtxt(complete_path, dtype=np.float)
-    T = Data.transpose()[0]
-    M = Data.transpose()[1]
+    if magic:
+        data_df=pd.read_csv(complete_path,sep='\t',header=1)
+        T=data_df['meas_temp'].values
+        magn_key=cb.get_intensity_col(data_df)
+        M=data_df[magn_key].values
+    else:
+        Data = np.loadtxt(complete_path, dtype=np.float)
+        T = Data.transpose()[0]
+        M = Data.transpose()[1]
     T = list(T)
     M = list(M)
     # cut the data if -t is one of the flags
