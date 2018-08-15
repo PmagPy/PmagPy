@@ -28,7 +28,6 @@ def check_for_reqd_cols(data, reqd_cols):
     return missing
 
 
-
 def main():
     """
     NAME
@@ -58,12 +57,7 @@ def main():
             os.remove(f)
     dirlist = ['./']
     dir_path = os.getcwd()
-    names = os.listdir(dir_path)
-    onedir = True
-    for n in names:
-        if 'Location' in n:
-            dirlist.append(n)
-            onedir = False
+    #
     if '-fmt' in sys.argv:
         ind = sys.argv.index("-fmt")
         fmt = sys.argv[ind + 1]
@@ -122,10 +116,10 @@ def main():
     all_data['samples'] = con.tables.get('samples', None)
     all_data['sites'] = con.tables.get('sites', None)
     all_data['locations'] = con.tables.get('locations', None)
-    if onedir:
-        locations = con.tables['locations'].df.index.unique()
-        dirlist = [loc for loc in locations if cb.not_null(loc) and loc != 'nan']
-
+    locations = con.tables['locations'].df.index.unique()
+    dirlist = [loc for loc in locations if cb.not_null(loc) and loc != 'nan']
+    if not dirlist:
+        dirlist = ["./"]
 
     # go through all data by location
     # either use tmp_*.txt files to separate out by location
@@ -133,29 +127,28 @@ def main():
     for loc in dirlist:
         print('\nworking on: ', loc)
 
-        if onedir: # all info is in main directory, sort by location
-            def get_data(dtype, loc_name):
-                """
-                Extract data of type dtype for location loc_name.
-                Write tmp_dtype.txt files if possible.
-                """
-                if cb.not_null(all_data[dtype]):
-                    data_container = all_data[dtype]
-                    data_df = data_container.df[data_container.df['location'] == loc_name]
-                    data = data_container.convert_to_pmag_data_list(df=data_df)
-                    res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
-                    if not res:
-                        return []
-                    return data
+        # all info is in main directory, sort by location
+        def get_data(dtype, loc_name):
+            """
+            Extract data of type dtype for location loc_name.
+            Write tmp_dtype.txt files if possible.
+            """
+            if cb.not_null(all_data[dtype]):
+                data_container = all_data[dtype]
+                data_df = data_container.df[data_container.df['location'] == loc_name]
+                data = data_container.convert_to_pmag_data_list(df=data_df)
+                res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
+                if not res:
+                    return []
+                return data
 
-            meas_data = get_data('measurements', loc)
-            spec_data = get_data('specimens', loc)
-            samp_data = get_data('samples', loc)
-            site_data = get_data('sites', loc)
-            location_data = get_data('locations', loc)
+        meas_data = get_data('measurements', loc)
+        spec_data = get_data('specimens', loc)
+        samp_data = get_data('samples', loc)
+        site_data = get_data('sites', loc)
+        location_data = get_data('locations', loc)
 
-
-        elif loc == "./":  # if you can't sort by location, do everything together
+        if loc == "./":  # if you can't sort by location, do everything together
             try:
                 meas_data = con.tables['measurements'].convert_to_pmag_data_list()
             except KeyError:
@@ -172,17 +165,11 @@ def main():
                 site_data = con.tables['sites'].convert_to_pmag_data_list()
             except KeyError:
                 site_data = None
-        else: # if there are Location_* directories, change WD for each location
-            os.chdir(loc)
 
         crd = 's'
         if samp_file in filelist:  # find coordinate systems
-            if onedir:
-                samps = samp_data
-                file_type = "samples"
-            else:
-                print('-I- found sample file', samp_file)
-                samps, file_type = pmag.magic_read(samp_file)  # read in data
+            samps = samp_data
+            file_type = "samples"
             # get all non blank sample orientations
             Srecs = pmag.get_dictitem(samps, azimuth_key, '', 'F')
             if len(Srecs) > 0:
@@ -195,14 +182,8 @@ def main():
                 print('-I- No sample data found')
         if meas_file in filelist:  # start with measurement data
             print('working on measurements data')
-            if onedir:
-                data = meas_data
-                file_type = 'measurements'
-            else:
-                data, file_type = pmag.magic_read(meas_file)  # read in data
-            if loc == './' and len(dirlist) > 1:
-                # get all the blank location names from data file
-                data = pmag.get_dictitem(data, loc_key, '', 'T')
+            data = meas_data
+            file_type = 'measurements'
             # looking for  zeq_magic possibilities
             # get all non blank method codes
             AFZrecs = pmag.get_dictitem(data, method_key, 'LT-AF-Z', 'has')
@@ -221,19 +202,13 @@ def main():
                     break
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
-                if onedir:
-                    CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd
-                else:
-                    CMD = 'zeq_magic.py -fsp specimens.txt -sav -fmt ' + fmt + ' -crd ' + crd
+                CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd
                 print(CMD)
                 info_log(CMD, loc)
                 os.system(CMD)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
-                if onedir:
-                    CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
-                else:
-                    CMD = 'thellier_magic.py -fsp specimens.txt -sav -fmt ' + fmt
+                CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
                 print(CMD)
                 info_log(CMD, loc)
                 os.system(CMD)
@@ -244,10 +219,7 @@ def main():
                 if missing:
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py")
                 else:
-                    if onedir:
-                        CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
-                    else:
-                        CMD = 'quick_hyst.py -f measurements.txt -sav -fmt ' + fmt
+                    CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
@@ -268,14 +240,8 @@ def main():
         # site data
         if results_file in filelist:
             print('-I- result file found', results_file)
-            if onedir:
-                data = site_data
-                file_type = 'sites'
-            else:
-                data, file_type = pmag.magic_read(results_file)  # read in data
-            if loc == './' and len(dirlist) > 1:
-                # get all the concatenated location names from data file
-                data = pmag.get_dictitem(data, loc_key, ':', 'has')
+            data = site_data
+            file_type = 'sites'
             print('-I- working on site directions')
             print('number of datapoints: ', len(data), loc)
             dec_key = 'dir_dec'
@@ -326,10 +292,7 @@ def main():
                         CRD = ' -crd g'
                     elif len(SiteDIs_s) > 0:
                         CRD = ' -crd s'
-                    if onedir:
-                        CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
-                    else:
-                        CMD = 'eqarea_magic.py -sav -fmt ' + fmt + CRD
+                    CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
@@ -341,10 +304,10 @@ def main():
             VGPs = pmag.get_dictitem(
                 SiteDIs, 'vgp_lat', "", 'F')  # are there any VGPs?
             if len(VGPs) > 0:  # YES!
-                if onedir:
-                    CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
-                else:
-                    CMD = 'vgpmap_magic.py -prj moll -res c -sym ro 5 -sav -fmt png'
+                CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
+                print(CMD)
+                info_log(CMD, loc, 'vgpmap_magic.py')
+                os.system(CMD)
             else:
                 print('-I- No vgps found')
 
@@ -353,14 +316,10 @@ def main():
             if site_data:
                 if int_key in site_data[0].keys():
                     infile = results_file
-                    if onedir:
-                        CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
-                    else:
-                        CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f ' + infile
+                    CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
-
 
                     ## should be able to do something like this instead of calling grab_magic_key
                     ##Selection = pmag.get_dictitem(site_data, int_key, '0.', 'has', float_to_int=True)
@@ -387,38 +346,23 @@ def main():
         ##
         if hyst_file in filelist:
             print('working on hysteresis', hyst_file)
-            if onedir:
-                data = spec_data
-                file_type = 'specimens'
-            else:
-                data, file_type = pmag.magic_read(hyst_file)  # read in data
-            if loc == './' and len(dirlist) > 1:
-                # get all the blank location names from data file
-                data = pmag.get_dictitem(data, loc_key, '', 'T')
+            data = spec_data
+            file_type = 'specimens'
             hdata = pmag.get_dictitem(data, hyst_bcr_key, '', 'F')
             hdata = pmag.get_dictitem(hdata, hyst_mr_key, '', 'F')
             hdata = pmag.get_dictitem(hdata, hyst_ms_key, '', 'F')
             # there are data for a dayplot
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
-                if onedir:
-                    CMD = 'dayplot_magic.py -f tmp_specimens.txt -sav -fmt ' + fmt
-                else:
-                    CMD = 'dayplot_magic.py -sav -fmt ' + fmt
+                CMD = 'dayplot_magic.py -f tmp_specimens.txt -sav -fmt ' + fmt
                 info_log(CMD, loc)
                 print(CMD)
             else:
                 print('no hysteresis data found')
         if aniso_file in filelist:  # do anisotropy plots if possible
             print('working on anisotropy', aniso_file)
-            if onedir:
-                data = spec_data
-                file_type = 'specimens'
-            else:
-                data, file_type = pmag.magic_read(aniso_file)  # read in data
-            if loc == './' and len(dirlist) > 1:
-                # get all the blank location names from data file
-                data = pmag.get_dictitem(data, loc_key, '', 'T')
+            data = spec_data
+            file_type = 'specimens'
 
             # make sure there is some anisotropy data
             if not data:
@@ -455,8 +399,6 @@ def main():
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
-        if not onedir and loc != './':
-            os.chdir('..')  # change working directories to each location
         os.system('rm tmp*.txt')
     if loc_file in filelist:
         data, file_type = pmag.magic_read(loc_file)  # read in location data
@@ -468,7 +410,7 @@ def main():
         if len(poles) > 0:  # YES!
             CMD = 'polemap_magic.py -sav -fmt png'
             print(CMD)
-            info_log(CMD, loc)
+            info_log(CMD, "all locations", "polemap_magic.py")
             os.system(CMD)
         else:
             print('-I- No poles found')
