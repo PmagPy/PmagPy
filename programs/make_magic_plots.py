@@ -315,30 +315,18 @@ def main():
             # is there any intensity data?
             if site_data:
                 if int_key in site_data[0].keys():
-                    infile = results_file
-                    CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
-                    print(CMD)
-                    info_log(CMD, loc)
-                    os.system(CMD)
+                    # old way, wasn't working right:
+                    #CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
+                    Selection = pmag.get_dictkey(site_data, int_key, dtype="f")
+                    with open('intensities.txt', 'w') as out:
+                        for rec in Selection:
+                            if rec != 0:
+                                out.write(str(rec * 1e6) + "\n")
 
-                    ## should be able to do something like this instead of calling grab_magic_key
-                    ##Selection = pmag.get_dictitem(site_data, int_key, '0.', 'has', float_to_int=True)
-
-                    CMD = "grab_magic_key.py -f tmp1.txt -key " + \
-                        int_key + " | awk '{print $1*1e6}' >tmp2.txt"
-                    print(CMD)
-                    info_log(CMD, loc)
-                    os.system(CMD)
-
-                    data, file_type = pmag.magic_read('tmp1.txt')  # read in data
-                    locations = pmag.get_dictkey(data, loc_key, "")
-                    if not locations:
-                        locations = ['']
-                    locations = set(locations)
-                    histfile = 'LO:_' + ":".join(locations) + \
+                    histfile = 'LO:_' + loc + \
                         '_TY:_intensities_histogram:_.' + fmt
                     # maybe run histplot.main here instead, so you can return an error message
-                    CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " + histfile
+                    CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
                     os.system(CMD)
                     info_log(CMD, loc)
                     print(CMD)
