@@ -2,6 +2,7 @@
 import sys
 import os
 import datetime
+import glob
 from pmagpy import pmag
 from pmagpy import contribution_builder as cb
 VERBOSE = True
@@ -387,7 +388,13 @@ def main():
                     print(CMD)
                     info_log(CMD, loc)
                     os.system(CMD)
-        os.system('rm tmp*.txt')
+        # remove temporary files
+        for fname in glob.glob('tmp*.txt'):
+            os.remove(fname)
+        try:
+            os.remove('intensities.txt')
+        except FileNotFoundError:
+            pass
     if loc_file in filelist:
         data, file_type = pmag.magic_read(loc_file)  # read in location data
         print('-I- working on pole map')
