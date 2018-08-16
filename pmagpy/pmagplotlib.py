@@ -46,6 +46,9 @@ if matplotlib.__version__ < '2.1':
 
 
 def poly(X, Y, deg):
+    """
+    deprecated
+    """
     return np.polyfit(X, Y, deg)
 
 
@@ -58,6 +61,10 @@ def draw_figs(FIGS):
     """
     Can only be used if matplotlib backend is set to TKAgg
     Does not play well with wxPython
+    Parameters
+    _________
+    FIGS : dictionary of figure names as keys and numbers as values
+    
     """
     is_win = True if sys.platform in ['win32', 'win64'] else False
     if not is_win:
@@ -93,7 +100,14 @@ def click(event):
 #
 
 
-def delticks(fig):  # deletes half the x-axis tick marks
+def delticks(fig):  
+    """
+     deletes half the x-axis tick marks
+    Parameters
+    ___________
+    fig : matplotlib figure number
+
+    """
     locs = fig.xaxis.get_ticklocs()
     nlocs = np.delete(locs, list(range(0, len(locs), 2)))
     fig.set_xticks(nlocs)
@@ -107,6 +121,11 @@ plt_num = 0
 def plot_init(fignum, w, h):
     """
     initializes plot number fignum with width w and height h
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    w : width
+    h : height
     """
     global fig_x_pos, fig_y_pos, plt_num
     dpi = 80
@@ -139,6 +158,12 @@ def plot3d_init(fignum):
 
 
 def plot_square(fignum):
+    """
+    makes the figure square (equal axes)
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    """
     plt.figure(num=fignum)
     plt.axis('equal')
 
@@ -149,6 +174,12 @@ def gaussfunc(y, ybar, sigma):
     with mean ybar,standard deviation sigma
     uses expression 7.1.26 from Abramowitz & Stegun
     accuracy better than 1.5e-7 absolute
+    Parameters
+    _________
+    y : input variable
+    ybar : mean
+    sigma : standard deviation
+    
     """
     x = old_div((y - ybar), (np.sqrt(2.) * sigma))
     t = old_div(1.0, (1.0 + .3275911 * abs(x)))
@@ -204,11 +235,17 @@ def qsnorm(p):
 
 # not used
 def plot_notes(fignum, Notes):
+    """
+    deprecated
+    """
     for note in Notes:
         plt.text(note['X'], note['Y'], note['text'])
 
 # not used
 def plot_pts(fignum, pts, x, y):
+    """
+    deprecated
+    """
     for pt in PTs:
         plt.scatter(pt[x], pt[y], marker=pt['marker'],
                       c=pt['color'], s=pt['size'])
@@ -220,6 +257,9 @@ def show(fig):
 
 # not used
 def plot_3d_pts(ax, PTs):
+    """
+    deprecated
+    """
     Xs, Ys, Zs = [], [], []
     for pt in PTs:
         Xs.append(pt['X'])
@@ -229,6 +269,9 @@ def plot_3d_pts(ax, PTs):
 
 # not used
 def plot_3d_lines(ax, line, sym):
+    """
+    deprecated
+    """
     Xs, Ys, Zs = [], [], []
     for l in line:
         Xs.append(l['X'])
@@ -238,6 +281,9 @@ def plot_3d_lines(ax, line, sym):
 
 # not used
 def plot_lines(fignum, line, sym, x, y):
+    """
+    deprecated
+    """
     X, Y = [], []
     for l in line:
         X.append(l[x])
@@ -246,6 +292,9 @@ def plot_lines(fignum, line, sym, x, y):
 
 
 def plot_xy(fignum, X, Y, **kwargs):
+    """
+    deprecated
+    """
     plt.figure(num=fignum)
 #    if 'poly' in kwargs.keys():
 #          coeffs=np.polyfit(X,Y,kwargs['poly'])
@@ -291,6 +340,9 @@ def plot_xy(fignum, X, Y, **kwargs):
 
 
 def plot_site(fignum, SiteRec, data, key):
+    """
+    deprecated
+    """
     print('Site mean data: ')
     print('   dec    inc n_lines n_planes kappa R alpha_95 comp coord')
     print(SiteRec['site_dec'], SiteRec['site_inc'], SiteRec['site_n_lines'], SiteRec['site_n_planes'], SiteRec['site_k'],
@@ -414,6 +466,13 @@ def plot_qq_unf(fignum, D, title, subplot=False,degrees=True):
 def plot_qq_exp(fignum, I, title, subplot=False):
     """
     plots data against an exponential distribution in 0=>90.
+    
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    I : data
+    title : plot title
+    subplot : boolean, if True plot as subplot with 1 row, two columns with fignum the plot number
     """
     if subplot == True:
         plt.subplot(1, 2, fignum)
@@ -467,6 +526,9 @@ def plot_qq_exp(fignum, I, title, subplot=False):
 def plot_net(fignum):
     """
     draws circle and tick marks for equal area projection
+    Parameters 
+    _________
+    fignum : matplotlib figure number
     """
 #
 # make the perimeter
@@ -526,6 +588,10 @@ def plot_di(fignum, DIblock):
     global globals
     """
     plots directions on equal area net
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    DIblock : nested list of dec, inc pairs
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
     plt.figure(num=fignum)
@@ -560,6 +626,11 @@ def plot_di_sym(fignum, DIblock, sym):
     global globals
     """
     plots directions on equal area net
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    DIblock : nested list of dec, inc pairs
+    sym : set matplotlib symbol (e.g., 'bo' for blue circles) 
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
     plt.figure(num=fignum)
@@ -599,6 +670,12 @@ def plot_di_sym(fignum, DIblock, sym):
 def plot_circ(fignum, pole, ang, col):
     """
     function to put a small circle on an equal area projection plot, fig,fignum
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    pole : dec,inc of center of circle
+    ang : angle of circle
+    col : 
     """
     plt.figure(num=fignum)
     D_c, I_c = pmag.circ(pole[0], pole[1], ang)
@@ -890,6 +967,8 @@ def plot_dir(ZED, pars, datablock, angle):
     """
     function to put the great circle on the equal area projection
     and plot start and end points of calculation
+    
+    DEPRECATED
     """
 #
 # find start and end points from datablock
@@ -1245,6 +1324,9 @@ def plot_az(ZED, araiblock, zijdblock, s, units):
 
 # not used
 def plot_shaw(SHAW, shawblock, zijdblock, field, s):
+    """
+    deprecated
+    """
     angle = zijdblock[0][1]
     plot_zij(SHAW['zijd'], zijdblock, angle, s)
     NRM, TRM, ARM1, ARM2 = shawblock[0], shawblock[1], shawblock[2], shawblock[3]
@@ -1313,6 +1395,9 @@ def plot_shaw(SHAW, shawblock, zijdblock, field, s):
 
 
 def plot_b(Figs, araiblock, zijdblock, pars):
+    """
+    deprecated
+    """
     angle = zijdblock[0][1]
     plotblock = []
     Dir, zx, zy, zz, ax, ay = [], [], [], [], [], []
@@ -1381,6 +1466,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
 def plot_slnp(fignum, SiteRec, datablock, key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
+    deprecated
     """
 # make the stereonet
     plt.figure(num=fignum)
@@ -1500,7 +1586,12 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
 
 def plot_eq(fignum, DIblock, s):
     """
-    plots directions
+    plots directions on eqarea projection
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    DIblock : nested list of dec/inc pairs
+    s : specimen name
     """
 # make the stereonet
     plt.figure(num=fignum)
@@ -1522,6 +1613,12 @@ def plot_eq(fignum, DIblock, s):
 def plot_eq_sym(fignum, DIblock, s, sym):
     """
     plots directions with specified symbol
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    DIblock : nested list of dec/inc pairs
+    s : specimen name
+    sym : matplotlib symbol (e.g., 'bo' for blue circle)
     """
 # make the stereonet
     plt.figure(num=fignum)
@@ -1634,6 +1731,13 @@ def save_plots(Figs, filenames, **kwargs):
 def plot_evec(fignum, Vs, symsize, title):
     """
     plots eigenvector directions of S vectors
+  
+    Paramters
+    ________
+    fignum : matplotlib figure number
+    Vs : nested list of eigenvectors
+    symsize : size in pts for symbol
+    title : title for plot
     """
 #
     plt.figure(num=fignum)
@@ -1659,7 +1763,15 @@ def plot_evec(fignum, Vs, symsize, title):
 
 def plot_ell(fignum, pars, col, lower, plot):
     """
-    function to calculate points on an ellipse about Pdec,Pdip with angle beta,gamma
+    function to calcualte/plot points on an ellipse about Pdec,Pdip with angle beta,gamma
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    pars : list of [Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc ]
+         where P is direction, Bdec,Binc are beta direction, and Gdec,Ginc are gamma direction
+    col : color for ellipse
+    lower : boolean, if True, lower hemisphere projection
+    plot : boolean, if False, return the points, if False, make the plot 
     """
     plt.figure(num=fignum)
     rad = old_div(np.pi, 180.)
@@ -1739,6 +1851,7 @@ fig_y_pos = 25
 
 
 def vertical_plot_init(fignum, w, h):
+    
     # this is same as plot_init, but stacks things  vertically
     global fig_y_pos
     dpi = 80
@@ -1750,9 +1863,14 @@ def vertical_plot_init(fignum, w, h):
 
 
 def plot_strat(fignum, data, labels):
-    #
-    # plots a time/depth series
-    #
+    """
+     plots a time/depth series
+     Parameters
+     _________
+     fignum : matplotlib figure number
+     data : nested list of [X,Y] pairs
+     labels : [xlabel, ylabel, title]
+    """
     vertical_plot_init(fignum, 10, 3)
     xlab, ylab, title = labels[0], labels[1], labels[2]
     X, Y = [], []
@@ -1815,6 +1933,16 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
 
 
 def plot_hs(fignum, Ys, c, ls):
+    """
+    plots  horizontal lines at Ys values
+
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    Ys : list of Y values for lines
+    c : color for lines
+    ls : linestyle for lines
+    """
     fig = plt.figure(num=fignum)
     for yv in Ys:
         bounds = plt.axis()
@@ -1823,6 +1951,16 @@ def plot_hs(fignum, Ys, c, ls):
 
 
 def plot_vs(fignum, Xs, c, ls):
+    """
+    plots  vertical lines at Xs values
+
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    Xs : list of X values for lines
+    c : color for lines
+    ls : linestyle for lines
+    """
     fig = plt.figure(num=fignum)
     for xv in Xs:
         bounds = plt.axis()
@@ -1831,6 +1969,15 @@ def plot_vs(fignum, Xs, c, ls):
 
 
 def plot_ts(fignum, dates, ts):
+    """
+    plot the geomagnetic polarity time scale
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    dates : bounding dates for plot
+    ts : time scale ck95, gts04, or gts12
+    """
     vertical_plot_init(fignum, 10, 3)
     TS, Chrons = pmag.get_ts(ts)
     p = 1
@@ -1992,6 +2139,14 @@ def plot_hys(fignum, B, M, s):
 def plot_delta_m(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
+    
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    B : array of field values
+    DM : array of difference between top and bottom curves in hysteresis loop
+    Bcr : coercivity of remanence
+    s : specimen name
     """
     plt.figure(num=fignum)
     plt.clf()
@@ -2010,6 +2165,13 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
 def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
     """
     function to plot d (Delta M)/dB  curves
+    
+    Parameters 
+    __________
+    fignum : matplotlib figure number
+    Bdm : change in field
+    Ddelta M : change in delta M
+    s : specimen name
     """
     plt.figure(num=fignum)
     plt.clf()
@@ -2092,6 +2254,14 @@ def plot_hdd(HDD, B, M, s):
 def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
+    
+    Parameters 
+    _________
+    fignum : matplotlib figure number
+    BcrBc : list or array ratio of coercivity of remenance to coercivity
+    S : list or array ratio of saturation remanence to saturation magnetization (squareness)
+    sym : matplotlib symbol (e.g., 'rs' for red squares)
+    **kwargs :  dictionary with {'names':[list of names for symbols]}
     """
     plt.figure(num=fignum)
     plt.plot(BcrBc, S, sym)
@@ -2139,6 +2309,13 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
 def plot_s_bc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
+    
+    Parameters 
+    __________
+    fignum : matplotlib figure number
+    Bc : list or array coercivity values
+    S : list or array of ratio of saturation remanence to saturation
+    sym : matplotlib symbol (e.g., 'g^' for green triangles)
     """
     plt.figure(num=fignum)
     plt.plot(Bc, S, sym)
@@ -2153,6 +2330,13 @@ def plot_s_bc(fignum, Bc, S, sym):
 def plot_s_bcr(fignum, Bcr, S, sym):
     """
     function to plot Squareness,Coercivity of remanence
+    
+    Parameters 
+    __________
+    fignum : matplotlib figure number
+    Bcr : list or array coercivity of remenence values
+    S : list or array of ratio of saturation remanence to saturation
+    sym : matplotlib symbol (e.g., 'g^' for green triangles)
     """
     plt.figure(num=fignum)
     plt.plot(Bcr, S, sym)
@@ -2178,6 +2362,7 @@ def plot_bcr(fignum, Bcr1, Bcr2):
 def plot_hpars(HDD, hpars, sym):
     """
     function to plot hysteresis parameters
+    deprecated
     """
     plt.figure(num=HDD['hyst'])
     X, Y = [], []
@@ -2212,7 +2397,15 @@ def plot_hpars(HDD, hpars, sym):
 
 
 def plot_irm(fignum, B, M, title):
-    """ function to plot IRM backfield curves
+    """ 
+    function to plot IRM backfield curves
+    
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    B : list or array of field values
+    M : list or array of magnetizations
+    title : string title for plot
     """
     rpars = {}
     Mnorm = []
@@ -2277,7 +2470,8 @@ def plot_irm(fignum, B, M, title):
 
 
 def plot_xtf(fignum, XTF, Fs, e, b):
-    """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
+    """ 
+    function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
     plt.figure(num=fignum)
     plt.xlabel('Temperature (K)')
