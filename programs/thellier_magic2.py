@@ -313,7 +313,7 @@ def main():
                             print('%i     %i %7.1f %7.1f %8.3e ' % (
                                 recnum, plotrec[0]-273, plotrec[1], plotrec[2], plotrec[3]))
                         recnum += 1
-                pmagplotlib.plot_az(AZD, araiblock, zijdblock, s, units[0])
+                pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock, s, units[0])
                 if verbose:
                     pmagplotlib.draw_figs(AZD)
                 if len(tdsrecs) > 2:  # a TDS experiment
@@ -495,7 +495,7 @@ def main():
                         if ans == "d":
                             save_redo(PriorRecs, inspec)
                             CurrRec = []
-                            pmagplotlib.plot_az(
+                            pmagplotlib.plot_arai_zij(
                                 AZD, araiblock, zijdblock, s, units[0])
                             if verbose:
                                 pmagplotlib.draw_figs(AZD)
@@ -631,7 +631,7 @@ def main():
                             PmagSpecRec["magic_method_codes"] = methods[:-1]
                             PmagSpecRec["specimen_description"] = comment
                             PmagSpecRec["magic_software_packages"] = version_num
-                            pmagplotlib.plot_az(
+                            pmagplotlib.plot_arai_zij(
                                 AZD, araiblock, zijdblock, s, units[0])
                             pmagplotlib.plot_b(AZD, araiblock, zijdblock, pars)
                             if verbose:

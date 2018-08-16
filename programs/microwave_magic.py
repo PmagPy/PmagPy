@@ -272,7 +272,7 @@ def main():
                        print("Watts  Delta")
                        for delta in DeltaChecks:
                            print('%i %7.1f ' % (delta[0],delta[1]))
-               pmagplotlib.plot_az(AZD,araiblock,zijdblock,s,units[0])
+               pmagplotlib.plot_arai_zij(AZD,araiblock,zijdblock,s,units[0])
                if inspec !="":
                    if pmagplotlib.verbose: print('Looking up saved interpretation....')
                    found = 0
@@ -361,7 +361,7 @@ def main():
                        if ans=="d":
                            save_redo(PriorRecs,inspec)
                            CurrRec=[]
-                           pmagplotlib.plot_az(AZD,araiblock,zijdblock,s,units[0])
+                           pmagplotlib.plot_arai_zij(AZD,araiblock,zijdblock,s,units[0])
                            pmagplotlib.draw_figs(AZD)
                        if ans=='a':
                            files={}
@@ -450,7 +450,7 @@ def main():
                            PmagSpecRec["magic_method_codes"]=methods[:-1]
                            PmagSpecRec["specimen_description"]=comment
                            PmagSpecRec["magic_software_packages"]=version_num
-                           pmagplotlib.plot_az(AZD,araiblock,zijdblock,s,units[0])
+                           pmagplotlib.plot_arai_zij(AZD,araiblock,zijdblock,s,units[0])
                            pmagplotlib.plot_b(AZD,araiblock,zijdblock,pars)
                            if len(trmblock)>2:
                                blab=field
