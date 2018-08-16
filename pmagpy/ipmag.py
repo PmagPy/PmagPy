@@ -8597,9 +8597,9 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
     input_dir_path : str
         input file directory IF different from dir_path, default ""
     spec_file : str
-        output specimen file name, default "specimens.txt"
+        input/output specimen file name, default "specimens.txt"
     samp_file : str
-        output sample file name, default "samples.txt"
+        input sample file name, default "samples.txt"
     data_model_num : number
         MagIC data model [2, 3], default 3
     coord : str
@@ -8629,7 +8629,6 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
 
     # get full file names
     meas_file = pmag.resolve_file_name(infile, input_dir_path)
-    print(meas_file)
     spec_file = pmag.resolve_file_name(spec_file, input_dir_path)
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
 
