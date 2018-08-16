@@ -425,7 +425,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 # AGM magic conversion
 
 
-def agm(agm_file, dir_path=".", input_dir_path="", 
+def agm(agm_file, dir_path=".", input_dir_path="",
         meas_outfile="", spec_outfile="", samp_outfile="",
         site_outfile="", loc_outfile="", spec_infile="",
         samp_infile="", site_infile="",
@@ -5683,18 +5683,18 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
         ANI: anisotropy experiment
         D: double AF demag
         G: triple AF demag (GRM protocol)
-    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3  
-    arm_labfield : dc field for ARM in tesla 
+    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3
+    arm_labfield : dc field for ARM in tesla
     peakfield : peak af field for ARM
     trm_peakT : peak temperature for TRM
-    labfield : lab field in tesla for TRM 
+    labfield : lab field in tesla for TRM
     phi, theta : direction of lab field
     mass_or_vol : is the parameter in the file mass 'm' or volume 'v'
     noave : boolean, if False, average replicates
     Effects
     _______
     creates MagIC formatted tables
-    """ 
+    """
     # initialize some stuff
     dec = [315, 225, 180, 135, 45, 90, 270, 270, 270, 90, 180, 180, 0, 0, 0]
     inc = [0, 0, 0, 0, 0, -45, -45, 0, 45, 45, 45, -45, -90, -45, 45]
@@ -7270,11 +7270,11 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     syn : if True, this is a synthetic specimen
     syntype :  sample material type
     instrument : instrument on which the measurements were made (e.g., "SIO-2G")
-    labfield : lab field in microtesla for TRM 
+    labfield : lab field in microtesla for TRM
     phi, theta : direction of lab field [-1,-1 for anisotropy experiments]
     peakfield : peak af field in mT for ARM
     specnum : number of terminal characters distinguishing specimen from sample
-    samp_con :  sample/site naming convention 
+    samp_con :  sample/site naming convention
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
@@ -7286,7 +7286,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             "7-Z" [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
-    
+
             "8" synthetic - has no site name
             "9" ODP naming convention
     location : location name for study
@@ -7312,9 +7312,9 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             if you use a zerofield step then no need to specify the cooling rate for the zerofield
             It is important to add to the command line the -A option so the measurements will not be averaged.
             But users need to make sure that there are no duplicate measurements in the file
-    cooling_rates :  cooling rate in K/sec for cooling rate dependence studies (K/minutes) 
-            in comma separated list for each cooling rate (e.g., "43.6,1.3,43.6")   
-    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3 
+    cooling_rates :  cooling rate in K/sec for cooling rate dependence studies (K/minutes)
+            in comma separated list for each cooling rate (e.g., "43.6,1.3,43.6")
+    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3
         the fast and slow experiments in comma separated string (e.g., fast:  43.6 K/min,  slow:  1.3 K/min)
     timezone : timezone of date/time string in comment string
     user : analyst
