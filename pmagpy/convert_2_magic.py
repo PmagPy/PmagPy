@@ -5660,6 +5660,41 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
          specnum=0, samp_con="1", location="unknown", codelist="",
          coil="", arm_labfield=50e-6, trm_peakT=873., peakfield=0,
          labfield=0, phi=0, theta=0, mass_or_vol="v", noave=0):
+    """
+    converts Lamont Doherty Earth Observatory measurement files to MagIC data base model 3.0
+
+    Parameters
+    _________
+    magfile : input measurement file
+    output_dir_path : output directory path
+    input_dir_path : input directory path
+    meas_file : output file measurement file name
+    spec_file : output file specimen file name
+    samp_file : output file sample file name
+    site_file : output file site file name
+    loc_file : output file location file name
+    codelist : colon delimited string of lab protocols (e.g., codelist="AF")
+        AF:  af demag
+        T: thermal including thellier but not trm acquisition
+        S: Shaw method
+        I: IRM (acquisition)
+        N: NRM only
+        TRM: trm acquisition
+        ANI: anisotropy experiment
+        D: double AF demag
+        G: triple AF demag (GRM protocol)
+    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3  
+    arm_labfield : dc field for ARM in tesla 
+    peakfield : peak af field for ARM
+    trm_peakT : peak temperature for TRM
+    labfield : lab field in tesla for TRM 
+    phi, theta : direction of lab field
+    mass_or_vol : is the parameter in the file mass 'm' or volume 'v'
+    noave : boolean, if False, average replicates
+    Effects
+    _______
+    creates MagIC formatted tables
+    """ 
     # initialize some stuff
     dec = [315, 225, 180, 135, 45, 90, 270, 270, 270, 90, 180, 180, 0, 0, 0]
     inc = [0, 0, 0, 0, 0, -45, -45, 0, 45, 45, 45, -45, -90, -45, 45]
@@ -7216,8 +7251,78 @@ def sio(mag_file, dir_path=".", input_dir_path="",
         samp_infile="", institution="", syn=False, syntype="", instrument="",
         labfield=0, phi=0, theta=0, peakfield=0,
         specnum=0, samp_con='1', location="unknown", lat="", lon="",
-        noave=False, codelist="", coil="", cooling_rates="", timezone="UTC",
+        noave=False, codelist="", cooling_rates="", coil='', timezone="UTC",
         user=""):
+    """
+    converts Scripps Institution of Oceanography measurement files to MagIC data base model 3.0
+
+    Parameters
+    _________
+    magfile : input measurement file
+    dir_path : output directory path
+    input_dir_path : input directory path
+    meas_file : output file measurement file name
+    spec_file : output file specimen file name
+    samp_file : output file sample file name
+    site_file : output file site file name
+    loc_file : output file location file name
+    samp_infile : output file to append to
+    syn : if True, this is a synthetic specimen
+    syntype :  sample material type
+    instrument : instrument on which the measurements were made (e.g., "SIO-2G")
+    labfield : lab field in tesla for TRM 
+    phi, theta : direction of lab field
+    peakfield : peak af field for ARM
+    specnum : number of terminal characters distinguishing specimen from sample
+    samp_con :  sample/site naming convention 
+            "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "4-Z" XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            "5" site name same as sample
+            "6" site is entered under a separate column NOT CURRENTLY SUPPORTED
+            "7-Z" [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+    
+            "8" synthetic - has no site name
+            "9" ODP naming convention
+    location : location name for study
+    lat : latitude of sites
+    lon : longitude of sites
+    noave : boolean, if False, average replicates
+    codelist : colon delimited string of lab protocols (e.g., codelist="AF")
+        AF:  af demag
+        T: thermal including thellier but not trm acquisition
+        S: Shaw method
+        I: IRM (acquisition)
+        N: NRM only
+        TRM: trm acquisition
+        ANI: anisotropy experiment
+        D: double AF demag
+        G: triple AF demag (GRM protocol)
+        CR: cooling rate experiment.
+            The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+            where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+            XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+            syntax in sio_magic is: -LP CR xxx,yyy,zzz,..... xxx -A
+            where xxx, yyy, zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+            if you use a zerofield step then no need to specify the cooling rate for the zerofield
+            It is important to add to the command line the -A option so the measurements will not be averaged.
+            But users need to make sure that there are no duplicate measurements in the file
+    cooling_rates :  cooling rate in K/sec for cooling rate dependence studies (K/minutes) 
+            in comma separated list for each cooling rate (e.g., "43.6,1.3,43.6")   
+    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3 
+        the fast and slow experiments in comma separated string (e.g., fast:  43.6 K/min,  slow:  1.3 K/min)
+    timezone : timezone of date/time string in comment string
+    user : analyst
+
+    Effects
+    _______
+    creates MagIC formatted tables
+    """
 
     # initialize some stuff
     methcode = "LP-NO"

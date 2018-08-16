@@ -1206,7 +1206,7 @@ def plot_np(fignum, indata, s, units):
     plt.axhline(y=0, xmin=0, xmax=1, color='k')
     plt.axvline(x=0, ymin=0, ymax=1, color='k')
 
-def plotAZ(ZED, araiblock, zijdblock, s, units):
+def plot_az(ZED, araiblock, zijdblock, s, units):
     """
     calls the four plotting programs for Thellier-Thellier experiments
 
