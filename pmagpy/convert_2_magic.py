@@ -7270,9 +7270,9 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     syn : if True, this is a synthetic specimen
     syntype :  sample material type
     instrument : instrument on which the measurements were made (e.g., "SIO-2G")
-    labfield : lab field in tesla for TRM 
-    phi, theta : direction of lab field
-    peakfield : peak af field for ARM
+    labfield : lab field in microtesla for TRM 
+    phi, theta : direction of lab field [-1,-1 for anisotropy experiments]
+    peakfield : peak af field in mT for ARM
     specnum : number of terminal characters distinguishing specimen from sample
     samp_con :  sample/site naming convention 
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
