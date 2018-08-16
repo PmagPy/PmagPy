@@ -258,7 +258,7 @@ def main():
             newlons.append(lon)
         Opts['pltgrid'] = -1  # turns off replotting of meridians and parallels
         for pole in Poles:
-            Rlats, Rlons = pmag.PTrot(pole, newlats, newlons)
+            Rlats, Rlons = pmag.pt_rot(pole, newlats, newlons)
             Opts['sym'] = sym
             Opts['symsize'] = 3
             if SEQ == 0:
@@ -285,7 +285,7 @@ def main():
         for pole in Poles:
             Opts['sym'] = sym
             Opts['symsize'] = symsize
-            Rlats, Rlons = pmag.PTrot(pole, [pt_lat], [pt_lon])
+            Rlats, Rlons = pmag.pt_rot(pole, [pt_lat], [pt_lon])
             print(Rlats, Rlons)
             pmagplotlib.plot_map(FIG['map'], Rlats, Rlons, Opts)
             if plot == 0 and not IS_WIN:

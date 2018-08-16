@@ -4956,7 +4956,7 @@ def doprinc(data):
     return ppars
 
 
-def PTrot(EP, Lats, Lons):
+def pt_rot(EP, Lats, Lons):
     """
     Rotates points on a globe by an Euler pole rotation using method of
     Cox and Hart 1986, box 7-3.

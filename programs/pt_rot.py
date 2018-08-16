@@ -80,7 +80,7 @@ def main():
         if '-ff' in sys.argv:
             pt_lat,pt_lon=float(rec[1]),float(rec[0])
             for pole in Poles:
-                ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                ptrot= pmag.pt_rot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]
                 pt_lon=ptrot[1][0]
             if ofile=="":
@@ -104,19 +104,19 @@ def main():
             ptrot=[[pt_lat],[pt_lon]]
             if pt['cont']=='ib':
                 pole=frp.get_pole(pt['cont'],age)
-                ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                ptrot= pmag.pt_rot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]
                 pt_lon=ptrot[1][0]
                 pt['cont']='eur'
             if pt['cont']!='saf':
                 pole1=frp.get_pole(pt['cont'],age)
-                ptrot= pmag.PTrot(pole1,[pt_lat],[pt_lon])
+                ptrot= pmag.pt_rot(pole1,[pt_lat],[pt_lon])
                 if 'dcont' in list(pt.keys()):
                     pt_lat=ptrot[0][0]
                     pt_lon=ptrot[1][0]
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
-                    ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                    ptrot= pmag.pt_rot(pole,[pt_lat],[pt_lon])
                 if ofile=="":
                     print(ptrot[1][0], ptrot[0][0])
                 else:
@@ -126,7 +126,7 @@ def main():
                 if 'dcont' in list(pt.keys()):
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
-                    ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                    ptrot= pmag.pt_rot(pole,[pt_lat],[pt_lon])
                     print(ptrot)
                     if ofile=="":
                         print(ptrot[1][0], ptrot[0][0]) 

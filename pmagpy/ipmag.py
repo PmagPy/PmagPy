@@ -5631,31 +5631,15 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
 
-def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=3):
+def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=3):
     """
-    azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
-
-    specify sampling method codes as a colon delimited string:  [default is: FS-FD]
-             FS-FD field sampling done with a drill
-             FS-H field sampling done with hand samples
-             FS-LOC-GPS  field location done with GPS
-             FS-LOC-MAP  field location done with map
-             SO-POM   a Pomeroy orientation device was used
-             SO-ASC   an ASC orientation device was used
-             SO-MAG   orientation with magnetic compass
-
-    INPUT FORMAT
-        Input files must be space delimited:
-            Samp  Az Dip Strike Dip
-        Orientation convention:
-             Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
-                e.g. field_dip is degrees from horizontal of drill direction
-
-         Magnetic declination convention:
-             Az is already corrected in file
-
-       Sample naming convention:
+    
+    Parameters
+    __________
+        orient_file : name of azdip formatted input file
+        samp_file : name of samples.txt formatted output file
+        samp_con :  integer of sample orientation convention
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
@@ -5665,16 +5649,37 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
             [5] site name same as sample
             [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-            NB: all others you will have to customize your self
-                 or e-mail ltauxe@ucsd.edu for help.
+
+        method_codes :  colon delimited string with the following as desired  
+             FS-FD field sampling done with a drill
+             FS-H field sampling done with hand samples
+             FS-LOC-GPS  field location done with GPS
+             FS-LOC-MAP  field location done with map
+             SO-POM   a Pomeroy orientation device was used
+             SO-ASC   an ASC orientation device was used
+             SO-MAG   orientation with magnetic compass
+        location_name : location of samples
+        append : boolean.  if True, append to the output file
+        output_dir : path to output file directory
+        input_dir : path to input file directory
+        data_model : MagIC data model.  
+
+    INPUT FORMAT
+        Input files must be space delimited:
+            Samp  Az Dip Strike Dip
+        Orientation convention:
+             Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+                e.g. field_dip is degrees from horizontal of drill direction
+         Magnetic declination convention:
+             Az is already corrected in file
 
     """
     #
     # initialize variables
     #
     data_model = int(data_model)
-    if (data_model == 3) and (samp_file == "er_samples.txt"):
-        samp_file = "samples.txt"
+    if (data_model != 3) and (samp_file == "samples.txt"):
+        samp_file = "er_samples.txt"
     DEBUG = 0
     version_num = pmag.get_version()
     or_con, corr = "3", "1"
