@@ -45,13 +45,6 @@ if matplotlib.__version__ < '2.1':
 
 
 
-def poly(X, Y, deg):
-    """
-    deprecated
-    """
-    return np.polyfit(X, Y, deg)
-
-
 def show_fig(fig):
     plt.figure(fig)
     plt.show();
@@ -64,7 +57,7 @@ def draw_figs(FIGS):
     Parameters
     _________
     FIGS : dictionary of figure names as keys and numbers as values
-    
+
     """
     is_win = True if sys.platform in ['win32', 'win64'] else False
     if not is_win:
@@ -100,7 +93,7 @@ def click(event):
 #
 
 
-def delticks(fig):  
+def delticks(fig):
     """
      deletes half the x-axis tick marks
     Parameters
@@ -179,7 +172,7 @@ def gaussfunc(y, ybar, sigma):
     y : input variable
     ybar : mean
     sigma : standard deviation
-    
+
     """
     x = old_div((y - ybar), (np.sqrt(2.) * sigma))
     t = old_div(1.0, (1.0 + .3275911 * abs(x)))
@@ -233,115 +226,15 @@ def qsnorm(p):
             x = -x
     return x
 
-# not used
-def plot_notes(fignum, Notes):
-    """
-    deprecated
-    """
-    for note in Notes:
-        plt.text(note['X'], note['Y'], note['text'])
-
-# not used
-def plot_pts(fignum, pts, x, y):
-    """
-    deprecated
-    """
-    for pt in PTs:
-        plt.scatter(pt[x], pt[y], marker=pt['marker'],
-                      c=pt['color'], s=pt['size'])
-
 
 def show(fig):
     plt.figure(fig)
     plt.show()
 
-# not used
-def plot_3d_pts(ax, PTs):
-    """
-    deprecated
-    """
-    Xs, Ys, Zs = [], [], []
-    for pt in PTs:
-        Xs.append(pt['X'])
-        Ys.append(pt['Y'])
-        Zs.append(pt['Z'])
-    ax.scatter(Xs, Ys, Zs, marker=pt['marker'], c=pt['color'], s=pt['size'])
-
-# not used
-def plot_3d_lines(ax, line, sym):
-    """
-    deprecated
-    """
-    Xs, Ys, Zs = [], [], []
-    for l in line:
-        Xs.append(l['X'])
-        Ys.append(l['Y'])
-        Zs.append(l['Z'])
-    ax.plot(Xs, Ys, Zs, sym)
-
-# not used
-def plot_lines(fignum, line, sym, x, y):
-    """
-    deprecated
-    """
-    X, Y = [], []
-    for l in line:
-        X.append(l[x])
-        Y.append(l[y])
-    plt.plot(X, Y, sym)
-
-
-def plot_xy(fignum, X, Y, **kwargs):
-    """
-    deprecated
-    """
-    plt.figure(num=fignum)
-#    if 'poly' in kwargs.keys():
-#          coeffs=np.polyfit(X,Y,kwargs['poly'])
-#          polynomial=np.poly1d(coeffs)
-#          xs=np.arange(np.min(X),np.max(X))
-#          ys=polynomial(xs)
-#          plt.plot(xs,ys)
-#          print coefs
-#          print polynomial
-    if 'sym' in list(kwargs.keys()):
-        sym = kwargs['sym']
-    else:
-        sym = 'ro'
-    if 'lw' in list(kwargs.keys()):
-        lw = kwargs['lw']
-    else:
-        lw = 1
-    if 'xerr' in list(kwargs.keys()):
-        plt.errorbar(X, Y, fmt=sym, xerr=kwargs['xerr'])
-    if 'yerr' in list(kwargs.keys()):
-        plt.errorbar(X, Y, fmt=sym, yerr=kwargs['yerr'])
-    if 'axis' in list(kwargs.keys()):
-        if kwargs['axis'] == 'semilogx':
-            plt.semilogx(X, Y, marker=sym[1], markerfacecolor=sym[0])
-        if kwargs['axis'] == 'semilogy':
-            plt.semilogy(X, Y, marker=sym[1], markerfacecolor=sym[0])
-        if kwargs['axis'] == 'loglog':
-            plt.loglog(X, Y, marker=sym[1], markerfacecolor=sym[0])
-    else:
-        plt.plot(X, Y, sym, linewidth=lw)
-    if 'xlab' in list(kwargs.keys()):
-        plt.xlabel(kwargs['xlab'])
-    if 'ylab' in list(kwargs.keys()):
-        plt.ylabel(kwargs['ylab'])
-    if 'title' in list(kwargs.keys()):
-        plt.title(kwargs['title'])
-    if 'xmin' in list(kwargs.keys()):
-        plt.axis([kwargs['xmin'], kwargs['xmax'],
-                    kwargs['ymin'], kwargs['ymax']])
-    if 'notes' in list(kwargs.keys()):
-        for note in kwargs['notes']:
-            plt.text(note[0], note[1], note[2])
-
 
 def plot_site(fignum, SiteRec, data, key):
     """
-    deprecated
+    deprecated (used in ipmag)
     """
     print('Site mean data: ')
     print('   dec    inc n_lines n_planes kappa R alpha_95 comp coord')
@@ -466,7 +359,7 @@ def plot_qq_unf(fignum, D, title, subplot=False,degrees=True):
 def plot_qq_exp(fignum, I, title, subplot=False):
     """
     plots data against an exponential distribution in 0=>90.
-    
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -526,7 +419,7 @@ def plot_qq_exp(fignum, I, title, subplot=False):
 def plot_net(fignum):
     """
     draws circle and tick marks for equal area projection
-    Parameters 
+    Parameters
     _________
     fignum : matplotlib figure number
     """
@@ -630,7 +523,7 @@ def plot_di_sym(fignum, DIblock, sym):
     _________
     fignum : matplotlib figure number
     DIblock : nested list of dec, inc pairs
-    sym : set matplotlib symbol (e.g., 'bo' for blue circles) 
+    sym : set matplotlib symbol (e.g., 'bo' for blue circles)
     """
     X_down, X_up, Y_down, Y_up = [], [], [], []  # initialize some variables
     plt.figure(num=fignum)
@@ -675,7 +568,7 @@ def plot_circ(fignum, pole, ang, col):
     fignum : matplotlib figure number
     pole : dec,inc of center of circle
     ang : angle of circle
-    col : 
+    col :
     """
     plt.figure(num=fignum)
     D_c, I_c = pmag.circ(pole[0], pole[1], ang)
@@ -967,8 +860,8 @@ def plot_dir(ZED, pars, datablock, angle):
     """
     function to put the great circle on the equal area projection
     and plot start and end points of calculation
-    
-    DEPRECATED
+
+    DEPRECATED (used in zeq_magic)
     """
 #
 # find start and end points from datablock
@@ -1285,7 +1178,7 @@ def plot_np(fignum, indata, s, units):
     plt.axhline(y=0, xmin=0, xmax=1, color='k')
     plt.axvline(x=0, ymin=0, ymax=1, color='k')
 
-def plot_az(ZED, araiblock, zijdblock, s, units):
+def plot_arai_zij(ZED, araiblock, zijdblock, s, units):
     """
     calls the four plotting programs for Thellier-Thellier experiments
 
@@ -1322,81 +1215,10 @@ def plot_az(ZED, araiblock, zijdblock, s, units):
     plot_zij(ZED['zijd'], zijdblock, angle, s, norm)
     plot_np(ZED['deremag'], araiblock, s, units)
 
-# not used
-def plot_shaw(SHAW, shawblock, zijdblock, field, s):
-    """
-    deprecated
-    """
-    angle = zijdblock[0][1]
-    plot_zij(SHAW['zijd'], zijdblock, angle, s)
-    NRM, TRM, ARM1, ARM2 = shawblock[0], shawblock[1], shawblock[2], shawblock[3]
-    TRM_ADJ = shawblock[4]
-    plt.figure(num=SHAW['nrmtrm'])
-    plt.clf()
-    if not isServer:
-        plt.figtext(.02, .01, version_num)
-    X, Y, recnum = [], [], 0
-    Nmax = NRM[0][1]
-#
-    for k in range(len(NRM)):
-        Y.append(old_div(NRM[k][1], Nmax))
-        X.append(old_div(TRM[k][1], Nmax))
-#        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
-#        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("TRM")
-    plt.ylabel("NRM")
-    title = s + ": NRM = " + '%9.2e' % (Nmax)
-    plt.title(title)
-    plt.figure(num=SHAW['arm1arm2'])
-    plt.clf()
-    if not isServer:
-        plt.figtext(.02, .01, version_num)
-    X, Y, recnum = [], [], 0
-    Nmax = ARM1[0][1]
-#
-    for k in range(len(ARM1)):
-        Y.append(old_div(ARM2[k][1], Nmax))
-        X.append(old_div(ARM1[k][1], Nmax))
-#        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
-#        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("ARM2")
-    plt.ylabel("ARM1")
-    title = s + ": ARM1 = " + '%9.2e' % (Nmax)
-    plt.title(title)
-    plt.figure(num=SHAW['nrmtrmC'])
-    plt.clf()
-    if not isServer:
-        plt.figtext(.02, .01, version_num)
-    X, Y, recnum = [], [], 0
-    Nmax = NRM[0][1]
-#
-    for k in range(len(NRM)):
-        Y.append(old_div(NRM[k][1], Nmax))
-        X.append(old_div(TRM_ADJ[k][1], Nmax))
-#        delta=.02*Y[0]
-#        if recnum%2==0: plt.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
-#        recnum+=1
-    plt.scatter(X, Y, marker='o', color='r')
-    plt.plot(X, Y)
-    plt.xlabel("TRM*")
-    plt.ylabel("NRM")
-    spars = np.polyfit(X, Y, 1)
-    Banc = spars[0] * field
-    print(spars[0], field)
-    print('Banc= ', Banc * 1e6, ' uT')
-    notestr = 'Banc = ' + '%5.1f' % (Banc * 1e6) + ' uT'
-    plt.text(.5 * TRM[-1][1] + .2, .9, notestr)
-
 
 def plot_b(Figs, araiblock, zijdblock, pars):
     """
-    deprecated
+    deprecated (used in thellier_magic/microwave_magic)
     """
     angle = zijdblock[0][1]
     plotblock = []
@@ -1466,7 +1288,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
 def plot_slnp(fignum, SiteRec, datablock, key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
-    deprecated
+    deprecated (used in pmagplotlib)
     """
 # make the stereonet
     plt.figure(num=fignum)
@@ -1731,7 +1553,7 @@ def save_plots(Figs, filenames, **kwargs):
 def plot_evec(fignum, Vs, symsize, title):
     """
     plots eigenvector directions of S vectors
-  
+
     Paramters
     ________
     fignum : matplotlib figure number
@@ -1771,7 +1593,7 @@ def plot_ell(fignum, pars, col, lower, plot):
          where P is direction, Bdec,Binc are beta direction, and Gdec,Ginc are gamma direction
     col : color for ellipse
     lower : boolean, if True, lower hemisphere projection
-    plot : boolean, if False, return the points, if False, make the plot 
+    plot : boolean, if False, return the points, if False, make the plot
     """
     plt.figure(num=fignum)
     rad = old_div(np.pi, 180.)
@@ -1851,7 +1673,7 @@ fig_y_pos = 25
 
 
 def vertical_plot_init(fignum, w, h):
-    
+
     # this is same as plot_init, but stacks things  vertically
     global fig_y_pos
     dpi = 80
@@ -2139,7 +1961,7 @@ def plot_hys(fignum, B, M, s):
 def plot_delta_m(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
-    
+
     Parameters
     __________
     fignum : matplotlib figure number
@@ -2165,8 +1987,8 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
 def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
     """
     function to plot d (Delta M)/dB  curves
-    
-    Parameters 
+
+    Parameters
     __________
     fignum : matplotlib figure number
     Bdm : change in field
@@ -2254,8 +2076,8 @@ def plot_hdd(HDD, B, M, s):
 def plot_day(fignum, BcrBc, S, sym, **kwargs):
     """
     function to plot Day plots
-    
-    Parameters 
+
+    Parameters
     _________
     fignum : matplotlib figure number
     BcrBc : list or array ratio of coercivity of remenance to coercivity
@@ -2309,8 +2131,8 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
 def plot_s_bc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
-    
-    Parameters 
+
+    Parameters
     __________
     fignum : matplotlib figure number
     Bc : list or array coercivity values
@@ -2330,8 +2152,8 @@ def plot_s_bc(fignum, Bc, S, sym):
 def plot_s_bcr(fignum, Bcr, S, sym):
     """
     function to plot Squareness,Coercivity of remanence
-    
-    Parameters 
+
+    Parameters
     __________
     fignum : matplotlib figure number
     Bcr : list or array coercivity of remenence values
@@ -2362,7 +2184,7 @@ def plot_bcr(fignum, Bcr1, Bcr2):
 def plot_hpars(HDD, hpars, sym):
     """
     function to plot hysteresis parameters
-    deprecated
+    deprecated (used in hysteresis_magic)
     """
     plt.figure(num=HDD['hyst'])
     X, Y = [], []
@@ -2397,9 +2219,9 @@ def plot_hpars(HDD, hpars, sym):
 
 
 def plot_irm(fignum, B, M, title):
-    """ 
+    """
     function to plot IRM backfield curves
-    
+
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2470,7 +2292,7 @@ def plot_irm(fignum, B, M, title):
 
 
 def plot_xtf(fignum, XTF, Fs, e, b):
-    """ 
+    """
     function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
     """
     plt.figure(num=fignum)
@@ -2555,36 +2377,6 @@ def plot_xbt(fignum, XB, T, e, b):
     plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
 #
 
-# not used
-def plot_zfcfc(MT, e):
-    """
-    function to plot zero-field cooled, field cooled data
-    """
-    ZFCM, ZFCT, FCM, FCT, init = MT[0], MT[1], MT[2], MT[3], 0
-    leglist = []
-    if len(ZFCM) > 2:
-        if init == 0:
-            plot_init(1, 5, 5)
-        plt.plot(ZFCT, ZFCM, 'b')
-        leglist.append('ZFC')
-        init = 1
-    if len(FCM) > 2:
-        if init == 0:
-            plot_init(1, 5, 5)
-        plt.plot(FCT, FCM, 'r')
-        leglist.append('FC')
-    if init != 0:
-        plt.legend(leglist)
-        plt.xlabel('Temperature (K)')
-        plt.ylabel('Magnetization (Am^2/kg)')
-        if len(ZFCM) > 2:
-            plt.plot(ZFCT, ZFCM, 'bo')
-        if len(FCM) > 2:
-            plt.plot(FCT, FCM, 'ro')
-        plt.title(e)
-#
-
-
 def plot_ltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
     """
     function to plot low temperature cycling experiments
@@ -2610,15 +2402,6 @@ def plot_ltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
         if len(LTC_WM) > 2:
             plt.plot(LTC_WT, LTC_WM, 'ro')
         plt.title(e)
-
-
-# not used
-def plot_close(plot):
-    # plt.ion()
-    plt.close(plot)
-    # plt.ioff()
-
-#
 
 
 def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
@@ -2808,17 +2591,6 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
     return bpars, hpars
 ####
 
-# not used
-def plot_pie(fig, fracs, labels, title):
-    explode = []
-    for obj in labels:
-        explode.append(.05)
-    plt.figure(num=fig)
-    plt.pie(fracs, labels=labels, colors=(
-        'r', 'y', 'b', 'g', 'm', 'c', 'w'), explode=explode)
-    plt.title(title)
-#
-
 
 def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
     #
@@ -2941,16 +2713,6 @@ def plot_v2s(fignum, V2s, I, f):
     plt.plot(I, V2s, 'r')
     plt.xlabel("Inclination")
     plt.ylabel("Elongation direction")
-
-# not used
-def plot_x(fignum, x, y, xmin, xmax, ymin, ymax, sym):
-    plt.figure(num=fignum)
-    X, Y = [x, x], [ymin, ymax]
-    plt.plot(X, Y, sym)
-    X, Y = [xmin, xmax], [y, y]
-    plt.plot(X, Y, sym)
-    plt.axis([-5., 90., 0., 3.5])
-#
 
 
 def plot_com(CDF, BDI1, BDI2, d):

@@ -445,10 +445,25 @@ class TestPmagResultsExtract(unittest.TestCase):
         self.assertTrue(res)
         files = [os.path.join(self.result_WD, f) for f in outfiles]
         for f in files:
-
             self.assertTrue(os.path.exists(f))
 
 
+class TestAarmMagic(unittest.TestCase):
+    def setUp(self):
+        self.aarm_WD = os.path.join(WD, 'data_files', 'aarm_magic')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
+        #pmag.remove_files(filelist, self.aarm_WD)
+        os.chdir(WD)
+
+    def test_aarm_success(self):
+        res, outfile = ipmag.aarm_magic('aarm_measurements3.txt', self.aarm_WD,
+                                        spec_file='custom_specimens.txt')
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.aarm_WD, 'custom_specimens.txt'))
 
 
 
