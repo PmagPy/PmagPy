@@ -46,6 +46,7 @@ def main():
         -c plot as colour contour
         -cm CM use color map CM [default is coolwarm]
         -sav save plot and quit quietly
+        -no-tilt data are unoriented, allows plotting of measurement dec/inc
     NOTE
         all: entire file; sit: site; sam: sample; spc: specimen
     """
@@ -71,6 +72,9 @@ def main():
     samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
     site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
     loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
+    ignore_tilt = False
+    if '-no-tilt' in sys.argv:
+        ignore_tilt = True
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -212,8 +216,9 @@ def main():
             plot_data['method_codes'] = ''
 
         # get data blocks
+        # would have to ignore tilt to use measurement level data
         DIblock = data_container.get_di_block(df_slice=plot_data,
-                                              tilt_corr=coord, excl=['DE-BFP'])
+                                              tilt_corr=coord, excl=['DE-BFP'], ignore_tilt=ignore_tilt)
         #SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
         # get great circles
         great_circle_data = data_container.get_records_for_code('DE-BFP', incl=True,
@@ -421,7 +426,7 @@ def main():
                 if 'location' in plot_data.columns:
                     locs = plot_data['location'].unique()
                     loc_string = "_".join(
-                        [loc.replace(' ', '_') for loc in locs])
+                        [str(loc).replace(' ', '_') for loc in locs])
                     filename += "_" + loc_string
                 filename += "_" + crd + "_" + key
                 filename += ".{}".format(fmt)
@@ -452,7 +457,7 @@ def main():
             FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
             pmagplotlib.save_plots(FIG, files)
 
-        if plt:
+        elif plt:
             pmagplotlib.save_plots(FIG, files)
             continue
         if verbose:
