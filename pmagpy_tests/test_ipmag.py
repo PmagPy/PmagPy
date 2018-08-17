@@ -466,6 +466,24 @@ class TestAarmMagic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join(self.aarm_WD, 'custom_specimens.txt'))
 
 
+class TestAtrmMagic(unittest.TestCase):
+    def setUp(self):
+        self.atrm_WD = os.path.join(WD, 'data_files', 'atrm_magic')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
+        #pmag.remove_files(filelist, self.atrm_WD)
+        os.chdir(WD)
+
+    def test_atrm_success(self):
+        res, outfile = ipmag.atrm_magic('new_atrm_measurements.txt', self.atrm_WD,
+                                        spec_file='custom_specimens.txt')
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(self.atrm_WD, 'custom_specimens.txt'))
+
+
 
 if __name__ == '__main__':
     unittest.main()
