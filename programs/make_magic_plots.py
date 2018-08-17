@@ -325,7 +325,7 @@ def main():
                     os.system(CMD)
                 else:
                     if dir_data_found:
-                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equare_magic.py")
+                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py")
             #
             print('-I- working on VGP map')
             VGPs = pmag.get_dictitem(
@@ -357,6 +357,10 @@ def main():
                     os.system(CMD)
                     info_log(CMD, loc)
                     print(CMD)
+                else:
+                    print('-I- No intensities found')
+            else:
+                print('-I- No intensities found')
 
         ##
         if hyst_file in filelist:
