@@ -345,11 +345,15 @@ def convert_lat(Recs):
     return New
 
 
-def convert_ages(Recs, **kwargs):
+def convert_ages(Recs, data_model=3):
     """
     converts ages to Ma
+    Parameters
+    _________
+    Recs : list of dictionaries in data model by data_model 
+    data_model : MagIC data model (default is 3) 
     """
-    if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
+    if data_model == 3:
         site_key = 'site'
         agekey = "age"
         keybase = ""
@@ -4556,10 +4560,9 @@ def b_vdm(B, lat):
     ----------
     V(A)DM in units of Am^2
     """
-    rad = old_div(np.pi, 180.)
     # changed radius of the earth from 3.367e6 3/12/2010
     fact = ((6.371e6)**3) * 1e7
-    colat = (90. - lat) * rad
+    colat = np.radians(90. - lat)
     return fact * B / (np.sqrt(1 + 3 * (np.cos(colat)**2)))
 
 
