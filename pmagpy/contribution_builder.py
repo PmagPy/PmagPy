@@ -594,6 +594,8 @@ class Contribution(object):
             if child_name not in df.columns:
                 print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name))
             else:
+                add_df = stringify_col(add_df, child_name)
+                df = stringify_col(df, bottom_name)
                 df = df.merge(add_df[[child_name]],
                               left_on=[bottom_name],
                               right_index=True, how="left")
@@ -617,6 +619,8 @@ class Contribution(object):
             elif parent_name not in df:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
+                add_df = stringify_col(add_df, parent_name)
+                df = stringify_col(df, child_name)
                 df = df.merge(add_df[[parent_name]],
                               left_on=[child_name],
                               right_index=True, how="left")
@@ -640,10 +644,12 @@ class Contribution(object):
             elif parent_name not in df.columns:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
-                df[parent_name] = df[parent_name].astype(str)
+                add_df = stringify_col(add_df, grandparent_name)
+                df = stringify_col(df, parent_name)
                 df = df.merge(add_df[[grandparent_name]],
                               left_on=[parent_name],
                               right_index=True, how="left")
+                df = stringify_col(df, grandparent_name)
         # update the Contribution
         self.tables[df_name].df = df
         return df
@@ -2374,6 +2380,20 @@ def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
     # filter out records without the correct method code
     data = data[data['method_codes'].str.contains(meth_code).astype(bool)]
     return True, data
+
+def stringify_col(df, col_name):
+    """
+    Take a dataframe and string-i-fy a column of values.
+    Turn nan/None into "" and all other values into strings.
+
+    Parameters
+    ----------
+    df : dataframe
+    col_name : string
+    """
+    df[col_name] = df[col_name].fillna("")
+    df[col_name] = df[col_name].astype(str)
+    return df
 
 
 

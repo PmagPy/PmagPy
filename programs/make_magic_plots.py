@@ -3,6 +3,7 @@ import sys
 import os
 import datetime
 import glob
+import shutil
 from pmagpy import pmag
 from pmagpy import contribution_builder as cb
 VERBOSE = True
@@ -97,18 +98,32 @@ def main():
         print('-E- No MagIC tables could be found in this directory')
         error_log("No MagIC tables found")
         return
-    # check to see if propagation worked, otherwise plotting will be difficult
+    # check to see if propagation worked, otherwise you can't plot by location
     lowest_table = None
     for table in con.ancestry:
         if table in con.tables:
             lowest_table = table
             break
+
+    do_full_directory = False
+    # check that locations propagated down to the lowest table in the contribution
     if 'location' in con.tables[lowest_table].df.columns:
+        # are there any locations in the lowest table?
         if not all(con.tables[lowest_table].df['location'].isnull()):
-            info_log('location names propagated to {}'.format(lowest_table))
+            locs = con.tables['locations'].df.index.unique()
+            lowest_locs = con.tables[lowest_table].df['location'].unique()
+            incorrect_locs = set(lowest_locs).difference(set(locs))
+            # are they actual locations?
+            if not incorrect_locs:
+                info_log('location names propagated to {}'.format(lowest_table))
+            else:
+                do_full_directory = True
+                error_log('location names did not propagate fully to {} table'.format(lowest_table))
         else:
+            do_full_directory = True
             error_log('could not propagate location names down to {} table'.format(lowest_table))
     else:
+        do_full_directory = True
         error_log('could not propagate location names down to {} table'.format(lowest_table))
 
     all_data = {}
@@ -121,14 +136,22 @@ def main():
     dirlist = [loc for loc in locations if cb.not_null(loc) and loc != 'nan']
     if not dirlist:
         dirlist = ["./"]
+    if do_full_directory:
+        dirlist = ["./"]
 
-    # go through all data by location
-    # either use tmp_*.txt files to separate out by location
-    # or Location_* directories
+    # plot the whole contribution as one location
+    if dirlist == ["./"]:
+        error_log('plotting the entire contribution as one location')
+        for fname in os.listdir("."):
+            if fname.endswith(".txt"):
+                shutil.copy(fname, "tmp_" + fname)
+
+    # if possible, go through all data by location
+    # use tmp_*.txt files to separate out by location
+
     for loc in dirlist:
         print('\nworking on: ', loc)
 
-        # all info is in main directory, sort by location
         def get_data(dtype, loc_name):
             """
             Extract data of type dtype for location loc_name.
@@ -226,17 +249,17 @@ def main():
                     os.system(CMD)
             # equal area plots of directional data
             # at measurment level (by specimen)
-            missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
-            if not missing:
-                CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
-                print(CMD)
-                os.system(CMD)
-                info_log(CMD, loc, "eqarea_magic.py")
+            if data:
+                missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
+                if not missing:
+                    CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                    print(CMD)
+                    os.system(CMD)
+                    info_log(CMD, loc, "eqarea_magic.py")
 
         else:
             if VERBOSE:
                 print('-I- No measurement data found')
-
 
         # site data
         if results_file in filelist:
@@ -268,7 +291,10 @@ def main():
                     if cb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
                         rec[tilt_corr_key] = ""
                     else:
-                        rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                        try:
+                            rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                        except ValueError:
+                            rec[tilt_corr_key] = ""
                     SiteDIs.append(rec)
 
                 print('number of individual directions: ', len(SiteDIs))
