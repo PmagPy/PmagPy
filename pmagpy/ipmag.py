@@ -8622,7 +8622,7 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
            positions 1-15 (for 15 positions)
 
     """
-
+    data_model_num = int(float(data_model_num))
     dir_path = os.path.realpath(dir_path)
     if not input_dir_path:
         input_dir_path = dir_path
@@ -8647,6 +8647,11 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
         for rec in meas_data3:
             meas_map = map_magic.meas_magic3_2_magic2_map
             meas_data.append(map_magic.mapping(rec, meas_map))
+        spec_data = []
+        spec_data3, file_type = pmag.magic_read(spec_file)
+        for rec in spec_data3:
+            spec_map = map_magic.spec_magic3_2_magic2_map
+            spec_data.append(map_magic.mapping(rec, spec_map))
     else:  # data  model 2
         rmag_anis = "rmag_anisotropy.txt"
         rmag_res = "rmag_results.txt"
@@ -8664,7 +8669,7 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
         if data_model_num == 3:
             samp_data3, file_type = pmag.magic_read(samp_file)
             if file_type != 'samples':
-                print(file_type, "This is not a valid er_samples file ")
+                print(file_type, "This is not a valid samples file ")
                 print("Only specimen coordinates will be calculated")
                 coord = '-1'
             else:
@@ -8699,9 +8704,18 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
     SpecRecs, SpecRecs3 = [], []
     while specimen < len(sids):
         s = sids[specimen]
-        data = []
         RmagSpecRec = {}
         RmagResRec = {}
+        # get old specrec here if applicable
+        if data_model_num == 3:
+            if spec_data:
+                try:
+                    RmagResRec = pmag.get_dictitem(spec_data, 'er_specimen_name', s, 'T')[0]
+                    RmagSpecRec = pmag.get_dictitem(spec_data, 'er_specimen_name', s, 'T')[0]
+                except IndexError:
+                    pass
+
+        data = []
         method_codes = []
     #
     # find the data from the meas_data file for this sample
@@ -8774,14 +8788,16 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"] = data[0].get("er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
+            if not "er_sample_name" in RmagSpecRec:
+                RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
             RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagSpecRec["er_citation_names"] = "This study"
             RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":AARM"
             RmagResRec["er_location_names"] = data[0].get("er_location_name", "")
             RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
-            RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
+            if not "er_sample_name" not in RmagResRec:
+                RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
             RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
             RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagResRec["er_citation_names"] = "This study"
