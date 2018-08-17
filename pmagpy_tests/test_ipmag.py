@@ -460,7 +460,7 @@ class TestAarmMagic(unittest.TestCase):
         os.chdir(WD)
 
     def test_aarm_success(self):
-        res, outfile = ipmag.aarm_magic('aarm_measurements3.txt', self.aarm_WD,
+        res, outfile = ipmag.aarm_magic('new_aarm_measurements.txt', self.aarm_WD,
                                         spec_file='custom_specimens.txt')
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.aarm_WD, 'custom_specimens.txt'))
