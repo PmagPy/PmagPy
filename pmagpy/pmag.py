@@ -10827,7 +10827,86 @@ def apwp(data,print_results=False):
     else:
         return [data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon]
 
+def chart_maker(Int,Top,start=100,outfile='chart.txt'):
 
+    """
+    Makes a chart for performing IZZI experiments. Print out the file and 
+    tape it to the oven.  This chart will help keep track of the different
+    steps.  
+    Z : performed in zero field - enter the temperature XXX.0 in the sio
+        formatted measurement file created by the LabView program
+    I : performed in the lab field written at the top of the form
+    P : a pTRM step - performed at the temperature and in the lab field.
+    
+    Parameters
+    __________
+    Int : list of intervals [e.g., 50,10,5]
+    Top : list of upper bounds for each interval [e.g., 500, 550, 600]
+    start : first temperature step, default is 100 
+    outfile : name of output file, default is 'chart.txt'
+ 
+    Output
+    _________
+    creates a file with:
+         file:  write down the name of the measurement file
+         field:  write down the lab field for the infield steps (in uT)
+         the type of step (Z: zerofield, I: infield, P: pTRM step
+         temperature of the step and code for SIO-like treatment steps
+             XXX.0   [zero field]
+             XXX.1   [in field]
+             XXX.2   [pTRM check] - done in a lab field
+         date : date the step was performed
+         run # : an optional run number
+         zones I-III : field in the zones in the oven
+         start : time the run was started
+         sp :  time the setpoint was reached
+         cool : time cooling started
+
+    """
+    low,k,iz=start,0,0
+    Tzero=[]
+    f=open('chart.txt','w')
+    vline='\t%s\n'%('   |      |        |         |          |       |    |      |')
+    hline='______________________________________________________________________________\n'
+    f.write('file:_________________    field:___________uT\n\n\n')
+    f.write('%s\n'%('               date | run# | zone I | zone II | zone III | start | sp | cool|'))
+    f.write(hline)
+    f.write('\t%s'%('   0.0'))
+    f.write(vline)
+    f.write(hline)
+    for k in range(len(Top)):
+        for t in range(low,Top[k]+Int[k],Int[k]):
+            if iz==0:
+                Tzero.append(t) # zero field first step
+                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))
+                f.write(vline)
+                f.write(hline)
+                if len(Tzero)>1:
+                   f.write('%s \t %s'%('P',str(Tzero[-2])+'.'+str(2)))
+                   f.write(vline)
+                   f.write(hline)
+                iz=1
+                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield after zero field first
+                f.write(vline)
+                f.write(hline)
+
+#                f.write('%s \t %s'%('T',str(t)+'.'+str(3))) # print second zero field (tail check)
+#                f.write(vline)
+#                f.write(hline)
+
+            elif iz==1:
+                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield first step
+                f.write(vline)
+                f.write(hline)
+                iz=0
+                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))# zero field step (after infield)
+                f.write(vline)
+                f.write(hline)
+        try:
+            low=Top[k]+Int[k+1] # increment to next temp step
+        except:
+            f.close()
+    print("output stored in: chart.txt")
 
 
 def main():
