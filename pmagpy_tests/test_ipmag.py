@@ -8,6 +8,7 @@ import matplotlib
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
+from pmagpy import convert_2_magic as convert
 #from pmagpy import find_pmag_dir
 WD = pmag.get_test_WD()
 
@@ -455,12 +456,13 @@ class TestAarmMagic(unittest.TestCase):
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
                     'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
-                    'er_sites.txt', 'rmag_anisotropy.txt']
+                    'er_sites.txt', 'rmag_anisotropy.txt', 'aarm_measurements.txt']
         pmag.remove_files(filelist, self.aarm_WD)
         os.chdir(WD)
 
     def test_aarm_success(self):
-        res, outfile = ipmag.aarm_magic('aarm_measurements3.txt', self.aarm_WD,
+        convert.sio('arm_magic_example.dat', self.aarm_WD, meas_file="aarm_measurements.txt")
+        res, outfile = ipmag.aarm_magic('aarm_measurements.txt', self.aarm_WD,
                                         spec_file='custom_specimens.txt')
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.aarm_WD, 'custom_specimens.txt'))
