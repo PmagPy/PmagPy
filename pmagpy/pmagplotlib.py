@@ -232,6 +232,54 @@ def show(fig):
     plt.show()
 
 
+def plot_xy(fignum, X, Y, **kwargs):
+    """
+    deprecated, used in curie
+    """
+    plt.figure(num=fignum)
+#    if 'poly' in kwargs.keys():
+#          coeffs=np.polyfit(X,Y,kwargs['poly'])
+#          polynomial=np.poly1d(coeffs)
+#          xs=np.arange(np.min(X),np.max(X))
+#          ys=polynomial(xs)
+#          plt.plot(xs,ys)
+#          print coefs
+#          print polynomial
+    if 'sym' in list(kwargs.keys()):
+        sym = kwargs['sym']
+    else:
+        sym = 'ro'
+    if 'lw' in list(kwargs.keys()):
+        lw = kwargs['lw']
+    else:
+        lw = 1
+    if 'xerr' in list(kwargs.keys()):
+        plt.errorbar(X, Y, fmt=sym, xerr=kwargs['xerr'])
+    if 'yerr' in list(kwargs.keys()):
+        plt.errorbar(X, Y, fmt=sym, yerr=kwargs['yerr'])
+    if 'axis' in list(kwargs.keys()):
+        if kwargs['axis'] == 'semilogx':
+            plt.semilogx(X, Y, marker=sym[1], markerfacecolor=sym[0])
+        if kwargs['axis'] == 'semilogy':
+            plt.semilogy(X, Y, marker=sym[1], markerfacecolor=sym[0])
+        if kwargs['axis'] == 'loglog':
+            plt.loglog(X, Y, marker=sym[1], markerfacecolor=sym[0])
+    else:
+        plt.plot(X, Y, sym, linewidth=lw)
+    if 'xlab' in list(kwargs.keys()):
+        plt.xlabel(kwargs['xlab'])
+    if 'ylab' in list(kwargs.keys()):
+        plt.ylabel(kwargs['ylab'])
+    if 'title' in list(kwargs.keys()):
+        plt.title(kwargs['title'])
+    if 'xmin' in list(kwargs.keys()):
+        plt.axis([kwargs['xmin'], kwargs['xmax'],
+                    kwargs['ymin'], kwargs['ymax']])
+    if 'notes' in list(kwargs.keys()):
+        for note in kwargs['notes']:
+            plt.text(note[0], note[1], note[2])
+
+
 def plot_site(fignum, SiteRec, data, key):
     """
     deprecated (used in ipmag)

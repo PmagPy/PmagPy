@@ -95,7 +95,7 @@ def main():
     con = cb.Contribution(dir_path, single_file=results_file)
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
-        return
+        return False, "Couldn't read in data"
 
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
@@ -113,7 +113,7 @@ def main():
             pole_df = pole_df[pole_df['result_type'] == 'a']
     if 'pole_lat' not in pole_df.columns or 'pole_lon' not in pole_df.columns:
         print("-W- pole_lat and pole_lon are required columns to run polemap_magic.py")
-        return
+        return False, "pole_lat and pole_lon are required columns to run polemap_magic.py"
     # use records with pole_lat and pole_lon
     cond1, cond2 = pole_df['pole_lat'].notnull(), pole_df['pole_lon'].notnull()
     Results = pole_df[cond1 & cond2]
@@ -128,6 +128,10 @@ def main():
             (Results['age_high']-Results['age_low'])
     if 'age' in Results.columns and ages == 1:
         dates = Results['age'].unique()
+
+    if not any(Results.index):
+        print("-W- No poles could be plotted")
+        return False, "No poles could be plotted"
 
     # go through rows and extract data
     for ind, row in Results.iterrows():
@@ -279,9 +283,10 @@ def main():
             pmagplotlib.save_plots(FIG, files)
         else:
             print("Good bye")
-            sys.exit()
     else:
         pmagplotlib.save_plots(FIG, files)
+
+    return True, files
 
 
 if __name__ == "__main__":

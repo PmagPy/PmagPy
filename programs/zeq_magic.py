@@ -410,7 +410,6 @@ def main():
                         # calculate direction/plane
                             if mpars["specimen_direction_type"] != "Error":
                                 # put it on the plot
-                                print('plotting direction')
                                 pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
                                 if verbose and not set_env.IS_WIN:
                                     pmagplotlib.draw_figs(ZED)

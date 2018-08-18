@@ -594,6 +594,8 @@ class Contribution(object):
             if child_name not in df.columns:
                 print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name))
             else:
+                add_df = stringify_col(add_df, child_name)
+                df = stringify_col(df, bottom_name)
                 df = df.merge(add_df[[child_name]],
                               left_on=[bottom_name],
                               right_index=True, how="left")
@@ -617,6 +619,8 @@ class Contribution(object):
             elif parent_name not in df:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
+                add_df = stringify_col(add_df, parent_name)
+                df = stringify_col(df, child_name)
                 df = df.merge(add_df[[parent_name]],
                               left_on=[child_name],
                               right_index=True, how="left")
@@ -640,9 +644,12 @@ class Contribution(object):
             elif parent_name not in df.columns:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
+                add_df = stringify_col(add_df, grandparent_name)
+                df = stringify_col(df, parent_name)
                 df = df.merge(add_df[[grandparent_name]],
                               left_on=[parent_name],
                               right_index=True, how="left")
+                df = stringify_col(df, grandparent_name)
         # update the Contribution
         self.tables[df_name].df = df
         return df
@@ -1826,7 +1833,7 @@ class MagicDataFrame(object):
 
     def get_di_block(self, df_slice=None, do_index=False,
                      item_names=None, tilt_corr='100',
-                     excl=None):
+                     excl=None, ignore_tilt=False):
         """
         Input either a DataFrame slice
         or
@@ -1852,14 +1859,15 @@ class MagicDataFrame(object):
 
         # once you have the slice, fix up the data
         # tilt correction must match
-        if tilt_corr != 0:
-            df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
-        else:
-            # if geographic ("0"),
-            # use records with no tilt_corr and assume geographic
-            cond1 = df_slice['dir_tilt_correction'] == None
-            cond2 = df_slice['dir_tilt_correction'] == tilt_corr
-            df_slice = df_slice[cond1 | cond2]
+        if not ignore_tilt:
+            if tilt_corr != 0:
+                df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+            else:
+                # if geographic ("0"),
+                # use records with no tilt_corr and assume geographic
+                cond1 = df_slice['dir_tilt_correction'] == None
+                cond2 = df_slice['dir_tilt_correction'] == tilt_corr
+                df_slice = df_slice[cond1 | cond2]
         # exclude data with unwanted codes
         if excl:
             for ex in excl:
@@ -2372,6 +2380,20 @@ def prep_for_intensity_plot(data, meth_code, dropna=(), reqd_cols=()):
     # filter out records without the correct method code
     data = data[data['method_codes'].str.contains(meth_code).astype(bool)]
     return True, data
+
+def stringify_col(df, col_name):
+    """
+    Take a dataframe and string-i-fy a column of values.
+    Turn nan/None into "" and all other values into strings.
+
+    Parameters
+    ----------
+    df : dataframe
+    col_name : string
+    """
+    df[col_name] = df[col_name].fillna("")
+    df[col_name] = df[col_name].astype(str)
+    return df
 
 
 
