@@ -6444,6 +6444,8 @@ def livdb(dir_path, meas_out="measurements.txt",
                             # ------------------
 
                             MagRec = {}
+                            # make sure ac field is set
+                            MagRec[ac_field_col] = ''
                             # header_data
                             MagRec[citation_col] = "This study"
                             MagRec[spec_col] = header_line['Sample code'].strip()
