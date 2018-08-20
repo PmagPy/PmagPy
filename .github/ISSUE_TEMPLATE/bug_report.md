@@ -4,7 +4,7 @@ about: Create a report to help us improve
 
 ---
 
-**What command was run**
+**What command was run:**
 
 
 
