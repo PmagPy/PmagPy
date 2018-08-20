@@ -3565,11 +3565,29 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
 
 
 def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
-                 input_dir_path='.', data_model_num=3):
+                 input_dir_path='', data_model_num=3):
     """
-    iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
-    Default is to overwrite er_samples.txt in your output working directory.
-    To specify an er_samples file to append to, use output_samp_file.
+    Convert IODP samples data file into MagIC samples file.
+    Default is to overwrite samples.txt in your working directory.
+    To specify an samples file to *append* to instead, use output_samp_file.
+
+    Parameters
+    ----------
+    samp_file : str
+        path to IODP sample file to convert
+    output_samp_file : str
+        MagIC-format samples file to append to, default None
+    output_dir_path : str
+        output file directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    data_model_num : int
+        MagIC data model [2, 3], default 3
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, samp_file name written)
+
     """
     samp_file_name = "samples.txt"
     sample_alternatives = "sample_alternatives"
@@ -3732,13 +3750,48 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
 
 
 
-
 ### IODP_srm_magic conversion
 
 def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
              meas_file="measurements.txt", spec_file="specimens.txt",
              samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
              lat="", lon="", noave=0):
+
+    """
+    Converts IODP LIMS and LORE SRM archive half sample format files
+    to measurements format files.
+
+    Parameters
+    ----------
+    csv_file : str
+        input csv file, default ""
+        if no file name is provided, find any .csv files in the provided dir_path
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    """
 
     # helper function
 
@@ -4425,6 +4478,53 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
             samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
             user="", specnum=1, samp_con='1', location='unknown', lat='', lon='',
             noave=False, volume=12, timezone="UTC", meth_code="LP-NO"):
+
+    """
+    Converts JR6 .txt format files to MagIC measurements format files.
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    user : str
+        user name, default ""
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    volume : float
+        volume in ccs, default 12
+    timezone : timezone of date/time string in comment string, default UTC
+    meth_code : str
+        default "LP-NO"
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    """
 
     version_num = pmag.get_version()
     if not input_dir_path:
