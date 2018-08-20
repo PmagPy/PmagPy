@@ -7477,7 +7477,6 @@ def sio(mag_file, dir_path=".", input_dir_path="",
         print(__doc__)
         print("mag_file field is required option")
         return False, "mag_file field is required option"
-    print ('specnum: ',specnum)#DELETE ME
     if specnum != 0:
         specnum = -specnum
     if "4" == samp_con[0]:
