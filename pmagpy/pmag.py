@@ -10548,7 +10548,7 @@ class MissingCommandLineArgException(Exception):
         return self.message
 
 
-def do_mag_map(date, **kwargs):
+def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
     """
     returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.
@@ -10575,18 +10575,6 @@ def do_mag_map(date, **kwargs):
     lats = list of latitudes evaluated
 
     """
-    if 'lon_0' in list(kwargs.keys()):  # check if there are keyword arguments
-        lon_0 = kwargs['lon_0']  # if lon_0 is set, use that one
-    else:  # otherwise.....
-        lon_0 = 0.  # set the default lon_0 to 0.
-    if 'alt' in list(kwargs.keys()):  # check if  alt in kwargs
-        alt = kwargs['alt']
-    if 'file' in list(kwargs.keys()):  # check if  alt in kwargs
-        file = kwargs['file']
-    if 'mod' in list(kwargs.keys()):  # check if  alt in kwargs
-        mod = kwargs['mod']
-    else:
-        mod = 'cals10k'
     incr = 10  # we can vary to the resolution of the model
     # get some parameters for our arrays of lat/lon
     lonmax = (lon_0 + 180.) % 360 + incr
