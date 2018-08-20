@@ -481,9 +481,12 @@ class TestAtrmMagic(unittest.TestCase):
 
     def test_atrm_success(self):
         res, outfile = ipmag.atrm_magic('atrm_measurements3.txt', self.atrm_WD,
-                                        spec_file='custom_specimens.txt')
+                                        output_spec_file='custom_specimens.txt')
         self.assertTrue(res)
         self.assertEqual(outfile, os.path.join(self.atrm_WD, 'custom_specimens.txt'))
+        # check that samples are there from input specimen file
+        df = cb.MagicDataFrame(outfile)
+        self.assertTrue(any(df.df['sample']))
 
 
 

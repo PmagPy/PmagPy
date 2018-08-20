@@ -25,7 +25,8 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input file, default is atrm_measurements.txt
-        -Fsi FILE: specify output file, default is specimens.txt (MagIC 3 only)
+        -fsp FILE: specimen input file, default is specimens.txt (optional)
+        -Fsp FILE: specify output file, default is specimens.txt (MagIC 3 only)
         -DM DATA_MODEL: specify MagIC 2 or MagIC 3, default is 3
 
     INPUT
@@ -59,11 +60,12 @@ def main():
     input_dir_path = pmag.get_named_arg("-ID", "")
     meas_file = pmag.get_named_arg("-f", "measurements.txt")
     data_model_num = int(pmag.get_named_arg("-DM", 3))
-    spec_file = pmag.get_named_arg("-Fsi", "specimens.txt")
+    spec_outfile = pmag.get_named_arg("-Fsp", "specimens.txt")
+    spec_infile = pmag.get_named_arg("-fsp", "specimens.txt")
 
 
     ipmag.atrm_magic(meas_file, dir_path, input_dir_path,
-                     spec_file, data_model_num)
+                     spec_infile, spec_outfile, data_model_num)
 
 
 

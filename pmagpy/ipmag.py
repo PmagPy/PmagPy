@@ -9030,7 +9030,8 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
 
 
 def atrm_magic(meas_file, dir_path=".", input_dir_path="",
-               spec_file='specimens.txt', data_model_num=3):
+               input_spec_file='specimens.txt', output_spec_file='specimens.txt',
+               data_model_num=3):
 
     """
     Converts ATRM  data to best-fit tensor (6 elements plus sigma)
@@ -9043,8 +9044,10 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         output directory, default "."
     input_dir_path : str
         input file directory IF different from dir_path, default ""
-    spec_file : str
-        input/output specimen file name, default "specimens.txt"
+    input_spec_file : str
+        input specimen file name, default "specimens.txt"
+    output_spec_file : str
+        output specimen file name, default "specimens.txt"
     data_model_num : number
         MagIC data model [2, 3], default 3
 
@@ -9057,27 +9060,41 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
     rmag_anis = os.path.join(dir_path, 'rmag_anisotropy.txt')
     rmag_res = os.path.join(dir_path, 'rmag_results.txt')
-    spec_file = os.path.join(dir_path, spec_file)
+    input_spec_file = pmag.resolve_file_name(input_spec_file, dir_path)
+    output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
+
 
     # read in data
     if data_model_num == 3:
         meas_data = []
         meas_data3, file_type = pmag.magic_read(meas_file)
         if file_type != 'measurements':
-            print(file_type, "This is not a valid measurements file ")
-            return False, "{} is not a valid measurements file, {}".format(meas_file, file_type)
+            print("-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
+            return False
         # convert meas_data to 2.5
         for rec in meas_data3:
             meas_map = map_magic.meas_magic3_2_magic2_map
             meas_data.append(map_magic.mapping(rec, meas_map))
+        old_spec_recs, file_type = pmag.magic_read(input_spec_file)
+        if file_type != 'specimens':
+            print("-W- {} is not a valid specimens file ".format(input_spec_file))
+            old_spec_recs = []
+        spec_recs = []
+        for rec in old_spec_recs:
+            spec_map = map_magic.spec_magic3_2_magic2_map
+            spec_recs.append(map_magic.mapping(rec, spec_map))
+
     else:
         meas_data, file_type = pmag.magic_read(meas_file)
         if file_type != 'magic_measurements':
-            print(file_type, "This is not a valid magic_measurements file ")
+            print("-E- {} is is not a valid magic_measurements file ".format(file_type))
             return False, "{} is not a valid magic_measurements file, {}".format(meas_file, file_type)
 
     meas_data = pmag.get_dictitem(
         meas_data, 'magic_method_codes', 'LP-AN-TRM', 'has')
+    if not len(meas_data):
+        print("-E- No measurement records found with code LP-AN-TRM")
+        return False, "No measurement records found with code LP-AN-TRM"
     #
     #
     # get sorted list of unique specimen names
@@ -9099,6 +9116,15 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         s = sids[specimen]
         RmagSpecRec = {}
         RmagResRec = {}
+        # get old specrec here if applicable
+        if data_model_num == 3:
+            if spec_recs:
+                try:
+                    RmagResRec = pmag.get_dictitem(spec_recs, 'er_specimen_name', s, 'T')[0]
+                    RmagSpecRec = pmag.get_dictitem(spec_recs, 'er_specimen_name', s, 'T')[0]
+                except IndexError:
+                    pass
+
         BX, X = [], []
         method_codes = []
         Spec0 = ""
@@ -9112,14 +9138,16 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"] = data[0].get("er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
+            if not "er_sample_name" in RmagSpecRec:
+                RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
             RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
             RmagSpecRec["er_citation_names"] = "This study"
             RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":ATRM"
             RmagResRec["er_location_names"] = data[0].get("er_location_names", "")
             RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
-            RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
+            if data_model_num == 2:
+                RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
             RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
             RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
             RmagResRec["er_citation_names"] = "This study"
@@ -9362,9 +9390,9 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
             SpecRecs3.append(rec3)
 
         # write output to 3.0 specimens file
-        pmag.magic_write(spec_file, SpecRecs3, 'specimens')
-        print("specimen data stored in {}".format(spec_file))
-        return True, spec_file
+        pmag.magic_write(output_spec_file, SpecRecs3, 'specimens')
+        print("specimen data stored in {}".format(output_spec_file))
+        return True, output_spec_file
 
     else:
         # write output to 2.5 rmag_ files
