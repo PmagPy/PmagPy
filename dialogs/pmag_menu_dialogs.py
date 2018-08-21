@@ -555,7 +555,8 @@ class ImportK15(wx.Frame):
         if data_model_num == 2:
             DM = "-DM 2"
         COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {} {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file, DM)
-        program_ran, error_message = convert.k15(infile, specnum, ncn, location, outfile, samp_outfile, aniso_outfile, aniso_results_file, ID, WD)
+        program_ran, error_message = convert.k15(infile, WD, ID, outfile, aniso_outfile, samp_outfile,
+                                                 aniso_results_file, specnum, ncn, location, data_model_num)
         print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)

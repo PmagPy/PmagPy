@@ -4736,33 +4736,51 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     return True, meas_file
 
 
-def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
-        measfile='measurements.txt', sampfile="samples.txt",
-        aniso_outfile='specimens.txt', result_file="rmag_results.txt",
-        input_dir_path='', output_dir_path='.', data_model_num=3):
+def k15(k15file, output_dir_path='.', input_dir_path='',
+        meas_file='measurements.txt', aniso_outfile='specimens.txt',
+        samp_file="samples.txt", result_file ="rmag_anisotropy.txt",
+        specnum=0, sample_naming_con='1', location="unknown",
+        data_model_num=3):
     """
+    converts .k15 format data to MagIC  format.
+    assumes Jelinek Kappabridge measurement scheme.
 
-    NAME
-        k15_magic.py
+    Parameters
+    ----------
+    k15file : str
+        input file name
+    output_dir_path : str
+        output file directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    aniso_outfile : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    aniso_results_file : str
+        output result file name, default "rmag_results.txt", data model 2 only
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    data_model_num : int
+        MagIC data model [2, 3], default 3
 
-    DESCRIPTION
-        converts .k15 format data to magic_measurements  format.
-        assumes Jelinek Kappabridge measurement scheme
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, samp_file name written)
 
-    SYNTAX
-        k15_magic.py [-h] [command line options]
 
-    OPTIONS
-        -h prints help message and quits
-        -f KFILE: specify .k15 format input file
-        -F MFILE: specify magic_measurements format output file
-        -Fsa SFILE, specify er_samples format file for output
-        -Fa AFILE, specify anisotropy file for output # default rmag_anisotropy for data model 2, specimens file for data model 3
-        -Fr RFILE, specify rmag_results format file for output # data model 2 only
-        -loc LOC: specify location name for study
-    #-ins INST: specify instrument that measurements were made on # not implemented
-        -spc NUM: specify number of digits for specimen ID, default is 0
-        -ncn NCOM: specify naming convention (default is #1)
+    Info
+    --------
+      Infile format:
+          name [az,pl,strike,dip], followed by
+          3 rows of 5 measurements for each specimen
+
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -4775,19 +4793,6 @@ def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
-
-
-    DEFAULTS
-        MFILE: k15_measurements.txt
-        SFILE: er_samples.txt
-        AFILE: rmag_anisotropy.txt
-        RFILE: rmag_results.txt
-        LOC: unknown
-        INST: unknown
-
-    INPUT
-      name [az,pl,strike,dip], followed by
-      3 rows of 5 measurements for each specimen
 
     """
     #
@@ -4851,10 +4856,10 @@ def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
 
     # set defaults correctly for MagIC 2
     if data_model_num == 2:
-        if measfile == 'measurements.txt':
-            measfile = 'magic_measurements.txt'
-        if sampfile == 'samples.txt':
-            sampfile = 'er_samples.txt'
+        if meas_file == 'measurements.txt':
+            meas_file = 'magic_measurements.txt'
+        if samp_file == 'samples.txt':
+            samp_file = 'er_samples.txt'
         if aniso_outfile == 'specimens.txt':
             aniso_outfile = 'rmag_anisotropy.txt'
 
@@ -4918,17 +4923,17 @@ def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
     if sample_naming_con == '6':
         Samps, filetype = pmag.magic_read(
             os.path.join(input_dir_path, samp_table_name + ".txt"))
-    sampfile = os.path.join(output_dir_path, sampfile)
-    measfile = os.path.join(output_dir_path, measfile)
-    aniso_outfile = os.path.join(output_dir_path, aniso_outfile)
-    result_file = os.path.join(output_dir_path, result_file)
-    k15file = os.path.join(input_dir_path, k15file)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    aniso_outfile = pmag.resolve_file_name(aniso_outfile, output_dir_path)
+    result_file = pmag.resolve_file_name(result_file, output_dir_path)
+    k15file = pmag.resolve_file_name(k15file, input_dir_path)
     if not os.path.exists(k15file):
         print(k15file)
         return False, "You must provide a valid k15 format file"
     try:
         SampRecs, filetype = pmag.magic_read(
-            sampfile)  # append new records to existing
+            samp_file)  # append new records to existing
         samplist = []
         for samp in SampRecs:
             if samp[samp_name_col] not in samplist:
@@ -5231,23 +5236,23 @@ def k15(k15file, specnum=0, sample_naming_con='1', location="unknown",
                 MeasRec, SpecRec, SampRec, SiteRec, AnisRec = {}, {}, {}, {}, {}
 
     # samples
-    pmag.magic_write(sampfile, SampRecs, samp_table_name)
+    pmag.magic_write(samp_file, SampRecs, samp_table_name)
     # specimens / rmag_anisotropy / rmag_results
     if data_model_num == 3:
         AnisRecs.extend(ResRecs)
         SpecRecs = AnisRecs.copy()
         SpecRecs, keys = pmag.fillkeys(SpecRecs)
         pmag.magic_write(aniso_outfile, SpecRecs, 'specimens')
-        flist = [measfile, aniso_outfile, sampfile]
+        flist = [meas_file, aniso_outfile, samp_file]
     else:
         pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')  # add to specimens?
         pmag.magic_write(result_file, ResRecs, 'rmag_results') # added to specimens (NOT sites)
-        flist = [measfile, sampfile, aniso_outfile, result_file]
+        flist = [meas_file, samp_file, aniso_outfile, result_file]
     # measurements
-    pmag.magic_write(measfile, MeasRecs, meas_table_name)
+    pmag.magic_write(meas_file, MeasRecs, meas_table_name)
 
     print("Data saved to: " + ", ".join(flist))
-    return True, measfile
+    return True, meas_file
 
 
 ### kly4s_magic conversion
