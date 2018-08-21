@@ -2249,10 +2249,12 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
         outfile = pmag.resolve_file_name('.', outfile)
         output_dir_path, file_name = os.path.split(outfile)
         con = cb.Contribution(output_dir_path, read_tables=[])
-        # figure out file type from first of files to join
+        # make sure files actually exist
+        filenames = [f for f in filenames if os.path.exists(f)]
         if not filenames:
             print("You have provided no files, so nothing will be combined".format(magic_table))
             return False
+        # figure out file type from first of files to join
         with open(filenames[0]) as f:
             file_type = f.readline().split()[1]
         if file_type in ['er_specimens', 'er_samples', 'er_sites',

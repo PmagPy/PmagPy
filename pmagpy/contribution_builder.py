@@ -1385,7 +1385,7 @@ class MagicDataFrame(object):
 
     ## Methods to change self.df inplace
 
-    def remove_non_magic_cols_from_table(self, ignore_cols=None):
+    def remove_non_magic_cols_from_table(self, ignore_cols=()):
         """
         Remove all non-magic columns from self.df.
         Changes in place.

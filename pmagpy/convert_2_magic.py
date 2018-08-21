@@ -6055,8 +6055,10 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
 
 ## LIVDB conversion
 
-def livdb(dir_path, meas_out="measurements.txt",
-          spec_out="specimens.txt", samp_name_con='sample=specimen', samp_num_chars=0,
+def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
+          spec_out="specimens.txt", samp_out="samples.txt",
+          site_out="sites.txt", loc_out="locations.txt",
+          samp_name_con='sample=specimen', samp_num_chars=0,
           site_name_con='site=sample', site_num_chars=0, location_name="", data_model_num=3):
 
     """
@@ -6298,9 +6300,9 @@ def livdb(dir_path, meas_out="measurements.txt",
     # Read file and sort data by specimen
     # -----------------------------------
 
-    for files in os.listdir(dir_path):
+    for files in os.listdir(input_dir_path):
         if files.endswith(".livdb") or files.endswith(".livdb.csv") or files.endswith(".csv"):
-            fname = os.path.join(dir_path, files)
+            fname = os.path.join(input_dir_path, files)
             print("Open file: ", fname)
             fin = open(fname, 'r')
             Data = {}
@@ -6849,13 +6851,27 @@ def livdb(dir_path, meas_out="measurements.txt",
     #  measurements.txt
     # -------------------------------------------
 
+    meas_out = pmag.resolve_file_name(meas_out, output_dir_path)
     pmag.magic_write(meas_out, MagRecs, meas_type)
 
     # -------------------------------------------
     #  specimens.txt
     # -------------------------------------------
 
+    spec_out = pmag.resolve_file_name(spec_out, output_dir_path)
     pmag.magic_write(spec_out, ErRecs, spec_type)
+
+    # propagate samples/specimens/sites/locations to their own files
+    custom_filenames = {'measurements': meas_out, 'specimens': spec_out,
+                        'samples': samp_out, 'sites': site_out,
+                        'locations': loc_out}
+    con = cb.Contribution(output_dir_path, custom_filenames=custom_filenames)
+    con.propagate_measurement_info()
+    # remove invalid columns
+    con.remove_non_magic_cols()
+    # write all data out to file
+    for dtype in con.tables:
+        con.write_table_to_file(dtype)
 
     return True, meas_out
 

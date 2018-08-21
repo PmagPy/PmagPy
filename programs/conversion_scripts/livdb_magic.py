@@ -254,6 +254,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
         meas_files = []
         spec_files = []
+        samp_files = []
+        site_files = []
+        loc_files = []
 
         for i in range(self.max_files):
 
@@ -286,31 +289,43 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             if self.data_model_num == 2:
                 meas_out = "magic_measurements_{}.txt".format(i)
                 spec_out = "er_specimens_{}.txt".format(i)
+                samp_out = "er_samples_{}.txt".format(i)
+                site_out = "er_sites_{}.txt".format(i)
+                loc_out = "er_locations_{}.txt".format(i)
             else:
                 meas_out = "measurements_{}.txt".format(i)
                 spec_out = "specimens_{}.txt".format(i)
+                samp_out = "samples_{}.txt".format(i)
+                site_out = "sites_{}.txt".format(i)
+                loc_out = "locations_{}.txt".format(i)
             # do conversion
 
-            convert.livdb(dir_name, meas_out, spec_out,
+            convert.livdb(dir_name, self.WD, meas_out, spec_out,
+                          samp_out, site_out, loc_out,
                           samp_con, samp_chars, site_con,
                           site_chars, location_name)
             meas_files.append(meas_out)
             spec_files.append(spec_out)
+            samp_files.append(samp_out)
+            site_files.append(site_out)
+            loc_files.append(loc_out)
 
         if self.data_model_num == 2:
             res = ipmag.combine_magic(meas_files, "magic_measurements.txt", 2)
             ipmag.combine_magic(spec_files, "er_specimens.txt", 2)
         else:
-            res = ipmag.combine_magic(meas_files, "measurements.txt", 2)
-            ipmag.combine_magic(spec_files, "specimens.txt", 2)
-            con = cb.Contribution(".", read_tables=['measurements', 'specimens'])
-            con.propagate_measurement_info()
-            for dtype in ['samples', 'sites', 'locations']:
-                if dtype in con.tables:
-                    con.write_table_to_file(dtype)
+            res = ipmag.combine_magic(meas_files, "measurements.txt", 3)
+            ipmag.combine_magic(spec_files, "specimens.txt", 3)
+            ipmag.combine_magic(samp_files, "samples.txt", 3)
+            ipmag.combine_magic(site_files, "sites.txt", 3)
+            ipmag.combine_magic(loc_files, "locations.txt", 3)
+
 
         pmag.remove_files(meas_files)
         pmag.remove_files(spec_files)
+        pmag.remove_files(samp_files)
+        pmag.remove_files(site_files)
+        pmag.remove_files(loc_files)
         if res:
             self.after_convert_dia()
         else:
