@@ -350,8 +350,8 @@ def convert_ages(Recs, data_model=3):
     converts ages to Ma
     Parameters
     _________
-    Recs : list of dictionaries in data model by data_model 
-    data_model : MagIC data model (default is 3) 
+    Recs : list of dictionaries in data model by data_model
+    data_model : MagIC data model (default is 3)
     """
     if data_model == 3:
         site_key = 'site'
@@ -1732,14 +1732,14 @@ def open_file(infile, verbose=True):
 def magic_read(infile, data=None, return_keys=False, verbose=False):
     """
     Reads  a Magic template file, returns  data in a list of dictionaries.
-    
+
     Parameters
     ___________
-        Required: 
+        Required:
             infile : the MagIC formatted tab delimited data file
                 first line contains 'tab' in the first column and the data file type in the second (e.g., measurements, specimen, sample, etc.)
         Optional:
-            data : data read in with, e.g., file.readlines()  
+            data : data read in with, e.g., file.readlines()
     Returns
     _______
         list of dictionaries, file type
@@ -10818,21 +10818,21 @@ def apwp(data,print_results=False):
 def chart_maker(Int,Top,start=100,outfile='chart.txt'):
 
     """
-    Makes a chart for performing IZZI experiments. Print out the file and 
+    Makes a chart for performing IZZI experiments. Print out the file and
     tape it to the oven.  This chart will help keep track of the different
-    steps.  
+    steps.
     Z : performed in zero field - enter the temperature XXX.0 in the sio
         formatted measurement file created by the LabView program
     I : performed in the lab field written at the top of the form
     P : a pTRM step - performed at the temperature and in the lab field.
-    
+
     Parameters
     __________
     Int : list of intervals [e.g., 50,10,5]
     Top : list of upper bounds for each interval [e.g., 500, 550, 600]
-    start : first temperature step, default is 100 
+    start : first temperature step, default is 100
     outfile : name of output file, default is 'chart.txt'
- 
+
     Output
     _________
     creates a file with:
