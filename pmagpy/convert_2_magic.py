@@ -6169,6 +6169,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     """
 
     def get_sample_name(specimen, sample_naming_convention):
+        specimen = specimen.strip()
         if sample_naming_convention[0] == "sample=specimen":
             sample = specimen
         elif sample_naming_convention[0] == "no. of terminate characters":
@@ -6184,6 +6185,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
         return sample
 
     def get_site_name(sample, site_naming_convention):
+        sample = sample.strip()
         if site_naming_convention[0] == "site=sample":
             site = sample
         elif site_naming_convention[0] == "no. of terminate characters":
@@ -6819,9 +6821,9 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                         ErRec[citation_col] = "This study"
                         ErRec[spec_col] = header_line["Sample code"]
                         ErRec[samp_col] = get_sample_name(
-                            MagRec[spec_col], [samp_name_con, samp_num_chars])
+                            ErRec[spec_col], [samp_name_con, samp_num_chars], True)
                         ErRec[site_col] = get_site_name(
-                            MagRec[samp_col], [site_name_con, site_num_chars])
+                            ErRec[samp_col], [site_name_con, site_num_chars])
                         ErRec[loc_col] = location_name
 
                         ErRec[spec_type_col] = "Not Specified"

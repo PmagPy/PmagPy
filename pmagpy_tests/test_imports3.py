@@ -918,9 +918,7 @@ class TestK15Magic(unittest.TestCase):
                                  'k15_magic')
         program_ran, outfile = convert.k15('k15_example.dat', specnum=2,
                                                input_dir_path=input_dir)
-        print(program_ran, outfile)
         self.assertTrue(program_ran)
-        print('outfile', outfile)
         self.assertEqual(os.path.realpath('./measurements.txt'), os.path.realpath(outfile))
 
 
@@ -967,7 +965,7 @@ class TestLdeoMagic(unittest.TestCase):
         self.assertEqual(options['meas_file'], outfile)
 
 
-class TestLivDbMagic(unittest.TestCase):
+class TestLivdbMagic(unittest.TestCase):
     def setUp(self):
         os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
@@ -979,7 +977,7 @@ class TestLivDbMagic(unittest.TestCase):
         pmag.remove_files(filelist, WD)
         #filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
         #            'locations.txt', 'custom_specimens.txt', 'measurements.txt']
-        pmag.remove_files(filelist, '.')
+        #pmag.remove_files(filelist, '.')
         #pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
@@ -987,51 +985,53 @@ class TestLivDbMagic(unittest.TestCase):
     def test_livdb_success(self):
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"))
         self.assertTrue(res)
-        self.assertEqual(meas_file, "measurements.txt")
+        self.assertEqual(meas_file, os.path.realpath("measurements.txt"))
 
     def test_livdb_all_experiment_types(self):
         for folder in ["TH_IZZI+", "MW_C+", "MW_IZZI+andC++", "MW_OT+", "MW_P"]:
             res, meas_file = convert.livdb(os.path.join(self.input_dir, folder))
             self.assertTrue(res)
-            self.assertEqual(meas_file, "measurements.txt")
+            self.assertEqual(meas_file, os.path.realpath("measurements.txt"))
 
     def test_with_options(self):
         # naming con 1
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
                                        location_name="place", samp_name_con=1, meas_out="custom.txt")
         self.assertTrue(res)
-        self.assertEqual(meas_file, "custom.txt")
-        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
-        self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
+        self.assertEqual(meas_file, os.path.realpath("custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "specimens.txt"))
+        self.assertEqual("ATPIPV04-1A", df.df.loc["ATPIPV04-1A"]['sample'])
         # naming con 2 without chars
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
                                        location_name="place", samp_name_con=2, site_name_con=2,
                                        meas_out="custom.txt")
         self.assertTrue(res)
-        self.assertEqual(meas_file, "custom.txt")
-        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
-        self.assertEqual("ATPIPV04-1A", df.df['sample'].values[0])
-        self.assertEqual("ATPIPV04-1A", df.df['site'].values[0])
-        # naming con 2 with chars
+        self.assertEqual(meas_file, os.path.realpath("custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "specimens.txt"))
+        self.assertEqual("ATPIPV04-1A", df.df.loc['ATPIPV04-1A']['sample'])
+        df = cb.MagicDataFrame(os.path.join(WD, "samples.txt"))
+        self.assertEqual("ATPIPV04-1A", df.df.loc['ATPIPV04-1A']['site'])
+
 
     def test_naming_con_2(self):
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
                                        location_name="place", samp_name_con=2, samp_num_chars=1,
                                        meas_out="custom.txt")
         self.assertTrue(res)
-        self.assertEqual(meas_file, "custom.txt")
-        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
-        self.assertEqual("ATPIPV04-1", df.df['sample'].values[0])
+        self.assertEqual(meas_file, os.path.realpath("custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "specimens.txt"))
+        self.assertEqual("ATPIPV04-1", df.df.loc["ATPIPV04-1A"]['sample'])
 
     def test_naming_con_3(self):
         res, meas_file = convert.livdb(os.path.join(self.input_dir, "TH_IZZI+"),
                                        location_name="place", samp_name_con=3, samp_num_chars="-",
                                        meas_out="custom.txt")
         self.assertTrue(res)
-        self.assertEqual(meas_file, "custom.txt")
-        df = cb.MagicDataFrame(os.path.join(WD, "custom.txt"))
-        self.assertEqual("ATPIPV04", df.df['sample'].values[0])
-        self.assertEqual("ATPIPV04", df.df['site'].values[0])
+        self.assertEqual(meas_file, os.path.realpath("custom.txt"))
+        df = cb.MagicDataFrame(os.path.join(WD, "specimens.txt"))
+        self.assertEqual(df.df.loc['ATPIPV04-1A']['sample'], 'ATPIPV04')
+        df = cb.MagicDataFrame(os.path.join(WD, "samples.txt"))
+        self.assertEqual(df.df.loc['ATPIPV04']['site'], "ATPIPV04")
 
 
 
@@ -1376,8 +1376,6 @@ class TestSufarAscMagic(unittest.TestCase):
     def test_SUFAR4_succeed_option4(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'SUFAR_asc_magic')
-        print('WD', WD)
-        print('input_dir', input_dir)
         infile = 'sufar4-asc_magic_example.txt'
         ofile = 'my_magic_measurements.txt'
         program_ran, outfile = convert.sufar4(infile,
