@@ -293,8 +293,12 @@ def main():
                 recnum += 1
             for fig in list(AZD.keys()):
                 pmagplotlib.clearFIG(AZD[fig])  # clear all figures
+            if 'K' in units:
+                u = 'K'
+            elif 'J' in units:
+                u = 'J'
             pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock,
-                               this_specimen, units[0])
+                               this_specimen, u)
             if verbose:
                 pmagplotlib.draw_figs(AZD)
             if cb.is_null(start, False) or cb.is_null(end, False):

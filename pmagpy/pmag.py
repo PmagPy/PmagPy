@@ -1632,7 +1632,10 @@ def find_dmag_rec(s, data, **kwargs):
                 tr = float(rec[temp_key])
             if "LT-AF-Z" in methods:
                 af_flag = 1
-                tr = float(rec[ac_key])
+                try:
+                    tr = float(rec[ac_key])
+                except (KeyError, ValueError):
+                    tr = 0
                 if "T" not in units:
                     units.append("T")
             if "LT-T-Z" in methods:
