@@ -6544,6 +6544,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # AFD
                     if "LT-AF-Z" in methods and "LP-AN-ARM" not in rec['magic_method_codes'] and "LP-DIR-AF" not in rec['magic_method_codes']:
                         if Data[s]['T_or_MW'] == "T":
+                            if 'treatment_ac_field' not in rec:
+                                rec['treatment_ac_field'] = ''
                             try:
                                 # AFD is amrked with negative
                                 tr = tr - \
@@ -7803,21 +7805,28 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 Treat_Z.append(temp)
                 ZSteps.append(k)
             if "LT-AF-Z" in methcodes and 'treatment_ac_field' in list(rec.keys()):
-                AFD_after_NRM = True
-                # consider AFD before T-T experiment ONLY if it comes before
-                # the experiment
-                for i in range(len(first_I)):
-                    # check if there was an infield step before the AFD
-                    if float(first_I[i][3]) != 0:
-                        AFD_after_NRM = False
-                    if AFD_after_NRM:
-                        AF_field = float(rec['treatment_ac_field']) * 1000
-                        dec = float(rec["measurement_dec"])
-                        inc = float(rec["measurement_inc"])
-                        intensity = float(rec[momkey])
-                        first_I.append([273. - AF_field, 0., 0., 0., 1])
-                        first_Z.append(
-                            [273. - AF_field, dec, inc, intensity, 1])  # NRM step
+                if rec['treatment_ac_field'] != "":
+                    AFD_after_NRM = True
+                    # consider AFD before T-T experiment ONLY if it comes before
+                    # the experiment
+                    for i in range(len(first_I)):
+                        # check if there was an infield step before the AFD
+                        if float(first_I[i][3]) != 0:
+                            AFD_after_NRM = False
+                        if AFD_after_NRM:
+                            AF_field = 0
+                            if 'treatment_ac_field' in rec:
+                                try:
+                                    AF_field = float(rec['treatment_ac_field']) * 1000
+                                except ValueError:
+                                    pass
+
+                            dec = float(rec["measurement_dec"])
+                            inc = float(rec["measurement_inc"])
+                            intensity = float(rec[momkey])
+                            first_I.append([273. - AF_field, 0., 0., 0., 1])
+                            first_Z.append(
+                                [273. - AF_field, dec, inc, intensity, 1])  # NRM step
             if 'LT-T-Z' in methcodes or 'LT-M-Z' in methcodes:
                 Treat_Z.append(temp)
                 ZSteps.append(k)
