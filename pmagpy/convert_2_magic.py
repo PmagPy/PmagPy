@@ -6275,6 +6275,7 @@ def livdb(dir_path, meas_out="measurements.txt",
         spec_type = "specimens"
 
     specimen_headers = []
+    seqnum = 1
     MagRecs = []
     measurement_headers = []
     ErRecs = []
@@ -6446,6 +6447,10 @@ def livdb(dir_path, meas_out="measurements.txt",
                             MagRec = {}
                             # make sure ac field is set
                             MagRec[ac_field_col] = ''
+                            # add sequence
+                            if data_model_num == 3:
+                                MagRec['sequence'] = seqnum
+                                seqnum += 1
                             # header_data
                             MagRec[citation_col] = "This study"
                             MagRec[spec_col] = header_line['Sample code'].strip()
