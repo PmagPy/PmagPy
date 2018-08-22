@@ -878,7 +878,7 @@ class TestK15Magic(unittest.TestCase):
                                                 input_dir_path=input_dir,
                                                 data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, os.path.realpath('magic_measurements.txt'))
 
     def test_k15_fail_option4(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -896,7 +896,7 @@ class TestK15Magic(unittest.TestCase):
                                                input_dir_path=input_dir,
                                                data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(".", "magic_measurements.txt"))
+        self.assertEqual(outfile, os.path.realpath("magic_measurements.txt"))
 
     def test_k15_with_options(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -904,14 +904,14 @@ class TestK15Magic(unittest.TestCase):
         program_ran, outfile = convert.k15('k15_example.dat', specnum=2,
                                                sample_naming_con="3",
                                                location="Here",
-                                               measfile="my_magic_measurements.txt",
-                                               sampfile="my_er_samples.txt",
+                                               meas_file="my_magic_measurements.txt",
+                                               samp_file="my_er_samples.txt",
                                                aniso_outfile="my_rmag_anisotropy.txt",
                                                result_file="my_rmag_results.txt",
                                                input_dir_path=input_dir,
                                                    data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(".", "my_magic_measurements.txt"))
+        self.assertEqual(outfile, os.path.realpath("my_magic_measurements.txt"))
 
     def test_data_model3(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
