@@ -6821,7 +6821,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                         ErRec[citation_col] = "This study"
                         ErRec[spec_col] = header_line["Sample code"]
                         ErRec[samp_col] = get_sample_name(
-                            ErRec[spec_col], [samp_name_con, samp_num_chars], True)
+                            ErRec[spec_col], [samp_name_con, samp_num_chars])
                         ErRec[site_col] = get_site_name(
                             ErRec[samp_col], [site_name_con, site_num_chars])
                         ErRec[loc_col] = location_name
