@@ -1103,8 +1103,28 @@ else:
         if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
             MICROWAVE = True
             THERMAL = False
-            steps_tr = [float(d['treatment_mw_power'].split("-")[-1])
-                        for d in self.Data[s]['datablock']]
+
+            steps_tr = []
+            for rec in self.Data[s]['datablock']:
+
+                if "measurement_description" in rec:
+                    MW_step = rec["measurement_description"].strip(
+                        '\n').split(":")
+                    for STEP in MW_step:
+                        if "Number" in STEP:
+                            temp = float(STEP.split("-")[-1])
+                            steps_tr.append(temp)
+
+                else:
+                    power = rec['treatment_mw_power']
+                    if '-' in str(power):
+                        power = power.split('-')[-1]
+                    steps_tr.append(int(power))
+
+
+
+            #steps_tr = [float(d['treatment_mw_power'].split("-")[-1])
+            #            for d in self.Data[s]['datablock']]
         else:
             MICROWAVE = False
             THERMAL = True
@@ -1877,7 +1897,7 @@ else:
                 zij_window = wx.GridSizer(2, 2, 12, 12)
                 zij_window.AddMany([(wx.StaticText(pnl1, label="show temperatures", style=wx.TE_CENTER), wx.EXPAND),
                                     (wx.StaticText(
-                                        pnl1, label="show temperatures but skip stpes", style=wx.TE_CENTER), wx.EXPAND),
+                                        pnl1, label="show temperatures but skip steps", style=wx.TE_CENTER), wx.EXPAND),
                                     (self.show_Zij_temperatures, wx.EXPAND),
                                     (self.show_Zij_temperatures_steps, wx.EXPAND)])
                 bSizer3.Add(zij_window, 0, wx.ALIGN_LEFT | wx.ALL, 5)
