@@ -4282,9 +4282,17 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     if not input_dir_path:
         input_dir_path = dir_path
     output_dir_path = dir_path
+    print (output_dir_path)
     specnum = - int(specnum)
     samp_con = str(samp_con)
     volume = float(volume) * 1e-6
+    # need to add these
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
 
     if JR:
         if meth_code == "LP-NO":
@@ -5778,6 +5786,25 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
     samp_file : output file sample file name
     site_file : output file site file name
     loc_file : output file location file name
+    specnum : number of characters to remove from specimen name for sample name
+    samp_con : sample naming convention
+    specnum : number of terminal characters distinguishing specimen from sample
+    samp_con :  sample/site naming convention
+            "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "4-Z" XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            "5" site name same as sample
+            "6" site is entered under a separate column NOT CURRENTLY SUPPORTED
+            "7-Z" [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+
+            "8" synthetic - has no site name
+            "9" ODP naming convention
+
     codelist : colon delimited string of lab protocols (e.g., codelist="AF")
         AF:  af demag
         T: thermal including thellier but not trm acquisition
@@ -6039,6 +6066,12 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
                 meas_type = "LT-T-I"  # trm acquisition experiment
         MeasRec['method_codes'] = meas_type
         MeasRecs.append(MeasRec)
+    # need to add these
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
 
     con = cb.Contribution(output_dir_path, read_tables=[])
 
