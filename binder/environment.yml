@@ -13,8 +13,8 @@ dependencies:
   - anaconda
   - anaconda-navigator
   - anaconda-project
-  - appnope
-  - appscript
+#  - appnope
+#  - appscript
   - asn1crypto
   - astroid
   - astropy
@@ -102,7 +102,7 @@ dependencies:
   - lazy-object-proxy
   - libcurl
   - libcxx
-  - libcxxabi
+#  - libcxxabi
   - libedit
   - libffi
   - libgfortran
@@ -185,7 +185,7 @@ dependencies:
   - pytest
   - python
   - python-dateutil
-  - python.app
+#  - python.app
   - pytz
   - pywavelets
   - pyyaml
@@ -239,7 +239,7 @@ dependencies:
   - wrapt
   - xlrd
   - xlsxwriter
-  - xlwings
+#  - xlwings
   - xlwt
   - xz
   - yaml
