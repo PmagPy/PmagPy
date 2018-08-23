@@ -35,7 +35,7 @@ def main():
         -h prints help and quits
         -f FILE  specify field model file with format:  l m g h
         -fmt [pdf,eps,svg,png]  specify format for output figure  (default is png)
-        -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k_2,shadif14k,cals10k] specify model for 3ka to 1900 CE, default is  cals10k
+        -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,shadif14k,cals10k.1b] specify model for 3ka to 1900 CE, default is  cals10k
         -alt ALT;  specify altitude in km, default is sealevel (0)
         -age specify date in decimal year, default is 2016
         -lon0: 0 longitude for map, default is 0
