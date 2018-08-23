@@ -772,7 +772,7 @@ class TestJr6Jr6Magic(unittest.TestCase):
                                  'JR6_magic')
         output = convert.jr6_jr6(**{'mag_file': 'AF.jr6', 'input_dir_path': input_dir})
         self.assertTrue(output[0])
-        self.assertEqual(output[1], 'measurements.txt')
+        self.assertEqual(os.path.realpath(output[1]), os.path.realpath('measurements.txt'))
 
     def test_with_options(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -784,7 +784,7 @@ class TestJr6Jr6Magic(unittest.TestCase):
         options['noave'] = True
         output = convert.jr6_jr6(**options)
         self.assertTrue(output[0])
-        self.assertEqual(output[1], 'test.magic')
+        self.assertEqual(os.path.realpath(output[1]), os.path.realpath('test.magic'))
         site_df = cb.MagicDataFrame(os.path.join(WD, 'sites.txt'))
         self.assertEqual(1, site_df.df.lat.values[0])
 
@@ -962,7 +962,7 @@ class TestLdeoMagic(unittest.TestCase):
         options['labfield'], options['phi'], options['theta'] = 40, 0, 90
         program_ran, outfile = convert.ldeo(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(options['meas_file'], outfile)
+        self.assertEqual(os.path.realpath(options['meas_file']), os.path.realpath(outfile))
 
 
 class TestLivdbMagic(unittest.TestCase):
