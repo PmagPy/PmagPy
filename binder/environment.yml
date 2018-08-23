@@ -10,25 +10,25 @@ dependencies:
   - _ipyw_jlab_nb_ext_conf=0.1.0=py36h2fc01ae_0
   - alabaster=0.7.10=py36h174008c_0
   - anaconda-client=1.6.9=py36_0
-  - anaconda=custom=py36ha4fed55_0
+#  - anaconda=custom=py36ha4fed55_0
   - anaconda-navigator=1.7.0=py36_0
   - anaconda-project=0.8.2=py36h9ee5d53_0
   - appnope=0.1.0=py36hf537a9a_0
   - appscript=1.0.1=py36h9e71e49_1
   - asn1crypto=0.24.0=py36_0
   - astroid=1.6.1=py36_0
-  - astropy=2.0.3=py36h1de35cc_0
+#  - astropy=2.0.3=py36h1de35cc_0
   - attrs=17.4.0=py36_0
   - babel=2.5.3=py36_0
   - backports=1.0=py36ha3c1827_1
-  - backports.shutil_get_terminal_size=1.0.0=py36hd7a2ee4_2
-  - beautifulsoup4=4.6.0=py36h72d3c9f_1
+#  - backports.shutil_get_terminal_size=1.0.0=py36hd7a2ee4_2
+#  - beautifulsoup4=4.6.0=py36h72d3c9f_1
   - bitarray=0.8.1=py36h1de35cc_1
   - bleach=2.1.2=py36_0
   - bokeh=0.12.13=py36h2f9c1c0_0
   - boto=2.48.0=py36hdbc59ac_1
-  - bottleneck=1.2.1=py36hbd380ad_0
-  - bzip2=1.0.6=hd86a083_4
+#  - bottleneck=1.2.1=py36hbd380ad_0
+#  - bzip2=1.0.6=hd86a083_4
   - ca-certificates=2018.03.07=0
   - cartopy=0.16.0=py36he7b4726_0
   - certifi=2018.4.16=py36_0
@@ -42,7 +42,7 @@ dependencies:
   - conda-build=3.4.1=py36_0
   - conda-env=2.6.0=h36134e3_0
   - conda-verify=2.0.0=py36he837df3_0
-  - contextlib2=0.5.5=py36hd66e5e7_0
+#  - contextlib2=0.5.5=py36hd66e5e7_0
   - cryptography=2.1.4=py36h842514c_0
   - curl=7.58.0=ha441bb4_0
   - cycler=0.10.0=py36hfc81398_0
@@ -53,7 +53,7 @@ dependencies:
   - dbus=1.12.2=h5243cc1_1
   - decorator=4.2.1=py36_0
   - distributed=1.20.2=py36_0
-  - docutils=0.14=py36hbfde631_0
+#  - docutils=0.14=py36hbfde631_0
   - entrypoints=0.2.3=py36hd81d71f_2
   - et_xmlfile=1.0.1=py36h1315bdc_0
   - expat=2.2.5=hb8e80ba_0
@@ -63,13 +63,13 @@ dependencies:
   - flask-cors=3.0.3=py36h7387b97_0
   - freetype=2.8=h12048fb_1
   - future=0.16.0=py36_1
-  - get_terminal_size=1.0.0=h7520d66_0
+#  - get_terminal_size=1.0.0=h7520d66_0
   - gettext=0.19.8.1=h15daf44_3
   - gevent=1.2.2=py36ha70b9d6_0
   - glib=2.53.6=h33f6a65_2
   - glob2=0.6=py36h94c9186_0
   - gmp=6.1.2=hb37e062_1
-  - gmpy2=2.0.8=py36hf9c35bd_2
+#  - gmpy2=2.0.8=py36hf9c35bd_2
   - greenlet=0.4.12=py36hf09ba7b_0
   - h5py=2.7.1=py36h39cdac5_0
   - hdf5=1.10.1=ha036c08_1
@@ -84,10 +84,10 @@ dependencies:
   - ipython=6.2.1=py36h3dda519_1
   - ipython_genutils=0.2.0=py36h241746c_0
   - ipywidgets=7.1.1=py36_0
-  - isort=4.2.15=py36hceb2a01_0
+#  - isort=4.2.15=py36hceb2a01_0
   - itsdangerous=0.24=py36h49fbb8d_1
   - jbig=2.1=h4d881f8_0
-  - jdcal=1.3=py36h1986823_0
+#  - jdcal=1.3=py36h1986823_0
   - jedi=0.11.1=py36_0
   - jinja2=2.10=py36hd36f9c5_0
   - jpeg=9b=he5867d9_2
@@ -105,7 +105,7 @@ dependencies:
   - libcxxabi=4.0.1=hebd6815_0
   - libedit=3.1=hb4e282d_0
   - libffi=3.2.1=h475c297_4
-  - libgfortran=3.0.1=h93005f0_2
+#  - libgfortran=3.0.1=h93005f0_2
   - libiconv=1.15=hdd342a3_7
   - libpng=1.6.34=he12f830_0
   - libsodium=1.0.15=hd9e47c5_0
@@ -116,13 +116,13 @@ dependencies:
   - llvmlite=0.21.0=py36hff739e7_0
   - locket=0.2.0=py36hca03003_1
   - lxml=4.1.1=py36hef8c89e_1
-  - lzo=2.10=h362108e_2
+#  - lzo=2.10=h362108e_2
   - markupsafe=1.0=py36h3a1e703_1
   - matplotlib=2.2.2=py36ha7267d0_0
   - mccabe=0.6.1=py36hdaeb55d_0
   - mistune=0.8.3=py36_0
-  - mkl=2018.0.1=hfbd8650_4
-  - mkl-service=1.1.2=py36h7ea6df4_4
+#  - mkl=2018.0.1=hfbd8650_4
+#  - mkl-service=1.1.2=py36h7ea6df4_4
   - mpc=1.0.3=h7a72875_5
   - mpfr=3.1.5=h711e7fd_2
   - mpmath=1.0.0=py36hf1b8295_2
@@ -153,7 +153,7 @@ dependencies:
   - path.py=10.5=py36h7bcb313_0
   - pathlib2=2.3.0=py36h877a6d8_0
   - patsy=0.5.0=py36_0
-  - pcre=8.41=hfb6ab37_1
+#  - pcre=8.41=hfb6ab37_1
   - pep8=1.7.1=py36_0
   - pexpect=4.3.1=py36_0
   - pickleshare=0.7.4=py36hf512f8e_0
@@ -172,7 +172,7 @@ dependencies:
   - pycparser=2.18=py36h724b2fc_1
   - pycrypto=2.6.1=py36h1de35cc_7
   - pycurl=7.43.0.1=py36hdbc3d79_0
-  - pyepsg=0.3.2=py36hba2fa79_0
+#  - pyepsg=0.3.2=py36hba2fa79_0
   - pyflakes=1.6.0=py36hea45e83_0
   - pygments=2.2.0=py36h240cd3f_0
   - pylint=1.8.2=py36_0
@@ -181,7 +181,7 @@ dependencies:
   - pyparsing=2.2.0=py36hb281f35_0
   - pyqt=5.6.0=py36he5c6137_6
   - pysocks=1.6.7=py36hfa33cec_1
-  - pytables=3.4.2=py36hfbd7ab0_2
+#  - pytables=3.4.2=py36hfbd7ab0_2
   - pytest=3.3.2=py36_0
   - python=3.6.4=hc167b69_1
   - python-dateutil=2.6.1=py36h86d2abb_1
@@ -213,7 +213,7 @@ dependencies:
   - sortedcontainers=1.5.9=py36_0
   - sphinx=1.6.6=py36_0
   - sphinxcontrib=1.0=py36h9364dc8_1
-  - sphinxcontrib-websupport=1.0.1=py36h92f4a7a_1
+#  - sphinxcontrib-websupport=1.0.1=py36h92f4a7a_1
   - spyder=3.2.6=py36_0
   - sqlalchemy=1.2.1=py36h1de35cc_0
   - sqlite=3.22.0=h3efe00b_0
