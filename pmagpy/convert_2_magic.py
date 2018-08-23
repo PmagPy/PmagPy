@@ -9423,6 +9423,13 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     if not mag_file:
         return False, 'You must provide a Utrecht format file'
     mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    # need to add these
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
+
 
     # parse data
 
