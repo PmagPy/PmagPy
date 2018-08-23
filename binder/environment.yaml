@@ -249,5 +249,6 @@ dependencies:
   - pip:
     - dask==0.16.1
     - tables==3.4.2
+    - pmagpy
+    - pmagpy-cli
 prefix: /Users/nebula/anaconda3/envs/pmagpy_env
-
