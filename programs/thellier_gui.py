@@ -930,6 +930,8 @@ DESCRIPTION
         """
         if "specimen_int_uT" not in self.Data[self.s]['pars']:
             return
+        if 'deleted' in self.Data[self.s]['pars']:
+            self.Data[self.s]['pars'].pop('deleted')
         self.Data[self.s]['pars']['saved'] = True
 
         # collect all interpretation by sample
@@ -961,6 +963,7 @@ DESCRIPTION
 
         del self.Data[self.s]['pars']
         self.Data[self.s]['pars'] = {}
+        self.Data[self.s]['pars']['deleted'] = True
         self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
         self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
         self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
@@ -2761,8 +2764,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
             fnames = {'criteria': criteria_file}
             contribution = cb.Contribution(
                 self.WD, custom_filenames=fnames, read_tables=['criteria'])
-            contribution = cb.Contribution(
-                self.WD, custom_filenames=fnames, read_tables=['criteria'])
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
@@ -3710,7 +3711,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # write a redo file
         try:
             self.on_menu_save_interpretation(None)
-        except:
+        except Exception as ex:
+            print('-W-', ex)
             pass
         if self.data_model != 3:  # data model 3 data already read in to contribution
             #------------------
@@ -3758,7 +3760,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
         specimens_list = []
         for specimen in list(self.Data.keys()):
             if 'pars' in list(self.Data[specimen].keys()):
-                if 'saved' in list(self.Data[specimen]['pars'].keys()) and self.Data[specimen]['pars']['saved'] == True:
+                if 'saved' in self.Data[specimen]['pars'] and self.Data[specimen]['pars']['saved']:
+                    specimens_list.append(specimen)
+                elif 'deleted' in self.Data[specimen]['pars'] and self.Data[specimen]['pars']['deleted']:
                     specimens_list.append(specimen)
 
         # Empty pmag tables:
@@ -3770,7 +3774,33 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # write down pmag_specimens.txt
         specimens_list.sort()
         for specimen in specimens_list:
-            if 'pars' in list(self.Data[specimen].keys()) and 'saved' in list(self.Data[specimen]['pars'].keys()) and self.Data[specimen]['pars']['saved'] == True:
+            if 'pars' in self.Data[specimen] and 'deleted' in self.Data[specimen]['pars'] and self.Data[specimen]['pars']['deleted']:
+                print('-I- Deleting interpretation for {}'.format(specimen))
+                this_spec_data = self.spec_data.loc[specimen]
+                # there are multiple rows for this specimen
+                if isinstance(this_spec_data, pd.DataFrame):
+                    # delete the intensity rows for specimen
+                    cond1 = self.spec_container.df.specimen == specimen
+                    cond2 = self.spec_container.df.int_abs.notnull()
+                    cond = cond1 & cond2
+                    self.spec_container.df = self.spec_container.df[-cond]
+                # there is only one record for this specimen
+                else:
+                    # delete all intensity data for that specimen
+                    columns = list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity'))
+                    columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity pTRM Check Statistics')))
+                    columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity pTRM Tail Check Statistics')))
+                    columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity pTRM Additivity Check Statistics')))
+                    columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity Arai Statistics')))
+                    columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity Directional Statistics')))
+                    int_columns = set(columns).intersection(self.spec_data.columns)
+                    int_columns.update(['method_codes', 'result_quality', 'result_type', 'meas_step_max', 'meas_step_min', 'software_packages', 'meas_step_unit', 'experiments'])
+                    new_data = {col: "" for col in int_columns}
+                    cond1 = self.spec_container.df.specimen == specimen
+                    for col in int_columns:
+                        self.spec_container.df.loc[specimen, col] = ""
+
+            elif 'pars' in self.Data[specimen] and 'saved' in self.Data[specimen]['pars'] and self.Data[specimen]['pars']['saved']:
                 sample_name = self.Data_hierarchy['specimens'][specimen]
                 site_name = thellier_gui_lib.get_site_from_hierarchy(
                     sample_name, self.Data_hierarchy)
@@ -3850,12 +3880,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if 'result_type' not in list(new_data.keys()):
                         new_data['result_type'] = 'i'
                     # reformat all the keys
-                    cond1 = self.spec_data['specimen'].str.contains(
+                    cond1 = self.spec_container.df['specimen'].str.contains(
                         specimen + "$") == True
-                    if 'int_abs' not in self.spec_data.columns:
-                        self.spec_data['int_abs'] = None
+                    if 'int_abs' not in self.spec_container.df.columns:
+                        self.spec_container.df['int_abs'] = None
                         print("-W- No intensity data found for specimens")
-                    cond2 = self.spec_data['int_abs'].apply(cb.not_null) #notnull() == True
+                    cond2 = self.spec_container.df['int_abs'].apply(cb.not_null) #notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
                     self.spec_data = self.spec_container.update_record(
@@ -3909,6 +3939,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
             for col in ['site', 'location']:
                 if col in self.spec_data.columns:
                     del self.spec_data[col]
+
+            self.spec_container.drop_duplicate_rows()
             #  write out the data
             self.spec_container.write_magic_file(dir_path=self.WD)
             TEXT = "specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
