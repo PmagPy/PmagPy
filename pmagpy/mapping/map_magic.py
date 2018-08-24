@@ -346,6 +346,10 @@ def convert_direction_criteria(direction,crit):
         except KeyError as e: return ""
 
 def convert_meas(direction,Rec):
+    """
+    converts measurments tables from magic 2 to 3 (direction=magic3)
+    or from model 3 to 2.5 (direction=magic2) [not available]
+    """
     if direction=='magic3':
         columns=meas_magic2_2_magic3_map
         MeasRec={}
