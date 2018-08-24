@@ -1009,7 +1009,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
-    oersted : demag step vales are in Oersted
+    oersted : demag step values are in Oersted
     noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
