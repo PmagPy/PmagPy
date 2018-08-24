@@ -1,0 +1,11 @@
+tab	specimens
+specimen	sample	analysts	citations	method_codes	volume	weight
+PI47-1a	PI47-1		This study	LP-NOMAG		
+PI47-2a	PI47-2		This study	LP-NOMAG		
+PI47-3a	PI47-3		This study	LP-NOMAG		
+PI47-4a	PI47-4		This study	LP-NOMAG		
+PI47-5a	PI47-5		This study	LP-NOMAG		
+PI47-6a	PI47-6		This study	LP-NOMAG		
+PI47-7a	PI47-7		This study	LP-NOMAG		
+PI47-8a	PI47-8		This study	LP-NOMAG		
+PI47-9a	PI47-9		This study	LP-NOMAG		

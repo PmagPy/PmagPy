@@ -1,0 +1,29 @@
+tab	specimens
+azimuth	citations	density	description	dip	geologic_classes	geologic_types	lithologies	sample	specimen	volume
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV04-1A	ATPIPV04-1A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV04-6A	ATPIPV04-6A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV04-7N	ATPIPV04-7N	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-1A	ATPIPV14-1A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-2A	ATPIPV14-2A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-2C	ATPIPV14-2C	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-2D	ATPIPV14-2D	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-3A	ATPIPV14-3A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-3C	ATPIPV14-3C	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-4A	ATPIPV14-4A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-5A	ATPIPV14-5A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-5C	ATPIPV14-5C	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-6A	ATPIPV14-6A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-6B	ATPIPV14-6B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV14-7A	ATPIPV14-7A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV22-10B	ATPIPV22-10B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV22-8B	ATPIPV22-8B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV22-9A	ATPIPV22-9A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV26-15A	ATPIPV26-15A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV26-5A	ATPIPV26-5A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-1B	ATPIPV31-1B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-2B	ATPIPV31-2B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-3A	ATPIPV31-3A	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-3C	ATPIPV31-3C	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-4B	ATPIPV31-4B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-7B	ATPIPV31-7B	
+0.0	This study	2500	5mT AFD done before each measurement	0.0	Not Specified	Not Specified	Not Specified	ATPIPV31-9B	ATPIPV31-9B	

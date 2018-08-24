@@ -1,0 +1,3 @@
+tab	samples
+sample	site
+CHEVKH7-7Q	CHEVKH7

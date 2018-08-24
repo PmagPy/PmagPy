@@ -1,0 +1,9 @@
+tab	sites
+location	site
+	ATPIPV04
+	ATPIPV14
+	ATPIPV22-
+	ATPIPV22
+	ATPIPV26-
+	ATPIPV26
+	ATPIPV31

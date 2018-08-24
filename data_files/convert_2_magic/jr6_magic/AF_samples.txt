@@ -1,0 +1,19 @@
+tab	samples
+sample	site	analysts	azimuth	bed_dip	bed_dip_direction	dip	citations	method_codes
+BR14	BR1	Roi	342	0	0	-28	This study	LP-NO
+MF15	MF1	Roi	111	0	0	-77	This study	LP-NO
+BR29	BR2	Roi	280	0	0	-57	This study	LP-NO
+ST1	ST	Roi	57	0	0	-68	This study	LP-NO
+MF1	MF	Roi	123	0	0	-32	This study	LP-NO
+MF2	MF	Roi	354	0	0	-46	This study	LP-NO
+BR1	BR	Roi	337	0	0	-32	This study	LP-NO
+BR2	BR	Roi	287	0	0	-52	This study	LP-NO
+RQ1	RQ	Roi	36	0	0	-31	This study	LP-NO
+RQ3	RQ	Roi	94	0	0	-9	This study	LP-NO
+RQ2	RQ	Roi	41	0	0	-42	This study	LP-NO
+RQ4	RQ	Roi	134	0	0	-17	This study	LP-NO
+ST4	ST	Roi	263	0	0	-49	This study	LP-NO
+ST38	ST3	Roi	21	0	0	-86	This study	LP-NO
+ST23	ST2	Roi	27	0	0	-27	This study	LP-NO
+RQ37	RQ3	Roi	171	0	0	-38	This study	LP-NO
+ST2	ST	Roi	358	0	0	-36	This study	LP-NO

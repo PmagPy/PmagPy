@@ -1,0 +1,12 @@
+"cy10"
+"cy10","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy1002a,  GCnPCA,   H001-H013,  5,     137.7, 24.9,     0,  7.1,   137.7, 24.9,     0,  7.1,   "bad fit. jumpy"
+cy1003a,  DirOPCA,  H004-H070,  9,     44.7,  9.5,      0,  2.7,   44.7,  9.5,      0,  2.7,   "drifting"
+cy1004a,  DirOPCA,  H007-H035,  5,     39.2,  15.0,     0,  2.2,   39.2,  15.0,     0,  2.2,   "drifting"
+cy1005a,  DirOPCA,  H007-H035,  5,     42.9,  7.1,      0,  0.5,   42.9,  7.1,      0,  0.5,   "drifting. little jumpy"
+cy1006a,  DirOPCA,  H025-H055,  4,     38.4,  14.4,     0,  1.1,   38.4,  14.4,     0,  1.1,   "drifting. jumpy"
+cy1007a,  DirOPCA,  H013-H035,  4,     43.7,  7.7,      0,  0.8,   43.7,  7.7,      0,  0.8,   "drifting"
+cy1008a,  GCnPCA,   H002-H020,  5,     129.5, 22.1,     0,  0.7,   129.5, 22.1,     0,  0.7,   ""
+cy1008a,  GCnPCA,   H002-H020,  5,     129.5, 22.1,     0,  0.7,   129.5, 22.1,     0,  0.7,   "jumpy"
+cy1008a,  DirOPCA,  H025-H055,  4,     34.1,  12.5,     0,  1.9,   34.1,  12.5,     0,  1.9,   "drifting. jumpy"

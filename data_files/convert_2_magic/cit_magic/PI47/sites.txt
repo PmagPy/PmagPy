@@ -1,0 +1,3 @@
+tab	sites
+site	location	lat	lon	analysts	citations
+PI47	Slate Islands	48.7	-87.0		This study
