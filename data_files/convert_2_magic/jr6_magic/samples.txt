@@ -1,0 +1,32 @@
+tab	samples
+analysts	azimuth	bed_dip	bed_dip_direction	citations	dip	method_codes	sample	site
+Roi	342	0	0	This study	-28	LP-NO	BR14	BR1
+Roi	111	0	0	This study	-77	LP-NO	MF15	MF1
+Roi	280	0	0	This study	-57	LP-NO	BR29	BR2
+Roi	57	0	0	This study	-68	LP-NO	ST1	ST
+Roi	123	0	0	This study	-32	LP-NO	MF1	MF
+Roi	354	0	0	This study	-46	LP-NO	MF2	MF
+Roi	337	0	0	This study	-32	LP-NO	BR1	BR
+Roi	287	0	0	This study	-52	LP-NO	BR2	BR
+Roi	36	0	0	This study	-31	LP-NO	RQ1	RQ
+Roi	94	0	0	This study	-9	LP-NO	RQ3	RQ
+Roi	41	0	0	This study	-42	LP-NO	RQ2	RQ
+Roi	134	0	0	This study	-17	LP-NO	RQ4	RQ
+Roi	263	0	0	This study	-49	LP-NO	ST4	ST
+Roi	21	0	0	This study	-86	LP-NO	ST38	ST3
+Roi	27	0	0	This study	-27	LP-NO	ST23	ST2
+Roi	171	0	0	This study	-38	LP-NO	RQ37	RQ3
+Roi	358	0	0	This study	-36	LP-NO	ST2	ST
+Roi	24	0	0	This study	-36	LP-NO	ST2	ST
+Roi	3	0	0	This study	-49	LP-NO	ST21	ST2
+Roi	359	0	0	This study	-67	LP-NO	ST3	ST
+Roi	253	0	0	This study	-71	LP-NO	ST4	ST
+Roi	29	0	0	This study	-75	LP-NO	ST1	ST
+Roi	119	0	0	This study	-57	LP-NO	MF1	MF
+Roi	348	0	0	This study	-59	LP-NO	MF2	MF
+Roi	340	0	0	This study	-35	LP-NO	BR1	BR
+Roi	282	0	0	This study	-41	LP-NO	BR21	BR2
+Roi	33	0	0	This study	-26	LP-NO	RQ1	RQ
+Roi	41	0	0	This study	-38	LP-NO	RQ2	RQ
+Roi	126	0	0	This study	-30	LP-NO	RQ3	RQ
+Roi	153	0	0	This study	-26	LP-NO	RQ4	RQ

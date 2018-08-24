@@ -2238,7 +2238,7 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     -----------
     filenames : list of MagIC formatted files
     outfile : name of output file
-    data_model : data model number (2.5 or 3), default 2.5
+    data_model : data model number (2.5 or 3), default 3 
     magic_table : name of magic table, default 'measurements'
 
     Returns

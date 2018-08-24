@@ -1,3 +1,0 @@
-tab	locations
-analysts	citation	lat_n	lat_s	location	lon_e	lon_w
-	This study	48.7	48.7	unknown	-87.0	-87.0

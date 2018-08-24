@@ -1,0 +1,6 @@
+tab	specimens
+azimuth	citations	density	description	dip	geologic_classes	geologic_types	lithologies	sample	specimen	volume
+	This study	2500			Not Specified	Not Specified	Not Specified	SOHR016-02	SOHR016-02	
+	This study	2500			Not Specified	Not Specified	Not Specified	SOHR016-03	SOHR016-03	
+	This study	2500			Not Specified	Not Specified	Not Specified	SOHR017-01	SOHR017-01	
+	This study	2500			Not Specified	Not Specified	Not Specified	SOHR017-02	SOHR017-02	

@@ -1,0 +1,4 @@
+"dike 13A"
+"cy13A","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy13A01,  GCnPCA,   H004-H020,  4,     221.4, 13.7,     0,  1.2,   221.4, 13.7,     0,  1.2,   "jumpy"

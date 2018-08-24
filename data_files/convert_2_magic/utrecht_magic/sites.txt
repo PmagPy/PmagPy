@@ -1,0 +1,3 @@
+tab	sites
+site	location	lat	lon
+KO_86	unknown		

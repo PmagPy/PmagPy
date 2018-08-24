@@ -1,0 +1,12 @@
+tab	specimens
+azimuth	citations	density	description	dip	geologic_classes	geologic_types	lithologies	sample	specimen	volume
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPADC17A	NVPADC17A2	
+	This study	0			Not Specified	Not Specified	Not Specified	NVPADC18A	NVPADC18A2	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPADC23C	NVPADC23C2	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPARP15C	NVPARP15C2	
+	This study	0			Not Specified	Not Specified	Not Specified	NVPARP16A	NVPARP16A3	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPARP16A	NVPARP16A4	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPATF06A	NVPATF06A3	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPATF12A	NVPATF12A2	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPATF16C	NVPATF16C2	
+	This study	2500			Not Specified	Not Specified	Not Specified	NVPATF25A	NVPATF25A2	

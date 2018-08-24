@@ -1,0 +1,3 @@
+tab	locations
+analysts	citations	location
+	This study	unknown

@@ -1,0 +1,3 @@
+tab	specimens
+azimuth	citations	density	description	dip	geologic_classes	geologic_types	lithologies	sample	specimen	volume
+	This study	2500	Used offset Z field 249/35 2.1uT		Not Specified	Not Specified	Not Specified	CHEVKH7-7Q	CHEVKH7-7Q	
