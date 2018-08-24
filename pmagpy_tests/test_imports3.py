@@ -272,10 +272,10 @@ class TestCitMagic(unittest.TestCase):
         options = {}
         #options['input_dir_path'] = os.path.join(WD, 'data_files',
         #                                         'convert_2_magic',
-        #                                         'CIT_magic', 'PI47')pppp
+        #                                         'cit_magic', 'PI47')pppp
         options['magfile'] = os.path.join(WD, 'data_files',
                                           'convert_2_magic',
-                                          'CIT_magic', 'PI47', 'PI47-.sam')
+                                          'cit_magic', 'PI47', 'PI47-.sam')
         options['loc_file'] = 'custom_locations.txt'
         options['samp_file'] = os.path.join(WD, 'data_files',
                                             'convert_2_magic',
@@ -295,7 +295,7 @@ class TestCitMagic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'convert_2_magic',
-                                                 'CIT_magic', 'PI47')
+                                                 'cit_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4'
         program_ran, error_message = convert.cit(**options)
@@ -640,9 +640,9 @@ class TestIodpJr6Magic(unittest.TestCase):
     def test_iodp_jr6_with_path(self):
         options = {}
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic',
-                                 'IODP_jr6_magic')
+                                 'iodp_jr6_magic')
         #options['input_dir_path'] = input_dir
-        mag_file = os.path.join('data_files', 'convert_2_magic', 'IODP_jr6_magic', 'test.jr6')
+        mag_file = os.path.join('data_files', 'convert_2_magic', 'iodp_jr6_magic', 'test.jr6')
         options['mag_file'] = mag_file #'test.jr6'
         options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
         options['loc_file'] = 'custom_locations.txt'
@@ -769,7 +769,7 @@ class TestJr6Jr6Magic(unittest.TestCase):
 
     def test_success(self):
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic',
-                                 'JR6_magic')
+                                 'jr6_magic')
         output = convert.jr6_jr6(**{'mag_file': 'AF.jr6', 'input_dir_path': input_dir})
         self.assertTrue(output[0])
         self.assertEqual(os.path.realpath(output[1]), os.path.realpath('measurements.txt'))
@@ -811,7 +811,7 @@ class TestKly4sMagic(unittest.TestCase):
 
     def test_kly4s_with_valid_infile(self):
         in_dir = os.path.join(WD, 'data_files', 'convert_2_magic', 'kly4s_magic')
-        program_ran, outfile = convert.kly4s('kly4s_magic_example.dat', output_dir_path=WD,
+        program_ran, outfile = convert.kly4s('KLY4S_magic_example.dat', output_dir_path=WD,
                                                  input_dir_path=in_dir, data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'magic_measurements.txt'))
@@ -927,7 +927,7 @@ class TestLdeoMagic(unittest.TestCase):
     def setUp(self):
         os.chdir(WD)
         self.input_dir = os.path.join(WD, 'data_files',
-                                      'convert_2_magic', 'LDEO_magic')
+                                      'convert_2_magic', 'ldeo_magic')
 
     def tearDown(self):
         #filelist = ['measurements.txt', 'specimens.txt',
@@ -1313,11 +1313,11 @@ class TestSufarAscMagic(unittest.TestCase):
         os.chdir(WD)
 
 
-    def test_SUFAR4_with_no_files(self):
+    def test_sufar4_with_no_files(self):
         with self.assertRaises(TypeError):
             convert.sufar4()
 
-    def test_SUFAR4_with_invalid_file(self):
+    def test_sufar4_with_invalid_file(self):
         input_dir = os.path.join(WD, 'data_files',
                                  'convert_2_magic', 'sufar_asc_magic')
         infile = 'fake_sufar4-asc_magic_example.txt'
@@ -1330,9 +1330,9 @@ class TestSufarAscMagic(unittest.TestCase):
                                                                       infile)))
 
 
-    def test_SUFAR4_with_infile(self):
+    def test_sufar4_with_infile(self):
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic',
-                                 'SUFAR_asc_magic')
+                                 'sufar_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
         program_ran, outfile = convert.sufar4(infile,
                                               input_dir_path=input_dir,
@@ -1344,7 +1344,7 @@ class TestSufarAscMagic(unittest.TestCase):
             self.assertEqual(292, len(lines))
 
 
-    def test_SUFAR4_succeed_data_model3(self):
+    def test_sufar4_succeed_data_model3(self):
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic',
                                  'sufar_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
@@ -1362,7 +1362,7 @@ class TestSufarAscMagic(unittest.TestCase):
                                  'samples', 'sites']))
 
 
-    def test_SUFAR4_fail_option4(self):
+    def test_sufar4_fail_option4(self):
         input_dir = os.path.join(WD, 'data_files',
                                  'convert_2_magic', 'sufar_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
@@ -1373,7 +1373,7 @@ class TestSufarAscMagic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
 
-    def test_SUFAR4_succeed_option4(self):
+    def test_sufar4_succeed_option4(self):
         input_dir = os.path.join(WD, 'data_files', 'convert_2_magic',
                                  'sufar_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
@@ -1386,7 +1386,7 @@ class TestSufarAscMagic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', ofile))
 
-    def test_SUFAR4_with_options(self):
+    def test_sufar4_with_options(self):
         input_dir = os.path.join(WD, 'data_files',
                                  'convert_2_magic', 'sufar_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
