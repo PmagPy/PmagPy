@@ -2238,7 +2238,7 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     -----------
     filenames : list of MagIC formatted files
     outfile : name of output file
-    data_model : data model number (2.5 or 3), default 3 
+    data_model : data model number (2.5 or 3), default 3
     magic_table : name of magic table, default 'measurements'
 
     Returns
@@ -2250,9 +2250,10 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
         output_dir_path, file_name = os.path.split(outfile)
         con = cb.Contribution(output_dir_path, read_tables=[])
         # make sure files actually exist
+        filenames = [os.path.realpath(f) for f in filenames]
         filenames = [f for f in filenames if os.path.exists(f)]
         if not filenames:
-            print("You have provided no files, so nothing will be combined".format(magic_table))
+            print("You have provided no valid file paths, so nothing will be combined".format(magic_table))
             return False
         # figure out file type from first of files to join
         with open(filenames[0]) as f:

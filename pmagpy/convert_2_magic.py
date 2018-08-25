@@ -7180,7 +7180,7 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
                 if Samps:
                     for samp in Samps:
                         if samp[samp_col] == MagRec[samp_col]:
-                            MagRec[loc_col] = samp[loc_col]
+                            MagRec[loc_col] = samp.get(loc_col, location)
                             MagRec[site_col] = samp[site_col]
                             break
                 elif int(samp_con) != 6:
