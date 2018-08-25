@@ -4744,7 +4744,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     return True, meas_file
 
 
-def k15(k15file, output_dir_path='.', input_dir_path='',
+def k15(k15file, dir_path='.', input_dir_path='',
         meas_file='measurements.txt', aniso_outfile='specimens.txt',
         samp_file="samples.txt", result_file ="rmag_anisotropy.txt",
         specnum=0, sample_naming_con='1', location="unknown",
@@ -4757,7 +4757,7 @@ def k15(k15file, output_dir_path='.', input_dir_path='',
     ----------
     k15file : str
         input file name
-    output_dir_path : str
+    dir_path : str
         output file directory, default "."
     input_dir_path : str
         input file directory IF different from dir_path, default ""
@@ -4807,7 +4807,8 @@ def k15(k15file, output_dir_path='.', input_dir_path='',
     # initialize some variables
     #
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     version_num = pmag.get_version()
     syn = 0
     itilt, igeo, linecnt, key = 0, 0, 0, ""

@@ -64,7 +64,7 @@ def main():
     k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(
         ['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
     program_ran, error_message = convert.k15(k15file, specnum=specnum, sample_naming_con=sample_naming_con, location=location_name, meas_file=measfile,
-                                                 samp_file=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path, data_model_num=data_model_num)
+                                                 samp_file=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, dir_path=output_dir_path, data_model_num=data_model_num)
 
 
 def do_help():
