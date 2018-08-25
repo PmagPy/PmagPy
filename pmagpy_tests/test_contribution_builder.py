@@ -574,7 +574,7 @@ class TestContribution(unittest.TestCase):
         con.propagate_ages()
 
     def test_propagate_name_down(self):
-        directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'CIT_magic', 'PI47')
+        directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'cit_magic', 'PI47')
         con = cb.Contribution(directory)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
         # need to actually test this
@@ -585,7 +585,7 @@ class TestContribution(unittest.TestCase):
 
     def test_propagate_name_down_fail(self):
         """fail gracefully"""
-        directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'CIT_magic', 'PI47')
+        directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'cit_magic', 'PI47')
         con = cb.Contribution(directory)
         self.assertNotIn('sample', con.tables['measurements'].df.columns)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
