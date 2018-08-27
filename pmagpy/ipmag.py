@@ -5686,6 +5686,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
     data_model = int(data_model)
     if (data_model != 3) and (samp_file == "samples.txt"):
         samp_file = "er_samples.txt"
+    if (data_model == 2) and (samp_file == "er_samples.txt"):
+        samp_file = "samples.txt"
     DEBUG = 0
     version_num = pmag.get_version()
     or_con, corr = "3", "1"
