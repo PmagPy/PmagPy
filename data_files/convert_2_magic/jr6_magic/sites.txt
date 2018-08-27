@@ -1,12 +1,12 @@
 tab	sites
 analysts	citations	lat	location	lon	site
-Roi	This study		unknown		BR1
-Roi	This study		unknown		MF1
-Roi	This study		unknown		BR2
+Roi	This study		unknown		ST2
 Roi	This study		unknown		ST
+Roi	This study		unknown		ST3
+Roi	This study		unknown		MF1
 Roi	This study		unknown		MF
 Roi	This study		unknown		BR
+Roi	This study		unknown		BR1
+Roi	This study		unknown		BR2
 Roi	This study		unknown		RQ
-Roi	This study		unknown		ST3
-Roi	This study		unknown		ST2
 Roi	This study		unknown		RQ3

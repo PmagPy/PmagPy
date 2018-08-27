@@ -65,7 +65,7 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([['f', False, 'orient.txt'], ['Fsa', False, 'er_samples.txt'], ['ncn', False, "1"], ['mcd', False, 'FS-FD'], ['loc', False, 'unknown'], ['app', False, False], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3]])
+    dataframe = extractor.command_line_dataframe([['f', False, 'orient.txt'], ['Fsa', False, 'samples.txt'], ['ncn', False, "1"], ['mcd', False, 'FS-FD'], ['loc', False, 'unknown'], ['app', False, False], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 3]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
     #print('checked_args:', checked_args)
     orient_file, samp_file, samp_con, method_codes, location_name, append, output_dir, input_dir, data_model = extractor.get_vars(['f', 'Fsa', 'ncn', 'mcd', 'loc', 'app', 'WD', 'ID', 'DM'], checked_args)

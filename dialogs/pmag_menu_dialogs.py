@@ -446,7 +446,7 @@ class ImportKly4s(wx.Frame):
                                                    aniso_outfile=ani_outfile,
                                                    samp_infile=samp_file, spec_infile='',
                                                    spec_outfile=spec_outfile,
-                                                   output_dir_path=self.WD, input_dir_path=ID,
+                                                   dir_path=self.WD, input_dir_path=ID,
                                                    data_model_num=self.Parent.data_model_num,
                                                    samp_outfile=samp_outfile,
                                                    site_outfile=site_outfile)

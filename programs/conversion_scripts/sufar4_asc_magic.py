@@ -75,7 +75,7 @@ def main():
     convert.sufar4(ascfile, meas_output, aniso_output, spec_infile,
                    spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con,
                    user=user, locname=locname, instrument=instrument,
-                   static_15_position_mode=static_15_position_mode, output_dir_path=output_dir_path,
+                   static_15_position_mode=static_15_position_mode, dir_path=output_dir_path,
                    input_dir_path=input_dir_path, data_model_num=data_model_num)
 
     # do we need -new flag??

@@ -85,7 +85,7 @@ def main():
                       samp_con=samp_con, aniso_outfile=aniso_outfile,
                       samp_infile=samp_infile, spec_infile=spec_infile,
                       spec_outfile=spec_outfile, azdip_infile=azdip_infile,
-                      output_dir_path=output_dir_path, input_dir_path=input_dir_path,
+                      dir_path=output_dir_path, input_dir_path=input_dir_path,
                       data_model_num=data_model_num)
 
 

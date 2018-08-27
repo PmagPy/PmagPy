@@ -191,12 +191,12 @@ data_files/3_0/sites_only/*
 data_files/3_0/Megiddo/Tel*
 data_files/3_0/Megiddo/new_*.txt
 data_files/3_0/Megiddo/*errors*.txt
-data_files/Measurement_Import/CIT_magic/PI47/magic_measurements.txt
-data_files/Measurement_Import/CIT_magic/PI47/er_*.txt
-data_files/Measurement_Import/CIT_magic/*.txt
-data_files/Measurement_Import/generic_magic/er_samples.txt
-data_files/Measurement_Import/generic_magic/magic_measurements.txt
-data_files/Measurement_Import/sio_magic/*.txt
+data_files/convert_2_magic/CIT_magic/PI47/magic_measurements.txt
+data_files/convert_2_magic/CIT_magic/PI47/er_*.txt
+data_files/convert_2_magic/CIT_magic/*.txt
+data_files/convert_2_magic/generic_magic/er_samples.txt
+data_files/convert_2_magic/generic_magic/magic_measurements.txt
+data_files/convert_2_magic/sio_magic/*.txt
 
 data_files/aarm_magic/new*.txt
 data_files/ani_depthplot3/new*.txt

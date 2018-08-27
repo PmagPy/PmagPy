@@ -4744,7 +4744,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     return True, meas_file
 
 
-def k15(k15file, output_dir_path='.', input_dir_path='',
+def k15(k15file, dir_path='.', input_dir_path='',
         meas_file='measurements.txt', aniso_outfile='specimens.txt',
         samp_file="samples.txt", result_file ="rmag_anisotropy.txt",
         specnum=0, sample_naming_con='1', location="unknown",
@@ -4757,7 +4757,7 @@ def k15(k15file, output_dir_path='.', input_dir_path='',
     ----------
     k15file : str
         input file name
-    output_dir_path : str
+    dir_path : str
         output file directory, default "."
     input_dir_path : str
         input file directory IF different from dir_path, default ""
@@ -4807,7 +4807,8 @@ def k15(k15file, output_dir_path='.', input_dir_path='',
     # initialize some variables
     #
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     version_num = pmag.get_version()
     syn = 0
     itilt, igeo, linecnt, key = 0, 0, 0, ""
@@ -5268,7 +5269,7 @@ def k15(k15file, output_dir_path='.', input_dir_path='',
 def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
           samp_con="1", or_con='3', user='', measfile='measurements.txt',
           aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
-          spec_outfile='specimens.txt', azdip_infile='', output_dir_path='.',
+          spec_outfile='specimens.txt', azdip_infile='', dir_path='.',
           input_dir_path='', data_model_num=3, samp_outfile='samples.txt',
           site_outfile='sites.txt'):
     """
@@ -5340,7 +5341,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     # initialize variables
     # not used: #cont=0
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     data_model_num = int(float(data_model_num))
     ask = 0
     Z = 1
@@ -5767,7 +5769,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
 ### LDEO_magic conversion
 
-def ldeo(magfile, output_dir_path=".", input_dir_path="",
+def ldeo(magfile, dir_path=".", input_dir_path="",
          meas_file="measurements.txt", spec_file="specimens.txt",
          samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",
          specnum=0, samp_con="1", location="unknown", codelist="",
@@ -5779,7 +5781,7 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
     Parameters
     _________
     magfile : input measurement file
-    output_dir_path : output directory path
+    dir_path : output directory path
     input_dir_path : input directory path
     meas_file : output file measurement file name
     spec_file : output file specimen file name
@@ -5838,7 +5840,8 @@ def ldeo(magfile, output_dir_path=".", input_dir_path="",
 
     # format/organize variables
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     labfield = int(labfield) * 1e-6
     phi = int(phi)
     theta = int(theta)
@@ -7180,7 +7183,7 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
                 if Samps:
                     for samp in Samps:
                         if samp[samp_col] == MagRec[samp_col]:
-                            MagRec[loc_col] = samp[loc_col]
+                            MagRec[loc_col] = samp.get(loc_col, location)
                             MagRec[site_col] = samp[site_col]
                             break
                 elif int(samp_con) != 6:
@@ -8209,7 +8212,7 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
            spec_infile=None, spec_outfile='specimens.txt', samp_outfile='samples.txt',
            site_outfile='sites.txt', specnum=0, sample_naming_con='1', user="",
            locname="unknown", instrument='', static_15_position_mode=False,
-           output_dir_path='.', input_dir_path='', data_model_num=3):
+           dir_path='.', input_dir_path='', data_model_num=3):
     """
     NAME
         sufar4-asc_magic.py
@@ -8348,7 +8351,8 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
         site_table_name = 'er_sites'
 
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     # create full path for files
     ascfile = os.path.join(input_dir_path, ascfile)
     aniso_output = os.path.join(output_dir_path, aniso_output)
@@ -9393,6 +9397,8 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     # initialize some stuff
     version_num = pmag.get_version()
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
+    if not input_dir_path:
+        input_dir_path = dir_path
     output_dir_path = dir_path
     specnum = -int(specnum)
     if "4" in samp_con:
