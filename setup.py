@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 if sys.version_info < (3,):
     raise Exception("""
@@ -37,7 +36,6 @@ packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   'pmagpy_tests.examples.my_project',
                                   'pmagpy_tests.examples.empty_dir',
                                   'pmagpy_tests.examples.my_project_with_errors'])
-print('packages', packages)
 packages.append('pmag_env')
 print('packages', packages)
 
@@ -91,6 +89,9 @@ def parse_dict(dictionary):
 #data_files = do_walk(path.join(here, 'data_files'))
 data_files = do_walk('data_files')
 formatted, formatted_dict = parse_dict(data_files)
+# add notebooks
+formatted.append(('data_files', ['PmagPy.ipynb']))
+formatted.append(('data_files', ['PmagPy-cli.ipynb']))
 
 
 # Get the long description from the README file

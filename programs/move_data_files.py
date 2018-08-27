@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+"""
+Move data_files directory from default location (sys.prefix) or specified location
+to chosen directory.
+Results in PmagPy-data directory which contains notebooks and data_files.
+"""
+
 import shutil
 import sys
+import os
 from os import path
 from pmagpy import pmag
+from pmagpy import find_pmag_dir
 
 
 def copy_directory(src, dest):
@@ -13,11 +20,11 @@ def copy_directory(src, dest):
     try:
         shutil.copytree(src, dest)
         # Directories are the same
-    except shutil.Error as e:
-        print('Directory not copied. Error: %s' % e)
+    except shutil.Error as error:
+        print('Directory not copied. Error: %s' % error)
         # Any error saying that the directory doesn't exist
-    except OSError as e:
-        print('Directory not copied. Error: %s' % e)
+    except OSError as error:
+        print('Directory not copied. Error: %s' % error)
 
 
 def main():
@@ -26,10 +33,34 @@ def main():
         print("Navigate to that folder, and use the command: 'move_data_files.py -d .'")
         print("Alternatively, you may use the full path to the directory of your choice from anywhere in the file system: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
         sys.exit()
+    # create PmagPy-data directory
     dest = pmag.get_named_arg('-d', None, True)
+    dest = path.realpath(dest)
+    dest = path.join(dest, 'PmagPy-data')
+    if not path.exists(dest):
+        try:
+            os.mkdir(dest)
+        except FileNotFoundError:
+            pass
+    # get source of data_files
     source = pmag.get_named_arg('-s', sys.prefix, False)
+    source = path.realpath(source)
+    if source.endswith('data_files') or source.endswith('data_files/'):
+        source = path.split(source)[0]
+    # copy data_files to PmagPy-data directory
     data_files = path.join(source, 'data_files')
     copy_directory(data_files, dest)
+    # now try to get notebooks
+    pmagpy_dir = find_pmag_dir.get_pmag_dir()
+    for notebook in ['PmagPy.ipynb', 'PmagPy-cli.ipynb']:
+        # for pip install
+        notebook_location = path.join(dest, 'data_files', notebook)
+        if path.exists(notebook_location):
+            shutil.copy(path.join(dest, 'data_files', notebook), path.join(dest, notebook))
+        # for developer install
+        elif pmagpy_dir:
+            if path.exists(path.join(pmagpy_dir, notebook)):
+                shutil.copy(path.join(pmagpy_dir, notebook), path.join(dest, notebook))
 
 
 if __name__ == "__main__":
