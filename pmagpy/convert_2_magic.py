@@ -1006,7 +1006,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     site_file : site file name to output (default : site.txt)
     loc_file : location file name to output (default : locations.txt)
     locname : location name
-    methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG
+    methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
     oersted : demag step values are in Oersted
