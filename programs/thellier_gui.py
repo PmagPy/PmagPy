@@ -430,6 +430,8 @@ DESCRIPTION
         # try to read redo file if one exists
         if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
             self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
+            if self.Data:
+                self.get_previous_interpretation()  # get interpretations from specimens file
         if self.s:
             self.update_selection()
 

@@ -30,11 +30,11 @@ def copy_directory(src, dest):
 def main():
     if '-h' in sys.argv:
         print("Choose the folder where you want the PmagPy data files to be.")
-        print("Navigate to that folder, and use the command: 'move_data_files.py -d .'")
-        print("Alternatively, you may use the full path to the directory of your choice from anywhere in the file system: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
+        print("Navigate to that folder, and use the command: 'move_data_files.py'")
+        print("Alternatively, you may use the full path to the directory of your choice from anywhere in the file system, using the '-d' flag: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
         sys.exit()
     # create PmagPy-data directory
-    dest = pmag.get_named_arg('-d', None, True)
+    dest = pmag.get_named_arg('-d', '.', False)
     dest = path.realpath(dest)
     dest = path.join(dest, 'PmagPy-data')
     if not path.exists(dest):

@@ -3333,7 +3333,7 @@ def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
     # the axes
     plt.axis("equal")
 
-def plot_ts(ax,agemin,agemax,timescale='gts12'):
+def plot_ts(ax,agemin,agemax,timescale='gts12',ylabel="Age (Ma)"):
     """
     Make a time scale plot between specified ages.
 
@@ -3344,6 +3344,7 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
     agemax : Maximum age for timescale
     timescale : Time Scale [ default is Gradstein et al., (2012)]
        for other options see pmag.get_ts()
+    ylabel : if set, plot as ylabel
     """
     ax.set_title(timescale.upper())
     ax.axis([-.25,1.5,agemax,agemin])
@@ -3365,7 +3366,7 @@ def plot_ts(ax,agemin,agemax,timescale='gts12'):
                     if pol: ax.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
     ax.plot([0,1,1,0,0],[agemin,agemin,agemax,agemax,agemin],'k-')
     plt.yticks(np.arange(agemin,agemax+1,1))
-    ax.set_ylabel("Age (Ma): "+timescale)
+    if ylabel!="": ax.set_ylabel(ylabel)
     ax2=ax.twinx()
     ax2.axis('off')
     for k in range(len(Chrons)-1):
