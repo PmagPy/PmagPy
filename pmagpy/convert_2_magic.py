@@ -764,7 +764,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
         orientation method codes, default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
     volume : float
-        volume in ccs, default 12
+        volume in ccs, default 12.
     user : str
         user name, default ""
     timezone : str
@@ -6119,9 +6119,51 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
           site_name_con='site=sample', site_num_chars=0, location_name="", data_model_num=3):
 
     """
-    samp_name_con options {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}
-    site_name_con options {1: 'site=sample', 2: 'no. of terminate characters', 3: 'character delimited'}
 
+    Search input directory for Livdb .csv or .livdb files
+    and convert them to MagIC format.
+    Input directory should contain only input files for one location.
+
+    Parameters
+    ----------
+    input_dir_path : str
+        input directory with .csv or .livdb files to import
+    output_dir_path : str
+        directory to output files, default "."
+    meas_out : str
+        output measurement file name, default "measurements.txt"
+    spec_out : str
+        output specimen file name, default "specimens.txt"
+    samp_out: str
+        output sample file name, default "samples.txt"
+    site_out : str
+        output site file name, default "sites.txt"
+    loc_out : str
+        output location file name, default "locations.txt"
+    samp_name_con : str
+        specimen --> sample naming convention, default 'sample=specimen'
+        options: {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}
+    samp_num_chars : int or str
+        if using 'no. of terminate characters' or 'character delimited',
+        provide the number of characters or the character delimiter
+    site_name_con : str
+        sample --> site naming convention, default 'site=sample'
+        options: {1: 'site=sample', 2: 'no. of terminate characters', 3: 'character delimited'}
+    site_num_chars : int or str
+        if using 'no. of terminate characters' or 'character delimited',
+        provide the number of characters or the character delimiter
+    locname : str
+        location name, default ""
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+
+    Input file format
+    -----------------
     # --------------------------------------
     # Read the file
     #
@@ -6221,6 +6263,9 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     """
 
     def get_sample_name(specimen, sample_naming_convention):
+        """
+        Parse out sample name from specimen name and naming convention
+        """
         specimen = specimen.strip()
         if sample_naming_convention[0] == "sample=specimen":
             sample = specimen
@@ -6237,6 +6282,9 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
         return sample
 
     def get_site_name(sample, site_naming_convention):
+        """
+        Parse out site name from sample name and naming convention
+        """
         sample = sample.strip()
         if site_naming_convention[0] == "site=sample":
             site = sample
