@@ -5799,8 +5799,6 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
     samp_file : output file sample file name
     site_file : output file site file name
     loc_file : output file location file name
-    specnum : number of characters to remove from specimen name for sample name
-    samp_con : sample naming convention
     specnum : number of terminal characters distinguishing specimen from sample
     samp_con :  sample/site naming convention
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
@@ -7166,6 +7164,57 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
         meas_file="measurements.txt", samp_infile="samples.txt",
         user="", specnum=0, samp_con="1", labfield=0.5,
         location='unknown', syn=False, data_model_num=3):
+    """
+    Convert MsT data (T,M) to MagIC measurements format files
+
+    Parameters
+    ----------
+    infile : str
+        input file name
+    specimen : str
+        specimen name, default "unknown"
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    samp_infile : str
+        existing sample infile (not required), default "samples.txt"
+    user : str
+        user name, default ""
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    labfield : float
+        DC_FIELD in Tesla, default : .5
+    location : str
+        location name, default "unknown"
+    syn : bool
+       synthetic, default False
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+    """
 
     # deal with input files
     if not input_dir_path:
