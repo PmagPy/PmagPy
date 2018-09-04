@@ -6942,7 +6942,48 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
 
 def mini(magfile, dir_path='.', meas_file='measurements.txt',
          data_model_num=3, volume=12, noave=0,
-         inst="", user="", demag='N', methcode="LP-NO"):
+         inst="", user="", methcode="LP-NO"):
+    """
+    Convert the Yale minispin format to MagIC format files
+
+    Parameters
+    ----------
+    magfile : str
+        input file name, required
+    dir_path : str
+        working directory, default "."
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+    volume : float
+        volume in ccs, default 12.
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    inst : str
+        instrument, default ""
+    user : str
+        user name, default ""
+    methcode : str
+        colon-delimited protocols, include all that apply
+        default "LP-NO"
+        options include "AF" for demag and "T" for thermal
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    """
+
+    codes = methcode.split(':')
+    demag = "N"
+    if "AF" in codes:
+        demag = 'AF'
+        methcode = "LT-AF-Z"
+    if "T" in codes:
+        demag = "T"
+        methcode = "LP-TRM-TD"
+
     # initialize
     citation = 'This study'
     MagRecs = []
