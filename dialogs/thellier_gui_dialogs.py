@@ -104,7 +104,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC[
             'specimen_dtr'] = 'Maximum absolute difference produced by a pTRM tail check, normalized by the NRM (obtained from the intersection of the best-fit line and the y-axis on an Arai plot)'
         self.DESC['specimen_int_ptrm_n'] = 'Number of pTRM checks used in paleointensity experiment'
-        self.DESC['specimen_ptrm'] = 'Maximum absolute difference produced by a pTRM check, normalized by the TRM acquired at that heating step'
+        self.DESC['specimen_ptrm'] = 'Maximum absolute difference produced by a pTRM check, normalized by the TRM acquired at that heating step (check%)'
         self.DESC[
             'specimen_dck'] = 'Maximum absolute difference produced by a pTRM check, normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot)'
         self.DESC['specimen_maxdev'] = 'Maximum absolute difference produced by a pTRM check, normalized by the length of the TRM segment of the best-fit line on an Arai plot'
