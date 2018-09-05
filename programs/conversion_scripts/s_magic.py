@@ -81,28 +81,14 @@ def main():
     sigma = pmag.get_flag_arg_from_sys("-sig")
     spec = pmag.get_named_arg("-spn", "unknown")
     atype = pmag.get_named_arg("-typ", 'AMS')
+    samp_con = pmag.get_named_arg("-ncn", "1")
     #if '-sig' in sys.argv:
     #    sigma = 1
     #if "-n" in sys.argv:
     #    name = 1
     coord_type = pmag.get_named_arg("-crd", 's')
-    samp_con, Z = "", 1
-    if "-ncn" in sys.argv:
-        ind = sys.argv.index("-ncn")
-        samp_con = sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print("option [4] must be in form 4-Z where Z is an integer")
-                return
-            else:
-                Z = samp_con.split("-")[1]
-                samp_con = "4"
-        if samp_con == '6':
-            print("option [6] is not currently supported")
-            return
-            #Samps, filetype = pmag.magic_read(dirpath+'/er_samples.txt')
     convert.s_magic(sfile, anisfile, dir_path, atype,
-            coord_type, sigma, samp_con, Z, specnum,
+            coord_type, sigma, samp_con, specnum,
             location, spec, sitename, user, data_model_num, name)
     #
 

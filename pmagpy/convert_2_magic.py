@@ -7402,6 +7402,10 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         lat="", lon="", specnum=0, samp_con='1', location="unknown",
         noave=0, meth_code="LP-NO"):
     """
+    converts PMD (Enkin)  format files to MagIC format files
+
+    Parameters
+    ----------
     mag_file : str
         input file name, required
     dir_path : str
@@ -8292,9 +8296,86 @@ def sio(mag_file, dir_path=".", input_dir_path="",
 ### s_magic conversion
 
 def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
-            coord_type="s", sigma=False, samp_con="1", Z=1, specnum=0,
+            coord_type="s", sigma=False, samp_con="1", specnum=0,
             location="unknown", spec="unknown", sitename="unknown",
             user="", data_model_num=3, name_in_file=False):
+    """
+    converts .s format data to measurements  format.
+
+    Parameters
+    ----------
+    sfile : str
+       .s format file, required
+    anisfile : str
+        specimen filename, default 'specimens.txt'
+    dir_path : str
+        output directory, default "."
+    atype : str
+        anisotropy type (AMS, AARM, ATRM, default AMS)
+    coord_type : str
+       coordinate system ('s' for specimen, 't' for tilt-corrected,
+       or 'g' for geographic, default 's')
+    sigma : bool
+       if True, last column has sigma, default False
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    specnum : int
+        number of characters to designate a specimen, default 0
+    location : str
+        location name, default "unknown"
+    spec : str
+        specimen name, default "unknown"
+    sitename : str
+        site name, default "unknown"
+    user : str
+        user name, default ""
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+    name_in_file : bool
+        first entry of each line is specimen name, default False
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+
+    Input format
+    --------
+        X11,X22,X33,X12,X23,X13  (.s format file)
+        X11,X22,X33,X12,X23,X13,sigma (.s format file with -sig option)
+        SID, X11,X22,X33,X12,X23,X13  (.s format file with -n option)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
+    con, Z = "", 1
+    if samp_con:
+        samp_con = str(samp_con)
+        if "4" in samp_con:
+            if "-" not in samp_con:
+                print("option [4] must be in form 4-Z where Z is an integer")
+                return False, "option [4] must be in form 4-Z where Z is an integer"
+            else:
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
+        if samp_con == '6':
+            print("option [6] is not currently supported")
+            return
+    else:
+        samp_con = con
+
 
     coord_dict = {'s': '-1', 't': '100', 'g': '0'}
     coord = coord_dict.get(coord_type, '-1')
