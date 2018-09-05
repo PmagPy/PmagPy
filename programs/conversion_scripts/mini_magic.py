@@ -64,18 +64,18 @@ def main():
         meas_file = pmag.get_named_arg("-F", "measurements.txt")
     meas_file = pmag.resolve_file_name(meas_file, dir_path)
     volume = pmag.get_named_arg("-vol", 12) # assume a volume of 12 cc if not provided
-    if '-LP' in args:
-        ind = args.index("-LP")
-        codelist = args[ind+1]
-        codes = codelist.split(':')
-        if "AF" in codes:
-            demag = 'AF'
-            methcode = "LT-AF-Z"
-        if "T" in codes:
-            demag = "T"
-    #
+    methcode = pmag.get_named_arg("-LP", "LP-NO")
+    #ind = args.index("-LP")
+    #codelist = args[ind+1]
+    #codes = codelist.split(':')
+    #if "AF" in codes:
+    #    demag = 'AF'
+    #    methcode = "LT-AF-Z"
+    #if "T" in codes:
+    #    demag = "T"
+
     convert.mini(magfile, dir_path, meas_file, data_model_num,
-            volume, noave, inst, user, demag, methcode)
+            volume, noave, inst, user, methcode)
 
 
 
