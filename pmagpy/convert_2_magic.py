@@ -7399,9 +7399,57 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
 def pmd(mag_file, dir_path=".", input_dir_path="",
         meas_file="measurements.txt", spec_file='specimens.txt',
         samp_file='samples.txt', site_file="sites.txt", loc_file="locations.txt",
-        lat=0, lon=0, specnum=0, samp_con='1', location="unknown",
+        lat="", lon="", specnum=0, samp_con='1', location="unknown",
         noave=0, meth_code="LP-NO"):
     """
+    mag_file : str
+        input file name, required
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    lat : float or str
+        latitude, default ""
+    lon : float or str
+        longitude, default ""
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    meth_code : str
+        default "LP-NO"
+        e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
 
     """
     if not input_dir_path:
