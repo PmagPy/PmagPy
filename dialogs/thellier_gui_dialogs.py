@@ -240,7 +240,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         crit = button.GetName()
         TEXT = self.DESC[crit]
         TEXT = TEXT + "\n\n"
-        TEXT = TEXT + "For more details see:\nhttps://earthref.org/PmagPy/SPD/spdweb_p5.html"
+        TEXT = TEXT + "For more details see:\nhttps://earthref.org/PmagPy/SPD"
         dlg1 = wx.MessageDialog(
             None, caption=crit, message=TEXT, style=wx.OK | wx.ICON_INFORMATION)
         dlg1.ShowModal()
