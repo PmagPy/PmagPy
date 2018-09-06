@@ -7400,9 +7400,61 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
 def pmd(mag_file, dir_path=".", input_dir_path="",
         meas_file="measurements.txt", spec_file='specimens.txt',
         samp_file='samples.txt', site_file="sites.txt", loc_file="locations.txt",
-        lat=0, lon=0, specnum=0, samp_con='1', location="unknown",
+        lat="", lon="", specnum=0, samp_con='1', location="unknown",
         noave=0, meth_code="LP-NO"):
     """
+    converts PMD (Enkin)  format files to MagIC format files
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name, required
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    lat : float or str
+        latitude, default ""
+    lon : float or str
+        longitude, default ""
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    location : str
+        location name, default "unknown"
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    meth_code : str
+        default "LP-NO"
+        e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
 
     """
     if not input_dir_path:
@@ -8245,9 +8297,86 @@ def sio(mag_file, dir_path=".", input_dir_path="",
 ### s_magic conversion
 
 def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
-            coord_type="s", sigma=False, samp_con="1", Z=1, specnum=0,
+            coord_type="s", sigma=False, samp_con="1", specnum=0,
             location="unknown", spec="unknown", sitename="unknown",
             user="", data_model_num=3, name_in_file=False):
+    """
+    converts .s format data to measurements  format.
+
+    Parameters
+    ----------
+    sfile : str
+       .s format file, required
+    anisfile : str
+        specimen filename, default 'specimens.txt'
+    dir_path : str
+        output directory, default "."
+    atype : str
+        anisotropy type (AMS, AARM, ATRM, default AMS)
+    coord_type : str
+       coordinate system ('s' for specimen, 't' for tilt-corrected,
+       or 'g' for geographic, default 's')
+    sigma : bool
+       if True, last column has sigma, default False
+    samp_con : str
+        sample/site naming convention, default '1', see info below
+    specnum : int
+        number of characters to designate a specimen, default 0
+    location : str
+        location name, default "unknown"
+    spec : str
+        specimen name, default "unknown"
+    sitename : str
+        site name, default "unknown"
+    user : str
+        user name, default ""
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+    name_in_file : bool
+        first entry of each line is specimen name, default False
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+
+    Input format
+    --------
+        X11,X22,X33,X12,X23,X13  (.s format file)
+        X11,X22,X33,X12,X23,X13,sigma (.s format file with -sig option)
+        SID, X11,X22,X33,X12,X23,X13  (.s format file with -n option)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
+    con, Z = "", 1
+    if samp_con:
+        samp_con = str(samp_con)
+        if "4" in samp_con:
+            if "-" not in samp_con:
+                print("option [4] must be in form 4-Z where Z is an integer")
+                return False, "option [4] must be in form 4-Z where Z is an integer"
+            else:
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
+        if samp_con == '6':
+            print("option [6] is not currently supported")
+            return
+    else:
+        samp_con = con
+
 
     coord_dict = {'s': '-1', 't': '100', 'g': '0'}
     coord = coord_dict.get(coord_type, '-1')
@@ -8369,12 +8498,59 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
            locname="unknown", instrument='', static_15_position_mode=False,
            dir_path='.', input_dir_path='', data_model_num=3):
     """
-    NAME
-        sufar4-asc_magic.py
+    Converts ascii files generated by SUFAR ver.4.0 to MagIC files
 
-    DESCRIPTION
-        converts ascii files generated by SUFAR ver.4.0 to MagIC formated
-        files for use with PmagPy plotting software
+    Parameters
+    ----------
+    ascfile : str
+        input ASC file, required
+    meas_output : str
+        measurement output filename, default "measurements.txt"
+    aniso_output : str
+        anisotropy output filename, MagIC 2 only, "rmag_anisotropy.txt"
+    spec_infile : str
+        specimen infile, default None
+    spec_outfile : str
+        specimen outfile, default "specimens.txt"
+    samp_outfile : str
+        sample outfile, default "samples.txt"
+    site_outfile : str
+        site outfile, default "sites.txt"
+    specnum : int
+        number of characters to designate a specimen, default 0
+    sample_naming_con : str
+        sample/site naming convention, default '1', see info below
+    user : str
+        user name, default ""
+    locname : str
+        location name, default "unknown"
+    instrument : str
+        instrument name, default ""
+    static_15_position_mode : bool
+        specify static 15 position mode - default False (is spinning)
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    data_model_num : int
+        MagIC data model 2 or 3, default 3
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
 
     SYNTAX
         sufar4-asc_magic.py -h [command line options]
@@ -8835,6 +9011,8 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         output_dir_path=""):
 
     """
+    converts TDT formatted files to MagIC format files
+
     Parameters
     ----------
     input_dir_path : str
@@ -9547,8 +9725,74 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
 def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", location="unknown", lat="", lon="", dmy_flag=False,
-            noave=False, meas_n_orient='8', meth_code="LP-NO", specnum=1, samp_con='2',
+            noave=False, meas_n_orient=8, meth_code="LP-NO", specnum=1, samp_con='2',
             labfield=0, phi=0, theta=0):
+    """
+    Converts Utrecht magnetometer data files to MagIC files
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    append : bool
+        append output files to existing files instead of overwrite, default False
+    location : str
+        location name, default "unknown"
+    lat : float
+        latitude, default ""
+    lon : float
+        longitude, default ""
+    dmy_flag : bool
+        default False
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    meas_n_orient : int
+        Number of different orientations in measurement (default : 8)
+    meth_code : str
+        sample method codes, default "LP-NO"
+        e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '2', see info below
+    labfield : float
+        DC_FIELD in microTesla (default : 0)
+    phi : float
+        DC_PHI in degrees (default : 0)
+    theta : float
+        DC_THETA in degrees (default : 0)
+
+    Returns
+    ----------
+    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+
+    Info
+    ---------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
     # initialize some stuff
     version_num = pmag.get_version()
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []

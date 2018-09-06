@@ -4,7 +4,7 @@ NAME
     pmd_magic.py
 
 DESCRIPTION
-    converts PMD (Enkin)  format files to magic_measurements format files
+    converts PMD (Enkin)  format files to MagIC format files
 
 SYNTAX
     pmd_magic.py [command line options]
@@ -33,8 +33,8 @@ OPTIONS
         [5] site name same as sample
         [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-    -lat: Lattitude of site (if no value given assumes 0)
-    -lon: Longitude of site (if no value given assumes 0)
+    -lat: Lattitude of site (if no value given will leave blank)
+    -lon: Longitude of site (if no value given will leave blank)
     -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
 
 
@@ -46,6 +46,7 @@ INPUT
 """
 
 import sys
+from pmagpy import pmag
 from pmagpy import convert_2_magic as convert
 
 
@@ -54,56 +55,30 @@ def do_help():
 
 
 def main():
-    kwargs = {}
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        kwargs['dir_path'] = sys.argv[ind+1]
-    if '-ID' in sys.argv:
-        ind = sys.argv.index('-ID')
-        kwargs['input_dir_path'] = sys.argv[ind+1]
     if "-h" in sys.argv:
         help(__name__)
         sys.exit()
-    if '-F' in sys.argv:
-        ind = sys.argv.index("-F")
-        kwargs['meas_file'] = sys.argv[ind+1]
-    if '-Fsp' in sys.argv:
-        ind = sys.argv.index("-Fsp")
-        kwargs['spec_file'] = sys.argv[ind+1]
-    if '-Fsa' in sys.argv:
-        ind = sys.argv.index("-Fsa")
-        kwargs['samp_file'] = sys.argv[ind+1]
-    if '-Fsi' in sys.argv:   # LORI addition
-        ind = sys.argv.index("-Fsi")
-        kwargs['site_file'] = sys.argv[ind+1]
-    if '-Flo' in sys.argv:
-        ind = sys.argv.index("-Flo")
-        kwargs['loc_file'] = sys.argv[ind+1]
-    if '-f' in sys.argv:
-        ind = sys.argv.index("-f")
-        kwargs['mag_file'] = sys.argv[ind+1]
-    if "-spc" in sys.argv:
-        ind = sys.argv.index("-spc")
-        kwargs['specnum'] = sys.argv[ind+1]
-    if "-ncn" in sys.argv:
-        ind = sys.argv.index("-ncn")
-        kwargs['samp_con'] = sys.argv[ind+1]
-    if "-loc" in sys.argv:
-        ind = sys.argv.index("-loc")
-        kwargs['location'] = sys.argv[ind+1]
+    mag_file = pmag.get_named_arg('-f', reqd=True)
+    dir_path = pmag.get_named_arg('-WD', '.')
+    input_dir_path = pmag.get_named_arg('-ID', '')
+    meas_file = pmag.get_named_arg('-F', 'measurements.txt')
+    spec_file = pmag.get_named_arg('-Fsp', 'specimens.txt')
+    samp_file = pmag.get_named_arg('-Fsa', 'samples.txt')
+    site_file = pmag.get_named_arg('-Fsi', 'sites.txt')
+    loc_file = pmag.get_named_arg('-Flo', 'locations.txt')
+    lat = pmag.get_named_arg('-lat', '')
+    lon = pmag.get_named_arg('-lon', '')
+    specnum = pmag.get_named_arg('-spc', 0)
+    samp_con = pmag.get_named_arg('-ncn', '1')
+    location = pmag.get_named_arg('-loc', 'unknown')
+    noave = 0
     if "-A" in sys.argv:
-        kwargs['noave'] = 1
-    if "-mcd" in sys.argv:
-        ind = sys.argv.index("-mcd")
-        kwargs['meth_code'] = sys.argv[ind+1]
-    if "-lat" in sys.argv:
-        ind = sys.argv.index("-lat")
-        kwargs['lat'] = sys.argv[ind+1]
-    if "-lon" in sys.argv:
-        ind = sys.argv.index("-lon")
-        kwargs['lon'] = sys.argv[ind+1]
-
-    convert.pmd(**kwargs)
+        noave = 1
+    meth_code = pmag.get_named_arg('-mcd', "LP-NO")
+    convert.pmd(mag_file, dir_path, input_dir_path, meas_file,
+                spec_file, samp_file, site_file, loc_file,
+                lat, lon, specnum, samp_con, location, noave,
+                meth_code)
 
 
 if __name__ == "__main__":

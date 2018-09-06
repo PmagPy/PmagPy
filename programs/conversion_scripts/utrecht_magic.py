@@ -4,7 +4,7 @@ NAME
     utrecht_magic.py
 
 DESCRIPTION
-    converts Utrecht magnetometer data files to magic_measurements files
+    converts Utrecht magnetometer data files to MagIC files
 
 SYNTAX
     utrecht_magic.py [command line options]
