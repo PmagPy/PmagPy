@@ -3743,7 +3743,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     return True
 
 
-def upload_magic(concat=0, dir_path='.', data_model=None):
+def upload_magic2(concat=0, dir_path='.', data_model=None):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database. Returns a
@@ -3943,7 +3943,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     return new_up, '', None
 
 
-def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=None):
+def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
