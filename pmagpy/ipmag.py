@@ -3943,6 +3943,10 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
     return new_up, '', None
 
 
+def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
+    print('-W- ipmag.upload_magic3 is deprecated, please switch to using ipmag.upload_magic')
+    return upload_magic(concat, dir_path, dmodel, vocab, contribution)
+
 def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
     Finds all magic files in a given directory, and compiles them into an

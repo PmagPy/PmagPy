@@ -68,7 +68,7 @@ class TestUploadMagic(unittest.TestCase):
 
     def test_empty_dir(self):
         directory = os.path.join(self.dir_path, 'empty_dir')
-        outfile, error_message, errors = ipmag.upload_magic(dir_path=directory)
+        outfile, error_message, errors = ipmag.upload_magic2(dir_path=directory)
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
@@ -77,7 +77,7 @@ class TestUploadMagic(unittest.TestCase):
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
-        outfile, error_message, errors = ipmag.upload_magic(dir_path=directory)
+        outfile, error_message, errors = ipmag.upload_magic2(dir_path=directory)
         self.assertTrue(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
@@ -95,7 +95,7 @@ class TestUploadMagic(unittest.TestCase):
 
     def test_with_valid_files(self):
         #print os.path.join(self.dir_path, 'my_project')
-        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
+        outfile, error_message, errors = ipmag.upload_magic2(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')
         self.assertFalse(errors)
