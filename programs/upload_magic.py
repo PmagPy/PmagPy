@@ -36,6 +36,7 @@ def main():
         dataframe = extractor.command_line_dataframe([['cat', False, 0], ['F', False, ''], ['f', False, '']])
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         dir_path, concat = extractor.get_vars(['WD', 'cat'], checked_args)
+        data_model_num = int(float(data_model_num))
         if data_model_num == 2:
             ipmag.upload_magic(concat, dir_path)
         else:
