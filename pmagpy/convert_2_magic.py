@@ -9011,7 +9011,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         output_dir_path=""):
 
     """
-    converts TDT formatted files to MagIC format files
+    converts TDT formatted files to measurements format files
 
     Parameters
     ----------
