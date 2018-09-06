@@ -170,7 +170,7 @@ class TestDownloadMagic(unittest.TestCase):
         files = ['locations.txt', 'sites.txt', 'samples.txt', 'specimens.txt',
                  'measurements.txt', 'contribution.txt']
         pmag.remove_files(files, self.download_dir)
-        ipmag.download_magic('magic_contribution_15143.txt',
+        ipmag.download_magic('magic_contribution_16503.txt',
                              dir_path=self.download_dir,
                              input_dir_path=self.download_dir)
         output_files = os.listdir(self.download_dir)
