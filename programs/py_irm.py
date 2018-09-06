@@ -14,7 +14,7 @@ GFZ Potsdam
 import sys
 import os
 import pandas as pd
-import codecs
+#import codecs
 import matplotlib
 matplotlib.use('Qt5Agg')
 from PyQt5 import QtCore
@@ -30,7 +30,6 @@ import numpy as np
 from sklearn.mixture import GaussianMixture as GMM
 from lmfit.models import GaussianModel
 from lmfit import minimize,Parameters
-
 
 class MyMplCanvas(FigureCanvas):
     '''
@@ -93,7 +92,7 @@ def loadData(filePath=None):
     skiprows = skiprows if isinstance(skiprows,int) else 1
     rawDf = pd.read_csv(filePath, sep='\s+', delimiter=',', names=['field','remanance'],
                         dtype=np.float64, skiprows=skiprows, skipfooter=1,engine='python')
-    rawDf = rawDf[(rawDf['field']>=0)]
+    rawDf = rawDf[(rawDf['field']>0)]
     rawDf = rawDf.sort_values(by=['field'])
     rawDf['field'] = rawDf['field']*10**3 # mT to # T
     y_measure=rawDf['remanance']
@@ -107,7 +106,7 @@ def loadData(filePath=None):
                                    interpolate.splrep(np.log10(rawDf['field']),
                                    np.gradient(rawDf['remanance'])))
     fitDf = pd.DataFrame({'field':field_fit,'remanance':y_gradient})
-    fitDf[fitDf['remanance']<=0] = 10**-15
+    fitDf.remanance[fitDf.remanance<=0] = 10**-15
     return rawDf,fitDf
 
 class dataFit():
@@ -278,6 +277,8 @@ def fit_plots(ax,xfit,xraw,yfit,yraw):
     plot the fitted results for data fit and refit
     #====================================================================
     '''
+    global _yfits_
+    _yfits_ = yfit
     ax.plot(xfit, yfit)
     ax.plot(xfit, np.sum(yfit,axis=1))
     ax.scatter(xraw, yraw)
@@ -444,7 +445,7 @@ class Mainwindow(QMainWindow):
         subGrid = QGridLayout()
         params = self.datafit.params
         self.paramDict = {}
-        for i in range(int(self.groups)):
+        for i in range(self.fitNumber):
             A = 'g'+str(i+1)+'_amplitude'
             s = 'g'+str(i+1)+'_sigma'
             c = 'g'+str(i+1)+'_center'
@@ -473,7 +474,7 @@ class Mainwindow(QMainWindow):
         if self.plot:
             plt.close(self.plot.fig)
         self.plot = adjustFit(parent=self.main_widget,filePath=self.filePath,
-                              groups=self.groups,paramDict=self.paramDict,datafit=self.datafit)
+                              groups=self.fitNumber,paramDict=self.paramDict,datafit=self.datafit)
         try:
             self.grid.addWidget(self.plot,1,3,5,2)
         except Exception as e:
@@ -486,14 +487,14 @@ class Mainwindow(QMainWindow):
 
         if self.paramDict:
             self.plot = reFit(self.main_widget,filePath=self.filePath,
-                          groups=self.groups,paramDict=self.paramDict,datafit=self.datafit)
+                          groups=self.fitNumber,paramDict=self.paramDict,datafit=self.datafit)
         self.grid.addWidget(self.plot,1,3,5,2)
         self.paramsGrid=self.showParams()
         self.grid.addLayout(self.paramsGrid,6,3,3,2)
     def showDialog(self):
         filename=QFileDialog.getOpenFileName(self,'open file','/home/Documents/')
         if filename[0]:
-            f = codecs.open(filename[0],'r',encoding='utf-8',errors='ignore')
+            f = open(filename[0],'r',encoding='utf-8',errors='ignore')
             with f:
                 data=f.read()
                 self.dataDisp.setText(data)
@@ -528,19 +529,16 @@ class Mainwindow(QMainWindow):
     def SaveDataButton(self):
         if self.plot:
             #----------------------------------------------------------------------
-            #using pandas save csv file
-            mField = self.plot.x_measure
-            mIrm = self.plot.y_measure
-            #print(self.plot.outputXdata.tolist())
-            fField = self.plot.outputXdata.tolist()
-            fIrm  = sum(self.plot.outputYdata).tolist()
-            data_dict = {'measured field':mField, 'measured IRM':mIrm,
-                               'fitted field':fField, 'fitted IRM':fIrm}
-            df = pd.DataFrame.from_dict(data_dict, orient='index')
-            df = df.transpose()
-            for i in np.arange(len(self.plot.outputYdata)):
-                fIrmcomp = self.plot.outputYdata[i].tolist()
-                df['fitted IRM comoponent '+str(i+1)] = fIrmcomp
+            yfit=_yfits_#global value in def fit_plots(ax,xfit,xraw,yfit,yraw):
+            dfraw = self.datafit.rawDf[['field_log','rem_grad_norm']]
+            dfraw.columns = ['measured_field_log','measured_gradient_norm']
+            dffit = self.datafit.fitDf[['field']].copy()
+            dffit.columns = ['fit_field']
+            for i in np.arange(self.fitNumber):
+
+                #fIrmcomp = yfit[i].tolist()
+                dffit['fitted IRM comoponent '+str(i+1)] = yfit[:,i].tolist()
+            df = dffit.join(dfraw, how='outer')
             fileName = os.path.splitext(self.filePath)[0]+'_fit.csv'
             df.to_csv(fileName)
         else:
@@ -553,17 +551,17 @@ class Mainwindow(QMainWindow):
         if self.plot:
             plt.close(self.plot.fig)
         self.statusBar().showMessage(self.sender().text())
-        self.groups = self.numberText.text()
-        self.datafit = dataFit(filePath=self.filePath,fitNumber=int(self.groups))
+        self.fitNumber = int(self.numberText.text())
+        self.datafit = dataFit(filePath=self.filePath,fitNumber=self.fitNumber)
         #FitMplCanvas(self.main_widget,width=5,hight=4,dpi=100,filePath=self.filePath,groups=self.groups)
-        self.plot = FitMplCanvas(self.main_widget,filePath=self.filePath,groups=self.groups,datafit=self.datafit)
+        self.plot = FitMplCanvas(self.main_widget,filePath=self.filePath,groups=self.fitNumber,datafit=self.datafit)
         #self.plot = figure()
         self.grid.addWidget(self.plot,1,3,5,2)
         self.paramsGrid=self.showParams()
         self.grid.addLayout(self.paramsGrid,6,3,3,2)
         self.clickCount +=1
     def removeGrid(self):
-        for i in range(int(self.groups)*6):
+        for i in range(int(self.fitNumber)*6):
             self.paramsGrid.takeAt(int(self.paramsGrid.count())-1).widget().close()
         self.grid.removeItem(self.paramsGrid)
     def Adjust(self):
