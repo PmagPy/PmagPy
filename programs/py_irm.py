@@ -1,4 +1,5 @@
-#! /usr/local/bin/env python
+#!/usr/bin/env python
+
 # -*- coding:utf-8 -*-
 '''
 #====================================================================
@@ -27,8 +28,14 @@ from matplotlib import pyplot as plt
 from scipy import interpolate,spatial
 from scipy.stats import norm
 import numpy as np
+try:
+    from lmfit.models import GaussianModel
+except ImportError:
+    print('-E- You must install lmfit to run this program')
+    print('    If you have Anaconda Python, you can install with the following command:')
+    print('    conda install lmfit --channel conda-forge')
+    sys.exit()
 from sklearn.mixture import GaussianMixture as GMM
-from lmfit.models import GaussianModel
 from lmfit import minimize,Parameters
 
 class MyMplCanvas(FigureCanvas):
