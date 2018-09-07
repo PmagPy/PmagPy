@@ -8552,47 +8552,6 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
 
-    SYNTAX
-        sufar4-asc_magic.py -h [command line options]
-
-    OPTIONS
-        -h: prints the help message and quits
-        -f FILE: specify .asc input file name
-        -fsp SINFILE: specify er_specimens input file with location, sample, site, etc. information
-        -F MFILE: specify measurements output file
-        -Fa AFILE: specify rmag_anisotropy output file # MagIC 2 only
-        -Fsi SFILE: specify specimens output file
-        -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study
-        -ins INST: specify instrument used
-        -spc SPEC: specify number of characters to specify specimen from sample
-        -ncn NCON:  specify naming convention: default is #2 below
-        -k15 : specify static 15 position mode - default is spinning
-        -new : replace all existing magic files
-
-    DEFAULTS
-        AFILE: rmag_anisotropy.txt  # MagIC 2 only
-        SFILE: default is to create new specimen file
-        USER: ""
-        LOC: "unknown"
-        INST: ""
-        SPEC: 0  sample name is same as site (if SPEC is 1, sample is all but last character)
-        appends to  specimen/sample/site files
-       Sample naming convention:
-            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
-                is the single character sample designation.  e.g., TG001a is the
-                first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
-            [5] site name same as sample
-            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
-            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-            NB: all others you will have to customize your self
-                 or e-mail ltauxe@ucsd.edu for help.
-            [8] This is a synthetic
-            [9] ODP naming convention
-
     """
 
     citation = 'This study'

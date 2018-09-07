@@ -684,9 +684,11 @@ class ImportSufarAscii(wx.Frame):
             loc = "-loc " + loc
         else:
             location = "unknown"
-        ins = self.bSizer5.return_value()
-        if ins:
-            ins = "-ins " + ins
+        instrument = self.bSizer5.return_value()
+        if instrument:
+            ins = "-ins " + instrument
+        else:
+            ins = ''
         k15 = self.bSizer6.return_value()
         if k15:
             k15 = ""
@@ -695,10 +697,13 @@ class ImportSufarAscii(wx.Frame):
             k15 = "-k15"
             static_15_position_mode = True
         spec_infile = None
-        instrument = ""
         data_model_num = self.Parent.data_model_num
         COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {} -DM {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID, data_model_num)
-        program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID, data_model_num)
+        program_ran, error_message = convert.sufar4(infile, meas_outfile, aniso_outfile,
+                                                    spec_infile, spec_outfile, samp_outfile,
+                                                    site_outfile, specnum, ncn, user,
+                                                    location, instrument,static_15_position_mode,
+                                                    WD, ID, data_model_num)
         if program_ran:
             pw.close_window(self, COMMAND, meas_outfile)
             outfiles = [meas_outfile, spec_outfile, samp_outfile, site_outfile]
@@ -712,7 +717,7 @@ class ImportSufarAscii(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.SUFAR4_magic.__doc__)
+        pw.on_helpButton(text=convert.sufar4.__doc__)
 
 
 
