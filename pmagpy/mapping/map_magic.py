@@ -5,10 +5,6 @@
 #  Copyright (c) 2014 Lori Jonestrask
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
 
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import zip
-from builtins import str
 import json
 from pmagpy.data_model3 import DataModel
 from . import maps

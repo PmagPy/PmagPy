@@ -2871,13 +2871,22 @@ You can combine multiple measurement files into one measurement file using Pmag 
     #--------------------------------------------------------------------
 
     def on_menu_calculate_aniso_tensor(self, event):
-        self.calculate_anisotropy_tensors(data_model=self.data_model)
-        if self.data_model == 3:
-            text1 = "Anisotropy elements and statistics are saved in specimens.txt\n"
-            text2 = ""
+        res, error = self.calculate_anisotropy_tensors(data_model=self.data_model)
+        if res:
+            if self.data_model == 3:
+                text1 = "Anisotropy elements and statistics are saved in specimens.txt\n"
+                text2 = ""
+            else:
+                text1 = "Anisotropy tensors elements are saved in rmag_anisotropy.txt\n"
+                text2 = "Other anisotropy statistics are saved in rmag_results.txt\n"
         else:
-            text1 = "Anisotropy tensors elements are saved in rmag_anisotropy.txt\n"
-            text2 = "Other anisotropy statistics are saved in rmag_results.txt\n"
+            if self.data_model == 3:
+                text1 = error
+                text2 = ""
+            else:
+                text1 = error
+                text2 = ""
+
         dlg1 = wx.MessageDialog(
             self, caption="Message:", message=text1 + text2, style=wx.OK | wx.ICON_INFORMATION)
         self.show_dlg(dlg1)
@@ -3347,6 +3356,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
                 for i in range(n_pos):
                     for rec in aarmblock:
+                        try:
+                            float(rec['measurement_number'])
+                        except ValueError:
+                            print('-W- treat_step_num column must be provided to run "Calculate anisotropy tensors"')
+                            return False, 'The treat_step_num column must be provided to run "Calculate anisotropy tensors"'
                         if float(rec['measurement_number']) == i * 2 + 1:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
@@ -3506,6 +3520,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             rmag_results_file.close()
             rmag_anisotropy_file.close()
             aniso_logfile.close()
+        return True, ""
 
     #==================================================
 
