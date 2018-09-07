@@ -10,8 +10,7 @@ def main():
         upload_magic.py
 
     DESCRIPTION
-        This program will prepare your MagIC text files created by the programs nfo_magic.py,
-        zeq_magic.py, thellier_magic.py, mag_magic, specimens_results_magic.py and so on.
+        This program will prepare your MagIC text files  for uploading to the MagIC database
         it will check for all the MagIC text files and skip the missing ones
 
     SYNTAX
@@ -38,9 +37,9 @@ def main():
         dir_path, concat = extractor.get_vars(['WD', 'cat'], checked_args)
         data_model_num = int(float(data_model_num))
         if data_model_num == 2:
-            ipmag.upload_magic(concat, dir_path)
+            ipmag.upload_magic2(concat, dir_path)
         else:
-            ipmag.upload_magic3(concat, dir_path)
+            ipmag.upload_magic(concat, dir_path)
 
 
 if __name__ == '__main__':
