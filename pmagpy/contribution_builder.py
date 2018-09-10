@@ -2391,6 +2391,7 @@ def stringify_col(df, col_name):
     df : dataframe
     col_name : string
     """
+    df = df.copy()
     df[col_name] = df[col_name].fillna("")
     df[col_name] = df[col_name].astype(str)
     return df

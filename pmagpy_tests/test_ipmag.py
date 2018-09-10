@@ -224,7 +224,7 @@ class TestCoreDepthplot(unittest.TestCase):
         os.chdir(WD)
 
     def test_core_depthplot_with_no_files(self):
-        program_ran, error_message = ipmag.core_depthplot()
+        program_ran, error_message = ipmag.core_depthplot(data_model_num=2)
         self.assertFalse(program_ran)
         self.assertEqual("You must provide either a magic_measurements file or a pmag_specimens file", error_message)
 
