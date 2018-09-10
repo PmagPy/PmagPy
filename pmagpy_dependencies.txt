@@ -123,6 +123,7 @@ libtiff                   4.0.9                h0dac147_0
 libxml2                   2.9.7                hab757c2_0
 libxslt                   1.1.32               hb819dd2_0
 llvmlite                  0.21.0           py36hff739e7_0
+lmfit                     0.9.11                        0    conda-forge
 locket                    0.2.0            py36hca03003_1
 lxml                      4.1.1            py36hef8c89e_1
 lzo                       2.10                 h362108e_2
