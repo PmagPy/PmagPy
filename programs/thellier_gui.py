@@ -6494,6 +6494,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # print "initialize blocks"
 
         for s in sids:
+            # initialize some variables
+            # for calculating measurement_number for anisotropy
+            saved_exp_name = ""
+            aarm_num = 0
+            # add specimen to Data
             if s not in list(Data.keys()):
                 Data[s] = {}
                 Data[s]['datablock'] = []
@@ -6549,9 +6554,23 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 Data[s]['atrmblock'].append(rec)
 
             if "LP-AN-ARM" in rec["magic_method_codes"]:
+                # anisotropy calculations require a numeric measurement_number
+                # so go ahead and generate that if it is not provided
+                exp_name = rec['magic_experiment_name']
+                aarm_num += 1
+                aarm_rec = rec.copy()
+                if saved_exp_name != exp_name:
+                    saved_exp_name = exp_name
+                    aarm_num = 0
+                try:
+                    float(rec['measurement_number'])
+                except ValueError:
+                    aarm_rec['measurement_number'] = aarm_num
+
                 if 'aarmblock' not in list(Data[s].keys()):
                     Data[s]['aarmblock'] = []
-                Data[s]['aarmblock'].append(rec)
+
+                Data[s]['aarmblock'].append(aarm_rec)
 
             if "LP-CR-TRM" in rec["magic_method_codes"] and rec['measurement_description'] != "":
                 if 'crblock' not in list(Data[s].keys()):
