@@ -578,11 +578,13 @@ class TestContribution(unittest.TestCase):
         directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'cit_magic', 'PI47')
         con = cb.Contribution(directory)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
-        # need to actually test this
-        con.propagate_name_down('sample', 'measurements')
         con.propagate_name_down('site', 'measurements')
+        self.assertIn('site', con.tables['measurements'].df.columns)
+        res =  con.propagate_name_down('sample', 'measurements')
+        self.assertFalse(res)
         con.propagate_name_down('location', 'measurements')
         self.assertIn('location', con.tables['measurements'].df.columns)
+        self.assertTrue(not any([col for col in con.tables['measurements'].df.columns if col.endswith('_source') or col.endswith('_target')]))
 
     def test_propagate_name_down_fail(self):
         """fail gracefully"""

@@ -554,7 +554,91 @@ class Contribution(object):
         """
         return self.propagate_name_down('location', 'samples')
 
-    def propagate_name_down(self, col_name, df_name):
+
+
+    def propagate_name_down(self, col_name, target_table_name):
+        """
+        Propagate a name higher up on the hierarchy down,
+        i.e. location information into the samples table.
+
+        Parameters
+        ----------
+        col_name : str
+            column to propagate down, e.g. 'location'
+        target_table_name : str
+            name of the table to propagate too, e.g. 'samples'
+
+        Returns
+        --------
+        False if failed, updated MagicDataFrame if
+        """
+        # get or make target dataframe
+        if target_table_name not in self.tables:
+            target_table = self.add_magic_table(target_table_name)[1]
+            if is_null(target_table):
+                return
+        else:
+            target_table = self.tables[target_table_name]
+
+        # don't propagate if the name is already there
+        if col_name in target_table.df.columns:
+            if not all(target_table.df[col_name].apply(is_null)):
+                print('{} already in {} table'.format(col_name, target_table_name))
+                return
+
+        top_table_name = col_name + "s"
+        top_ind = self.ancestry.index(top_table_name)
+        target_ind = self.ancestry.index(target_table_name)
+        table_names = self.ancestry[target_ind+1:top_ind+1]
+
+        tables = []
+        # make sure all tables exist, add missing tables if possible
+        for table_name in table_names:
+            if table_name not in self.tables:
+                table = self.add_magic_table(table_name)[1]
+                if not table:
+                    return False, "missing {} table".format(table_name)
+            else:
+                table = self.tables[table_name]
+            tables.append(self.tables[table_name])
+
+        tables.insert(0, target_table)
+        cols = []
+
+        # take tables in reverse order, skip first and last
+        for table in tables[1:-1][::-1]:
+            # get the table below to merge into
+            ind = self.ancestry.index(table.dtype)
+            table_below = tables[ind-1]
+            # add to the merge columns
+            col = self.ancestry[ind+1][:-1]
+            #table.dtype[:-1]
+            cols.append(col)
+            merge_on = self.ancestry[ind][:-1]
+
+            merge_cols = set(cols).intersection(table.df.columns)
+            #print('merge {} columns from {} into {} on col {}'.format(cols, table, table_below, merge_on))#merge_on))
+            table_below.df = table_below.df.merge(table.df[list(merge_cols)], left_on=merge_on, right_index=True,
+                                                  suffixes=['_target', '_source'])
+            # check for _target and _source columns
+            for col in merge_cols:
+                if col + "_target" in table_below.df.columns:
+                    # prioritize values from target df
+                    new_arr = np.where(table_below.df[col + "_target"],
+                                       table_below.df[col + "_target"],
+                                       table_below.df[col + "_source"])
+                    table_below.df.rename(columns={col + "_target": col}, inplace=True)
+                    table_below.df[col] = new_arr
+                if col + "_source" in table_below.df.columns:
+                    # delete extra merge column
+                    del table_below.df[col + "_source"]
+
+        if col_name in target_table.df.columns:
+            self.tables[target_table_name] = target_table
+            return target_table
+
+
+    def old_propagate_name_down(self, col_name, df_name):
         """
         Put the data for "col_name" into dataframe with df_name
         Used to add 'site_name' to specimen table, for example.
@@ -578,9 +662,8 @@ class Contribution(object):
         parent_table_name, parent_name = self.get_table_name(ind)
         child_table_name, child_name = self.get_table_name(ind - 1)
         bottom_table_name, bottom_name = self.get_table_name(ind - 2)
-
         # merge in bottom level
-        if child_name not in df.columns:
+        if child_name not in df.columns and df.index.name != child_name:
             # add child table if missing
             if bottom_table_name not in self.tables:
                 result = self.add_magic_table(bottom_table_name)[1]
@@ -613,6 +696,8 @@ class Contribution(object):
             # add parent_name to df
             add_df = self.tables[child_table_name].df
             # drop duplicate names
+            # might need to use index here...., since child_name might not be in the columns
+            # this may be the argument for why just having index doesn't work
             add_df = add_df.drop_duplicates(subset=child_name)
             if parent_name not in add_df:
                 print('-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name))
@@ -1384,7 +1469,8 @@ class MagicDataFrame(object):
         if self.df.index.name in self.df.columns:
             del self.df[self.df.index.name]
 
-
+    def __repr__(self):
+        return '[' + self.dtype + " pmagpy.contribution_builder.MagicDataFrame]"
 
 
     ## Methods to change self.df inplace
