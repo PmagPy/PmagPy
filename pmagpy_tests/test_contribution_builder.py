@@ -420,6 +420,7 @@ class TestContribution(unittest.TestCase):
         for fname in ['_locations.txt']: # no samples available this time
             os.remove(os.path.join(self.directory, fname))
 
+    @unittest.skip('out of date')
     def test_propagate_cols_up_old(self):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
         con = cb.Contribution(directory, dmodel=DMODEL,
@@ -578,13 +579,29 @@ class TestContribution(unittest.TestCase):
         directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'cit_magic', 'PI47')
         con = cb.Contribution(directory)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
+        # site --> measurements
         con.propagate_name_down('site', 'measurements')
+        self.assertNotIn('location', con.tables['measurements'].df.columns)
         self.assertIn('site', con.tables['measurements'].df.columns)
-        res =  con.propagate_name_down('sample', 'measurements')
+        # try sample --> measurements
+        # (res will be False, since propagation already happened)
+        res, meas_table = con.propagate_name_down('sample', 'measurements')
         self.assertFalse(res)
+        # location --> measurements
         con.propagate_name_down('location', 'measurements')
         self.assertIn('location', con.tables['measurements'].df.columns)
         self.assertTrue(not any([col for col in con.tables['measurements'].df.columns if col.endswith('_source') or col.endswith('_target')]))
+
+    def test_propagate_name_to_specimens(self):
+        directory = os.path.join(WD, 'data_files', 'convert_2_magic', 'cit_magic', 'PI47')
+        con = cb.Contribution(directory)
+        self.assertNotIn('location', con.tables['specimens'].df.columns)
+        # location --> specimens
+        res = con.propagate_name_down('location', 'specimens')[0]
+        self.assertTrue(res)
+        self.assertIn('location', con.tables['specimens'].df.columns)
+        self.assertIn('site', con.tables['specimens'].df.columns)
+
 
     def test_propagate_name_down_fail(self):
         """fail gracefully"""
@@ -592,11 +609,13 @@ class TestContribution(unittest.TestCase):
         con = cb.Contribution(directory)
         self.assertNotIn('sample', con.tables['measurements'].df.columns)
         self.assertNotIn('location', con.tables['measurements'].df.columns)
-        # missing link:
+        # create a missing link:
         del con.tables['samples'].df['site']
-        meas_df = con.propagate_location_to_measurements()
-        self.assertIn('sample', con.tables['measurements'].df.columns)
-        self.assertNotIn('location', meas_df.columns)
+        ## try locations --> measurements (fail)
+        res, meas_table = con.propagate_location_to_measurements()
+        self.assertFalse(res)
+        #self.assertIn('sample', con.tables['measurements'].df.columns)
+        self.assertNotIn('location', meas_table.df.columns)
 
 
     def test_find_missing_items(self):

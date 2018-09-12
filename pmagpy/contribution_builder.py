@@ -570,21 +570,22 @@ class Contribution(object):
 
         Returns
         --------
-        False if failed, updated MagicDataFrame if
+        True/False, updated MagicDataFrame or original MagicDataFrame
         """
         # get or make target dataframe
         if target_table_name not in self.tables:
             target_table = self.add_magic_table(target_table_name)[1]
             if is_null(target_table):
-                return
+                print('-W- Target table {} does not exist'.format(target_table))
+                return None, None
         else:
             target_table = self.tables[target_table_name]
 
         # don't propagate if the name is already there
         if col_name in target_table.df.columns:
             if not all(target_table.df[col_name].apply(is_null)):
-                print('{} already in {} table'.format(col_name, target_table_name))
-                return
+                print('-W- {} already in {} table'.format(col_name, target_table_name))
+                return False, target_table
 
         top_table_name = col_name + "s"
         top_ind = self.ancestry.index(top_table_name)
@@ -597,7 +598,8 @@ class Contribution(object):
             if table_name not in self.tables:
                 table = self.add_magic_table(table_name)[1]
                 if not table:
-                    return False, "missing {} table".format(table_name)
+                    print("-W- missing {} table".format(table_name))
+                    return False, target_table
             else:
                 table = self.tables[table_name]
             tables.append(self.tables[table_name])
@@ -605,25 +607,39 @@ class Contribution(object):
         tables.insert(0, target_table)
         cols = []
 
-        # take tables in reverse order, skip first and last
+        # loop through the tables from highest in the hierarchy to lowest,
+        # then merge their data into the table below
         for table in tables[1:-1][::-1]:
             # get the table below to merge into
+            num = tables.index(table)
+            table_below = tables[num-1]
+            # get the list of columns to merge in
             ind = self.ancestry.index(table.dtype)
-            table_below = tables[ind-1]
-            # add to the merge columns
             col = self.ancestry[ind+1][:-1]
-            #table.dtype[:-1]
             cols.append(col)
             merge_on = self.ancestry[ind][:-1]
-
             merge_cols = set(cols).intersection(table.df.columns)
             #print('merge {} columns from {} into {} on col {}'.format(cols, table, table_below, merge_on))#merge_on))
-            table_below.df = table_below.df.merge(table.df[list(merge_cols)], left_on=merge_on, right_index=True,
+            # if the merge column is missing, it's a fail
+            if merge_on not in table_below.df.columns:
+                print('-W- {} table is missing {} column'.format(table_below.dtype, merge_on))
+                return False, target_table
+
+            # more munging -- drop some duplicates, make strings
+            merge_df = table.df[~table.df.index.duplicated(keep='first')]
+            table_below.df = stringify_col(table_below.df, merge_on)
+            table_below.df.index = table_below.df.index.astype(str)
+
+            # do merge
+            table_below.df = table_below.df.merge(merge_df[list(merge_cols)], left_on=merge_on, right_index=True,
                                                   suffixes=['_target', '_source'])
             # check for _target and _source columns
+            # this can happen with multiple merges
+            # delete redundant columns
             for col in merge_cols:
                 if col + "_target" in table_below.df.columns:
-                    # prioritize values from target df
+                    # prioritize using values that were already in the target table
+                    # fill in missing values from the source table
                     new_arr = np.where(table_below.df[col + "_target"],
                                        table_below.df[col + "_target"],
                                        table_below.df[col + "_source"])
@@ -633,9 +649,12 @@ class Contribution(object):
                     # delete extra merge column
                     del table_below.df[col + "_source"]
 
+        # tidy up and quality check the final product
+        #target_table.drop_stub_rows()
         if col_name in target_table.df.columns:
             self.tables[target_table_name] = target_table
-            return target_table
+            return True, target_table
+        return False, target_table
 
 
     def old_propagate_name_down(self, col_name, df_name):
