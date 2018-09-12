@@ -1381,6 +1381,10 @@ class MagicDataFrame(object):
             self.add_measurement_names()
         self.name = name
 
+        if self.df.index.name in self.df.columns:
+            del self.df[self.df.index.name]
+
+
 
 
     ## Methods to change self.df inplace
@@ -1791,6 +1795,8 @@ class MagicDataFrame(object):
             df = self.df
         # replace np.nan / None with ""
         df = df.where(df.notnull(), "")
+        # add index
+        df[df.index.name] = df.index
         # string-i-fy everything
         df = df.astype(str)
 
@@ -2072,11 +2078,11 @@ class MagicDataFrame(object):
                 header = True
                 f.write('tab\t{}\n'.format(self.dtype))
             f.flush()
-            df.to_csv(f, sep="\t", header=header, index=False, mode='a')
+            df.to_csv(f, sep="\t", header=header, index=True, mode='a')
         else:
             f.write('tab\t{}\n'.format(self.dtype))
             f.flush()
-            df.to_csv(f, sep="\t", header=True, index=False, mode='a')
+            df.to_csv(f, sep="\t", header=True, index=True, mode='a')
         print('-I- {} records written to {} file'.format(len(df), self.dtype))
         f.close()
         return fname

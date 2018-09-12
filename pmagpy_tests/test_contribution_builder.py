@@ -123,7 +123,8 @@ class TestMagicDataFrame(unittest.TestCase):
                                      dmodel=DMODEL)
         self.assertEqual('bed_dip', magic_df.df.columns[0])
         magic_df.sort_dataframe_cols()
-        self.assertEqual('site', magic_df.df.columns[0])
+        self.assertTrue(len(magic_df.df))
+        self.assertEqual('location', magic_df.df.columns[0])
 
     def test_convert_to_pmag_data_list(self):
         magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
