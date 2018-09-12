@@ -367,15 +367,15 @@ class TestContribution(unittest.TestCase):
         res = self.con.tables['specimens'].df['geologic_classes'].unique()
         self.assertEqual([None], res)
         self.con.propagate_lithology_cols()
-        res = self.con.tables['specimens'].df['geologic_classes'].unique()
+        res = self.con.tables['specimens'].df['geologic_classes'].dropna().unique()
         self.assertEqual(res, ['Archeologic'])
         #
         self.con.tables['specimens'].df.loc[:, 'geologic_types'] = ""
-        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        res = self.con.tables['specimens'].df['geologic_types'].dropna().unique()
         self.assertEqual([""], res)
         self.con.tables['samples'].df.loc['mgh12t101', 'geologic_types'] = "Oven"
         self.con.propagate_lithology_cols()
-        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        res = self.con.tables['specimens'].df['geologic_types'].dropna().unique()
         self.assertEqual(sorted(res), ['Mixed Archeological Objects', 'Oven'])
         res = self.con.tables['specimens'].df.loc['mgh12t101', 'geologic_types']
         self.assertEqual('Oven', res)

@@ -538,12 +538,12 @@ class Contribution(object):
         --------
         Returns: measurements MagicDataFrame
         """
-        self.propagate_name_down('sample', 'measurements')
-        self.propagate_name_down('site', 'measurements')
+        #self.propagate_name_down('sample', 'measurements')
+        #self.propagate_name_down('site', 'measurements')
         return self.propagate_name_down('location', 'measurements')
 
     def propagate_location_to_specimens(self):
-        self.propagate_name_down('site', 'specimens')
+        #self.propagate_name_down('site', 'specimens')
         return self.propagate_name_down('location', 'specimens')
 
     def propagate_location_to_samples(self):
