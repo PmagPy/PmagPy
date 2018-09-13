@@ -4067,7 +4067,7 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
                 df[col] = df[col].apply(pmag.adjust_val_to_360)
             # get list of location names
             if file_type == 'locations':
-                locations = sorted(df['location'].unique())
+                locations = sorted(df.index.unique())
             # LJ: need to deal with this
             # use only highest priority orientation -- not sure how this works
             elif file_type == 'samples':
