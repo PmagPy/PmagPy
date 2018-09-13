@@ -517,7 +517,7 @@ def validate_table(the_con, dtype, verbose=False, output_dir="."):
     """
     print("-I- Validating {}".format(dtype))
     # grab dataframe
-    current_df = the_con.tables[dtype].df
+    current_df = the_con.tables[dtype].df.copy()
     # grab data model
     current_dm = the_con.tables[dtype].data_model.dm[dtype]
     # run all validations (will add columns to current_df)

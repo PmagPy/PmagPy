@@ -4034,6 +4034,23 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
     if not dmodel:
         dmodel = data_model.DataModel()
     last_file_type = sorted(con.tables.keys())[-1]
+
+    # for each table, duplicate the index in a column
+    # i.e., give the samples table a sample column
+    # that is identical to the index
+    # this makes the validations function correctly
+    for table_name in con.tables:
+        current_df = con.tables[table_name].df.copy()
+        saved_index = current_df.index
+        try:
+            current_df = current_df.reset_index()
+        except ValueError:
+            continue
+        current_df.rename({'index': saved_index.name})
+        current_df.index = saved_index
+        con.tables[table_name].df = current_df
+
+
     for file_type in sorted(con.tables.keys()):
         container = con.tables[file_type]
         df = container.df
@@ -4087,6 +4104,7 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
                     spec_df = con.tables['specimens'].df
                     df = df[df['specimen'].isin(spec_df.index.unique())]
     # run validations
+
             res = val_up3.validate_table(
                 con, file_type, output_dir=dir_path)  # , verbose=True)
             if res:
