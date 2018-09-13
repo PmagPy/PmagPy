@@ -2622,7 +2622,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     SampData = con.tables['samples'].df
     AniData = con.tables['specimens'].df
     # add sample into specimens (AniData)
-    AniData = pd.merge(AniData, SampData[['sample', depth_scale]], how='inner', on='sample')
+    AniData = pd.merge(AniData, SampData[[depth_scale]], how='inner', left_on='sample', right_index=True)#on='index')
     # trim down AniData
     cond = AniData[depth_scale].astype(bool)
     AniData = AniData[cond]
@@ -2653,7 +2653,8 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         Meas = Meas[Meas['specimen'].astype('bool')]
         Meas = Meas[Meas['susc_chi_volume'].astype(bool)]
         # add core_depth into Measurements dataframe
-        Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[['specimen', 'core_depth']], how='inner', on='specimen')
+        Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[['core_depth']],
+                        how='inner', left_on='specimen', right_index=True) #on='specimen')
         Bulks = list(Meas['susc_chi_volume'] * 1e6)
         BulkDepths = list(Meas['core_depth'])
     else:

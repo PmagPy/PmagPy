@@ -572,6 +572,7 @@ class Contribution(object):
         --------
         True/False, updated MagicDataFrame or original MagicDataFrame
         """
+        print('-I- Propagate {} to {} table'.format(col_name, target_table_name))
         # get or make target dataframe
         if target_table_name not in self.tables:
             target_table = self.add_magic_table(target_table_name)[1]
@@ -594,7 +595,7 @@ class Contribution(object):
 
         tables = []
         # make sure all tables exist, add missing tables if possible
-        for table_name in table_names:
+        for table_name in table_names[:-1]:
             if table_name not in self.tables:
                 table = self.add_magic_table(table_name)[1]
                 if not table:
@@ -604,7 +605,9 @@ class Contribution(object):
                 table = self.tables[table_name]
             tables.append(self.tables[table_name])
 
+        # add target table and top level table
         tables.insert(0, target_table)
+        tables.append(table_names[-1])
         cols = []
 
         # loop through the tables from highest in the hierarchy to lowest,
@@ -654,6 +657,7 @@ class Contribution(object):
         if col_name in target_table.df.columns:
             self.tables[target_table_name] = target_table
             return True, target_table
+        print('-W- Something went wrong with propagation')
         return False, target_table
 
 
