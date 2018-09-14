@@ -22,7 +22,7 @@ def main():
         irmaq_magic [command line options]
 
     INPUT
-       takes magic formatted magic_measurements.txt files
+       takes MagIC formatted measurement files
 
     OPTIONS
         -h prints help message and quits
@@ -96,7 +96,7 @@ def main():
         print('    By default, this information is not available in your measurement file.')
         print('    Trying to acquire this information from {}'.format(dir_path))
         con = cb.Contribution(dir_path)
-        meas_df = con.propagate_location_to_measurements()
+        meas_df = con.propagate_location_to_measurements()[1].df
         if meas_df is None:
             print('-W- No data found in {}'.format(dir_path))
             return
