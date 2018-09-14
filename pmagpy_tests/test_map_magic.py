@@ -138,35 +138,36 @@ class TestThellierGUIMapping(unittest.TestCase):
     def test_get_thellier_gui_meas_mapping(self):
         # MagIC 3 --> 2 with 'treat_step_num'
         meas_data3_0 = cb.MagicDataFrame(self.magic_file).df
-        meas_data3_0.iloc[0, meas_data3_0.columns.get_loc('measurement')] = 'custom'
+        meas0 = meas_data3_0.index[0]
+        meas_data3_0.rename(index={meas0: 'custom'}, inplace=True)
         meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
         self.assertEqual('custom',
-                         meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+                         meas_data2_5.iloc[0].name)
         self.assertEqual(1,
                          meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement_number')])
 
         # and back
         meas_data3_again = map_magic.convert_meas_df_thellier_gui(meas_data2_5, output=3)
         self.assertEqual('custom',
-                         meas_data3_again.iloc[0, meas_data3_again.columns.get_loc('measurement')])
+                         meas_data3_again.iloc[0].name)
         self.assertEqual(1,
                          meas_data3_again.iloc[0, meas_data3_again.columns.get_loc('treat_step_num')])
 
         # MagIC 3 --> 2 without 'treat_step_num'
         del meas_data3_0['treat_step_num']
         self.assertEqual('custom',
-                         meas_data3_0.iloc[0, meas_data3_0.columns.get_loc('measurement')])
+                         meas_data3_0.iloc[0].name)
         meas_data2_5 = map_magic.convert_meas_df_thellier_gui(meas_data3_0, output=2)
         self.assertIn('measurement_number', meas_data2_5.columns)
         self.assertEqual('custom',
-                 meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+                 meas_data2_5.iloc[0].name)
         self.assertEqual('custom',
                          meas_data2_5.iloc[0, meas_data2_5.columns.get_loc('measurement_number')])
 
         # and back to 3
         meas_data3_0_again = map_magic.convert_meas_df_thellier_gui(meas_data2_5, output=3)
         self.assertEqual('custom',
-                         meas_data3_0_again.iloc[0, meas_data2_5.columns.get_loc('measurement')])
+                         meas_data3_0_again.iloc[0].name)
         self.assertNotIn('treat_step_num', meas_data3_0_again.columns)
 
 
@@ -175,7 +176,7 @@ class TestThellierGUIMapping(unittest.TestCase):
         meas_data3 = cb.MagicDataFrame(self.magic_file).df
         del meas_data3['treat_step_num']
         meas_names = range(1001, len(meas_data3) + 1001)
-        meas_data3['measurement'] = meas_names
+        meas_data3.index = meas_names
         # convert from MagIC 3 --> MagIC 2.5
         meas_data2 = map_magic.convert_meas_df_thellier_gui(meas_data3, output=2)
         self.assertEqual(1001,

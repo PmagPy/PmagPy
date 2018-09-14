@@ -214,7 +214,12 @@ def convert_meas_df_thellier_gui(meas_df_in, output):
     meas_mapping = get_thellier_gui_meas_mapping(meas_df_in, output)
     meas_df_out = meas_df_in.rename(columns=meas_mapping)
     if 'measurement' not in meas_df_out.columns:
-        meas_df_out['measurement'] = meas_df_in['measurement']
+        meas_df_out['measurement'] = meas_df_in.index#['measurement']
+    if output == 2:
+        if 'treat_step_num' in meas_df_in.columns:
+            meas_df_out['measurement_number'] = meas_df_in['treat_step_num']
+        else:
+            meas_df_out['measurement_number'] = meas_df_in.index
     return meas_df_out
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
