@@ -135,7 +135,9 @@ def main():
         contribution.propagate_location_to_samples()
         contribution.propagate_location_to_specimens()
         contribution.propagate_location_to_measurements()
+        contribution.propagate_name_down('site', 'specimens')
     except KeyError as ex:
+        print(ex)
         pass
 
     # the object that contains the DataFrame + useful helper methods:
