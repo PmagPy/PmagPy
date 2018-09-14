@@ -2583,13 +2583,16 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             age_file = None
             depth_scale = 'core_depth'
         else:
-            samp_file = age_file
+            #samp_file = age_file
+            age_file = pmag.resolve_file_name(age_file, dir_path)
             depth_scale = 'age'
             print(
                 'Warning: you have provided an ages format file, which will take precedence over samples')
 
-    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+    if samp_file:
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
 
+    # check for req'd filenames
     for (ftype, fname) in [('specimen', spec_file),
                            ('sample', samp_file),
                            ('site', site_file)]:
@@ -2609,20 +2612,26 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
     dir_path = os.path.split(spec_file)[0]
     tables = ['measurements', 'specimens', 'samples', 'sites']
-    con = cb.Contribution(dir_path, read_tables=tables,
-                          custom_filenames={'measurements': meas_file, 'specimens': spec_file,
-                                            'samples': samp_file, 'sites': site_file})
+    fnames = {'measurements': meas_file, 'specimens': spec_file,
+              'sites': site_file, 'samples': samp_file}
+    if age_file:
+        fnames['ages'] = age_file
+    con = cb.Contribution(dir_path, read_tables=fnames.keys(),
+                              custom_filenames=fnames)
+
     con.propagate_cols(['core_depth'], 'samples', 'sites')
     con.propagate_location_to_specimens()
 
     # get data read in
     isbulk = 0  # tests if there are bulk susceptibility measurements
     ani_file = spec_file
-
+    if age_file:
+        # propagate ages into samples table
+        con.propagate_ages()
     SampData = con.tables['samples'].df
     AniData = con.tables['specimens'].df
     # add sample into specimens (AniData)
-    AniData = pd.merge(AniData, SampData[[depth_scale]], how='inner', left_on='sample', right_index=True)#on='index')
+    AniData = pd.merge(AniData, SampData[[depth_scale]], how='inner', left_on='sample', right_index=True)
     # trim down AniData
     cond = AniData[depth_scale].astype(bool)
     AniData = AniData[cond]
@@ -2632,14 +2641,9 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         AniData = AniData[AniData[depth_scale] > dmin]
     AniData['core_depth'] = AniData[depth_scale]
 
-    if not age_file:
-        Samps = con.tables['samples'].convert_to_pmag_data_list()
-    else:
-        con.add_magic_table(dtype='ages', fname=age_file)
-        Samps = con.tables['ages'].convert_to_pmag_data_list()
-        # get age unit
+    Samps = con.tables['samples'].convert_to_pmag_data_list()
+    if age_file:
         age_unit = con.tables['ages'].df['age_unit'][0]
-        # propagate ages down to sample level
 
     for s in Samps:
         # change to upper case for every sample name
@@ -2647,14 +2651,14 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
     if 'measurements' in con.tables:
         isbulk = 1
-        Meas = con.tables['measurements'].df #convert_to_pmag_data_list()
+        Meas = con.tables['measurements'].df
 
     if isbulk:
         Meas = Meas[Meas['specimen'].astype('bool')]
         Meas = Meas[Meas['susc_chi_volume'].astype(bool)]
         # add core_depth into Measurements dataframe
         Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[['core_depth']],
-                        how='inner', left_on='specimen', right_index=True) #on='specimen')
+                        how='inner', left_on='specimen', right_index=True)
         Bulks = list(Meas['susc_chi_volume'] * 1e6)
         BulkDepths = list(Meas['core_depth'])
     else:
@@ -3608,6 +3612,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     type_list = []
     filenum = 0
     while LN < len(File) - 1:
+        print(line)
         line = File[LN]
         if ">>>>" in line:
             LN += 1
