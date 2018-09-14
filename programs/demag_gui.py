@@ -3810,11 +3810,11 @@ class Demag_GUI(wx.Frame):
                     "Measurement data file is empty and the GUI cannot start, aborting")
                 return Data, Data_hierarchy
 
-            if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
-                if 'specimen' not in self.spec_data.columns:
-                    self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
-                    self.spec_data.set_index('specimen', inplace=True)
-                    self.spec_data['specimen'] = self.spec_data.index
+            if 'sample' not in self.spec_data.columns:# or 'sample' not in self.samp_data.columns:
+                #if 'specimen' not in self.spec_data.columns:
+                #    self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
+                #    self.spec_data.set_index('specimen', inplace=True)
+                #    self.spec_data['specimen'] = self.spec_data.index
 
                 ui_dialog = demag_dialogs.user_input(
                     self, ["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
@@ -3827,13 +3827,13 @@ class Demag_GUI(wx.Frame):
                         "Invalid input, specimen names will be used for sample names instead")
                     samp_ncr = 0
                 self.spec_data['sample'] = [x[:-samp_ncr]
-                                            for x in self.spec_data['specimen']]
+                                            for x in self.spec_data.index]
 
                 self.samp_data['sample'] = self.spec_data['sample']
                 self.samp_data.set_index('sample', inplace=True)
                 self.samp_data['sample'] = self.samp_data.index
 
-            if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
+            if 'site' not in self.samp_data.columns:
                 ui_dialog = demag_dialogs.user_input(
                     self, ["# of characters to remove", "site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
                 self.show_dlg(ui_dialog)
@@ -3841,22 +3841,22 @@ class Demag_GUI(wx.Frame):
                 try:
                     site_ncr = int(ui_data[1]["# of characters to remove"])
                     self.samp_data['site'] = [x[:-site_ncr]
-                                              for x in self.spec_data['specimen']]
+                                              for x in self.spec_data.index]
                 except ValueError:
                     try:
                         sd = ui_data[1]["site delimiter"]
                         self.samp_data['site'] = [
-                            x.split(sd)[0] for x in self.spec_data['specimen']]
+                            x.split(sd)[0] for x in self.spec_data.index]
                     except ValueError:
                         self.samp_data['site'] = [
-                            x for x in self.spec_data['specimen']]
+                            x for x in self.spec_data.index]
 
                 self.site_data['site'] = self.samp_data['site']
                 self.site_data.drop_duplicates(inplace=True)
                 self.site_data.set_index('site', inplace=True)
                 self.site_data['site'] = self.site_data.index
 
-            if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
+            if 'location' not in self.site_data.columns:
                 ui_dialog = demag_dialogs.user_input(
                     self, ["location name for all sites"], heading="No Location found")
                 self.show_dlg(ui_dialog)
@@ -4286,8 +4286,10 @@ class Demag_GUI(wx.Frame):
             return
         if "result_quality" not in self.spec_data.columns:
             self.spec_data["result_quality"] = "g"
-        fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
-                                'dir_tilt_correction', 'method_codes', 'result_quality']].to_dict("records")
+        fdict = self.spec_data.reset_index()[['specimen', fnames, 'meas_step_min',
+                                              'meas_step_max', 'meas_step_unit',
+                                              'dir_tilt_correction', 'method_codes',
+                                              'result_quality']].to_dict("records")
         for i in range(len(fdict)):
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
@@ -4398,29 +4400,30 @@ class Demag_GUI(wx.Frame):
                     age_data = self.site_data[age_ids].rename(
                         columns=map_magic.site_magic3_2_magic2_map)
                     # save this in 2.5 format
-                    er_ages = age_data.to_dict('records')
+                    er_ages = age_data.to_dict()#'records')
                     data_er_ages = {}
-                    for s in er_ages:
-                        s = self.convert_ages_to_calendar_year(s)
-                        data_er_ages[s['er_site_name']] = s
+                    for name, data in er_ages.items():
+                        s = self.convert_ages_to_calendar_year(data)
+                        data_er_ages[name] = s
                 sites = self.site_data.rename(
                     columns=map_magic.site_magic3_2_magic2_map)
                 # pick out what is needed by thellier_gui and put in 2.5 format
-                er_sites = sites.to_dict('records')
-                data_er_sites = {}
-                for s in er_sites:
-                    data_er_sites[s['er_site_name']] = s
+
+                data_er_sites = sites.to_dict()#'records')
+                er_sites = data_er_sites
+                #for name, data in er_sites:
+                #    data_er_sites[name] = data
             else:
                 self.con.add_empty_magic_table('sites')
                 self.site_data = self.con.tables['sites'].df
             if 'locations' in self.con.tables:
                 location_container = self.con.tables["locations"]
                 self.loc_data = location_container.df  # only need this for saving tables
-                if self.loc_data['location'].isnull().any():
-                    self.loc_data.replace(
-                        {'location': {None: 'unknown'}}, inplace=True)
-                    self.loc_data.set_index('location', inplace=True)
-                    self.loc_data['location'] = self.loc_data.index
+                if self.loc_data.index.isnull().any():
+                    self.loc_data.rename(index={None: 'unknown', np.nan:
+                                                'unknown', '': 'unknown'}, inplace=True)
+                    #self.loc_data.set_index('location', inplace=True)
+                    #self.loc_data['location'] = self.loc_data.index
                 loc2_data = self.loc_data.rename(
                     columns=map_magic.loc_magic3_2_magic2_map)
                 data_er_locations = loc2_data.to_dict('index')
