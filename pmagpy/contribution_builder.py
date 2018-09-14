@@ -2186,17 +2186,18 @@ class MagicDataFrame(object):
             print('-I- writing {} records to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
+        index = True if self.dtype != 'ages' else False
         if append:
             header = False
             if multi_type:
                 header = True
                 f.write('tab\t{}\n'.format(self.dtype))
             f.flush()
-            df.to_csv(f, sep="\t", header=header, index=True, mode='a')
+            df.to_csv(f, sep="\t", header=header, index=index, mode='a')
         else:
             f.write('tab\t{}\n'.format(self.dtype))
             f.flush()
-            df.to_csv(f, sep="\t", header=True, index=True, mode='a')
+            df.to_csv(f, sep="\t", header=True, index=index, mode='a')
         print('-I- {} records written to {} file'.format(len(df), self.dtype))
         f.close()
         return fname
