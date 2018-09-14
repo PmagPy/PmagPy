@@ -1177,6 +1177,11 @@ class Contribution(object):
         for level in self.tables['ages'].df['level'].unique():
             table_name = level + 's'
             age_headers = self.data_model.get_group_headers(table_name, 'Age')
+            # it appears that there are no longer Age group headers for samples
+            # but in some PmagPy applications, we want to plot samples by age
+            # so do a little magic:
+            if not any(age_headers):
+                age_headers = self.data_model.get_group_headers('sites', 'Age')
             # find age headers that are actually in table
             actual_age_headers = list(set(self.tables[table_name].df.columns).intersection(age_headers))
             # find site age headers that are available in ages table
