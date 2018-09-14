@@ -1162,14 +1162,17 @@ class Contribution(object):
         """
         # if there is no age table, skip
         if 'ages' not in self.tables:
+            print('-E- No age table')
             return
         # if age table has no data, skip
         if not len(self.tables['ages'].df):
+            print('-E- No data in age table')
             return
         # get levels in age table
         self.get_age_levels()
         # if age levels could not be determined, skip
         if not "level" in self.tables["ages"].df.columns:
+            print('-E- Could not parse age table')
             return
         if not any(self.tables["ages"].df["level"]):
             return

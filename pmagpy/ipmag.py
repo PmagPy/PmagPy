@@ -3612,7 +3612,6 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     type_list = []
     filenum = 0
     while LN < len(File) - 1:
-        print(line)
         line = File[LN]
         if ">>>>" in line:
             LN += 1
