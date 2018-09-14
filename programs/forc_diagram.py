@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #--*--coding:utf-8--*--
 '''
 #=================================================
@@ -10,6 +10,7 @@
 #=================================================
 '''
 import sys
+import os
 import numpy as np
 import itertools
 from matplotlib import pyplot as plt
@@ -166,12 +167,12 @@ class dataLoad(object):
     def rawData(self,fileAdres=None):
         #skip skiprows
         skiprows = None
-        skip_from = '    Field         Moment   '
+        skip_from = [b'Field',b'Moment']
         with open(fileAdres,'rb') as fr:
             #f = fr.read()
             for i,line in enumerate(fr,1):
-                #print(line)
-                if skip_from in str(line):
+                #print(line.split())
+                if skip_from == line.split():
                     skiprows=i+2
                     break
                 #else:
@@ -280,14 +281,43 @@ def grid_list(data):
     b = list(set(b))
     return a, b, M
 
+def param_argvs(inputs=None):
+    docm = '''
+    This is for FORC diagrams, including conventional and irregualar FORCs.\n
+    use: forc_diagram [-f] [input file] [-sf] [smooth factor]\n
+    help: forc_diagram [-h]'
+
+    input file:
+            the measured FORC data file must contain the line "  Field     Moment  "
+            before the measured data.
+
+    '''
+    fileAdres,SF = None,None
+    if '-h' in inputs:
+        print(docm)
+        sys.exit(0)
+    if '-f' in inputs:
+        if '-sf' in inputs:
+            if os.path.isfile(inputs[2]):
+                fileAdres = inputs[2]
+            else:
+                print('-f file not exist')
+                return
+            try:
+                SF = int(inputs[4])
+            except:
+                print('-sf has to be int')
+                return
+    else:
+        print('without flag -f or -sf\n\nuse: forc_diagram [-f] [input file] [-sf] [smooth factor]\n\nhelp: forc_diagram [-h]\n')
+        return
+    return fileAdres,SF
+
 def main():
     #start_time = time.time()
-    fileAdres = sys.argv[1]
-    SF = int(sys.argv[2])
-    SF = SF if isinstance(SF,int) else 5 #defualt SF=5
-    #fileAdres='./ps97-085-3-d472_9.irforc'
-    #Fit(dataLoad(fileAdres),SF).plot()
-    if fileAdres!='':
+    fileAdres,SF = param_argvs(inputs=sys.argv)
+
+    if fileAdres!=None:
         try:
             Forc(fileAdres=fileAdres,SF=SF).plot()
             pass

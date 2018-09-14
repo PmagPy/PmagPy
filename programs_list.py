@@ -51,6 +51,7 @@ programs_list = ["ani_depthplot.py=programs.ani_depthplot:main",
 "fishrot.py=programs.fishrot:main",
 "foldtest.py=programs.foldtest:main",
 "foldtest_magic.py=programs.foldtest_magic:main",
+"forc_diagram.py=programs.forc_diagram:main"
 "gaussian.py=programs.gaussian:main",
 "gobing.py=programs.gobing:main",
 "gofish.py=programs.gofish:main",
