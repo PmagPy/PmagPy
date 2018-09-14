@@ -144,7 +144,7 @@ def main():
     # the actual DataFrame:
     data = data_container.df
 
-    if plot_key != "all" and plot_key not in data.columns:
+    if plot_key != "all" and ((plot_key not in data.columns) and (plot_key != data.index.name)):
         print("-E- You can't plot by {} with the data provided".format(plot_key))
         return
 
@@ -163,12 +163,16 @@ def main():
     plotlist = []
     if plot_key != "all":
         # return all where plot_key is not blank
-        if plot_key not in data.columns:
+        if plot_key not in data.columns and plot_key != data.index.name:
             print('Can\'t plot by "{}".  That header is not in infile: {}'.format(
                 plot_key, in_file))
             return
-        plots = data[data[plot_key].notnull()]
-        plotlist = plots[plot_key].unique()  # grab unique values
+        if plot_key in data.columns:
+            plots = data[data[plot_key].notnull()]
+            plotlist = plots[plot_key].unique()  # grab unique values
+        else:
+            plots = data.copy()
+            plotlist = data.index.unique()
     else:
         plotlist.append('All')
 
@@ -180,7 +184,10 @@ def main():
             plot_data = data
         else:
             # pull out only partial data
-            plot_data = data[data[plot_key] == plot]
+            try:
+                plot_data = data[data[plot_key] == plot]
+            except KeyError:
+                plot_data = data[data.index == plot]
 
         DIblock = []
         GCblock = []

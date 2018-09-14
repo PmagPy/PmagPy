@@ -1941,6 +1941,8 @@ class MagicDataFrame(object):
             return ""
         # if the column name isn't present in the slice, return ""
         if col_name not in df_slice.columns:
+            if df_slice.index.name == col_name:
+                return df_slice.index.values[0]
             return ""
         # otherwise, return the first value from that column
         first_val = list(df_slice[col_name].dropna())

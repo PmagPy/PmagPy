@@ -602,6 +602,16 @@ class TestContribution(unittest.TestCase):
         self.assertIn('location', con.tables['specimens'].df.columns)
         self.assertIn('site', con.tables['specimens'].df.columns)
 
+    def test_propagate_name_to_samples(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        directory = os.path.join(WD, 'data_files/nrm_specimens_magic')
+        fnames = {'specimens': 'nrm_specimens.txt'}
+        con = cb.Contribution(directory, custom_filenames=fnames)
+        self.assertNotIn('location', con.tables['samples'].df.columns)
+        res = con.propagate_name_down('location', 'samples')[0]
+        self.assertTrue(res)
+        self.assertIn('location', con.tables['samples'].df.columns)
+
 
     def test_propagate_name_down_fail(self):
         """fail gracefully"""
