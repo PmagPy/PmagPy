@@ -1428,7 +1428,7 @@ class TestTdtMagic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join(self.input_dir, "custom.out"))
         df = cb.MagicDataFrame(os.path.join(self.input_dir, "samples.txt"))
         self.assertEqual("MG", df.df["site"].values[0])
-        self.assertEqual("MGH", df.df["sample"].values[0])
+        self.assertEqual("MGH", df.df.index.values[0])
 
 
 class TestUtrechtMagic(unittest.TestCase):
