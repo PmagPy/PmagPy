@@ -7931,7 +7931,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             if s[0] <= 1.0:
                 Ss.append(s) # protect against crap
             ResRec = {}
-            ResRec['specimen'] = rec['specimen']
+            ResRec['specimen'] = ind #rec['specimen']
             ResRec['sample'] = rec['sample']
             ResRec['analysts'] = user
             ResRec['citations'] = rec['citations']
