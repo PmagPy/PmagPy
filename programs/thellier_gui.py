@@ -7558,7 +7558,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # gather data for samples
             if len(self.samp_container.df):
-                cols = ['sample', 'site', 'cooling_rate']
+                cols = ['site', 'cooling_rate']
 
                 if 'location' in self.samp_data.columns:
                     cols.append('location')
@@ -7583,10 +7583,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 # then get rid of any duplicates
                 samples = samples.drop_duplicates()
                 # pick out what is needed by thellier_gui and put in 2.5 format
-                er_samples = samples.to_dict('records')
+                er_samples = samples.to_dict() #'records')
                 data_er_samples = {}
-                for samp_rec in er_samples:
-                    name = samp_rec['er_sample_name']
+                for name, samp_rec in er_samples.items():
                     # combine two records for the same sample
                     if name in data_er_samples:
                         old_values = data_er_samples[name]
@@ -7744,6 +7743,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     )]
                     prev_specs = prev_specs[prev_specs['meas_step_max'].notnull(
                     )]
+                    prev_specs.reset_index(inplace=True)
                     prev_specs = prev_specs[[
                         'specimen', 'meas_step_min', 'meas_step_max', 'method_codes']]
                     # rename column headers to 2.5
