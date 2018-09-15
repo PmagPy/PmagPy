@@ -490,6 +490,26 @@ class TestAtrmMagic(unittest.TestCase):
         self.assertTrue(any(df.df['sample']))
 
 
+class TestDayplot(unittest.TestCase):
+    def setUp(self):
+        self.dayplot_WD = os.path.join(WD, 'data_files', 'dayplot_magic')
+
+    def tearDown(self):
+        return
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
+        pmag.remove_files(filelist, self.dayplot_WD)
+        os.chdir(WD)
+
+    def test_success(self):
+        res, output_fignum = ipmag.dayplot(path_to_file=self.dayplot_WD, hyst_file='specimens.txt', save=True)
+        self.assertTrue(res)
+        self.assertEqual(1, output_fignum)
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

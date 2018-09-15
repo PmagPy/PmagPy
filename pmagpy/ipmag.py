@@ -6125,6 +6125,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
         fnames = {'specimens': hyst_file}
         con = cb.Contribution(dir_path, read_tables=['specimens'],
                           custom_filenames=fnames)
+        con.propagate_location_to_specimens()
         spec_container = con.tables['specimens']
         spec_df = spec_container.df
 
@@ -6140,7 +6141,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
                 Bcr.append(float(row['hyst_bcr']))
                 Bc.append(float(row['hyst_bc']))
                 BcrBc.append(old_div(Bcr[-1], Bc[-1]))
-                hsids.append(row['specimen'])
+                hsids.append(row.index)
             if do_rem:
                 if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                     try:
@@ -6150,7 +6151,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
                         Bcr2.append(Bcr[-1])
                     except ValueError:
                         if verbose:
-                            print('hysteresis data for ', row['specimen'], end=' ')
+                            print('hysteresis data for ', row.index, end=' ')
                             print(' not found')
 
 
@@ -6177,6 +6178,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
         plt.show()
+    return True, DSC['day']
 
 
 def smooth(x, window_len, window='bartlett'):
