@@ -1312,6 +1312,7 @@ class MagicDataFrame(object):
             else:
                 self.df = DataFrame()
                 self.df.index.name = name
+            self.df.index.name = name + "_name"
         # if there is a file provided, read in the data and ascertain dtype
         else:
             with open(magic_file) as f:
@@ -1380,6 +1381,7 @@ class MagicDataFrame(object):
         elif name == 'measurement' and len(self.df):
             self.add_measurement_names()
         self.name = name
+        self.df.index.name = name + '_name'
 
 
 
@@ -1519,6 +1521,7 @@ class MagicDataFrame(object):
         name, dtype = self.get_singular_and_plural_dtype(self.dtype)
         if name in df.columns:
             df.index = df[name]
+        df.index.name = name + "_name"
         self.df = df
 
     def add_blank_row(self, label):
@@ -1797,7 +1800,7 @@ class MagicDataFrame(object):
         if lst_or_dict == "lst":
             return list(df.T.apply(dict))
         else:
-            return {str(i[df.index.name]): dict(i) for i in list(df.T.apply(dict))}
+            return {str(i[df.index.name.split('_')[0]]): dict(i) for i in list(df.T.apply(dict))}
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """
