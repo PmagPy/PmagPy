@@ -121,8 +121,8 @@ def main():
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
-    loc_list = Results['location'].values
-    locations = ":".join(Results['location'].unique())
+    loc_list = Results.index
+    locations = ":".join(Results.index.unique())
     if 'age' not in Results.columns and 'age_low' in Results.columns and 'age_high' in Results.columns:
         Results['age'] = Results['age_low']+0.5 * \
             (Results['age_high']-Results['age_low'])
