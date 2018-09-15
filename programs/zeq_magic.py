@@ -378,7 +378,7 @@ def main():
 #
             prior_specimen_interpretations=[]
             if len(prior_spec_data):
-                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+                prior_specimen_interpretations = prior_spec_data[prior_spec_data.index.str.contains(this_specimen) == True]
             if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(
