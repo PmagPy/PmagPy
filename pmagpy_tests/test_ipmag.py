@@ -346,7 +346,7 @@ class TestAniDepthplot(unittest.TestCase):
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
 
-class TestAnisoDepthplot3(unittest.TestCase):
+class TestAniDepthplot3(unittest.TestCase):
 
     def setUp(self):
         self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot')
