@@ -13,6 +13,8 @@ import sys
 import os
 import numpy as np
 import itertools
+import matplotlib
+matplotlib.use('TKAgg')
 from matplotlib import pyplot as plt
 import pandas as pd
 from scipy.interpolate import griddata
