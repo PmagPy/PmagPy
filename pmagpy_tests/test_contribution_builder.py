@@ -34,7 +34,7 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df = cb.MagicDataFrame(dtype='specimens', data=data)
         self.assertEqual(len(magic_df.df), 2)
         self.assertEqual(magic_df.dtype, 'specimens')
-        self.assertEqual('specimen_name', magic_df.df.index.name)
+        self.assertEqual('specimen name', magic_df.df.index.name)
         self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
 
     def test_init_then_add_data(self):
@@ -44,7 +44,7 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df.add_data(data)
         self.assertEqual(len(magic_df.df), 2)
         self.assertEqual(magic_df.dtype, 'specimens')
-        self.assertEqual('specimen_name', magic_df.df.index.name)
+        self.assertEqual('specimen name', magic_df.df.index.name)
         self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
 
 
@@ -296,7 +296,7 @@ class TestContribution(unittest.TestCase):
         magic_df = self.con.tables['specimens']
         self.assertEqual(len(magic_df.df), 2)
         self.assertEqual(magic_df.dtype, 'specimens')
-        self.assertEqual('specimen_name', magic_df.df.index.name)
+        self.assertEqual('specimen name', magic_df.df.index.name)
         self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
 
 

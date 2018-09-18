@@ -1799,7 +1799,7 @@ class MagicDataFrame(object):
         if lst_or_dict == "lst":
             return list(df.T.apply(dict))
         else:
-            return {str(i[df.index.name.split('_')[0]]): dict(i) for i in list(df.T.apply(dict))}
+            return {str(i[df.index.name.split(' ')[0]]): dict(i) for i in list(df.T.apply(dict))}
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """
