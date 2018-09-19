@@ -2,8 +2,8 @@
 #--*-- coding:utf-8 --*--
 '''
 #=================================================
-/this is for process and plot the forc diagrams,
-/icluding the conventional and irregualar forc.
+/this is for processing and plotting forc diagrams,
+/including the conventional and irregualar forc.
 
 /author: Jiabo
 /GFZ potsdam
@@ -48,7 +48,7 @@ class Forc(object):
         /p is the FORC distribution
         /m0,n0 is the index of values on Ha = Hb
         /then loop m0 and n0
-        /based on soomth factor(SF)
+        /based on smooth factor(SF)
         /select data grid from the matrix_z for curve fitting
         #=================================================
         '''
@@ -158,7 +158,7 @@ class dataLoad(object):
     '''
     #=================================================
     /process the measured forc data.
-    /converte the raw data into matrix
+    /convert the raw data into matrix
     /with x range and y range
     /empty postion replaced with np.nan
     #=================================================
@@ -311,7 +311,7 @@ def param_argvs(inputs=None):
                 print('-sf has to be int')
                 return
     else:
-        print('without flag -f or -sf\n\nuse: forc_diagram [-f] [input file] [-sf] [smooth factor]\n\nhelp: forc_diagram [-h]\n')
+        print('missing flag -f or -sf\n\nuse: forc_diagram.py [-f] [input file] [-sf] [smooth factor]\n\nhelp: forc_diagram.py [-h]\n')
         return
     return fileAdres,SF
 
@@ -327,7 +327,7 @@ def main():
             print(e)
             pass
     else:
-        print('!input filename and soomth_factor\npyFORC /data_path/forc_file_name.text 5')
+        print('!please include filename and smooth_factor, e.g.:\nforc_diagram.py -f /data_path/forc_file_name.text -sf 5')
     #end_time = time.time()
     #print(end_time - start_time)
 
