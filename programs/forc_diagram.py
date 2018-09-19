@@ -19,6 +19,8 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from scipy.interpolate import griddata
 import time
+from pmagpy import pmagplotlib
+from pmagpy import pmag
 
 
 class Forc(object):
@@ -142,7 +144,7 @@ class Forc(object):
         z = np.asarray(z.tolist())
         self.zi = griddata((df.x, df.y), z, (self.xi, self.yi), method='cubic')
 
-    def plot(self):
+    def plot(self, save=False, fmt="svg"):
         fig = plt.figure(figsize=(6, 5), facecolor='white')
         fig.subplots_adjust(left=0.18, right=0.97,
                             bottom=0.18, top=0.9, wspace=0.5, hspace=0.5)
@@ -158,7 +160,15 @@ class Forc(object):
         plt.xlabel('B$_{c}$ (mT)', fontsize=12)
         plt.ylabel('B$_{i}$ (mT)', fontsize=12)
 
-        plt.show()
+        from pmagpy import pmagplotlib
+        if save:
+            pmagplotlib.save_plots({'forc': 1}, {'forc': 'forc.{}'.format(fmt)})
+            return
+        else:
+            pmagplotlib.draw_figs({'forc': 1})
+            res = pmagplotlib.save_or_quit()
+            if res == 'a':
+                pmagplotlib.save_plots({'forc': 1}, {'forc': 'forc.{}'.format(fmt)})
 
 
 class dataLoad(object):
@@ -299,45 +309,55 @@ def grid_list(data):
 
 def param_argvs(inputs=None):
     docm = '''
-    This is for FORC diagrams, including conventional and irregualar FORCs.\n
-    use: forc_diagram [-f] [input file] [-sf] [smooth factor]\n
-    help: forc_diagram [-h]'
+    NAME
+        forc_diagram.py
 
-    input file:
-            the measured FORC data file must contain the line "  Field     Moment  "
-            before the measured data.
+    DESCRIPTION
+        This is for FORC diagrams, including conventional and irregualar FORCs.
+
+    OPTIONS
+        -h prints help message and quits
+        -f input file name
+        -sf smooth factor
+        -fmt [svg,png,pdf,eps,jpg] specify format for image, default is svg
+        -sav save figure and quit
+
+    INPUT FILE:
+        the measured FORC data file must contain the line "  Field     Moment  "
+        before the measured data.
+
+    SYNTAX
+        forc_diagram.py -f path_to_file/file.txt [command line options]
 
     '''
     fileAdres, SF = None, None
     if '-h' in inputs:
         print(docm)
         sys.exit(0)
-    if '-f' in inputs:
-        if '-sf' in inputs:
-            if os.path.isfile(inputs[2]):
-                fileAdres = inputs[2]
-            else:
-                print('-f file not exist')
-                return
-            try:
-                SF = int(inputs[4])
-            except:
-                print('-sf has to be int')
-                return
-    else:
-        print(
-            'missing flag -f or -sf\n\nuse: forc_diagram.py [-f] [input file] [-sf] [smooth factor]\n\nhelp: forc_diagram.py [-h]\n')
+    save = False
+    if '-sav' in inputs:
+        save = True
+    fmt = pmag.get_named_arg('-fmt', ".svg")
+    fileAdres = pmag.get_named_arg('-f', reqd=True)
+    if not os.path.isfile(fileAdres):
+        print('-f file not exist')
         return
-    return fileAdres, SF
+    SF = pmag.get_named_arg('-sf', reqd=True)
+    try:
+        SF = int(inputs[4])
+    except:
+        print('-sf has to be int')
+        return
+    return fileAdres, SF, save, fmt
 
 
 def main():
     #start_time = time.time()
-    fileAdres, SF = param_argvs(inputs=sys.argv)
+    fileAdres, SF, save, fmt = param_argvs(inputs=sys.argv)
 
     if fileAdres != None:
         try:
-            Forc(fileAdres=fileAdres, SF=SF).plot()
+            Forc(fileAdres=fileAdres, SF=SF).plot(save, fmt)
             pass
         except Exception as e:
             print(e)
