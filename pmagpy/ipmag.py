@@ -1685,25 +1685,24 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
     return ax
 
 
-def plot_pole(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
     """
-    This function plots a paleomagnetic pole and A95 error ellipse on whatever
-    current map projection has been set using the basemap plotting library.
+    This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
     Before this function is called, a plot needs to be initialized with code
-    that looks something like:
-    >from mpl_toolkits.basemap import Basemap
-    >mapname = Basemap(projection='ortho',lat_0=35,lon_0=200)
-    >plt.figure(figsize=(6, 6))
-    >mapname.drawcoastlines(linewidth=0.25)
-    >mapname.fillcontinents(color='bisque',lake_color='white',zorder=1)
-    >mapname.drawmapboundary(fill_color='white')
-    >mapname.drawmeridians(np.arange(0,360,30))
-    >mapname.drawparallels(np.arange(-90,90,30))
+    such as that in the make_orthographic_map function.
+
+    Example
+    -------
+    >>> plon = 200
+    >>> plat = 60
+    >>> A95 = 6
+    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> plot_pole(map_axis, plon, plat, A95 ,color='red',markersize=40)
 
     Required Parameters
     -----------
-    mapname : the name of the current map that has been developed using basemap
+    map_axis : the name of the current map axis that has been developed using cartopy
     plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
@@ -1716,11 +1715,11 @@ def plot_pole(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marke
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    centerlon, centerlat = mapname(plon, plat)
     A95_km = A95 * 111.32
-    mapname.scatter(centerlon, centerlat, marker=marker,
-                    color=color,edgecolors=edgecolor, s=markersize, label=label, zorder=101)
-    equi(mapname, plon, plat, A95_km, color)
+    map_axis.scatter(plon, plat, marker=marker,
+                    color=color,edgecolors=edgecolor, s=markersize,
+                     label=label, zorder=101, transform=ccrs.PlateCarree())
+    equi(map_axis, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
 
