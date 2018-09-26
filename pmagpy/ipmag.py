@@ -7619,9 +7619,6 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     rate : rate of latitudinal motion in cm/yr along with estimated 2.5 and 97.5
     percentile rate estimates
     """
-    has_basemap, Basemap = pmag.import_basemap()
-    if not has_basemap:
-        return
     from scipy import stats
 
     ref_loc = [ref_loc_lon, ref_loc_lat]
@@ -7704,16 +7701,10 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 
     if plot is True:
         plt.figure(figsize=(5, 5))
-        m = Basemap(projection='ortho', lat_0=35, lon_0=200,
-                    resolution='c', area_thresh=50000)
-        m.drawcoastlines(linewidth=0.25)
-        m.fillcontinents(color='bisque', lake_color='white', zorder=1)
-        m.drawmapboundary(fill_color='white')
-        m.drawmeridians(np.arange(0, 360, 30))
-        m.drawparallels(np.arange(-90, 90, 30))
+        map_axis = make_mollweide_map()
 
-        plot_vgp(m, pole1_MCpole_long, pole1_MCpole_lat, color='b')
-        plot_vgp(m, pole2_MCpole_long, pole2_MCpole_lat, color='g')
+        plot_vgp(map_axis, pole1_MCpole_long, pole1_MCpole_lat, color='b')
+        plot_vgp(map_axis, pole2_MCpole_long, pole2_MCpole_lat, color='g')
         if savefig == True:
             plot_extension = '_2.svg'
             plt.savefig(save_directory + figure_name + plot_extension)
