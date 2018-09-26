@@ -1659,7 +1659,8 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
 
 def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8),
                           add_land = True, land_color='tan', grid_lines = True,
-                          lat_grid = np.arange(-180,180,30), lon_grid = np.arange(0,360,30)):
+                          lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                          lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns an orthographic map projection using cartopy
 
@@ -1680,6 +1681,36 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
     ax.set_global()
     if add_land == True:
         ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+    if grid_lines == True:
+        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+    return ax
+
+
+def make_mollweide_map(central_longitude=0, figsize=(8,8),
+                       add_land = True, land_color='tan', grid_lines = True,
+                       lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                       lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+    '''
+    Function creates and returns an Mollweide map projection using cartopy
+
+    Optional Parameters
+    -----------
+    central_longitude : central longitude of projection (default is 0)
+    central_latitude : central latitude of projection (default is 0)
+    figsize : size of the figure (default is 8x8)
+    add_land : chose whether land is plotted on map (default is true)
+    land_color : specify land color (default is 'tan')
+    grid_lines : chose whether gird lines are plotted on map (default is true)
+    lat_grid : specify the latitude grid (default is 30 degree spacing)
+    lon_grid : specify the longitude grid (default is 30 degree spacing)
+    '''
+
+    fig = plt.figure(figsize=figsize)
+    map_projection = ccrs.Mollweide(central_longitude=central_longitude)
+    ax = plt.axes(projection = map_projection)
+    if add_land == True:
+        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+    ax.set_global()
     if grid_lines == True:
         ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
     return ax
