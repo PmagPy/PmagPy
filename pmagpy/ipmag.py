@@ -1768,25 +1768,31 @@ def plot_pole_colorbar(mapname, plon, plat, A95, colorvalue, vmin, vmax, label='
         plt.legend(loc=2)
 
 
-def plot_vgp(mapname, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', markersize=20, legend='no'):
+def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', markersize=20, legend=False):
     """
-    This function plots a paleomagnetic pole on a cartopy map axis.
+    This function plots a paleomagnetic pole position on a cartopy map axis.
 
     Before this function is called, a plot needs to be initialized with code
-    such as that in
+    such as that in the make_orthographic_map function.
+
+    Example
+    -------
+    >>> vgps = fishrot(dec=200,inc=30)
+    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> plot_vgp(map_axis,vgp_lon=vgp_lon_list,vgp_lat=vgp_lat_list,color='red',markersize=40)
 
     Required Parameters
     -----------
-    mapname : the name of the current map that has been developed using basemap
+    map_axis : the name of the current map axis that has been developed using cartopy
     plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
 
     Optional Parameters (defaults are used if not specified)
     -----------
-    color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
+    color : the color desired for the symbol (default is 'k' aka black)
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
     label : the default is no label. Labels can be assigned.
-    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    legend : the default is no legend (False). Putting True will plot a legend.
     """
     if di_block != None:
         di_lists = unpack_di_block(di_block)
@@ -1794,10 +1800,10 @@ def plot_vgp(mapname, vgp_lon=None, vgp_lat=None, di_block=None, label='', color
             vgp_lon, vgp_lat, intensity = di_lists
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
-    centerlon, centerlat = mapname(vgp_lon, vgp_lat)
-    mapname.scatter(centerlon, centerlat, marker=marker,
-                    s=markersize, color=color, label=label, zorder=100)
-    if legend == 'yes':
+    map_axis.scatter(vgp_lon, vgp_lat, marker=marker,
+                    s=markersize, color=color, label=label, zorder=100, transform=ccrs.PlateCarree())
+    map_axis.set_global()
+    if legend == True:
         plt.legend(loc=2)
 
 
