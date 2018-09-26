@@ -22,6 +22,8 @@ import re
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmag_env import set_env
+import cartopy
+import cartopy.crs as ccrs
 
 
 def igrf(input_list,mod='',ghfile=""):
@@ -1655,6 +1657,33 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
     pmagplotlib.plot_ell(fignum, pars, color, 0, 1)
 
 
+def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8),
+                          add_land = True, land_color='tan', grid_lines = True,
+                          lat_grid = np.arange(-180,180,30), lon_grid = np.arange(0,360,30)):
+    '''
+    Function creates and returns an orthographic map projection using cartopy
+
+    Optional Parameters
+    -----------
+    central_longitude : central longitude of projection (default is 0)
+    central_latitude : central latitude of projection (default is 0)
+    figsize : size of the figure (default is 8x8)
+    add_land : chose whether land is plotted on map (default is true)
+    land_color : specify land color (default is 'tan')
+    grid_lines : chose whether gird lines are plotted on map (default is true)
+    lat_grid : specify the latitude grid (default is 30 degree spacing)
+    lon_grid : specify the longitude grid (default is 30 degree spacing)
+    '''
+    fig = plt.figure(figsize=figsize)
+    map_projection = ccrs.Orthographic(central_longitude=central_longitude,central_latitude=central_latitude)
+    ax = plt.axes(projection = map_projection)
+    ax.set_global()
+    if add_land == True:
+        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+    if grid_lines == True:
+        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+    return ax
+
 
 def plot_pole(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
     """
@@ -1741,19 +1770,10 @@ def plot_pole_colorbar(mapname, plon, plat, A95, colorvalue, vmin, vmax, label='
 
 def plot_vgp(mapname, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', markersize=20, legend='no'):
     """
-    This function plots a paleomagnetic pole on whatever current map projection
-    has been set using the basemap plotting library.
+    This function plots a paleomagnetic pole on a cartopy map axis.
 
     Before this function is called, a plot needs to be initialized with code
-    that looks something like:
-    >from mpl_toolkits.basemap import Basemap
-    >mapname = Basemap(projection='ortho',lat_0=35,lon_0=200)
-    >plt.figure(figsize=(6, 6))
-    >mapname.drawcoastlines(linewidth=0.25)
-    >mapname.fillcontinents(color='bisque',lake_color='white',zorder=1)
-    >mapname.drawmapboundary(fill_color='white')
-    >mapname.drawmeridians(np.arange(0,360,30))
-    >mapname.drawparallels(np.arange(-90,90,30))
+    such as that in
 
     Required Parameters
     -----------
