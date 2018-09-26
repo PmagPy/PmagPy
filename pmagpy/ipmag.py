@@ -1718,7 +1718,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', mark
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
                     color=color,edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.PlateCarree())
+                     label=label, zorder=101, transform=ccrs.Geodetic())
     equi(map_axis, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
@@ -1800,7 +1800,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
     map_axis.scatter(vgp_lon, vgp_lat, marker=marker,
-                    s=markersize, color=color, label=label, zorder=100, transform=ccrs.PlateCarree())
+                    s=markersize, color=color, label=label, zorder=100, transform=ccrs.Geodetic())
     map_axis.set_global()
     if legend == True:
         plt.legend(loc=2)
@@ -2182,7 +2182,7 @@ def equi(map_axis, centerlon, centerlat, radius, color):
     X.append(X[0])
     Y.append(Y[0])
 
-    plt.plot(X, Y, color, transform=ccrs.PlateCarree())
+    plt.plot(X, Y, color, transform=ccrs.Geodetic())
 
 
 def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
@@ -2202,7 +2202,7 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     X.append(X[0])
     Y.append(Y[0])
 
-    plt.plot(X, Y, color, transform=ccrs.PlateCarree(), alpha=alpha)
+    plt.plot(X, Y, color, transform=ccrs.Geodetic(), alpha=alpha)
 
 
 def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
