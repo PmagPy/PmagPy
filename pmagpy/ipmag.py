@@ -2166,11 +2166,11 @@ def shoot(lon, lat, azimuth, maxdist=None):
     return (glon2, glat2, baz)
 
 
-def equi(m, centerlon, centerlat, radius, color):
+def equi(map_axis, centerlon, centerlat, radius, color):
     """
-    This function enables A95 error ellipses to be drawn in basemap around
+    This function enables A95 error ellipses to be drawn in cartopy around
     paleomagnetic poles in conjunction with shoot
-    (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
+    (modified from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
     """
     glon1 = centerlon
     glat1 = centerlat
@@ -2183,8 +2183,7 @@ def equi(m, centerlon, centerlat, radius, color):
     X.append(X[0])
     Y.append(Y[0])
 
-    X, Y = m(X, Y)
-    plt.plot(X, Y, color)
+    plt.plot(X, Y, color, transform=ccrs.PlateCarree())
 
 
 def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
@@ -2204,8 +2203,8 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     X.append(X[0])
     Y.append(Y[0])
 
-    X, Y = m(X, Y)
-    plt.plot(X, Y, color, alpha=alpha)
+    plt.plot(X, Y, color, transform=ccrs.PlateCarree(), alpha=alpha)
+
 
 def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
     """
