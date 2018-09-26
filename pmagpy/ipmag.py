@@ -2177,7 +2177,7 @@ def make_diddd_array(dec, inc, dip_direction, dip):
 
 def shoot(lon, lat, azimuth, maxdist=None):
     """
-    This function enables A95 error ellipses to be drawn in basemap around
+    This function enables A95 error ellipses to be drawn around
     paleomagnetic poles in conjunction with equi
     (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/)
     """
@@ -2264,15 +2264,15 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0'):
     plt.plot(X, Y, color, transform=ccrs.Geodetic(), alpha=alpha)
 
 
-def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
+def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, **kwargs):
     """
-    This function enables general error ellipses to be drawn on the basemap projection of the input map m
+    This function enables general error ellipses to be drawn on the cartopy projection of the input map axis
     using a center and a set of major and minor axes and a rotation angle east of north.
     (Adapted from equi).
 
     Parameters
     -----------
-    m : initalized Basemap object
+    map_axis : cartopy axis
     centerlon : longitude of the center of the ellipse
     centerlat : latitude of the center of the ellipse
     major_axis : Major axis of ellipse
@@ -2281,8 +2281,7 @@ def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, fille
     n : number of points with which to apporximate the ellipse
     filled : boolean specifying if the ellipse should be plotted as a filled polygon or
              as a set of line segments
-    kwargs : any other key word arguments for the Polygon function of matplotlib.patches
-             if filled = True. Else any key word arguments for the basemap.plot function
+    kwargs : any other key word arguments can be passed for the line
 
     Returns
     ---------
@@ -2303,18 +2302,8 @@ def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, fille
     X.append(X[0])
     Y.append(Y[0])
 
-    if filled:
-        ax = m._check_ax()
-        X, Y = m(X, Y)
-        ellip = np.array((X,Y)).T
-        poly = Polygon(ellip, **kwargs)
-        ax.add_patch(poly)
-        m.set_axes_limits(ax=ax)
-    else:
-        X, Y = m(X, Y)
-        m.plot(X, Y, **kwargs)
+    map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
 
-    return m
 
 def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     """
