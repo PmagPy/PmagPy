@@ -8,13 +8,9 @@ import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
 import pylab as plt
-try:
-  from mpl_toolkits.basemap import Basemap
-except ImportError:
-  Basemap = None
 from pylab import meshgrid
-
 import pmagpy.pmag as pmag
+has_basemap, Basemap = pmag.import_basemap()
 import pmagpy.pmagplotlib as pmagplotlib
 from matplotlib import cm
 import warnings
@@ -46,7 +42,7 @@ def main():
     cmap='RdYlBu'
     date=2016.
     if not Basemap:
-      print("-W- You must intstall the Basemap module to run plot_magmap.py")
+      print("-W- Cannot access the Basemap module, which is required to run plot_magmap.py")
       sys.exit()
     dir_path='.'
     lincr=1 # level increment for contours

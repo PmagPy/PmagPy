@@ -2935,7 +2935,9 @@ def plot_map(fignum, lats, lons, Opts):
            Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None}
 
     """
-    from mpl_toolkits.basemap import Basemap
+    has_basemap, Basemap = pmag.import_basemap()
+    if not has_basemap:
+        return
     from matplotlib import cm
     fig = plt.figure(num=fignum)
     rgba_land = (255, 255, 150, 255)
@@ -3199,7 +3201,9 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     ______________
     plots a Hammer projection color contour with  the desired field element
     """
-    from mpl_toolkits.basemap import Basemap # matplotlib's Basemap package
+    has_basemap, Basemap = pmag.import_basemap()
+    if not has_basemap:
+        return
     from pylab import meshgrid # matplotlib's meshgrid function
     from matplotlib import cm # matplotlib's color map module
     lincr=1

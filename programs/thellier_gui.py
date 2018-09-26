@@ -189,10 +189,9 @@ if not matplotlib.get_backend() == 'WXAgg':
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
-try:
-    from mpl_toolkits.basemap import Basemap, shiftgrid, basemap_datadir
-except ImportError:
-    pass
+from pmag_env import set_env
+
+
 import matplotlib.pyplot as plt
 import json
 import sys
@@ -201,6 +200,9 @@ import copy
 import pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
+has_basemap, Basemap = pmag.import_basemap()
+if has_basemap:
+    from mpl_toolkits.basemap import shiftgrid, basemap_datadir
 import pmagpy.find_pmag_dir as find_pmag_dir
 import pmagpy.contribution_builder as cb
 from pmagpy.mapping import map_magic

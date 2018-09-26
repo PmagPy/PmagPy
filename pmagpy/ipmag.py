@@ -7543,7 +7543,9 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     rate : rate of latitudinal motion in cm/yr along with estimated 2.5 and 97.5
     percentile rate estimates
     """
-    from mpl_toolkits.basemap import Basemap
+    has_basemap, Basemap = pmag.import_basemap()
+    if not has_basemap:
+        return
     from scipy import stats
 
     ref_loc = [ref_loc_lon, ref_loc_lat]
