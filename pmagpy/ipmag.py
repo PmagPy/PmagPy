@@ -1696,7 +1696,7 @@ def plot_pole(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marke
         plt.legend(loc=2)
 
 
-def plot_pole_colorbar(mapname, plon, plat, A95, cmap, vmin, vmax, label='', color='k', marker='o', markersize='20', alpha='1.0', legend='no'):
+def plot_pole_colorbar(mapname, plon, plat, A95, colorvalue, vmin, vmax, label='', colormap = 'viridis', color='k', marker='o', markersize='20', alpha='1.0', legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1718,9 +1718,13 @@ def plot_pole_colorbar(mapname, plon, plat, A95, cmap, vmin, vmax, label='', col
     plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
+    colorvalue : what attribute is being used to determine the colors
+    vmin : what is the minimum range for the colormap
+    vmax : what is the maximum range for the colormap
 
     Optional Parameters (defaults are used if not specified)
     -----------
+    colormap : the colormap used (default is 'viridis'; others should be put as a string with quotes, e.g. 'plasma')
     label : a string that is the label for the paleomagnetic pole being plotted
     color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
@@ -1728,7 +1732,7 @@ def plot_pole_colorbar(mapname, plon, plat, A95, cmap, vmin, vmax, label='', col
     """
     centerlon, centerlat = mapname(plon, plat)
     A95_km = A95 * 111.32
-    mapname.scatter(centerlon, centerlat, c=cmap, vmin=vmin, vmax=vmax,
+    mapname.scatter(centerlon, centerlat, c=colorvalue, vmin=vmin, vmax=vmax, cmap=colormap,
                     s=markersize, marker=marker, alpha=alpha, label=label, zorder=101)
     equi_colormap(mapname, plon, plat, A95_km, color, alpha)
     if legend == 'yes':
