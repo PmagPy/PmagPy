@@ -6,19 +6,16 @@ import numpy as np
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+    matplotlib.use("TKAgg")
 import pylab as plt
-try:
-  from mpl_toolkits.basemap import Basemap
-except ImportError:
-  Basemap = None
 from pylab import meshgrid
-
 import pmagpy.pmag as pmag
+has_basemap, Basemap = pmag.import_basemap()
 import pmagpy.pmagplotlib as pmagplotlib
 from matplotlib import cm
 import warnings
 warnings.filterwarnings("ignore")
+
 
 def main():
     """
@@ -43,81 +40,87 @@ def main():
         -cm: [see https://matplotlib.org/users/colormaps.html] specify color map for plotting (default is RdYlBu)
 
     """
-    cmap='RdYlBu'
-    date=2016.
+    cmap = 'RdYlBu'
+    date = 2016.
     if not Basemap:
-      print("-W- You must intstall the Basemap module to run plot_magmap.py")
-      sys.exit()
-    dir_path='.'
-    lincr=1 # level increment for contours
+        print(
+            "-W- Cannot access the Basemap module, which is required to run plot_magmap.py")
+        sys.exit()
+    dir_path = '.'
+    lincr = 1  # level increment for contours
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1]
+        dir_path = sys.argv[ind+1]
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
-        fmt=sys.argv[ind+1]
-        if fmt=='jpg':
-            print ('jpg not a supported option')
+        fmt = sys.argv[ind+1]
+        if fmt == 'jpg':
+            print('jpg not a supported option')
             print(main.__doc__)
             sys.exit()
-    else: fmt='png'
+    else:
+        fmt = 'png'
     if '-cm' in sys.argv:
-        ind=sys.argv.index('-cm')
-        cmap=sys.argv[ind+1]
+        ind = sys.argv.index('-cm')
+        cmap = sys.argv[ind+1]
     if '-el' in sys.argv:
         ind = sys.argv.index('-el')
-        el=sys.argv[ind+1]
+        el = sys.argv[ind+1]
     else:
-        el='B'
+        el = 'B'
     if '-alt' in sys.argv:
         ind = sys.argv.index('-alt')
-        alt=sys.argv[ind+1]
-    else: alt=0
+        alt = sys.argv[ind+1]
+    else:
+        alt = 0
     if '-lon0' in sys.argv:
-        ind=sys.argv.index('-lon0')
-        lon_0=float(sys.argv[ind+1])
-    else: lon_0=0
+        ind = sys.argv.index('-lon0')
+        lon_0 = float(sys.argv[ind+1])
+    else:
+        lon_0 = 0
     if '-mod' in sys.argv:
-        ind=sys.argv.index('-mod')
-        mod=sys.argv[ind+1]
-        ghfile=''
+        ind = sys.argv.index('-mod')
+        mod = sys.argv[ind+1]
+        ghfile = ''
     elif '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        ghfile=sys.argv[ind+1]
-        mod='custom'
-        date=''
-    else: mod,ghfile='cals10k',''
+        ind = sys.argv.index('-f')
+        ghfile = sys.argv[ind+1]
+        mod = 'custom'
+        date = ''
+    else:
+        mod, ghfile = 'cals10k', ''
     if '-age' in sys.argv:
-        ind=sys.argv.index('-age')
-        date=float(sys.argv[ind+1])
+        ind = sys.argv.index('-age')
+        date = float(sys.argv[ind+1])
     if '-alt' in sys.argv:
-        ind=sys.argv.index('-alt')
-        alt=float(sys.argv[ind+1])
+        ind = sys.argv.index('-alt')
+        alt = float(sys.argv[ind+1])
     else:
-        alt=0
+        alt = 0
     save = pmag.get_flag_arg_from_sys("-sav")
-    if mod=='custom':
-        d='Custom'
+    if mod == 'custom':
+        d = 'Custom'
     else:
-        d=str(date)
-    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,alt=alt,file=ghfile)
-    if el=='D':
-        element=Ds
-    elif el=='I':
-        element=Is
-    elif el=='B':
-        element=Bs
-    elif el=='Br':
-        element=Brs
-    elif el=='I':
-        element=Is
+        d = str(date)
+    Ds, Is, Bs, Brs, lons, lats = pmag.do_mag_map(
+        date, mod=mod, lon_0=lon_0, alt=alt, file=ghfile)
+    if el == 'D':
+        element = Ds
+    elif el == 'I':
+        element = Is
+    elif el == 'B':
+        element = Bs
+    elif el == 'Br':
+        element = Brs
+    elif el == 'I':
+        element = Is
     else:
         print(main.__doc__)
         sys.exit()
-    pmagplotlib.plot_mag_map(1,element,lons,lats,el,lon_0=0,date=date)
+    pmagplotlib.plot_mag_map(1, element, lons, lats, el, lon_0=0, date=date)
     if not save:
         pmagplotlib.draw_figs({'map': 1})
         res = pmagplotlib.save_or_quit()
@@ -127,7 +130,8 @@ def main():
             plt.savefig('igrf'+d+'.'+fmt)
         sys.exit()
     plt.savefig('igrf'+d+'.'+fmt)
-    print('Figure saved as: ','igrf'+d+'.'+fmt)
+    print('Figure saved as: ', 'igrf'+d+'.'+fmt)
+
 
 if __name__ == "__main__":
     main()

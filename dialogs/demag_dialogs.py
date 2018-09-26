@@ -12,9 +12,6 @@ from pylab import Figure
 from pmagpy.demag_gui_utilities import *
 from numpy import vstack,sqrt
 from functools import reduce
-has_basemap=True
-try: from mpl_toolkits.basemap import Basemap
-except ImportError: has_basemap=False
 
 #============================================================================================
 # LOG HEADER:
@@ -39,8 +36,10 @@ class VGP_Dialog(wx.Dialog):
     """
 
     def __init__(self,parent,VGP_Data):
+        has_basemap, Basemap = pmag.import_basemap()
         self.failed_init = False
-        if not has_basemap: parent.user_warning("This feature requires the matplotlib toolkit basemaps to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); self.failed_init=True; return
+        if not has_basemap:
+            parent.user_warning("This feature requires the matplotlib toolkit basemaps to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); self.failed_init=True; return
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
         if not isinstance(VGP_Data,dict): VGP_Data={}
         if VGP_Data!={} and not all([len(VGP_Data[k]) for k in list(VGP_Data.keys())]):
