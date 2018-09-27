@@ -1699,7 +1699,7 @@ def make_mollweide_map(central_longitude=0, figsize=(8,8),
                        lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
                        lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
-    Function creates and returns an Mollweide map projection using cartopy
+    Function creates and returns a Mollweide map projection using cartopy
 
     Example
     -------
@@ -1721,6 +1721,44 @@ def make_mollweide_map(central_longitude=0, figsize=(8,8),
 
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Mollweide(central_longitude=central_longitude)
+    ax = plt.axes(projection = map_projection)
+    if add_ocean == True:
+        ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
+    if add_land == True:
+        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+    ax.set_global()
+    if grid_lines == True:
+        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+    return ax
+
+
+def make_robinson_map(central_longitude=0, figsize=(8,8),
+                       add_land = True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines = True,
+                       lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                       lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+    '''
+    Function creates and returns a Robinson map projection using cartopy
+
+    Example
+    -------
+    >>> map_axis = make_Robinson_map(central_longitude=200)
+
+    Optional Parameters
+    -----------
+    central_longitude : central longitude of projection (default is 0)
+    central_latitude : central latitude of projection (default is 0)
+    figsize : size of the figure (default is 8x8)
+    add_land : chose whether land is plotted on map (default is True)
+    land_color : specify land color (default is 'tan')
+    add_ocean : chose whether land is plotted on map (default is False, change to True to plot)
+    ocean_color : specify ocean color (default is 'lightblue')
+    grid_lines : chose whether gird lines are plotted on map (default is true)
+    lat_grid : specify the latitude grid (default is 30 degree spacing)
+    lon_grid : specify the longitude grid (default is 30 degree spacing)
+    '''
+
+    fig = plt.figure(figsize=figsize)
+    map_projection = ccrs.Robinson(central_longitude=central_longitude)
     ax = plt.axes(projection = map_projection)
     if add_ocean == True:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
