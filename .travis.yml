@@ -49,7 +49,7 @@ install:
 
   ## create test environment
   - ENV_NAME="test-environment"
-  - conda create -n $ENV_NAME python=3.5.3
+  - conda create -n $ENV_NAME python=$PYTHON_VERSION
   - source activate $ENV_NAME
 
   # install packages with conda
