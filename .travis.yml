@@ -26,7 +26,7 @@ before_install:
 #virtualenv:
 #  system_site_packages: true
 install:
-  - pip install cython
+  - pip install cython pyproj
   - pip install scripttest pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
   # older (working) version of wxPython
