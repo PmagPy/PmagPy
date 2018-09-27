@@ -3,15 +3,12 @@ language: python
 
 env:
     matrix:
-        - PYTHON_VERSION=3.5
-          #PACKAGES="numpy=1.10.0 matplotlib=1.5.1 nose scipy=0.16.0 libgfortran=1"
-        # New FreeType causes changes in text output.
-        #- NAME="Latest everything."
-        #  PYTHON_VERSION=3.6
+        #- NAME="Python 3.5.3"
+        #  PYTHON_VERSION=3.5.3
+        #  #PACKAGES="numpy=1.10.0 matplotlib=1.5.1 nose scipy=0.16.0 libgfortran=1"
+        - NAME="Python 3.6"
+          PYTHON_VERSION=3.6
         #  PACKAGES="numpy matplotlib freetype<2.8 scipy"
-        #- NAME="Latest everything (py2k)."
-        #  PYTHON_VERSION=2
-        #  PACKAGES="numpy matplotlib freetype<2.8 scipy mock"
 
 # use this OR env/matrix
 #python:
@@ -59,16 +56,24 @@ install:
   - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
   - conda install --quiet $PACKAGES
   - conda install --quiet cartopy
+  - conda install --quiet pandas libtiff matplotlib numpy scipy future
   #- pip install cython pyproj
-  - pip install scripttest pandas libtiff matplotlib numpy scipy future cartopy
+  - pip install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
   # older (working) version of wxPython
   #- wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl" # older version
   #- pip install wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl
   # latest (working) version of wxPython (must be cp35)
   - python --version | echo
-  - wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl"
-  - pip install wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl
+
+  - if [[ "$PYTHON_VERSION" == 3.5* ]]; then
+      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl"
+      pip install wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl
+    fi
+  - if [[ "$PYTHON_VERSION" == 3.6* ]]; then
+      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl"
+      pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl
+    fi
   # command to run tests, e.g. python setup.py test
 script:
   - python -c "print('starting tests')"
