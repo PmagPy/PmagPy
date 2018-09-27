@@ -2315,7 +2315,7 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
     X.append(X[0])
     Y.append(Y[0])
 
-    plt.plot(X, Y, color, transform=ccrs.Geodetic(), alpha=alpha)
+    plt.plot(X[::-1], Y[::-1], color, transform=ccrs.Geodetic(), alpha=alpha)
 
 
 def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, **kwargs):
