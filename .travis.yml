@@ -16,6 +16,7 @@ addons:
     - freeglut3
     - freeglut3-dev
     - libnotify-dev
+    - libproj-dev # Proj.4 is a dependency of cartopy
 
 before_install:
   - sudo apt-get update -qq  # make sure package indexes are up to date
