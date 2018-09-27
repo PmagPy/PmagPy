@@ -1664,6 +1664,10 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
     '''
     Function creates and returns an orthographic map projection using cartopy
 
+    Example
+    -------
+    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
+
     Optional Parameters
     -----------
     central_longitude : central longitude of projection (default is 0)
@@ -1692,6 +1696,10 @@ def make_mollweide_map(central_longitude=0, figsize=(8,8),
                        lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns an Mollweide map projection using cartopy
+
+    Example
+    -------
+    >>> map_axis = make_mollweide_map(central_longitude=200)
 
     Optional Parameters
     -----------
@@ -2076,7 +2084,7 @@ def make_di_block(dec, inc):
     -----------
     di_block : nested list of declination, inclination lists
 
-    Examples
+    Example
     -----------
     >>> decs = [180.3, 179.2, 177.2]
     >>> incs = [12.1, 13.7, 11.9]
@@ -2106,7 +2114,7 @@ def unpack_di_block(di_block):
     inc : list of inclinations
     mag_moment : list of magnetic moment (if present in di_block)
 
-    Examples
+    Example
     -----------
     The di_block nested lists of lists can be unpacked using the function
 
