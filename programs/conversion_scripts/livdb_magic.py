@@ -5,8 +5,9 @@ import sys
 import os
 import scipy
 from scipy import *
-# import pmagpy_tests  # pmagpy can be imported IF dialogs or pmagpy_tests is imported first
-import programs
+# need to set matplotlib backend to WXAgg or else the program just hangs
+import matplotlib
+matplotlib.use('WXAgg')
 from pmagpy import pmag
 from pmagpy import convert_2_magic as convert
 from pmagpy import contribution_builder as cb
