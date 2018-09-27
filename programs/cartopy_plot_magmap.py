@@ -99,7 +99,7 @@ def main():
     else: alt=0
 
     # doesn't work correctly with mod other than default
-    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,el=el,alt=alt,file=ghfile)
+    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,alt=alt,file=ghfile)
     ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
     ax.coastlines()
     xx, yy = meshgrid(lons, lats)

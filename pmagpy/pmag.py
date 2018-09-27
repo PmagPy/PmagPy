@@ -10937,6 +10937,5 @@ def import_basemap():
     return has_basemap, Basemap
 
 
-
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")

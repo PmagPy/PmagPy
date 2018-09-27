@@ -2894,7 +2894,7 @@ def plot_map(fignum, lats, lons, Opts):
     """
     plot_map(fignum, lats,lons,Opts)
     makes a basemap with lats/lons
-        Windows 10 users, see plot_map
+        requires working installation of Basemap
     Parameters:
     _______________
     fignum : matplotlib figure number
@@ -3067,8 +3067,55 @@ def plot_map(fignum, lats, lons, Opts):
 def plot_map_cartopy(fignum, lats, lons, Opts):
     """
     makes a cartopy map  with lats/lons
+    Requires installation of cartopy
+
+    Parameters:
+    _______________
+    fignum : matplotlib figure number
+    lats : array or list of latitudes
+    lons : array or list of longitudes
+    Opts : dictionary of plotting options:
+        Opts.keys=
+            latmin : minimum latitude for plot
+            latmax : maximum latitude for plot
+            lonmin : minimum longitude for plot
+            lonmax : maximum longitude
+            lat_0 : central latitude
+            lon_0 : central longitude
+            proj : projection [basemap projections, e.g., moll=Mollweide, merc=Mercator, ortho=orthorhombic,
+                lcc=Lambert Conformal]
+            sym : matplotlib symbol
+            symsize : symbol size in pts
+            edge : markeredgecolor
+            cmap : matplotlib color map
+            pltgrid : plot the grid [1,0]
+            res :  resolution [c,l,i,h] for crude, low, intermediate, high
+            boundinglat : bounding latitude
+            sym : matplotlib symbol for plotting
+            symsize : matplotlib symbol size for plotting
+            names : list of names for lats/lons (if empty, none will be plotted)
+            pltgrd : if True, put on grid lines
+            padlat : padding of latitudes
+            padlon : padding of longitudes
+            gridspace : grid line spacing
+            details : dictionary with keys:
+                coasts : if True, plot coastlines
+                rivers : if True, plot rivers
+                states : if True, plot states
+                countries : if True, plot countries
+                ocean : if True, plot ocean
+                fancy : not implemented yet
+                fancy : if True, plot etopo 20 grid
+                    NB:  etopo must be installed
+        if Opts keys not set :these are the defaults:
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0}
+
     """
-    import cartopy
+    try:
+        import cartopy
+    except:
+        print ('This program requires the installation of cartopy')
+        return
     import cartopy.crs as ccrs
     from cartopy import config
     from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
@@ -3080,8 +3127,21 @@ def plot_map_cartopy(fignum, lats, lons, Opts):
     # draw meridian labels on the bottom [left,right,top,bottom]
     mlabels = [0, 0, 0, 1]
     plabels = [1, 0, 0, 0]  # draw parallel labels on the left
-    if 'latmin' not in Opts.keys():Opts[latmin]=-70
-    if 'latmax' not in Opts.keys():Opts[latmax]=70
+    Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
+                  'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
+                  'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
+                  'padlon':0,'padlat':0,'gridspace':30,\
+                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
+    for key in Opts_defaults.keys():
+        if key not in Opts.keys() and key!='details':
+             Opts[key]=Opts_defaults[key]
+        if key=='details':
+             if key not in Opts.keys():Opts[key]=Opts_defaults[key]
+             for detail_key in Opts_defaults[key].keys():
+                 if detail_key not in Opts[key].keys():
+                     Opts[key][detail_key]=Opts_defaults[key][detail_key]
+
+
     if Opts['proj'] == 'merc':
         ax = plt.axes(projection=ccrs.Mercator(\
             central_longitude=Opts['lat_0'], min_latitude=Opts['latmin'], \
@@ -3106,7 +3166,7 @@ def plot_map_cartopy(fignum, lats, lons, Opts):
             levels=np.arange(-10000,8000,500) # define contour intervals
             m=ax.contourf(xx, yy, etopo,levels,\
                 transform=ccrs.PlateCarree(),
-                cmap=cm.jet)
+                cmap=Opts['cmap'])
         if Opts['details']['coasts'] == 1:
             ax.coastlines()
         if Opts['details']['rivers'] == 1:
@@ -3131,7 +3191,7 @@ def plot_map_cartopy(fignum, lats, lons, Opts):
         else:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
         gl.ylocator=mticker.FixedLocator(np.arange(-80,81,20))
-        gl.xlocator=mticker.FixedLocator(np.arange(-180,180,60))
+        gl.xlocator=mticker.FixedLocator(np.arange(-180,180,30))
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
         gl.xlabels_top = False
@@ -3146,32 +3206,14 @@ def plot_map_cartopy(fignum, lats, lons, Opts):
         symsize = Opts['symsize']
     if Opts['sym'][-1] != '-':  # just plot points
         ax.plot(lons,lats,Opts['sym'],\
-            markersize=symsize,transform=ccrs.Geodetic(),markeredgecolor='black')
+            markersize=symsize,transform=ccrs.Geodetic(),\
+                markeredgecolor=Opts['edge'])
         if prn_name == 1:
             print ('labels not yet implemented in plot_map')
             #for pt in range(len(lats)):
             #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-    #else:  # for lines,  need to separate chunks using lat==100.
-    #    chunk = 1
-    #    while k < len(lats) - 1:
-    #        if lats[k] <= 90:  # part of string
-    #            x, y = m(lons[k], lats[k])
-    #            if x < 1e20:
-    #                X.append(x)
-    #            if y < 1e20:
-    #                Y.append(y)  # exclude off the map points
-    #            if prn_name == 1:
-    #                T.append(plt.text(x + 5000, y - 5000, names[k]))
-    #            k += 1
-    #        else:  # need to skip 100.0s and move to next chunk
-    #            # plot previous chunk
-    #            m.plot(X, Y, Opts['sym'], markersize=symsize)
-    #            chunk += 1
-    #            while lats[k] > 90. and k < len(lats) - 1:
-    #                k += 1  # skip bad points
-    #            X, Y, T = [], [], []
-    #    if len(X) > 0:
-    #        m.plot(X, Y, Opts['sym'], markersize=symsize)  # plot last chunk
+    else:  # for lines,  need to separate chunks using lat==100.
+        ax.plot(lons,lats,Opts['sym'], transform=ccrs.Geodetic())
     ax.set_global()
 
 
