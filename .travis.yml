@@ -1,7 +1,7 @@
 language: python
 python:
     #- "2.7"
-    - "3.5.3" # currently breaks with 3.6, possibly need a different version of wxPython for 3.6
+    - PYTHON_VERSION=3.5.3 # currently breaks with 3.6, possibly need a different version of wxPython for 3.6
     # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 
 addons:
@@ -31,10 +31,19 @@ install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
+  # conda configuration
+  - conda config --set always_yes yes --set changeps1 no --set show_channel_urls yes
+  - conda update conda
+
+  ## create test environment
+  #- ENV_NAME="test-environment"
+  #- conda create -n $ENV_NAME python=$PYTHON_VERSION
+  #- source activate $ENV_NAME
+
   # install packages with conda
   - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
   - conda install --quiet $PACKAGES
-  - conda install cartopy
+  - conda install --quiet cartopy
   #- pip install cython pyproj
   - pip install scripttest pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
