@@ -2,8 +2,9 @@ language: python
 
 env:
     matrix:
-        - NAME="Python 3.5.3"
-          PYTHON_VERSION=3.5.3
+        # python 3.5.3 suffers from some matplotlib/wxpython compatibility problems
+        #- NAME="Python 3.5.3"
+        #  PYTHON_VERSION=3.5.3
         #  #PACKAGES="numpy=1.10.0 matplotlib=1.5.1 nose scipy=0.16.0 libgfortran=1"
         - NAME="Python 3.6"
           PYTHON_VERSION=3.6
