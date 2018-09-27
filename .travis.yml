@@ -51,9 +51,9 @@ install:
   - conda update conda
 
   ## create test environment
-  #- ENV_NAME="test-environment"
-  #- conda create -n $ENV_NAME python=$PYTHON_VERSION
-  #- source activate $ENV_NAME
+  - ENV_NAME="test-environment"
+  - conda create -n $ENV_NAME python=3.5.3
+  - source activate $ENV_NAME
 
   # install packages with conda
   - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
@@ -66,6 +66,7 @@ install:
   #- wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl" # older version
   #- pip install wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl
   # latest (working) version of wxPython (must be cp35)
+  - python --version | echo
   - wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl"
   - pip install wxPython-4.0.2-cp35-cp35m-linux_x86_64.whl
   # command to run tests, e.g. python setup.py test
