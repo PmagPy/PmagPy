@@ -3277,14 +3277,14 @@ def plot_map(fignum, lats, lons, Opts):
             ax.add_feature(BORDERS,linestyle='-',linewidth=2)
         if Opts['details']['ocean'] == 1:
              ax.add_feature(OCEAN,color='lightblue')
-             ax.add_feature(LAND,color='orange')
+             ax.add_feature(LAND,color='yellow')
     if Opts['pltgrid'] >= 0.:
         if Opts['proj'] not in ['ortho','moll']:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
         else:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
         gl.ylocator=mticker.FixedLocator(np.arange(-80,81,20))
-        gl.xlocator=mticker.FixedLocator(np.arange(-180,180,30))
+        gl.xlocator=mticker.FixedLocator(np.arange(-180,181,30))
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
         gl.xlabels_top = False
