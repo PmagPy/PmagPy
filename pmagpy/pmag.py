@@ -10903,6 +10903,16 @@ def chart_maker(Int,Top,start=100,outfile='chart.txt'):
 
 
 def import_basemap():
+    """
+    Try to import Basemap and print out a useful help message
+    if Basemap is either not installed or is missing required
+    environment variables.
+
+    Returns
+    ---------
+    has_basemap : bool
+    Basemap : Basemap package if possible else None
+    """
     Basemap = None
     has_basemap = True
     try:
@@ -10918,23 +10928,31 @@ def import_basemap():
         print('    You are probably missing a required environment variable')
         print('    To use basemap, you will need to run this program or notebook in a conda env.')
         print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
-        # quit current program
-        # make a copy of your environment:
-        #conda create --name pmagpy_ --clone base
-        # activate that environment:
-        #source activate pmagpy
-        # run this program
         print('    Or, you could just skip using Basemap (for now -- we are working on making this easier)')
-        #if set_env.IS_WIN:
-            #print('    You should quit the current program, and run the following line in your Command Prompt:')
-            #print('    set "PROJ_LIB=%CONDA_PREFIX%\Library\share"')
-            #print('    You can also solve this problem permanently by adding PROJ_LIB to your environment variables')
-            #print('    Check out: https://www.java.com/en/download/help/path.xml for more on environment variables')
-        #else:
-            #print('    You should quit the current program, and run the following line in your Terminal:')
-            #print('    export PROJ_LIB=$CONDA_PREFIX/share/proj')
-            #print('    You can also solve this problem permanently by adding this line to your .bashrc file')
     return has_basemap, Basemap
+
+
+def import_cartopy():
+    """
+    Try to import cartopy and print out a help message
+    if it is not installed
+
+    Returns
+    ---------
+    has_cartopy : bool
+    cartopy : cartopy package if available else None
+    """
+    cartopy = None
+    has_cartopy = True
+    try:
+        import cartopy
+    except ImportError:
+        has_cartopy = False
+        print('-W- cartopy is not installed')
+        print('    If you want to make maps, look at the Cookbook install instructions:')
+        print('    http://earthref.org/PmagPy/Cookbook#getting_python')
+    return has_cartopy, cartopy
+
 
 
 def main():
