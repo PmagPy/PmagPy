@@ -1,17 +1,10 @@
-## Testing with pip (for everyone)
-
-If you have installed using pip, you can test your installation from the command line (in any directory) with this command:
-
-`python -m pmagpy_tests.run_all_tests -pip`
-
-This runs through every PmagPy test using the data files that were automatically installed with you ran `pip install pmagpy`.  It should take a few minutes, and let's you know that everything works as expected.  Any issues can be reported to the PmagPy team on the [Github repository](https://github.com/PmagPy/PmagPy/issues).
-
-
 ## Testing locally (for developers)
 
 You can run tests from your local PmagPy directory.  (Tests will fail if you try to run them from PmagPy/pmagpy\_tests -- always run them from PmagPy).  To run find and run all tests, use:
 
 `python -m unittest discover`
+
+Annoyingly, running all of the tests like this can cause segfaults (but generally not on Windows!)  Also, the tests will take ~10 minutes to run.  For these reasons, it is often best to just run a subset of the tests -- whatever is relevant to the changes you've made.
 
 To run tests at the most granular level, the syntax looks like this:
 
