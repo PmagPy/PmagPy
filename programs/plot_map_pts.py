@@ -24,13 +24,13 @@ def main():
 
     OPTIONS
         -h prints help and quits
-        -ctp use cartopy instead of basemap [only for ortho, mercator and mollweide so far - and requires installation of cartopy]
         -sym [ro, bs, g^, r., b-, etc.] [1,5,10] symbol and size for points
            colors are r=red,b=blue,g=green, etc.
            symbols are '.' for points, ^, for triangle, s for square, etc.
             -, for lines, -- for dotted lines, see matplotlib online documentation for plot()
         -eye  ELAT ELON [specify eyeball location]
         -etp  put on topography
+        -cmap color map [default is jet]
         -f FILE, specify input file
         -o color ocean blue/land green (default is not)
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
@@ -40,32 +40,25 @@ def main():
         -pad [LAT LON] pad bounding box by LAT/LON (default is not)
         -grd SPACE specify grid spacing
         -sav  save plot and quit
-        -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
-            aeqd = Azimuthal Equidistant
-            poly = Polyconic
-            gnom = Gnomonic
-            moll = Mollweide
-            tmerc = Transverse Mercator
-            nplaea = North-Polar Lambert Azimuthal
-            mill = Miller Cylindrical
-            merc = Mercator
-            stere = Stereographic
-            npstere = North-Polar Stereographic
-            geos = Geostationary
-            laea = Lambert Azimuthal Equal Area
-            sinu = Sinusoidal
-            spstere = South-Polar Stereographic
-            lcc = Lambert Conformal
-            npaeqd = North-Polar Azimuthal Equidistant
-            eqdc = Equidistant Conic
-            cyl = Cylindrical Equidistant
-            omerc = Oblique Mercator
+        -prj PROJ,  specify one of the supported projections: 
+            pc = Plate Carree
             aea = Albers Equal Area
-            spaeqd = South-Polar Azimuthal Equidistant
+            aeqd = Azimuthal Equidistant
+            lcc = Lambert Conformal
+            lcyl = Lambert Cylindrical
+            merc = Mercator
+            mill = Miller Cylindrical
+            moll = Mollweide [default]
             ortho = Orthographic
-            cass= Cassini-Soldner
-            splaea = South-Polar Lambert Azimuthal
             robin = Robinson
+            sinu = Sinusoidal
+            stere = Stereographic
+            tmerc = Transverse Mercator
+            utm = UTM
+            laea = Lambert Azimuthal Equal Area
+            geos = Geostationary
+            npstere = North-Polar Stereographic
+            spstere = South-Polar Stereographic
         Special codes for MagIC formatted input files:
             -n
             -l
@@ -112,12 +105,19 @@ def main():
         res=sys.argv[ind+1]
         if res!= 'c' and res!='l':
             print('this resolution will take a while - be patient')
-    if '-etp' in sys.argv: fancy=1
+    if '-etp' in sys.argv: 
+        fancy=1
+        print ('-W- plotting will require patience!')
     if '-ctp' in sys.argv: basemap=0
     if '-sav' in sys.argv: plot=1
     if '-R' in sys.argv:rivers=0
     if '-B' in sys.argv:boundaries=0
     if '-o' in sys.argv:ocean=1
+    if '-cmap' in sys.argv:
+        ind = sys.argv.index('-cmap')
+        cmap=float(sys.argv[ind+1])
+    else:
+        cmap='jet'
     if '-grd' in sys.argv:
         ind = sys.argv.index('-grd')
         gridspace=float(sys.argv[ind+1])
@@ -138,19 +138,12 @@ def main():
         file=dir_path+'/'+sys.argv[ind+1]
         header=open(file,'r').readlines()[0].split('\t')
         if 'tab' in header[0]:
-            if '-n' in sys.argv:prn_name=1
-            if '-l' in sys.argv:prn_loc=1
             proj='lcc'
-            if 'results' in header[1]:
-                latkey='average_lat'
-                lonkey='average_lon'
-                namekey='pmag_result_name'
-                lockey='er_location_names'
-            elif 'sites' in header[1]:
-                latkey='site_lat'
-                lonkey='site_lon'
-                namekey='er_site_name'
-                lockey='er_location_name'
+            if 'sites' in header[1]:
+                latkey='lat'
+                lonkey='lon'
+                namekey='site'
+                lockey=''
             else:  
                 print('file type not supported')
                 print(main.__doc__)
@@ -179,12 +172,8 @@ def main():
         proj=sys.argv[ind+1]
     FIG={'map':1}
     pmagplotlib.plot_init(FIG['map'],6,6)
-    #if res=='c':skip=8 # What are these for? 
-    #if res=='l':skip=5
-    #if res=='i':skip=2
-    #if res=='h':skip=1
     cnt=0
-    Opts={'latmin':latmin,'latmax':latmax,'lonmin':lonmin,'lonmax':lonmax,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':sym,'symsize':3,'pltgrid':1,'res':res,'boundinglat':0.,'padlon':padlon,'padlat':padlat,'gridspace':gridspace}
+    Opts={'latmin':latmin,'latmax':latmax,'lonmin':lonmin,'lonmax':lonmax,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':sym,'symsize':3,'pltgrid':1,'res':res,'boundinglat':0.,'padlon':padlon,'padlat':padlat,'gridspace':gridspace,'cmap':cmap}
     Opts['details']={}
     Opts['details']['coasts']=1
     Opts['details']['rivers']=rivers

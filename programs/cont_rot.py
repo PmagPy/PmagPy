@@ -48,32 +48,25 @@ def main():
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
         -fmt [png,jpg,svg,pdf] format for saved figure - pdf is default
         -sav saves plots and quits
-        -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
-            aeqd = Azimuthal Equidistant
-            poly = Polyconic
-            gnom = Gnomonic
-            moll = Mollweide
-            tmerc = Transverse Mercator
-            nplaea = North-Polar Lambert Azimuthal
-            mill = Miller Cylindrical
-            merc = Mercator
-            stere = Stereographic
-            npstere = North-Polar Stereographic
-            geos = Geostationary
-            laea = Lambert Azimuthal Equal Area
-            sinu = Sinusoidal
-            spstere = South-Polar Stereographic
-            lcc = Lambert Conformal
-            npaeqd = North-Polar Azimuthal Equidistant
-            eqdc = Equidistant Conic
-            cyl = Cylindrical Equidistant
-            omerc = Oblique Mercator
+        -prj PROJ,  specify one of the supported projections
+            pc = Plate Carree
             aea = Albers Equal Area
-            spaeqd = South-Polar Azimuthal Equidistant
+            aeqd = Azimuthal Equidistant
+            lcc = Lambert Conformal
+            lcyl = Lambert Cylindrical
+            merc = Mercator
+            mill = Miller Cylindrical
+            moll = Mollweide [default]
             ortho = Orthographic
-            cass= Cassini-Soldner
-            splaea = South-Polar Lambert Azimuthal
             robin = Robinson
+            sinu = Sinusoidal
+            stere = Stereographic
+            tmerc = Transverse Mercator
+            utm = UTM
+            laea = Lambert Azimuthal Equal Area
+            geos = Geostationary
+            npstere = North-Polar Stereographic
+            spstere = South-Polar Stereographic
 
     DEFAULTS
         con: nam
@@ -198,7 +191,7 @@ def main():
         Opts['latmax'] = 70
         Opts['lonmin'] = -180
         Opts['lonmax'] = 180
-    pmagplotlib.plot_map(FIG['map'], [], [], Opts)  # plot the basemap
+    pmagplotlib.plot_map(FIG['map'], [], [], Opts)  # plot the base map
     Opts['pltgrid'] = -1  # turn off replotting of gridlines
     if '-pt' in sys.argv:
         Opts['sym'] = sym
