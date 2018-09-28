@@ -35,7 +35,13 @@ except ImportError:
     print('    If you have Anaconda Python, you can install with the following command:')
     print('    conda install lmfit --channel conda-forge')
     sys.exit()
-from sklearn.mixture import GaussianMixture as GMM
+try:
+    from sklearn.mixture import GaussianMixture as GMM
+except ImportError:
+    print('-E- You must install scikit-learn to run this program')
+    print('    If you have Anaconda Python, you can install with the following command:')
+    print('    conda install scikit-learn')
+
 from lmfit import minimize,Parameters
 
 class MyMplCanvas(FigureCanvas):
