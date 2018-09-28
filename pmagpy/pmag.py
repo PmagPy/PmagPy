@@ -10911,7 +10911,7 @@ def import_basemap():
         has_basemap=False
         print('-W- Basemap is not installed')
         print('    If you want to make maps, look at the Cookbook install instructions:')
-        print('http://earthref.org/PmagPy/Cookbook#getting_python')
+        print('    http://earthref.org/PmagPy/Cookbook#getting_python')
     except (KeyError, FileNotFoundError):
         has_basemap = False
         print('-W- Basemap is installed but could not be imported.')
