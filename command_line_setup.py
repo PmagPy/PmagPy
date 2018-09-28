@@ -35,9 +35,9 @@ from programs_list import programs_list
 version_num = version.version.strip('pmagpy-')
 here = path.abspath(path.dirname(__file__))
 
-packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
-                                  'SPD', 'pmag_env'])
-print('packages', packages)
+#packages = find_packages(exclude=['pmagpy', 'pmagpy_tests', 'pmagpy_tests.examples'
+#                                  'SPD', 'pmag_env'])
+#print('packages', packages)
 
 
 # Get the long description from the README file
@@ -112,14 +112,14 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
-                                    'SPD', 'pmag_env']), # tests
+                                    'SPD', 'pmag_env', 'pmagpy_tests']), # tests
 
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'matplotlib', 'scripttest'],
+    #install_requires=['numpy', 'matplotlib'],
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
     # for example:

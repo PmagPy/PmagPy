@@ -21,7 +21,10 @@ Log:
     Initial revision 4/24/2014
     some bug fix 06/12/2015
 """
-import pmagpy_tests # without this import, everything just hangs.  I have no idea why.
+# setting backend to wx somehow prevents this import from hanging
+import matplotlib
+matplotlib.use('WXAgg')
+
 import wx
 import sys
 import os
