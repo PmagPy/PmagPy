@@ -1809,6 +1809,108 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', mark
         plt.legend(loc=2)
 
 
+def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
+                    pole_color='k',pole_edgecolor='k', pole_marker='o',
+                    site_color='r',site_edgecolor='r', site_marker='s',
+                    markersize=20, legend=True):
+    """
+    This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
+
+    Before this function is called, a plot needs to be initialized with code
+    such as that in the make_orthographic_map function.
+
+    Example
+    -------
+    >>> dec = 280
+    >>> inc = 45
+    >>> a95 = 5
+    >>> site_lat = 45
+    >>> site_lon = -100
+    >>> pole = pmag.dia_vgp(dec, inc, a95, site_lat, site_lon)
+    >>> pole_lon = pole[0]
+    >>> pole_lat = pole[1]
+    >>> dp = pole[2]
+    >>> dm = pole[3]
+
+    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> plot_pole_dp_dm(map_axis,pole_lon,pole_lat,site_lon,site_lat,dp,dm)
+
+    Required Parameters
+    -----------
+    map_axis : the name of the current map axis that has been developed using cartopy
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
+    slon : the longitude of the site (in degrees E)
+    slat : the latitude of the site (in degrees)
+    dp : the semi-minor axis of the confidence ellipse (in degrees)
+    dm : the semi-major axis of the confidence ellipse (in degrees)
+
+    Optional Parameters (defaults are used if not specified)
+    -----------
+    pole_color : the default color is black. Other colors can be chosen (e.g. 'g')
+    site_color : the default color is red. Other colors can be chosen (e.g. 'g')
+    pole_marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    site_marker : the default is a square. Other symbols can be chosen (e.g. '^')
+    markersize : the default is 20. Other size can be chosen
+    pole_label : string that labels the pole.
+    site_label : string that labels the site
+    legend : the default is a legend (True). Putting False will suppress legend plotting.
+    """
+    dp_km = dp*111.32
+    dm_km = dm*111.32
+    map_axis.scatter(plon, plat, marker=pole_marker,
+                    color=pole_color,edgecolors=pole_edgecolor, s=markersize,
+                     label=pole_label, zorder=101, transform=ccrs.Geodetic())
+    map_axis.scatter(slon, slat, marker=site_marker,
+                    color=site_color,edgecolors=site_edgecolor, s=markersize,
+                     label=site_label, zorder=101, transform=ccrs.Geodetic())
+    # the orientation of the ellipse needs to be determined using the
+    # two laws of cosines for spherical triangles where the triangle is
+    # A: site, B: north pole, C: paleomagnetic pole (see Fig. A.2 of Butler)
+
+    site_lon_rad = np.deg2rad(slon)
+    site_lat_rad = np.deg2rad(slat)
+    c_rad = np.deg2rad(90-slat)
+
+    pole_lon_rad = np.deg2rad(plon)
+    pole_lat_rad = np.deg2rad(plat)
+    a_rad = np.deg2rad(90-plat)
+
+    B_rad = np.abs(pole_lon_rad-site_lon_rad)
+
+    cos_b = np.cos(c_rad)*np.cos(a_rad) + np.sin(c_rad)*np.sin(a_rad)*np.cos(B_rad)
+    b_rad = np.arccos(cos_b)
+
+    sin_C = (np.sin(B_rad)/np.sin(b_rad))*np.sin(c_rad)
+    C_rad = np.arcsin(sin_C)
+
+    #need to make the rotation of the ellipse go the right way
+    if slon-plon > 180:
+        if plon>=slon and plat>=slat:
+            C_deg = -np.abs(np.rad2deg(C_rad))
+        elif plon<=slon and plat>=slat:
+            C_deg = np.abs(np.rad2deg(C_rad))
+        elif plon>=slon and plat<=slat:
+            C_deg = np.abs(np.rad2deg(C_rad))
+        elif plon<=slon and plat<=slat:
+            C_deg = -np.abs(np.rad2deg(C_rad))
+    elif slon-plon <= 180:
+        if plon>=slon and plat>=slat:
+            C_deg = np.abs(np.rad2deg(C_rad))
+        elif plon<=slon and plat>=slat:
+            C_deg = -np.abs(np.rad2deg(C_rad))
+        elif plon>=slon and plat<=slat:
+            C_deg = -np.abs(np.rad2deg(C_rad))
+        elif plon<=slon and plat<=slat:
+            C_deg = np.abs(np.rad2deg(C_rad))
+
+    print(C_deg)
+    ellipse(map_axis,plon,plat,dp_km,dm_km,C_deg)
+
+    if legend == True:
+        plt.legend(loc=2)
+
+
 def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label='', colormap = 'viridis', color='k', marker='o', markersize='20', alpha=1.0, legend=False):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
