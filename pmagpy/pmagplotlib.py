@@ -3115,6 +3115,7 @@ def plot_map(fignum, lats, lons, Opts):
             padlat : padding of latitudes
             padlon : padding of longitudes
             gridspace : grid line spacing
+            global : global projection [default is True]
             details : dictionary with keys:
                 coasts : if True, plot coastlines
                 rivers : if True, plot rivers 
@@ -3147,7 +3148,7 @@ def plot_map(fignum, lats, lons, Opts):
     Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
                   'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
                   'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
-                  'padlon':0,'padlat':0,'gridspace':30,\
+                  'padlon':0,'padlat':0,'gridspace':30,'global':1,\
                   'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
     for key in Opts_defaults.keys():
         if key not in Opts.keys() and key!='details':
@@ -3168,13 +3169,16 @@ def plot_map(fignum, lats, lons, Opts):
             false_easting=0.0,false_northing=0.0,standard_parallels=(20.0,50.0),
             globe=None))
     if Opts['proj'] == 'lcc':
+        print (Opts)
         ax = plt.axes(projection=ccrs.LambertConformal(\
             central_longitude=Opts['lon_0'], 
             central_latitude=Opts['lat_0'], 
-            false_easting=0.0,false_northing=0.0,
-            secant_latitudes=None,standard_parallels=(20.0,50.0),
-            cutoff=-30,
+            #false_easting=0.0,false_northing=0.0,
+            #secant_latitudes=None,standard_parallels=(20.0,50.0), cutoff=-30, 
             globe=None))
+        #ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
+        ax.set_extent([25,40,25,40],\
+                crs=ccrs.PlateCarree())
     if Opts['proj'] == 'lcyl':
         ax = plt.axes(projection=ccrs.LambertCylindrical(\
             central_longitude=Opts['lon_0']))
@@ -3279,7 +3283,7 @@ def plot_map(fignum, lats, lons, Opts):
              ax.add_feature(OCEAN,color='lightblue')
              ax.add_feature(LAND,color='yellow')
     if Opts['pltgrid'] >= 0.:
-        if Opts['proj'] not in ['ortho','moll']:
+        if Opts['proj'] not in ['ortho','moll','lcc']:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
         else:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
@@ -3307,7 +3311,7 @@ def plot_map(fignum, lats, lons, Opts):
             #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
     else:  # for lines,  need to separate chunks using lat==100.
         ax.plot(lons,lats,Opts['sym'], transform=ccrs.Geodetic())
-    ax.set_global()
+    if Opts['global']:ax.set_global()
 
 
 def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
