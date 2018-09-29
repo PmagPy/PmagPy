@@ -5099,70 +5099,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # longitudes go from 20 to 380.
         Plot_map = show_map
         if Plot_map:
-<<<<<<< Updated upstream
-                import pmagpy.pmagplotlib as pmagplotlib
-                Opts={}
-                Opts['global']=0 # sets global to false
-                Opts['sym']='bo' # sets the symbol to blue dots
-                Opts['symsize']=10 # sets symbol size to 10 pts
-                Opts['proj']='pc' #  projection
-                Opts['res']='h' #  projection
-                Opts['details']={}
-                Opts['details']['coasts']=True
-                Opts['details']['countries']=True
-                Opts['latmin']=lat_min-5
-                Opts['latmax'] = lat_max + 5
-                Opts['lonmin'] = lon_min - 5
-                Opts['lonmax'] = lon_max + 5
-                Opts['pltgrid'] = 0
-                fig2 = plt.figure(2)
-                pmagplotlib.plot_map(2,lats,lons,Opts)
-#            if True:
-#                plt.ion()
-#                fig2 = plt.figure(2)
-#                plt.clf()
-#                plt.ioff()
-#
-#                SiteLat_min = lat_min - 5
-#                SiteLat_max = lat_max + 5
-#                SiteLon_min = lon_min - 5
-#                SiteLon_max = lon_max + 5
-#
-#                if not set_map_autoscale:
-#                    if set_map_lat_min != "":
-#                        SiteLat_min = set_map_lat_min
-#                    if set_map_lat_max != "":
-#                        SiteLat_max = set_map_lat_max
-#                    if set_map_lon_min != "":
-#                        SiteLon_min = set_map_lon_min
-#                    if set_map_lon_max != "":
-#                        SiteLon_max = set_map_lon_max
-#
-#                m = Basemap(llcrnrlon=SiteLon_min, llcrnrlat=SiteLat_min, urcrnrlon=SiteLon_max,
-#                            urcrnrlat=SiteLat_max, projection='merc', resolution='i')
-#
-#                if set_map_lat_grid != "" and set_map_lon_grid != 0:
-#                    m.drawparallels(np.arange(SiteLat_min, SiteLat_max + set_map_lat_grid,
-#                                              set_map_lat_grid), linewidth=0.5, labels=[1, 0, 0, 0], fontsize=10)
-#                    m.drawmeridians(np.arange(SiteLon_min, SiteLon_max + set_map_lon_grid,
-#                                              set_map_lon_grid), linewidth=0.5, labels=[0, 0, 0, 1], fontsize=10)
-#
-#                else:
-#                    pass
-#                    '''lat_min_round=SiteLat_min-SiteLat_min%10
-#                    lat_max_round=SiteLat_max-SiteLat_max%10
-#                    lon_min_round=SiteLon_min-SiteLon_min%10
-#                    lon_max_round=SiteLon_max-SiteLon_max%10
-#                    m.drawparallels(np.arange(lat_min_round,lat_max_round+5,5),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
-#                    m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)'''
-#
-#                m.fillcontinents(zorder=0, color='0.9')
-#                m.drawcoastlines()
-#                m.drawcountries()
-#                m.drawmapboundary()
-#            else:
-#                print("Can't plot map. Is basemap installed?")
-=======
             has_basemap, Basemap = pmag.import_basemap()
             has_cartopy, Cartopy = pmag.import_cartopy()
             SiteLat_min = lat_min - 5
@@ -5183,11 +5119,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 from cartopy import feature as cfeature
                 from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
                 import matplotlib.ticker as mticker
-                ax = plt.axes(projection=ccrs.PlateCarree())
-                ax.set_extent([SiteLon_min,SiteLon_max,SiteLat_min,SiteLat_max], crs=ccrs.PlateCarree())
-                ax.coastlines(resolution='50m')
-                ax.add_feature(BORDERS,linestyle='--',linewidth=1)
-                gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
+                ax1 = plt.axes(projection=ccrs.PlateCarree())
+                ax1.set_extent([SiteLon_min,SiteLon_max,SiteLat_min,SiteLat_max], crs=ccrs.PlateCarree())
+                ax1.coastlines(resolution='50m')
+                ax1.add_feature(BORDERS,linestyle='--',linewidth=1)
+                gl=ax1.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
                 gl.ylocator=mticker.FixedLocator(np.arange(-80,81,20))
                 gl.xlocator=mticker.FixedLocator(np.arange(-180,181,30))
                 gl.xformatter = LONGITUDE_FORMATTER
@@ -5227,7 +5163,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                  m.drawcountries()
                  m.drawmapboundary()
 # work through sites to make intensity versus age and put locations on basemap
->>>>>>> Stashed changes
         cnt = 0
 
         #-----
@@ -5269,28 +5204,18 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 plt.errorbar(X_data, Y_data, xerr=None, yerr=[
                              Y_data_minus_extended, Y_data_plus_extended], fmt='.', ms=0, ecolor='red', label="extended error-bar", zorder=0)
 
-<<<<<<< Updated upstream
-            #if Plot_map:
-                #plt.figure(2)
-                #lat = plot_by_locations[location]['site_lat']
-                #lon = plot_by_locations[location]['site_lon']
-                #x1, y1 = m([lon], [lat])
-                #m.scatter(x1, y1, s=[50], marker=SYMBOLS[cnt % len(
-                #    SYMBOLS)], color=COLORS[cnt % len(COLORS)], edgecolor='black')
-=======
             if Plot_map and has_basemap or has_cartopy:
-                plt.figure(2)
+                #plt.figure(2)
                 lat = plot_by_locations[location]['site_lat']
                 lon = plot_by_locations[location]['site_lon']
                 if has_cartopy:
-                    ax.plot(lon,lat,marker=SYMBOLS[cnt % len(
+                    ax1.plot(lon,lat,marker=SYMBOLS[cnt % len(
                         SYMBOLS)], color=COLORS[cnt % len(COLORS)], 
-                        markersize=10,transform=ccrs.Geodetic(),markeredgecolor='black')
+                        transform=ccrs.Geodetic(),markeredgecolor='black')
                 elif has_basemap:
                     x1, y1 = m([lon], [lat])
                     m.scatter(x1, y1, s=[50], marker=SYMBOLS[cnt % len(
                         SYMBOLS)], color=COLORS[cnt % len(COLORS)], edgecolor='black')
->>>>>>> Stashed changes
             cnt += 1
 
         # fig1=figure(1)#,(15,6))
