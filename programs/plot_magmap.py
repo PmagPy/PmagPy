@@ -140,8 +140,8 @@ def main():
         #m.contour(x,y,Ds,levels=np.arange(-180,180,10),colors='black')
         plt.title('Field declination: '+str(date));
     cbar=plt.colorbar(orientation='horizontal')
-    plt.savefig('cartopy_igrf'+d+'.'+fmt)
-    print('Figure saved as: ','cartopy_igrf'+d+'.'+fmt)
+    plt.savefig(geomagnetic_field_d+'.'+fmt)
+    print('Figure saved as: ','geomagnetic_field'+d+'.'+fmt)
 
 if __name__ == "__main__":
     main()
