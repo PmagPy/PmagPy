@@ -3160,8 +3160,9 @@ def plot_map(fignum, lats, lons, Opts):
                      Opts[key][detail_key]=Opts_defaults[key][detail_key]
 
     if Opts['proj'] == 'pc':
-        ax = plt.axes(projection=ccrs.PlateCarre(\
-            central_longitude=Opts['lat_0'], globe=None))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
+                crs=ccrs.PlateCarree())
     if Opts['proj'] == 'aea':
         ax = plt.axes(projection=ccrs.AlbersEqualArea(\
             central_longitude=Opts['lon_0'], 
@@ -3173,11 +3174,10 @@ def plot_map(fignum, lats, lons, Opts):
         ax = plt.axes(projection=ccrs.LambertConformal(\
             central_longitude=Opts['lon_0'], 
             central_latitude=Opts['lat_0'], 
-            #false_easting=0.0,false_northing=0.0,
-            #secant_latitudes=None,standard_parallels=(20.0,50.0), cutoff=-30, 
+            false_easting=0.0,false_northing=0.0,
+            secant_latitudes=None,standard_parallels=(20.0,50.0), cutoff=-30, 
             globe=None))
-        #ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
-        ax.set_extent([25,40,25,40],\
+        ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
                 crs=ccrs.PlateCarree())
     if Opts['proj'] == 'lcyl':
         ax = plt.axes(projection=ccrs.LambertCylindrical(\
@@ -3265,7 +3265,7 @@ def plot_map(fignum, lats, lons, Opts):
                 transform=ccrs.PlateCarree(),
                 cmap=Opts['cmap'])
         if Opts['details']['coasts'] == 1:
-            ax.coastlines()
+            ax.coastlines(resolution='50m')
         if Opts['details']['rivers'] == 1:
              ax.add_feature(cfeature.RIVERS)
         if Opts['details']['states'] == 1:
@@ -3278,7 +3278,7 @@ def plot_map(fignum, lats, lons, Opts):
                 linestyle='dotted')
             ax.add_feature(states_provinces)
         if Opts['details']['countries'] == 1:
-            ax.add_feature(BORDERS,linestyle='-',linewidth=2)
+            ax.add_feature(BORDERS,linestyle='--',linewidth=1)
         if Opts['details']['ocean'] == 1:
              ax.add_feature(OCEAN,color='lightblue')
              ax.add_feature(LAND,color='yellow')

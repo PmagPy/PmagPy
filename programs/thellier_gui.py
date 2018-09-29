@@ -5104,9 +5104,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 Opts['global']=0 # sets global to false
                 Opts['sym']='bo' # sets the symbol to blue dots
                 Opts['symsize']=10 # sets symbol size to 10 pts
-                Opts['proj']='lcc' #  projection
+                Opts['proj']='pc' #  projection
+                Opts['res']='h' #  projection
                 Opts['details']={}
                 Opts['details']['coasts']=True
+                Opts['details']['countries']=True
                 Opts['latmin']=lat_min-5
                 Opts['latmax'] = lat_max + 5
                 Opts['lonmin'] = lon_min - 5
