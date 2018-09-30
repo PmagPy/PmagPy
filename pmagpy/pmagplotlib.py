@@ -3314,7 +3314,7 @@ def plot_map(fignum, lats, lons, Opts):
     if Opts['global']:ax.set_global()
 
 
-def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
+def plot_mag_map_basemap(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3335,6 +3335,7 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
         lon_0 : central longitude of the Hammer projection
         date : date used for field evaluation,
                if custom ghfile was used, supply filename
+
 
     Effects
     ______________
@@ -3374,6 +3375,80 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
         m.contour(x,y,element,levels=np.arange(-180,180,10),colors='black')
         plt.title('Field declination: '+date);
     cbar=m.colorbar(cs,location='bottom')
+
+
+def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
+    """
+    makes a color contour map of geomagnetic field element
+
+    Parameters
+    ____________
+    fignum : matplotlib figure number
+    element : field element array from pmag.do_mag_map for plotting
+    lons : longitude array from pmag.do_mag_map for plotting
+    lats : latitude array from pmag.do_mag_map for plotting
+    element_type : [B,Br,I,D] geomagnetic element type
+        B : field intensity
+        Br : radial field intensity
+        I : inclinations
+        D : declinations
+    Optional
+    _________
+        cmap : matplotlib color map
+        lon_0 : central longitude of the Mollweide projection
+        date : date used for field evaluation,
+               if custom ghfile was used, supply filename
+
+    Effects
+    ______________
+    plots a Mollweide projection color contour with  the desired field element
+    """
+    has_cartopy, Cartopy = pmag.import_cartopy()
+    if not has_cartopy:
+       return
+    import cartopy.crs as ccrs
+    from pylab import meshgrid
+
+    from matplotlib import cm
+    lincr=1
+    if type(date)!=str: date=str(date)
+    fig=plt.figure(fignum)
+
+    # doesn't work correctly with mod other than default
+    ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
+    xx, yy = np.meshgrid(lons, lats)
+    levmax=round(element.max()+lincr)
+    levmin=round(element.min()-lincr)
+    if element_type=='Br' or element_type=='B':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(levmin,levmax,lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar=plt.colorbar(orientation='horizontal')
+        #plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
+        #            colors='black', transform=ccrs.PlateCarree())
+        if element_type=='Br':
+            plt.title('Radial field strength ($\mu$T): '+date);
+        else:
+            plt.title('Total field strength ($\mu$T): '+date);
+    if element_type=='I':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(levmin,levmax,lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar=plt.colorbar(orientation='horizontal')
+        plt.contour(xx,yy,element,levels=np.arange(-80,90,10),
+                    colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field inclination: '+date);
+    if element_type=='D':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(-180,180,10),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar=plt.colorbar(orientation='horizontal')
+        plt.contour(xx, yy, element, levels=np.arange(-180,180,10), 
+                    colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field declination: '+date);
+    ax.coastlines()
+    ax.set_global()
+
 
 
 def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):

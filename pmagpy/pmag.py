@@ -10582,8 +10582,8 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
     """
     incr = 10  # we can vary to the resolution of the model
     # get some parameters for our arrays of lat/lon
-    lonmax = (lon_0 + 180.) % 360 + incr
-    lonmin = (lon_0 - 180.)
+    lonmax = (lon_0 + 180.) %360 + incr
+    lonmin = (lon_0 - 180.) 
     latmax = 90 + incr
     # make a 1D array of longitudes (like elons)
     lons = np.arange(lonmin, lonmax, incr)
@@ -10621,7 +10621,10 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
             if Dec > 180:
                 Dec = Dec-360.
             Bdec[j][i] = Dec  # store the declination value
-            Brad[j][i] = z
+            if mod != 'custom':
+                Brad[j][i] = z*1e-3
+            else:
+                Brad[j][i] = z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
 
 
