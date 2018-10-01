@@ -4847,7 +4847,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 data2plot = copy.deepcopy(self.Data_sites)
                 # data2plot=copy.deepcopy(Data_samples_or_sites)
 
-        show_map = dia.show_map.GetValue()
+        Plot_map = dia.show_map.GetValue()
         set_map_autoscale = dia.set_map_autoscale.GetValue()
         set_map['set_map_autoscale'] = set_map_autoscale
         if not set_map_autoscale:
@@ -5097,10 +5097,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
         #--------
         # read in topo data (on a regular lat/lon grid)
         # longitudes go from 20 to 380.
-        Plot_map = show_map
         if Plot_map:
             has_basemap, Basemap = pmag.import_basemap()
-            has_cartopy, Cartopy = pmag.import_cartopy()
+            has_cartopy, cartopy = pmag.import_cartopy()
             SiteLat_min = lat_min - 5
             SiteLat_max = lat_max + 5
             SiteLon_min = lon_min - 5
