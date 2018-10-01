@@ -10,7 +10,7 @@ To run tests at the most granular level, the syntax looks like this:
 
 `python -m unittest pmagpy_tests.test_ipmag.TestIGRF.test_igrf_output`
 
-This runs a single test from the pmagpy\_tests module, from the test\_ipmag submodule (the file named test\_ipmag.py), from the TestIGRF class.  The single test is called test\_igrf\_output.  You can also run the entire test\_ipmag submodule:
+This runs a single test from the pmagpy\_tests module, from the test\_ipmag submodule (the file named test\_ipmag.py), from the TestIGRF class.  The individual test is called test\_igrf\_output.  You can also run the entire test\_ipmag submodule:
 
 `python -m unittest pmagpy_tests.test_ipmag`
 
