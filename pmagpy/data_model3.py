@@ -72,7 +72,6 @@ class DataModel():
             return req
         except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
                 requests.exceptions.ReadTimeout):
-            print('-I- Using cached data model')
             return False
 
 
@@ -104,6 +103,42 @@ class DataModel():
         return data_model, criteria_map
 
 
+    def parse(self, data_model, crit):
+        """
+        Take the relevant pieces of the data model json
+        and parse into data model and criteria map.
+
+        Parameters
+        ----------
+        data_model : data model piece of json (nested dicts)
+        crit : criteria map piece of json (nested dicts)
+
+        Returns
+        ----------
+        data_model : dictionary of DataFrames
+        crit_map : DataFrame
+        """
+        # data model
+        tables = pd.DataFrame(data_model)
+        data_model = {}
+        for table_name in tables.columns:
+            data_model[table_name] = pd.DataFrame(tables[table_name]['columns']).T
+            # replace np.nan with None
+            data_model[table_name] = data_model[table_name].where((pd.notnull(data_model[table_name])), None)
+        # criteria map
+        zipped = list(zip(crit.keys(), crit.values()))
+        crit_map = pd.DataFrame(zipped)
+        crit_map.index = crit_map[0]
+        crit_map.drop(0, axis='columns', inplace=True)
+        crit_map.rename({1: 'criteria_map'}, axis='columns', inplace=True)
+        crit_map.index.rename("", inplace=True)
+        for table_name in ['measurements', 'specimens', 'samples', 'sites', 'locations',
+                           'contribution', 'criteria', 'images', 'ages']:
+            crit_map.loc[table_name] = np.nan
+
+        return data_model, crit_map
+
+
     def parse_request(self, raw):
         """
         Format the requested data model into a dictionary of DataFrames
@@ -119,25 +154,12 @@ class DataModel():
         data_model : dictionary of DataFrames
         crit_map : DataFrame
         """
-        tables = pd.DataFrame(raw.json()[4])
-        data_model = {}
-        for table_name in tables.columns:
-            data_model[table_name] = pd.DataFrame(tables[table_name]['columns']).T
-            # replace np.nan with None
-            data_model[table_name] = data_model[table_name].where((pd.notnull(data_model[table_name])), None)
-        #
-        crit = raw.json()[3]
-        zipped = list(zip(crit.keys(), crit.values()))
-        crit_map = pd.DataFrame(zipped)
-        crit_map.index = crit_map[0]
-        crit_map.drop(0, axis='columns', inplace=True)
-        crit_map.rename({1: 'criteria_map'}, axis='columns', inplace=True)
-        crit_map.index.rename("", inplace=True)
-        for table_name in ['measurements', 'specimens', 'samples', 'sites', 'locations',
-                           'contribution', 'criteria', 'images', 'ages']:
-            crit_map.loc[table_name] = np.nan
 
-        return data_model, crit_map
+        tables = raw.json()[4]
+        crit = raw.json()[3]
+        return self.parse(tables, crit)
+
+
 
 
     def find_cached_dm(self):
