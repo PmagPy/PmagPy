@@ -36,7 +36,7 @@ def main():
         make_magic_plots.py
 
     DESCRIPTION
-    inspects magic directory for available plots.
+        inspects magic directory for available data and makes plots
 
     SYNTAX
         make_magic_plots.py [command line options]
