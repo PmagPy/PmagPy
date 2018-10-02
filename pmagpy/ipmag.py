@@ -1811,6 +1811,43 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', mark
         plt.legend(loc=2)
 
 
+def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
+    """
+    This function plots a paleomagnetic pole and A95 error ellipse on whatever
+    current map projection has been set using the basemap plotting library.
+    Before this function is called, a plot needs to be initialized with code
+    that looks something like:
+    >from mpl_toolkits.basemap import Basemap
+    >mapname = Basemap(projection='ortho',lat_0=35,lon_0=200)
+    >plt.figure(figsize=(6, 6))
+    >mapname.drawcoastlines(linewidth=0.25)
+    >mapname.fillcontinents(color='bisque',lake_color='white',zorder=1)
+    >mapname.drawmapboundary(fill_color='white')
+    >mapname.drawmeridians(np.arange(0,360,30))
+    >mapname.drawparallels(np.arange(-90,90,30))
+    Required Parameters
+    -----------
+    mapname : the name of the current map that has been developed using basemap
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
+    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
+    Optional Parameters (defaults are used if not specified)
+    -----------
+    color : the default color is black. Other colors can be chosen (e.g. 'r')
+    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    markersize : the default is 20. Other size can be chosen
+    label : the default is no label. Labels can be assigned.
+    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    """
+    centerlon, centerlat = mapname(plon, plat)
+    A95_km = A95 * 111.32
+    mapname.scatter(centerlon, centerlat, marker=marker,
+                    color=color,edgecolors=edgecolor, s=markersize, label=label, zorder=101)
+    equi_basemap(mapname, plon, plat, A95_km, color)
+    if legend == 'yes':
+        plt.legend(loc=2)
+
+
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k',pole_edgecolor='k', pole_marker='o',
                     site_color='r',site_edgecolor='r', site_marker='s',
@@ -2459,6 +2496,27 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
     Y.append(Y[0])
 
     plt.plot(X[::-1], Y[::-1], color, transform=ccrs.Geodetic(), alpha=alpha)
+
+
+def equi_basemap(m, centerlon, centerlat, radius, color):
+    """
+    This function enables A95 error ellipses to be drawn in basemap around
+    paleomagnetic poles in conjunction with shoot
+    (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
+    """
+    glon1 = centerlon
+    glat1 = centerlat
+    X = []
+    Y = []
+    for azimuth in range(0, 360):
+        glon2, glat2, baz = shoot(glon1, glat1, azimuth, radius)
+        X.append(glon2)
+        Y.append(glat2)
+    X.append(X[0])
+    Y.append(Y[0])
+
+    X, Y = m(X, Y)
+    plt.plot(X, Y, color)
 
 
 def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, **kwargs):
