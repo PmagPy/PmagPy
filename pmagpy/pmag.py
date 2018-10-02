@@ -10583,7 +10583,7 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
     incr = 10  # we can vary to the resolution of the model
     # get some parameters for our arrays of lat/lon
     lonmax = (lon_0 + 180.) %360 + incr
-    lonmin = (lon_0 - 180.) 
+    lonmin = (lon_0 - 180.)
     latmax = 90 + incr
     # make a 1D array of longitudes (like elons)
     lons = np.arange(lonmin, lonmax, incr)
@@ -10923,7 +10923,7 @@ def import_basemap():
     except ImportError:
         has_basemap=False
         print('-W- Basemap is not installed')
-        print('    If you want to make maps, look at the Cookbook install instructions:')
+        print('    If you want to make maps using Basemap, look at the Cookbook install instructions:')
         print('    http://earthref.org/PmagPy/Cookbook#getting_python')
     except (KeyError, FileNotFoundError):
         has_basemap = False
@@ -10952,7 +10952,7 @@ def import_cartopy():
     except ImportError:
         has_cartopy = False
         print('-W- cartopy is not installed')
-        print('    If you want to make maps, look at the Cookbook install instructions:')
+        print('    If you want to make maps using cartopy, look at the Cookbook install instructions:')
         print('    http://earthref.org/PmagPy/Cookbook#getting_python')
     return has_cartopy, cartopy
 
