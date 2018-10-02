@@ -1,7 +1,10 @@
 import os
 import json
 import numpy as np
-import requests
+try:
+    import requests
+except ImportError:
+    requests = None
 import pandas as pd
 from pmagpy import find_pmag_dir
 
@@ -65,6 +68,8 @@ class DataModel():
         ---------
         result : requests.models.Response, False if unsuccessful
         """
+        if not requests:
+            return False
         try:
             req = requests.get("https://earthref.org/MagIC/data-models/3.0.json", timeout=3)
             if not req.ok:
