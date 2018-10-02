@@ -26,7 +26,7 @@ before_install:
 #virtualenv:
 #  system_site_packages: true
 install:
-  - pip install scripttest pandas libtiff matplotlib numpy scipy future
+  - pip install scripttest pandas libtiff matplotlib numpy scipy future requests
   - sudo apt-get update
   # older (working) version of wxPython
   #- wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.0b1-cp35-cp35m-linux_x86_64.whl" # older version
