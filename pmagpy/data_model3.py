@@ -1,33 +1,154 @@
-from __future__ import print_function
-from builtins import str
-from builtins import object
 import os
 import json
+import numpy as np
+import requests
 import pandas as pd
-from pandas import DataFrame
 from pmagpy import find_pmag_dir
 
 
-class DataModel(object):
+class DataModel():
 
-    def __init__(self):
+    """
+    Contains the MagIC data model and validation information.
+    self.dm is a dictionary of DataFrames for each table.
+    self.crit_map is a DataFrame with all of the columns validations.
+    """
+
+    def __init__(self, offline=False):
+        self.offline = offline
         self.dm, self.crit_map = self.get_data_model()
 
-    # Acquiring the data model
-    def get_dm_online(self):
+
+    def get_data_model(self):
         """
-        Grab the 3.0 data model from earthref.org
+        Try to download the data model from Earthref.
+        If that fails, grab the cached data model.
         """
-        url = 'https://www2.earthref.org/MagIC/data-models/3.0.json'
-        url = "https://earthref.org/MagIC/data-models/3.0.json"
-        raw_dm = pd.io.json.read_json(url)
-        return raw_dm
+        dm = self.get_dm_online()
+        if dm:
+            print('-I- Using online data model')
+            #self.cache_data_model(dm)
+            return self.parse_request(dm)
+        # if online is not available, get cached dm
+        dm = self.get_dm_offline()
+        print('-I- Using cached data model')
+        return self.parse_cache(dm)
+
 
     def get_dm_offline(self):
         """
         Grab the 3.0 data model from the PmagPy/pmagpy directory
+
+        Returns
+        ---------
+        full : DataFrame
+            cached data model json in DataFrame format
         """
-        #print("-I- Using cached 3.0 data model")
+        model_file = self.find_cached_dm()
+        try:
+            f = open(model_file, 'r', encoding='utf-8-sig')
+        except TypeError:
+            f = open(model_file, 'r')
+        string = '\n'.join(f.readlines())
+        f.close()
+        raw = json.loads(string)
+        full = pd.DataFrame(raw)
+        return full
+
+
+    def get_dm_online(self):
+        """
+        Use requests module to get data model from Earthref.
+        If this fails or times out, return false.
+
+        Returns
+        ---------
+        result : requests.models.Response, False if unsuccessful
+        """
+        try:
+            req = requests.get("https://earthref.org/MagIC/data-models/3.0.json", timeout=3)
+            if not req.ok:
+                return False
+            return req
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout):
+            print('-I- Using cached data model')
+            return False
+
+
+    def parse_cache(self, full_df):
+        """
+        Format the cached data model into a dictionary of DataFrames
+        and a criteria map DataFrame.
+
+        Parameters
+        ----------
+        full_df : DataFrame
+            result of self.get_dm_offline()
+
+        Returns
+        ----------
+        data_model : dictionary of DataFrames
+        crit_map : DataFrame
+        """
+        data_model = {}
+        levels = ['specimens', 'samples', 'sites', 'locations',
+                  'ages', 'measurements', 'criteria', 'contribution',
+                  'images']
+        criteria_map = pd.DataFrame(full_df['criteria_map'])
+        for level in levels:
+            df = pd.DataFrame(full_df['tables'][level]['columns'])
+            data_model[level] = df.transpose()
+        # replace np.nan with None
+        data_model[level] = data_model[level].where((pd.notnull(data_model[level])), None)
+        return data_model, criteria_map
+
+
+    def parse_request(self, raw):
+        """
+        Format the requested data model into a dictionary of DataFrames
+        and a criteria map DataFrame.
+        Take data returned by a requests.get call to Earthref.
+
+        Parameters
+        ----------
+        raw: 'requests.models.Response'
+
+        Returns
+        ---------
+        data_model : dictionary of DataFrames
+        crit_map : DataFrame
+        """
+        tables = pd.DataFrame(raw.json()[4])
+        data_model = {}
+        for table_name in tables.columns:
+            data_model[table_name] = pd.DataFrame(tables[table_name]['columns']).T
+            # replace np.nan with None
+            data_model[table_name] = data_model[table_name].where((pd.notnull(data_model[table_name])), None)
+        #
+        crit = raw.json()[3]
+        zipped = list(zip(crit.keys(), crit.values()))
+        crit_map = pd.DataFrame(zipped)
+        crit_map.index = crit_map[0]
+        crit_map.drop(0, axis='columns', inplace=True)
+        crit_map.rename({1: 'criteria_map'}, axis='columns', inplace=True)
+        crit_map.index.rename("", inplace=True)
+        for table_name in ['measurements', 'specimens', 'samples', 'sites', 'locations',
+                           'contribution', 'criteria', 'images', 'ages']:
+            crit_map.loc[table_name] = np.nan
+
+        return data_model, crit_map
+
+
+    def find_cached_dm(self):
+        """
+        Find filename where cached data model json is stored.
+
+        Returns
+        ---------
+        model_file : str
+            data model json file location
+        """
         pmag_dir = find_pmag_dir.get_pmag_dir()
         if pmag_dir is None:
             pmag_dir = '.'
@@ -41,51 +162,23 @@ class DataModel(object):
             model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0],'pmagpy', 'data_model','data_model.json')
         if not os.path.isfile(model_file):
             model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0], 'data_model','data_model.json')
-        try:
-            f = open(model_file, 'r', encoding='utf-8-sig')
-        except TypeError:
-            f = open(model_file, 'r')
-        string = '\n'.join(f.readlines())
-        f.close()
-        raw = json.loads(string)
-        full = DataFrame(raw)
-        return full
+        return model_file
 
-    def download_data_model(self):
-        """
-        Try to get the 3.0 data model online,
-        if that fails get it offline.
-        """
-        #try:
-        #    raw_dm = self.get_dm_online()
-        #except:
-        #    raw_dm = self.get_dm_offline()
-        raw_dm = self.get_dm_offline()
-        return raw_dm
 
-    def parse_data_model(self, full_df):
+    def cache_data_model(self, raw):
         """
-        Format the data model into a dictionary of DataFrames.
-        """
-        data_model = {}
-        levels = ['specimens', 'samples', 'sites', 'locations',
-                  'ages', 'measurements', 'criteria', 'contribution',
-                  'images']
-        criteria_map = DataFrame(full_df['criteria_map'])
-        for level in levels:
-            df = DataFrame(full_df['tables'][level]['columns'])
-            data_model[level] = df.transpose()
-        # replace np.nan with None
-        data_model[level] = data_model[level].where((pd.notnull(data_model[level])), None)
-        return data_model, criteria_map
+        Cache the data model json.
+        Take data returned by a requests.get call to Earthref.
 
-    def get_data_model(self):
+        Parameters
+        ----------
+        raw: requests.models.Response
+
         """
-        Acquire and parse the data model
-        """
-        full_df = self.download_data_model()
-        parsed_df, criteria_map = self.parse_data_model(full_df)
-        return parsed_df, criteria_map
+        output_json = json.loads(raw.content)
+        output_file = self.find_cached_dm()
+        json.dump(output_json, open(output_file, 'w+'))
+
 
 
     # Utility methods for getting a piece of the data model
@@ -132,7 +225,3 @@ class DataModel(object):
         except KeyError:
             return ''
         return group_name
-
-if __name__ == "__main__":
-    #dm = DataModel()
-    pass
