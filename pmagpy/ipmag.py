@@ -2043,6 +2043,45 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
         plt.legend(loc=2)
 
 
+def plot_vgp_basemap(mapname, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', markersize=20, legend='no'):
+    """
+    This function plots a paleomagnetic pole on whatever current map projection
+    has been set using the basemap plotting library.
+    Before this function is called, a plot needs to be initialized with code
+    that looks something like:
+    >from mpl_toolkits.basemap import Basemap
+    >mapname = Basemap(projection='ortho',lat_0=35,lon_0=200)
+    >plt.figure(figsize=(6, 6))
+    >mapname.drawcoastlines(linewidth=0.25)
+    >mapname.fillcontinents(color='bisque',lake_color='white',zorder=1)
+    >mapname.drawmapboundary(fill_color='white')
+    >mapname.drawmeridians(np.arange(0,360,30))
+    >mapname.drawparallels(np.arange(-90,90,30))
+    Required Parameters
+    -----------
+    mapname : the name of the current map that has been developed using basemap
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
+    Optional Parameters (defaults are used if not specified)
+    -----------
+    color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
+    marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
+    label : the default is no label. Labels can be assigned.
+    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    """
+    if di_block != None:
+        di_lists = unpack_di_block(di_block)
+        if len(di_lists) == 3:
+            vgp_lon, vgp_lat, intensity = di_lists
+        if len(di_lists) == 2:
+            vgp_lon, vgp_lat = di_lists
+    centerlon, centerlat = mapname(vgp_lon, vgp_lat)
+    mapname.scatter(centerlon, centerlat, marker=marker,
+                    s=markersize, color=color, label=label, zorder=100)
+    if legend == 'yes':
+        plt.legend(loc=2)
+
+
 def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='site_lat', dec_is='dec_is', inc_is='inc_is', dec_tc='dec_tc', inc_tc='inc_tc'):
     """
     This function calculates paleomagnetic poles using directional data and site
