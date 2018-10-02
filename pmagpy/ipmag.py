@@ -22,8 +22,10 @@ import re
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmag_env import set_env
-import cartopy
-import cartopy.crs as ccrs
+has_basemap, Basemap = pmag.import_basemap()
+has_cartopy, cartopy = pmag.import_cartopy()
+if has_cartopy == True:
+    import cartopy.crs as ccrs
 
 
 def igrf(input_list,mod='',ghfile=""):
