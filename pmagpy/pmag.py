@@ -21,6 +21,8 @@ from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 from pmag_env import set_env
 
+WARNINGS = {'basemap': False, 'cartopy': False}
+
 
 def get_version():
     """
@@ -10916,22 +10918,33 @@ def import_basemap():
     has_basemap : bool
     Basemap : Basemap package if possible else None
     """
+
     Basemap = None
     has_basemap = True
     try:
         from mpl_toolkits.basemap import Basemap
     except ImportError:
         has_basemap=False
-        print('-W- Basemap is not installed')
-        print('    If you want to make maps using Basemap, look at the Cookbook install instructions:')
-        print('    http://earthref.org/PmagPy/Cookbook#getting_python')
+        has_cartopy = import_cartopy()[0]
+        # if they have installed cartopy, no warning is needed
+        if has_cartopy:
+            return has_basemap, False
+        # if they haven't installed Basemap or cartopy, they need to be warned
+        if not WARNINGS['basemap']:
+            print("-W- You haven't installed a module for plotting maps (cartopy or Basemap)")
+            print("    Recommended: install cartopy.  With conda:")
+            print("    conda install cartopy")
+            print("    For more information, see http://earthref.org/PmagPy/Cookbook#getting_python")
     except (KeyError, FileNotFoundError):
         has_basemap = False
-        print('-W- Basemap is installed but could not be imported.')
-        print('    You are probably missing a required environment variable')
-        print('    To use basemap, you will need to run this program or notebook in a conda env.')
-        print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
-        print('    Or, you could just skip using Basemap (for now -- we are working on making this easier)')
+        if not WARNINGS['basemap']:
+            print('-W- Basemap is installed but could not be imported.')
+            print('    You are probably missing a required environment variable')
+            print('    If you need to use Basemap, you will need to run this program or notebook in a conda env.')
+            print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
+            print('    Recommended alternative: install cartopy for plotting maps.  With conda:')
+            print('    conda install cartopy')
+    WARNINGS['basemap'] = True
     return has_basemap, Basemap
 
 
@@ -10951,9 +10964,19 @@ def import_cartopy():
         import cartopy
     except ImportError:
         has_cartopy = False
-        print('-W- cartopy is not installed')
-        print('    If you want to make maps using cartopy, look at the Cookbook install instructions:')
-        print('    http://earthref.org/PmagPy/Cookbook#getting_python')
+        has_basemap = import_basemap()[0]
+        if has_basemap:
+            if not WARNINGS['cartopy']:
+                print("-W- You have installed Basemap but not cartopy.")
+                print("    In the future, Basemap will no longer be supported.")
+                print("    To continue to make maps, install using conda:")
+                print('    conda install cartopy')
+        else:
+            if not WARNINGS['cartopy']:
+                print('-W- cartopy is not installed')
+                print('    If you want to make maps, install using conda:')
+                print('    conda install cartopy')
+    WARNINGS['cartopy'] = True
     return has_cartopy, cartopy
 
 
