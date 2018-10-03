@@ -31,7 +31,7 @@ class DataModel():
         if dm:
             print('-I- Using online data model')
             #self.cache_data_model(dm)
-            return self.parse_request(dm)
+            return self.parse_response(dm)
         # if online is not available, get cached dm
         dm = self.get_dm_offline()
         print('-I- Using cached data model')
@@ -144,7 +144,7 @@ class DataModel():
         return data_model, crit_map
 
 
-    def parse_request(self, raw):
+    def parse_response(self, raw):
         """
         Format the requested data model into a dictionary of DataFrames
         and a criteria map DataFrame.
@@ -160,11 +160,9 @@ class DataModel():
         crit_map : DataFrame
         """
 
-        tables = raw.json()[4]
-        crit = raw.json()[3]
+        tables = raw.json()['tables']
+        crit = raw.json()['criteria_map']
         return self.parse(tables, crit)
-
-
 
 
     def find_cached_dm(self):
