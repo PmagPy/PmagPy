@@ -10921,11 +10921,12 @@ def import_basemap():
 
     Basemap = None
     has_basemap = True
+    has_cartopy = import_cartopy()[0]
     try:
         from mpl_toolkits.basemap import Basemap
+        WARNINGS['has_basemap'] = True
     except ImportError:
         has_basemap=False
-        has_cartopy = import_cartopy()[0]
         # if they have installed cartopy, no warning is needed
         if has_cartopy:
             return has_basemap, False
@@ -10937,6 +10938,9 @@ def import_basemap():
             print("    For more information, see http://earthref.org/PmagPy/Cookbook#getting_python")
     except (KeyError, FileNotFoundError):
         has_basemap = False
+        # if cartopy is installed, no warning is needed
+        if has_cartopy:
+            return has_basemap, False
         if not WARNINGS['basemap']:
             print('-W- Basemap is installed but could not be imported.')
             print('    You are probably missing a required environment variable')
@@ -10944,6 +10948,12 @@ def import_basemap():
             print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
             print('    Recommended alternative: install cartopy for plotting maps.  With conda:')
             print('    conda install cartopy')
+    if has_basemap and not has_cartopy:
+        print("-W- You have installed Basemap but not cartopy.")
+        print("    In the future, Basemap will no longer be supported.")
+        print("    To continue to make maps, install using conda:")
+        print('    conda install cartopy')
+
     WARNINGS['basemap'] = True
     return has_basemap, Basemap
 
@@ -10962,20 +10972,13 @@ def import_cartopy():
     has_cartopy = True
     try:
         import cartopy
+        WARNINGS['has_cartopy'] = True
     except ImportError:
         has_cartopy = False
-        has_basemap = import_basemap()[0]
-        if has_basemap:
-            if not WARNINGS['cartopy']:
-                print("-W- You have installed Basemap but not cartopy.")
-                print("    In the future, Basemap will no longer be supported.")
-                print("    To continue to make maps, install using conda:")
-                print('    conda install cartopy')
-        else:
-            if not WARNINGS['cartopy']:
-                print('-W- cartopy is not installed')
-                print('    If you want to make maps, install using conda:')
-                print('    conda install cartopy')
+        if not WARNINGS['cartopy']:
+            print('-W- cartopy is not installed')
+            print('    If you want to make maps, install using conda:')
+            print('    conda install cartopy')
     WARNINGS['cartopy'] = True
     return has_cartopy, cartopy
 
