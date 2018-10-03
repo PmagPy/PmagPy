@@ -54,7 +54,7 @@ install:
   - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
   - conda install --quiet $PACKAGES
   - conda install --quiet cartopy
-  - conda install --quiet pandas libtiff matplotlib numpy scipy future
+  - conda install --quiet pandas libtiff matplotlib numpy scipy future requests
   - pip install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
   # download and install wxPython
