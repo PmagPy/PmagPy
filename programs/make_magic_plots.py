@@ -9,11 +9,14 @@ from pmagpy import contribution_builder as cb
 VERBOSE = True
 
 
-def error_log(msg, loc="", program=""):
+def error_log(msg, loc="", program="", con_id=""):
+    con_id = str(con_id)
     with open('errors.txt', 'a') as log:
-        log.write(str(datetime.datetime.now()) + '\t' + loc + '\t' + program + '\t' + msg + '\n')
+        log.write(con_id + '\t' + str(datetime.datetime.now()) + '\t' + loc + '\t' + program + '\t' + msg + '\n')
+    full_msg = '-W- ' + con_id + '\t' + loc + '\t' + program + '\t' + msg + '\n'
     if VERBOSE:
-        print('-W- ' + loc + '\t' + program + '\t' + msg + '\n')
+        print(full_msg)
+    sys.stderr.write(full_msg)
 
 def info_log(msg, loc="", program=""):
     with open('log.txt', 'a') as log:
@@ -98,6 +101,11 @@ def main():
         print('-E- No MagIC tables could be found in this directory')
         error_log("No MagIC tables found")
         return
+    # try to get the contribution id for error logging
+    con_id = ""
+    if 'contribution' in con.tables:
+        if 'id' in con.tables['contribution'].df.columns:
+            con_id = con.tables['contribution'].df.iloc[0]['id']
     # check to see if propagation worked, otherwise you can't plot by location
     lowest_table = None
     for table in con.ancestry:
@@ -118,13 +126,13 @@ def main():
                 info_log('location names propagated to {}'.format(lowest_table))
             else:
                 do_full_directory = True
-                error_log('location names did not propagate fully to {} table'.format(lowest_table))
+                error_log('location names did not propagate fully to {} table'.format(lowest_table), con_id=con_id)
         else:
             do_full_directory = True
-            error_log('could not propagate location names down to {} table'.format(lowest_table))
+            error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
     else:
         do_full_directory = True
-        error_log('could not propagate location names down to {} table'.format(lowest_table))
+        error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
 
     all_data = {}
     all_data['measurements'] = con.tables.get('measurements', None)
@@ -141,7 +149,7 @@ def main():
 
     # plot the whole contribution as one location
     if dirlist == ["./"]:
-        error_log('plotting the entire contribution as one location')
+        error_log('plotting the entire contribution as one location', con_id=con_id)
         for fname in os.listdir("."):
             if fname.endswith(".txt"):
                 shutil.copy(fname, "tmp_" + fname)
@@ -241,7 +249,7 @@ def main():
                 # check for reqd columns
                 missing = check_for_reqd_cols(data, ['treat_temp'])
                 if missing:
-                    error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py")
+                    error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
                     CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
                     print(CMD)
@@ -326,7 +334,7 @@ def main():
                     os.system(CMD)
                 else:
                     if dir_data_found:
-                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py")
+                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py", con_id=con_id)
             #
             print('-I- working on VGP map')
             VGPs = pmag.get_dictitem(
