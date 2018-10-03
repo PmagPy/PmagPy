@@ -2,17 +2,15 @@
 
 from past.utils import old_div
 import codecs
-from . import pmag
-from . import pmagplotlib
-from . import data_model3 as data_model
-from .contribution_builder import Contribution
-from . import validate_upload3 as val_up3
 import copy
 import numpy as np
 import pandas as pd
+from scipy import stats
 import random
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+from matplotlib.pylab import polyfit
+import matplotlib.ticker as mtick
 import os
 import sys
 import time
@@ -21,7 +19,13 @@ import re
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
+from pmagpy import spline
 from pmag_env import set_env
+from . import pmag
+from . import pmagplotlib
+from . import data_model3 as data_model
+from .contribution_builder import Contribution
+from . import validate_upload3 as val_up3
 has_basemap, Basemap = pmag.import_basemap()
 has_cartopy, cartopy = pmag.import_cartopy()
 if has_cartopy == True:
@@ -4580,7 +4584,6 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
             get_model_lat = 0  # skips VADM calculation entirely
 
     if plotsites and not skip_directions:  # plot by site - set up plot window
-        from . import pmagplotlib
         EQ = {}
         EQ['eqarea'] = 1
         # define figure 1 as equal area projection
@@ -7418,8 +7421,6 @@ def iplot_hys(fignum, B, M, s):
     M : list of M (magnetization) values of hysteresis experiment
     s : specimen name
     """
-    import pmagpy.spline as spline
-    from matplotlib.pylab import polyfit
     if fignum != 0:
         plt.figure(num=fignum)
         plt.clf()
@@ -7529,8 +7530,6 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
     fmt : format of saved figures (default is 'pdf')
     plots: whether or not to display the plots (default is true)
     """
-    from matplotlib.pylab import polyfit
-    import matplotlib.ticker as mtick
     user, meas_file, rmag_out, rmag_file = "", "agm_measurements.txt", "rmag_hysteresis.txt", ""
     pltspec = ""
     dir_path = save_folder
@@ -7874,8 +7873,6 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     rate : rate of latitudinal motion in cm/yr along with estimated 2.5 and 97.5
     percentile rate estimates
     """
-    from scipy import stats
-
     ref_loc = [ref_loc_lon, ref_loc_lat]
     pole1 = (pole1_plon, pole1_plat)
     pole1_paleolat = 90 - pmag.angle(pole1, ref_loc)
