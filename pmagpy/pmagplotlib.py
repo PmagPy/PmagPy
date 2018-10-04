@@ -3148,7 +3148,7 @@ def plot_map(fignum, lats, lons, Opts):
     Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
                   'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
                   'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
-                  'padlon':0,'padlat':0,'gridspace':30,'global':1,\
+                  'padlon':0,'padlat':0,'gridspace':30,'global':1,'cmap':'jet',\
                   'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
     for key in Opts_defaults.keys():
         if key not in Opts.keys() and key!='details':
@@ -3401,7 +3401,7 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
 
     Effects
     ______________
-    plots a Mollweide projection color contour with  the desired field element
+    plots a Robinson projection color contour with  the desired field element
     """
     has_cartopy, Cartopy = pmag.import_cartopy()
     if not has_cartopy:
@@ -3415,17 +3415,17 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     fig=plt.figure(fignum)
 
     # doesn't work correctly with mod other than default
-    ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
+    ax = plt.axes(projection=ccrs.Robinson(central_longitude=lon_0))
     xx, yy = np.meshgrid(lons, lats)
-    levmax=round(element.max()+lincr)
-    levmin=round(element.min()-lincr)
+    levmax=5*round(element.max()/5)
+    levmin=5*round(element.min()/5)
     if element_type=='Br' or element_type=='B':
         plt.contourf(xx, yy, element,
-                     levels=np.arange(levmin,levmax,lincr),
+                     levels=np.arange(levmin,levmax,1),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar=plt.colorbar(orientation='horizontal')
-        #plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
-        #            colors='black', transform=ccrs.PlateCarree())
+        plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
+                    colors='black', transform=ccrs.PlateCarree())
         if element_type=='Br':
             plt.title('Radial field strength ($\mu$T): '+date);
         else:

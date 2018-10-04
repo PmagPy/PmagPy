@@ -40,7 +40,7 @@ def igrf(input_list,mod='',ghfile=""):
     Parameters
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
-        date must be in decimal year format XXXX.XXXX (A.D.)
+        date must be in decimal year format XXXX.XXXX (Common Era)
     mod :  desired model
         "" : Use the IGRF
         custom : use values supplied in ghfile
@@ -2045,7 +2045,8 @@ def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
     plt.colorbar(sm,orientation='horizontal',shrink=0.8,pad=0.05,label=colorbar_label)
 
 
-def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', markersize=20, legend=False):
+def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', \
+    edge='black', markersize=20, legend=False):
     """
     This function plots a paleomagnetic pole position on a cartopy map axis.
 
@@ -2068,6 +2069,8 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     -----------
     color : the color desired for the symbol (default is 'k' aka black)
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
+    edge : the color of the edge of the marker (default is black)
+    markersize : size of the marker in pt (default is 20)
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend (False). Putting True will plot a legend.
     """
@@ -2077,7 +2080,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
             vgp_lon, vgp_lat, intensity = di_lists
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
-    map_axis.scatter(vgp_lon, vgp_lat, marker=marker,
+    map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=[edge],
                     s=markersize, color=color, label=label, zorder=100, transform=ccrs.Geodetic())
     map_axis.set_global()
     if legend == True:

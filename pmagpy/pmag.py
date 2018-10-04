@@ -1515,7 +1515,7 @@ def vector_mean(data):
     calculates the vector mean of a given set of vectors
     Parameters
     __________
-    data :  nested array of [dec,inc,M]
+    data :  nested array of [dec,inc,intensity]
 
     Returns
     _______
@@ -2455,7 +2455,7 @@ def cart2dir(cart):
 
     Parameters
     ----------
-    cart : input list of [x,y,z]
+    cart : input list of [x,y,z] or list of lists [[x1,y1,z1],[x2,y2,z2]...]
 
     Returns
     -------
@@ -4554,7 +4554,7 @@ def scoreit(pars, PmagSpecRec, accept, text, verbose):
 def b_vdm(B, lat):
     """
     Converts a magnetic field value (input in units of tesla) to a virtual
-    dipole moment (VDM) or a virtual axial dipole moment (VADM; output
+    dipole moment (VDM) or a virtual axial dipole moment (VADM); output
     in units of Am^2)
 
     Parameters
@@ -4565,6 +4565,12 @@ def b_vdm(B, lat):
     Returns
     ----------
     V(A)DM in units of Am^2
+    
+    Examples
+    --------
+    >>> pmag.b_vdm(33e-6,22)*1e-21
+
+    71.58815974511788
     """
     # changed radius of the earth from 3.367e6 3/12/2010
     fact = ((6.371e6)**3) * 1e7
@@ -5333,8 +5339,8 @@ def dimap(D, I):
 
     Parameters
     ----------
-    D : declination (as float)
-    I : inclination (as float)
+    D : list or array of declinations (as float)
+    I : list or array or inclinations (as float)
 
     Returns
     -------
@@ -5698,7 +5704,7 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up F from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
+  looks up an F-test stastic from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
 
     Parameters
     _________
@@ -6579,18 +6585,18 @@ def dohext(nf, sigma, s):
         'F' : value of F
         'F12' : value of F12
         'F23' : value of F23
-        'v1_dec': declination of principal vector
-        'v1_inc': inclinatino of principal vector
-        'v2_dec': declination of principal vector
-        'v2_inc': declination of principal vector
-        'v3_dec': declination of principal vector
-        'v3_inc': declination of principal vector
-        't1': declination of principal vector
-        't2': declination of principal vector
-        't3': declination of principal vector
-        'e12': declination of principal vector
-        'e23': declination of principal vector
-        'e13'
+        'v1_dec': declination of principal eigenvector
+        'v1_inc': inclination of principal eigenvector
+        'v2_dec': declination of major eigenvector
+        'v2_inc': inclination of major eigenvector
+        'v3_dec': declination of minor eigenvector
+        'v3_inc': inclination of minor eigenvector
+        't1': principal eigenvalue 
+        't2': major eigenvalue
+        't3': minor eigenvalue
+        'e12': angle of confidence ellipse of principal eigenvector in direction of major eigenvector
+        'e23': angle of confidence ellipse of major eigenvector in direction of minor eigenvector
+        'e13': angle of confidence ellipse of principal eigenvector in direction of minor eigenvector
 
     If working with data set with no sigmas and the average is desired, use nf,sigma,avs=pmag.sbar(Ss) as input
 
@@ -6841,13 +6847,13 @@ def s_boot(Ss, ipar=0, nb=1000):
 
     Parameters
     __________
-    Ss : nested array of [x11 x22 x33 x12 x23 x13,....] data
+    Ss : nested array of [[x11 x22 x33 x12 x23 x13],....] data
     ipar : if True, do a parametric bootstrap
     nb : number of bootstraps
 
     Returns
     ________
-    Tmean : aveage eigenvalues
+    Tmean : average eigenvalues
     Vmean : average eigvectors
     Taus : bootstrapped eigenvalues
     Vs :  bootstrapped eigenvectors
@@ -9590,11 +9596,11 @@ def squish(incs, f):
 
     Returns
     _______
-    Io :  inclinations after flattening
+    I_o :  inclinations after flattening
     """
     incs = np.radians(incs)
-    Io = f * np.tan(incs)  # multiply tangent by flattening factor
-    return np.degrees(np.arctan(Io))
+    I_o = f * np.tan(incs)  # multiply tangent by flattening factor
+    return np.degrees(np.arctan(I_o))
 
 
 def unsquish(incs, f):
@@ -9609,11 +9615,11 @@ def unsquish(incs, f):
 
     Returns
     _______
-    Io :  inclinations after unflattening
+    I_o :  inclinations after unflattening
     """
     incs = np.radians(incs)
-    Io = np.tan(incs)/f  # divide tangent by flattening factor
-    return np.degrees(np.arctan(Io))
+    I_o = np.tan(incs)/f  # divide tangent by flattening factor
+    return np.degrees(np.arctan(I_o))
 
 def get_ts(ts):
     """
@@ -10630,7 +10636,7 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
 
 
-def doeqdi(x, y, UP=0):
+def doeqdi(x, y, UP=False):
     """
     Takes digitized x,y, data and returns the dec,inc, assuming an
     equal area projection
@@ -10776,7 +10782,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
 
 def watsons_f(DI1, DI2):
     """
-    calculates Watson's F statistic (equation 11.16 in Essentials text book.
+    calculates Watson's F statistic (equation 11.16 in Essentials text book).
 
     Parameters
     _________
@@ -10809,6 +10815,17 @@ def apwp(data,print_results=False):
     Parameters
     _________
         data : [plate,lat,lon,age]
+            plate : [NA, SA, AF, IN, EU, AU, ANT, GL] 
+                NA : North America
+                SA : South America
+                AF : Africa  
+                IN : India
+                EU : Eurasia
+                AU : Australia 
+                ANT: Antarctica 
+                GL : Greenland
+             lat/lon : latitude/longitude in degrees N/E
+             age : age in millions of years
         print_results : if True will print out nicely formatted results
     Returns
     _________
