@@ -6606,7 +6606,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     complete_path = os.path.join(path_to_file, file_name)
     if magic:
         data_df=pd.read_csv(complete_path,sep='\t',header=1)
-        T=data_df['meas_temp'].values
+        T=data_df['meas_temp'].values-273
         magn_key=cb.get_intensity_col(data_df)
         M=data_df[magn_key].values
     else:
@@ -9734,3 +9734,79 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
         print("specimen statistics and eigenparameters stored in ", rmag_res)
         return True, rmag_anis
+
+def zeq_magic(meas_file='measurements.txt',input_dir_path='./',angle=0):
+    """
+    zeq_magic makes zijderveld and equal area plots for magic formatted measurements files
+
+    Parameters
+    ----------
+    meas_file : str
+        input measurement file
+    input_dir_path : str
+        input directory of meas_file, default "."
+    angle : float
+        angle of X direction with respect to specimen X
+    """
+ # read in MagIC foramatted data
+    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+    meas_df=pd.read_csv(file_path,sep='\t',header=1) #read in magic formatted data
+    meas_df['blank']="" # this is a dummy variable expected by plotZED
+    specimens=meas_df.specimen.unique() # list of specimen names
+    if len(specimens)==0:
+        print ('there are no data for plotting')
+        return
+    cnt=1
+    for s in specimens:
+        # we can make the figure dictionary that pmagplotlib likes:
+        ZED={'eqarea':cnt,'zijd':cnt+1, 'demag':cnt+2}# make datablock
+        cnt+=3
+        spec_df=meas_df[meas_df.specimen==s]
+        spec_df_nrm=spec_df[spec_df.method_codes.str.contains('LT-NO')] # get the NRM data
+        spec_df_th=spec_df[spec_df.method_codes.str.contains('LT-T-Z')] # zero field thermal demag steps
+        spec_df_th=spec_df_th[spec_df.method_codes.str.contains('LT-PTRM')==False] # get rid of some pTRM steps
+        spec_df_af=spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
+        if len(spec_df_th.index)>1: # this is a thermal run
+            spec_df=pd.concat([spec_df_nrm,spec_df_th])
+            units='K' # units are kelvin
+            datablock=spec_df[['treat_temp','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()
+            pmagplotlib.plot_zed(ZED,datablock,angle,s,units)
+        if len(spec_df_af.index)>1: # this is an af run
+            spec_df=pd.concat([spec_df_nrm,spec_df_af])
+            units='T' # these are AF data
+            datablock=spec_df[['treat_ac_field','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()      
+            pmagplotlib.plot_zed(ZED,datablock,angle,s,units)
+
+    
+    
+def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
+    """
+    thellier_magic plots arai and other useful plots for Thellier-type experimental data
+
+    Parameters
+    ----------
+    meas_file : str
+        input measurement file
+    input_dir_path : str
+        input directory of meas_file, default "."
+    """
+    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+    meas_df=pd.read_csv(file_path,sep='\t',header=1) #read in magic formatted data
+    int_key=cb.get_intensity_col(meas_df)
+    meas_data=meas_df[meas_df[int_key].notnull()] #get all the records with measurement data
+    thel_data = meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM')] # get all the Thellier data
+    specimens=meas_data.specimen.unique() # list of specimen names
+    if len(specimens)==0:
+        print ('there are no data for plotting')
+        return
+    specimens=specimens[0:5] # just plot the first 5
+    cnt=1 # set the figure counter to 1
+    for this_specimen in specimens: #step through the specimens  list
+    # make the figure dictionary that pmagplotlib likes:
+        AZD={'arai':cnt,'zijd':cnt+1, 'eqarea':cnt+2, 'deremag':cnt+3}# make datablock
+        cnt+=4 # increment the figure counter
+        spec_df=thel_data[thel_data.specimen==this_specimen] # get data for this specimen
+        araiblock,field=pmag.sortarai(spec_df,this_specimen,0,version=3) # get the data block for Arai plot
+        zijdblock, units = pmag.find_dmag_rec(this_specimen, spec_df, version=3) # get the datablock for Zijderveld plot
+    pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock, this_specimen, units[-1]) # make the plots
+

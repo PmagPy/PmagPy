@@ -1,32 +1,38 @@
 tab	samples
-analysts	azimuth	bed_dip	bed_dip_direction	citations	dip	method_codes	sample	site
-Roi	27	0	0	This study	-27	LP-NO	ST23	ST2
-Roi	24	0	0	This study	-36	LP-NO	ST2	ST
-Roi	3	0	0	This study	-49	LP-NO	ST21	ST2
-Roi	359	0	0	This study	-67	LP-NO	ST3	ST
-Roi	21	0	0	This study	-86	LP-NO	ST38	ST3
-Roi	253	0	0	This study	-71	LP-NO	ST4	ST
-Roi	29	0	0	This study	-75	LP-NO	ST1	ST
-Roi	111	0	0	This study	-77	LP-NO	MF15	MF1
-Roi	119	0	0	This study	-57	LP-NO	MF1	MF
-Roi	348	0	0	This study	-59	LP-NO	MF2	MF
-Roi	340	0	0	This study	-35	LP-NO	BR1	BR
-Roi	342	0	0	This study	-28	LP-NO	BR14	BR1
-Roi	280	0	0	This study	-57	LP-NO	BR29	BR2
-Roi	282	0	0	This study	-41	LP-NO	BR21	BR2
-Roi	33	0	0	This study	-26	LP-NO	RQ1	RQ
-Roi	41	0	0	This study	-38	LP-NO	RQ2	RQ
-Roi	171	0	0	This study	-38	LP-NO	RQ37	RQ3
-Roi	126	0	0	This study	-30	LP-NO	RQ3	RQ
-Roi	153	0	0	This study	-26	LP-NO	RQ4	RQ
-Roi	57	0	0	This study	-68	LP-NO	ST1	ST
-Roi	123	0	0	This study	-32	LP-NO	MF1	MF
-Roi	354	0	0	This study	-46	LP-NO	MF2	MF
-Roi	337	0	0	This study	-32	LP-NO	BR1	BR
-Roi	287	0	0	This study	-52	LP-NO	BR2	BR
-Roi	36	0	0	This study	-31	LP-NO	RQ1	RQ
-Roi	94	0	0	This study	-9	LP-NO	RQ3	RQ
-Roi	41	0	0	This study	-42	LP-NO	RQ2	RQ
-Roi	134	0	0	This study	-17	LP-NO	RQ4	RQ
-Roi	263	0	0	This study	-49	LP-NO	ST4	ST
-Roi	358	0	0	This study	-36	LP-NO	ST2	ST
+analysts	azimuth	citations	dip	method_codes	sample	site
+Roi	342	This study	-62.0	LP-NO	BR14	BR1
+Roi	111	This study	-13.0	LP-NO	MF15	MF1
+Roi	280	This study	-33.0	LP-NO	BR29	BR2
+Roi	57	This study	-22.0	LP-NO	ST1	ST
+Roi	123	This study	-58.0	LP-NO	MF1	MF
+Roi	354	This study	-44.0	LP-NO	MF2	MF
+Roi	337	This study	-58.0	LP-NO	BR1	BR
+Roi	287	This study	-38.0	LP-NO	BR2	BR
+Roi	36	This study	-59.0	LP-NO	RQ1	RQ
+Roi	94	This study	-81.0	LP-NO	RQ3	RQ
+Roi	41	This study	-48.0	LP-NO	RQ2	RQ
+Roi	134	This study	-73.0	LP-NO	RQ4	RQ
+Roi	263	This study	-41.0	LP-NO	ST4	ST
+Roi	21	This study	-4.0	LP-NO	ST38	ST3
+Roi	27	This study	-63.0	LP-NO	ST23	ST2
+Roi	171	This study	-52.0	LP-NO	RQ37	RQ3
+Roi	358	This study	-54.0	LP-NO	ST2	ST
+Roi	24	This study	-54.0	LP-NO	ST2	ST
+Roi	3	This study	-41.0	LP-NO	ST21	ST2
+Roi	359	This study	-23.0	LP-NO	ST3	ST
+Roi	253	This study	-19.0	LP-NO	ST4	ST
+Roi	29	This study	-15.0	LP-NO	ST1	ST
+Roi	119	This study	-33.0	LP-NO	MF1	MF
+Roi	348	This study	-31.0	LP-NO	MF2	MF
+Roi	340	This study	-55.0	LP-NO	BR1	BR
+Roi	282	This study	-49.0	LP-NO	BR21	BR2
+Roi	33	This study	-64.0	LP-NO	RQ1	RQ
+Roi	41	This study	-52.0	LP-NO	RQ2	RQ
+Roi	126	This study	-60.0	LP-NO	RQ3	RQ
+Roi	153	This study	-64.0	LP-NO	RQ4	RQ
+Roi	19	This study	-83.0	LP-NO	AP12-01	AP12-0
+Roi	202	This study	-77.0	LP-NO	AP12-02	AP12-0
+Roi	117	This study	-77.0	LP-NO	AP12-03	AP12-0
+Roi	110	This study	-83.0	LP-NO	AP12-04	AP12-0
+Roi	82	This study	-82.0	LP-NO	AP12-05	AP12-0
+Roi	160	This study	-73.0	LP-NO	AP12-06	AP12-0

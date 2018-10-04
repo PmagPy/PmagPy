@@ -8264,7 +8264,7 @@ def measurements_methods3(meas_data, noave):
 #
     SpecTmps, SpecOuts = [], []
     for spec in sids:
-        TRM, IRM3D, ATRM, CR = 0, 0, 0, 0
+        TRM, IRM3D, ATRM, CR, AC = 0, 0, 0, 0, 0
         expcodes = ""
 # first collect all data for this specimen and do lab treatments
         # list  of measurement records for this specimen
@@ -8284,6 +8284,8 @@ def measurements_methods3(meas_data, noave):
                 ATRM = 1  # catch these suckers here!
             elif "LP-CR-TRM" in tmpmeths:
                 CR = 1  # catch these suckers here!
+            elif "LT-PTRM-AC" in tmpmeths:
+                AC = 1  # catch these suckers here!
 #
 # otherwise write over existing method codes
 #
@@ -8560,7 +8562,9 @@ def measurements_methods3(meas_data, noave):
     # check if this is a pTRM check
     #
                     if float(rec["treat_temp"]) < float(rec_bak["treat_temp"]):  # went backward
-                        if "LT-T-I" in meths and "LT-T-Z" in methbak:  # must be a pTRM check after first z
+                        if "LT-PTRM-AC" in rec['method_codes']:
+                            methcodes = methcodes + "LT-PTRM-AC"
+                        elif "LT-T-I" in meths and "LT-T-Z" in methbak:  # must be a pTRM check after first z
                             #
                             # replace LT-T-I method code with LT-PTRM-I
                             #

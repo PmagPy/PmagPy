@@ -2254,11 +2254,11 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return True, meas_file
 
@@ -2855,11 +2855,11 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return True, meas_file
 
@@ -3328,11 +3328,11 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
     MeasOuts, keys = pmag.fillkeys(MeasFixed)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return True, meas_file
 
@@ -3556,11 +3556,11 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return (True, meas_file)
 
@@ -4202,11 +4202,11 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.write_table_to_file('specimens', custom_name=spec_file)
-    con.write_table_to_file('samples', custom_name=samp_file)
-    con.write_table_to_file('sites', custom_name=site_file)
-    con.write_table_to_file('locations', custom_name=loc_file)
-    con.write_table_to_file('measurements', custom_name=meas_file)
+    con.write_table_to_file('specimens', custom_name=spec_file,dir_path=dir_path)
+    con.write_table_to_file('samples', custom_name=samp_file,dir_path=dir_path)
+    con.write_table_to_file('sites', custom_name=site_file,dir_path=dir_path)
+    con.write_table_to_file('locations', custom_name=loc_file,dir_path=dir_path)
+    con.write_table_to_file('measurements', custom_name=meas_file,dir_path=dir_path)
 
     return (True, meas_file)
 
@@ -4738,11 +4738,11 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return True, meas_file
 
@@ -7607,11 +7607,11 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file,dir_path=dir_path)
 
     return True, meas_file
 
@@ -8285,12 +8285,12 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     # write MagIC tables to file
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file,dir_path=dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file,dir_path=dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file,dir_path=dir_path)
     meas_file = con.tables['measurements'].write_magic_file(
-        custom_name=meas_file)
+        custom_name=meas_file,dir_path=dir_path)
     return True, meas_file
 
 
