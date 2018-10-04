@@ -295,16 +295,12 @@ def main():
                 SiteDIs = []
                 for rec in old_SiteDIs:
                     if tilt_corr_key not in rec:
-                        rec[tilt_corr_key] = 0
-                        #error_log("Directional data found, but missing {}, can't plot directions".format(tilt_corr_key), loc, "eqarea_magic.py", con_id=con_id)
-                        #break
-                    if cb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
-                        rec[tilt_corr_key] = ""
-                    else:
-                        try:
-                            rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
-                        except ValueError:
-                            rec[tilt_corr_key] = ""
+                        rec[tilt_corr_key] = "0"
+                    # make sure tilt_corr_key is a correct format
+                    try:
+                        rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                    except ValueError:
+                        rec[tilt_corr_key] = "0"
                     SiteDIs.append(rec)
 
                 print('number of individual directions: ', len(SiteDIs))
