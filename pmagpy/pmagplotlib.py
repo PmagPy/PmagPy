@@ -3198,7 +3198,7 @@ def plot_map(fignum, lats, lons, Opts):
             central_longitude=Opts['lon_0'],
             central_latitude=Opts['lat_0']))
     if Opts['proj']== 'robin':
-        ax = plt.axes(projection=ccrs.Robin(\
+        ax = plt.axes(projection=ccrs.Robinson(\
             central_longitude=Opts['lon_0'],
             globe=None))
 
@@ -3282,8 +3282,8 @@ def plot_map(fignum, lats, lons, Opts):
         if Opts['details']['ocean'] == 1:
              ax.add_feature(OCEAN,color='lightblue')
              ax.add_feature(LAND,color='yellow')
-    if Opts['pltgrid'] >= 0.:
-        if Opts['proj'] not in ['ortho','moll','lcc']:
+    if Opts['proj'] in ['merc','pc']:
+        if Opts['pltgrid'] >= 0.:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
         else:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
@@ -3292,6 +3292,8 @@ def plot_map(fignum, lats, lons, Opts):
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
         gl.xlabels_top = False
+    else:
+        print ('gridlines only supported for PlateCarree and Mercator plots currently')
     prn_name, symsize = 0, 5
     #if 'names' in list(Opts.keys()) > 0:
     #    names = Opts['names']
@@ -3377,7 +3379,7 @@ def plot_mag_map_basemap(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon
     cbar=m.colorbar(cs,location='bottom')
 
 
-def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
+def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date="",contours=False,proj='PlateCarree'):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3394,10 +3396,14 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
         D : declinations
     Optional
     _________
-        cmap : matplotlib color map
-        lon_0 : central longitude of the Mollweide projection
-        date : date used for field evaluation,
-               if custom ghfile was used, supply filename
+    contours : plot the contour lines on top of the heat map if True
+    proj : cartopy projection ['PlateCarree','Mollweide']
+           NB: The Mollweide projection can only be reliably done for lon_0=0 for element=B and D
+               Also, the Mollweide projection is much slower.
+    cmap : matplotlib color map
+    lon_0 : central longitude of the Mollweide projection
+    date : date used for field evaluation,
+           if custom ghfile was used, supply filename
 
     Effects
     ______________
@@ -3405,27 +3411,37 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     """
     has_cartopy, Cartopy = pmag.import_cartopy()
     if not has_cartopy:
+       print ('This function requires installation of cartopy')
        return
     import cartopy.crs as ccrs
     from pylab import meshgrid
 
     from matplotlib import cm
+    if lon_0==180:lon_0=179.99
+    if lon_0>180:lon_0=lon_0-360.
     lincr=1
     if type(date)!=str: date=str(date)
-    fig=plt.figure(fignum)
-
-    # doesn't work correctly with mod other than default
-    ax = plt.axes(projection=ccrs.Robinson(central_longitude=lon_0))
+    if proj=='PlateCarree':
+        fig=plt.figure(fignum)
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=lon_0))
+    if proj=='Mollweide':
+        fig=plt.figure(fignum)
+        if lon_0!=0:
+            print ('This projection requires lon_0=0')
+            return
+        ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
     xx, yy = np.meshgrid(lons, lats)
-    levmax=5*round(element.max()/5)
-    levmin=5*round(element.min()/5)
+    levmax=5*round(element.max()/5)+5
+    levmin=5*round(element.min()/5)-5
     if element_type=='Br' or element_type=='B':
         plt.contourf(xx, yy, element,
                      levels=np.arange(levmin,levmax,1),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar=plt.colorbar(orientation='horizontal')
-        plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
-                    colors='black', transform=ccrs.PlateCarree())
+        if contours: 
+            plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
+                colors='black', transform=ccrs.PlateCarree())
+
         if element_type=='Br':
             plt.title('Radial field strength ($\mu$T): '+date);
         else:
@@ -3435,7 +3451,8 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
                      levels=np.arange(levmin,levmax,lincr),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar=plt.colorbar(orientation='horizontal')
-        plt.contour(xx,yy,element,levels=np.arange(-80,90,10),
+        if contours: 
+            plt.contour(xx,yy,element,levels=np.arange(-80,90,10),
                     colors='black', transform=ccrs.PlateCarree())
         plt.title('Field inclination: '+date);
     if element_type=='D':
@@ -3443,7 +3460,8 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
                      levels=np.arange(-180,180,10),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar=plt.colorbar(orientation='horizontal')
-        plt.contour(xx, yy, element, levels=np.arange(-180,180,10), 
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(-180,180,10), 
                     colors='black', transform=ccrs.PlateCarree())
         plt.title('Field declination: '+date);
     ax.coastlines()

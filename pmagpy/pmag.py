@@ -10589,6 +10589,8 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
 
     """
     incr = 10  # we can vary to the resolution of the model
+    if lon_0==180:lon_0=179.99
+    if lon_0>180:lon_0=lon_0-360.
     # get some parameters for our arrays of lat/lon
     lonmax = (lon_0 + 180.) %360 + incr
     lonmin = (lon_0 - 180.)
