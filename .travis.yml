@@ -8,6 +8,8 @@ env:
         #  #PACKAGES="numpy=1.10.0 matplotlib=1.5.1 nose scipy=0.16.0 libgfortran=1"
         - NAME="Python 3.6"
           PYTHON_VERSION=3.6
+        - NAME="Python 3.7"
+          PYTHON_VERSION=3.7
         #  PACKAGES="numpy matplotlib freetype<2.8 scipy"
 
 # use this OR env/matrix
@@ -66,6 +68,11 @@ install:
       wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
       pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
     fi
+  - if [[ "$PYTHON_VERSION" == 3.7* ]]; then
+      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
+      pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
+    fi
+
   # command to run tests, e.g. python setup.py test
 script:
   - python -c "print('starting tests')"
