@@ -1,3 +1,0 @@
-tab	samples
-analysts	citations	sample	site
-	This study	MGH1	MGH1

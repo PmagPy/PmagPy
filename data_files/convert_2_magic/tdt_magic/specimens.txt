@@ -1,3 +1,0 @@
-tab	specimens
-analysts	citations	sample	specimen	volume
-	This study	MGH1	MGH1	1.2e-05
