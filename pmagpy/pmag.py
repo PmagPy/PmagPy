@@ -4565,7 +4565,7 @@ def b_vdm(B, lat):
     Returns
     ----------
     V(A)DM in units of Am^2
-    
+
     Examples
     --------
     >>> pmag.b_vdm(33e-6,22)*1e-21
@@ -6591,7 +6591,7 @@ def dohext(nf, sigma, s):
         'v2_inc': inclination of major eigenvector
         'v3_dec': declination of minor eigenvector
         'v3_inc': inclination of minor eigenvector
-        't1': principal eigenvalue 
+        't1': principal eigenvalue
         't2': major eigenvalue
         't3': minor eigenvalue
         'e12': angle of confidence ellipse of principal eigenvector in direction of major eigenvector
@@ -9342,7 +9342,7 @@ def plat(inc):
 #
 
 
-def pseudo(DIs):
+def pseudo(DIs, random_seed=None):
     """
     Draw a bootstrap sample of directions returning as many bootstrapped samples
     as in the input directions
@@ -9350,12 +9350,15 @@ def pseudo(DIs):
     Parameters
     ----------
     DIs : nested list of dec, inc lists (known as a di_block)
+    random_seed : set random seed for reproducible number generation (default is None)
 
     Returns
     -------
     Bootstrap_directions : nested list of dec, inc lists that have been
     bootstrapped resampled
     """
+    if random_seed != None:
+        np.random.seed(random_seed)
     Inds = np.random.randint(len(DIs), size=len(DIs))
     D = np.array(DIs)
     return D[Inds]
@@ -10821,14 +10824,14 @@ def apwp(data,print_results=False):
     Parameters
     _________
         data : [plate,lat,lon,age]
-            plate : [NA, SA, AF, IN, EU, AU, ANT, GL] 
+            plate : [NA, SA, AF, IN, EU, AU, ANT, GL]
                 NA : North America
                 SA : South America
-                AF : Africa  
+                AF : Africa
                 IN : India
                 EU : Eurasia
-                AU : Australia 
-                ANT: Antarctica 
+                AU : Australia
+                ANT: Antarctica
                 GL : Greenland
              lat/lon : latitude/longitude in degrees N/E
              age : age in millions of years
