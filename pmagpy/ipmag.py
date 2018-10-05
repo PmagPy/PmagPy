@@ -7848,7 +7848,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
 def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1_age_error,
                   pole2_plon, pole2_plat, pole2_kappa, pole2_N, pole2_age, pole2_age_error,
-                  ref_loc_lon, ref_loc_lat, samplesize=10000, plot=True,
+                  ref_loc_lon, ref_loc_lat, samplesize=10000, random_seed = None, plot=True,
                   savefig=True, save_directory='./', figure_name=''):
     """
     Determine the latitudinal motion implied by a pair of poles and utilize
@@ -7866,6 +7866,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     ref_loc_lon : longitude of reference location
     ref_loc_lat : latitude of reference location
     samplesize : number of draws from pole and age distributions (default set to 10000)
+    random_seed : set random seed for reproducible number generation (default is None)
     plot : whether to make figures (default is True, optional)
     savefig : whether to save figures (default is True, optional)
     save_directory = default is local directory (optional)
@@ -7889,6 +7890,8 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
                     100000), ((pole1_age - pole2_age) * 1000000))
     print("The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate))
 
+    if random_seed != None:
+        np.random.seed(random_seed)
     pole1_MCages = np.random.normal(pole1_age, pole1_age_error, samplesize)
     pole2_MCages = np.random.normal(pole2_age, pole2_age_error, samplesize)
 
@@ -9774,11 +9777,11 @@ def zeq_magic(meas_file='measurements.txt',input_dir_path='./',angle=0):
         if len(spec_df_af.index)>1: # this is an af run
             spec_df=pd.concat([spec_df_nrm,spec_df_af])
             units='T' # these are AF data
-            datablock=spec_df[['treat_ac_field','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()      
+            datablock=spec_df[['treat_ac_field','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()
             pmagplotlib.plot_zed(ZED,datablock,angle,s,units)
 
-    
-    
+
+
 def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
@@ -9809,4 +9812,3 @@ def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
         araiblock,field=pmag.sortarai(spec_df,this_specimen,0,version=3) # get the data block for Arai plot
         zijdblock, units = pmag.find_dmag_rec(this_specimen, spec_df, version=3) # get the datablock for Zijderveld plot
     pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock, this_specimen, units[-1]) # make the plots
-
