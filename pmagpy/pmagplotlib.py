@@ -2892,7 +2892,7 @@ def add_borders(Figs, titles, border_color, text_color):
 
 def plot_map_basemap(fignum, lats, lons, Opts):
     """
-    plot_map(fignum, lats,lons,Opts)
+    plot_map_basemap(fignum, lats,lons,Opts)
     makes a basemap with lats/lons
         requires working installation of Basemap
     Parameters:
@@ -3283,7 +3283,7 @@ def plot_map(fignum, lats, lons, Opts):
              ax.add_feature(OCEAN,color='lightblue')
              ax.add_feature(LAND,color='yellow')
     if Opts['proj'] in ['merc','pc']:
-        if Opts['pltgrid'] >= 0.:
+        if Opts['pltgrid']:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
         else:
             gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
@@ -3292,7 +3292,7 @@ def plot_map(fignum, lats, lons, Opts):
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
         gl.xlabels_top = False
-    else:
+    elif Opts['pltgrid']:
         print ('gridlines only supported for PlateCarree and Mercator plots currently')
     prn_name, symsize = 0, 5
     #if 'names' in list(Opts.keys()) > 0:

@@ -1665,7 +1665,7 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
 
 def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8),
                           add_land = True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines = True,
-                          lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
+                          lat_grid = [-80.,  -60.,  -30.,    0.,   30.,   60., 80.],
                           lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns an orthographic map projection using cartopy
@@ -1696,7 +1696,7 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
     if add_land == True:
         ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
     if grid_lines == True:
-        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid,linewidth=1,color='black',linestyle='dotted')
     return ax
 
 
