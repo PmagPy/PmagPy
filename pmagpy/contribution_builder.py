@@ -1115,7 +1115,7 @@ class Contribution(object):
             table = self.tables[table_name]
             table.remove_non_magic_cols_from_table()
 
-    def write_table_to_file(self, dtype, custom_name=None, append=False):
+    def write_table_to_file(self, dtype, custom_name=None, append=False, dir_path=None):
         """
         Write out a MagIC table to file, using custom filename
         as specified in self.filenames.
@@ -1129,10 +1129,12 @@ class Contribution(object):
             fname = custom_name
         else:
             fname = self.filenames[dtype]
+        if not dir_path:
+            dir_path=self.directory
         if dtype in self.tables:
             write_df = self.remove_names(dtype)
             outfile = self.tables[dtype].write_magic_file(custom_name=fname,
-                                                          dir_path=self.directory,
+                                                          dir_path=dir_path,
                                                           append=append, df=write_df)
         return outfile
 
