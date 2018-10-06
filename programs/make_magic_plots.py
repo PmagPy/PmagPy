@@ -289,9 +289,15 @@ def main():
             # get only individual results (if result_type col is available)
             if SiteDIs:
                 if 'result_type' in SiteDIs[0]:
-                    SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                    ind_SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                    # there are no individual results, the result_type column may be blank
+                    if not any(ind_SiteDIs):
+                        # not average, model, or stacked
+                        ind_SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'a', 'not')
+                        ind_SiteDIs = pmag.get_dictitem(ind_SiteDIs, 'result_type', 'm', 'not')
+                        ind_SiteDIs = pmag.get_dictitem(ind_SiteDIs, 'result_type', 's', 'not')
                 # then convert tilt_corr_key to correct format
-                old_SiteDIs = SiteDIs
+                old_SiteDIs = ind_SiteDIs
                 SiteDIs = []
                 for rec in old_SiteDIs:
                     if tilt_corr_key not in rec:
