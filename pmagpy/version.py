@@ -4,5 +4,5 @@ Version number is displayed by GUIs
 and used by setuptools to assign number to pmagpy/pmagpy-cli.
 """
 
-"pmagpy-4.1.5"
-version = 'pmagpy-4.1.5'
+"pmagpy-4.2.0"
+version = 'pmagpy-4.2.0'
