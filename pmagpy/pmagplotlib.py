@@ -1,4 +1,4 @@
-#/usr/bin/env pythonw
+# /usr/bin/env pythonw
 
 # pylint: skip-file
 # pylint: disable-all
@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 import warnings
-warnings.filterwarnings("ignore") # what you don't know won't hurt you
+warnings.filterwarnings("ignore")  # what you don't know won't hurt you
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -32,7 +32,7 @@ if has_cartopy:
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
-from pylab import meshgrid # matplotlib's meshgrid function
+from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
 graphmenu = 0
@@ -52,10 +52,9 @@ if matplotlib.__version__ < '2.1':
 """)
 
 
-
 def show_fig(fig):
     plt.figure(fig)
-    plt.show();
+    plt.show()
 
 
 def draw_figs(FIGS):
@@ -79,7 +78,6 @@ def draw_figs(FIGS):
         plt.draw()
         print("You must manually close all plots to continue")
         plt.show()
-
 
 
 def clearFIG(fignum):
@@ -185,7 +183,7 @@ def gaussfunc(y, ybar, sigma):
     x = old_div((y - ybar), (np.sqrt(2.) * sigma))
     t = old_div(1.0, (1.0 + .3275911 * abs(x)))
     erf = 1.0 - np.exp(-x * x) * t * (.254829592 - t * (.284496736 -
-                                                           t * (1.421413741 - t * (1.453152027 - t * 1.061405429))))
+                                                        t * (1.421413741 - t * (1.453152027 - t * 1.061405429))))
     erf = abs(erf)
     sign = old_div(x, abs(x))
     return 0.5 * (1.0 + sign * erf)
@@ -282,7 +280,7 @@ def plot_xy(fignum, X, Y, **kwargs):
         plt.title(kwargs['title'])
     if 'xmin' in list(kwargs.keys()):
         plt.axis([kwargs['xmin'], kwargs['xmax'],
-                    kwargs['ymin'], kwargs['ymax']])
+                  kwargs['ymin'], kwargs['ymax']])
     if 'notes' in list(kwargs.keys()):
         for note in kwargs['notes']:
             plt.text(note[0], note[1], note[2])
@@ -327,8 +325,9 @@ def plot_qq_norm(fignum, Y, title):
        if d>dc, likely to be normally distributed (95\% confidence)
     """
     plt.figure(num=fignum)
-    if type(Y)==list:Y=np.array(Y)
-    Y=np.sort(Y)  # sort the data
+    if type(Y) == list:
+        Y = np.array(Y)
+    Y = np.sort(Y)  # sort the data
     n = len(Y)
     d, mean, sigma = k_s(Y)
     dc = old_div(0.886, np.sqrt(float(n)))
@@ -351,10 +350,10 @@ def plot_qq_norm(fignum, Y, title):
     plt.text(-.9 * bounds[1], .6 * bounds[3], notestr)
     notestr = 'Dc: ' + '%8.3e' % (dc)
     plt.text(-.9 * bounds[1], .5 * bounds[3], notestr)
-    return d,dc
+    return d, dc
 
 
-def plot_qq_unf(fignum, D, title, subplot=False,degrees=True):
+def plot_qq_unf(fignum, D, title, subplot=False, degrees=True):
     """
     plots data against a uniform distribution in 0=>360.
     Parameters
@@ -379,15 +378,15 @@ def plot_qq_unf(fignum, D, title, subplot=False,degrees=True):
         plt.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
     if degrees:
-        D=(np.array(D))%360
-    X=D/D.max()
-    X=np.sort(X)
+        D = (np.array(D)) % 360
+    X = D/D.max()
+    X = np.sort(X)
     n = float(len(D))
-    i=np.arange(0,len(D))
-    Y=(i-0.5)/n
-    ds=(i/n)-X
-    dpos=ds.max()
-    dneg=ds.min()
+    i = np.arange(0, len(D))
+    Y = (i-0.5)/n
+    ds = (i/n)-X
+    dpos = ds.max()
+    dneg = ds.min()
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16
@@ -565,7 +564,8 @@ def plot_di(fignum, DIblock):
             globals.DIlisty = Y_down
     if len(X_up) > 0:
         #        plt.scatter(X_up,Y_up,marker='s',facecolor='none',edgecolor='black')
-        plt.scatter(X_up, Y_up, marker='o', facecolor='white',edgecolor='blue')
+        plt.scatter(X_up, Y_up, marker='o',
+                    facecolor='white', edgecolor='blue')
         if globals != 0:
             globals.DIlist = X_up
             globals.DIlisty = Y_up
@@ -604,13 +604,13 @@ def plot_di_sym(fignum, DIblock, sym):
         sym['edgecolor'] = 'k'
     if len(X_down) > 0:
         plt.scatter(X_down, Y_down, marker=sym['lower'][0],
-                      c=sym['lower'][1], s=size, edgecolor=sym['edgecolor'])
+                    c=sym['lower'][1], s=size, edgecolor=sym['edgecolor'])
         if globals != 0:
             globals.DIlist = X_down
             globals.DIlisty = Y_down
     if len(X_up) > 0:
         plt.scatter(X_up, Y_up, marker=sym['upper'][0],
-                      c=sym['upper'][1], s=size, edgecolor=sym['edgecolor'])
+                    c=sym['upper'][1], s=size, edgecolor=sym['edgecolor'])
         if globals != 0:
             globals.DIlist = X_up
             globals.DIlisty = Y_up
@@ -673,22 +673,23 @@ def plot_zij(fignum, datablock, angle, s, norm):
     else:
         fact = (1./datablock[0][3])   # normalize to NRM=1
     # convert datablock to DataFrame data with  dec,inc, int
-    data=pd.DataFrame(datablock)
-    if len(data.columns)==6:
-        data.columns=['treat','dec','inc','int','type','quality']
-    elif len(data.columns)==7:
-        data.columns=['treat','dec','inc','int','type','quality','y']
-    data['int']=data['int']*fact # normalize
-    data['dec']=(data['dec']-angle)%360 # adjust X axis angle
-    gdata=data[data['quality'].str.contains('g')]
-    bdata=data[data['quality'].str.contains('b')]
-    forVDS=gdata[['dec','inc','int']].values
-    gXYZ=pd.DataFrame(pmag.dir2cart(forVDS))
-    gXYZ.columns=['X','Y','Z']
-    amax=np.maximum(gXYZ.X.max(),gXYZ.Z.max())
-    amin=np.minimum(gXYZ.X.min(),gXYZ.Z.min())
-    if amin>0:amin=0
-    bXYZ=pmag.dir2cart(bdata[['dec','inc','int']].values).transpose()
+    data = pd.DataFrame(datablock)
+    if len(data.columns) == 6:
+        data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality']
+    elif len(data.columns) == 7:
+        data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality', 'y']
+    data['int'] = data['int']*fact  # normalize
+    data['dec'] = (data['dec']-angle) % 360  # adjust X axis angle
+    gdata = data[data['quality'].str.contains('g')]
+    bdata = data[data['quality'].str.contains('b')]
+    forVDS = gdata[['dec', 'inc', 'int']].values
+    gXYZ = pd.DataFrame(pmag.dir2cart(forVDS))
+    gXYZ.columns = ['X', 'Y', 'Z']
+    amax = np.maximum(gXYZ.X.max(), gXYZ.Z.max())
+    amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
+    if amin > 0:
+        amin = 0
+    bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
 # plotting stuff
     if angle != 0:
         tempstr = "\n Declination rotated by: " + str(angle) + '\n'
@@ -701,19 +702,19 @@ def plot_zij(fignum, datablock, angle, s, norm):
         plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
         plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
     plt.plot(gXYZ['X'], gXYZ['Y'], 'ro')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'ws',markeredgecolor='blue')
+    plt.plot(gXYZ['X'], gXYZ['Z'], 'ws', markeredgecolor='blue')
     plt.plot(gXYZ['X'], gXYZ['Y'], 'r-')
     plt.plot(gXYZ['X'], gXYZ['Z'], 'b-')
     for k in range(len(gXYZ)):
-        plt.annotate(str(k),(gXYZ['X'][k],gXYZ['Z'][k]),ha='left',va='bottom')
-
+        plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
+                              [k]), ha='left', va='bottom')
 
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
     zline = [0, 0]
-    plt.plot(xline, zline,'k-')
-    plt.plot(zline, xline,'k-')
+    plt.plot(xline, zline, 'k-')
+    plt.plot(zline, xline, 'k-')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
@@ -726,6 +727,7 @@ def plot_zij(fignum, datablock, angle, s, norm):
     plt.title(tstring)
 #
 #
+
 
 def plot_mag(fignum, datablock, s, num, units, norm):
     """
@@ -807,7 +809,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
             if num == 1:
                 if recnum % 2 == 0:
                     plt.text(T[-1] + delta, M[-1],
-                               (' ' + str(recnum)), fontsize=9)
+                             (' ' + str(recnum)), fontsize=9)
             recnum += 1
         else:
             if rec[0] < 200:
@@ -905,7 +907,7 @@ def plot_zed(ZED, datablock, angle, s, units):
     if AngleX[-1] == 0:
         AngleX[-1] = 0.01
     plt.text(AngleX[-1] + (old_div(AngleX[-1], abs(AngleX[-1]))) * .1,
-               AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
+             AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
     plot_mag(ZED['demag'], datablock, s, 1, units, norm)
@@ -1132,10 +1134,10 @@ def plot_arai(fignum, indata, s, units):
     try:
         if len(x_zi) > 0:
             plt.scatter(x_zi, y_zi, marker='o', c='r',
-                          edgecolors="none")  # zero field-infield
+                        edgecolors="none")  # zero field-infield
         if len(x_iz) > 0:
             plt.scatter(x_iz, y_iz, marker='s', c='b',
-                          faceted="True")  # infield-zerofield
+                        faceted="True")  # infield-zerofield
     except:
         if len(x_zi) > 0:
             plt.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
@@ -1205,7 +1207,7 @@ def plot_np(fignum, indata, s, units):
         delta = .02 * Y[0]
         if recnum % 2 == 0:
             plt.text(X[-1] - delta, Y[-1] + delta,
-                       (' ' + str(recnum)), fontsize=9)
+                     (' ' + str(recnum)), fontsize=9)
         recnum += 1
     plt.plot(X, Y)
     plt.scatter(X, Y, marker='o', color='b')
@@ -1233,6 +1235,7 @@ def plot_np(fignum, indata, s, units):
     plt.title(title)
     plt.axhline(y=0, xmin=0, xmax=1, color='k')
     plt.axvline(x=0, ymin=0, ymax=1, color='k')
+
 
 def plot_arai_zij(ZED, araiblock, zijdblock, s, units):
     """
@@ -1417,9 +1420,9 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
 #
 #   plot on the data
 #
-    dec_key,inc_key,tilt_key='dec','inc','tilt_correction'
-    if 'dir_dec' in datablock[0].keys(): # this is data model 3.0
-        dec_key,inc_key,tilt_key='dir_dec','dir_inc','dir_tilt_correction'
+    dec_key, inc_key, tilt_key = 'dec', 'inc', 'tilt_correction'
+    if 'dir_dec' in datablock[0].keys():  # this is data model 3.0
+        dec_key, inc_key, tilt_key = 'dir_dec', 'dir_inc', 'dir_tilt_correction'
     coord = datablock[0][tilt_key]
     title = s
     if coord == '-1':
@@ -1634,7 +1637,7 @@ def plot_evec(fignum, Vs, symsize, title):
             X.append(XY[0])
             Y.append(XY[1])
         plt.scatter(X, Y, s=symsize,
-                      marker=symb[VEC], c=col[VEC], edgecolors='none')
+                    marker=symb[VEC], c=col[VEC], edgecolors='none')
     plt.axis("equal")
 #
 
@@ -1701,8 +1704,8 @@ def plot_ell(fignum, pars, col, lower, plot):
             for k in range(3):
                 # cartesian coordinate j of ellipse
                 elli[j] = elli[j] + t[j][k] * v[k]
-        pts=pmag.cart2dir(elli)
-        PTS.append([pts[0],pts[1]])
+        pts = pmag.cart2dir(elli)
+        PTS.append([pts[0], pts[1]])
         # put on an equal area projection
         R = old_div(np.sqrt(
             1. - abs(elli[2])), (np.sqrt(elli[0]**2 + elli[1]**2)))
@@ -1714,11 +1717,11 @@ def plot_ell(fignum, pars, col, lower, plot):
             X_ell.append(elli[1] * R)
             Y_ell.append(elli[0] * R)
     if plot == 1:
-        col=col[0]+'.'
+        col = col[0]+'.'
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, col,markersize=3)
+            plt.plot(X_ell, Y_ell, col, markersize=3)
         if X_up != []:
-            plt.plot(X_up, Y_up, col,markersize=3)
+            plt.plot(X_up, Y_up, col, markersize=3)
     else:
         return PTS
 
@@ -2201,7 +2204,7 @@ def plot_s_bc(fignum, Bc, S, sym):
     plt.ylabel('Mr/Ms')
     plt.title('Squareness-Coercivity Plot')
     bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1]);
+    plt.axis([0, bounds[1], 0, 1])
 #
 
 
@@ -2222,7 +2225,7 @@ def plot_s_bcr(fignum, Bcr, S, sym):
     plt.ylabel('Mr/Ms')
     plt.title('Squareness-Bcr Plot')
     bounds = plt.axis()
-    plt.axis([0, bounds[1], 0, 1]);
+    plt.axis([0, bounds[1], 0, 1])
 #
 
 
@@ -2433,6 +2436,7 @@ def plot_xbt(fignum, XB, T, e, b):
     plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
 #
 
+
 def plot_ltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
     """
     function to plot low temperature cycling experiments
@@ -2583,7 +2587,8 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
                 plt.clf()
                 if not isServer:
                     plt.figtext(.02, .01, version_num)
-                plot_cdf(ANIS['vxcdf'], Vxs, "V_" + str(vec + 1) + "1", 'r', "")
+                plot_cdf(ANIS['vxcdf'], Vxs, "V_" +
+                         str(vec + 1) + "1", 'r', "")
                 Vxs.sort()
                 vminind = int(0.025 * len(Vxs))
                 vmaxind = int(0.975 * len(Vxs))
@@ -2591,14 +2596,15 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
                 vbounds.append(Vxs[vminind])
                 vbounds.append(Vxs[vmaxind])
                 plt.axvline(x=vbounds[0], linewidth=1,
-                              color='r', linestyle='--')
+                            color='r', linestyle='--')
                 plt.axvline(x=vbounds[1], linewidth=1,
-                              color='r', linestyle='--')
+                            color='r', linestyle='--')
                 # plot_vs(ANIS['vxcdf'],vbounds,'r','--')
                 # plot_vs(ANIS['vxcdf'],[Ccart[0]],'r','-')
                 plt.axvline(x=Ccart[0][0], linewidth=1,
-                              color='r', linestyle='-')
-                plot_cdf(ANIS['vycdf'], Vys, "V_" + str(vec + 1) + "2", 'b', "")
+                            color='r', linestyle='-')
+                plot_cdf(ANIS['vycdf'], Vys, "V_" +
+                         str(vec + 1) + "2", 'b', "")
                 Vys.sort()
                 vminind = int(0.025 * len(Vys))
                 vmaxind = int(0.975 * len(Vys))
@@ -2606,14 +2612,15 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
                 vbounds.append(Vys[vminind])
                 vbounds.append(Vys[vmaxind])
                 plt.axvline(x=vbounds[0], linewidth=1,
-                              color='b', linestyle='--')
+                            color='b', linestyle='--')
                 plt.axvline(x=vbounds[1], linewidth=1,
-                              color='b', linestyle='--')
+                            color='b', linestyle='--')
                 plt.axvline(x=Ccart[0][1], linewidth=1,
-                              color='b', linestyle='-')
+                            color='b', linestyle='-')
                 # plot_vs(ANIS['vycdf'],vbounds,'b','--')
                 # plot_vs(ANIS['vycdf'],[Ccart[1]],'b','-')
-                plot_cdf(ANIS['vzcdf'], Vzs, "V_" + str(vec + 1) + "3", 'k', "")
+                plot_cdf(ANIS['vzcdf'], Vzs, "V_" +
+                         str(vec + 1) + "3", 'k', "")
                 Vzs.sort()
                 vminind = int(0.025 * len(Vzs))
                 vmaxind = int(0.975 * len(Vzs))
@@ -2621,11 +2628,11 @@ def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, n
                 vbounds.append(Vzs[vminind])
                 vbounds.append(Vzs[vmaxind])
                 plt.axvline(x=vbounds[0], linewidth=1,
-                              color='k', linestyle='--')
+                            color='k', linestyle='--')
                 plt.axvline(x=vbounds[1], linewidth=1,
-                              color='k', linestyle='--')
+                            color='k', linestyle='--')
                 plt.axvline(x=Ccart[0][2], linewidth=1,
-                              color='k', linestyle='-')
+                            color='k', linestyle='-')
                 # plot_vs(ANIS['vzcdf'],vbounds,'k','--')
                 # plot_vs(ANIS['vzcdf'],[Ccart[2]],'k','-')
         bpars['v1_dec'] = hpars['v1_dec']
@@ -2674,18 +2681,18 @@ def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
     plt.plot(Bpnorm, Mnorm, 'g-')
     if NLpars['banc'] > 0:
         plt.plot([0, NLpars['best'] * 1e6],
-                   [0, old_div(NLpars['banc_npred'], Mp[-1])], 'b--')
+                 [0, old_div(NLpars['banc_npred'], Mp[-1])], 'b--')
         plt.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [old_div(
             NLpars['banc_npred'], Mp[-1]), old_div(NLpars['banc_npred'], Mp[-1])], 'r--')
         plt.plot([NLpars['best'] * 1e6],
-                   [old_div(NLpars['banc_npred'], Mp[-1])], 'bd')
+                 [old_div(NLpars['banc_npred'], Mp[-1])], 'bd')
         plt.plot([NLpars['banc'] * 1e6],
-                   [old_div(NLpars['banc_npred'], Mp[-1])], 'rs')
+                 [old_div(NLpars['banc_npred'], Mp[-1])], 'rs')
     else:
         plt.plot([0, NLpars['best'] * 1e6],
-                   [0, old_div(NLpars['best_npred'], Mp[-1])], 'b--')
+                 [0, old_div(NLpars['best_npred'], Mp[-1])], 'b--')
         plt.plot([0, NLpars['best'] * 1e6],
-                   [0, old_div(NLpars['best_npred'], Mp[-1])], 'bd')
+                 [0, old_div(NLpars['best_npred'], Mp[-1])], 'bd')
 
 ###
 
@@ -2954,19 +2961,20 @@ def plot_map_basemap(fignum, lats, lons, Opts):
     mlabels = [0, 0, 0, 1]
     plabels = [1, 0, 0, 0]  # draw parallel labels on the left
     # set default Options
-    Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
-                  'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
-                  'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
-                  'padlon':0,'padlat':0,'gridspace':30,\
-                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
+    Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
+                     'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
+                     'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
+                     'padlon': 0, 'padlat': 0, 'gridspace': 30,
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0}}
     for key in Opts_defaults.keys():
-        if key not in Opts.keys() and key!='details':
-             Opts[key]=Opts_defaults[key]
-        if key=='details':
-             if key not in Opts.keys():Opts[key]=Opts_defaults[key]
-             for detail_key in Opts_defaults[key].keys():
-                 if detail_key not in Opts[key].keys():
-                     Opts[key][detail_key]=Opts_defaults[key][detail_key]
+        if key not in Opts.keys() and key != 'details':
+            Opts[key] = Opts_defaults[key]
+        if key == 'details':
+            if key not in Opts.keys():
+                Opts[key] = Opts_defaults[key]
+            for detail_key in Opts_defaults[key].keys():
+                if detail_key not in Opts[key].keys():
+                    Opts[key][detail_key] = Opts_defaults[key][detail_key]
 
     if Opts['proj'] in ExMer:
         mlabels = [0, 0, 0, 0]
@@ -2985,7 +2993,7 @@ def plot_map_basemap(fignum, lats, lons, Opts):
             elons = np.loadtxt(EDIR + 'etopo20lons.gz')
             elats = np.loadtxt(EDIR + 'etopo20lats.gz')
             x, y = m(*np.meshgrid(elons, elats))
-            cs = m.contourf(x, y, etopo, 30,cmap=color_map.jet)
+            cs = m.contourf(x, y, etopo, 30, cmap=color_map.jet)
         if Opts['details']['coasts'] == 1:
             m.drawcoastlines(color='k')
         if Opts['details']['rivers'] == 1:
@@ -3010,7 +3018,7 @@ def plot_map_basemap(fignum, lats, lons, Opts):
     elif Opts['pltgrid'] > 0:
         if Opts['proj'] in ExMer or Opts['proj'] == 'lcc':
             circles = np.arange(-90, 180. +
-                                   Opts['gridspace'], Opts['gridspace'])
+                                Opts['gridspace'], Opts['gridspace'])
             meridians = np.arange(0, 360., Opts['gridspace'])
         else:
             g = Opts['gridspace']
@@ -3046,7 +3054,8 @@ def plot_map_basemap(fignum, lats, lons, Opts):
         if prn_name == 1:
             for pt in range(len(lats)):
                 T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-        m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])
+        m.plot(X, Y, Opts['sym'], markersize=symsize,
+               markeredgecolor=Opts['edge'])
     else:  # for lines,  need to separate chunks using lat==100.
         chunk = 1
         while k < len(lats) - 1:
@@ -3061,13 +3070,15 @@ def plot_map_basemap(fignum, lats, lons, Opts):
                 k += 1
             else:  # need to skip 100.0s and move to next chunk
                 # plot previous chunk
-                m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])
+                m.plot(X, Y, Opts['sym'], markersize=symsize,
+                       markeredgecolor=Opts['edge'])
                 chunk += 1
                 while lats[k] > 90. and k < len(lats) - 1:
                     k += 1  # skip bad points
                 X, Y, T = [], [], []
         if len(X) > 0:
-            m.plot(X, Y, Opts['sym'], markersize=symsize,markeredgecolor=Opts['edge'])  # plot last chunk
+            m.plot(X, Y, Opts['sym'], markersize=symsize,
+                   markeredgecolor=Opts['edge'])  # plot last chunk
 
 
 def plot_map(fignum, lats, lons, Opts):
@@ -3082,7 +3093,7 @@ def plot_map(fignum, lats, lons, Opts):
     lons : array or list of longitudes
     Opts : dictionary of plotting options:
         Opts.keys=
-            proj : projection [supported cartopy projections: 
+            proj : projection [supported cartopy projections:
                 pc = Plate Carree
                 aea = Albers Equal Area
                 aeqd = Azimuthal Equidistant
@@ -3124,7 +3135,7 @@ def plot_map(fignum, lats, lons, Opts):
             global : global projection [default is True]
             details : dictionary with keys:
                 coasts : if True, plot coastlines
-                rivers : if True, plot rivers 
+                rivers : if True, plot rivers
                 states : if True, plot states
                 countries : if True, plot countries
                 ocean : if True, plot ocean
@@ -3136,139 +3147,134 @@ def plot_map(fignum, lats, lons, Opts):
 
     """
     if not has_cartopy:
-       print ('This function requires installation of cartopy')
-       return
+        print('This function requires installation of cartopy')
+        return
     from matplotlib import cm
     # draw meridian labels on the bottom [left,right,top,bottom]
     mlabels = [0, 0, 0, 1]
     plabels = [1, 0, 0, 0]  # draw parallel labels on the left
-    Opts_defaults={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,\
-                  'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro','symsize':5,\
-                  'edge':None,'pltgrid':1,'res':'c','boundinglat':0.,\
-                  'padlon':0,'padlat':0,'gridspace':30,'global':1,'cmap':'jet',\
-                  'details':{'fancy':0,'coasts':0,'rivers':0,'states':0,'countries':0,'ocean':0}}
+    Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
+                     'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
+                     'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
+                     'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet',
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0}}
     for key in Opts_defaults.keys():
-        if key not in Opts.keys() and key!='details':
-             Opts[key]=Opts_defaults[key]
-        if key=='details':
-             if key not in Opts.keys():Opts[key]=Opts_defaults[key]
-             for detail_key in Opts_defaults[key].keys():
-                 if detail_key not in Opts[key].keys():
-                     Opts[key][detail_key]=Opts_defaults[key][detail_key]
+        if key not in Opts.keys() and key != 'details':
+            Opts[key] = Opts_defaults[key]
+        if key == 'details':
+            if key not in Opts.keys():
+                Opts[key] = Opts_defaults[key]
+            for detail_key in Opts_defaults[key].keys():
+                if detail_key not in Opts[key].keys():
+                    Opts[key][detail_key] = Opts_defaults[key][detail_key]
 
     if Opts['proj'] == 'pc':
         ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
-                crs=ccrs.PlateCarree())
+        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
+                      crs=ccrs.PlateCarree())
     if Opts['proj'] == 'aea':
-        ax = plt.axes(projection=ccrs.AlbersEqualArea(\
-            central_longitude=Opts['lon_0'], 
-            central_latitude=Opts['lat_0'], 
-            false_easting=0.0,false_northing=0.0,standard_parallels=(20.0,50.0),
+        ax = plt.axes(projection=ccrs.AlbersEqualArea(
+            central_longitude=Opts['lon_0'],
+            central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
             globe=None))
     if Opts['proj'] == 'lcc':
-        print (Opts)
-        ax = plt.axes(projection=ccrs.LambertConformal(\
-            central_longitude=Opts['lon_0'], 
-            central_latitude=Opts['lat_0'], 
-            false_easting=0.0,false_northing=0.0,
-            secant_latitudes=None,standard_parallels=(20.0,50.0), cutoff=-30, 
+        print(Opts)
+        ax = plt.axes(projection=ccrs.LambertConformal(
+            central_longitude=Opts['lon_0'],
+            central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0,
+            secant_latitudes=None, standard_parallels=(20.0, 50.0), cutoff=-30,
             globe=None))
-        ax.set_extent([Opts['lonmin'],Opts['lonmax'],Opts['latmin'],Opts['latmax']],\
-                crs=ccrs.PlateCarree())
+        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
+                      crs=ccrs.PlateCarree())
     if Opts['proj'] == 'lcyl':
-        ax = plt.axes(projection=ccrs.LambertCylindrical(\
+        ax = plt.axes(projection=ccrs.LambertCylindrical(
             central_longitude=Opts['lon_0']))
 
     if Opts['proj'] == 'merc':
-        ax = plt.axes(projection=ccrs.Mercator(\
-            central_longitude=Opts['lon_0'], min_latitude=Opts['latmin'], \
-            max_latitude=Opts['latmax'], latitude_true_scale=0.0,globe=None))
+        ax = plt.axes(projection=ccrs.Mercator(
+            central_longitude=Opts['lon_0'], min_latitude=Opts['latmin'],
+            max_latitude=Opts['latmax'], latitude_true_scale=0.0, globe=None))
     if Opts['proj'] == 'mill':
-        ax = plt.axes(projection=ccrs.Miller(\
+        ax = plt.axes(projection=ccrs.Miller(
             central_longitude=Opts['lon_0']))
     if Opts['proj'] == 'moll':
-        ax = plt.axes(projection=ccrs.Mollweide(\
+        ax = plt.axes(projection=ccrs.Mollweide(
             central_longitude=Opts['lat_0'], globe=None))
-    if Opts['proj']== 'ortho':
-        ax = plt.axes(projection=ccrs.Orthographic(\
+    if Opts['proj'] == 'ortho':
+        ax = plt.axes(projection=ccrs.Orthographic(
             central_longitude=Opts['lon_0'],
             central_latitude=Opts['lat_0']))
-    if Opts['proj']== 'robin':
-        ax = plt.axes(projection=ccrs.Robinson(\
+    if Opts['proj'] == 'robin':
+        ax = plt.axes(projection=ccrs.Robinson(
             central_longitude=Opts['lon_0'],
             globe=None))
 
-    if Opts['proj']== 'sinu':
-        ax = plt.axes(projection=ccrs.Sinusoidal(\
+    if Opts['proj'] == 'sinu':
+        ax = plt.axes(projection=ccrs.Sinusoidal(
             central_longitude=Opts['lon_0'],
-            false_easting=0.0,false_northing=0.0,
+            false_easting=0.0, false_northing=0.0,
             globe=None))
 
-    if Opts['proj']== 'stere':
-        ax = plt.axes(projection=ccrs.Stereographic(\
+    if Opts['proj'] == 'stere':
+        ax = plt.axes(projection=ccrs.Stereographic(
             central_longitude=Opts['lon_0'],
-            false_easting=0.0,false_northing=0.0,
+            false_easting=0.0, false_northing=0.0,
             true_scale_latitude=None,
             scale_factor=None,
             globe=None))
     if Opts['proj'] == 'tmerc':
-        ax = plt.axes(projection=ccrs.TransverseMercator(\
-            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'], \
-            false_easting=0.0,false_northing=0.0,
+        ax = plt.axes(projection=ccrs.TransverseMercator(
+            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0,
             scale_factor=None,
             globe=None))
     if Opts['proj'] == 'utm':
-        ax = plt.axes(projection=ccrs.UTM(\
-            zone = Opts['zone'],
+        ax = plt.axes(projection=ccrs.UTM(
+            zone=Opts['zone'],
             southern_hemisphere=Opts['south'],
             globe=None))
     if Opts['proj'] == 'geos':
-        ax = plt.axes(projection=ccrs.Geostationary(\
+        ax = plt.axes(projection=ccrs.Geostationary(
             central_longitude=Opts['lon_0'],
-            false_easting=0.0,false_northing=0.0,
+            false_easting=0.0, false_northing=0.0,
             satellite_height=35785831,
             sweep_axis='y',
             globe=None))
     if Opts['proj'] == 'laea':
-        ax = plt.axes(projection=ccrs.LambertAzimuthalEqualArea(\
-            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'], \
-            false_easting=0.0,false_northing=0.0,
+        ax = plt.axes(projection=ccrs.LambertAzimuthalEqualArea(
+            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0,
             globe=None))
     if Opts['proj'] == 'npstere':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(\
-            central_longitude=Opts['lon_0'], 
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(
+            central_longitude=Opts['lon_0'],
             true_scale_latitude=None,
             globe=None))
     if Opts['proj'] == 'spstere':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(\
-            central_longitude=Opts['lon_0'], 
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(
+            central_longitude=Opts['lon_0'],
             true_scale_latitude=None,
             globe=None))
-    
-       
-        
+
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-
-
             pmag_data_dir = find_pmag_dir.get_data_files_dir()
             EDIR = os.path.join(pmag_data_dir, "etopo20")
-            #pmag_dir=find_pmag_dir.get_pmag_dir()
-            #EDIR=os.path.join(pmag_dir,'data_files')+"/etopo20/"
             etopo_path = os.path.join(EDIR, 'etopo20data.gz')
             etopo = np.loadtxt(os.path.join(EDIR, 'etopo20data.gz'))
             elons = np.loadtxt(os.path.join(EDIR, 'etopo20lons.gz'))
             elats = np.loadtxt(os.path.join(EDIR, 'etopo20lats.gz'))
-            xx, yy = np.meshgrid(elons,elats)
-            levels=np.arange(-10000,8000,500) # define contour intervals
-            m=ax.contourf(xx, yy, etopo,levels,\
-                transform=ccrs.PlateCarree(),
-                cmap=Opts['cmap'])
+            xx, yy = np.meshgrid(elons, elats)
+            levels = np.arange(-10000, 8000, 500)  # define contour intervals
+            m = ax.contourf(xx, yy, etopo, levels,
+                            transform=ccrs.PlateCarree(),
+                            cmap=Opts['cmap'])
         if Opts['details']['coasts'] == 1:
             ax.coastlines(resolution='50m')
         if Opts['details']['rivers'] == 1:
-             ax.add_feature(cfeature.RIVERS)
+            ax.add_feature(cfeature.RIVERS)
         if Opts['details']['states'] == 1:
             states_provinces = cfeature.NaturalEarthFeature(
                 category='cultural',
@@ -3279,45 +3285,48 @@ def plot_map(fignum, lats, lons, Opts):
                 linestyle='dotted')
             ax.add_feature(states_provinces)
         if Opts['details']['countries'] == 1:
-            ax.add_feature(BORDERS,linestyle='--',linewidth=1)
+            ax.add_feature(BORDERS, linestyle='--', linewidth=1)
         if Opts['details']['ocean'] == 1:
-             ax.add_feature(OCEAN,color='lightblue')
-             ax.add_feature(LAND,color='yellow')
-    if Opts['proj'] in ['merc','pc']:
+            ax.add_feature(OCEAN, color='lightblue')
+            ax.add_feature(LAND, color='yellow')
+    if Opts['proj'] in ['merc', 'pc']:
         if Opts['pltgrid']:
-            gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted',draw_labels=True)
+            gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
+                              linestyle='dotted', draw_labels=True)
         else:
-            gl=ax.gridlines(crs=ccrs.PlateCarree(),linewidth=2,linestyle='dotted')
-        gl.ylocator=mticker.FixedLocator(np.arange(-80,81,20))
-        gl.xlocator=mticker.FixedLocator(np.arange(-180,181,30))
+            gl = ax.gridlines(crs=ccrs.PlateCarree(),
+                              linewidth=2, linestyle='dotted')
+        gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, 20))
+        gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, 30))
         gl.xformatter = LONGITUDE_FORMATTER
         gl.yformatter = LATITUDE_FORMATTER
         gl.xlabels_top = False
     elif Opts['pltgrid']:
-        print ('gridlines only supported for PlateCarree and Mercator plots currently')
+        print('gridlines only supported for PlateCarree and Mercator plots currently')
     prn_name, symsize = 0, 5
-    #if 'names' in list(Opts.keys()) > 0:
+    # if 'names' in list(Opts.keys()) > 0:
     #    names = Opts['names']
     #    if len(names) > 0:
     #        prn_name = 1
 ##
-    X, Y, T, k = [], [], [],0
+    X, Y, T, k = [], [], [], 0
     if 'symsize' in list(Opts.keys()):
         symsize = Opts['symsize']
     if Opts['sym'][-1] != '-':  # just plot points
-        ax.plot(lons,lats,Opts['sym'],\
-            markersize=symsize,transform=ccrs.Geodetic(),\
+        ax.plot(lons, lats, Opts['sym'],
+                markersize=symsize, transform=ccrs.Geodetic(),
                 markeredgecolor=Opts['edge'])
         if prn_name == 1:
-            print ('labels not yet implemented in plot_map')
-            #for pt in range(len(lats)):
+            print('labels not yet implemented in plot_map')
+            # for pt in range(len(lats)):
             #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
     else:  # for lines,  need to separate chunks using lat==100.
-        ax.plot(lons,lats,Opts['sym'], transform=ccrs.Geodetic())
-    if Opts['global']:ax.set_global()
+        ax.plot(lons, lats, Opts['sym'], transform=ccrs.Geodetic())
+    if Opts['global']:
+        ax.set_global()
 
 
-def plot_mag_map_basemap(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date=""):
+def plot_mag_map_basemap(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0=0, date=""):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3347,39 +3356,43 @@ def plot_mag_map_basemap(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon
     has_basemap, Basemap = pmag.import_basemap()
     if not has_basemap:
         return
-    from matplotlib import cm # matplotlib's color map module
-    lincr=1
-    if type(date)!=str: date=str(date)
-    fig=plt.figure(fignum)
-    m = Basemap(projection='hammer',lon_0=lon_0)
-    x,y=m(*meshgrid(lons,lats))
+    from matplotlib import cm  # matplotlib's color map module
+    lincr = 1
+    if type(date) != str:
+        date = str(date)
+    fig = plt.figure(fignum)
+    m = Basemap(projection='hammer', lon_0=lon_0)
+    x, y = m(*meshgrid(lons, lats))
     m.drawcoastlines()
-    if element_type=='B':
-        levmax=element.max()+lincr
-        levmin=round(element.min()-lincr)
-        levels=np.arange(levmin,levmax,lincr)
-        cs=m.contourf(x,y,element,levels=levels,cmap=cmap)
-        plt.title('Field strength ($\mu$T): '+date);
-    if element_type=='Br':
-        levmax=element.max()+lincr
-        levmin=round(element.min()-lincr)
-        cs=m.contourf(x,y,element,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
-        plt.title('Radial field strength ($\mu$T): '+date);
-    if element_type=='I':
-        levmax=element.max()+lincr
-        levmin=round(element.min()-lincr)
-        cs=m.contourf(x,y,element,levels=np.arange(-90,100,20),cmap=cmap)
-        m.contour(x,y,element,levels=np.arange(-80,90,10),colors='black')
-        plt.title('Field inclination: '+date);
-    if element_type=='D':
-        #cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
-        cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
-        m.contour(x,y,element,levels=np.arange(-180,180,10),colors='black')
-        plt.title('Field declination: '+date);
-    cbar=m.colorbar(cs,location='bottom')
+    if element_type == 'B':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        levels = np.arange(levmin, levmax, lincr)
+        cs = m.contourf(x, y, element, levels=levels, cmap=cmap)
+        plt.title('Field strength ($\mu$T): '+date)
+    if element_type == 'Br':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        cs = m.contourf(x, y, element, levels=np.arange(
+            levmin, levmax, lincr), cmap=cmap)
+        plt.title('Radial field strength ($\mu$T): '+date)
+    if element_type == 'I':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        cs = m.contourf(
+            x, y, element, levels=np.arange(-90, 100, 20), cmap=cmap)
+        m.contour(x, y, element, levels=np.arange(-80, 90, 10), colors='black')
+        plt.title('Field inclination: '+date)
+    if element_type == 'D':
+        # cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
+        cs = m.contourf(
+            x, y, element, levels=np.arange(-180, 180, 10), cmap=cmap)
+        m.contour(x, y, element, levels=np.arange(-180, 180, 10), colors='black')
+        plt.title('Field declination: '+date)
+    cbar = m.colorbar(cs, location='bottom')
 
 
-def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,date="",contours=False,proj='PlateCarree'):
+def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0=0, date="", contours=False, proj='PlateCarree'):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3411,62 +3424,64 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     """
 
     if not has_cartopy:
-       print ('This function requires installation of cartopy')
-       return
+        print('This function requires installation of cartopy')
+        return
     from matplotlib import cm
-    if lon_0==180:lon_0=179.99
-    if lon_0>180:lon_0=lon_0-360.
-    lincr=1
-    if type(date)!=str: date=str(date)
-    if proj=='PlateCarree':
-        fig=plt.figure(fignum)
+    if lon_0 == 180:
+        lon_0 = 179.99
+    if lon_0 > 180:
+        lon_0 = lon_0-360.
+    lincr = 1
+    if type(date) != str:
+        date = str(date)
+    if proj == 'PlateCarree':
+        fig = plt.figure(fignum)
         ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=lon_0))
-    if proj=='Mollweide':
-        fig=plt.figure(fignum)
-        if lon_0!=0:
-            print ('This projection requires lon_0=0')
+    if proj == 'Mollweide':
+        fig = plt.figure(fignum)
+        if lon_0 != 0:
+            print('This projection requires lon_0=0')
             return
         ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
     xx, yy = np.meshgrid(lons, lats)
-    levmax=5*round(element.max()/5)+5
-    levmin=5*round(element.min()/5)-5
-    if element_type=='Br' or element_type=='B':
+    levmax = 5*round(element.max()/5)+5
+    levmin = 5*round(element.min()/5)-5
+    if element_type == 'Br' or element_type == 'B':
         plt.contourf(xx, yy, element,
-                     levels=np.arange(levmin,levmax,1),
+                     levels=np.arange(levmin, levmax, 1),
                      cmap=cmap, transform=ccrs.PlateCarree())
-        cbar=plt.colorbar(orientation='horizontal')
-        if contours: 
-            plt.contour(xx,yy,element,levels=np.arange(levmin,levmax,10),
-                colors='black', transform=ccrs.PlateCarree())
-
-        if element_type=='Br':
-            plt.title('Radial field strength ($\mu$T): '+date);
-        else:
-            plt.title('Total field strength ($\mu$T): '+date);
-    if element_type=='I':
-        plt.contourf(xx, yy, element,
-                     levels=np.arange(levmin,levmax,lincr),
-                     cmap=cmap, transform=ccrs.PlateCarree())
-        cbar=plt.colorbar(orientation='horizontal')
-        if contours: 
-            plt.contour(xx,yy,element,levels=np.arange(-80,90,10),
-                    colors='black', transform=ccrs.PlateCarree())
-        plt.title('Field inclination: '+date);
-    if element_type=='D':
-        plt.contourf(xx, yy, element,
-                     levels=np.arange(-180,180,10),
-                     cmap=cmap, transform=ccrs.PlateCarree())
-        cbar=plt.colorbar(orientation='horizontal')
+        cbar = plt.colorbar(orientation='horizontal')
         if contours:
-            plt.contour(xx, yy, element, levels=np.arange(-180,180,10), 
-                    colors='black', transform=ccrs.PlateCarree())
-        plt.title('Field declination: '+date);
+            plt.contour(xx, yy, element, levels=np.arange(levmin, levmax, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+
+        if element_type == 'Br':
+            plt.title('Radial field strength ($\mu$T): '+date)
+        else:
+            plt.title('Total field strength ($\mu$T): '+date)
+    if element_type == 'I':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(levmin, levmax, lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar = plt.colorbar(orientation='horizontal')
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(-80, 90, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field inclination: '+date)
+    if element_type == 'D':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(-180, 180, 10),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar = plt.colorbar(orientation='horizontal')
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(-180, 180, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field declination: '+date)
     ax.coastlines()
     ax.set_global()
 
 
-
-def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
+def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     """
     plots dec inc block as a color contour
     Parameters
@@ -3544,8 +3559,8 @@ def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
             count += 1
             dotspercircle = 0.
     im = plt.imshow(Z, interpolation='bilinear', origin='lower',
-                      #cmap=plt.color_map.hot, extent=(-1., 1., -1., 1.))
-                      cmap=color_map, extent=(-1., 1., -1., 1.))
+                    # cmap=plt.color_map.hot, extent=(-1., 1., -1., 1.))
+                    cmap=color_map, extent=(-1., 1., -1., 1.))
     plt.colorbar()
     x, y = [], []
     # Draws the border
@@ -3566,7 +3581,8 @@ def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
     # the axes
     plt.axis("equal")
 
-def plot_ts(ax,agemin,agemax,timescale='gts12',ylabel="Age (Ma)"):
+
+def plot_ts(ax, agemin, agemax, timescale='gts12', ylabel="Age (Ma)"):
     """
     Make a time scale plot between specified ages.
 
@@ -3580,48 +3596,53 @@ def plot_ts(ax,agemin,agemax,timescale='gts12',ylabel="Age (Ma)"):
     ylabel : if set, plot as ylabel
     """
     ax.set_title(timescale.upper())
-    ax.axis([-.25,1.5,agemax,agemin])
+    ax.axis([-.25, 1.5, agemax, agemin])
     ax.axes.get_xaxis().set_visible(False)
-    TS,Chrons=pmag.get_ts(timescale) # get dates and chron names for timescale
-    X,Y,Y2=[0,1],[],[]
-    cnt=0
-    if agemin<TS[1]: # in the Brunhes
-                Y=[agemin,agemin] # minimum age
-                Y1=[TS[1],TS[1]] # age of the B/M boundary
-                ax.fill_between(X,Y,Y1,facecolor='black') # color in Brunhes, black
+    # get dates and chron names for timescale
+    TS, Chrons = pmag.get_ts(timescale)
+    X, Y, Y2 = [0, 1], [], []
+    cnt = 0
+    if agemin < TS[1]:  # in the Brunhes
+        Y = [agemin, agemin]  # minimum age
+        Y1 = [TS[1], TS[1]]  # age of the B/M boundary
+        ax.fill_between(X, Y, Y1, facecolor='black')  # color in Brunhes, black
     for d in TS[1:]:
-                pol=cnt%2
-                cnt+=1
-                if d<=agemax and d>=agemin:
-                    ind=TS.index(d)
-                    Y=[TS[ind],TS[ind]]
-                    Y1=[TS[ind+1],TS[ind+1]]
-                    if pol: ax.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
-    ax.plot([0,1,1,0,0],[agemin,agemin,agemax,agemax,agemin],'k-')
-    plt.yticks(np.arange(agemin,agemax+1,1))
-    if ylabel!="": ax.set_ylabel(ylabel)
-    ax2=ax.twinx()
+        pol = cnt % 2
+        cnt += 1
+        if d <= agemax and d >= agemin:
+            ind = TS.index(d)
+            Y = [TS[ind], TS[ind]]
+            Y1 = [TS[ind+1], TS[ind+1]]
+            if pol:
+                # fill in every other time
+                ax.fill_between(X, Y, Y1, facecolor='black')
+    ax.plot([0, 1, 1, 0, 0], [agemin, agemin, agemax, agemax, agemin], 'k-')
+    plt.yticks(np.arange(agemin, agemax+1, 1))
+    if ylabel != "":
+        ax.set_ylabel(ylabel)
+    ax2 = ax.twinx()
     ax2.axis('off')
     for k in range(len(Chrons)-1):
-                c=Chrons[k]
-                cnext=Chrons[k+1]
-                d=cnext[1]-(cnext[1]-c[1])/3.
-                if d>=agemin and d<agemax:
-                    ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
-                    ax2.text(1.05,d,c[0]) #
-    ax2.axis([-.25,1.5,agemax,agemin])
+        c = Chrons[k]
+        cnext = Chrons[k+1]
+        d = cnext[1]-(cnext[1]-c[1])/3.
+        if d >= agemin and d < agemax:
+            # make the Chron boundary tick
+            ax2.plot([1, 1.5], [c[1], c[1]], 'k-')
+            ax2.text(1.05, d, c[0])
+    ax2.axis([-.25, 1.5, agemax, agemin])
 
 
 def save_or_quit(msg="S[a]ve plots - <q> to quit: "):
-     ans = ""
-     count = 0
-     while ans not in ['q', 'a']:
-         ans= input(msg)
-         count += 1
-         if count > 5:
-             ans = 'q'
-         if ans == 'a':
-             return('a')
-     if ans=='q':
-         print("\n Good bye\n")
-         sys.exit()
+    ans = ""
+    count = 0
+    while ans not in ['q', 'a']:
+        ans = input(msg)
+        count += 1
+        if count > 5:
+            ans = 'q'
+        if ans == 'a':
+            return('a')
+    if ans == 'q':
+        print("\n Good bye\n")
+        sys.exit()
