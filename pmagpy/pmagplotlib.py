@@ -19,6 +19,7 @@ verbose = set_env.verbose
 
 import pmagpy.pmag as pmag
 has_cartopy, Cartopy = pmag.import_cartopy()
+if has_cartopy:
     import cartopy.crs as ccrs
     from cartopy import config
     from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
