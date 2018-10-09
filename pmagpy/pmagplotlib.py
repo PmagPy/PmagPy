@@ -17,7 +17,8 @@ from pmag_env import set_env
 isServer = set_env.isServer
 verbose = set_env.verbose
 
-import pmagpy.pmag as pmag
+from pmagpy import pmag
+from pmagpy import find_pmag_dir
 has_cartopy, Cartopy = pmag.import_cartopy()
 if has_cartopy:
     import cartopy.crs as ccrs
@@ -3249,12 +3250,16 @@ def plot_map(fignum, lats, lons, Opts):
         
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-            import pmagpy.find_pmag_dir as find_pmag_dir
-            pmag_dir=find_pmag_dir.get_pmag_dir()
-            EDIR=os.path.join(pmag_dir,'data_files')+"/etopo20/"
-            etopo = np.loadtxt(EDIR + 'etopo20data.gz')
-            elons = np.loadtxt(EDIR + 'etopo20lons.gz')
-            elats = np.loadtxt(EDIR + 'etopo20lats.gz')
+
+
+            pmag_data_dir = find_pmag_dir.get_data_files_dir()
+            EDIR = os.path.join(pmag_data_dir, "etopo20")
+            #pmag_dir=find_pmag_dir.get_pmag_dir()
+            #EDIR=os.path.join(pmag_dir,'data_files')+"/etopo20/"
+            etopo_path = os.path.join(EDIR, 'etopo20data.gz')
+            etopo = np.loadtxt(os.path.join(EDIR, 'etopo20data.gz'))
+            elons = np.loadtxt(os.path.join(EDIR, 'etopo20lons.gz'))
+            elats = np.loadtxt(os.path.join(EDIR, 'etopo20lats.gz'))
             xx, yy = np.meshgrid(elons,elats)
             levels=np.arange(-10000,8000,500) # define contour intervals
             m=ax.contourf(xx, yy, etopo,levels,\

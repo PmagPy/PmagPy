@@ -9,6 +9,17 @@ from imp import reload
 #import pickle
 #from Tkinter import *
 
+
+def get_data_files_dir():
+    """
+    Find directory with data_files (sys.prefix or local PmagPy/data_files)
+    and return the path.
+    """
+    if 'data_files' in os.listdir(sys.prefix):
+        return os.path.join(sys.prefix, 'data_files')
+    else:
+        return os.path.join(get_pmag_dir(), 'data_files')
+
 def get_pmag_dir():
     """
     Returns directory in which PmagPy is installed
