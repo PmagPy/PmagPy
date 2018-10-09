@@ -4,7 +4,6 @@
 # pylint: disable-all
 # causes too many errors and crashes
 
-##from Tkinter import *
 from past.utils import old_div
 import sys
 import os
@@ -18,18 +17,26 @@ from pmag_env import set_env
 isServer = set_env.isServer
 verbose = set_env.verbose
 
-# wmpl_version=matplotlib.__version__
 import pmagpy.pmag as pmag
-#import pylab
+has_cartopy, Cartopy = pmag.import_cartopy()
+    import cartopy.crs as ccrs
+    from cartopy import config
+    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    from cartopy import feature as cfeature
+    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+
+
+import matplotlib
+from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
+from pylab import meshgrid # matplotlib's meshgrid function
+import matplotlib.ticker as mticker
 globals = 0
 graphmenu = 0
 global version_num
 version_num = pmag.get_version()
-# matplotlib.ticker_Formatter.xaxis.set_powerlimits((-3,4))
-# matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 
-import matplotlib
 # if running on a server use Agg to avoid $DISPLAY not found errors
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
@@ -41,7 +48,6 @@ if matplotlib.__version__ < '2.1':
     For those with an alternative Python distribution:
        pip install matplotlib --upgrade
 """)
-#    For users with Canopy Python, you can open the installed Canopy program to# update packages.
 
 
 
@@ -2938,7 +2944,6 @@ def plot_map_basemap(fignum, lats, lons, Opts):
     has_basemap, Basemap = pmag.import_basemap()
     if not has_basemap:
         return
-    from matplotlib import cm
     fig = plt.figure(num=fignum)
     rgba_land = (255, 255, 150, 255)
     rgba_ocean = (200, 250, 255, 255)
@@ -2972,14 +2977,13 @@ def plot_map_basemap(fignum, lats, lons, Opts):
                     projection=Opts['proj'], lat_0=Opts['lat_0'], lon_0=Opts['lon_0'], lat_ts=0., resolution=Opts['res'], boundinglat=Opts['boundinglat'])
     if 'details' in list(Opts.keys()):
         if Opts['details']['fancy'] == 1:
-            #from plt import meshgrid
             from mpl_toolkits.basemap import basemap_datadir
             EDIR = basemap_datadir + "/"
             etopo = np.loadtxt(EDIR + 'etopo20data.gz')
             elons = np.loadtxt(EDIR + 'etopo20lons.gz')
             elats = np.loadtxt(EDIR + 'etopo20lats.gz')
             x, y = m(*np.meshgrid(elons, elats))
-            cs = m.contourf(x, y, etopo, 30,cmap=cm.jet)
+            cs = m.contourf(x, y, etopo, 30,cmap=color_map.jet)
         if Opts['details']['coasts'] == 1:
             m.drawcoastlines(color='k')
         if Opts['details']['rivers'] == 1:
@@ -3129,18 +3133,9 @@ def plot_map(fignum, lats, lons, Opts):
            Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'','south':False}
 
     """
-    try:
-        import cartopy
-    except:
-        print ('This program requires the installation of cartopy')
-        return
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
-    import matplotlib.ticker as mticker
+    if not has_cartopy:
+       print ('This function requires installation of cartopy')
+       return
     from matplotlib import cm
     # draw meridian labels on the bottom [left,right,top,bottom]
     mlabels = [0, 0, 0, 1]
@@ -3346,7 +3341,6 @@ def plot_mag_map_basemap(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon
     has_basemap, Basemap = pmag.import_basemap()
     if not has_basemap:
         return
-    from pylab import meshgrid # matplotlib's meshgrid function
     from matplotlib import cm # matplotlib's color map module
     lincr=1
     if type(date)!=str: date=str(date)
@@ -3409,13 +3403,10 @@ def plot_mag_map(fignum,element,lons,lats,element_type,cmap='RdYlBu',lon_0=0,dat
     ______________
     plots a Robinson projection color contour with  the desired field element
     """
-    has_cartopy, Cartopy = pmag.import_cartopy()
+
     if not has_cartopy:
        print ('This function requires installation of cartopy')
        return
-    import cartopy.crs as ccrs
-    from pylab import meshgrid
-
     from matplotlib import cm
     if lon_0==180:lon_0=179.99
     if lon_0>180:lon_0=lon_0-360.
@@ -3547,7 +3538,7 @@ def plot_eq_cont(fignum, DIblock,color_map='coolwarm'):
             count += 1
             dotspercircle = 0.
     im = plt.imshow(Z, interpolation='bilinear', origin='lower',
-                      #cmap=plt.cm.hot, extent=(-1., 1., -1., 1.))
+                      #cmap=plt.color_map.hot, extent=(-1., 1., -1., 1.))
                       cmap=color_map, extent=(-1., 1., -1., 1.))
     plt.colorbar()
     x, y = [], []
