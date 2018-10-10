@@ -12,6 +12,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.continents as continents
 from pmag_env import set_env
 IS_WIN = set_env.IS_WIN
+has_basemap, Basemap = pmag.import_basemap()
 
 
 def main():
@@ -76,6 +77,13 @@ def main():
         NB: high resolution or lines can be very slow
 
     """
+    if '-h' in sys.argv:
+        print(main.__doc__)
+        return
+    if not has_basemap:
+        print(main.__doc__)
+        print('-W- You must have Basemap installed to run cont_rot.py')
+        return
     dir_path = '.'
     ocean = 0
     res = 'c'
@@ -92,12 +100,10 @@ def main():
     SEQ, age, SAC = 0, 0, 0
     rconts = ['af', 'congo', 'kala', 'aus',
               'eur', 'ind', 'sam', 'ant', 'grn', 'nam']
+
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
         dir_path = sys.argv[ind+1]
-    if '-h' in sys.argv:
-        print(main.__doc__)
-        sys.exit()
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
         fmt = sys.argv[ind+1]
