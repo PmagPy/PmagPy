@@ -245,6 +245,20 @@ except ImportError:
     version = ""
 version = version + ": thellier_gui." + CURRENT_VERSION
 
+has_basemap, Basemap = pmag.import_basemap()
+has_cartopy, cartopy = pmag.import_cartopy()
+if has_cartopy:
+    # import some cartopy stuff
+    import cartopy.crs as ccrs
+    from cartopy import config
+    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    from cartopy import feature as cfeature
+    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    import matplotlib.ticker as mticker
+
+
+
 #=========================================================================
 
 
@@ -5098,8 +5112,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # read in topo data (on a regular lat/lon grid)
         # longitudes go from 20 to 380.
         if Plot_map:
-            has_basemap, Basemap = pmag.import_basemap()
-            has_cartopy, cartopy = pmag.import_cartopy()
             SiteLat_min = lat_min - 5
             SiteLat_max = lat_max + 5
             SiteLon_min = lon_min - 5
@@ -5109,15 +5121,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 plt.ion()
                 plt.clf()
                 plt.ioff()
-            if has_cartopy: # make a cartopy basemap 
-                # import some stuff
-                import cartopy.crs as ccrs
-                from cartopy import config
-                from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-                from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-                from cartopy import feature as cfeature
-                from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
-                import matplotlib.ticker as mticker
+            if has_cartopy: # make a cartopy basemap
                 ax1 = plt.axes(projection=ccrs.PlateCarree())
                 ax1.set_extent([SiteLon_min,SiteLon_max,SiteLat_min,SiteLat_max], crs=ccrs.PlateCarree())
                 ax1.coastlines(resolution='50m')
@@ -5203,7 +5207,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 plt.errorbar(X_data, Y_data, xerr=None, yerr=[
                              Y_data_minus_extended, Y_data_plus_extended], fmt='.', ms=0, ecolor='red', label="extended error-bar", zorder=0)
 
-            if Plot_map and has_basemap or has_cartopy:
+            if Plot_map and (has_basemap or has_cartopy):
                 #plt.figure(2)
                 lat = plot_by_locations[location]['site_lat']
                 lon = plot_by_locations[location]['site_lon']
