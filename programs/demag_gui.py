@@ -208,7 +208,7 @@ class Demag_GUI(wx.Frame):
             if high_level not in list(self.high_level_means.keys()):
                 self.high_level_means[high_level] = {}
 
-        self.ie_open = False
+        self.ie_open,self.vgp_open = False,False
         self.check_orient_on = False
         self.list_bound_loc = 0
         self.color_dict = {}
@@ -2583,6 +2583,8 @@ class Demag_GUI(wx.Frame):
                 )) for e in sl if e not in self.bad_fits and e.name == comp][0]
                 PmagResRec['vgp_lon'] = plong
                 PmagResRec['vgp_lat'] = plat
+                PmagResRec['lon'] = lon
+                PmagResRec['lat'] = lat
                 PmagResRec['vgp_dp'] = dp
                 PmagResRec['vgp_dm'] = dm
                 VGP_Data['samples'].append(PmagResRec)
@@ -2614,6 +2616,8 @@ class Demag_GUI(wx.Frame):
                 SiteData['n'] = len(siteD)
                 SiteData['vgp_lon'] = plong
                 SiteData['vgp_lat'] = plat
+                SiteData['lon'] = lon
+                SiteData['lat'] = lat
                 SiteData['vgp_dp'] = dp
                 SiteData['vgp_dm'] = dm
                 SiteData['color'] = [e.color for sl in list(self.pmag_results_data['specimens'].values(
@@ -2681,6 +2685,8 @@ class Demag_GUI(wx.Frame):
                         continue
                     PolRes['vgp_lon'] = plong
                     PolRes['vgp_lat'] = plat
+                    PolRes['lon'] = lon
+                    PolRes['lat'] = lat
                     PolRes['vgp_dp'] = dp
                     PolRes['vgp_dm'] = dm
                     PolRes['color'] = [e.color for sl in list(self.pmag_results_data['specimens'].values(
@@ -7257,11 +7263,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     def on_menu_view_vgps(self, event):
-        VGP_Data = self.calculate_vgp_data()
-        vgpdia = demag_dialogs.VGP_Dialog(self, VGP_Data)
-        if vgpdia.failed_init:
-            return
-        self.show_dlg(vgpdia)
+        if not self.vgp_open:
+            VGP_Data = self.calculate_vgp_data()
+            vgpdia = demag_dialogs.VGP_Dialog(self, VGP_Data)
+            if vgpdia.failed_init:
+                return
+            else: self.vgp_open=True
+            vgpdia.Show()
+#        self.show_dlg(vgpdia)
 
     #---------------------------------------------#
     # Help Menu Functions
