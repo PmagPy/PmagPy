@@ -52,6 +52,7 @@ class VGP_Dialog(wx.Frame):
         if VGP_Data!={} and not all([len(VGP_Data[k]) for k in list(VGP_Data.keys())]):
             parent.user_warning("No VGP Data for VGP viewer to display")
             self.Destroy(); self.failed_init=True; return
+        self.parent=parent
         self.WD=parent.WD
         self.test_mode=parent.test_mode
         self.selected_pole = None
