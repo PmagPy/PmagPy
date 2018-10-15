@@ -2,17 +2,18 @@
 
 import matplotlib
 import numpy as np
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
 import wx
 import copy
 import os
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from pmagpy.demag_gui_utilities import *
+from pmag_env import set_env
 from numpy import vstack,sqrt
 from functools import reduce
 
@@ -44,9 +45,15 @@ class VGP_Dialog(wx.Frame):
     """
 
     def __init__(self,parent,VGP_Data):
+        if set_env.IS_FROZEN:
+            parent.user_warning("This feature is not available in the standalone executable.  If you need to look at VGPs, consider installing Python and PmagPy: https://earthref.org/PmagPy/cookbook/#getting_python");
+            self.failed_init=True
+            return
         self.failed_init = False
         if not has_cartopy:
-            parent.user_warning("This feature requires the Cartopy library to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); self.failed_init=True; return
+            parent.user_warning("This feature requires the Cartopy library to function.")
+            self.failed_init=True
+            return
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
         if not isinstance(VGP_Data,dict): VGP_Data={}
         if VGP_Data!={} and not all([len(VGP_Data[k]) for k in list(VGP_Data.keys())]):
