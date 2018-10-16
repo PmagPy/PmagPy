@@ -46,7 +46,7 @@ You can create an executable that is over 100MB smaller by installing a more min
   - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 - Install Python
   - `brew install python`
-- Link python3 --> python
+- Link python3 --> python (not sure this is necessary)
    - `ln -s /usr/local/bin/python3 /usr/local/bin/python`
 - Use pip to install required packages
   - `pip install future matplotlib numpy scipy pandas`
@@ -54,11 +54,13 @@ You can create an executable that is over 100MB smaller by installing a more min
   - `pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Use pip to install Pyinstaller
   - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
+- Replace `#!/usr/bin/env/pythonw` with `#!/usr/bin/env/python3` at the top of pmag\_gui.py magic\_gui.py.
 - Then you can generate a .spec file and run Pyinstaller, as explained above!
 
 - NB: to brew uninstall this python, you must first delete the symlink you created:
   - `rm /usr/local/bin/python`
   - `brew uninstall python`
+
 
 Do *not* install cartopy.  It is not required for creating standalones and breaks everything.
 
