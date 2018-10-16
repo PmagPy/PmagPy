@@ -2,6 +2,8 @@ The scripts in this directory are for making new standalone releases.  This is d
 
 ## Compiling on OS X
 
+**This doesn't seem to work at present, follow the "more compact executable" instructions in the next section**
+
 First, install anaconda python 3.
 
 Install pyinstaller from the developer branch (certain needed bug fixes are here only, as of 6/8/17, see this [pyinstaller issue](https://github.com/pyinstaller/pyinstaller/issues/2434)):
@@ -49,10 +51,7 @@ You can create an executable that is over 100MB smaller by installing a more min
 - Use pip to install required packages
   - `pip install future matplotlib numpy scipy pandas`
 - Use pip to install wxPython
-  - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
-- Install Basemap # see https://github.com/matplotlib/basemap/issues/251 for details
-  - `brew install geos`
-  - `sudo -H pip3 install https://github.com/matplotlib/basemap/archive/v1.1.0.tar.gz`
+  - `pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Use pip to install Pyinstaller
   - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
 - Then you can generate a .spec file and run Pyinstaller, as explained above!
@@ -60,6 +59,8 @@ You can create an executable that is over 100MB smaller by installing a more min
 - NB: to brew uninstall this python, you must first delete the symlink you created:
   - `rm /usr/local/bin/python`
   - `brew uninstall python`
+
+Do *not* install cartopy.  It is not required for creating standalones and breaks everything.
 
 Same idea but with miniconda, (a stripped down version of Anaconda Python):
 
@@ -71,8 +72,6 @@ Same idea but with miniconda, (a stripped down version of Anaconda Python):
   - `conda install future matplotlib numpy scipy pandas`
 - Use pip to install wxPython
   - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
-- Install Basemap
-  - `conda install basemap --channel conda-forge`
 - Use pip to install Pyinstaller
   - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
 - Upgrade setuptools
@@ -126,6 +125,15 @@ pyinstaller --clean PmagGUI.spec
 The executable will be in the dist directory. If it does not run when you double click it or enter its name in the terminal you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME`. Also due to the way Pyinstaller is constructed when bundling as one-file you should note that it can take 5-30 seconds for the program to run so check with an activity manager (like top) before assuming the executable did not compile correctly.
 
 **Note:** if compiling this document to pdf using pandoc the command used is `pandoc devguide.md -o devguide.pdf --highlight-style tango -V geometry:margin=.7in`
+
+
+## Troubleshooting
+
+You can run the executable with output to Terminal (this is particularly useful when your build is refusing to launch):
+
+    ./dist/pmag_gui_3.0
+
+If this doesn't help, see the [Pyinstaller troubleshooting guide](https://pythonhosted.org/PyInstaller/when-things-go-wrong.html).
 
 
 ## DEPRECATED way of making Windows standalones
