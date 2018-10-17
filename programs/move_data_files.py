@@ -21,17 +21,19 @@ def copy_directory(src, dest):
         shutil.copytree(src, dest)
         # Directories are the same
     except shutil.Error as error:
-        print('Directory not copied. Error: %s' % error)
+        print('-W- Directory not copied. Error: %s' % error)
         # Any error saying that the directory doesn't exist
     except OSError as error:
-        print('Directory not copied. Error: %s' % error)
+        print('-W- Directory not copied. Error: %s' % error)
+        print("    If you have a developer install, move_data_files.py won't work.  Simply navigate to your PmagPy directory.  You can find data_files, PmagPy.ipynb and PmagPy-cli.ipynb there.")
 
 
 def main():
     if '-h' in sys.argv:
-        print("Choose the folder where you want the PmagPy data files to be.")
-        print("Navigate to that folder, and use the command: 'move_data_files.py'")
-        print("Alternatively, you may use the full path to the directory of your choice from anywhere in the file system, using the '-d' flag: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
+        print("    Choose the folder where you want the PmagPy data files to be.")
+        print("    Navigate to that folder, and use the command: 'move_data_files.py'")
+        print("    Alternatively, you may use the full path to the directory of your choice from anywhere in the file system, using the '-d' flag: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
+        print("    **IMPORTANT** If you have a developer install, this won\'t work.  Simply navigate to your PmagPy directory.  You can find data_files, PmagPy.ipynb and PmagPy-cli.ipynb there.")
         sys.exit()
     # create PmagPy-data directory
     dest = pmag.get_named_arg('-d', '.', False)
