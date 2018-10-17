@@ -2526,7 +2526,7 @@ def equi_basemap(m, centerlon, centerlat, radius, color):
     plt.plot(X, Y, color)
 
 
-def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, **kwargs):
+def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
     """
     This function enables general error ellipses to be drawn on the cartopy projection of the input map axis
     using a center and a set of major and minor axes and a rotation angle east of north.
@@ -2542,7 +2542,7 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     angle : angle of major axis in degrees east of north
     n : number of points with which to apporximate the ellipse
     filled : boolean specifying if the ellipse should be plotted as a filled polygon or
-             as a set of line segments
+             as a set of line segments (Doesn't work right now)
     kwargs : any other key word arguments can be passed for the line
 
     Returns
@@ -2559,12 +2559,18 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         az_rad = azimuth*(np.pi/180)
         radius = ((major_axis*minor_axis)/(((minor_axis*np.cos(az_rad-angle))**2 + (major_axis*np.sin(az_rad-angle))**2)**.5))
         glon2, glat2, baz = shoot(glon1, glat1, azimuth, radius)
-        X.append(glon2)
+        X.append((360+glon2)%360)
         Y.append(glat2)
     X.append(X[0])
     Y.append(Y[0])
 
-    map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+    if filled:
+        ellip = np.array((X,Y)).T
+        ellip = map_axis.projection.transform_points(ccrs.PlateCarree(),ellip[:,0],ellip[:,1])
+        poly = Polygon(ellip[:,:2],**kwargs)
+        map_axis.add_patch(poly)
+    else:
+        map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
 
 
 def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
