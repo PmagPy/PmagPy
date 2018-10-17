@@ -15,7 +15,6 @@ If you will be making significant contributions via git, we have some additional
 Good code must be readable.  To that end, we request that contributors try to write code that can be understood by others!  One way to do this is by adhering to reasonable style guidelines.  For more information about standard Python style guidelines, see [PEP 8](https://www.python.org/dev/peps/pep-0008/).
 
 
-
 ## Testing guidelines
 
 For information about writing and running tests, see the [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md).
@@ -30,27 +29,12 @@ Next we have a breakdown of how the PmagPy repository is structured.  In some ca
 #### pmagpy
 The `pmagpy` directory contains all the low-level functionality that the PmagPy project is built on. pmag.py and ipmag.py contain many functions that can be used in Jupyter notebooks or for building up more complex programs and GUIs.  Other important modules in the `pmagpy` directory:
   - a plotting library -- pmagplotlib.py
-  - a utility for building up MagIC contributions -- new\_builder.py
+  - a utility for building up MagIC contributions -- contribution\_builder.py
   - modules for interfacing with the data models (controlled\_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
 
-To see a notebook with examples of how to use pmag.py and ipmag.py, see the [Example_PmagPy_Notebook.ipynb](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks/blob/master/Example_PmagPy_Notebook.ipynb)
+To see a notebook with examples of how to use pmag.py and ipmag.py, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually _run_ that notebook you will need to download it from the 2016\_Tauxe-et-al\_PmagPy\_notebooks repository:
-
-- Go into your command line.
-- Change directories into a directory where you keep projects.
-
-`git clone git@github.com:PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks.git`
-
-`cd 2016_Tauxe-et-al_PmagPy_Notebooks`
-
-`jupyter notebook`
-
-- A browser window will open automatically. Click Example\_PmagPy\_Notebook.ipynb
-
-- For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
-
-To see example notebooks for building and examing a MagIC contribution, see [Intro to MagIC DataFrames.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagicDataFrames.ipynb) and [Intro to MagIC Contributions.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagIC%20Contributions.ipynb).  To run those notebooks, follow the [instructions for running PmagPy notebooks](#running-notebooks).
+To actually _run_ that notebook, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get the notebook up and running.
 
 
 #### SPD
@@ -59,18 +43,15 @@ The `SPD` directory contains a program to calculate statistics using Greig Pater
 #### programs
 The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
 
-To see a notebook with examples of how to run most of the command-line programs, see the [_PmagPy.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).  Also see [_PmagPy_3.0.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy_3.0.ipynb).
+To see a notebook with examples of how to run most of the command-line programs, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually run those notebooks, you will need to follow [these directions](#running-notebooks).
+To actually run these notebooks, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get notebooks up and running.
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
 
 #### data_files
 `data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
-
-#### notebooks
-`notebooks` is a subdirectory of `data_files` and contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
 
 #### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
@@ -116,25 +97,6 @@ Here is a visual representation of the directory structure:
 └── uninstall_Mac_OSX.app
 ```
 
-## Running notebooks
-
-- If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
-
-    + You will need to go into your command line to run this program.  You can run it from the directory in which you want to place the PmagPy data_files (perhaps your Desktop), using this command:
-
-    `move_data_files.py -d .` # ("." represents your current directory)
-
-    + Alternatively, you can run it from any directory in your command line using the full destination directory name:
-
-    `move_data_files.py -d ~/Desktop`
-
-    + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
-
-- Once you have located or moved the data\_files, navigate to the data_files directory on your command line.  Run the command:
-
-    `jupyter notebook`
-
-- Click on the `notebooks` directory, then click on the notebook you want to open.  A window will pop up in your default browser with the notebook's contents.  You can then run the notebook cells.
 
 ## Git protocols
 
@@ -200,9 +162,9 @@ Lisa Tauxe's [Essentials of Paleomagnetism](https://earthref.org/MagIC/books/Tau
 
 ### Programming resources
 
-Learn [Python here!](https://www.codecademy.com) These tutorials are in a sandbox environment, so you don't even need to install Python first.
+Learn [Python for Earth Sciences](https://github.com/ltauxe/Python-for-Earth-Science-Students)
 
-Another place to [learn Python](http://cscircles.cemc.uwaterloo.ca/).
+Learn the basics of [Python](http://cscircles.cemc.uwaterloo.ca/).
 
 Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)
 

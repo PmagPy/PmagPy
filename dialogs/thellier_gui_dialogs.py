@@ -35,6 +35,7 @@ import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import pmagpy.pmag as pmag
 from dialogs import pmag_widgets as pw
+from pmag_env import set_env
 #--------------------------------------------------------------
 # paleointensity statistics list (SPD.v.1.0)
 #--------------------------------------------------------------
@@ -1389,8 +1390,13 @@ class Plot_Dialog(wx.Dialog):
         bSizer4 = wx.StaticBoxSizer(wx.StaticBox(
             pnl1, wx.ID_ANY, "Location map"), wx.HORIZONTAL)
 
-        self.show_map = wx.CheckBox(pnl1, -1, '', (50, 50))
+        txt = ''
+        if set_env.IS_FROZEN:
+            txt = '(not available)'
+        self.show_map = wx.CheckBox(pnl1, -1, txt, (50, 50))
         self.show_map.SetValue(False)
+        if set_env.IS_FROZEN:
+            self.show_map.Disable()
         self.set_map_autoscale = wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_map_autoscale.SetValue(True)
 

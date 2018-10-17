@@ -27,6 +27,7 @@ if has_cartopy:
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     from cartopy import feature as cfeature
     from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+has_basemap, Basemap = pmag.import_basemap()
 
 
 import matplotlib
@@ -2950,8 +2951,8 @@ def plot_map_basemap(fignum, lats, lons, Opts):
            Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None}
 
     """
-    has_basemap, Basemap = pmag.import_basemap()
     if not has_basemap:
+        print('-W- Basemap must be installed to run plot_map_basemap')
         return
     fig = plt.figure(num=fignum)
     rgba_land = (255, 255, 150, 255)
@@ -3353,8 +3354,8 @@ def plot_mag_map_basemap(fignum, element, lons, lats, element_type, cmap='RdYlBu
     ______________
     plots a Hammer projection color contour with  the desired field element
     """
-    has_basemap, Basemap = pmag.import_basemap()
     if not has_basemap:
+        print('-W- Basemap must be installed to run plot_mag_map_basemap')
         return
     from matplotlib import cm  # matplotlib's color map module
     lincr = 1

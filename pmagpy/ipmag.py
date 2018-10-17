@@ -1687,6 +1687,9 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
     lat_grid : specify the latitude grid (default is 30 degree spacing)
     lon_grid : specify the longitude grid (default is 30 degree spacing)
     '''
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.make_orthographic_map')
+        return
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Orthographic(central_longitude=central_longitude,central_latitude=central_latitude)
     ax = plt.axes(projection = map_projection)
@@ -1724,7 +1727,9 @@ def make_mollweide_map(central_longitude=0, figsize=(8,8),
     lat_grid : specify the latitude grid (default is 30 degree spacing)
     lon_grid : specify the longitude grid (default is 30 degree spacing)
     '''
-
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.make_molleweide_map')
+        return
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Mollweide(central_longitude=central_longitude)
     ax = plt.axes(projection = map_projection)
@@ -1762,7 +1767,9 @@ def make_robinson_map(central_longitude=0, figsize=(8,8),
     lat_grid : specify the latitude grid (default is 30 degree spacing)
     lon_grid : specify the longitude grid (default is 30 degree spacing)
     '''
-
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.make_robinson_map')
+        return
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Robinson(central_longitude=central_longitude)
     ax = plt.axes(projection = map_projection)
@@ -1806,6 +1813,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', mark
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_pole')
+        return
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
                     color=color,edgecolors=edgecolor, s=markersize,
@@ -1899,6 +1909,9 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     site_label : string that labels the site
     legend : the default is a legend (True). Putting False will suppress legend plotting.
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_pole_dp_dm')
+        return
     dp_km = dp*111.32
     dm_km = dm*111.32
     map_axis.scatter(plon, plat, marker=pole_marker,
@@ -1989,6 +2002,9 @@ def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label=
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
     legend : the default is no legend (False). Putting True will plot a legend.
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_pole_colorbar')
+        return
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, c=colorvalue, vmin=vmin, vmax=vmax, cmap=colormap,
                     s=markersize, marker=marker, alpha=alpha, label=label, zorder=101, transform=ccrs.Geodetic())
@@ -2036,6 +2052,9 @@ def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
     colorbar : the default is to include a colorbar (True). Putting False will make it so no legend is plotted.
     colorbar_label : label for the colorbar
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_poles_colorbar')
+        return
     for n in range(0, len(plon)):
         plot_pole_colorbar(map_axis, plon[n], plat[n], A95[n], colorvalue[n], vmin, vmax,
                            colormap=colormap, color=color, marker=marker, markersize=markersize, alpha=alpha)
@@ -2074,6 +2093,9 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend (False). Putting True will plot a legend.
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_vgp')
+        return
     if di_block != None:
         di_lists = unpack_di_block(di_block)
         if len(di_lists) == 3:
@@ -2491,6 +2513,9 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
     paleomagnetic poles in conjunction with shoot
     (modified from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.equi')
+        return
     glon1 = centerlon
     glat1 = centerlat
     X = []
@@ -2550,6 +2575,9 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     The map object with the ellipse plotted on it
 
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.ellipse')
+        return
     angle = angle*(np.pi/180)
     glon1 = centerlon
     glat1 = centerlat
