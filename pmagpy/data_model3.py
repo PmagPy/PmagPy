@@ -250,3 +250,9 @@ class DataModel():
         except KeyError:
             return ''
         return group_name
+
+
+if __name__ == "__main__":
+    dm = DataModel()
+    raw = dm.get_dm_online()
+    dm.cache_data_model(raw)
