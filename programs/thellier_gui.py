@@ -711,6 +711,12 @@ DESCRIPTION
         self.Bind(wx.EVT_BUTTON, self.on_delete_interpretation_button,
                   self.delete_interpretation_button)
 
+        self.auto_save = wx.CheckBox(self.top_panel, wx.ID_ANY, 'auto-save')
+        self.auto_save_info = wx.Button(self.top_panel, wx.ID_ANY, "?")
+        self.Bind(wx.EVT_BUTTON, self.on_info_click, self.auto_save_info)
+        #self.auto_save_text = wx.StaticText(self.top_panel, wx.ID_ANY, label="(saves with 'next')")
+
+
         #--------------------------------------------------------------------
         # specimen interpretation and statistics window (Blab; Banc, Dec, Inc, correction factors etc.)
         #--------------------------------------------------------------------
@@ -866,12 +872,14 @@ DESCRIPTION
             sizer_prev_next_btns, 1, wx.EXPAND | wx.TOP, v_space)
 
         #-------------Bounds Sizer----------------------------------------
-        sizer_grid_bounds_btns = wx.GridSizer(2, 2, 2 * h_space, 2 * v_space)
+        sizer_grid_bounds_btns = wx.GridSizer(2, 3, 2 * h_space, 2 * v_space)
         sizer_grid_bounds_btns.AddMany([(self.tmin_box, 1, wx.EXPAND),
                                         (self.save_interpretation_button,
-                                         1, wx.EXPAND),
+                                         1, wx.EXPAND), (self.auto_save, 1, wx.EXPAND),
                                         (self.tmax_box, 1, wx.EXPAND),
-                                        (self.delete_interpretation_button, 1, wx.EXPAND)])
+                                        (self.delete_interpretation_button, 1, wx.EXPAND),
+                                        (self.auto_save_info, 1, wx.EXPAND)])
+
 
         if self.s in list(self.Data.keys()) and self.Data[self.s]['T_or_MW'] == "T":
             sizer_select_temp = wx.StaticBoxSizer(wx.StaticBox(
@@ -1632,17 +1640,20 @@ else:
         update figures and text when a next button is selected
         """
         if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved'] != True:
-            self.on_save_interpretation_button(None)
-            #del self.Data[self.s]['pars']
-            #self.Data[self.s]['pars'] = {}
-            #self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
-            #self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
-            #self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
-            ## return to last saved interpretation if exist
-            #if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
-            #    for key in list(self.last_saved_pars.keys()):
-            #        self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
-            #    self.last_saved_pars = {}
+            # check preferences
+            if self.auto_save.GetValue():
+                self.on_save_interpretation_button(None)
+            else:
+                del self.Data[self.s]['pars']
+                self.Data[self.s]['pars'] = {}
+                self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
+                self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
+                self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
+                # return to last saved interpretation if exist
+                if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
+                    for key in list(self.last_saved_pars.keys()):
+                        self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
+                    self.last_saved_pars = {}
 
         index = self.specimens.index(self.s)
         if index == len(self.specimens) - 1:
@@ -1656,21 +1667,50 @@ else:
 
     #----------------------------------------------------------------------
 
+
+    def on_info_click(self, event):
+        """
+        Show popup info window when user clicks "?"
+        """
+        def on_close(event, wind):
+            wind.Close()
+            wind.Destroy()
+        event.Skip()
+        wind = wx.PopupTransientWindow(self, wx.RAISED_BORDER)
+        if self.auto_save.GetValue():
+            info = "'auto-save' is currently selected. Temperature bounds will be saved when you click 'next' or 'back'."
+        else:
+            info = "'auto-save' is not selected.  Temperature bounds will only be saved when you click 'save'."
+        text = wx.StaticText(wind, -1, info)
+        box = wx.StaticBox(wind, -1, 'Info:')
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        boxSizer.Add(text, 5, wx.ALL | wx.CENTER)
+        exit_btn = wx.Button(wind, wx.ID_EXIT, 'Close')
+        wind.Bind(wx.EVT_BUTTON, lambda evt: on_close(evt, wind), exit_btn)
+        boxSizer.Add(exit_btn, 5, wx.ALL | wx.CENTER)
+        wind.SetSizer(boxSizer)
+        wind.Layout()
+        wind.Popup()
+
     def on_prev_button(self, event):
         """
         update figures and text when a previous button is selected
         """
         if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved'] != True:
-            del self.Data[self.s]['pars']
-            self.Data[self.s]['pars'] = {}
-            self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
-            self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
-            self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
-            # return to last saved interpretation if exist
-            if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
-                for key in list(self.last_saved_pars.keys()):
-                    self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
-                self.last_saved_pars = {}
+            # check preferences
+            if self.auto_save.GetValue():
+                self.on_save_interpretation_button(None)
+            else:
+                del self.Data[self.s]['pars']
+                self.Data[self.s]['pars'] = {}
+                self.Data[self.s]['pars']['lab_dc_field'] = self.Data[self.s]['lab_dc_field']
+                self.Data[self.s]['pars']['er_specimen_name'] = self.Data[self.s]['er_specimen_name']
+                self.Data[self.s]['pars']['er_sample_name'] = self.Data[self.s]['er_sample_name']
+                # return to last saved interpretation if exist
+                if 'er_specimen_name' in list(self.last_saved_pars.keys()) and self.last_saved_pars['er_specimen_name'] == self.s:
+                    for key in list(self.last_saved_pars.keys()):
+                        self.Data[self.s]['pars'][key] = self.last_saved_pars[key]
+                    self.last_saved_pars = {}
 
         index = self.specimens.index(self.s)
         if index == 0:
@@ -5142,16 +5182,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
                          SiteLon_min = set_map_lon_min
                      if set_map_lon_max != "":
                          SiteLon_max = set_map_lon_max
- 
+
                  m = Basemap(llcrnrlon=SiteLon_min, llcrnrlat=SiteLat_min, urcrnrlon=SiteLon_max,
                              urcrnrlat=SiteLat_max, projection='merc', resolution='i')
- 
+
                  if set_map_lat_grid != "" and set_map_lon_grid != 0:
                      m.drawparallels(np.arange(SiteLat_min, SiteLat_max + set_map_lat_grid,
                                                set_map_lat_grid), linewidth=0.5, labels=[1, 0, 0, 0], fontsize=10)
                      m.drawmeridians(np.arange(SiteLon_min, SiteLon_max + set_map_lon_grid,
                                                set_map_lon_grid), linewidth=0.5, labels=[0, 0, 0, 1], fontsize=10)
- 
+
                  else:
                      pass
                      '''lat_min_round=SiteLat_min-SiteLat_min%10
@@ -5160,7 +5200,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                      lon_max_round=SiteLon_max-SiteLon_max%10
                      m.drawparallels(np.arange(lat_min_round,lat_max_round+5,5),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
                      m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)'''
- 
+
                  m.fillcontinents(zorder=0, color='0.9')
                  m.drawcoastlines()
                  m.drawcountries()
@@ -5213,7 +5253,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 lon = plot_by_locations[location]['site_lon']
                 if has_cartopy:
                     ax1.plot(lon,lat,marker=SYMBOLS[cnt % len(
-                        SYMBOLS)], color=COLORS[cnt % len(COLORS)], 
+                        SYMBOLS)], color=COLORS[cnt % len(COLORS)],
                         transform=ccrs.Geodetic(),markeredgecolor='black')
                 elif has_basemap:
                     x1, y1 = m([lon], [lat])
