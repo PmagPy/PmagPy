@@ -59,6 +59,7 @@ if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 import os
 import sys
+import pandas as pd
 import pdb
 import shutil
 import pmagpy.pmag as pmag
@@ -3816,6 +3817,21 @@ class Demag_GUI(wx.Frame):
                     "Measurement data file is empty and the GUI cannot start, aborting")
                 return Data, Data_hierarchy
 
+            # extract specimen data from measurements table
+            if not len(self.spec_data):
+                specs = self.con.tables['measurements'].df['specimen'].unique()
+                df = pd.DataFrame(index=specs, columns=['specimen'])
+                df.index.name = 'specimen_name'
+                df['specimen'] = specs
+                self.con.tables['specimens'].df = df
+                self.spec_data = df
+
+            if not len(self.spec_data):
+                self.user_warning(
+                    "Measurement data file does not seem to have specimen data and the GUI cannot start, aborting")
+                return Data, Data_hierarchy
+
+
             if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
                 if 'specimen' not in self.spec_data.columns:
                     self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
@@ -4386,6 +4402,7 @@ class Demag_GUI(wx.Frame):
                 self.spec_data = self.con.tables['specimens'].df
             if 'samples' in self.con.tables:
                 samp_container = self.con.tables['samples']
+                samp_container.front_and_backfill(['azimuth', 'dip'])
                 self.samp_data = samp_container.df
                 samp_data2 = self.samp_data.rename(
                     columns=map_magic.samp_magic3_2_magic2_map)
