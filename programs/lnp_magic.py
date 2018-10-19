@@ -114,7 +114,6 @@ def main():
         cols = [site_col, tilt_corr_col, mad_col, alpha95_col, dec_col, inc_col]
         con.tables['specimens'].front_and_backfill(cols)
         con.tables['specimens'].df = con.tables['specimens'].df.where(con.tables['specimens'].df.notnull(), "")
-        #con.tables['specimens'].df = np.where(con.tables['specimens'].df.apply(cb.not_null), con.tables['specimens'].df,  "")
         Specs = con.tables['specimens'].convert_to_pmag_data_list()
 
 

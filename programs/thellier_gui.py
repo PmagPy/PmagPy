@@ -3958,7 +3958,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if 'int_abs' not in self.spec_container.df.columns:
                         self.spec_container.df['int_abs'] = None
                         print("-W- No intensity data found for specimens")
-                    cond2 = self.spec_container.df['int_abs'].apply(cb.not_null) #notnull() == True
+                    cond2 = self.spec_container.df['int_abs'].apply(lambda x: cb.not_null(x, False)) #notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
                     self.spec_data = self.spec_container.update_record(
@@ -4817,7 +4817,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             age_range_high = age + age_sigma
 
         if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-            if cb.not_null(er_ages_rec["age_range_high"]) and cb.not_null(er_ages_rec["age_range_low"]):
+            if cb.not_null(er_ages_rec["age_range_high"], False) and cb.not_null(er_ages_rec["age_range_low"], False):
                 age_range_high = float(
                     er_ages_rec["age_range_high"]) * mutliplier
                 if age_unit == "Years BP" or age_unit == "Years Cal BP":
@@ -7667,7 +7667,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_values = samp_rec
                         new_rec = {}
                         for k, v in old_values.items():
-                            if cb.not_null(v):
+                            if cb.not_null(v, False):
                                 new_rec[k] = v
                             else:
                                 new_rec[k] = new_values[k]
@@ -7746,7 +7746,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_values = site_rec
                         new_rec = {}
                         for k, v in old_values.items():
-                            if cb.not_null(v):
+                            if cb.not_null(v, False):
                                 new_rec[k] = v
                             else:
                                 new_rec[k] = new_values[k]

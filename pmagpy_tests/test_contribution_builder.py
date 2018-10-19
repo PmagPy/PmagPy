@@ -627,6 +627,7 @@ class TestNotNull(unittest.TestCase):
             # all evens should be True, all odds should be False
             correct = (num % 2) == 0
             self.assertEqual(correct, res)
+        self.assertTrue(cb.not_null(0, False))
 
 
 class TestMungeForPlotting(unittest.TestCase):

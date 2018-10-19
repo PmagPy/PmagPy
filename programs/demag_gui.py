@@ -4119,15 +4119,15 @@ class Demag_GUI(wx.Frame):
                     else:
                         Data[s]['measurement_step_unit'] = measurement_step_unit
                 dec, inc, inten = "", "", ""
-                if "measurement_dec" in list(rec.keys()) and cb.not_null(rec["measurement_dec"]):
+                if "measurement_dec" in list(rec.keys()) and cb.not_null(rec["measurement_dec"], False):
                     dec = float(rec["measurement_dec"])
                 else:
                     continue
-                if "measurement_inc" in list(rec.keys()) and cb.not_null(rec["measurement_inc"]):
+                if "measurement_inc" in list(rec.keys()) and cb.not_null(rec["measurement_inc"], False):
                     inc = float(rec["measurement_inc"])
                 else:
                     continue
-                if self.intensity_col in list(rec.keys()) and cb.not_null(rec[self.intensity_col]):
+                if self.intensity_col in list(rec.keys()) and cb.not_null(rec[self.intensity_col], False):
                     intensity = float(rec[self.intensity_col])
                 else:
                     intensity = 1.  # just assume a normal vector

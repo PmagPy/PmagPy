@@ -1073,7 +1073,7 @@ class GridBuilder(object):
         # if there is one row, df MIGHT be empty
         else:
             # check all the non-null values
-            non_null_vals = [val for val in self.magic_dataframe.df.values[0] if cb.not_null(val)]
+            non_null_vals = [val for val in self.magic_dataframe.df.values[0] if cb.not_null(val, False)]
             for val in non_null_vals:
                 if not isinstance(val, str):
                     empty = False
@@ -1147,7 +1147,7 @@ class GridBuilder(object):
                     if col_name in self.contribution.tables[self.grid_type].df.columns:
                         old_vals = self.contribution.tables[self.grid_type].df[col_name]
                         # if column is completely filled in, skip
-                        if all([cb.not_null(val) for val in old_vals]):
+                        if all([cb.not_null(val, False) for val in old_vals]):
                             continue
                         new_val = defaults[col_name]
                         vals = list(np.where((old_vals.notnull()) & (old_vals != ''), old_vals, new_val))

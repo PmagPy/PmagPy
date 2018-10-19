@@ -133,7 +133,7 @@ def main():
     all_data['sites'] = con.tables.get('sites', None)
     all_data['locations'] = con.tables.get('locations', None)
     locations = con.tables['locations'].df.index.unique()
-    dirlist = [loc for loc in locations if cb.not_null(loc) and loc != 'nan']
+    dirlist = [loc for loc in locations if cb.not_null(loc, False) and loc != 'nan']
     if not dirlist:
         dirlist = ["./"]
     if do_full_directory:
@@ -157,7 +157,7 @@ def main():
             Extract data of type dtype for location loc_name.
             Write tmp_dtype.txt files if possible.
             """
-            if cb.not_null(all_data[dtype]):
+            if cb.not_null(all_data[dtype], False):
                 data_container = all_data[dtype]
                 data_df = data_container.df[data_container.df['location'] == loc_name]
                 data = data_container.convert_to_pmag_data_list(df=data_df)
