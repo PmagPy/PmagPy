@@ -4304,8 +4304,10 @@ class Demag_GUI(wx.Frame):
         elif "dir_comp_name" in self.spec_data.columns:
             fnames = 'dir_comp_name'
         else:
-            print("No specimen interpretation name found in specimens.txt")
-            return
+            fnames = 'dir_comp'
+            self.spec_data['dir_comp'] = 'Fit 1'
+            #print("No specimen interpretation name found in specimens.txt")
+            #return
         if "result_quality" not in self.spec_data.columns:
             self.spec_data["result_quality"] = "g"
         fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
