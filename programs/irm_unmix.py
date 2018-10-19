@@ -372,7 +372,7 @@ class Mainwindow(QMainWindow):
     '''
     def __init__(self):
         super().__init__()
-        introducion='''pyIRM
+        introducion='''irm_unmix
         this is for rock magnetic irm acquisition curves decompose
 
         New features: Now you can manually adjust all the parameters and see
@@ -452,7 +452,7 @@ class Mainwindow(QMainWindow):
         quitname.addAction(quitAction)
 
         self.setGeometry(300,300,1000,800)
-        self.setWindowTitle('pyIRM')
+        self.setWindowTitle('irm_unmix')
 
     def showParams(self):
         subGrid = QGridLayout()
@@ -581,6 +581,11 @@ class Mainwindow(QMainWindow):
         print('ss')
 
 def main():
+    if "-h" in sys.argv:
+        print("This is a GUI for IRM decompose, based on log gaussian")
+        print("To run:")
+        print("irm_unmix.py")
+        return
     app = QApplication(sys.argv)
     Mwindow = Mainwindow()
     sys.exit(app.exec_())
