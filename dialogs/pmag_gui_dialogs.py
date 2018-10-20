@@ -2113,6 +2113,12 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             elif 'txt' in input_format and 'txt' not in mag_file.lower():
                 pw.simple_warning("You must provide a .txt format file")
                 return False
+            # remove unneeded options for jr6_txt/jr6_jr6
+            for key in ['expedition', 'site']:
+                try:
+                    options.pop(key)
+                except KeyError:
+                    pass
             if input_format == 'txt': # .txt format
                 program_ran, error_message = convert.jr6_txt(**options)
                 if program_ran:
