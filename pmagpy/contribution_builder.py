@@ -1960,7 +1960,10 @@ class MagicDataFrame(object):
         #join the new calculated data with the old data of same type
         if self.dtype.endswith('s'): dtype = self.dtype[:-1]
         else: dtype = self.dtype
-        mdf = df1.join(cdf2, how='outer', rsuffix='_remove', on=dtype)
+        index_name = dtype + "_name"
+        for df in [df1, cdf2]:
+            df.index.name = index_name
+        mdf = df1.join(cdf2, how='outer', rsuffix='_remove', on=index_name)
         if 'specimen' in mdf.columns and \
            'specimen_remove' in mdf.columns and \
            len(mdf[mdf['specimen'].isnull()])>0:
@@ -1996,6 +1999,7 @@ class MagicDataFrame(object):
             mdf = mdf.set_index(dtype)
             #really? I wanted the index changed not a column deleted?!?
             mdf[dtype] = mdf.index
+            mdf.index.name = index_name
             mdf.sort_index(inplace=True)
 
         return mdf

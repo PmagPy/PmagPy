@@ -6733,20 +6733,35 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                 cols = ndf3_0.columns
                 self.con.add_empty_magic_table('specimens', col_names=cols)
             spmdf = self.con.tables['specimens']
-
-            # remove translation colisions or depricated terms
+            # remove translation collisions or deprecated terms
             for dc in ["dir_comp_name", "magic_method_codes"]:
                 if dc in spmdf.df.columns:
                     del spmdf.df[dc]
 
-            # merge previous df with new interpretaions DataFrame
-            merdf = spmdf.merge_dfs(ndf3_0)
+            # merge previous df with new interpretations DataFrame
+            # (do not include non-directional data in the merge or else it
+            # will be overwritten)
 
-            # sort columns so it matches previous exports
-            merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
-
-            # replace Specimens MagicDataFrame.df with merged df
-            spmdf.df = merdf
+            # fix index names
+            spmdf.df.index.name = "specimen_name"
+            ndf3_0.index.name = "specimen_name"
+            # pull out directional/non-directional data
+            directional = spmdf.df['method_codes'].str.contains('LP-DIR')
+            non_directional_df = spmdf.df[-directional]
+            spmdf.df = spmdf.df[directional]
+            # merge new interpretations with old specimen information
+            directional_df = spmdf.merge_dfs(ndf3_0)
+            # add any missing columns to non_directional_df
+            for col in directional_df.columns:
+                if col not in non_directional_df.columns:
+                    non_directional_df[col] = ""
+            # make sure columns are ordered the same so that we can concatenate
+            non_directional_df.sort_index(axis='columns', inplace=True)
+            directional_df.sort_index(axis='columns', inplace=True)
+            # put directional/non-directional data back together
+            merged = pd.concat([non_directional_df, directional_df])
+            merged.sort_index(inplace=True)
+            spmdf.df = merged
 
             # write to disk
             spmdf.write_magic_file(dir_path=self.WD)
