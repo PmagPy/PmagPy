@@ -62,30 +62,30 @@ class MagMainFrame(wx.Frame):
         # if DM was provided:
         if DM:
             self.data_model_num = int(float(DM))
-        # try to get DM from command line args
-        if not DM:
-            self.data_model_num = int(float(pmag.get_named_arg("-DM", 0)))
-            DM = self.data_model_num
-
-        # if WD was provided:
-        if WD:
-            self.WD = WD
         else:
-            WD = pmag.get_named_arg("-WD", '')
-            self.WD = WD
+            self.data_model_num = 3
+        # check that self.data_model is valid, otherwise default 3
+        if self.data_model_num not in [2, 3]:
+            pw.simple_warning("Input data model number {} not recognized, defaulting to 3".format(str(self.data_model_num)))
+            self.data_model_num = 3
 
-        self.WD = os.path.realpath(self.WD)
         self.data_model = dmodel
         self.FIRST_RUN = True
 
         self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
 
-        if WD and DM:
-            self.set_dm(self.data_model_num)
+        # if not specified on the command line,
+        # make the user choose their working directory
         if WD:
-            self.dir_path.SetValue(self.WD)
-
+            self.WD = WD
+        else:
+            self.get_dir()
+        # use realpath
+        self.WD = os.path.realpath(self.WD)
+        # set data model and read in data
+        self.set_dm(self.data_model_num)
+        self.dir_path.SetValue(self.WD)
 
         # for use as module:
         self.resource_dir = os.getcwd()
@@ -93,11 +93,6 @@ class MagMainFrame(wx.Frame):
         # set some things
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-
-        # if not specified on the command line,
-        # make the user choose data model num (2 or 3)
-        # and working directory
-        wx.CallAfter(self.get_dm_and_wd, DM, WD)
 
         # if specified directory doesn't exist, try to make it
         try:
@@ -109,58 +104,10 @@ class MagMainFrame(wx.Frame):
             print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
 
 
-    def get_dm_and_wd(self, DM=None, WD=None):
-        """
-        If DM and/or WD are missing, call user-input dialogs
-        to ascertain that information.
-
-        Parameters
-        ----------
-        self
-        DM : int
-            number of data model to use (2 or 3), default None
-        WD : str
-            name of working directory, default None
-        """
-        if DM:
-            self.set_dm(DM)
-        if not DM:
-            self.get_dm_num()
-        if not WD:
-            self.get_dir()
-            return
-        if self.data_model_num == 2:
-            self.get_wd_data2()
-        else:
-            self.get_wd_data()
-
-    def get_dm_num(self):
-        """
-        Show dialog to get user input for which data model to use,
-        2 or 3.
-        Set self.data_model_num, and create 3.0 contribution or
-        2.5 ErMagicBuilder as needed
-        Called by self.get_dm_and_wd
-        """
-        ui_dialog = demag_dialogs.user_input(self,['data_model'],
-                                             parse_funcs=[float],
-                                             heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you have new data OR if you want to upgrade your old data, please use 3.0.",
-                                             values=[3])
-        # figure out where to put this
-        res = ui_dialog.ShowModal()
-        vals = ui_dialog.get_values()
-        self.data_model_num = int(vals[1]['data_model'])
-        #
-        if self.data_model_num not in (2, 3):
-            pw.simple_warning("Input data model not recognized, defaulting to 3")
-            self.data_model_num = 3
-        self.set_dm(self.data_model_num)
-
     def set_dm(self, num):
         """
         Make GUI changes based on data model num.
         Get info from WD in appropriate format.
-        Called by self.get_dm_and_wd
         """
         #enable or disable self.btn1a
         if self.data_model_num == 3:
@@ -172,10 +119,10 @@ class MagMainFrame(wx.Frame):
         global pmag_gui_dialogs
         if self.data_model_num == 2:
             pmag_gui_dialogs = pgd2
-            #wx.CallAfter(self.get_wd_data2)
+            wx.CallAfter(self.get_wd_data2)
         elif self.data_model_num == 3:
             pmag_gui_dialogs = pgd3
-            #wx.CallAfter(self.get_wd_data)
+            wx.CallAfter(self.get_wd_data)
 
         # do / re-do menubar
         menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
@@ -897,8 +844,9 @@ INFORMATION
         app = wx.App(redirect=False)
     else:
         app = wx.App(redirect=True)
-    app.frame = MagMainFrame()
-    working_dir = pmag.get_named_arg('-WD', '.')
+    dir_path = pmag.get_named_arg("-WD", None)
+    data_model = pmag.get_named_arg('-DM', None)
+    app.frame = MagMainFrame(DM=data_model, WD=dir_path)
     app.frame.Show()
     app.frame.Center()
     ## use for debugging:
