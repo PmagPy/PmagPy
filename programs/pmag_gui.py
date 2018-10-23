@@ -24,10 +24,8 @@ from dialogs import pmag_gui_dialogs2 as pgd2
 from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
 from dialogs import ErMagicBuilder
-from dialogs import demag_dialogs
 from dialogs import pmag_widgets as pw
 
-global PMAGPY_DIRECTORY
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
