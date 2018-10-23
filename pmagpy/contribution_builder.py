@@ -1157,6 +1157,8 @@ class Contribution(object):
         # takes out 'location', 'site', and/or 'sample' columns from the
         # specimens dataframe if those columns have been added
         """
+        if dtype not in self.ancestry:
+            return
         if dtype in self.tables:
             # remove extra columns here
             self_ind = self.ancestry.index(dtype)
