@@ -952,7 +952,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
     def InitUI(self):
         pnl = self.panel
 
-        TEXT = "CIT Format file"
+        TEXT = "CIT Format file (.sam)"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -984,10 +984,6 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer7 = pw.replicate_measurements(pnl)
         self.bSizer7.replicate_rb2.SetValue(True)
 
-        #---sizer 8 ---
-        TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
-
         #---sizer 9 ----
         TEXT="Number of measurement orientations (default=8)"
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
@@ -1007,7 +1003,6 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
@@ -1082,18 +1077,11 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         options_dict['methods'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
-        peak_AF = self.bSizer8.return_value()
-        options_dict['peak_AF'] = peak_AF
-        if peak_AF:
-            peak_AF = "-ac " + peak_AF
-
         replicate = self.bSizer7.return_value()
         if replicate:
-            options_dict['avg'] = 0
             options_dict['noave'] = False
             replicate = ''
         else:
-            options_dict['avg'] = 1
             options_dict['noave'] = True
             replicate = '-A'
 
@@ -1105,7 +1093,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             except ValueError:
                 pw.simple_warning("value for number of measured orienations must be a positive integer")
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, peak_AF, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
         # to run as module:
         program_ran, error_message = convert.cit(**options_dict)
         if program_ran:
@@ -2487,10 +2475,10 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
         options_dict['lon'] = lon
         replicate = self.bSizer5.return_value()
         if replicate:
-            options_dict['avg'] = False
+            options_dict['noave'] = True
             replicate = ''
         else:
-            options_dict['avg'] = True
+            options_dict['noave'] = False
             replicate = '-A'
 
         COMMAND = "utrecht_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
