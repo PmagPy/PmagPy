@@ -76,31 +76,38 @@ class VGP_Dialog(wx.Frame):
         self.panel = wx.Panel(self,-1)
 
         #build Plot
-        self.fig = Figure((3*self.GUI_RESOLUTION, 3*self.GUI_RESOLUTION), dpi=100)
+        self.fig = Figure((3*self.GUI_RESOLUTION, 3*self.GUI_RESOLUTION),
+                          dpi=100)#, tight_layout=True, frameon=False)
+        # self.fig = Figure(dpi=100, tight_layout=True)
         self.canvas = FigCanvas(self.panel, -1, self.fig)
+        # self.canvas.blit()
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
         self.toolbar.zoom()
         self.plot_setting = "Zoom"
-#        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_plot_select)
+       # self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_pan_zoom_plot)
+       # self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_plot_select)
 #        self.canvas.Bind(wx.EVT_MOTION,self.on_change_plot_cursor)
 #        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_plot)
-        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_pan_zoom_plot)
+        # self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_pan_zoom_plot)
         #set map parameters
         vgp_lons = [dp['vgp_lon'] for dp in self.VGP_Data['sites'] if 'vgp_lon' in dp]
         self.mean_lon = sum(vgp_lons)/len(vgp_lons)
 
         #build combobox with VGP level options
         self.VGP_level = "sites"
-        self.combo_box = wx.ComboBox(self.panel, -1, size=(340*self.GUI_RESOLUTION,25), value=self.VGP_level, choices=sorted(self.VGP_Data.keys()), style=wx.CB_DROPDOWN|wx.TE_READONLY, name="vgp_level")
+        self.combo_box = wx.ComboBox(self.panel, -1, size=(340*self.GUI_RESOLUTION, 25), value=self.VGP_level,
+                                     choices=sorted(self.VGP_Data.keys()), style=wx.CB_DROPDOWN | wx.TE_READONLY, name="vgp_level")
         self.Bind(wx.EVT_COMBOBOX, self.on_level_box, self.combo_box)
 
-        projs = ["North Polar Stereographic","South Polar Stereographic","Mercator","Mollweide"]
-        self.proj_box = wx.ComboBox(self.panel, -1, size=(340*self.GUI_RESOLUTION,25), value=projs[0], choices=projs, style=wx.CB_DROPDOWN|wx.TE_READONLY, name="proj")
+        projs = ["Orthographic","Mollweide", "Mercator", "North Polar Stereographic","South Polar Stereographic"]
+        self.proj_box = wx.ComboBox(self.panel, -1,
+                                    size=(340*self.GUI_RESOLUTION,25),
+                                    value=projs[0], choices=projs, style=wx.CB_DROPDOWN|wx.TE_READONLY, name="proj")
         self.Bind(wx.EVT_COMBOBOX, self.on_proj_box, self.proj_box)
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(340*self.GUI_RESOLUTION,240*self.GUI_RESOLUTION), style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(340*self.GUI_RESOLUTION, 240*self.GUI_RESOLUTION), style=wx.LC_REPORT)
         self.logger.InsertColumn(0, 'element', width=50*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'fit name', width=50*self.GUI_RESOLUTION)
         self.logger.InsertColumn(2, 'lat', width=50*self.GUI_RESOLUTION)
@@ -113,15 +120,17 @@ class VGP_Dialog(wx.Frame):
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         vbox0 = wx.BoxSizer(wx.VERTICAL)
 
-        vbox0.Add(self.combo_box,proportion=1,flag=wx.ALIGN_TOP|wx.ALL,border=8)
-        vbox0.Add(self.proj_box,proportion=1,flag=wx.ALIGN_TOP|wx.ALL,border=8)
-        vbox0.Add(self.logger,proportion=8,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND,border=8)
+        vbox0.Add(self.combo_box,proportion=0,flag=wx.ALIGN_TOP|wx.ALL,border=2)
+        vbox0.Add(self.proj_box,proportion=0,flag=wx.ALIGN_TOP|wx.ALL,border=2)
+        vbox0.Add(self.logger,proportion=8,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND,border=2)
 
-        hbox0.Add(vbox0,proportion=1,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND,border=8)
-        hbox0.Add(self.canvas,proportion=2,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND,border=8)
+        hbox0.Add(vbox0,proportion=4,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND, border=4)
+        hbox0.Add(self.canvas,proportion=7,flag=wx.ALIGN_TOP|wx.ALL|wx.EXPAND,border=4)
 
         self.panel.SetSizer(hbox0)
+        # self.panel.SetAutoLayout(True)
         hbox0.Fit(self)
+        self.Layout()
 
         #set hotkeys
         # the ids used are arbitrary but needed to bind the accel_table
@@ -220,25 +229,36 @@ class VGP_Dialog(wx.Frame):
 
     def draw_map(self):
         #set basemap
-        try: self.fig.delaxes(self.map)
-        except AttributeError: pass
-        if self.proj_box.GetValue() == 'North Polar Stereographic':
+        try:
+            self.fig.delaxes(self.map)
+        except (AttributeError, KeyError):
+            pass
+        self.fig.clf(keep_observers=True)
+        if self.proj_box.GetValue() == 'Orthographic':
+            self.proj = ccrs.Orthographic(central_longitude=self.mean_lon, globe=None)
+        elif self.proj_box.GetValue() == 'Mollweide':
+            self.proj = ccrs.Mollweide()
+        elif self.proj_box.GetValue() == 'Mercator':
+            # __import__('pdb').set_trace()
+            self.proj = ccrs.PlateCarree(central_longitude=self.mean_lon)
+        elif self.proj_box.GetValue() == 'North Polar Stereographic':
             self.proj = ccrs.NorthPolarStereo(central_longitude=0,true_scale_latitude=None,globe=None)
-            self.map = self.fig.add_subplot(111,projection=self.proj)
+            # self.map = self.fig.add_subplot(111,projection=self.proj)
         elif self.proj_box.GetValue() == 'South Polar Stereographic':
             self.proj = ccrs.SouthPolarStereo(central_longitude=0,true_scale_latitude=None,globe=None)
-            self.map = self.fig.add_subplot(111,projection=self.proj)
-        elif self.proj_box.GetValue() == 'Mercator':
-            self.proj = ccrs.Mercator(central_longitude=self.mean_lon)
-            self.map = self.fig.add_subplot(111,projection=self.proj)
-        elif self.proj_box.GetValue() == 'Mollweide':
-            self.proj = ccrs.Mollweide(central_longitude=self.mean_lon, globe=None)
-            self.map = self.fig.add_subplot(111,projection=self.proj)
-        else: self.parent.user_warning("Projection %s not supported"%str(self.proj_box.GetValue()))
+        else:
+            self.parent.user_warning(
+                "Projection %s not supported" % str(self.proj_box.GetValue()))
 
-        land = cfeature.NaturalEarthFeature('physical', 'land', '110m',edgecolor="black",facecolor="bisque")
+        self.map = self.fig.add_subplot(1,1,1,projection=self.proj)
+
+        self.map.set_global()
+        land = cfeature.NaturalEarthFeature('physical', 'land',
+                                            '110m',edgecolor="black",facecolor="bisque",
+                                            zorder=1000)
         self.map.add_feature(land)
         self.map.gridlines()
+        self.canvas.figure = self.fig
 
     def plot(self):
         self.xdata,self.ydata = [],[]
@@ -246,16 +266,25 @@ class VGP_Dialog(wx.Frame):
         self.draw_map()
 
         for dp in data:
-            lat,lon,slat,slon = float(dp['vgp_lat']),float(dp['vgp_lon']),float(dp['lat']),float(dp['lon'])
-            azi = self.orient_dp_dm(lat,lon,slat,slon)
-            if self.selected_pole==dp['name']+dp['comp_name']: marker='D'
-            else: marker='o'
-            FC=dp['color'];EC='black'
-            if self.proj_box.GetValue() == "North Polar Stereographic" and lat<0: FC,EC,lat,lon='white',dp['color'],-lat,(lon+180)%360
-            elif self.proj_box.GetValue() == "South Polar Stereographic" and lat>0: FC,EC,lat,lon='white',dp['color'],-lat,(lon+180)%360
-            self.map.scatter([lon],[lat],marker=marker,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False,zorder=2,transform=ccrs.Geodetic())
-            if self.combo_box.GetValue()!="samples": ipmag.ellipse(self.map,lon,lat,float(dp["vgp_dp"])*111.32,float(dp["vgp_dm"])*111.32,azi,color=dp['color'])
-            self.xdata.append(lon);self.ydata.append(lat)
+            lat, lon, slat, slon = float(dp['vgp_lat']), float(dp['vgp_lon']), float(dp['lat']), float(dp['lon'])
+            azi = self.orient_dp_dm(lat, lon, slat, slon)
+            if self.selected_pole == dp['name']+dp['comp_name']:
+                marker = 'D'
+            else:
+                marker = 'o'
+            FC = dp['color']
+            EC = 'black'
+            if self.proj_box.GetValue() == "North Polar Stereographic" and lat < 0:
+                FC, EC, lat, lon = 'white', dp['color'], -lat, (lon+180) % 360
+            elif self.proj_box.GetValue() == "South Polar Stereographic" and lat > 0:
+                FC, EC, lat, lon = 'white', dp['color'], -lat, (lon+180) % 360
+            self.map.scatter([lon], [lat], marker=marker, edgecolors=EC, facecolor=FC,
+                             s=30, lw=1, clip_on=False, zorder=2, transform=ccrs.Geodetic())
+            if self.combo_box.GetValue() != "samples":
+                ipmag.ellipse(self.map, lon, lat, float(
+                    dp["vgp_dp"])*111.32, float(dp["vgp_dm"])*111.32, azi, color=dp['color'])
+            self.xdata.append(lon)
+            self.ydata.append(lat)
 
         self.canvas.draw()
 
