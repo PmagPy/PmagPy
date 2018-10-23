@@ -9,11 +9,14 @@ from pmagpy import contribution_builder as cb
 VERBOSE = True
 
 
-def error_log(msg, loc="", program=""):
+def error_log(msg, loc="", program="", con_id=""):
+    con_id = str(con_id)
     with open('errors.txt', 'a') as log:
-        log.write(str(datetime.datetime.now()) + '\t' + loc + '\t' + program + '\t' + msg + '\n')
+        log.write(con_id + '\t' + str(datetime.datetime.now()) + '\t' + loc + '\t' + program + '\t' + msg + '\n')
+    full_msg = '-W- ' + con_id + '\t' + loc + '\t' + program + '\t' + msg + '\n'
     if VERBOSE:
-        print('-W- ' + loc + '\t' + program + '\t' + msg + '\n')
+        print(full_msg)
+    sys.stderr.write(full_msg)
 
 def info_log(msg, loc="", program=""):
     with open('log.txt', 'a') as log:
@@ -36,7 +39,7 @@ def main():
         make_magic_plots.py
 
     DESCRIPTION
-    inspects magic directory for available plots.
+        inspects magic directory for available data and makes plots
 
     SYNTAX
         make_magic_plots.py [command line options]
@@ -98,6 +101,11 @@ def main():
         print('-E- No MagIC tables could be found in this directory')
         error_log("No MagIC tables found")
         return
+    # try to get the contribution id for error logging
+    con_id = ""
+    if 'contribution' in con.tables:
+        if 'id' in con.tables['contribution'].df.columns:
+            con_id = con.tables['contribution'].df.iloc[0]['id']
     # check to see if propagation worked, otherwise you can't plot by location
     lowest_table = None
     for table in con.ancestry:
@@ -118,13 +126,13 @@ def main():
                 info_log('location names propagated to {}'.format(lowest_table))
             else:
                 do_full_directory = True
-                error_log('location names did not propagate fully to {} table'.format(lowest_table))
+                error_log('location names did not propagate fully to {} table'.format(lowest_table), con_id=con_id)
         else:
             do_full_directory = True
-            error_log('could not propagate location names down to {} table'.format(lowest_table))
+            error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
     else:
         do_full_directory = True
-        error_log('could not propagate location names down to {} table'.format(lowest_table))
+        error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
 
     all_data = {}
     all_data['measurements'] = con.tables.get('measurements', None)
@@ -141,7 +149,7 @@ def main():
 
     # plot the whole contribution as one location
     if dirlist == ["./"]:
-        error_log('plotting the entire contribution as one location')
+        error_log('plotting the entire contribution as one location', con_id=con_id)
         for fname in os.listdir("."):
             if fname.endswith(".txt"):
                 shutil.copy(fname, "tmp_" + fname)
@@ -241,7 +249,7 @@ def main():
                 # check for reqd columns
                 missing = check_for_reqd_cols(data, ['treat_temp'])
                 if missing:
-                    error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py")
+                    error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
                     CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
                     print(CMD)
@@ -249,6 +257,7 @@ def main():
                     os.system(CMD)
             # equal area plots of directional data
             # at measurment level (by specimen)
+
             if data:
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
@@ -280,21 +289,24 @@ def main():
             # get only individual results (if result_type col is available)
             if SiteDIs:
                 if 'result_type' in SiteDIs[0]:
-                    SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                    ind_SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'i', 'has')
+                    # there are no individual results, the result_type column may be blank
+                    if not any(ind_SiteDIs):
+                        # not average, model, or stacked
+                        ind_SiteDIs = pmag.get_dictitem(SiteDIs, 'result_type', 'a', 'not')
+                        ind_SiteDIs = pmag.get_dictitem(ind_SiteDIs, 'result_type', 'm', 'not')
+                        ind_SiteDIs = pmag.get_dictitem(ind_SiteDIs, 'result_type', 's', 'not')
                 # then convert tilt_corr_key to correct format
-                old_SiteDIs = SiteDIs
+                old_SiteDIs = ind_SiteDIs
                 SiteDIs = []
                 for rec in old_SiteDIs:
                     if tilt_corr_key not in rec:
-                        error_log("Directional data found, but missing {}, can't plot directions".format(tilt_corr_key), loc, "eqarea_magic.py")
-                        break
-                    if cb.is_null(rec[tilt_corr_key]) and rec[tilt_corr_key] != 0:
-                        rec[tilt_corr_key] = ""
-                    else:
-                        try:
-                            rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
-                        except ValueError:
-                            rec[tilt_corr_key] = ""
+                        rec[tilt_corr_key] = "0"
+                    # make sure tilt_corr_key is a correct format
+                    try:
+                        rec[tilt_corr_key] = str(int(float(rec[tilt_corr_key])))
+                    except ValueError:
+                        rec[tilt_corr_key] = "0"
                     SiteDIs.append(rec)
 
                 print('number of individual directions: ', len(SiteDIs))
@@ -325,7 +337,7 @@ def main():
                     os.system(CMD)
                 else:
                     if dir_data_found:
-                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py")
+                        error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py", con_id=con_id)
             #
             print('-I- working on VGP map')
             VGPs = pmag.get_dictitem(
