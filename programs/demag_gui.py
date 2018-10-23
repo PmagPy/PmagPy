@@ -6747,7 +6747,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             ndf3_0.index.name = "specimen_name"
             # pull out directional/non-directional data
             directional = spmdf.df['method_codes'].str.contains('LP-DIR')
-            non_directional_df = spmdf.df[-directional]
+            non_directional_df = spmdf.df[~directional]
             spmdf.df = spmdf.df[directional]
             # merge new interpretations with old specimen information
             directional_df = spmdf.merge_dfs(ndf3_0)
