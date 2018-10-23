@@ -7,7 +7,7 @@ class Fit(object):
 
     meas_data = None
 
-    def __init__(self, name, tmax, tmin, color=(0,0,0), GUI=None, PCA_type=None):
+    def __init__(self, name, tmax, tmin, color=(0,0,0), GUI=None, PCA_type=None, saved=True):
         """
         The Data Structure that represents an interpretation
         @param: name -> the name of the fit as it will be displayed to the user
@@ -16,6 +16,7 @@ class Fit(object):
         @param: color -> the color of the fit when it is plotted
         @param: GUI -> the Zeq_GUI on which this fit is drawn
         """
+        self.saved = saved
         if not isinstance(name,str): name = str(name)
         elif name == "" or name.replace(" ","") == "": print("No name supplied for Fit, this is generally a problem, naming Toto."); name = "Toto"
         self.name = name

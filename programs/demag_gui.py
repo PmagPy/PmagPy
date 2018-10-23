@@ -578,6 +578,14 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_btn_delete_fit,
                   self.delete_fit_button)
 
+        # auto-save interpretation buttons
+        self.auto_save = wx.CheckBox(self.panel, wx.ID_ANY, 'auto-save')
+        if self.preferences['auto_save']:
+            self.auto_save.SetValue(True)
+
+        self.auto_save_info = wx.Button(self.panel, wx.ID_ANY, "?")
+        self.Bind(wx.EVT_BUTTON, self.on_btn_info_click, self.auto_save_info)
+
     # ----------------------------------------------------------------------
         # Interpretation Type and Display window
     # ----------------------------------------------------------------------
@@ -688,13 +696,15 @@ class Demag_GUI(wx.Frame):
 
         fit_sizer = wx.StaticBoxSizer(wx.StaticBox(
             self.panel, wx.ID_ANY, "Interpretation Options"), wx.VERTICAL)
-        fit_grid = wx.GridSizer(2, 2, top_bar_h_space, 2*top_bar_2v_space)
+        fit_grid = wx.GridSizer(2, 3, top_bar_h_space, 2*top_bar_2v_space)
         fit_grid.AddMany([(self.add_fit_button, 1, wx.ALIGN_TOP | wx.ALIGN_LEFT | wx.EXPAND),
                           (self.save_fit_button, 1, wx.ALIGN_TOP |
                            wx.ALIGN_LEFT | wx.EXPAND),
+                          (self.auto_save, 1, wx.ALIGN_CENTER),
                           (self.fit_box, 1, wx.ALIGN_BOTTOM |
                            wx.ALIGN_LEFT | wx.EXPAND),
-                          (self.delete_fit_button, 1, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND)])
+                          (self.delete_fit_button, 1, wx.ALIGN_BOTTOM | wx.ALIGN_LEFT | wx.EXPAND),
+                          (self.auto_save_info, 1, wx.ALIGN_CENTER)])
         fit_sizer.Add(fit_grid, 1, wx.EXPAND)
         top_bar_sizer.Add(fit_sizer, 2, wx.ALIGN_LEFT |
                           wx.LEFT, top_bar_h_space)
@@ -2369,7 +2379,7 @@ class Demag_GUI(wx.Frame):
         self.CART_rot_good = array(self.CART_rot_good)
         self.CART_rot_bad = array(self.CART_rot_bad)
 
-    def add_fit(self, specimen, name, fmin, fmax, PCA_type="DE-BFL", color=None, suppress_warnings=False):
+    def add_fit(self, specimen, name, fmin, fmax, PCA_type="DE-BFL", color=None, suppress_warnings=False, saved=True):
         """
         Goes through the data checks required to add an interpretation to
         the param specimen with the name param name, the bounds param fmin
@@ -2406,7 +2416,7 @@ class Demag_GUI(wx.Frame):
                 return
         if color == None:
             color = self.colors[(int(next_fit)-1) % len(self.colors)]
-        new_fit = Fit(name, fmax, fmin, color, self, PCA_type)
+        new_fit = Fit(name, fmax, fmin, color, self, PCA_type, saved)
         if fmin != None and fmax != None:
             new_fit.put(specimen, self.COORDINATE_SYSTEM, self.get_PCA_parameters(
                 specimen, new_fit, fmin, fmax, self.COORDINATE_SYSTEM, PCA_type))
@@ -4505,6 +4515,7 @@ class Demag_GUI(wx.Frame):
         preferences['show_Zij_treatments'] = True
         preferences['show_Zij_treatments_steps'] = 2.
         preferences['show_eqarea_treatments'] = False
+        preferences['auto_save'] = True
         # preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #
         # try to read preferences file:
@@ -8278,7 +8289,9 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         on the save button the interpretation is saved to pmag_results_table
         data in all coordinate systems
         """
+
         if self.current_fit:
+            self.current_fit.saved = True
             calculation_type = self.current_fit.get(self.COORDINATE_SYSTEM)[
                 'calculation_type']
             tmin = str(self.tmin_box.GetValue())
@@ -8312,7 +8325,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         ------
         pmag_results_data
         """
-        self.current_fit = self.add_fit(self.s, None, None, None)
+        if self.auto_save.GetValue():
+            self.current_fit = self.add_fit(self.s, None, None, None, saved=True)
+        else:
+            self.current_fit = self.add_fit(self.s, None, None, None, saved=False)
         self.generate_warning_text()
         self.update_warning_box()
 
@@ -8333,10 +8349,47 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         self.delete_fit(self.current_fit, specimen=self.s)
 
+    def on_btn_info_click(self, event):
+        """
+        Show popup info window when user clicks "?"
+        """
+        def on_close(event, wind):
+            wind.Close()
+            wind.Destroy()
+        event.Skip()
+        wind = wx.PopupTransientWindow(self, wx.RAISED_BORDER)
+        if self.auto_save.GetValue():
+            info = "'auto-save' is currently selected. Temperature bounds will be saved when you click 'next' or 'back'."
+        else:
+            info = "'auto-save' is not selected.  Temperature bounds will only be saved when you click 'save'."
+        text = wx.StaticText(wind, -1, info)
+        box = wx.StaticBox(wind, -1, 'Info:')
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        boxSizer.Add(text, 5, wx.ALL | wx.CENTER)
+        exit_btn = wx.Button(wind, wx.ID_EXIT, 'Close')
+        wind.Bind(wx.EVT_BUTTON, lambda evt: on_close(evt, wind), exit_btn)
+        boxSizer.Add(exit_btn, 5, wx.ALL | wx.CENTER)
+        wind.SetSizer(boxSizer)
+        wind.Layout()
+        wind.Popup()
+
+
+    def do_auto_save(self):
+        """
+        Delete current fit if auto_save==False,
+        unless current fit has explicitly been saved.
+        """
+        if not self.auto_save.GetValue():
+            if self.current_fit:
+                if not self.current_fit.saved:
+                    self.delete_fit(self.current_fit, specimen=self.s)
+
+
     def on_next_button(self, event):
         """
         update figures and text when a next button is selected
         """
+        self.do_auto_save()
         self.selected_meas = []
         index = self.specimens.index(self.s)
         try:
@@ -8368,6 +8421,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         update figures and text when a next button is selected
         """
+        self.do_auto_save()
         self.selected_meas = []
         index = self.specimens.index(self.s)
         try:
