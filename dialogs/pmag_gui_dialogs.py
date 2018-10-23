@@ -561,7 +561,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
-        options['WD'] = WD
+        options['dir_path'] = WD
         input_dir = os.path.split(FILE)[0]
         magicoutfile=os.path.split(FILE)[1]+".magic"
         options['meas_file'] = magicoutfile
@@ -693,7 +693,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE)#, lat, lon)
 
         print("-I- Running Python command:\n %s"%COMMAND)
-        program_run, error_message = convert.generic_magic(**options)
+        program_run, error_message = convert.generic(**options)
 
         if program_run:
             pw.close_window(self, COMMAND, OUTFILE)
