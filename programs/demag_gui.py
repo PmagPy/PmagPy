@@ -6763,6 +6763,8 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             spmdf.df.index.name = "specimen_name"
             ndf3_0.index.name = "specimen_name"
             # pull out directional/non-directional data
+            if 'method_codes' not in spmdf.df:
+                spmdf.df['method_codes'] = ''
             directional = spmdf.df['method_codes'].str.contains('LP-DIR').astype(bool)
             non_directional_df = spmdf.df[~directional]
             spmdf.df = spmdf.df[directional]
@@ -7189,7 +7191,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
     def on_menu_check_orient(self, event):
         if not isinstance(self.current_fit, Fit):
-            pw.simple_warning('You must "add fit" first!')
+            print('-W- You must "add fit" first!')
             self.check_orient_on = False
             return
         if self.check_orient_on:
