@@ -1462,9 +1462,6 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
-        #---sizer 1 ----
-        self.bSizer1 = pw.labeled_text_field(pnl)
-
         #---sizer 2 ---
         exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Anisotropy experiment']
         self.bSizer2 = pw.experiment_type(pnl, exp_names)
@@ -1487,10 +1484,6 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
-        #---sizer 7 ---
-        TEXT="Instrument name (optional):"
-        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
-
         #---sizer 8 ---
         self.bSizer8 = pw.replicate_measurements(pnl)
 
@@ -1512,14 +1505,12 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         vbox=wx.BoxSizer(wx.VERTICAL)
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
-        hbox0.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
         hbox1.Add(self.bSizer10, flag=wx.ALIGN_LEFT)
 
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1566,10 +1557,6 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         magicoutfile=os.path.split(LDEO_file)[1]+"_locations.txt"
         loc_outfile=os.path.join(self.WD, magicoutfile)
         options_dict['loc_file'] = loc_outfile
-        user = self.bSizer1.return_value()
-        options_dict['user'] = user
-        if user:
-            user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
         options_dict['codelist'] = experiment_type
         if experiment_type:
@@ -1590,10 +1577,6 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['location'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
-        instrument = self.bSizer7.return_value()
-        options_dict['inst'] = instrument
-        if instrument:
-            instrument = "-ins " + instrument
         replicate = self.bSizer8.return_value()
         if replicate:
             replicate = ""
@@ -1610,8 +1593,8 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         if coil_number:
             coil_number = "-V " + coil_number
         mv = self.bSizer11.return_value()
-        options_dict['mv'] = mv
-        COMMAND = "ldeo_magic.py -f {0} -F {1} -Fsp {2} -Fsa {3} -Fsi {4} -Flo {5} {6} {7} {8} -ncn {9} {10} {11} {12} {13} {14} {15} -mv {16}".format(LDEO_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, mv)
+        options_dict['mass_or_vol'] = mv
+        COMMAND = "ldeo_magic.py -f {0} -F {1} -Fsp {2} -Fsa {3} -Fsi {4} -Flo {5} {6} {7} -ncn {8} {9} {10} {11} {12} {13} -mv {14}".format(LDEO_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, experiment_type, lab_field, ncn, spc, loc_name, replicate, AF_field, coil_number, mv)
         # to run as module:
         program_ran, error_message = convert.ldeo(**options_dict)
         if program_ran:

@@ -5988,7 +5988,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
                 SpecRec["volume"] = volume
             else:
                 SpecRec["susc_chi_mass"] = susc_chi_mass
-                SpecRec["mass"] = mass
+                SpecRec["magn_mass"] = mass
             SpecRecs.append(SpecRec)
         if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample
