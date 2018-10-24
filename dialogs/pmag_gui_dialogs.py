@@ -1923,7 +1923,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 1a ---
-        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 2.5 cc.\nPlease provide volume in cc.')
+        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 12 cc.\nPlease provide volume in cc.')
 
         #---sizer 2 ---
         self.bSizer2 = pw.specimen_n(pnl)

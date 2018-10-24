@@ -384,8 +384,8 @@ class magic_pmag_specimens_table_dialog(wx.Dialog):
         #---------------------
         # Acceptance criteria
         #---------------------
-        #self.acceptance_criteria_text=wx.StaticText(pnl1,label="apply acceptance criteria from pmag_criteria.txt:",style=wx.TE_CENTER)
-        #self.cb_acceptance_criteria= wx.CheckBox(pnl1, -1, 'apply acceptance criteria from pmag_criteria.txt', (10, 30))
+        #self.acceptance_criteria_text=wx.StaticText(pnl1,label="apply acceptance criteria from criteria.txt:",style=wx.TE_CENTER)
+        #self.cb_acceptance_criteria= wx.CheckBox(pnl1, -1, 'apply acceptance criteria from criteria.txt', (10, 30))
 
         #---------------------
         # choose coordinate system
@@ -534,8 +534,8 @@ class magic_pmag_tables_dialog(wx.Dialog):
         #---------------------
         # Acceptance criteria
         #---------------------
-        #self.acceptance_criteria_text=wx.StaticText(pnl1,label="apply acceptance criteria from pmag_criteria.txt:",style=wx.TE_CENTER)
-        self.cb_acceptance_criteria= wx.CheckBox(pnl1, -1, 'apply acceptance criteria from pmag_criteria.txt', (10, 30))
+        #self.acceptance_criteria_text=wx.StaticText(pnl1,label="apply acceptance criteria from criteria.txt:",style=wx.TE_CENTER)
+        self.cb_acceptance_criteria= wx.CheckBox(pnl1, -1, 'apply acceptance criteria from criteria.txt', (10, 30))
 
         #---------------------
         # choose coordinate system

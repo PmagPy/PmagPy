@@ -1973,8 +1973,14 @@ class Demag_GUI(wx.Frame):
             self.user_warning(
                 "Could not display sample orientation checks because sample azimuth or sample dip is missing from er_samples table for sample %s" % sample)
             return
-        azimuth = float(self.Data_info["er_samples"][sample]['sample_azimuth'])
-        dip = float(self.Data_info["er_samples"][sample]['sample_dip'])
+        try:
+            azimuth = float(self.Data_info["er_samples"][sample]['sample_azimuth'])
+            dip = float(self.Data_info["er_samples"][sample]['sample_dip'])
+        except TypeError:
+            self.user_warning(
+                "Could not display sample orientation checks because azimuth or dip is missing (or invalid) for sample %s" % sample)
+            return
+
         # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i)
         d, i = pmag.dogeo(dec, inc, azimuth-180., -dip)
         XY = pmag.dimap(d, i)
@@ -7183,6 +7189,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
     def on_menu_check_orient(self, event):
         if not isinstance(self.current_fit, Fit):
+            pw.simple_warning('You must "add fit" first!')
             self.check_orient_on = False
             return
         if self.check_orient_on:
