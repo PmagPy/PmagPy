@@ -147,6 +147,8 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         make an interactive grid in which users can edit locations
         """
+        # if there is a location without a name, name it 'unknown'
+        self.contribution.rename_item('locations', 'nan', 'unknown')
         # propagate lat/lon values from sites table
         self.contribution.get_min_max_lat_lon()
         # propagate lithologies & geologic classes from sites table

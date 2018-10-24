@@ -7516,7 +7516,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             location = ErSampREc['location']
     az_ind = rec.index('a=')+1
     SampRec['sample'] = sample
-    SampRec['description'] = comment
+    SampRec['description'] = comment.replace('\n', '').replace('\t', '')
     SampRec['azimuth'] = rec[az_ind]
     dip_ind = rec.index('b=')+1
     dip = -float(rec[dip_ind])
