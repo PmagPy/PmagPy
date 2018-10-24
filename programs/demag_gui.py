@@ -6763,6 +6763,8 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             spmdf.df.index.name = "specimen_name"
             ndf3_0.index.name = "specimen_name"
             # pull out directional/non-directional data
+            if 'method_codes' not in spmdf.df:
+                spmdf.df['method_codes'] = ''
             directional = spmdf.df['method_codes'].str.contains('LP-DIR').astype(bool)
             non_directional_df = spmdf.df[~directional]
             spmdf.df = spmdf.df[directional]
