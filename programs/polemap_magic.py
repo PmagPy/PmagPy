@@ -229,9 +229,11 @@ def main():
         locations = locations[:50]
     if pmagplotlib.isServer:
         # use server plot naming convention
+        con_id = ''
         if 'contribution' in con.tables:
             # try to get contribution id
-            con_id = con.tables['contribution'].df.iloc[0].id
+            if 'id' in con.tables['contribution'].df.columns:
+                con_id = con.tables['contribution'].df.iloc[0]['id']
             files['map'] = 'MC:_{}_TY:_POLE_map.{}'.format(con_id, fmt)
         else:
             # no contribution id available
@@ -271,8 +273,15 @@ def main():
         purple = '#800080'
         titles['map'] = 'LO:_' + locations + '_POLE_map'
         if 'contribution' in con.tables:
-            con_id = con.tables['contribution'].df.iloc[0].id
-            titles['map'] = "MagIC contribution {} all locations".format(con_id)
+            con_id = ''
+            if 'id' in con.tables['contribution'].df.columns:
+                con_id = con.tables['contribution'].df.iloc[0]['id']
+
+            loc_string = ""
+            if 'locations' in con.tables:
+                num_locs = len(con.tables['locations'].df.index.unique())
+                loc_string = "({})".format(num_locs)
+            titles['map'] = "MagIC contribution {} all locations {}".format(con_id, loc_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:

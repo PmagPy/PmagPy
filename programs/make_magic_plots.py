@@ -140,7 +140,10 @@ def main():
     all_data['samples'] = con.tables.get('samples', None)
     all_data['sites'] = con.tables.get('sites', None)
     all_data['locations'] = con.tables.get('locations', None)
-    locations = con.tables['locations'].df.index.unique()
+    if 'locations' in con.tables:
+        locations = con.tables['locations'].df.index.unique()
+    else:
+        locations = ['']
     dirlist = [loc for loc in locations if cb.not_null(loc, False) and loc != 'nan']
     if not dirlist:
         dirlist = ["./"]
@@ -167,7 +170,10 @@ def main():
             """
             if cb.not_null(all_data[dtype], False):
                 data_container = all_data[dtype]
-                data_df = data_container.df[data_container.df['location'] == loc_name]
+                if loc_name == "./":
+                    data_df = data_container.df
+                else:
+                    data_df = data_container.df[data_container.df['location'] == loc_name]
                 data = data_container.convert_to_pmag_data_list(df=data_df)
                 res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
                 if not res:
