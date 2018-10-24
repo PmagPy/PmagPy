@@ -72,7 +72,7 @@ def main():
         pastTime=startTime
         if d < commandLength:
             pastTime=startTime-commandLength
-            printout="Due to long processing time the look-back time has been extended to " +str(pastTime.total_seconds()) + " seconds" + "\n"
+            printout="Due to long processing time the look-back time has been extended to " +str(commandLength.total_seconds()) + " seconds" + "\n"
             f.write(printout)
         else:
             pastTime=startTime-d
