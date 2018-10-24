@@ -415,7 +415,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         if result1 == wx.ID_CANCEL:
             return
         elif result1 == wx.ID_YES:
-            items = [col_name for col_name in self.dm.index if col_name not in col_labels]
+            items = sorted([col_name for col_name in self.dm.index if col_name not in col_labels])
             dia = pw.HeaderDialog(self, 'columns to add',
                                   items1=list(items), groups=[])
             dia.Centre()

@@ -366,8 +366,8 @@ class MainFrame(wx.Frame):
             self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.SafeYield()
-        res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
-                                                                                  vocab=self.contribution.vocab)
+        res, error_message, has_problems, all_failing_items = ipmag.upload_magic(dir_path=self.WD,
+                                                                                 vocab=self.contribution.vocab)
         self.failing_items = all_failing_items
         if has_problems:
             self.highlight_problems(has_problems)

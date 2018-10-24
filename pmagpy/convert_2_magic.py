@@ -3102,7 +3102,7 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
         filelist = [csv_file]
 
     # parsing the data
-    file_found, citations = False, "This Study"
+    file_found, citations = False, "This study"
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
     for fin in filelist:  # parse each file
         if fin[-3:].lower() == 'csv':
@@ -3435,7 +3435,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
         os.remove(temp)
     except OSError:
         print("problem with temp file")
-    citations = "This Study"
+    citations = "This study"
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
     for line in lines:
         MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}

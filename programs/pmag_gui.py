@@ -693,11 +693,11 @@ class MagMainFrame(wx.Frame):
         wx.SafeYield()
         self.contribution.tables['measurements'].add_measurement_names()
         if self.data_model_num == 3:
-            res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
-                                                                                      vocab=self.contribution.vocab,
-                                                                                      contribution=self.contribution)
+            res, error_message, has_problems, all_failing_items = ipmag.upload_magic(dir_path=self.WD,
+                                                                                     vocab=self.contribution.vocab,
+                                                                                     contribution=self.contribution)
         if self.data_model_num == 2:
-            res, error_message, errors = ipmag.upload_magic(dir_path=self.WD, data_model=self.er_magic.data_model)
+            res, error_message, errors = ipmag.upload_magic2(dir_path=self.WD, data_model=self.er_magic.data_model)
             del wait
 
         if res:
