@@ -2466,7 +2466,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "utrecht_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
         # to run as module:
-        program_ran, error_message = convert.utrecht_magic(**options_dict)
+        program_ran, error_message = convert.utrecht(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
