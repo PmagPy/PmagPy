@@ -1366,7 +1366,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
         WD = self.WD
         options_dict['dir_path'] = WD
         directory = self.bSizer0.return_value()
-        options_dict['ID'] = directory
+        options_dict['input_dir'] = directory
         if not directory:
             pw.simple_warning('You must select a directory containing 2g binary files')
             return False
@@ -1393,7 +1393,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
         ocn = self.bSizer4.return_value()
         options_dict['or_con'] = ocn
         loc_name = self.bSizer5.return_value()
-        options_dict['location_name'] = loc_name
+        options_dict['location'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
         try: lat,lon = self.bSizer8.return_value().split()

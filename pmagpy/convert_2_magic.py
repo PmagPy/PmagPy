@@ -129,8 +129,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     # format and fix variables
-    if specnum != 0:
-        specnum = -specnum
+    specnum = int(specnum)
+    specnum = -specnum
     if input_dir:
         input_dir_path = input_dir
     else:
