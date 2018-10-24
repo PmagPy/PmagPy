@@ -285,7 +285,8 @@ age_magic2_2_magic_3_map = {v: k for (k, v) in list(age_magic2_2_magic3_map.item
 
 orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long": "lon",
                              "sample_lithology": "lithologies", "sample_type": "geologic_types",
-                             "sample_class": "geologic_classes"}
+                             "sample_class": "geologic_classes", "bedding_dip": "bed_dip",
+                             "field_dip": "dip", "bedding_dip_direction": "bed_dip_direction"}
 # 3.0 --> orientation format
 magic3_2_orient_magic_map = {v: k for (k, v) in list(orient_magic_2_magic3_map.items())}
 

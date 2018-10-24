@@ -2630,13 +2630,18 @@ class OrientFrameGrid3(wx.Frame):
         if (not self.orient_data) and ('samples' in self.contribution.tables):
             print("-I- Couldn't find demag_orient.txt, trying to extract information from samples table")
             samp_container = self.contribution.tables['samples']
+            # get lat/lon from sites if available
+            if 'sites' in self.contribution.tables:
+                site_contianer = self.contribution.tables['sites']
+                self.contribution.propagate_cols(['lat', 'lon'], 'samples', 'sites')
+            #
             raw_orient_data = samp_container.convert_to_pmag_data_list("dict")
             # convert from 3.0. headers to orient.txt headers
             self.orient_data = {}
+            orient_data = {}
             # must group to ensure that lat/lon/etc. are found no matter what
             df = samp_container.df
             res = df.T.apply(dict).groupby(df.index)
-            orient_data = {}
             for grouped in res:
                 new_dict = {}
                 ind_name = grouped[0]
@@ -2645,7 +2650,7 @@ class OrientFrameGrid3(wx.Frame):
                     for key, value in dictionary.items():
                         if key in new_dict:
                             continue
-                        if value and (value != 'None'):
+                        if (value and (value != 'None')) or (value == 0):
                             new_dict[key] = value
                 for key in dictionary.keys():
                     if key not in new_dict:
@@ -2749,6 +2754,7 @@ class OrientFrameGrid3(wx.Frame):
         #--------------------------------
         # fill data from self.orient_data
         #--------------------------------
+
         headers = [header[0] for header in self.headers]
         for sample in self.samples_list:
             for key in list(self.orient_data[sample].keys()):
@@ -3114,7 +3120,6 @@ class OrientFrameGrid(wx.Frame):
         # create the grid
         #--------------------------------
 
-        #print "self.orient_data", self.orient_data
         samples_list = list(self.orient_data.keys())
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
