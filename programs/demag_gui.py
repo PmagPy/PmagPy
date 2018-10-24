@@ -7191,7 +7191,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
     def on_menu_check_orient(self, event):
         if not isinstance(self.current_fit, Fit):
-            pw.simple_warning('You must "add fit" first!')
+            print('-W- You must "add fit" first!')
             self.check_orient_on = False
             return
         if self.check_orient_on:
