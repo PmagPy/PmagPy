@@ -157,6 +157,8 @@ class Contribution(object):
                 if data_container.dtype != "empty":
                     self.tables[dtype] = data_container
                     return dtype, data_container
+                else:
+                    return False, False
             else:
                 #print("-W- No such file: {}".format(filename))
                 return False, False
