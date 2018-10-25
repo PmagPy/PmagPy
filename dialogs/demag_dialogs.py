@@ -240,7 +240,7 @@ class VGP_Dialog(wx.Frame):
             self.proj = ccrs.Mollweide()
         elif self.proj_box.GetValue() == 'Mercator':
             # __import__('pdb').set_trace()
-            self.proj = ccrs.PlateCarree(central_longitude=self.mean_lon)
+            self.proj = ccrs.Mercator()#central_longitude=self.mean_lon)
         elif self.proj_box.GetValue() == 'North Polar Stereographic':
             self.proj = ccrs.NorthPolarStereo(central_longitude=0,true_scale_latitude=None,globe=None)
             # self.map = self.fig.add_subplot(111,projection=self.proj)
@@ -254,8 +254,7 @@ class VGP_Dialog(wx.Frame):
 
         self.map.set_global()
         land = cfeature.NaturalEarthFeature('physical', 'land',
-                                            '110m',edgecolor="black",facecolor="bisque",
-                                            zorder=1000)
+                                            '110m',edgecolor="black",facecolor="bisque")
         self.map.add_feature(land)
         self.map.gridlines()
         self.canvas.figure = self.fig
