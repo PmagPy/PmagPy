@@ -2527,7 +2527,7 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
     X.append(X[0])
     Y.append(Y[0])
 
-    plt.plot(X[::-1], Y[::-1], color, transform=ccrs.Geodetic(), alpha=alpha)
+    plt.plot(X[::-1], Y[::-1], color=color, transform=ccrs.Geodetic(), alpha=alpha)
 
 
 def equi_basemap(m, centerlon, centerlat, radius, color):
