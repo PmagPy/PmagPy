@@ -77,10 +77,8 @@ class VGP_Dialog(wx.Frame):
 
         #build Plot
         self.fig = Figure((3*self.GUI_RESOLUTION, 3*self.GUI_RESOLUTION),
-                          dpi=100)#, tight_layout=True, frameon=False)
-        # self.fig = Figure(dpi=100, tight_layout=True)
+                          dpi=100)  # , tight_layout=True, frameon=False)
         self.canvas = FigCanvas(self.panel, -1, self.fig)
-        # self.canvas.blit()
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
         self.toolbar.zoom()
@@ -89,7 +87,7 @@ class VGP_Dialog(wx.Frame):
        # self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_plot_select)
 #        self.canvas.Bind(wx.EVT_MOTION,self.on_change_plot_cursor)
 #        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_plot)
-        # self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_pan_zoom_plot)
+        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_pan_zoom_plot)
         #set map parameters
         vgp_lons = [dp['vgp_lon'] for dp in self.VGP_Data['sites'] if 'vgp_lon' in dp]
         self.mean_lon = sum(vgp_lons)/len(vgp_lons)
