@@ -11001,7 +11001,30 @@ def import_cartopy():
     WARNINGS['cartopy'] = True
     return has_cartopy, cartopy
 
+def age_to_BP(age,age_unit):
+    """
+    convert an age value into the equivalent in time Before Present(BP) where Present is 1950
+    
+    Returns
+    ---------
+    ageBP : float
+    """
+    ageBP=-1e9
+    if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
+        if age<0: age=age+1 # to correct for there being no 0 AD 
+        ageBP=age-1950
+    if age_unit == "Years BP" or age_unit == "Years Cal BP":
+        ageBP=age
+    if age_unit == "ka":
+        ageBP=age*1000
+    if age_unit == "Ma":
+        ageBP=age*1e6
+    if age_unit == "Ga":
+        ageBP=age*1e9
+    if ageBP == -1e9:
+        print("Age unit invalid. Setting age to -1.0e9")
 
+    return ageBP
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
