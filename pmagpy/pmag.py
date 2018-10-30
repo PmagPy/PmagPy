@@ -11003,28 +11003,239 @@ def import_cartopy():
 
 def age_to_BP(age,age_unit):
     """
-    convert an age value into the equivalent in time Before Present(BP) where Present is 1950
+    Convert an age value into the equivalent in time Before Present(BP) where Present is 1950
     
     Returns
     ---------
-    ageBP : float
+    ageBP : number
     """
     ageBP=-1e9
     if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
         if age<0: age=age+1 # to correct for there being no 0 AD 
         ageBP=age-1950
-    if age_unit == "Years BP" or age_unit == "Years Cal BP":
+    elif age_unit == "Years BP" or age_unit == "Years Cal BP":
         ageBP=age
-    if age_unit == "ka":
+    elif age_unit == "ka":
         ageBP=age*1000
-    if age_unit == "Ma":
+    elif age_unit == "Ma":
         ageBP=age*1e6
-    if age_unit == "Ga":
+    elif age_unit == "Ga":
         ageBP=age*1e9
-    if ageBP == -1e9:
-        print("Age unit invalid. Setting age to -1.0e9")
+    else:
+        print("Age unit invalid. Age set to -1.0e9")
 
     return ageBP
+
+def vocab_convert(vocab,standard,key=''):
+    """
+    Converts MagIC database terms (method codes, geologic_types, etc) to other standards.
+    May not be comprehensive for each standard. Terms added to standards as people need them 
+    and may not be up-to-date.
+
+    'key' can be used to distinguish vocab terms that exist in two different lists.
+
+    Returns:
+    value of the MagIC vocab in the standard requested
+
+    Example:
+    vocab_convert('Egypt','GEOMAGIA') will return '1'
+    """
+
+    places_to_geomagia={
+        'Egypt' :                 "1",
+        'Japan' :                 "2",
+        'France' :                "3",
+        'Ukraine' :               "5",
+        'India' :                 "6",
+        'China' :                 "7",
+        'Finland' :               "8",
+        'Greece' :                "9",
+        'Italy' :                 "11",
+        'Switzerland' :           "12",
+        'Bulgaria' :              "13",
+        'Syria' :                 "14",
+        'Hungary' :               "15",
+        'East Pacific Ridge' :    "17",
+        'Hawaii' :                "18",
+        'Morocco' :               "19",
+        'Australia' :             "20",
+        'Georgia' :               "21",
+        'Azerbaijan' :            "22",
+        'Spain' :                 "24",
+        'England' :               "25",
+        'Czech Republic' :        "26",
+        'Mexico' :                "27",
+        'Iraq' :                  "28",
+        'Israel' :                "29",
+        'Iran' :                  "30",
+        'Uzbekistan' :            "31",
+        'Turkmenistan' :          "32",
+        'Mongolia' :              "33",
+        'Iceland' :               "34",
+        'New Zealand' :           "35",
+        'Amsterdam Island' :      "36",
+        'Guadeloupe' :            "37",
+        'Mid Atlantic Ridge' :    "38",
+        'Austria' :               "39",
+        'Belgium' :               "40",
+        'Romania' :               "41",
+        'Guatemala' :             "42",
+        'El Salvador' :           "43",
+        'Canary Islands' :        "45",
+        'Moldova' :               "46",
+        'Latvia' :                "47",
+        'Lithuania' :             "48",
+        'Russia' :                "49",
+        'Germany' :               "51",
+        'Martinique' :            "52",
+        'Netherlands' :           "53",
+        'Turkey' :                "54",
+        'Denmark' :               "55",
+        'Cameroon' :              "56",
+        'Honduras' :              "57",
+        'Jordan' :                "58",
+        'Brazil' :                "59",
+        'Estonia' :               "61",
+        'Sweden' :                "62",
+        'Peru' :                  "63",
+        'Bolivia' :               "64",
+        'Ecuador' :               "65",
+        'Ontario' :               "66",
+        'New Mexico' :            "67",
+        'Arizona' :               "68",
+        'California' :            "69",
+        'Colorado' :              "70",
+        'Utah' :                  "71",
+        'Washington' :            "72",
+        'Oregon' :                "73",
+        'British Columbia' :      "74",
+        'Idaho' :                 "75",
+        'Arkansas' :              "76",
+        'Tennessee' :             "78",
+        'Serbia' :                "79",
+        'Kosovo' :                "80",
+        'Portugal' :              "81",
+        'Thailand' :              "82",
+        'South Korea' :           "83",
+        'Kazakhstan' :            "84",
+        'Nebraska' :              "85",
+        'La Reunion' :            "86",
+        'Cyprus' :                "87",
+        'Papua New Guinea' :      "88",
+        'Vanuatu' :               "89",
+        'Fiji' :                  "90",
+        'Argentina' :             "91",
+        'Tunisia' :               "92",
+        'Mali' :                  "93",
+        'Senegal' :               "95",
+        'Alaska' :                "96",
+        'North Atlantic' :        "97",
+        'South Atlantic' :        "98",
+        'Beaufort Sea' :          "99",
+        'Chukchi Sea' :           "100",
+        'Kyrgyzstan' :            "101",
+        'Indonesia' :             "102",
+        'Azores' :                "103",
+        'Quebec' :                "104",
+        'Norway' :                "105",
+        'Northern Ireland' :      "106",
+        'Wales' :                 "107",
+        'Scotland' :              "108",
+        'Virginia' :              "109",
+        'North West Pacific' :    "110",
+        'Mediterranean' :         "111",
+        'Slovakia' :              "121",
+        'Poland' :                "124"
+    }
+
+    geologic_types_to_geomagia={   
+        "Baked Clay" :                                    "2", 
+        "Tile" :                                          "3", 
+        "Lava" :                                          "4", 
+        "Pottery" :                                       "5", 
+        "Sun Dried Object" :                              "6", 
+        "Porcelain" :                                     "7", 
+        "Ceramic" :                                       "8", 
+        "Kiln" :                                          "9", 
+        "Oven or Hearth (GEOMAGIA Only)" :                "10",
+        "Mixed Archeological Objects" :                   "11",
+        "Slag" :                                          "12",
+        "Baked Rock" :                                    "13",
+        "Fresco" :                                        "14",
+        "Mosaic" :                                        "15",
+        "Wall" :                                          "16",
+        "Bath" :                                          "17",
+        "Burnt Floor" :                                   "18",
+        "Funeral Pyre" :                                  "19",
+        "Hypocaust" :                                     "20",
+        "Burnt Pit" :                                     "21",
+        "Bell Mould" :                                    "22",
+        "Smoking Chamber" :                               "23",
+        "Baked Mud" :                                     "24",
+        "Volcanic Ash" :                                  "25",
+        "Burnt Structure" :                               "26",
+        "Burnt Castle Wall" :                             "27",
+        "Charcoal Pile" :                                 "28",
+        "Burnt Earth" :                                   "29",
+        "Vitrified Object" :                              "30",
+        "Unbaked Sediment" :                              "31",
+        "Tuyere" :                                        "32",
+        "Sauna" :                                         "33",
+        "Pit Structure" :                                 "35",
+        "Room" :                                          "36",
+        "Pit House" :                                     "37",
+        "Salt Kiln" :                                     "38",
+        "Burnt Sediment" :                                "39",
+        "Archeological Ashes" :                           "40",
+        "Volcanic Other or Undefined (GEOMAGIA Only)" :   "41",
+        "Mural" :                                         "42",
+        "Vitrified Stone" :                               "43",
+        "Soil" :                                          "44",
+        "Kamadogu" :                                      "45"
+    } 
+
+#   Some of the simple method code mappings are done here
+
+    method_codes_to_geomagia={
+        "GM-NO" :        "0", 
+        "GM-CC-ARCH" :   "101",
+        "GM-C14-CAL" :   "102",
+        "GM-C14-UNCAL" : "103",
+        "GM-LUM-TH" :    "104",
+        "GM-HIST" :      "105",
+        "GM-PMAG-ARCH" : "106",
+        "GM-ARAR" :      "107",
+        "GM-CC-TEPH" :   "108",
+        "GM-CC-STRAT" :  "109",
+        "GM-CC-REL" :    "110",
+        "GM-DENDRO" :    "111",
+        "GM-RATH" :      "112",
+        "GM-KAR" :       "113",
+        "GM-UTH" :       "114",
+        "GM-FT" :        "115",
+        "GM-C14-AMS" :   "116",
+        "GM-LUM-OS" :    "117",
+        "GM-HE3" :       "118",
+        "GM-VARVE" :     "119",
+        "GM-CS137" :     "120",
+        "GM-USD-PB210" : "121",
+        "GM-C14-BETA" :  "122",
+        "GM-O18" :       "123",
+        "GM-PA" :        "124"
+	}
+
+    standard=standard.lower()
+    standard_value=""
+    if standard=="geomagia":
+        if vocab in places_to_geomagia.keys():
+            standard_value=places_to_geomagia[vocab]
+        if vocab in geologic_types_to_geomagia.keys():
+            standard_value=geologic_types_to_geomagia[vocab]
+        if vocab in method_codes_to_geomagia.keys():
+            standard_value=method_codes_to_geomagia[vocab]
+    if standard_value=="": 
+        print("Magic vocab ", vocab, " not found for standard ",standard)
+    return standard_value    
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
