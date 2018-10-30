@@ -7457,10 +7457,10 @@ def doigrf(lon, lat, alt, date, **kwargs):
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Return
     -----------
-    x : north component of the magnetic force in nT
-    y : east component of the magnetic force in nT
-    z : downward component of the magnetic force in nT
-    f : total magnetic force in nT
+    x : north component of the magnetic field in nT
+    y : east component of the magnetic field in nT
+    z : downward component of the magnetic field in nT
+    f : total magnetic field in nT
 
     By default, igrf12 coefficients are used between 1900 and 2020
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
