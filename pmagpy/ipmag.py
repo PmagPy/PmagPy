@@ -9846,3 +9846,192 @@ def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
         araiblock,field=pmag.sortarai(spec_df,this_specimen,0,version=3) # get the data block for Arai plot
         zijdblock, units = pmag.find_dmag_rec(this_specimen, spec_df, version=3) # get the datablock for Zijderveld plot
     pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock, this_specimen, units[-1]) # make the plots
+
+def sites_extract(site_file='sites.txt',directions_file='directions.xls',
+                  intensity_file='intensity.xls',info_file='site_info.xls',
+                  output_dir_path='./',input_dir_path='',latex=False):
+    """
+    Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
+    Default output format is an Excel file. 
+    Optional latex format longtable file which can be uploaded to Overleaf or 
+    typeset with latex on your own computer.  
+    
+    Parameters
+    ___________
+    site_file : str
+         input file name
+    directions_file : str
+          output file name for directional data
+    intensity_file : str
+          output file name for intensity data
+    site_info : str
+          output file name for site information (lat, lon, location, age....)
+    output_dir_path : str
+          path for output files
+    input_dir_path : str
+          path for intput file if different from output_dir_path (default is same)
+    latex : boolean
+           if True, output file should be latex formatted table with a .tex ending
+           
+    Return :
+        [True,False], error type : True if successful
+        
+    Effects : 
+        writes cvs or latex formatted tables for use in publications
+    """
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    try:
+        fname = pmag.resolve_file_name(site_file, input_dir_path)
+    except IOError:
+        print("bad site file name")
+        return False, "bad site file name"
+    sites_df=pd.read_csv(fname,sep='\t',header=1)
+# do directional stuff first
+    # a few things need cleaning up
+    dir_df=sites_df.dropna(subset=['dir_dec','dir_inc']) # delete blank directions
+    # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
+    # directions put in by accident on intensity rows
+    if len(dir_df)>0:
+
+        DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95"]
+
+        dir_file=pmag.resolve_file_name(directions_file,output_dir_path)
+        dir_df['dir_n_samples']=dir_df['dir_n_samples'].values.astype('int')
+        dir_df['dir_tilt_correction']=dir_df['dir_tilt_correction'].values.astype('int')
+        has_vgps=False
+        if 'vgp_lat' in dir_df.columns:
+            test_vgp=dir_df.dropna(subset=['vgp_lat','vgp_lon'])
+            if len(test_vgp)>0: has_vgps=True
+        if has_vgps:
+            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs() 
+            dir_df.sort_values(by=['site','vgp_lat_abs'],ascending=False,inplace=True)
+            dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
+                'dir_n_samples','dir_k','dir_r','dir_alpha95','vgp_lat','vgp_lon']]
+    # this will take the first record for each site's directions (including VGP lat if present)
+            DirCols.append("VGP Lat")
+            DirCols.append("VGP Long")
+            dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
+        else:
+            dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
+            dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
+                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]   
+        dir_df.columns=DirCols 
+        dir_df.sort_values(by=['Site'],inplace=True,ascending=True)
+        if latex:
+            directions_out = open(dir_file, 'w+', errors="backslashreplace")
+            directions_out.write('\documentclass{article}\n')
+            directions_out.write('\\usepackage{booktabs}\n')
+            directions_out.write('\\usepackage{longtable}\n')
+            directions_out.write('\\begin{document}')
+            directions_out.write(dir_df.to_latex(index=False,longtable=True,multicolumn=False))
+            directions_out.write('\end{document}\n')
+            directions_out.close()
+        else:
+            dir_df.to_excel(dir_file,index=False)
+    else: 
+        print ("No directional data for ouput.")
+# now for the intensities
+    has_vadms,has_vdms=False,False
+    int_df=sites_df.dropna(subset=['int_abs'])
+    int_df['int_n_samples']=int_df['int_n_samples'].values.astype('int')
+    if len(int_df)>0:
+        int_df['int_abs_uT']=1e6*int_df.int_abs.values # convert to uT
+        int_df['int_abs_sigma_uT']=1e6*int_df.int_abs_sigma.values # convert to uT
+        int_df['int_abs_uT']=int_df['int_abs_uT'].values.astype('int')
+        int_df['int_abs_sigma_uT']=int_df['int_abs_sigma_uT'].values.astype('int')
+        int_df['int_abs_sigma_perc']=int_df['int_abs_sigma_perc'].values.astype('int')
+        int_file=pmag.resolve_file_name(intensity_file,output_dir_path)
+
+        IntCols = ["Site", "N", "B", "B sigma","sigma (%)"]
+        if 'vadm' in int_df.columns:
+            test_vadm=int_df.dropna(subset=['vadm'])
+            if len(test_vadm)>0: 
+                has_vadms=True
+
+        if 'vdm' in int_df.columns:
+            test_vdm=int_df.dropna(subset=['vdm'])
+            if len(test_vdm)>0: has_vdms=True
+       
+        if has_vadms:
+            IntCols.append("VADM")
+            IntCols.append("VADM sigma")
+        if has_vdms:
+            IntCols.append("VDM")
+            IntCols.append("VDM sigma")
+        if not has_vadms and not has_vdms:
+            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
+                'int_abs_sigma_perc']]
+        if has_vadms and not has_vdms:
+            int_df.sort_values(by=['site','vadm'],ascending=False,inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
+
+            int_df['vadm_ZAm2']=1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2']=1e-21*int_df.vadm_sigma.values
+            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
+                'int_abs_sigma_perc','vadm_ZAm2','vadm_ZAm2_sigma']]
+        if not has_vadms and  has_vdms:
+            int_df.sort_values(by=['site','vdm'],ascending=False,inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
+            int_df['vdm_ZAm2']=1e-21*int_df.vdm.values()
+            int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values()
+
+            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
+                'int_abs_sigma_perc','vdm_ZAm2','vdm_ZAm2_sigma']]
+        if has_vadms and  has_vdms:
+            int_df.sort_values(by=['site','vadm'],ascending=False,inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
+            int_df['vadm_ZAm2']=1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2']=1e-21*int_df.vadm_sigma.values
+            int_df['vdm_ZAm2']=1e-21*int_df.vdm.values
+            int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values
+            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
+                'int_abs_sigma_perc','vadm_ZAm2','vadm_sigma_ZAm2','vdm_ZAm2','vdm_sigma_ZAm2']]
+        int_df.columns=IntCols 
+        int_df.sort_values(by=['Site'],inplace=True,ascending=True)
+        int_df.fillna(value='',inplace=True)
+        if latex:
+            intensities_out = open(int_file, 'w+', errors="backslashreplace")
+            intensities_out.write('\documentclass{article}\n')
+            intensities_out.write('\\usepackage{booktabs}\n')
+            intensities_out.write('\\usepackage{longtable}\n')
+            intensities_out.write('\\begin{document}')
+            intensities_out.write(int_df.to_latex(index=False,longtable=True,multicolumn=False))
+            intensities_out.write('\end{document}\n')
+            intensities_out.close()
+        else:
+            int_df.to_excel(int_file,index=False)
+    else: 
+        print ("No intensity data for ouput.")
+# site info
+    nfo_df=sites_df.dropna(subset=['lat','lon']) # delete blank locations
+    if len(nfo_df)>0:
+        SiteCols = ["Site", "Location","Lat. (N)", "Long. (E)"]
+        info_file=pmag.resolve_file_name(info_file,output_dir_path)
+
+
+        test_age=nfo_df.dropna(subset=['age','age_sigma','age_unit'])
+        if len(test_age)>0:                       
+            SiteCols.append("Age ")
+            SiteCols.append("Age sigma")
+            SiteCols.append("Units")
+            nfo_df=nfo_df[['site','location','lat','lon','age','age_sigma','age_unit']]
+        else:
+            nfo_df=nfo_df[['site','location','lat','lon']]
+        nfo_df.drop_duplicates(inplace=True)
+        nfo_df.columns=SiteCols
+        nfo_df.fillna(value='',inplace=True) 
+        if latex:
+            info_out = open(info_file, 'w+', errors="backslashreplace")
+            info_out.write('\documentclass{article}\n')
+            info_out.write('\\usepackage{booktabs}\n')
+            info_out.write('\\usepackage{longtable}\n')
+            info_out.write('\\begin{document}')
+            info_out.write(nfo_df.to_latex(index=False,longtable=True,multicolumn=False))
+            info_out.write('\end{document}\n')
+            info_out.close()
+        else:
+            nfo_df.to_excel(info_file,index=False)
+    else: 
+        print ("No location information  for ouput.")
+       
