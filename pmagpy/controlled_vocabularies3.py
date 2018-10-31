@@ -64,7 +64,7 @@ class Vocabulary(object):
                 try: # retains pandas backwards compatibility
                     all_codes = pd.concat([all_codes, df], sort=True)
                     big_series = pd.concat([big_series, little_series], sort=True)
-                except AttributeError:
+                except TypeError:
                     all_codes = pd.concat([all_codes, df])
                     big_series = pd.concat([big_series, little_series])
             else:
