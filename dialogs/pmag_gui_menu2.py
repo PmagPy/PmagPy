@@ -172,7 +172,7 @@ class MagICMenu(wx.MenuBar):
         pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
 
     def on_export_results(self, event):
-        pmag_menu_dialogs.ExportResults(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ExportResults2(self.parent, self.parent.WD)
 
     def orient_import2(self, event):
         """

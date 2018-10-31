@@ -1033,6 +1033,132 @@ class ExportResults(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
+        TEXT = "Generate Excel or LaTeX files with site data"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add site file', method=self.on_add_file_button)
+        res_file = os.path.join(self.WD, 'sites.txt')
+        self.check_and_add_file(res_file, self.bSizer0.file_path)
+
+        #---sizer 1 ----
+        #self.bSizer1 = pw.choose_file(pnl, 'add criteria file', method=self.on_add_crit_button,
+        #                              remove_button="Don't use criteria file")
+        #crit_file = os.path.join(self.WD, 'pmag_criteria.txt')
+        #self.check_and_add_file(crit_file, self.bSizer1.file_path)
+
+        #---sizer 2 ---
+        #self.bSizer2 = pw.choose_file(pnl, 'add specimen file', method=self.on_add_spec_button,
+        #                              remove_button="Don't use specimen file")
+        #spec_file = os.path.join(self.WD, 'pmag_specimens.txt')
+        #self.check_and_add_file(spec_file, self.bSizer2.file_path)
+
+        #---sizer 3 ---
+        #self.bSizer3 = pw.choose_file(pnl, 'add age file', method=self.on_add_age_button,
+        #                              remove_button="Don't use age file")
+        #age_file = os.path.join(self.WD, 'er_ages.txt')
+        #self.check_and_add_file(age_file, self.bSizer3.file_path)
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.check_box(pnl, "output LaTeX-formatted files")
+
+        #---sizer 5 ---
+        #self.bSizer5 = pw.check_box(pnl, "grade specimens (only works with PmagPy generated specimen files")
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        #hbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.Add(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def check_and_add_file(self, infile, add_here):
+        if os.path.isfile(infile):
+            add_here.SetValue(infile)
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, text)
+
+    #def on_add_crit_button(self, event):
+    #    text = "choose criteria file"
+    #    pw.on_add_file_button(self.bSizer1, text)
+
+    #def on_add_spec_button(self, event):
+    #    text = "choose specimen file"
+    #    pw.on_add_file_button(self.bSizer2, text)
+
+    #def on_add_age_button(self, event):
+    #    text = "choose age file"
+    #    pw.on_add_file_button(self.bSizer3, text)
+
+    def on_okButton(self, event):
+        os.chdir(self.WD)
+        COMMAND = ""
+        print(COMMAND)
+        res_file = self.bSizer0.return_value()
+        if not os.path.isfile(res_file):
+            pw.simple_warning("You must have a result file to run this step")
+            return
+        res_file = os.path.split(res_file)[1]
+        #crit_file = self.bSizer1.return_value()
+        #if crit_file:
+        #    crit_file = os.path.split(crit_file)[1]
+        #spec_file = self.bSizer2.return_value()
+        #if spec_file:
+        #    spec_file = os.path.split(spec_file)[1]
+        #age_file = self.bSizer3.return_value()
+        #if age_file:
+        #    age_file = os.path.split(age_file)[1]
+        latex = self.bSizer4.return_value()
+        #grade = self.bSizer5.return_value()
+        WD = self.WD
+        COMMAND = "ipmag.sites_extract(site_file='{}', output_dir_path='{}', latex='{}'".format(res_file, WD, latex)
+        print(COMMAND)
+        res, outfiles = ipmag.sites_extract(res_file, output_dir_path=WD, latex=latex)
+        outfiles = [os.path.split(f)[1] for f in outfiles]
+        pw.close_window(self, COMMAND, ", ".join(outfiles))
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(text=ipmag.extract_sites.__doc__)
+
+
+class ExportResults2(wx.Frame):
+
+    title = "Extract results"
+
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
         TEXT = "Generate tab delimited text or LaTeX files with result data"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
