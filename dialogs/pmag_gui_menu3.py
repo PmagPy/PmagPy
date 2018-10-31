@@ -89,10 +89,10 @@ class MagICMenu(wx.MenuBar):
         parent.Bind(wx.EVT_MENU, self.on_import1, import1)
 
         ## Export
-        #export_menu = wx.Menu()
-        #export1 = export_menu.Append(-1, "Export result tables")
+        export_menu = wx.Menu()
+        export1 = export_menu.Append(-1, "Export result tables")
 
-        #parent.Bind(wx.EVT_MENU, self.on_export_results, export1)
+        parent.Bind(wx.EVT_MENU, self.on_export_results, export1)
 
         ## Plotting and analysis
         analysis_menu = wx.Menu()
@@ -138,7 +138,7 @@ class MagICMenu(wx.MenuBar):
         self.Append(file_menu, 'File')
         self.Append(help_menu, 'Help ')
         self.Append(import_menu, 'Import')
-        #self.Append(export_menu, 'Export')
+        self.Append(export_menu, 'Export')
         self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
 
 
@@ -178,8 +178,8 @@ class MagICMenu(wx.MenuBar):
         """
         pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
 
-    #def on_export_results(self, event):
-    #    pmag_menu_dialogs.ExportResults(self.parent, self.parent.WD)
+    def on_export_results(self, event):
+        pmag_menu_dialogs.ExportResults(self.parent, self.parent.WD)
 
     def orient_import2(self, event):
         """

@@ -57,6 +57,7 @@ install:
   - conda install --quiet $PACKAGES
   - conda install --quiet cartopy
   - conda install --quiet pandas libtiff matplotlib numpy scipy future requests
+  - conda install --quiet xlwt # for pandas df.to_excel
   - pip install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
   # download and install wxPython
