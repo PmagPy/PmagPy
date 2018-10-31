@@ -2577,7 +2577,7 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.ellipse')
-        return
+        return False
     angle = angle*(np.pi/180)
     glon1 = centerlon
     glat1 = centerlat
@@ -2598,7 +2598,11 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         poly = Polygon(ellip[:,:2],**kwargs)
         map_axis.add_patch(poly)
     else:
-        map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+        try:
+            map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+            return True
+        except ValueError:
+            return False
 
 
 def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
@@ -9852,10 +9856,10 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
                   output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
-    Default output format is an Excel file. 
-    Optional latex format longtable file which can be uploaded to Overleaf or 
-    typeset with latex on your own computer.  
-    
+    Default output format is an Excel file.
+    Optional latex format longtable file which can be uploaded to Overleaf or
+    typeset with latex on your own computer.
+
     Parameters
     ___________
     site_file : str
@@ -9872,11 +9876,11 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
           path for intput file if different from output_dir_path (default is same)
     latex : boolean
            if True, output file should be latex formatted table with a .tex ending
-           
+
     Return :
         [True,False], error type : True if successful
-        
-    Effects : 
+
+    Effects :
         writes cvs or latex formatted tables for use in publications
     """
     if not input_dir_path:
@@ -9904,7 +9908,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             test_vgp=dir_df.dropna(subset=['vgp_lat','vgp_lon'])
             if len(test_vgp)>0: has_vgps=True
         if has_vgps:
-            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs() 
+            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs()
             dir_df.sort_values(by=['site','vgp_lat_abs'],ascending=False,inplace=True)
             dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
                 'dir_n_samples','dir_k','dir_r','dir_alpha95','vgp_lat','vgp_lon']]
@@ -9915,8 +9919,8 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
         else:
             dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
             dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
-                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]   
-        dir_df.columns=DirCols 
+                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]
+        dir_df.columns=DirCols
         dir_df.sort_values(by=['Site'],inplace=True,ascending=True)
         if latex:
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
@@ -9929,7 +9933,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             directions_out.close()
         else:
             dir_df.to_excel(dir_file,index=False)
-    else: 
+    else:
         print ("No directional data for ouput.")
 # now for the intensities
     has_vadms,has_vdms=False,False
@@ -9946,13 +9950,13 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
         IntCols = ["Site", "N", "B", "B sigma","sigma (%)"]
         if 'vadm' in int_df.columns:
             test_vadm=int_df.dropna(subset=['vadm'])
-            if len(test_vadm)>0: 
+            if len(test_vadm)>0:
                 has_vadms=True
 
         if 'vdm' in int_df.columns:
             test_vdm=int_df.dropna(subset=['vdm'])
             if len(test_vdm)>0: has_vdms=True
-       
+
         if has_vadms:
             IntCols.append("VADM")
             IntCols.append("VADM sigma")
@@ -9987,7 +9991,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values
             int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
                 'int_abs_sigma_perc','vadm_ZAm2','vadm_sigma_ZAm2','vdm_ZAm2','vdm_sigma_ZAm2']]
-        int_df.columns=IntCols 
+        int_df.columns=IntCols
         int_df.sort_values(by=['Site'],inplace=True,ascending=True)
         int_df.fillna(value='',inplace=True)
         if latex:
@@ -10001,7 +10005,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             intensities_out.close()
         else:
             int_df.to_excel(int_file,index=False)
-    else: 
+    else:
         print ("No intensity data for ouput.")
 # site info
     nfo_df=sites_df.dropna(subset=['lat','lon']) # delete blank locations
@@ -10011,7 +10015,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
 
 
         test_age=nfo_df.dropna(subset=['age','age_sigma','age_unit'])
-        if len(test_age)>0:                       
+        if len(test_age)>0:
             SiteCols.append("Age ")
             SiteCols.append("Age sigma")
             SiteCols.append("Units")
@@ -10020,7 +10024,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             nfo_df=nfo_df[['site','location','lat','lon']]
         nfo_df.drop_duplicates(inplace=True)
         nfo_df.columns=SiteCols
-        nfo_df.fillna(value='',inplace=True) 
+        nfo_df.fillna(value='',inplace=True)
         if latex:
             info_out = open(info_file, 'w+', errors="backslashreplace")
             info_out.write('\documentclass{article}\n')
@@ -10032,6 +10036,5 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             info_out.close()
         else:
             nfo_df.to_excel(info_file,index=False)
-    else: 
+    else:
         print ("No location information  for ouput.")
-       
