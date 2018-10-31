@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")  # what you don't know won't hurt you
+from distutils.version import LooseVersion
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -3440,9 +3441,12 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0
         ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=lon_0))
     if proj == 'Mollweide':
         fig = plt.figure(fignum)
-        if lon_0 != 0:
-            print('This projection requires lon_0=0')
-            return
+        # this issue is fixed in >=0.17
+        if not LooseVersion(Cartopy.__version__) > LooseVersion('0.16.0'):
+            if lon_0 != 0:
+                print('This projection requires lon_0=0')
+                return
+
         ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
     xx, yy = np.meshgrid(lons, lats)
     levmax = 5*round(element.max()/5)+5
@@ -3480,6 +3484,7 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0
         plt.title('Field declination: '+date)
     ax.coastlines()
     ax.set_global()
+    return ax
 
 
 def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
