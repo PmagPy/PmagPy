@@ -2577,7 +2577,7 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.ellipse')
-        return
+        return False
     angle = angle*(np.pi/180)
     glon1 = centerlon
     glat1 = centerlat
@@ -2598,7 +2598,11 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         poly = Polygon(ellip[:,:2],**kwargs)
         map_axis.add_patch(poly)
     else:
-        map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+        try:
+            map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+            return True
+        except ValueError:
+            return False
 
 
 def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
@@ -10050,5 +10054,5 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
     else:
         print ("No location information  for ouput.")
         info_file = None
-
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
+

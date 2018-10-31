@@ -235,6 +235,7 @@ class VGP_Dialog(wx.Frame):
         if self.proj_box.GetValue() == 'Orthographic':
             self.proj = ccrs.Orthographic(central_longitude=self.mean_lon, globe=None)
         elif self.proj_box.GetValue() == 'Mollweide':
+            # __import__('pdb').set_trace()
             self.proj = ccrs.Mollweide()
         elif self.proj_box.GetValue() == 'Mercator':
             # __import__('pdb').set_trace()
@@ -278,8 +279,12 @@ class VGP_Dialog(wx.Frame):
             self.map.scatter([lon], [lat], marker=marker, edgecolors=EC, facecolor=FC,
                              s=30, lw=1, clip_on=False, zorder=2, transform=ccrs.Geodetic())
             if self.combo_box.GetValue() != "samples":
-                ipmag.ellipse(self.map, lon, lat, float(
-                    dp["vgp_dp"])*111.32, float(dp["vgp_dm"])*111.32, azi, color=dp['color'])
+                ellipse_ran = ipmag.ellipse(self.map, lon, lat, float(dp["vgp_dp"])*111.32,
+                                            float(dp["vgp_dm"])*111.32, azi, color=dp['color'])
+                if not ellipse_ran:
+                    print("-E- An error occurred while plotting VGP data for",
+                          "{} in the {} projection.".format(dp['name'], self.proj_box.GetValue()))
+
             self.xdata.append(lon)
             self.ydata.append(lat)
 
