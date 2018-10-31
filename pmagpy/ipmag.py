@@ -8736,7 +8736,6 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
     if crd == 'g': CS = 0
     if crd == 't': CS = 100
     #
-    # set up plots
     #
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
@@ -9852,10 +9851,10 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
                   output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
-    Default output format is an Excel file. 
-    Optional latex format longtable file which can be uploaded to Overleaf or 
-    typeset with latex on your own computer.  
-    
+    Default output format is an Excel file.
+    Optional latex format longtable file which can be uploaded to Overleaf or
+    typeset with latex on your own computer.
+
     Parameters
     ___________
     site_file : str
@@ -9872,13 +9871,15 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
           path for intput file if different from output_dir_path (default is same)
     latex : boolean
            if True, output file should be latex formatted table with a .tex ending
-           
+
     Return :
         [True,False], error type : True if successful
-        
-    Effects : 
-        writes cvs or latex formatted tables for use in publications
+
+    Effects :
+        writes Excel or LaTeX formatted tables for use in publications
     """
+    # initialize outfile names
+
     if not input_dir_path:
         input_dir_path = output_dir_path
     try:
@@ -9889,7 +9890,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
     sites_df=pd.read_csv(fname,sep='\t',header=1)
 # do directional stuff first
     # a few things need cleaning up
-    dir_df=sites_df.dropna(subset=['dir_dec','dir_inc']) # delete blank directions
+    dir_df=sites_df.copy().dropna(subset=['dir_dec','dir_inc']) # delete blank directions
     # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
     # directions put in by accident on intensity rows
     if len(dir_df)>0:
@@ -9904,7 +9905,7 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             test_vgp=dir_df.dropna(subset=['vgp_lat','vgp_lon'])
             if len(test_vgp)>0: has_vgps=True
         if has_vgps:
-            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs() 
+            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs()
             dir_df.sort_values(by=['site','vgp_lat_abs'],ascending=False,inplace=True)
             dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
                 'dir_n_samples','dir_k','dir_r','dir_alpha95','vgp_lat','vgp_lon']]
@@ -9915,10 +9916,12 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
         else:
             dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
             dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
-                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]   
-        dir_df.columns=DirCols 
+                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]
+        dir_df.columns=DirCols
         dir_df.sort_values(by=['Site'],inplace=True,ascending=True)
         if latex:
+            if dir_file.endswith('.xls'):
+                dir_file = dir_file[:-4] + ".tex"
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
             directions_out.write('\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
@@ -9929,11 +9932,16 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             directions_out.close()
         else:
             dir_df.to_excel(dir_file,index=False)
-    else: 
+    else:
         print ("No directional data for ouput.")
+        dir_file = None
 # now for the intensities
     has_vadms,has_vdms=False,False
-    int_df=sites_df.dropna(subset=['int_abs'])
+    if 'int_abs' not in sites_df:
+        sites_df['int_abs'] = None
+    if 'int_n_samples' not in sites_df:
+        sites_df['int_n_samples'] = None
+    int_df=sites_df.copy().dropna(subset=['int_abs'])
     int_df['int_n_samples']=int_df['int_n_samples'].values.astype('int')
     if len(int_df)>0:
         int_df['int_abs_uT']=1e6*int_df.int_abs.values # convert to uT
@@ -9941,18 +9949,18 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
         int_df['int_abs_uT']=int_df['int_abs_uT'].values.astype('int')
         int_df['int_abs_sigma_uT']=int_df['int_abs_sigma_uT'].values.astype('int')
         int_df['int_abs_sigma_perc']=int_df['int_abs_sigma_perc'].values.astype('int')
-        int_file=pmag.resolve_file_name(intensity_file,output_dir_path)
+        intensity_file=pmag.resolve_file_name(intensity_file,output_dir_path)
 
         IntCols = ["Site", "N", "B", "B sigma","sigma (%)"]
         if 'vadm' in int_df.columns:
             test_vadm=int_df.dropna(subset=['vadm'])
-            if len(test_vadm)>0: 
+            if len(test_vadm)>0:
                 has_vadms=True
 
         if 'vdm' in int_df.columns:
             test_vdm=int_df.dropna(subset=['vdm'])
             if len(test_vdm)>0: has_vdms=True
-       
+
         if has_vadms:
             IntCols.append("VADM")
             IntCols.append("VADM sigma")
@@ -9987,11 +9995,13 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values
             int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
                 'int_abs_sigma_perc','vadm_ZAm2','vadm_sigma_ZAm2','vdm_ZAm2','vdm_sigma_ZAm2']]
-        int_df.columns=IntCols 
+        int_df.columns=IntCols
         int_df.sort_values(by=['Site'],inplace=True,ascending=True)
         int_df.fillna(value='',inplace=True)
         if latex:
-            intensities_out = open(int_file, 'w+', errors="backslashreplace")
+            if intensity_file.endswith('.xls'):
+                intensity_file = intensity_file[:-4] + ".tex"
+            intensities_out = open(intensity_file, 'w+', errors="backslashreplace")
             intensities_out.write('\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
@@ -10000,18 +10010,21 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             intensities_out.write('\end{document}\n')
             intensities_out.close()
         else:
-            int_df.to_excel(int_file,index=False)
-    else: 
+            int_df.to_excel(intensity_file,index=False)
+    else:
         print ("No intensity data for ouput.")
+        intensity_file = None
 # site info
     nfo_df=sites_df.dropna(subset=['lat','lon']) # delete blank locations
     if len(nfo_df)>0:
         SiteCols = ["Site", "Location","Lat. (N)", "Long. (E)"]
         info_file=pmag.resolve_file_name(info_file,output_dir_path)
-
-
+        age_cols = ['age','age_sigma','age_unit']
+        for col in age_cols:
+            if col not in nfo_df:
+                nfo_df[col] = None
         test_age=nfo_df.dropna(subset=['age','age_sigma','age_unit'])
-        if len(test_age)>0:                       
+        if len(test_age)>0:
             SiteCols.append("Age ")
             SiteCols.append("Age sigma")
             SiteCols.append("Units")
@@ -10020,8 +10033,10 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             nfo_df=nfo_df[['site','location','lat','lon']]
         nfo_df.drop_duplicates(inplace=True)
         nfo_df.columns=SiteCols
-        nfo_df.fillna(value='',inplace=True) 
+        nfo_df.fillna(value='',inplace=True)
         if latex:
+            if info_file.endswith('.xls'):
+                info_file = info_file[:-4] + ".tex"
             info_out = open(info_file, 'w+', errors="backslashreplace")
             info_out.write('\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
@@ -10032,6 +10047,8 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             info_out.close()
         else:
             nfo_df.to_excel(info_file,index=False)
-    else: 
+    else:
         print ("No location information  for ouput.")
-       
+        info_file = None
+
+    return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
