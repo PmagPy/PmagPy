@@ -2806,17 +2806,40 @@ class Demag_GUI(wx.Frame):
                         fit.tmin, fit.tmax, fit.name)
                 else:
                     check_duplicates = []
-                    for s, f in zip(self.Data[self.s]['zijdblock_steps'][beg_pca:end_pca+1], self.Data[self.s]['measurement_flag'][beg_pca:end_pca+1]):
+                    warning_issued = []  # keep track of warnings issued to avoid redundant warnings
+
+                    # if within range, attempt to go one additional step beyond
+                    # tmax so that duplicates at the upper bound are caught
+                    if (end_pca + 2) < len(self.Data[self.s]['zijdblock_steps']):
+                        check_endpoint = end_pca + 2
+                    else:
+                        check_endpoint = end_pca + 1
+
+                    for s, f in zip(self.Data[self.s]['zijdblock_steps'][beg_pca:check_endpoint],
+                                    self.Data[self.s]['measurement_flag'][beg_pca:check_endpoint]):
                         if f == 'g' and [s, 'g'] in check_duplicates:
-                            if s == fit.tmin:
-                                self.warning_text += "There are multiple good %s steps. The first measurement will be used for lower bound of fit %s.\n" % (
-                                    s, fit.name)
-                            elif s == fit.tmax:
-                                self.warning_text += "There are multiple good %s steps. The first measurement will be used for upper bound of fit %s.\n" % (
-                                    s, fit.name)
+                            if s == fit.tmin and s not in warning_issued:
+                                self.warning_text += ("There are multiple good %s " +
+                                                      "steps at the upper bound of Fit %s. The first " +
+                                                      "measurement will be used as the lower bound.\n") % (
+                                                          s, fit.name)
+                                # warning_issued_low.append(s)
+                                warning_issued.append(s)
+                            elif s == fit.tmax and s not in warning_issued:
+                                self.warning_text += ("There are multiple good %s " +
+                                                      "steps at the upper bound of Fit %s. The first " +
+                                                      "measurement will be used as the upper bound.\n") % (
+                                                          s, fit.name)
+                                # warning_issued_high.append(s)
+                                warning_issued.append(s)
+                            elif s not in warning_issued:
+                                self.warning_text += ("Within Fit %s, there are " +
+                                                      "multiple good measurements at the %s step. All " +
+                                                      "good measurements are included in the fit.\n") % (
+                                                          fit.name, s)
+                                warning_issued.append(s)
                             else:
-                                self.warning_text += "Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit.\n" % (
-                                    fit.name, s)
+                                pass
                         else:
                             check_duplicates.append([s, f])
         if self.s in list(self.Data.keys()):
