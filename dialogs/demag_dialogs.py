@@ -138,10 +138,15 @@ class VGP_Dialog(wx.Frame):
         self.Bind(wx.EVT_MENU, self.save_plot, id=pid)
         accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), cid ),(wx.ACCEL_CTRL,  ord('S'), pid )])
         self.SetAcceleratorTable(accel_tbl)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def on_exit_hk(self,event):
         self.parent.vgp_open=False
         self.Close()
+
+    def OnClose(self, event):
+        self.Destroy()
+        self.parent.vgp_open=False
 
     def save_plot(self,event):
         SaveMyPlot(self.fig,self.VGP_level,"VGPPlot",self.WD,test_mode=self.test_mode)
