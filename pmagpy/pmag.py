@@ -11004,14 +11004,14 @@ def import_cartopy():
 def age_to_BP(age,age_unit):
     """
     Convert an age value into the equivalent in time Before Present(BP) where Present is 1950
-    
+
     Returns
     ---------
     ageBP : number
     """
     ageBP=-1e9
     if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
-        if age<0: age=age+1 # to correct for there being no 0 AD 
+        if age<0: age=age+1 # to correct for there being no 0 AD
         ageBP=age-1950
     elif age_unit == "Years BP" or age_unit == "Years Cal BP":
         ageBP=age
@@ -11029,7 +11029,7 @@ def age_to_BP(age,age_unit):
 def vocab_convert(vocab,standard,key=''):
     """
     Converts MagIC database terms (method codes, geologic_types, etc) to other standards.
-    May not be comprehensive for each standard. Terms added to standards as people need them 
+    May not be comprehensive for each standard. Terms added to standards as people need them
     and may not be up-to-date.
 
     'key' can be used to distinguish vocab terms that exist in two different lists.
@@ -11148,15 +11148,15 @@ def vocab_convert(vocab,standard,key=''):
         'Poland' :                "124"
     }
 
-    geologic_types_to_geomagia={   
-        "Baked Clay" :                                    "2", 
-        "Tile" :                                          "3", 
-        "Lava" :                                          "4", 
-        "Pottery" :                                       "5", 
-        "Sun Dried Object" :                              "6", 
-        "Porcelain" :                                     "7", 
-        "Ceramic" :                                       "8", 
-        "Kiln" :                                          "9", 
+    geologic_types_to_geomagia={
+        "Baked Clay" :                                    "2",
+        "Tile" :                                          "3",
+        "Lava" :                                          "4",
+        "Pottery" :                                       "5",
+        "Sun Dried Object" :                              "6",
+        "Porcelain" :                                     "7",
+        "Ceramic" :                                       "8",
+        "Kiln" :                                          "9",
         "Oven or Hearth (GEOMAGIA Only)" :                "10",
         "Mixed Archeological Objects" :                   "11",
         "Slag" :                                          "12",
@@ -11191,23 +11191,23 @@ def vocab_convert(vocab,standard,key=''):
         "Mural" :                                       "42",
         "Vitrified Stone" :                             "43",
         "Soil" :                                        "44",
-        "Kamadogu" :                                    "45"
-		"Foundry" :		                                "46",
-        "Obsidian" :	                                "47",
-        "Chert" :	                                    "48",
-        "Burnt daub" :	                                "49",
-        "Amphora" :	                                    "50",
-        "Granite" :	                                    "51",
-        "Volcanic Glass" :	                            "52",
-        "Furnace" :	                                    "53",
-        "Roasting Pit" :	                            "54"
+        "Kamadogu" :                                    "45",
+        "Foundry" :                                     "46",
+        "Obsidian" :                                    "47",
+        "Chert" :                                       "48",
+        "Burnt daub" :                                  "49",
+        "Amphora" :                                     "50",
+        "Granite" :                                     "51",
+        "Volcanic Glass" :                              "52",
+        "Furnace" :                                     "53",
+        "Roasting Pit" :                                "54"
 
-    } 
+    }
 
 #   Some of the simple method code mappings are done here
 
     method_codes_to_geomagia={
-        "GM-NO" :        "0", 
+        "GM-NO" :        "0",
         "GM-CC-ARCH" :   "101",
         "GM-C14-CAL" :   "102",
         "GM-C14-UNCAL" : "103",
@@ -11232,7 +11232,7 @@ def vocab_convert(vocab,standard,key=''):
         "GM-C14-BETA" :  "122",
         "GM-O18" :       "123",
         "GM-PA" :        "124"
-	}
+    }
 
     standard=standard.lower()
     standard_value=""
@@ -11243,9 +11243,9 @@ def vocab_convert(vocab,standard,key=''):
             standard_value=geologic_types_to_geomagia[vocab]
         if vocab in method_codes_to_geomagia.keys():
             standard_value=method_codes_to_geomagia[vocab]
-    if standard_value=="": 
+    if standard_value=="":
         print("Magic vocab ", vocab, " not found for standard ",standard)
-    return standard_value    
+    return standard_value
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
