@@ -11186,12 +11186,22 @@ def vocab_convert(vocab,standard,key=''):
         "Pit House" :                                     "37",
         "Salt Kiln" :                                     "38",
         "Burnt Sediment" :                                "39",
-        "Archeological Ashes" :                           "40",
-        "Volcanic Other or Undefined (GEOMAGIA Only)" :   "41",
-        "Mural" :                                         "42",
-        "Vitrified Stone" :                               "43",
-        "Soil" :                                          "44",
-        "Kamadogu" :                                      "45"
+        "Archeological Ashes" :                         "40",
+        "Volcanic Other or Undefined (GEOMAGIA Only)" : "41",
+        "Mural" :                                       "42",
+        "Vitrified Stone" :                             "43",
+        "Soil" :                                        "44",
+        "Kamadogu" :                                    "45"
+		"Foundry" :		                                "46",
+        "Obsidian" :	                                "47",
+        "Chert" :	                                    "48",
+        "Burnt daub" :	                                "49",
+        "Amphora" :	                                    "50",
+        "Granite" :	                                    "51",
+        "Volcanic Glass" :	                            "52",
+        "Furnace" :	                                    "53",
+        "Roasting Pit" :	                            "54"
+
     } 
 
 #   Some of the simple method code mappings are done here
