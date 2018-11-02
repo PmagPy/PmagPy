@@ -5046,10 +5046,11 @@ def fshdev(k):
     dec, inc : declination and inclination of random Fisher distribution draw
                if k is an array, dec, inc are returned as arrays, otherwise, single values
     """
-    k=np.array(k)
-    if len(k.shape)!=0:
-        n=k.shape[0]
-    else: n=1
+    k = np.array(k)
+    if len(k.shape) != 0:
+        n = k.shape[0]
+    else:
+        n = 1
     R1 = random.random(size=n)
     R2 = random.random(size=n)
     L = np.exp(-2 * k)
@@ -5057,10 +5058,10 @@ def fshdev(k):
     fac = np.sqrt(-np.log(a)/(2 * k))
     inc = 90. - np.degrees(2 * np.arcsin(fac))
     dec = np.degrees(2 * np.pi * R2)
-    if n==1:
-        return dec[0], inc[0] # preserve backward compatibility
+    if n == 1:
+        return dec[0], inc[0]  # preserve backward compatibility
     else:
-        return dec,inc
+        return dec, inc
 
 
 def lowes(data):
@@ -6531,7 +6532,8 @@ def sbar(Ss):
     """
     calculate average s,sigma from list of "s"s.
     """
-    if type(Ss)==list:Ss=np.array(Ss)
+    if type(Ss) == list:
+        Ss = np.array(Ss)
     npts = Ss.shape[0]
     Ss = Ss.transpose()
 
@@ -8249,7 +8251,7 @@ def measurements_methods3(meas_data, noave):
     else:
         noave = 0
     version_num = get_version()
-    seqnum=0
+    seqnum = 0
     sids = get_specs(meas_data)
 # list  of measurement records for this specimen
 #
@@ -8690,7 +8692,7 @@ def measurements_methods3(meas_data, noave):
                     rec["experiment"] = spec + ":" + experiment_name
                     rec['treat_step_num'] = '%i' % (
                         measnum)  # assign measurement numbers
-                    rec['sequence'] = '%i'%(seqnum)
+                    rec['sequence'] = '%i' % (seqnum)
                     seqnum += 1
                     measnum += 1
                     SpecOuts.append(rec)
@@ -8727,7 +8729,7 @@ def measurements_methods3(meas_data, noave):
                     rec["experiment"] = spec + ":" + experiment_name
                     rec['treat_step_num'] = '%i' % (
                         measnum)  # assign measurement numbers
-                    rec['sequence'] = '%i'%(seqnum)
+                    rec['sequence'] = '%i' % (seqnum)
                     seqnum += 1
                     measnum += 1
                     SpecOuts.append(rec)
@@ -8738,7 +8740,7 @@ def measurements_methods3(meas_data, noave):
                         rec["experiment"] = spec + ":LT-NO"
                         rec['treat_step_num'] = '%i' % (
                             measnum)  # assign measurement numbers
-                        rec['sequence'] = '%i'%(seqnum)
+                        rec['sequence'] = '%i' % (seqnum)
                         seqnum += 1
                         measnum += 1
                     else:
@@ -8749,7 +8751,7 @@ def measurements_methods3(meas_data, noave):
                                 ':')
                         rec['treat_step_num'] = '%i' % (
                             measnum)  # assign measurement numbers
-                        rec['sequence'] = '%i'%(seqnum)
+                        rec['sequence'] = '%i' % (seqnum)
                         seqnum += 1
                         measnum += 1
                         rec["experiment"] = spec + ":" + experiment_name
@@ -9382,7 +9384,8 @@ def di_boot(DIs, nb=5000):
         BDIs.append([bfpars['dec'], bfpars['inc']])
     return BDIs
 
-def dir_df_boot(dir_df,nb=5000,par=False):
+
+def dir_df_boot(dir_df, nb=5000, par=False):
     """
     Performs a bootstrap for direction DataFrame with optional parametric bootstrap
 
@@ -9401,23 +9404,29 @@ def dir_df_boot(dir_df,nb=5000,par=False):
      _______
      BDIs:   nested list of bootstrapped mean Dec,Inc pairs
     """
-    N=dir_df.dir_dec.values.shape[0] # number of data points
-    BDIs=[]
+    N = dir_df.dir_dec.values.shape[0]  # number of data points
+    BDIs = []
     for k in range(nb):
-        pdir_df = dir_df.sample(n=N,replace=True) # bootstrap pseudosample
-        pdir_df.reset_index(inplace=True) # reset the index
-        if par: # do a parametric bootstrap
-            for i in pdir_df.index: # set through the pseudosample
-                n=pdir_df.loc[i,'dir_n'] # get number of samples/site
-                ks=np.ones(shape=n)*pdir_df.loc[i,'dir_k'] # get ks for each sample
-                decs,incs=fshdev(ks) # draw a fisher distributed set of directions
-                di_block=np.column_stack((decs,incs))
+        pdir_df = dir_df.sample(n=N, replace=True)  # bootstrap pseudosample
+        pdir_df.reset_index(inplace=True)  # reset the index
+        if par:  # do a parametric bootstrap
+            for i in pdir_df.index:  # set through the pseudosample
+                n = pdir_df.loc[i, 'dir_n']  # get number of samples/site
+                # get ks for each sample
+                ks = np.ones(shape=n)*pdir_df.loc[i, 'dir_k']
+                # draw a fisher distributed set of directions
+                decs, incs = fshdev(ks)
+                di_block = np.column_stack((decs, incs))
                 #  rotate them to the mean
-                di_block=dodirot_V(di_block,pdir_df.loc[i,'dir_dec'],pdir_df.loc[i,'dir_inc'])
-                fpars = fisher_mean(di_block)  # get the new mean direction for the pseudosample
-                pdir_df.loc[i,'dir_dec']=fpars['dec'] # replace the pseudo sample mean direction
-                pdir_df.loc[i,'dir_inc']=fpars['inc']
-        bfpars = dir_df_fisher_mean(pdir_df)  # get bootstrap mean bootstrap sample
+                di_block = dodirot_V(
+                    di_block, pdir_df.loc[i, 'dir_dec'], pdir_df.loc[i, 'dir_inc'])
+                # get the new mean direction for the pseudosample
+                fpars = fisher_mean(di_block)
+                # replace the pseudo sample mean direction
+                pdir_df.loc[i, 'dir_dec'] = fpars['dec']
+                pdir_df.loc[i, 'dir_inc'] = fpars['inc']
+        # get bootstrap mean bootstrap sample
+        bfpars = dir_df_fisher_mean(pdir_df)
         BDIs.append([bfpars['dec'], bfpars['inc']])
     return BDIs
 
@@ -9442,15 +9451,15 @@ def dir_df_fisher_mean(dir_df):
         csd : Fisher circular standard deviation
         alpha95 : Fisher circle of 95% confidence
     """
-    N=dir_df.dir_dec.values.shape[0] # number of data points
-    fpars={}
+    N = dir_df.dir_dec.values.shape[0]  # number of data points
+    fpars = {}
     if N < 2:
         return fpars
-    dirs=dir_df[['dir_dec','dir_inc']].values
+    dirs = dir_df[['dir_dec', 'dir_inc']].values
     X = dir2cart(dirs).transpose()
-    Xbar=np.array([X[0].sum(),X[1].sum(),X[2].sum()])
+    Xbar = np.array([X[0].sum(), X[1].sum(), X[2].sum()])
     R = np.sqrt(Xbar[0]**2+Xbar[1]**2+Xbar[2]**2)
-    Xbar=Xbar/R
+    Xbar = Xbar/R
     dir = cart2dir(Xbar)
     fpars["dec"] = dir[0]
     fpars["inc"] = dir[1]
@@ -9473,7 +9482,6 @@ def dir_df_fisher_mean(dir_df):
     if a < 0:
         fpars["alpha95"] = 180.0
     return fpars
-
 
 
 def pseudosample(x):
@@ -9620,6 +9628,7 @@ def unsquish(incs, f):
     incs = np.radians(incs)
     I_o = np.tan(incs)/f  # divide tangent by flattening factor
     return np.degrees(np.arctan(I_o))
+
 
 def get_ts(ts):
     """
@@ -10561,7 +10570,7 @@ class MissingCommandLineArgException(Exception):
         return self.message
 
 
-def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
+def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k"):
     """
     returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.
@@ -10589,10 +10598,12 @@ def do_mag_map(date, lon_0=0,alt=0,file="",mod="cals10k"):
 
     """
     incr = 10  # we can vary to the resolution of the model
-    if lon_0==180:lon_0=179.99
-    if lon_0>180:lon_0=lon_0-360.
+    if lon_0 == 180:
+        lon_0 = 179.99
+    if lon_0 > 180:
+        lon_0 = lon_0-360.
     # get some parameters for our arrays of lat/lon
-    lonmax = (lon_0 + 180.) %360 + incr
+    lonmax = (lon_0 + 180.) % 360 + incr
     lonmin = (lon_0 - 180.)
     latmax = 90 + incr
     # make a 1D array of longitudes (like elons)
@@ -10811,7 +10822,7 @@ def watsons_f(DI1, DI2):
     return F, Fcrit
 
 
-def apwp(data,print_results=False):
+def apwp(data, print_results=False):
     """
     calculates expected pole positions and directions for given plate, location and age
     Parameters
@@ -10833,19 +10844,22 @@ def apwp(data,print_results=False):
     _________
         if print_results is False, [Age,Paleolat, Dec, Inc, Pole_lat, Pole_lon]
     """
-    pole_lat,pole_lon=bc02(data) # get the pole for these parameters
-    ExpDec,ExpInc=vgp_di(pole_lat,pole_lon,data[1],data[2]) # get the declination and inclination for that pole
-    paleo_lat=magnetic_lat(ExpInc) # convert the inclination to paleo latitude
+    pole_lat, pole_lon = bc02(data)  # get the pole for these parameters
+    # get the declination and inclination for that pole
+    ExpDec, ExpInc = vgp_di(pole_lat, pole_lon, data[1], data[2])
+    # convert the inclination to paleo latitude
+    paleo_lat = magnetic_lat(ExpInc)
     if print_results:
-        print (' Age   Paleolat.   Dec.   Inc.   Pole_lat.  Pole_Long.') # print everything out
-        print ('%7.1f %7.1f %7.1f %7.1f %7.1f  %7.1f\n' \
-           %(data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon))
+        # print everything out
+        print(' Age   Paleolat.   Dec.   Inc.   Pole_lat.  Pole_Long.')
+        print('%7.1f %7.1f %7.1f %7.1f %7.1f  %7.1f\n'
+              % (data[3], paleo_lat, ExpDec, ExpInc, pole_lat, pole_lon))
 
     else:
-        return [data[3],paleo_lat,ExpDec,ExpInc,pole_lat,pole_lon]
+        return [data[3], paleo_lat, ExpDec, ExpInc, pole_lat, pole_lon]
 
-def chart_maker(Int,Top,start=100,outfile='chart.txt'):
 
+def chart_maker(Int, Top, start=100, outfile='chart.txt'):
     """
     Makes a chart for performing IZZI experiments. Print out the file and
     tape it to the oven.  This chart will help keep track of the different
@@ -10880,30 +10894,33 @@ def chart_maker(Int,Top,start=100,outfile='chart.txt'):
          cool : time cooling started
 
     """
-    low,k,iz=start,0,0
-    Tzero=[]
-    f=open('chart.txt','w')
-    vline='\t%s\n'%('   |      |        |         |          |       |    |      |')
-    hline='______________________________________________________________________________\n'
+    low, k, iz = start, 0, 0
+    Tzero = []
+    f = open('chart.txt', 'w')
+    vline = '\t%s\n' % (
+        '   |      |        |         |          |       |    |      |')
+    hline = '______________________________________________________________________________\n'
     f.write('file:_________________    field:___________uT\n\n\n')
-    f.write('%s\n'%('               date | run# | zone I | zone II | zone III | start | sp | cool|'))
+    f.write('%s\n' % (
+        '               date | run# | zone I | zone II | zone III | start | sp | cool|'))
     f.write(hline)
-    f.write('\t%s'%('   0.0'))
+    f.write('\t%s' % ('   0.0'))
     f.write(vline)
     f.write(hline)
     for k in range(len(Top)):
-        for t in range(low,Top[k]+Int[k],Int[k]):
-            if iz==0:
-                Tzero.append(t) # zero field first step
-                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))
+        for t in range(low, Top[k]+Int[k], Int[k]):
+            if iz == 0:
+                Tzero.append(t)  # zero field first step
+                f.write('%s \t %s' % ('Z', str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
-                if len(Tzero)>1:
-                   f.write('%s \t %s'%('P',str(Tzero[-2])+'.'+str(2)))
-                   f.write(vline)
-                   f.write(hline)
-                iz=1
-                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield after zero field first
+                if len(Tzero) > 1:
+                    f.write('%s \t %s' % ('P', str(Tzero[-2])+'.'+str(2)))
+                    f.write(vline)
+                    f.write(hline)
+                iz = 1
+                # infield after zero field first
+                f.write('%s \t %s' % ('I', str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
 
@@ -10911,16 +10928,18 @@ def chart_maker(Int,Top,start=100,outfile='chart.txt'):
 #                f.write(vline)
 #                f.write(hline)
 
-            elif iz==1:
-                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield first step
+            elif iz == 1:
+                # infield first step
+                f.write('%s \t %s' % ('I', str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
-                iz=0
-                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))# zero field step (after infield)
+                iz = 0
+                # zero field step (after infield)
+                f.write('%s \t %s' % ('Z', str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
         try:
-            low=Top[k]+Int[k+1] # increment to next temp step
+            low = Top[k]+Int[k+1]  # increment to next temp step
         except:
             f.close()
     print("output stored in: chart.txt")
@@ -10945,16 +10964,18 @@ def import_basemap():
         from mpl_toolkits.basemap import Basemap
         WARNINGS['has_basemap'] = True
     except ImportError:
-        has_basemap=False
+        has_basemap = False
         # if they have installed cartopy, no warning is needed
         if has_cartopy:
             return has_basemap, False
         # if they haven't installed Basemap or cartopy, they need to be warned
         if not WARNINGS['basemap']:
-            print("-W- You haven't installed a module for plotting maps (cartopy or Basemap)")
+            print(
+                "-W- You haven't installed a module for plotting maps (cartopy or Basemap)")
             print("    Recommended: install cartopy.  With conda:")
             print("    conda install cartopy")
-            print("    For more information, see http://earthref.org/PmagPy/Cookbook#getting_python")
+            print(
+                "    For more information, see http://earthref.org/PmagPy/Cookbook#getting_python")
     except (KeyError, FileNotFoundError):
         has_basemap = False
         # if cartopy is installed, no warning is needed
@@ -10963,9 +10984,11 @@ def import_basemap():
         if not WARNINGS['basemap']:
             print('-W- Basemap is installed but could not be imported.')
             print('    You are probably missing a required environment variable')
-            print('    If you need to use Basemap, you will need to run this program or notebook in a conda env.')
+            print(
+                '    If you need to use Basemap, you will need to run this program or notebook in a conda env.')
             print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
-            print('    Recommended alternative: install cartopy for plotting maps.  With conda:')
+            print(
+                '    Recommended alternative: install cartopy for plotting maps.  With conda:')
             print('    conda install cartopy')
     if has_basemap and not has_cartopy:
         print("-W- You have installed Basemap but not cartopy.")
@@ -11001,7 +11024,8 @@ def import_cartopy():
     WARNINGS['cartopy'] = True
     return has_cartopy, cartopy
 
-def age_to_BP(age,age_unit):
+
+def age_to_BP(age, age_unit):
     """
     Convert an age value into the equivalent in time Before Present(BP) where Present is 1950
 
@@ -11009,24 +11033,26 @@ def age_to_BP(age,age_unit):
     ---------
     ageBP : number
     """
-    ageBP=-1e9
+    ageBP = -1e9
     if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
-        if age<0: age=age+1 # to correct for there being no 0 AD
-        ageBP=age-1950
+        if age < 0:
+            age = age+1  # to correct for there being no 0 AD
+        ageBP = age-1950
     elif age_unit == "Years BP" or age_unit == "Years Cal BP":
-        ageBP=age
+        ageBP = age
     elif age_unit == "ka":
-        ageBP=age*1000
+        ageBP = age*1000
     elif age_unit == "Ma":
-        ageBP=age*1e6
+        ageBP = age*1e6
     elif age_unit == "Ga":
-        ageBP=age*1e9
+        ageBP = age*1e9
     else:
         print("Age unit invalid. Age set to -1.0e9")
 
     return ageBP
 
-def vocab_convert(vocab,standard,key=''):
+
+def vocab_convert(vocab, standard, key=''):
     """
     Converts MagIC database terms (method codes, geologic_types, etc) to other standards.
     May not be comprehensive for each standard. Terms added to standards as people need them
@@ -11041,211 +11067,212 @@ def vocab_convert(vocab,standard,key=''):
     vocab_convert('Egypt','GEOMAGIA') will return '1'
     """
 
-    places_to_geomagia={
-        'Egypt' :                 "1",
-        'Japan' :                 "2",
-        'France' :                "3",
-        'Ukraine' :               "5",
-        'India' :                 "6",
-        'China' :                 "7",
-        'Finland' :               "8",
-        'Greece' :                "9",
-        'Italy' :                 "11",
-        'Switzerland' :           "12",
-        'Bulgaria' :              "13",
-        'Syria' :                 "14",
-        'Hungary' :               "15",
-        'East Pacific Ridge' :    "17",
-        'Hawaii' :                "18",
-        'Morocco' :               "19",
-        'Australia' :             "20",
-        'Georgia' :               "21",
-        'Azerbaijan' :            "22",
-        'Spain' :                 "24",
-        'England' :               "25",
-        'Czech Republic' :        "26",
-        'Mexico' :                "27",
-        'Iraq' :                  "28",
-        'Israel' :                "29",
-        'Iran' :                  "30",
-        'Uzbekistan' :            "31",
-        'Turkmenistan' :          "32",
-        'Mongolia' :              "33",
-        'Iceland' :               "34",
-        'New Zealand' :           "35",
-        'Amsterdam Island' :      "36",
-        'Guadeloupe' :            "37",
-        'Mid Atlantic Ridge' :    "38",
-        'Austria' :               "39",
-        'Belgium' :               "40",
-        'Romania' :               "41",
-        'Guatemala' :             "42",
-        'El Salvador' :           "43",
-        'Canary Islands' :        "45",
-        'Moldova' :               "46",
-        'Latvia' :                "47",
-        'Lithuania' :             "48",
-        'Russia' :                "49",
-        'Germany' :               "51",
-        'Martinique' :            "52",
-        'Netherlands' :           "53",
-        'Turkey' :                "54",
-        'Denmark' :               "55",
-        'Cameroon' :              "56",
-        'Honduras' :              "57",
-        'Jordan' :                "58",
-        'Brazil' :                "59",
-        'Estonia' :               "61",
-        'Sweden' :                "62",
-        'Peru' :                  "63",
-        'Bolivia' :               "64",
-        'Ecuador' :               "65",
-        'Ontario' :               "66",
-        'New Mexico' :            "67",
-        'Arizona' :               "68",
-        'California' :            "69",
-        'Colorado' :              "70",
-        'Utah' :                  "71",
-        'Washington' :            "72",
-        'Oregon' :                "73",
-        'British Columbia' :      "74",
-        'Idaho' :                 "75",
-        'Arkansas' :              "76",
-        'Tennessee' :             "78",
-        'Serbia' :                "79",
-        'Kosovo' :                "80",
-        'Portugal' :              "81",
-        'Thailand' :              "82",
-        'South Korea' :           "83",
-        'Kazakhstan' :            "84",
-        'Nebraska' :              "85",
-        'La Reunion' :            "86",
-        'Cyprus' :                "87",
-        'Papua New Guinea' :      "88",
-        'Vanuatu' :               "89",
-        'Fiji' :                  "90",
-        'Argentina' :             "91",
-        'Tunisia' :               "92",
-        'Mali' :                  "93",
-        'Senegal' :               "95",
-        'Alaska' :                "96",
-        'North Atlantic' :        "97",
-        'South Atlantic' :        "98",
-        'Beaufort Sea' :          "99",
-        'Chukchi Sea' :           "100",
-        'Kyrgyzstan' :            "101",
-        'Indonesia' :             "102",
-        'Azores' :                "103",
-        'Quebec' :                "104",
-        'Norway' :                "105",
-        'Northern Ireland' :      "106",
-        'Wales' :                 "107",
-        'Scotland' :              "108",
-        'Virginia' :              "109",
-        'North West Pacific' :    "110",
-        'Mediterranean' :         "111",
-        'Slovakia' :              "121",
-        'Poland' :                "124"
+    places_to_geomagia = {
+        'Egypt':                 "1",
+        'Japan':                 "2",
+        'France':                "3",
+        'Ukraine':               "5",
+        'India':                 "6",
+        'China':                 "7",
+        'Finland':               "8",
+        'Greece':                "9",
+        'Italy':                 "11",
+        'Switzerland':           "12",
+        'Bulgaria':              "13",
+        'Syria':                 "14",
+        'Hungary':               "15",
+        'East Pacific Ridge':    "17",
+        'Hawaii':                "18",
+        'Morocco':               "19",
+        'Australia':             "20",
+        'Georgia':               "21",
+        'Azerbaijan':            "22",
+        'Spain':                 "24",
+        'England':               "25",
+        'Czech Republic':        "26",
+        'Mexico':                "27",
+        'Iraq':                  "28",
+        'Israel':                "29",
+        'Iran':                  "30",
+        'Uzbekistan':            "31",
+        'Turkmenistan':          "32",
+        'Mongolia':              "33",
+        'Iceland':               "34",
+        'New Zealand':           "35",
+        'Amsterdam Island':      "36",
+        'Guadeloupe':            "37",
+        'Mid Atlantic Ridge':    "38",
+        'Austria':               "39",
+        'Belgium':               "40",
+        'Romania':               "41",
+        'Guatemala':             "42",
+        'El Salvador':           "43",
+        'Canary Islands':        "45",
+        'Moldova':               "46",
+        'Latvia':                "47",
+        'Lithuania':             "48",
+        'Russia':                "49",
+        'Germany':               "51",
+        'Martinique':            "52",
+        'Netherlands':           "53",
+        'Turkey':                "54",
+        'Denmark':               "55",
+        'Cameroon':              "56",
+        'Honduras':              "57",
+        'Jordan':                "58",
+        'Brazil':                "59",
+        'Estonia':               "61",
+        'Sweden':                "62",
+        'Peru':                  "63",
+        'Bolivia':               "64",
+        'Ecuador':               "65",
+        'Ontario':               "66",
+        'New Mexico':            "67",
+        'Arizona':               "68",
+        'California':            "69",
+        'Colorado':              "70",
+        'Utah':                  "71",
+        'Washington':            "72",
+        'Oregon':                "73",
+        'British Columbia':      "74",
+        'Idaho':                 "75",
+        'Arkansas':              "76",
+        'Tennessee':             "78",
+        'Serbia':                "79",
+        'Kosovo':                "80",
+        'Portugal':              "81",
+        'Thailand':              "82",
+        'South Korea':           "83",
+        'Kazakhstan':            "84",
+        'Nebraska':              "85",
+        'La Reunion':            "86",
+        'Cyprus':                "87",
+        'Papua New Guinea':      "88",
+        'Vanuatu':               "89",
+        'Fiji':                  "90",
+        'Argentina':             "91",
+        'Tunisia':               "92",
+        'Mali':                  "93",
+        'Senegal':               "95",
+        'Alaska':                "96",
+        'North Atlantic':        "97",
+        'South Atlantic':        "98",
+        'Beaufort Sea':          "99",
+        'Chukchi Sea':           "100",
+        'Kyrgyzstan':            "101",
+        'Indonesia':             "102",
+        'Azores':                "103",
+        'Quebec':                "104",
+        'Norway':                "105",
+        'Northern Ireland':      "106",
+        'Wales':                 "107",
+        'Scotland':              "108",
+        'Virginia':              "109",
+        'North West Pacific':    "110",
+        'Mediterranean':         "111",
+        'Slovakia':              "121",
+        'Poland':                "124"
     }
 
-    geologic_types_to_geomagia={
-        "Baked Clay" :                                    "2",
-        "Tile" :                                          "3",
-        "Lava" :                                          "4",
-        "Pottery" :                                       "5",
-        "Sun Dried Object" :                              "6",
-        "Porcelain" :                                     "7",
-        "Ceramic" :                                       "8",
-        "Kiln" :                                          "9",
-        "Oven or Hearth (GEOMAGIA Only)" :                "10",
-        "Mixed Archeological Objects" :                   "11",
-        "Slag" :                                          "12",
-        "Baked Rock" :                                    "13",
-        "Fresco" :                                        "14",
-        "Mosaic" :                                        "15",
-        "Wall" :                                          "16",
-        "Bath" :                                          "17",
-        "Burnt Floor" :                                   "18",
-        "Funeral Pyre" :                                  "19",
-        "Hypocaust" :                                     "20",
-        "Burnt Pit" :                                     "21",
-        "Bell Mould" :                                    "22",
-        "Smoking Chamber" :                               "23",
-        "Baked Mud" :                                     "24",
-        "Volcanic Ash" :                                  "25",
-        "Burnt Structure" :                               "26",
-        "Burnt Castle Wall" :                             "27",
-        "Charcoal Pile" :                                 "28",
-        "Burnt Earth" :                                   "29",
-        "Vitrified Object" :                              "30",
-        "Unbaked Sediment" :                              "31",
-        "Tuyere" :                                        "32",
-        "Sauna" :                                         "33",
-        "Pit Structure" :                                 "35",
-        "Room" :                                          "36",
-        "Pit House" :                                     "37",
-        "Salt Kiln" :                                     "38",
-        "Burnt Sediment" :                                "39",
-        "Archeological Ashes" :                         "40",
-        "Volcanic Other or Undefined (GEOMAGIA Only)" : "41",
-        "Mural" :                                       "42",
-        "Vitrified Stone" :                             "43",
-        "Soil" :                                        "44",
-        "Kamadogu" :                                    "45",
-        "Foundry" :                                     "46",
-        "Obsidian" :                                    "47",
-        "Chert" :                                       "48",
-        "Burnt daub" :                                  "49",
-        "Amphora" :                                     "50",
-        "Granite" :                                     "51",
-        "Volcanic Glass" :                              "52",
-        "Furnace" :                                     "53",
-        "Roasting Pit" :                                "54"
+    geologic_types_to_geomagia = {
+        "Baked Clay":                                    "2",
+        "Tile":                                          "3",
+        "Lava":                                          "4",
+        "Pottery":                                       "5",
+        "Sun Dried Object":                              "6",
+        "Porcelain":                                     "7",
+        "Ceramic":                                       "8",
+        "Kiln":                                          "9",
+        "Oven or Hearth (GEOMAGIA Only)":                "10",
+        "Mixed Archeological Objects":                   "11",
+        "Slag":                                          "12",
+        "Baked Rock":                                    "13",
+        "Fresco":                                        "14",
+        "Mosaic":                                        "15",
+        "Wall":                                          "16",
+        "Bath":                                          "17",
+        "Burnt Floor":                                   "18",
+        "Funeral Pyre":                                  "19",
+        "Hypocaust":                                     "20",
+        "Burnt Pit":                                     "21",
+        "Bell Mould":                                    "22",
+        "Smoking Chamber":                               "23",
+        "Baked Mud":                                     "24",
+        "Volcanic Ash":                                  "25",
+        "Burnt Structure":                               "26",
+        "Burnt Castle Wall":                             "27",
+        "Charcoal Pile":                                 "28",
+        "Burnt Earth":                                   "29",
+        "Vitrified Object":                              "30",
+        "Unbaked Sediment":                              "31",
+        "Tuyere":                                        "32",
+        "Sauna":                                         "33",
+        "Pit Structure":                                 "35",
+        "Room":                                          "36",
+        "Pit House":                                     "37",
+        "Salt Kiln":                                     "38",
+        "Burnt Sediment":                                "39",
+        "Archeological Ashes":                         "40",
+        "Volcanic Other or Undefined (GEOMAGIA Only)": "41",
+        "Mural":                                       "42",
+        "Vitrified Stone":                             "43",
+        "Soil":                                        "44",
+        "Kamadogu":                                    "45",
+        "Foundry":                                     "46",
+        "Obsidian":                                    "47",
+        "Chert":                                       "48",
+        "Burnt daub":                                  "49",
+        "Amphora":                                     "50",
+        "Granite":                                     "51",
+        "Volcanic Glass":                              "52",
+        "Furnace":                                     "53",
+        "Roasting Pit":                                "54"
 
     }
 
 #   Some of the simple method code mappings are done here
 
-    method_codes_to_geomagia={
-        "GM-NO" :        "0",
-        "GM-CC-ARCH" :   "101",
-        "GM-C14-CAL" :   "102",
-        "GM-C14-UNCAL" : "103",
-        "GM-LUM-TH" :    "104",
-        "GM-HIST" :      "105",
-        "GM-PMAG-ARCH" : "106",
-        "GM-ARAR" :      "107",
-        "GM-CC-TEPH" :   "108",
-        "GM-CC-STRAT" :  "109",
-        "GM-CC-REL" :    "110",
-        "GM-DENDRO" :    "111",
-        "GM-RATH" :      "112",
-        "GM-KAR" :       "113",
-        "GM-UTH" :       "114",
-        "GM-FT" :        "115",
-        "GM-C14-AMS" :   "116",
-        "GM-LUM-OS" :    "117",
-        "GM-HE3" :       "118",
-        "GM-VARVE" :     "119",
-        "GM-CS137" :     "120",
-        "GM-USD-PB210" : "121",
-        "GM-C14-BETA" :  "122",
-        "GM-O18" :       "123",
-        "GM-PA" :        "124"
+    method_codes_to_geomagia = {
+        "GM-NO":        "0",
+        "GM-CC-ARCH":   "101",
+        "GM-C14-CAL":   "102",
+        "GM-C14-UNCAL": "103",
+        "GM-LUM-TH":    "104",
+        "GM-HIST":      "105",
+        "GM-PMAG-ARCH": "106",
+        "GM-ARAR":      "107",
+        "GM-CC-TEPH":   "108",
+        "GM-CC-STRAT":  "109",
+        "GM-CC-REL":    "110",
+        "GM-DENDRO":    "111",
+        "GM-RATH":      "112",
+        "GM-KAR":       "113",
+        "GM-UTH":       "114",
+        "GM-FT":        "115",
+        "GM-C14-AMS":   "116",
+        "GM-LUM-OS":    "117",
+        "GM-HE3":       "118",
+        "GM-VARVE":     "119",
+        "GM-CS137":     "120",
+        "GM-USD-PB210": "121",
+        "GM-C14-BETA":  "122",
+        "GM-O18":       "123",
+        "GM-PA":        "124"
     }
 
-    standard=standard.lower()
-    standard_value=""
-    if standard=="geomagia":
+    standard = standard.lower()
+    standard_value = ""
+    if standard == "geomagia":
         if vocab in places_to_geomagia.keys():
-            standard_value=places_to_geomagia[vocab]
+            standard_value = places_to_geomagia[vocab]
         if vocab in geologic_types_to_geomagia.keys():
-            standard_value=geologic_types_to_geomagia[vocab]
+            standard_value = geologic_types_to_geomagia[vocab]
         if vocab in method_codes_to_geomagia.keys():
-            standard_value=method_codes_to_geomagia[vocab]
-    if standard_value=="":
-        print("Magic vocab ", vocab, " not found for standard ",standard)
+            standard_value = method_codes_to_geomagia[vocab]
+    if standard_value == "":
+        print("Magic vocab ", vocab, " not found for standard ", standard)
     return standard_value
+
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")

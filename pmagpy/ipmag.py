@@ -1,4 +1,4 @@
-#/usr/bin/env/pythonw
+# /usr/bin/env/pythonw
 
 from past.utils import old_div
 import codecs
@@ -32,7 +32,7 @@ if has_cartopy == True:
     import cartopy.crs as ccrs
 
 
-def igrf(input_list,mod='',ghfile=""):
+def igrf(input_list, mod='', ghfile=""):
     """
     Determine Declination, Inclination and Intensity from the IGRF model.
     (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
@@ -73,7 +73,7 @@ def igrf(input_list,mod='',ghfile=""):
     Inclination: 61.353
     Intensity: 48745.264 nT
     """
-    if ghfile!="":
+    if ghfile != "":
         lmgh = numpy.loadtxt(ghfile)
         gh = []
         lmgh = numpy.loadtxt(ghfile).transpose()
@@ -81,16 +81,19 @@ def igrf(input_list,mod='',ghfile=""):
         for i in range(1, lmgh.shape[1]):
             gh.append(lmgh[2][i])
             gh.append(lmgh[3][i])
-        if len(gh)==0:
-            print ('no valid gh file')
+        if len(gh) == 0:
+            print('no valid gh file')
             return
-        mod='custom'
-    if mod=="":
-        x, y, z, f = pmag.doigrf(input_list[3] % 360., input_list[2], input_list[1], input_list[0])
-    elif mod!='custom':
-        x, y, z, f = pmag.doigrf(input_list[3] % 360., input_list[2], input_list[1], input_list[0],mod=mod)
+        mod = 'custom'
+    if mod == "":
+        x, y, z, f = pmag.doigrf(
+            input_list[3] % 360., input_list[2], input_list[1], input_list[0])
+    elif mod != 'custom':
+        x, y, z, f = pmag.doigrf(
+            input_list[3] % 360., input_list[2], input_list[1], input_list[0], mod=mod)
     else:
-        x, y, z, f = pmag.docustom(input_list[3] % 360., input_list[2], input_list[1], gh)
+        x, y, z, f = pmag.docustom(
+            input_list[3] % 360., input_list[2], input_list[1], gh)
 
     igrf_array = pmag.cart2dir((x, y, z))
     return igrf_array
@@ -668,7 +671,6 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     >>> ipmag.bootstrap_fold_test(data_array)
     """
 
-
     if bedding_error != 0:
         kappa = (old_div(81., bedding_error))**2
     else:
@@ -784,13 +786,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     BDI1 = pmag.di_boot(Data1)
     cart1 = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart1[0], cart1[1], cart1[2]
-    if np.array(Data2).shape[0]>2:
+    if np.array(Data2).shape[0] > 2:
         BDI2 = pmag.di_boot(Data2)
         cart2 = pmag.dir2cart(BDI2).transpose()
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
     else:
         cart = pmag.dir2cart(Data2).transpose()
-
 
     fignum = 1
     fig = plt.figure(figsize=figsize)
@@ -802,7 +803,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", 'r', "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
-    if np.array(Data2).shape[0]>2:
+    if np.array(Data2).shape[0] > 2:
         X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", 'b', "")
         bounds2 = [X2[minimum], X2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
@@ -816,7 +817,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", 'r', "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
-    if np.array(Data2).shape[0]>2:
+    if np.array(Data2).shape[0] > 2:
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", 'b', "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
@@ -830,7 +831,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
 
-    if np.array(Data2).shape[0]>2:
+    if np.array(Data2).shape[0] > 2:
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", 'b', "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
@@ -846,8 +847,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     plt.show()
 
 
-
-def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no', save=False, save_folder='.', fmt='svg'):
+def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no', save=False, save_folder='.', fmt='svg'):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -1011,6 +1011,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result = True, plot='no
 
     return result, angle[0], critical_angle
 
+
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
@@ -1140,7 +1141,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
                            save=save, save_folder=save_folder, fmt=fmt)
 
 
-def conglomerate_test_Watson(R,n):
+def conglomerate_test_Watson(R, n):
     """
     The Watson (1956) test of a directional data set for randomness compares the resultant vector (R)
     of a group of directions to values of Ro. If R exceeds Ro, the null-hypothesis of randomness is
@@ -1157,14 +1158,14 @@ def conglomerate_test_Watson(R,n):
     result : a dictionary with the Watson (1956) R values
     """
 
-    Ro_values = {5:{95:3.50,99:4.02},6:{95:3.85,99:4.48},
-                       7:{95:4.18,99:4.89},8:{95:4.48,99:5.26},
-                       9:{95:4.76,99:5.61},10:{95:5.03,99:5.94},
-                       11:{95:5.29,99:6.25},12:{95:5.52,99:6.55},
-                       13:{95:5.75,99:6.84},14:{95:5.98,99:7.11},
-                       15:{95:6.19,99:7.36},16:{95:6.40,99:7.60},
-                       17:{95:6.60,99:7.84},18:{95:6.79,99:8.08},
-                       19:{95:6.98,99:8.33},20:{95:7.17,99:8.55}}
+    Ro_values = {5: {95: 3.50, 99: 4.02}, 6: {95: 3.85, 99: 4.48},
+                 7: {95: 4.18, 99: 4.89}, 8: {95: 4.48, 99: 5.26},
+                 9: {95: 4.76, 99: 5.61}, 10: {95: 5.03, 99: 5.94},
+                 11: {95: 5.29, 99: 6.25}, 12: {95: 5.52, 99: 6.55},
+                 13: {95: 5.75, 99: 6.84}, 14: {95: 5.98, 99: 7.11},
+                 15: {95: 6.19, 99: 7.36}, 16: {95: 6.40, 99: 7.60},
+                 17: {95: 6.60, 99: 7.84}, 18: {95: 6.79, 99: 8.08},
+                 19: {95: 6.98, 99: 8.33}, 20: {95: 7.17, 99: 8.55}}
 
     if n < 5:
         print('too few directions for a conglomerate test')
@@ -1186,12 +1187,14 @@ def conglomerate_test_Watson(R,n):
         print('This population "passes" a conglomerate test as the null hypothesis of randomness cannot be rejected at the 95% confidence level')
 
     if R > Ro_95:
-        print('The null hypothesis of randomness can be rejected at the 95% confidence level')
+        print(
+            'The null hypothesis of randomness can be rejected at the 95% confidence level')
 
     if R > Ro_99:
-        print('The null hypothesis of randomness can be rejected at the 99% confidence level')
+        print(
+            'The null hypothesis of randomness can be rejected at the 99% confidence level')
 
-    result = {'n' : n, 'R' : R, 'Ro_95' : Ro_95, 'Ro_99' : Ro_99 }
+    result = {'n': n, 'R': R, 'Ro_95': Ro_95, 'Ro_99': Ro_99}
     return result
 
 
@@ -1495,7 +1498,7 @@ def plot_XY(X=None, Y=None, sym='ro'):
     plt.plot(X, Y, sym)
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title='',edge=''):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title='', edge=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -1544,14 +1547,14 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             if inc[n] >= 0:
                 X_down.append(XY[0])
                 Y_down.append(XY[1])
-                if type(color)==list:
+                if type(color) == list:
                     color_down.append(color[n])
                 else:
                     color_down.append(color)
             else:
                 X_up.append(XY[0])
                 Y_up.append(XY[1])
-                if type(color)==list:
+                if type(color) == list:
                     color_up.append(color[n])
                 else:
                     color_up.append(color)
@@ -1625,11 +1628,13 @@ def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', 
     plt.plot(Xcirc, Ycirc, c=color)
     plt.tight_layout()
 
+
 def plot_di_mean_bingham(bingham_dictionary, fignum=1, color='k', marker='o', markersize=20, label='', legend='no'):
     """
     see plot_di_mean_ellipse
     """
-    plot_di_mean_ellipse(bingham_dictionary,fignum=fignum,color=color,marker=marker,markersize=markersize,label=label,legend=legend)
+    plot_di_mean_ellipse(bingham_dictionary, fignum=fignum, color=color,
+                         marker=marker, markersize=markersize, label=label, legend=legend)
 
 
 def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize=20, label='', legend='no'):
@@ -1663,10 +1668,11 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
     pmagplotlib.plot_ell(fignum, pars, color, 0, 1)
 
 
-def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8),
-                          add_land = True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines = True,
-                          lat_grid = [-80.,  -60.,  -30.,    0.,   30.,   60., 80.],
-                          lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8),
+                          add_land=True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines=True,
+                          lat_grid=[-80.,  -60.,  -30.,
+                                    0.,   30.,   60., 80.],
+                          lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns an orthographic map projection using cartopy
 
@@ -1691,22 +1697,26 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8,8)
         print('-W- cartopy must be installed to run ipmag.make_orthographic_map')
         return
     fig = plt.figure(figsize=figsize)
-    map_projection = ccrs.Orthographic(central_longitude=central_longitude,central_latitude=central_latitude)
-    ax = plt.axes(projection = map_projection)
+    map_projection = ccrs.Orthographic(
+        central_longitude=central_longitude, central_latitude=central_latitude)
+    ax = plt.axes(projection=map_projection)
     ax.set_global()
     if add_ocean == True:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
     if add_land == True:
-        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+        ax.add_feature(cartopy.feature.LAND, zorder=0,
+                       facecolor=land_color, edgecolor='black')
     if grid_lines == True:
-        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid,linewidth=1,color='black',linestyle='dotted')
+        ax.gridlines(xlocs=lon_grid, ylocs=lat_grid, linewidth=1,
+                     color='black', linestyle='dotted')
     return ax
 
 
-def make_mollweide_map(central_longitude=0, figsize=(8,8),
-                       add_land = True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines = True,
-                       lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
-                       lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+def make_mollweide_map(central_longitude=0, figsize=(8, 8),
+                       add_land=True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines=True,
+                       lat_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,
+                                 0.,   30.,   60., 90.,  120.,  150.,  180.],
+                       lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns a Mollweide map projection using cartopy
 
@@ -1732,21 +1742,23 @@ def make_mollweide_map(central_longitude=0, figsize=(8,8),
         return
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Mollweide(central_longitude=central_longitude)
-    ax = plt.axes(projection = map_projection)
+    ax = plt.axes(projection=map_projection)
     if add_ocean == True:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
     if add_land == True:
-        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+        ax.add_feature(cartopy.feature.LAND, zorder=0,
+                       facecolor=land_color, edgecolor='black')
     ax.set_global()
     if grid_lines == True:
-        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+        ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
 
-def make_robinson_map(central_longitude=0, figsize=(8,8),
-                       add_land = True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines = True,
-                       lat_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.],
-                       lon_grid = [-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
+def make_robinson_map(central_longitude=0, figsize=(8, 8),
+                      add_land=True, land_color='tan', add_ocean=False, ocean_color='lightblue', grid_lines=True,
+                      lat_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,
+                                0.,   30.,   60., 90.,  120.,  150.,  180.],
+                      lon_grid=[-180., -150., -120.,  -90.,  -60.,  -30.,    0.,   30.,   60., 90.,  120.,  150.,  180.]):
     '''
     Function creates and returns a Robinson map projection using cartopy
 
@@ -1772,18 +1784,19 @@ def make_robinson_map(central_longitude=0, figsize=(8,8),
         return
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Robinson(central_longitude=central_longitude)
-    ax = plt.axes(projection = map_projection)
+    ax = plt.axes(projection=map_projection)
     if add_ocean == True:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
     if add_land == True:
-        ax.add_feature(cartopy.feature.LAND, zorder=0, facecolor=land_color,edgecolor='black')
+        ax.add_feature(cartopy.feature.LAND, zorder=0,
+                       facecolor=land_color, edgecolor='black')
     ax.set_global()
     if grid_lines == True:
-        ax.gridlines(xlocs=lon_grid,ylocs=lat_grid)
+        ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
 
-def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -1818,14 +1831,14 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k',edgecolor='k', mark
         return
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
-                    color=color,edgecolors=edgecolor, s=markersize,
+                     color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
     equi(map_axis, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
 
 
-def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k',edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1856,15 +1869,15 @@ def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k',edgecolor='k
     centerlon, centerlat = mapname(plon, plat)
     A95_km = A95 * 111.32
     mapname.scatter(centerlon, centerlat, marker=marker,
-                    color=color,edgecolors=edgecolor, s=markersize, label=label, zorder=101)
+                    color=color, edgecolors=edgecolor, s=markersize, label=label, zorder=101)
     equi_basemap(mapname, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
 
 
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
-                    pole_color='k',pole_edgecolor='k', pole_marker='o',
-                    site_color='r',site_edgecolor='r', site_marker='s',
+                    pole_color='k', pole_edgecolor='k', pole_marker='o',
+                    site_color='r', site_edgecolor='r', site_marker='s',
                     markersize=20, legend=True):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
@@ -1915,10 +1928,10 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     dp_km = dp*111.32
     dm_km = dm*111.32
     map_axis.scatter(plon, plat, marker=pole_marker,
-                    color=pole_color,edgecolors=pole_edgecolor, s=markersize,
+                     color=pole_color, edgecolors=pole_edgecolor, s=markersize,
                      label=pole_label, zorder=101, transform=ccrs.Geodetic())
     map_axis.scatter(slon, slat, marker=site_marker,
-                    color=site_color,edgecolors=site_edgecolor, s=markersize,
+                     color=site_color, edgecolors=site_edgecolor, s=markersize,
                      label=site_label, zorder=101, transform=ccrs.Geodetic())
     # the orientation of the ellipse needs to be determined using the
     # two laws of cosines for spherical triangles where the triangle is
@@ -1934,40 +1947,41 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
 
     B_rad = np.abs(pole_lon_rad-site_lon_rad)
 
-    cos_b = np.cos(c_rad)*np.cos(a_rad) + np.sin(c_rad)*np.sin(a_rad)*np.cos(B_rad)
+    cos_b = np.cos(c_rad)*np.cos(a_rad) + np.sin(c_rad) * \
+        np.sin(a_rad)*np.cos(B_rad)
     b_rad = np.arccos(cos_b)
 
     sin_C = (np.sin(B_rad)/np.sin(b_rad))*np.sin(c_rad)
     C_rad = np.arcsin(sin_C)
 
-    #need to make the rotation of the ellipse go the right way
+    # need to make the rotation of the ellipse go the right way
     if slon-plon > 180:
-        if plon>=slon and plat>=slat:
+        if plon >= slon and plat >= slat:
             C_deg = -np.abs(np.rad2deg(C_rad))
-        elif plon<=slon and plat>=slat:
+        elif plon <= slon and plat >= slat:
             C_deg = np.abs(np.rad2deg(C_rad))
-        elif plon>=slon and plat<=slat:
+        elif plon >= slon and plat <= slat:
             C_deg = np.abs(np.rad2deg(C_rad))
-        elif plon<=slon and plat<=slat:
+        elif plon <= slon and plat <= slat:
             C_deg = -np.abs(np.rad2deg(C_rad))
     elif slon-plon <= 180:
-        if plon>=slon and plat>=slat:
+        if plon >= slon and plat >= slat:
             C_deg = np.abs(np.rad2deg(C_rad))
-        elif plon<=slon and plat>=slat:
+        elif plon <= slon and plat >= slat:
             C_deg = -np.abs(np.rad2deg(C_rad))
-        elif plon>=slon and plat<=slat:
+        elif plon >= slon and plat <= slat:
             C_deg = -np.abs(np.rad2deg(C_rad))
-        elif plon<=slon and plat<=slat:
+        elif plon <= slon and plat <= slat:
             C_deg = np.abs(np.rad2deg(C_rad))
 
     print(C_deg)
-    ellipse(map_axis,plon,plat,dp_km,dm_km,C_deg)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg)
 
     if legend == True:
         plt.legend(loc=2)
 
 
-def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label='', colormap = 'viridis', color='k', marker='o', markersize='20', alpha=1.0, legend=False):
+def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label='', colormap='viridis', color='k', marker='o', markersize='20', alpha=1.0, legend=False):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
     The color of the pole is set by a colormap.
@@ -2007,15 +2021,15 @@ def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label=
         return
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, c=colorvalue, vmin=vmin, vmax=vmax, cmap=colormap,
-                    s=markersize, marker=marker, alpha=alpha, label=label, zorder=101, transform=ccrs.Geodetic())
+                     s=markersize, marker=marker, alpha=alpha, label=label, zorder=101, transform=ccrs.Geodetic())
     equi(map_axis, plon, plat, A95_km, color, alpha)
     if legend == True:
         plt.legend(loc=2)
 
 
 def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
-                        colormap = 'viridis', color='k', marker='o', markersize='20',
-                        alpha=1.0, colorbar=True, colorbar_label = 'pole age (Ma)'):
+                        colormap='viridis', color='k', marker='o', markersize='20',
+                        alpha=1.0, colorbar=True, colorbar_label='pole age (Ma)'):
     """
     This function plots multiple paleomagnetic pole and A95 error ellipse on a cartopy map axis.
     The poles are colored by the defined colormap.
@@ -2059,13 +2073,15 @@ def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
         plot_pole_colorbar(map_axis, plon[n], plat[n], A95[n], colorvalue[n], vmin, vmax,
                            colormap=colormap, color=color, marker=marker, markersize=markersize, alpha=alpha)
 
-    sm = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(
+        cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm._A = []
-    plt.colorbar(sm,orientation='horizontal',shrink=0.8,pad=0.05,label=colorbar_label)
+    plt.colorbar(sm, orientation='horizontal', shrink=0.8,
+                 pad=0.05, label=colorbar_label)
 
 
-def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o', \
-    edge='black', markersize=20, legend=False):
+def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
+             edge='black', markersize=20, legend=False):
     """
     This function plots a paleomagnetic pole position on a cartopy map axis.
 
@@ -2103,7 +2119,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
     map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=[edge],
-                    s=markersize, color=color, label=label, zorder=100, transform=ccrs.Geodetic())
+                     s=markersize, color=color, label=label, zorder=100, transform=ccrs.Geodetic())
     map_axis.set_global()
     if legend == True:
         plt.legend(loc=2)
@@ -2527,7 +2543,8 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
     X.append(X[0])
     Y.append(Y[0])
 
-    plt.plot(X[::-1], Y[::-1], color=color, transform=ccrs.Geodetic(), alpha=alpha)
+    plt.plot(X[::-1], Y[::-1], color=color,
+             transform=ccrs.Geodetic(), alpha=alpha)
 
 
 def equi_basemap(m, centerlon, centerlat, radius, color):
@@ -2583,23 +2600,25 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     glat1 = centerlat
     X = []
     Y = []
-    for azimuth in np.linspace(0,360,n):
+    for azimuth in np.linspace(0, 360, n):
         az_rad = azimuth*(np.pi/180)
-        radius = ((major_axis*minor_axis)/(((minor_axis*np.cos(az_rad-angle))**2 + (major_axis*np.sin(az_rad-angle))**2)**.5))
+        radius = ((major_axis*minor_axis)/(((minor_axis*np.cos(az_rad-angle))
+                                            ** 2 + (major_axis*np.sin(az_rad-angle))**2)**.5))
         glon2, glat2, baz = shoot(glon1, glat1, azimuth, radius)
-        X.append((360+glon2)%360)
+        X.append((360+glon2) % 360)
         Y.append(glat2)
     X.append(X[0])
     Y.append(Y[0])
 
     if filled:
-        ellip = np.array((X,Y)).T
-        ellip = map_axis.projection.transform_points(ccrs.PlateCarree(),ellip[:,0],ellip[:,1])
-        poly = Polygon(ellip[:,:2],**kwargs)
+        ellip = np.array((X, Y)).T
+        ellip = map_axis.projection.transform_points(
+            ccrs.PlateCarree(), ellip[:, 0], ellip[:, 1])
+        poly = Polygon(ellip[:, :2], **kwargs)
         map_axis.add_patch(poly)
     else:
         try:
-            map_axis.plot(X, Y, transform=ccrs.Geodetic(),**kwargs)
+            map_axis.plot(X, Y, transform=ccrs.Geodetic(), **kwargs)
             return True
         except ValueError:
             return False
@@ -2629,7 +2648,8 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
         filenames = [os.path.realpath(f) for f in filenames]
         filenames = [f for f in filenames if os.path.exists(f)]
         if not filenames:
-            print("You have provided no valid file paths, so nothing will be combined".format(magic_table))
+            print("You have provided no valid file paths, so nothing will be combined".format(
+                magic_table))
             return False
         # figure out file type from first of files to join
         with open(filenames[0]) as f:
@@ -2639,7 +2659,8 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
                          'pmag_samples', 'pmag_sites', 'pmag_results',
                          'magic_measurements', 'rmag_anisotropy',
                          'rmag_results', 'rmag_specimens']:
-            print('-W- You are working in MagIC 3 but have provided a MagIC 2.5 file: {}'.format(file_type))
+            print(
+                '-W- You are working in MagIC 3 but have provided a MagIC 2.5 file: {}'.format(file_type))
             return False
         if file_type not in con.table_names:
             file_type = magic_table
@@ -2685,7 +2706,6 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
         return False
 
 
-
 def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
@@ -2697,12 +2717,14 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
     plots = 0
 
     # format files to use full path
-    ani_file = pmag.resolve_file_name(ani_file, dir_path) #os.path.join(dir_path, ani_file)
+    # os.path.join(dir_path, ani_file)
+    ani_file = pmag.resolve_file_name(ani_file, dir_path)
     if not os.path.isfile(ani_file):
         print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
         return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
 
-    meas_file = pmag.resolve_file_name(meas_file, dir_path) #os.path.join(dir_path, meas_file)
+    # os.path.join(dir_path, meas_file)
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
 
     if age_file:
         if not os.path.isfile(age_file):
@@ -2710,9 +2732,11 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
                 'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
             age_file = None
             depth_scale = 'sample_core_depth'
-            samp_file = pmag.resolve_file_name(samp_file, dir_path) #os.path.join(dir_path, samp_file)
+            # os.path.join(dir_path, samp_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path)
         else:
-            samp_file = pmag.resolve_file_name(samp_file, dir_path) # os.path.join(dir_path, age_file)
+            # os.path.join(dir_path, age_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path)
             depth_scale = 'age'
             print(
                 'Warning: you have provided an er_ages format file, which will take precedence over er_samples')
@@ -2927,9 +2951,9 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
 
 
 def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
-                     meas_file='measurements.txt', site_file='sites.txt',
-                     age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
-                     depth_scale='core_depth', dir_path='.'):
+                  meas_file='measurements.txt', site_file='sites.txt',
+                  age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
+                  depth_scale='core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
@@ -2998,7 +3022,8 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     SampData = con.tables['samples'].df
     AniData = con.tables['specimens'].df
     # add sample into specimens (AniData)
-    AniData = pd.merge(AniData, SampData[['sample', depth_scale]], how='inner', on='sample')
+    AniData = pd.merge(
+        AniData, SampData[['sample', depth_scale]], how='inner', on='sample')
     # trim down AniData
     cond = AniData[depth_scale].astype(bool)
     AniData = AniData[cond]
@@ -3023,13 +3048,14 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
     if 'measurements' in con.tables:
         isbulk = 1
-        Meas = con.tables['measurements'].df #convert_to_pmag_data_list()
+        Meas = con.tables['measurements'].df  # convert_to_pmag_data_list()
 
     if isbulk:
         Meas = Meas[Meas['specimen'].astype('bool')]
         Meas = Meas[Meas['susc_chi_volume'].astype(bool)]
         # add core_depth into Measurements dataframe
-        Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[['specimen', 'core_depth']], how='inner', on='specimen')
+        Meas = pd.merge(Meas[['susc_chi_volume', 'specimen']], AniData[[
+                        'specimen', 'core_depth']], how='inner', on='specimen')
         Bulks = list(Meas['susc_chi_volume'] * 1e6)
         BulkDepths = list(Meas['core_depth'])
     else:
@@ -3110,7 +3136,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         # dmin=dmin-.05*dmax
 
         main_plot = plt.figure(1, figsize=(11, 7))  # make the figure
-        #main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
+        # main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
 
         version_num = pmag.get_version()
         plt.figtext(.02, .01, version_num)  # attach the pmagpy version number
@@ -3316,20 +3342,20 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         method = 'LT-IRM'
         step = round(float(step) * 1e-3, 6)
     # not supporting susceptibility at the moment LJ
-    elif meth== 'X':
-        method='LP-X'
-        pcol+=1
+    elif meth == 'X':
+        method = 'LP-X'
+        pcol += 1
         ind = sys.argv.index('-LP')
-        if sys.argv[ind+2]=='mass':
-            if data_model_num!=3:
-                suc_key='measurement_chi_mass'
+        if sys.argv[ind+2] == 'mass':
+            if data_model_num != 3:
+                suc_key = 'measurement_chi_mass'
             else:
-                suc_key='susc_chi_mass'
-        elif sys.argv[ind+2]=='vol':
-            if data_model_num!=3:
-               suc_key='measurement_chi_volume'
+                suc_key = 'susc_chi_mass'
+        elif sys.argv[ind+2] == 'vol':
+            if data_model_num != 3:
+                suc_key = 'measurement_chi_volume'
             else:
-                suc_key='susc_chi_volume'
+                suc_key = 'susc_chi_volume'
         else:
             print('error in susceptibility units')
             return False, 'error in susceptibility units'
@@ -3366,24 +3392,25 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     if age_file:
         age_file = pmag.resolve_file_name(age_file, input_dir_path)
     if data_model_num == 3:
-        fnames =  {'specimens': spc_file, 'samples': samp_file,
-                   'ages': age_file, 'measurements': meas_file}
+        fnames = {'specimens': spc_file, 'samples': samp_file,
+                  'ages': age_file, 'measurements': meas_file}
         fnames = {k: v for (k, v) in fnames.items() if v}
         con = cb.Contribution(input_dir_path, custom_filenames=fnames)
         for dtype in ['measurements', 'specimens']:
             if dtype not in con.tables:
-                print('-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path))
+                print(
+                    '-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path))
                 print('    If needed, you can specify your input directory on the command line with "core_depthplot.py -ID dirname ... "')
                 print('    Or with ipmag.core_depthplot(input_dir_path=dirname, ...)')
-                #return False, '-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path)
+                # return False, '-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path)
         # propagate data to measurements
         con.propagate_name_down('sample', 'measurements')
         con.propagate_name_down('site', 'measurements')
         con.propagate_location_to_measurements()
 
         # propagate depth info from sites --> samples
-        con.propagate_cols(['core_depth', 'composite_depth'], 'samples', 'sites')
-
+        con.propagate_cols(
+            ['core_depth', 'composite_depth'], 'samples', 'sites')
 
         if age_file == "":
             # get sample data straight from the contribution
@@ -3415,12 +3442,12 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
             #Results, file_type = pmag.magic_read(res_file)
         if norm:
             #warn = '-W- norm option is not currently available for MagIC data model 3'
-            #print(warn)
-            #return False, warn
+            # print(warn)
+            # return False, warn
             Specs3, file_type = pmag.magic_read(wt_file)
             # translate specimen records to 2.5
             ErSpecs = []
-            #for spec in Specs3:
+            # for spec in Specs3:
             #    ErSpecs.append(map_magic.mapping(spec, spec_magic3_2_magic2_map))
             ErSpecs = Specs3
 
@@ -3432,8 +3459,6 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         if not age_file and not samp_file:
             print('-W- You must provide either an age file or a sample file')
             return False, '-W- You must provide either an age file or a sample file'
-
-
 
     # read in 2.5 data
     elif data_model_num == 2:
@@ -3464,7 +3489,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     Cores = []
     core_depth_key = "Top depth cored CSF (m)"
     if sum_file:
-        sum_file = pmag.resolve_file_name(sum_file, input_dir_path) #os.path.join(input_dir_path, sum_file)
+        # os.path.join(input_dir_path, sum_file)
+        sum_file = pmag.resolve_file_name(sum_file, input_dir_path)
         with open(sum_file, 'r') as fin:
             indat = fin.readlines()
         if "Core Summary" in indat[0]:
@@ -3520,16 +3546,16 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
             if 'measurements' in con.tables:
                 Meas = con.tables['measurements'].convert_to_pmag_data_list()
             # has measurement_magn_mass ....
-            dec_key,inc_key='dir_dec','dir_inc'
-            meth_key,temp_key,ac_key,dc_key='method_codes','treat_temp','treat_ac_field','treat_dc_field'
+            dec_key, inc_key = 'dir_dec', 'dir_inc'
+            meth_key, temp_key, ac_key, dc_key = 'method_codes', 'treat_temp', 'treat_ac_field', 'treat_dc_field'
             intlist = ['magnitude', 'magn_moment',
-               'magn_volume', 'magn_mass']
+                       'magn_volume', 'magn_mass']
             meas_key = "magn_moment"
         elif data_model_num == 2:
             intlist = ['measurement_magnitude', 'measurement_magn_moment',
-               'measurement_magn_volume', 'measurement_magn_mass']
-            temp_key,ac_key,dc_key='treatment_temp','treatment_ac_field','treatment_dc_field'
-            dec_key,inc_key='measurement_dec','measurement_inc'
+                       'measurement_magn_volume', 'measurement_magn_mass']
+            temp_key, ac_key, dc_key = 'treatment_temp', 'treatment_ac_field', 'treatment_dc_field'
+            dec_key, inc_key = 'measurement_dec', 'measurement_inc'
             Meas, file_type = pmag.magic_read(meas_file)
             meas_key = 'measurement_magn_moment'
         #
@@ -3696,8 +3722,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
                 dmin = min(ResDepths)
             if max(ResDepths) > dmax:
                 dmax = max(ResDepths)
-    ## wig_file and suc_file not currently supported options
-    #if suc_file:
+    # wig_file and suc_file not currently supported options
+    # if suc_file:
     #    with open(suc_file, 'r') as s_file:
     #        sucdat = s_file.readlines()
     #    keys = sucdat[0].replace('\n', '').split(',')  # splits on underscores
@@ -3713,7 +3739,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     #                minSuc = Susc[-1]
     #            Sus_depths.append(float(SucRec['Top Depth (m)']))
     #WIG, WIG_depths = [], []
-    #if wig_file:
+    # if wig_file:
     #    wigdat, file_type = pmag.magic_read(wig_file)
     #    swigdat = pmag.sort_diclist(wigdat, depth_scale)
     #    keys = list(wigdat[0].keys())
@@ -3884,7 +3910,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         plt.axis([minSuc, maxSuc, dmax, dmin])
         plt.xlabel('Susceptibility')
         plot += 1
-    #if wig_file:
+    # if wig_file:
     #    plt.subplot(1, pcol, plot)
     #    plt.plot(WIG, WIG_depths, 'k')
     #    if sum_file:
@@ -4106,7 +4132,8 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                 for f in type_list:
                     if print_progress == True:
                         print('unpacking: ', dir_path + '/' + f + '.txt')
-                    recs, file_type = pmag.magic_read(dir_path + '/' + f + '.txt')
+                    recs, file_type = pmag.magic_read(
+                        dir_path + '/' + f + '.txt')
                     if print_progress == True:
                         print(len(recs), ' read in')
                     lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
@@ -4323,6 +4350,7 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
     print('-W- ipmag.upload_magic3 is deprecated, please switch to using ipmag.upload_magic')
     return upload_magic(concat, dir_path, dmodel, vocab, contribution)
 
+
 def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
     Finds all magic files in a given directory, and compiles them into an
@@ -4377,10 +4405,11 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
         print("-W- No tables found in your contribution, file not created".format(dir_path))
         return False, "-W- No tables found in your contribution, file not created", None, None
 
-    con.propagate_cols(['core_depth', 'composite_depth'], 'sites', 'samples', down=False)
+    con.propagate_cols(['core_depth', 'composite_depth'],
+                       'sites', 'samples', down=False)
 
     # take out any extra added columns
-    #con.remove_non_magic_cols()
+    # con.remove_non_magic_cols()
 
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
@@ -4399,10 +4428,10 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
                                   'age_low', 'age_sigma', 'specimen_core_depth'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
-                                   'age_sigma', 'core_depth', 'composite_depth'],
-                     'sites' : ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
-                                'orientation_quality', 'sample_alternatives', 'timestamp'],
-                     'ages': ['level']}
+                                'age_sigma', 'core_depth', 'composite_depth'],
+                    'sites': ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
+                              'orientation_quality', 'sample_alternatives', 'timestamp'],
+                    'ages': ['level']}
 
     failing = []
     all_failing_items = {}
@@ -4415,12 +4444,13 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
-            ## drop non MagIC keys
+            # drop non MagIC keys
             #DropKeys = set(RmKeys).intersection(df.columns)
             DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
             DropKeys = set(DropKeys).intersection(df.columns)
             if DropKeys:
-                print('-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
+                print(
+                    '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                 df.drop(DropKeys, axis=1, inplace=True)
             container.df = df
             unrecognized_cols = container.get_non_magic_cols()
@@ -4483,8 +4513,8 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
                 print("-I-", file_type, 'written to ', up)
             else:  # last file, no newline at end of file
                 #f = open(up, 'a')
-                #f.write('>>>>>>>>>>')
-                #f.close()
+                # f.write('>>>>>>>>>>')
+                # f.close()
                 print("-I-", file_type, 'written to ', up)
     # if there was no understandable data
         else:
@@ -5611,7 +5641,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
                 MagRec[key] = Prev_MagRec[key]
             else:
-                MagRec[key] = ""#"Not Specified"
+                MagRec[key] = ""  # "Not Specified"
 
         # (rshaar) From here parse new information and replace previous, if exists:
     #
@@ -5893,13 +5923,14 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     sundata["date"] = '%i:%s:%s:%s' % (
                         yy, mmddyy[0], mmddyy[1], OrRec["hhmm"])
                     sundata["delta_u"] = hours_from_gmt
-                    sundata["lon"] = lon # do not truncate!
-                    sundata["lat"] = lat # do not truncate!
+                    sundata["lon"] = lon  # do not truncate!
+                    sundata["lat"] = lat  # do not truncate!
                     sundata["shadow_angle"] = OrRec["shadow_angle"]
-                    sundec = '%7.1f' % (pmag.dosundec(sundata)) # now you can truncate
+                    # now you can truncate
+                    sundec = '%7.1f' % (pmag.dosundec(sundata))
                     for key in list(MagRec.keys()):
                         SunRec[key] = MagRec[key]  # make a copy of MagRec
-                    SunRec["sample_azimuth"] = sundec # do not truncate!
+                    SunRec["sample_azimuth"] = sundec  # do not truncate!
                     SunRec["sample_declination_correction"] = ''
                     SunRec["magic_method_codes"] = methcodes + ':SO-SUN'
                     SunRec["magic_method_codes"] = SunRec['magic_method_codes'].strip(
@@ -6154,10 +6185,11 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         # write to file
         pmag.magic_write(samp_file, Samps, "er_samples")
     else:
-        #translate sample records to MagIC 3
+        # translate sample records to MagIC 3
         Samps3 = []
         for samp in Samps:
-            Samps3.append(map_magic.mapping(samp, map_magic.samp_magic2_2_magic3_map))
+            Samps3.append(map_magic.mapping(
+                samp, map_magic.samp_magic2_2_magic3_map))
         # write to file
         pmag.magic_write(samp_file, Samps3, "samples")
     print("Data saved in ", samp_file)
@@ -6277,10 +6309,10 @@ class Site(object):
         to only include data in geographic coordinates - THIS NEEDS TO BE GENERALIZED
         '''
         fits = self.fits.loc[self.fits.specimen_comp_name ==
-                            fit_name].loc[self.fits.specimen_tilt_correction == 0]
+                             fit_name].loc[self.fits.specimen_tilt_correction == 0]
         fits.reset_index(inplace=True)
         means = self.means.loc[self.means.site_comp_name ==
-                              fit_name].loc[self.means.site_tilt_correction == 0]
+                               fit_name].loc[self.means.site_tilt_correction == 0]
         means.reset_index(inplace=True)
         mean_name = str(fit_name) + "_mean"
         setattr(self, fit_name, fits)
@@ -6407,8 +6439,8 @@ class Site(object):
         return self.site_data
 
 
-def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
-            save=False, save_folder='.', fmt='pdf',data_model=3):
+def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
+            save=False, save_folder='.', fmt='pdf', data_model=3):
     """
     Makes 'day plots' (Day et al. 1977) and squareness/coercivity plots
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
@@ -6427,7 +6459,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
     """
     args = sys.argv
     hyst_path = os.path.join(path_to_file, hyst_file)
-    if data_model==2 and rem_file!='':
+    if data_model == 2 and rem_file != '':
         rem_path = os.path.join(path_to_file, rem_file)
     # hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
     dir_path = path_to_file
@@ -6441,42 +6473,42 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
     plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
     plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
     hyst_data, file_type = pmag.magic_read(hyst_path)
-    rem_data=[]
-    if data_model==2 and rem_file!="":
+    rem_data = []
+    if data_model == 2 and rem_file != "":
         rem_data, file_type = pmag.magic_read(rem_path)
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Ms, Bcr1, Bcr1Bc, S1 = [], [], [], []
     locations = ''
-    if data_model==2:
-      for rec in hyst_data:
-        if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations:
-            locations = locations + rec['er_location_name'] + '_'
-        if rec['hysteresis_bcr'] != "" and rec['hysteresis_mr_moment'] != "":
-            S.append(old_div(float(rec['hysteresis_mr_moment']), float(
-                rec['hysteresis_ms_moment'])))
-            Bcr.append(float(rec['hysteresis_bcr']))
-            Bc.append(float(rec['hysteresis_bc']))
-            BcrBc.append(old_div(Bcr[-1], Bc[-1]))
-            if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name'] != "":
-                rec['er_specimen_name'] = rec['er_synthetic_name']
-            hsids.append(rec['er_specimen_name'])
-      if len(rem_data) > 0:
-        for rec in rem_data:
-            if rec['remanence_bcr'] != "" and float(rec['remanence_bcr']) > 0:
-                try:
-                    ind = hsids.index(rec['er_specimen_name'])
-                    Bcr1.append(float(rec['remanence_bcr']))
-                    Bcr1Bc.append(old_div(Bcr1[-1], Bc[ind]))
-                    S1.append(S[ind])
-                    Bcr2.append(Bcr[ind])
-                except ValueError:
-                    if verbose:
-                        print('hysteresis data for ',
-                              rec['er_specimen_name'], ' not found')
+    if data_model == 2:
+        for rec in hyst_data:
+            if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations:
+                locations = locations + rec['er_location_name'] + '_'
+            if rec['hysteresis_bcr'] != "" and rec['hysteresis_mr_moment'] != "":
+                S.append(old_div(float(rec['hysteresis_mr_moment']), float(
+                    rec['hysteresis_ms_moment'])))
+                Bcr.append(float(rec['hysteresis_bcr']))
+                Bc.append(float(rec['hysteresis_bc']))
+                BcrBc.append(old_div(Bcr[-1], Bc[-1]))
+                if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name'] != "":
+                    rec['er_specimen_name'] = rec['er_synthetic_name']
+                hsids.append(rec['er_specimen_name'])
+        if len(rem_data) > 0:
+            for rec in rem_data:
+                if rec['remanence_bcr'] != "" and float(rec['remanence_bcr']) > 0:
+                    try:
+                        ind = hsids.index(rec['er_specimen_name'])
+                        Bcr1.append(float(rec['remanence_bcr']))
+                        Bcr1Bc.append(old_div(Bcr1[-1], Bc[ind]))
+                        S1.append(S[ind])
+                        Bcr2.append(Bcr[ind])
+                    except ValueError:
+                        if verbose:
+                            print('hysteresis data for ',
+                                  rec['er_specimen_name'], ' not found')
     else:
         fnames = {'specimens': hyst_file}
         con = cb.Contribution(dir_path, read_tables=['specimens'],
-                          custom_filenames=fnames)
+                              custom_filenames=fnames)
         spec_container = con.tables['specimens']
         spec_df = spec_container.df
 
@@ -6488,7 +6520,8 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
 
         for ind, row in spec_df.iterrows():
             if row['hyst_bcr'] and row['hyst_mr_moment']:
-                S.append(old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
+                S.append(
+                    old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
                 Bcr.append(float(row['hyst_bcr']))
                 Bc.append(float(row['hyst_bc']))
                 BcrBc.append(old_div(Bcr[-1], Bc[-1]))
@@ -6502,9 +6535,9 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt",rem_file='',\
                         Bcr2.append(Bcr[-1])
                     except ValueError:
                         if verbose:
-                            print('hysteresis data for ', row['specimen'], end=' ')
+                            print('hysteresis data for ',
+                                  row['specimen'], end=' ')
                             print(' not found')
-
 
     #
     # now plot the day and S-Bc, S-Bcr plots
@@ -6608,8 +6641,8 @@ def deriv1(x, y, i, n):
     return(m)
 
 
-def curie(path_to_file='.', file_name='',magic=False,
-          window_length=3, save=False, save_folder='.', fmt='svg', t_begin="",t_end=""):
+def curie(path_to_file='.', file_name='', magic=False,
+          window_length=3, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
     """
     Plots and interprets curie temperature data.
     ***
@@ -6643,10 +6676,10 @@ def curie(path_to_file='.', file_name='',magic=False,
     # read data from file
     complete_path = os.path.join(path_to_file, file_name)
     if magic:
-        data_df=pd.read_csv(complete_path,sep='\t',header=1)
-        T=data_df['meas_temp'].values-273
-        magn_key=cb.get_intensity_col(data_df)
-        M=data_df[magn_key].values
+        data_df = pd.read_csv(complete_path, sep='\t', header=1)
+        T = data_df['meas_temp'].values-273
+        magn_key = cb.get_intensity_col(data_df)
+        M = data_df[magn_key].values
     else:
         Data = np.loadtxt(complete_path, dtype=np.float)
         T = Data.transpose()[0]
@@ -6654,7 +6687,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     T = list(T)
     M = list(M)
     # cut the data if -t is one of the flags
-    if t_begin!="":
+    if t_begin != "":
         while T[0] < t_begin:
             M.pop(0)
             T.pop(0)
@@ -6702,7 +6735,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     string = 'M-T (sliding window=%i)' % int(window_len)
     pmagplotlib.plot_xy(PLT['M_T'], T, M_smooth, sym='-')
     pmagplotlib.plot_xy(PLT['M_T'], T, M, sym='--',
-                       xlab='Temperature C', ylab='Magnetization', title=string)
+                        xlab='Temperature C', ylab='Magnetization', title=string)
 
     # calculate first derivative
     d1, T_d1 = [], []
@@ -6718,7 +6751,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     plt.figure(num=PLT['der1'], figsize=(5, 5))
     string = '1st derivative (sliding window=%i)' % int(window_len)
     pmagplotlib.plot_xy(PLT['der1'], T_d1, d1_smooth,
-                       sym='-', xlab='Temperature C', title=string)
+                        sym='-', xlab='Temperature C', title=string)
     pmagplotlib.plot_xy(PLT['der1'], T_d1, d1, sym='b--')
 
     # calculate second derivative
@@ -6736,7 +6769,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     plt.figure(num=PLT['der2'], figsize=(5, 5))
     string = '2nd derivative (sliding window=%i)' % int(window_len)
     pmagplotlib.plot_xy(PLT['der2'], T_d2, d2, sym='-',
-                       xlab='Temperature C', title=string)
+                        xlab='Temperature C', title=string)
     d2 = list(d2)
     print('second derivative maximum is at T=%i' %
           int(T_d2[d2.index(max(d2))]))
@@ -6774,7 +6807,7 @@ def curie(path_to_file='.', file_name='',magic=False,
     # plot Curie temp for different sliding window length
     plt.figure(num=PLT['Curie'], figsize=(5, 5))
     pmagplotlib.plot_xy(PLT['Curie'], wn, curie, sym='.',
-                       xlab='Sliding Window Width (degrees)', ylab='Curie Temp', title='Curie Statistics')
+                        xlab='Sliding Window Width (degrees)', ylab='Curie Temp', title='Curie Statistics')
     files = {}
     for key in list(PLT.keys()):
         files[key] = str(key) + '.' + fmt
@@ -7439,7 +7472,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
                     INTblock.append([float(step), 0, 0, old_div(
                         float(sum(AVGblock[step])), float(len(AVGblock[step]))), 1, 'g'])
                 pmagplotlib.plot_mag(FIG['demag'], INTblock,
-                                   title, 0, units, norm)
+                                     title, 0, units, norm)
         if save == True:
             plt.savefig(os.path.join(save_folder, title) + '.' + fmt)
         if single_plot is False:
@@ -7521,7 +7554,7 @@ def iplot_hys(fignum, B, M, s):
         Mupper.append(old_div(Moff[k], Msat))
         Bupper.append(B[k])
     for k in range(kmin + 2, len(B)-1):
-        Mlower.append(Moff[k]/ Msat)
+        Mlower.append(Moff[k] / Msat)
         Blower.append(B[k])
     Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
     Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
@@ -7530,7 +7563,7 @@ def iplot_hys(fignum, B, M, s):
         Mneg = ((Iupper(-b) - Ilower(-b)))
         Bdm.append(b)
         deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
-    print ('whew')
+    print('whew')
     for k in range(Npts):
         MadjN.append(old_div(Moff[k], Msat))
         Mnorm.append(old_div(M[k], Msat))
@@ -7555,8 +7588,8 @@ def iplot_hys(fignum, B, M, s):
 
 
 def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
-                     save=False, save_folder='.',
-                     fmt="svg", plots=True):
+                      save=False, save_folder='.',
+                      fmt="svg", plots=True):
     """
     Calculates hysteresis parameters, saves them in rmag_hysteresis format file.
     If selected, this function also plots hysteresis loops, delta M curves,
@@ -7747,7 +7780,6 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
         sample_num += 1
 
 
-
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             site_correction=False, return_new_dirs=False):
     """
@@ -7886,7 +7918,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
 def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1_age_error,
                   pole2_plon, pole2_plat, pole2_kappa, pole2_N, pole2_age, pole2_age_error,
-                  ref_loc_lon, ref_loc_lat, samplesize=10000, random_seed = None, plot=True,
+                  ref_loc_lon, ref_loc_lat, samplesize=10000, random_seed=None, plot=True,
                   savefig=True, save_directory='./', figure_name=''):
     """
     Determine the latitudinal motion implied by a pair of poles and utilize
@@ -8066,8 +8098,9 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
           str(round(ninetysevenpointfive_percentile, 2)) + " cm/yr")
     return rate[0], twopointfive_percentile, ninetysevenpointfive_percentile
 
-def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
-          save=False, save_folder='.', fmt='svg', begin_pca="",end_pca="",angle=0):
+
+def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
+        save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0):
     """
     NAME
        zeq.py
@@ -8098,57 +8131,81 @@ def zeq(path_to_file='.', file='', data="", units='U',calculation_type="DE-BFL",
         angle=[0-360]: angle to subtract from declination to rotate in horizontal plane, default is 0
 
     """
-    if units=="C":SIunits="K"
-    if units=="mT":SIunits="T"
-    if units=="U": SIunits="U"
-    if file!="":
-        f=pd.read_csv(os.path.join(path_to_file, file),delim_whitespace=True,header=None)
-        f.columns=['specimen','treatment','intensity','declination','inclination']
-        f['declination']=(f['declination']-angle)%360 # adjust for angle rotation
-        f['quality']='g'
-        f['type']=''
+    if units == "C":
+        SIunits = "K"
+    if units == "mT":
+        SIunits = "T"
+    if units == "U":
+        SIunits = "U"
+    if file != "":
+        f = pd.read_csv(os.path.join(path_to_file, file),
+                        delim_whitespace=True, header=None)
+        f.columns = ['specimen', 'treatment',
+                     'intensity', 'declination', 'inclination']
+        # adjust for angle rotation
+        f['declination'] = (f['declination']-angle) % 360
+        f['quality'] = 'g'
+        f['type'] = ''
 #
-        s=f['specimen'].tolist()[0]
-        if units=='mT': f['treatment']=f['treatment']*1e-3
-        if units=='C': f['treatment']=f['treatment']+273
-        data=f[['treatment','declination','inclination','intensity','type','quality']]
-    print (s)
-    datablock=data.values.tolist()
+        s = f['specimen'].tolist()[0]
+        if units == 'mT':
+            f['treatment'] = f['treatment']*1e-3
+        if units == 'C':
+            f['treatment'] = f['treatment']+273
+        data = f[['treatment', 'declination',
+                  'inclination', 'intensity', 'type', 'quality']]
+    print(s)
+    datablock = data.values.tolist()
 # define figure numbers in a dictionary for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
-    ZED={}
-    ZED['eqarea'],ZED['zijd'],  ZED['demag']=2,1,3
+    ZED = {}
+    ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
     plt.figure(num=ZED['zijd'], figsize=(5, 5))
     plt.figure(num=ZED['eqarea'], figsize=(5, 5))
     plt.figure(num=ZED['demag'], figsize=(5, 5))
 #
 #
-    pmagplotlib.plot_zed(ZED,datablock,angle,s,SIunits) # plot the data
+    pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
 #
 # print out data for this sample to screen
 #
-    recnum=0
+    recnum = 0
     print('step treat  intensity  dec    inc')
     for plotrec in datablock:
-        if units=='mT':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2]))
-        if units=='C':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2]))
-        if units=='U':print('%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2]))
+        if units == 'mT':
+            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                  (recnum, plotrec[0]*1e3, plotrec[3], plotrec[1], plotrec[2]))
+        if units == 'C':
+            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                  (recnum, plotrec[0]-273., plotrec[3], plotrec[1], plotrec[2]))
+        if units == 'U':
+            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                  (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
         recnum += 1
         pmagplotlib.draw_figs(ZED)
-    if begin_pca!="" and end_pca!="" and calculation_type!="":
-        pmagplotlib.plot_zed(ZED,datablock,angle,s,SIunits) # plot the data
-        mpars=pmag.domean(datablock,begin_pca,end_pca,calculation_type) # get best-fit direction/great circle
-        pmagplotlib.plot_dir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+    if begin_pca != "" and end_pca != "" and calculation_type != "":
+        pmagplotlib.plot_zed(ZED, datablock, angle, s,
+                             SIunits)  # plot the data
+        # get best-fit direction/great circle
+        mpars = pmag.domean(datablock, begin_pca, end_pca, calculation_type)
+        # plot the best-fit direction/great circle
+        pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
-        if units=='mT':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-        if units=='C':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
-        if units=='U':print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
+        if units == 'mT':
+            print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
+                                                               mpars["specimen_n"], mpars["measurement_step_min"]*1e3, mpars["measurement_step_max"]*1e3, mpars["specimen_mad"], mpars["specimen_dec"], mpars["specimen_inc"]))
+        if units == 'C':
+            print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
+                                                               mpars["specimen_n"], mpars["measurement_step_min"]-273, mpars["measurement_step_max"]-273, mpars["specimen_mad"], mpars["specimen_dec"], mpars["specimen_inc"]))
+        if units == 'U':
+            print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
+                                                               mpars["specimen_n"], mpars["measurement_step_min"], mpars["measurement_step_max"], mpars["specimen_mad"], mpars["specimen_dec"], mpars["specimen_inc"]))
         if save:
-              files={}
-              for key in list(ZED.keys()):
-                  files[key]=s+'_'+key+'.'+fmt
-              pmagplotlib.save_plots(ZED,files)
+            files = {}
+            for key in list(ZED.keys()):
+                files[key] = s+'_'+key+'.'+fmt
+            pmagplotlib.save_plots(ZED, files)
+
 
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt',
                 ipar=1, ihext=1, ivec=1, iplot=0, isite=1, iboot=1, vec=0,
@@ -8156,16 +8213,15 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 fmt="png", crd="s", verbose=True, plots=0,
                 num_bootstraps=1000, dir_path="."):
 
-
-    def save(ANIS,fmt,title):
+    def save(ANIS, fmt, title):
         files = {}
         for key in list(ANIS.keys()):
             if pmagplotlib.isServer:
                 files[key] = title + '_TY:_aniso-' + key + '_.' + fmt
             else:
-                files[key] = title.replace('__', '_') + "_aniso-" + key + "." + fmt
+                files[key] = title.replace(
+                    '__', '_') + "_aniso-" + key + "." + fmt
         pmagplotlib.save_plots(ANIS, files)
-
 
     # initialize some variables
     version_num = pmag.get_version()
@@ -8177,7 +8233,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     elif crd == 't':
         CS = 100
     else:
-        CS = -1 # specimen
+        CS = -1  # specimen
 
     #
     # set up plots
@@ -8211,9 +8267,9 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     #spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     spec_df = spec_container.df
     # get only anisotropy records
-    spec_df=spec_df.dropna(subset=['aniso_s']).copy()
+    spec_df = spec_df.dropna(subset=['aniso_s']).copy()
     if 'aniso_tilt_correction' not in spec_df.columns:
-        spec_df['aniso_tilt_correction'] = -1 # assume specimen coordinates
+        spec_df['aniso_tilt_correction'] = -1  # assume specimen coordinates
     orlist = spec_df['aniso_tilt_correction'].dropna().unique()
     if CS not in orlist:
         if len(orlist) > 0:
@@ -8230,7 +8286,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             print("desired coordinate system not available, using available: ", crd)
     if isite == 1:
         if 'site' not in spec_df.columns:
-            print("cannot plot by site -- make sure you have a samples and site table available")
+            print(
+                "cannot plot by site -- make sure you have a samples and site table available")
             print("plotting all data instead")
             isite = 0
             plot = 1
@@ -8244,7 +8301,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     while k < plot:
         site = ""
         loc_name = ""
-        sdata, Ss = [], [] # list of S format data
+        sdata, Ss = [], []  # list of S format data
         if isite == 0:
             sdata = spec_df
             if 'location' in sdata.columns:
@@ -8270,7 +8327,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         for ind, rec in csrecs.iterrows():
             s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
             if s[0] <= 1.0:
-                Ss.append(s) # protect against crap
+                Ss.append(s)  # protect against crap
             ResRec = {}
             ResRec['specimen'] = rec['specimen']
             ResRec['sample'] = rec['sample']
@@ -8280,28 +8337,35 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             ResRec['dir_tilt_correction'] = CS
             ResRec["aniso_type"] = rec["aniso_type"]
             # tau,Vdirs=pmag.doseigs(s)
-            if "aniso_s_n_measurements" not in rec.keys():rec["aniso_s_n_measurements"]="6"
-            if "aniso_s_sigma" not in rec.keys():rec["aniso_s_sigma"]="0"
-            fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
-            aniso_v1 = " : ".join([str(i) for i in [fpars['t1'], fpars['v1_dec'], fpars['v1_inc']]])
-            aniso_v2 = " : ".join([str(i) for i in [fpars['t2'], fpars['v2_dec'], fpars['v2_inc']]])
-            aniso_v3 = " : ".join([str(i) for i in [fpars['t3'], fpars['v3_dec'], fpars['v3_inc']]])
+            if "aniso_s_n_measurements" not in rec.keys():
+                rec["aniso_s_n_measurements"] = "6"
+            if "aniso_s_sigma" not in rec.keys():
+                rec["aniso_s_sigma"] = "0"
+            fpars = pmag.dohext(
+                int(rec["aniso_s_n_measurements"]) - 6, float(rec["aniso_s_sigma"]), s)
+            aniso_v1 = " : ".join(
+                [str(i) for i in [fpars['t1'], fpars['v1_dec'], fpars['v1_inc']]])
+            aniso_v2 = " : ".join(
+                [str(i) for i in [fpars['t2'], fpars['v2_dec'], fpars['v2_inc']]])
+            aniso_v3 = " : ".join(
+                [str(i) for i in [fpars['t3'], fpars['v3_dec'], fpars['v3_inc']]])
             ResRec['aniso_v1'] = aniso_v1
             ResRec['aniso_v2'] = aniso_v2
             ResRec['aniso_v3'] = aniso_v3
             ResRec['aniso_ftest'] = fpars['F']
             ResRec['aniso_ftest12'] = fpars['F12']
             ResRec['aniso_ftest23'] = fpars['F23']
-            ResRec['description'] = 'F_crit: '+fpars['F_crit']+'; F12,F23_crit: '+fpars['F12_crit']
+            ResRec['description'] = 'F_crit: '+fpars['F_crit'] + \
+                '; F12,F23_crit: '+fpars['F12_crit']
             ResRec['aniso_type'] = pmag.makelist(anitypes)
             ResRecs.append(ResRec)
         if len(Ss) > 1:
-            if pmagplotlib.isServer: # use server plot naming convention
+            if pmagplotlib.isServer:  # use server plot naming convention
                 title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
-            else: # use more readable plot naming convention
+            else:  # use more readable plot naming convention
                 title = "{}_{}_{}".format(loc_name, site, crd)
             bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
-                                                title, iplot, comp, vec, Dir, num_bootstraps)
+                                                 title, iplot, comp, vec, Dir, num_bootstraps)
 
             if len(PDir) > 0:
                 pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
@@ -8309,12 +8373,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             if verbose and plots == 0:
                 pmagplotlib.draw_figs(ANIS)
             if plots == 1:
-                save(ANIS,fmt,title)
+                save(ANIS, fmt, title)
 
             if hpars != [] and ihext == 1:
                 HextRec = {}
                 for key in ResRec.keys():
-                    HextRec[key]=ResRec[key]
+                    HextRec[key] = ResRec[key]
                 # copy over stuff
                 # group these into HextRec['aniso_v1']
                 anisotropy_t1 = hpars["t1"]
@@ -8334,35 +8398,45 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 HextRec['aniso_v1'] = aniso_v1
 
                 # for printing
-                HextRec["anisotropy_t1"] = '%10.8f'%(hpars["t1"])
-                HextRec["anisotropy_v1_dec"] = '%7.1f'%(hpars["v1_dec"])
-                HextRec["anisotropy_v1_inc"] = '%7.1f'%(hpars["v1_inc"])
-                HextRec["anisotropy_v1_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
-                HextRec["anisotropy_v1_eta_dec"] = '%7.1f '%(hpars["v2_dec"])
-                HextRec["anisotropy_v1_eta_inc"] = '%7.1f '%(hpars["v2_inc"])
-                HextRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f '%(hpars["e13"])
-                HextRec["anisotropy_v1_zeta_dec"] = '%7.1f '%(hpars["v3_dec"])
-                HextRec["anisotropy_v1_zeta_inc"] = '%7.1f '%(hpars["v3_inc"])
+                HextRec["anisotropy_t1"] = '%10.8f' % (hpars["t1"])
+                HextRec["anisotropy_v1_dec"] = '%7.1f' % (hpars["v1_dec"])
+                HextRec["anisotropy_v1_inc"] = '%7.1f' % (hpars["v1_inc"])
+                HextRec["anisotropy_v1_eta_semi_angle"] = '%7.1f ' % (
+                    hpars["e12"])
+                HextRec["anisotropy_v1_eta_dec"] = '%7.1f ' % (hpars["v2_dec"])
+                HextRec["anisotropy_v1_eta_inc"] = '%7.1f ' % (hpars["v2_inc"])
+                HextRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f ' % (
+                    hpars["e13"])
+                HextRec["anisotropy_v1_zeta_dec"] = '%7.1f ' % (
+                    hpars["v3_dec"])
+                HextRec["anisotropy_v1_zeta_inc"] = '%7.1f ' % (
+                    hpars["v3_inc"])
 
                 # group these into HextRec['aniso_v2']
-                aniso_v2 = " : ".join([str(i) for i in [hpars["t2"], hpars["v2_dec"], hpars["v2_inc"]]])
+                aniso_v2 = " : ".join(
+                    [str(i) for i in [hpars["t2"], hpars["v2_dec"], hpars["v2_inc"]]])
                 aniso_v2 += " : eta/zeta : "
-                aniso_v2 +=  " : ".join([str(i) for i in [hpars['v1_dec'], hpars['v1_inc'], hpars['e12'],
-                                                          hpars['v3_dec'], hpars['v3_inc'], hpars['e23']]])
+                aniso_v2 += " : ".join([str(i) for i in [hpars['v1_dec'], hpars['v1_inc'], hpars['e12'],
+                                                         hpars['v3_dec'], hpars['v3_inc'], hpars['e23']]])
                 HextRec["aniso_v2"] = aniso_v2
                 # for printing
-                HextRec["anisotropy_v2_dec"] = '%7.1f'%(hpars["v2_dec"])
-                HextRec["anisotropy_v2_inc"] = '%7.1f'%(hpars["v2_inc"])
-                HextRec["anisotropy_t2"] = '%10.8f'%(hpars["t2"])
-                HextRec["anisotropy_v2_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
-                HextRec["anisotropy_v2_eta_dec"] = '%7.1f '%(hpars["v1_dec"])
-                HextRec["anisotropy_v2_eta_inc"] = '%7.1f '%(hpars["v1_inc"])
-                HextRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f '%(hpars["e23"])
-                HextRec["anisotropy_v2_zeta_dec"] = '%7.1f '%(hpars["v3_dec"])
-                HextRec["anisotropy_v2_zeta_inc"] = '%7.1f '%(hpars["v3_inc"])
+                HextRec["anisotropy_v2_dec"] = '%7.1f' % (hpars["v2_dec"])
+                HextRec["anisotropy_v2_inc"] = '%7.1f' % (hpars["v2_inc"])
+                HextRec["anisotropy_t2"] = '%10.8f' % (hpars["t2"])
+                HextRec["anisotropy_v2_eta_semi_angle"] = '%7.1f ' % (
+                    hpars["e12"])
+                HextRec["anisotropy_v2_eta_dec"] = '%7.1f ' % (hpars["v1_dec"])
+                HextRec["anisotropy_v2_eta_inc"] = '%7.1f ' % (hpars["v1_inc"])
+                HextRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f ' % (
+                    hpars["e23"])
+                HextRec["anisotropy_v2_zeta_dec"] = '%7.1f ' % (
+                    hpars["v3_dec"])
+                HextRec["anisotropy_v2_zeta_inc"] = '%7.1f ' % (
+                    hpars["v3_inc"])
 
                 # group these into HextRec['aniso_v3']
-                aniso_v3 = " : ".join([str(i) for i in [hpars["t3"], hpars["v3_dec"], hpars["v3_inc"]]])
+                aniso_v3 = " : ".join(
+                    [str(i) for i in [hpars["t3"], hpars["v3_dec"], hpars["v3_inc"]]])
                 aniso_v3 += " : eta/zeta : "
                 aniso_v3 += " : ".join([str(i) for i in [hpars["v1_dec"],
                                                          hpars["v1_inc"],
@@ -8372,52 +8446,69 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                                          hpars["e23"]]])
                 HextRec["aniso_v3"] = aniso_v3
                 # for printing
-                HextRec["anisotropy_v3_dec"] = '%7.1f'%(hpars["v3_dec"])
-                HextRec["anisotropy_v3_inc"] = '%7.1f'%(hpars["v3_inc"])
-                HextRec["anisotropy_t3"] = '%10.8f'%(hpars["t3"])
-                HextRec["anisotropy_v3_eta_semi_angle"] = '%7.1f '%(hpars["e12"])
-                HextRec["anisotropy_v3_eta_dec"] = '%7.1f '%(hpars["v1_dec"])
-                HextRec["anisotropy_v3_eta_inc"] = '%7.1f '%(hpars["v1_inc"])
-                HextRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f '%(hpars["e23"])
-                HextRec["anisotropy_v3_zeta_dec"] = '%7.1f '%(hpars["v2_dec"])
-                HextRec["anisotropy_v3_zeta_inc"] = '%7.1f '%(hpars["v2_inc"])
+                HextRec["anisotropy_v3_dec"] = '%7.1f' % (hpars["v3_dec"])
+                HextRec["anisotropy_v3_inc"] = '%7.1f' % (hpars["v3_inc"])
+                HextRec["anisotropy_t3"] = '%10.8f' % (hpars["t3"])
+                HextRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
+                    hpars["e12"])
+                HextRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (hpars["v1_dec"])
+                HextRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (hpars["v1_inc"])
+                HextRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
+                    hpars["e23"])
+                HextRec["anisotropy_v3_zeta_dec"] = '%7.1f ' % (
+                    hpars["v2_dec"])
+                HextRec["anisotropy_v3_zeta_inc"] = '%7.1f ' % (
+                    hpars["v2_inc"])
 
                 # not valid MagIC columns (2.5 or 3)
-                HextRec["anisotropy_hext_F"] = '%7.1f '%(hpars["F"])
-                HextRec["anisotropy_hext_F12"] = '%7.1f '%(hpars["F12"])
-                HextRec["anisotropy_hext_F23"] = '%7.1f '%(hpars["F23"])
+                HextRec["anisotropy_hext_F"] = '%7.1f ' % (hpars["F"])
+                HextRec["anisotropy_hext_F12"] = '%7.1f ' % (hpars["F12"])
+                HextRec["anisotropy_hext_F23"] = '%7.1f ' % (hpars["F23"])
                 #
                 HextRec["method_codes"] = 'LP-AN:AE-H'
                 if verbose:
                     print("Hext Statistics: ")
-                    print(" tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
-                    print(HextRec["anisotropy_t1"], HextRec["anisotropy_v1_dec"], end=' ')
-                    print(HextRec["anisotropy_v1_inc"], HextRec["anisotropy_v1_eta_semi_angle"], end=' ')
-                    print(HextRec["anisotropy_v1_eta_dec"], HextRec["anisotropy_v1_eta_inc"], end=' ')
-                    print(HextRec["anisotropy_v1_zeta_semi_angle"], HextRec["anisotropy_v1_zeta_dec"], end=' ')
+                    print(
+                        " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
+                    print(HextRec["anisotropy_t1"],
+                          HextRec["anisotropy_v1_dec"], end=' ')
+                    print(HextRec["anisotropy_v1_inc"],
+                          HextRec["anisotropy_v1_eta_semi_angle"], end=' ')
+                    print(HextRec["anisotropy_v1_eta_dec"],
+                          HextRec["anisotropy_v1_eta_inc"], end=' ')
+                    print(HextRec["anisotropy_v1_zeta_semi_angle"],
+                          HextRec["anisotropy_v1_zeta_dec"], end=' ')
                     print(HextRec["anisotropy_v1_zeta_inc"])
                     #
-                    print(HextRec["anisotropy_t2"],HextRec["anisotropy_v2_dec"], end=' ')
-                    print(HextRec["anisotropy_v2_inc"], HextRec["anisotropy_v2_eta_semi_angle"], end=' ')
-                    print(HextRec["anisotropy_v2_eta_dec"], HextRec["anisotropy_v2_eta_inc"], end=' ')
-                    print(HextRec["anisotropy_v2_zeta_semi_angle"], HextRec["anisotropy_v2_zeta_dec"], end=' ')
+                    print(HextRec["anisotropy_t2"],
+                          HextRec["anisotropy_v2_dec"], end=' ')
+                    print(HextRec["anisotropy_v2_inc"],
+                          HextRec["anisotropy_v2_eta_semi_angle"], end=' ')
+                    print(HextRec["anisotropy_v2_eta_dec"],
+                          HextRec["anisotropy_v2_eta_inc"], end=' ')
+                    print(HextRec["anisotropy_v2_zeta_semi_angle"],
+                          HextRec["anisotropy_v2_zeta_dec"], end=' ')
                     print(HextRec["anisotropy_v2_zeta_inc"])
                     #
-                    print(HextRec["anisotropy_t3"], HextRec["anisotropy_v3_dec"], end=' ')
-                    print(HextRec["anisotropy_v3_inc"], HextRec["anisotropy_v3_eta_semi_angle"], end=' ')
-                    print(HextRec["anisotropy_v3_eta_dec"], HextRec["anisotropy_v3_eta_inc"], end=' ')
-                    print(HextRec["anisotropy_v3_zeta_semi_angle"], HextRec["anisotropy_v3_zeta_dec"], end=' ')
+                    print(HextRec["anisotropy_t3"],
+                          HextRec["anisotropy_v3_dec"], end=' ')
+                    print(HextRec["anisotropy_v3_inc"],
+                          HextRec["anisotropy_v3_eta_semi_angle"], end=' ')
+                    print(HextRec["anisotropy_v3_eta_dec"],
+                          HextRec["anisotropy_v3_eta_inc"], end=' ')
+                    print(HextRec["anisotropy_v3_zeta_semi_angle"],
+                          HextRec["anisotropy_v3_zeta_dec"], end=' ')
                     print(HextRec["anisotropy_v3_zeta_inc"])
-                HextRec['software_packages']=version_num
+                HextRec['software_packages'] = version_num
                 # strip out invalid keys
                 for key in HextRec.copy():
-                    if key.startswith('anisotropy_'): #and 'hext' not in key:
+                    if key.startswith('anisotropy_'):  # and 'hext' not in key:
                         HextRec.pop(key)
                 ResRecs.append(HextRec)
             if bpars != []:
                 BootRec = {}
                 for key in ResRec.keys():
-                    BootRec[key]=ResRec[key]
+                    BootRec[key] = ResRec[key]
                 # copy over stuff
 
                 aniso_v1 = " : ".join([str(i) for i in [bpars['t1'], bpars['v1_dec'],
@@ -8431,43 +8522,56 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                                          bpars['v1_zeta']]])
                 BootRec['aniso_v1'] = aniso_v1
                 # for printing
-                BootRec["anisotropy_v1_dec"] = '%7.1f'%(bpars["v1_dec"])
-                BootRec["anisotropy_v2_dec"] = '%7.1f'%(bpars["v2_dec"])
-                BootRec["anisotropy_v3_dec"] = '%7.1f'%(bpars["v3_dec"])
-                BootRec["anisotropy_v1_inc"] = '%7.1f'%(bpars["v1_inc"])
-                BootRec["anisotropy_v2_inc"] = '%7.1f'%(bpars["v2_inc"])
-                BootRec["anisotropy_v3_inc"] = '%7.1f'%(bpars["v3_inc"])
-                BootRec["anisotropy_t1"] = '%10.8f'%(bpars["t1"])
-                BootRec["anisotropy_t2"] = '%10.8f'%(bpars["t2"])
-                BootRec["anisotropy_t3"] = '%10.8f'%(bpars["t3"])
-                BootRec["anisotropy_v1_eta_inc"] = '%7.1f '%(bpars["v1_eta_inc"])
-                BootRec["anisotropy_v1_eta_dec"] = '%7.1f '%(bpars["v1_eta_dec"])
-                BootRec["anisotropy_v1_eta_semi_angle"] = '%7.1f '%(bpars["v1_eta"])
-                BootRec["anisotropy_v1_zeta_inc"] = '%7.1f '%(bpars["v1_zeta_inc"])
-                BootRec["anisotropy_v1_zeta_dec"] = '%7.1f '%(bpars["v1_zeta_dec"])
-                BootRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f '%(bpars["v1_zeta"])
+                BootRec["anisotropy_v1_dec"] = '%7.1f' % (bpars["v1_dec"])
+                BootRec["anisotropy_v2_dec"] = '%7.1f' % (bpars["v2_dec"])
+                BootRec["anisotropy_v3_dec"] = '%7.1f' % (bpars["v3_dec"])
+                BootRec["anisotropy_v1_inc"] = '%7.1f' % (bpars["v1_inc"])
+                BootRec["anisotropy_v2_inc"] = '%7.1f' % (bpars["v2_inc"])
+                BootRec["anisotropy_v3_inc"] = '%7.1f' % (bpars["v3_inc"])
+                BootRec["anisotropy_t1"] = '%10.8f' % (bpars["t1"])
+                BootRec["anisotropy_t2"] = '%10.8f' % (bpars["t2"])
+                BootRec["anisotropy_t3"] = '%10.8f' % (bpars["t3"])
+                BootRec["anisotropy_v1_eta_inc"] = '%7.1f ' % (
+                    bpars["v1_eta_inc"])
+                BootRec["anisotropy_v1_eta_dec"] = '%7.1f ' % (
+                    bpars["v1_eta_dec"])
+                BootRec["anisotropy_v1_eta_semi_angle"] = '%7.1f ' % (
+                    bpars["v1_eta"])
+                BootRec["anisotropy_v1_zeta_inc"] = '%7.1f ' % (
+                    bpars["v1_zeta_inc"])
+                BootRec["anisotropy_v1_zeta_dec"] = '%7.1f ' % (
+                    bpars["v1_zeta_dec"])
+                BootRec["anisotropy_v1_zeta_semi_angle"] = '%7.1f ' % (
+                    bpars["v1_zeta"])
 
                 # group these into aniso_v2
-                aniso_v2 = " : ".join([str(i) for i in [bpars["t2"], bpars["v2_dec"], bpars["v2_inc"]]])
+                aniso_v2 = " : ".join(
+                    [str(i) for i in [bpars["t2"], bpars["v2_dec"], bpars["v2_inc"]]])
                 aniso_v2 += " : eta/zeta : "
-                aniso_v2 +=  " : ".join([str(i) for i in [bpars['v2_eta_dec'],
-                                                          bpars['v2_eta_inc'],
-                                                          bpars['v2_eta'],
-                                                          bpars['v2_zeta_dec'],
-                                                          bpars['v2_zeta_inc'],
-                                                          bpars['v2_zeta']]])
+                aniso_v2 += " : ".join([str(i) for i in [bpars['v2_eta_dec'],
+                                                         bpars['v2_eta_inc'],
+                                                         bpars['v2_eta'],
+                                                         bpars['v2_zeta_dec'],
+                                                         bpars['v2_zeta_inc'],
+                                                         bpars['v2_zeta']]])
                 BootRec['aniso_v2'] = aniso_v2
                 # for printing
-                BootRec["anisotropy_v2_eta_inc"] = '%7.1f '%(bpars["v2_eta_inc"])
-                BootRec["anisotropy_v2_eta_dec"] = '%7.1f '%(bpars["v2_eta_dec"])
-                BootRec["anisotropy_v2_eta_semi_angle"] = '%7.1f '%(bpars["v2_eta"])
-                BootRec["anisotropy_v2_zeta_inc"] = '%7.1f '%(bpars["v2_zeta_inc"])
-                BootRec["anisotropy_v2_zeta_dec"] = '%7.1f '%(bpars["v2_zeta_dec"])
-                BootRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f '%(bpars["v2_zeta"])
-
+                BootRec["anisotropy_v2_eta_inc"] = '%7.1f ' % (
+                    bpars["v2_eta_inc"])
+                BootRec["anisotropy_v2_eta_dec"] = '%7.1f ' % (
+                    bpars["v2_eta_dec"])
+                BootRec["anisotropy_v2_eta_semi_angle"] = '%7.1f ' % (
+                    bpars["v2_eta"])
+                BootRec["anisotropy_v2_zeta_inc"] = '%7.1f ' % (
+                    bpars["v2_zeta_inc"])
+                BootRec["anisotropy_v2_zeta_dec"] = '%7.1f ' % (
+                    bpars["v2_zeta_dec"])
+                BootRec["anisotropy_v2_zeta_semi_angle"] = '%7.1f ' % (
+                    bpars["v2_zeta"])
 
                 # group into aniso_v3
-                aniso_v3 = " : ".join([str(i) for i in [bpars["t3"], bpars["v3_dec"], bpars["v3_inc"]]])
+                aniso_v3 = " : ".join(
+                    [str(i) for i in [bpars["t3"], bpars["v3_dec"], bpars["v3_inc"]]])
                 aniso_v3 += " : eta/zeta : "
                 aniso_v3 += " : ".join([str(i) for i in [bpars["v3_eta_dec"],
                                                          bpars["v3_eta_inc"],
@@ -8477,47 +8581,66 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                                          bpars["v3_zeta"]]])
                 BootRec["aniso_v3"] = aniso_v3
 
-
                 # for printing
-                BootRec["anisotropy_v3_eta_inc"] = '%7.1f '%(bpars["v3_eta_inc"])
-                BootRec["anisotropy_v3_eta_dec"] = '%7.1f '%(bpars["v3_eta_dec"])
-                BootRec["anisotropy_v3_eta_semi_angle"] = '%7.1f '%(bpars["v3_eta"])
-                BootRec["anisotropy_v3_zeta_inc"] = '%7.1f '%(bpars["v3_zeta_inc"])
-                BootRec["anisotropy_v3_zeta_dec"] = '%7.1f '%(bpars["v3_zeta_dec"])
-                BootRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f '%(bpars["v3_zeta"])
-
+                BootRec["anisotropy_v3_eta_inc"] = '%7.1f ' % (
+                    bpars["v3_eta_inc"])
+                BootRec["anisotropy_v3_eta_dec"] = '%7.1f ' % (
+                    bpars["v3_eta_dec"])
+                BootRec["anisotropy_v3_eta_semi_angle"] = '%7.1f ' % (
+                    bpars["v3_eta"])
+                BootRec["anisotropy_v3_zeta_inc"] = '%7.1f ' % (
+                    bpars["v3_zeta_inc"])
+                BootRec["anisotropy_v3_zeta_dec"] = '%7.1f ' % (
+                    bpars["v3_zeta_dec"])
+                BootRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f ' % (
+                    bpars["v3_zeta"])
 
                 # not valid MagIC columns
                 BootRec["anisotropy_hext_F"] = ''
                 BootRec["anisotropy_hext_F12"] = ''
                 BootRec["anisotropy_hext_F23"] = ''
                 #
-                BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS' # regular bootstrap
+                # regular bootstrap
+                BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS'
 
                 if ipar == 1:
-                    BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS-P' # parametric bootstrap
+                    # parametric bootstrap
+                    BootRec["method_codes"] = 'LP-AN:AE-H:AE-BS-P'
                 if verbose:
                     print("Bootstrap Statistics: ")
-                    print(" tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
-                    print(BootRec["anisotropy_t1"], BootRec["anisotropy_v1_dec"], end=' ')
-                    print(BootRec["anisotropy_v1_inc"], BootRec["anisotropy_v1_eta_semi_angle"], end=' ')
-                    print(BootRec["anisotropy_v1_eta_dec"], BootRec["anisotropy_v1_eta_inc"], end=' ')
-                    print(BootRec["anisotropy_v1_zeta_semi_angle"], BootRec["anisotropy_v1_zeta_dec"], end=' ')
+                    print(
+                        " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I")
+                    print(BootRec["anisotropy_t1"],
+                          BootRec["anisotropy_v1_dec"], end=' ')
+                    print(BootRec["anisotropy_v1_inc"],
+                          BootRec["anisotropy_v1_eta_semi_angle"], end=' ')
+                    print(BootRec["anisotropy_v1_eta_dec"],
+                          BootRec["anisotropy_v1_eta_inc"], end=' ')
+                    print(BootRec["anisotropy_v1_zeta_semi_angle"],
+                          BootRec["anisotropy_v1_zeta_dec"], end=' ')
                     print(BootRec["anisotropy_v1_zeta_inc"])
                     #
-                    print(BootRec["anisotropy_t2"], BootRec["anisotropy_v2_dec"], BootRec["anisotropy_v2_inc"], end=' ')
-                    print(BootRec["anisotropy_v2_eta_semi_angle"], BootRec["anisotropy_v2_eta_dec"], end=' ')
-                    print(BootRec["anisotropy_v2_eta_inc"], BootRec["anisotropy_v2_zeta_semi_angle"], end=' ')
-                    print(BootRec["anisotropy_v2_zeta_dec"], BootRec["anisotropy_v2_zeta_inc"])
+                    print(BootRec["anisotropy_t2"], BootRec["anisotropy_v2_dec"],
+                          BootRec["anisotropy_v2_inc"], end=' ')
+                    print(BootRec["anisotropy_v2_eta_semi_angle"],
+                          BootRec["anisotropy_v2_eta_dec"], end=' ')
+                    print(BootRec["anisotropy_v2_eta_inc"],
+                          BootRec["anisotropy_v2_zeta_semi_angle"], end=' ')
+                    print(BootRec["anisotropy_v2_zeta_dec"],
+                          BootRec["anisotropy_v2_zeta_inc"])
                     #
-                    print(BootRec["anisotropy_t3"], BootRec["anisotropy_v3_dec"], BootRec["anisotropy_v3_inc"], end=' ')
-                    print(BootRec["anisotropy_v3_eta_semi_angle"], BootRec["anisotropy_v3_eta_dec"], end=' ')
-                    print(BootRec["anisotropy_v3_eta_inc"], BootRec["anisotropy_v3_zeta_semi_angle"], end=' ')
-                    print(BootRec["anisotropy_v3_zeta_dec"], BootRec["anisotropy_v3_zeta_inc"])
+                    print(BootRec["anisotropy_t3"], BootRec["anisotropy_v3_dec"],
+                          BootRec["anisotropy_v3_inc"], end=' ')
+                    print(BootRec["anisotropy_v3_eta_semi_angle"],
+                          BootRec["anisotropy_v3_eta_dec"], end=' ')
+                    print(BootRec["anisotropy_v3_eta_inc"],
+                          BootRec["anisotropy_v3_zeta_semi_angle"], end=' ')
+                    print(BootRec["anisotropy_v3_zeta_dec"],
+                          BootRec["anisotropy_v3_zeta_inc"])
                 BootRec['software_packages'] = version_num
                 # strip out invalid keys
                 for key in BootRec.copy():
-                    if key.startswith('anisotropy_'):# and 'hext' not in key:
+                    if key.startswith('anisotropy_'):  # and 'hext' not in key:
                         BootRec.pop(key)
                 # THESE SHOULD BE AT A DIFFERENT LEVEL??? MAYBE SITE?
                 ResRecs.append(BootRec)
@@ -8526,7 +8649,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             while goon == 1 and iplot == 1 and verbose:
                 if iboot == 1:
                     print("compare with [d]irection ")
-                print(" plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit ")
+                print(
+                    " plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit ")
                 if isite == 1:
                     print("  [p]revious, [s]ite, [q]uit, <return> for next ")
                 ans = input("")
@@ -8546,14 +8670,14 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                             ipar = 1
                         e = input("Plot bootstrap eigenvectors:  1/[0]: ")
                         if e == "1":
-                            ivec=1
+                            ivec = 1
                         if iplot == 1:
                             if inittcdf == 0:
                                 ANIS['tcdf'] = 3
                                 pmagplotlib.plot_init(ANIS['tcdf'], 5, 5)
                                 inittcdf = 1
                     bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot,
-                                                        comp, vec, Dir, num_bootstraps)
+                                                         comp, vec, Dir, num_bootstraps)
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == "c":
@@ -8564,7 +8688,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                         print(" Geographic")
                     if CS == 100:
                         print(" Tilt corrected")
-                    key = input(" Enter desired coordinate system: [s]pecimen, [g]eographic, [t]ilt corrected ")
+                    key = input(
+                        " Enter desired coordinate system: [s]pecimen, [g]eographic, [t]ilt corrected ")
                     if key == 's':
                         CS = -1
                     if key == 'g':
@@ -8582,7 +8707,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                             crd = 'g'
                         if CS == 100:
                             crd = 't'
-                        print("desired coordinate system not available, using available: ", crd)
+                        print(
+                            "desired coordinate system not available, using available: ", crd)
                     k -= 1
                     goon = 0
                 if ans == "":
@@ -8617,7 +8743,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                         except IndexError:
                             print(" Incorrect entry, try again ")
                     bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title,
-                                                        iplot, comp, vec, Dir, num_bootstraps)
+                                                         iplot, comp, vec, Dir, num_bootstraps)
                     Dir, comp = [], 0
                     if verbose and plots == 0:
                         pmagplotlib.draw_figs(ANIS)
@@ -8625,22 +8751,25 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     con, cnt = 1, 0
                     while con == 1:
                         try:
-                            print(" Input:  input pole to great circle ( D I) to  plot a great circle:   ")
+                            print(
+                                " Input:  input pole to great circle ( D I) to  plot a great circle:   ")
                             di = input(" D I: ").split()
                             PDir.append(float(di[0]))
                             PDir.append(float(di[1]))
-                            con=0
+                            con = 0
                         except:
                             cnt += 1
                             if cnt < 10:
-                                print(" enter the dec and inc of the pole on one line ")
+                                print(
+                                    " enter the dec and inc of the pole on one line ")
                             else:
-                                print("ummm - you are doing something wrong - i give up")
+                                print(
+                                    "ummm - you are doing something wrong - i give up")
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
                         pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
-                                             title, iplot, comp, vec, Dir, num_bootstraps)
+                                              title, iplot, comp, vec, Dir, num_bootstraps)
 
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
@@ -8674,9 +8803,9 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     site_name = "_"
                     if isite:
                         site_name = site
-                    if pmagplotlib.isServer: # use server plot naming convention
+                    if pmagplotlib.isServer:  # use server plot naming convention
                         title = "LO:_" + locs + '_SI:_' + site_name + '_SA:__SP:__CO:_' + crd
-                    else: # use more readable plot naming convention
+                    else:  # use more readable plot naming convention
                         title = "{}_{}_{}".format(locs, site_name, crd)
                     save(ANIS, fmt, title)
                     goon = 0
@@ -8685,12 +8814,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 print('skipping plot - not enough data points')
             k += 1
     #   put rmag_results stuff here
-    if len(ResRecs)>0:
-        #for rec in ResRecs:
+    if len(ResRecs) > 0:
+        # for rec in ResRecs:
         #    con.add_item('specimens', rec, rec['specimen'])
         # sort records so that they are grouped by specimen ?
         #con.write_table_to_file('specimens', 'custom_specimens.txt')
-        #ResOut,keylist=pmag.fillkeys(ResRecs)
+        # ResOut,keylist=pmag.fillkeys(ResRecs)
         # just make a fresh one
         con.add_magic_table_from_data('specimens', ResRecs)
     #   con.write_table_to_file('specimens', 'anisotropy_specimens.txt')
@@ -8699,9 +8828,10 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     if verbose:
         print(" Good bye ")
 
-def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,\
-                ipar=0, ihext=1, ivec=0, isite=0, iloc=0, iboot=0, vec=0,\
-                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".",fignum=1):
+
+def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=1,
+                   ipar=0, ihext=1, ivec=0, isite=0, iloc=0, iboot=0, vec=0,
+                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
@@ -8736,9 +8866,11 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
     version_num = pmag.get_version()
     hpars, bpars = [], []
     # set aniso_tilt_correction value
-    CS = -1 # specimen
-    if crd == 'g': CS = 0
-    if crd == 't': CS = 100
+    CS = -1  # specimen
+    if crd == 'g':
+        CS = 0
+    if crd == 't':
+        CS = 100
     #
     #
     # read in the data
@@ -8750,39 +8882,45 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='',verbose=1,
     spec_container = con.tables['specimens']
     spec_df = spec_container.df
     # get only anisotropy records
-    spec_df=spec_df.dropna(subset=['aniso_s']).copy()
+    spec_df = spec_df.dropna(subset=['aniso_s']).copy()
     if 'aniso_tilt_correction' not in spec_df.columns:
-        spec_df['aniso_tilt_correction'] = -1 # assume specimen coordinates
+        spec_df['aniso_tilt_correction'] = -1  # assume specimen coordinates
     if "aniso_s_n_measurements" not in spec_df.columns:
-        spec_df["aniso_s_n_measurements"]="6"
+        spec_df["aniso_s_n_measurements"] = "6"
     if "aniso_s_sigma" not in spec_df.columns:
-        spec_df["aniso_sigma"]="0"
+        spec_df["aniso_sigma"] = "0"
     orlist = spec_df['aniso_tilt_correction'].dropna().unique()
     if CS not in orlist:
         if len(orlist) > 0:
             CS = orlist[0]
         else:
             CS = -1
-        if CS == -1: crd = 's'
-        if CS == 0: crd = 'g'
-        if CS == 100: crd = 't'
-        if verbose: print("desired coordinate system not available, using available: ", crd)
+        if CS == -1:
+            crd = 's'
+        if CS == 0:
+            crd = 'g'
+        if CS == 100:
+            crd = 't'
+        if verbose:
+            print("desired coordinate system not available, using available: ", crd)
     cs_df = spec_df[spec_df['aniso_tilt_correction'] == CS]
     if isite:
         sites = cs_df['site'].unique()
         for site in list(sites):
-            site_df=cs_df[cs_df.site==site]
-            plot_aniso(fignum,site_df,PDir=PDir,ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot, \
-                vec=vec,num_bootstraps=num_bootstraps,title=site)
-            fignum+=2
-            if iboot:fignum+=1
-            if len(Dir)>0:fignum+=1
+            site_df = cs_df[cs_df.site == site]
+            plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot,
+                       vec=vec, num_bootstraps=num_bootstraps, title=site)
+            fignum += 2
+            if iboot:
+                fignum += 1
+            if len(Dir) > 0:
+                fignum += 1
     else:
-        plot_aniso(fignum,cs_df,PDir=PDir,ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot, \
-            vec=vec,num_bootstraps=num_bootstraps)
+        plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot,
+                   vec=vec, num_bootstraps=num_bootstraps)
 
 
-def plot_dmag(data="",title="",fignum=1,norm=1):
+def plot_dmag(data="", title="", fignum=1, norm=1):
     """
     plots demagenetization data versus step for all specimens in pandas dataframe datablock
 
@@ -8800,33 +8938,35 @@ def plot_dmag(data="",title="",fignum=1,norm=1):
     Output :
       matptlotlib plot
    """
-    plt.figure(num=fignum,figsize=(5,5))
+    plt.figure(num=fignum, figsize=(5, 5))
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
-    IntMeths = [col_name for col_name in data.columns if col_name in intlist] # get which key we have
-    int_key=IntMeths[0]
-    data=data[data[int_key].notnull()] # fish out all data with this key
-    units="U" # this  sets the units for plotting to undefined
+    # get which key we have
+    IntMeths = [col_name for col_name in data.columns if col_name in intlist]
+    int_key = IntMeths[0]
+    data = data[data[int_key].notnull()]  # fish out all data with this key
+    units = "U"  # this  sets the units for plotting to undefined
     if 'treat_temp' in data.columns:
-        units="K" # kelvin
-        dmag_key='treat_temp'
+        units = "K"  # kelvin
+        dmag_key = 'treat_temp'
     elif 'treat_ac_field' in data.columns:
-        units="T" # tesla
-        dmag_key='treat_ac_field'
+        units = "T"  # tesla
+        dmag_key = 'treat_ac_field'
     elif 'treat_mw_energy' in data.columns:
-        units="J" # joules
-        dmag_key='treat_mw_energy'
+        units = "J"  # joules
+        dmag_key = 'treat_mw_energy'
     else:
-        print ('no data for plotting')
+        print('no data for plotting')
         return
-    spcs=data.specimen.unique() # get a list of all specimens in DataFrame data
+    spcs = data.specimen.unique()  # get a list of all specimens in DataFrame data
     # step through specimens to put on plot
     for spc in spcs:
-       spec_data=data[data.specimen.str.contains(spc)]
-       INTblock = []
-       for ind,rec in spec_data.iterrows():
-           INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
-       if len(INTblock)>2:
-           pmagplotlib.plot_mag(fignum,INTblock,title,0,units,norm)
+        spec_data = data[data.specimen.str.contains(spc)]
+        INTblock = []
+        for ind, rec in spec_data.iterrows():
+            INTblock.append([float(rec[dmag_key]), 0, 0,
+                             float(rec[int_key]), 1, rec['quality']])
+        if len(INTblock) > 2:
+            pmagplotlib.plot_mag(fignum, INTblock, title, 0, units, norm)
 
 
 def eigs_s(infile="", dir_path='.'):
@@ -8843,19 +8983,20 @@ def eigs_s(infile="", dir_path='.'):
           [[x11,x22,x33,x12,x23,x13],....]
 
     """
-    file=os.path.join(dir_path,infile)
-    eigs_data=np.loadtxt(file)
-    Ss=[]
+    file = os.path.join(dir_path, infile)
+    eigs_data = np.loadtxt(file)
+    Ss = []
     for ind in range(eigs_data.shape[0]):
-       tau,Vdirs=[],[]
-       for k in range(0,9,3):
-           tau.append(eigs_data[ind][k])
-           Vdirs.append([eigs_data[ind][k+1],eigs_data[ind][k+2]])
-       s=list(pmag.doeigs_s(tau,Vdirs))
-       Ss.append(s)
+        tau, Vdirs = [], []
+        for k in range(0, 9, 3):
+            tau.append(eigs_data[ind][k])
+            Vdirs.append([eigs_data[ind][k+1], eigs_data[ind][k+2]])
+        s = list(pmag.doeigs_s(tau, Vdirs))
+        Ss.append(s)
     return Ss
 
-def plot_gc(poles,color='g',fignum=1):
+
+def plot_gc(poles, color='g', fignum=1):
     """
     plots a great circle on an equal area projection
     Parameters
@@ -8869,98 +9010,123 @@ def plot_gc(poles,color='g',fignum=1):
     for pole in poles:
         pmagplotlib.plot_circ(fignum, pole, 90., color)
 
-def plot_aniso(fignum,aniso_df,Dir=[], PDir=[],ipar=0, ihext=1, ivec=0, iboot=0, vec=0,num_bootstraps=1000,title=""):
-        Ss,V1,V2,V3=[],[],[],[]
-        for ind, rec in aniso_df.iterrows():
-            s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
-            if s[0] <= 1.0:
-                Ss.append(s) # protect against crap
-                tau, Vdir = pmag.doseigs(s)
-                V1.append([Vdir[0][0],Vdir[0][1]])
-                V2.append([Vdir[1][0],Vdir[1][1]])
-                V3.append([Vdir[2][0],Vdir[2][1]])
-        Ss=np.array(Ss)
-        if Ss.shape[0] > 1:
-            # plot the data
-            plot_net(fignum)
-            plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
-            plot_di(di_block=V1, color='r', marker='s', markersize=20)
-            plot_di(di_block=V2, color='b', marker='^', markersize=20)
-            plot_di(di_block=V3, color='k', marker='o', markersize=20)
-            # plot the confidence
-            nf,sigma,avs = pmag.sbar(Ss)
-            hpars=pmag.dohext(nf,sigma,avs)# get the Hext parameters
-            if len(PDir) > 0: pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
-            plot_net(fignum+1)
-            plt.title(title+':'+'Confidence Ellipses')
-            plot_di(dec=hpars['v1_dec'],inc=hpars['v1_inc'], color='r', marker='s', markersize=30)
-            plot_di(dec=hpars['v2_dec'],inc=hpars['v2_inc'], color='b', marker='^', markersize=30)
-            plot_di(dec=hpars['v3_dec'],inc=hpars['v3_inc'], color='k', marker='o', markersize=30)
-            if len(PDir) > 0:
-                pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
-            # plot the confidence ellipses or vectors as desired
-            if ihext: # plot the Hext ellipses
-                ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],\
-                   hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-                pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
-                ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
-                   hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-                pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
-                ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
-                   hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-                pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
-                if len(Dir)>0:   # plot the comparison direction components
+
+def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0, iboot=0, vec=0, num_bootstraps=1000, title=""):
+    Ss, V1, V2, V3 = [], [], [], []
+    for ind, rec in aniso_df.iterrows():
+        s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
+        if s[0] <= 1.0:
+            Ss.append(s)  # protect against crap
+            tau, Vdir = pmag.doseigs(s)
+            V1.append([Vdir[0][0], Vdir[0][1]])
+            V2.append([Vdir[1][0], Vdir[1][1]])
+            V3.append([Vdir[2][0], Vdir[2][1]])
+    Ss = np.array(Ss)
+    if Ss.shape[0] > 1:
+        # plot the data
+        plot_net(fignum)
+        plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
+        plot_di(di_block=V1, color='r', marker='s', markersize=20)
+        plot_di(di_block=V2, color='b', marker='^', markersize=20)
+        plot_di(di_block=V3, color='k', marker='o', markersize=20)
+        # plot the confidence
+        nf, sigma, avs = pmag.sbar(Ss)
+        hpars = pmag.dohext(nf, sigma, avs)  # get the Hext parameters
+        if len(PDir) > 0:
+            pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
+        plot_net(fignum+1)
+        plt.title(title+':'+'Confidence Ellipses')
+        plot_di(dec=hpars['v1_dec'], inc=hpars['v1_inc'],
+                color='r', marker='s', markersize=30)
+        plot_di(dec=hpars['v2_dec'], inc=hpars['v2_inc'],
+                color='b', marker='^', markersize=30)
+        plot_di(dec=hpars['v3_dec'], inc=hpars['v3_inc'],
+                color='k', marker='o', markersize=30)
+        if len(PDir) > 0:
+            pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
+        # plot the confidence ellipses or vectors as desired
+        if ihext:  # plot the Hext ellipses
+            ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
+                       hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
+            pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
+            ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
+                       hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
+            pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
+            ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
+                       hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
+            pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
+            if len(Dir) > 0:   # plot the comparison direction components
                     # put in dimap and plot as white symbol with axis color?
-                    plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
-            if iboot: # put on the bootstrapped confidence bounds
-                Tmean, Vmean, Taus, BVs = pmag.s_boot(Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
-                BVs_trans=np.array(BVs).transpose()
-                if ivec:
-                    plot_di(dec=BVs_trans[0][0],inc=BVs_trans[1][0],color='r',marker='.')
-                    plot_di(dec=BVs_trans[0][1],inc=BVs_trans[1][1],color='b',marker='.')
-                    plot_di(dec=BVs_trans[0][2],inc=BVs_trans[1][2],color='k',marker='.')
-                    # put in dimap and plot as white symbol with axis color?
-                    if len(Dir)>0:   # plot the comparison direction components
-                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
-                    # do the eigenvalue cdfs
-                    Taus=np.array(Taus).transpose()
-                    colors=['r','b','k']
-                    styles=['dotted','dashed','solid']
-                    for t in range(3):  # step through eigenvalues
-                        ts=np.sort(Taus[t]) # get a sorted list of this eigenvalue
-                        pmagplotlib.plot_cdf(fignum+2,ts,"",colors[t],"") # plot the CDF
-                        plt.axvline(ts[int(0.025*len(ts))],color=colors[t],linestyle=styles[t]) # minimum 95% conf bound
-                        plt.axvline(ts[int(0.975*len(ts))],color=colors[t],linestyle=styles[t]) # max 95% conf bound
-                    plt.xlabel('Eigenvalues')
-                    if len(Dir)>0: # do cartesian coordinates of selected eigenvectori [using vec] vs Dir
-                        V=[row[vec-1] for row in BVs]
-                        X=pmag.dir2cart(V)
-                        comp_X=pmag.dir2cart(Dir)
-                        for i in range(3):
-                            xs=np.sort(np.array([row[i] for row in X]))
-                            pmagplotlib.plot_cdf(fignum+i+3,xs,"",colors[i],"") # plot the CDF
-                            plt.axvline(xs[int(0.025*len(xs))],color=colors[vec-1],linestyle=styles[i]) # minimum 95% conf bound
-                            plt.axvline(xs[int(0.975*len(xs))],color=colors[vec-1],linestyle=styles[i]) # max 95% conf bound
-                            plt.axvline(comp_X[0][i],color='lightgreen',linewidth=3) # put on the comparison direction
-                else:
-                    bpars = pmag.sbootpars(Taus, BVs)
-                    ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
+                plot_di(di_block=[Dir], color='green',
+                        marker='*', markersize=200)
+        if iboot:  # put on the bootstrapped confidence bounds
+            Tmean, Vmean, Taus, BVs = pmag.s_boot(
+                Ss, ipar, num_bootstraps)  # get eigenvectors of mean tensor
+            BVs_trans = np.array(BVs).transpose()
+            if ivec:
+                plot_di(dec=BVs_trans[0][0], inc=BVs_trans[1]
+                        [0], color='r', marker='.')
+                plot_di(dec=BVs_trans[0][1], inc=BVs_trans[1]
+                        [1], color='b', marker='.')
+                plot_di(dec=BVs_trans[0][2], inc=BVs_trans[1]
+                        [2], color='k', marker='.')
+                # put in dimap and plot as white symbol with axis color?
+                if len(Dir) > 0:   # plot the comparison direction components
+                    plot_di(di_block=[Dir], color='green',
+                            marker='*', markersize=200)
+                # do the eigenvalue cdfs
+                Taus = np.array(Taus).transpose()
+                colors = ['r', 'b', 'k']
+                styles = ['dotted', 'dashed', 'solid']
+                for t in range(3):  # step through eigenvalues
+                    # get a sorted list of this eigenvalue
+                    ts = np.sort(Taus[t])
+                    pmagplotlib.plot_cdf(
+                        fignum+2, ts, "", colors[t], "")  # plot the CDF
+                    # minimum 95% conf bound
+                    plt.axvline(ts[int(0.025*len(ts))],
+                                color=colors[t], linestyle=styles[t])
+                    # max 95% conf bound
+                    plt.axvline(ts[int(0.975*len(ts))],
+                                color=colors[t], linestyle=styles[t])
+                plt.xlabel('Eigenvalues')
+                # do cartesian coordinates of selected eigenvectori [using vec] vs Dir
+                if len(Dir) > 0:
+                    V = [row[vec-1] for row in BVs]
+                    X = pmag.dir2cart(V)
+                    comp_X = pmag.dir2cart(Dir)
+                    for i in range(3):
+                        xs = np.sort(np.array([row[i] for row in X]))
+                        pmagplotlib.plot_cdf(
+                            fignum+i+3, xs, "", colors[i], "")  # plot the CDF
+                        # minimum 95% conf bound
+                        plt.axvline(xs[int(0.025*len(xs))],
+                                    color=colors[vec-1], linestyle=styles[i])
+                        # max 95% conf bound
+                        plt.axvline(xs[int(0.975*len(xs))],
+                                    color=colors[vec-1], linestyle=styles[i])
+                        # put on the comparison direction
+                        plt.axvline(
+                            comp_X[0][i], color='lightgreen', linewidth=3)
+            else:
+                bpars = pmag.sbootpars(Taus, BVs)
+                ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                    pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
-                    ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
+                ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                    pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
-                    ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
+                ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                    pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
-                    if len(Dir)>0:   # plot the comparison direction components
-                        plot_di(di_block=[Dir],color='green',marker='*',markersize=200)
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
+                if len(Dir) > 0:   # plot the comparison direction components
+                    plot_di(di_block=[Dir], color='green',
+                            marker='*', markersize=200)
 
 
 def aarm_magic(infile, dir_path=".", input_dir_path="",
                spec_file='specimens.txt', samp_file="samples.txt", data_model_num=3,
                coord='s'):
-
     """
     Converts AARM  data to best-fit tensor (6 elements plus sigma)
 
@@ -9009,7 +9175,7 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
 
     # get coordinate system
-    coords = {'s' : '-1', 'g': '0', 't': '100'}
+    coords = {'s': '-1', 'g': '0', 't': '100'}
     if coord not in coords.values():
         coord = coords.get(str(coord), '-1')
 
@@ -9086,8 +9252,10 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
         if data_model_num == 3:
             if spec_data:
                 try:
-                    RmagResRec = pmag.get_dictitem(spec_data, 'er_specimen_name', s, 'T')[0]
-                    RmagSpecRec = pmag.get_dictitem(spec_data, 'er_specimen_name', s, 'T')[0]
+                    RmagResRec = pmag.get_dictitem(
+                        spec_data, 'er_specimen_name', s, 'T')[0]
+                    RmagSpecRec = pmag.get_dictitem(
+                        spec_data, 'er_specimen_name', s, 'T')[0]
                 except IndexError:
                     pass
 
@@ -9139,12 +9307,12 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
             for i in range(6):
                 s[i] = s[i] / trace
             a = pmag.s2a(s)
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
         #  Calculating dels is different than in the Kappabridge
         #  routine. Use trace normalized tensor (a) and the applied
         #  unit field directions (tmpH) to generate model X,Y,Z
         #  components. Then compare these with the measured values.
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
             S = 0.
             comp = np.zeros((npos * 3), 'f')
             for i in range(npos):
@@ -9162,18 +9330,22 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
             else:
                 sigma = 0
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_location_name"] = data[0].get("er_location_name", "")
+            RmagSpecRec["er_location_name"] = data[0].get(
+                "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
             if not "er_sample_name" in RmagSpecRec:
-                RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
+                RmagSpecRec["er_sample_name"] = data[0].get(
+                    "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
             RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagSpecRec["er_citation_names"] = "This study"
             RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":AARM"
-            RmagResRec["er_location_names"] = data[0].get("er_location_name", "")
+            RmagResRec["er_location_names"] = data[0].get(
+                "er_location_name", "")
             RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
             if not "er_sample_name" not in RmagResRec:
-                RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
+                RmagResRec["er_sample_names"] = data[0].get(
+                    "er_sample_name", "")
             RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
             RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagResRec["er_citation_names"] = "This study"
@@ -9405,7 +9577,6 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
 def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                input_spec_file='specimens.txt', output_spec_file='specimens.txt',
                data_model_num=3):
-
     """
     Converts ATRM  data to best-fit tensor (6 elements plus sigma)
 
@@ -9436,13 +9607,13 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     input_spec_file = pmag.resolve_file_name(input_spec_file, dir_path)
     output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
 
-
     # read in data
     if data_model_num == 3:
         meas_data = []
         meas_data3, file_type = pmag.magic_read(meas_file)
         if file_type != 'measurements':
-            print("-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
+            print(
+                "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
             return False
         # convert meas_data to 2.5
         for rec in meas_data3:
@@ -9493,8 +9664,10 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         if data_model_num == 3:
             if spec_recs:
                 try:
-                    RmagResRec = pmag.get_dictitem(spec_recs, 'er_specimen_name', s, 'T')[0]
-                    RmagSpecRec = pmag.get_dictitem(spec_recs, 'er_specimen_name', s, 'T')[0]
+                    RmagResRec = pmag.get_dictitem(
+                        spec_recs, 'er_specimen_name', s, 'T')[0]
+                    RmagSpecRec = pmag.get_dictitem(
+                        spec_recs, 'er_specimen_name', s, 'T')[0]
                 except IndexError:
                     pass
 
@@ -9509,18 +9682,22 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         data = pmag.get_dictitem(meas_data, 'er_specimen_name', s, 'T')
         if len(data) > 5:
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_location_name"] = data[0].get("er_location_name", "")
+            RmagSpecRec["er_location_name"] = data[0].get(
+                "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
             if not "er_sample_name" in RmagSpecRec:
-                RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
+                RmagSpecRec["er_sample_name"] = data[0].get(
+                    "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
             RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
             RmagSpecRec["er_citation_names"] = "This study"
             RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":ATRM"
-            RmagResRec["er_location_names"] = data[0].get("er_location_names", "")
+            RmagResRec["er_location_names"] = data[0].get(
+                "er_location_names", "")
             RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
             if data_model_num == 2:
-                RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
+                RmagResRec["er_sample_names"] = data[0].get(
+                    "er_sample_name", "")
             RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
             RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":ATRM"
             RmagResRec["er_citation_names"] = "This study"
@@ -9585,12 +9762,12 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                 s[i] = s[i] / trace
             a = pmag.s2a(s)
 
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
         #  Calculating dels is different than in the Kappabridge
         #  routine. Use trace normalized tensor (a) and the applied
         #  unit field directions (tmpH) to generate model X,Y,Z
         #  components. Then compare these with the measured values.
-        #------------------------------------------------------------
+        # ------------------------------------------------------------
             S = 0.
             comp = np.zeros((npos * 3), 'f')
             for i in range(npos):
@@ -9775,7 +9952,8 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         print("specimen statistics and eigenparameters stored in ", rmag_res)
         return True, rmag_anis
 
-def zeq_magic(meas_file='measurements.txt',input_dir_path='./',angle=0):
+
+def zeq_magic(meas_file='measurements.txt', input_dir_path='./', angle=0):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files
 
@@ -9790,36 +9968,41 @@ def zeq_magic(meas_file='measurements.txt',input_dir_path='./',angle=0):
     """
  # read in MagIC foramatted data
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
-    meas_df=pd.read_csv(file_path,sep='\t',header=1) #read in magic formatted data
-    meas_df['blank']="" # this is a dummy variable expected by plotZED
-    specimens=meas_df.specimen.unique() # list of specimen names
-    if len(specimens)==0:
-        print ('there are no data for plotting')
+    # read in magic formatted data
+    meas_df = pd.read_csv(file_path, sep='\t', header=1)
+    meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
+    specimens = meas_df.specimen.unique()  # list of specimen names
+    if len(specimens) == 0:
+        print('there are no data for plotting')
         return
-    cnt=1
+    cnt = 1
     for s in specimens:
         # we can make the figure dictionary that pmagplotlib likes:
-        ZED={'eqarea':cnt,'zijd':cnt+1, 'demag':cnt+2}# make datablock
-        cnt+=3
-        spec_df=meas_df[meas_df.specimen==s]
-        spec_df_nrm=spec_df[spec_df.method_codes.str.contains('LT-NO')] # get the NRM data
-        spec_df_th=spec_df[spec_df.method_codes.str.contains('LT-T-Z')] # zero field thermal demag steps
-        spec_df_th=spec_df_th[spec_df.method_codes.str.contains('LT-PTRM')==False] # get rid of some pTRM steps
-        spec_df_af=spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
-        if len(spec_df_th.index)>1: # this is a thermal run
-            spec_df=pd.concat([spec_df_nrm,spec_df_th])
-            units='K' # units are kelvin
-            datablock=spec_df[['treat_temp','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()
-            pmagplotlib.plot_zed(ZED,datablock,angle,s,units)
-        if len(spec_df_af.index)>1: # this is an af run
-            spec_df=pd.concat([spec_df_nrm,spec_df_af])
-            units='T' # these are AF data
-            datablock=spec_df[['treat_ac_field','dir_dec','dir_inc','magn_moment','blank','quality']].values.tolist()
-            pmagplotlib.plot_zed(ZED,datablock,angle,s,units)
+        ZED = {'eqarea': cnt, 'zijd': cnt+1, 'demag': cnt+2}  # make datablock
+        cnt += 3
+        spec_df = meas_df[meas_df.specimen == s]
+        spec_df_nrm = spec_df[spec_df.method_codes.str.contains(
+            'LT-NO')]  # get the NRM data
+        spec_df_th = spec_df[spec_df.method_codes.str.contains(
+            'LT-T-Z')]  # zero field thermal demag steps
+        spec_df_th = spec_df_th[spec_df.method_codes.str.contains(
+            'LT-PTRM') == False]  # get rid of some pTRM steps
+        spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
+        if len(spec_df_th.index) > 1:  # this is a thermal run
+            spec_df = pd.concat([spec_df_nrm, spec_df_th])
+            units = 'K'  # units are kelvin
+            datablock = spec_df[['treat_temp', 'dir_dec', 'dir_inc',
+                                 'magn_moment', 'blank', 'quality']].values.tolist()
+            pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+        if len(spec_df_af.index) > 1:  # this is an af run
+            spec_df = pd.concat([spec_df_nrm, spec_df_af])
+            units = 'T'  # these are AF data
+            datablock = spec_df[['treat_ac_field', 'dir_dec', 'dir_inc',
+                                 'magn_moment', 'blank', 'quality']].values.tolist()
+            pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
 
 
-
-def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
+def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
 
@@ -9831,28 +10014,38 @@ def thellier_magic(meas_file='measurements.txt',input_dir_path='./'):
         input directory of meas_file, default "."
     """
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
-    meas_df=pd.read_csv(file_path,sep='\t',header=1) #read in magic formatted data
-    int_key=cb.get_intensity_col(meas_df)
-    meas_data=meas_df[meas_df[int_key].notnull()] #get all the records with measurement data
-    thel_data = meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM')] # get all the Thellier data
-    specimens=meas_data.specimen.unique() # list of specimen names
-    if len(specimens)==0:
-        print ('there are no data for plotting')
+    # read in magic formatted data
+    meas_df = pd.read_csv(file_path, sep='\t', header=1)
+    int_key = cb.get_intensity_col(meas_df)
+    # get all the records with measurement data
+    meas_data = meas_df[meas_df[int_key].notnull()]
+    thel_data = meas_data[meas_data['method_codes'].str.contains(
+        'LP-PI-TRM')]  # get all the Thellier data
+    specimens = meas_data.specimen.unique()  # list of specimen names
+    if len(specimens) == 0:
+        print('there are no data for plotting')
         return
-    specimens=specimens[0:5] # just plot the first 5
-    cnt=1 # set the figure counter to 1
-    for this_specimen in specimens: #step through the specimens  list
-    # make the figure dictionary that pmagplotlib likes:
-        AZD={'arai':cnt,'zijd':cnt+1, 'eqarea':cnt+2, 'deremag':cnt+3}# make datablock
-        cnt+=4 # increment the figure counter
-        spec_df=thel_data[thel_data.specimen==this_specimen] # get data for this specimen
-        araiblock,field=pmag.sortarai(spec_df,this_specimen,0,version=3) # get the data block for Arai plot
-        zijdblock, units = pmag.find_dmag_rec(this_specimen, spec_df, version=3) # get the datablock for Zijderveld plot
-    pmagplotlib.plot_arai_zij(AZD, araiblock, zijdblock, this_specimen, units[-1]) # make the plots
+    specimens = specimens[0:5]  # just plot the first 5
+    cnt = 1  # set the figure counter to 1
+    for this_specimen in specimens:  # step through the specimens  list
+        # make the figure dictionary that pmagplotlib likes:
+        AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
+               2, 'deremag': cnt+3}  # make datablock
+        cnt += 4  # increment the figure counter
+        spec_df = thel_data[thel_data.specimen ==
+                            this_specimen]  # get data for this specimen
+        # get the data block for Arai plot
+        araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
+        # get the datablock for Zijderveld plot
+        zijdblock, units = pmag.find_dmag_rec(
+            this_specimen, spec_df, version=3)
+    pmagplotlib.plot_arai_zij(
+        AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
 
-def sites_extract(site_file='sites.txt',directions_file='directions.xls',
-                  intensity_file='intensity.xls',info_file='site_info.xls',
-                  output_dir_path='./',input_dir_path='',latex=False):
+
+def sites_extract(site_file='sites.txt', directions_file='directions.xls',
+                  intensity_file='intensity.xls', info_file='site_info.xls',
+                  output_dir_path='./', input_dir_path='', latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
     Default output format is an Excel file.
@@ -9891,38 +10084,44 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
     except IOError:
         print("bad site file name")
         return False, "bad site file name"
-    sites_df=pd.read_csv(fname,sep='\t',header=1)
+    sites_df = pd.read_csv(fname, sep='\t', header=1)
 # do directional stuff first
     # a few things need cleaning up
-    dir_df=sites_df.copy().dropna(subset=['dir_dec','dir_inc']) # delete blank directions
+    dir_df = sites_df.copy().dropna(
+        subset=['dir_dec', 'dir_inc'])  # delete blank directions
     # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
     # directions put in by accident on intensity rows
-    if len(dir_df)>0:
+    if len(dir_df) > 0:
 
         DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95"]
 
-        dir_file=pmag.resolve_file_name(directions_file,output_dir_path)
-        dir_df['dir_n_samples']=dir_df['dir_n_samples'].values.astype('int')
-        dir_df['dir_tilt_correction']=dir_df['dir_tilt_correction'].values.astype('int')
-        has_vgps=False
+        dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
+        dir_df['dir_n_samples'] = dir_df['dir_n_samples'].values.astype('int')
+        dir_df['dir_tilt_correction'] = dir_df['dir_tilt_correction'].values.astype(
+            'int')
+        has_vgps = False
         if 'vgp_lat' in dir_df.columns:
-            test_vgp=dir_df.dropna(subset=['vgp_lat','vgp_lon'])
-            if len(test_vgp)>0: has_vgps=True
+            test_vgp = dir_df.dropna(subset=['vgp_lat', 'vgp_lon'])
+            if len(test_vgp) > 0:
+                has_vgps = True
         if has_vgps:
-            dir_df['vgp_lat_abs']=dir_df.vgp_lat.abs()
-            dir_df.sort_values(by=['site','vgp_lat_abs'],ascending=False,inplace=True)
-            dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
-                'dir_n_samples','dir_k','dir_r','dir_alpha95','vgp_lat','vgp_lon']]
+            dir_df['vgp_lat_abs'] = dir_df.vgp_lat.abs()
+            dir_df.sort_values(by=['site', 'vgp_lat_abs'],
+                               ascending=False, inplace=True)
+            dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
+                             'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95', 'vgp_lat', 'vgp_lon']]
     # this will take the first record for each site's directions (including VGP lat if present)
             DirCols.append("VGP Lat")
             DirCols.append("VGP Long")
-            dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
+            dir_df.drop_duplicates(
+                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
         else:
-            dir_df.drop_duplicates(subset=['dir_dec','dir_inc','site'],inplace=True)
-            dir_df=dir_df[['site','dir_tilt_correction','dir_dec','dir_inc',\
-                   'dir_n_samples','dir_k','dir_r','dir_alpha95']]
-        dir_df.columns=DirCols
-        dir_df.sort_values(by=['Site'],inplace=True,ascending=True)
+            dir_df.drop_duplicates(
+                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
+            dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
+                             'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95']]
+        dir_df.columns = DirCols
+        dir_df.sort_values(by=['Site'], inplace=True, ascending=True)
         if latex:
             if dir_file.endswith('.xls'):
                 dir_file = dir_file[:-4] + ".tex"
@@ -9931,39 +10130,45 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             directions_out.write('\\usepackage{booktabs}\n')
             directions_out.write('\\usepackage{longtable}\n')
             directions_out.write('\\begin{document}')
-            directions_out.write(dir_df.to_latex(index=False,longtable=True,multicolumn=False))
+            directions_out.write(dir_df.to_latex(
+                index=False, longtable=True, multicolumn=False))
             directions_out.write('\end{document}\n')
             directions_out.close()
         else:
-            dir_df.to_excel(dir_file,index=False)
+            dir_df.to_excel(dir_file, index=False)
     else:
-        print ("No directional data for ouput.")
+        print("No directional data for ouput.")
         dir_file = None
 # now for the intensities
-    has_vadms,has_vdms=False,False
+    has_vadms, has_vdms = False, False
     if 'int_abs' not in sites_df:
         sites_df['int_abs'] = None
     if 'int_n_samples' not in sites_df:
         sites_df['int_n_samples'] = None
-    int_df=sites_df.copy().dropna(subset=['int_abs'])
-    int_df['int_n_samples']=int_df['int_n_samples'].values.astype('int')
-    if len(int_df)>0:
-        int_df['int_abs_uT']=1e6*int_df.int_abs.values # convert to uT
-        int_df['int_abs_sigma_uT']=1e6*int_df.int_abs_sigma.values # convert to uT
-        int_df['int_abs_uT']=int_df['int_abs_uT'].values.astype('int')
-        int_df['int_abs_sigma_uT']=int_df['int_abs_sigma_uT'].values.astype('int')
-        int_df['int_abs_sigma_perc']=int_df['int_abs_sigma_perc'].values.astype('int')
-        intensity_file=pmag.resolve_file_name(intensity_file,output_dir_path)
+    int_df = sites_df.copy().dropna(subset=['int_abs'])
+    int_df['int_n_samples'] = int_df['int_n_samples'].values.astype('int')
+    if len(int_df) > 0:
+        int_df['int_abs_uT'] = 1e6*int_df.int_abs.values  # convert to uT
+        int_df['int_abs_sigma_uT'] = 1e6 * \
+            int_df.int_abs_sigma.values  # convert to uT
+        int_df['int_abs_uT'] = int_df['int_abs_uT'].values.astype('int')
+        int_df['int_abs_sigma_uT'] = int_df['int_abs_sigma_uT'].values.astype(
+            'int')
+        int_df['int_abs_sigma_perc'] = int_df['int_abs_sigma_perc'].values.astype(
+            'int')
+        intensity_file = pmag.resolve_file_name(
+            intensity_file, output_dir_path)
 
-        IntCols = ["Site", "N", "B", "B sigma","sigma (%)"]
+        IntCols = ["Site", "N", "B", "B sigma", "sigma (%)"]
         if 'vadm' in int_df.columns:
-            test_vadm=int_df.dropna(subset=['vadm'])
-            if len(test_vadm)>0:
-                has_vadms=True
+            test_vadm = int_df.dropna(subset=['vadm'])
+            if len(test_vadm) > 0:
+                has_vadms = True
 
         if 'vdm' in int_df.columns:
-            test_vdm=int_df.dropna(subset=['vdm'])
-            if len(test_vdm)>0: has_vdms=True
+            test_vdm = int_df.dropna(subset=['vdm'])
+            if len(test_vdm) > 0:
+                has_vdms = True
 
         if has_vadms:
             IntCols.append("VADM")
@@ -9972,72 +10177,78 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             IntCols.append("VDM")
             IntCols.append("VDM sigma")
         if not has_vadms and not has_vdms:
-            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
-                'int_abs_sigma_perc']]
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc']]
         if has_vadms and not has_vdms:
-            int_df.sort_values(by=['site','vadm'],ascending=False,inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
+            int_df.sort_values(by=['site', 'vadm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
 
-            int_df['vadm_ZAm2']=1e-21*int_df.vadm.values
-            int_df['vadm_sigma_ZAm2']=1e-21*int_df.vadm_sigma.values
-            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
-                'int_abs_sigma_perc','vadm_ZAm2','vadm_ZAm2_sigma']]
-        if not has_vadms and  has_vdms:
-            int_df.sort_values(by=['site','vdm'],ascending=False,inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
-            int_df['vdm_ZAm2']=1e-21*int_df.vdm.values()
-            int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values()
+            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_ZAm2_sigma']]
+        if not has_vadms and has_vdms:
+            int_df.sort_values(by=['site', 'vdm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
+            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values()
+            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values()
 
-            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
-                'int_abs_sigma_perc','vdm_ZAm2','vdm_ZAm2_sigma']]
-        if has_vadms and  has_vdms:
-            int_df.sort_values(by=['site','vadm'],ascending=False,inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT','site'],inplace=True)
-            int_df['vadm_ZAm2']=1e-21*int_df.vadm.values
-            int_df['vadm_sigma_ZAm2']=1e-21*int_df.vadm_sigma.values
-            int_df['vdm_ZAm2']=1e-21*int_df.vdm.values
-            int_df['vdm_sigma_ZAm2']=1e-21*int_df.vdm_sigma.values
-            int_df=int_df[['site','int_n_samples','int_abs_uT','int_abs_sigma_uT',\
-                'int_abs_sigma_perc','vadm_ZAm2','vadm_sigma_ZAm2','vdm_ZAm2','vdm_sigma_ZAm2']]
-        int_df.columns=IntCols
-        int_df.sort_values(by=['Site'],inplace=True,ascending=True)
-        int_df.fillna(value='',inplace=True)
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vdm_ZAm2', 'vdm_ZAm2_sigma']]
+        if has_vadms and has_vdms:
+            int_df.sort_values(by=['site', 'vadm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
+            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
+            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values
+            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_sigma_ZAm2', 'vdm_ZAm2', 'vdm_sigma_ZAm2']]
+        int_df.columns = IntCols
+        int_df.sort_values(by=['Site'], inplace=True, ascending=True)
+        int_df.fillna(value='', inplace=True)
         if latex:
             if intensity_file.endswith('.xls'):
                 intensity_file = intensity_file[:-4] + ".tex"
-            intensities_out = open(intensity_file, 'w+', errors="backslashreplace")
+            intensities_out = open(intensity_file, 'w+',
+                                   errors="backslashreplace")
             intensities_out.write('\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
             intensities_out.write('\\begin{document}')
-            intensities_out.write(int_df.to_latex(index=False,longtable=True,multicolumn=False))
+            intensities_out.write(int_df.to_latex(
+                index=False, longtable=True, multicolumn=False))
             intensities_out.write('\end{document}\n')
             intensities_out.close()
         else:
-            int_df.to_excel(intensity_file,index=False)
+            int_df.to_excel(intensity_file, index=False)
     else:
-        print ("No intensity data for ouput.")
+        print("No intensity data for ouput.")
         intensity_file = None
 # site info
-    nfo_df=sites_df.dropna(subset=['lat','lon']) # delete blank locations
-    if len(nfo_df)>0:
-        SiteCols = ["Site", "Location","Lat. (N)", "Long. (E)"]
-        info_file=pmag.resolve_file_name(info_file,output_dir_path)
-        age_cols = ['age','age_sigma','age_unit']
+    nfo_df = sites_df.dropna(subset=['lat', 'lon'])  # delete blank locations
+    if len(nfo_df) > 0:
+        SiteCols = ["Site", "Location", "Lat. (N)", "Long. (E)"]
+        info_file = pmag.resolve_file_name(info_file, output_dir_path)
+        age_cols = ['age', 'age_sigma', 'age_unit']
         for col in age_cols:
             if col not in nfo_df:
                 nfo_df[col] = None
-        test_age=nfo_df.dropna(subset=['age','age_sigma','age_unit'])
-        if len(test_age)>0:
+        test_age = nfo_df.dropna(subset=['age', 'age_sigma', 'age_unit'])
+        if len(test_age) > 0:
             SiteCols.append("Age ")
             SiteCols.append("Age sigma")
             SiteCols.append("Units")
-            nfo_df=nfo_df[['site','location','lat','lon','age','age_sigma','age_unit']]
+            nfo_df = nfo_df[['site', 'location', 'lat',
+                             'lon', 'age', 'age_sigma', 'age_unit']]
         else:
-            nfo_df=nfo_df[['site','location','lat','lon']]
+            nfo_df = nfo_df[['site', 'location', 'lat', 'lon']]
         nfo_df.drop_duplicates(inplace=True)
-        nfo_df.columns=SiteCols
-        nfo_df.fillna(value='',inplace=True)
+        nfo_df.columns = SiteCols
+        nfo_df.fillna(value='', inplace=True)
         if latex:
             if info_file.endswith('.xls'):
                 info_file = info_file[:-4] + ".tex"
@@ -10046,13 +10257,13 @@ def sites_extract(site_file='sites.txt',directions_file='directions.xls',
             info_out.write('\\usepackage{booktabs}\n')
             info_out.write('\\usepackage{longtable}\n')
             info_out.write('\\begin{document}')
-            info_out.write(nfo_df.to_latex(index=False,longtable=True,multicolumn=False))
+            info_out.write(nfo_df.to_latex(
+                index=False, longtable=True, multicolumn=False))
             info_out.write('\end{document}\n')
             info_out.close()
         else:
-            nfo_df.to_excel(info_file,index=False)
+            nfo_df.to_excel(info_file, index=False)
     else:
-        print ("No location information  for ouput.")
+        print("No location information  for ouput.")
         info_file = None
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
-
