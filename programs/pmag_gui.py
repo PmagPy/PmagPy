@@ -125,6 +125,7 @@ class MagMainFrame(wx.Frame):
         # do / re-do menubar
         menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
         self.SetMenuBar(menubar)
+        self.menubar = menubar
 
     def get_wd_data(self):
         """

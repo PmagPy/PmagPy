@@ -36,6 +36,7 @@ class MagIC_model_builder3(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, size=SIZE,
                           name='ErMagicBuilder')
         #self.panel = wx.Panel(self)
+        self.parent = parent
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
@@ -69,6 +70,11 @@ class MagIC_model_builder3(wx.Frame):
 
         self.SetTitle("Earth-Ref Magic Builder")
         self.InitUI()
+        # hide mainframe, bind close event so that it closes the current window not the mainframe
+        self.parent.Hide()
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
+
+
 
     def InitUI(self):
         pnl1 = self.panel

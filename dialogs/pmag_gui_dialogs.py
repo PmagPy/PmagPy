@@ -38,12 +38,14 @@ from pmagpy.mapping import map_magic
 class import_magnetometer_data(wx.Dialog):
     def __init__(self, parent, id, title, WD):
         wx.Dialog.__init__(self, parent, id, title, name='import_magnetometer_data')
+        self.parent = parent
         self.WD = WD
         self.InitUI()
         self.SetTitle(title)
-        self.parent = parent
+
 
     def InitUI(self):
+        print('self.parent', self.parent)
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -76,6 +78,9 @@ class import_magnetometer_data(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        # re-do the 'quit' binding so that it only closes the current window
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
+
         self.nextButton = wx.Button(self.panel, id=-1, label='Go to next step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
@@ -109,6 +114,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Destroy()
         self.Parent.Show()
         self.Parent.Raise()
+
 
     def on_okButton(self,event):
         os.chdir(self.WD)
@@ -163,6 +169,7 @@ class combine_magic_dialog(wx.Frame):
     def __init__(self, WD, parent):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
+        self.parent = parent
         self.panel.SetScrollbars(20, 20, 50, 50)
         self.WD=WD
         self.InitUI()
@@ -189,7 +196,9 @@ class combine_magic_dialog(wx.Frame):
 
         self.nextButton = wx.Button(self.panel, id=-1, label='Go to last step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
-
+        # re-do the 'quit' binding so that it only closes the current window
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
+        #
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
         hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5)
@@ -261,6 +270,7 @@ class combine_everything_dialog(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
+        self.parent = parent
         self.WD=WD
         self.InitUI()
 
@@ -293,6 +303,8 @@ class combine_everything_dialog(wx.Frame):
             #self.Destroy()
 
         #------------------
+        # re-do the 'quit' binding so that it only closes the current window
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
 
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
@@ -2570,6 +2582,7 @@ class OrientFrameGrid3(wx.Frame):
         #--------------------
         # initialize stuff
         #--------------------
+        self.parent = parent
         if sys.platform in ['win32', 'win64']:
             self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER|wx.ALWAYS_SHOW_SB)
         else:
@@ -2595,6 +2608,9 @@ class OrientFrameGrid3(wx.Frame):
         except Exception as ex:
             print("-W-", ex)
             #pass
+
+        # re-do the 'quit' binding so that it only closes the current window
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
 
         # self.headers is a list of two-item tuples.
         #the first is the proper column name as understood by orientation_magic.py
@@ -2975,6 +2991,8 @@ class OrientFrameGrid(wx.Frame):
         #self.Data_hierarchy = Data_hierarchy
         self.er_magic_data = ErMagic
         self.grid = None
+        # re-do the 'quit' binding so that it only closes the current window
+        self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
 
 
         #--------------------

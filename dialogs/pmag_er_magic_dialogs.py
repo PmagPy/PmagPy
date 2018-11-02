@@ -31,6 +31,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.selected_rows = set()
         self.min_size = (1160, 350)
         self.contribution.propagate_ages()
+        # re-do the 'quit' binding so that it only closes the current window
+        self.main_frame.Bind(wx.EVT_MENU, lambda event: self.main_frame.menubar.on_quit(event, self), self.main_frame.menubar.file_quit)
         self.InitSpecCheck()
 
 

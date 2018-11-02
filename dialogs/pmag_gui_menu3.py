@@ -36,6 +36,7 @@ class MagICMenu(wx.MenuBar):
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
+        self.file_quit = file_quit
 
         ## Help
         help_menu = wx.Menu()
@@ -142,12 +143,21 @@ class MagICMenu(wx.MenuBar):
         self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
 
 
+    def on_quit(self, event, wind=None):
+        """
+        shut down application if in the main frame.
+        otherwise, destroy the top window (wind) and restore
+        the main frame.
+        """
+        if wind:
+            wind.Destroy()
+        if not self.parent.IsShown():
+            self.on_show_mainframe(None)
+            # re-do the quit binding
+            self.parent.Bind(wx.EVT_MENU, self.on_quit, self.file_quit)
+        else:
+            self.parent.Close()
 
-    def on_quit(self, event):
-        """
-        shut down application
-        """
-        self.parent.Close()
 
     def on_show_mainframe(self, event):
         """
