@@ -35,7 +35,6 @@ class MagIC_model_builder3(wx.Frame):
 
         wx.Frame.__init__(self, parent, wx.ID_ANY, size=SIZE,
                           name='ErMagicBuilder')
-        #self.panel = wx.Panel(self)
         self.parent = parent
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)

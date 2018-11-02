@@ -23,9 +23,6 @@ class ErMagicCheckFrame3(wx.Frame):
         self.main_frame = self.Parent
         self.contribution = contribution
         self.temp_data = {}
-        #self.drop_down_menu = None
-        ## sample window must be displayed (differently) twice, so it is useful to keep track
-        #self.sample_window = 0
         self.grid = None
         self.deleteRowButton = None
         self.selected_rows = set()
@@ -66,11 +63,6 @@ class ErMagicCheckFrame3(wx.Frame):
         return
 
 
-        # add an add samples/sites/etc. button?
-        # add save but don't continue button?
-        # add extra help (html)
-        # do sizing a bit differently?
-
     def InitSampCheck(self):
         """
         make an interactive grid in which users can edit sample names
@@ -79,16 +71,11 @@ class ErMagicCheckFrame3(wx.Frame):
         # propagate any type/lithology/class data from sites to samples table
         # will only overwrite if sample values are blank
         self.contribution.propagate_lithology_cols()
-        #self.sample_window += 1
         samp_df = self.contribution.tables['samples'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'samples', 'samples', self.panel)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
-        #if self.sample_window > 1:
-        #    next_dia = self.InitLocCheck
-        #    prev_dia = self.InitSiteCheck
-        #else:
         next_dia = self.InitSiteCheck
         prev_dia = self.InitSpecCheck
         grid = self.grid_frame.grid

@@ -45,7 +45,6 @@ class import_magnetometer_data(wx.Dialog):
 
 
     def InitUI(self):
-        print('self.parent', self.parent)
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
@@ -301,8 +300,6 @@ class combine_everything_dialog(wx.Frame):
             dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-            # deleted by rshaar 10.11.2015
-            #self.Destroy()
 
         #------------------
         # re-do the 'quit' binding so that it only closes the current window
@@ -2610,7 +2607,6 @@ class OrientFrameGrid3(wx.Frame):
 
         except Exception as ex:
             print("-W-", ex)
-            #pass
 
         # re-do the 'quit' binding so that it only closes the current window
         self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
@@ -2991,7 +2987,6 @@ class OrientFrameGrid(wx.Frame):
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         self.WD = WD
-        #self.Data_hierarchy = Data_hierarchy
         self.er_magic_data = ErMagic
         self.grid = None
         # re-do the 'quit' binding so that it only closes the current window
