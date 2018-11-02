@@ -43,7 +43,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.contribution.propagate_lithology_cols()
         spec_df = self.contribution.tables['specimens'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'specimens', 'specimens', self.panel)
+        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD,
+                                                'specimens', 'specimens', self.panel,
+                                                 main_frame=self.main_frame)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
         grid = self.grid_frame.grid
@@ -73,7 +75,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.contribution.propagate_lithology_cols()
         samp_df = self.contribution.tables['samples'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'samples', 'samples', self.panel)
+        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD,
+                                                'samples', 'samples', self.panel,
+                                                main_frame=self.main_frame)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
         next_dia = self.InitSiteCheck
@@ -111,7 +115,9 @@ class ErMagicCheckFrame3(wx.Frame):
 
         site_df = self.contribution.tables['sites'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'sites', 'sites', self.panel)
+        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD,
+                                                'sites', 'sites', self.panel,
+                                                 main_frame=self.main_frame)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
         grid = self.grid_frame.grid
@@ -149,7 +155,9 @@ class ErMagicCheckFrame3(wx.Frame):
 
         # set up frame
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)
+        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD,
+                                                'locations', 'locations', self.panel,
+                                                main_frame=self.main_frame)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
         grid = self.grid_frame.grid
@@ -174,7 +182,9 @@ class ErMagicCheckFrame3(wx.Frame):
         """make an interactive grid in which users can edit ages"""
         age_df = self.contribution.tables['ages'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'ages', 'ages', self.panel)
+        self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD,
+                                                'ages', 'ages', self.panel,
+                                                 main_frame=self.main_frame)
         self.grid_frame.exitButton.SetLabel('Save and continue')
         grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON, lambda event: self.onContinue(event, grid, None),

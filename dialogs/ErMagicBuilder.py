@@ -156,6 +156,7 @@ class MagIC_model_builder3(wx.Frame):
 
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.Bind(wx.EVT_CLOSE, self.on_cancelButton)
 
         self.helpButton = wx.Button(self.panel, wx.ID_ANY, '&Help')
         self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
@@ -255,6 +256,8 @@ class MagIC_model_builder3(wx.Frame):
 
     def on_cancelButton(self, event):
         self.Destroy()
+        self.main_frame.Show()
+        self.main_frame.Raise()
 
     def on_helpButton(self, event):
         #for use on the command line

@@ -18,8 +18,9 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     """
     def __init__(self, contribution, WD=None, frame_name="grid frame",
                  panel_name="grid panel", parent=None, exclude_cols=(),
-                 huge=False):
+                 huge=False, main_frame=None):
         self.parent = parent
+        self.main_frame = main_frame
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY,
@@ -158,6 +159,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel',
                                       name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
+        self.Bind(wx.EVT_CLOSE, self.onCancelButton)
 
         ## Input/output buttons
         self.copyButton = wx.Button(self.panel, id=-1,
@@ -752,6 +754,10 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                 self.Destroy()
         else:
             self.Destroy()
+        if self.main_frame:
+            self.main_frame.Show()
+            self.main_frame.Raise()
+
 
     def onSave(self, event, alert=False, destroy=True):
         """
