@@ -78,6 +78,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.Bind(wx.EVT_CLOSE, self.on_cancelButton)
         # re-do the 'quit' binding so that it only closes the current window
         self.parent.Bind(wx.EVT_MENU, lambda event: self.parent.menubar.on_quit(event, self), self.parent.menubar.file_quit)
 
@@ -193,6 +194,7 @@ class combine_magic_dialog(wx.Frame):
 
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.Bind(wx.EVT_CLOSE, self.on_cancelButton)
 
         self.nextButton = wx.Button(self.panel, id=-1, label='Go to last step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
@@ -311,6 +313,7 @@ class combine_everything_dialog(wx.Frame):
 
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.Bind(wx.EVT_CLOSE, self.on_cancelButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
