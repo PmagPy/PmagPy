@@ -233,6 +233,7 @@ class MainFrame(wx.Frame):
         print("-I- Initializing menu")
         menubar = MagICMenu(self)
         self.SetMenuBar(menubar)
+        self.menubar = menubar
 
 
     def on_change_dir_button(self, event=None):
@@ -452,6 +453,7 @@ class MagICMenu(wx.MenuBar):
 
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        self.file_quit = file_quit
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
         #file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
         file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
@@ -492,6 +494,7 @@ class MagICMenu(wx.MenuBar):
                     return
         if self.parent.grid_frame:
             self.parent.grid_frame.Destroy()
+            return
         self.parent.Close()
         try:
             sys.exit()

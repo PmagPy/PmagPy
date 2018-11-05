@@ -161,8 +161,9 @@ class MagICMenu(wx.MenuBar):
 
     def on_show_mainframe(self, event):
         """
-        Show main make_magic window
+        Show mainframe window
         """
+        self.parent.Enable()
         self.parent.Show()
         self.parent.Raise()
 

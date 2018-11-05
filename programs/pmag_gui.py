@@ -739,6 +739,18 @@ class MagMainFrame(wx.Frame):
                 self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
                 # bind that button to quitting magic gui and re-enabling Pmag GUI
                 self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
+                # do binding so that closing/quitting re-opens the main frame
+                self.magic_gui_frame.Bind(wx.EVT_CLOSE, self.on_end_validation)
+                # this makes it work with only the validation window open
+                self.magic_gui_frame.Bind(wx.EVT_MENU,
+                                          lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                                          self.magic_gui_frame.menubar.file_quit)
+                # this makes it work if an additional grid is open
+                self.Bind(wx.EVT_MENU,
+                          lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                          self.magic_gui_frame.menubar.file_quit)
+
+
 
     def on_end_validation(self, event):
         """
