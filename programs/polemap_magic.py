@@ -219,7 +219,7 @@ def main():
             pmagplotlib.plot_init(FIG['map_{}'.format(ind)], 6, 6)
             # if with baseOpts, lat/lon don't show
             # if with Opts, grid lines don't show
-            pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
+            #pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
             pmagplotlib.plot_map(ind+2, [lat], [lon], Opts)
             titles["map_{}".format(ind)] = location
             files["map_{}".format(ind)] = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
@@ -280,8 +280,9 @@ def main():
             loc_string = ""
             if 'locations' in con.tables:
                 num_locs = len(con.tables['locations'].df.index.unique())
-                loc_string = "({})".format(num_locs)
-            titles['map'] = "MagIC contribution {} all locations {}".format(con_id, loc_string)
+                loc_string = "{}".format(num_locs)
+                pole_string = "{} pole(s)".format(len(lats))
+            titles['map'] = "MagIC contribution {}\n {} location(s) {}".format(con_id, loc_string, pole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:

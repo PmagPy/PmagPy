@@ -2847,6 +2847,9 @@ def plot_com(CDF, BDI1, BDI2, d):
 
 
 def add_borders(Figs, titles, border_color, text_color, con_id=""):
+    """
+    Formatting for generating plots on the server
+    """
 
     if con_id:
         con_id = "/" + str(con_id)
@@ -2882,14 +2885,14 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
                        color=text_color,
                        bbox=dict(edgecolor=border_color,
                                  facecolor='#FFFFFF', linewidth=0.25),
-                       size=30)
+                       size=50)
         border_ax.text(-0.02, 0, "|                                                                                                                                                                                         |",
                        horizontalalignment='left',
                        verticalalignment='bottom',
                        color=text_color,
                        bbox=dict(edgecolor=border_color,
                                  facecolor='#FFFFFF', linewidth=0.25),
-                       size=18)
+                       size=20)#18)
 
         # add text
         border_ax.text((old_div(4, fig.get_figwidth())) * 0.015, 0.03, now.strftime("%d %B %Y, %I:%M:%S %p"),
