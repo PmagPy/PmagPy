@@ -272,8 +272,8 @@ def main():
         black = '#000000'
         purple = '#800080'
         titles['map'] = 'LO:_' + locations + '_POLE_map'
+        con_id = ''
         if 'contribution' in con.tables:
-            con_id = ''
             if 'id' in con.tables['contribution'].df.columns:
                 con_id = con.tables['contribution'].df.iloc[0]['id']
 
@@ -282,7 +282,7 @@ def main():
                 num_locs = len(con.tables['locations'].df.index.unique())
                 loc_string = "({})".format(num_locs)
             titles['map'] = "MagIC contribution {} all locations {}".format(con_id, loc_string)
-        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:
         pmagplotlib.draw_figs(FIG)

@@ -2846,7 +2846,10 @@ def plot_com(CDF, BDI1, BDI2, d):
 #        os.remove(filenames[key])
 
 
-def add_borders(Figs, titles, border_color, text_color):
+def add_borders(Figs, titles, border_color, text_color, con_id=""):
+
+    if con_id:
+        con_id = "/" + str(con_id)
 
     import datetime
     now = datetime.datetime.now()
@@ -2899,7 +2902,7 @@ def add_borders(Figs, titles, border_color, text_color):
                        verticalalignment='top',
                        color=text_color,
                        size=20)
-        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'http://earthref.org/MAGIC',
+        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'http://earthref.org/MAGIC{}'.format(con_id),
                        horizontalalignment='right',
                        verticalalignment='top',
                        color=text_color,
