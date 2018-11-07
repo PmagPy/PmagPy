@@ -2879,7 +2879,7 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
         border_ax.set_yticks([])
 
         # add a border
-        border_ax.text(-0.02, 1, "|                                                                                                                                                                                         |",
+        border_ax.text(-0.02, 1, "                                                                                                                                                                                         |",
                        horizontalalignment='left',
                        verticalalignment='top',
                        color=text_color,
@@ -2905,7 +2905,7 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
                        verticalalignment='top',
                        color=text_color,
                        size=20)
-        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'http://earthref.org/MAGIC{}'.format(con_id),
+        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'http://earthref.org/MagIC{}'.format(con_id),
                        horizontalalignment='right',
                        verticalalignment='top',
                        color=text_color,
