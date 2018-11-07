@@ -2850,6 +2850,24 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
     """
     Formatting for generating plots on the server
     """
+    def split_title(s):
+        """
+        Add '\n's to split of overly long titles
+        """
+        s_list = s.split(",")
+        lines = []
+        tot = 0
+        line = []
+        for i in s_list:
+            tot += len(i)
+            if tot < 30:
+                line.append(i + ",")
+            else:
+                lines.append(" ".join(line))
+                line = [i]
+                tot = 0
+        lines.append(" ".join(line))
+        return "\n".join(lines)
 
     if con_id:
         con_id = "/" + str(con_id)
@@ -2860,7 +2878,8 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
     for key in list(Figs.keys()):
 
         fig = plt.figure(Figs[key])
-        plot_title = titles[key]
+        plot_title = split_title(titles[key]).strip().strip('\n')
+
         fig.set_figheight(5.5)
         # get returns Bbox with x0, y0, x1, y1
         pos = fig.gca().get_position()

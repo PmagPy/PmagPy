@@ -222,7 +222,21 @@ def main():
             #pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
             pmagplotlib.plot_map(ind+2, [lat], [lon], Opts)
             titles["map_{}".format(ind)] = location
-            files["map_{}".format(ind)] = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
+            fname = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
+            fname_short = "LO:_{}{}_TY:_POLE_map".format(location, polarity)
+            # don't allow identically named files
+            if files:
+                file_values = files.values()
+                file_values_short = ["_".join(fname.rsplit('.')[0].rsplit('_')[:-1]) for fname in file_values]
+                if fname_short in file_values_short:
+                    for val in [str(n) for n in range(1, 10)]:
+                        fname = fname_short + "_{}.".format(val) + fmt
+                        if fname not in file_values:
+                            break
+                else:
+                    fname = fname_short + "_." + fmt
+
+            files["map_{}".format(ind)] = fname
 
     # truncate location names so that ultra long filenames are not created
     if len(locations) > 50:
