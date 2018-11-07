@@ -126,7 +126,7 @@ def main():
                 info_log('location names propagated to {}'.format(lowest_table))
             else:
                 do_full_directory = True
-                error_log('location names did not propagate fully to {} table'.format(lowest_table), con_id=con_id)
+                error_log('location names did not propagate fully to {} table (looks like there are some naming inconsistencies between tables)'.format(lowest_table), con_id=con_id)
         else:
             do_full_directory = True
             error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
