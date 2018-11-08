@@ -122,7 +122,9 @@ A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated 
 
 - Make sure you are set up with PyPI.  You must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](https://github.com/PmagPy/PmagPy/blob/master/example_pypirc)).
 
-- Make sure all tests are passing and all new features are working.
+- Make sure all tests are passing and all new features are working.  You can check [Travis CI](https://travis-ci.com/PmagPy/PmagPy) for the test history.
+
+- Run `git clean -f` in the repo (will remove any unneeded files)
 
 - These are the steps to make a new pip release for pmagpy and pmagpy-cli:
 
