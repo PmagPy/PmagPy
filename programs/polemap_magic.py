@@ -117,6 +117,8 @@ def main():
     # use records with pole_lat and pole_lon
     cond1, cond2 = pole_df['pole_lat'].notnull(), pole_df['pole_lon'].notnull()
     Results = pole_df[cond1 & cond2]
+    # don't plot identical poles twice
+    Results.drop_duplicates(subset=['pole_lat', 'pole_lon', 'location'], inplace=True)
     # use tilt correction
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
@@ -294,9 +296,10 @@ def main():
             loc_string = ""
             if 'locations' in con.tables:
                 num_locs = len(con.tables['locations'].df.index.unique())
-                loc_string = "{}".format(num_locs)
-                pole_string = "{} pole(s)".format(len(lats))
-            titles['map'] = "MagIC contribution {}\n {} location(s) {}".format(con_id, loc_string, pole_string)
+                loc_string = "{} location{}".format(num_locs, 's' if num_locs > 1 else '')
+                num_lats = len([lat for lat in lats if lat > 0])
+                pole_string = "{} pole{}".format(num_lats, 's' if num_lats > 1 else '')
+            titles['map'] = "MagIC contribution {}\n {}, {}".format(con_id, loc_string, pole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:

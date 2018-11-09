@@ -2867,7 +2867,7 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
                 line = [i]
                 tot = 0
         lines.append(" ".join(line))
-        return "\n".join(lines)
+        return "\n".join(lines).strip(',')
 
     if con_id:
         con_id = "/" + str(con_id)
