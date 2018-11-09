@@ -28,7 +28,7 @@ def main():
         plots files created in the /plots/[$MagIC_ID_number] of the MagIC contribution
 
     EXAMPLE:
-        magic_geomagia.py -f magic_contribution_16578
+        magic_geomagia.py -f magic_contribution_16578.txt
 
         Nick Jarboe
     """
@@ -59,6 +59,10 @@ def main():
     id=md.tables['contribution'].df.iloc[0]['id']
     timestamp=md.tables['contribution'].df.iloc[0]['timestamp']
     contributor=md.tables['contribution'].df.iloc[0]['contributor']
+    names=contributor.split()
+    contributor=""
+    for name in names:
+        contributor+=name[:1].upper()
    
     cr = Crossref()
     ref=cr.works(doi)
@@ -119,6 +123,7 @@ def main():
             int_abs_sigma=round(row['int_abs_sigma']*1e6,1)
 
         age,age_high,age_low=-1e9,-1e9,-1e9
+        age_error_type='0'  #  
         
         if 'age_unit' not in sites.columns.values: 
             print("Malformed Magic sites data table. Required column row 'age_unit' is missing")
@@ -127,36 +132,30 @@ def main():
         if 'age' in sites.columns.values: 
             age=row['age'] 
             age=pmag.age_to_BP(age,age_unit)
-        if 'age_sigma' in sites.columns.values: 
-            age_sigma=row['age'] 
-            age_sigma=pmag.age_to_BP(age_sigma,age_unit)
-            age_high=age+age_sigma
-            age_low=age-age_sigma
         if 'age_high' in sites.columns.values: 
             age_high=row['age_high'] 
             age_high=pmag.age_to_BP(age_high,age_unit)
         if 'age_low' in sites.columns.values: 
             age_low=row['age_low'] 
             age_low=pmag.age_to_BP(age_low,age_unit)
+        if 'age_sigma' in sites.columns.values: 
+            age_sigma=row['age_sigma'] 
+            age_sigma=pmag.age_to_BP(age_sigma,age_unit)
+            age_high=age+age_sigma
+            age_low=age-age_sigma
+            age_error_type='5'  #Magic is one sigma for all sigma ages
 
-        if age_high > age_low: # MagIC lets age_high and age_low be in any order. Fix that for GEOMAGIA 
+        if age_low > age_high: # MagIC lets age_high and age_low be in any order. Fix that for GEOMAGIA 
             temp=age_high
             age_high=age_low
             age_low=temp
-        if age == -1e9:
+        if age == -1e9:               # If only age_low and age_high are in the MagIC file then calculate the age.
             age=(age_high+age_low)/2
+            age_error='8'
         age_min=age_low
         age_max=age_high
 
-        if 'age_low' in sites.columns.values: 
-            age_low=row['age_low'] 
-            age_low=pmag.age_to_BP(age_low,age_unit)
-        if 'age_low' in sites.columns.values: 
-            age_low=row['age_low'] 
-            age_low=pmag.age_to_BP(age_low,age_unit)
-        if 'age_low' in sites.columns.values: 
-            age_low=row['age_low'] 
-            age_low=pmag.age_to_BP(age_low,age_unit)
+        age_error_type='5'  #Magone sigma for 
 
         lat=row['lat']
         lon=row['lon']
@@ -181,19 +180,19 @@ def main():
 #       Just give Max all the method codes for him to decide for now
         paleointensity_procedure=method_codes
         
-        alteration_monitor="NULL"
+        alteration_monitor="0"
         alteration_monitor=method_codes_to_geomagia(method_codes,'ALTERATION_MONIT_CORR')
-        multidomain_check="NULL" 
+        multidomain_check="0" 
         multidomain_check=method_codes_to_geomagia(method_codes,'MD_CHECKS')
-        anisotropy_correction="NULL"
+        anisotropy_correction="0"
         anisotropy_correction=method_codes_to_geomagia(method_codes,'ANISOTROPY_CORRECTION')
-        cooling_rate="NULL"
+        cooling_rate="0"
         cooling_rate=method_codes_to_geomagia(method_codes,'COOLING_RATE')
-        demag_method="NULL"
+        demag_method="0"
         demag_method=method_codes_to_geomagia(method_codes,'DM_METHODS')
-        demag_analysis="NULL"
+        demag_analysis="0"
         demag_analysis=method_codes_to_geomagia(method_codes,'DM_ANALYSIS')
-        specimen_shape="NULL"
+        specimen_shape="0"
         specimen_shape=method_codes_to_geomagia(method_codes,'SPECIMEN_TYPE_ID')
         
         materials="" 
@@ -203,7 +202,7 @@ def main():
         if ":" in geologic_types:
             gtypes=geologic_types.split(":")
             for gtype in gtypes:
-                materials=materials+pmag.vocab_convert(gtype,"geomagia")+"-"
+                materials=materials+pmag.vocab_convert(gtype,"geomagia")+":"
             materials=materials[:-1]
         else:
             materials=pmag.vocab_convert(geologic_types,"geomagia")
@@ -213,7 +212,7 @@ def main():
             gcodes=method_codes.split(":")
             for gcode in gcodes:
                 if "GM-" == gcode[:3]:
-                    geochron_codes=geochron_codes+pmag.vocab_convert(gcode,"geomagia")+"-"
+                    geochron_codes=geochron_codes+pmag.vocab_convert(gcode,"geomagia")+":"
             geochron_codes=geochron_codes[:-1]
         else:
             geochron_codes=pmag.vocab_convert(geochron_codes,"geomagia")
@@ -264,7 +263,7 @@ def main():
 
 # Could try and get sample names from samples table (using Contribution object) but just taking the list 
 # if it exists for now.
-        samples="0"
+        samples="-1"
         if 'samples' in sites.columns.values: 
             samples=row['samples']
 
@@ -272,50 +271,71 @@ def main():
 
         place_id="0"
         location=row['location']
-        place_id=locations.loc[location,'country']
+        if 'state_province' in locations.columns.values: 
+            place=locations.loc[location,'state_province']
+            if place != "":
+                place_id=pmag.vocab_convert(place,'GEOMAGIA')
         if place_id == "0":
-            place_id=locations.loc[location,'continent_ocean']
+            if 'country' in locations.columns.values: 
+                place=locations.loc[location,'country']
+                if place != "":
+                    place_id=pmag.vocab_convert(place,'GEOMAGIA')
+        if place_id == "0":
+            if 'continent_ocean' in locations.columns.values: 
+                place_id=locations.loc[location,'continent_ocean']
+                if place != "":
+                    place_id=pmag.vocab_convert(place,'GEOMAGIA')
 
         site=row['site']
         dt=dateutil.parser.parse(timestamp)
-        
+
+        description="-1" 
+        if 'description' in sites.columns.values: 
+            description=row['description'] 
 
         if age <= 50000:
-            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"-1","0",lat,lon,vadm,vadm_sigma,site_name,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,"NULL","-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,samples,place_id,0,location,site,"0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",id,dt.year,dt.month,contributor,"-1,-1,-1",sep=',')
+            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,samples,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1,",description,sep=',')
 
-    sys.exit()
-
-#    print("0",int_num_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,-1,0,lat,lon,vadm,vadm_sigma,site_name,PALEOINTENSITYCODE(pi_code),alteration_code,MD_CK_ID,anisotropy_correction,cooling_rate_corr,demag_method,0,0,demag_calc_dir_method,sample_char(SC-??),geologic_type(Sample material),NULL,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,dating_code,dir_n_samples1,dir_n_specimens,dir_n_total_specimens,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,sample_name_list,NUMBERTHATMATCHESCOUNTRYCODE(place_id),0,location_name,site_name(SITE_HORIZON),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,magic_id,upload_year,upload_month,contribution_name,-1,-1,-1);", sep=',')
-
+    #end for loop
 
 def method_codes_to_geomagia(magic_method_codes,geomagia_table):
     """
     Looks at the MagIC method code list and returns the correct GEOMAGIA code number depending 
-    on the method code list and the GEOMAGIA table specified. Returns NULL if no match.
+    on the method code list and the GEOMAGIA table specified. Returns O, GEOMAGIA's "Not specified" value, if no match.
 
     When mutiple codes are matched they are separated with -
 
     """
     codes=magic_method_codes
     geomagia=geomagia_table.lower()
-    geomagia_code="NULL"
+    geomagia_code='0'
    
     if geomagia=='alteration_monit_corr':
-        if  "DA-ALT-V" in codes:
+        if  "DA-ALT-V" or "LP-PI-ALT-PTRM" or "LP-PI-ALT-PMRM" in codes:
             geomagia_code='1' 
-        elif "DA-ALT-RS" in codes:
+        elif "LP-PI-ALT-SUSC" in codes:
+            geomagia_code='2' 
+        elif "DA-ALT-RS" or "LP-PI-ALT-AFARM" in codes:
             geomagia_code='3' 
+        elif "LP-PI-ALT-WALTON" in codes:
+            geomagia_code='4' 
+        elif "LP-PI-ALT-TANGUY" in codes:
+            geomagia_code='5' 
         elif "DA-ALT" in codes:
             geomagia_code='6'   #at end to fill generic if others don't exist
+        elif "LP-PI-ALT-FABIAN" in codes:
+            geomagia_code='7' 
+
     if geomagia=='md_checks':
         if ("LT-PTRM-MD" in codes) or ("LT-PMRM-MD" in codes):
-            geomagia_code='1-' 
+            geomagia_code='1:' 
         if ("LP-PI-BT-LT" in codes) or ("LT-LT-Z" in codes):
-            if "NULL" in geomagia: 
-                geomagia="2-"
+            if "0" in geomagia_code: 
+                geomagia_code="23:"
             else:
-                geomagia_code+='2-' 
+                geomagia_code+='2:' 
         geomagia_code=geomagia_code[:-1] 
+
     if geomagia=='anisotropy_correction':
         if  "DA-AC-AMS" in codes:
             geomagia_code='1' 
@@ -329,11 +349,13 @@ def method_codes_to_geomagia(magic_method_codes,geomagia_table):
             geomagia_code='6' 
         elif "DA-AC" in codes:  #at end to fill generic if others don't exist
             geomagia_code='5' 
+
     if geomagia=='cooling_rate':
         if  "DA-CR" in codes:  #all current CR codes but CR-EG are a 1 but may change in the future 
             geomagia_code='1' 
         if "DA-CR-EG" in codes:
             geomagia_code='2' 
+
     if geomagia=='dm_methods':
         if  "LP-DIR-AF" in codes:
             geomagia_code='1' 
@@ -351,6 +373,7 @@ def method_codes_to_geomagia(magic_method_codes,geomagia_table):
             geomagia_code='5' 
         elif "LT-M-Z" in codes:
             geomagia_code='5' 
+
     if geomagia=='dm_analysis':
         if  "DE-BFL" in codes:
             geomagia_code='1' 
@@ -360,6 +383,7 @@ def method_codes_to_geomagia(magic_method_codes,geomagia_table):
             geomagia_code='3' 
         elif "DE-NRM" in codes:
             geomagia_code='6' 
+
     if geomagia=='specimen_type_id':
         if  "SC-TYPE-CYC" in codes:
             geomagia_code='1' 

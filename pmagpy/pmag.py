@@ -11037,7 +11037,7 @@ def age_to_BP(age, age_unit):
     if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
         if age < 0:
             age = age+1  # to correct for there being no 0 AD
-        ageBP = age-1950
+        ageBP = 1950-age
     elif age_unit == "Years BP" or age_unit == "Years Cal BP":
         ageBP = age
     elif age_unit == "ka":
@@ -11271,6 +11271,7 @@ def vocab_convert(vocab, standard, key=''):
             standard_value = method_codes_to_geomagia[vocab]
     if standard_value == "":
         print("Magic vocab ", vocab, " not found for standard ", standard)
+        return(vocab)
     return standard_value
 
 
