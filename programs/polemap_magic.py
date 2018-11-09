@@ -219,6 +219,7 @@ def main():
             location = loc_list[ind]
             FIG["map_{}".format(ind)] = ind+2
             pmagplotlib.plot_init(FIG['map_{}'.format(ind)], 6, 6)
+            pmagplotlib.plot_map(FIG['map_{}'.format(ind)], [90.], [0.], base_Opts)
             # if with baseOpts, lat/lon don't show
             # if with Opts, grid lines don't show
             #pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
