@@ -294,7 +294,7 @@ def main():
             description=row['description'] 
 
         if age <= 50000:
-            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,samples,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1,",description,sep=',')
+            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,samples,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1",description,sep=',')
 
     #end for loop
 
