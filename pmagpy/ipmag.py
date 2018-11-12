@@ -10267,3 +10267,61 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         print("No location information  for ouput.")
         info_file = None
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
+
+def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',landscape=False,
+                  longtable=False,output_dir_path='./',input_dir_path='./',latex=False):
+    """
+    Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
+    Default output format is an Excel file. 
+    typeset with latex on your own computer.  
+    
+    Parameters
+    ___________
+    spec_file : str
+         input file name
+    input_dir_path : str
+          path for intput file if different from output_dir_path (default is same)
+    latex : boolean
+           if True, output file should be latex formatted table with a .tex ending
+    longtable : boolean
+           if True output latex longtable
+    landscape : boolean
+           if True output latex landscape table
+    Return :
+        [True,False],  data table error type : True if successful
+        
+    Effects : 
+        writes cvs or latex formatted tables for use in publications
+    """
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    try:
+        fname = pmag.resolve_file_name(spec_file, input_dir_path)
+    except IOError:
+        print("bad specimen file name")
+        return False, "bad specimen file name"
+    spec_df=pd.read_csv(fname,sep='\t',header=1)
+    spec_df.dropna('columns',how='all',inplace=True)
+    spec_df.dropna(subset=['int_abs'],inplace=True)
+    if len(spec_df)>0:
+        table_df=map_magic.convert_specimen_dm3_table(spec_df)
+        out_file=pmag.resolve_file_name(output_file,output_dir_path)
+        if latex:
+            info_out = open(out_file, 'w+', errors="backslashreplace")
+            info_out.write('\documentclass{article}\n')
+            info_out.write('\\usepackage{booktabs}\n')
+            if landscape:info_out.write('\\usepackage{lscape}')
+            if longtable:info_out.write('\\usepackage{longtable}\n')
+            info_out.write('\\begin{document}\n')
+            if landscape:info_out.write('\\begin{landscape}\n')
+            info_out.write(table_df.to_latex(index=False,longtable=longtable,
+                                            escape=True,multicolumn=False))
+            if landscape:info_out.write('\end{landscape}\n')
+            info_out.write('\end{document}\n')
+            info_out.close()
+        else:
+            table_df.to_excel(out_file,index=False)
+
+    else: 
+        print ("No specimen data   for ouput.")
+
