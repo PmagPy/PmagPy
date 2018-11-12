@@ -10269,7 +10269,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
 
 def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',landscape=False,
-                  longtable=False,output_dir_path='./',input_dir_path='./',latex=False):
+                  longtable=False,output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
     Default output format is an Excel file. 
@@ -10291,7 +10291,7 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
         [True,False],  data table error type : True if successful
         
     Effects : 
-        writes cvs or latex formatted tables for use in publications
+        writes xls or latex formatted tables for use in publications
     """
     if not input_dir_path:
         input_dir_path = output_dir_path
@@ -10324,8 +10324,9 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
 
     else: 
         print ("No specimen data   for ouput.")
+
 def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
-                  output_dir_path='./',input_dir_path='./',latex=False):
+                  output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
     Default output format is an Excel file. 
@@ -10344,7 +10345,7 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
         [True,False],  data table error type : True if successful
         
     Effects : 
-        writes cvs or latex formatted tables for use in publications
+        writes xls or latex formatted tables for use in publications
     """
     if not input_dir_path:
         input_dir_path = output_dir_path
@@ -10363,12 +10364,12 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
         crit_df['column']=s[1]
         crit_df=crit_df[['table','column','criterion_value','criterion_operation']]
 
-        crit_df.columns=['table','statistic','threshold','operation']
+        crit_df.columns=['Table','Statistic','Threshold','Operation']
 
         if latex:
-            crit_df.loc[crit_df['operation'].str.contains('<'),'operation']='maximum'
-            crit_df.loc[crit_df['operation'].str.contains('>'),'operation']='minimum'
-            crit_df.loc[crit_df['operation']=='=','operation']='equal to'
+            crit_df.loc[crit_df['Operation'].str.contains('<'),'operation']='maximum'
+            crit_df.loc[crit_df['Operation'].str.contains('>'),'operation']='minimum'
+            crit_df.loc[crit_df['Operation']=='=','operation']='equal to'
             info_out = open(out_file, 'w+', errors="backslashreplace")
             info_out.write('\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
