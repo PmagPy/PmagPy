@@ -452,7 +452,7 @@ def convert_specimen_dm3_table(spec_df):
         dm3_columns=list(meas_group)+list(pint_group)+list(arai_group)
         dm3_columns = filter(lambda x: '_rel' not in x, dm3_columns)
     # apply to specimen dataframe
-        meas_group_columns=list(spec_df.columns.intersection(meas_group))
+        meas_group_columns=['meas_step_min','meas_step_max','meas_step_unit']
         pint_group_columns=list(spec_df.columns.intersection(pint_group))
         arai_group_columns=list(spec_df.columns.intersection(arai_group))
         columns=['specimen','sample']+meas_group_columns+pint_group_columns+arai_group_columns
@@ -467,16 +467,20 @@ def convert_specimen_dm3_table(spec_df):
                 spec_df.loc[spec_df['meas_step_unit']=='T',el]=1e3*spec_df[el]
             spec_df.loc[spec_df['meas_step_unit']=='K','meas_step_unit']='C'
             spec_df.loc[spec_df['meas_step_unit']=='T','meas_step_unit']='mT'
+            spec_df['meas_step_min']=spec_df['meas_step_min'].astype('int')
+            spec_df['meas_step_max']=spec_df['meas_step_max'].astype('int')
         dm3_columns=['meas_step_min', 'meas_step_max', 'meas_step_unit', 'int_abs', 'int_abs_sigma', 
-                 'int_abs_sigma_perc', 'int_n_measurements', 'int_corr', 'int_corr_cooling_rate', 
+                 'int_abs_sigma_perc', 'int_n_measurements', 'int_corr','int_corr_cooling_rate', 
                  'int_corr_aniso', 'int_corr_nlt', 'int_corr_arm', 'int_viscosity_index', 'int_treat_dc_field', 
                  'int_b', 'int_b_sigma', 'int_b_beta', 'int_rsc', 'int_f', 'int_fvds', 'int_frac', 
                  'int_g', 'int_gmax', 'int_q', 'int_w', 'int_k', 'int_k_sse', 'int_k_prime', 'int_k_prime_sse', 
                  'int_scat', 'int_r2_corr', 'int_r2_det', 'int_z', 'int_z_md']
-        table_columns=['Min','Max','Unit','B (uT)','sigma','percent','N','corr','CR','Aniso.','NLT','AARM','VI','Lab Field',
+        table_columns=['Min','Max','Units','B (uT)','sigma','percent','N','c/u','CR','Aniso.','NLT','AARM','VI','Lab Field',
                    'b','b sigma','beta','R2','f','fvds','frac','g','gap max','q','w','k','k sse','k prime','k prime sse',
                    'scat','r2 corr','r2 det','Z','Z md']
         spec_mapping=dict(list(zip(dm3_columns,table_columns)))
         spec_df_out = spec_df.rename(columns=spec_mapping)
+        if 'N' in spec_df_out.columns:spec_df_out['N']=spec_df_out['N'].astype('int')
+        if 'Lab Field' in spec_df_out.columns:spec_df_out['Lab Field']=spec_df_out['Lab Field'].round().astype('int')
         return spec_df_out
 
