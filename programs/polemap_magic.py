@@ -71,16 +71,19 @@ def main():
     if '-rev' in sys.argv:
         flip = 1
         ind = sys.argv.index('-rev')
-        rsym = (sys.argv[ind + 1])
-        rsize = int(sys.argv[ind + 2])
+        try:
+            rsym = (sys.argv[ind + 1])
+            rsize = int(sys.argv[ind + 2])
+        except (IndexError, ValueError):
+            flip, rsym, rsize = 1, "g^", 40
     else:
-        flip, rsym, rsize = 0, "g^", 8
+        flip, rsym, rsize = 0, "g^", 40
     if '-sym' in sys.argv:
         ind = sys.argv.index('-sym')
         sym = (sys.argv[ind + 1])
         size = int(sys.argv[ind + 2])
     else:
-        sym, size = 'ro', 8
+        sym, size = 'ro', 40
     if '-eye' in sys.argv:
         ind = sys.argv.index('-eye')
         lat_0 = float(sys.argv[ind + 1])
@@ -185,8 +188,9 @@ def main():
 
     locations = locations.strip(':')
     Opts = {'latmin': -90, 'latmax': 90, 'lonmin': 0., 'lonmax': 360.,
-            'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'bs',
-            'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
+            'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'b+',
+            'symsize': 40, 'pltgrid': 0, 'res': res, 'boundinglat': 0.,
+            'edgecolor': 'face'}
     Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
                        'countries': 0, 'ocean': 1, 'fancy': fancy}
     base_Opts = Opts.copy()
@@ -200,10 +204,28 @@ def main():
     if len(dates) > 0:
         Opts['names'] = dates
     if len(lats) > 0:
-        # add the lats and lons of the poles
-        pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
-    Opts['names'] = []
+        pole_lats = []
+        pole_lons = []
+        for num, lat in enumerate(lats):
+            lon = lons[num]
+            if lat > 0:
+                pole_lats.append(lat)
+                pole_lons.append(lon)
+        # plot the lats and lons of the poles
+        pmagplotlib.plot_map(FIG['map'], pole_lats, pole_lons, Opts)
 
+    # do reverse poles
+    if len(rlats) > 0:
+        reverse_Opts = Opts.copy()
+        reverse_Opts['sym'] = rsym
+        reverse_Opts['symsize'] = rsize
+        reverse_Opts['edgecolor'] = 'black'
+        # plot the lats and lons of the reverse poles
+        pmagplotlib.plot_map(FIG['map'], rlats, rlons, reverse_Opts)
+
+
+
+    Opts['names'] = []
     titles = {}
     files = {}
 
@@ -260,11 +282,6 @@ def main():
         files['map'] = '{}_POLE_map.{}'.format(locations, fmt)
 
     #
-    if len(rlats) > 0:
-        Opts['sym'] = rsym
-        Opts['symsize'] = rsize
-        # add the lats and lons of the poles
-        pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
     if plot == 0 and not set_env.IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
@@ -299,8 +316,12 @@ def main():
                 num_locs = len(con.tables['locations'].df.index.unique())
                 loc_string = "{} location{}".format(num_locs, 's' if num_locs > 1 else '')
                 num_lats = len([lat for lat in lats if lat > 0])
+                num_rlats = len(rlats)
+                rpole_string = ""
+                if num_rlats:
+                    rpole_string = "{} reverse pole{}".format(num_rlats, 's' if num_rlats > 1 else '')
                 pole_string = "{} pole{}".format(num_lats, 's' if num_lats > 1 else '')
-            titles['map'] = "MagIC contribution {}\n {}, {}".format(con_id, loc_string, pole_string)
+            titles['map'] = "MagIC contribution {}\n {}, {}, {}".format(con_id, loc_string, pole_string, rpole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:

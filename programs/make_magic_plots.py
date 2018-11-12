@@ -451,7 +451,7 @@ def main():
         poles = pmag.get_dictitem(
             poles, 'pole_lon', "", 'F')  # are there any poles?
         if len(poles) > 0:  # YES!
-            CMD = 'polemap_magic.py -sav -fmt png'
+            CMD = 'polemap_magic.py -sav -fmt png -rev gv 40'
             print(CMD)
             info_log(CMD, "all locations", "polemap_magic.py")
             os.system(CMD)

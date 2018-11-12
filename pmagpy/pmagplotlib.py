@@ -3341,8 +3341,8 @@ def plot_map(fignum, lats, lons, Opts):
         symsize = Opts['symsize']
     if Opts['sym'][-1] != '-':  # just plot points
         color, symbol = Opts['sym'][0], Opts['sym'][1]
-        ax.scatter(lons, lats, c=color, marker=symbol,
-                   transform=ccrs.Geodetic())
+        ax.scatter(lons, lats, s=Opts['symsize'], c=color, marker=symbol,
+                   transform=ccrs.Geodetic(), edgecolors=Opts['edgecolor'])
         if prn_name == 1:
             print('labels not yet implemented in plot_map')
             # for pt in range(len(lats)):
