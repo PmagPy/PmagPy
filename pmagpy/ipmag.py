@@ -10324,4 +10324,63 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
 
     else: 
         print ("No specimen data   for ouput.")
+def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
+                  output_dir_path='./',input_dir_path='./',latex=False):
+    """
+    Extracts criteria  from a MagIC 3.0 format criteria.txt file.
+    Default output format is an Excel file. 
+    typeset with latex on your own computer.  
+    
+    Parameters
+    ___________
+    crit_file : str
+         input file name
+    input_dir_path : str
+          path for intput file if different from output_dir_path (default is same)
+    latex : boolean
+           if True, output file should be latex formatted table with a .tex ending
+           
+    Return :
+        [True,False],  data table error type : True if successful
+        
+    Effects : 
+        writes cvs or latex formatted tables for use in publications
+    """
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    try:
+        fname = pmag.resolve_file_name(crit_file, input_dir_path)
+    except IOError:
+        print("bad criteria file name")
+        return False, "bad site file name"
+    crit_df=pd.read_csv(fname,sep='\t',header=1)
+    if len(crit_df)>0:
+        out_file=pmag.resolve_file_name(output_file,output_dir_path)
 
+
+        s=crit_df['table_column'].str.split(pat='.',expand=True)
+        crit_df['table']=s[0]
+        crit_df['column']=s[1]
+        crit_df=crit_df[['table','column','criterion_value','criterion_operation']]
+
+        crit_df.columns=['table','statistic','threshold','operation']
+
+        if latex:
+            crit_df.loc[crit_df['operation'].str.contains('<'),'operation']='maximum'
+            crit_df.loc[crit_df['operation'].str.contains('>'),'operation']='minimum'
+            crit_df.loc[crit_df['operation']=='=','operation']='equal to'
+            info_out = open(out_file, 'w+', errors="backslashreplace")
+            info_out.write('\documentclass{article}\n')
+            info_out.write('\\usepackage{booktabs}\n')
+            #info_out.write('\\usepackage{longtable}\n')
+            info_out.write('\\begin{document}')
+            info_out.write(crit_df.to_latex(index=False,longtable=False,
+                                            escape=True,multicolumn=False))
+            info_out.write('\end{document}\n')
+            info_out.close()
+        else:
+            crit_df.to_excel(out_file,index=False)
+
+    else: 
+        print ("No criteria   for ouput.")
+       
