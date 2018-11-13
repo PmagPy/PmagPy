@@ -36,14 +36,14 @@ def main():
              moll = molweide
              merc = mercator
         -sym SYM SIZE: choose a symbol and size, examples:
-            ro 5 : small red circles
-            bs 10 : intermediate blue squares
-            g^ 20 : large green triangles
+            ro 20 : small red circles
+            bs 30 : intermediate blue squares
+            g^ 40 : large green triangles
         -ell  plot dp/dm or a95 ellipses
         -rev RSYM RSIZE : flip reverse poles to normal antipode
         -S:  plot antipodes of all poles
         -age : plot the ages next to the poles
-        -crd [g,t] : choose coordinate system, default is to plot all location poles
+        -crd [g,t] : choose coordinate system, default is to prioritize tilt-corrected
         -fmt [pdf, png, eps...] specify output format, default is pdf
         -sav  save and quit
     DEFAULTS
@@ -51,8 +51,8 @@ def main():
         res:  c
         prj: ortho
         ELAT,ELON = 0,0
-        SYM SIZE: ro 8
-        RSYM RSIZE: g^ 8
+        SYM SIZE: ro 40
+        RSYM RSIZE: g^ 40
 
     """
     if '-h' in sys.argv:
@@ -91,8 +91,6 @@ def main():
     else:
         lat_0, lon_0 = 90., 0.
     crd = pmag.get_named_arg("-crd", "")
-    coord_dict = {'g': 0, 't': 100}
-    coord = coord_dict[crd] if crd else ""
     results_file = pmag.get_named_arg("-f", "locations.txt")
 
     con = cb.Contribution(dir_path, single_file=results_file)
@@ -122,8 +120,21 @@ def main():
     Results = pole_df[cond1 & cond2]
     # don't plot identical poles twice
     Results.drop_duplicates(subset=['pole_lat', 'pole_lon', 'location'], inplace=True)
-    # use tilt correction
-    if coord and 'dir_tilt_correction' in Results.columns:
+    # use tilt correction if available
+    # prioritize tilt-corrected poles
+    if 'dir_tilt_correction' in Results.columns:
+        if not crd:
+            coords = Results['dir_tilt_correction'].unique()
+            if 100. in coords:
+                crd = 't'
+            elif 0. in coords:
+                crd = 'g'
+            else:
+                crd = ''
+    coord_dict = {'g': 0, 't': 100}
+    coord = coord_dict[crd] if crd else ""
+    # filter results by dir_tilt_correction if available
+    if (coord or coord==0) and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
     loc_list = Results['location'].values
@@ -162,7 +173,6 @@ def main():
             else:
                 lats.append(lat)
                 lons.append(lon)
-
         ppars = []
         ppars.append(lon)
         ppars.append(lat)
@@ -173,7 +183,7 @@ def main():
             ell2 = float(row['pole_dp'])
         if 'pole_alpha95' in list(row.keys()) and row['pole_alpha95']:
             ell1, ell2 = float(row['pole_alpha95']), float(row['pole_alpha95'])
-        if ell1 and ell2:
+        if ell1 and ell2 and lons:
             ppars = []
             ppars.append(lons[-1])
             ppars.append(lats[-1])
@@ -223,8 +233,6 @@ def main():
         # plot the lats and lons of the reverse poles
         pmagplotlib.plot_map(FIG['map'], rlats, rlons, reverse_Opts)
 
-
-
     Opts['names'] = []
     titles = {}
     files = {}
@@ -242,17 +250,19 @@ def main():
             FIG["map_{}".format(ind)] = ind+2
             pmagplotlib.plot_init(FIG['map_{}'.format(ind)], 6, 6)
             pmagplotlib.plot_map(FIG['map_{}'.format(ind)], [90.], [0.], base_Opts)
-            # if with baseOpts, lat/lon don't show
-            # if with Opts, grid lines don't show
-            #pmagplotlib.plot_map(ind+2, [90], [0.], base_Opts)
             pmagplotlib.plot_map(ind+2, [lat], [lon], Opts)
             titles["map_{}".format(ind)] = location
-            fname = "LO:_{}{}_TY:_POLE_map_.{}".format(location, polarity, fmt)
-            fname_short = "LO:_{}{}_TY:_POLE_map".format(location, polarity)
+            if crd:
+                fname = "LO:_{}{}_TY:_POLE_map_{}.{}".format(location, polarity, crd, fmt)
+                fname_short = "LO:_{}{}_TY:_POLE_map_{}".format(location, polarity, crd)
+            else:
+                fname = "LO:_{}{}_TY:_POLE_map.{}".format(location, polarity, fmt)
+                fname_short = "LO:_{}{}_TY:_POLE_map".format(location, polarity)
+
             # don't allow identically named files
             if files:
                 file_values = files.values()
-                file_values_short = ["_".join(fname.rsplit('.')[0].rsplit('_')[:-1]) for fname in file_values]
+                file_values_short = [fname.rsplit('.')[0] for fname in file_values]
                 if fname_short in file_values_short:
                     for val in [str(n) for n in range(1, 10)]:
                         fname = fname_short + "_{}.".format(val) + fmt
@@ -260,7 +270,6 @@ def main():
                             break
                 else:
                     fname = fname_short + "_." + fmt
-
             files["map_{}".format(ind)] = fname
 
     # truncate location names so that ultra long filenames are not created
@@ -273,13 +282,13 @@ def main():
             # try to get contribution id
             if 'id' in con.tables['contribution'].df.columns:
                 con_id = con.tables['contribution'].df.iloc[0]['id']
-            files['map'] = 'MC:_{}_TY:_POLE_map.{}'.format(con_id, fmt)
+            files['map'] = 'MC:_{}_TY:_POLE_map_{}.{}'.format(con_id, crd, fmt)
         else:
             # no contribution id available
-            files['map'] = 'LO:_' + locations + '_TY:_POLE_map.' + fmt
+            files['map'] = 'LO:_' + locations + '_TY:_POLE_map_{}.{}'.format(crd, fmt)
     else:
         # use readable naming convention for non-database use
-        files['map'] = '{}_POLE_map.{}'.format(locations, fmt)
+        files['map'] = '{}_POLE_map_{}.{}'.format(locations, crd, fmt)
 
     #
     if plot == 0 and not set_env.IS_WIN:
@@ -321,7 +330,7 @@ def main():
                 if num_rlats:
                     rpole_string = "{} reverse pole{}".format(num_rlats, 's' if num_rlats > 1 else '')
                 pole_string = "{} pole{}".format(num_lats, 's' if num_lats > 1 else '')
-            titles['map'] = "MagIC contribution {}\n {}, {}, {}".format(con_id, loc_string, pole_string, rpole_string)
+            titles['map'] = "MagIC contribution {}\n {} {} {}".format(con_id, loc_string, pole_string, rpole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:
