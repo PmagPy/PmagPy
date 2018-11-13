@@ -268,8 +268,6 @@ def main():
                         fname = fname_short + "_{}.".format(val) + fmt
                         if fname not in file_values:
                             break
-                else:
-                    fname = fname_short + "_." + fmt
             files["map_{}".format(ind)] = fname
 
     # truncate location names so that ultra long filenames are not created
