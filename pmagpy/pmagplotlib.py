@@ -3184,7 +3184,8 @@ def plot_map(fignum, lats, lons, Opts):
                      'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
                      'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
                      'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet',
-                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0}}
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0},
+                     'edgecolor': 'face'}
     for key in Opts_defaults.keys():
         if key not in Opts.keys() and key != 'details':
             Opts[key] = Opts_defaults[key]
