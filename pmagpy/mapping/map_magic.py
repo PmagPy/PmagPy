@@ -440,47 +440,202 @@ def convert_aniso(direction,AniSpec):
         return AniRec
 
 
-def convert_specimen_dm3_table(spec_df):
-        from pmagpy import data_model3 as dm3
-    # get the data model
-        dm=dm3.DataModel()
-    # get the specimen absolute intensity column headers
-        meas_group=['meas_step_min','meas_step_max','meas_step_unit']
-        pint_group=dm.get_group_headers('specimens','Paleointensity')
-        arai_group=dm.get_group_headers('specimens','Paleointensity Arai Statistics')
-    # filter out the relative intensity stuff
-        dm3_columns=list(meas_group)+list(pint_group)+list(arai_group)
-        dm3_columns = filter(lambda x: '_rel' not in x, dm3_columns)
-    # apply to specimen dataframe
-        meas_group_columns=['meas_step_min','meas_step_max','meas_step_unit']
-        pint_group_columns=list(spec_df.columns.intersection(pint_group))
-        arai_group_columns=list(spec_df.columns.intersection(arai_group))
-        columns=['specimen','sample']+meas_group_columns+pint_group_columns+arai_group_columns
-        spec_df=spec_df[columns]
-        muT_list=['int_abs','int_abs_sigma','int_treat_dc_field']
-        meas_list=['meas_step_min','meas_step_max']
-        for el in muT_list:
-            if el in columns:spec_df[el]=1e6*spec_df[el]
-        if 'meas_step_unit' in columns:
-            for el in meas_list:
-                spec_df.loc[spec_df['meas_step_unit']=='K',el]=spec_df[el]-273
-                spec_df.loc[spec_df['meas_step_unit']=='T',el]=1e3*spec_df[el]
-            spec_df.loc[spec_df['meas_step_unit']=='K','meas_step_unit']='C'
-            spec_df.loc[spec_df['meas_step_unit']=='T','meas_step_unit']='mT'
-            spec_df['meas_step_min']=spec_df['meas_step_min'].astype('int')
-            spec_df['meas_step_max']=spec_df['meas_step_max'].astype('int')
-        dm3_columns=['meas_step_min', 'meas_step_max', 'meas_step_unit', 'int_abs', 'int_abs_sigma', 
-                 'int_abs_sigma_perc', 'int_n_measurements', 'int_corr','int_corr_cooling_rate', 
-                 'int_corr_aniso', 'int_corr_nlt', 'int_corr_arm', 'int_viscosity_index', 'int_treat_dc_field', 
-                 'int_b', 'int_b_sigma', 'int_b_beta', 'int_rsc', 'int_f', 'int_fvds', 'int_frac', 
-                 'int_g', 'int_gmax', 'int_q', 'int_w', 'int_k', 'int_k_sse', 'int_k_prime', 'int_k_prime_sse', 
-                 'int_scat', 'int_r2_corr', 'int_r2_det', 'int_z', 'int_z_md']
-        table_columns=['Min','Max','Units','B (uT)','sigma','percent','N','c/u','CR','Aniso.','NLT','AARM','VI','Lab Field',
-                   'b','b sigma','beta','R2','f','fvds','frac','g','gap max','q','w','k','k sse','k prime','k prime sse',
-                   'scat','r2 corr','r2 det','Z','Z md']
-        spec_mapping=dict(list(zip(dm3_columns,table_columns)))
-        spec_df_out = spec_df.rename(columns=spec_mapping)
-        if 'N' in spec_df_out.columns:spec_df_out['N']=spec_df_out['N'].astype('int')
-        if 'Lab Field' in spec_df_out.columns:spec_df_out['Lab Field']=spec_df_out['Lab Field'].round().astype('int')
-        return spec_df_out
+def convert_site_dm3_table_intensity(sites_df):
+    """
+    Convert MagIC site headers to short/readable
+    headers for a figure (used by ipmag.sites_extract)
+    Intensity data only.
 
+    Parameters
+    ----------
+    sites_df : pandas DataFrame
+        sites information
+
+    Returns
+    ---------
+    int_df : pandas DataFrame
+        intensity site data with easily readable headers
+    """
+    # now for the intensities
+    has_vadms, has_vdms = False, False
+    if 'int_abs' not in sites_df:
+        sites_df['int_abs'] = None
+    if 'int_n_samples' not in sites_df:
+        sites_df['int_n_samples'] = None
+    int_df = sites_df.copy().dropna(subset=['int_abs'])
+    int_df['int_n_samples'] = int_df['int_n_samples'].values.astype('int')
+    if len(int_df) > 0:
+        int_df['int_abs_uT'] = 1e6*int_df.int_abs.values  # convert to uT
+        int_df['int_abs_sigma_uT'] = 1e6 * \
+            int_df.int_abs_sigma.values  # convert to uT
+        int_df['int_abs_uT'] = int_df['int_abs_uT'].values.astype('int')
+        int_df['int_abs_sigma_uT'] = int_df['int_abs_sigma_uT'].values.astype(
+            'int')
+        int_df['int_abs_sigma_perc'] = int_df['int_abs_sigma_perc'].values.astype(
+            'int')
+
+        IntCols = ["Site", "N", "B", "B sigma", "sigma (%)"]
+        if 'vadm' in int_df.columns:
+            test_vadm = int_df.dropna(subset=['vadm'])
+            if len(test_vadm) > 0:
+                has_vadms = True
+
+        if 'vdm' in int_df.columns:
+            test_vdm = int_df.dropna(subset=['vdm'])
+            if len(test_vdm) > 0:
+                has_vdms = True
+
+        if has_vadms:
+            IntCols.append("VADM")
+            IntCols.append("VADM sigma")
+        if has_vdms:
+            IntCols.append("VDM")
+            IntCols.append("VDM sigma")
+        if not has_vadms and not has_vdms:
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc']]
+        if has_vadms and not has_vdms:
+            int_df.sort_values(by=['site', 'vadm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
+
+            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_ZAm2_sigma']]
+        if not has_vadms and has_vdms:
+            int_df.sort_values(by=['site', 'vdm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
+            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values()
+            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values()
+
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vdm_ZAm2', 'vdm_ZAm2_sigma']]
+        if has_vadms and has_vdms:
+            int_df.sort_values(by=['site', 'vadm'],
+                               ascending=False, inplace=True)
+            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
+            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
+            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
+            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values
+            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values
+            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
+                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_sigma_ZAm2', 'vdm_ZAm2', 'vdm_sigma_ZAm2']]
+        int_df.columns = IntCols
+        int_df.sort_values(by=['Site'], inplace=True, ascending=True)
+        int_df.fillna(value='', inplace=True)
+    return int_df
+
+
+
+def convert_site_dm3_table_directions(sites_df):
+    """
+    Convert MagIC site headers to short/readable
+    headers for a figure (used by ipmag.sites_extract)
+    Directional table only.
+
+    Parameters
+    ----------
+    sites_df : pandas DataFrame
+        sites information
+
+    Returns
+    ---------
+    dir_df : pandas DataFrame
+        directional site data with easily readable headers
+    """
+    # directional
+    # do directional stuff first
+    # a few things need cleaning up
+    dir_df = sites_df.copy().dropna(
+        subset=['dir_dec', 'dir_inc'])  # delete blank directions
+    # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
+    # directions put in by accident on intensity rows
+    if len(dir_df) > 0:
+
+        DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95"]
+
+        for col in ['dir_n_samples', 'dir_tilt_correction']:
+            if col in dir_df.columns:
+                dir_df[col] = dir_df[col].values.astype('int')
+        #dir_df['dir_n_samples'] = dir_df['dir_n_samples'].values.astype('int')
+        #dir_df['dir_tilt_correction'] = dir_df['dir_tilt_correction'].values.astype(
+        #    'int')
+
+        columns = ['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
+                   'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95', 'vgp_lat', 'vgp_lon']
+        columns = dir_df.columns.intersection(columns)
+        has_vgps = False
+        if 'vgp_lat' in dir_df.columns:
+            test_vgp = dir_df.dropna(subset=['vgp_lat', 'vgp_lon'])
+            if len(test_vgp) > 0:
+                has_vgps = True
+        if has_vgps:
+            dir_df['vgp_lat_abs'] = dir_df.vgp_lat.abs()
+            dir_df.sort_values(by=['site', 'vgp_lat_abs'],
+                               ascending=False, inplace=True)
+            dir_df = dir_df[columns]
+    # this will take the first record for each site's directions (including VGP lat if present)
+            DirCols.append("VGP Lat")
+            DirCols.append("VGP Long")
+            dir_df.drop_duplicates(
+                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
+        else:
+            dir_df.drop_duplicates(
+                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
+            dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
+                             'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95']]
+        dir_df.columns = DirCols
+        dir_df.sort_values(by=['Site'], inplace=True, ascending=True)
+    return dir_df
+
+
+
+def convert_specimen_dm3_table(spec_df):
+    """
+    Convert MagIC specimen headers to short/readable
+    headers for a figure (used by ipmag.specimens_extract)
+    """
+    from pmagpy import data_model3 as dm3
+    # get the data model
+    dm=dm3.DataModel()
+    # get the specimen absolute intensity column headers
+    meas_group=['meas_step_min','meas_step_max','meas_step_unit']
+    pint_group=dm.get_group_headers('specimens','Paleointensity')
+    arai_group=dm.get_group_headers('specimens','Paleointensity Arai Statistics')
+    # filter out the relative intensity stuff
+    dm3_columns=list(meas_group)+list(pint_group)+list(arai_group)
+    dm3_columns = filter(lambda x: '_rel' not in x, dm3_columns)
+    # apply to specimen dataframe
+    meas_group_columns=['meas_step_min','meas_step_max','meas_step_unit']
+    pint_group_columns=list(spec_df.columns.intersection(pint_group))
+    arai_group_columns=list(spec_df.columns.intersection(arai_group))
+    columns=['specimen','sample']+meas_group_columns+pint_group_columns+arai_group_columns
+    spec_df=spec_df.copy()[columns]
+    muT_list=['int_abs','int_abs_sigma','int_treat_dc_field']
+    meas_list=['meas_step_min','meas_step_max']
+    for el in muT_list:
+        if el in columns:spec_df[el]=1e6*spec_df[el]
+    if 'meas_step_unit' in columns:
+        for el in meas_list:
+            spec_df.loc[spec_df['meas_step_unit']=='K',el]=spec_df[el]-273
+            spec_df.loc[spec_df['meas_step_unit']=='T',el]=1e3*spec_df[el]
+        spec_df.loc[spec_df['meas_step_unit']=='K','meas_step_unit']='C'
+        spec_df.loc[spec_df['meas_step_unit']=='T','meas_step_unit']='mT'
+        spec_df['meas_step_min']=spec_df['meas_step_min'].astype('int')
+        spec_df['meas_step_max']=spec_df['meas_step_max'].astype('int')
+    dm3_columns=['meas_step_min', 'meas_step_max', 'meas_step_unit', 'int_abs', 'int_abs_sigma',
+             'int_abs_sigma_perc', 'int_n_measurements', 'int_corr','int_corr_cooling_rate',
+             'int_corr_aniso', 'int_corr_nlt', 'int_corr_arm', 'int_viscosity_index', 'int_treat_dc_field',
+             'int_b', 'int_b_sigma', 'int_b_beta', 'int_rsc', 'int_f', 'int_fvds', 'int_frac',
+             'int_g', 'int_gmax', 'int_q', 'int_w', 'int_k', 'int_k_sse', 'int_k_prime', 'int_k_prime_sse',
+             'int_scat', 'int_r2_corr', 'int_r2_det', 'int_z', 'int_z_md']
+    table_columns=['Min','Max','Units','B (uT)','sigma','percent','N','c/u','CR','Aniso.','NLT','AARM','VI','Lab Field',
+               'b','b sigma','beta','R2','f','fvds','frac','g','gap max','q','w','k','k sse','k prime','k prime sse',
+               'scat','r2 corr','r2 det','Z','Z md']
+    spec_mapping=dict(list(zip(dm3_columns,table_columns)))
+    spec_df_out = spec_df.rename(columns=spec_mapping)
+    if 'N' in spec_df_out.columns:spec_df_out['N']=spec_df_out['N'].astype('int')
+    if 'Lab Field' in spec_df_out.columns:spec_df_out['Lab Field']=spec_df_out['Lab Field'].round().astype('int')
+    return spec_df_out

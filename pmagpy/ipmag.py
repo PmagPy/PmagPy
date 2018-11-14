@@ -10085,43 +10085,9 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         print("bad site file name")
         return False, "bad site file name"
     sites_df = pd.read_csv(fname, sep='\t', header=1)
-# do directional stuff first
-    # a few things need cleaning up
-    dir_df = sites_df.copy().dropna(
-        subset=['dir_dec', 'dir_inc'])  # delete blank directions
-    # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
-    # directions put in by accident on intensity rows
-    if len(dir_df) > 0:
-
-        DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95"]
-
-        dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
-        dir_df['dir_n_samples'] = dir_df['dir_n_samples'].values.astype('int')
-        dir_df['dir_tilt_correction'] = dir_df['dir_tilt_correction'].values.astype(
-            'int')
-        has_vgps = False
-        if 'vgp_lat' in dir_df.columns:
-            test_vgp = dir_df.dropna(subset=['vgp_lat', 'vgp_lon'])
-            if len(test_vgp) > 0:
-                has_vgps = True
-        if has_vgps:
-            dir_df['vgp_lat_abs'] = dir_df.vgp_lat.abs()
-            dir_df.sort_values(by=['site', 'vgp_lat_abs'],
-                               ascending=False, inplace=True)
-            dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
-                             'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95', 'vgp_lat', 'vgp_lon']]
-    # this will take the first record for each site's directions (including VGP lat if present)
-            DirCols.append("VGP Lat")
-            DirCols.append("VGP Long")
-            dir_df.drop_duplicates(
-                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
-        else:
-            dir_df.drop_duplicates(
-                subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
-            dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
-                             'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95']]
-        dir_df.columns = DirCols
-        dir_df.sort_values(by=['Site'], inplace=True, ascending=True)
+    dir_df = map_magic.convert_site_dm3_table_directions(sites_df)
+    dir_file = pmag.resolve_file_name(directions_file, output_dir_path)
+    if len(dir_df):
         if latex:
             if dir_file.endswith('.xls'):
                 dir_file = dir_file[:-4] + ".tex"
@@ -10139,77 +10105,9 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
     else:
         print("No directional data for ouput.")
         dir_file = None
-# now for the intensities
-    has_vadms, has_vdms = False, False
-    if 'int_abs' not in sites_df:
-        sites_df['int_abs'] = None
-    if 'int_n_samples' not in sites_df:
-        sites_df['int_n_samples'] = None
-    int_df = sites_df.copy().dropna(subset=['int_abs'])
-    int_df['int_n_samples'] = int_df['int_n_samples'].values.astype('int')
-    if len(int_df) > 0:
-        int_df['int_abs_uT'] = 1e6*int_df.int_abs.values  # convert to uT
-        int_df['int_abs_sigma_uT'] = 1e6 * \
-            int_df.int_abs_sigma.values  # convert to uT
-        int_df['int_abs_uT'] = int_df['int_abs_uT'].values.astype('int')
-        int_df['int_abs_sigma_uT'] = int_df['int_abs_sigma_uT'].values.astype(
-            'int')
-        int_df['int_abs_sigma_perc'] = int_df['int_abs_sigma_perc'].values.astype(
-            'int')
-        intensity_file = pmag.resolve_file_name(
-            intensity_file, output_dir_path)
-
-        IntCols = ["Site", "N", "B", "B sigma", "sigma (%)"]
-        if 'vadm' in int_df.columns:
-            test_vadm = int_df.dropna(subset=['vadm'])
-            if len(test_vadm) > 0:
-                has_vadms = True
-
-        if 'vdm' in int_df.columns:
-            test_vdm = int_df.dropna(subset=['vdm'])
-            if len(test_vdm) > 0:
-                has_vdms = True
-
-        if has_vadms:
-            IntCols.append("VADM")
-            IntCols.append("VADM sigma")
-        if has_vdms:
-            IntCols.append("VDM")
-            IntCols.append("VDM sigma")
-        if not has_vadms and not has_vdms:
-            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
-                             'int_abs_sigma_perc']]
-        if has_vadms and not has_vdms:
-            int_df.sort_values(by=['site', 'vadm'],
-                               ascending=False, inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
-
-            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
-            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
-            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
-                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_ZAm2_sigma']]
-        if not has_vadms and has_vdms:
-            int_df.sort_values(by=['site', 'vdm'],
-                               ascending=False, inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
-            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values()
-            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values()
-
-            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
-                             'int_abs_sigma_perc', 'vdm_ZAm2', 'vdm_ZAm2_sigma']]
-        if has_vadms and has_vdms:
-            int_df.sort_values(by=['site', 'vadm'],
-                               ascending=False, inplace=True)
-            int_df.drop_duplicates(subset=['int_abs_uT', 'site'], inplace=True)
-            int_df['vadm_ZAm2'] = 1e-21*int_df.vadm.values
-            int_df['vadm_sigma_ZAm2'] = 1e-21*int_df.vadm_sigma.values
-            int_df['vdm_ZAm2'] = 1e-21*int_df.vdm.values
-            int_df['vdm_sigma_ZAm2'] = 1e-21*int_df.vdm_sigma.values
-            int_df = int_df[['site', 'int_n_samples', 'int_abs_uT', 'int_abs_sigma_uT',
-                             'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_sigma_ZAm2', 'vdm_ZAm2', 'vdm_sigma_ZAm2']]
-        int_df.columns = IntCols
-        int_df.sort_values(by=['Site'], inplace=True, ascending=True)
-        int_df.fillna(value='', inplace=True)
+    intensity_file = pmag.resolve_file_name(intensity_file, output_dir_path)
+    int_df = map_magic.convert_site_dm3_table_intensity(sites_df)
+    if len(int_df):
         if latex:
             if intensity_file.endswith('.xls'):
                 intensity_file = intensity_file[:-4] + ".tex"
@@ -10268,13 +10166,14 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         info_file = None
     return True, [fname for fname in [info_file, intensity_file, dir_file] if fname]
 
+
 def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',landscape=False,
                   longtable=False,output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
-    Default output format is an Excel file. 
-    typeset with latex on your own computer.  
-    
+    Default output format is an Excel file.
+    typeset with latex on your own computer.
+
     Parameters
     ___________
     spec_file : str
@@ -10289,8 +10188,8 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
            if True output latex landscape table
     Return :
         [True,False],  data table error type : True if successful
-        
-    Effects : 
+
+    Effects :
         writes xls or latex formatted tables for use in publications
     """
     if not input_dir_path:
@@ -10307,6 +10206,8 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
         table_df=map_magic.convert_specimen_dm3_table(spec_df)
         out_file=pmag.resolve_file_name(output_file,output_dir_path)
         if latex:
+            if out_file.endswith('.xls'):
+                out_file = out_file.rsplit('.')[0] + ".tex"
             info_out = open(out_file, 'w+', errors="backslashreplace")
             info_out.write('\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
@@ -10322,16 +10223,17 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
         else:
             table_df.to_excel(out_file,index=False)
 
-    else: 
+    else:
         print ("No specimen data   for ouput.")
+    return True, [out_file]
 
 def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
                   output_dir_path='./',input_dir_path='',latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
-    Default output format is an Excel file. 
-    typeset with latex on your own computer.  
-    
+    Default output format is an Excel file.
+    typeset with latex on your own computer.
+
     Parameters
     ___________
     crit_file : str
@@ -10340,11 +10242,11 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
           path for intput file if different from output_dir_path (default is same)
     latex : boolean
            if True, output file should be latex formatted table with a .tex ending
-           
+
     Return :
         [True,False],  data table error type : True if successful
-        
-    Effects : 
+
+    Effects :
         writes xls or latex formatted tables for use in publications
     """
     if not input_dir_path:
@@ -10367,6 +10269,8 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
         crit_df.columns=['Table','Statistic','Threshold','Operation']
 
         if latex:
+            if out_file.endswith('.xls'):
+                out_file = out_file.rsplit('.')[0] + ".tex"
             crit_df.loc[crit_df['Operation'].str.contains('<'),'operation']='maximum'
             crit_df.loc[crit_df['Operation'].str.contains('>'),'operation']='minimum'
             crit_df.loc[crit_df['Operation']=='=','operation']='equal to'
@@ -10382,6 +10286,6 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
         else:
             crit_df.to_excel(out_file,index=False)
 
-    else: 
+    else:
         print ("No criteria   for ouput.")
-       
+    return True, [out_file]
