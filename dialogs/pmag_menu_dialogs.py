@@ -1026,7 +1026,7 @@ class ExportResults(wx.Frame):
     title = "Extract results"
 
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='export results')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()

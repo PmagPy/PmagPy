@@ -532,6 +532,13 @@ class TestMenus3(unittest.TestCase):
                 self.assertTrue(item.IsEnabled())
             self.assertIn(menu_name, menu_names)
 
+    def test_click_export_results(self):
+        window = self.does_window_exist('Export', 'Export result tables', 'export results')
+        self.assertTrue(window, 'Export result tables window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
     def test_click_any_file(self):
         window = self.does_window_exist('Import', "Import any file into your working directory", 'any file')
         self.assertTrue(window, 'Import any file window was not created')
