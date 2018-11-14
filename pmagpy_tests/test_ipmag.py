@@ -527,6 +527,80 @@ class TestSitesExtract(unittest.TestCase):
             self.assertTrue(fname.endswith('.tex'))
 
 
+class TestSpecimensExtract(unittest.TestCase):
+    def setUp(self):
+        self.WD_0 = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        self.WD_1 = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+            'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+            'er_sites.txt', 'rmag_anisotropy.txt']
+
+        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xls"),
+                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xls"),
+                    os.path.join(self.WD_0, "*.aux"), os.path.join(self.WD_0, "*.dvi"),
+                    os.path.join(self.WD_1, "*.aux"), os.path.join(self.WD_1, "*.dvi"),
+                    os.path.join(self.WD_0, "*.gz"), os.path.join(self.WD_1, "*.gz")]
+
+        for pattern in patterns:
+            for fname in glob.glob(pattern):
+                os.remove(fname)
+
+
+    def test_McMurdo(self):
+        res, outfiles = ipmag.specimens_extract(spec_file='specimens.txt', output_dir_path=self.WD_0, latex=False)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+
+    def test_Megiddo(self):
+        res, outfiles = ipmag.specimens_extract(spec_file='specimens.txt', output_dir_path=self.WD_1, latex=True)
+        self.assertTrue(res)
+        self.assertEqual(len(outfiles), 1)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+            self.assertTrue(fname.endswith('.tex'))
+
+
+
+class TestCriteriaExtract(unittest.TestCase):
+    def setUp(self):
+        self.WD_0 = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        self.WD_1 = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+            'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+            'er_sites.txt', 'rmag_anisotropy.txt']
+
+        patterns = [os.path.join(self.WD_0, "*.tex"), os.path.join(self.WD_0, "*.xls"),
+                    os.path.join(self.WD_1, "*.tex"), os.path.join(self.WD_1, "*.xls"),
+                    os.path.join(self.WD_0, "*.aux"), os.path.join(self.WD_0, "*.dvi"),
+                    os.path.join(self.WD_1, "*.aux"), os.path.join(self.WD_1, "*.dvi"),
+                    os.path.join(self.WD_0, "*.gz"), os.path.join(self.WD_1, "*.gz")]
+
+        for pattern in patterns:
+            for fname in glob.glob(pattern):
+                os.remove(fname)
+
+
+    def test_McMurdo(self):
+        res, outfiles = ipmag.criteria_extract('criteria.txt', output_dir_path=self.WD_0, latex=False)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+
+    def test_Megiddo(self):
+        res, outfiles = ipmag.criteria_extract('criteria.txt', output_dir_path=self.WD_1, latex=True)
+        self.assertTrue(res)
+        self.assertEqual(len(outfiles), 1)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+            self.assertTrue(fname.endswith('.tex'))
+
+
+
 
 
 if __name__ == '__main__':
