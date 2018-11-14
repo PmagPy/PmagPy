@@ -10201,7 +10201,8 @@ def specimens_extract(spec_file='specimens.txt',output_file='specimens.xls',land
         return False, "bad specimen file name"
     spec_df=pd.read_csv(fname,sep='\t',header=1)
     spec_df.dropna('columns',how='all',inplace=True)
-    spec_df.dropna(subset=['int_abs'],inplace=True)
+    if 'int_abs' in spec_df.columns:
+        spec_df.dropna(subset=['int_abs'],inplace=True)
     if len(spec_df)>0:
         table_df=map_magic.convert_specimen_dm3_table(spec_df)
         out_file=pmag.resolve_file_name(output_file,output_dir_path)
