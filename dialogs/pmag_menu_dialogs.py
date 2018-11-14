@@ -1043,16 +1043,16 @@ class ExportResults(wx.Frame):
         self.check_and_add_file(res_file, self.bSizer0.file_path)
 
         #---sizer 1 ----
-        #self.bSizer1 = pw.choose_file(pnl, 'add criteria file', method=self.on_add_crit_button,
-        #                              remove_button="Don't use criteria file")
-        #crit_file = os.path.join(self.WD, 'pmag_criteria.txt')
-        #self.check_and_add_file(crit_file, self.bSizer1.file_path)
+        self.bSizer1 = pw.choose_file(pnl, 'add criteria file', method=self.on_add_crit_button,
+                                      remove_button="Don't use criteria file")
+        crit_file = os.path.join(self.WD, 'criteria.txt')
+        self.check_and_add_file(crit_file, self.bSizer1.file_path)
 
         #---sizer 2 ---
-        #self.bSizer2 = pw.choose_file(pnl, 'add specimen file', method=self.on_add_spec_button,
-        #                              remove_button="Don't use specimen file")
-        #spec_file = os.path.join(self.WD, 'pmag_specimens.txt')
-        #self.check_and_add_file(spec_file, self.bSizer2.file_path)
+        self.bSizer2 = pw.choose_file(pnl, 'add specimen file', method=self.on_add_spec_button,
+                                      remove_button="Don't use specimen file")
+        spec_file = os.path.join(self.WD, 'specimens.txt')
+        self.check_and_add_file(spec_file, self.bSizer2.file_path)
 
         #---sizer 3 ---
         #self.bSizer3 = pw.choose_file(pnl, 'add age file', method=self.on_add_age_button,
@@ -1075,8 +1075,8 @@ class ExportResults(wx.Frame):
         #hbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
@@ -1100,13 +1100,13 @@ class ExportResults(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, text)
 
-    #def on_add_crit_button(self, event):
-    #    text = "choose criteria file"
-    #    pw.on_add_file_button(self.bSizer1, text)
+    def on_add_crit_button(self, event):
+        text = "choose criteria file"
+        pw.on_add_file_button(self.bSizer1, text)
 
-    #def on_add_spec_button(self, event):
-    #    text = "choose specimen file"
-    #    pw.on_add_file_button(self.bSizer2, text)
+    def on_add_spec_button(self, event):
+        text = "choose specimen file"
+        pw.on_add_file_button(self.bSizer2, text)
 
     #def on_add_age_button(self, event):
     #    text = "choose age file"
@@ -1121,12 +1121,12 @@ class ExportResults(wx.Frame):
             pw.simple_warning("You must have a result file to run this step")
             return
         res_file = os.path.split(res_file)[1]
-        #crit_file = self.bSizer1.return_value()
-        #if crit_file:
-        #    crit_file = os.path.split(crit_file)[1]
-        #spec_file = self.bSizer2.return_value()
-        #if spec_file:
-        #    spec_file = os.path.split(spec_file)[1]
+        crit_file = self.bSizer1.return_value()
+        if crit_file:
+            crit_file = os.path.split(crit_file)[1]
+        spec_file = self.bSizer2.return_value()
+        if spec_file:
+            spec_file = os.path.split(spec_file)[1]
         #age_file = self.bSizer3.return_value()
         #if age_file:
         #    age_file = os.path.split(age_file)[1]
@@ -1135,8 +1135,20 @@ class ExportResults(wx.Frame):
         WD = self.WD
         COMMAND = "ipmag.sites_extract(site_file='{}', output_dir_path='{}', latex='{}'".format(res_file, WD, latex)
         print(COMMAND)
-        res, outfiles = ipmag.sites_extract(res_file, output_dir_path=WD, latex=latex)
-        outfiles = [os.path.split(f)[1] for f in outfiles]
+        outfiles = []
+        if res_file:
+            res, outfiles = ipmag.sites_extract(res_file, output_dir_path=WD, latex=latex)
+            if res:
+                outfiles = [os.path.split(f)[1] for f in outfiles]
+        if spec_file:
+            res, files = ipmag.specimens_extract(spec_file, output_dir_path=WD, latex=latex)
+            if res:
+                outfiles.extend([os.path.split(f)[1] for f in files])
+        if crit_file:
+            res, files = ipmag.criteria_extract(crit_file, output_dir_path=WD, latex=latex)
+            if res:
+                outfiles.extend([os.path.split(f)[1] for f in files])
+
         pw.close_window(self, COMMAND, ", ".join(outfiles))
 
     def on_cancelButton(self,event):
