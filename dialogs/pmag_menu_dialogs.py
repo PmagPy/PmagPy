@@ -1038,7 +1038,8 @@ class ExportResults(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add site file', method=self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, 'add site file', method=self.on_add_file_button,
+                                      remove_button="Don't use site file")
         res_file = os.path.join(self.WD, 'sites.txt')
         self.check_and_add_file(res_file, self.bSizer0.file_path)
 
@@ -1116,28 +1117,29 @@ class ExportResults(wx.Frame):
         os.chdir(self.WD)
         COMMAND = ""
         print(COMMAND)
-        res_file = self.bSizer0.return_value()
-        if not os.path.isfile(res_file):
-            pw.simple_warning("You must have a result file to run this step")
-            return
-        res_file = os.path.split(res_file)[1]
+        site_file = self.bSizer0.return_value()
+        #if site_file:
+        #    site_file = os.path.split(site_file)[1]
         crit_file = self.bSizer1.return_value()
-        if crit_file:
-            crit_file = os.path.split(crit_file)[1]
+        #if crit_file:
+        #    crit_file = os.path.split(crit_file)[1]
         spec_file = self.bSizer2.return_value()
-        if spec_file:
-            spec_file = os.path.split(spec_file)[1]
+        if (not site_file) and (not spec_file) and (not crit_file):
+            pw.simple_warning("You must provide at least one file to generate tables")
+            return
+        #if spec_file:
+        #    spec_file = os.path.split(spec_file)[1]
         #age_file = self.bSizer3.return_value()
         #if age_file:
         #    age_file = os.path.split(age_file)[1]
         latex = self.bSizer4.return_value()
         #grade = self.bSizer5.return_value()
         WD = self.WD
-        COMMAND = "ipmag.sites_extract(site_file='{}', output_dir_path='{}', latex='{}'".format(res_file, WD, latex)
+        COMMAND = "ipmag.sites_extract(site_file='{}', output_dir_path='{}', latex='{}'".format(site_file, WD, latex)
         print(COMMAND)
         outfiles = []
-        if res_file:
-            res, outfiles = ipmag.sites_extract(res_file, output_dir_path=WD, latex=latex)
+        if site_file:
+            res, outfiles = ipmag.sites_extract(site_file, output_dir_path=WD, latex=latex)
             if res:
                 outfiles = [os.path.split(f)[1] for f in outfiles]
         if spec_file:
