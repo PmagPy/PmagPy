@@ -10279,6 +10279,8 @@ def criteria_extract(crit_file='criteria.txt',output_file='criteria.xls',
             info_out.write('\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             #info_out.write('\\usepackage{longtable}\n')
+            # T1 will ensure that symbols like '<' are formatted correctly
+            info_out.write("\\usepackage[T1]{fontenc}\n")
             info_out.write('\\begin{document}')
             info_out.write(crit_df.to_latex(index=False,longtable=False,
                                             escape=True,multicolumn=False))
