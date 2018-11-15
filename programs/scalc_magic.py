@@ -54,12 +54,10 @@ def main():
     if data_model == 2:
         coord_key = 'tilt_correction'
         in_file = 'pmag_results.txt'
-        type_key = 'data_type'
         k_key, n_key, lat_key = 'average_k', 'average_nn', 'average_lat'
     else:
         coord_key = 'dir_tilt_correction'
         in_file = 'sites.txt'
-        type_key = 'result_type'
         k_key, n_key, lat_key = 'dir_k', 'dir_n_samples`', 'lat'
     if '-h' in sys.argv:
         print(main.__doc__)
@@ -110,10 +108,7 @@ def main():
     for key in keys:
         if key not in vgp_df.columns:
             vgp_df[key] = 0
-    if type_key not in vgp_df.columns:
-        vgp_df[type_key] = "i"  # assume individual
     vgp_df = vgp_df[vgp_df[coord_key] == coord]
-    vgp_df = vgp_df[vgp_df[type_key] == 'i']
     if data_model != 3:  # convert
         vgp_df['dir_k'] = vgp_df[k_key]
         vgp_df['dir_n_samples'] = vgp_df[n_key]

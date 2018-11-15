@@ -3528,7 +3528,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         sample = self.spec_container.df.loc[specimen, 'sample']
                     except (IndexError, KeyError) as ex:
                         sample = ''
-                    new_data['result_type'] = 'i'
                     new_data['sample'] = sample
                     self.spec_data = self.spec_container.update_record(
                         specimen, new_data, condition)
@@ -3867,7 +3866,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity Arai Statistics')))
                     columns.extend(list(self.contribution.data_model.get_group_headers('specimens', 'Paleointensity Directional Statistics')))
                     int_columns = set(columns).intersection(self.spec_data.columns)
-                    int_columns.update(['method_codes', 'result_quality', 'result_type', 'meas_step_max', 'meas_step_min', 'software_packages', 'meas_step_unit', 'experiments'])
+                    int_columns.update(['method_codes', 'result_quality', 'meas_step_max', 'meas_step_min', 'software_packages', 'meas_step_unit', 'experiments'])
                     new_data = {col: "" for col in int_columns}
                     cond1 = self.spec_container.df.specimen == specimen
                     for col in int_columns:
@@ -3950,8 +3949,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_data['result_quality'] = 'b'
                     else:
                         new_data['result_quality'] = 'g'
-                    if 'result_type' not in list(new_data.keys()):
-                        new_data['result_type'] = 'i'
                     # reformat all the keys
                     cond1 = self.spec_container.df['specimen'].str.contains(
                         specimen + "$") == True
@@ -4427,7 +4424,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if len(self.test_for_criteria()):
                         new_data['criteria'] = 'IE-SPEC:IE-SAMP'
                     new_data['result_quality'] = 'g'
-                    new_data['result_type'] = 'i'
                     self.samp_data = self.samp_container.df
                     cond1 = self.samp_data['sample'].str.contains(
                         sample_or_site + "$") == True
@@ -4472,7 +4468,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         new_data['vadm'] = MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
                         new_data['vadm_sigma'] = MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
                         new_data['result_quality'] = 'g'
-                        new_data['result_type'] = 'i'
                         self.site_data = self.site_container.update_record(
                             sample_or_site, new_data, condition, debug=True)
                     except:

@@ -108,10 +108,6 @@ def main():
 
     pole_container = con.tables['locations']
     pole_df = pole_container.df
-    # use individual results
-    if not pmagplotlib.isServer:
-        if 'result_type' in pole_df.columns:
-            pole_df = pole_df[pole_df['result_type'] == 'a']
     if 'pole_lat' not in pole_df.columns or 'pole_lon' not in pole_df.columns:
         print("-W- pole_lat and pole_lon are required columns to run polemap_magic.py")
         return False, "pole_lat and pole_lon are required columns to run polemap_magic.py"

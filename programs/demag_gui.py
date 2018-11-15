@@ -5607,7 +5607,6 @@ class Demag_GUI(wx.Frame):
                             elif int(PmagSiteRec["dir_n_specimens_lines"]) > 2:
                                 PmagSiteRec["method_codes"] = PmagSiteRec['method_codes']+":DE-FM"
 
-                        PmagSiteRec['result_type'] = 'i'  # decorate it a bit
                         site_height = pmag.get_dictitem(
                             height_info, 'site', site, 'T')
                         if len(site_height) > 0:
@@ -5747,7 +5746,6 @@ class Demag_GUI(wx.Frame):
                             PolRes['citations'] = 'This study'
                             PolRes["result_name"] = "Polarity Average: Polarity "+mode
                             PolRes["pole_comp_name"] = comp+':'+mode
-                            PolRes["result_type"] = "a"
                             PolRes["dir_dec"] = '%7.1f' % (
                                 polpars[mode]['dec'])
                             PolRes["dir_inc"] = '%7.1f' % (
