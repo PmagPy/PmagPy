@@ -552,19 +552,16 @@ def convert_site_dm3_table_directions(sites_df):
         subset=['dir_dec', 'dir_inc'])  # delete blank directions
     # sort by absolute value of vgp_lat in order to eliminate duplicate rows for
     # directions put in by accident on intensity rows
+    DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95", "VGP Lat", "VGP Long"]
+    columns = ['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
+               'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95', 'vgp_lat', 'vgp_lon']
+    dm3_to_readable = dict(zip(columns, DirCols))
     if len(dir_df) > 0:
-
-        DirCols = ["Site", "TC (%)", "Dec.", "Inc.", "N", "k    ", "R", "a95"]
 
         for col in ['dir_n_samples', 'dir_tilt_correction']:
             if col in dir_df.columns:
                 dir_df[col] = dir_df[col].values.astype('int')
-        #dir_df['dir_n_samples'] = dir_df['dir_n_samples'].values.astype('int')
-        #dir_df['dir_tilt_correction'] = dir_df['dir_tilt_correction'].values.astype(
-        #    'int')
 
-        columns = ['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
-                   'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95', 'vgp_lat', 'vgp_lon']
         columns = dir_df.columns.intersection(columns)
         has_vgps = False
         if 'vgp_lat' in dir_df.columns:
@@ -577,8 +574,6 @@ def convert_site_dm3_table_directions(sites_df):
                                ascending=False, inplace=True)
             dir_df = dir_df[columns]
     # this will take the first record for each site's directions (including VGP lat if present)
-            DirCols.append("VGP Lat")
-            DirCols.append("VGP Long")
             dir_df.drop_duplicates(
                 subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
         else:
@@ -586,8 +581,10 @@ def convert_site_dm3_table_directions(sites_df):
                 subset=['dir_dec', 'dir_inc', 'site'], inplace=True)
             dir_df = dir_df[['site', 'dir_tilt_correction', 'dir_dec', 'dir_inc',
                              'dir_n_samples', 'dir_k', 'dir_r', 'dir_alpha95']]
-        dir_df.columns = DirCols
+        dir_df.rename(dm3_to_readable, axis='columns', inplace=True)
         dir_df.sort_values(by=['Site'], inplace=True, ascending=True)
+        new_cols = list(dir_df.columns.drop('Site'))
+        dir_df = dir_df[['Site'] + new_cols]
     return dir_df
 
 
