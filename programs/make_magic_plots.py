@@ -293,7 +293,7 @@ def main():
             print('{} Dec/inc pairs found'.format(dir_data_found))
             if SiteDIs:
                 # then convert tilt_corr_key to correct format
-                old_SiteDIs = site_DIs
+                old_SiteDIs = SiteDIs
                 SiteDIs = []
                 for rec in old_SiteDIs:
                     if tilt_corr_key not in rec:
