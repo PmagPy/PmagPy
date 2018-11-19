@@ -390,7 +390,7 @@ class Contribution(object):
                     # warn user if an old value will be overwritten
                     new_value = coords[coord]
                     # if the new value is null, ignore it
-                    if is_null(new_value):
+                    if is_null(new_value, zero_as_null=False):
                         continue
                     # set old value to None if it wasn't in table
                     if coord not in loc_container.df.columns:
@@ -402,7 +402,7 @@ class Contribution(object):
                             old_value = old_value.values.astype(str)[0]
                         except (TypeError,IndexError,AttributeError) as e: # if only one value, or np.nan, or NoneType
                             pass
-                    if is_null(old_value):
+                    if is_null(old_value, zero_as_null=False):
                         pass
                     elif isinstance(old_value, str):
                         try:

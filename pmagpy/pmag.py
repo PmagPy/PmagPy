@@ -10504,7 +10504,7 @@ def adjust_val_to_360(val):
     Return argument adjusted to be between
     0 and 360 degrees.
     """
-    if not val:
+    if not val and (val != 0):
         return None
     else:
         try:
