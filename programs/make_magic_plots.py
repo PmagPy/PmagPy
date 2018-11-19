@@ -358,6 +358,7 @@ def main():
                             if rec != 0:
                                 out.write(str(rec * 1e6) + "\n")
 
+                    loc = loc.replace(" ", "_")
                     histfile = 'LO:_' + loc + \
                         '_TY:_intensities_histogram:_.' + fmt
                     # maybe run histplot.main here instead, so you can return an error message

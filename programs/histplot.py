@@ -1,20 +1,11 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from builtins import str
-from builtins import input
-from past.utils import old_div
 import sys
+import numpy as np
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 from matplotlib import pyplot as plt
-
-import numpy
-
 from pmagpy import pmagplotlib
-#import pylab
-# pylab.ion()
 
 
 def main():
@@ -62,28 +53,26 @@ def main():
         fmt = ""
     else:
         outfile = 'hist.'+fmt
-    print(outfile)
     if '-N' in sys.argv:
         norm = 0
         ylab = 'Number'
     else:
         norm = 1
         ylab = 'Frequency'
+    binsize = 0
     if '-b' in sys.argv:
         ind = sys.argv.index('-b')
         binsize = int(sys.argv[ind+1])
-    else:
-        binsize = 5
     if '-xlab' in sys.argv:
         ind = sys.argv.index('-xlab')
         xlab = sys.argv[ind+1]
     else:
         xlab = 'x'
     if fname != "":
-        D = numpy.loadtxt(fname)
+        D = np.loadtxt(fname)
     else:
         print('-I- Trying to read from stdin... <ctrl>-c to quit')
-        D = numpy.loadtxt(sys.stdin, dtype=numpy.float)
+        D = np.loadtxt(sys.stdin, dtype=np.float)
     # read in data
     #
     try:
@@ -93,18 +82,25 @@ def main():
     except ValueError:
         pass
     pmagplotlib.plot_init(1, 8, 7)
-    Nbins = old_div(len(D), binsize)
-    # n,bins,patches=plt.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
+    try:
+        len(D)
+    except TypeError:
+        D = np.array([D])
+    if len(D) < 5:
+        print("-W- Not enough points to plot histogram ({} point(s) provided, 5 required)".format(len(D)))
+        return
+    # if binsize not provided, calculate reasonable binsize
+    if not binsize:
+        binsize = int(np.around(1 + 3.22 * np.log(len(D))))
+    Nbins = int(len(D) / binsize)
     n, bins, patches = plt.hist(
         D, bins=Nbins, facecolor='white', histtype='step', color='black', density=norm)
     plt.axis([D.min(), D.max(), 0, n.max()+.1*n.max()])
     plt.xlabel(xlab)
     plt.ylabel(ylab)
-    name = 'N = '+str(len(D))
+    name = 'N = ' + str(len(D))
     plt.title(name)
     if plot == 0:
-        # plt.draw()
-        # plt.show()
         pmagplotlib.draw_figs({1: 'hist'})
         p = input('s[a]ve to save plot, [q]uit to exit without saving  ')
         if p != 'a':
