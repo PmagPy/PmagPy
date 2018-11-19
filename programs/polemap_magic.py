@@ -7,19 +7,26 @@ import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 
-import pmagpy.pmag as pmag
-import pmagpy.pmagplotlib as pmagplotlib
+from pmagpy import pmag
+from pmagpy import pmagplotlib
 import pmagpy.contribution_builder as cb
 from pmag_env import set_env
 
 
-def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
-         fmt="pdf", res="c", proj="ortho", anti=False):
+def plot(loc_file="locations.txt", dir_path=".", do_plot=False, crd="",
+         sym='ro', symsize=40, rsym='g^', rsymsize=40,
+         fmt="pdf", res="c", proj="ortho",
+         flip=False, anti=False, fancy=False,
+         ell=False, ages=False, lat_0=90., lon_0=0.):
     """
+    Parameters
+    ----------
     loc_file : str, default "locations.txt"
     dir_path : str, default "."
     do_plot : bool, default False
        if True, save silently.  If False, create interactive figure.
+    crd : str, default ""
+       coordinate system [g, t] (geographic, tilt_corrected)
     fmt : str, default "pdf"
     res : str, default "c"
         resolution [c, l, i, h] (crude, low, intermediate, high)
@@ -28,8 +35,20 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
         lcc = lambert conformal
         moll = molweide
         merc = mercator
+    flip : bool, default False
+        if True, flip reverse poles to normal antipode
     anti : bool, default False
         if True, plot antipodes for each pole
+    fancy : bool, default False
+        if True, plot topography (not yet implementedj)
+    ell : bool, default False
+        if True, plot ellipses
+    ages : bool, default False
+        if True, plot ages
+    lat_0 : float, default 90.
+        eyeball latitude
+    lon_0 : float, default 0.
+        eyeball longitude
     """
     con = cb.Contribution(dir_path, single_file=loc_file)
     if not list(con.tables.keys()):
@@ -68,7 +87,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
     coord_dict = {'g': 0, 't': 100}
     coord = coord_dict[crd] if crd else ""
     # filter results by dir_tilt_correction if available
-    if (coord or coord==0) and 'dir_tilt_correction' in Results.columns:
+    if (coord or coord == 0) and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
     loc_list = Results['location'].values
@@ -76,7 +95,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
     if 'age' not in Results.columns and 'age_low' in Results.columns and 'age_high' in Results.columns:
         Results['age'] = Results['age_low']+0.5 * \
             (Results['age_high']-Results['age_low'])
-    if 'age' in Results.columns and ages == 1:
+    if 'age' in Results.columns and ages:
         dates = Results['age'].unique()
 
     if not any(Results.index):
@@ -88,16 +107,16 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
         lat, lon = float(row['pole_lat']), float(row['pole_lon'])
         if 'dir_polarity' in row:
             polarities.append(row['dir_polarity'])
-        if anti == 1:
+        if anti:
             lats.append(-lat)
             lon = lon + 180.
             if lon > 360:
                 lon = lon - 360.
             lons.append(lon)
-        elif flip == 0:
+        elif not flip:
             lats.append(lat)
             lons.append(lon)
-        elif flip == 1:
+        elif flip:
             if lat < 0:
                 rlats.append(-lat)
                 lon = lon + 180.
@@ -148,7 +167,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
     #Opts['pltgrid'] = -1
     if proj=='merc':Opts['pltgrid']=1
     Opts['sym'] = sym
-    Opts['symsize'] = size
+    Opts['symsize'] = symsize
     if len(dates) > 0:
         Opts['names'] = dates
     if len(lats) > 0:
@@ -166,7 +185,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
     if len(rlats) > 0:
         reverse_Opts = Opts.copy()
         reverse_Opts['sym'] = rsym
-        reverse_Opts['symsize'] = rsize
+        reverse_Opts['symsize'] = rsymsize
         reverse_Opts['edgecolor'] = 'black'
         # plot the lats and lons of the reverse poles
         pmagplotlib.plot_map(FIG['map'], rlats, rlons, reverse_Opts)
@@ -180,7 +199,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
         for ind in range(len(lats)):
             lat = lats[ind]
             lon = lons[ind]
-            polarity=""
+            polarity = ""
             if 'polarites' in locals():
                 polarity = polarities[ind]
             polarity = "_" + polarity if polarity else ""
@@ -229,7 +248,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
     #
     if (not do_plot) and (not set_env.IS_WIN):
         pmagplotlib.draw_figs(FIG)
-    if ell == 1:  # add ellipses if desired.
+    if ell:  # add ellipses if desired.
         Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
                            'countries': 0, 'ocean': 0, 'fancy': fancy}
         Opts['pltgrid'] = -1  # turn off meridian replotting
@@ -273,13 +292,13 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False,
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
-            pmagplotlib.save_plots(FIG, files)
+            saved = pmagplotlib.save_plots(FIG, files)
         else:
             print("Good bye")
     else:
-        pmagplotlib.save_plots(FIG, files)
+        saved = pmagplotlib.save_plots(FIG, files)
 
-    return True, files
+    return True, saved
 
 
 
@@ -339,15 +358,15 @@ def main():
     ell = pmag.get_flag_arg_from_sys("-ell", true=1, false=0)
     ages = pmag.get_flag_arg_from_sys("-age", true=1, false=0)
     if '-rev' in sys.argv:
-        flip = 1
+        flip = True
         ind = sys.argv.index('-rev')
         try:
             rsym = (sys.argv[ind + 1])
             rsize = int(sys.argv[ind + 2])
-        except (IndexError, ValueError):
-            flip, rsym, rsize = 1, "g^", 40
+        except (IndexError, ValueError, KeyError):
+            flip, rsym, rsize = True, "g^", 40
     else:
-        flip, rsym, rsize = 0, "g^", 40
+        flip, rsym, rsize = False, "g^", 40
     if '-sym' in sys.argv:
         ind = sys.argv.index('-sym')
         sym = (sys.argv[ind + 1])
@@ -362,7 +381,9 @@ def main():
         lat_0, lon_0 = 90., 0.
     crd = pmag.get_named_arg("-crd", "")
     loc_file = pmag.get_named_arg("-f", "locations.txt")
-    plot(loc_file, dir_path, do_plot, fmt, res, proj, anti)
+    plot(loc_file, dir_path, do_plot, crd,
+         sym, size, rsym, rsize, fmt, res,
+         proj, flip, anti, fancy, ell, ages, lat_0, lon_0)
 
 
 if __name__ == "__main__":
