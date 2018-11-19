@@ -6454,7 +6454,6 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                         print("missing data in header.Line %i" %
                               line_number)
                         print(header)
-
                     # read header and sort in a dictionary
                     tmp_header_data = {}
 
