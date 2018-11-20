@@ -171,7 +171,7 @@ class TestDownloadMagic(unittest.TestCase):
         files = ['locations.txt', 'sites.txt', 'samples.txt', 'specimens.txt',
                  'measurements.txt', 'contribution.txt']
         pmag.remove_files(files, self.download_dir)
-        ipmag.download_magic('magic_contribution_16503.txt',
+        ipmag.download_magic('magic_contribution_16533.txt',
                              dir_path=self.download_dir,
                              input_dir_path=self.download_dir)
         output_files = os.listdir(self.download_dir)
@@ -456,8 +456,8 @@ class TestAarmMagic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
-                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
-                    'er_sites.txt', 'rmag_anisotropy.txt', 'aarm_measurements.txt']
+                    'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
         pmag.remove_files(filelist, self.aarm_WD)
         os.chdir(WD)
 
