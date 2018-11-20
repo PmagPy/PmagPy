@@ -13,68 +13,23 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.contribution_builder as cb
 
 
-def main():
-    """
-    NAME
-        eqarea_magic.py
-
-    DESCRIPTION
-       makes equal area projections from declination/inclination data
-
-    SYNTAX
-        eqarea_magic.py [command line options]
-
-    INPUT
-       takes magic formatted sites, samples, specimens, or measurements
-
-    OPTIONS
-        -h prints help message and quits
-        -f FILE: specify input magic format file from magic, default='sites.txt'
-         supported types=[measurements, specimens, samples, sites]
-        -fsp FILE: specify specimen file name, (required if you want to plot measurements by sample)
-                default='specimens.txt'
-        -fsa FILE: specify sample file name, (required if you want to plot specimens by site)
-                default='samples.txt'
-        -fsi FILE: specify site file name, default='sites.txt'
-        -flo FILE: specify location file name, default='locations.txt'
-
-        -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
-        -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
-                default is geographic, unspecified assumed geographic
-        -fmt [svg,png,jpg] format for output plots
-        -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
-        -c plot as colour contour
-        -cm CM use color map CM [default is coolwarm]
-        -sav save plot and quit quietly
-        -no-tilt data are unoriented, allows plotting of measurement dec/inc
-    NOTE
-        all: entire file; sit: site; sam: sample; spc: specimen
-    """
+def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file="samples.txt",
+         site_file="sites.txt", loc_file="locations.txt",
+         plot_by="all", crd="g", ignore_tilt=False,
+         save_plots=True, fmt="svg", contour=0, color_map="",
+         plot_ell=False, dist="", filename=""):
     # initialize some default variables
+    verbose = pmagplotlib.verbose
     FIG = {}  # plot dictionary
     FIG['eqarea'] = 1  # eqarea is figure 1
-    plotE = 0
-    plt = 0  # default to not plotting
-    verbose = pmagplotlib.verbose
-    # extract arguments from sys.argv
-    if '-h' in sys.argv:
-        print(main.__doc__)
-        sys.exit()
-    dir_path = pmag.get_named_arg("-WD", default_val=".")
     pmagplotlib.plot_init(FIG['eqarea'], 5, 5)
-    in_file = pmag.get_named_arg("-f", default_val="sites.txt")
-    in_file = pmag.resolve_file_name(in_file, dir_path)
-    if "-WD" not in sys.argv:
-        dir_path = os.path.split(in_file)[0]
-    #full_in_file = os.path.join(dir_path, in_file)
-    plot_by = pmag.get_named_arg("-obj", default_val="all").lower()
-    spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
-    samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
-    site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
-    loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
-    ignore_tilt = False
-    if '-no-tilt' in sys.argv:
-        ignore_tilt = True
+    if crd == "s":
+        coord = "-1"
+    elif crd == "t":
+        coord = "100"
+    else:
+        coord = "0"
+
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -86,44 +41,24 @@ def main():
     else:
         plot_by = 'all'
         plot_key = 'all'
-    if '-c' in sys.argv:
-        contour = 1
-        if '-cm' in sys.argv:
-            ind = sys.argv.index('-cm')
-            color_map = sys.argv[ind+1]
-        else:
-            color_map = 'coolwarm'
-    else:
-        contour = 0
-    if '-sav' in sys.argv:
-        plt = 1
-        verbose = 0
-    if '-ell' in sys.argv:
-        plotE = 1
-        ind = sys.argv.index('-ell')
-        ell_type = sys.argv[ind+1]
-        ell_type = pmag.get_named_arg("-ell", "F")
-        dist = ell_type.upper()
+
+    if plot_ell:
+        dist = dist.upper()
         # if dist type is unrecognized, use Fisher
         if dist not in ['F', 'K', 'B', 'BE', 'BV']:
             dist = 'F'
         if dist == "BV":
             FIG['bdirs'] = 2
             pmagplotlib.plot_init(FIG['bdirs'], 5, 5)
-    crd = pmag.get_named_arg("-crd", default_val="g")
-    if crd == "s":
-        coord = "-1"
-    elif crd == "t":
-        coord = "100"
-    else:
-        coord = "0"
 
-    fmt = pmag.get_named_arg("-fmt", "svg")
+
+    if save_plots:
+        do_plot = True
+        verbose = False
 
     dec_key = 'dir_dec'
     inc_key = 'dir_inc'
     tilt_key = 'dir_tilt_correction'
-    # Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
 
     #
     fnames = {"specimens": spec_file, "samples": samp_file,
@@ -196,14 +131,8 @@ def main():
         plot_data = plot_data[plot_data[dec_key].notnull()
                               & plot_data[inc_key].notnull()]
         if plot_data.empty:
+            print("-W- No dec/inc data")
             continue
-        # this sorting out is done in get_di_bock
-        # if coord == '0':  # geographic, use records with no tilt key (or tilt_key 0)
-        #    cond1 = plot_data[tilt_key].fillna('') == coord
-        #    cond2 = plot_data[tilt_key].isnull()
-        #    plot_data = plot_data[cond1 | cond2]
-        # else:  # not geographic coordinates, use only records with correct tilt_key
-        #    plot_data = plot_data[plot_data[tilt_key] == coord]
 
         # get metadata for naming the plot file
         locations = str(data_container.get_name('location', df_slice=plot_data))
@@ -246,7 +175,7 @@ def main():
                 print("no records for plotting")
             continue
             # sys.exit()
-        if plotE == 1:
+        if plot_ell == 1:
             ppars = pmag.doprinc(DIblock)  # get principal directions
             nDIs, rDIs, npars, rpars = [], [], [], []
             for rec in DIblock:
@@ -413,9 +342,9 @@ def main():
             elif len(rDIs) > 3 and dist != 'BV':
                 pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], rpars, 0)
 
+        print(FIG.keys())
         for key in list(FIG.keys()):
             files = {}
-            filename = pmag.get_named_arg('-fname')
             if filename:  # use provided filename
                 filename += '.' + fmt
             elif pmagplotlib.isServer:  # use server plot naming convention
@@ -457,17 +386,99 @@ def main():
             FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
             pmagplotlib.save_plots(FIG, files)
 
-        elif plt:
+        elif do_plot:
             pmagplotlib.save_plots(FIG, files)
             continue
         if verbose:
             pmagplotlib.draw_figs(FIG)
             ans = input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans == "q":
-                sys.exit()
+                return True, []
             if ans == "a":
                 pmagplotlib.save_plots(FIG, files)
         continue
+
+def main():
+    """
+    NAME
+        eqarea_magic.py
+
+    DESCRIPTION
+       makes equal area projections from declination/inclination data
+
+    SYNTAX
+        eqarea_magic.py [command line options]
+
+    INPUT
+       takes magic formatted sites, samples, specimens, or measurements
+
+    OPTIONS
+        -h prints help message and quits
+        -f FILE: specify input magic format file from magic, default='sites.txt'
+         supported types=[measurements, specimens, samples, sites]
+        -fsp FILE: specify specimen file name, (required if you want to plot measurements by sample)
+                default='specimens.txt'
+        -fsa FILE: specify sample file name, (required if you want to plot specimens by site)
+                default='samples.txt'
+        -fsi FILE: specify site file name, default='sites.txt'
+        -flo FILE: specify location file name, default='locations.txt'
+
+        -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
+        -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
+                default is geographic, unspecified assumed geographic
+        -fmt [svg,png,jpg] format for output plots
+        -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
+        -c plot as colour contour
+        -cm CM use color map CM [default is coolwarm]
+        -sav save plot and quit quietly
+        -no-tilt data are unoriented, allows plotting of measurement dec/inc
+    NOTE
+        all: entire file; sit: site; sam: sample; spc: specimen
+    """
+    # extract arguments from sys.argv
+    if '-h' in sys.argv:
+        print(main.__doc__)
+        sys.exit()
+    dir_path = pmag.get_named_arg("-WD", default_val=".")
+    in_file = pmag.get_named_arg("-f", default_val="sites.txt")
+    in_file = pmag.resolve_file_name(in_file, dir_path)
+    if "-WD" not in sys.argv:
+        dir_path = os.path.split(in_file)[0]
+    plot_by = pmag.get_named_arg("-obj", default_val="all").lower()
+    spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
+    samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
+    loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
+    ignore_tilt = False
+    if '-no-tilt' in sys.argv:
+        ignore_tilt = True
+    contour = 0
+    color_map = "coolwarm"
+    if '-c' in sys.argv:
+        contour = 1
+        if '-cm' in sys.argv:
+            ind = sys.argv.index('-cm')
+            color_map = sys.argv[ind+1]
+        else:
+            color_map = 'coolwarm'
+    else:
+        contour = 0
+    save_plots = False
+    if '-sav' in sys.argv:
+        save_plots = True
+    plot_ell = False
+    dist = ""
+    if '-ell' in sys.argv:
+        plot_ell = True
+        dist = pmag.get_named_arg("-ell", "F")
+    crd = pmag.get_named_arg("-crd", default_val="g")
+    fmt = pmag.get_named_arg("-fmt", "svg")
+    filename = pmag.get_named_arg('-fname', '')
+    plot(in_file, dir_path, spec_file, samp_file, site_file, loc_file,
+         plot_by, crd, ignore_tilt, save_plots, fmt, contour, color_map,
+         plot_ell, dist, filename)
+
+
 
 
 if __name__ == "__main__":
