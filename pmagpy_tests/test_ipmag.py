@@ -491,6 +491,38 @@ class TestAtrmMagic(unittest.TestCase):
         self.assertTrue(any(df.df['sample']))
 
 
+class TestHysteresisMagic(unittest.TestCase):
+    def setUp(self):
+        self.hyst_WD = os.path.join(WD, 'data_files', 'hysteresis_magic')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
+        pmag.remove_files(filelist, self.hyst_WD)
+        files = glob.glob('*.svg')
+        for fname in files:
+            os.remove(fname)
+        os.chdir(WD)
+
+    def test_hysteresis_bad_file(self):
+        res, outfiles = ipmag.hysteresis_magic(self.hyst_WD, meas_file="fake.txt",
+                                               spec_file='custom_specimens.txt',
+                                               save_plots=True)
+        self.assertFalse(res)
+
+
+    def test_hysteresis_success(self):
+        res, outfiles = ipmag.hysteresis_magic(self.hyst_WD, spec_file='custom_specimens.txt',
+                                               save_plots=True)
+        self.assertTrue(res)
+        for f in outfiles:
+            print('f', f)
+            self.assertTrue(os.path.exists(f))
+        files = glob.glob('*.svg')
+        self.assertEqual(len(files), 32)
+
+
 class TestSitesExtract(unittest.TestCase):
     def setUp(self):
         self.WD_0 = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
