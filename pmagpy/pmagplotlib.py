@@ -1597,12 +1597,19 @@ def save_plots(Figs, filenames, **kwargs):
             fname = filenames[key]
             if not isServer:  # remove illegal ':' character for windows
                 fname = fname.replace(':', '_')
-            if 'dpi' in list(kwargs.keys()):
-                plt.savefig(fname.replace('/', '-'), dpi=kwargs['dpi'])
+            if 'incl_directory' in kwargs.keys():
+                if kwargs['incl_directory']:
+                    pass # do not flatten file name
+                else:
+                    fname = fname.replace('/', '-') # flatten file name
             else:
-                plt.savefig(fname.replace('/', '-'))
+                fname = fname.replace('/', '-') # flatten file name
+            if 'dpi' in list(kwargs.keys()):
+                plt.savefig(fname, dpi=kwargs['dpi'])
+            else:
+                plt.savefig(fname)
             if verbose:
-                print(Figs[key], " saved in ", fname.replace('/', '-'))
+                print(Figs[key], " saved in ", fname)
         except Exception as ex:
             print(type(ex), ex)
             print('could not save: ', Figs[key], filenames[key])

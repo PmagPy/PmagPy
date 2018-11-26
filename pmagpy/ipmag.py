@@ -10044,7 +10044,7 @@ def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
 
 
 
-def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measurements.txt",
+def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimens.txt", meas_file="measurements.txt",
                      fmt="svg", save_plots=True, make_plots=True, pltspec=""):
     """
     Calculate hysteresis parameters and plot hysteresis data.
@@ -10071,23 +10071,26 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
     ---------
     Tuple : (True or False indicating if conversion was sucessful, output file names written)
     """
+    # put plots in output_dir_path, unless isServer
+    incl_directory = True
+    if pmagplotlib.isServer:
+        incl_directory = False
+    # figure out directory/file paths
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    output_dir_path = os.path.realpath(output_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, input_dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
     # format and initialize variables
-    PLT = True
-    plots = 0
     verbose = pmagplotlib.verbose
     version_num = pmag.get_version()
-    dir_path = os.path.realpath(dir_path)
-    spec_file = pmag.resolve_file_name(spec_file, dir_path)
-    meas_file = pmag.resolve_file_name(meas_file, dir_path)
     if not make_plots:
-        PLT = False
         irm_init, imag_init = -1, -1
     if save_plots:
         verbose = False
-        plots = True
     if pltspec:
-        verbose = False
-        plots = True
+        pass
 
     SpecRecs = []
     #
@@ -10101,14 +10104,14 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
     # define figure numbers for hyst,deltaM,DdeltaM curves
     HystRecs, RemRecs = [], []
     HDD = {}
-    if verbose:
-        if verbose and PLT:
-            print("Plots may be on top of each other - use mouse to place ")
-    if PLT:
+    if verbose and make_plots:
+        print("Plots may be on top of each other - use mouse to place ")
+    if make_plots:
         HDD['hyst'], HDD['deltaM'], HDD['DdeltaM'] = 1, 2, 3
-        pmagplotlib.plot_init(HDD['DdeltaM'], 5, 5)
-        pmagplotlib.plot_init(HDD['deltaM'], 5, 5)
-        pmagplotlib.plot_init(HDD['hyst'], 5, 5)
+        if make_plots and (not save_plots):
+            pmagplotlib.plot_init(HDD['DdeltaM'], 5, 5)
+            pmagplotlib.plot_init(HDD['deltaM'], 5, 5)
+            pmagplotlib.plot_init(HDD['hyst'], 5, 5)
         imag_init = 0
         irm_init = 0
     else:
@@ -10133,12 +10136,15 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
     k = 0
     if pltspec:
         k = sids.index(pltspec)
-        print(sids[k])
     while k < len(sids):
         specimen = sids[k]
+        if pltspec:
+            if specimen != pltspec:
+                k += 1
+                continue
         # initialize a new specimen hysteresis record
         HystRec = {'specimen': specimen, 'experiment': ""}
-        if verbose and PLT:
+        if verbose and make_plots:
             print(specimen, k+1, 'out of ', len(sids))
     #
     #
@@ -10179,11 +10185,11 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
                 hmeths.append(meth)
 
             hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
-            if verbose and PLT:
+            if make_plots:
                 if not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
     #
-            if verbose:
+            if make_plots:
                 pmagplotlib.plot_hpars(HDD, hpars, 'bs')
             HystRec['hyst_mr_moment'] = hpars['hysteresis_mr_moment']
             HystRec['hyst_ms_moment'] = hpars['hysteresis_ms_moment']
@@ -10204,11 +10210,12 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
             rmeths = []
             for meth in meths:
                 rmeths.append(meth)
-            if verbose and PLT:
+            if verbose and make_plots:
                 print('plotting IRM')
             if irm_init == 0:
                 HDD['irm'] = 5 if 'imag' in HDD else 4
-                pmagplotlib.plot_init(HDD['irm'], 5, 5)
+                if make_plots and (not save_plots):
+                    pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
             rpars = pmagplotlib.plot_irm(HDD['irm'], Bdcd, Mdcd, irm_exp)
             HystRec['rem_mr_moment'] = rpars['remanence_mr_moment']
@@ -10225,7 +10232,7 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
             if irm_init:
                 pmagplotlib.clearFIG(HDD['irm'])
         if len(Bimag) > 0:
-            if verbose and PLT:
+            if verbose and make_plots:
                 print('plotting initial magnetization curve')
 # first normalize by Ms
             Mnorm = []
@@ -10233,7 +10240,8 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
                 Mnorm.append(m / float(hpars['hysteresis_ms_moment']))
             if imag_init == 0:
                 HDD['imag'] = 4
-                pmagplotlib.plot_init(HDD['imag'], 5, 5)
+                if make_plots and (not save_plots):
+                    pmagplotlib.plot_init(HDD['imag'], 5, 5)
                 imag_init = 1
             pmagplotlib.plot_imag(HDD['imag'], Bimag, Mnorm, imag_exp)
         else:
@@ -10243,26 +10251,27 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
             HystRecs.append(HystRec)
     #
         files = {}
-        if plots:
+        if save_plots and make_plots:
             if pltspec:
                 s = pltspec
             else:
                 s = specimen
             files = {}
             for key in list(HDD.keys()):
-                files[key] = s+'_'+key+'.'+fmt
-            pmagplotlib.save_plots(HDD, files)
-            if pltspec:
-                return True, []
-        if verbose and PLT:
+                files[key] = os.path.join(output_dir_path, s+'_'+key+'.'+fmt)
+            if make_plots and save_plots:
+                pmagplotlib.save_plots(HDD, files, incl_directory=incl_directory)
+            #if pltspec:
+            #    return True, []
+        if make_plots and (not save_plots):
             pmagplotlib.draw_figs(HDD)
             ans = input(
                 "S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":
                 files = {}
                 for key in list(HDD.keys()):
-                    files[key] = specimen+'_'+key+'.'+fmt
-                pmagplotlib.save_plots(HDD, files)
+                    files[key] = os.path.join(output_dir_path, specimen+'_'+key+'.'+fmt)
+                pmagplotlib.save_plots(HDD, files, incl_directory=incl_directory)
             if ans == '':
                 k += 1
             if ans == "p":
@@ -10296,17 +10305,20 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
             k += 1
         if k < len(sids):
             # must re-init figs for Windows to keep size
-            if PLT and set_env.IS_WIN:
-                pmagplotlib.plot_init(HDD['DdeltaM'], 5, 5)
-                pmagplotlib.plot_init(HDD['deltaM'], 5, 5)
-                pmagplotlib.plot_init(HDD['hyst'], 5, 5)
+            if make_plots and set_env.IS_WIN:
+                if not save_plots:
+                    pmagplotlib.plot_init(HDD['DdeltaM'], 5, 5)
+                    pmagplotlib.plot_init(HDD['deltaM'], 5, 5)
+                    pmagplotlib.plot_init(HDD['hyst'], 5, 5)
                 if len(Bimag) > 0:
                     HDD['imag'] = 4
-                    pmagplotlib.plot_init(HDD['imag'], 5, 5)
+                    if not save_plots:
+                        pmagplotlib.plot_init(HDD['imag'], 5, 5)
                 if len(Bdcd) > 0:
                     HDD['irm'] = 5 if 'imag' in HDD else 4
-                    pmagplotlib.plot_init(HDD['irm'], 5, 5)
-            elif not PLT and set_env.IS_WIN:
+                    if not save_plots:
+                        pmagplotlib.plot_init(HDD['irm'], 5, 5)
+            elif not make_plots and set_env.IS_WIN:
                 HDD['hyst'], HDD['deltaM'], HDD['DdeltaM'], HDD['irm'], HDD['imag'] = 0, 0, 0, 0, 0
     if len(HystRecs) > 0:
         #  go through prior_data, clean out prior results and save combined file as spec_file
@@ -10332,12 +10344,13 @@ def hysteresis_magic(dir_path=".", spec_file="specimens.txt", meas_file="measure
                 rec['sample'] = prior[0]['sample']
             SpecRecs.append(rec)
         # drop unnecessary/duplicate rows
-        dir_path = os.path.split(spec_file)[0]
-        con = cb.Contribution(dir_path, read_tables=[])
+        #dir_path = os.path.split(spec_file)[0]
+        con = cb.Contribution(input_dir_path, read_tables=[])
         con.add_magic_table_from_data('specimens', SpecRecs)
         con.tables['specimens'].drop_duplicate_rows(
             ignore_cols=['specimen', 'sample', 'citations', 'software_packages'])
         con.tables['specimens'].df = con.tables['specimens'].df.drop_duplicates()
+        spec_file = os.path.join(output_dir_path, os.path.split(spec_file)[1])
         con.write_table_to_file('specimens', custom_name=spec_file)
         if verbose:
             print("hysteresis parameters saved in ", spec_file)

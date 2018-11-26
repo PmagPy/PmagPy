@@ -500,10 +500,29 @@ class TestHysteresisMagic(unittest.TestCase):
                     'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
                     'er_sites.txt', 'rmag_anisotropy.txt']
         pmag.remove_files(filelist, self.hyst_WD)
-        files = glob.glob('*.svg')
-        for fname in files:
-            os.remove(fname)
+        glob_strings = ['*.svg', '*.png', "{}/*.svg".format(self.hyst_WD),
+                        "{}/*.png".format(self.hyst_WD)]
+        for string in glob_strings:
+            files = glob.glob(string)
+            for fname in files:
+                os.remove(fname)
         os.chdir(WD)
+
+    def test_hysteresis_no_figs(self):
+        res, outfiles = ipmag.hysteresis_magic(input_dir_path=self.hyst_WD,
+                                               spec_file='custom_specimens.txt', make_plots=False)
+        self.assertTrue(res)
+        self.assertEqual(outfiles[0], os.path.realpath(os.path.join(".", "custom_specimens.txt")))
+        fnames = glob.glob("*.svg")
+        self.assertFalse(fnames)
+
+    def test_hysteresis_with_figs(self):
+        res, outfiles = ipmag.hysteresis_magic(input_dir_path=self.hyst_WD,
+                                               spec_file='custom_specimens.txt', make_plots=True)
+        self.assertTrue(res)
+        self.assertEqual(outfiles[0], os.path.realpath(os.path.join(".", "custom_specimens.txt")))
+        fnames = glob.glob("*.svg")
+        self.assertEqual(len(fnames), 32)
 
     def test_hysteresis_bad_file(self):
         res, outfiles = ipmag.hysteresis_magic(self.hyst_WD, meas_file="fake.txt",
@@ -511,15 +530,15 @@ class TestHysteresisMagic(unittest.TestCase):
                                                save_plots=True)
         self.assertFalse(res)
 
-
     def test_hysteresis_success(self):
-        res, outfiles = ipmag.hysteresis_magic(self.hyst_WD, spec_file='custom_specimens.txt',
-                                               save_plots=True)
+        res, outfiles = ipmag.hysteresis_magic(output_dir_path=self.hyst_WD, spec_file='custom_specimens.txt',
+                                               save_plots=True, fmt="png")
         self.assertTrue(res)
         for f in outfiles:
             print('f', f)
             self.assertTrue(os.path.exists(f))
-        files = glob.glob('*.svg')
+        fstring = '{}/*.png'.format(self.hyst_WD)
+        files = glob.glob(fstring)
         self.assertEqual(len(files), 32)
 
 

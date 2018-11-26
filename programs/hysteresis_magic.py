@@ -32,7 +32,8 @@ def main():
     """
     args = sys.argv
     fmt = pmag.get_named_arg('-fmt', 'svg')
-    dir_path = pmag.get_named_arg('-WD', '.')
+    output_dir_path = pmag.get_named_arg('-WD', '.')
+    input_dir_path = pmag.get_named_arg('-ID', "")
     if "-h" in args:
         print(main.__doc__)
         sys.exit()
@@ -45,7 +46,7 @@ def main():
     if '-sav' in args:
         save_plots = True
     pltspec = pmag.get_named_arg('-spc', 0)
-    ipmag.hysteresis_magic(dir_path, spec_file, meas_file,
+    ipmag.hysteresis_magic(output_dir_path, input_dir_path, spec_file, meas_file,
                            fmt, save_plots, make_plots, pltspec)
 
 
