@@ -2,6 +2,8 @@
 
 # pylint: disable=W0612,C0111,C0103,W0201,E402
 
+import sys
+print (sys.version)
 print("-I- Importing Pmag GUI dependencies")
 #from pmag_env import set_env
 #set_env.set_backend(wx=True)
@@ -12,7 +14,6 @@ import wx
 import wx.lib.buttons as buttons
 import wx.lib.newevent as newevent
 import os
-import sys
 import webbrowser
 
 from pmagpy import pmag
