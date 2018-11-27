@@ -6804,6 +6804,7 @@ def sbootpars(Taus, Vs):
     bpars["t2_sigma"] = sig
     x, sig = gausspars(Tau3s)
     bpars["t3_sigma"] = sig
+    V1s=flip(V1s,combine=True)
     kpars = dokent(V1s, len(V1s))
     bpars["v1_dec"] = kpars["dec"]
     bpars["v1_inc"] = kpars["inc"]
@@ -6813,6 +6814,7 @@ def sbootpars(Taus, Vs):
     bpars["v1_zeta_inc"] = kpars["Zinc"]
     bpars["v1_eta_dec"] = kpars["Edec"]
     bpars["v1_eta_inc"] = kpars["Einc"]
+    V2s=flip(V2s,combine=True)
     kpars = dokent(V2s, len(V2s))
     bpars["v2_dec"] = kpars["dec"]
     bpars["v2_inc"] = kpars["inc"]
@@ -6822,6 +6824,7 @@ def sbootpars(Taus, Vs):
     bpars["v2_zeta_inc"] = kpars["Zinc"]
     bpars["v2_eta_dec"] = kpars["Edec"]
     bpars["v2_eta_inc"] = kpars["Einc"]
+    V3s=flip(V3s,combine=True)
     kpars = dokent(V3s, len(V3s))
     bpars["v3_dec"] = kpars["dec"]
     bpars["v3_inc"] = kpars["inc"]

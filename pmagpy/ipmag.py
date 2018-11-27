@@ -8839,6 +8839,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=1
     Parameters
     __________
         verbose : if True, print messages to output
+        dir_path : input directory path
         Data Model 3.0 only formated files:
             infile : specimens formatted file with aniso_s data
             samp_file : samples formatted file with sample => site relationship
@@ -9110,6 +9111,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0, iboot
                             comp_X[0][i], color='lightgreen', linewidth=3)
             else:
                 bpars = pmag.sbootpars(Taus, BVs)
+       
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
                 pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
