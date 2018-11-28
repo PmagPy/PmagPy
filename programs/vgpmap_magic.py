@@ -151,7 +151,7 @@ def main():
             ell1 = float(row['vgp_dm'])
         if 'vgp_dp' in list(row.keys()) and row['vgp_dp']:
             ell2 = float(row['vgp_dp'])
-        if 'vgp_alpha95' in list(row.keys()) and row['vgp_alpha95'].notnull():
+        if 'vgp_alpha95' in list(row.keys()) and (row['vgp_alpha95'] or row['vgp_alpha95'] == 0):
             ell1, ell2 = float(row['vgp_alpha95']), float(row['vgp_alpha95'])
         if ell1 and ell2:
             ppars = []

@@ -185,7 +185,10 @@ def main():
             ppars.append(lats[-1])
             ppars.append(ell1)
             ppars.append(lons[-1])
-            isign = abs(lats[-1]) / lats[-1]
+            try:
+                isign = abs(lats[-1]) / lats[-1]
+            except ZeroDivisionError:
+                isign = 1
             ppars.append(lats[-1] - isign * 90.)
             ppars.append(ell2)
             ppars.append(lons[-1] + 90.)

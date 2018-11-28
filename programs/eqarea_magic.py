@@ -420,7 +420,7 @@ def main():
                 filename += '.' + fmt
             elif pmagplotlib.isServer:  # use server plot naming convention
                 filename = 'LO:_'+locations+'_SI:_'+site+'_SA:_'+sample + \
-                    '_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
+                    '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             elif plot_key == 'all':
                 filename = 'all'
                 if 'location' in plot_data.columns:

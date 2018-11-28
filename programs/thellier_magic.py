@@ -222,7 +222,7 @@ def main():
 #
 #    set up datablocks
 #
-        thelblock = thel_data[thel_data['specimen'].str.contains(
+        thelblock = thel_data[thel_data['specimen'].astype(str).str.contains(
             this_specimen) == True]  # fish out this specimen
         trmblock = trm_data[trm_data['specimen'].str.contains(
             this_specimen) == True]  # fish out this specimen
@@ -231,7 +231,7 @@ def main():
         anisblock = anis_data[anis_data['specimen'].str.contains(
             this_specimen) == True]  # fish out the anisotropy data
         if len(prior_spec_data):
-            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
+            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str).str.contains(
                 this_specimen) == True]  # fish out prior interpretation
         else:
             prior_specimen_interpretations = []
