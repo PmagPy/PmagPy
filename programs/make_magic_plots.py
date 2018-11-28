@@ -116,8 +116,10 @@ def main():
     do_full_directory = False
     # check that locations propagated down to the lowest table in the contribution
     if 'location' in con.tables[lowest_table].df.columns:
+        if 'locations' not in con.tables:
+            info_log('location names propagated to {}, but could not be validated'.format(lowest_table))
         # are there any locations in the lowest table?
-        if not all(con.tables[lowest_table].df['location'].isnull()):
+        elif not all(con.tables[lowest_table].df['location'].isnull()):
             locs = con.tables['locations'].df.index.unique()
             lowest_locs = con.tables[lowest_table].df['location'].unique()
             incorrect_locs = set(lowest_locs).difference(set(locs))
