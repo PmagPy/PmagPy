@@ -83,6 +83,7 @@ script:
   - python -m unittest pmagpy_tests.test_ipmag -v
   - python -m unittest pmagpy_tests.test_thellier_gui -v
   - python -m unittest pmagpy_tests.test_imports3 -v
+  - python -m unittest pmagpy_tests.test_pmag_gui -v
   #- python -m unittest discover -v
 
 
