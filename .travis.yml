@@ -56,7 +56,7 @@ install:
   - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
   - conda install --quiet $PACKAGES
   - conda install --quiet cartopy
-  - conda install --quiet pandas libtiff matplotlib<3.0 numpy scipy future requests
+  - conda install --quiet pandas libtiff matplotlib=2.2.3 numpy scipy future requests
   - conda install --quiet xlwt # for pandas df.to_excel
   - conda install --quiet wxPython
   - conda install --quiet appdirs
