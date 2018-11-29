@@ -232,7 +232,7 @@ def main():
     while k < len(specimen_names):
         mpars={"specimen_direction_type": "Error"}
         # set the current specimen for plotting
-        this_specimen = specimen_names[k]
+        this_specimen = str(specimen_names[k])
         # reset beginning/end pca if plotting more than one specimen
         if not specimen:
             beg_pca, end_pca = "", ""
@@ -240,7 +240,7 @@ def main():
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
         if setangle == 0:
             angle = ""
-        this_specimen_measurements = meas_data[meas_data['specimen'].str.contains(
+        this_specimen_measurements = meas_data[meas_data['specimen'].astype(str).str.contains(
             this_specimen).astype(bool)]  # fish out this specimen
         this_specimen_measurements = this_specimen_measurements[-this_specimen_measurements['quality'].str.contains(
             'b').astype(bool)]  # remove bad measurements
@@ -378,7 +378,7 @@ def main():
 #
             prior_specimen_interpretations=[]
             if len(prior_spec_data):
-                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str).str.contains(this_specimen) == True]
             if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(

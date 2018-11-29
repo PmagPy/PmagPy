@@ -206,10 +206,10 @@ def main():
         #    plot_data = plot_data[plot_data[tilt_key] == coord]
 
         # get metadata for naming the plot file
-        locations = data_container.get_name('location', df_slice=plot_data)
-        site = data_container.get_name('site', df_slice=plot_data)
-        sample = data_container.get_name('sample', df_slice=plot_data)
-        specimen = data_container.get_name('specimen', df_slice=plot_data)
+        locations = str(data_container.get_name('location', df_slice=plot_data))
+        site = str(data_container.get_name('site', df_slice=plot_data))
+        sample = str(data_container.get_name('sample', df_slice=plot_data))
+        specimen = str(data_container.get_name('specimen', df_slice=plot_data))
 
         # make sure method_codes is in plot_data
         if 'method_codes' not in plot_data.columns:

@@ -201,11 +201,11 @@ def main():
     #
     while k < len(specimen_names):
         # set the current specimen for plotting
-        this_specimen = specimen_names[k]
+        this_specimen = str(specimen_names[k])
         if verbose and this_specimen != "":
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
         if pmagplotlib.isServer:
-            this_specimen_measurements = meas_data[meas_data['specimen'] == this_specimen]
+            this_specimen_measurements = meas_data[meas_data['specimen'].astype(str).str.contains(this_specimen)]
             try:
                 loc = this_specimen_measurements.loc[:, 'location'].values[0]
             except:
@@ -224,11 +224,11 @@ def main():
 #
         thelblock = thel_data[thel_data['specimen'].astype(str).str.contains(
             this_specimen) == True]  # fish out this specimen
-        trmblock = trm_data[trm_data['specimen'].str.contains(
+        trmblock = trm_data[trm_data['specimen'].astype(str).str.contains(
             this_specimen) == True]  # fish out this specimen
-        tdsrecs = td_data[td_data['specimen'].str.contains(
+        tdsrecs = td_data[td_data['specimen'].astype(str).str.contains(
             this_specimen) == True]  # fish out this specimen
-        anisblock = anis_data[anis_data['specimen'].str.contains(
+        anisblock = anis_data[anis_data['specimen'].astype(str).str.contains(
             this_specimen) == True]  # fish out the anisotropy data
         if len(prior_spec_data):
             prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str).str.contains(
