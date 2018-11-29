@@ -13,11 +13,18 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.contribution_builder as cb
 
 
-def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file="samples.txt",
-         site_file="sites.txt", loc_file="locations.txt",
-         plot_by="all", crd="g", ignore_tilt=False,
-         save_plots=True, fmt="svg", contour=0, color_map="",
-         plot_ell=False, dist="", filename=""):
+def plot_eq(in_file='sites.txt', dir_path=".", input_dir_path="",
+            spec_file="specimens.txt", samp_file="samples.txt",
+            site_file="sites.txt", loc_file="locations.txt",
+            plot_by="all", crd="g", ignore_tilt=False,
+            save_plots=True, fmt="svg", contour=0, color_map="",
+            plot_ell=False, dist=""):
+
+    dir_path = os.path.realpath(dir_path)
+    if not input_dir_path:
+        input_dir_path = dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+
     # initialize some default variables
     verbose = pmagplotlib.verbose
     FIG = {}  # plot dictionary
@@ -63,7 +70,11 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
     #
     fnames = {"specimens": spec_file, "samples": samp_file,
               'sites': site_file, 'locations': loc_file}
-    contribution = cb.Contribution(dir_path, custom_filenames=fnames,
+
+    if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
+        return False, []
+
+    contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
                                    single_file=in_file)
 
     try:
@@ -81,7 +92,7 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
 
     if plot_key != "all" and plot_key not in data.columns:
         print("-E- You can't plot by {} with the data provided".format(plot_key))
-        return
+        return False, []
 
     # add tilt key into DataFrame columns if it isn't there already
     if tilt_key not in data.columns:
@@ -101,7 +112,7 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
         if plot_key not in data.columns:
             print('Can\'t plot by "{}".  That header is not in infile: {}'.format(
                 plot_key, in_file))
-            return
+            return False, []
         plots = data[data[plot_key].notnull()]
         plotlist = plots[plot_key].unique()  # grab unique values
     else:
@@ -122,7 +133,6 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
         # SLblock, SPblock = [], []
         title = plot
         mode = 1
-        k = 0
 
         if dec_key not in plot_data.columns:
             print("-W- No dec/inc data")
@@ -342,12 +352,11 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
             elif len(rDIs) > 3 and dist != 'BV':
                 pmagplotlib.plot_conf(FIG['eqarea'], etitle, [], rpars, 0)
 
-        print(FIG.keys())
         for key in list(FIG.keys()):
             files = {}
-            if filename:  # use provided filename
-                filename += '.' + fmt
-            elif pmagplotlib.isServer:  # use server plot naming convention
+            #if filename:  # use provided filename
+            #    filename += '.' + fmt
+            if pmagplotlib.isServer:  # use server plot naming convention
                 filename = 'LO:_'+locations+'_SI:_'+site+'_SA:_'+sample + \
                     '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             elif plot_key == 'all':
@@ -376,6 +385,8 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
                     filename = filename[:-1]
                 filename += ".{}".format(fmt)
 
+            if not pmagplotlib.isServer:
+                filename = os.path.join(dir_path, filename)
             files[key] = filename
 
         if pmagplotlib.isServer:
@@ -387,7 +398,7 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
             pmagplotlib.save_plots(FIG, files)
 
         elif do_plot:
-            pmagplotlib.save_plots(FIG, files)
+            pmagplotlib.save_plots(FIG, files, incl_directory=True)
             continue
         if verbose:
             pmagplotlib.draw_figs(FIG)
@@ -395,8 +406,9 @@ def plot(in_file='sites.txt', dir_path=".", spec_file="specimens.txt", samp_file
             if ans == "q":
                 return True, []
             if ans == "a":
-                pmagplotlib.save_plots(FIG, files)
+                pmagplotlib.save_plots(FIG, files, incl_directory=True)
         continue
+    return True, []
 
 def main():
     """
@@ -473,10 +485,10 @@ def main():
         dist = pmag.get_named_arg("-ell", "F")
     crd = pmag.get_named_arg("-crd", default_val="g")
     fmt = pmag.get_named_arg("-fmt", "svg")
-    filename = pmag.get_named_arg('-fname', '')
-    plot(in_file, dir_path, spec_file, samp_file, site_file, loc_file,
+    #filename = pmag.get_named_arg('-fname', '')
+    plot_eq(in_file, dir_path, spec_file, samp_file, site_file, loc_file,
          plot_by, crd, ignore_tilt, save_plots, fmt, contour, color_map,
-         plot_ell, dist, filename)
+         plot_ell, dist)
 
 
 
