@@ -83,7 +83,20 @@ script:
   - python -m unittest pmagpy_tests.test_ipmag -v
   - python -m unittest pmagpy_tests.test_thellier_gui -v
   - python -m unittest pmagpy_tests.test_imports3 -v
+  - python -m unittest pmagpy_tests.test_find_pmag_dir -v
   - python -m unittest pmagpy_tests.test_pmag_gui -v
+
+
+
+
+  #test_validations.py#        test_builder.py              test_imports2.py             test_pmag_gui.py
+#            test_builder.pyc             test_imports3.py             test_pmagplotlib.py
+#             test_contribution_builder.py test_ipmag.py                test_programs.py
+#           test_demag_gui.py            test_magic_gui.py            test_simple_example.py
+#                 test_dialog_components.py    test_magic_gui2.py           test_thellier_gui.py
+#                    test_er_magic_dialogs.py     test_map_magic.py            test_validations.py
+#                    test_pmag.py
+
   #- python -m unittest discover -v
 
 

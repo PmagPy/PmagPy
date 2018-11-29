@@ -27,3 +27,6 @@ class TestFindPmagDir(unittest.TestCase):
         self.assertEqual(dir2, dir3)
         if WD != sys.prefix:
             self.assertIn('PmagPy', dir1)
+
+    def test_fail(self):
+        self.assertFalse(True)
