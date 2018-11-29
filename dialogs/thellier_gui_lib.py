@@ -14,12 +14,12 @@ from scipy import *
 #import pmag
 import copy
 import pmagpy.pmag as pmag
+from SPD import spd
+
 
 def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI_log, THERMAL,MICROWAVE):
     datablock = Data[s]['datablock']
     pars=copy.deepcopy(Data[s]['pars']) # assignments to pars are assiging to Data[s]['pars']
-    import SPD
-    import SPD.spd as spd
     Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'],acceptance_criteria)
     Pint_pars.reqd_stats() # calculate only statistics indicated in preferences
     if not Pint_pars.pars:
@@ -298,7 +298,7 @@ def check_specimen_PI_criteria(pars,acceptance_criteria):
     '''
     #if 'pars' not in self.Data[specimen].kes():
     #    return
-        
+
     pars['specimen_fail_criteria']=[]
     for crit in list(acceptance_criteria.keys()):
         if crit not in list(pars.keys()):
@@ -340,4 +340,3 @@ def get_location_from_hierarchy(site,Data_hierarchy):
             location=L
             break
     return(location)
-

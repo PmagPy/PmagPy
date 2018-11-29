@@ -27,6 +27,10 @@ class TestThellierGUI(unittest.TestCase):
         os.chdir(WD)
         wx.CallAfter(self.app.Destroy)
 
+    def test_spd(self):
+        from SPD import spd
+        print('spd', spd)
+
     def test_empty_dir(self):
         try:
             thellier_gui.Arai_GUI(empty_WD, DM=2)
