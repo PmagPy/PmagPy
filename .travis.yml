@@ -80,6 +80,7 @@ script:
   - python -c "print('starting tests')"
   - python -m unittest pmagpy_tests.test_pmag -v
   - python -m unittest pmagpy_tests.test_builder -v
+  - python -m unittest pmagpy_tests.test_ipmag -v
   #- python -m unittest discover -v
 
 
