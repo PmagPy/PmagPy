@@ -78,7 +78,8 @@ install:
   # command to run tests, e.g. python setup.py test
 script:
   - python -c "print('starting tests')"
-  - python -m unittest pmagpy_tests.test_pmag
+  - python -m unittest pmagpy_tests.test_pmag -v
+  - python -m unittest pmagpy_tests.test_builder -v
   #- python -m unittest discover -v
 
 
