@@ -59,6 +59,7 @@ install:
   - conda install --quiet pandas libtiff matplotlib numpy scipy future requests
   - conda install --quiet xlwt # for pandas df.to_excel
   - conda install --quiet wxPython
+  - conda install --quiet appdirs
   - pip install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
   ## download and install wxPython
