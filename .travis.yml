@@ -58,21 +58,22 @@ install:
   - conda install --quiet cartopy
   - conda install --quiet pandas libtiff matplotlib numpy scipy future requests
   - conda install --quiet xlwt # for pandas df.to_excel
+  - conda install --quiet wxPython
   - pip install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
   - sudo apt-get update
-  # download and install wxPython
-  - if [[ "$PYTHON_VERSION" == 3.5* ]]; then
-      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
-      pip install "wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
-    fi
-  - if [[ "$PYTHON_VERSION" == 3.6* ]]; then
-      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
-      pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
-    fi
-  - if [[ "$PYTHON_VERSION" == 3.7* ]]; then
-      wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
-      pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
-    fi
+  ## download and install wxPython
+  #- if [[ "$PYTHON_VERSION" == 3.5* ]]; then
+  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
+  #    pip install "wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
+  #  fi
+  #- if [[ "$PYTHON_VERSION" == 3.6* ]]; then
+  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
+  #    pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
+  #  fi
+  #- if [[ "$PYTHON_VERSION" == 3.7* ]]; then
+  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
+  #    pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
+  #  fi
 
   # command to run tests, e.g. python setup.py test
 script:
