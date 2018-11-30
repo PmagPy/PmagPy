@@ -72,6 +72,7 @@ def plot_eq(in_file='sites.txt', dir_path=".", input_dir_path="",
               'sites': site_file, 'locations': loc_file}
 
     if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
+        print('-E- Could not find {}'.format(in_file))
         return False, []
 
     contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
@@ -110,7 +111,7 @@ def plot_eq(in_file='sites.txt', dir_path=".", input_dir_path="",
     if plot_key != "all":
         # return all where plot_key is not blank
         if plot_key not in data.columns:
-            print('Can\'t plot by "{}".  That header is not in infile: {}'.format(
+            print('-E- Can\'t plot by "{}".  That header is not in infile: {}'.format(
                 plot_key, in_file))
             return False, []
         plots = data[data[plot_key].notnull()]
@@ -452,10 +453,14 @@ def main():
         print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg("-WD", default_val=".")
+    input_dir_path = pmag.get_named_arg('-ID', '')
+    if not input_dir_path:
+        input_dir_path = dir_path
     in_file = pmag.get_named_arg("-f", default_val="sites.txt")
-    in_file = pmag.resolve_file_name(in_file, dir_path)
-    if "-WD" not in sys.argv:
-        dir_path = os.path.split(in_file)[0]
+    in_file = pmag.resolve_file_name(in_file, input_dir_path)
+    if "-ID" not in sys.argv:
+        input_dir_path = os.path.split(in_file)[0]
+
     plot_by = pmag.get_named_arg("-obj", default_val="all").lower()
     spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
     samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
@@ -486,7 +491,7 @@ def main():
     crd = pmag.get_named_arg("-crd", default_val="g")
     fmt = pmag.get_named_arg("-fmt", "svg")
     #filename = pmag.get_named_arg('-fname', '')
-    plot_eq(in_file, dir_path, spec_file, samp_file, site_file, loc_file,
+    plot_eq(in_file, dir_path, input_dir_path, spec_file, samp_file, site_file, loc_file,
          plot_by, crd, ignore_tilt, save_plots, fmt, contour, color_map,
          plot_ell, dist)
 

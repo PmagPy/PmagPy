@@ -11069,7 +11069,7 @@ def vocab_convert(vocab, standard, key=''):
     Example:
     vocab_convert('Egypt','GEOMAGIA') will return '1'
     """
-	
+
     places_to_geomagia = {
         'Egypt':                 "1",
         'Japan':                 "2",
