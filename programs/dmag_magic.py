@@ -49,7 +49,7 @@ def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
     save_plots : bool
         plot and save non-interactively, default True
     fmt : str
-        ["png", "svg", "pdf", "jpg"]
+        ["png", "svg", "pdf", "jpg"], default "svg"
 
     Returns
     ---------

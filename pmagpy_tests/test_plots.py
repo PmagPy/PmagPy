@@ -50,6 +50,12 @@ class TestEqareaMagic(unittest.TestCase):
         res, outfiles = eqarea_magic.plot_eq(dir_path="data_files/", save_plots=True, fmt="png", plot_by="sit")
         self.assertFalse(res)
 
+    def test_with_ell(self):
+        res, outfiles = eqarea_magic.plot_eq(dir_path="data_files/eqarea_magic", save_plots=True, fmt="png", plot_by="loc",
+                                             plot_ell="F")
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
+
 
 
 class TestDmagMagic(unittest.TestCase):
