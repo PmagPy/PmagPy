@@ -207,7 +207,8 @@ def main():
     # make the base map with a blue triangle at the pole
     pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
 
-    Opts['pltgrid'] = -1
+    #Opts['pltgrid'] = -1
+    if proj=='merc':Opts['pltgrid']=1
     Opts['sym'] = sym
     Opts['symsize'] = size
     if len(dates) > 0:
