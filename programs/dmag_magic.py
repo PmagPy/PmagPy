@@ -19,6 +19,48 @@ def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
          plot_by="loc", LT="AF", norm=True, XLP="",
          save_plots=True, fmt="svg"):
 
+    """
+    plots intensity decay curves for demagnetization experiments
+
+    Parameters
+    ----------
+    in_file : str, default "measurements.txt"
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory (if different from dir_path), default ""
+    spec_file : str
+        input specimen file name, default "specimens.txt"
+    samp_file: str
+        input sample file name, default "samples.txt"
+    site_file : str
+        input site file name, default "sites.txt"
+    loc_file : str
+        input location file name, default "locations.txt"
+    plot_by : str
+        [spc, sam, sit, loc] (specimen, sample, site, location), default "loc"
+    LT : str
+        lab treatment [T, AF, M], default AF
+    norm : bool
+        normalize by NRM magnetization, default True
+    XLP : str
+        exclude specific  lab protocols, (for example, method codes like LP-PI)
+        default ""
+    save_plots : bool
+        plot and save non-interactively, default True
+    fmt : str
+        ["png", "svg", "pdf", "jpg"]
+
+    Returns
+    ---------
+    type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+
+    """
+    dir_path = os.path.realpath(dir_path)
+    if not input_dir_path:
+        input_dir_path = dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+
     # format plot_key
     name_dict = {'loc': 'location', 'sit': 'site',
                  'sam': 'sample', 'spc': 'specimen'}
@@ -116,8 +158,14 @@ def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
             if save_plots:
                 files = {}
                 for key in list(FIG.keys()):
-                    files[key] = title + '_' + LT + '.' + fmt
-                pmagplotlib.save_plots(FIG, files)
+                    if pmagplotlib.isServer:
+                        files[key] = title + '_' + LT + '.' + fmt
+                        incl_dir = False
+                    else: # if not server, include directory in output path
+                        files[key] = os.path.join(dir_path, title + '_' + LT + '.' + fmt)
+                        incl_dir = True
+
+                pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
             else:
                 pmagplotlib.draw_figs(FIG)
                 prompt = " S[a]ve to save plot, [q]uit,  Return to continue:  "
@@ -127,8 +175,13 @@ def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
                 if ans == "a":
                     files = {}
                     for key in list(FIG.keys()):
-                        files[key] = title + '_' + LT + '.' + fmt
-                    pmagplotlib.save_plots(FIG, files)
+                        if pmagplotlib.isServer:
+                            files[key] = title + '_' + LT + '.' + fmt
+                            incl_dir = False
+                        else: # if not server, include directory in output path
+                            files[key] = os.path.join(dir_path, title + '_' + LT + '.' + fmt)
+                            incl_dir = True
+                    pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
             pmagplotlib.clearFIG(FIG['demag'])
     if last_plot:
         return True, []
@@ -147,7 +200,7 @@ def main():
         dmag_magic -h [command line options]
 
     INPUT
-       takes magic formatted magic_measurements.txt files
+       takes magic formatted measurements.txt files
 
     OPTIONS
         -h prints help message and quits
@@ -167,7 +220,6 @@ def main():
         print(main.__doc__)
         sys.exit()
     # initialize variables from command line + defaults
-
     dir_path = pmag.get_named_arg("-WD", default_val=".")
     input_dir_path = pmag.get_named_arg('-ID', '')
     if not input_dir_path:
@@ -176,18 +228,13 @@ def main():
     in_file = pmag.resolve_file_name(in_file, input_dir_path)
     if "-ID" not in sys.argv:
         input_dir_path = os.path.split(in_file)[0]
-
     plot_by = pmag.get_named_arg("-obj", default_val="loc")
     LT = pmag.get_named_arg("-LT", "AF")
     no_norm = pmag.get_flag_arg_from_sys("-N")
-    norm = 0 if no_norm else 1
-
+    norm = False if no_norm else True
     save_plots = pmag.get_flag_arg_from_sys("-sav")
-    #no_plot = pmag.get_flag_arg_from_sys("-sav")
-    #plot = 0 if no_plot else 1
     fmt = pmag.get_named_arg("-fmt", "svg")
     XLP = pmag.get_named_arg("-XLP", "")
-    dir_path = pmag.get_named_arg("-WD", os.getcwd())
     spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
     samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
     site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")

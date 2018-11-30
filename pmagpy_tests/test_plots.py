@@ -58,7 +58,7 @@ class TestDmagMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.png", "*.svg"]
+        glob_strings = ["*.png", "*.svg", "data_files/3_0/McMurdo/*.png"]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
@@ -78,6 +78,17 @@ class TestDmagMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
         images = glob.glob("*.png")
         self.assertEqual(len(images), 530)
+
+    def test_with_output_dir(self):
+        res, outfiles = dmag_magic.plot(dir_path="data_files/3_0/McMurdo", plot_by='loc', fmt="png")
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        images = glob.glob("data_files/3_0/McMurdo/*.png")
+        self.assertEqual(len(images), 1)
+
+
+
 
     def test_failure(self):
         res, outfiles = dmag_magic.plot(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc',

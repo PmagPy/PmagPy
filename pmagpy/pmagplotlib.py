@@ -742,7 +742,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     s : string for title
     num : no idea - set it to zero
     units : [T,K,U] for tesla, kelvin or arbitrary
-    norm : [1,0] if 1, normalize, otherwise don't
+    norm : [True,False] if True, normalize
 
     Effects
     ______
@@ -789,7 +789,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
                 Tv.append(rec[0])
                 if recnum > 0:
                     Tv.append(rec[0])
-            if norm == 1:
+            if norm:
                 M.append(old_div(rec[3], Ints[-1]))
             else:
                 M.append(rec[3])
@@ -831,7 +831,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Tv.append(Tv[-1])
     plt.plot(T, M)
     plt.plot(T, M, 'ro')
-    if len(Tv) == len(Vdif) and norm == 1:
+    if len(Tv) == len(Vdif) and norm:
         plt.plot(Tv, Vdif, 'g-')
     if units == "T":
         plt.xlabel("Step (mT)")
