@@ -10027,7 +10027,7 @@ def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
     if len(specimens) == 0:
         print('there are no data for plotting')
         return False, []
-    specimens = specimens[0:5]  # just plot the first 5
+    #specimens = specimens[0:5]
     cnt = 1  # set the figure counter to 1
     for this_specimen in specimens:  # step through the specimens  list
         # make the figure dictionary that pmagplotlib likes:
@@ -10037,12 +10037,16 @@ def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
         spec_df = thel_data[thel_data.specimen ==
                             this_specimen]  # get data for this specimen
         # get the data block for Arai plot
-        araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
+        if len(spec_df)>0:
+            araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
         # get the datablock for Zijderveld plot
-        zijdblock, units = pmag.find_dmag_rec(
-            this_specimen, spec_df, version=3)
-    pmagplotlib.plot_arai_zij(
-        AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
+            zijdblock, units = pmag.find_dmag_rec(
+                this_specimen, spec_df, version=3)
+            pmagplotlib.plot_arai_zij(
+                AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
+        else:
+            print ('no data for ',this_specimen)
+            print ('skipping')
 
 
 
