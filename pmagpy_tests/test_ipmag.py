@@ -678,13 +678,9 @@ class TestThellierMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(len(glob.glob("*.png")), 1076)
 
-
-    def test_no_figs(self):
-        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, n_specs=5, save_plots=False)
-        self.assertTrue(res)
-        self.assertEqual(len(glob.glob("*.svg")), 0)
-
     def test_one_spec(self):
+        for fname in glob.glob("*.png"):
+            os.remove(fname)
         res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, spec="s2s0-03",
                                              save_plots=True, fmt="png")
         self.assertTrue(res)

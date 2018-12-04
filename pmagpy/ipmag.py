@@ -10027,6 +10027,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     fmt : str
         format of saved figures (default is 'svg')
     """
+    # get proper paths
     if not input_dir_path:
         input_dir_path = dir_path
     input_dir_path = os.path.realpath(input_dir_path)
@@ -10035,6 +10036,8 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     # read in magic formatted data
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
     int_key = cb.get_intensity_col(meas_df)
+    # list for saved figs
+    saved = []
     # get all the records with measurement data
     meas_data = meas_df[meas_df[int_key].notnull()]
     thel_data = meas_data[meas_data['method_codes'].str.contains(
@@ -10055,35 +10058,67 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
             pass
     cnt = 1  # set the figure counter to 1
     for this_specimen in specimens:  # step through the specimens  list
-        print(this_specimen)
+        if pmagplotlib.verbose:
+            print(this_specimen)
         # make the figure dictionary that pmagplotlib likes:
-        if save_plots:
-            AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
-        else:
-            AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
-                2, 'deremag': cnt+3}  # make datablock
-        cnt += 4  # increment the figure counter
+        AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
+        #if save_plots:
+        #    AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
+        #else:
+        #    AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
+        #        2, 'deremag': cnt+3}  # make datablock
+        #cnt += 4  # increment the figure counter
         spec_df = thel_data[thel_data.specimen ==
                             this_specimen]  # get data for this specimen
         # get the data block for Arai plot
         if len(spec_df)>0:
+            if not save_plots:
+                for key, val in AZD.items():
+                    pmagplotlib.plot_init(val, 5, 5)
             araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
         # get the datablock for Zijderveld plot
             zijdblock, units = pmag.find_dmag_rec(
                 this_specimen, spec_df, version=3)
             zed = pmagplotlib.plot_arai_zij(
                 AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
+            if not save_plots:
+                pmagplotlib.draw_figs(zed)
+                ans = input(
+                    "S[a]ve plots, [q]uit, <return> to continue\n ")
+                if ans == 'q':
+                    return True, []
+                if ans == 'a':
+                    files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
+                    files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
+                    incl_directory = True
+                    saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
+
             if save_plots:
                 files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
                 incl_directory = False
                 if not pmagplotlib.isServer:
                     files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
                     incl_directory = True
-                pmagplotlib.save_plots(zed, files, incl_directory=incl_directory)
+                else:
+                    # fix plot titles, formatting, and file names for server
+                    for key, value in files.copy().items():
+                        files[key] = "SP:_{}_TY:_{}_.{}".format(this_specimen, key, fmt)
+                    black = '#000000'
+                    purple = '#800080'
+                    titles = {}
+                    titles['deremag'] = 'DeReMag Plot'
+                    titles['zijd'] = 'Zijderveld Plot'
+                    titles['arai'] = 'Arai Plot'
+                    titles['TRM'] = 'TRM Acquisition data'
+                    titles['eqarea'] = 'Equal Area Plot'
+                    zed = pmagplotlib.add_borders(
+                        zed, titles, black, purple)
+
+                saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
         else:
             print ('no data for ',this_specimen)
             print ('skipping')
-    return True, []
+    return True, saved
 
 
 

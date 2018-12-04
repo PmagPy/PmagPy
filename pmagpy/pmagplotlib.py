@@ -1592,6 +1592,7 @@ def save_plots(Figs, filenames, **kwargs):
         dictionary of filenames, e.g. {'eqarea': 'mc01a_eqarea.svg', ...}
         dict keys should correspond with Figs
     """
+    saved = []
     for key in list(Figs.keys()):
         try:
             plt.figure(num=Figs[key])
@@ -1611,11 +1612,12 @@ def save_plots(Figs, filenames, **kwargs):
                 plt.savefig(fname)
             if verbose:
                 print(Figs[key], " saved in ", fname)
+            saved.append(fname)
         except Exception as ex:
             print(type(ex), ex)
             print('could not save: ', Figs[key], filenames[key])
             print("output file format not supported ")
-    return
+    return saved
 #
 
 
