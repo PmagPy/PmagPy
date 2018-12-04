@@ -9111,7 +9111,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0, iboot
                             comp_X[0][i], color='lightgreen', linewidth=3)
             else:
                 bpars = pmag.sbootpars(Taus, BVs)
-       
+
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
                 pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
@@ -10004,17 +10004,33 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='./', angle=0):
             pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
 
 
-def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
+def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
+                   spec="", n_specs="all", save_plots=True,  fmt="svg"):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
+
 
     Parameters
     ----------
     meas_file : str
-        input measurement file
+        input measurement file, default "measurements.txt"
+    dir_path : str
+        output directory, default "."
     input_dir_path : str
-        input directory of meas_file, default "."
+        input file directory IF different from dir_path, default ""
+    spec : str
+        default "", specimen to plot
+    n_specs : int
+        default "all", otherwise number of specimens to plot
+    save_plots : bool, default True
+        if True, non-interactively save plots
+    fmt : str
+        format of saved figures (default is 'svg')
     """
+    if not input_dir_path:
+        input_dir_path = dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    dir_path = os.path.realpath(dir_path)
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
     # read in magic formatted data
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
@@ -10027,12 +10043,25 @@ def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
     if len(specimens) == 0:
         print('there are no data for plotting')
         return False, []
-    #specimens = specimens[0:5]
+    if spec:
+        if spec not in specimens:
+            print('could not find specimen {}'.format(spec))
+            return False, []
+        specimens = [spec]
+    elif n_specs != "all":
+        try:
+            specimens = specimens[:n_specs]
+        except Exception as ex:
+            pass
     cnt = 1  # set the figure counter to 1
     for this_specimen in specimens:  # step through the specimens  list
+        print(this_specimen)
         # make the figure dictionary that pmagplotlib likes:
-        AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
-               2, 'deremag': cnt+3}  # make datablock
+        if save_plots:
+            AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
+        else:
+            AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
+                2, 'deremag': cnt+3}  # make datablock
         cnt += 4  # increment the figure counter
         spec_df = thel_data[thel_data.specimen ==
                             this_specimen]  # get data for this specimen
@@ -10042,11 +10071,19 @@ def thellier_magic(meas_file='measurements.txt', input_dir_path='./'):
         # get the datablock for Zijderveld plot
             zijdblock, units = pmag.find_dmag_rec(
                 this_specimen, spec_df, version=3)
-            pmagplotlib.plot_arai_zij(
+            zed = pmagplotlib.plot_arai_zij(
                 AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
+            if save_plots:
+                files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
+                incl_directory = False
+                if not pmagplotlib.isServer:
+                    files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
+                    incl_directory = True
+                pmagplotlib.save_plots(zed, files, incl_directory=incl_directory)
         else:
             print ('no data for ',this_specimen)
             print ('skipping')
+    return True, []
 
 
 

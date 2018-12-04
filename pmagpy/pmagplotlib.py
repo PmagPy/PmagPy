@@ -1275,6 +1275,7 @@ def plot_arai_zij(ZED, araiblock, zijdblock, s, units):
     plot_teq(ZED['eqarea'], araiblock, s, "")
     plot_zij(ZED['zijd'], zijdblock, angle, s, norm)
     plot_np(ZED['deremag'], araiblock, s, units)
+    return ZED
 
 
 def plot_b(Figs, araiblock, zijdblock, pars):

@@ -651,6 +651,53 @@ class TestCriteriaExtract(unittest.TestCase):
             self.assertTrue(fname.endswith('.tex'))
 
 
+class TestThellierMagic(unittest.TestCase):
+    def setUp(self):
+        self.thel_WD = os.path.join(WD, 'data_files', 'thellier_magic')
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'custom_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt']
+        pmag.remove_files(filelist, self.thel_WD)
+        glob_strings = ['*.svg', '*.png', os.path.join(self.thel_WD, "*.svg"),
+                        os.path.join(self.thel_WD, "*.png")]
+        for string in glob_strings:
+            files = glob.glob(string)
+            for fname in files:
+                os.remove(fname)
+        os.chdir(WD)
+
+    def test_success(self):
+        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, n_specs=5)
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.svg")), 20)
+
+    def test_success_all_specs(self):
+        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, fmt="png")
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.png")), 1076)
+
+
+    def test_no_figs(self):
+        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, n_specs=5, save_plots=False)
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.svg")), 0)
+
+    def test_one_spec(self):
+        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, spec="s2s0-03",
+                                             save_plots=True, fmt="png")
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.png")), 4)
+        self.assertTrue(os.path.exists("s2s0-03_arai.png"))
+
+    def test_one_spec_with_output_dir(self):
+        res, outfiles = ipmag.thellier_magic(dir_path=self.thel_WD, spec="s2s0-03",
+                                             save_plots=True, fmt="png")
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob(os.path.join(self.thel_WD, "*.png"))), 4)
+        self.assertTrue(os.path.exists(os.path.join(self.thel_WD, "s2s0-03_arai.png")))
+
 
 
 
