@@ -76,7 +76,11 @@ def main():
     authorList=""
     for author in authors:
 #        print ("Name:",author['given'], author['family']) 
-        authorList = authorList + author['given'] + " " + author['family'] + ", " 
+        author_given=""
+        names=author['given'].split(' ')
+        for name in names:
+            author_given +=name[0]+"."
+        authorList += author['family'] + " " + author_given + ", " 
 #    print(authorList)
     authorList=authorList[:-2]
 #    print(authorList)
@@ -151,11 +155,12 @@ def main():
             age_low=temp
         if age == -1e9:               # If only age_low and age_high are in the MagIC file then calculate the age.
             age=(age_high+age_low)/2
-            age_error='8'
-        age_min=age_low
-        age_max=age_high
+            age_error_type='8'  #If MagIC age only high and low then error type is "range"
 
-        age_error_type='5'  #Magone sigma for 
+        age_min=age-age_low  # GEOMAGIA has the max and min as differences from the age, not absolute. 
+        age_max=age_high-age
+
+        age=1950-age  #GEOMAGIA want +-AD/BC so convert BP to AD/-BC
 
         lat=row['lat']
         lon=row['lon']
@@ -263,9 +268,9 @@ def main():
 
 # Could try and get sample names from samples table (using Contribution object) but just taking the list 
 # if it exists for now.
-        samples="-1"
+        sample_list="-1"
         if 'samples' in sites.columns.values: 
-            samples=row['samples']
+            sample_list=row['samples']
 
 # Should add a state/province column to data model
 
@@ -294,7 +299,7 @@ def main():
             description=row['description'] 
 
         if age <= 50000:
-            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,samples,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1",description,sep=',')
+            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,sample_list,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1",description,sep=',')
 
     #end for loop
 
