@@ -3427,7 +3427,7 @@ def plot_mag_map_basemap(fignum, element, lons, lats, element_type, cmap='RdYlBu
     cbar = m.colorbar(cs, location='bottom')
 
 
-def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0=0, date="", contours=False, proj='PlateCarree'):
+def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon_0=0, date="", contours=False, proj='PlateCarree'):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3446,16 +3446,15 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0
     _________
     contours : plot the contour lines on top of the heat map if True
     proj : cartopy projection ['PlateCarree','Mollweide']
-           NB: The Mollweide projection can only be reliably done for lon_0=0 for element=B and D
-               Also, the Mollweide projection is much slower.
-    cmap : matplotlib color map
+           NB: The Mollweide projection can only be reliably with cartopy=0.17.0; otherwise use lon_0=0.  Also, for declinations, PlateCarree is recommended.
+    cmap : matplotlib color map - see https://matplotlib.org/examples/color/colormaps_reference.html for options
     lon_0 : central longitude of the Mollweide projection
     date : date used for field evaluation,
            if custom ghfile was used, supply filename
 
     Effects
     ______________
-    plots a Robinson projection color contour with  the desired field element
+    plots a color contour map with  the desired field element
     """
 
     if not has_cartopy:
@@ -3499,7 +3498,7 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0
             plt.title('Total field strength ($\mu$T): '+date)
     if element_type == 'I':
         plt.contourf(xx, yy, element,
-                     levels=np.arange(levmin, levmax, lincr),
+                     levels=np.arange(-90, 90, lincr),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar = plt.colorbar(orientation='horizontal')
         if contours:
