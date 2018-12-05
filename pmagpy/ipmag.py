@@ -10132,6 +10132,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Parameters
     ----------
     dir_path : str, default "."
+    input_dir_path : str, default ("") is same as dir_path
     spec_file : str, default "specimens.txt"
         output file to save hysteresis data
     meas_file : str, default "measurements.txt"
