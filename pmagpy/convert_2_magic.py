@@ -190,6 +190,10 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     d = input.split('\\xcd')
     for line in d:
         rec = line.split('\\x00')
+        # skip nearly empty lines
+        rec_not_null = [i for i in rec if i]
+        if len(rec_not_null) < 5:
+            continue
         if firstline == 1:
             firstline = 0
             spec, vol = "", 1
