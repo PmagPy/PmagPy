@@ -1599,7 +1599,7 @@ def save_plots(Figs, filenames, **kwargs):
             fname = filenames[key]
             if not isServer:  # remove illegal ':' character for windows
                 fname = fname.replace(':', '_')
-            if 'incl_directory' in kwargs.keys():
+            if 'incl_directory' in kwargs.keys() and not set_env.IS_WIN:
                 if kwargs['incl_directory']:
                     pass # do not flatten file name
                 else:

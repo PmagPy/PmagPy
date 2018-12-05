@@ -10,6 +10,7 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
 from pmagpy import convert_2_magic as convert
+from pmag_env import set_env
 #from pmagpy import find_pmag_dir
 WD = pmag.get_test_WD()
 
@@ -537,7 +538,10 @@ class TestHysteresisMagic(unittest.TestCase):
         for f in outfiles:
             print('f', f)
             self.assertTrue(os.path.exists(f))
-        fstring = '{}/*.png'.format(self.hyst_WD)
+        if set_env.IS_WIN:
+            fstring = "*.png"
+        else:
+            fstring = '{}/*.png'.format(self.hyst_WD)
         files = glob.glob(fstring)
         self.assertEqual(len(files), 32)
 
