@@ -25,6 +25,9 @@ def main():
         -h prints help message and quits
         -f: specify input file, default is agm_measurements.txt
         -F: specify specimens.txt output file
+        -WD: directory to output files to (default : current directory)
+             Note: if using Windows, all figures will output to current directory
+        -ID: directory to read files from (default : same as -WD)
         -P: do not make the plots
         -spc SPEC: specify specimen name to plot and quit
         -sav save all plots and quit

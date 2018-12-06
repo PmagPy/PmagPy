@@ -30,6 +30,9 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f MEAS, set measurements input file, default is 'measurements.txt'
+        -WD: directory to output files to (default : current directory)
+             Note: if using Windows, all figures will output to current directory
+        -ID: directory to read files from (default : same as -WD)
         -fsp PRIOR, set specimens.txt prior interpretations file, default is 'specimens.txt'
         -fmt [svg,png,jpg], format for images - default is svg
         -sav,  saves plots without review (in format specified by -fmt key or default)

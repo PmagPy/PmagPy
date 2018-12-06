@@ -10016,6 +10016,8 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         input measurement file, default "measurements.txt"
     dir_path : str
         output directory, default "."
+        Note: if using Windows, all figures will be saved to working directly
+              *not* dir_path
     input_dir_path : str
         input file directory IF different from dir_path, default ""
     spec : str
@@ -10134,6 +10136,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     Parameters
     ----------
     output_dir_path : str, default "."
+        Note: if using Windows, all figures will be saved to working directly
+              *not* dir_path
     input_dir_path : str
         path for intput file if different from output_dir_path (default is same)
     spec_file : str, default "specimens.txt"
