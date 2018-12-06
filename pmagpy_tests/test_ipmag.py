@@ -695,7 +695,10 @@ class TestThellierMagic(unittest.TestCase):
         res, outfiles = ipmag.thellier_magic(dir_path=self.thel_WD, spec="s2s0-03",
                                              save_plots=True, fmt="png")
         self.assertTrue(res)
-        self.assertEqual(len(glob.glob(os.path.join(self.thel_WD, "*.png"))), 4)
+        if not set_env.IS_WIN:
+            self.assertEqual(len(glob.glob(os.path.join(self.thel_WD, "*.png"))), 4)
+        else:
+            self.assertEqual(len(glob.glob("*.png")), 4)
         self.assertTrue(os.path.exists(os.path.join(self.thel_WD, "s2s0-03_arai.png")))
 
 
