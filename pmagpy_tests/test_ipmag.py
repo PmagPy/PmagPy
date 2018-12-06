@@ -697,9 +697,10 @@ class TestThellierMagic(unittest.TestCase):
         self.assertTrue(res)
         if not set_env.IS_WIN:
             self.assertEqual(len(glob.glob(os.path.join(self.thel_WD, "*.png"))), 4)
+            self.assertTrue(os.path.exists(os.path.join(self.thel_WD, "s2s0-03_arai.png")))
         else:
             self.assertEqual(len(glob.glob("*.png")), 4)
-        self.assertTrue(os.path.exists(os.path.join(self.thel_WD, "s2s0-03_arai.png")))
+            self.assertTrue(os.path.exists("s2s0-03_arai.png"))
 
 
 
