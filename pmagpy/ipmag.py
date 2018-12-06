@@ -10089,16 +10089,18 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                     return True, []
                 if ans == 'a':
                     files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
-                    files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
-                    incl_directory = True
+                    if not set_env.IS_WIN:
+                        files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
+                        incl_directory = True
                     saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
 
             if save_plots:
                 files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
                 incl_directory = False
                 if not pmagplotlib.isServer:
-                    files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
-                    incl_directory = True
+                    if not set_env.IS_WIN:
+                        files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
+                        incl_directory = True
                 else:
                     # fix plot titles, formatting, and file names for server
                     for key, value in files.copy().items():
@@ -10153,7 +10155,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     """
     # put plots in output_dir_path, unless isServer
     incl_directory = True
-    if pmagplotlib.isServer:
+    if pmagplotlib.isServer or set_env.IS_WIN:
         incl_directory = False
     # figure out directory/file paths
     if not input_dir_path:
@@ -10338,7 +10340,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 s = specimen
             files = {}
             for key in list(HDD.keys()):
-                files[key] = os.path.join(output_dir_path, s+'_'+key+'.'+fmt)
+                if incl_directory:
+                    files[key] = os.path.join(output_dir_path, s+'_'+key+'.'+fmt)
+                else:
+                    files[key] = s+'_'+key+'.'+fmt
             if make_plots and save_plots:
                 pmagplotlib.save_plots(HDD, files, incl_directory=incl_directory)
             #if pltspec:
@@ -10350,7 +10355,10 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             if ans == "a":
                 files = {}
                 for key in list(HDD.keys()):
-                    files[key] = os.path.join(output_dir_path, specimen+'_'+key+'.'+fmt)
+                    if incl_directory:
+                        files[key] = os.path.join(output_dir_path, specimen+'_'+key+'.'+fmt)
+                    else:
+                        files[key] = specimen+'_'+key+'.'+fmt
                 pmagplotlib.save_plots(HDD, files, incl_directory=incl_directory)
             if ans == '':
                 k += 1
