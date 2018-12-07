@@ -188,9 +188,9 @@ def main():
     if not len(intensity_types):
         print('-W- No intensity columns found')
         return
-    # plot first non-empty intensity method found - normalized to initial value anyway -
+    # plot non-empty intensity method found - normalized to initial value anyway -
     # doesn't matter which used
-    int_key = intensity_types[0]
+    int_key = cb.get_intensity_col(meas_data)
     # get all the non-null intensity records of the same type
     meas_data = meas_data[meas_data[int_key].notnull()]
     if 'quality' not in meas_data.columns:
