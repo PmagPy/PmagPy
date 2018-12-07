@@ -361,7 +361,11 @@ def main():
                                 out.write(str(rec * 1e6) + "\n")
 
                     loc = loc.replace(" ", "_")
-                    histfile = 'LO:_' + loc + \
+                    if loc == "./":
+                        loc_name = ""
+                    else:
+                        loc_name = loc
+                    histfile = 'LO:_' + loc_name + \
                         '_TY:_intensities_histogram:_.' + fmt
                     # maybe run histplot.main here instead, so you can return an error message
                     CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
