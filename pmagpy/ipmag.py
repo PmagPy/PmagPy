@@ -8211,7 +8211,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 ipar=1, ihext=1, ivec=1, iplot=0, isite=1, iboot=1, vec=0,
                 Dir=[], PDir=[], comp=0, user="",
                 fmt="png", crd="s", verbose=True, plots=0,
-                num_bootstraps=1000, dir_path="."):
+                num_bootstraps=1000, dir_path=".", input_dir_path=""):
 
     def save(ANIS, fmt, title):
         files = {}
@@ -8222,6 +8222,14 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 files[key] = title.replace(
                     '__', '_') + "_aniso-" + key + "." + fmt
         pmagplotlib.save_plots(ANIS, files)
+
+    if not input_dir_path:
+        input_dir_path = dir_path
+
+    input_dir_path = os.path.realpath(input_dir_path)
+    dir_path = os.path.realpath(dir_path)
+    print('input dir path', input_dir_path)
+    print('dir path', dir_path)
 
     # initialize some variables
     version_num = pmag.get_version()
@@ -8257,8 +8265,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         pmagplotlib.plot_init(ANIS['data'], 5, 5)
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-    dir_path = os.path.realpath(dir_path)
-    con = cb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
     if isite:

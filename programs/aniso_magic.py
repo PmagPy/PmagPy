@@ -57,6 +57,7 @@ def main():
         sys.exit()
     verbose = pmagplotlib.verbose
     dir_path = pmag.get_named_arg("-WD", ".")
+    input_dir_path = pmag.get_named_arg("-ID", "")
     num_bootstraps = pmag.get_named_arg("-n", 1000)
     ipar = pmag.get_flag_arg_from_sys("-par", true=1, false=0)
     ihext = pmag.get_flag_arg_from_sys("-x", true=1, false=0)
@@ -93,7 +94,8 @@ def main():
                       ipar=ipar, ihext=ihext, ivec=ivec, iplot=iplot, isite=isite, iboot=iboot, vec=vec,
                       Dir=Dir, PDir=PDir, comp=comp, user=user,
                       fmt=fmt, crd=crd, verbose=verbose, plots=plots,
-                      num_bootstraps=num_bootstraps, dir_path=dir_path)
+                      num_bootstraps=num_bootstraps, dir_path=dir_path,
+                      input_dir_path=input_dir_path)
 
 
 if __name__ == "__main__":
