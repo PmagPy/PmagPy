@@ -287,7 +287,7 @@ def plot(loc_file="locations.txt", dir_path=".", do_plot=False, crd="",
                 pole_string = "{} pole{}".format(num_lats, 's' if num_lats > 1 else '')
             titles['map'] = "MagIC contribution {}\n {} {} {}".format(con_id, loc_string, pole_string, rpole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
-        pmagplotlib.save_plots(FIG, files)
+        saved = pmagplotlib.save_plots(FIG, files)
     elif not do_plot:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")

@@ -175,7 +175,12 @@ def main():
                 if loc_name == "./":
                     data_df = data_container.df
                 else:
-                    data_df = data_container.df[data_container.df['location'].astype(str).str.contains(loc_name, na=False)]
+                    # awkward workaround for chars like "(" and "?" that break in regex
+                    try:
+                        data_df = data_container.df[data_container.df['location'].astype(str).str.contains(loc_name, na=False)]
+                    except: #sre_constants.error:
+                        data_df = data_container.df[data_container.df['location'] == loc_name]
+
                 data = data_container.convert_to_pmag_data_list(df=data_df)
                 res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
                 if not res:
