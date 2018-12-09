@@ -487,8 +487,11 @@ def main():
                     mpars['specimen_dec'])
                 this_specimen_interpretation["dir_inc"] = '%7.1f' % (
                     mpars['specimen_inc'])
-                this_specimen_interpretation["dir_dang"] = '%7.1f' % (
-                    mpars['specimen_dang'])
+                if "specimen_dang" in mpars:
+                    this_specimen_interpretation["dir_dang"] = '%7.1f' % (
+                        mpars['specimen_dang'])
+                else:
+                    this_specimen_interpretation["dir_dang"] = ''
                 this_specimen_interpretation["dir_n_measurements"] = '%i' % (
                     mpars['specimen_n'])
                 this_specimen_interpretation["dir_tilt_correction"] = coord
