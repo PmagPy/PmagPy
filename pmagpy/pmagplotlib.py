@@ -1058,7 +1058,7 @@ def plot_arai(fignum, indata, s, units):
     indata : nested list of data for Arai plots:
         the araiblock of data prepared by pmag.sortarai()
     s : specimen name
-    units : units (either K or J for kelvin or Joules)
+    units : [K, J, ""] (kelvin, joules, unknown)
     Effects
     _______
     makes the Arai plot
@@ -1183,7 +1183,7 @@ def plot_np(fignum, indata, s, units):
     fignum : matplotlib figure number
     indata :  araiblock from, e.g., pmag.sortarai()
     s : specimen name
-    units : [K,J] (kelvin or joules)
+    units : [K, J, ""] (kelvin, joules, unknown)
 
     Effect
     _______
@@ -1203,7 +1203,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0] - 273.)
             else:
                 X.append(rec[0])
-        if units == "J":
+        if (units == "J") or (not units):
             X.append(rec[0])
         Y.append(old_div(rec[3], first_Z[0][3]))
         delta = .02 * Y[0]
@@ -1220,7 +1220,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0] - 273)
             else:
                 X.append(rec[0])
-        if units == "J":
+        if (units == "J") or (not units):
             X.append(rec[0])
         Y.append(old_div(rec[3], first_Z[0][3]))
     if globals != 0:
@@ -1231,8 +1231,10 @@ def plot_np(fignum, indata, s, units):
     plt.ylabel("Circles: NRM; Squares: pTRM")
     if units == "K":
         plt.xlabel("Temperature (C)")
-    if units == "J":
+    elif units == "J":
         plt.xlabel("Microwave Energy (J)")
+    else:
+        plt.xlabel("")
     title = s + ": NRM = " + '%9.2e' % (first_Z[0][3])
     plt.title(title)
     plt.axhline(y=0, xmin=0, xmax=1, color='k')

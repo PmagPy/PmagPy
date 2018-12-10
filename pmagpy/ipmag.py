@@ -10088,8 +10088,12 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         # get the datablock for Zijderveld plot
             zijdblock, units = pmag.find_dmag_rec(
                 this_specimen, spec_df, version=3)
+            if not len(units):
+                unit_string = ""
+            else:
+                unit_string = units[-1]
             zed = pmagplotlib.plot_arai_zij(
-                AZD, araiblock, zijdblock, this_specimen, units[-1])  # make the plots
+                AZD, araiblock, zijdblock, this_specimen, unit_string)  # make the plots
             if not save_plots:
                 pmagplotlib.draw_figs(zed)
                 ans = input(
