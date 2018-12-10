@@ -137,7 +137,7 @@ class Vocabulary(object):
         #    data = pd.io.json.read_json(fname)
         #
         #print('-I- Using cached vocabularies')
-        fname = os.path.join(data_model_dir, "controlled_vocabularies_August_9_2018.json")
+        fname = os.path.join(data_model_dir, "controlled_vocabularies_December_10_2018.json")
         data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
@@ -214,7 +214,7 @@ class Vocabulary(object):
         #    data = pd.io.json.read_json(fname)
         #
         #print('-I- Using cached suggested vocabularies')
-        fname = os.path.join(data_model_dir, "suggested_vocabularies_August_9_2018.json")
+        fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
         data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
