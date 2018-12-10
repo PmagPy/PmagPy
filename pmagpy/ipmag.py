@@ -4351,7 +4351,7 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
     return upload_magic(concat, dir_path, dmodel, vocab, contribution)
 
 
-def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=None):
+def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
@@ -4520,7 +4520,7 @@ def upload_magic(concat=1, dir_path='.', dmodel=None, vocab="", contribution=Non
         else:
             print(file_type, 'is bad or non-existent - skipping ')
     # add to existing file
-    if concat == 1:
+    if concat:
         f = open(up, 'a')
         f.write('>>>>>>>>>>\n')
         f.close()
