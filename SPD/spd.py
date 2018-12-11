@@ -312,7 +312,12 @@ class PintPars(object):
         SCAT = lib_arai.get_SCAT(points, low_bound, high_bound, x_max, y_max)
         fancy_SCAT, SCATs = lib_arai.fancy_SCAT(fancy_points, low_bound, high_bound, x_max, y_max)
         #'SCAT_arai': False, 'SCAT_tail': True, 'SCAT_ptrm': True})
-        self.pars['SCAT'] = fancy_SCAT
+        if fancy_SCAT.upper() == 'PASS':
+            self.pars['SCAT'] = 't'
+        else:
+            self.pars['SCAT'] = 'f'
+        #self.pars['SCAT'] = fancy_SCAT
+        # set self.pars['SCAT'] to 'g' or 'b' here?
         self.pars['fail_arai_beta_box_scatter'] = SCATs['SCAT_arai']
         self.pars["fail_ptrm_beta_box_scatter"] = SCATs['SCAT_ptrm']
         self.pars["fail_tail_beta_box_scatter"] = SCATs['SCAT_tail']

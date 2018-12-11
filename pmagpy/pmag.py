@@ -3122,7 +3122,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     pars["fail_arai_beta_box_scatter"] = False
     pars["fail_ptrm_beta_box_scatter"] = False  # fail scat due to pTRM checks
     pars["fail_tail_beta_box_scatter"] = False  # fail scat due to tail checks
-    pars[scat_key] = "1"  # Pass by default
+    pars[scat_key] = "t"  # Pass by default
 
     # --------------------------------------------------------------
     # collect all Arai plot data points in arrays
@@ -3360,9 +3360,9 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
         # check if specimen_scat is PASS or FAIL:
 
         if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
-            pars[scat_key] = '0'
+            pars[scat_key] = 'f'
         else:
-            pars[scat_key] = '1'
+            pars[scat_key] = 't'
 
     return pars, 0
 

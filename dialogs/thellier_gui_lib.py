@@ -309,7 +309,7 @@ def check_specimen_PI_criteria(pars,acceptance_criteria):
             continue
         cutoff_value=acceptance_criteria[crit]['value']
         if crit=='specimen_scat':
-            if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
+            if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False,"f"]:
                 pars['specimen_fail_criteria'].append('specimen_scat')
         elif crit=='specimen_k' or crit=='specimen_k_prime':
             if abs(pars[crit])>cutoff_value:

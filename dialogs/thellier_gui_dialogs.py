@@ -127,7 +127,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC['specimen_z'] = 'Arai plot zigzag parameter calculated using the scatter around the best-fit slope on an Arai plot'
         self.DESC['specimen_z_md'] = 'Arai plot zigzag parameter calculated by the area bounded by the curve that the ZI points make and the curve that the IZ points make'
         self.DESC[
-            'specimen_scat'] = 'All pTRM checks, MD checks, IZ ZI data, etc. are in the box (g = good or b=bad)'
+            'specimen_scat'] = 'All pTRM checks, MD checks, IZ ZI data, etc. are in the box (t = true/good or f= false/bad)'
         self.DESC['specimen_viscosity_index'] = 'Viscosity index'
         self.DESC['specimen_lab_field_dc'] = 'Applied DC field in laboratory'
         self.DESC['specimen_lab_field_ac'] = 'Applied maximum or peak AC field in laboratory'
@@ -527,7 +527,7 @@ class Criteria_Dialog(wx.Dialog):
 
                 self.set_specimen_windows[short_crit].SetValue(value)
             else:
-                if self.acceptance_criteria['specimen_scat']['value'] in [True, 1, "True", "TRUE", "1", "1.0", 'g']:
+                if self.acceptance_criteria['specimen_scat']['value'] in [True, 1, "True", "TRUE", "1", "1.0", 'g', 't']:
                     self.set_specimen_windows['scat'].SetValue(True)
                     # self.set_specimen_scat.SetValue(True)
 

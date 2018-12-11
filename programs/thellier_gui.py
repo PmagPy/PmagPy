@@ -1082,11 +1082,13 @@ else:
                 self.ignore_parameters[crit] = True
                 continue
             elif crit == "specimen_scat":
-                if self.acceptance_criteria[crit]['value'] in ['g', 1, '1', True, "True"]:
+                if self.acceptance_criteria[crit]['value'] in ['g', 1, '1', True, "True", "t"]:
                     value = "True"
+                    value = "t"
                     #self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
                 else:
                     value = ""
+                    value = "f"
                     self.threshold_windows['scat'].SetBackgroundColour(
                         (128, 128, 128))
                     #self.scat_threshold_window.SetBackgroundColour((128, 128, 128))
@@ -3907,10 +3909,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if key in ['specimen_int_ptrm_n', 'specimen_int_n']:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%i" % (
                             self.Data[specimen]['pars'][key])
-                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] == "Fail":
-                        MagIC_results_data['pmag_specimens'][specimen][key] = "0"
-                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] == "Pass":
-                        MagIC_results_data['pmag_specimens'][specimen][key] = "1"
+                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] in ["Fail", 'f']:
+                        MagIC_results_data['pmag_specimens'][specimen][key] = "f"
+                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] in ["Pass", 't']:
+                        MagIC_results_data['pmag_specimens'][specimen][key] = "t"
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%.2f" % (
                             self.Data[specimen]['pars'][key])
@@ -5968,8 +5970,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         if "specimen_scat" in self.pars:
             scat_window = self.stat_windows['scat']
             in_acceptance = self.acceptance_criteria['specimen_scat']['value'] in [
-                'True', 'TRUE', '1', 1, True, 'g']
-            if self.pars["specimen_scat"] == 'Pass':
+                'True', 'TRUE', '1', 1, True, 'g', 't']
+            if self.pars["specimen_scat"] in ['Pass', 't']:
                 scat_window.SetValue("Pass")
                 if in_acceptance:
                     scat_window.SetBackgroundColour(
@@ -6121,7 +6123,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         xx = np.array([x_Arai_segment[0], x_Arai_segment[-1]])
         yy = b * xx + a
         self.araiplot.plot(xx, yy, 'g-', lw=2, alpha=0.5)
-        if self.acceptance_criteria['specimen_scat']['value'] in [True, "True", "TRUE", '1', 'g']:
+        if self.acceptance_criteria['specimen_scat']['value'] in [True, "True", "TRUE", '1', 'g', 't']:
             if 'specimen_scat_bounding_line_low' in pars:
                 # prevents error if there are no SCAT lines available
                 if pars['specimen_scat_bounding_line_low'] != 0:
