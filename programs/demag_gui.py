@@ -3692,16 +3692,8 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
-            index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
-            try:
-                mdf.loc[index, 'quality'] = 'g'
-            except ValueError:
-                mdf_tmp = mdf[mdf['specimen'] == self.s]
-                valid_data = [i for i in mdf_tmp.index if any(
-                    m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
-                if len(valid_data) < g_index+1:
-                    print(("no valid measurement data for index %d" % g_index))
-                mdf.loc[valid_data[g_index], 'quality'] = 'g'
+            col_num = mdf.columns.get_loc('quality')
+            mdf.iloc[g_index, col_num] = 'g'
 
     def mark_meas_bad(self, g_index):
         """
@@ -3734,16 +3726,8 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
-            index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
-            try:
-                mdf.loc[index, 'quality'] = 'b'
-            except ValueError:
-                mdf_tmp = mdf[mdf['specimen'] == self.s]
-                valid_data = [i for i in mdf_tmp.index if any(
-                    m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
-                if len(valid_data) < g_index+1:
-                    print(("no valid measurement data for index %d" % g_index))
-                mdf.loc[valid_data[g_index], 'quality'] = 'b'
+            col_num = mdf.columns.get_loc('quality')
+            mdf.iloc[g_index, col_num] = 'b'
 
     def mark_fit_good(self, fit, spec=None):
         """
