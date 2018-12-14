@@ -3693,7 +3693,7 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
             col_num = mdf.columns.get_loc('quality')
-            mdf.iloc[g_index, col_num] = 'g'
+            mdf.iloc[meas_index, col_num] = 'g'
 
     def mark_meas_bad(self, g_index):
         """
@@ -3727,7 +3727,7 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
             col_num = mdf.columns.get_loc('quality')
-            mdf.iloc[g_index, col_num] = 'b'
+            mdf.iloc[meas_index, col_num] = 'b'
 
     def mark_fit_good(self, fit, spec=None):
         """
