@@ -27,11 +27,11 @@ class DataModel():
         Try to download the data model from Earthref.
         If that fails, grab the cached data model.
         """
-        dm = self.get_dm_online()
-        if dm:
-            print('-I- Using online data model')
-            #self.cache_data_model(dm)
-            return self.parse_response(dm)
+        #dm = self.get_dm_online()
+        #if dm:
+        #    print('-I- Using online data model')
+        #    #self.cache_data_model(dm)
+        #    return self.parse_response(dm)
         # if online is not available, get cached dm
         dm = self.get_dm_offline()
         print('-I- Using cached data model')
