@@ -135,6 +135,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         input_dir_path = input_dir
     else:
         input_dir_path = dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    dir_path = os.path.realpath(dir_path)
 
     if samp_con:
         Z = 1
@@ -198,9 +200,10 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             firstline = 0
             spec, vol = "", 1
             el = 51
-            while line[el:el+1] != "\\":
-                spec = spec+line[el]
-                el += 1
+            #while line[el:el+1] != "\\":
+            #    spec = spec+line[el]
+            #    el += 1
+            spec = rec[7]
             # check for bad sample name
             test = spec.split('.')
             date = ""

@@ -135,6 +135,8 @@ class Test2g_bin_magic(unittest.TestCase):
         options['dir_path'] = 'data_files'
         program_ran, outfile = convert._2g_bin(**options)
         self.assertEqual(outfile, options['meas_file'])
+        self.assertTrue(os.path.exists(options['meas_file']))
+        self.assertTrue(os.path.exists(os.path.join('data_files', 'sites.txt')))
 
 
 class TestAgmMagic(unittest.TestCase):
