@@ -242,6 +242,14 @@ class Demag_GUI(wx.Frame):
         self.Data_info = self.get_data_info()  # Read  er_* data
         # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data, self.Data_hierarchy = self.get_data()
+        if not self.Data:
+            self.Destroy()
+            if self.evt_quit:
+                event = self.evt_quit(self.GetId())
+                self.GetEventHandler().ProcessEvent(event)
+
+            return
+
 
         # get list of sites
         self.locations = list(self.Data_hierarchy['locations'].keys())
@@ -3969,6 +3977,10 @@ class Demag_GUI(wx.Frame):
             meas_con_dict = map_magic.get_thellier_gui_meas_mapping(
                 meas_data3_0, output=2)
             intensity_col = cb.get_intensity_col(meas_data3_0)
+            if not intensity_col:
+                self.user_warning("Your measurements table must have one of the following columns to run Demag GUI: 'magn_moment', 'magn_volume', 'magn_mass',or 'magn_uncal'")
+                return {}, {}
+
             print('-I- Using {} for intensity'.format(intensity_col))
             self.intensity_col = meas_con_dict[intensity_col]
             meas_data2_5 = meas_data3_0.rename(columns=meas_con_dict)
@@ -4333,6 +4345,8 @@ class Demag_GUI(wx.Frame):
             #return
         if "result_quality" not in self.spec_data.columns:
             self.spec_data["result_quality"] = "g"
+        if "dir_tilt_correction" not in self.spec_data.columns:
+            self.spec_data["dir_tilt_correction"] = ""
         fdict = self.spec_data[['specimen', fnames, 'meas_step_min', 'meas_step_max', 'meas_step_unit',
                                 'dir_tilt_correction', 'method_codes', 'result_quality']].to_dict("records")
         for i in range(len(fdict)):
@@ -7256,7 +7270,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.update_selection()
 
     def on_menu_mark_samp_good(self, event):
-        if not self.user_warning("This will mark all specimen interpretations in the sample of the current specimen as good as well as setting the sample orietation flag to good, do you want to continue?"):
+        if not self.user_warning("This will mark all specimen interpretations in the sample of the current specimen as good as well as setting the sample orientation flag to good, do you want to continue?"):
             return
         samp = self.Data_hierarchy['sample_of_specimen'][self.s]
         specs = self.Data_hierarchy['samples'][samp]['specimens']
