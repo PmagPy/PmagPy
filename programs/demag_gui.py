@@ -3699,9 +3699,14 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
         if self.data_model == 3.0:
+            meas_name = self.Data[self.s]['measurement_names'][g_index]
             mdf = self.con.tables['measurements'].df
-            col_num = mdf.columns.get_loc('quality')
-            mdf.iloc[meas_index, col_num] = 'g'
+            # check for multiple measurements with the same name
+            if not isinstance(mdf.loc[meas_name], pd.Series):
+                res = self.user_warning("Your measurements table has non-unique measurement names.\nYou may end up marking more than one measurement as good.\nRight click this measurement again to undo.")
+            # mark measurement as good
+            mdf.loc[meas_name, 'quality'] = 'g'
+
 
     def mark_meas_bad(self, g_index):
         """
@@ -3733,9 +3738,13 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
 
         if self.data_model == 3.0:
+            meas_name = self.Data[self.s]['measurement_names'][g_index]
             mdf = self.con.tables['measurements'].df
-            col_num = mdf.columns.get_loc('quality')
-            mdf.iloc[meas_index, col_num] = 'b'
+            # check for multiple measurements with the same name
+            if not isinstance(mdf.loc[meas_name], pd.Series):
+                res = self.user_warning("Your measurements table has non-unique measurement names.\nYou may end up marking more than one measurement as bad.\nRight click this measurement again to undo.")
+            # mark measurement as bad
+            mdf.loc[meas_name, 'quality'] = 'b'
 
     def mark_fit_good(self, fit, spec=None):
         """
@@ -4013,6 +4022,7 @@ class Demag_GUI(wx.Frame):
                 Data[s]['measurement_flag'] = []  # a list of points 'g' or 'b'
                 # index in original magic_measurements.txt
                 Data[s]['mag_meas_data_index'] = []
+                Data[s]['measurement_names'] = []
 
         prev_s = None
         cnt = -1
@@ -4145,6 +4155,8 @@ class Demag_GUI(wx.Frame):
             if tr != "":
                 Data[s]['mag_meas_data_index'].append(
                     cnt)  # magic_measurement file intex
+                if not int(self.data_model) == 2:
+                    Data[s]['measurement_names'].append(rec['measurement'])
                 Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
                 if measurement_step_unit != "":
                     if 'measurement_step_unit' in list(Data[s].keys()):
