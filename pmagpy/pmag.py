@@ -8766,7 +8766,14 @@ def measurements_methods3(meas_data, noave):
             NewSpecs[0]["software_packages"] = version_num
             # just copy over the single record as is
             SpecOuts.append(NewSpecs[0])
-    return SpecOuts
+    # added to get rid of colons in experiment names
+    SpecOutsNoColons=[]
+    for rec in SpecOuts:
+        experiment=rec['experiment']
+        newex=experiment.replace(':','_')
+        rec['experiment']=newex
+        SpecOutsNoColons.append(rec)
+    return SpecOutsNoColons
 
 
 def mw_measurements_methods(MagRecs):
@@ -11280,3 +11287,4 @@ def vocab_convert(vocab, standard, key=''):
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
+
