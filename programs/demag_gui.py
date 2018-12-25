@@ -4156,7 +4156,10 @@ class Demag_GUI(wx.Frame):
                 Data[s]['mag_meas_data_index'].append(
                     cnt)  # magic_measurement file intex
                 if not int(self.data_model) == 2:
-                    Data[s]['measurement_names'].append(rec['measurement'])
+                    try:
+                        Data[s]['measurement_names'].append(rec['measurement'])
+                    except KeyError:
+                        Data[s]['measurement_names'].append(rec['measurement_number'])
                 Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
                 if measurement_step_unit != "":
                     if 'measurement_step_unit' in list(Data[s].keys()):
