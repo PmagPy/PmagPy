@@ -3699,7 +3699,7 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
         if self.data_model == 3.0:
-            meas_name = self.Data[self.s]['measurement_names'][g_index]
+            meas_name = str(self.Data[self.s]['measurement_names'][g_index])
             mdf = self.con.tables['measurements'].df
             # check for multiple measurements with the same name
             if not isinstance(mdf.loc[meas_name], pd.Series):
@@ -3738,7 +3738,7 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
 
         if self.data_model == 3.0:
-            meas_name = self.Data[self.s]['measurement_names'][g_index]
+            meas_name = str(self.Data[self.s]['measurement_names'][g_index])
             mdf = self.con.tables['measurements'].df
             # check for multiple measurements with the same name
             if not isinstance(mdf.loc[meas_name], pd.Series):
