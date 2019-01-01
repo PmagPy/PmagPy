@@ -1,4 +1,4 @@
-The scripts in this directory are for making new standalone releases.  This is done using py2app for OSX and pyinstaller for Windows and Linux.
+The scripts in this directory are for making new standalone releases.  This is done using pyinstaller for all platforms.
 
 ## Compiling on OS X
 
@@ -138,41 +138,42 @@ You can run the executable with output to Terminal (this is particularly useful 
 If this doesn't help, see the [Pyinstaller troubleshooting guide](https://pythonhosted.org/PyInstaller/when-things-go-wrong.html).
 
 
+
+## Stop reading!!  All information below is DEPRECATED
+
+
+
 ## DEPRECATED way of making Windows standalones
 
 **Note**: this is the old way of making Windows standalones.
 
 1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
-2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
-Change:
-`wx.App(redirect=False)` to `wx.App(redirect=True)`
+2. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.  Note: not all tests necessarily have to been passing to have a successful build.  It's still a good point of reference.
 
-3. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.  Note: not all tests necessarily have to been passing to have a successful build.  It's still a good point of reference.
+3.  Move both Windows setup scripts from the setup_scripts directory to the main PmagPy directory.
 
-4.  Move both Windows setup scripts from the setup_scripts directory to the main PmagPy directory.
+4. From the main PmagPy directory, run `python win\_magic\_gui\_setup.py py2exe'. (expect this to take a horribly long time)
 
-5. From the main PmagPy directory, run `python win\_magic\_gui\_setup.py py2exe'. (expect this to take a horribly long time)
+5.  From the main PmagPy directory, run `python win\_pmag\_gui\_setup.py py2exe'.  (same as above)
 
-6.  From the main PmagPy directory, run `python win\_pmag\_gui\_setup.py py2exe'.  (same as above)
+6.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)  Once you have the standalones working correctly, you can move on to packaging them up.
 
-7.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)  Once you have the standalones working correctly, you can move on to packaging them up.
+7.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
 
-8.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
+8.  Either in Inno Setup Compiler or in a text editor, edit setup\_scripts/Pmag_GUI.iss and setup\_scripts/Magic\_GUI.iss.  You'll want to: a) update the version number, b) edit the paths to be correct to your local machine (everywhere you see '\***'), and c) increment the AppVersion number.
 
-9.  Either in Inno Setup Compiler or in a text editor, edit setup\_scripts/Pmag_GUI.iss and setup\_scripts/Magic\_GUI.iss.  You'll want to: a) update the version number, b) edit the paths to be correct to your local machine (everywhere you see '\***'), and c) increment the AppVersion number.
+9.  Select build --> compile in Inno Setup Compiler.
 
-10.  Select build --> compile in Inno Setup Compiler.
+10.  Sometimes you'll get an error with "EndUpdateResource failed" or something like that.  This may or may not be a real error.  Check that the path of the resource is in fact correct and customized to your machine.  If it is, try again to build the setup script.  Sometimes you might have to try a few times in a row (I don't know why).
 
-11.  Sometimes you'll get an error with "EndUpdateResource failed" or something like that.  This may or may not be a real error.  Check that the path of the resource is in fact correct and customized to your machine.  If it is, try again to build the setup script.  Sometimes you might have to try a few times in a row (I don't know why).
+11.  Run Pmag\_GUI.iss and Magic\_GUI.iss in the Inno Setup Compiler GUI.  You can find the output files through the Inno GUI by selecting Build --> Open Output Folder.  They should be called: "install\_Pmag\_GUI.exe" and "install\_Magic\_GUI.exe".
 
-12.  Run Pmag\_GUI.iss and Magic\_GUI.iss in the Inno Setup Compiler GUI.  You can find the output files through the Inno GUI by selecting Build --> Open Output Folder.  They should be called: "install\_Pmag\_GUI.exe" and "install\_Magic\_GUI.exe".
+12.  Try running the setup for each and see if you get a nice, happy installation.
 
-13.  Try running the setup for each and see if you get a nice, happy installation.
+13.  If everything is good, upload "install\_Pmag\_GUI.exe" and "install\_MagIC\_GUI.exe" to https://github.com/PmagPy/PmagPy-Standalone-Windows
 
-14.  If everything is good, upload "install\_Pmag\_GUI.exe" and "install\_MagIC\_GUI.exe" to https://github.com/PmagPy/PmagPy-Standalone-Windows
-
-15.  Create a new Github release.  Make sure to update the release number and the links.
+14.  Create a new Github release.  Make sure to update the release number and the links.
 
 NB: I know this process sucks.  Sorry.
 
@@ -206,17 +207,13 @@ Here are the steps to make standalone Pmag/Magic GUIs for OSX.
 
 1.  Make sure your path points to the correct version of Python.  At this time, py2app doesn't play nice with Canopy.  I've had success with brew-installed Python and wxWidgets, but other distributions may work, as well.  You will, of course, need to have all dependencies installed (numpy, matplotlib, etc.)
 
-2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
-Change:
-`wx.App(redirect=False)` to `wx.App(redirect=True)`
+2.  Open your Terminal and navigate to your PmagPy directory
 
-3.  Open your Terminal and navigate to your PmagPy directory
+3.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
 
-4.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
+4.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
 
-5.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
-
-6.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
+5.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
 
 ### Py2app troubleshooting
 

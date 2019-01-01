@@ -3,7 +3,7 @@
 # pylint: disable=W0612,C0111,C0103,W0201,E402
 
 print("-I- Importing Pmag GUI dependencies")
-#from pmag_env import set_env
+from pmag_env import set_env
 #set_env.set_backend(wx=True)
 import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
@@ -851,7 +851,7 @@ INFORMATION
         sys.exit()
     print('-I- Starting Pmag GUI - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    if 'darwin' in sys.platform:
+    if 'darwin' in sys.platform and (not set_env.IS_FROZEN):
         app = wx.App(redirect=False)
     else:
         app = wx.App(redirect=True)

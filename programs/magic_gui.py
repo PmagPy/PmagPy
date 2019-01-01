@@ -12,14 +12,13 @@ import wx
 import wx.lib.buttons as buttons
 import sys
 import os
-import pmagpy
 from pmagpy import data_model3
+from pmag_env import set_env
 from pmagpy import validate_upload3 as val_up3
 from pmagpy import pmag
 from pmagpy import ipmag
 
 from dialogs import pmag_widgets as pw
-from dialogs import magic_grid3 as magic_grid
 from dialogs import pmag_menu_dialogs
 from dialogs import grid_frame3 as grid_frame
 from pmagpy import contribution_builder as cb
@@ -570,7 +569,7 @@ INFORMATION
     print('-I- Starting MagIC GUI - please be patient')
 
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    if 'darwin' in sys.platform:
+    if 'darwin' in sys.platform and (not set_env.IS_FROZEN):
         app = wx.App(redirect=False)
     else:
         app = wx.App(redirect=True)
