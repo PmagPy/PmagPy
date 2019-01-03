@@ -10062,7 +10062,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         spec_df = thel_data[thel_data.specimen ==
                             this_specimen]  # get data for this specimen
         # get the data block for Arai plot
-        if len(spec_df)>0:
+        if len(spec_df) >= 3:
             if not save_plots:
                 for key, val in AZD.items():
                     pmagplotlib.plot_init(val, 5, 5)
