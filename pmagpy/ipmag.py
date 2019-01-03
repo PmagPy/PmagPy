@@ -10012,7 +10012,7 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='./', angle=0):
 
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
-                   spec="", n_specs="all", save_plots=True,  fmt="svg"):
+                   spec="", n_specs=5, save_plots=True,  fmt="svg", interactive=False):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
 
@@ -10030,12 +10030,58 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     spec : str
         default "", specimen to plot
     n_specs : int
-        default "all", otherwise number of specimens to plot
+        number of specimens to plot, default 5
+        or "all"
     save_plots : bool, default True
-        if True, non-interactively save plots
+        if True, create and save all requested plots
     fmt : str
         format of saved figures (default is 'svg')
+    interactive : bool, default False
+        interactively plot and display for each specimen
+        (this is best used on the command line only)
     """
+
+    def make_plots(this_specimen, thel_data, cnt=1):
+        """
+        Take specimen name and measurement data
+        and produce plots.
+        Return a dictionary of plots created, or False if
+        no plots could be created.
+        """
+        zed = False
+        if pmagplotlib.verbose:
+            print(this_specimen)
+        # make the figure dictionary that pmagplotlib likes:
+        #AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
+        #if save_plots:
+        #    AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
+        #else:
+        AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
+                2, 'deremag': cnt+3}  # make datablock
+        #cnt += 4  # increment the figure counter
+        spec_df = thel_data[thel_data.specimen ==
+                            this_specimen]  # get data for this specimen
+        # get the data block for Arai plot
+        if len(spec_df)>0:
+            if not save_plots:
+                for key, val in AZD.items():
+                    pmagplotlib.plot_init(val, 5, 5)
+            araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
+        # get the datablock for Zijderveld plot
+            zijdblock, units = pmag.find_dmag_rec(
+                this_specimen, spec_df, version=3)
+            if not len(units):
+                unit_string = ""
+            else:
+                unit_string = units[-1]
+
+            zed = pmagplotlib.plot_arai_zij(
+                AZD, araiblock, zijdblock, this_specimen, unit_string)  # make the plots
+        return zed
+
+    # format some things
+    if interactive:
+        save_plots = False
     # get proper paths
     if not input_dir_path:
         input_dir_path = dir_path
@@ -10067,34 +10113,11 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
             pass
     cnt = 1  # set the figure counter to 1
     for this_specimen in specimens:  # step through the specimens  list
-        if pmagplotlib.verbose:
-            print(this_specimen)
-        # make the figure dictionary that pmagplotlib likes:
-        AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
-        #if save_plots:
-        #    AZD = {'arai': 1, 'zijd': 2, 'eqarea': 3, 'deremag': 4}  # make datablock
-        #else:
-        #    AZD = {'arai': cnt, 'zijd': cnt+1, 'eqarea': cnt +
-        #        2, 'deremag': cnt+3}  # make datablock
-        #cnt += 4  # increment the figure counter
-        spec_df = thel_data[thel_data.specimen ==
-                            this_specimen]  # get data for this specimen
-        # get the data block for Arai plot
-        if len(spec_df)>0:
-            if not save_plots:
-                for key, val in AZD.items():
-                    pmagplotlib.plot_init(val, 5, 5)
-            araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
-        # get the datablock for Zijderveld plot
-            zijdblock, units = pmag.find_dmag_rec(
-                this_specimen, spec_df, version=3)
-            if not len(units):
-                unit_string = ""
-            else:
-                unit_string = units[-1]
-            zed = pmagplotlib.plot_arai_zij(
-                AZD, araiblock, zijdblock, this_specimen, unit_string)  # make the plots
-            if not save_plots:
+        zed = make_plots(this_specimen, thel_data, cnt)
+        # if plots were produced
+        if zed:
+            if interactive:
+                # draw and save interactively
                 pmagplotlib.draw_figs(zed)
                 ans = input(
                     "S[a]ve plots, [q]uit, <return> to continue\n ")
@@ -10107,15 +10130,17 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                         incl_directory = True
                     saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
 
-            if save_plots:
+            elif save_plots:
+                # don't draw, just save figures
                 files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
                 incl_directory = False
                 if not pmagplotlib.isServer:
+                    # not server
                     if not set_env.IS_WIN:
                         files = {key: os.path.join(dir_path, value) for (key, value) in files.items()}
                         incl_directory = True
                 else:
-                    # fix plot titles, formatting, and file names for server
+                    # isServer, fix plot titles, formatting, and file names for server
                     for key, value in files.copy().items():
                         files[key] = "SP:_{}_TY:_{}_.{}".format(this_specimen, key, fmt)
                     black = '#000000'
@@ -10130,6 +10155,13 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                         zed, titles, black, purple)
 
                 saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
+
+            # just let the plots appear (notebook)
+            else:
+                cnt += len(zed)
+                # don't even need to draw 'em!  They just appear.
+                #pmagplotlib.draw_figs(zed)
+        # no plots were produced
         else:
             print ('no data for ',this_specimen)
             print ('skipping')

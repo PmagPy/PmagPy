@@ -678,7 +678,7 @@ class TestThellierMagic(unittest.TestCase):
         self.assertEqual(len(glob.glob("*.svg")), 20)
 
     def test_success_all_specs(self):
-        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, fmt="png")
+        res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, fmt="png", n_specs="all")
         self.assertTrue(res)
         self.assertEqual(len(glob.glob("*.png")), 1076)
 

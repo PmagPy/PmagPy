@@ -133,7 +133,7 @@ def plot_init(fignum, w, h):
     # plt.ion()
     plt_num += 1
     plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
-    if not isServer:
+    if (not isServer) and (not set_env.IS_NOTEBOOK):
         plt.get_current_fig_manager().show()
         # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
         # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')

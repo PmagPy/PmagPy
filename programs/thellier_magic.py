@@ -38,6 +38,7 @@ def main():
         -sav,  saves plots without review (in format specified by -fmt key or default)
         -spc SPEC, plots single specimen SPEC, saves plot with specified format
             with optional -b bounds and quits
+        -n SPECIMENS, number of specimens to plot
 
     OUTPUT
         figures:
@@ -88,7 +89,7 @@ def main():
         save_plots = True
     spec = pmag.get_named_arg("-spc", default_val="")
     ipmag.thellier_magic(meas_file, dir_path, input_dir_path,
-                         spec, "all", save_plots, fmt)
+                         spec, "all", save_plots, fmt, interactive=True)
 
 # deprecated options
 #-fcr CRIT, set criteria file for grading.  # NOT SUPPORTED
