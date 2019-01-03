@@ -85,11 +85,18 @@ def main():
     meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
     fmt = pmag.get_named_arg("-fmt", "svg")
     save_plots = False
+    interactive = True
     if '-sav' in sys.argv:
         save_plots = True
+        interactive=False
     spec = pmag.get_named_arg("-spc", default_val="")
+    n_specs = pmag.get_named_arg("-n", default_val="all")
+    try:
+        n_specs = int(n_specs)
+    except ValueError:
+        pass
     ipmag.thellier_magic(meas_file, dir_path, input_dir_path,
-                         spec, "all", save_plots, fmt, interactive=True)
+                         spec, n_specs, save_plots, fmt, interactive)
 
 # deprecated options
 #-fcr CRIT, set criteria file for grading.  # NOT SUPPORTED
