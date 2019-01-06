@@ -10194,6 +10194,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         if True, generate and save all requested plots
     make_plots : bool, default True
         if False, skip making plots and just save hysteresis data
+        (if False, save_plots will be set to False also)
     pltspec : str, default ""
         specimen name to plot, otherwise will plot all specimens
     n_specs : int
@@ -10224,6 +10225,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     version_num = pmag.get_version()
     if not make_plots:
         irm_init, imag_init = -1, -1
+        save_plots = False
     if save_plots:
         verbose = False
     if pltspec:
