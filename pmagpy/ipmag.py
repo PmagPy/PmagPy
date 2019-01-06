@@ -3959,7 +3959,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     return main_plot, figname
 
 
-def download_magic(infile, dir_path='.', input_dir_path='.',
+def download_magic(infile, dir_path='.', input_dir_path='',
                    overwrite=False, print_progress=True,
                    data_model=3., separate_locs=False):
     """
@@ -3975,8 +3975,8 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         MagIC-format file to unpack
     dir_path : str
         output directory (default ".")
-    input_dir : str
-        input directory (default ".")
+    input_dir_path : str, default ""
+        path for intput file if different from output_dir_path (default is same)
     overwrite: bool
         overwrite current directory (default False)
     print_progress: bool
@@ -3991,6 +3991,10 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
+
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+
     infile = pmag.resolve_file_name(infile, input_dir_path)
     # try to deal reasonably with unicode errors
     try:
