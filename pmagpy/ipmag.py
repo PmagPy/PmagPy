@@ -10169,8 +10169,9 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
 
 
 
-def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimens.txt", meas_file="measurements.txt",
-                     fmt="svg", save_plots=True, make_plots=True, pltspec=""):
+def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimens.txt",
+                     meas_file="measurements.txt", fmt="svg",
+                     save_plots=True, make_plots=True, pltspec="", n_specs=5, interactive=False):
     """
     Calculate hysteresis parameters and plot hysteresis data.
     Plotting may be called interactively with save_plots==False,
@@ -10190,11 +10191,18 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     fmt : str, default "svg"
         format for figures, [svg, jpg, pdf, png]
     save_plots : bool, default True
-        if True, non-interactively save plots
+        if True, generate and save all requested plots
     make_plots : bool, default True
         if False, skip making plots and just save hysteresis data
     pltspec : str, default ""
         specimen name to plot, otherwise will plot all specimens
+    n_specs : int
+        number of specimens to plot, default 5
+        or "all"
+    interactive : bool, default False
+        interactively plot and display for each specimen
+        (this is best used on the command line only)
+
 
     Returns
     ---------
@@ -10220,6 +10228,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         verbose = False
     if pltspec:
         pass
+    if interactive:
+        save_plots = False
 
     SpecRecs = []
     #
@@ -10263,14 +10273,28 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             sids.append(rec['specimen'])
     #
     k = 0
+    # if plotting only one specimen, find it
     if pltspec:
         k = sids.index(pltspec)
+    # if plotting only n specimens, remove others from the list
+    elif n_specs != "all":
+        try:
+            sids = sids[:n_specs]
+        except:
+            pass
+    cnt = 0
     while k < len(sids):
         specimen = sids[k]
         if pltspec:
             if specimen != pltspec:
                 k += 1
                 continue
+        else:
+            for key, value in HDD.items():
+                cnt += 1
+                HDD[key] = cnt
+
+            #HDD = {key: value + len(HDD) + k for (key, value) in HDD.items()}
         # initialize a new specimen hysteresis record
         HystRec = {'specimen': specimen, 'experiment': ""}
         if verbose and make_plots:
@@ -10314,7 +10338,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 hmeths.append(meth)
 
             hpars = pmagplotlib.plot_hdd(HDD, B, M, e)
-            if make_plots:
+            if interactive:
                 if not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
     #
@@ -10342,7 +10366,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             if verbose and make_plots:
                 print('plotting IRM')
             if irm_init == 0:
-                HDD['irm'] = 5 if 'imag' in HDD else 4
+                cnt += 1
+                HDD['irm'] = cnt #5 if 'imag' in HDD else 4
                 if make_plots and (not save_plots):
                     pmagplotlib.plot_init(HDD['irm'], 5, 5)
                 irm_init = 1
@@ -10395,7 +10420,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 pmagplotlib.save_plots(HDD, files, incl_directory=incl_directory)
             #if pltspec:
             #    return True, []
-        if make_plots and (not save_plots):
+        if interactive:
             pmagplotlib.draw_figs(HDD)
             ans = input(
                 "S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
@@ -10432,6 +10457,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                         print(tmplist)
                         specimen = input('Select one or try again\n ')
                         k = sids.index(specimen)
+
         else:
             k += 1
         if len(B) == 0 and len(Bdcd) == 0:

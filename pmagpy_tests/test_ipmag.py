@@ -523,7 +523,7 @@ class TestHysteresisMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(outfiles[0], os.path.realpath(os.path.join(".", "custom_specimens.txt")))
         fnames = glob.glob("*.svg")
-        self.assertEqual(len(fnames), 32)
+        self.assertEqual(len(fnames), 20)
 
     def test_hysteresis_bad_file(self):
         res, outfiles = ipmag.hysteresis_magic(self.hyst_WD, meas_file="fake.txt",
@@ -533,7 +533,7 @@ class TestHysteresisMagic(unittest.TestCase):
 
     def test_hysteresis_success(self):
         res, outfiles = ipmag.hysteresis_magic(output_dir_path=self.hyst_WD, spec_file='custom_specimens.txt',
-                                               save_plots=True, fmt="png")
+                                               save_plots=True, fmt="png", n_specs="all")
         self.assertTrue(res)
         for f in outfiles:
             print('f', f)
