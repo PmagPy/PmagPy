@@ -3993,7 +3993,7 @@ def download_magic(infile, dir_path='.', input_dir_path='',
         method_col = "method_codes"
 
     if not input_dir_path:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
 
     infile = pmag.resolve_file_name(infile, input_dir_path)
     # try to deal reasonably with unicode errors
