@@ -189,6 +189,7 @@ class TestCombineMagic(unittest.TestCase):
         outfiles = ['custom_outfile.txt']
         pmag.remove_files(outfiles, self.input_dir)
         pmag.remove_files(['custom.out'], WD)
+        pmag.remove_files(['custom.out', os.getcwd()])
 
 
     def test_with_custom_name(self):
@@ -211,6 +212,13 @@ class TestCombineMagic(unittest.TestCase):
         with open(os.path.join(WD, 'custom.out')) as f:
             n = len(f.readlines()) - 2
         self.assertEqual(n, 2747)
+
+    def test_with_input_output_dir(self):
+        flist = ['specimens.txt', 'extra_specimens.txt']
+        res = ipmag.combine_magic(flist, 'custom.out', data_model=3,
+                                  input_dir_path=self.input_dir)
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists("custom.out"))
 
 
 

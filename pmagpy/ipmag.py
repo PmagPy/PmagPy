@@ -2624,7 +2624,8 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
             return False
 
 
-def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
+def combine_magic(filenames, outfile, data_model=3, magic_table='measurements',
+                  output_dir_path=".", input_dir_path=""):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a
     single file. Returns output filename if the operation was successful.
@@ -2640,12 +2641,18 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements'):
     ----------
     outfile name if success, False if failure
     """
+
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    output_dir_path = os.path.realpath(output_dir_path)
     if float(data_model) == 3.0:
-        outfile = pmag.resolve_file_name('.', outfile)
+        outfile = pmag.resolve_file_name(outfile, output_dir_path)
         output_dir_path, file_name = os.path.split(outfile)
         con = cb.Contribution(output_dir_path, read_tables=[])
         # make sure files actually exist
-        filenames = [os.path.realpath(f) for f in filenames]
+        filenames = [pmag.resolve_file_name(f, input_dir_path) for f in filenames]
+        #filenames = [os.path.realpath(f) for f in filenames]
         filenames = [f for f in filenames if os.path.exists(f)]
         if not filenames:
             print("You have provided no valid file paths, so nothing will be combined".format(
