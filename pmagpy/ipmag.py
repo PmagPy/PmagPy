@@ -3287,7 +3287,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
                    norm=False, data_model_num=3):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
-    if age file is provided, depth_scale will be set to 'age' by defaula
+    if age file is provided, depth_scale will be set to 'age' by default.
+    You must provide at least a measurements file and a specimen file to plot.
     """
     #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
     #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
@@ -3998,7 +3999,8 @@ def download_magic(infile, dir_path='.', input_dir_path='',
     unpacks it into magic-formatted files. by default, download_magic assumes
     that you are doing everything in your current directory. if not, you may
     provide optional arguments dir_path (where you want the results to go) and
-    input_dir_path (where the downloaded file is).
+    input_dir_path (where the downloaded file is IF that location is different from
+    dir_path).
 
     Parameters
     ----------
@@ -4075,9 +4077,9 @@ def download_magic(infile, dir_path='.', input_dir_path='',
             # finish up one file type and then break
             if ">>>>" in line and len(Recs) > 0:
                 if filenum == 0:
-                    outfile = dir_path + "/" + file_type.strip() + '.txt'
+                    outfile = os.path.join(dir_path, file_type.strip() + '.txt')
                 else:
-                    outfile = dir_path + "/" + file_type.strip() + '_' + str(filenum) + '.txt'
+                    outfile = os.path.join(dir_path, file_type.strip() + '_' + str(filenum) + '.txt')
                 NewRecs = []
                 for rec in Recs:
                     if method_col in list(rec.keys()):
@@ -4121,9 +4123,9 @@ def download_magic(infile, dir_path='.', input_dir_path='',
                 LN += 1
     if len(Recs) > 0:
         if filenum == 0:
-            outfile = dir_path + "/" + file_type.strip() + '.txt'
+            outfile = os.path.join(dir_path, file_type.strip() + '.txt')
         else:
-            outfile = dir_path + "/" + file_type.strip() + '_' + str(filenum) + '.txt'
+            outfile = os.path.join(dir_path, file_type.strip() + '_' + str(filenum) + '.txt')
         NewRecs = []
         for rec in Recs:
             if method_col in list(rec.keys()):
@@ -4154,7 +4156,7 @@ def download_magic(infile, dir_path='.', input_dir_path='',
             for loc_name in set([loc.get('location') for loc in locs]):
                 if print_progress == True:
                     print('location_' + str(locnum) + ": ", loc_name)
-                lpath = dir_path + '/Location_' + str(locnum)
+                lpath = os.path.join(dir_path, 'Location_' + str(locnum))
                 locnum += 1
                 try:
                     os.mkdir(lpath)
@@ -4165,19 +4167,18 @@ def download_magic(infile, dir_path='.', input_dir_path='',
                         print("-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath))
                         return False
                 for f in type_list:
+                    fname = os.path.join(dir_path, f + '.txt')
                     if print_progress == True:
-                        print('unpacking: ', dir_path + '/' + f + '.txt')
-                    recs, file_type = pmag.magic_read(
-                        dir_path + '/' + f + '.txt')
+                        print('unpacking: ', fname)
+                    recs, file_type = pmag.magic_read(fname)
                     if print_progress == True:
                         print(len(recs), ' read in')
                     lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
                     if len(lrecs) > 0:
-                        pmag.magic_write(lpath + '/' + f +
-                                         '.txt', lrecs, file_type)
+                        outfile_name = os.path.join(lpath, f + ".txt")
+                        pmag.magic_write(outfile_name, lrecs, file_type)
                         if print_progress == True:
-                            print(len(lrecs), ' stored in ',
-                                  lpath + '/' + f + '.txt')
+                            print(len(lrecs), ' stored in ', outfile_name)
     return True
 
 
