@@ -2962,12 +2962,33 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
 
 def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
                   meas_file='measurements.txt', site_file='sites.txt',
-                  age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
+                  age_file="", sum_file="", fmt='svg', dmin=-1, dmax=-1,
                   depth_scale='core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
-    available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
+    available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option).
+    You must provide valid specimens and sites files, and either a samples or an ages file.
+    You may additionally provide measurements and a summary file (csv).
 
+    Parameters
+    ----------
+    spec_file : str, default "specimens.txt"
+    samp_file : str, default "samples.txt"
+    meas_file : str, default "measurements.txt"
+    site_file : str, default "sites.txt"
+    age_file : str, default ""
+    sum_file : str, default ""
+    fmt : str, default "svg"
+        format for figures, ["svg", "jpg", "pdf", "png"]
+    dmin : number, default -1
+        minimum depth to plot (if -1, default to plotting all)
+    dmax : number, default -1
+        maximum depth to plot (if -1, default to plotting all)
+    depth_scale : str, default "core_depth"
+        scale to plot, ['composite_depth', 'core_depth', 'age'].
+        if 'age' is selected, you must provide an ages file.
+    dir_path : str, default "."
+        directory for input files
     """
     if depth_scale == 'sample_core_depth':
         depth_scale = 'core_depth'
