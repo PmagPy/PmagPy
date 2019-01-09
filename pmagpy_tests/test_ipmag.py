@@ -186,7 +186,7 @@ class TestCombineMagic(unittest.TestCase):
         self.input_dir = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
 
     def tearDown(self):
-        outfiles = ['custom_outfile.txt']
+        outfiles = ['custom_outfile.txt', 'new_measurements.txt']
         pmag.remove_files(outfiles, self.input_dir)
         pmag.remove_files(['custom.out'], WD)
         pmag.remove_files(['custom.out', os.getcwd()])
@@ -219,6 +219,17 @@ class TestCombineMagic(unittest.TestCase):
                                   input_dir_path=self.input_dir)
         self.assertTrue(res)
         self.assertTrue(os.path.exists("custom.out"))
+
+    def test_measurement_sequence(self):
+        df = cb.MagicDataFrame(os.path.join(self.input_dir, "measurements.txt"))
+        df.df['specimen'] = df.df['specimen'].apply(lambda x: x + "_new")
+        df.write_magic_file("new_measurements.txt", dir_path=self.input_dir)
+        res = ipmag.combine_magic(['measurements.txt', 'new_measurements.txt'], 'custom.out',
+                                  input_dir_path=self.input_dir)
+        self.assertTrue(res)
+        df = cb.MagicDataFrame('custom.out', dtype="measurements")
+        self.assertEqual(df.df.sequence[-1], len(df.df))
+
 
 
 

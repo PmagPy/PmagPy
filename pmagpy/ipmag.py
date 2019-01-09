@@ -2682,6 +2682,9 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements',
         ignore_cols = [col[:-1] for col in [file_type, parent] if col]
         ignore_cols.extend(['software_packages', 'citations'])
         con.tables[file_type].drop_duplicate_rows(ignore_cols)
+        # correctly handle measurements.sequence column
+        if 'sequence' in con.tables[file_type].df:
+            con.tables[file_type].df['sequence'] = range(1, len(con.tables[file_type].df) + 1)
         # write table to file, use custom name
         res = con.write_table_to_file(file_type, custom_name=file_name)
         return res
