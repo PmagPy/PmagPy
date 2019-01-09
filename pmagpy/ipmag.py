@@ -4387,7 +4387,8 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
     return upload_magic(concat, dir_path, dmodel, vocab, contribution)
 
 
-def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None):
+def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None,
+                 input_dir_path=""):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
@@ -4402,18 +4403,24 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         if not provided will be created (default None)
     contribution : pmagpy contribution_builder.Contribution object, if not provided will be created
         in directory (default None)
+    input_dir_path : str, default ""
+        path for intput files if different from output dir_path (default is same)
+
     Returns
     ----------
     tuple of either: (False, error_message, errors, all_failing_items)
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
+    if not input_dir_path:
+        input_dir_path = dir_path
     dir_path = os.path.realpath(dir_path)
+    input_dir_path = os.path.realpath(input_dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
               "criteria", "contribution", "images"]
-    fnames = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
+    fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
     error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
     error_full_fnames = [os.path.join(
@@ -4429,16 +4436,16 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             con.tables[table_name].write_magic_file()
     elif file_names:
         # otherwise create a new Contribution in dir_path
-        con = Contribution(dir_path, vocabulary=vocab)
+        con = Contribution(input_dir_path, vocabulary=vocab)
     else:
         # if no contribution is provided and no contribution could be created,
         # you are out of luck
-        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(dir_path))
+        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(input_dir_path))
         return False, "no 3.0 files found, upload file not created", None, None
 
     # if the contribution has no tables, you can't make an upload file
     if not con.tables.keys():
-        print("-W- No tables found in your contribution, file not created".format(dir_path))
+        print("-W- No tables found in your contribution in directory {}, file not created".format(input_dir_path))
         return False, "-W- No tables found in your contribution, file not created", None, None
 
     con.propagate_cols(['core_depth', 'composite_depth'],

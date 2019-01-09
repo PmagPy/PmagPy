@@ -110,15 +110,6 @@ class TestUploadMagic(unittest.TestCase):
         outfile, error_message, errors, all_errors = ipmag.upload_magic(dir_path=dir_path)
         msg = "file validation has failed.  You may run into problems if you try to upload this file."
         self.assertEqual(error_message, msg)
-        # delete any upload file that was partially created
-        import re
-        pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
-        possible_files = os.listdir(dir_path)
-        files = []
-        for f in possible_files:
-            if pattern.match(f):
-                files.append(f)
-        pmag.remove_files(files, dir_path)
 
 
     def test3_with_contribution(self):
@@ -154,6 +145,14 @@ class TestUploadMagic(unittest.TestCase):
         con = cb.Contribution(WD)
         self.assertIn('core_depth', con.tables['sites'].df.columns)
         self.assertEqual(con.tables['sites'].df.loc['15-1-013', 'core_depth'], 55.23)
+
+    def test_with_different_input_output_dir(self):
+        input_dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        outfile, error_message, errors, all_errors = ipmag.upload_magic(dir_path=".", input_dir_path=input_dir_path)
+        msg = "file validation has failed.  You may run into problems if you try to upload this file."
+        self.assertEqual(error_message, msg)
+        self.assertTrue(glob.glob("McMurdo*.txt"))
+
 
 
 class TestDownloadMagic(unittest.TestCase):
