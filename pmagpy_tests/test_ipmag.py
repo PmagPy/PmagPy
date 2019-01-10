@@ -721,6 +721,31 @@ class TestThellierMagic(unittest.TestCase):
             self.assertTrue(os.path.exists("s2s0-03_arai.png"))
 
 
+class TestOrientationMagic(unittest.TestCase):
+    def setUp(self):
+        self.orient_WD = os.path.join(WD, 'data_files', 'orientation_magic')
+
+    def tearDown(self):
+        filelist = ['sites.txt', 'samples.txt']
+        pmag.remove_files(filelist, self.orient_WD)
+        pmag.remove_files(filelist, WD)
+
+
+    def test_success(self):
+        self.assertFalse(os.path.exists(os.path.realpath('./samples.txt')))
+        res = ipmag.orientation_magic(input_dir_path=self.orient_WD, orient_file="orient_example.txt")
+        print(res)
+        self.assertTrue(res[0])
+        self.assertTrue(os.path.exists(os.path.realpath('./samples.txt')))
+
+    def test_success_with_one_dir(self):
+        self.assertFalse(os.path.exists(os.path.join(self.orient_WD, 'samples.txt')))
+        res = ipmag.orientation_magic(output_dir_path=self.orient_WD, orient_file="orient_example.txt")
+        self.assertTrue(res[0])
+        self.assertTrue(os.path.exists(os.path.join(self.orient_WD, 'samples.txt')))
+
+
+
 
 
 if __name__ == '__main__':

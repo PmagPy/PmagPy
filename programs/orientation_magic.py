@@ -86,7 +86,7 @@ def main():
         print(main.__doc__)
         sys.exit()
     else:
-        info = [['WD', False, '.'], ['ID', False, '.'], ['f', False, 'orient.txt'],
+        info = [['WD', False, '.'], ['ID', False, ''], ['f', False, 'orient.txt'],
                 ['app', False, False], ['ocn', False, 1], ['dcn', False, 1],
                 ['BCN', False, True], ['ncn', False, '1'], ['gmt', False, 0],
                 ['mcd', False, ''], ['a', False, False], ['DM', False, 3]]

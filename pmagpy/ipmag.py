@@ -5408,7 +5408,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True,
                       samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False,
                       orient_file='orient.txt', samp_file='samples.txt', site_file='sites.txt',
-                      output_dir_path='.', input_dir_path='.', append=False, data_model=3):
+                      output_dir_path='.', input_dir_path='', append=False, data_model=3):
     """
     use this function to convert tab delimited field notebook information to MagIC formatted tables (er_samples and er_sites)
 
@@ -5488,6 +5488,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # dec_correction used to be DecCorr
     # meths is now method_codes
     # delta_u is now hours_from_gmt
+
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    output_dir_path = os.path.realpath(output_dir_path)
+    input_dir_path = os.path.realpath(input_dir_path)
 
     or_con, dec_correction_con, dec_correction = int(
         or_con), int(dec_correction_con), float(dec_correction)
