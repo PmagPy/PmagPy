@@ -5441,7 +5441,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
 
 
     defaults:
-    orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
+    orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='', append=False):
     orientation conventions:
         [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
              of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
@@ -9067,7 +9067,8 @@ def plot_gc(poles, color='g', fignum=1):
         pmagplotlib.plot_circ(fignum, pole, 90., color)
 
 
-def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0, iboot=0, vec=0, num_bootstraps=1000, title=""):
+def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0,
+               iboot=0, vec=0, num_bootstraps=1000, title=""):
     Ss, V1, V2, V3 = [], [], [], []
     for ind, rec in aniso_df.iterrows():
         s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
@@ -9222,14 +9223,16 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
 
     """
     data_model_num = int(float(data_model_num))
-    dir_path = os.path.realpath(dir_path)
     if not input_dir_path:
         input_dir_path = dir_path
+    dir_path = os.path.realpath(dir_path)
+    input_dir_path = os.path.realpath(input_dir_path)
 
     # get full file names
     meas_file = pmag.resolve_file_name(infile, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, input_dir_path)
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
+    output_spec_file = os.path.join(dir_path, os.path.split(spec_file)[1])
 
     # get coordinate system
     coords = {'s': '-1', 'g': '0', 't': '100'}
@@ -9615,9 +9618,11 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
             SpecRecs3.append(rec3)
 
         # write output to 3.0 specimens file
-        pmag.magic_write(spec_file, SpecRecs3, 'specimens')
-        print("specimen data stored in {}".format(spec_file))
-        return True, spec_file
+        res, ofile = pmag.magic_write(output_spec_file, SpecRecs3, 'specimens')
+        print("specimen data stored in {}".format(output_spec_file))
+        if not res:
+            return False, "Something went wrong and no records were created.  Are you sure your measurement file has the method code 'LP-AN-ARM'?"
+        return True, output_spec_file
 
     else:
         if rmag_anis == "":

@@ -474,18 +474,46 @@ class TestAarmMagic(unittest.TestCase):
         self.aarm_WD = os.path.join(WD, 'data_files', 'aarm_magic')
 
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
-                    'er_samples.txt', 'my_er_samples.txt',
-                    'er_sites.txt', 'rmag_anisotropy.txt']
+        filelist = ['new_specimens.txt']
         pmag.remove_files(filelist, self.aarm_WD)
+        pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
     def test_aarm_success(self):
-        convert.sio('arm_magic_example.dat', self.aarm_WD, meas_file="aarm_measurements.txt")
+        convert.sio('arm_magic_example.dat',dir_path='data_files/aarm_magic/',specnum=3,
+           location='Bushveld',codelist='AF:ANI',samp_con='3',
+           meas_file='aarm_measurements.txt',peakfield=180,labfield=50, phi=-1, theta=-1)
         res, outfile = ipmag.aarm_magic('aarm_measurements.txt', self.aarm_WD,
-                                        spec_file='custom_specimens.txt')
+                                        spec_file='new_specimens.txt')
         self.assertTrue(res)
-        self.assertEqual(outfile, os.path.join(self.aarm_WD, 'custom_specimens.txt'))
+        self.assertEqual(outfile, os.path.join(self.aarm_WD, 'new_specimens.txt'))
+        self.assertTrue(os.path.exists(outfile))
+
+    def test_different_input_output_dir(self):
+        convert.sio('arm_magic_example.dat',dir_path='data_files/aarm_magic/',specnum=3,
+           location='Bushveld',codelist='AF:ANI',samp_con='3',
+           meas_file='aarm_measurements.txt',peakfield=180,labfield=50, phi=-1, theta=-1)
+
+        res, outfile = ipmag.aarm_magic('aarm_measurements.txt', input_dir_path=self.aarm_WD,
+                                        spec_file='new_specimens.txt')
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.join(WD, 'new_specimens.txt'))
+        self.assertTrue(os.path.exists(outfile))
+
+    def test_fail(self):
+        convert.sio('arm_magic_example.dat', self.aarm_WD, meas_file="aarm_measurements.txt")
+        res, msg = ipmag.aarm_magic('aarm_measurements.txt', input_dir_path=self.aarm_WD,
+                                spec_file='new_specimens.txt')
+
+        self.assertFalse(res)
+        self.assertEqual(msg, "Something went wrong and no records were created.  Are you sure your measurement file has the method code 'LP-AN-ARM'?")
+        self.assertFalse(os.path.exists(os.path.join(WD, 'custom_specimens.txt')))
+        convert.sio('arm_magic_example.dat',dir_path='data_files/aarm_magic/',specnum=3,
+           location='Bushveld',codelist='AF:ANI',samp_con='3',
+           meas_file='aarm_measurements.txt',peakfield=180,labfield=50, phi=-1, theta=-1)
+
+
+
 
 
 class TestAtrmMagic(unittest.TestCase):
