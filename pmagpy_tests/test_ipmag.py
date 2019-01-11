@@ -773,6 +773,36 @@ class TestOrientationMagic(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.orient_WD, 'samples.txt')))
 
 
+class TestEqareaMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ['data_files/eqarea_magic/*.png']
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True,
+                                           fmt="png", plot_by="sit", n_plots=122)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        figs = glob.glob('data_files/eqarea_magic/*.png')
+        self.assertEqual(len(figs), 116) # no dec/inc for some sites
+
+
+    def test_failure(self):
+        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/", save_plots=True, fmt="png", plot_by="sit")
+        self.assertFalse(res)
+
+    def test_with_ell(self):
+        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True, fmt="png", plot_by="loc",
+                                           plot_ell="F")
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
 
 
 
