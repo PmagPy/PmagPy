@@ -10015,7 +10015,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         return True, rmag_anis
 
 
-def zeq_magic(meas_file='measurements.txt', input_dir_path='./', angle=0):
+def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files
 
@@ -10028,7 +10028,8 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='./', angle=0):
     angle : float
         angle of X direction with respect to specimen X
     """
- # read in MagIC foramatted data
+    # read in MagIC foramatted data
+    input_dir_path = os.path.realpath(input_dir_path)
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
     # read in magic formatted data
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
@@ -10575,7 +10576,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
 
 def sites_extract(site_file='sites.txt', directions_file='directions.xls',
                   intensity_file='intensity.xls', info_file='site_info.xls',
-                  output_dir_path='./', input_dir_path='', latex=False):
+                  output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts directional and/or intensity data from a MagIC 3.0 format sites.txt file.
     Default output format is an Excel file.
@@ -10609,6 +10610,8 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
 
     if not input_dir_path:
         input_dir_path = output_dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    output_dir_path = os.path.realpath(output_dir_path)
     try:
         fname = pmag.resolve_file_name(site_file, input_dir_path)
     except IOError:
@@ -10698,7 +10701,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
 
 
 def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', landscape=False,
-                      longtable=False, output_dir_path='./', input_dir_path='', latex=False):
+                      longtable=False, output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts specimen results  from a MagIC 3.0 format specimens.txt file.
     Default output format is an Excel file.
@@ -10706,16 +10709,21 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
 
     Parameters
     ___________
-    spec_file : str
+    spec_file : str, default "specimens.txt"
          input file name
-    input_dir_path : str
-          path for intput file if different from output_dir_path (default is same)
-    latex : boolean
-           if True, output file should be latex formatted table with a .tex ending
+    output_file : str, default "specimens.xls"
+         output file name
+    landscape : boolean, default False
+           if True output latex landscape table
     longtable : boolean
            if True output latex longtable
-    landscape : boolean
-           if True output latex landscape table
+    output_dir_path : str, default "."
+        output file directory
+    input_dir_path : str, default ""
+          path for intput file if different from output_dir_path (default is same)
+    latex : boolean, default False
+           if True, output file should be latex formatted table with a .tex ending
+
     Return :
         [True,False],  data table error type : True if successful
 
@@ -10764,7 +10772,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
 
 
 def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
-                     output_dir_path='./', input_dir_path='', latex=False):
+                     output_dir_path='.', input_dir_path='', latex=False):
     """
     Extracts criteria  from a MagIC 3.0 format criteria.txt file.
     Default output format is an Excel file.
@@ -10772,11 +10780,15 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
 
     Parameters
     ___________
-    crit_file : str
+    crit_file : str, default "criteria.txt"
          input file name
-    input_dir_path : str
+    output_file : str, default "criteria.xls"
+         output file name
+    output_dir_path : str, default "."
+        output file directory
+    input_dir_path : str, default ""
           path for intput file if different from output_dir_path (default is same)
-    latex : boolean
+    latex : boolean, default False
            if True, output file should be latex formatted table with a .tex ending
 
     Return :
@@ -10787,11 +10799,13 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
     """
     if not input_dir_path:
         input_dir_path = output_dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    output_dir_path = os.path.realpath(output_dir_path)
     try:
         fname = pmag.resolve_file_name(crit_file, input_dir_path)
     except IOError:
         print("bad criteria file name")
-        return False, "bad site file name"
+        return False, "bad criteria file name"
     crit_df = pd.read_csv(fname, sep='\t', header=1)
     if len(crit_df) > 0:
         out_file = pmag.resolve_file_name(output_file, output_dir_path)
