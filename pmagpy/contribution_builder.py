@@ -19,7 +19,6 @@ from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 from pmagpy import pmag
 
-
 class Contribution(object):
 
     """

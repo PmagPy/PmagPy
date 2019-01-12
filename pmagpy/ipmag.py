@@ -1,5 +1,4 @@
 # /usr/bin/env/pythonw
-
 from past.utils import old_div
 import codecs
 import copy
@@ -15,6 +14,7 @@ import os
 import sys
 import time
 import re
+encoding = "ISO-8859-1"
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
