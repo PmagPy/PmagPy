@@ -474,7 +474,7 @@ class TestAarmMagic(unittest.TestCase):
         self.aarm_WD = os.path.join(WD, 'data_files', 'aarm_magic')
 
     def tearDown(self):
-        filelist = ['new_specimens.txt']
+        filelist = ['new_specimens.txt', 'custom_specimens.txt']
         pmag.remove_files(filelist, self.aarm_WD)
         pmag.remove_files(filelist, WD)
         os.chdir(WD)
