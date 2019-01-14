@@ -3285,14 +3285,63 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default.
     You must provide at least a measurements file and a specimen file to plot.
+
+    Parameters
+    ----------
+    input_dir_path : str, default "."
+        file input directory
+    meas_file : str, default "measurements.txt"
+        input measurements file
+    spc_file : str, default ""
+        input specimens file
+    samp_file : str, default ""
+        input samples file
+    age_file : str, default ""
+        input ages file
+    sum_file : str, default ""
+        input csv summary file
+    wt_file : str, default ""
+        input file with weights
+    depth_scale : str, default "core_depth"
+        ['core_depth', 'composite_depth']
+    dmin : number, default -1
+        minimum depth to plot (if -1, default to plotting all)
+    dmax : number, default -1
+        maximum depth to plot (if -1, default to plotting all)
+    sym : str, default "bo"
+        symbol color and shape, default blue circles
+        (see matplotlib documentaiton for more options)
+    size : int, defualt 5
+        symbol size
+    spc_sym : str, default 'ro'
+        specimen symbol color and shape, default red circles
+        (see matplotlib documentaiton for more options)
+    meth : str, default ""
+        method codes, ["LT-NO", "AF", "T", "ARM", "IRM", "X"]
+    step : int, default 0
+    fmt : str, default "svg"
+        format for figures, [svg,jpg,png,pdf]
+    pltDec : bool, default True
+        plot declination
+    pltInc : bool, default True
+        plot inclination
+    pltMag : bool, default True
+        plot magnetization
+    pltLine : bool, default True
+        connect dots with a line
+    pltSus : bool, default True
+        plot blanket treatment
+    logit : bool, default False
+        plot magnetization on a log scale
+    amin : int, default -1
+        minimum time to plot (if -1, default to plotting all)
+    amax : int, default -1
+        maximum time to plot (if -1, default to plotting all)
+    norm : bool, default False
+        normalize by weight
+    data_model_num : int, default 3
+        MagIC data model (please, use data model 3)
     """
-    #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
-    #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
-    #print('dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size)
-    #print('meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag)
-    #print('pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax)
-    # print 'pltTime', pltTime
-    # print 'norm', norm
     data_model_num = int(data_model_num)
     # replace MagIC 3 defaults with MagIC 2.5 defaults if needed
     if data_model_num == 2 and meas_file == 'measurements.txt':
