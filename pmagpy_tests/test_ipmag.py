@@ -537,6 +537,17 @@ class TestAtrmMagic(unittest.TestCase):
         df = cb.MagicDataFrame(outfile)
         self.assertTrue(any(df.df['sample']))
 
+    def test_atrm_directories(self):
+        res, outfile = ipmag.atrm_magic('atrm_measurements3.txt', input_dir_path=self.atrm_WD,
+                                        input_spec_file='orig_specimens.txt',
+                                        output_spec_file='custom_specimens.txt')
+        self.assertTrue(res)
+        self.assertEqual(outfile, os.path.realpath(os.path.join(".", 'custom_specimens.txt')))
+        # check that samples are there from input specimen file
+        df = cb.MagicDataFrame(outfile)
+        self.assertTrue(any(df.df['sample']))
+
+
 
 class TestHysteresisMagic(unittest.TestCase):
     def setUp(self):

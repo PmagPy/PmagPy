@@ -2641,11 +2641,7 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements',
     ----------
     outfile name if success, False if failure
     """
-
-    if not input_dir_path:
-        input_dir_path = output_dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    output_dir_path = os.path.realpath(output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     if float(data_model) == 3.0:
         outfile = pmag.resolve_file_name(outfile, output_dir_path)
         output_dir_path, file_name = os.path.split(outfile)
@@ -4025,9 +4021,7 @@ def download_magic(infile, dir_path='.', input_dir_path='',
     else:
         method_col = "method_codes"
 
-    if not input_dir_path:
-        input_dir_path = dir_path
-
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     infile = pmag.resolve_file_name(infile, input_dir_path)
     # try to deal reasonably with unicode errors
     try:
@@ -4412,10 +4406,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
-    if not input_dir_path:
-        input_dir_path = dir_path
-    dir_path = os.path.realpath(dir_path)
-    input_dir_path = os.path.realpath(input_dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
@@ -5489,11 +5480,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # meths is now method_codes
     # delta_u is now hours_from_gmt
 
-    if not input_dir_path:
-        input_dir_path = output_dir_path
-    output_dir_path = os.path.realpath(output_dir_path)
-    input_dir_path = os.path.realpath(input_dir_path)
-
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     or_con, dec_correction_con, dec_correction = int(
         or_con), int(dec_correction_con), float(dec_correction)
     hours_from_gmt = float(hours_from_gmt)
@@ -8271,14 +8258,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     '__', '_') + "_aniso-" + key + "." + fmt
         pmagplotlib.save_plots(ANIS, files)
 
-    if not input_dir_path:
-        input_dir_path = dir_path
-
-    input_dir_path = os.path.realpath(input_dir_path)
-    dir_path = os.path.realpath(dir_path)
-    print('input dir path', input_dir_path)
-    print('dir path', dir_path)
-
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # initialize some variables
     version_num = pmag.get_version()
     hpars, bpars = [], []
@@ -9223,17 +9203,12 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
 
     """
     data_model_num = int(float(data_model_num))
-    if not input_dir_path:
-        input_dir_path = dir_path
-    dir_path = os.path.realpath(dir_path)
-    input_dir_path = os.path.realpath(input_dir_path)
-
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # get full file names
     meas_file = pmag.resolve_file_name(infile, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, input_dir_path)
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
     output_spec_file = os.path.join(dir_path, os.path.split(spec_file)[1])
-
     # get coordinate system
     coords = {'s': '-1', 'g': '0', 't': '100'}
     if coord not in coords.values():
@@ -9663,10 +9638,11 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
     """
     # fix up file names
-    meas_file = pmag.resolve_file_name(meas_file, dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
     rmag_anis = os.path.join(dir_path, 'rmag_anisotropy.txt')
     rmag_res = os.path.join(dir_path, 'rmag_results.txt')
-    input_spec_file = pmag.resolve_file_name(input_spec_file, dir_path)
+    input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
     output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
 
     # read in data
@@ -10137,10 +10113,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     if interactive:
         save_plots = False
     # get proper paths
-    if not input_dir_path:
-        input_dir_path = dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    dir_path = os.path.realpath(dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
     # read in magic formatted data
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
@@ -10268,10 +10241,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     if pmagplotlib.isServer or set_env.IS_WIN:
         incl_directory = False
     # figure out directory/file paths
-    if not input_dir_path:
-        input_dir_path = output_dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    output_dir_path = os.path.realpath(output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, input_dir_path)
     meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
     # format and initialize variables
@@ -10607,11 +10577,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
         writes Excel or LaTeX formatted tables for use in publications
     """
     # initialize outfile names
-
-    if not input_dir_path:
-        input_dir_path = output_dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    output_dir_path = os.path.realpath(output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     try:
         fname = pmag.resolve_file_name(site_file, input_dir_path)
     except IOError:
@@ -10730,8 +10696,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
     Effects :
         writes xls or latex formatted tables for use in publications
     """
-    if not input_dir_path:
-        input_dir_path = output_dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     try:
         fname = pmag.resolve_file_name(spec_file, input_dir_path)
     except IOError:
@@ -10797,10 +10762,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
     Effects :
         writes xls or latex formatted tables for use in publications
     """
-    if not input_dir_path:
-        input_dir_path = output_dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    output_dir_path = os.path.realpath(output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     try:
         fname = pmag.resolve_file_name(crit_file, input_dir_path)
     except IOError:
@@ -10903,10 +10865,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
     """
     # parse out input/out directories
-    dir_path = os.path.realpath(dir_path)
-    if not input_dir_path:
-        input_dir_path = dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # initialize some variables
     verbose = pmagplotlib.verbose
     FIG = {}  # plot dictionary
