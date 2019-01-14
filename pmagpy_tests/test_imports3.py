@@ -701,8 +701,8 @@ class TestIodpSamplesMagic(unittest.TestCase):
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = convert.iodp_samples(infile, data_model_num=2)
         self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'er_samples.txt')
-        self.assertEqual(outfile, expected_file)
+        expected_file = os.path.realpath(os.path.join('.', 'er_samples.txt'))
+        self.assertEqual(os.path.realpath(outfile), expected_file)
         self.assertTrue(os.path.isfile(outfile))
 
 
@@ -807,7 +807,7 @@ class TestKly4sMagic(unittest.TestCase):
 
     def test_kly4s_with_invalid_infile(self):
         program_ran, error_message = convert.kly4s('hello.txt')
-        expected_file = os.path.join('.', 'hello.txt')
+        expected_file = os.path.realpath(os.path.join('.', 'hello.txt'))
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'Error opening file: {}'.format(expected_file))
 
@@ -1340,7 +1340,7 @@ class TestSufarAscMagic(unittest.TestCase):
                                               input_dir_path=input_dir,
                                               data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, os.path.realpath(os.path.join('.', 'magic_measurements.txt')))
         with open(outfile, 'r') as ofile:
             lines = ofile.readlines()
             self.assertEqual(292, len(lines))
@@ -1353,7 +1353,8 @@ class TestSufarAscMagic(unittest.TestCase):
         program_ran, outfile = convert.sufar4(infile,
                                               input_dir_path=input_dir)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'measurements.txt'))
+        self.assertEqual(os.path.realpath(outfile),
+                         os.path.realpath(os.path.join('.', 'measurements.txt')))
         with open(outfile, 'r') as ofile:
             lines = ofile.readlines()
             self.assertEqual(292, len(lines))
@@ -1386,7 +1387,7 @@ class TestSufarAscMagic(unittest.TestCase):
                                               sample_naming_con='4-2',
                                               data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', ofile))
+        self.assertEqual(outfile, os.path.realpath(os.path.join('.', ofile)))
 
     def test_sufar4_with_options(self):
         input_dir = os.path.join(WD, 'data_files',
@@ -1399,7 +1400,7 @@ class TestSufarAscMagic(unittest.TestCase):
                                               sample_naming_con='5',
                                               data_model_num=2)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
+        self.assertEqual(outfile, os.path.realpath(os.path.join('.', 'my_magic_measurements.txt')))
 
 
 class TestTdtMagic(unittest.TestCase):

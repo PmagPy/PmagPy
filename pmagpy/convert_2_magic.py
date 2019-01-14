@@ -131,12 +131,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     # format and fix variables
     specnum = int(specnum)
     specnum = -specnum
-    if input_dir:
-        input_dir_path = input_dir
-    else:
-        input_dir_path = dir_path
-    input_dir_path = os.path.realpath(input_dir_path)
-    dir_path = os.path.realpath(dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir, dir_path)
 
     if samp_con:
         Z = 1
@@ -521,9 +516,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
     #noave = 1
 
     # get args
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     specnum = - int(specnum)
     if not specimen:
         # grab the specimen name from the input file name
@@ -800,9 +793,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
     """
 
     version_num = pmag.get_version()
-    output_dir_path = dir_path
-    if not input_dir_path:
-        input_dir_path = output_dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     samp_con = str(samp_con)
     specnum = - int(specnum)
     volume *= 1e-6  # convert cc to m^3
@@ -1029,7 +1020,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         [5] site name = sample name
         [6] site name entered in sitename column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
-    input_dir_path : if you did not supply a full path with magfile you can put the directory the magfile is in here
     meas_n_orient : Number of different orientations in measurement (default : 8)
     labfield : DC_FIELD in microTesla (default : 0)
     phi : DC_PHI in degrees (default : 0)
@@ -1074,9 +1064,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         return GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD*1e-6, DC_PHI, DC_THETA
 
     specnum = - int(specnum)
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     DC_FIELD = float(labfield) * 1e-6
     DC_PHI = float(phi)
     DC_THETA = float(theta)
@@ -1113,8 +1101,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         Z = 1
 
     # get file names and open magfile to start reading data
-    if input_dir_path == '':
-        input_dir_path = '.'
     magfile = pmag.resolve_file_name(magfile, input_dir_path)
     input_dir_path = os.path.split(magfile)[0]
     FIRST_GET_DC = True
@@ -1443,7 +1429,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", user="", labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="", cooling_times_list=[], sample_nc=[1, 0], site_nc=[1, 0],
-            location="unknown", lat="", lon="", noave=False):
+            location="unknown", lat="", lon="", noave=False, input_dir_path=""):
 
     """
     Convert generic file to MagIC file(s)
@@ -1454,8 +1440,6 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         input file name
     dir_path : str
         output directory, default "."
-    input_dir : str
-        input file directory IF different from dir_path, default ""
     meas_file : str
         output measurement file name, default "measurements.txt"
     spec_file : str
@@ -1491,6 +1475,8 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         longitude, default ""
     noave : bool
        do not average duplicate measurements, default False (so by default, DO average)
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
 
 
     Info
@@ -1753,11 +1739,14 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     # --------------------------------------
 
     # format and validate variables
+
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     labfield = float(labfield)
     labfield_phi = float(labfield_phi)
     labfield_theta = float(labfield_theta)
 
     if magfile:
+        magfile = pmag.resolve_file_name(magfile, input_dir_path)
         try:
             input = open(magfile, 'r')
         except:
@@ -2283,7 +2272,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
     Parameters
     ----------
     magfile : str
-        input file name
+       input file name
     dir_path : str
         working directory, default "."
     input_dir_path : str
@@ -2359,9 +2348,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
     labfield = float(labfield) * 1e-6
     phi = int(theta)
     theta = int(theta)
-    if not input_dir_path:
-        input_dir_path = dir_path
-
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     if magfile:
         try:
             fname = pmag.resolve_file_name(magfile, input_dir_path)
@@ -2983,9 +2970,7 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
         meth_col = "method_codes"
         software_col = "software_packages"
 
-
-    if not input_dir_path:
-        input_dir_path = dir_path
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     samp_file = pmag.resolve_file_name(samp_file, dir_path)
     site_file = pmag.resolve_file_name(site_file, dir_path)
     orient_file = pmag.resolve_file_name(orient_file, input_dir_path)
@@ -3096,9 +3081,7 @@ def iodp_dscr(csv_file="", dir_path=".", input_dir_path="",
     # initialize defaults
     version_num = pmag.get_version()
     # format variables
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path  # rename dir_path after input_dir_path is set
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # convert cc to m^3
     volume = volume * 1e-6
     if csv_file == "":
@@ -3413,10 +3396,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
     # initialize some stuff
     demag = "N"
     version_num = pmag.get_version()
-
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # convert cc to m^3
     volume = volume * 1e-6
     meth_code = meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
@@ -3590,7 +3570,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     output_dir_path : str
         output file directory, default "."
     input_dir_path : str
-        input file directory IF different from dir_path, default ""
+        input file directory IF different from output_dir_path, default ""
     data_model_num : int
         MagIC data model [2, 3], default 3
 
@@ -3633,6 +3613,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
 
     text_key = None
     comp_depth_key = ""
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
     samp_file = pmag.resolve_file_name(samp_file, input_dir_path)
     Samps = []
     samp_out = os.path.join(output_dir_path, samp_file_name)
@@ -3843,12 +3824,8 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
     citations = "This study"
     demag = 'NRM'
     depth_method = 'a'
-
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
-
     # format variables
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     if csv_file == "":
         # read in list of files to import
         filelist = os.listdir(input_dir_path)
@@ -4289,10 +4266,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     """
 
     version_num = pmag.get_version()
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
-    print (output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     specnum = - int(specnum)
     samp_con = str(samp_con)
     volume = float(volume) * 1e-6
@@ -4545,10 +4519,9 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
     """
 
     version_num = pmag.get_version()
-    if not input_dir_path:
-        mag_file = pmag.resolve_file_name(mag_file, dir_path)
-        input_dir_path = os.path.split(mag_file)[0]
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    input_dir_path = os.path.split(mag_file)[0]
     specnum = - int(specnum)
     samp_con = str(samp_con)
     volume = float(volume) * 1e-6
@@ -4816,9 +4789,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
     #
     # initialize some variables
     #
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     version_num = pmag.get_version()
     syn = 0
     itilt, igeo, linecnt, key = 0, 0, 0, ""
@@ -5359,9 +5330,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
     # initialize variables
     # not used: #cont=0
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     data_model_num = int(float(data_model_num))
     ask = 0
     Z = 1
@@ -5800,15 +5769,15 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
     Parameters
     _________
     magfile : input measurement file
-    dir_path : output directory path
-    input_dir_path : input directory path
-    meas_file : output file measurement file name
-    spec_file : output file specimen file name
-    samp_file : output file sample file name
-    site_file : output file site file name
-    loc_file : output file location file name
-    specnum : number of terminal characters distinguishing specimen from sample
-    samp_con :  sample/site naming convention
+    dir_path : output directory path, default "."
+    input_dir_path : input file directory IF different from dir_path, default ""
+    meas_file : output file measurement file name, default "measurements.txt"
+    spec_file : output file specimen file name, default "specimens.txt"
+    samp_file : output file sample file name, default "samples.txt"
+    site_file : output file site file name, default "sites.txt"
+    loc_file : output file location file name, default "locations.txt"
+    specnum : number of terminal characters distinguishing specimen from sample, default 0
+    samp_con :  sample/site naming convention, default "1"
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
@@ -5824,7 +5793,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
             "8" synthetic - has no site name
             "9" ODP naming convention
 
-    codelist : colon delimited string of lab protocols (e.g., codelist="AF")
+    codelist : colon delimited string of lab protocols (e.g., codelist="AF"), default ""
         AF:  af demag
         T: thermal including thellier but not trm acquisition
         S: Shaw method
@@ -5834,14 +5803,14 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
         ANI: anisotropy experiment
         D: double AF demag
         G: triple AF demag (GRM protocol)
-    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3
-    arm_labfield : dc field for ARM in tesla
-    peakfield : peak af field for ARM
-    trm_peakT : peak temperature for TRM
-    labfield : lab field in tesla for TRM
-    phi, theta : direction of lab field
-    mass_or_vol : is the parameter in the file mass 'm' or volume 'v'
-    noave : boolean, if False, average replicates
+    coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3, default ""
+    arm_labfield : dc field for ARM in tesla, default 50e-6
+    peakfield : peak af field for ARM, default 873.
+    trm_peakT : peak temperature for TRM, default 0
+    labfield : lab field in tesla for TRM, default 0
+    phi, theta : direction of lab field, default 0, 0
+    mass_or_vol : is the parameter in the file mass 'm' or volume 'v', default "v"
+    noave : boolean, if False, average replicates, default False
 
     Returns
     --------
@@ -5861,9 +5830,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
     irm = 0
 
     # format/organize variables
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     labfield = int(labfield) * 1e-6
     phi = int(phi)
     theta = int(theta)
@@ -6394,6 +6361,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     MagRecs = []
     measurement_headers = []
     ErRecs = []
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
 
     samp_name_cons = {1: 'sample=specimen', 2: 'no. of terminate characters', 3: 'character delimited'}
     if samp_name_con not in samp_name_cons.values():
@@ -6995,7 +6963,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
 
 def mini(magfile, dir_path='.', meas_file='measurements.txt',
          data_model_num=3, volume=12, noave=0,
-         inst="", user="", methcode="LP-NO"):
+         inst="", user="", methcode="LP-NO", input_dir_path=""):
     """
     Convert the Yale minispin format to MagIC format files
 
@@ -7021,6 +6989,8 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
         colon-delimited protocols, include all that apply
         default "LP-NO"
         options include "AF" for demag and "T" for thermal
+    input_dir_path : str,
+        input file directory IF different from dir_path, default ""
 
     Returns
     ---------
@@ -7041,6 +7011,9 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
     citation = 'This study'
     MagRecs = []
     version_num = pmag.get_version()
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    magfile = pmag.resolve_file_name(magfile, input_dir_path)
+    input_dir_path = os.path.split(magfile)[0]
     try:
         with open(magfile, 'r') as finput:
             lines = finput.readlines()
@@ -7224,9 +7197,7 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
     """
 
     # deal with input files
-    if not input_dir_path:
-        input_dir_path = dir_path
-
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     try:
         infile = pmag.resolve_file_name(infile, input_dir_path)
         with open(infile, 'r') as finput:
@@ -7463,9 +7434,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
 
 
     """
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     specnum = - int(specnum)
     samp_con = str(samp_con)
     version_num = pmag.get_version()
@@ -7638,22 +7607,22 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     Parameters
     _________
     magfile : input measurement file
-    dir_path : output directory path
-    input_dir_path : input directory path
-    meas_file : output file measurement file name
-    spec_file : output file specimen file name
-    samp_file : output file sample file name
-    site_file : output file site file name
-    loc_file : output file location file name
-    samp_infile : output file to append to
-    syn : if True, this is a synthetic specimen
-    syntype :  sample material type
-    instrument : instrument on which the measurements were made (e.g., "SIO-2G")
-    labfield : lab field in microtesla for TRM
-    phi, theta : direction of lab field [-1,-1 for anisotropy experiments]
-    peakfield : peak af field in mT for ARM
-    specnum : number of terminal characters distinguishing specimen from sample
-    samp_con :  sample/site naming convention
+    dir_path : output directory path, default "."
+    input_dir_path : input file directory IF different from dir_path, default ""
+    meas_file : output file measurement file name, default "measurements.txt"
+    spec_file : output file specimen file name, default "specimens.txt"
+    samp_file : output file sample file name, default "samples.tt"
+    site_file : output file site file name, default "sites.txt"
+    loc_file : output file location file name, default "locations.txt"
+    samp_infile : output file to append to, default ""
+    syn : if True, this is a synthetic specimen, default False
+    syntype :  sample material type, default ""
+    instrument : instrument on which the measurements were made (e.g., "SIO-2G"), default ""
+    labfield : lab field in microtesla for TRM, default 0
+    phi, theta : direction of lab field [-1,-1 for anisotropy experiments], default 0, 0
+    peakfield : peak af field in mT for ARM, default 0
+    specnum : number of terminal characters distinguishing specimen from sample, default 0
+    samp_con :  sample/site naming convention, default '1'
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
@@ -7668,11 +7637,11 @@ def sio(mag_file, dir_path=".", input_dir_path="",
 
             "8" synthetic - has no site name
             "9" ODP naming convention
-    location : location name for study
-    lat : latitude of sites
-    lon : longitude of sites
-    noave : boolean, if False, average replicates
-    codelist : colon delimited string of lab protocols (e.g., codelist="AF")
+    location : location name for study, default "unknown"
+    lat : latitude of sites, default ""
+    lon : longitude of sites, default ""
+    noave : boolean, if False, average replicates, default False
+    codelist : colon delimited string of lab protocols (e.g., codelist="AF"), default ""
         AF:  af demag
         T: thermal including thellier but not trm acquisition
         S: Shaw method
@@ -7695,8 +7664,8 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             in comma separated list for each cooling rate (e.g., "43.6,1.3,43.6")
     coil : 1,2, or 3 unist of IRM field in volts using ASC coil #1,2 or 3
         the fast and slow experiments in comma separated string (e.g., fast:  43.6 K/min,  slow:  1.3 K/min)
-    timezone : timezone of date/time string in comment string
-    user : analyst
+    timezone : timezone of date/time string in comment string, default "UTC"
+    user : analyst, default ""
 
     Effects
     _______
@@ -7719,9 +7688,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     irm = 0
 
     # get args
-    output_dir_path = dir_path
-    if not input_dir_path:
-        input_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # measurement outfile
     meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
@@ -8305,7 +8272,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
 def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
             coord_type="s", sigma=False, samp_con="1", specnum=0,
             location="unknown", spec="unknown", sitename="unknown",
-            user="", data_model_num=3, name_in_file=False):
+            user="", data_model_num=3, name_in_file=False, input_dir_path=""):
     """
     converts .s format data to measurements  format.
 
@@ -8340,6 +8307,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
         MagIC data model 2 or 3, default 3
     name_in_file : bool
         first entry of each line is specimen name, default False
+    input_dir_path : input directory path IF different from dir_path, default ""
 
     Returns
     ---------
@@ -8417,7 +8385,8 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
         method_col = "method_codes"
         outfile_type = "specimens"
     # get down to bidness
-    sfile = pmag.resolve_file_name(sfile, dir_path)
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    sfile = pmag.resolve_file_name(sfile, input_dir_path)
     anisfile = pmag.resolve_file_name(anisfile, dir_path)
     try:
         with open(sfile, 'r') as f:
@@ -8646,10 +8615,8 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
         samp_table_name = 'er_samples'
         site_table_name = 'er_sites'
 
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
     # create full path for files
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     ascfile = os.path.join(input_dir_path, ascfile)
     aniso_output = os.path.join(output_dir_path, aniso_output)
     # initialized but not used
@@ -9761,9 +9728,7 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     # initialize some stuff
     version_num = pmag.get_version()
     MeasRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
-    if not input_dir_path:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     specnum = -int(specnum)
     if "4" in samp_con:
         if "-" not in samp_con:

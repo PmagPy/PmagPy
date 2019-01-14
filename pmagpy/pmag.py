@@ -11285,6 +11285,27 @@ def vocab_convert(vocab, standard, key=''):
     return standard_value
 
 
+def fix_directories(input_dir_path, output_dir_path):
+    """
+    Take arguments input/output directories and fixes them.
+    If no input_directory, default to output_dir_path for both.
+    Then return realpath for both values.
+
+    Parameters
+    ----------
+    input_dir_path : str
+    output_dir_path : str
+
+    Returns
+    ---------
+    input_dir_path, output_dir_path
+    """
+    if not input_dir_path:
+        input_dir_path = output_dir_path
+    input_dir_path = os.path.realpath(input_dir_path)
+    output_dir_path = os.path.realpath(output_dir_path)
+    return input_dir_path, output_dir_path
+
+
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
-
