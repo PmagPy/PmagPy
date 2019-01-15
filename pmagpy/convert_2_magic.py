@@ -1081,6 +1081,9 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
 #        GET_DC_PARAMS = True
 #    else:
 #        GET_DC_PARAMS = False
+
+# With the above commented out GET_DC_PARAMS does not get set and this function fail below so setting it here. NAJ
+    GET_DC_PARAMS = False
     if locname == '' or locname == None:
         locname = 'unknown'
     if "4" in samp_con:
