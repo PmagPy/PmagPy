@@ -3982,6 +3982,9 @@ class Demag_GUI(wx.Frame):
 # fish out all the relavent data
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z') == True]
+            if not len(meas_data3_0):
+                self.user_warning("Your measurements table contains none of the required method codes to run Demag GUI: [LT-NO, LT-AF-Z, LT-T-Z, LT-M-Z, LT-LT-Z]")
+                return {}, {}
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
             meas_con_dict = map_magic.get_thellier_gui_meas_mapping(
                 meas_data3_0, output=2)
