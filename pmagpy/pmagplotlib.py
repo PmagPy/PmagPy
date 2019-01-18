@@ -2858,9 +2858,12 @@ def plot_com(CDF, BDI1, BDI2, d):
 #        os.remove(filenames[key])
 
 
-def add_borders(Figs, titles, border_color, text_color, con_id=""):
+def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_id=""):
+
     """
     Formatting for generating plots on the server
+    Default border color: black
+    Default text color: purple
     """
     def split_title(s):
         """
@@ -2881,8 +2884,10 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
         lines.append(" ".join(line))
         return "\n".join(lines).strip(',')
 
+    # format contribution id if available
     if con_id:
-        con_id = "/" + str(con_id)
+        if not con_id.startswith("/"):
+            con_id = "/" + str(con_id)
 
     import datetime
     now = datetime.datetime.now()
@@ -2926,7 +2931,8 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
                        size=20)#18)
 
         # add text
-        border_ax.text((old_div(4, fig.get_figwidth())) * 0.015, 0.03, now.strftime("%d %B %Y, %I:%M:%S %p"),
+
+        border_ax.text((old_div(4, fig.get_figwidth())) * 0.015, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S %p"),
                        horizontalalignment='left',
                        verticalalignment='top',
                        color=text_color,
@@ -2936,7 +2942,7 @@ def add_borders(Figs, titles, border_color, text_color, con_id=""):
                        verticalalignment='top',
                        color=text_color,
                        size=20)
-        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'http://earthref.org/MagIC{}'.format(con_id),
+        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'earthref.org/MagIC{}'.format(con_id),
                        horizontalalignment='right',
                        verticalalignment='top',
                        color=text_color,
