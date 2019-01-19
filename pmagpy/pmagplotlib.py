@@ -2886,7 +2886,7 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
 
     # format contribution id if available
     if con_id:
-        if not con_id.startswith("/"):
+        if not str(con_id).startswith("/"):
             con_id = "/" + str(con_id)
 
     import datetime

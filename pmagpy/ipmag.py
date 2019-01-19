@@ -10164,8 +10164,20 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     # get proper paths
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+    input_dir_path = os.path.split(file_path)[0]
     # read in magic formatted data
-    meas_df = pd.read_csv(file_path, sep='\t', header=1)
+    contribution = cb.Contribution(input_dir_path)
+    try:
+        contribution.propagate_location_to_samples()
+        contribution.propagate_location_to_specimens()
+        contribution.propagate_location_to_measurements()
+    except KeyError as ex:
+        pass
+    meas_df = contribution.tables['measurements'].df
+    # try to get contribution id for server plotting
+    if pmagplotlib.isServer:
+        con_id = contribution.get_con_id()
+    # get key for intensity records
     int_key = cb.get_intensity_col(meas_df)
     # list for saved figs
     saved = []
@@ -10219,8 +10231,6 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                     # isServer, fix plot titles, formatting, and file names for server
                     for key, value in files.copy().items():
                         files[key] = "SP:_{}_TY:_{}_.{}".format(this_specimen, key, fmt)
-                    black = '#000000'
-                    purple = '#800080'
                     titles = {}
                     titles['deremag'] = 'DeReMag Plot'
                     titles['zijd'] = 'Zijderveld Plot'
@@ -10228,7 +10238,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                     titles['TRM'] = 'TRM Acquisition data'
                     titles['eqarea'] = 'Equal Area Plot'
                     zed = pmagplotlib.add_borders(
-                        zed, titles, black, purple)
+                        zed, titles, con_id=con_id)
 
                 saved.append(pmagplotlib.save_plots(zed, files, incl_directory=incl_directory))
 
@@ -10959,7 +10969,12 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
 
     contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
                                    single_file=in_file)
+    contribution.add_magic_table("contribution")
 
+    # get contribution id if available for server plots
+    if pmagplotlib.isServer:
+        con_id = contribution.get_con_id()
+    # try to propagate all names to measurement level
     try:
         contribution.propagate_location_to_samples()
         contribution.propagate_location_to_specimens()
@@ -11295,11 +11310,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             files[key] = filename
 
         if pmagplotlib.isServer:
-            black = '#000000'
-            purple = '#800080'
-            titles = {}
-            titles['eqarea'] = 'Equal Area Plot'
-            FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
+            titles = {'eqarea': 'Equal Area Plot'}
+            FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
             pmagplotlib.save_plots(FIG, files)
 
         elif save_plots:

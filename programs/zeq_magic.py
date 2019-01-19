@@ -121,7 +121,15 @@ def main():
     fnames = {'measurements': meas_file, 'specimens': spec_file,
               'samples': samp_file, 'sites': site_file}
     contribution = cb.Contribution(dir_path, custom_filenames=fnames, read_tables=[
-                                   'measurements', 'specimens', 'samples', 'sites'])
+                                   'measurements', 'specimens', 'samples', 'sites',
+                                   'contribution'])
+    # get contribution id if available for server plots
+    if pmagplotlib.isServer:
+        con_id = ""
+        if "contribution" in contribution.tables:
+            if "id" in contribution.tables["contribution"].df.columns:
+                con_id = str(contribution.tables["contribution"].df["id"].values[0])
+
 #
 #   import  specimens
 
@@ -366,7 +374,18 @@ def main():
             datalist = [tr, decs, incs, ints, ZI, flags, codes]
             # this transposes the columns and rows of the list of lists
             datablock = list(map(list, list(zip(*datalist))))
-            pmagplotlib.plot_zed(ZED, datablock, angle, title, units)
+            if not pmagplotlib.isServer:
+                pmagplotlib.plot_zed(ZED, datablock, angle, title, units)
+            else:
+                pmagplotlib.plot_zed(ZED, datablock, angle, this_specimen, units)
+
+            if pmagplotlib.isServer:
+                titles = {}
+                titles['eqarea'] = 'Equal Area Plot'
+                titles['zijd'] = 'Zijderveld Plot'
+                titles['demag'] = 'Demagnetization Plot'
+                pmagplotlib.add_borders(ZED, titles, con_id=con_id)
+
             if verbose and not set_env.IS_WIN:
                 pmagplotlib.draw_figs(ZED)
 #

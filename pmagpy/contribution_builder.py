@@ -1196,6 +1196,17 @@ class Contribution(object):
         return {i for i in (items_in_child_table - items) if not_null(i)}
 
 
+    def get_con_id(self):
+        """
+        Return contribution id if available
+        """
+        con_id = ""
+        if "contribution" in self.tables:
+            if "id" in self.tables["contribution"].df.columns:
+                con_id = str(self.tables["contribution"].df["id"].values[0])
+        return con_id
+
+
 
 class MagicDataFrame(object):
 
