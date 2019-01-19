@@ -2915,7 +2915,12 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
         border_ax.set_yticks([])
 
         # add a border
-        border_ax.text(-0.02, 1, "                                                                                                                                                                                         |",
+        if "\n" in plot_title:
+            y_val = 1.0  # lower border
+            #fig.set_figheight(6.25)
+        else:
+            y_val = 1.04  # higher border
+        border_ax.text(-0.02, y_val, "                                                                                                                                                                                         |",
                        horizontalalignment='left',
                        verticalalignment='top',
                        color=text_color,
