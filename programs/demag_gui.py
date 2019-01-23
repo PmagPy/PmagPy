@@ -1427,6 +1427,7 @@ class Demag_GUI(wx.Frame):
         marker over all specimen plots to display which measurements have
         been selected
         """
+        self.close_warning = True
         # set hex colors for cover and size of selected meas marker
         blue_cover = "#9999FF"
         red_cover = "#FF9999"
@@ -2450,6 +2451,7 @@ class Demag_GUI(wx.Frame):
             samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
             if samp_flag == 'b':
                 self.mark_fit_bad(new_fit)
+        self.close_warning = True
         return new_fit
 
     def delete_fit(self, fit, specimen=None):
@@ -5160,7 +5162,7 @@ class Demag_GUI(wx.Frame):
                 self.acceptance_criteria[crit]['value'] = float(new_value)
 
             #  message dialog
-            self.saved_dlg(message="changes saved to pmag_criteria.txt")
+            self.saved_dlg(message="changes saved to criteria")
             self.write_acceptance_criteria_to_file()
             dia.Destroy()
 
@@ -6991,8 +6993,13 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if write_session_to_failsafe:
             self.on_menu_save_interpretation(event, "demag_last_session.redo")
 
+
         if self.close_warning:
-            TEXT = "Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
+            if self.close_warning == "redo only":
+
+                TEXT = "Data are only saved to a .redo file.\nTo fully save your data:\nFile --> Save MagIC tables.\n\n Press OK to exit without saving."
+            else:
+                TEXT = "Data are not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
 
             # Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
             dlg = wx.MessageDialog(
@@ -7177,8 +7184,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                     "\t"+str(fit.color)+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         fout.close()
-        TEXT = "specimen interpretations are saved in %s" % redo_file_name
+        TEXT = "specimen interpretations are saved in {}\n\nTo reload these interpretations next time, go to:\nFile --> Import interpretations from a redo file and select {}.".format(redo_file_name, redo_file_name)
         self.saved_dlg(TEXT)
+        if self.close_warning:
+            self.close_warning = "redo only"
 
     def on_menu_change_criteria(self, event):
         dia = demag_dialogs.demag_criteria_dialog(
