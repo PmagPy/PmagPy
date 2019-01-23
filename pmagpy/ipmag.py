@@ -10923,6 +10923,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     ---------
     type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
     """
+    saved = []
     # parse out input/out directories
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # initialize some variables
@@ -11312,10 +11313,12 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         if pmagplotlib.isServer:
             titles = {'eqarea': 'Equal Area Plot'}
             FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
-            pmagplotlib.save_plots(FIG, files)
+            saved_figs = pmagplotlib.save_plots(FIG, files)
+            saved.extend(saved_figs)
 
         elif save_plots:
-            pmagplotlib.save_plots(FIG, files, incl_directory=True)
+            saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
+            saved.extend(saved_figs)
             continue
         elif interactive:
             pmagplotlib.draw_figs(FIG)
@@ -11323,6 +11326,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             if ans == "q":
                 return True, []
             if ans == "a":
-                pmagplotlib.save_plots(FIG, files, incl_directory=True)
+                saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
+                saved.extend(saved)
         continue
-    return True, []
+    return True, saved
