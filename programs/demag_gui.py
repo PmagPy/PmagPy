@@ -2555,25 +2555,33 @@ class Demag_GUI(wx.Frame):
         # obtain lat lon data
         SiteNFO = list(self.Data_info['er_sites'].values())
         for val in SiteNFO:
+            site = val['er_site_name']
             not_found = []
+            # check that lat/lon columns are present and non-null
             if 'site_lat' not in val:
-                not_found.append('lattitude')
+                not_found.append('latitude')
+            elif not val['site_lat'] and val['site_lat'] is not 0:
+                not_found.append('latitude')
             if 'site_lon' not in val:
+                not_found.append('longitude')
+            elif not val['site_lon'] and val['site_lon'] is not 0:
                 not_found.append('longitude')
             if not_found == []:
                 continue
-            TEXT = "%s not found for site %s would you like to enter the values now or skip this site and all samples contained in it?" % (
+            TEXT = "%s not found for site %s. Select 'yes' to enter the values now or 'no' to skip this site and all samples contained in it." % (
                 str(not_found), val['er_site_name'])
             dlg = wx.MessageDialog(
                 self, caption="Missing Data", message=TEXT, style=wx.YES_NO | wx.ICON_QUESTION)
             result = self.show_dlg(dlg)
             dlg.Destroy()
-            if result == wx.ID_OK:
+            if result == wx.ID_YES:
                 ui_dialog = demag_dialogs.user_input(self, ['Latitude', 'Longitude'], parse_funcs=[
                                                      float, float], heading="Missing Latitude or Longitude data for site: %s" % val['er_site_name'])
                 self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()
                 if ui_data[0]:
+                    self.Data_info['er_sites'][site]['site_lat'] = ui_data[1]['Latitude']
+                    self.Data_info['er_sites'][site]['site_lon'] = ui_data[1]['Longitude']
                     val['site_lat'] = ui_data[1]['Latitude']
                     val['site_lon'] = ui_data[1]['Longitude']
 
@@ -2599,7 +2607,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     lat = float(site[0]['site_lat'])
                     lon = float(site[0]['site_lon'])
-                except (KeyError, IndexError, ValueError) as e:
+                except (KeyError, IndexError, ValueError, TypeError) as e:
                     continue
                 plong, plat, dp, dm = pmag.dia_vgp(dec, inc, a95, lat, lon)
                 PmagResRec = {}
@@ -2635,7 +2643,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     lat = float(erSite[0]['site_lat'])
                     lon = float(erSite[0]['site_lon'])
-                except (KeyError, IndexError):
+                except (KeyError, IndexError, TypeError) as e:
                     continue
                 plong, plat, dp, dm = pmag.dia_vgp(dec, inc, a95, lat, lon)
                 SiteData['name'] = site
@@ -2656,8 +2664,8 @@ class Demag_GUI(wx.Frame):
             for comp in self.all_fits_list:
                 LocCompData = pmag.get_dictitem(
                     LocDir, 'specimen_comp_name', comp, 'T')
-                if len(LocCompData) < 2:
-                    print(("no data for comp %s" % comp))
+                if len(LocCompData) < 3:
+                    print(("insufficient data for comp %s" % comp))
                     continue
                 precs = []
                 for rec in LocCompData:
@@ -2666,6 +2674,7 @@ class Demag_GUI(wx.Frame):
                     prec = {k: v if v != None else '' for k,
                             v in list(prec.items())}
                     precs.append(prec)
+                # you need at least 3 records to get anything back from pmag.fisher_by_pol
                 polpars = pmag.fisher_by_pol(precs)
                 # hunt through all the modes (normal=A, reverse=B, all=ALL)
                 for mode in list(polpars.keys()):
@@ -7368,7 +7377,8 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             vgpdia = demag_dialogs.VGP_Dialog(self, VGP_Data)
             if vgpdia.failed_init:
                 return
-            else: self.vgp_open=True
+            else:
+                self.vgp_open=True
             vgpdia.Show()
 #        self.show_dlg(vgpdia)
 

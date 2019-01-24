@@ -55,7 +55,8 @@ class VGP_Dialog(wx.Frame):
             self.failed_init=True
             return
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
-        if not isinstance(VGP_Data,dict): VGP_Data={}
+        if not isinstance(VGP_Data,dict):
+            VGP_Data={}
         if VGP_Data!={} and not all([len(VGP_Data[k]) for k in list(VGP_Data.keys())]):
             parent.user_warning("No VGP Data for VGP viewer to display")
             self.Destroy(); self.failed_init=True; return
