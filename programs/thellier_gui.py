@@ -6635,7 +6635,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     aarm_num = 0
                 try:
                     float(rec['measurement_number'])
-                except ValueError:
+                except:
                     aarm_rec['measurement_number'] = aarm_num
 
                 if 'aarmblock' not in list(Data[s].keys()):
