@@ -815,6 +815,37 @@ class TestEqareaMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
 
+class TestPolemapMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.png", "*.pdf"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        res, outfiles = ipmag.polemap_magic(dir_path="data_files/polemap_magic", fmt="png")
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+
+    def test_with_opts(self):
+        res, outfiles = ipmag.polemap_magic(dir_path="data_files/polemap_magic", flip=True, ell=True, lat_0=20, symsize=20)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+
+    def test_with_path(self):
+        loc_file = os.path.join("data_files/polemap_magic", "locations.txt")
+        res, outfiles = ipmag.polemap_magic(loc_file, flip=True, ell=True, lat_0=20, symsize=20)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+
+
 
 
 if __name__ == '__main__':
