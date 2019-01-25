@@ -11280,8 +11280,13 @@ def vocab_convert(vocab, standard, key=''):
         if vocab in method_codes_to_geomagia.keys():
             standard_value = method_codes_to_geomagia[vocab]
     if standard_value == "":
-        print("Magic vocab ", vocab, " not found for standard ", standard)
-        return(vocab)
+        if vocab=='':
+            standard_value="Fail:vocab_to_convert_is_null"
+        elif vocab.isspace() or vocab!='':
+            standard_value="Fail:vocab_to_convert_is_all_whitespace"
+        else:
+            print("pmag.vocab_convert:Magic vocab '", vocab, "' not found for standard ", standard, sep='')
+            return(vocab)
     return standard_value
 
 
