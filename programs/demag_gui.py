@@ -1981,6 +1981,7 @@ class Demag_GUI(wx.Frame):
         if sample not in list(self.Data_info["er_samples"].keys()) or "sample_azimuth" not in list(self.Data_info["er_samples"][sample].keys()) or "sample_dip" not in list(self.Data_info["er_samples"][sample].keys()):
             self.user_warning(
                 "Could not display sample orientation checks because sample azimuth or sample dip is missing from er_samples table for sample %s" % sample)
+            self.check_orient_on = False  # stop trying because this raises a ton of warnings
             return
         try:
             azimuth = float(self.Data_info["er_samples"][sample]['sample_azimuth'])
@@ -1988,6 +1989,7 @@ class Demag_GUI(wx.Frame):
         except TypeError:
             self.user_warning(
                 "Could not display sample orientation checks because azimuth or dip is missing (or invalid) for sample %s" % sample)
+            self.check_orient_on = False # stop trying because this raises a ton of warnings
             return
 
         # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i)
@@ -4805,7 +4807,7 @@ class Demag_GUI(wx.Frame):
         their data
         """
         pmag_specimens, pmag_samples, pmag_sites = [], [], []
-        print("-I- Reading previous interpretations from pmag* tables")
+        print("-I- Reading previous interpretations from specimen/sample/site tables")
         try:
             pmag_specimens, file_type = pmag.magic_read(
                 os.path.join(self.WD, "pmag_specimens.txt"))
