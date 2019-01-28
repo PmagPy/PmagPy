@@ -130,7 +130,7 @@ dependencies:
   - matplotlib=2.2.3=py36h54f8f79_0
   - mccabe=0.6.1=py36_1
   - mistune=0.8.3=py36h1de35cc_1
-  - mkl=2019.0=118
+  - mkl=2018.0.3
   - mkl-service=1.1.2=py36h6b9c3cc_5
   - mkl_fft=1.0.6=py36hb8a8100_0
   - mkl_random=1.0.1=py36h5d10147_1
@@ -220,6 +220,7 @@ dependencies:
   - requests-toolbelt=0.8.0=py36_0
   - rope=0.11.0=py36_0
   - ruamel_yaml=0.15.46=py36h1de35cc_0
+  - scikit-learn=0.20.1=py36h4f467ca_0
   - scipy=1.1.0=py36h28f7352_1
   - send2trash=1.5.0=py36_0
   - service_identity=17.0.0=py36h28b3542_0
