@@ -914,6 +914,7 @@ def plot_zed(ZED, datablock, angle, s, units):
     #if units=="U": norm=0
     plot_mag(ZED['demag'], datablock, s, 1, units, norm)
     plot_zij(ZED['zijd'], datablock, angle, s, norm)
+    return ZED
 
 
 def plot_dir(ZED, pars, datablock, angle):

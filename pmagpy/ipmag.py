@@ -10040,9 +10040,10 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         return True, rmag_anis
 
 
-def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0):
+def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0,
+              n_plots=5, save_plots=True, fmt="svg", interactive=False):
     """
-    zeq_magic makes zijderveld and equal area plots for magic formatted measurements files
+    zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
     Parameters
     ----------
@@ -10052,22 +10053,23 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0):
         input directory of meas_file, default "."
     angle : float
         angle of X direction with respect to specimen X
+    n_plots : int, default 5
+        maximum number of plots to make
+        if you want to make all possible plots, specify "all"
+    save_plots : bool, default True
+        if True, create and save all requested plots
+    fmt : str, default "svg"
+        format for figures, [svg, jpg, pdf, png]
+    interactive : bool, default False -- NOT YET IMPLEMENTED
+        interactively plot and display for each specimen
+        (this is best used on the command line only)
+
     """
-    # read in MagIC foramatted data
-    input_dir_path = os.path.realpath(input_dir_path)
-    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
-    # read in magic formatted data
-    meas_df = pd.read_csv(file_path, sep='\t', header=1)
-    meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
-    specimens = meas_df.specimen.unique()  # list of specimen names
-    if len(specimens) == 0:
-        print('there are no data for plotting')
-        return
-    cnt = 1
-    for s in specimens:
+
+    def make_plots(spec, cnt, meas_df):
         # we can make the figure dictionary that pmagplotlib likes:
         ZED = {'eqarea': cnt, 'zijd': cnt+1, 'demag': cnt+2}  # make datablock
-        cnt += 3
+
         spec_df = meas_df[meas_df.specimen == s]
         spec_df_nrm = spec_df[spec_df.method_codes.str.contains(
             'LT-NO')]  # get the NRM data
@@ -10081,13 +10083,54 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0):
             units = 'K'  # units are kelvin
             datablock = spec_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
-            pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+            return pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         if len(spec_df_af.index) > 1:  # this is an af run
             spec_df = pd.concat([spec_df_nrm, spec_df_af])
             units = 'T'  # these are AF data
             datablock = spec_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
-            pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+            return pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+
+    # read in MagIC foramatted data
+    input_dir_path = os.path.realpath(input_dir_path)
+    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+    # read in magic formatted data
+    if not os.path.isfile(file_path):
+        print('No such file:', file_path)
+        return False, []
+    meas_df = pd.read_csv(file_path, sep='\t', header=1)
+    meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
+    specimens = meas_df.specimen.unique()  # list of specimen names
+    if len(specimens) == 0:
+        print('there are no data for plotting')
+        return False, []
+    cnt = 1
+    if n_plots != "all":
+        if len(specimens) > n_plots:
+            specimens = specimens[:n_plots]
+    saved = []
+    for s in specimens:
+        ZED = make_plots(s, cnt, meas_df)
+        if not ZED:
+            if pmagplotlib.verbose:
+                print('No plots could be created for specimen:', s)
+                continue
+        titles = {key: s + "_" + key + "." + fmt for key in ZED}
+        if pmagplotlib.isServer:
+            titles = {}
+            titles['eqarea'] = 'Equal Area Plot'
+            titles['zijd'] = 'Zijderveld Plot'
+            titles['demag'] = 'Demagnetization Plot'
+            pmagplotlib.add_borders(ZED, titles, con_id=con_id)
+        if save_plots:
+            saved.extend(pmagplotlib.save_plots(ZED, titles))
+        else:
+            cnt += 3
+        #if interactive:
+        #    pmagplotlib.draw_figs()
+        #    pmagplotlib.save_or_quit()
+
+    return True, saved
 
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",

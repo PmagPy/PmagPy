@@ -847,6 +847,31 @@ class TestPolemapMagic(unittest.TestCase):
 
 
 
+class TestZeqMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.png", "*.pdf"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/zeq_magic", fmt="png", n_plots=3)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        self.assertEqual(6, len(outfiles))
+
+    def test_fail(self):
+        res, outfiles = ipmag.zeq_magic(input_dir_path=WD, fmt="png", n_plots=3)
+        self.assertFalse(res)
+        self.assertFalse(outfiles)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
