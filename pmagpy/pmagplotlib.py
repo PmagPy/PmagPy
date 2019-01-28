@@ -1616,6 +1616,7 @@ def save_plots(Figs, filenames, **kwargs):
             if verbose:
                 print(Figs[key], " saved in ", fname)
             saved.append(fname)
+            plt.close(Figs[key])
         except Exception as ex:
             print(type(ex), ex)
             print('could not save: ', Figs[key], filenames[key])
