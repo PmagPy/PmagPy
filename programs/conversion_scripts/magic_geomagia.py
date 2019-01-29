@@ -22,10 +22,10 @@ def main():
 
     OPTIONS
         -h: prints the help message and quits.
-        -f FILE: the MagIC data file name
+        -f FILE: the MagIC data file name that will be converted to GEOMAGIA files
     
     OUTPUT:
-        plots files created in the /plots/[$MagIC_ID_number] of the MagIC contribution
+       print to stdout the GEOMAGIA insert command for the reference and all of the site level data 
 
     EXAMPLE:
         magic_geomagia.py -f magic_contribution_16578.txt
@@ -39,7 +39,7 @@ def main():
         ind=sys.argv.index('-f')
         file_name=sys.argv[ind+1]
     else:
-        print("MagIC file name needed. Please add the files name with the -f option.")
+        print("MagIC file name needed. Please add the file name after the -f option.")
 
 
 #   Create all the table files from the magic.txt file so they can be imported by the cb
@@ -59,10 +59,9 @@ def main():
     id=md.tables['contribution'].df.iloc[0]['id']
     timestamp=md.tables['contribution'].df.iloc[0]['timestamp']
     contributor=md.tables['contribution'].df.iloc[0]['contributor']
-    names=contributor.split()
-    contributor=""
-    for name in names:
-        contributor+=name[:1].upper()
+    print("c=",contributor)
+    contributor=contributor.replace('@','')
+    print("c=",contributor)
    
     cr = Crossref()
     ref=cr.works(doi)
@@ -122,9 +121,12 @@ def main():
 
         if 'int_abs' in sites.columns.values: 
             int_abs=row['int_abs']
-            int_abs=round(int_abs*1e6,1)
+            if int_abs is not None:
+                int_abs=round(int_abs*1e6,1)
         if 'int_abs_sigma' in sites.columns.values: 
-            int_abs_sigma=round(row['int_abs_sigma']*1e6,1)
+            int_abs_sigma=row['int_abs_sigma']
+            if int_abs_sigma is not None:
+                int_abs_sigma=round(row['int_abs_sigma']*1e6,1)
 
         age,age_high,age_low=-1e9,-1e9,-1e9
         age_error_type='0'  #  
@@ -147,7 +149,7 @@ def main():
             age_sigma=pmag.age_to_BP(age_sigma,age_unit)
             age_high=age+age_sigma
             age_low=age-age_sigma
-            age_error_type='5'  #Magic is one sigma for all sigma ages
+            age_error_type='5'  #Magic is one sigma for all sigma state/province column to data modelages
 
         if age_low > age_high: # MagIC lets age_high and age_low be in any order. Fix that for GEOMAGIA 
             temp=age_high
@@ -159,7 +161,7 @@ def main():
 
         age_min=age-age_low  # GEOMAGIA has the max and min as differences from the age, not absolute. 
         age_max=age_high-age
-
+        age_BP=age
         age=1950-age  #GEOMAGIA want +-AD/BC so convert BP to AD/-BC
 
         lat=row['lat']
@@ -272,7 +274,10 @@ def main():
         if 'samples' in sites.columns.values: 
             sample_list=row['samples']
 
-# Should add a state/province column to data model
+# c_csv is in GEOMAGIA insert. What it is I don't know. Max said set to 0
+        c_csv='0'
+
+# This place_id is SITE_ID in GEOMAGIA
 
         place_id="0"
         location=row['location']
@@ -298,9 +303,8 @@ def main():
         if 'description' in sites.columns.values: 
             description=row['description'] 
 
-        if age <= 50000:
-            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,sample_list,place_id,"-1",location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1",description,sep=',')
-
+        if age_BP <= 50000:
+            print("0",int_n_samples,int_n_specimens,int_n_total_specimens,int_abs,int_abs_sigma,age,age_min,age_max,"1",age_error_type,lat,lon,vadm,vadm_sigma,place_id,paleointensity_procedure,alteration_monitor,multidomain_check,anisotropy_correction,cooling_rate,demag_method,"0","0",demag_analysis,specimen_shape,materials,doi,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",geochron_codes,dir_n_samples,dir_n_samples,dir_n_total_samples,dir_dec,dir_inc,dir_alpha95,dir_k,vdm,vdm_sigma,sample_list,c_csv,location,site,"-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1","-1",dt.year,dt.month,contributor,"-1,-1",description,sep=',')
     #end for loop
 
 def method_codes_to_geomagia(magic_method_codes,geomagia_table):
