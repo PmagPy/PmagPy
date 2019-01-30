@@ -593,23 +593,35 @@ class magic_pmag_tables_dialog(wx.Dialog):
         #---------------------
         # default age
         #---------------------
-        self.default_age_text=wx.StaticText(pnl1,label="default age if site age does not exist in er_ages.txt:",style=wx.TE_CENTER)
-        self.cb_default_age = wx.CheckBox(pnl1, -1, 'use default age', (10, 30))
-
+        self.default_age_text = wx.StaticText(pnl1, label="If site age is not in the ages or sites table, please provide it here:", style=wx.TE_CENTER)
+        # age & age sigma
+        self.default_age = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.default_age_sigma = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        age_unit_choices = ['Years BP', 'Years AD (+/-)', 'Years Cal BP', 'Years Cal AD (+/-)', 'Ka', 'Ma', 'Ga']
+        #or age_high and age_low
         self.default_age_min=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_max=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        age_unit_choices=['Years Cal BP','Years Cal AD (+/-)','Years BP','Years AD (+/-)','Ma','Ka','Ga']
         self.default_age_unit=wx.ComboBox(pnl1, -1,size=(150, -1), value = '', choices=age_unit_choices, style=wx.CB_READONLY)
 
-        default_age_window = wx.GridSizer(2, 4, 6, 6)
-        default_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
-            (self.cb_default_age,wx.EXPAND),
-            (self.default_age_min,wx.EXPAND),
-            (self.default_age_max,wx.EXPAND),
-            (self.default_age_unit,wx.EXPAND)])
+        self.ages_note = wx.StaticText(pnl1, label="Note: All sites must have an age associated with them. Either the age must be given,\nor both the age_high and age_low should be used. In special cases all three could be used.\nIf the uncertainty of an age is known, enter it in the age_sigma box with the one sigma value\n(not a two sigma value that is often reported).", style=wx.TE_CENTER)
+
+        default_age_window = wx.GridSizer(4, 3, 6, 6)
+        default_age_window.AddMany( [(wx.StaticText(pnl1,label="younger bound (age_low)",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="older bound (age_high)",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
+                    # row 2
+                    (self.default_age_min,wx.EXPAND),
+                    (self.default_age_max,wx.EXPAND),
+                    (self.default_age_unit,wx.EXPAND),
+                    # row 3
+                    (wx.StaticText(pnl1,label="age",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="age sigma",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
+                # row 4
+                    (self.default_age, wx.EXPAND),
+                    (self.default_age_sigma, wx.EXPAND),
+                    (wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND)
+                ])
 
         #---------------------
         # sample
@@ -714,6 +726,8 @@ class magic_pmag_tables_dialog(wx.Dialog):
         vbox.Add(self.default_age_text,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
         vbox.Add(default_age_window,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(self.ages_note, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl1), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(10)
