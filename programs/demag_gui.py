@@ -5237,38 +5237,25 @@ class Demag_GUI(wx.Frame):
 
         # -- default age options
         DefaultAge = ["none"]
-        age_units = dia.default_age_unit.GetValue()
-        min_age = dia.default_age_min.GetValue()
-        max_age = dia.default_age_max.GetValue()
-        age = dia.default_age.GetValue()
-        age_sigma = dia.default_age_sigma.GetValue()
-        if (min_age and max_age) or age:
-            # enough age data provided
-            pass
-        else:
-            go_on = self.user_warning("Not enough age data provided (you must provide lower and upper bound, or age).\nContinue, using 0 for lower bound and 4.56 GA for upper bound?\n(This will not overwrite any exiting data.)")
-            if not go_on:
-                self.user_warning("Aborting, please try again.", caption="Message")
-                return
-            min_age = "0"
-            if age_units == "Ga":
-                max_age = "4.56"
-            elif age_units == "Ma":
-                max_age = "%f" % (4.56*1e3)
-            elif age_units == "Ka":
-                max_age = "%f" % (4.56*1e6)
-            elif age_units == "Years AD (+/-)":
-                max_age = "%f" % ((time()/3.15569e7)+1970)
-            elif age_units == "Years BP":
-                max_age = "%f" % ((time()/3.15569e7)+1950)
-            elif age_units == "Years Cal AD (+/-)":
-                max_age = str(datetime.now())
-            elif age_units == "Years Cal BP":
-                max_age = ((time()/3.15569e7)+1950)
+        skip_ages = dia.skip_ages.GetValue()
+        if not skip_ages:
+            age_units = dia.default_age_unit.GetValue()
+            min_age = dia.default_age_min.GetValue()
+            max_age = dia.default_age_max.GetValue()
+            age = dia.default_age.GetValue()
+            age_sigma = dia.default_age_sigma.GetValue()
+            if (min_age and max_age) or age:
+                # enough age data provided
+                pass
             else:
-                max_age = "4.56"
-                age_units = "Ga"
-        DefaultAge = [min_age, max_age, age_units]
+                go_on = self.user_warning("Not enough age data provided (you must provide lower and upper bound, or age).\nPress OK to skip ages for now, or cancel to end this process.")
+                if not go_on:
+                    self.user_warning("Aborting, please try again.", caption="Message")
+                    return
+                skip_ages = True
+
+            if min_age and max_age:
+                DefaultAge = [min_age, max_age, age_units]
 
         # -- sample mean
         avg_directions_by_sample = False
@@ -5291,9 +5278,10 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             # update or add age data to the sites table, but don't overwrite existing data
-            site_df = self.con.tables['sites'].df
-            self.con.tables['sites'].df = add_missing_ages(site_df)
-            self.con.write_table_to_file("sites")
+            if not skip_ages:
+                site_df = self.con.tables['sites'].df
+                self.con.tables['sites'].df = add_missing_ages(site_df)
+                self.con.write_table_to_file("sites")
 
             # set some variables
             priorities = ['DA-AC-ARM', 'DA-AC-TRM']
@@ -5807,22 +5795,22 @@ class Demag_GUI(wx.Frame):
                             PolRes['software_packages'] = version_num + \
                                 ': demag_gui.v.3.0'
                             PolRes['dir_tilt_correction'] = coord
-
-                            loc_rec = {}
-                            if 'locations' in self.con.tables:
-                                locs_df = self.con.tables['locations'].df
-                                self.con.tables['locations'].df = add_missing_ages(locs_df)
-                                loc_recs = locs_df.loc[location]
-                                if len(loc_recs):
-                                    if isinstance(loc_recs, Series):
-                                        loc_rec = loc_recs
-                                    else:
-                                        loc_rec = loc_recs.iloc[0]
-                            PolRes['age_high'] = loc_rec.get('age_high', max_age)
-                            PolRes['age_low'] = loc_rec.get('age_low', min_age)
-                            PolRes['age'] = loc_rec.get('age', age)
-                            PolRes['age_sigma'] = loc_rec.get('age_sigma', age_sigma)
-                            PolRes['age_unit'] = loc_rec.get('age_unit', age_units)
+                            if not skip_ages:
+                                loc_rec = {}
+                                if 'locations' in self.con.tables:
+                                    locs_df = self.con.tables['locations'].df
+                                    self.con.tables['locations'].df = add_missing_ages(locs_df)
+                                    loc_recs = locs_df.loc[location]
+                                    if len(loc_recs):
+                                        if isinstance(loc_recs, Series):
+                                            loc_rec = loc_recs
+                                        else:
+                                            loc_rec = loc_recs.iloc[0]
+                                PolRes['age_high'] = loc_rec.get('age_high', max_age)
+                                PolRes['age_low'] = loc_rec.get('age_low', min_age)
+                                PolRes['age'] = loc_rec.get('age', age)
+                                PolRes['age_sigma'] = loc_rec.get('age_sigma', age_sigma)
+                                PolRes['age_unit'] = loc_rec.get('age_unit', age_units)
                             if dia.cb_location_mean_VGP.GetValue():
                                 sucess_lat_lon_info = True
                                 if 'locations' in self.con.tables:
