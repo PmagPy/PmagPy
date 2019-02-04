@@ -82,7 +82,7 @@ class TestUploadMagic(unittest.TestCase):
         outfile, error_message, errors = ipmag.upload_magic2(dir_path=directory)
         self.assertTrue(errors)
         self.assertFalse(outfile)
-        self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
+        self.assertTrue(error_message.startswith("Validation of your upload file has failed.\nYou can still upload"))
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
 
         # delete any upload file that was partially created
@@ -108,16 +108,16 @@ class TestUploadMagic(unittest.TestCase):
     def test3_with_invalid_files(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
         outfile, error_message, errors, all_errors = ipmag.upload_magic(dir_path=dir_path)
-        msg = "file validation has failed.  You may run into problems if you try to upload this file."
-        self.assertEqual(error_message, msg)
+        msg = "Validation of your upload file has failed.\nYou can still upload"
+        self.assertTrue(error_message.startswith(msg))
 
 
     def test3_with_contribution(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
         con = cb.Contribution(directory=dir_path)
         outfile, error_message, errors, all_errors = ipmag.upload_magic(contribution=con)
-        msg = "file validation has failed.  You may run into problems if you try to upload this file."
-        self.assertEqual(error_message, msg)
+        msg = "Validation of your upload file has failed.\nYou can still upload"
+        self.assertTrue(error_message.startswith(msg))
         # delete any upload file that was partially created
         import re
         pattern = re.compile('\A[^.]*\.[a-zA-Z]*\.\d{4}\_?\d*\.txt')
@@ -149,8 +149,8 @@ class TestUploadMagic(unittest.TestCase):
     def test_with_different_input_output_dir(self):
         input_dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
         outfile, error_message, errors, all_errors = ipmag.upload_magic(dir_path=".", input_dir_path=input_dir_path)
-        msg = "file validation has failed.  You may run into problems if you try to upload this file."
-        self.assertEqual(error_message, msg)
+        msg = "Validation of your upload file has failed.\nYou can still upload"
+        self.assertTrue(error_message.startswith(msg))
         self.assertTrue(glob.glob("McMurdo*.txt"))
 
 

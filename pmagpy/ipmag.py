@@ -4420,8 +4420,8 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
     if not validated:
-        print("-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database")
-        return False, "file validation has failed.  You may run into problems if you try to upload this file.", errors
+        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
+        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up), errors
     return new_up, '', None
 
 
@@ -4642,11 +4642,9 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
     if failing:
-        print("-W- validation of upload file has failed.")
-        print("These tables have errors: {}".format(", ".join(failing)))
-        print("Please fix above errors and try again.")
-        print("You may run into problems if you try to upload this file to the MagIC database.")
-        return False, "file validation has failed.  You may run into problems if you try to upload this file.", failing, all_failing_items
+        print("-W- These tables have errors: {}".format(", ".join(failing)))
+        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
+        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up), failing, all_failing_items
     else:
         print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without trouble!")
     return new_up, '', None, None
