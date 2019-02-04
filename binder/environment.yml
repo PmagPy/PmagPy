@@ -30,7 +30,7 @@ dependencies:
   - bottleneck
   - bzip2
   - ca-certificates
-  - cartopy
+  - cartopy=0.17.0
   - certifi
   - cffi
   - chardet
@@ -118,7 +118,7 @@ dependencies:
   - lxml
   - lzo
   - markupsafe
-  - matplotlib
+  - matplotlib=2.2.3
   - mccabe
   - mistune
   - mkl
