@@ -1273,12 +1273,6 @@
 					],
 					"validations": [
 						"cv(\"state_province\")"
-					],
-					"previous_columns": [
-						{
-							"table": "er_locations",
-							"column": "ocean_sea"
-						}
 					]
 				},
 				"ocean_sea": {
@@ -1289,6 +1283,12 @@
 					"description": "Ocean or sea name",
 					"validations": [
 						"cv(\"ocean_sea\")"
+					],
+					"previous_columns": [
+						{
+							"table": "er_locations",
+							"column": "ocean_sea"
+						}
 					]
 				},
 				"region": {
@@ -7640,7 +7640,7 @@
 					"group": "Measurement Parameters",
 					"position": 19,
 					"type": "String",
-					"description": "Step included in calculation, Unit",
+					"description": "Unit used for the parameter varied during the experiment",
 					"previous_columns": [
 						{
 							"table": "pmag_specimens",
@@ -7655,6 +7655,14 @@
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Orientation of specimen in magnetometer",
+					"examples": [
+						"K",
+						"C",
+						"T",
+						"mT",
+						"W",
+						"mW"
+					],
 					"previous_columns": [
 						{
 							"table": "rmag_hysteresis",
@@ -11609,8 +11617,7 @@
 					"unit": "Flag",
 					"description": "Indicating if a standard (s) or an unknown (u) measurement",
 					"validations": [
-						"cv(\"measurement_type\")",
-						"required()"
+						"cv(\"measurement_type\")"
 					],
 					"previous_columns": [
 						{
