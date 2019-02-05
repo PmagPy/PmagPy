@@ -257,8 +257,25 @@ class MainFrame(wx.Frame):
         self.Hide()
 
     def on_close_grid_frame(self, event=None):
-        if self.grid_frame!=None and self.grid_frame.grid.changes:
+        if self.grid_frame != None and self.grid_frame.grid.changes:
             self.edited = True
+            if self.validation_mode:
+                # re run validations on the table that was edited
+                res = val_up3.validate_table(self.contribution, self.grid_frame.grid_type)
+                if res:
+                    dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
+                    if dtype not in self.failing_items:
+                        self.failing_items[dtype] = {}
+                    self.failing_items[dtype]["rows"] = failing_items
+                    self.failing_items[dtype]["missing_columns"] = missing_cols
+                    self.failing_items[dtype]["missing_groups"] = missing_groups
+                else:
+                    self.failing_items.pop(self.grid_frame.grid_type)
+                    self.validation_mode.remove(self.grid_frame.grid_type)
+                # re-run self.highlight_problems
+                self.reset_highlights()
+                self.highlight_problems(self.failing_items.keys())
+
         if self.grid_frame.error_frame:
             self.grid_frame.error_frame.Destroy()
         self.grid_frame = None
@@ -408,7 +425,10 @@ class MainFrame(wx.Frame):
                                          self.GetId())
             self.GetEventHandler().ProcessEvent(paintEvent)
 
-            self.hbox.Fit(self)
+        else:
+            self.message.SetLabel("Validated!")
+            self.bSizer_msg.ShowItems(True)
+        self.hbox.Fit(self)
 
     def reset_highlights(self):
         """
