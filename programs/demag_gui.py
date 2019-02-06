@@ -76,6 +76,7 @@ from time import time
 from datetime import datetime
 import wx
 import wx.lib.scrolledpanel
+import numpy as np
 from numpy import vstack, sqrt, arange, array, pi, cos, sin, mean, exp, linspace, convolve, nan
 from matplotlib import rcParams
 from matplotlib.figure import Figure
@@ -94,7 +95,6 @@ from pandas import DataFrame, Series
 from pmagpy.mapping import map_magic
 import help_files.demag_gui_help as dgh
 from re import findall
-
 
 matplotlib.rc('xtick', labelsize=10)
 matplotlib.rc('ytick', labelsize=10)
@@ -4245,11 +4245,14 @@ class Demag_GUI(wx.Frame):
                         self.Data_info["er_samples"][sample]['sample_dip'])
                     d_geo, i_geo = pmag.dogeo(
                         dec, inc, sample_azimuth, sample_dip)
-                    Data[s]['zijdblock_geo'].append(
-                        [tr, d_geo, i_geo, intensity, ZI, rec['measurement_flag'], rec['magic_instrument_codes']])
-                    DIR = [d_geo, i_geo, intensity/NRM]
-                    cart = pmag.dir2cart(DIR)
-                    Data[s]['zdata_geo'].append([cart[0], cart[1], cart[2]])
+                    # if d_geo or i_geo is null, we can't do geographic coordinates
+                    # otherwise, go ahead
+                    if not any([np.isnan(val) for val in [d_geo, i_geo]]):
+                        Data[s]['zijdblock_geo'].append(
+                            [tr, d_geo, i_geo, intensity, ZI, rec['measurement_flag'], rec['magic_instrument_codes']])
+                        DIR = [d_geo, i_geo, intensity/NRM]
+                        cart = pmag.dir2cart(DIR)
+                        Data[s]['zdata_geo'].append([cart[0], cart[1], cart[2]])
                 except (IOError, KeyError, ValueError, TypeError) as e:
                     pass
                 #                    if prev_s != s:
