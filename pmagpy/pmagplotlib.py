@@ -3175,7 +3175,7 @@ def plot_map(fignum, lats, lons, Opts):
             edge : markeredgecolor
             cmap : matplotlib color map
             pltgrid : plot the grid [1,0]
-            res :  resolution [c,l,i,h] for crude, low, intermediate, high
+            res :  resolution [c,l,i,h] for low/crude, intermediate, high
             boundinglat : bounding latitude
             sym : matplotlib symbol for plotting
             symsize : matplotlib symbol size for plotting
@@ -3185,17 +3185,19 @@ def plot_map(fignum, lats, lons, Opts):
             padlon : padding of longitudes
             gridspace : grid line spacing
             global : global projection [default is True]
+            oceancolor : 'azure'
+            landcolor : 'bisque' [choose any of the valid color names for matplotlib
+              see https://matplotlib.org/examples/color/named_colors.html
             details : dictionary with keys:
                 coasts : if True, plot coastlines
                 rivers : if True, plot rivers
                 states : if True, plot states
                 countries : if True, plot countries
                 ocean : if True, plot ocean
-                fancy : not implemented yet
                 fancy : if True, plot etopo 20 grid
                     NB:  etopo must be installed
         if Opts keys not set :these are the defaults:
-           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'','south':False}
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'','south':False,'oceancolor':'azure','landcolor':'bisque'}
 
     """
     if not has_cartopy:
@@ -3208,7 +3210,7 @@ def plot_map(fignum, lats, lons, Opts):
     Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
                      'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
                      'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
-                     'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet',
+                     'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet','oceancolor':'azure','landcolor':'bisque',
                      'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0},
                      'edgecolor': 'face'}
     for key in Opts_defaults.keys():
@@ -3325,7 +3327,12 @@ def plot_map(fignum, lats, lons, Opts):
                             transform=ccrs.PlateCarree(),
                             cmap=Opts['cmap'])
         if Opts['details']['coasts'] == 1:
-            ax.coastlines(resolution='50m')
+            if Opts['res']=='c' or Opts['res']=='l':
+                ax.coastlines(resolution='110m')
+            elif Opts['res']=='i':
+                ax.coastlines(resolution='50m')
+            elif Opts['res']=='h':
+                ax.coastlines(resolution='10m')
         if Opts['details']['rivers'] == 1:
             ax.add_feature(cfeature.RIVERS)
         if Opts['details']['states'] == 1:
@@ -3340,8 +3347,8 @@ def plot_map(fignum, lats, lons, Opts):
         if Opts['details']['countries'] == 1:
             ax.add_feature(BORDERS, linestyle='--', linewidth=1)
         if Opts['details']['ocean'] == 1:
-            ax.add_feature(OCEAN, color='lightblue')
-            ax.add_feature(LAND, color='yellow')
+            ax.add_feature(OCEAN, color=Opts['oceancolor'])
+            ax.add_feature(LAND, color=Opts['landcolor'])
     if Opts['proj'] in ['merc', 'pc']:
         if Opts['pltgrid']:
             gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
