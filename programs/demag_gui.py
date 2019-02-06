@@ -576,7 +576,7 @@ class Demag_GUI(wx.Frame):
         self.save_fit_button.SetFont(font2)
         self.save_fit_button.SetHelpText(dgh.save_fit_btn_help)
 
-        self.delete_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='delete', size=(
+        self.delete_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='delete fit', size=(
             50*self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_fit_button.SetFont(font2)
         self.delete_fit_button.SetHelpText(dgh.delete_fit_btn_help)
