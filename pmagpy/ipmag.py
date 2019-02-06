@@ -1062,7 +1062,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     else:
         all_dirs = di_block
 
-    directions1, directions2 = pmag.flip(all_dirs)
+    directions1, directions2 =pmag.flip(all_dirs)
 
     if plot_stereo == True:
         # plot equal area with two modes

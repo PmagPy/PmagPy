@@ -1108,8 +1108,9 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 
 def flip(di_block, combine=False):
     """
-    determines principle direction and calculates the antipode of
-    the reverse mode
+    determines 'normal' direction along the principle eigenvector, then flips the antipodes of
+    the reverse mode to the antipode
+
     Parameters
     ___________
     di_block : nested list of directions
