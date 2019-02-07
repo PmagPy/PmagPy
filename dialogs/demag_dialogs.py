@@ -410,7 +410,7 @@ class SaveMyPlot(wx.Frame):
 
 class magic_pmag_specimens_table_dialog(wx.Dialog):
     def __init__(self,parent):
-        super(magic_pmag_specimens_table_dialog, self).__init__(parent, title="MagIC specimens table Dialog")
+        super(magic_pmag_specimens_table_dialog, self).__init__(parent, title="MagIC specimens table dialog")
         self.InitUI()
 
     def InitUI(self):
@@ -458,9 +458,9 @@ class magic_pmag_specimens_table_dialog(wx.Dialog):
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
         self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
-        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton)
         hboxok.AddSpacer(20)
-        hboxok.Add(self.cancelButton )
+        hboxok.Add(self.okButton)
 
         #---------------------
 
@@ -479,9 +479,10 @@ class magic_pmag_specimens_table_dialog(wx.Dialog):
         vbox1.Add(hboxok,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox1.AddSpacer(10)
 
-
         pnl1.SetSizer(vbox1)
         vbox1.Fit(self)
+        self.okButton.SetDefault()
+
 
 #--------------------------------------------------------------
 # No Lat, Lon for VGP dialog
@@ -584,7 +585,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.rb_geo_tilt_coor = wx.RadioButton(pnl1, -1, 'geographic and tilt-corrected', (10, 30))
 
         self.rb_geo_coor.SetValue(True)
-        coordinates_window = wx.GridSizer(1, 4, 6, 6)
+        coordinates_window = wx.GridSizer(1, 4, 5, 5)
         coordinates_window.AddMany( [(self.rb_spec_coor),
             (self.rb_geo_coor),
             (self.rb_tilt_coor),
@@ -593,23 +594,34 @@ class magic_pmag_tables_dialog(wx.Dialog):
         #---------------------
         # default age
         #---------------------
-        self.default_age_text=wx.StaticText(pnl1,label="default age if site age does not exist in er_ages.txt:",style=wx.TE_CENTER)
-        self.cb_default_age = wx.CheckBox(pnl1, -1, 'use default age', (10, 30))
-
+        self.default_age_text = wx.StaticText(pnl1, label="If a site's age is not defined in the sites or ages table, please provide it here:", style=wx.TE_CENTER)
+        self.skip_ages = wx.CheckBox(pnl1, -1, 'skip ages')
+        # age & age sigma
+        self.default_age = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.default_age_sigma = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        age_unit_choices = ['Years BP', 'Years AD (+/-)', 'Years Cal BP', 'Years Cal AD (+/-)', 'ka', 'Ma', 'Ga']
+        #or age_high and age_low
         self.default_age_min=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_max=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        age_unit_choices=['Years Cal BP','Years Cal AD (+/-)','Years BP','Years AD (+/-)','Ma','Ka','Ga']
         self.default_age_unit=wx.ComboBox(pnl1, -1,size=(150, -1), value = '', choices=age_unit_choices, style=wx.CB_READONLY)
+        self.ages_note = wx.StaticText(pnl1, label="All sites must have an age associated with them. Either the age or both the younger and older bounds must be given.\nIf the age is given, younger and/or older bounds can be added for special cases.\nIf the uncertainty of an age is known, enter it in the 'age one sigma' box.\nRemember that many age uncertainties are published as two sigma. In that case, just divide the two sigma value by 2.\nNote: values provided here will NOT overwrite values already in your sites file, they will just fill in the blanks.", style=wx.TE_CENTER)
 
-        default_age_window = wx.GridSizer(2, 4, 6, 6)
-        default_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
-            (self.cb_default_age,wx.EXPAND),
-            (self.default_age_min,wx.EXPAND),
-            (self.default_age_max,wx.EXPAND),
-            (self.default_age_unit,wx.EXPAND)])
+        default_age_window = wx.GridSizer(2, 5, 5, 5)
+        default_age_window.AddMany( [(wx.StaticText(pnl1,label="age",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="age one sigma",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
+                    #(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
+
+                    # row 2
+                    (self.default_age, wx.EXPAND),
+                    (self.default_age_sigma, wx.EXPAND),
+                    (self.default_age_min,wx.EXPAND),
+                    (self.default_age_max,wx.EXPAND),
+                    (self.default_age_unit,wx.EXPAND)
+                    #(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND)
+                ])
 
         #---------------------
         # sample
@@ -713,7 +725,11 @@ class magic_pmag_tables_dialog(wx.Dialog):
 
         vbox.Add(self.default_age_text,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
+        vbox.Add(self.skip_ages, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
         vbox.Add(default_age_window,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(self.ages_note, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl1), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(10)

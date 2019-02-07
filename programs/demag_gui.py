@@ -576,7 +576,7 @@ class Demag_GUI(wx.Frame):
         self.save_fit_button.SetFont(font2)
         self.save_fit_button.SetHelpText(dgh.save_fit_btn_help)
 
-        self.delete_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='delete', size=(
+        self.delete_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='delete fit', size=(
             50*self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_fit_button.SetFont(font2)
         self.delete_fit_button.SetHelpText(dgh.delete_fit_btn_help)
@@ -5200,6 +5200,24 @@ class Demag_GUI(wx.Frame):
         ----------
         dia : save higher level pmag tables
         """
+
+        def add_missing_ages(df):
+            """
+            Take a dataframe and add min/max age, age, age_sigma, age_units.
+            Use values gained from dialog, but don't overwrite values already
+            in the dataframe.
+            """
+            age_columns = df.columns[df.columns.str.startswith('age')]
+            for col, value in {'age_high': max_age, 'age_low': min_age,
+                            'age': age, 'age_sigma': age_sigma, 'age_unit': age_units}.items():
+                if cb.not_null(value):
+                    if col in age_columns:
+                        df[col] = np.where(df[col].apply(cb.not_null), df[col], value)
+                    else:
+                        df[col] = value
+            return df
+
+
         if dia.cb_acceptance_criteria.GetValue():
             use_criteria = 'existing'
         else:
@@ -5219,32 +5237,25 @@ class Demag_GUI(wx.Frame):
 
         # -- default age options
         DefaultAge = ["none"]
-        default_used = False
-        try:
+        skip_ages = dia.skip_ages.GetValue()
+        if not skip_ages:
             age_units = dia.default_age_unit.GetValue()
-            min_age = "%f" % float(dia.default_age_min.GetValue())
-            max_age = "%f" % float(dia.default_age_max.GetValue())
-        except:
-            min_age = "0"
-            if age_units == "Ga":
-                max_age = "4.56"
-            elif age_units == "Ma":
-                max_age = "%f" % (4.56*1e3)
-            elif age_units == "Ka":
-                max_age = "%f" % (4.56*1e6)
-            elif age_units == "Years AD (+/-)":
-                max_age = "%f" % ((time()/3.15569e7)+1970)
-            elif age_units == "Years BP":
-                max_age = "%f" % ((time()/3.15569e7)+1950)
-            elif age_units == "Years Cal AD (+/-)":
-                max_age = str(datetime.now())
-            elif age_units == "Years Cal BP":
-                max_age = ((time()/3.15569e7)+1950)
+            min_age = dia.default_age_min.GetValue()
+            max_age = dia.default_age_max.GetValue()
+            age = dia.default_age.GetValue()
+            age_sigma = dia.default_age_sigma.GetValue()
+            if (min_age and max_age) or age:
+                # enough age data provided
+                pass
             else:
-                max_age = "4.56"
-                age_units = "Ga"
-            default_used = True
-        DefaultAge = [min_age, max_age, age_units]
+                go_on = self.user_warning("Not enough age data provided (you must provide lower and upper bound, or age).\nPress OK to skip ages for now, or cancel to end this process.")
+                if not go_on:
+                    self.user_warning("Aborting, please try again.", caption="Message")
+                    return
+                skip_ages = True
+
+            if min_age and max_age:
+                DefaultAge = [min_age, max_age, age_units]
 
         # -- sample mean
         avg_directions_by_sample = False
@@ -5266,27 +5277,11 @@ class Demag_GUI(wx.Frame):
             avg_by_polarity = True
 
         if self.data_model == 3.0:
-
-            # update age table
-            age_dat = DataFrame()
-            if default_used and 'ages' in self.con.tables and not self.con.tables['ages'].df.empty:
-                adf = self.con.tables['ages'].df
-                age_dat = adf[[col for col in adf.columns if type(
-                    col) == str and col.startswith('age')]+['site', 'location']]
-                print("using age data from ages.txt")
-            else:
-                min_age = float(DefaultAge[0])
-                max_age = float(DefaultAge[1])
-                age_units = DefaultAge[2]
-                age, age_sigma = (min_age+max_age)/2, (max_age-min_age)/2
-                if 'ages' not in self.con.tables:
-                    self.con.add_empty_magic_table('ages')
-                adf = self.con.tables['ages'].df
-                adf['age_high'], adf['age_low'], adf['age'], adf['age_sigma'], adf['age_unit'] = max_age, min_age, age, age_sigma, age_units
-                adf = adf.reindex_axis(sorted(adf.columns), axis=1)
-                self.con.tables['ages'].df = adf
-                self.con.tables['ages'].write_magic_file(dir_path=self.WD)
-                default_used = False
+            # update or add age data to the sites table, but don't overwrite existing data
+            if not skip_ages:
+                site_df = self.con.tables['sites'].df
+                self.con.tables['sites'].df = add_missing_ages(site_df)
+                self.con.write_table_to_file("sites")
 
             # set some variables
             priorities = ['DA-AC-ARM', 'DA-AC-TRM']
@@ -5554,7 +5549,7 @@ class Demag_GUI(wx.Frame):
                     # get all the sites with  directions
                     tmp = pmag.get_dictitem(dirlist, 'site', site, 'T')
                     tmp1 = pmag.get_dictitem(
-                        tmp, 'dir_tilt_correction', coord, 'T')
+                        tmp, 'dir_tilt_correction', coord, 'T', float_to_int=True)
                     # fish out site information (lat/lon, etc.)
                     sd = pmag.get_dictitem(SiteNFO, 'site', site, 'T')
                     if len(sd) <= 0:  # no data for this site
@@ -5611,27 +5606,27 @@ class Demag_GUI(wx.Frame):
                         PmagSiteRec["citations"] = "This study"
                         PmagSiteRec['software_packages'] = version_num + \
                             ': demag_gui.v.3.0'
-                        if default_used:
-                            age_data_for_site = age_dat[age_dat['site'] == site]
 
-                            def avg(l): return sum(l) / \
-                                len(l) if hasattr(l, '__iter__') else l
-                            for k in age_dat.columns:
-                                if 'age' in k:
-                                    if len(age_data_for_site[k]) == 1 and type(list(age_data_for_site[k])[0]) == str:
-                                        PmagSiteRec[k] = list(
-                                            age_data_for_site[k])[0]
-                                    elif len(age_data_for_site[k]) > 0:
-                                        PmagSiteRec[k] = avg(
-                                            list(map(float, age_data_for_site[k])))
+                        # here we need to grab ages from sites or ages
+                        site_age_rec = Series()
+                        if 'ages' in self.con.tables:
+                            ages_df = self.con.tables['ages'].df
+                            if 'site' in ages_df.columns:
+                                site_age_records = ages_df[ages_df['site'] == site]
+                                if len(site_age_records):
+                                    if isinstance(site_age_records, Series):
+                                        site_age_rec = site_age_records
                                     else:
-                                        PmagSiteRec[k] = ''
-                        else:
-                            PmagSiteRec['age_high'] = max_age
-                            PmagSiteRec['age_low'] = min_age
-                            PmagSiteRec['age'] = age
-                            PmagSiteRec['age_sigma'] = age_sigma
-                            PmagSiteRec['age_unit'] = age_units
+                                        site_age_rec = site_age_records.iloc[0]
+                        if not len(site_age_rec):
+                            sites_df = self.con.tables['sites'].df
+                            site_age_records = sites_df.loc[site]
+                            if len(site_age_records):
+                                if isinstance(site_age_records, Series):
+                                    site_age_rec = site_age_records
+                                else:
+                                    site_age_rec = site_age_records.iloc[0]
+
                         PmagSiteRec['criteria'] = 'ACCEPT'
                         if 'dir_n_specimens_lines' in list(PmagSiteRec.keys()) and 'dir_n_specimens_planes' in list(PmagSiteRec.keys()) and PmagSiteRec['dir_n_specimens_lines'] != "" and PmagSiteRec['dir_n_specimens_planes'] != "":
                             if int(PmagSiteRec["dir_n_specimens_planes"]) > 0:
@@ -5800,29 +5795,22 @@ class Demag_GUI(wx.Frame):
                             PolRes['software_packages'] = version_num + \
                                 ': demag_gui.v.3.0'
                             PolRes['dir_tilt_correction'] = coord
-                            if default_used:
-                                age_data_for_loc = age_dat[age_dat['location']
-                                                           == location]
-
-                                def avg(l): return sum(l) / \
-                                    len(l) if hasattr(l, '__iter__') else l
-                                for k in age_dat.columns:
-                                    if k == 'site' or k == 'location':
-                                        continue
-                                    if len(age_data_for_site[k]) == 1 and type(list(age_data_for_site[k])[0]) == str:
-                                        PolRes[k] = list(
-                                            age_data_for_loc[k])[0]
-                                    elif len(age_data_for_site[k]) > 0:
-                                        PolRes[k] = avg(
-                                            list(map(float, age_data_for_loc[k])))
-                                    else:
-                                        PolRes[k] = ''
-                            else:
-                                PolRes['age_high'] = max_age
-                                PolRes['age_low'] = min_age
-                                PolRes['age'] = age
-                                PolRes['age_sigma'] = age_sigma
-                                PolRes['age_unit'] = age_units
+                            if not skip_ages:
+                                loc_rec = {}
+                                if 'locations' in self.con.tables:
+                                    locs_df = self.con.tables['locations'].df
+                                    self.con.tables['locations'].df = add_missing_ages(locs_df)
+                                    loc_recs = locs_df.loc[location]
+                                    if len(loc_recs):
+                                        if isinstance(loc_recs, Series):
+                                            loc_rec = loc_recs
+                                        else:
+                                            loc_rec = loc_recs.iloc[0]
+                                PolRes['age_high'] = loc_rec.get('age_high', max_age)
+                                PolRes['age_low'] = loc_rec.get('age_low', min_age)
+                                PolRes['age'] = loc_rec.get('age', age)
+                                PolRes['age_sigma'] = loc_rec.get('age_sigma', age_sigma)
+                                PolRes['age_unit'] = loc_rec.get('age_unit', age_units)
                             if dia.cb_location_mean_VGP.GetValue():
                                 sucess_lat_lon_info = True
                                 if 'locations' in self.con.tables:
@@ -6840,7 +6828,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
             TEXT = "specimens interpretations are saved in specimens.txt.\nPress OK to save to samples/sites/locations/ages tables."
             self.dlg = wx.MessageDialog(
-                self, caption="Other Pmag Tables", message=TEXT, style=wx.OK | wx.CANCEL)
+                self, caption="Other Tables", message=TEXT, style=wx.OK | wx.CANCEL)
             result = self.show_dlg(self.dlg)
             if result == wx.ID_OK:
                 self.dlg.Destroy()
