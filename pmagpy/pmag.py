@@ -7113,9 +7113,9 @@ def sortarai(datablock, s, Zdiff, **kwargs):
         if 'LT-NO' in methcodes:
             dec = float(rec[dec_key])
             inc = float(rec[inc_key])
-            str = float(rec[momkey])
+            st = float(rec[momkey])
             first_I.append([273, 0., 0., 0., 1])
-            first_Z.append([273, dec, inc, str, 1])  # NRM step
+            first_Z.append([273, dec, inc, st, 1])  # NRM step
     for temp in Treat_I:  # look through infield steps and find matching Z step
         if temp in Treat_Z:  # found a match
             istep = ISteps[Treat_I.index(temp)]
@@ -7135,17 +7135,17 @@ def sortarai(datablock, s, Zdiff, **kwargs):
                 ZI = 1
             dec = float(zrec[dec_key])
             inc = float(zrec[inc_key])
-            str = float(zrec[momkey])
-            first_Z.append([temp, dec, inc, str, ZI])
+            st = float(zrec[momkey])
+            first_Z.append([temp, dec, inc, st, ZI])
     # sort out first_I records
             try:
                 idec = float(irec[dec_key])
                 iinc = float(irec[inc_key])
                 istr = float(irec[momkey])
             except TypeError as ex:
-                raise Exception('Malformed data of some sort for dec/inc/moment in measurement: {}.  You must fix this before proceeding.\n           Bad record: {}'.format(rec.get('measurement', ''), rec))
+                raise Exception('Malformed data of some sort for dec/inc/moment in measurement: {}.  You must fix this before proceeding.\n           Bad record: {}'.format(irec.get('measurement', ''), irec))
             X = dir2cart([idec, iinc, istr])
-            BL = dir2cart([dec, inc, str])
+            BL = dir2cart([dec, inc, st])
             I = []
             for c in range(3):
                 I.append((X[c] - BL[c]))
@@ -7168,12 +7168,12 @@ def sortarai(datablock, s, Zdiff, **kwargs):
         rec = datablock[step]
         dec = float(rec[dec_key])
         inc = float(rec[inc_key])
-        str = float(rec[momkey])
+        st = float(rec[momkey])
         brec = datablock[step - 1]  # take last record as baseline to subtract
         pdec = float(brec[dec_key])
         pinc = float(brec[inc_key])
         pint = float(brec[momkey])
-        X = dir2cart([dec, inc, str])
+        X = dir2cart([dec, inc, st])
         prevX = dir2cart([pdec, pinc, pint])
         I = []
         for c in range(3):
@@ -7189,12 +7189,12 @@ def sortarai(datablock, s, Zdiff, **kwargs):
         rec = datablock[step]
         dec = float(rec[dec_key])
         inc = float(rec[inc_key])
-        str = float(rec[momkey])
+        st = float(rec[momkey])
         brec = datablock[step - 1]
         pdec = float(brec[dec_key])
         pinc = float(brec[inc_key])
         pint = float(brec[momkey])
-        X = dir2cart([dec, inc, str])
+        X = dir2cart([dec, inc, st])
         prevX = dir2cart([pdec, pinc, pint])
         I = []
         for c in range(3):
@@ -7206,19 +7206,19 @@ def sortarai(datablock, s, Zdiff, **kwargs):
         # tail check step - just do a difference in magnitude!
         step = MSteps[Treat_M.index(temp)]
         rec = datablock[step]
-        str = float(rec[momkey])
+        st = float(rec[momkey])
         if temp in Treat_Z:
             step = ZSteps[Treat_Z.index(temp)]
             brec = datablock[step]
             pint = float(brec[momkey])
-#        X=dir2cart([dec,inc,str])
+#        X=dir2cart([dec,inc,st])
 #        prevX=dir2cart([pdec,pinc,pint])
 #        I=[]
 #        for c in range(3):I.append(X[c]-prevX[c])
 #        d=cart2dir(I)
 #        ptrm_tail.append([temp,d[0],d[1],d[2]])
             # difference - if negative, negative tail!
-            ptrm_tail.append([temp, 0, 0, str - pint])
+            ptrm_tail.append([temp, 0, 0, st - pint])
         else:
             print(
                 s, '  has a tail check with no first zero field step - check input file! for step', temp - 273.)
@@ -7277,9 +7277,9 @@ def sortmwarai(datablock, exp_type):
         if 'LT-NO' in methcodes:
             dec = float(rec["measurement_dec"])
             inc = float(rec["measurement_inc"])
-            str = float(rec["measurement_magn_moment"])
+            st = float(rec["measurement_magn_moment"])
             first_I.append([0, 0., 0., 0., 1])
-            first_Z.append([0, dec, inc, str, 1])  # NRM step
+            first_Z.append([0, dec, inc, st, 1])  # NRM step
     if exp_type == "LP-PI-M-D":
         # now look trough infield steps and  find matching Z step
         for powt in POWT_I:
@@ -7301,14 +7301,14 @@ def sortmwarai(datablock, exp_type):
                     ZI = 1
                 dec = float(zrec["measurement_dec"])
                 inc = float(zrec["measurement_inc"])
-                str = float(zrec["measurement_magn_moment"])
-                first_Z.append([powt, dec, inc, str, ZI])
+                st = float(zrec["measurement_magn_moment"])
+                first_Z.append([powt, dec, inc, st, ZI])
     # sort out first_I records
                 idec = float(irec["measurement_dec"])
                 iinc = float(irec["measurement_inc"])
                 istr = float(irec["measurement_magn_moment"])
                 X = dir2cart([idec, iinc, istr])
-                BL = dir2cart([dec, inc, str])
+                BL = dir2cart([dec, inc, st])
                 I = []
                 for c in range(3):
                     I.append((X[c] - BL[c]))
@@ -7356,12 +7356,12 @@ def sortmwarai(datablock, exp_type):
         rec = datablock[step]
         dec = float(rec["measurement_dec"])
         inc = float(rec["measurement_inc"])
-        str = float(rec["measurement_magn_moment"])
+        st = float(rec["measurement_magn_moment"])
         brec = datablock[step - 1]  # take last record as baseline to subtract
         pdec = float(brec["measurement_dec"])
         pinc = float(brec["measurement_inc"])
         pint = float(brec["measurement_magn_moment"])
-        X = dir2cart([dec, inc, str])
+        X = dir2cart([dec, inc, st])
         prevX = dir2cart([pdec, pinc, pint])
         I = []
         for c in range(3):
@@ -7374,12 +7374,12 @@ def sortmwarai(datablock, exp_type):
         rec = datablock[step]
         dec = float(rec["measurement_dec"])
         inc = float(rec["measurement_inc"])
-        str = float(rec["measurement_magn_moment"])
+        st = float(rec["measurement_magn_moment"])
         brec = datablock[step - 1]
         pdec = float(brec["measurement_dec"])
         pinc = float(brec["measurement_inc"])
         pint = float(brec["measurement_magn_moment"])
-        X = dir2cart([dec, inc, str])
+        X = dir2cart([dec, inc, st])
         prevX = dir2cart([pdec, pinc, pint])
         I = []
         for c in range(3):
@@ -7392,20 +7392,20 @@ def sortmwarai(datablock, exp_type):
         rec = datablock[step]
 #        dec=float(rec["measurement_dec"])
 #        inc=float(rec["measurement_inc"])
-        str = float(rec["measurement_magn_moment"])
+        st = float(rec["measurement_magn_moment"])
         step = ZSteps[POWT_Z.index(powt)]
         brec = datablock[step]
 #        pdec=float(brec["measurement_dec"])
 #        pinc=float(brec["measurement_inc"])
         pint = float(brec["measurement_magn_moment"])
-#        X=dir2cart([dec,inc,str])
+#        X=dir2cart([dec,inc,st])
 #        prevX=dir2cart([pdec,pinc,pint])
 #        I=[]
 #        for c in range(3):I.append(X[c]-prevX[c])
 #        d=cart2dir(I)
  #       ptrm_tail.append([powt,d[0],d[1],d[2]])
         # just do absolute magnitude difference # not vector diff
-        ptrm_tail.append([powt, 0, 0, str - pint])
+        ptrm_tail.append([powt, 0, 0, st - pint])
     #  check
     #
         if len(first_Z) != len(first_I):
