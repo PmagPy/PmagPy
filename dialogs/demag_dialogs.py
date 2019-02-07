@@ -594,7 +594,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         #---------------------
         # default age
         #---------------------
-        self.default_age_text = wx.StaticText(pnl1, label="If site age is not in the ages or sites table, please provide it here:", style=wx.TE_CENTER)
+        self.default_age_text = wx.StaticText(pnl1, label="If a site's age is not defined in the sites or ages table, please provide it here:", style=wx.TE_CENTER)
         self.skip_ages = wx.CheckBox(pnl1, -1, 'skip ages')
         # age & age sigma
         self.default_age = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
