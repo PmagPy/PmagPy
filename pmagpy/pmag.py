@@ -7138,9 +7138,12 @@ def sortarai(datablock, s, Zdiff, **kwargs):
             str = float(zrec[momkey])
             first_Z.append([temp, dec, inc, str, ZI])
     # sort out first_I records
-            idec = float(irec[dec_key])
-            iinc = float(irec[inc_key])
-            istr = float(irec[momkey])
+            try:
+                idec = float(irec[dec_key])
+                iinc = float(irec[inc_key])
+                istr = float(irec[momkey])
+            except TypeError as ex:
+                raise Exception('Malformed data of some sort for dec/inc/moment in measurement: {}.  You must fix this before proceeding.\n           Bad record: {}'.format(rec.get('measurement', ''), rec))
             X = dir2cart([idec, iinc, istr])
             BL = dir2cart([dec, inc, str])
             I = []
