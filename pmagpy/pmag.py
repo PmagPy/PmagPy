@@ -10584,7 +10584,7 @@ class MissingCommandLineArgException(Exception):
         return self.message
 
 
-def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k"):
+def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     """
     returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.
@@ -10598,8 +10598,8 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k"):
     mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','custom')
     file = l m g h formatted filefor custom model
     lon_0 : central longitude for Hammer projection
-
     alt  = altitude
+    resolution = ['low','high'] default is low
 
     Returns:
     ______________
@@ -10611,7 +10611,10 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k"):
     lats = list of latitudes evaluated
 
     """
-    incr = 10  # we can vary to the resolution of the model
+    if resolution=='low':
+        incr = 10  # we can vary to the resolution of the model
+    elif resolution=='high':
+        incr = 2  # we can vary to the resolution of the model
     if lon_0 == 180:
         lon_0 = 179.99
     if lon_0 > 180:
