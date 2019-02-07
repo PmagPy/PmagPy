@@ -599,7 +599,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         # age & age sigma
         self.default_age = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_sigma = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        age_unit_choices = ['Years BP', 'Years AD (+/-)', 'Years Cal BP', 'Years Cal AD (+/-)', 'Ka', 'Ma', 'Ga']
+        age_unit_choices = ['Years BP', 'Years AD (+/-)', 'Years Cal BP', 'Years Cal AD (+/-)', 'ka', 'Ma', 'Ga']
         #or age_high and age_low
         self.default_age_min=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_max=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
