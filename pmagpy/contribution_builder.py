@@ -1402,6 +1402,21 @@ class MagicDataFrame(object):
 
     ## Methods to change self.df inplace
 
+
+    def all_to_str(self):
+        """
+        In all columns, turn all floats into strings,
+        and round them to 5 decimals.
+        """
+        def stringify(x):
+            if isinstance(x, float):
+                # truncate to 5 decimals, remove trailing (NOT LEADING) zeros
+                return "{:.5f}".format(x).rstrip('0')
+            return x
+        for col in self.df.columns:
+            self.df[col] = self.df[col].apply(stringify)
+
+
     def remove_non_magic_cols_from_table(self, ignore_cols=()):
         """
         Remove all non-magic columns from self.df.

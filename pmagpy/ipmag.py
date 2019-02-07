@@ -4523,12 +4523,13 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     last_file_type = sorted(con.tables.keys())[-1]
     for file_type in sorted(con.tables.keys()):
         container = con.tables[file_type]
+        # format all float values to 5 decimals
+        container.all_to_str()
         df = container.df
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
             # drop non MagIC keys
-            #DropKeys = set(RmKeys).intersection(df.columns)
             DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
             DropKeys = set(DropKeys).intersection(df.columns)
             if DropKeys:
