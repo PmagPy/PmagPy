@@ -594,8 +594,11 @@ class magic_pmag_tables_dialog(wx.Dialog):
         #---------------------
         # default age
         #---------------------
-        self.default_age_text = wx.StaticText(pnl1, label="If a site's age is not defined in the sites or ages table, please provide it here:", style=wx.TE_CENTER)
-        self.skip_ages = wx.CheckBox(pnl1, -1, 'skip ages')
+        self.default_age_text = wx.StaticText(pnl1, label="If a site's age is not defined in the sites or ages table, you can provide it here:", style=wx.TE_CENTER)
+        self.add_ages = wx.CheckBox(pnl1, -1, 'add ages')
+        self.Bind(wx.EVT_CHECKBOX, self.toggle_ages, self.add_ages)
+        # all hideable age stuff
+        self.ages_optional = wx.StaticBoxSizer(wx.StaticBox(pnl1, wx.ID_ANY, "" ), wx.VERTICAL)
         # age & age sigma
         self.default_age = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_sigma = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
@@ -605,6 +608,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.default_age_max=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.default_age_unit=wx.ComboBox(pnl1, -1,size=(150, -1), value = '', choices=age_unit_choices, style=wx.CB_READONLY)
         self.ages_note = wx.StaticText(pnl1, label="All sites must have an age associated with them. Either the age or both the younger and older bounds must be given.\nIf the age is given, younger and/or older bounds can be added for special cases.\nIf the uncertainty of an age is known, enter it in the 'age one sigma' box.\nRemember that many age uncertainties are published as two sigma. In that case, just divide the two sigma value by 2.\nNote: values provided here will NOT overwrite values already in your sites file, they will just fill in the blanks.", style=wx.TE_CENTER)
+
 
         default_age_window = wx.GridSizer(2, 5, 5, 5)
         default_age_window.AddMany( [(wx.StaticText(pnl1,label="age",style=wx.TE_CENTER), wx.EXPAND),
@@ -622,6 +626,8 @@ class magic_pmag_tables_dialog(wx.Dialog):
                     (self.default_age_unit,wx.EXPAND)
                     #(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND)
                 ])
+
+        self.ages_optional.AddMany([default_age_window, self.ages_note])
 
         #---------------------
         # sample
@@ -725,11 +731,13 @@ class magic_pmag_tables_dialog(wx.Dialog):
 
         vbox.Add(self.default_age_text,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
-        vbox.Add(self.skip_ages, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.Add(self.add_ages, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
-        vbox.Add(default_age_window,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(10)
-        vbox.Add(self.ages_note, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.Add(self.ages_optional)
+        self.ages_optional.ShowItems(False)
+        #vbox.Add(default_age_window,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.ages_note, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl1), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(10)
@@ -751,18 +759,25 @@ class magic_pmag_tables_dialog(wx.Dialog):
         vbox.AddSpacer(10)
 
         #-------------
-        vbox1=wx.BoxSizer(wx.VERTICAL)
-        vbox1.AddSpacer(10)
-        vbox1.Add(vbox)
-        vbox1.AddSpacer(10)
-        vbox1.Add(hboxok,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox1.AddSpacer(10)
+        self.vbox1=wx.BoxSizer(wx.VERTICAL)
+        self.vbox1.AddSpacer(10)
+        self.vbox1.Add(vbox)
+        self.vbox1.AddSpacer(10)
+        self.vbox1.Add(hboxok,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        self.vbox1.AddSpacer(10)
 
 
-        pnl1.SetSizer(vbox1)
-        vbox1.Fit(self)
+        pnl1.SetSizer(self.vbox1)
+        self.vbox1.Fit(self)
 
 
+    def toggle_ages(self, event):
+        if self.add_ages.GetValue():
+            self.ages_optional.ShowItems(True)
+        else:
+            self.ages_optional.ShowItems(False)
+        self.vbox1.Fit(self)
+        self.Centre()
 
     def on_change_cb_sample_mean_VGP(self,event):
         if self.cb_sample_mean_VGP.GetValue()==True:

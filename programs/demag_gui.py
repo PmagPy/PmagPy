@@ -5237,8 +5237,8 @@ class Demag_GUI(wx.Frame):
 
         # -- default age options
         DefaultAge = ["none"]
-        skip_ages = dia.skip_ages.GetValue()
-        if not skip_ages:
+        add_ages = dia.add_ages.GetValue()
+        if add_ages:
             age_units = dia.default_age_unit.GetValue()
             min_age = dia.default_age_min.GetValue()
             max_age = dia.default_age_max.GetValue()
@@ -5252,7 +5252,7 @@ class Demag_GUI(wx.Frame):
                 if not go_on:
                     self.user_warning("Aborting, please try again.", caption="Message")
                     return
-                skip_ages = True
+                add_ages = False
 
             if min_age and max_age:
                 DefaultAge = [min_age, max_age, age_units]
@@ -5278,7 +5278,7 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             # update or add age data to the sites table, but don't overwrite existing data
-            if not skip_ages:
+            if add_ages:
                 site_df = self.con.tables['sites'].df
                 self.con.tables['sites'].df = add_missing_ages(site_df)
                 self.con.write_table_to_file("sites")
@@ -5795,7 +5795,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['software_packages'] = version_num + \
                                 ': demag_gui.v.3.0'
                             PolRes['dir_tilt_correction'] = coord
-                            if not skip_ages:
+                            if add_ages:
                                 loc_rec = {}
                                 if 'locations' in self.con.tables:
                                     locs_df = self.con.tables['locations'].df
