@@ -11012,6 +11012,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
 
     contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
                                    single_file=in_file)
+    table_name = list(contribution.tables.keys())[0]
     contribution.add_magic_table("contribution")
 
     # get contribution id if available for server plots
@@ -11026,7 +11027,6 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         pass
 
     # the object that contains the DataFrame + useful helper methods:
-    table_name = list(contribution.tables.keys())[0]
     data_container = contribution.tables[table_name]
     # the actual DataFrame:
     data = data_container.df
