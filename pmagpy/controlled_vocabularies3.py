@@ -57,18 +57,24 @@ class Vocabulary(object):
     ## Get method codes
 
     def get_meth_codes(self):
-        #try:
-        #    raw_codes = pd.io.json.read_json('https://www2.earthref.org/MagIC/method-codes.json')
-        #    print '-I- Getting method codes from earthref.org'
-        #except Exception as ex:
-        #    print ex, type(ex)
-        #    print "-I- Couldn't connect to earthref.org, using cached method codes"
-        #
-        print("-I- Using cached method codes")
-        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"), encoding='utf-8-sig')
+        # try to get meth codes online
+        raw_codes = []
+        try:
+            raw_codes = pd.io.json.read_json('https://www2.earthref.org/MagIC/method-codes.json')
+            print('-I- Getting method codes from earthref.org')
+        except Exception as ex:
+            print(ex, type(ex))
+            print("-I- Couldn't connect to earthref.org, using cached method codes")
+        # if you couldn't get them online, use the cache
+        if not len(raw_codes):
+            print("-I- Using cached method codes")
+            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"), encoding='utf-8-sig')
+        # parse codes
         code_types = raw_codes.loc['label']
         all_codes = []
         for code_name in code_types.index:
+            if code_name == 'geoid':
+                continue
             df = pd.DataFrame(raw_codes[code_name]['codes'])
             # remake the dataframe with the code (i.e., 'SM_VAR') as the index
             df.index = df['code']
@@ -142,20 +148,21 @@ class Vocabulary(object):
         """
         Get all non-method controlled vocabularies
         """
+        data = []
         controlled_vocabularies = []
-        #print '-I- Importing controlled vocabularies from https://earthref.org'
-        #url = 'https://www2.earthref.org/vocabularies/controlled.json'
-        #try:
-        #    data = pd.io.json.read_json(url)
-        #except Exception as ex:
-        #    print ex, type(ex)
-        #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
-        #    fname = os.path.join(data_model_dir, "controlled_vocabularies_February_6_2017.json")
-        #    data = pd.io.json.read_json(fname)
-        #
-        #print('-I- Using cached vocabularies')
-        fname = os.path.join(data_model_dir, "controlled_vocabularies_December_10_2018.json")
-        data = pd.io.json.read_json(fname, encoding='utf-8-sig')
+        # try to get online
+        url = 'https://www2.earthref.org/vocabularies/controlled.json'
+        try:
+            data = pd.io.json.read_json(url)
+            print('-I- Importing controlled vocabularies from https://earthref.org')
+        except Exception as ex:
+            print(ex, type(ex))
+        # used cached
+        if not len(data):
+            print('-I- Using cached vocabularies')
+            fname = os.path.join(data_model_dir, "controlled_vocabularies_December_10_2018.json")
+            data = pd.io.json.read_json(fname, encoding='utf-8-sig')
+        # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
         vocab_types = list(possible_vocabularies)
@@ -224,17 +231,21 @@ class Vocabulary(object):
         """
         suggested_vocabularies = []
         #print('-I- Importing suggested vocabularies from https://earthref.org')
-        #url = 'https://www2.earthref.org/vocabularies/suggested.json'
-        #try:
-        #    data = pd.io.json.read_json(url)
-        #except:
+        # try to get suggested vocabularies online
+        url = 'https://www2.earthref.org/vocabularies/suggested.json'
+        try:
+            data = pd.io.json.read_json(url)
+        except:
+            data = []
         #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
         #    fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
         #    data = pd.io.json.read_json(fname)
         #
-        #print('-I- Using cached suggested vocabularies')
-        fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
-        data = pd.io.json.read_json(fname, encoding='utf-8-sig')
+        if not len(data):
+            print('-I- Using cached suggested vocabularies')
+            fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
+            data = pd.io.json.read_json(fname, encoding='utf-8-sig')
+        # parse data
         possible_vocabularies = data.columns
         ## this line means, grab every single controlled vocabulary
         vocab_types = list(possible_vocabularies)
