@@ -245,7 +245,7 @@ class TestMagicDataFrame(unittest.TestCase):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
         fname = os.path.join(directory, "sites.txt")
         sites = cb.MagicDataFrame(fname)
-        sites.df.loc['mc01', 'age'] = 1.1800333
+        sites.df.loc['mc01', 'age'] = 1.18003000000000001
         sites.all_to_str()
         self.assertEqual('1.18003', sites.df.loc['mc01', 'age'].values[0])
 
