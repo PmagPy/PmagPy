@@ -16,25 +16,42 @@ if not os.path.exists(data_model_dir):
     data_model_dir = os.path.join(pmag_dir, 'data_model')
 
 
+VOCAB = {}
+
 class Vocabulary(object):
 
     def __init__(self, dmodel=None):
+        global VOCAB
         self.vocabularies = []
         self.possible_vocabularies = []
         self.all_codes = []
         self.code_types = []
         self.methods = []
         self.age_methods = []
-        if isinstance(dmodel, data_model.DataModel):
-            self.data_model = dmodel
-            Vocabulary.dmodel = dmodel
+        if len(VOCAB):
+            self.vocabularies = VOCAB['vocabularies']
+            self.possible_vocabularies = VOCAB['possible_vocabularies']
+            self.all_codes = VOCAB['all_codes']
+            self.code_types = VOCAB['code_types']
+            self.methods = VOCAB['methods']
+            self.age_methods = VOCAB['age_methods']
         else:
-            try:
-                self.data_model = Vocabulary.dmodel
-            except AttributeError:
-                Vocabulary.dmodel = data_model.DataModel()
-                self.data_model = Vocabulary.dmodel
-        self.get_all_vocabulary()
+            if isinstance(dmodel, data_model.DataModel):
+                self.data_model = dmodel
+                Vocabulary.dmodel = dmodel
+            else:
+                try:
+                    self.data_model = Vocabulary.dmodel
+                except AttributeError:
+                    Vocabulary.dmodel = data_model.DataModel()
+                    self.data_model = Vocabulary.dmodel
+            self.get_all_vocabulary()
+            VOCAB['vocabularies'] = self.vocabularies
+            VOCAB['possible_vocabularies'] = self.possible_vocabularies
+            VOCAB['all_codes'] = self.all_codes
+            VOCAB['code_types'] = self.code_types
+            VOCAB['methods'] = self.methods
+            VOCAB['age_methods'] = self.age_methods
 
 
     ## Get method codes
@@ -47,7 +64,7 @@ class Vocabulary(object):
         #    print ex, type(ex)
         #    print "-I- Couldn't connect to earthref.org, using cached method codes"
         #
-        #print("-I- Using cached method codes")
+        print("-I- Using cached method codes")
         raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"), encoding='utf-8-sig')
         code_types = raw_codes.loc['label']
         all_codes = []
