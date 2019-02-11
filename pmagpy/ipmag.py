@@ -11030,6 +11030,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     data_container = contribution.tables[table_name]
     # the actual DataFrame:
     data = data_container.df
+    plot_type = data_container.dtype
 
     if plot_key != "all" and plot_key not in data.columns:
         print("-E- You can't plot by {} with the data provided".format(plot_key))
@@ -11088,6 +11089,11 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             # pull out only partial data
             plot_data = data[data[plot_key] == plot]
 
+        # get location names for the data
+        locs = []
+        if 'location' in plot_data.columns:
+            locs = plot_data['location'].dropna().unique()
+
         DIblock = []
         GCblock = []
         # SLblock, SPblock = [], []
@@ -11118,6 +11124,12 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         # would have to ignore tilt to use measurement level data
         DIblock = data_container.get_di_block(df_slice=plot_data,
                                               tilt_corr=coord, excl=['DE-BFP'], ignore_tilt=ignore_tilt)
+
+        if title == 'All':
+            if locs:
+                title = " ,".join(locs) + " - {} {} plotted".format(str(len(DIblock)), plot_type)
+            else:
+                title = "{} {} plotted".format(str(len(DIblock)), plot_type)
         #SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
         # get great circles
         great_circle_data = data_container.get_records_for_code('DE-BFP', incl=True,
@@ -11324,8 +11336,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                     '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             elif plot_key == 'all':
                 filename = 'all'
-                if 'location' in plot_data.columns:
-                    locs = plot_data['location'].unique()
+                if locs:
                     loc_string = "_".join(
                         [str(loc).replace(' ', '_') for loc in locs])
                     filename += "_" + loc_string
