@@ -1410,8 +1410,7 @@ class MagicDataFrame(object):
         """
         def stringify(x):
             if isinstance(x, float):
-                # truncate to 5 decimals, remove trailing (NOT LEADING) zeros
-                return "{:.5f}".format(x).rstrip('0')
+                return str(x)  #"{:.5f}".format(x).rstrip('0')
             return x
         for col in self.df.columns:
             self.df[col] = self.df[col].apply(stringify)
