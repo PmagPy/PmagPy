@@ -35,6 +35,7 @@ class Vocabulary(object):
             self.code_types = VOCAB['code_types']
             self.methods = VOCAB['methods']
             self.age_methods = VOCAB['age_methods']
+            self.suggested = VOCAB['suggested']
         else:
             if isinstance(dmodel, data_model.DataModel):
                 self.data_model = dmodel
@@ -52,6 +53,7 @@ class Vocabulary(object):
             VOCAB['code_types'] = self.code_types
             VOCAB['methods'] = self.methods
             VOCAB['age_methods'] = self.age_methods
+            VOCAB['suggested'] = self.suggested
 
 
     ## Get method codes
@@ -222,7 +224,6 @@ class Vocabulary(object):
         ind_values = [i[1] for i in vocab_col_names]
         vocabularies = pd.Series(controlled_vocabularies, index=ind_values)
         return vocabularies
-
 
 
     def get_suggested_vocabularies(self, vocab_types=default_vocab_types):
