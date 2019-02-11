@@ -187,7 +187,7 @@ class Vocabulary(object):
                 return None
 
         vocab_col_names = []
-        data_model = self.data_model #data_model3.DataModel()
+        data_model = self.data_model
         for dm_key in data_model.dm:
             df = data_model.dm[dm_key]
             df['vocab_name'] = df['validations'].apply(get_cv_from_list)
@@ -231,17 +231,13 @@ class Vocabulary(object):
         Get all non-method suggested vocabularies
         """
         suggested_vocabularies = []
-        #print('-I- Importing suggested vocabularies from https://earthref.org')
         # try to get suggested vocabularies online
         url = 'https://www2.earthref.org/vocabularies/suggested.json'
         try:
             data = pd.io.json.read_json(url)
         except:
             data = []
-        #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
-        #    fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
-        #    data = pd.io.json.read_json(fname)
-        #
+        # if not available online, use cached
         if not len(data):
             print('-I- Using cached suggested vocabularies')
             fname = os.path.join(data_model_dir, "suggested_vocabularies_December_10_2018.json")
@@ -269,7 +265,7 @@ class Vocabulary(object):
                 return None
 
         vocab_col_names = []
-        data_model = self.data_model #data_model3.DataModel()
+        data_model = self.data_model
         for dm_key in data_model.dm:
             df = data_model.dm[dm_key]
             df['vocab_name'] = df['validations'].apply(get_cv_from_list)
@@ -291,18 +287,15 @@ class Vocabulary(object):
         data['boolean'] = series
         # use vocabulary name to get possible values for the column name
         for vocab in vocab_col_names[:]:
-            #print vocab
             if vocab[0] == "magic_table_column":
                 vocab_col_names.remove(("magic_table_column", "table_column"))
                 continue
-
             try:
                 items = data[vocab[0]]['items']
             except:
                 vocab_col_names.remove(vocab)
                 continue
             items = data[vocab[0]]['items']
-            #print 'items', items
             stripped_list = [item['item'] for item in items]
             suggested_vocabularies.append(stripped_list)
         # create series with the column name as the index,
@@ -344,11 +337,7 @@ class Vocabulary(object):
         suggested = self.get_suggested_vocabularies()
         self.vocabularies = vocabularies
         self.suggested = suggested
-        #self.possible_vocabularies = possible_vocabularies
         self.all_codes = all_codes
         self.code_types = code_types
         self.methods = methods
         self.age_methods = age_methods
-
-
-#vocab = Vocabulary()
