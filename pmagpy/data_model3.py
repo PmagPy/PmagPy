@@ -8,6 +8,8 @@ except ImportError:
 import pandas as pd
 from pmagpy import find_pmag_dir
 
+DM = []
+CRIT_MAP = []
 
 class DataModel():
 
@@ -18,8 +20,15 @@ class DataModel():
     """
 
     def __init__(self, offline=False):
+        global DM, CRIT_MAP
         self.offline = offline
-        self.dm, self.crit_map = self.get_data_model()
+        if not len(DM):
+            self.dm, self.crit_map = self.get_data_model()
+            DM = self.dm
+            CRIT_MAP = self.crit_map
+        else:
+            self.dm = DM
+            self.crit_map = CRIT_MAP
 
 
     def get_data_model(self):
