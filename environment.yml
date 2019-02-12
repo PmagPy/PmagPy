@@ -11,7 +11,6 @@ dependencies:
   - anaconda-project=0.8.2=py36_0
   - appdirs=1.4.3=py36h28b3542_0
   - appnope=0.1.0=py36hf537a9a_0
-  - appscript=1.0.1=py36h1de35cc_1
   - asn1crypto=0.24.0=py36_0
   - asteval=0.9.12=pyh24bf2e0_1
   - astroid=2.0.4=py36_0
@@ -33,7 +32,7 @@ dependencies:
   - boto=2.49.0=py36_0
   - bottleneck=1.2.1=py36h1d22016_1
   - bzip2=1.0.6=h1de35cc_5
-  - ca-certificates=2018.12.5=0
+  - ca-certificates=2019.1.23=0
   - cartopy=0.17.0=py36haea56ea_1
   - certifi=2018.11.29=py36_0
   - cffi=1.11.5=py36h6174b99_1
@@ -168,7 +167,7 @@ dependencies:
   - pexpect=4.6.0=py36_0
   - pickleshare=0.7.4=py36hf512f8e_0
   - pillow=5.2.0=py36hb68e598_0
-  - pip=10.0.1=py36_0
+  - pip=19.0.1=py36_0
   - pkginfo=1.4.2=py36_1
   - pluggy=0.7.1=py36h28b3542_0
   - ply=3.11=py36_0
