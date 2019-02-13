@@ -81,7 +81,7 @@ def main():
             return
     except ValueError:
         pass
-    pmagplotlib.plot_init(1, 8, 7)
+    fig = pmagplotlib.plot_init(1, 8, 7)
     try:
         len(D)
     except TypeError:
@@ -93,11 +93,12 @@ def main():
     if not binsize:
         binsize = int(np.around(1 + 3.22 * np.log(len(D))))
     Nbins = int(len(D) / binsize)
-    n, bins, patches = plt.hist(
-        D, bins=Nbins, facecolor='white', histtype='step', color='black', density=norm)
+    ax = fig.add_subplot(111)
+    n, bins, patches = ax.hist(
+        D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=norm)
     plt.axis([D.min(), D.max(), 0, n.max()+.1*n.max()])
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
     name = 'N = ' + str(len(D))
     plt.title(name)
     if plot == 0:
@@ -105,6 +106,8 @@ def main():
         p = input('s[a]ve to save plot, [q]uit to exit without saving  ')
         if p != 'a':
             sys.exit()
+    if pmagplotlib.isServer:
+        pmagplotlib.add_borders({'hist': 1}, {'hist': 'Intensity Histogram'})
     plt.savefig(outfile)
     print('plot saved in ', outfile)
 
