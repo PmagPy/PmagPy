@@ -192,6 +192,9 @@ def main():
                 files = {}
                 for key in list(HDD.keys()):
                     if pmagplotlib.isServer: # use server plot naming convention
+                        locname = locname if locname else ""
+                        site = site if site else ""
+                        sample = sample if sample else ""
                         files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                     else: # use more readable plot naming convention
                         filename = ''
