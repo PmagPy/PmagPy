@@ -132,7 +132,7 @@ def plot_init(fignum, w, h):
     dpi = 80
     # plt.ion()
     plt_num += 1
-    plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
+    fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
     if (not isServer) and (not set_env.IS_NOTEBOOK):
         plt.get_current_fig_manager().show()
         # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
@@ -146,6 +146,7 @@ def plot_init(fignum, w, h):
 # plt.connect('button_press_event',click)
 #
     # plt.ioff()
+    return fig
 
 
 def plot3d_init(fignum):
