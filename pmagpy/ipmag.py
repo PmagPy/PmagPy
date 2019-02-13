@@ -10056,8 +10056,8 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         return True, rmag_anis
 
 
-def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0,
-              n_plots=5, save_plots=True, fmt="svg", interactive=False):
+def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
+              n_plots=5, save_plots=False, fmt="svg", interactive=False):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
@@ -10065,6 +10065,13 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0,
     ----------
     meas_file : str
         input measurement file
+    spec_file : str
+        input specimen interpretation file
+    samp_file : str
+        input sample orientations file
+    crd : str
+        coordinate system [s,g,t] for specimen, geographic, tilt corrected 
+        g,t options require a sample file with specimen and bedding orientation
     input_dir_path : str
         input directory of meas_file, default "."
     angle : float
@@ -10114,8 +10121,15 @@ def zeq_magic(meas_file='measurements.txt', input_dir_path='.', angle=0,
     if not os.path.isfile(file_path):
         print('No such file:', file_path)
         return False, []
+   # START HERE
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
     meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
+    if crd == "s":
+        coord = "-1"
+    elif crd == "t":
+        coord = "100"
+    else:
+        coord = "0"
     specimens = meas_df.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
