@@ -2940,7 +2940,7 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
 
         # add text
 
-        border_ax.text((old_div(4, fig.get_figwidth())) * 0.015, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
+        border_ax.text((4. / fig.get_figwidth()) * 0.015, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
                        horizontalalignment='left',
                        verticalalignment='top',
                        color=text_color,
@@ -2950,7 +2950,7 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
                        verticalalignment='top',
                        color=text_color,
                        size=20)
-        border_ax.text(1 - (old_div(4, fig.get_figwidth())) * 0.015, 0.03, 'earthref.org/MagIC{}'.format(con_id),
+        border_ax.text(1 - (4. / fig.get_figwidth()) * 0.015, 0.03, 'earthref.org/MagIC{}'.format(con_id),
                        horizontalalignment='right',
                        verticalalignment='top',
                        color=text_color,
