@@ -8296,7 +8296,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 fmt="png", crd="s", verbose=True, plots=0,
                 num_bootstraps=1000, dir_path=".", input_dir_path=""):
 
-    def save(ANIS, fmt, title):
+    def save(ANIS, fmt, title, con_id=""):
         files = {}
         for key in list(ANIS.keys()):
             if pmagplotlib.isServer:
@@ -8304,6 +8304,15 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             else:
                 files[key] = title.replace(
                     '__', '_') + "_aniso-" + key + "." + fmt
+        if pmagplotlib.isServer:
+            titles = {}
+            titles['data'] = "Data"
+            titles['tcdf'] = "TCDF"
+            titles['conf'] = "Confidence"
+            for key in files:
+                if key not in titles:
+                    titles[key] = key
+            pmagplotlib.add_borders(ANIS, titles, con_id=con_id)
         pmagplotlib.save_plots(ANIS, files)
 
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -8341,8 +8350,14 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         pmagplotlib.plot_init(ANIS['data'], 5, 5)
     # read in the data
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites', 'contribution'],
                           custom_filenames=fnames)
+    con_id = ""
+    if 'contribution' in con.tables:
+        # try to get contribution id
+        if 'id' in con.tables['contribution'].df.columns:
+            con_id = con.tables['contribution'].df.iloc[0]['id']
+
     con.propagate_location_to_specimens()
     if isite:
         con.propagate_name_down('site', 'specimens')
@@ -8444,8 +8459,10 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             ResRecs.append(ResRec)
         if len(Ss) > 1:
             if pmagplotlib.isServer:  # use server plot naming convention
-                title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
+                plot_name = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
+                title = loc_name
             else:  # use more readable plot naming convention
+                plot_name = "{}_{}_{}".format(loc_name, site, crd)
                 title = "{}_{}_{}".format(loc_name, site, crd)
             bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                                  title, iplot, comp, vec, Dir, num_bootstraps)
@@ -8453,10 +8470,10 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             if len(PDir) > 0:
                 pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                 pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
-            if verbose and plots == 0:
+            if verbose and not plots:
                 pmagplotlib.draw_figs(ANIS)
-            if plots == 1:
-                save(ANIS, fmt, title)
+            if plots:
+                save(ANIS, fmt, plot_name, con_id)
 
             if hpars != [] and ihext == 1:
                 HextRec = {}
@@ -8761,7 +8778,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                                 inittcdf = 1
                     bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, iplot,
                                                          comp, vec, Dir, num_bootstraps)
-                    if verbose and plots == 0:
+                    if verbose and not plots:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == "c":
                     print("Current Coordinate system is: ")
@@ -8828,7 +8845,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     bpars, hpars = pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title,
                                                          iplot, comp, vec, Dir, num_bootstraps)
                     Dir, comp = [], 0
-                    if verbose and plots == 0:
+                    if verbose and not plots:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == 'g':
                     con, cnt = 1, 0
@@ -8856,7 +8873,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
-                    if verbose and plots == 0:
+                    if verbose and not plots:
                         pmagplotlib.draw_figs(ANIS)
                 if ans == "p":
                     k -= 2

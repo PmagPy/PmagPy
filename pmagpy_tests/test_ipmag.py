@@ -871,6 +871,22 @@ class TestZeqMagic(unittest.TestCase):
         self.assertFalse(outfiles)
 
 
+class TestAnisoMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.png", "*.pdf"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
+        ipmag.aniso_magic('dike_specimens.txt', plots=True, input_dir_path=dir_path)
+        files = glob.glob('*.png')
+        self.assertEqual(3, len(files))
 
 
 if __name__ == '__main__':
