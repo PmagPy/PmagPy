@@ -796,14 +796,18 @@ class TestEqareaMagic(unittest.TestCase):
                 os.remove(fname)
 
     def test_success(self):
+        for fname in glob.glob('*.png'):
+            os.remove(fname)
         res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True,
                                            fmt="png", plot_by="sit", n_plots=122)
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
-        figs = glob.glob('data_files/eqarea_magic/*.png')
+        if set_env.IS_WIN:
+            figs = glob.glob("*.png")
+        else:
+            figs = glob.glob('data_files/eqarea_magic/*.png')
         self.assertEqual(len(figs), 116) # no dec/inc for some sites
-
 
     def test_failure(self):
         res, outfiles = ipmag.eqarea_magic(dir_path="data_files/", save_plots=True, fmt="png", plot_by="sit")
@@ -813,7 +817,10 @@ class TestEqareaMagic(unittest.TestCase):
         res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True, fmt="png", plot_by="loc",
                                            plot_ell="F")
         self.assertTrue(res)
-        self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
+        if set_env.IS_WIN:
+            self.assertTrue(os.path.exists('all_McMurdo_g_eqarea.png'))
+        else:
+            self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
 
 class TestPolemapMagic(unittest.TestCase):
 
