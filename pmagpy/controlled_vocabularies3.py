@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import pandas as pd
 from pandas import Series
-#import urllib2
-#import httplib
+try:
+    import requests
+except ImportError:
+    requests = None
 import json
 import os
 #import cached vocabulries as backup
@@ -58,11 +60,33 @@ class Vocabulary(object):
 
     ## Get method codes
 
+    def get_json_online(self, url):
+        """
+        Use requests module to json from Earthref.
+        If this fails or times out, return false.
+
+        Returns
+        ---------
+        result : requests.models.Response, or [] if unsuccessful
+        """
+        if not requests:
+            return False
+        try:
+            req = requests.get(url, timeout=3)
+            if not req.ok:
+                return []
+            return req
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout):
+            return []
+
+
     def get_meth_codes(self):
         # try to get meth codes online
         raw_codes = []
         try:
-            raw_codes = pd.io.json.read_json('https://www2.earthref.org/MagIC/method-codes.json')
+            raw = self.get_json_online('https://www2.earthref.org/MagIC/method-codes.json')
+            raw_codes = pd.DataFrame(raw.json())
             print('-I- Getting method codes from earthref.org')
         except Exception as ex:
             print(ex, type(ex))
@@ -155,7 +179,8 @@ class Vocabulary(object):
         # try to get online
         url = 'https://www2.earthref.org/vocabularies/controlled.json'
         try:
-            data = pd.io.json.read_json(url)
+            raw = self.get_json_online(url)
+            data = pd.DataFrame(raw.json())
             print('-I- Importing controlled vocabularies from https://earthref.org')
         except Exception as ex:
             print(ex, type(ex))
@@ -234,8 +259,10 @@ class Vocabulary(object):
         # try to get suggested vocabularies online
         url = 'https://www2.earthref.org/vocabularies/suggested.json'
         try:
-            data = pd.io.json.read_json(url)
-        except:
+            raw = self.get_json_online(url)
+            data = pd.DataFrame(raw.json())
+        except Exception as ex:
+            print(ex, type(ex))
             data = []
         # if not available online, use cached
         if not len(data):
