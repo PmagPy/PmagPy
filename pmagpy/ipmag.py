@@ -8306,9 +8306,9 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     '__', '_') + "_aniso-" + key + "." + fmt
         if pmagplotlib.isServer:
             titles = {}
-            titles['data'] = "Data"
-            titles['tcdf'] = "TCDF"
-            titles['conf'] = "Confidence"
+            titles['data'] = "Eigenvectors"
+            titles['tcdf'] = "Eigenvalue Confidence"
+            titles['conf'] = "Confidence Ellipses"
             for key in files:
                 if key not in titles:
                     titles[key] = key
