@@ -11143,7 +11143,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                                               tilt_corr=coord, excl=['DE-BFP'], ignore_tilt=ignore_tilt)
 
         if title == 'All':
-            if locs:
+            if len(locs):
                 title = " ,".join(locs) + " - {} {} plotted".format(str(len(DIblock)), plot_type)
             else:
                 title = "{} {} plotted".format(str(len(DIblock)), plot_type)

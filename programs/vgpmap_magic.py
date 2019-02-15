@@ -117,7 +117,7 @@ def main():
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
     locs = Results['location'].unique()
-    if locs:
+    if len(locs):
         location = ":".join(Results['location'].unique())
     else:
         location = ""
