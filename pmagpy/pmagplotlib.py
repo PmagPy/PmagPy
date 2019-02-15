@@ -1601,6 +1601,8 @@ def save_plots(Figs, filenames, **kwargs):
         try:
             plt.figure(num=Figs[key])
             fname = filenames[key]
+            if set_env.IS_WIN:  # always truncate filenames if on Windows
+                fname = os.path.split(fname)[1]
             if not isServer:  # remove illegal ':' character for windows
                 fname = fname.replace(':', '_')
             if 'incl_directory' in kwargs.keys() and not set_env.IS_WIN:
