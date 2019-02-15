@@ -943,12 +943,12 @@ def plot_dir(ZED, pars, datablock, angle):
             StartDir[0] = rec[1]
             StartDir[1] = rec[2]
             if pars["specimen_direction_type"] == 'l':
-                StartDir[2] = old_div(rec[3], datablock[0][3])
+                StartDir[2] = rec[3]/datablock[0][3]
         if rec[0] == pars["measurement_step_max"]:
             EndDir[0] = rec[1]
             EndDir[1] = rec[2]
             if pars["specimen_direction_type"] == 'l':
-                EndDir[2] = old_div(rec[3], datablock[0][3])
+                EndDir[2] = rec[3]/datablock[0][3]
 
 #
 #  put them on the plots
@@ -965,14 +965,10 @@ def plot_dir(ZED, pars, datablock, angle):
         EndDir[0] = EndDir[0] - angle
         XYZs = pmag.dir2cart(StartDir)
         x.append(XYZs[0])
-      #  y.append(-XYZs[1])
-      #  z.append(-XYZs[2])
         y.append(XYZs[1])
         z.append(XYZs[2])
         XYZe = pmag.dir2cart(EndDir)
         x.append(XYZe[0])
-      #  y.append(-XYZe[1])
-    #   z.append(-XYZe[2])
         y.append(XYZe[1])
         z.append(XYZe[2])
         plt.figure(num=ZED['zijd'])
@@ -1003,32 +999,21 @@ def plot_dir(ZED, pars, datablock, angle):
             cm = np.array(pars["center_of_mass"])/datablock[0][3]
             cmDir = pmag.cart2dir(cm)
             cmDir[0] = cmDir[0] - angle
-            #cmDir[2] = old_div(cmDir[2], (datablock[0][3]))
             cm = pmag.dir2cart(cmDir)
             diff = []
             for i in range(3):
                 diff.append(XYZe[i] - XYZs[i])
             R = np.sqrt(diff[0]**2 + diff[1]**2 + diff[2]**2)
             P = pmag.dir2cart(
-                ((pars["specimen_dec"] - angle), pars["specimen_inc"], old_div(R, 2.5)))
+                ((pars["specimen_dec"] - angle), pars["specimen_inc"], R/2.5))
             px, py, pz = [], [], []
             px.append((cm[0] + P[0]))
-        #  py.append(-(cm[1]+P[1]))
-        #  pz.append(-(cm[2]+P[2]))
             py.append((cm[1] + P[1]))
             pz.append((cm[2] + P[2]))
             px.append((cm[0] - P[0]))
-        #  py.append(-(cm[1]-P[1]))
-        #  pz.append(-(cm[2]-P[2]))
             py.append((cm[1] - P[1]))
             pz.append((cm[2] - P[2]))
 
-#       px.append(Xs[0]+cm[0])
-#       px.append(Xe[0]+cm[0])
-#       py.append(-(Xs[1]+cm[1]))
-#       py.append(-(Xe[1]+cm[1]))
-#       pz.append(-(Xs[2]+cm[2]))
-#       pz.append(-(Xe[2]+cm[2]))
         plt.plot(px, py, 'g', linewidth=2)
         plt.plot(px, pz, 'g', linewidth=2)
         plt.axis("equal")
@@ -1047,7 +1032,7 @@ def plot_dir(ZED, pars, datablock, angle):
         plt.xlim((-1., 1.))
         plt.ylim((-1., 1.))
         plt.axis("equal")
-        plt.draw()
+        #plt.draw()
 
 
 def plot_arai(fignum, indata, s, units):
@@ -2901,9 +2886,8 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
 
         fig = plt.figure(Figs[key])
         plot_title = split_title(titles[key]).strip().strip('\n')
-
         fig.set_figheight(5.5)
-        # get returns Bbox with x0, y0, x1, y1
+        #get returns Bbox with x0, y0, x1, y1
         pos = fig.gca().get_position()
         # tweak some of the default values
         w = pos.x1 - pos.x0
@@ -2918,27 +2902,26 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
         border_ax.set_frame_on(False)
         border_ax.set_xticks([])
         border_ax.set_yticks([])
-
         # add a border
         if "\n" in plot_title:
             y_val = 1.0  # lower border
             #fig.set_figheight(6.25)
         else:
             y_val = 1.04  # higher border
-        border_ax.text(-0.02, y_val, "                                                                                                                                                                                         |",
-                       horizontalalignment='left',
-                       verticalalignment='top',
-                       color=text_color,
-                       bbox=dict(edgecolor=border_color,
-                                 facecolor='#FFFFFF', linewidth=0.25),
-                       size=50)
-        border_ax.text(-0.02, 0, "|                                                                                                                                                                                         |",
-                       horizontalalignment='left',
-                       verticalalignment='bottom',
-                       color=text_color,
-                       bbox=dict(edgecolor=border_color,
-                                 facecolor='#FFFFFF', linewidth=0.25),
-                       size=20)#18)
+        #border_ax.text(-0.02, y_val, "                                                                                                                                                                                         |",
+        #               horizontalalignment='left',
+        #               verticalalignment='top',
+        #               color=text_color,
+        #               bbox=dict(edgecolor=border_color,
+        #                         facecolor='#FFFFFF', linewidth=0.25),
+        #               size=50)
+        #border_ax.text(-0.02, 0, "|                                                                                                                                                                                         |",
+        ##               horizontalalignment='left',
+        #               verticalalignment='bottom',
+        #               color=text_color,
+        #               bbox=dict(edgecolor=border_color,
+        #                         facecolor='#FFFFFF', linewidth=0.25),
+        #               size=20)#18)
 
         # add text
 

@@ -1,7 +1,7 @@
 import matplotlib
 import sys
 import os
-isServer = False
+isServer = True
 verbose = True
 IS_WIN = True if sys.platform in ['win32', 'win64'] else False
 IS_FROZEN = getattr(sys, 'frozen', False)
