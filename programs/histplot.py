@@ -24,6 +24,7 @@ def main():
        -sav save figure and quit
        -F output file name, default is hist.fmt
        -N don't normalize
+       -twin plot both normalized and un-normalized y axes
        -xlab Label of X axis
        -ylab Label of Y axis
 
@@ -59,6 +60,8 @@ def main():
     else:
         norm = 1
         ylab = 'Frequency'
+    if '-twin' in sys.argv:
+        norm=-1
     binsize = 0
     if '-b' in sys.argv:
         ind = sys.argv.index('-b')
@@ -94,11 +97,27 @@ def main():
         binsize = int(np.around(1 + 3.22 * np.log(len(D))))
     Nbins = int(len(D) / binsize)
     ax = fig.add_subplot(111)
-    n, bins, patches = ax.hist(
-        D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=norm)
+    if norm==1:
+        print ('normalizing')
+        n, bins, patches = ax.hist(
+            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=True)
+        ax.set_ylabel(ylab)
+    elif norm==0:
+        print ('not normalizing')
+        n, bins, patches = ax.hist(
+            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=False)
+        ax.set_ylabel(ylab)
+    elif norm==-1:
+        print ('trying twin')
+        n, bins, patches = ax.hist(
+            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=True)
+        ax.set_ylabel('Frequency')
+        ax2=ax.twinx()
+        n, bins, patches = ax2.hist(
+            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=False)
+        ax2.set_ylabel('Number',rotation=-90)
     plt.axis([D.min(), D.max(), 0, n.max()+.1*n.max()])
     ax.set_xlabel(xlab)
-    ax.set_ylabel(ylab)
     name = 'N = ' + str(len(D))
     plt.title(name)
     if plot == 0:

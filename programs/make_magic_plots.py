@@ -373,7 +373,7 @@ def main():
                     histfile = 'LO:_' + loc_name + \
                         '_TY:_intensities_histogram:_.' + fmt
                     # maybe run histplot.main here instead, so you can return an error message
-                    CMD = "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
+                    CMD = "histplot.py -twin -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
                     os.system(CMD)
                     info_log(CMD, loc)
                     print(CMD)
