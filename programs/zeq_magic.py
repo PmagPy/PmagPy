@@ -379,12 +379,6 @@ def main():
             else:
                 pmagplotlib.plot_zed(ZED, datablock, angle, this_specimen, units)
 
-            if pmagplotlib.isServer:
-                titles = {}
-                titles['eqarea'] = 'Equal Area Plot'
-                titles['zijd'] = 'Zijderveld Plot'
-                titles['demag'] = 'Demagnetization Plot'
-                pmagplotlib.add_borders(ZED, titles, con_id=con_id)
 
             if verbose and not set_env.IS_WIN:
                 pmagplotlib.draw_figs(ZED)
@@ -454,6 +448,14 @@ def main():
 #                    pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
 #                    if verbose:
 #                        pmagplotlib.draw_figs(ZED)
+
+
+            if pmagplotlib.isServer:
+                titles = {}
+                titles['eqarea'] = 'Equal Area Plot'
+                titles['zijd'] = 'Zijderveld Plot'
+                titles['demag'] = 'Demagnetization Plot'
+                pmagplotlib.add_borders(ZED, titles, con_id=con_id)
 
             if plots == 1 or specimen != "":
                 if plot_file == "":
@@ -590,6 +592,7 @@ def main():
                     saveit = input("Save this interpretation? [y]/n \n")
         else:
             print("no data", this_specimen)
+
         if verbose:
             pmagplotlib.draw_figs(ZED)
             #res = input('  <return> for next specimen, [q]uit  ')
