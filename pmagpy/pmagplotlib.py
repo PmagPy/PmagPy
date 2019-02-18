@@ -130,6 +130,8 @@ def plot_init(fignum, w, h):
     """
     global fig_x_pos, fig_y_pos, plt_num
     dpi = 80
+    if pmagplotlib.isServer:
+        dpi = 800
     # plt.ion()
     plt_num += 1
     fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
