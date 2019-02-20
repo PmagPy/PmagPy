@@ -1427,6 +1427,7 @@ class MagicDataFrame(object):
             result = prog.match(x)
             if result:
                 decimals = result.string.split('.')[1]
+                result = result.string
                 if decimals[-2] == '0':
                     result = x[:-1].rstrip('0')
                 if decimals[-2] == '9':
