@@ -1910,9 +1910,9 @@ class MagicDataFrame(object):
         df_slice = df_slice[df_slice['dir_inc'].notnull() & df_slice['dir_dec'].notnull()]
         # possible add in:
         # split out di_block from this study from di_block from other studies (in citations column)
-        # for now, just use "This study"
-        if 'citations' in df_slice.columns:
-            df_slice = df_slice[df_slice['citations'].str.contains("This study")]
+        # previously just used "This study", but it is no longer required
+        #if 'citations' in df_slice.columns:
+        #    df_slice = df_slice[df_slice['citations'].str.contains("This study")]
 
         # convert values into DIblock format
         di_block = [[float(row['dir_dec']), float(row['dir_inc'])] for ind, row in df_slice.iterrows()]
