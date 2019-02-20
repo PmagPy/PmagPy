@@ -1601,6 +1601,8 @@ def save_plots(Figs, filenames, **kwargs):
                 fname = fname.replace('/', '-') # flatten file name
             if 'dpi' in list(kwargs.keys()):
                 plt.savefig(fname, dpi=kwargs['dpi'])
+            elif isServer:
+                plt.savefig(fname, dpi=800)
             else:
                 plt.savefig(fname)
             if verbose:
