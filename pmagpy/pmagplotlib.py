@@ -131,7 +131,7 @@ def plot_init(fignum, w, h):
     global fig_x_pos, fig_y_pos, plt_num
     dpi = 80
     if isServer:
-        dpi = 800
+        dpi = 240
     # plt.ion()
     plt_num += 1
     fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
@@ -1602,7 +1602,7 @@ def save_plots(Figs, filenames, **kwargs):
             if 'dpi' in list(kwargs.keys()):
                 plt.savefig(fname, dpi=kwargs['dpi'])
             elif isServer:
-                plt.savefig(fname, dpi=800)
+                plt.savefig(fname, dpi=240)
             else:
                 plt.savefig(fname)
             if verbose:
