@@ -217,7 +217,7 @@ def main():
     files = {}
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
-            files[key] = 'LO:_' + location + '_VGP_map.' + fmt
+            files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
         else:  # use more readable naming convention
             files[key] = '{}_VGP_map.{}'.format(location, fmt)
 
@@ -225,7 +225,7 @@ def main():
         black = '#000000'
         purple = '#800080'
         titles = {}
-        titles['map'] = 'LO:_' + location + '_VGP_map'
+        titles['map'] = location + ' VGP map'
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
     elif plot == 0:

@@ -2912,20 +2912,20 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
             #fig.set_figheight(6.25)
         else:
             y_val = 1.04  # higher border
-        #border_ax.text(-0.02, y_val, "                                                                                                                                                                                         |",
+        border_ax.text(-0.02, y_val, "                                                                                                                                                                                         |",
+                       horizontalalignment='left',
+                       verticalalignment='top',
+                       color=text_color,
+                       bbox=dict(edgecolor=border_color,
+                                 facecolor='#FFFFFF', linewidth=0.25),
+                       size=50)
+        border_ax.text(-0.02, 0, "|                                                                                                                                                                                         |",
         #               horizontalalignment='left',
-        #               verticalalignment='top',
-        #               color=text_color,
-        #               bbox=dict(edgecolor=border_color,
-        #                         facecolor='#FFFFFF', linewidth=0.25),
-        #               size=50)
-        #border_ax.text(-0.02, 0, "|                                                                                                                                                                                         |",
-        ##               horizontalalignment='left',
-        #               verticalalignment='bottom',
-        #               color=text_color,
-        #               bbox=dict(edgecolor=border_color,
-        #                         facecolor='#FFFFFF', linewidth=0.25),
-        #               size=20)#18)
+                       verticalalignment='bottom',
+                       color=text_color,
+                       bbox=dict(edgecolor=border_color,
+                                 facecolor='#FFFFFF', linewidth=0.25),
+                       size=20)#18)
 
         # add text
 
