@@ -157,11 +157,11 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual([289.8, 43.6], di_block[0])
         di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'])
         self.assertEqual([289.8, 43.6], di_block[0])
-        self.assertEqual(2, len(di_block))
+        self.assertEqual(4, len(di_block))
         magic_df.df.loc['2', 'method_codes'] = 'fake_code'
         di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'],
                                          excl=['fake_code'])
-        self.assertEqual(1, len(di_block))
+        self.assertEqual(2, len(di_block))
 
     def test_get_records_for_code(self):
         magic_df = cb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
