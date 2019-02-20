@@ -1428,10 +1428,10 @@ class MagicDataFrame(object):
             if result:
                 decimals = result.string.split('.')[1]
                 result = result.string
-                if decimals[-2] == '0':
-                    result = x[:-1].rstrip('0')
-                if decimals[-2] == '9':
-                    result = x[:-1].rstrip('9')
+                if decimals[-3] == '0':
+                    result = x[:-2].rstrip('0')
+                if decimals[-3] == '9':
+                    result = x[:-2].rstrip('9')
                     try:
                         last_digit = int(result[-1])
                         result = result[:-1] + str(last_digit + 1)
