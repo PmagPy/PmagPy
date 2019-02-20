@@ -1412,8 +1412,41 @@ class MagicDataFrame(object):
             if isinstance(x, float):
                 return str(x)  #"{:.5f}".format(x).rstrip('0')
             return x
+
+        def remove_extra_digits(x, prog):
+            """
+            Remove extra digits
+            x is a string,
+            prog is always the following '_sre.SRE_Pattern':
+            prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z").
+            However, it is compiled outside of this sub-function
+            for performance reasons.
+            """
+            if not isinstance(x, str):
+                return x
+            result = prog.match(x)
+            if result:
+                decimals = result.string.split('.')[1]
+                if decimals[-2] == '0':
+                    result = x[:-1].rstrip('0')
+                if decimals[-2] == '9':
+                    result = x[:-1].rstrip('9')
+                    try:
+                        last_digit = int(result[-1])
+                        result = result[:-1] + str(last_digit + 1)
+                    except ValueError:
+                        result = float(result[:-1]) + 1
+                #if result != x:
+                #    print('changing {} to {}'.format(x, result))
+                return result
+            return x
+
         for col in self.df.columns:
             self.df[col] = self.df[col].apply(stringify)
+
+        prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z")
+        for col in self.df.columns:
+            self.df[col] = self.df[col].apply(lambda x: remove_extra_digits(x, prog))
 
 
     def remove_non_magic_cols_from_table(self, ignore_cols=()):
