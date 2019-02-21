@@ -6,19 +6,83 @@ import sys
 import os
 import glob
 from PIL import Image
+import datetime
 from pmagpy import pmag
 
-def main(directory, fmt):
+def error_log(msg):
+    with open('thumbnail_errors.txt', 'a') as log:
+        log.write(msg + '\t' + str(datetime.datetime.now()) + '\t')
+    sys.stderr.write(msg)
+
+def make_thumbnails(directory=".", fmt="png"):
     # get all the jpg files from the current folder
     directory = os.path.realpath(directory)
     for infile in glob.glob(os.path.join(directory, "*.{}".format(fmt))):
         if infile.endswith('thumb.{}'.format(fmt)):
             continue
         im = Image.open(infile)
-    # convert to thumbnail image
-        im.thumbnail((128, 128), Image.ANTIALIAS)
-    # add .thumb to file extension
-        im.save(infile[:-4] + ".thumb.{}".format(fmt), fmt)
+        #
+        lower_infile = infile.lower()
+        width, height = im.size   # Get dimensions
+        if "ty:_eqarea_" in lower_infile or "ty:_eq" in lower_infile:
+            left = 0 + width * .185
+            top = 0 + height * .195
+            right = width * .84
+            bottom = height * .81
+        elif "ty:_vgp_map" in lower_infile:
+            left = 0 + width * .05
+            top = 0 + height * .25
+            right = width * .95
+            bottom = height * .75
+        elif "ty:_zijd_" in lower_infile:
+            left = 0 + width * .15
+            top = 0 + height * .16
+            right = width * .895
+            bottom = height * .85
+        elif "ty:_demag_" in lower_infile:
+            left = 0 + width * .17
+            top = 0 + height * .16
+            right = width * .895
+            bottom = height * .82
+        elif "ty:_deremag_" in lower_infile:
+            left = 0 + width * .17
+            top = 0 + height * .16
+            right = width * .9
+            bottom = height * .825
+        elif "ty:_arai_" in lower_infile:
+            left = 0 + width * .1555
+            top = 0 + height * .15
+            right = width * .9
+            bottom = height * .82
+        elif "ty:_hyst_" in lower_infile:
+            left = 0 + width * .14
+            top = 0 + height * .13
+            right = width * .89
+            bottom = height * .88
+        elif "ty:_pole_map" in lower_infile:
+            left = 0 + width * .185
+            top = 0 + height * .15
+            right = width * .84
+            bottom = height * .865
+        elif "ty:_intensities_histogram" in lower_infile:
+            left = 0 + width * .126
+            top = 0 + height * .16
+            right = width * .895
+            bottom = height * .85
+        elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
+            left = 0 + width * .18
+            top = 0 + height * .2
+            right = width * .84
+            bottom = height * .81
+        else:
+            error_log("Could not create a thumbnail for {}".format(infile))
+            continue
+
+        cropped = im.crop((left, top, right, bottom))
+        #cropped_example.show()
+        cropped.thumbnail((300, 300), Image.ANTIALIAS)
+        cropped.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
+        # Pixels ÷ DPI = Inches
 
 
 if __name__ == "__main__":
@@ -27,4 +91,4 @@ if __name__ == "__main__":
         print('Specify input/output format with: -fmt <format>.   Tested formats include [jpg, png]')
         print('Output files will follow the naming convention: "original_filename.thumb.fmt"')
     else:
-        main(pmag.get_named_arg("-WD", "."), pmag.get_named_arg("-fmt", "png"))
+        make_thumbnails(pmag.get_named_arg("-WD", "."), pmag.get_named_arg("-fmt", "png"))
