@@ -39,8 +39,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         # only run this annoyingly slow test 10% of the time
         num = random.randint(1, 10)
         if num != 3:
-            pass
-            #return
+            return
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
         for filename in glob.glob("*error*"):
             os.remove(filename)
@@ -49,6 +48,4 @@ class TestMakeMagicPlots(unittest.TestCase):
         self.assertFalse(glob.glob("thumbnail_errors.txt"))
         num_pngs = len(glob.glob("*png"))
         num_thumbnails = len(glob.glob("*thumb.png"))
-        print('pngs', num_pngs)
-        print('num_thumbnails', num_thumbnails)
         self.assertEqual(num_pngs / 2, num_thumbnails)
