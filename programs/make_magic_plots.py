@@ -6,6 +6,7 @@ import glob
 import shutil
 from pmagpy import pmag
 from pmagpy import contribution_builder as cb
+from programs import thumbnails
 VERBOSE = True
 
 
@@ -459,6 +460,7 @@ def main():
             os.system(CMD)
         else:
             print('-I- No poles found')
+    thumbnails.make_thumbnails(dir_path)
 
 if __name__ == "__main__":
     main()
