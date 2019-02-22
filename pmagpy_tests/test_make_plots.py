@@ -27,9 +27,12 @@ class TestMakeMagicPlots(unittest.TestCase):
 
     def test_make_plots(self):
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'Osler'))
+        print('os.getcwd()',os.getcwd())
+        print('listdir', os.listdir())
         for filename in glob.glob("*error*"):
             os.remove(filename)
         os.system("make_magic_plots.py")
+        print('listdir', os.listdir())
         self.assertFalse(glob.glob("errors.txt"))
         self.assertFalse(glob.glob("thumbnail_errors.txt"))
         self.assertEqual(14, len(glob.glob("*.png")))
@@ -41,6 +44,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         if num != 3:
             return
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
+        print('os.getcwd()',os.getcwd())
         for filename in glob.glob("*error*"):
             os.remove(filename)
         os.system("make_magic_plots.py")
