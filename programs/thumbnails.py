@@ -11,8 +11,8 @@ from pmagpy import pmag
 
 def error_log(msg):
     with open('thumbnail_errors.txt', 'a') as log:
-        log.write(msg + '\t' + str(datetime.datetime.now()) + '\t')
-    sys.stderr.write(msg)
+        log.write(msg + '\t' + str(datetime.datetime.now()) + '\n')
+    sys.stderr.write(msg + '\n')
 
 def make_thumbnails(directory=".", fmt="png"):
     # get all the jpg files from the current folder
@@ -75,9 +75,9 @@ def make_thumbnails(directory=".", fmt="png"):
             right = width * .84
             bottom = height * .81
         else:
-            error_log("Could not create a thumbnail for {}".format(infile))
+            error_log("Could not crop {}".format(infile))
+            im.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
             continue
-
         cropped = im.crop((left, top, right, bottom))
         #cropped_example.show()
         cropped.thumbnail((300, 300), Image.ANTIALIAS)
