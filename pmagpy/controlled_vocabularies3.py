@@ -31,13 +31,7 @@ class Vocabulary(object):
         self.methods = []
         self.age_methods = []
         if len(VOCAB):
-            self.vocabularies = VOCAB['vocabularies']
-            self.possible_vocabularies = VOCAB['possible_vocabularies']
-            self.all_codes = VOCAB['all_codes']
-            self.code_types = VOCAB['code_types']
-            self.methods = VOCAB['methods']
-            self.age_methods = VOCAB['age_methods']
-            self.suggested = VOCAB['suggested']
+            self.set_vocabularies()
         else:
             if isinstance(dmodel, data_model.DataModel):
                 self.data_model = dmodel
@@ -56,6 +50,16 @@ class Vocabulary(object):
             VOCAB['methods'] = self.methods
             VOCAB['age_methods'] = self.age_methods
             VOCAB['suggested'] = self.suggested
+
+
+    def set_vocabularies(self):
+        self.vocabularies = VOCAB['vocabularies']
+        self.possible_vocabularies = VOCAB['possible_vocabularies']
+        self.all_codes = VOCAB['all_codes']
+        self.code_types = VOCAB['code_types']
+        self.methods = VOCAB['methods']
+        self.age_methods = VOCAB['age_methods']
+        self.suggested = VOCAB['suggested']
 
 
     ## Get method codes
@@ -82,6 +86,9 @@ class Vocabulary(object):
 
 
     def get_meth_codes(self):
+        if len(VOCAB):
+            self.set_vocabularies()
+            return
         # try to get meth codes online
         raw_codes = []
         try:
@@ -174,6 +181,9 @@ class Vocabulary(object):
         """
         Get all non-method controlled vocabularies
         """
+        if len(VOCAB):
+            self.set_vocabularies()
+            return
         data = []
         controlled_vocabularies = []
         # try to get online

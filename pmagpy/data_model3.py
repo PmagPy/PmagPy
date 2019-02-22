@@ -36,6 +36,10 @@ class DataModel():
         Try to download the data model from Earthref.
         If that fails, grab the cached data model.
         """
+        if len(DM):
+            self.dm = DM
+            self.crit_map = CRIT_MAP
+            return
         dm = self.get_dm_online()
         if dm:
             print('-I- Using online data model')
