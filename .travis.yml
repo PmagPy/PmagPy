@@ -80,8 +80,8 @@ install:
   # command to run tests, e.g. python setup.py test
 script:
   - python -c "print('starting tests')"
-  #- python -m unittest discover -v
-  - python -m unittest pmagpy_tests.test_make_plots -v
+  - python -m unittest discover -v
+  #- python -m unittest pmagpy_tests.test_make_plots -v
   #- python -m unittest pmagpy_tests.test_builder -v
   #- python -m unittest pmagpy_tests.test_ipmag -v
   #- python -m unittest pmagpy_tests.test_thellier_gui -v

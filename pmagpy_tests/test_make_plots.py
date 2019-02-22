@@ -7,11 +7,10 @@ import glob
 from pmagpy import pmag
 from pmagpy import pmagplotlib
 from pmag_env import set_env
-from programs import make_magic_plots
 
 WD = pmag.get_test_WD()
 
-#@unittest.skipIf(not pmagplotlib.isServer, "these tests only work when isServer is True")
+@unittest.skipIf(not pmagplotlib.isServer, "these tests are mainly needed when isServer is True, and don't work on Travis at all")
 class TestMakeMagicPlots(unittest.TestCase):
 
     def setUp(self):
@@ -30,8 +29,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'Osler'))
         for filename in glob.glob("*error*"):
             os.remove(filename)
-        make_magic_plots.main()
-        #os.system("make_magic_plots.py")
+        os.system("make_magic_plots.py")
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
             self.assertFalse(glob.glob("thumbnail_errors.txt"))
@@ -51,8 +49,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
         for filename in glob.glob("*error*"):
             os.remove(filename)
-        make_magic_plots.main()
-        #os.system("make_magic_plots.py")
+        os.system("make_magic_plots.py")
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
             self.assertFalse(glob.glob("thumbnail_errors.txt"))
