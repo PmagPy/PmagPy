@@ -40,10 +40,11 @@ class TestMakeMagicPlots(unittest.TestCase):
             self.assertEqual(5, len(glob.glob("*.png")))
 
     def test_make_plots_long(self):
-        # only run this annoyingly slow test 10% of the time
-        num = random.randint(1, 10)
-        if num != 3:
-            return
+        if not pmagplotlib.isServer:
+            # only run this annoyingly slow test 10% of the time
+            num = random.randint(1, 10)
+            if num != 3:
+                return
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
         for filename in glob.glob("*error*"):
             os.remove(filename)
