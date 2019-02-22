@@ -8300,7 +8300,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         files = {}
         for key in list(ANIS.keys()):
             if pmagplotlib.isServer:
-                files[key] = title + '_TY:_aniso-' + key + '_.' + fmt
+                files[key] = title + '_TY:_aniso_' + key + '_.' + fmt
             else:
                 files[key] = title.replace(
                     '__', '_') + "_aniso-" + key + "." + fmt
