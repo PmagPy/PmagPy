@@ -10,6 +10,7 @@ from pmag_env import set_env
 
 WD = pmag.get_test_WD()
 
+@unittest.skipIf(not pmagplotlib.isServer, "these tests only work when isServer is True")
 class TestMakeMagicPlots(unittest.TestCase):
 
     def setUp(self):
