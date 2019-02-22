@@ -65,10 +65,24 @@ def make_thumbnails(directory=".", fmt="png"):
             right = width * .84
             bottom = height * .865
         elif "ty:_intensities_histogram" in lower_infile:
-            left = 0 + width * .126
-            top = 0 + height * .16
-            right = width * .895
-            bottom = height * .85
+            # include all 4 bounding lines
+            left = 0 + width * .124
+            top = 0 + height * .155
+            right = width * .902
+            bottom = height * .86
+            #
+            # include no bounding lines
+            #left = 0 + width * .126
+            #top = 0 + height * .16
+            #right = width * .895
+            #bottom = height * .85
+            #
+            # include only the bottom bounding line
+            #left = 0 + width * .126
+            #top = 0 + height * .16
+            #right = width * .895
+            #bottom = height * .86
+
         elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
             left = 0 + width * .18
             top = 0 + height * .2
