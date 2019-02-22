@@ -37,7 +37,9 @@ class TestMakeMagicPlots(unittest.TestCase):
             self.assertEqual(14, len(glob.glob("*.png")))
             self.assertEqual(7, len(glob.glob("*thumb*.png")))
         else:
-            self.assertEqual(5, len(glob.glob("*.png")))
+            self.assertEqual(10, len(glob.glob("*.png")))
+            self.assertEqual(5, len(glob.glob("*thumb*.png")))
+
 
     def test_make_plots_long(self):
         if not pmagplotlib.isServer:
