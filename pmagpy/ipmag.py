@@ -10089,7 +10089,57 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
 
     """
 
-    def make_plots(spec, cnt, meas_df):
+    def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock):
+        if cb.is_null(spec_container) or cb.is_null(this_specimen_measurements) or cb.is_null(datablock):
+            return ZED
+        prior_spec_data = spec_container.get_records_for_code(
+            'LP-DIR', strict_match=False)  # look up all prior directional interpretations
+        prior_specimen_interpretations=[]
+        if not len(prior_spec_data):
+            return ZED
+        mpars = {"specimen_direction_type": "Error"}
+        if len(prior_spec_data):
+            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str).str.contains(this_specimen) == True]
+        if len(prior_specimen_interpretations):
+            if len(prior_specimen_interpretations)>0:
+                beg_pcas = pd.to_numeric(
+                    prior_specimen_interpretations.meas_step_min.values).tolist()
+                end_pcas = pd.to_numeric(
+                    prior_specimen_interpretations.meas_step_max.values).tolist()
+                spec_methods = prior_specimen_interpretations.method_codes.tolist()
+            # step through all prior interpretations and plot them
+                for ind in range(len(beg_pcas)):
+                    spec_meths = spec_methods[ind].split(':')
+                    for m in spec_meths:
+                        if 'DE-BFL' in m:
+                            calculation_type = 'DE-BFL'  # best fit line
+                        if 'DE-BFP' in m:
+                            calculation_type = 'DE-BFP'  # best fit plane
+                        if 'DE-FM' in m:
+                            calculation_type = 'DE-FM'  # fisher mean
+                        if 'DE-BFL-A' in m:
+                            calculation_type = 'DE-BFL-A'  # anchored best fit line
+                    treatments = pd.to_numeric(this_specimen_measurements.treatment).tolist()
+
+                    if len(beg_pcas)!=0:
+                        try:
+                            # getting the starting and ending points
+                            start, end = treatments.index(beg_pcas[ind]), treatments.index(end_pcas[ind])
+                            mpars = pmag.domean(
+                                datablock, start, end, calculation_type)
+                        except ValueError:
+                            print('-W- Specimen record contains invalid start/stop bounds:')
+                            mpars['specimen_direction_type'] = "Error"
+                    # calculate direction/plane
+                        if mpars["specimen_direction_type"] != "Error":
+                            # put it on the plot
+                            pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+                            #if verbose and not set_env.IS_WIN:
+                            #    pmagplotlib.draw_figs(ZED)
+        return ZED
+
+
+    def make_plots(spec, cnt, meas_df, spec_container):
         # we can make the figure dictionary that pmagplotlib likes:
         ZED = {'eqarea': cnt, 'zijd': cnt+1, 'demag': cnt+2}  # make datablock
 
@@ -10101,18 +10151,22 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         spec_df_th = spec_df_th[spec_df.method_codes.str.contains(
             'LT-PTRM') == False]  # get rid of some pTRM steps
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
+        this_spec_meas_df = None
+        datablock = None
         if len(spec_df_th.index) > 1:  # this is a thermal run
-            spec_df = pd.concat([spec_df_nrm, spec_df_th])
+            this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
             units = 'K'  # units are kelvin
-            datablock = spec_df[['treat_temp', 'dir_dec', 'dir_inc',
+            datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
-            return pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+            ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         if len(spec_df_af.index) > 1:  # this is an af run
-            spec_df = pd.concat([spec_df_nrm, spec_df_af])
+            this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_af])
             units = 'T'  # these are AF data
-            datablock = spec_df[['treat_ac_field', 'dir_dec', 'dir_inc',
+            datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
-            return pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+            ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
+        return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock)
+
 
     # read in MagIC foramatted data
     input_dir_path = os.path.realpath(input_dir_path)
@@ -10123,7 +10177,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         return False, []
    # START HERE
     meas_df = pd.read_csv(file_path, sep='\t', header=1)
+    if not spec_file:
+        spec_file = os.path.join(os.path.split(file_path)[0], "specimens.txt")
+    if os.path.exists(spec_file):
+        spec_container = cb.MagicDataFrame(spec_file, dtype="specimens")
+    else:
+        spec_container = None
     meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
+    meas_df['treatment'] = meas_df['treat_ac_field'].where(
+        cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
+
     if crd == "s":
         coord = "-1"
     elif crd == "t":
@@ -10140,7 +10203,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             specimens = specimens[:n_plots]
     saved = []
     for s in specimens:
-        ZED = make_plots(s, cnt, meas_df)
+        ZED = make_plots(s, cnt, meas_df, spec_container)
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
