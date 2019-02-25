@@ -10092,6 +10092,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock):
         if cb.is_null(spec_container) or cb.is_null(this_specimen_measurements) or cb.is_null(datablock):
             return ZED
+        if 'method_codes' not in spec_container.df.columns:
+            return ZED
         prior_spec_data = spec_container.get_records_for_code(
             'LP-DIR', strict_match=False)  # look up all prior directional interpretations
         prior_specimen_interpretations=[]
@@ -10178,16 +10180,30 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         print('No such file:', file_path)
         return False, []
    # START HERE
-    meas_df = pd.read_csv(file_path, sep='\t', header=1)
-    if not spec_file:
-        spec_file = os.path.join(os.path.split(file_path)[0], "specimens.txt")
-    if os.path.exists(spec_file):
-        spec_container = cb.MagicDataFrame(spec_file, dtype="specimens")
-    else:
-        spec_container = None
+    custom_filenames = {'measurements': file_path, 'specimens': spec_file}
+    contribution = cb.Contribution(input_dir_path, custom_filenames=custom_filenames,
+                                   read_tables=['measurements', 'specimens', 'contribution'])
+    if pmagplotlib.isServer:
+        try:
+            contribution.propagate_location_to_samples()
+            contribution.propagate_location_to_specimens()
+            contribution.propagate_location_to_measurements()
+        except KeyError as ex:
+            pass
+    meas_df = contribution.tables['measurements'].df #pd.read_csv(file_path, sep='\t', header=1)
+    spec_container = contribution.tables.get('specimens', None)
+    #if not spec_file:
+    #    spec_file = os.path.join(os.path.split(file_path)[0], "specimens.txt")
+    #if os.path.exists(spec_file):
+    #    spec_container = cb.MagicDataFrame(spec_file, dtype="specimens")
+    #else:
+    #    spec_container = None
     meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
-    meas_df['treatment'] = meas_df['treat_ac_field'].where(
-        cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
+    if 'treat_ac_field' in meas_df.columns:
+        meas_df['treatment'] = meas_df['treat_ac_field'].where(
+            cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
+    else:
+        meas_df['treatment'] = meas_df['treat_temp']
 
     if crd == "s":
         coord = "-1"
@@ -10216,6 +10232,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             titles['eqarea'] = 'Equal Area Plot'
             titles['zijd'] = 'Zijderveld Plot'
             titles['demag'] = 'Demagnetization Plot'
+            con_id = ""
+            if 'contribution' in contribution.tables:
+                if 'id' in contribution.tables['contribution'].df.columns:
+                    con_id = contribution.tables['contribution'].df['id'].values[0]
             pmagplotlib.add_borders(ZED, titles, con_id=con_id)
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
