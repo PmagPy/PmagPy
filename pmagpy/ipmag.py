@@ -10057,7 +10057,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
-              n_plots=5, save_plots=True, fmt="svg", interactive=False):
+              n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen=""):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
@@ -10136,7 +10136,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                         if mpars["specimen_direction_type"] != "Error":
                             # put it on the plot
                             pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
-                            #if verbose and not set_env.IS_WIN:
+                            #if interactive:
                             #    pmagplotlib.draw_figs(ZED)
         return ZED
 
@@ -10171,12 +10171,13 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock)
 
-
+    if interactive:
+        save_plots = False
     # read in MagIC foramatted data
     input_dir_path = os.path.realpath(input_dir_path)
     file_path = pmag.resolve_file_name(meas_file, input_dir_path)
     # read in magic formatted data
-    if not os.path.isfile(file_path):
+    if not os.path.exists(file_path):
         print('No such file:', file_path)
         return False, []
    # START HERE
@@ -10221,6 +10222,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         if len(specimens) > n_plots:
             specimens = specimens[:n_plots]
     saved = []
+    if specimen:
+        specimens = [specimen]
     for s in specimens:
         ZED = make_plots(s, cnt, meas_df, spec_container)
         if not ZED:
@@ -10249,11 +10252,15 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 titles[title] = filename
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
+        elif interactive:
+            pmagplotlib.draw_figs(ZED)
+            ans = pmagplotlib.save_or_quit()
+            if ans == 'a':
+                saved.extend(pmagplotlib.save_plots(ZED, titles))
+            else:
+                continue
         else:
             cnt += 3
-        #if interactive:
-        #    pmagplotlib.draw_figs()
-        #    pmagplotlib.save_or_quit()
 
     return True, saved
 
