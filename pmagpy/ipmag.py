@@ -10190,6 +10190,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             contribution.propagate_location_to_measurements()
         except KeyError as ex:
             pass
+    meas_container = contribution.tables['measurements']
     meas_df = contribution.tables['measurements'].df #pd.read_csv(file_path, sep='\t', header=1)
     spec_container = contribution.tables.get('specimens', None)
     #if not spec_file:
@@ -10237,6 +10238,15 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 if 'id' in contribution.tables['contribution'].df.columns:
                     con_id = contribution.tables['contribution'].df['id'].values[0]
             pmagplotlib.add_borders(ZED, titles, con_id=con_id)
+            for title in titles:
+                # try to get the full hierarchy for plot names
+                df_slice = meas_container.df[meas_container.df['specimen'] == s]
+                location = meas_container.get_name('location', df_slice)
+                site = meas_container.get_name('site', df_slice)
+                sample = meas_container.get_name('sample', df_slice)
+                filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
+                    '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+'_.png'
+                titles[title] = filename
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
         else:
