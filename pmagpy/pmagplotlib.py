@@ -3224,7 +3224,7 @@ def plot_map(fignum, lats, lons, Opts):
             false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
             globe=None))
     if Opts['proj'] == 'lcc':
-        print(Opts)
+         
         ax = plt.axes(projection=ccrs.LambertConformal(
             central_longitude=Opts['lon_0'],
             central_latitude=Opts['lat_0'],
