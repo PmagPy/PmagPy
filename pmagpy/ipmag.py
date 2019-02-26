@@ -10150,11 +10150,23 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             'LT-NO')]  # get the NRM data
         spec_df_th = spec_df[spec_df.method_codes.str.contains(
             'LT-T-Z')]  # zero field thermal demag steps
-        spec_df_th = spec_df_th[spec_df.method_codes.str.contains(
-            'LT-PTRM') == False]  # get rid of some pTRM steps
+        try:
+            spec_df_th = spec_df_th[spec_df.method_codes.str.contains(
+                'LT-PTRM') == False]  # get rid of some pTRM steps
+        except ValueError:
+            keep_inds = []
+            n = 0
+            for ind, row in spec_df_th.copy().iterrows():
+                if 'LT-PTRM' in row['method_codes']:
+                    keep_inds.append(n)
+                else:
+                    pass
+                n += 1
+            spec_df_th = spec_df_th.iloc[keep_inds]
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
         this_spec_meas_df = None
         datablock = None
+
         if (not len(spec_df_th.index) > 1) and (not len(spec_df_af.index) > 1):
             return
         if len(spec_df_th.index) > 1:  # this is a thermal run

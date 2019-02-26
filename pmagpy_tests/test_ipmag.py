@@ -865,7 +865,7 @@ class TestZeqMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.png", "*.pdf"]
+        glob_strings = ["*.png", "*.pdf", "data_files/3_0/McMurdo/*.png"]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
@@ -883,6 +883,12 @@ class TestZeqMagic(unittest.TestCase):
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
         self.assertEqual(9, len(outfiles))
+
+    def test_success_with_interpretations_long(self):
+        res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/3_0/McMurdo", fmt="png", n_plots=200)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
 
 
     def test_fail(self):
