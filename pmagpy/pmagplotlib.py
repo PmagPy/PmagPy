@@ -3164,7 +3164,6 @@ def plot_map(fignum, lats, lons, Opts):
             symsize : symbol size in pts
             edge : markeredgecolor
             cmap : matplotlib color map
-            pltgrid : plot the grid [1,0]
             res :  resolution [c,l,i,h] for low/crude, intermediate, high
             boundinglat : bounding latitude
             sym : matplotlib symbol for plotting
@@ -3212,7 +3211,6 @@ def plot_map(fignum, lats, lons, Opts):
             for detail_key in Opts_defaults[key].keys():
                 if detail_key not in Opts[key].keys():
                     Opts[key][detail_key] = Opts_defaults[key][detail_key]
-
     if Opts['proj'] == 'pc':
         ax = plt.axes(projection=ccrs.PlateCarree())
         ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
@@ -3224,13 +3222,11 @@ def plot_map(fignum, lats, lons, Opts):
             false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
             globe=None))
     if Opts['proj'] == 'lcc':
-         
-        ax = plt.axes(projection=ccrs.LambertConformal(
-            central_longitude=Opts['lon_0'],
-            central_latitude=Opts['lat_0'],
-            false_easting=0.0, false_northing=0.0,
-            secant_latitudes=None, standard_parallels=(20.0, 50.0), cutoff=-30,
-            globe=None))
+        proj = ccrs.LambertConformal(central_longitude=Opts['lon_0'],  central_latitude=Opts['lat_0'],\
+               false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
+               globe=None)
+        fig=plt.figure(fignum,figsize=(6,6),frameon=True)
+        ax = plt.axes(projection=proj)
         ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
                       crs=ccrs.PlateCarree())
     if Opts['proj'] == 'lcyl':
@@ -3335,24 +3331,44 @@ def plot_map(fignum, lats, lons, Opts):
                 linestyle='dotted')
             ax.add_feature(states_provinces)
         if Opts['details']['countries'] == 1:
-            ax.add_feature(BORDERS, linestyle='--', linewidth=1)
+            ax.add_feature(BORDERS, linestyle='-', linewidth=2)
         if Opts['details']['ocean'] == 1:
             ax.add_feature(OCEAN, color=Opts['oceancolor'])
             ax.add_feature(LAND, color=Opts['landcolor'])
-    if Opts['proj'] in ['merc', 'pc']:
+            ax.add_feature(LAKES, color=Opts['oceancolor'])
+    if Opts['proj'] in ['merc', 'pc','lcc']:
         if Opts['pltgrid']:
-            gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
+            if Opts['proj']=='lcc':
+                fig.canvas.draw()
+                #xticks=list(np.arange(Opts['lonmin'],Opts['lonmax']+Opts['gridspace'],Opts['gridspace']))
+                #yticks=list(np.arange(Opts['latmin'],Opts['latmax']+Opts['gridspace'],Opts['gridspace']))
+                xticks=list(np.arange(-180,180,Opts['gridspace']))
+                yticks=list(np.arange(-90,90,Opts['gridspace']))
+                ax.gridlines(ylocs=yticks,xlocs=xticks,linewidth=2,
+                              linestyle='dotted')
+                ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER) # you need this here
+                ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)# you need this here, too
+
+                try: 
+                    import pmagpy.lcc_ticks as lcc_ticks
+                    lcc_ticks.lambert_xticks(ax, xticks)
+                    lcc_ticks.lambert_yticks(ax, yticks)
+                     
+                except:
+                    print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
+            else:
+                gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
+                gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
+                gl.xformatter = LONGITUDE_FORMATTER
+                gl.yformatter = LATITUDE_FORMATTER
+                gl.xlabels_top = False
+                gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
                               linestyle='dotted', draw_labels=True)
         else:
             gl = ax.gridlines(crs=ccrs.PlateCarree(),
                               linewidth=2, linestyle='dotted')
-        gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, 20))
-        gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, 30))
-        gl.xformatter = LONGITUDE_FORMATTER
-        gl.yformatter = LATITUDE_FORMATTER
-        gl.xlabels_top = False
     elif Opts['pltgrid']:
-        print('gridlines only supported for PlateCarree and Mercator plots currently')
+        print('gridlines only supported for PlateCarree, Lambert Conformal, and Mercator plots currently')
     prn_name, symsize = 0, 5
     # if 'names' in list(Opts.keys()) > 0:
     #    names = Opts['names']
