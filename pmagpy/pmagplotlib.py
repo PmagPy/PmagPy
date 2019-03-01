@@ -3349,21 +3349,21 @@ def plot_map(fignum, lats, lons, Opts):
                 ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER) # you need this here
                 ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)# you need this here, too
 
-                try: 
+                try:
                     import pmagpy.lcc_ticks as lcc_ticks
                     lcc_ticks.lambert_xticks(ax, xticks)
                     lcc_ticks.lambert_yticks(ax, yticks)
-                     
+
                 except:
                     print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
             else:
+                gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
+                              linestyle='dotted', draw_labels=True)
                 gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
                 gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
                 gl.xformatter = LONGITUDE_FORMATTER
                 gl.yformatter = LATITUDE_FORMATTER
                 gl.xlabels_top = False
-                gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
-                              linestyle='dotted', draw_labels=True)
         else:
             gl = ax.gridlines(crs=ccrs.PlateCarree(),
                               linewidth=2, linestyle='dotted')
