@@ -2985,6 +2985,11 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         if 'age' is selected, you must provide an ages file.
     dir_path : str, default "."
         directory for input files
+
+    Returns
+    ---------
+    plot : matplotlib plot, or False if no plot could be created
+    name : figure name, or error message if no plot could be created
     """
     if depth_scale == 'sample_core_depth':
         depth_scale = 'core_depth'
