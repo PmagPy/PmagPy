@@ -6769,7 +6769,7 @@ def apseudo(Ss, ipar, sigma):
 #
     Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
     #Ss = np.array(Ss)
-    if ipar == 0:
+    if not ipar: # ipar == 0:
         BSs = Ss[Is]
     else:  # need to recreate measurement - then do the parametric stuffr
         A, B = design(6)  # get the design matrix for 6 measurementsa

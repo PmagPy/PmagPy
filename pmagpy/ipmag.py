@@ -8934,8 +8934,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         print(" Good bye ")
 
 
-def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=1,
-                   ipar=0, ihext=1, ivec=0, isite=0, iloc=0, iboot=0, vec=0,
+def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=True,
+                   ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
                    Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
@@ -8950,7 +8950,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=1
             samp_file : samples formatted file with sample => site relationship
             site_file : sites formatted file with site => location relationship
         isite : if True plot by site, requires non-blank samp_file
-        iloc : if True plot by location, requires non-blank samp_file, and site_file
+        #iloc : if True plot by location, requires non-blank samp_file, and site_file  NOT IMPLEMENTED
         Dir : [Dec,Inc] list for comparison direction
         vec : eigenvector for comparison with Dir
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
@@ -8967,6 +8967,12 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=1
             ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
 
     """
+    ipar = int(ipar)
+    ihext = int(ihext)
+    ivec = int(ivec)
+    isite = int(isite)
+    #iloc = int(iloc) # NOT USED
+    iboot = int(iboot)
 
     # initialize some variables
     version_num = pmag.get_version()
@@ -9117,8 +9123,12 @@ def plot_gc(poles, color='g', fignum=1):
         pmagplotlib.plot_circ(fignum, pole, 90., color)
 
 
-def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=0, ihext=1, ivec=0,
-               iboot=0, vec=0, num_bootstraps=1000, title=""):
+def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
+               iboot=False, vec=0, num_bootstraps=1000, title=""):
+    ipar = int(ipar)
+    ihext = int(ihext)
+    ivec = int(ivec)
+    iboot = int(iboot)
     Ss, V1, V2, V3 = [], [], [], []
     for ind, rec in aniso_df.iterrows():
         s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
