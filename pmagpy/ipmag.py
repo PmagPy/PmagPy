@@ -8936,7 +8936,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=True,
                    ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
-                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1):
+                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1, input_dir_path="", save_plots=True, interactive=False):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
@@ -8967,13 +8967,18 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
             ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
 
     """
+    figs = {}
+    saved = []
+    # make sure boolean values are in integer form
+    # for backwards compatibility
     ipar = int(ipar)
     ihext = int(ihext)
     ivec = int(ivec)
     isite = int(isite)
     #iloc = int(iloc) # NOT USED
     iboot = int(iboot)
-
+    # fix directories
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # initialize some variables
     version_num = pmag.get_version()
     hpars, bpars = [], []
@@ -8986,9 +8991,9 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
     #
     #
     # read in the data
+
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-    dir_path = os.path.realpath(dir_path)
-    con = cb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     con.propagate_location_to_specimens()
     spec_container = con.tables['specimens']
@@ -9020,16 +9025,36 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
         sites = cs_df['site'].unique()
         for site in list(sites):
             site_df = cs_df[cs_df.site == site]
-            plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot,
-                       vec=vec, num_bootstraps=num_bootstraps, title=site)
-            fignum += 2
-            if iboot:
-                fignum += 1
-            if len(Dir) > 0:
-                fignum += 1
+            figs = plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar,
+                              ihext=ihext, ivec=ivec, iboot=iboot,
+                              vec=vec, num_bootstraps=num_bootstraps, title=site)
+            if save_plots:
+                saved.extend(pmagplotlib.save_plots(figs))
+            elif interactive:
+                pmagplotlib.draw_figs(ZED)
+                ans = pmagplotlib.save_or_quit()
+                if ans == 'a':
+                    saved.extend(pmagplotlib.save_plots(ZED, titles))
+                else:
+                    continue
+            else:
+                fignum += 2
+                if iboot:
+                    fignum += 1
+                if len(Dir) > 0:
+                    fignum += 1
     else:
-        plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext, ivec=ivec, iboot=iboot,
-                   vec=vec, num_bootstraps=num_bootstraps)
+        figs = plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext,
+                          ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
+        if save_plots:
+            titles = {key: key + ".png" for (key, value) in figs.items()}
+            saved.extend(pmagplotlib.save_plots(figs, titles))
+        elif interactive:
+            pmagplotlib.draw_figs(figs)
+            ans = pmagplotlib.save_or_quit()
+            if ans == 'a':
+                saved.extend(pmagplotlib.save_plots(figs, figs))
+    return True, saved
 
 
 def plot_dmag(data="", title="", fignum=1, norm=1):
@@ -9125,6 +9150,7 @@ def plot_gc(poles, color='g', fignum=1):
 
 def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
                iboot=False, vec=0, num_bootstraps=1000, title=""):
+    figs = {}
     ipar = int(ipar)
     ihext = int(ihext)
     ivec = int(ivec)
@@ -9142,6 +9168,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
     if Ss.shape[0] > 1:
         # plot the data
         plot_net(fignum)
+        figs['eqarea'] = fignum
         plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
@@ -9151,6 +9178,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         hpars = pmag.dohext(nf, sigma, avs)  # get the Hext parameters
         if len(PDir) > 0:
             pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
+        figs['confidence'] = fignum + 1
         plot_net(fignum+1)
         plt.title(title+':'+'Confidence Ellipses')
         plot_di(dec=hpars['v1_dec'], inc=hpars['v1_inc'],
@@ -9200,6 +9228,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
                     ts = np.sort(Taus[t])
                     pmagplotlib.plot_cdf(
                         fignum+2, ts, "", colors[t], "")  # plot the CDF
+                    figs['eigenvalues'] = fignum + 2
                     # minimum 95% conf bound
                     plt.axvline(ts[int(0.025*len(ts))],
                                 color=colors[t], linestyle=styles[t])
@@ -9216,6 +9245,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
                         xs = np.sort(np.array([row[i] for row in X]))
                         pmagplotlib.plot_cdf(
                             fignum+i+3, xs, "", colors[i], "")  # plot the CDF
+                        figs['cdf_' + str(i)] = fignum + i + 3
                         # minimum 95% conf bound
                         plt.axvline(xs[int(0.025*len(xs))],
                                     color=colors[vec-1], linestyle=styles[i])
@@ -9240,6 +9270,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
                 if len(Dir) > 0:   # plot the comparison direction components
                     plot_di(di_block=[Dir], color='green',
                             marker='*', markersize=200)
+    return figs
 
 
 def aarm_magic(infile, dir_path=".", input_dir_path="",
