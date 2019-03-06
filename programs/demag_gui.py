@@ -5361,9 +5361,9 @@ class Demag_GUI(wx.Frame):
             comment = ""
             orient = list(spec_df[spec_df['dir_tilt_correction'].notnull(
             )]['dir_tilt_correction'].drop_duplicates())
-            samples = sorted(list(spec_df['sample'].drop_duplicates()))
-            sites = sorted(list(spec_df['site'].drop_duplicates()))
-            locations = sorted(list(spec_df['location'].drop_duplicates()))
+            samples = sorted(list(spec_df['sample'].dropna().drop_duplicates()))
+            sites = sorted(list(spec_df['site'].dropna().drop_duplicates()))
+            locations = sorted(list(spec_df['location'].dropna().drop_duplicates()))
             Comps = sorted(
                 list(spec_df[spec_df['dir_comp'].notnull()]['dir_comp'].drop_duplicates()))
             Comps = [c for c in Comps if type(c) == str]
