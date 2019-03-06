@@ -1330,6 +1330,7 @@ class MagicDataFrame(object):
             self.df.index.name = name + " name"
         # if there is a file provided, read in the data and ascertain dtype
         else:
+            magic_file = os.path.realpath(magic_file)
             with open(magic_file) as f:
                 try:
                     delim, dtype = f.readline().split('\t')[:2]
@@ -1405,12 +1406,33 @@ class MagicDataFrame(object):
 
     def all_to_str(self):
         """
-        In all columns, turn all floats into strings,
-        and round them to 5 decimals.
+        In all columns, turn all floats/ints into strings.
+        If a float ends with .0, strip off '.0' from the resulting string.
         """
         def stringify(x):
+            # float --> string,
+            # truncating floats like 3.0 --> 3
             if isinstance(x, float):
-                return str(x)  #"{:.5f}".format(x).rstrip('0')
+                if x.is_integer():
+                    #print('{} --> {}'.format(x, str(x).rstrip('0').rstrip('.')))
+                    return str(x).rstrip('0').rstrip('.')
+                return(str(x))
+            # keep strings as they are,
+            # unless it is a string like "3.0",
+            # in which case truncate that too
+            if isinstance(x, str):
+                try:
+                    float(x)
+                    if x.endswith('0'):
+                        if x.rstrip('0').endswith('.'):
+                            #print('{} --> {}'.format(x, x.rstrip('0').rstrip('.')))
+                            return x.rstrip('0').rstrip('.')
+                except (ValueError, TypeError):
+                    pass
+            # integer --> string
+            if isinstance(x, int):
+                return str(x)
+            # if it is not int/str/float, just return as is
             return x
 
         def remove_extra_digits(x, prog):
