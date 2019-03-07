@@ -917,7 +917,7 @@ class TestAnisoMagic(unittest.TestCase):
     def test_new_success(self):
         dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
         ipmag.aniso_magic_nb(infile='dike_specimens.txt',
-                             input_dir_path=dir_path,
+                             dir_path=dir_path,
                              iboot=1,ihext=0,ivec=1,PDir=[120,10],ipar=1,
                              save_plots=True)
         files = glob.glob('*.png')

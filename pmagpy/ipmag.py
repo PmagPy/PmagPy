@@ -8990,35 +8990,43 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
 def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=True,
                    ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
-                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1, input_dir_path="", save_plots=True, interactive=False):
+                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
+                   save_plots=True, interactive=False, fmt="png"):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
 
     Parameters
     __________
+        infile : specimens formatted file with aniso_s data
+        samp_file : samples formatted file with sample => site relationship
+        site_file : sites formatted file with site => location relationship
         verbose : if True, print messages to output
-        dir_path : input directory path
-        Data Model 3.0 only formated files:
-            infile : specimens formatted file with aniso_s data
-            samp_file : samples formatted file with sample => site relationship
-            site_file : sites formatted file with site => location relationship
-        isite : if True plot by site, requires non-blank samp_file
-        #iloc : if True plot by location, requires non-blank samp_file, and site_file  NOT IMPLEMENTED
-        Dir : [Dec,Inc] list for comparison direction
+        confidence bounds options:
+            ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
+            ihext : if True - Hext ellipses
+            ivec : if True - plot bootstrapped eigenvectors instead of ellipses
+            isite : if True plot by site, requires non-blank samp_file
+            #iloc : if True plot by location, requires non-blank samp_file, and site_file  NOT IMPLEMENTED
+            iboot : if True - bootstrap ellipses
         vec : eigenvector for comparison with Dir
+        Dir : [Dec,Inc] list for comparison direction
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
               green dots are on the lower hemisphere, cyan are on the upper hemisphere
-        fignum : matplotlib figure number
         crd : ['s','g','t'], coordinate system for plotting whereby:
             s : specimen coordinates, aniso_tile_correction = -1, or unspecified
             g : geographic coordinates, aniso_tile_correction = 0
             t : tilt corrected coordinates, aniso_tile_correction = 100
-        confidence bounds options:
-            ihext : if True - Hext ellipses
-            iboot : if True - bootstrap ellipses
-            ivec : if True - plot bootstrapped eigenvectors instead of ellipses
-            ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
+        num_bootstraps : how many bootstraps to do, default 1000
+        dir_path : directory path
+        fignum : matplotlib figure number, default 1
+        save_plots : bool, default True
+            if True, create and save all requested plots
+        interactive : bool, default False
+            interactively plot and display for each specimen
+            (this is best used on the command line only)
+        fmt : str, default "svg"
+            format for figures, [svg, jpg, pdf, png]
 
     """
     figs = {}
@@ -9031,8 +9039,8 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
     isite = int(isite)
     #iloc = int(iloc) # NOT USED
     iboot = int(iboot)
-    # fix directories
-    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    # fix directory
+    input_dir_path = os.path.realpath(dir_path)
     # initialize some variables
     version_num = pmag.get_version()
     hpars, bpars = [], []
@@ -9082,13 +9090,14 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
             figs = plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
                               vec=vec, num_bootstraps=num_bootstraps, title=site)
+            titles = {key: site +"_" + key + ".png" for (key, value) in figs.items()}
             if save_plots:
-                saved.extend(pmagplotlib.save_plots(figs))
+                saved.extend(pmagplotlib.save_plots(figs, titles))
             elif interactive:
-                pmagplotlib.draw_figs(ZED)
+                pmagplotlib.draw_figs(figs)
                 ans = pmagplotlib.save_or_quit()
                 if ans == 'a':
-                    saved.extend(pmagplotlib.save_plots(ZED, titles))
+                    saved.extend(pmagplotlib.save_plots(figs, titles))
                 else:
                     continue
             else:
