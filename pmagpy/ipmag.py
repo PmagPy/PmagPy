@@ -1808,8 +1808,8 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
     >>> plon = 200
     >>> plat = 60
     >>> A95 = 6
-    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> plot_pole(map_axis, plon, plat, A95 ,color='red',markersize=40)
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> ipmag.plot_pole(map_axis, plon, plat, A95 ,color='red',markersize=40)
 
     Required Parameters
     -----------
@@ -1953,8 +1953,8 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     >>> dp = pole[2]
     >>> dm = pole[3]
 
-    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> plot_pole_dp_dm(map_axis,pole_lon,pole_lat,site_lon,site_lat,dp,dm)
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> ipmag.plot_pole_dp_dm(map_axis,pole_lon,pole_lat,site_lon,site_lat,dp,dm)
 
     Required Parameters
     -----------
@@ -2104,9 +2104,10 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
 
     Example
     -------
-    >>> vgps = fishrot(dec=200,inc=30)
-    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> plot_vgp(map_axis,vgp_lon=vgp_lon_list,vgp_lat=vgp_lat_list,color='red',markersize=40)
+    >>> vgps = ipmag.fishrot(dec=200,inc=30)
+    >>> vgp_lon_list,vgp_lat_list,intensities= ipmag.unpack_di_block(vgps)
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=30)
+    >>> ipmag.plot_vgp(map_axis,vgp_lon=vgp_lon_list,vgp_lat=vgp_lat_list,color='red',markersize=40)
 
     Required Parameters
     -----------
