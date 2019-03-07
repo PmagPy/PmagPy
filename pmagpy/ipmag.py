@@ -1884,7 +1884,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
         for n in range(0,len(A95)):  
             A95_km = A95[n] * 111.32
             equi(map_axis, plon[n], plat[n], A95_km, color)
-    elif isinstance(color,list)==True:
+    else:
         for n in range(0,len(A95)):  
             A95_km = A95[n] * 111.32
             equi(map_axis, plon[n], plat[n], A95_km, color[n])
