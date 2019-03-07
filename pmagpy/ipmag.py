@@ -1836,6 +1836,60 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
     equi(map_axis, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
+        
+        
+def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
+    """
+    This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
+
+    Before this function is called, a plot needs to be initialized with code
+    such as that in the make_orthographic_map function.
+
+    Examples
+    -------
+    >>> plons = [200, 180, 210]
+    >>> plats = [60, 40, 35]
+    >>> A95 = [6, 3, 10]
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
+    >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color='red', markersize=40)
+    
+    >>> plons = [200, 180, 210]
+    >>> plats = [60, 40, 35]
+    >>> A95 = [6, 3, 10]
+    >>> colors = ['red','green','blue']
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
+    >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color=colors, markersize=40)
+    
+    Required Parameters
+    -----------
+    map_axis : the name of the current map axis that has been developed using cartopy
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
+    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
+
+    Optional Parameters (defaults are used if not specified)
+    -----------
+    color : the default color is black. Other colors can be chosen (e.g. 'r')
+            a list of colors can also be given so that each pole has a distinct color
+    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    markersize : the default is 20. Other size can be chosen
+    label : the default is no label. Labels can be assigned.
+    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    """
+
+    map_axis.scatter(plon, plat, marker=marker,
+                     color=color, edgecolors=edgecolor, s=markersize,
+                     label=label, zorder=101, transform=ccrs.Geodetic())
+    if isinstance(color,str)==True:
+        for n in range(0,len(A95)):  
+            A95_km = A95[n] * 111.32
+            equi(map_axis, plon[n], plat[n], A95_km, color)
+    elif isinstance(color,list)==True:
+        for n in range(0,len(A95)):  
+            A95_km = A95[n] * 111.32
+            equi(map_axis, plon[n], plat[n], A95_km, color[n])
+    if legend == 'yes':
+        plt.legend(loc=2)
 
 
 def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
