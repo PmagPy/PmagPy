@@ -1871,6 +1871,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
             a list of colors can also be given so that each pole has a distinct color
+    edgecolor : the default edgecolor is black. Other colors can be chosen (e.g. 'r')
     marker : the default is a circle. Other symbols can be chosen (e.g. 's')
     markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
@@ -2035,54 +2036,8 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         plt.legend(loc=2)
 
 
-def plot_pole_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax, label='', colormap='viridis', color='k', marker='o', markersize='20', alpha=1.0, legend=False):
-    """
-    This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
-    The color of the pole is set by a colormap.
-
-    Before this function is called, a plot needs to be initialized with code
-    such as that in the make_orthographic_map function.
-
-    Example
-    -------
-    >>> plon = 200
-    >>> plat = 60
-    >>> A95 = 6
-    >>> pole_age = 350
-    >>> map_axis = make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> plot_pole_colorbar(map_axis, plon, plat, A95 , pole_age, 0, 500,markersize=40)
-
-    Required Parameters
-    -----------
-    map_axis : the name of the current map axis that has been developed using cartopy
-    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
-    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
-    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-    colorvalue : what attribute is being used to determine the colors
-    vmin : what is the minimum range for the colormap
-    vmax : what is the maximum range for the colormap
-
-    Optional Parameters (defaults are used if not specified)
-    -----------
-    colormap : the colormap used (default is 'viridis'; others should be put as a string with quotes, e.g. 'plasma')
-    label : a string that is the label for the paleomagnetic pole being plotted
-    color : the color desired for the symbol outline and its A95 ellipse (default is 'k' aka black)
-    marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
-    legend : the default is no legend (False). Putting True will plot a legend.
-    """
-    if not has_cartopy:
-        print('-W- cartopy must be installed to run ipmag.plot_pole_colorbar')
-        return
-    A95_km = A95 * 111.32
-    map_axis.scatter(plon, plat, c=colorvalue, vmin=vmin, vmax=vmax, cmap=colormap,
-                     s=markersize, marker=marker, alpha=alpha, label=label, zorder=101, transform=ccrs.Geodetic())
-    equi(map_axis, plon, plat, A95_km, color, alpha)
-    if legend == True:
-        plt.legend(loc=2)
-
-
-def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
-                        colormap='viridis', color='k', marker='o', markersize='20',
+def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
+                        colormap='viridis', edgecolor='k', marker='o', markersize='20',
                         alpha=1.0, colorbar=True, colorbar_label='pole age (Ma)'):
     """
     This function plots multiple paleomagnetic pole and A95 error ellipse on a cartopy map axis.
@@ -2093,45 +2048,50 @@ def plot_poles_colorbar(map_axis, plon, plat, A95, colorvalue, vmin, vmax,
 
     Example
     -------
-    >>> Laurentia_APWP_T2012 = pd.read_csv('./data/Laurentia_Mean_APWP.txt')
-    >>> map_axis = make_orthographic_map(central_longitude=-60,central_latitude=-60)
-    >>> plot_poles_colorbar(map_axis,Laurentia_APWP_T2012['Plon_RM'],
-                    Laurentia_APWP_T2012['Plat_RM'],
-                    Laurentia_APWP_T2012['A95_RM'],
-                    Laurentia_APWP_T2012['Age'],
-                    0, 540, colormap='viridis',  markersize=80, color="k", alpha=1)
-
+    >>> plons = [200, 180, 210]
+    >>> plats = [60, 40, 35]
+    >>> A95s = [6, 3, 10]
+    >>> ages = [100,200,300]
+    >>> vmin = 0
+    >>> vmax = 300
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
+    >>> ipmag.plot_poles_colorbar(map_axis, plons, plats, A95s, ages, vmin, vmax)
+    
     Required Parameters
     -----------
     map_axis : the name of the current map axis that has been developed using cartopy
-    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
-    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
-    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-    colorvalue : what attribute is being used to determine the colors
+    plons : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plats : the latitude of the paleomagnetic pole being plotted (in degrees)
+    A95s : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
+    colorvalues : what attribute is being used to determine the colors
     vmin : what is the minimum range for the colormap
     vmax : what is the maximum range for the colormap
 
     Optional Parameters (defaults are used if not specified)
     -----------
     colormap : the colormap used (default is 'viridis'; others should be put as a string with quotes, e.g. 'plasma')
-    label : a string that is the label for the paleomagnetic pole being plotted
-    color : the color desired for the symbol outline and its A95 ellipse (default is 'k' aka black)
+    edgecolor : the color desired for the symbol outline
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
     colorbar : the default is to include a colorbar (True). Putting False will make it so no legend is plotted.
     colorbar_label : label for the colorbar
     """
+    
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_poles_colorbar')
         return
-    for n in range(0, len(plon)):
-        plot_pole_colorbar(map_axis, plon[n], plat[n], A95[n], colorvalue[n], vmin, vmax,
-                           colormap=colormap, color=color, marker=marker, markersize=markersize, alpha=alpha)
-
-    sm = plt.cm.ScalarMappable(
-        cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
-    sm._A = []
-    plt.colorbar(sm, orientation='horizontal', shrink=0.8,
-                 pad=0.05, label=colorbar_label)
+    
+    color_mapping = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    colors = color_mapping.to_rgba(colorvalues).tolist()
+    
+    plot_poles(map_axis, plons, plats, A95s, 
+                     label='', color=colors, edgecolor=edgecolor, marker=marker)
+    
+    if colorbar == True:
+        sm = plt.cm.ScalarMappable(
+            cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        sm._A = []
+        plt.colorbar(sm, orientation='horizontal', shrink=0.8,
+                     pad=0.05, label=colorbar_label)
 
 
 def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
