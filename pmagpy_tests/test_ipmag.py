@@ -916,10 +916,13 @@ class TestAnisoMagic(unittest.TestCase):
 
     def test_new_success(self):
         dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
-        ipmag.aniso_magic_nb(infile='dike_specimens.txt',
-                             dir_path=dir_path,
-                             iboot=1,ihext=0,ivec=1,PDir=[120,10],ipar=1,
-                             save_plots=True)
+        status, outfiles = ipmag.aniso_magic_nb(infile='dike_specimens.txt',
+                                dir_path=dir_path,
+                                iboot=1,ihext=0,ivec=1,PDir=[120,10],ipar=1,
+                                save_plots=True)
+        self.assertTrue(status)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
         files = glob.glob('*.png')
         self.assertEqual(3, len(files))
 

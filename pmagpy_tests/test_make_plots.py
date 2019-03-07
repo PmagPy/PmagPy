@@ -41,11 +41,11 @@ class TestMakeMagicPlots(unittest.TestCase):
 
 
     def test_make_plots_long(self):
-        if not pmagplotlib.isServer:
-            # only run this annoyingly slow test 10% of the time
-            num = random.randint(1, 10)
-            if num != 3:
-                return
+        #if not pmagplotlib.isServer:
+        #    # only run this annoyingly slow test 10% of the time
+        #    num = random.randint(1, 10)
+        #    if num != 3:
+        #        return
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
         for filename in glob.glob("*error*"):
             os.remove(filename)

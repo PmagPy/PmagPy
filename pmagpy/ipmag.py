@@ -9011,17 +9011,25 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
         CS = 0
     if crd == 't':
         CS = 100
+
+
     #
     #
     # read in the data
 
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites'],
+    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites', 'contribution'],
                           custom_filenames=fnames)
+    # get contribution id if available
+    con_id = ""
+    if 'contribution' in con.tables:
+        if 'id' in con.tables['contribution'].df.columns:
+            con_id = str(con.tables['contribution'].df['id'].values[0])
+    # get other data
     con.propagate_location_to_specimens()
     spec_container = con.tables['specimens']
     spec_df = spec_container.df
-    # get only anisotropy records
+    # use only anisotropy records
     spec_df = spec_df.dropna(subset=['aniso_s']).copy()
     if 'aniso_tilt_correction' not in spec_df.columns:
         spec_df['aniso_tilt_correction'] = -1  # assume specimen coordinates
@@ -9048,17 +9056,33 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
         sites = cs_df['site'].unique()
         for site in list(sites):
             site_df = cs_df[cs_df.site == site]
+            loc = ""
+            if 'location' in con.tables['sites'].df.columns:
+                locs = con.tables['sites'].df.loc[site, 'location'].dropna()
+                if any(locs):
+                    loc = locs.iloc[0]
             figs = plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
                               vec=vec, num_bootstraps=num_bootstraps, title=site)
-            titles = {key: site +"_" + key + ".png" for (key, value) in figs.items()}
+            files = {key: loc + "_" + site +"_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
+            if pmagplotlib.isServer:
+                for key in figs.keys():
+                    files[key] = "LO:_" + loc + "_SI:_" + site +  '_TY:_aniso_' + key + '_.' + fmt
+                    titles = {}
+                    titles['data'] = "Eigenvectors"
+                    titles['tcdf'] = "Eigenvalue Confidence"
+                    titles['conf'] = "Confidence Ellipses"
+                    for key in figs:
+                        if key not in titles:
+                            titles[key] = key
+                    pmagplotlib.add_borders(figs, titles, con_id=con_id)
             if save_plots:
-                saved.extend(pmagplotlib.save_plots(figs, titles))
+                saved.extend(pmagplotlib.save_plots(figs, files))
             elif interactive:
                 pmagplotlib.draw_figs(figs)
                 ans = pmagplotlib.save_or_quit()
                 if ans == 'a':
-                    saved.extend(pmagplotlib.save_plots(figs, titles))
+                    saved.extend(pmagplotlib.save_plots(figs, files))
                 else:
                     continue
             else:
@@ -9070,14 +9094,25 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
     else:
         figs = plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext,
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
+        files = {key: crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
+        if pmagplotlib.isServer:
+            for key in figs.keys():
+                files[key] = 'MC:_' + con_id + '_TY:_aniso_' + key + '_.' + fmt
+                titles = {}
+                titles['data'] = "Eigenvectors"
+                titles['tcdf'] = "Eigenvalue Confidence"
+                titles['conf'] = "Confidence Ellipses"
+                for key in figs:
+                    if key not in titles:
+                        titles[key] = key
+                pmagplotlib.add_borders(figs, titles, con_id=con_id)
         if save_plots:
-            titles = {key: key + ".png" for (key, value) in figs.items()}
-            saved.extend(pmagplotlib.save_plots(figs, titles))
+            saved.extend(pmagplotlib.save_plots(figs, files))
         elif interactive:
             pmagplotlib.draw_figs(figs)
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
-                saved.extend(pmagplotlib.save_plots(figs, figs))
+                saved.extend(pmagplotlib.save_plots(figs, files))
     return True, saved
 
 
@@ -9192,7 +9227,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
     if Ss.shape[0] > 1:
         # plot the data
         plot_net(fignum)
-        figs['eqarea'] = fignum
+        figs['data'] = fignum
         plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
@@ -9202,7 +9237,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         hpars = pmag.dohext(nf, sigma, avs)  # get the Hext parameters
         if len(PDir) > 0:
             pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
-        figs['confidence'] = fignum + 1
+        figs['conf'] = fignum + 1
         plot_net(fignum+1)
         plt.title(title+':'+'Confidence Ellipses')
         plot_di(dec=hpars['v1_dec'], inc=hpars['v1_inc'],
@@ -9252,7 +9287,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
                     ts = np.sort(Taus[t])
                     pmagplotlib.plot_cdf(
                         fignum+2, ts, "", colors[t], "")  # plot the CDF
-                    figs['eigenvalues'] = fignum + 2
+                    figs['tcdf'] = fignum + 2
                     # minimum 95% conf bound
                     plt.axvline(ts[int(0.025*len(ts))],
                                 color=colors[t], linestyle=styles[t])
