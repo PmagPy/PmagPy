@@ -8949,7 +8949,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         print(" Good bye ")
 
 
-def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=True,
+def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
                    ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
                    Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
                    save_plots=True, interactive=False, fmt="png"):
@@ -9056,11 +9056,12 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
         for site in list(sites):
             site_df = cs_df[cs_df.site == site]
             loc = ""
-            if 'location' in con.tables['sites'].df.columns:
-                locs = con.tables['sites'].df.loc[site, 'location'].dropna()
-                if any(locs):
-                    loc = locs.iloc[0]
-            figs = plot_aniso(fignum, site_df, PDir=PDir, ipar=ipar,
+            if 'sites' in con.tables:
+                if 'location' in con.tables['sites'].df.columns:
+                    locs = con.tables['sites'].df.loc[site, 'location'].dropna()
+                    if any(locs):
+                        loc = locs.iloc[0]
+            figs = plot_aniso(fignum, site_df, Dir=Dir, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
                               vec=vec, num_bootstraps=num_bootstraps, title=site)
             files = {key: loc + "_" + site +"_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
@@ -9091,7 +9092,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
                 if len(Dir) > 0:
                     fignum += 1
     else:
-        figs = plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext,
+        figs = plot_aniso(fignum, cs_df, Dir=Dir, PDir=PDir, ipar=ipar, ihext=ihext,
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
         try:
             locs = cs_df['location'].unique()

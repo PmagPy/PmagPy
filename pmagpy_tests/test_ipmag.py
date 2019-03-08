@@ -903,7 +903,7 @@ class TestAnisoMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.png", "*.pdf"]
+        glob_strings = ["*.png", "*.pdf", os.path.join(WD, 'data_files', '3_0', 'McMurdo', '*.png')]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
@@ -925,6 +925,18 @@ class TestAnisoMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(fname))
         files = glob.glob('*.png')
         self.assertEqual(3, len(files))
+
+    def test_new_success_by_site(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        status, outfiles = ipmag.aniso_magic_nb(infile='specimens.txt',
+                                dir_path=dir_path,
+                                iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
+                                save_plots=True, isite=True)
+        self.assertTrue(status)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+        files = glob.glob('*.png')
+        self.assertEqual(24, len(files))
 
 
 
