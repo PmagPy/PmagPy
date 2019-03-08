@@ -10262,19 +10262,20 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             'LT-NO')]  # get the NRM data
         spec_df_th = spec_df[spec_df.method_codes.str.contains(
             'LT-T-Z')]  # zero field thermal demag steps
-        try:
-            spec_df_th = spec_df_th[spec_df.method_codes.str.contains(
-                'LT-PTRM') == False]  # get rid of some pTRM steps
-        except ValueError:
-            keep_inds = []
-            n = 0
-            for ind, row in spec_df_th.copy().iterrows():
-                if 'LT-PTRM' in row['method_codes']:
-                    keep_inds.append(n)
-                else:
-                    pass
-                n += 1
-            spec_df_th = spec_df_th.iloc[keep_inds]
+        #try:
+        #     spec_df_th = spec_df_th[spec_df.method_codes.str.contains( 'LT-PTRM') == False]  # get rid of some pTRM steps
+        #     print ('after filter: ', spec_df_th)
+        #except ValueError:
+        #     print ('error: ',ValueError)
+        #     keep_inds = []
+        #     n = 0
+        #     for ind, row in spec_df_th.copy().iterrows():
+        #         if 'LT-PTRM' in row['method_codes']:
+        #             keep_inds.append(n)
+        #         else:
+        #             pass
+        #         n += 1
+        #     spec_df_th = spec_df_th.iloc[keep_inds]
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
         this_spec_meas_df = None
         datablock = None
@@ -10316,7 +10317,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         except KeyError as ex:
             pass
     meas_container = contribution.tables['measurements']
-    meas_df = contribution.tables['measurements'].df #pd.read_csv(file_path, sep='\t', header=1)
+    meas_df = contribution.tables['measurements'].df #
+    #meas_df=pd.read_csv(file_path, sep='\t', header=1)
     spec_container = contribution.tables.get('specimens', None)
     #if not spec_file:
     #    spec_file = os.path.join(os.path.split(file_path)[0], "specimens.txt")
