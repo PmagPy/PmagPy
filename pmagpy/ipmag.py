@@ -9093,7 +9093,12 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
     else:
         figs = plot_aniso(fignum, cs_df, PDir=PDir, ipar=ipar, ihext=ihext,
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
-        files = {key: crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
+        try:
+            locs = cs_df['location'].unique()
+        except:
+            locs = [""]
+        locs = "-".join(locs)
+        files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
         if pmagplotlib.isServer:
             for key in figs.keys():
                 files[key] = 'MC:_' + con_id + '_TY:_aniso_' + key + '_.' + fmt
