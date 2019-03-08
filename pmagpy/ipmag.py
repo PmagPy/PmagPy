@@ -9075,7 +9075,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
                     for key in figs:
                         if key not in titles:
                             titles[key] = key
-                    pmagplotlib.add_borders(figs, titles, con_id=con_id)
+                pmagplotlib.add_borders(figs, titles, con_id=con_id)
             if save_plots:
                 saved.extend(pmagplotlib.save_plots(figs, files))
             elif interactive:
@@ -9105,7 +9105,7 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
                 for key in figs:
                     if key not in titles:
                         titles[key] = key
-                pmagplotlib.add_borders(figs, titles, con_id=con_id)
+            pmagplotlib.add_borders(figs, titles, con_id=con_id)
         if save_plots:
             saved.extend(pmagplotlib.save_plots(figs, files))
         elif interactive:
@@ -9228,7 +9228,8 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         # plot the data
         plot_net(fignum)
         figs['data'] = fignum
-        plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
+        if not pmagplotlib.isServer:
+            plt.title(title+':'+' V1=squares,V2=triangles,V3=circles')
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
         plot_di(di_block=V3, color='k', marker='o', markersize=20)
@@ -9239,7 +9240,8 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
             pmagplotlib.plot_circ(fignum+1, PDir, 90., 'g')
         figs['conf'] = fignum + 1
         plot_net(fignum+1)
-        plt.title(title+':'+'Confidence Ellipses')
+        if not pmagplotlib.isServer:
+            plt.title(title+':'+'Confidence Ellipses')
         plot_di(dec=hpars['v1_dec'], inc=hpars['v1_inc'],
                 color='r', marker='s', markersize=30)
         plot_di(dec=hpars['v2_dec'], inc=hpars['v2_inc'],

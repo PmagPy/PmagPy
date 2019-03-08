@@ -88,6 +88,11 @@ def make_thumbnails(directory=".", fmt="png"):
             top = 0 + height * .2
             right = width * .84
             bottom = height * .81
+        elif "ty:_aniso_tcdf" in lower_infile:
+            left = 0 + width * .124
+            top = 0 + height * .155
+            right = width * .902
+            bottom = height * .86
         else:
             error_log("Could not crop {}".format(infile))
             im.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
