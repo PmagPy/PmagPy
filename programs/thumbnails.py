@@ -83,11 +83,18 @@ def make_thumbnails(directory=".", fmt="png"):
             #right = width * .895
             #bottom = height * .86
 
+        # with old aniso_magic
+        #elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
+        #    left = 0 + width * .18
+        #    top = 0 + height * .2
+        #    right = width * .84
+        #    bottom = height * .81
+        # with new aniso_magic
         elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
-            left = 0 + width * .18
-            top = 0 + height * .2
-            right = width * .84
-            bottom = height * .81
+            left = 0 + width * .215
+            top = 0 + height * .115
+            right = width * .86
+            bottom = height * .875
         elif "ty:_aniso_tcdf" in lower_infile:
             left = 0 + width * .124
             top = 0 + height * .155
