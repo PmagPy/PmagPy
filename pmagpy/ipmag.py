@@ -1836,8 +1836,8 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
     equi(map_axis, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
-        
-        
+
+
 def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
@@ -1852,14 +1852,14 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
     >>> A95 = [6, 3, 10]
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
     >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color='red', markersize=40)
-    
+
     >>> plons = [200, 180, 210]
     >>> plats = [60, 40, 35]
     >>> A95 = [6, 3, 10]
     >>> colors = ['red','green','blue']
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
     >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color=colors, markersize=40)
-    
+
     Required Parameters
     -----------
     map_axis : the name of the current map axis that has been developed using cartopy
@@ -1882,11 +1882,11 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
     if isinstance(color,str)==True:
-        for n in range(0,len(A95)):  
+        for n in range(0,len(A95)):
             A95_km = A95[n] * 111.32
             equi(map_axis, plon[n], plat[n], A95_km, color)
     else:
-        for n in range(0,len(A95)):  
+        for n in range(0,len(A95)):
             A95_km = A95[n] * 111.32
             equi(map_axis, plon[n], plat[n], A95_km, color[n])
     if legend == 'yes':
@@ -2056,7 +2056,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     >>> vmax = 300
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
     >>> ipmag.plot_poles_colorbar(map_axis, plons, plats, A95s, ages, vmin, vmax)
-    
+
     Required Parameters
     -----------
     map_axis : the name of the current map axis that has been developed using cartopy
@@ -2075,17 +2075,17 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     colorbar : the default is to include a colorbar (True). Putting False will make it so no legend is plotted.
     colorbar_label : label for the colorbar
     """
-    
+
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_poles_colorbar')
         return
-    
+
     color_mapping = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     colors = color_mapping.to_rgba(colorvalues).tolist()
-    
-    plot_poles(map_axis, plons, plats, A95s, 
+
+    plot_poles(map_axis, plons, plats, A95s,
                      label='', color=colors, edgecolor=edgecolor, marker=marker)
-    
+
     if colorbar == True:
         sm = plt.cm.ScalarMappable(
             cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
@@ -9011,7 +9011,6 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='', site_file='', verbose=T
         CS = 0
     if crd == 't':
         CS = 100
-
 
     #
     #
