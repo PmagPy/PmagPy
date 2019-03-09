@@ -10169,7 +10169,8 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
-              n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen=""):
+              n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
+              samp_file='samples.txt'):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
@@ -10253,10 +10254,20 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         return ZED
 
 
-    def make_plots(spec, cnt, meas_df, spec_container):
+    def make_plots(spec, cnt, meas_df, spec_container, samp_container=None):
+        # get sample data for orientation
+        if spec_container:
+            samps = spec_container.df.loc[spec, 'sample']
+            if isinstance(samps, str):
+                samp = samps
+            else:
+                samp = samps[0]
+            samp_df = samp_container.df[samp_container.df.index == samp]
+        else:
+            samp_df = []
         # we can make the figure dictionary that pmagplotlib likes:
         ZED = {'eqarea': cnt, 'zijd': cnt+1, 'demag': cnt+2}  # make datablock
-
+        # get the relevant data
         spec_df = meas_df[meas_df.specimen == s]
         spec_df_nrm = spec_df[spec_df.method_codes.str.contains(
             'LT-NO')]  # get the NRM data
@@ -10279,17 +10290,21 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         spec_df_af = spec_df[spec_df.method_codes.str.contains('LT-AF-Z')]
         this_spec_meas_df = None
         datablock = None
-
         if (not len(spec_df_th.index) > 1) and (not len(spec_df_af.index) > 1):
             return
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
+            # geographic transformation
+            if coord != "-1" and len(samp_df):
+                this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'K'  # units are kelvin
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         if len(spec_df_af.index) > 1:  # this is an af run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_af])
+            if coord != "-1" and len(samp_df):
+                this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'T'  # these are AF data
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
@@ -10306,9 +10321,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         print('No such file:', file_path)
         return False, []
    # START HERE
-    custom_filenames = {'measurements': file_path, 'specimens': spec_file}
+    custom_filenames = {'measurements': file_path, 'specimens': spec_file, 'samples': samp_file}
     contribution = cb.Contribution(input_dir_path, custom_filenames=custom_filenames,
-                                   read_tables=['measurements', 'specimens', 'contribution'])
+                                   read_tables=['measurements', 'specimens',
+                                                'contribution', 'samples'])
     if pmagplotlib.isServer:
         try:
             contribution.propagate_location_to_samples()
@@ -10320,6 +10336,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     meas_df = contribution.tables['measurements'].df #
     #meas_df=pd.read_csv(file_path, sep='\t', header=1)
     spec_container = contribution.tables.get('specimens', None)
+    samp_container = contribution.tables.get('samples', None)
     #if not spec_file:
     #    spec_file = os.path.join(os.path.split(file_path)[0], "specimens.txt")
     #if os.path.exists(spec_file):
@@ -10339,6 +10356,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         coord = "100"
     else:
         coord = "0"
+
     specimens = meas_df.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
@@ -10351,7 +10369,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     if specimen:
         specimens = [specimen]
     for s in specimens:
-        ZED = make_plots(s, cnt, meas_df, spec_container)
+        ZED = make_plots(s, cnt, meas_df, spec_container, samp_container)
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
@@ -10389,6 +10407,47 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             cnt += 3
 
     return True, saved
+
+
+def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
+    """
+    Transform decs/incs to geographic coordinates.
+    Calls pmag.dogeo_V for the heavy lifting
+
+    Parameters
+    ----------
+    this_spec_meas_df : pandas dataframe of measurements for a single specimen
+    samp_df : pandas dataframe of samples
+    samp : samp name
+
+    Returns
+    ---------
+    this_spec_meas_df : measurements dataframe with transformed coordinates
+    """
+    # transform geographic
+    decs = this_spec_meas_df['dir_dec'].values.tolist()
+    incs = this_spec_meas_df['dir_inc'].values.tolist()
+    or_info, az_type = pmag.get_orient(samp_df,samp,data_model=3)
+    if 'azimuth' in or_info.keys() and cb.not_null(or_info['azimuth'], False):
+        azimuths=len(decs)*[or_info['azimuth']]
+        dips=len(decs)*[or_info['dip']]
+    # if azimuth/dip is missing, plot using specimen coordinates instead
+    else:
+        azimuths,dips=[],[]
+    dirs = [decs, incs, azimuths, dips]
+    dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
+    decs, incs = pmag.dogeo_V(dirs_geo)
+    if coord == '100' and 'bed_dip_direction' in or_info.keys() and or_info['bed_dip_direction']!="":  # need to do tilt correction too
+        bed_dip_dirs = len(decs)*[or_info['bed_dip_direction']]
+        bed_dips = len(decs) * [or_info['bed_dip']]
+        dirs = [decs, incs, bed_dip_dirs, bed_dips]
+        ## this transposes the columns and rows of the list of lists
+        dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
+        decs, incs = pmag.dotilt_V(dirs_tilt)
+    this_spec_meas_df['dir_dec'] = decs
+    this_spec_meas_df['dir_inc'] = incs
+    return this_spec_meas_df
+
 
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
@@ -10553,7 +10612,6 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
             print ('no data for ',this_specimen)
             print ('skipping')
     return True, saved
-
 
 
 def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimens.txt",

@@ -162,6 +162,12 @@ def find(f, seq):
 
 
 def get_orient(samp_data, er_sample_name, **kwargs):
+    """
+    samp_data : PmagPy list of dicts or pandas DataFrame
+    er_sample_name : sample name
+    """
+    if isinstance(samp_data, pd.DataFrame):
+        samp_data = (samp_data.T.apply(dict))
     # set orientation priorities
     EX = ["SO-ASC", "SO-POM"]
     samp_key, az_key, dip_key = 'er_sample_name', 'sample_azimuth', 'sample_dip'
