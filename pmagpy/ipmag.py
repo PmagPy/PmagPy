@@ -10261,7 +10261,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             if isinstance(samps, str):
                 samp = samps
             else:
-                samp = samps[0]
+                samp = samps.iloc[0]
             samp_df = samp_container.df[samp_container.df.index == samp]
         else:
             samp_df = []
