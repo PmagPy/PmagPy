@@ -885,7 +885,8 @@ class TestZeqMagic(unittest.TestCase):
         self.assertEqual(9, len(outfiles))
 
     def test_success_with_interpretations_long(self):
-        res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/3_0/McMurdo", fmt="png", n_plots=200)
+        res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/3_0/McMurdo",
+                                        spec_file="specimens.txt", fmt="png", n_plots=200)
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))

@@ -10242,15 +10242,34 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                             start, end = treatments.index(beg_pcas[ind]), treatments.index(end_pcas[ind])
                             mpars = pmag.domean(
                                 datablock, start, end, calculation_type)
-                        except ValueError:
-                            print('-W- Specimen record contains invalid start/stop bounds:')
+                        except ValueError as ex:
                             mpars['specimen_direction_type'] = "Error"
+                            try:
+                                if beg_pcas[ind] == 0:
+                                    start = 0
+                                else:
+                                    start = treatments.index(beg_pcas[ind])
+                                if end_pcas[ind] == 0:
+                                    end = 0
+                                else:
+                                    end = treatments.index(end_pcas[ind])
+                                mpars = pmag.domean(
+                                    datablock, start, end, calculation_type)
+                            except ValueError:
+                                mpars['specimen_direction_type'] = "Error"
                     # calculate direction/plane
                         if mpars["specimen_direction_type"] != "Error":
                             # put it on the plot
                             pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
                             #if interactive:
                             #    pmagplotlib.draw_figs(ZED)
+                        else:
+                            print('\n-W- Specimen {} record contains invalid start/stop bounds:'.format(this_specimen))
+                            print(prior_spec_data.loc[this_specimen][['meas_step_min', 'meas_step_max']])
+                            print('\n    Measurement records:')
+                            print(this_specimen_measurements[['treat_ac_field', 'treat_temp']])
+                            print('\n    Data will be plotted without interpretations\n')
+
         return ZED
 
 
@@ -10345,6 +10364,9 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     #    spec_container = None
     meas_df['blank'] = ""  # this is a dummy variable expected by plotZED
     if 'treat_ac_field' in meas_df.columns:
+        # create 'treatment' column.
+        # uses treat_temp if treat_ac_field is missing OR zero.
+        # (have to take this into account for plotting later)
         meas_df['treatment'] = meas_df['treat_ac_field'].where(
             cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
     else:
