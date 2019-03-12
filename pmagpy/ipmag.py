@@ -10288,20 +10288,22 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         ZED = {'eqarea': cnt, 'zijd': cnt+1, 'demag': cnt+2}  # make datablock
         # get the relevant data
         spec_df = meas_df[meas_df.specimen == s]
+        # remove ARM data
+        spec_df = spec_df[- spec_df.method_codes.str.contains(
+            'LP-*[\w]*-ARM')]
+        # split data into NRM, thermal, and af dataframes
         spec_df_nrm = spec_df[spec_df.method_codes.str.contains(
             'LT-NO')]  # get the NRM data
         spec_df_th = spec_df[spec_df.method_codes.str.contains(
             'LT-T-Z')]  # zero field thermal demag steps
         try:
-            cond = spec_df.method_codes.str.contains( 'LT-PTRM')
-            cond = spec_df.method_codes.str.contains('\ALT-PTRM|[\s:]LT-PTRM')
-            first_spec_df = spec_df_th.copy()
+            cond = spec_df.method_codes.str.contains('(^|[\s\:])LT-PTRM')
             spec_df_th = spec_df_th[-cond]  # get rid of some pTRM steps
         except ValueError:
             keep_inds = []
             n = 0
             for ind, row in spec_df_th.copy().iterrows():
-                if 'LT-PTRM' in row['method_codes']:
+                if 'LT-PTRM' in row['method_codes'] and 'ALT-PTRM' not in row['method_codes']:
                     keep_inds.append(n)
                 else:
                     pass
