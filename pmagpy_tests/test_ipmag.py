@@ -774,6 +774,22 @@ class TestThellierMagic(unittest.TestCase):
             self.assertTrue(os.path.exists("s2s0-03_arai.png"))
 
 
+    def test_with_contribution_fail(self):
+        con = cb.Contribution(self.thel_WD, read_tables=['specimens'])
+        res, outfiles = ipmag.thellier_magic(spec="s2s0-03", save_plots=True, fmt="png",
+                                             contribution=con)
+        self.assertFalse(res)
+        self.assertFalse(outfiles)
+
+    def test_with_contribution_success(self):
+        con = cb.Contribution(self.thel_WD, read_tables=['measurements'])
+        res, outfiles = ipmag.thellier_magic(spec="s2s0-03", save_plots=True, fmt="png",
+                                             contribution=con)
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.png")), 4)
+        self.assertTrue(os.path.exists("s2s0-03_arai.png"))
+
+
 class TestOrientationMagic(unittest.TestCase):
     def setUp(self):
         self.orient_WD = os.path.join(WD, 'data_files', 'orientation_magic')

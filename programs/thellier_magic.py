@@ -75,6 +75,7 @@ def main():
         sys.exit()
     dir_path = pmag.get_named_arg("-WD", default_val=".")
     input_dir_path = pmag.get_named_arg('-ID', "")
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     meas_file = pmag.get_named_arg(
         "-f", default_val="measurements.txt")
     #spec_file = pmag.get_named_arg(

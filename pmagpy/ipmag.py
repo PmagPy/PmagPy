@@ -10496,7 +10496,8 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
 
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
-                   spec="", n_specs=5, save_plots=True,  fmt="svg", interactive=False):
+                   spec="", n_specs=5, save_plots=True,  fmt="svg", interactive=False,
+                   contribution=None):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
 
@@ -10523,6 +10524,14 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     interactive : bool, default False
         interactively plot and display for each specimen
         (this is best used on the command line only)
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
+
+    Returns
+    ---------
+    status : True or False
+    saved : list of figures saved
     """
 
     def make_plots(this_specimen, thel_data, cnt=1):
@@ -10566,12 +10575,19 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     # format some things
     if interactive:
         save_plots = False
-    # get proper paths
-    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
-    input_dir_path = os.path.split(file_path)[0]
-    # read in magic formatted data
-    contribution = cb.Contribution(input_dir_path)
+
+    if not isinstance(contribution, cb.Contribution):
+        # get proper paths
+        input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+        file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+        input_dir_path = os.path.split(file_path)[0]
+        # read in magic formatted data
+        contribution = cb.Contribution(input_dir_path)
+
+    if not contribution.tables.get('measurements'):
+        print('-W- No measurements table found')
+        return False, []
+
     try:
         contribution.propagate_location_to_samples()
         contribution.propagate_location_to_specimens()
