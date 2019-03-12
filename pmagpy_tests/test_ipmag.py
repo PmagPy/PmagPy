@@ -897,6 +897,15 @@ class TestZeqMagic(unittest.TestCase):
         self.assertFalse(res)
         self.assertFalse(outfiles)
 
+    def test_with_contribution(self):
+        con = cb.Contribution("data_files/zeq_magic")
+        res, outfiles = ipmag.zeq_magic(fmt="png", n_plots=3, contribution=con)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        self.assertEqual(9, len(outfiles))
+
+
 
 class TestAnisoMagic(unittest.TestCase):
 

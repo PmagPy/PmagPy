@@ -10170,7 +10170,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
-              samp_file='samples.txt'):
+              samp_file='samples.txt', contribution=None):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
@@ -10196,10 +10196,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         if True, create and save all requested plots
     fmt : str, default "svg"
         format for figures, [svg, jpg, pdf, png]
-    interactive : bool, default False -- NOT YET IMPLEMENTED
+    interactive : bool, default False
         interactively plot and display for each specimen
         (this is best used on the command line only)
-
+    specimen : str, default ""
+        specimen name to plot
+    samp_file : str, default 'samples.txt'
+        name of samples file
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
     """
 
     def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock):
@@ -10336,18 +10342,18 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
 
     if interactive:
         save_plots = False
-    # read in MagIC foramatted data
-    input_dir_path = os.path.realpath(input_dir_path)
-    file_path = pmag.resolve_file_name(meas_file, input_dir_path)
-    # read in magic formatted data
-    if not os.path.exists(file_path):
-        print('No such file:', file_path)
-        return False, []
-   # START HERE
-    custom_filenames = {'measurements': file_path, 'specimens': spec_file, 'samples': samp_file}
-    contribution = cb.Contribution(input_dir_path, custom_filenames=custom_filenames,
-                                   read_tables=['measurements', 'specimens',
-                                                'contribution', 'samples'])
+    # read in MagIC foramatted data if contribution object not provided
+    if not isinstance(contribution, cb.Contribution):
+        input_dir_path = os.path.realpath(input_dir_path)
+        file_path = pmag.resolve_file_name(meas_file, input_dir_path)
+        # read in magic formatted data
+        if not os.path.exists(file_path):
+            print('No such file:', file_path)
+            return False, []
+        custom_filenames = {'measurements': file_path, 'specimens': spec_file, 'samples': samp_file}
+        contribution = cb.Contribution(input_dir_path, custom_filenames=custom_filenames,
+                                       read_tables=['measurements', 'specimens',
+                                                    'contribution', 'samples'])
     if pmagplotlib.isServer:
         try:
             contribution.propagate_location_to_samples()
