@@ -958,6 +958,44 @@ class TestAnisoMagic(unittest.TestCase):
         self.assertEqual(24, len(files))
 
 
+class TestChiMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.svg", "*.png"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+        pass
+
+    def test_success(self):
+        res, outfiles = ipmag.chi_magic("data_files/chi_magic/measurements.txt")
+        self.assertTrue(res)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+        files = glob.glob('*.svg')
+        self.assertEqual(2, len(files))
+
+    def test_with_options(self):
+        res, outfiles = ipmag.chi_magic(dir_path='data_files/chi_magic',
+                                        experiments='IRM-Kappa-2352', fmt="png")
+        self.assertTrue(res)
+        files = glob.glob('*.png')
+        self.assertEqual(0, len(files))
+
+
+    def test_with_contribution(self):
+        con = cb.Contribution('data_files/chi_magic', read_tables=['measurements'])
+        res, outfiles = ipmag.chi_magic(fmt="png", contribution=con)
+        self.assertTrue(res)
+        files = glob.glob('*.png')
+        self.assertEqual(2, len(files))
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
