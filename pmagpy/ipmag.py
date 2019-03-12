@@ -2974,7 +2974,7 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
 def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
                   meas_file='measurements.txt', site_file='sites.txt',
                   age_file="", sum_file="", fmt='svg', dmin=-1, dmax=-1,
-                  depth_scale='core_depth', dir_path='.'):
+                  depth_scale='core_depth', dir_path='.', contribution=None):
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option).
@@ -3000,6 +3000,9 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         if 'age' is selected, you must provide an ages file.
     dir_path : str, default "."
         directory for input files
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
 
     Returns
     ---------
@@ -3015,50 +3018,60 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     tint = 9
     plots = 0
 
-    # format files to use full path
+    dmin, dmax = float(dmin), float(dmax)
 
-    meas_file = pmag.resolve_file_name(meas_file, dir_path)
-    spec_file = pmag.resolve_file_name(spec_file, dir_path)
-    samp_file = pmag.resolve_file_name(samp_file, dir_path)
-    site_file = pmag.resolve_file_name(site_file, dir_path)
+    # if contribution object is not provided, read in data from files
+    if isinstance(contribution, cb.Contribution):
+        con = contribution
+    else:
+        # format files to use full path
+        meas_file = pmag.resolve_file_name(meas_file, dir_path)
+        spec_file = pmag.resolve_file_name(spec_file, dir_path)
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
+        site_file = pmag.resolve_file_name(site_file, dir_path)
 
-    if age_file:
-        age_file = pmag.resolve_file_name(age_file, dir_path)
-        if not os.path.isfile(age_file):
-            print(
-                'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
-            age_file = None
-            depth_scale = 'core_depth'
-        else:
-            samp_file = age_file
-            depth_scale = 'age'
-            print(
-                'Warning: you have provided an ages format file, which will take precedence over samples')
+        if age_file:
+            age_file = pmag.resolve_file_name(age_file, dir_path)
+            if not os.path.isfile(age_file):
+                print(
+                    'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
+                age_file = None
+                depth_scale = 'core_depth'
+            else:
+                samp_file = age_file
+                depth_scale = 'age'
+                print(
+                    'Warning: you have provided an ages format file, which will take precedence over samples')
 
-    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
 
-    for (ftype, fname) in [('specimen', spec_file),
-                           ('sample', samp_file),
-                           ('site', site_file)]:
-        if not os.path.exists(fname):
+        label = 1
+
+        if sum_file:
+            sum_file = pmag.resolve_file_name(sum_file, dir_path)
+
+        # contribution
+
+        dir_path = os.path.split(spec_file)[0]
+        tables = ['measurements', 'specimens', 'samples', 'sites']
+        con = cb.Contribution(dir_path, read_tables=tables,
+                              custom_filenames={'measurements': meas_file, 'specimens': spec_file,
+                                                'samples': samp_file, 'sites': site_file})
+
+
+
+    for ftype in ['specimens', 'samples', 'sites']:
+        if not con.tables.get(ftype):
+            if ftype == 'samples':
+                if con.tables.get('ages'):
+                    depth_scale = 'age'
+                    continue
             print("-W- This function requires a {} file to run.".format(ftype))
             print("    Make sure you include one in your working directory")
             return False, "missing required file type: {}".format(ftype)
 
-    label = 1
 
-    if sum_file:
-        sum_file = pmag.resolve_file_name(sum_file, dir_path)
-
-    dmin, dmax = float(dmin), float(dmax)
-
-    # contribution
-
-    dir_path = os.path.split(spec_file)[0]
-    tables = ['measurements', 'specimens', 'samples', 'sites']
-    con = cb.Contribution(dir_path, read_tables=tables,
-                          custom_filenames={'measurements': meas_file, 'specimens': spec_file,
-                                            'samples': samp_file, 'sites': site_file})
+    # propagate needed values
     con.propagate_cols(['core_depth'], 'samples', 'sites')
     con.propagate_location_to_specimens()
 
@@ -3289,7 +3302,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             # overcrowded using the defaults
             pmagplotlib.delticks(x)
         fig_name = location + '_ani_depthplot.' + fmt
-        return main_plot, fig_name
+        return main_plot, [fig_name]
     else:
         return False, "No data to plot"
 
@@ -10342,7 +10355,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
 
     if interactive:
         save_plots = False
-    # read in MagIC foramatted data if contribution object not provided
+    # read in MagIC formatted data if contribution object not provided
     if not isinstance(contribution, cb.Contribution):
         input_dir_path = os.path.realpath(input_dir_path)
         file_path = pmag.resolve_file_name(meas_file, input_dir_path)
