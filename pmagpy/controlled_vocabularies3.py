@@ -96,7 +96,7 @@ class Vocabulary(object):
             raw_codes = pd.DataFrame(raw.json())
             print('-I- Getting method codes from earthref.org')
         except Exception as ex:
-            print(ex, type(ex))
+            #print(ex, type(ex))
             print("-I- Couldn't connect to earthref.org, using cached method codes")
         # if you couldn't get them online, use the cache
         if not len(raw_codes):
@@ -193,7 +193,8 @@ class Vocabulary(object):
             data = pd.DataFrame(raw.json())
             print('-I- Importing controlled vocabularies from https://earthref.org')
         except Exception as ex:
-            print(ex, type(ex))
+            pass
+            #print(ex, type(ex))
         # used cached
         if not len(data):
             print('-I- Using cached vocabularies')
@@ -272,7 +273,7 @@ class Vocabulary(object):
             raw = self.get_json_online(url)
             data = pd.DataFrame(raw.json())
         except Exception as ex:
-            print(ex, type(ex))
+            #print(ex, type(ex))
             data = []
         # if not available online, use cached
         if not len(data):
