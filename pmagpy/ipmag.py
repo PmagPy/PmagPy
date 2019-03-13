@@ -6940,7 +6940,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     plt.show()
 
 
-def chi_magic(path_to_file='.', file_name='magic_measurements.txt',
+def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
               save=False, save_folder='.', fmt='svg'):
     """
     Generates plots that compare susceptibility to temperature at different
@@ -12077,7 +12077,30 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
 
 def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
               fmt="svg", save_plots=True, interactive=False, contribution=None):
+    """
+    Parameters
+    ----------
+    infile : str, default "measurements.txt"
+        measurement infile
+    dir_path : str, default "."
+        input directory
+    experiments : str, default ""
+        experiment name to plot
+    fmt : str, default "svg"
+        format for figures, ["svg", "jpg", "pdf", "png"]
+    save_plots : bool, default True
+        save figures
+    interactive : bool, default False
+        if True, interactively plot and display
+        (this is best used on the command line only)
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
 
+    Returns
+    ---------
+    (status, output_files) - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    """
     saved = []
     if contribution:
         chi_data_all = contribution.tables['measurements'].df
@@ -12107,6 +12130,8 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
         plotnum += 1
         if not save_plots:
             pmagplotlib.plot_init(plotnum, 5, 5)  # set up plot
+        else:
+            plt.figure(plotnum)
         figs[str(plotnum)] = plotnum
         fnames[str(plotnum)] = exp + '_temperature.{}'.format(fmt)
 
@@ -12133,6 +12158,8 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
 
         if not save_plots:
             pmagplotlib.plot_init(plotnum, 5, 5)  # set up plot
+        else:
+            plt.figure(plotnum)
         ## plot chi versus frequency at constant B
         b = Bs.max()
         t = Ts.min()
