@@ -831,7 +831,8 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     if len(Vdif) > 0:
         Vdif.append(old_div(vdir[2], Ints[-1]))
         Vdif.append(0)
-    Tv.append(Tv[-1])
+    if Tv:
+        Tv.append(Tv[-1])
     plt.plot(T, M)
     plt.plot(T, M, 'ro')
     if len(Tv) == len(Vdif) and norm:
@@ -898,7 +899,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         if len(DIbad) > 0:
             plot_di_sym(ZED['eqarea'], DIbad, badsym)
     elif len(DIbad) > 0:
-        plot_eq_sym(ZED['eqarea'], DIbad, badsym)
+        plot_eq_sym(ZED['eqarea'], DIbad, s, badsym)
     AngleX, AngleY = [], []
     XY = pmag.dimap(angle, 90.)
     AngleX.append(XY[0])
@@ -915,8 +916,13 @@ def plot_zed(ZED, datablock, angle, s, units):
              AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
-    plot_mag(ZED['demag'], datablock, s, 1, units, norm)
-    plot_zij(ZED['zijd'], datablock, angle, s, norm)
+    # if there are NO good points, don't try to plot
+    if DIgood:
+        plot_mag(ZED['demag'], datablock, s, 1, units, norm)
+        plot_zij(ZED['zijd'], datablock, angle, s, norm)
+    else:
+        ZED.pop('demag')
+        ZED.pop('zijd')
     return ZED
 
 

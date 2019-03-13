@@ -10286,7 +10286,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                             print('\n-W- Specimen {} record contains invalid start/stop bounds:'.format(this_specimen))
                             print(prior_spec_data.loc[this_specimen][['meas_step_min', 'meas_step_max']])
                             print('\n    Measurement records:')
-                            print(this_specimen_measurements[['treat_ac_field', 'treat_temp']])
+                            cols = list(set(['treat_ac_field', 'treat_temp']).intersection(this_specimen_measurements.columns))
+                            print(this_specimen_measurements[cols])
                             print('\n    Data will be plotted without interpretations\n')
 
         return ZED
@@ -10390,8 +10391,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         # create 'treatment' column.
         # uses treat_temp if treat_ac_field is missing OR zero.
         # (have to take this into account for plotting later)
-        meas_df['treatment'] = meas_df['treat_ac_field'].where(
-            cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
+        if 'treat_temp' in meas_df.columns:
+            meas_df['treatment'] = meas_df['treat_ac_field'].where(
+                cond=meas_df['treat_ac_field'].astype(bool), other=meas_df['treat_temp'])
+        else:
+            meas_df['treatment'] = meas_df['treat_ac_field']
     else:
         meas_df['treatment'] = meas_df['treat_temp']
 
