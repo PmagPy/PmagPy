@@ -94,7 +94,8 @@ def main():
         if samp_file in ['er_samples.txt', 'pmag_samples.txt']:
             samp_file = "samples.txt"
         site_file = 'sites.txt'
-        fig, figname = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+        fig, fignames = ipmag.ani_depthplot(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+        figname = fignames[0]
     if save_quietly:
         if dir_path == '.':
             dir_path = os.getcwd()
