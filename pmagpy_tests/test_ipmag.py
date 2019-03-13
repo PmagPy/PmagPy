@@ -745,9 +745,8 @@ class TestThellierMagic(unittest.TestCase):
         self.assertEqual(len(glob.glob("*.svg")), 20)
 
     def test_success_all_specs(self):
-        # only run this annoyingly long test 10% of the time
-        num = random.randint(1, 10)
-        if num != 3:
+        # only run this annoyingly long on travis
+        if 'discover' not in sys.argv:
             return
         res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, fmt="png", n_specs="all")
         self.assertTrue(res)
