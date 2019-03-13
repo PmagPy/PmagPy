@@ -12043,11 +12043,17 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                 loc_string = "{} location{}".format(num_locs, 's' if num_locs > 1 else '')
                 num_lats = len([lat for lat in lats if lat > 0])
                 num_rlats = len(rlats)
+                npole_string = ""
                 rpole_string = ""
+                if num_lats:
+                    npole_string = "{} normal ".format(num_lats) #, 's' if num_lats > 1 else '')
                 if num_rlats:
-                    rpole_string = "{} reverse pole{}".format(num_rlats, 's' if num_rlats > 1 else '')
-                pole_string = "{} pole{}".format(num_lats, 's' if num_lats > 1 else '')
-            titles['map'] = "MagIC contribution {}\n {} {} {}".format(con_id, loc_string, pole_string, rpole_string)
+                    rpole_string = "{} reverse".format(num_rlats)
+                if num_lats + num_rlats > 1:
+                    pole_string = "poles"
+                else:
+                    pole_string = "pole"
+            titles['map'] = "MagIC contribution {}\n {} {}{} {}".format(con_id, loc_string, npole_string, rpole_string, pole_string)
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
         saved = pmagplotlib.save_plots(FIG, files)
     elif interactive:
