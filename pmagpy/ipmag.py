@@ -4556,8 +4556,10 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     last_file_type = sorted(con.tables.keys())[-1]
     for file_type in sorted(con.tables.keys()):
         container = con.tables[file_type]
-        # format all float values to 5 decimals
+        # format all float values to have correct number of decimals
         container.all_to_str()
+        # make sure all nans and Nones are changed to ''
+        container.df.fillna('')
         df = container.df
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
