@@ -20,6 +20,7 @@ verbose = set_env.verbose
 
 from pmagpy import pmag
 from pmagpy import find_pmag_dir
+from pmagpy import contribution_builder as cb
 has_cartopy, Cartopy = pmag.import_cartopy()
 if has_cartopy:
     import cartopy.crs as ccrs
@@ -751,7 +752,6 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     ______
         plots figure
     """
-
     global globals, graphmenu
     Ints = []
     for plotrec in datablock:
@@ -762,6 +762,12 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Mex, Tex, Vdif = [], [], []
     recbak = []
     for rec in datablock:
+        if cb.is_null(rec[1]):
+            print('-W- You are missing a declination for specimen', s, ', skipping this row')
+            continue
+        if cb.is_null(rec[2]):
+            print('-W- You are missing a inclination for specimen', s, ', skipping this row')
+            continue
         if rec[5] == 'g':
             if units == "T":
                 T.append(rec[0] * 1e3)
@@ -889,6 +895,12 @@ def plot_zed(ZED, datablock, angle, s, units):
             plt.figtext(.02, .01, version_num)
     DIbad, DIgood = [], []
     for rec in datablock:
+        if cb.is_null(rec[1]):
+            print('-W- You are missing a declination for specimen', s, ', skipping this row')
+            continue
+        if cb.is_null(rec[2]):
+            print('-W- You are missing a inclination for specimen', s, ', skipping this row')
+            continue
         if rec[5] == 'b':
             DIbad.append((rec[1], rec[2]))
         else:

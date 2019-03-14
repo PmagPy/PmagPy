@@ -10344,6 +10344,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             return
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
+            n_rows = len(this_spec_meas_df)
+            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc'])
+            if n_rows > len(this_spec_meas_df):
+                print('-W- Some declinations/inclinations were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
             if coord != "-1" and len(samp_df):
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
