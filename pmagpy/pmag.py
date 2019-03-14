@@ -193,7 +193,7 @@ def get_orient(samp_data, er_sample_name, **kwargs):
     for methcode in methods:
         meths = methcode.split(":")
         for meth in meths:
-            if meth.strip() not in EX:
+            if (meth.strip() not in EX) and meth.startswith('SO-'):
                 SO_methods.append(meth.strip())
     # find top priority orientation method
     if len(SO_methods) == 0:
