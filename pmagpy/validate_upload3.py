@@ -216,6 +216,11 @@ def cv(row, col_name, arg, current_data_model, df, con):
         elif value.lower() == "none":
             continue
         else:
+            try:
+                if str(float(value)) in possible_values:
+                    continue
+            except:
+                pass
             return '"{}" is not in controlled vocabulary for {}'.format(value, arg)
     return None
 
