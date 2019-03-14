@@ -10298,12 +10298,17 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     def make_plots(spec, cnt, meas_df, spec_container, samp_container=None):
         # get sample data for orientation
         if spec_container:
-            samps = spec_container.df.loc[spec, 'sample']
-            if isinstance(samps, str):
-                samp = samps
-            else:
-                samp = samps.iloc[0]
-            samp_df = samp_container.df[samp_container.df.index == samp]
+            try:
+                samps = spec_container.df.loc[spec, 'sample']
+            except KeyError:
+                samps = ""
+                samp_df = []
+            if len(samps):
+                if isinstance(samps, str):
+                    samp = samps
+                else:
+                    samp = samps.iloc[0]
+                samp_df = samp_container.df[samp_container.df.index == samp]
         else:
             samp_df = []
         # we can make the figure dictionary that pmagplotlib likes:
