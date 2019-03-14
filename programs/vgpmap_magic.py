@@ -98,12 +98,13 @@ def main():
 
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
-    # read in er_sites file
+    # read in sites file
     lats, lons = [], []
     Pars = []
     dates, rlats, rlons = [], [], []
 
     site_container = con.tables['sites']
+    site_container.front_and_backfill(['location'])
     site_df = site_container.df
     # use records with vgp_lat and vgp_lon
     if 'vgp_lat' in site_df.columns and 'vgp_lon' in site_df.columns:
@@ -116,7 +117,7 @@ def main():
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
-    locs = Results['location'].unique()
+    locs = Results['location'].dropna().unique()
     if len(locs):
         location = ":".join(Results['location'].unique())
     else:
@@ -218,6 +219,10 @@ def main():
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
             files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
+            con.add_magic_table('contribution')
+            con_id = con.get_con_id()
+            if con_id:
+                files[key] = 'MC:_' + str(con_id) + '_' + files[key]
         else:  # use more readable naming convention
             files[key] = '{}_VGP_map.{}'.format(location, fmt)
 
