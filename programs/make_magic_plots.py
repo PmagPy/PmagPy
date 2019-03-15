@@ -192,7 +192,7 @@ def main():
         spec_data = get_data('specimens', loc)
         samp_data = get_data('samples', loc)
         site_data = get_data('sites', loc)
-        location_data = get_data('locations', loc)
+        loc_data = get_data('locations', loc)
 
         if loc == "./":  # if you can't sort by location, do everything together
             try:
@@ -213,7 +213,7 @@ def main():
                 site_data = None
 
         crd = 's'
-        if samp_file in filelist:  # find coordinate systems
+        if samp_file in filelist and samp_data:  # find coordinate systems
             samps = samp_data
             file_type = "samples"
             # get all non blank sample orientations
@@ -226,7 +226,7 @@ def main():
         else:
             if VERBOSE:
                 print('-I- No sample data found')
-        if meas_file in filelist:  # start with measurement data
+        if meas_file in filelist and meas_data:  # start with measurement data
             print('working on measurements data')
             data = meas_data
             file_type = 'measurements'
@@ -285,7 +285,7 @@ def main():
                 print('-I- No measurement data found')
 
         # site data
-        if results_file in filelist:
+        if results_file in filelist and site_data:
             print('-I- result file found', results_file)
             data = site_data
             file_type = 'sites'
@@ -384,7 +384,7 @@ def main():
                 print('-I- No intensities found')
 
         ##
-        if hyst_file in filelist:
+        if hyst_file in filelist and spec_data:
             print('working on hysteresis', hyst_file)
             data = spec_data
             file_type = 'specimens'
@@ -399,7 +399,7 @@ def main():
                 print(CMD)
             else:
                 print('no hysteresis data found')
-        if aniso_file in filelist:  # do anisotropy plots if possible
+        if aniso_file in filelist and spec_data:  # do anisotropy plots if possible
             print('working on anisotropy', aniso_file)
             data = spec_data
             file_type = 'specimens'
@@ -446,8 +446,9 @@ def main():
             os.remove('intensities.txt')
         except FileNotFoundError:
             pass
-    if loc_file in filelist:
-        data, file_type = pmag.magic_read(loc_file)  # read in location data
+    if loc_file in filelist and loc_data:
+        #data, file_type = pmag.magic_read(loc_file)  # read in location data
+        data = loc_data
         print('-I- working on pole map')
         poles = pmag.get_dictitem(
             data, 'pole_lat', "", 'F')  # are there any poles?

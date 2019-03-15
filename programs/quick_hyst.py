@@ -82,6 +82,9 @@ def main():
     if not len(hyst_data):
         print("-W- No hysteresis data found")
         return
+    if 'specimen' not in hyst_data.columns:
+        print('-W- No specimen names in measurements data, cannot complete quick_hyst.py')
+        return
     sids = hyst_data['specimen'].unique()
 
     # if 'treat_temp' is provided, use that value, otherwise assume 300

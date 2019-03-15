@@ -1361,7 +1361,14 @@ class MagicDataFrame(object):
                 return
             #
             if len(self.df) and self.dtype != 'ages':
-                self.df.index = self.df[name].astype(str)
+                try:
+                    self.df.index = self.df[name].astype(str)
+                except KeyError as ex:
+                    print(ex, type(ex))
+                    print("-W- File {} is missing required information".format(magic_file))
+                    self.dtype = 'empty'
+                    self.df = DataFrame()
+                    return
             elif self.dtype == 'ages':
                 self.df.index = self.df.index.astype(str)
             #del self.df[name]
