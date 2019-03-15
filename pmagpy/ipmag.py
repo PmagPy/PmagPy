@@ -10344,10 +10344,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             return
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
+            # make sure all decs/incs are filled in
             n_rows = len(this_spec_meas_df)
-            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc'])
+            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', 'magn_moment'])
             if n_rows > len(this_spec_meas_df):
-                print('-W- Some declinations/inclinations were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
+                print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
             # geographic transformation
             if coord != "-1" and len(samp_df):
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
@@ -10357,6 +10358,12 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         if len(spec_df_af.index) > 1:  # this is an af run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_af])
+            # make sure all decs/incs are filled in
+            n_rows = len(this_spec_meas_df)
+            this_spec_meas_df = this_spec_meas_df.dropna(how='any', subset=['dir_dec', 'dir_inc', 'magn_moment'])
+            if n_rows > len(this_spec_meas_df):
+                print('-W- Some dec/inc/moment data were missing for specimen {}, so {} measurement row(s) were excluded'.format(s, n_rows - len(this_spec_meas_df)))
+            # geographic transformation
             if coord != "-1" and len(samp_df):
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'T'  # these are AF data
