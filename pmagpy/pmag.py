@@ -9280,7 +9280,7 @@ def mktk03(terms, seed, G2, G3):
     g10, sfact, afact = -18e3, 3.8, 2.4
     g20 = G2 * g10
     g30 = G3 * g10
-    alpha = old_div(g10, afact)
+    alpha = g10/afact
     s1 = s_l(1, alpha)
     s10 = sfact * s1
     gnew = random.normal(g10, s10)
