@@ -9271,7 +9271,7 @@ def s_l(l, alpha):
 
 def mktk03(terms, seed, G2, G3):
     """
-    generates a list of gauss coefficients drawn from the TK03.gad distribution
+    generates a list of gauss coefficients drawn from the TK03 distribution
     """
 # random.seed(n)
     p = 0
