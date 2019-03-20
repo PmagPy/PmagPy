@@ -142,13 +142,15 @@ def new():
     dir_path = pmag.get_named_arg("-WD", ".")
     if '-ID' in args and dir_path == '.':
         dir_path = pmag.get_named_arg("-ID", ".")
+    iboot, vec = 1, 0
     num_bootstraps = pmag.get_named_arg("-n", 1000)
     ipar = pmag.get_flag_arg_from_sys("-par", true=1, false=0)
     ihext = pmag.get_flag_arg_from_sys("-x", true=1, false=0)
     ivec = pmag.get_flag_arg_from_sys("-v", true=1, false=0)
+    if ivec:
+        vec = 3
     #iplot = pmag.get_flag_arg_from_sys("-P", true=0, false=1)
     isite = pmag.get_flag_arg_from_sys("-sit", true=1, false=0)
-    iboot, vec = 1, 0
     infile = pmag.get_named_arg('-f', 'specimens.txt')
     samp_file = pmag.get_named_arg('-fsa', 'samples.txt')
     site_file = pmag.get_named_arg('-fsi', 'sites.txt')
