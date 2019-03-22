@@ -3255,6 +3255,8 @@ def plot_map(fignum, lats, lons, Opts):
         ax = plt.axes(projection=ccrs.Mercator(
             central_longitude=Opts['lon_0'], min_latitude=Opts['latmin'],
             max_latitude=Opts['latmax'], latitude_true_scale=0.0, globe=None))
+        ax.set_extent([Opts['lonmin'],Opts['lonmax'],\
+                     Opts['latmin'],Opts['latmax']])
     if Opts['proj'] == 'mill':
         ax = plt.axes(projection=ccrs.Miller(
             central_longitude=Opts['lon_0']))
