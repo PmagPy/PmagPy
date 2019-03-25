@@ -10590,10 +10590,17 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                             this_specimen]  # get data for this specimen
         # get the data block for Arai plot
         if len(spec_df) >= 3:
+            # just skip specimen if arai data is malformed
+            try:
+                araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
+            except Exception as ex:
+                print('-W-', ex)
+                return zed
+
             if not save_plots:
                 for key, val in AZD.items():
                     pmagplotlib.plot_init(val, 5, 5)
-            araiblock, field = pmag.sortarai(spec_df, this_specimen, 0, version=3)
+
         # get the datablock for Zijderveld plot
             zijdblock, units = pmag.find_dmag_rec(
                 this_specimen, spec_df, version=3)
