@@ -3743,6 +3743,187 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     return True, samp_out
 
 
+def make_sample_name(df):
+    """
+    Convert expedition, hole, section, type, interval to sample name in format: 
+    exp-hole-type-sect-interval
+    
+    Parameters
+    ___________
+    df : Pandas DataFrame
+         dataframe read in from .csv file downloaded from LIMS online database
+         
+    Returns
+    --------------
+    
+    specimens : pandas Series
+            series with sample names, e.g. 999-U999A-1H-1-W-1
+        
+    hole : str
+           IODP Hole name in format U999A
+           
+    """
+    interval=df['Top offset (cm)'].astype('str').str.strip('.0')
+    holes=df['Site'].astype('str')+df['Hole']
+    specimens=df['Exp'].astype('str')+'-'+holes +\
+              '-'+df['Sect'].astype('str')+'-' + df['A/W']+'-'+ interval
+    return holes,specimens
+
+def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",loc_file="locations.txt",output_dir_path='.',
+                 input_dir_path='',comp_depth_key="",lat="",lon="",exp_name="",exp_desc="",age_low="",age_high="",age_unit='Ma'):
+    """
+    Convert IODP samples data file downloaded from LIMS as .csv file into datamodel 3.0 MagIC samples file.
+    Default is to overwrite samples.txt in your working directory.
+    To specify an samples file to *append* to instead, use output_samp_file.
+
+    Parameters
+    ----------
+    lims_sample_file : str
+        path to IODP sample file to convert
+    spec_file : str
+        output specimens.txt file name
+    samp_file : str
+        output samples.txt file name
+    site_file : str
+        output sites.txt file name    
+    loc_file : str
+        output locations.txt name
+    output_dir_path : str
+        output file directory, default "."
+    input_dir_path : str
+        input file directory IF different from output_dir_path, default ""
+    comp_depth_key : str
+        if not "", there is a composite depth model, for example 'Top depth CSF-B (m)'
+    lat : float
+        latitude of hole location
+    lon : float
+        longitude of hole location
+    exp_name : str
+        expedition number (e.g., 382)
+    exp_description :str
+        expedition nick name (e.g., Iceberg Alley)
+        
+    NOTE:  all output files will overwrite existing files. 
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful,file names written)
+
+    """
+    # define required columns for samples, sites, locations (holes). 
+    spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
+                       'specimen_name_alternatives','citations']
+    samp_reqd_columns=['sample','site','result_type','result_quality',\
+                       'azimuth','dip','azimuth_correction','method_codes','citations']
+    site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
+                       'core_depth','composite_depth',\
+                       'geologic_types','geologic_classes','geologic_lithologies',\
+                      'age','age_low','age_high','age_unit','citations']
+    loc_reqd_columns=['expedition_name','expedition_ship','expedition_description','lat_s','lat_n',\
+                      'geologic_classes','geologic_lithologies','location_type',\
+                      'lon_w','lon_e','age_low','age_high','age_unit','citations']
+    # fix the path names for input and output directories (if different)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    # find the input sample file name downloaded from LORE
+    samp_file_name = pmag.resolve_file_name(lims_sample_file, input_dir_path)
+    # set the output file names
+    spec_out = os.path.join(output_dir_path, spec_file)    
+    samp_out = os.path.join(output_dir_path, samp_file)
+    site_out = os.path.join(output_dir_path, site_file)
+    loc_out = os.path.join(output_dir_path, loc_file)
+    # read in the data from the downloaded .csv file
+    iodp_sample_data=pd.read_csv(samp_file_name)
+    # get rid of incomplete sample rows
+    iodp_sample_data.dropna(subset=['Hole','Type','Sect','Top offset (cm)','Top depth CSF-A (m)','A/W'])
+
+    # replace the 'nan' values with blanks
+    iodp_sample_data.fillna('',inplace=True)
+    # check if there are data
+    if len(iodp_sample_data)==0:  
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
+    # create the MagIC data model 3.0 DataFrames with the required column
+    specimens_df=pd.DataFrame(columns = spec_reqd_columns)
+    samples_df=pd.DataFrame(columns = samp_reqd_columns)
+    sites_df=pd.DataFrame(columns = site_reqd_columns)
+    loc_df=pd.DataFrame(columns=loc_reqd_columns)
+    # set some column headers for the sample master .csv file
+    depth_key = "Top depth CSF-A (m)"
+    text_key = "Text ID"
+    date_key = "Date sample logged"
+    volume_key = 'Volume (cm3)'
+    # convert the meta data in the sample master to MagIC datamodel 3
+    # construct the sample name
+    holes,specimens=make_sample_name(iodp_sample_data)
+    # put the sample name in the specimen, sample, site 
+    specimens_df['specimen']=specimens
+    specimens_df['sample']=specimens
+    samples_df['sample']=specimens
+    samples_df['site']=specimens
+
+    # add required meta-data for each hole to the locations table
+    unique_holes=list(holes.unique())
+    for hole in unique_holes:
+        print (hole)
+    loc_df['location_name']=hole
+    loc_df['expedition_name']=exp_name
+    loc_df['expedition_ship']='JOIDES Resolution'
+    loc_df['expedition_description']=exp_desc
+    loc_df['lat_s']=lat
+    loc_df['lat_n']=lat
+    loc_df['lon_w']=lon
+    loc_df['lon_e']=lon
+    loc_df['location_type']="Drill Site"
+    loc_df['citations']='This study'
+    # add in the rest to the sites table
+    #site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
+       #                'core_depth','composite_depth',\
+       #                'geologic_types','geologic_classes','geologic_lithologies',\
+       #               'age','age_low','age_high','age_unit','citations']
+    sites_df['site']=specimens
+    sites_df['core_depth']=iodp_sample_data['Top depth CSF-A (m)']
+    sites_df['lat']=lat
+    sites_df['lon']=lon
+    sites_df['result_type']='i'
+    sites_df['result_quality']='g'
+    sites_df['method_codes']='FS-C-DRILL-IODP'
+    sites_df['location']=hole
+    sites_df['citations']="This study"
+    if comp_depth_key: sites_df['composite_depth']=iodp_sample_data[comp_depth_key]
+    # now do the samples
+
+    samples_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V' # could put in sampling tool...  
+    samples_df['site']=specimens # same as sample and specimen name 
+    samples_df['result_type']='i'
+    samples_df['result_type']='g'
+    samples_df['azimuth']='0'
+    samples_df['dip']='0'
+    samples_df['citations']='This study'
+
+    # NEED TO ADD TIMESTAMP FROM TIMESTAMP KEY SOMEDAY
+    # and the specimens
+    specimens_df['specimen_name_alternatives']=iodp_sample_data[text_key]
+    specimens_df['result_quality']='g'
+    specimens_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
+    specimens_df['volume']=iodp_sample_data[volume_key]*1e-6 # convert from cm^3 to m^3
+    specimens_df['citations']='This study'
+    # fill in the np.nan with blanks
+    specimens_df.fillna("",inplace=True)
+    samples_df.fillna("",inplace=True)
+    sites_df.fillna("",inplace=True)
+    loc_df.fillna("",inplace=True)
+    # save the files in the designated spots spec_out, samp_out, site_out and loc_out
+    spec_dicts = specimens_df.to_dict('records')
+    pmag.magic_write(spec_out, spec_dicts, 'specimens')
+    samp_dicts = samples_df.to_dict('records')
+    pmag.magic_write(samp_out, samp_dicts, 'samples')
+    site_dicts = sites_df.to_dict('records')
+    pmag.magic_write(site_out, site_dicts, 'sites')
+    loc_dicts = loc_df.to_dict('records')
+    pmag.magic_write(loc_out, loc_dicts, 'locations')
+
+
+    return True
+    
 
 
 
