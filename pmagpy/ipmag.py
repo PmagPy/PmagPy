@@ -11751,8 +11751,11 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             #if filename:  # use provided filename
             #    filename += '.' + fmt
             if pmagplotlib.isServer:  # use server plot naming convention
-                filename = 'LO:_'+locations+'_SI:_'+site+'_SA:_'+sample + \
-                    '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
+                if plot_key == 'all':
+                    filename = 'LO:_'+locations+'_SI:__SA:__SP:__CO:_'+crd+'_TY:_'+key+'_.'+fmt
+                else:
+                    filename = 'LO:_'+locations+'_SI:_'+site+'_SA:_'+sample + \
+                        '_SP:_'+str(specimen)+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             elif plot_key == 'all':
                 filename = 'all'
                 if locs:
