@@ -10353,6 +10353,12 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             if coord != "-1" and len(samp_df):
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'K'  # units are kelvin
+            try:
+                this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
+                this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
+            except:
+                print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
+                return
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
@@ -10367,6 +10373,12 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             if coord != "-1" and len(samp_df):
                 this_spec_meas_df = transform_to_geographic(this_spec_meas_df, samp_df, samp, coord)
             units = 'T'  # these are AF data
+            try:
+                this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
+                this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
+            except:
+                print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
+                return
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)

@@ -744,7 +744,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     fignum : matplotlib figure number for plotting
     datablock : nested list of [step, 0, 0, magnetization, 1,quality]
     s : string for title
-    num : no idea - set it to zero
+    num : matplotlib figure number, can set to 1
     units : [T,K,U] for tesla, kelvin or arbitrary
     norm : [True,False] if True, normalize
 
