@@ -10440,6 +10440,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     if len(specimens) == 0:
         print('there are no data for plotting')
         return False, []
+    # check measurement table for req'd fields
+    missing = []
+    reqd_cols_present = meas_df.columns.intersection(['dir_dec', 'dir_inc', 'magn_moment'])
+    for col in ['dir_dec', 'dir_inc', 'magn_moment']:
+        if col not in reqd_cols_present:
+            missing.append(col)
+        if missing:
+            print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
+            return False, []
+
     cnt = 1
     if n_plots != "all":
         if len(specimens) > n_plots:
