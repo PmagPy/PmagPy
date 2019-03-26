@@ -762,12 +762,12 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Mex, Tex, Vdif = [], [], []
     recbak = []
     for rec in datablock:
-        if cb.is_null(rec[1]):
-            print('-W- You are missing a declination for specimen', s, ', skipping this row')
-            continue
-        if cb.is_null(rec[2]):
-            print('-W- You are missing a inclination for specimen', s, ', skipping this row')
-            continue
+        #if cb.is_null(rec[1]):
+        #    print('-W- You are missing a declination for specimen', s, ', skipping this row')
+        #    continue
+        #if cb.is_null(rec[2]):
+        #    print('-W- You are missing a inclination for specimen', s, ', skipping this row')
+        #    continue
         if rec[5] == 'g':
             if units == "T":
                 T.append(rec[0] * 1e3)
