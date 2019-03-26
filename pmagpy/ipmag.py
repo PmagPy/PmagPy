@@ -10303,7 +10303,9 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             except KeyError:
                 samps = ""
                 samp_df = []
-            if len(samps):
+            if isinstance(samps, int) or isinstance(samps, float) or isinstance(samps, np.int64):
+                samp = str(samps)
+            elif len(samps):
                 if isinstance(samps, str):
                     samp = samps
                 else:
@@ -10477,9 +10479,9 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             for title in titles:
                 # try to get the full hierarchy for plot names
                 df_slice = meas_container.df[meas_container.df['specimen'] == s]
-                location = meas_container.get_name('location', df_slice)
-                site = meas_container.get_name('site', df_slice)
-                sample = meas_container.get_name('sample', df_slice)
+                location = str(meas_container.get_name('location', df_slice))
+                site = str(meas_container.get_name('site', df_slice))
+                sample = str(meas_container.get_name('sample', df_slice))
                 # add coord here!
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
                     '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+'_.png'
