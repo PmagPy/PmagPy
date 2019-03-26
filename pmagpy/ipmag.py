@@ -10480,6 +10480,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 location = meas_container.get_name('location', df_slice)
                 site = meas_container.get_name('site', df_slice)
                 sample = meas_container.get_name('sample', df_slice)
+                # add coord here!
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
                     '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+'_.png'
                 titles[title] = filename
@@ -10513,6 +10514,7 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     ---------
     this_spec_meas_df : measurements dataframe with transformed coordinates
     """
+    # we could return the type of coordinates ACTUALLY used
     # transform geographic
     decs = this_spec_meas_df['dir_dec'].values.tolist()
     incs = this_spec_meas_df['dir_inc'].values.tolist()
@@ -10520,9 +10522,10 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     if 'azimuth' in or_info.keys() and cb.not_null(or_info['azimuth'], False):
         azimuths=len(decs)*[or_info['azimuth']]
         dips=len(decs)*[or_info['dip']]
-    # if azimuth/dip is missing, plot using specimen coordinates instead
+    # if azimuth/dip is missing, or orientation is bad,
+    # stick with specimen coordinates
     else:
-        azimuths,dips=[],[]
+        return this_spec_meas_df
     dirs = [decs, incs, azimuths, dips]
     dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
     decs, incs = pmag.dogeo_V(dirs_geo)
