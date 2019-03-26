@@ -1080,10 +1080,6 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         if loc_name:
             loc_name = "-loc " + loc_name
         ncn = self.bSizer4.return_value()
-        if "-" in ncn:
-            ncn, Z = ncn.split("-")
-        else:
-            Z = ''
         options_dict['samp_con'] = ncn
         particulars = self.bSizer2.return_value()
         options_dict['methods'] = particulars
@@ -1105,7 +1101,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             except ValueError:
                 pw.simple_warning("value for number of measured orienations must be a positive integer")
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
         # to run as module:
         program_ran, error_message = convert.cit(**options_dict)
         if program_ran:
