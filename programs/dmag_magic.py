@@ -13,7 +13,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.contribution_builder as cb
 
 
-def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
+def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
          spec_file="specimens.txt", samp_file="samples.txt",
          site_file="sites.txt", loc_file="locations.txt",
          plot_by="loc", LT="AF", norm=True, XLP="",
@@ -136,14 +136,14 @@ def plot(in_file="measurements.txt", dir_path=".", input_dir_path="",
     pmagplotlib.plot_init(FIG['demag'], 5, 5)
     last_plot = False
     # iterate through and plot the data
-    for plt in plotlist:
-        if plt == plotlist[-1]:
+    for plot in plotlist:
+        if plot == plotlist[-1]:
             last_plot = True
-        plot_data = data[data[plot_key] == plt].copy()
+        plot_data = data[data[plot_key] == plot].copy()
         if not save_plots:
-            print(plt, 'plotting by: ', plot_key)
+            print(plot, 'plotting by: ', plot_key)
         if len(plot_data) > 2:
-            title = plt
+            title = plot
             spcs = []
             spcs = plot_data['specimen'].unique()
             for spc in spcs:
@@ -239,7 +239,7 @@ def main():
     samp_file = pmag.get_named_arg("-fsa", default_val="samples.txt")
     site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
     loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
-    plot(in_file, dir_path, input_dir_path, spec_file, samp_file,
+    dmag_magic(in_file, dir_path, input_dir_path, spec_file, samp_file,
          site_file, loc_file, plot_by, LT, norm, XLP,
          save_plots, fmt)
 

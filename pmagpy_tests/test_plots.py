@@ -20,7 +20,7 @@ class TestDmagMagic(unittest.TestCase):
                 os.remove(fname)
 
     def test_success(self):
-        res, outfiles = dmag_magic.plot(dir_path=".", input_dir_path="data_files/3_0/McMurdo", LT="T", plot_by='sit')
+        res, outfiles = dmag_magic.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", LT="T", plot_by='sit')
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
@@ -28,7 +28,7 @@ class TestDmagMagic(unittest.TestCase):
         self.assertEqual(len(images), 126)
 
     def test_alt_success(self):
-        res, outfiles = dmag_magic.plot(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc', fmt="png")
+        res, outfiles = dmag_magic.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc', fmt="png")
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
@@ -36,7 +36,7 @@ class TestDmagMagic(unittest.TestCase):
         self.assertEqual(len(images), 530)
 
     def test_with_output_dir(self):
-        res, outfiles = dmag_magic.plot(dir_path="data_files/3_0/McMurdo", plot_by='loc', fmt="png")
+        res, outfiles = dmag_magic.dmag_magic(dir_path="data_files/3_0/McMurdo", plot_by='loc', fmt="png")
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
@@ -47,10 +47,10 @@ class TestDmagMagic(unittest.TestCase):
 
 
     def test_failure(self):
-        res, outfiles = dmag_magic.plot(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc',
+        res, outfiles = dmag_magic.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc',
                                         fmt="png", LT="FAKE")
         self.assertFalse(res)
 
     def test_alt_failure(self):
-        res, outfiles = dmag_magic.plot(dir_path=".", input_dir_path="data_files/3_0/", plot_by='spc')
+        res, outfiles = dmag_magic.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/", plot_by='spc')
         self.assertFalse(res)
