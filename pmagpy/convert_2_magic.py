@@ -3726,8 +3726,10 @@ def iodp_sample_names(df):
               '-'+df['Sect'].astype('str')+'-' + df['A/W']+'-'+ interval
     return holes,specimens
 
-def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",loc_file="locations.txt",dir_path='.',
-                 input_dir_path='',comp_depth_key="",lat="",lon="",exp_name="",exp_desc="",age_low=0,age_high=200e6):
+def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samples.txt",
+                     site_file="sites.txt",loc_file="locations.txt",dir_path='.',
+                     input_dir_path='',comp_depth_key="",lat="",lon="",
+                     exp_name="",exp_desc="",age_low=0,age_high=200e6):
     """
     Convert IODP samples data file downloaded from LIMS as .csv file into datamodel 3.0 MagIC samples file.
     Default is to overwrite samples.txt in your working directory.
@@ -3795,7 +3797,8 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     # read in the data from the downloaded .csv file
     iodp_sample_data=pd.read_csv(samp_file_name)
     # get rid of incomplete sample rows
-    iodp_sample_data.dropna(subset=['Hole','Type','Sect','Top offset (cm)','Top depth CSF-A (m)','A/W'])
+    iodp_sample_data.dropna(subset=['Hole','Type','Sect','Top offset (cm)','Top depth CSF-A (m)','A/W'],
+                            inplace=True)
 
     # replace the 'nan' values with blanks
     iodp_sample_data.fillna('',inplace=True)
@@ -3811,6 +3814,8 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     text_key = "Text ID"
     date_key = "Date sample logged"
     volume_key = 'Volume (cm3)'
+    if volume_key not in iodp_sample_data.columns:
+        volume_key = 'Sample volume (CC)'
     # convert the meta data in the sample master to MagIC datamodel 3
     # construct the sample name
     holes,specimens=iodp_sample_names(iodp_sample_data)
@@ -3871,18 +3876,27 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     specimens_df['citations']='This study'
     # fill in the np.nan with blanks
     specimens_df.fillna("",inplace=True)
+    # make specimen_df format compatible with MagicDataFrame
+    specimens_df.index = specimens_df['specimen']
+    specimens_df.index.name = 'specimen name'
+    # combine with old specimen records if available
+    if os.path.exists(spec_file):
+        old_specimens = cb.MagicDataFrame(spec_file)
+        old_specimens.df = old_specimens.merge_dfs(specimens_df)
+        old_specimens.write_magic_file(spec_file)
+    else:
+        spec_dicts = specimens_df.to_dict('records')
+        pmag.magic_write(spec_out, spec_dicts, 'specimens')
+
+    # fill in the np.nan with blanks
     samples_df.fillna("",inplace=True)
     sites_df.fillna("",inplace=True)
-    # save the files in the designated spots spec_out, samp_out, site_out and loc_out
-    spec_dicts = specimens_df.to_dict('records')
-    pmag.magic_write(spec_out, spec_dicts, 'specimens')
+    # save the files in the designated spots samp_out, site_out and loc_out
     samp_dicts = samples_df.to_dict('records')
     pmag.magic_write(samp_out, samp_dicts, 'samples')
     site_dicts = sites_df.to_dict('records')
     pmag.magic_write(site_out, site_dicts, 'sites')
     pmag.magic_write(loc_out, loc_dicts, 'locations')
-
-
     return True
 
 def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",dir_path='.',
