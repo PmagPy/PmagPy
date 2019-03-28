@@ -3041,9 +3041,8 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 
 
 ### IODP_dscr_magic conversion
-
-def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,\
-              meas_file="measurements.txt", spec_file="specimens.txt", noave=False):
+def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
+              meas_file="measurements.txt", spec_file="specimens.txt"):
     """
     Convert IODP discrete measurement files in MagIC file(s). This program
     assumes that you have created the specimens, samples, sites and location 
@@ -3076,7 +3075,6 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,\
     version_num = pmag.get_version()
     # format variables
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    meas_out = os.path.join(output_dir_path, meas_file)
     # convert cc to m^3
     volume = volume * 1e-6
     meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
@@ -3099,17 +3097,10 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,\
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
         return False
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
+    meas_out = os.path.join(output_dir_path, meas_file)
     citations = "This study"
-    LORE_ids=[]
     in_df=pd.read_csv(dscr_file)
     hole,srm_specimens=iodp_sample_names(in_df)
-    #meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
-     #                  'instrument_codes','citations',\
-     #                   'treat_temp','treat_ac_field','treat_dc_field',\
-      #                 'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
-     #                  'dir_dec','dir_inc','magn_moment','magn_volume',\
-   #                     'description','timestamp','software_packages',\
-     #                   'external_database_names','external_database_ids']
     for spec in list(srm_specimens.unique()):
         if spec in LORE_specimens:
             print (spec, ' found in sample table')
@@ -3131,21 +3122,17 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,\
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
-    #in_df['LORE']=in_df['Test No.'].values
-    in_df['db']='LORE'
-    in_df['LORE']=in_df['db'].astype('str')+ '[' + in_df['Test No.'].astype('str')+ ']'
-    measurements_df['external_database_ids']=in_df['LORE']
-    measurements_df['description']=in_df['Treatment Type'] # type of measurement
+    measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
+    measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
+    measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
+    measurements_df['magn_moment']=measurements_df['magn_volume']*volume # moment in Am^2
+    measurements_df['type_key']=in_df['Treatment Type'] # temporary column
     measurements_df['treat_ac_field']=in_df['Treatment Value']*1e-3 # assume all treatments are AF
-    measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)']
-    measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)']
-    measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)']
-    measurements_df['magn_moment']=\
-                   in_df['Intensity background & drift corrected (A/m)']*volume
-    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
+    measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
                         'method_codes']='LT-AF-Z'    
-    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
+    measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
+    measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 # add these later when controlled vocabs implemented
     #measurements_df.loc[measurements_df['type_key']=='T','method_codes']='LT-T-Z'
     #measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
@@ -3157,14 +3144,14 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,\
     #measurements_df.loc[measurements_df['type_key']=='Isothermal',\
        #                 'instrument_codes']='IODP-SRM:IODP-IRM'
 
-        # NEED TO ADD TIMESTAMP SOMEDAY
+        # START HERE
     measurements_df.fillna("",inplace=True)
+    measurements_df.drop('type_key',axis=1)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
 
     return True
-
 ### IODP_jr6_magic
 
 def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
