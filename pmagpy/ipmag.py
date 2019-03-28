@@ -10304,7 +10304,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 samps = ""
                 samp_df = []
             if isinstance(samps, int) or isinstance(samps, float) or isinstance(samps, np.int64):
-                samp = str(samps)
+                if np.isnan(samps):
+                    samp = ""
+                    samp_df = []
+                else:
+                    samp = str(samps)
+                    samp_container.df.index = samp_container.df.index.astype(str)
+                    samp_df = samp_container.df[samp_container.df.index == samp]
+            elif isinstance(samps, type(None)):
+                samp = ""
+                samp_df = []
             elif len(samps):
                 if isinstance(samps, str):
                     samp = samps
