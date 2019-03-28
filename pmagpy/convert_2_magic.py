@@ -3041,7 +3041,7 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 
 
 ### IODP_dscr_magic conversion
-def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
+def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
               meas_file="measurements.txt", spec_file="specimens.txt"):
     """
     Convert IODP discrete measurement files in MagIC file(s). This program
@@ -3083,7 +3083,7 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_names','external_database_ids']
+                       'external_database_ids']
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3098,7 +3098,6 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
         return False
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
-    citations = "This study"
     in_df=pd.read_csv(dscr_file)
     hole,srm_specimens=iodp_sample_names(in_df)
     for spec in list(srm_specimens.unique()):
@@ -3126,33 +3125,161 @@ def iodp_dscr(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
     measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
     measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
     measurements_df['magn_moment']=measurements_df['magn_volume']*volume # moment in Am^2
-    measurements_df['type_key']=in_df['Treatment Type'] # temporary column
+    measurements_df['description']=in_df['Treatment Type'] # temporary column
     measurements_df['treat_ac_field']=in_df['Treatment Value']*1e-3 # assume all treatments are AF
-    measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
+    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
                         'method_codes']='LT-AF-Z'    
-    measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
+    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 # add these later when controlled vocabs implemented
-    #measurements_df.loc[measurements_df['type_key']=='T','method_codes']='LT-T-Z'
-    #measurements_df.loc[measurements_df['type_key']=='IN-LINE AF DEMAG',\
+    #measurements_df.loc[measurements_df['description']=='T','method_codes']='LT-T-Z'
+    #measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
     #                    'instrument_codes']='IODP-SRM:IODP-TDS'
-    #measurements_df.loc[measurements_df['type_key']=='Lowrie','method_codes']='LP-IRM-3D'
-    #measurements_df.loc[measurements_df['type_key']=='Lowrie',\
+    #measurements_df.loc[measurements_df['description']=='Lowrie','method_codes']='LP-IRM-3D'
+    #measurements_df.loc[measurements_df['description']=='Lowrie',\
     #                    'instrument_codes']='IODP-SRM:IODP-IRM'
-    #measurements_df.loc[measurements_df['type_key']=='Isothermal','method_codes']='LT-IRM'
-    #measurements_df.loc[measurements_df['type_key']=='Isothermal',\
+    #measurements_df.loc[measurements_df['description']=='Isothermal','method_codes']='LT-IRM'
+    #measurements_df.loc[measurements_df['description']=='Isothermal',\
        #                 'instrument_codes']='IODP-SRM:IODP-IRM'
 
-        # START HERE
     measurements_df.fillna("",inplace=True)
-    measurements_df.drop('type_key',axis=1)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
 
     return True
+
 ### IODP_jr6_magic
+
+def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False,dc_field=50e-6,\
+              meas_file="measurements.txt", spec_file="specimens.txt"):
+    """
+    Convert IODP JR6 measurement files in MagIC file(s). This program
+    assumes that you have created the specimens, samples, sites and location 
+    files using convert_2_magic.iodp_samples_csv from files downloaded from the LIMS online
+    repository and that all samples are in that file.
+
+    Parameters
+    ----------
+    jr6_file : str
+        input csv file downloaded from LIMS online repository 
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        specimens file name created by, for example, convert_2_magic.iodp_samples_csv, default "specimens.txt"
+        file should already be in dir_path
+    volume : float
+        volume in cm^3 assumed during measurement on SRM.  The so-called "Japanese" cubes have a volume of 7cc
+    noave : Boolean
+         if False, average replicate measurements
+    dc_field : float
+        if ARM measurements are in the file, this was the DC bias field applied
+         
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    """
+    # initialize defaults
+    version_num = pmag.get_version()
+    # format variables
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    # convert cc to m^3
+    volume = volume * 1e-6
+    meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
+                       'instrument_codes','citations',\
+                       'treat_temp','treat_ac_field','treat_dc_field',\
+                      'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
+                      'dir_dec','dir_inc','magn_moment','magn_volume',\
+                       'description','timestamp','software_packages',\
+                       'external_database_ids']
+    jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
+    if len(specimens_df)==0:
+        print ('you must download and process the samples table from LORE prior to using this')
+        print ('see convert_2_magic.iodp_samples_csv for help')
+        return False
+    LORE_specimens=list(specimens_df.specimen.unique())
+    jr6_df=pd.read_csv(jr6_file,sep='\t',header=1)
+    if len(jr6_df)==0:
+        print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
+        return False
+    measurements_df=pd.DataFrame(columns=meas_reqd_columns)
+    meas_out = os.path.join(output_dir_path, meas_file)
+    citations = "This study"
+    in_df=pd.read_csv(jr6_file)
+    #hole,srm_specimens=iodp_sample_names(in_df)
+    hole,jr6_specimens=iodp_sample_names(in_df)
+    for spec in list(jr6_specimens.unique()):
+        if spec in LORE_specimens:
+            print (spec, ' found in sample table')
+        else:
+            print (spec, ' not found in sample table')
+    # set up defaults
+    measurements_df['specimen']=jr6_specimens
+    measurements_df['quality']='g'
+    measurements_df['citations']='This study'
+    measurements_df['meas_temp']=273
+    measurements_df['software_packages']=version_num
+    measurements_df["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+    measurements_df["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+    measurements_df["treat_ac_field"] = '0'
+    measurements_df["treat_dc_field"] = '0'
+    measurements_df["treat_dc_field_phi"] = '0'
+    measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["standard"] = 'u'  # assume all data are "good"
+    measurements_df["dir_csd"] = '0'  # assume all data are "good"
+    measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
+    measurements_df['instrument_codes']="IODP-JR6" # assume all measurements on shipboard JR6
+    # use the sample coordinates, assume was placed correctly in the JR6 and use az=0,pl=-90 to 
+    # put into 'geographic' coordinates
+    incs=in_df['Inclination (°)'].values
+    decs=in_df['Declination (°)'].values
+    azs=np.ones(len(decs))*0
+    pls=np.ones(len(decs))*-90
+    geo=np.vstack((decs,incs,azs,pls)).transpose()
+    drot,irot=pmag.dogeo_V(geo)
+
+    measurements_df['dir_dec']=drot # declination
+    measurements_df['dir_inc']=irot # inclination
+    measurements_df['magn_volume']=in_df['Intensity raw (A/m)'] # magnetization
+    measurements_df['magn_moment']=measurements_df['magn_volume']*volume # moment in Am^2
+    measurements_df['description']=in_df['Treatment type'] 
+    measurements_df['treat_ac_field']=in_df['Treatment value (mT or °C or ex. B14)']*1e-3 # initialize all treatments to AF in mT
+    measurements_df.loc[measurements_df['description']=='AD',\
+                        'method_codes']='LT-AF-Z'    
+    measurements_df.loc[measurements_df['description']=='AD',\
+                        'instrument_codes']='IODP-JR6:IODP-D2000'
+    measurements_df.loc[measurements_df['description']=='ARM',\
+                        'method_codes']='LT-AF-I'    
+    measurements_df.loc[measurements_df['description']=='ARM',\
+                        'instrument_codes']='IODP-JR6:IODP-D2000'
+    measurements_df.loc[measurements_df['description']=='ARM',"treat_dc_field"] = dc_field # 
+    measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
+# add these later when controlled vocabs implemented
+    measurements_df.loc[measurements_df['description']=='TD','method_codes']='LT-T-Z'
+    measurements_df.loc[measurements_df['description']=='TD',\
+                        'instrument_codes']='IODP-SRM:IODP-TDS'
+    measurements_df.loc[measurements_df['description']=='TD',"treat_temp"] =\
+                        in_df['Treatment value (mT or °C or ex. B14)']+273
+    #measurements_df.loc[measurements_df['description']=='IRM','method_codes']='LT-IRM'
+    #measurements_df.loc[measurements_df['description']=='IRM',\
+       #                 'instrument_codes']='IODP-SRM:IODP-IRM'
+
+    measurements_df.fillna("",inplace=True)
+    meas_dicts = measurements_df.to_dict('records')
+    meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
+    pmag.magic_write(meas_out, meas_dicts, 'measurements')
+
+    return True
+
+
+
 
 def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
              meas_file="measurements.txt", spec_file="specimens.txt",
@@ -3385,7 +3512,6 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     """
     Convert IODP samples data file into MagIC samples file.
     Default is to overwrite samples.txt in your working directory.
-    To specify an samples file to *append* to instead, use output_samp_file.
 
     Parameters
     ----------
@@ -3591,20 +3717,20 @@ def iodp_sample_names(df):
     elif 'Offset (cm)' in df.columns:
         offset_key='Offset (cm)'
     else: 
+        print (df.columns)
         print ('No offset key found')
         return False,[]
-    interval=df[offset_key].astype('str').str.strip('.0')
+    interval=df[offset_key].astype('str')
     holes=df['Site'].astype('str')+df['Hole']
     specimens=df['Exp'].astype('str')+'-'+holes +\
               '-'+df['Sect'].astype('str')+'-' + df['A/W']+'-'+ interval
     return holes,specimens
 
 def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",loc_file="locations.txt",dir_path='.',
-                 input_dir_path='',comp_depth_key="",lat="",lon="",exp_name="",exp_desc="",age_low="",age_high="",age_unit='Ma'):
+                 input_dir_path='',comp_depth_key="",lat="",lon="",exp_name="",exp_desc="",age_low=0,age_high=200e6):
     """
     Convert IODP samples data file downloaded from LIMS as .csv file into datamodel 3.0 MagIC samples file.
     Default is to overwrite samples.txt in your working directory.
-    To specify an samples file to *append* to instead, use output_samp_file.
 
     Parameters
     ----------
@@ -3633,6 +3759,10 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
         expedition number (e.g., 382)
     exp_description :str
         expedition nick name (e.g., Iceberg Alley)
+    age_high : float
+        maximum age of hole in Ma
+    age_low : float
+        minimum age of hole in Ma
         
     NOTE:  all output files will overwrite existing files. 
 
@@ -3706,6 +3836,10 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
         loc_dict['lon_e']=lon
         loc_dict['location_type']="Drill Site"
         loc_dict['citations']='This study'
+        loc_dict['age_high']=age_high
+        loc_dict['age_low']=age_low
+        loc_dict['age_unit']='Ma'
+     
         loc_dicts.append(loc_dict)
     # add in the rest to the sites table
     sites_df['site']=specimens
@@ -3751,11 +3885,211 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
 
     return True
     
+def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",dir_path='.',
+                 input_dir_path='',comp_depth_key="",lat="",lon=""):
+    """
+    Convert IODP samples data generated from the SRM measurements file into datamodel 3.0 MagIC samples file.
+    Default is to overwrite the output files in your working directory.
 
+    Parameters
+    ----------
+    df : str
+        Pandas DataFrame of SRM Archive data
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
 
+    spec_file : str
+        output specimens.txt file name
+    samp_file : str
+        output samples.txt file name
+    site_file : str
+        output sites.txt file name    
+    comp_depth_key : str
+        if not "", there is a composite depth model, for example 'Depth CSF-B (m)'
+    lat : float
+        latitude of hole location
+    lon : float
+        longitude of hole location
+        
+    NOTE:  all output files will overwrite existing files. 
 
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful,file names written)
 
-### IODP_srm_magic conversion
+    """
+    # define required columns for samples, sites, locations (holes). 
+    spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
+                       'specimen_name_alternatives','citations']
+    samp_reqd_columns=['sample','site','result_type','result_quality',\
+                       'azimuth','dip','azimuth_correction','method_codes','citations']
+    site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
+                       'core_depth','composite_depth',\
+                       'geologic_types','geologic_classes','geologic_lithologies',\
+                      'age','age_low','age_high','age_unit','citations']
+    # fix the path names for input and output directories (if different)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    # find the input sample file name downloaded from LORE
+    # set the output file names
+    spec_out = os.path.join(output_dir_path, spec_file)    
+    samp_out = os.path.join(output_dir_path, samp_file)
+    site_out = os.path.join(output_dir_path, site_file)
+    # read in the data from the downloaded .csv file
+    # create the MagIC data model 3.0 DataFrames with the required column
+    specimens_df=pd.DataFrame(columns = spec_reqd_columns)
+    samples_df=pd.DataFrame(columns = samp_reqd_columns)
+    sites_df=pd.DataFrame(columns = site_reqd_columns)
+    # set some column headers for the sample master .csv file
+    depth_key = "Depth CSF-A (m)"
+    text_key = "Text ID"
+    date_key = "Date sample logged"
+    volume_key = 'Volume (cm3)'
+    # convert the meta data in the sample master to MagIC datamodel 3
+    # construct the sample name
+
+    holes,specimens=iodp_sample_names(df)
+    # put the sample name in the specimen, sample, site 
+    specimens_df['specimen']=specimens
+    specimens_df['sample']=specimens
+    samples_df['sample']=specimens
+    samples_df['site']=specimens
+
+    # add in the rest to the sites table
+    sites_df['site']=specimens
+    sites_df['core_depth']=df[depth_key]
+    sites_df['lat']=lat
+    sites_df['lon']=lon
+    sites_df['result_type']='i'
+    sites_df['result_quality']='g'
+    sites_df['method_codes']='FS-C-DRILL-IODP'
+    sites_df['location']=holes[0]
+    sites_df['citations']="This study"
+    if comp_depth_key: sites_df['composite_depth']=df[comp_depth_key]
+    # now do the samples
+
+    samples_df['method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V' # could put in sampling tool...  
+    samples_df['site']=specimens # same as sample and specimen name 
+    samples_df['result_type']='i'
+    samples_df['result_type']='g'
+    samples_df['azimuth']='0'
+    samples_df['dip']='0'
+    samples_df['citations']='This study'
+
+    # NEED TO ADD TIMESTAMP FROM TIMESTAMP KEY SOMEDAY
+    # and the specimens
+    specimens_df['result_quality']='g'
+    specimens_df['method_codes']='FS-C-DRILL-IODP'
+    specimens_df['citations']='This study'
+    # fill in the np.nan with blanks
+    specimens_df.fillna("",inplace=True)
+    samples_df.fillna("",inplace=True)
+    sites_df.fillna("",inplace=True)
+    # save the files in the designated spots spec_out, samp_out, site_out and loc_out
+    spec_dicts = specimens_df.to_dict('records')
+    pmag.magic_write(spec_out, spec_dicts, 'specimens')
+    samp_dicts = samples_df.to_dict('records')
+    pmag.magic_write(samp_out, samp_dicts, 'samples')
+    site_dicts = sites_df.to_dict('records')
+    pmag.magic_write(site_out, site_dicts, 'sites')
+
+    return holes[0],specimens
+
+def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_depth_key='Depth CSF-B (m)',\
+              meas_file="srm_arch_measurements.txt", spec_file="srm_arch_specimens.txt",\
+                 samp_file='srm_arch_samples.txt',site_file='srm_arch_sites.txt',lat="",lon=""):
+    """
+    Convert IODP archive half measurement files into MagIC file(s). 
+
+    Parameters
+    ----------
+    srm_file : str
+        input csv file downloaded from LIMS online repository 
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        specimens file name as output file - these specimens are not already in the specimen table
+        created by iodp_samples_csv
+    samp_file : str
+       samples file name as output file - these  are not already in the specimen table
+        created by iodp_samples_csv
+    site_file : str
+        sites file name as output file - these are not already in the samples table
+    noave : Boolean
+        if False, average replicate measurements
+         
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    """
+    # initialize defaults
+    version_num = pmag.get_version()
+    # format variables
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    # convert cc to m^3
+    meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
+                       'instrument_codes','citations',\
+                       'treat_temp','treat_ac_field','treat_dc_field',\
+                      'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
+                      'dir_dec','dir_inc','magn_moment','magn_volume',\
+                       'description','timestamp','software_packages',\
+                       'external_database_ids']
+    srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    in_df=pd.read_csv(srm_file,header=0)
+    if len(in_df)==0:
+        print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
+        return False
+    measurements_df=pd.DataFrame(columns=meas_reqd_columns)
+    meas_out = os.path.join(output_dir_path, meas_file)
+    hole,srm_specimens=iodp_samples_srm(in_df, spec_file=spec_file,samp_file=samp_file,site_file=site_file,\
+                                        dir_path=dir_path,input_dir_path=input_dir_path,\
+                                        comp_depth_key=comp_depth_key,lat=lat,lon=lon)
+    # assume only one hole
+    # set up defaults
+    measurements_df['specimen']=srm_specimens
+    measurements_df['quality']='g'
+    measurements_df['citations']='This study'
+    measurements_df['meas_temp']=273
+    measurements_df['software_packages']=version_num
+    measurements_df["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
+    measurements_df["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+    measurements_df["treat_ac_field"] = '0'
+    measurements_df["treat_dc_field"] = '0'
+    measurements_df["treat_dc_field_phi"] = '0'
+    measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["standard"] = 'u'  # assume all data are "good"
+    measurements_df["dir_csd"] = '0'  # assume all data are "good"
+    measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
+    measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
+    measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
+    measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
+    measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
+    Xs=in_df['Magnetic moment x (Am²)']
+    Ys=in_df['Magnetic moment y (Am²)']
+    Zs=in_df['Magnetic moment z (Am²)']
+    magn_moment=np.sqrt(Xs**2+Ys**2+Zs**2)
+    measurements_df['magn_moment']=magn_moment # moment in Am^2
+    measurements_df['description']=in_df['Treatment Type'] # temporary column
+    measurements_df['treat_ac_field']=in_df['Treatment Value']*1e-3 # assume all treatments are AF
+    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
+                        'method_codes']='LT-AF-Z'    
+    measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
+                        'instrument_codes']='IODP-SRM:IODP-SRM-AF'
+    measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
+
+    measurements_df.fillna("",inplace=True)
+    meas_dicts = measurements_df.to_dict('records')
+    meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
+    pmag.magic_write(meas_out, meas_dicts, 'measurements')
+    return True
+
+### IODP_srm_magic conversion (old)
 
 def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
              meas_file="measurements.txt", spec_file="specimens.txt",
