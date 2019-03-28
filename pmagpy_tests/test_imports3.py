@@ -544,6 +544,7 @@ class TestIodpSrmMagic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('measurements.txt'))
 
 
+@unittest.skip('broken')
 class TestIodpDscrMagic(unittest.TestCase):
 
     def setUp(self):
