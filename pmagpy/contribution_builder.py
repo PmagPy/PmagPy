@@ -1342,8 +1342,8 @@ class MagicDataFrame(object):
                     return
             # get singular name and plural datatype
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
-            self.df = pd.read_table(magic_file, skiprows=[0],
-                                    low_memory=False)#, dtype={name: str})
+            self.df = pd.read_csv(magic_file, skiprows=[0], sep="\t",
+                                  low_memory=False)#, dtype={name: str})
             # make sure names are strings (sometimes could be numbers)
 
 
@@ -2026,8 +2026,10 @@ class MagicDataFrame(object):
         @param: df1 - first DataFrame whose data will preferentially be used.
         """
 
-        if self.df.empty: return df1
-        elif df1.empty: return self.df
+        if self.df.empty:
+            return df1
+        elif df1.empty:
+            return self.df
 
         #copy to prevent mutation
         cdf2 = self.df.copy()
@@ -2055,31 +2057,15 @@ class MagicDataFrame(object):
         for df in [df1, cdf2]:
             df.index.name = index_name
         mdf = df1.join(cdf2, how='outer', rsuffix='_remove', on=index_name)
-        if 'specimen' in mdf.columns and \
-           'specimen_remove' in mdf.columns and \
-           len(mdf[mdf['specimen'].isnull()])>0:
-            mdf['specimen']=mdf['specimen_remove']
-        if 'sample' in mdf.columns and \
-           'sample_remove' in mdf.columns and \
-           len(mdf[mdf['sample'].isnull()])>0:
-            mdf['sample']=mdf['sample_remove']
-        if 'site' in mdf.columns and \
-           'site_remove' in mdf.columns and \
-            len(mdf[mdf['site'].isnull()])>0:
-            mdf['site']=mdf['site_remove']
-        if 'location' in mdf.columns and \
-           'location_remove' in mdf.columns and \
-           len(mdf[mdf['location'].isnull()])>0:
-            mdf['location']=mdf['location_remove']
-        if 'lat' in mdf.columns and \
-           'lat_remove' in mdf.columns:
-            if len(mdf[mdf['lat'].isnull()])>len(mdf[mdf['lat_remove'].isnull()]):
-                mdf['lat']=mdf['lat_remove']
-        if 'lon' in mdf.columns and \
-           'lon_remove' in mdf.columns:
-            if len(mdf[mdf['lon'].isnull()])>len(mdf[mdf['lon_remove'].isnull()]):
-                mdf['lon']=mdf['lon_remove']
-        #drop duplicate columns if they are created
+        def keep_non_null_vals(column):
+            extra_column = column + "_remove"
+            if column in mdf.columns and extra_column in mdf.columns:
+                mdf[column] = np.where(mdf[column].apply(lambda x: not_null(x, False)), mdf[column], mdf[extra_column])
+        # merge values in the following columns
+        # e.g., combine info from specimen + specimen_remove into specimen column
+        for col in ['specimen', 'sample', 'site', 'location', 'lat', 'lon']:
+            keep_non_null_vals(col)
+        #drop duplicate columns if they were created
         [mdf.drop(col,inplace=True,axis=1) for col in mdf.columns if col.endswith("_remove")]
         #duplicates rows for some freaking reason
         mdf.drop_duplicates(inplace=True,subset=[col for col in mdf.columns if col != 'description'])
@@ -2092,7 +2078,6 @@ class MagicDataFrame(object):
             mdf[dtype] = mdf.index
             mdf.index.name = index_name
             mdf.sort_index(inplace=True)
-
         return mdf
 
 
