@@ -3722,7 +3722,7 @@ def iodp_sample_names(df):
     interval=df[offset_key].astype('str')
     holes=df['Site'].astype('str')+df['Hole']
     specimens=df['Exp'].astype('str')+'-'+holes +\
-              '-'+df['Sect'].astype('str')+'-' + df['A/W']+'-'+ interval
+              '-'+df['Sect'].astype('str')+ df['Type']+'-' + df['A/W']+'-'+ interval
     return holes,specimens
 
 def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samples.txt",
