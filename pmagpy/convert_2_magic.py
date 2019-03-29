@@ -3101,10 +3101,9 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
     in_df=pd.read_csv(dscr_file)
     hole,srm_specimens=iodp_sample_names(in_df)
     for spec in list(srm_specimens.unique()):
-        if spec in LORE_specimens:
-            print (spec, ' found in sample table')
-        else:
-            print (spec, ' not found in sample table')
+        if spec not in LORE_specimens:
+            print (' -W- ',spec, ' not found in specimens table ')
+            print ( 'check your sample name or add to specimens table by hand\n')
     # set up defaults
     measurements_df['specimen']=srm_specimens
     measurements_df['quality']='g'

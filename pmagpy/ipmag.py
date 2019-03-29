@@ -2639,8 +2639,8 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
             return False
 
 
-def combine_magic(filenames, outfile, data_model=3, magic_table='measurements',
-                  output_dir_path=".", input_dir_path=""):
+def combine_magic(filenames, outfile='measurements.txt', data_model=3, magic_table='measurements',
+                  dir_path=".", input_dir_path=""):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a
     single file. Returns output filename if the operation was successful.
@@ -2648,15 +2648,20 @@ def combine_magic(filenames, outfile, data_model=3, magic_table='measurements',
     Parameters
     -----------
     filenames : list of MagIC formatted files
-    outfile : name of output file
+    outfile : name of output file [e.g., measurements.txt]
     data_model : data model number (2.5 or 3), default 3
     magic_table : name of magic table, default 'measurements'
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory (if different from dir_path), default ""
+
 
     Returns
     ----------
     outfile name if success, False if failure
     """
-    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, output_dir_path)
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     if float(data_model) == 3.0:
         outfile = pmag.resolve_file_name(outfile, output_dir_path)
         output_dir_path, file_name = os.path.split(outfile)
