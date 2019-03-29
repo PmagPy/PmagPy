@@ -724,6 +724,7 @@ class Contribution(object):
         # propagate down
         if down:
             # do merge
+            target_df[add_name] = target_df[add_name].astype(str)
             target_df = target_df.merge(source_df[col_names], how='left',
                                         left_on=add_name, right_index=True,
                                         suffixes=["_target", "_source"])
@@ -731,6 +732,7 @@ class Contribution(object):
         else:
             # do merge
             col_names.append(add_name)
+            source_df[add_name] = source_df[add_name].astype(str)
             target_df = target_df.merge(source_df[col_names],
                                         how='left', left_index=True,
                                         right_on=add_name,
@@ -1399,6 +1401,7 @@ class MagicDataFrame(object):
             self.df = self.df[columns]
 
         # make sure name column is present (i.e., sample column in samples df)
+        self.df.index = self.df.index.astype(str)
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
