@@ -3332,6 +3332,7 @@ def plot_map(fignum, lats, lons, Opts):
             m = ax.contourf(xx, yy, etopo, levels,
                             transform=ccrs.PlateCarree(),
                             cmap=Opts['cmap'])
+            cbar=plt.colorbar(m)
         if Opts['details']['coasts'] == 1:
             if Opts['res']=='c' or Opts['res']=='l':
                 ax.coastlines(resolution='110m')
