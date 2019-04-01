@@ -127,7 +127,11 @@ def main():
 
     # go through rows and extract data
     for ind, row in Results.iterrows():
-        lat, lon = float(row['vgp_lat']), float(row['vgp_lon'])
+        try:
+            lat, lon = float(row['vgp_lat']), float(row['vgp_lon'])
+        except ValueError:
+            lat = float(str(row['vgp_lat']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
+            lon = float(str(row['vgp_lon']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
         if anti == 1:
             lats.append(-lat)
             lon = lon + 180.
