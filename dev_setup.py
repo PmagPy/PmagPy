@@ -5,39 +5,48 @@ NAME
 
 DESCRIPTION
     Facilitates simple install, uninstall, and reinstall of the developer
-    version of the PmagPy library and GUIs for both Unix and Windows systems.
+    version of the PmagPy library and GUIs for Unix systems.
     This will edit global environment variables and shell configuration files
     if you have no idea what those are, unless you need immediate quick
     updates to PmagPy, it may be better to use the pip or binary installs of
     this software instructions here:
     (https://earthref.org/PmagPy/cookbook/#pip_install).
-    Note for Windows users: the windows_install function of this file
-    requires administrative access so you will need to run in a command prompt
-    with elevated privileges. See:
-    (http://www.thewindowsclub.com/how-to-run-command-prompt-as-an-administrator)
     Note for OSX users: you must use bash as your shell (not csh, zsh, etc.).
     To switch to bash, select Terminal --> Preferences --> General,
     and choose "default login shell".
     Last, this script MUST BE RUN FROM THE PMAGPY DIRECTORY.
+
+    Note for Windows users: This functionality is not currently available for Windows.
+    Please follow the Cookbook instructions to edit your path by hand:
+    https://earthref.org/PmagPy/cookbook/#setting_path
+
 
 SYNTAX
     python dev_setup.py [install,uninstall,reinstall] [OPTIONS]
 
 OPTIONS
     -h: open help message
-    -p: path_to_python -> necessary if you don't have a fully set up python
-        environment on windows. This information will allow the script to set
-        this python.exe to be the default python interpreter and will have it
-        run when file name with extension .py is entered in command prompt.
-        Note: this should be an ABSOLUTE path.
-        E.g. C:\\Users\\USERNAME\\AppData\\Local\\Continuum\\Anaconda2\\python.exe
-        If you don't know where your python.exe is, type these commands:
-            cd \\
-            dir python.exe /s /p
-        into command prompt and it will tell you the location of all
-        python.exe it can find. This process can take a while, so be
-        patient.
 """
+
+#    The windows_install function of this file
+#    requires administrative access so you will need to run in a command prompt
+#    with elevated privileges. See:
+#    (http://www.thewindowsclub.com/how-to-run-command-prompt-as-an-administrator)
+
+#    -p: path_to_python -> necessary if you don't have a fully set up python
+#        environment on windows. This information will allow the script to set
+#        this python.exe to be the default python interpreter and will have it
+#        run when file name with extension .py is entered in command prompt.
+#        Note: this should be an ABSOLUTE path.
+#        E.g. C:\\Users\\USERNAME\\AppData\\Local\\Continuum\\Anaconda2\\python.exe
+#        If you don't know where your python.exe is, type these commands:
+#            cd \\
+#            dir python.exe /s /p
+#        into command prompt and it will tell you the location of all
+#        python.exe it can find. This process can take a while, so be
+#        patient.
+
+
 import sys
 import os
 import subprocess
