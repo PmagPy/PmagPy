@@ -10674,8 +10674,9 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     saved = []
     # get all the records with measurement data
     meas_data = meas_df[meas_df[int_key].notnull()]
-    thel_data = meas_data[meas_data['method_codes'].str.contains(
-        'LP-PI-TRM')]  # get all the Thellier data
+    # get all the Thellier data
+    thel_data = meas_data.dropna(subset=['method_codes'])
+    thel_data = thel_data[thel_data['method_codes'].str.contains('LP-PI-TRM')]
     specimens = meas_data.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
