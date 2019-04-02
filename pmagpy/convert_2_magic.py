@@ -3199,19 +3199,20 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
+# PUT IN SORT BY Test No HERE.
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
         print ('see convert_2_magic.iodp_samples_csv for help')
         return False
     LORE_specimens=list(specimens_df.specimen.unique())
-    jr6_df=pd.read_csv(jr6_file,sep='\t',header=1)
-    if len(jr6_df)==0:
-        print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
-        return False
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
     citations = "This study"
     in_df=pd.read_csv(jr6_file)
+    if len(in_df)==0:
+        print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
+        return False
+    in_df.sort_values(by='Treatment value (mT or °C or ex. B14)',inplace=True)
     hole,jr6_specimens=iodp_sample_names(in_df)
     for spec in list(jr6_specimens.unique()):
         if spec not in LORE_specimens:
@@ -4198,6 +4199,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
+    in_df.sort_values(by='Treatment Value',inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
         return False
