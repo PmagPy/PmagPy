@@ -1446,7 +1446,7 @@ def plot_net(fignum):
     """
 
 # make the perimeter
-    plt.figure(num=fignum)
+    plt.figure(num=fignum,)
     plt.clf()
     plt.axis("off")
     Dcirc = np.arange(0, 361.)
