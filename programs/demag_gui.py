@@ -116,7 +116,8 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def __init__(self, WD=None, parent=None, write_to_log_file=True,
-                 test_mode_on=False, data_model=None, evt_quit=None):
+                 test_mode_on=False, data_model=None, evt_quit=None,
+                 meas_file=None):
         """
         Initializes the GUI by creating necessary variables, importing data,
         setting icon, and initializing the UI and menu
@@ -142,8 +143,8 @@ class Demag_GUI(wx.Frame):
                           style=default_style, name='demag gui')
         self.parent = parent
         self.set_test_mode(test_mode_on)
-        self.data_model = data_model
         self.evt_quit = evt_quit
+        self.data_model = data_model
         # default intensity column
         self.intensity_col = "measurement_magn_moment"
 
@@ -158,12 +159,16 @@ class Demag_GUI(wx.Frame):
             if not os.path.isdir(WD):
                 print(("There is no directory %s using current directory" % (WD)))
                 WD = os.getcwd()
-            self.change_WD(WD)
+            if not meas_file:
+                self.change_WD(WD)
+            else:
+                wd = os.path.split(meas_file)[0]
+                self.change_WD(wd, meas_file)
         else:
             new_WD = self.get_DIR()  # choose directory dialog, then initialize directory variables
             if new_WD == self.currentDirectory and 'Anaconda' in sys.version.split()[1]:
                 new_WD = self.get_DIR()
-            self.change_WD(new_WD)
+            self.change_WD(new_WD, meas_file)
         if write_to_log_file:
             self.init_log_file()
 
@@ -172,6 +177,17 @@ class Demag_GUI(wx.Frame):
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
 
+        try:
+            data_model = int(float(self.data_model))
+            if data_model not in [2, 3]:
+                print('-W- Could not parse provided data model:', data_model)
+                print('    Assuming you want data model 3.0')
+                self.data_model = 3.0
+            self.data_model = float(self.data_model)
+        except:
+            print('-W- Could not parse provided data model:', data_model)
+            print('    Assuming you want data model 3.0')
+            self.data_model = 3.0
         # set icon
         if not self.parent:
             self.icon = wx.Icon()
@@ -238,6 +254,8 @@ class Demag_GUI(wx.Frame):
         self.COORDINATE_SYSTEM = 'geographic'
         self.UPPER_LEVEL_SHOW = 'specimens'
 
+        if not self.magic_file:
+            return
         # Get data
         self.Data_info = self.get_data_info()  # Read  er_* data
         # Get data from magic_measurements and rmag_anistropy if exist.
@@ -294,7 +312,7 @@ class Demag_GUI(wx.Frame):
             # get previous interpretations from pmag tables
             if self.data_model == 3.0 and 'specimens' in self.con.tables:
                 self.get_interpretations3()
-            else:
+            if self.data_model == 2.5:
                 self.update_pmag_tables()
             if not self.current_fit:
                 self.update_selection()
@@ -3865,6 +3883,11 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3:
 
+            if 'measurements' not in self.con.tables:
+                self.user_warning(
+                    "Measurement data file is empty and the GUI cannot start, aborting")
+                return Data, Data_hierarchy
+
             if self.con.tables['measurements'].df.empty:
                 self.user_warning(
                     "Measurement data file is empty and the GUI cannot start, aborting")
@@ -4012,13 +4035,17 @@ class Demag_GUI(wx.Frame):
             # make a list of dictionaries to maintain backward compatibility
             mag_meas_data = meas_data2_5.to_dict("records")
 
-        else:
+        else:  # data model 2.5
             try:
                 print(("-I- Read magic file %s" % self.magic_file))
             except ValueError:
                 self.magic_measurement = self.choose_meas_file()
                 print(("-I- Read magic file %s" % self.magic_file))
             mag_meas_data, file_type = pmag.magic_read(self.magic_file)
+            if file_type != "magic_measurements":
+                self.user_warning("You have selected data model 2.5, but your measurements file is either not in 2.5, or is not a measurements file.\n{} has file type: {}".format(self.magic_file, file_type))
+                return {}, {}
+
 
         self.mag_meas_data = self.merge_pmag_recs(mag_meas_data)
 
@@ -4734,7 +4761,7 @@ class Demag_GUI(wx.Frame):
             self.ie.update_editor()
         self.update_selection()
 
-    def change_WD(self, new_WD):
+    def change_WD(self, new_WD, meas_file=""):
         """
         Changes Demag GUI's current WD to new_WD if possible
 
@@ -4746,39 +4773,43 @@ class Demag_GUI(wx.Frame):
         if not os.path.isdir(new_WD):
             return
         self.WD = new_WD
-        if self.data_model == None:
-            if os.path.isfile(os.path.join(self.WD, "measurements.txt")) and os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
-                ui_dialog = demag_dialogs.user_input(self, ['data_model'], parse_funcs=[
-                                                     float], heading="More than one measurement file found in CWD with different data models please input prefered data model (2.5,3.0)", values=[3])
-                self.show_dlg(ui_dialog)
-                ui_data = ui_dialog.get_values()
-                self.data_model = ui_data[1]['data_model']
-            elif os.path.isfile(os.path.join(self.WD, "measurements.txt")):
-                self.data_model = 3.0
-            elif os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
-                self.data_model = 2.5
-            else:
+        if not meas_file:
+            if self.data_model == None:
+                if os.path.isfile(os.path.join(self.WD, "measurements.txt")) and os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
+                    ui_dialog = demag_dialogs.user_input(self, ['data_model'], parse_funcs=[
+                                                         float], heading="More than one measurement file found in CWD with different data models please input prefered data model (2.5,3.0)", values=[3])
+                    self.show_dlg(ui_dialog)
+                    ui_data = ui_dialog.get_values()
+                    self.data_model = ui_data[1]['data_model']
+                elif os.path.isfile(os.path.join(self.WD, "measurements.txt")):
+                    self.data_model = 3.0
+                elif os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
+                    self.data_model = 2.5
+                else:
+                    self.user_warning(
+                        "No measurement file found in chosen directory")
+                    self.data_model = 3
+            try:
+                self.data_model = float(self.data_model)
+                if int(self.data_model) == 3:
+                    meas_file = os.path.join(self.WD, "measurements.txt")
+                elif int(self.data_model) == 2:
+                    meas_file = os.path.join(self.WD, "magic_measurements.txt")
+                else:
+                    meas_file = ''
+                    self.data_model = 3
+            except (ValueError, TypeError) as e:
                 self.user_warning(
-                    "No measurement file found in chosen directory")
-                self.data_model = 0
-        try:
-            self.data_model = float(self.data_model)
-            if int(self.data_model) == 3:
-                meas_file = os.path.join(self.WD, "measurements.txt")
-            elif int(self.data_model) == 2:
-                meas_file = os.path.join(self.WD, "magic_measurements.txt")
-            else:
-                meas_file = ''
-                self.data_model = 2.5
-        except (ValueError, TypeError) as e:
-            self.user_warning(
-                "Provided data model is unrecognized or invalid, please rerun with valid data model input (2.x or 3) or without -dm flag")
-            sys.exit()
+                    "Provided data model is unrecognized or invalid, assuming you want data model 3")
+                self.data_model = 3
 
         if os.path.isfile(meas_file):
             self.magic_file = meas_file
         else:
             self.magic_file = self.choose_meas_file()
+
+        if not self.data_model:
+            self.data_model = 3
 
     #---------------------------------------------#
     # Data Writing Functions
@@ -5037,15 +5068,15 @@ class Demag_GUI(wx.Frame):
             dlg.Destroy()
         return new_WD
 
-    def choose_meas_file(self):
+    def choose_meas_file(self, event=None):
         """
         Opens a dialog allowing the user to pick a measurement file
         """
         dlg = wx.FileDialog(
-            self, message="No measurements found. Please choose a measurement file",
+            self, message="Please choose a measurement file",
             defaultDir=self.WD,
             defaultFile="measurements.txt",
-            wildcard="*.magic|*.txt",
+            wildcard="measurement files (*.magic,*.txt)|*.magic;*.txt",
             style=wx.FD_OPEN | wx.FD_CHANGE_DIR
         )
         if self.show_dlg(dlg) == wx.ID_OK:
@@ -8551,12 +8582,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 # --------------------------------------------------------------
 
 
-def start(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=None):
+def start(WD=None, standalone_app=True, parent=None, write_to_log_file=True,
+          DM=None, meas_file=None):
     # to run as module:
     if not standalone_app:
         disableAll = wx.WindowDisabler()
         frame = Demag_GUI(
-            WD, parent, write_to_log_file=write_to_log_file, data_model=DM)
+            WD, parent, write_to_log_file=write_to_log_file,
+            data_model=DM, meas_file=meas_file)
         frame.Center()
         frame.Show()
         frame.Raise()
@@ -8564,7 +8597,8 @@ def start(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=
     else:
         app = wx.App()
         app.frame = Demag_GUI(
-            WD, write_to_log_file=write_to_log_file, data_model=DM)
+            WD, write_to_log_file=write_to_log_file, data_model=DM,
+            meas_file=meas_file)
         app.frame.Center()
         app.frame.Show()
         app.MainLoop()
@@ -8591,7 +8625,8 @@ def main():
         dm_index = sys.argv.index('-DM')
         if len(sys.argv) >= dm_index+2:
             data_model = sys.argv[dm_index+1]
-    start(WD=WD, write_to_log_file=write_to_log_file, DM=data_model)
+    meas_file = pmag.get_named_arg('-f')
+    start(WD=WD, write_to_log_file=write_to_log_file, DM=data_model, meas_file=meas_file)
 
 
 if __name__ == '__main__':
