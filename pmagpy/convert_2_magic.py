@@ -3285,7 +3285,7 @@ def iodp_sufar_lore(kly4s_file, meas_out='measurements.txt',
 
     Parameters
     ----------
-    lims_file : str
+    kly4s_file : str
         input LORE downloaded csv file, required
     meas_output : str
         measurement output filename, default "measurements.txt"
