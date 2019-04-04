@@ -523,18 +523,9 @@ class Demag_GUI(wx.Frame):
         #  select coordinate box
     # ----------------------------------------------------------------------
 
-        self.coordinate_list = ['specimen']
-        intial_coordinate = 'specimen'
-        for specimen in self.specimens:
-            if 'geographic' not in self.coordinate_list and self.Data[specimen]['zijdblock_geo']:
-                self.coordinate_list.append('geographic')
-                intial_coordinate = 'geographic'
-            if 'tilt-corrected' not in self.coordinate_list and self.Data[specimen]['zijdblock_tilt']:
-                self.coordinate_list.append('tilt-corrected')
-
-        self.COORDINATE_SYSTEM = intial_coordinate
+        self.COORDINATE_SYSTEM, self.coordinate_list = self.get_coordinate_system()
         self.coordinates_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, size=(
-            200*self.GUI_RESOLUTION, 25), choices=self.coordinate_list, value=intial_coordinate, style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
+            200*self.GUI_RESOLUTION, 25), choices=self.coordinate_list, value=self.COORDINATE_SYSTEM, style=wx.CB_DROPDOWN | wx.TE_READONLY, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,
                   self.coordinates_box)
         self.coordinates_box.SetHelpText(dgh.coordinates_box_help)
@@ -829,6 +820,27 @@ class Demag_GUI(wx.Frame):
 
         self.GUI_SIZE = self.GetSize()
 
+
+    def get_coordinate_system(self):
+        """
+        Check self.Data for available coordinate systems.
+
+        Returns
+        ---------
+        initial_coordinate, coordinate_list : str, list
+        i.e., 'geographic', ['specimen', 'geographic']
+        """
+        coordinate_list = ['specimen']
+        initial_coordinate = 'specimen'
+        for specimen in self.specimens:
+            if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
+                coordinate_list.append('geographic')
+                initial_coordinate = 'geographic'
+            if 'tilt-corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
+                coordinate_list.append('tilt-corrected')
+        return initial_coordinate, coordinate_list
+
+
     def create_menu(self):
         """
         Create the MenuBar for the GUI current structure is:
@@ -855,6 +867,13 @@ class Demag_GUI(wx.Frame):
         m_change_WD = menu_file.Append(-1,
                                        "Change Working Directory\tCtrl-W", "")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_WD)
+
+
+
+        m_import_meas_file = menu_file.Append(-1,
+                                        "Change measurements file", "")
+
+        self.Bind(wx.EVT_MENU, self.on_menu_import_meas_file, m_import_meas_file)
 
         m_import_LSQ = menu_file.Append(-1,
                                         "&Import Interpretations from LSQ file\tCtrl-L", "")
@@ -3392,11 +3411,29 @@ class Demag_GUI(wx.Frame):
         if warn_user and not self.data_loss_warning():
             return False
 
+        # reset backend, including get_data(), get_data_info()
         self.quiet_reset_backend(reset_interps=reset_interps)
 
+        # reset specimens box
         self.specimens_box.SetItems(self.specimens)
         self.specimens_box.SetStringSelection(str(self.s))
 
+        # reset site level means box
+        self.level_names.Clear()
+        self.level_names.AppendItems(self.sites)
+        if self.sites:
+            self.level_names.SetSelection(0)
+
+        # reset coordinate system
+        self.COORDINATE_SYSTEM, self.coordinate_list = self.get_coordinate_system()
+        self.coordinates_box.Clear()
+        self.coordinates_box.AppendItems(self.coordinate_list)
+        self.coordinates_box.SetStringSelection(self.COORDINATE_SYSTEM)
+
+        # get cart rot
+        self.initialize_CART_rot(str(self.s))
+
+        # draw everything
         if self.Data:
             if not self.current_fit:
                 self.draw_figure(self.s)
@@ -6977,6 +7014,19 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
+
+    def on_menu_import_meas_file(self, event):
+        """
+        Open measurement file, reset self.magic_file
+        and self.WD, and reset everything.
+        """
+        # use new measurement file and corresponding WD
+        meas_file = self.choose_meas_file()
+        WD = os.path.split(meas_file)[0]
+        self.WD = WD
+        self.magic_file = meas_file
+        # reset backend with new files
+        self.reset_backend()
 
     def on_menu_change_working_directory(self, event):
         old_WD = self.WD
