@@ -10240,7 +10240,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             return ZED
         mpars = {"specimen_direction_type": "Error"}
         if len(prior_spec_data):
-            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str).str.contains(this_specimen) == True]
+            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str) == this_specimen]  #.str.match(this_specimen) == True]
         if len(prior_specimen_interpretations):
             if len(prior_specimen_interpretations)>0:
                 beg_pcas = pd.to_numeric(
