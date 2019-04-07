@@ -76,7 +76,7 @@ class Vocabulary(object):
         if not requests:
             return False
         try:
-            req = requests.get(url, timeout=3)
+            req = requests.get(url, timeout=.2)
             if not req.ok:
                 return []
             return req
