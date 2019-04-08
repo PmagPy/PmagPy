@@ -10,6 +10,7 @@ import os
 #import cached vocabulries as backup
 from . import find_pmag_dir
 from . import data_model3 as data_model
+from pmag_env import set_env
 pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
@@ -89,15 +90,16 @@ class Vocabulary(object):
         if len(VOCAB):
             self.set_vocabularies()
             return
-        # try to get meth codes online
         raw_codes = []
-        try:
-            raw = self.get_json_online('https://www2.earthref.org/MagIC/method-codes.json')
-            raw_codes = pd.DataFrame(raw.json())
-            print('-I- Getting method codes from earthref.org')
-        except Exception as ex:
-            #print(ex, type(ex))
-            print("-I- Couldn't connect to earthref.org, using cached method codes")
+        # try to get meth codes online
+        if not set_env.OFFLINE:
+            try:
+                raw = self.get_json_online('https://www2.earthref.org/MagIC/method-codes.json')
+                raw_codes = pd.DataFrame(raw.json())
+                print('-I- Getting method codes from earthref.org')
+            except Exception as ex:
+                #print(ex, type(ex))
+                print("-I- Couldn't connect to earthref.org, using cached method codes")
         # if you couldn't get them online, use the cache
         if not len(raw_codes):
             print("-I- Using cached method codes")
@@ -187,14 +189,15 @@ class Vocabulary(object):
         data = []
         controlled_vocabularies = []
         # try to get online
-        url = 'https://www2.earthref.org/vocabularies/controlled.json'
-        try:
-            raw = self.get_json_online(url)
-            data = pd.DataFrame(raw.json())
-            print('-I- Importing controlled vocabularies from https://earthref.org')
-        except Exception as ex:
-            pass
-            #print(ex, type(ex))
+        if not set_env.OFFLINE:
+            url = 'https://www2.earthref.org/vocabularies/controlled.json'
+            try:
+                raw = self.get_json_online(url)
+                data = pd.DataFrame(raw.json())
+                print('-I- Importing controlled vocabularies from https://earthref.org')
+            except Exception as ex:
+                pass
+                #print(ex, type(ex))
         # used cached
         if not len(data):
             print('-I- Using cached vocabularies')
@@ -267,14 +270,16 @@ class Vocabulary(object):
         Get all non-method suggested vocabularies
         """
         suggested_vocabularies = []
+        data = []
         # try to get suggested vocabularies online
-        url = 'https://www2.earthref.org/vocabularies/suggested.json'
-        try:
-            raw = self.get_json_online(url)
-            data = pd.DataFrame(raw.json())
-        except Exception as ex:
-            #print(ex, type(ex))
-            data = []
+        if not set_env.OFFLINE:
+            url = 'https://www2.earthref.org/vocabularies/suggested.json'
+            try:
+                raw = self.get_json_online(url)
+                data = pd.DataFrame(raw.json())
+            except Exception as ex:
+                #print(ex, type(ex))
+                data = []
         # if not available online, use cached
         if not len(data):
             print('-I- Using cached suggested vocabularies')

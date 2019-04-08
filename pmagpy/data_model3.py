@@ -7,6 +7,7 @@ except ImportError:
     requests = None
 import pandas as pd
 from pmagpy import find_pmag_dir
+from pmag_env import set_env
 
 DM = []
 CRIT_MAP = []
@@ -40,11 +41,12 @@ class DataModel():
             self.dm = DM
             self.crit_map = CRIT_MAP
             return
-        dm = self.get_dm_online()
-        if dm:
-            print('-I- Using online data model')
-            #self.cache_data_model(dm)
-            return self.parse_response(dm)
+        if not set_env.OFFLINE:
+            dm = self.get_dm_online()
+            if dm:
+                print('-I- Using online data model')
+                #self.cache_data_model(dm)
+                return self.parse_response(dm)
         # if online is not available, get cached dm
         dm = self.get_dm_offline()
         print('-I- Using cached data model')
