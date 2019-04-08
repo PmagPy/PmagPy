@@ -340,7 +340,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             meas_type = "LT-NO"
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = '1'
+            MeasRec["treat_step_num"] = 0
             MeasRec["specimen"] = specname
             el, demag = 1, ''
             treat = rec[el]
@@ -3083,7 +3083,7 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids']
+                       'external_database_ids','treat_step_num']
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3116,6 +3116,7 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
@@ -3195,7 +3196,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids']
+                       'external_database_ids',treat_step_num']
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3229,6 +3230,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_step_num"] = 1
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
@@ -3276,7 +3278,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     return True
 
 
-def iodp_sufar_lore(kly4s_file, meas_out='measurements.txt',
+def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
            spec_infile='specimens.txt', spec_out='specimens.txt',  instrument='IODP-KLY4S',
            dir_path='.', input_dir_path=''):
     """
@@ -3317,7 +3319,7 @@ def iodp_sufar_lore(kly4s_file, meas_out='measurements.txt',
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids','experiments']
+                       'external_database_ids','experiments','treat_step_num']
     spec_reqd_columns=['specimen','sample','result_quality','method_codes','volume',\
                        'specimen_name_alternatives','citations',\
                       'aniso_type','aniso_s_unit','aniso_s_n_measurements',\
@@ -3373,6 +3375,7 @@ def iodp_sufar_lore(kly4s_file, meas_out='measurements.txt',
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df['instrument_codes']="IODP-KLY4S" # assume all measurements on shipboard KLY4S
     measurements_df['description']='Bulk sucsecptibility measurement'
@@ -4195,7 +4198,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids']
+                       'external_database_ids','treat_step_num']
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
@@ -4225,6 +4228,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
+    measurements_df['treat_step_num']='0' # assign a number
     measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
     measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
     measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
@@ -4672,7 +4676,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                         specimen, int_key))
                     MeasRec['magn_moment'] = ''
                 MeasRec['instrument_codes'] = inst
-                MeasRec['treat_step_num'] = '1'
+                MeasRec['treat_step_num'] = 0
                 MeasRec['dir_csd'] = '0'
                 MeasRec['meas_n_orient'] = ''
                 MeasRecs.append(MeasRec)
@@ -4909,7 +4913,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
         MeasRec["quality"] = 'g'
         MeasRec["standard"] = 'u'
-        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_step_num"] = 0
         MeasRec["treat_ac_field"] = '0'
         if row['step'] == 'NRM':
             meas_type = "LT-NO"
@@ -5176,7 +5180,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
         MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
         MeasRec["quality"] = 'g'
         MeasRec["standard"] = 'u'
-        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_step_num"] = 0
         MeasRec["treat_ac_field"] = '0'
         if demagLevel == 'NRM':
             meas_type = "LT-NO"
@@ -6498,7 +6502,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
         meas_type = "LT-NO"
         MeasRec["quality"] = 'g'
         MeasRec["standard"] = 'u'
-        MeasRec["treat_step_num"] = '1'
+        MeasRec["treat_step_num"] = 0
         MeasRec["specimen"] = specimen
 #        if mass_or_vol=='v': MeasRec["susc_chi_volume"]=susc_chi_volume
 #        else: MeasRec["susc_chi_mass"]=susc_chi_mass
@@ -8048,7 +8052,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = '1'
+            MeasRec["treat_step_num"] = 0
             MeasRec["specimen"] = specimen
             if rec[0] == 'NRM':
                 meas_type = "LT-NO"
@@ -8750,7 +8754,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                 MeasRec["standard"] = 's'
             else:
                 MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = '1'
+            MeasRec["treat_step_num"] = 0
             # print MeasRec['treat_temp']
             MeasRecs.append(MeasRec)
 
