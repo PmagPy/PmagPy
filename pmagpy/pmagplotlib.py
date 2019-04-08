@@ -651,14 +651,15 @@ def plot_circ(fignum, pole, ang, col):
 #
 #
 #
-def plot_zij(fignum, datablock, angle, s, norm):
+def plot_zij(fignum, datablock, angle, s, norm=True):
     """
     function to make Zijderveld diagrams
 
     Parameters
     __________
     fignum : matplotlib figure number
-    datablock : nested list of data from, e.g., pmag.find_dmag_rec()
+    datablock : nested list of [step, dec, inc, M (Am2), type, quality]
+                where type is a string, either 'ZI' or 'IZ' for IZZI experiments
     angle : desired rotation in the horizontal plane (0 puts X on X axis)
     s : specimen name
     norm : if True, normalize to initial magnetization = unity
@@ -680,10 +681,13 @@ def plot_zij(fignum, datablock, angle, s, norm):
         fact = (1./datablock[0][3])   # normalize to NRM=1
     # convert datablock to DataFrame data with  dec,inc, int
     data = pd.DataFrame(datablock)
+    if len(data.columns) == 5:
+        data.columns = ['treat', 'dec', 'inc', 'int', 'quality']
     if len(data.columns) == 6:
         data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality']
     elif len(data.columns) == 7:
         data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality', 'y']
+    print (len(data.columns))
     data['int'] = data['int']*fact  # normalize
     data['dec'] = (data['dec']-angle) % 360  # adjust X axis angle
     gdata = data[data['quality'].str.contains('g')]
@@ -714,7 +718,8 @@ def plot_zij(fignum, datablock, angle, s, norm):
     for k in range(len(gXYZ)):
         plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
                               [k]), ha='left', va='bottom')
-
+    if amin > 0 and amax >0:amin=0 # complete the line
+    if amin < 0 and amax <0:amax=0 # complete the line
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
@@ -875,7 +880,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         eqarea : figure number for equal area projection
         zijd   : figure number for  zijderveld plot
         demag :  figure number for magnetization against demag step
-    datablock : nested list of [step, dec, inc, M (Am2), quality]
+        datablock : nested list of [step, dec, inc, M (Am2), quality]
         step : units assumed in SI
         M    : units assumed Am2
         quality : [g,b], good or bad measurement; if bad will be marked as such
