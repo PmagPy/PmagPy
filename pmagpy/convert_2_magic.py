@@ -3121,6 +3121,8 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
+    measurements_df['timestamp']=pd.to_datetime(\
+                               in_df['Timestamp (UTC)']).dt.strftime("%Y-%m-%dT%H:%M:%S")+'Z'
     measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
     measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
     measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
@@ -3196,7 +3198,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids',treat_step_num']
+                       'external_database_ids','treat_step_num']
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3235,6 +3237,8 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-JR6" # assume all measurements on shipboard JR6
+    measurements_df['timestamp']=pd.to_datetime(\
+                               in_df['Timestamp (UTC)']).dt.strftime("%Y-%m-%dT%H:%M:%S")+'Z'
     # use the sample coordinates, assume was placed correctly in the JR6 and use az=0,pl=-90 to
     # put into 'geographic' coordinates
     incs=in_df['Inclination (°)'].values
@@ -4229,6 +4233,8 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
     measurements_df['treat_step_num']='0' # assign a number
+    measurements_df['timestamp']=pd.to_datetime(\
+                               in_df['Timestamp (UTC)']).dt.strftime("%Y-%m-%dT%H:%M:%S")+'Z'
     measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
     measurements_df['dir_inc']=in_df['Inclination background & drift corrected (deg)'] # inclination
     measurements_df['magn_volume']=in_df['Intensity background & drift corrected (A/m)'] # magnetization
