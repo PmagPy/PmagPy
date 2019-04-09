@@ -1215,7 +1215,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0] - 273.)
             else:
                 X.append(rec[0])
-        if (units == "J") or (not units):
+        if (units == "J") or (not units) or (units == "T"):
             X.append(rec[0])
         Y.append(old_div(rec[3], first_Z[0][3]))
         delta = .02 * Y[0]
@@ -1232,7 +1232,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0] - 273)
             else:
                 X.append(rec[0])
-        if (units == "J") or (not units):
+        if (units == "J") or (not units) or (units == "T"):
             X.append(rec[0])
         Y.append(old_div(rec[3], first_Z[0][3]))
     if globals != 0:
