@@ -268,7 +268,8 @@ class Arai_GUI(wx.Frame):
     """
     title = "Thellier GUI version:%s" % CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False, evt_quit=None):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=0,
+                 test_mode=False, evt_quit=None, meas_file=""):
 
         TEXT = """
 
@@ -381,17 +382,26 @@ DESCRIPTION
         self.Data, self.Data_hierarchy, self.Data_info = {}, {}, {}
         self.MagIC_directories_list = []
 
-        # stop if there is no measurement file
-        if self.data_model == 3:
-            if not 'measurements.txt' in os.listdir(self.WD):
-                print('-W- No measurements.txt file found in {}'.format(self.WD))
-                self.on_menu_exit(-1)
-                return
-        elif self.data_model == 2:
-            if not 'magic_measurements.txt' in os.listdir(self.WD):
-                print('-W- No magic_measurements.txt file found in {}'.format(self.WD))
-                self.on_menu_exit(-1)
-                return
+        print('meas_file', meas_file)
+
+        if meas_file:
+            meas_file = pmag.resolve_file_name(meas_file, self.WD)
+        else:
+            # stop if there is no measurement file
+            if self.data_model == 3:
+                meas_file = "measurements.txt"
+                if not meas_file in os.listdir(self.WD):
+                    print('-W- No measurements.txt file found in {}'.format(self.WD))
+                    self.on_menu_exit(-1)
+                    return
+            elif self.data_model == 2:
+                meas_file = "magic_measurements.txt"
+                if not meas_file in os.listdir(self.WD):
+                    print('-W- No magic_measurements.txt file found in {}'.format(self.WD))
+                    self.on_menu_exit(-1)
+                    return
+
+        self.magic_file = meas_file
 
         # start grabbing data
         self.Data_info = self.get_data_info()  # get all ages, locations etc.
@@ -8324,14 +8334,15 @@ def main(WD=None, standalone_app=True, parent=None, DM=2.5):
     if not standalone_app:
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
-        frame = Arai_GUI(WD, parent, standalone=False, DM=DM)
+        frame = Arai_GUI(WD, parent, standalone=False, DM=DM, meas_file=meas_file)
         frame.Centre()
         frame.Show()
         del wait
     # to run as command line:
     else:
         app = wx.App(redirect=False)  # , #filename='py2app_log.log')
-        app.frame = Arai_GUI(WD)
+        meas_file = pmag.get_named_arg('-f', '')
+        app.frame = Arai_GUI(WD, meas_file=meas_file)
         app.frame.Show()
         app.frame.Center()
         app.MainLoop()
