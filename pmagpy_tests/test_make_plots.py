@@ -19,10 +19,10 @@ class TestMakeMagicPlots(unittest.TestCase):
             os.remove(filename)
 
     def tearDown(self):
-        for filename in glob.glob("*.png"):
-            os.remove(filename)
-        for filename in glob.glob("*errors*"):
-            os.remove(filename)
+        glob_strings = ["*.png", "*errors*", "log.txt"]
+        for glob_string in glob_strings:
+            for filename in glob.glob(glob_string):
+                os.remove(filename)
         os.chdir(WD)
 
     def test_make_plots(self):
