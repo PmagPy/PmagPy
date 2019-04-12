@@ -1346,6 +1346,8 @@ class MagicDataFrame(object):
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             self.df = pd.read_csv(magic_file, skiprows=[0], sep="\t",
                                   low_memory=False)#, dtype={name: str})
+
+            self.magic_file = magic_file
             # make sure names are strings (sometimes could be numbers)
 
 
@@ -2135,7 +2137,8 @@ class MagicDataFrame(object):
         if custom_name:
             fname = pmag.resolve_file_name(custom_name, dir_path) # os.path.join(dir_path, custom_name)
         else:
-            fname = os.path.join(dir_path, self.dtype + ".txt")
+            fname = pmag.resolve_file_name(self.magic_file, dir_path)
+            #fname = os.path.join(dir_path, self.dtype + ".txt")
         # see if there's any data
         if not len(df):
             print('-W- No data to write to {}'.format(fname))
