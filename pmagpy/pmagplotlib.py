@@ -687,7 +687,7 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
         data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality']
     elif len(data.columns) == 7:
         data.columns = ['treat', 'dec', 'inc', 'int', 'type', 'quality', 'y']
-    print (len(data.columns))
+    #print (len(data.columns))
     data['int'] = data['int']*fact  # normalize
     data['dec'] = (data['dec']-angle) % 360  # adjust X axis angle
     gdata = data[data['quality'].str.contains('g')]
