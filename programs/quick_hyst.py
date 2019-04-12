@@ -1,15 +1,14 @@
 #!/usr/bin/env python
+from pmag_env import set_env
+import pmagpy.contribution_builder as cb
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
 import sys
 import os
 import numpy
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
-
-import pmagpy.pmag as pmag
-import pmagpy.pmagplotlib as pmagplotlib
-import pmagpy.contribution_builder as cb
-from pmag_env import set_env
 
 
 def main():
@@ -51,7 +50,8 @@ def main():
         pltspec = args[ind+1]
         verbose = False
         save_plots = True
-    quick_hyst(dir_path, meas_file, save_plots, interactive, fmt, pltspec, verbose)
+    quick_hyst(dir_path, meas_file, save_plots,
+               interactive, fmt, pltspec, verbose)
 
 
 def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
@@ -120,7 +120,8 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
     sids = hyst_data['specimen'].unique()
 
     # if 'treat_temp' is provided, use that value, otherwise assume 300
-    hyst_data['treat_temp'].where(hyst_data['treat_temp'].notnull(), '300', inplace=True)
+    hyst_data['treat_temp'].where(
+        hyst_data['treat_temp'].notnull(), '300', inplace=True)
     # start at first specimen, or at provided specimen ('-spc')
     k = 0
     if specimen:
@@ -181,9 +182,12 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                     title = 'Hysteresis: ' + s
                 if t == Temps[0]:
                     pmagplotlib.clearFIG(HDD['hyst'])
-                pmagplotlib.plot_xy(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title)
-                pmagplotlib.plot_xy(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title)
-                pmagplotlib.plot_xy(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plot_xy(
+                    HDD['hyst'], B, M, sym=c[cnum], xlab=xlab, ylab=ylab, title=title)
+                pmagplotlib.plot_xy(HDD['hyst'], [
+                                    1.1*B.min(), 1.1*B.max()], [0, 0], sym='k-', xlab=xlab, ylab=ylab, title=title)
+                pmagplotlib.plot_xy(HDD['hyst'], [0, 0], [
+                                    1.1*M.min(), 1.1*M.max()], sym='k-', xlab=xlab, ylab=ylab, title=title)
                 if not save_plots and not set_env.IS_WIN:
                     pmagplotlib.draw_figs(HDD)
                 cnum += 1
@@ -197,7 +201,8 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
             for key in list(HDD.keys()):
                 if pmagplotlib.isServer:
                     if synth == '':
-                        files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                        files[key] = "LO:_"+locname+'_SI:_'+site + \
+                            '_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                     else:
                         files[key] = 'SY:_'+synth+'_TY:_'+key+'_.'+fmt
                 else:
@@ -220,16 +225,18 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                 return True, saved
         if interactive:
             pmagplotlib.draw_figs(HDD)
-            ans = input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
+            ans = input(
+                "S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":
                 files = {}
                 for key in list(HDD.keys()):
-                    if pmagplotlib.isServer: # use server plot naming convention
+                    if pmagplotlib.isServer:  # use server plot naming convention
                         locname = locname if locname else ""
                         site = site if site else ""
                         sample = sample if sample else ""
-                        files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
-                    else: # use more readable plot naming convention
+                        files[key] = "LO:_"+locname+'_SI:_'+site + \
+                            '_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    else:  # use more readable plot naming convention
                         filename = ''
                         for item in [locname, site, sample, s, key]:
                             if item:
@@ -252,7 +259,8 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                 return True, []
             if ans == 's':
                 keepon = 1
-                specimen = input('Enter desired specimen name (or first part there of): ')
+                specimen = input(
+                    'Enter desired specimen name (or first part there of): ')
                 while keepon == 1:
                     try:
                         k = list(sids).index(specimen)
@@ -273,6 +281,7 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                 print('skipping this one - no hysteresis data')
             k += 1
     return True, saved
+
 
 if __name__ == "__main__":
     main()
