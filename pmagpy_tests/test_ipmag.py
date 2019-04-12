@@ -1017,16 +1017,15 @@ class TestQuickHyst(unittest.TestCase):
     def tearDown(self):
         glob_strings = ["*.svg", "*.png", "*.pdf"]
         for string in glob_strings:
-            print(string)
-            print(glob.glob(string))
             for fname in glob.glob(string):
-                print(fname)
                 os.remove(fname)
 
     def test_success(self):
         status, saved = ipmag.quick_hyst("data_files/3_0/McMurdo")
         self.assertTrue(status)
         self.assertEqual(8, len(saved))
+        for fname in saved:
+            self.assertTrue(fname.endswith('.png'))
 
     def test_fail_no_file(self):
         status, saved = ipmag.quick_hyst()

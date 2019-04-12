@@ -12423,7 +12423,7 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                         files[key] = "{}_{}.{}".format(synth, key, fmt)
 
             pmagplotlib.save_plots(HDD, files)
-            saved.extend([key for key in files])
+            saved.extend([value for value in files.values()])
             if specimen:
                 return True, saved
         if interactive:
@@ -12451,7 +12451,7 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                         files[key] = filename
 
                 pmagplotlib.save_plots(HDD, files)
-                saved.extend([key for key in files])
+                saved.extend([value for value in files.values()])
             if ans == '':
                 k += 1
             if ans == "p":
