@@ -1009,7 +1009,41 @@ class TestChiMagic(unittest.TestCase):
         files = glob.glob('*.png')
         self.assertEqual(2, len(files))
 
+class TestQuickHyst(unittest.TestCase):
 
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.svg", "*.png", "*.pdf"]
+        for string in glob_strings:
+            print(string)
+            print(glob.glob(string))
+            for fname in glob.glob(string):
+                print(fname)
+                os.remove(fname)
+
+    def test_success(self):
+        status, saved = ipmag.quick_hyst("data_files/3_0/McMurdo")
+        self.assertTrue(status)
+        self.assertEqual(8, len(saved))
+
+    def test_fail_no_file(self):
+        status, saved = ipmag.quick_hyst()
+        self.assertFalse(status)
+        self.assertFalse(saved)
+
+    def test_one_specimen(self):
+        status, saved = ipmag.quick_hyst("data_files/3_0/McMurdo", specimen="mc205a1-1")
+        self.assertTrue(status)
+        self.assertEqual(1, len(saved))
+
+    def test_other_format(self):
+        status, saved = ipmag.quick_hyst("data_files/quick_hyst", "hysteresis_magic_example3.dat",
+                                         fmt="pdf")
+        self.assertTrue(status)
+        self.assertEqual(8, len(saved))
+        self.assertEqual(8, len(glob.glob("*.pdf")))
 
 
 if __name__ == '__main__':
