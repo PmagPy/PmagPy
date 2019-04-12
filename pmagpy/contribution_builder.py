@@ -1229,6 +1229,7 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
+        self.magic_file = ""
         provided_dtype = dtype
         # first fetch data model if not provided
         # (DataModel type sometimes not recognized, hence ugly hack below)
@@ -2136,9 +2137,10 @@ class MagicDataFrame(object):
         dir_path = os.path.realpath(dir_path)
         if custom_name:
             fname = pmag.resolve_file_name(custom_name, dir_path) # os.path.join(dir_path, custom_name)
-        else:
+        elif self.magic_file:
             fname = pmag.resolve_file_name(self.magic_file, dir_path)
-            #fname = os.path.join(dir_path, self.dtype + ".txt")
+        else:
+            fname = os.path.join(dir_path, self.dtype + ".txt")
         # see if there's any data
         if not len(df):
             print('-W- No data to write to {}'.format(fname))
