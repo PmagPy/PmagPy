@@ -1,4 +1,4 @@
-# /usr/bin/env/pythonw
+#!/usr/bin/env/pythonw
 from past.utils import old_div
 import codecs
 import copy
@@ -74,9 +74,9 @@ def igrf(input_list, mod='', ghfile=""):
     Intensity: 48745.264 nT
     """
     if ghfile != "":
-        lmgh = numpy.loadtxt(ghfile)
+        lmgh = np.loadtxt(ghfile)
         gh = []
-        lmgh = numpy.loadtxt(ghfile).transpose()
+        lmgh = np.loadtxt(ghfile).transpose()
         gh.append(lmgh[2][0])
         for i in range(1, lmgh.shape[1]):
             gh.append(lmgh[2][i])
