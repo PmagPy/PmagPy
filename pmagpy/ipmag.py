@@ -3150,7 +3150,6 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
     F23s = []
     Axs = []  # collect the plot ids
-# START HERE
     if len(Bulks) > 0:
         pcol += 1
 
@@ -3311,18 +3310,17 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     else:
         return False, "No data to plot"
 
-
 def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file='',
-                   samp_file='', age_file='', sum_file='', wt_file='',
+                   samp_file='samples.txt', age_file='', sum_file='', wt_file='',
                    depth_scale='core_depth', dmin=-1, dmax=-1, sym='bo',
                    size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
                    pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
                    logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
-                   norm=False, data_model_num=3):
+                   norm=False, data_model_num=3,location=""):
     """
-    depth scale can be 'sample_core_depth' or 'sample_composite_depth'
+    depth scale can be 'core_depth' or 'composite_depth' (for data model=3)
     if age file is provided, depth_scale will be set to 'age' by default.
-    You must provide at least a measurements file and a specimen file to plot.
+    You must provide at least a measurements,specimens and sample file to plot.
 
     Parameters
     ----------
@@ -3357,6 +3355,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     meth : str, default ""
         method codes, ["LT-NO", "AF", "T", "ARM", "IRM", "X"]
     step : int, default 0
+        treatment step for plotting: 
+            for AF, in mT, for T, in C
     fmt : str, default "svg"
         format for figures, [svg,jpg,png,pdf]
     pltDec : bool, default True
@@ -3418,7 +3418,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         size = int(size)
     if spc_size:
         spc_size = int(spc_size)
-    title, location = "", ""
+    title = ""
+    if location:title=location
 
     # file formats not supported for the moment
     ngr_file = ""  # nothing needed, not implemented fully in original script
@@ -3521,7 +3522,6 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         # propagate data to measurements
         con.propagate_name_down('sample', 'measurements')
         con.propagate_name_down('site', 'measurements')
-        con.propagate_location_to_measurements()
 
         # propagate depth info from sites --> samples
         con.propagate_cols(
