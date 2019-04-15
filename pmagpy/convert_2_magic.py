@@ -3083,7 +3083,7 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids','treat_step_num']
+                       'external_database_ids','treat_step_num','meas_n_orient']
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3112,6 +3112,7 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
     measurements_df['software_packages']=version_num
     measurements_df["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
     measurements_df["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
+    measurements_df['meas_n_orient']=1 # at least one orientation
     measurements_df["treat_ac_field"] = '0'
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
@@ -4224,7 +4225,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids','treat_step_num']
+                       'external_database_ids','treat_step_num','meas_n_orient']
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
@@ -4255,6 +4256,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
     measurements_df['instrument_codes']="IODP-SRM" # assume all measurements on shipboard 2G
     measurements_df['treat_step_num']='0' # assign a number
+    measurements_df['meas_n_orient']=1 # at least one orientation
     measurements_df['timestamp']=pd.to_datetime(\
                                in_df['Timestamp (UTC)']).dt.strftime("%Y-%m-%dT%H:%M:%S")+'Z'
     measurements_df['dir_dec']=in_df['Declination background & drift corrected (deg)'] # declination
