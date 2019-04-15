@@ -1045,5 +1045,18 @@ class TestQuickHyst(unittest.TestCase):
         self.assertEqual(8, len(glob.glob("*.pdf")))
 
 
+    def test_two_plots(self):
+        status, saved = ipmag.quick_hyst("data_files/quick_hyst", "hysteresis_magic_example3.dat",
+                                         n_plots=2)
+        self.assertTrue(status)
+        self.assertEqual(2, len(saved))
+        self.assertEqual(2, len(glob.glob("*.png")))
+
+    def test_with_contribution(self):
+        con = cb.Contribution("data_files/quick_hyst",
+                              custom_filenames={'measurements': "hysteresis_magic_example3.dat"})
+        ipmag.quick_hyst(contribution=con)
+
+
 if __name__ == '__main__':
     unittest.main()

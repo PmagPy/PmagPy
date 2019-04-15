@@ -12239,7 +12239,8 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
 
 
 def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
-               interactive=False, fmt="png", specimen="", verbose=True):
+               interactive=False, fmt="png", specimen="", verbose=True, n_plots=10,
+               contribution=None):
     """
     makes specimen plots of hysteresis data
 
@@ -12266,8 +12267,11 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
     Tuple : (True or False indicating if conversion was sucessful, output file name(s) written)
     """
 
-    con = cb.Contribution(dir_path, read_tables=['measurements'],
-                          custom_filenames={'measurements': meas_file})
+    if contribution is None:
+        con = cb.Contribution(dir_path, read_tables=['measurements'],
+                              custom_filenames={'measurements': meas_file})
+    else:
+        con = contribution
     # get as much name data as possible (used for naming plots)
     if 'measurements' not in con.tables:
         print("-W- No measurement file found")
@@ -12317,6 +12321,9 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
             print('-W- Please provide a valid specimen name')
             return False, []
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+
+    if len(sids) > n_plots:
+        sids = sids[:n_plots]
 
     while k < len(sids):
         locname, site, sample, synth = '', '', '', ''
