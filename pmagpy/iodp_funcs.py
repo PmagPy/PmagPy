@@ -190,15 +190,17 @@ def no_xray_disturbance(nodist,hole):
 def adj_dec(df,hole):
     cores=df.core.unique()
     adj_dec_df=pd.DataFrame(columns=df.columns)
+    core_dec_corr={}
     for core in cores:
         core_df=df[df['core']==core]
         di_block=core_df[['dir_dec','dir_inc']].values
         ppars=pmag.doprinc(di_block)
         if ppars['inc']>0: # take the antipode
             ppars['dec']=ppars['dec']-180
+        core_dec_corr[core]=ppars['dec']
         core_df['adj_dec']=(core_df['dir_dec']-ppars['dec'])%360
         core_df['dir_dec']=(core_df['adj_dec']+90)%360 # set mean normal to 90 for plottingh
         adj_dec_df=pd.concat([adj_dec_df,core_df])
     adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv') 
     print ('Adjusted Declination DataFrame returned')
-    return adj_dec_df
+    return adj_dec_df,core_dec_corr
