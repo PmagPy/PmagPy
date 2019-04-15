@@ -3054,6 +3054,8 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
 
         if sum_file:
             sum_file = pmag.resolve_file_name(sum_file, dir_path)
+            core_df=pd.read_csv(sum_file)
+            depths=core_df['Top depth cored CSF (m)'].values
 
         # contribution
 
@@ -3210,15 +3212,11 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         ax.plot(Tau2, Depths, 'b^')
         ax.plot(Tau3, Depths, 'ko')
         if sum_file:
-            core_depth_key, core_label_key, Cores = read_core_csv_file(
-                sum_file)
-            for core in Cores:
-                try:
-                    depth = float(core[core_depth_key])
-                except ValueError:
-                    continue
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
+            for depth in depths:
+                if depth >= dmin and depth < dmax:
+                    plt.axhline(depth,color='blue',linestyle='dotted')
+        if tau_min>.3: tau_min=.3
+        if tau_max<.36: tau_max=.36
         ax.axis([tau_min, tau_max, dmax, dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale == 'core_depth':
@@ -3228,47 +3226,36 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         else:
             ax.set_ylabel('Depth (mcd)')
         ax2 = plt.subplot(1, pcol, 2)  # make the second column
+        ax2.yaxis.set_major_locator(plt.NullLocator())
         ax2.plot(P, Depths, 'rs')
         ax2.axis([P_min, P_max, dmax, dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
         if sum_file:
-            for core in Cores:
-                try:
-                    depth = float(core[core_depth_key])
-                except ValueError:
-                    continue
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
+            for depth in depths:
+                if depth >= dmin and depth < dmax:
+                    plt.axhline(depth,color='blue',linestyle='dotted')
         Axs.append(ax2)
         ax3 = plt.subplot(1, pcol, 3)
         Axs.append(ax3)
         ax3.plot(V3Incs, Depths, 'ko')
         ax3.axis([0, 90, dmax, dmin])
         ax3.set_xlabel('V3 Inclination')
+        ax3.yaxis.set_major_locator(plt.NullLocator())
         if sum_file:
-            for core in Cores:
-                try:
-                    depth = float(core[core_depth_key])
-                except ValueError:
-                    continue
-                if depth > dmin and depth < dmax:
-                    plt.plot([0, 90], [depth, depth], 'b--')
+            for depth in depths:
+                if depth >= dmin and depth < dmax:
+                    plt.axhline(depth,color='blue',linestyle='dotted')
         ax4 = plt.subplot(1, np.abs(pcol), 4)
         Axs.append(ax4)
         ax4.plot(V1Decs, Depths, 'rs')
         ax4.axis([0, 360, dmax, dmin])
         ax4.set_xlabel('V1 Declination')
+        ax4.yaxis.set_major_locator(plt.NullLocator())
         if sum_file:
-            for core in Cores:
-                try:
-                    depth = float(core[core_depth_key])
-                except ValueError:
-                    continue
-                if depth >= dmin and depth <= dmax:
-                    plt.plot([0, 360], [depth, depth], 'b--')
-                    if pcol == 4 and label == 1:
-                        plt.text(360, depth + tint, core[core_label_key])
+            for depth in depths:
+                if depth >= dmin and depth < dmax:
+                    plt.axhline(depth,color='blue',linestyle='dotted')
         # ax5=plt.subplot(1,np.abs(pcol),5)
         # Axs.append(ax5)
         # ax5.plot(F23s,Depths,'rs')
@@ -3290,17 +3277,11 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             ax6.plot(Bulks, BulkDepths, 'bo')
             ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
             ax6.set_xlabel('Bulk Susc. (uSI)')
+            ax6.yaxis.set_major_locator(plt.NullLocator())
             if sum_file:
-                for core in Cores:
-                    try:
-                        depth = float(core[core_depth_key])
-                    except ValueError:
-                        continue
-                    if depth >= dmin and depth <= dmax:
-                        plt.plot([0, bmax], [depth, depth], 'b--')
-                        if label == 1:
-                            plt.text(1.1 * bmax, depth + tint,
-                                     core[core_label_key])
+                for depth in depths:
+                    if depth >= dmin and depth < dmax:
+                        plt.axhline(depth,color='blue',linestyle='dotted')
         for x in Axs:
             # this makes the x-tick labels more reasonable - they were
             # overcrowded using the defaults

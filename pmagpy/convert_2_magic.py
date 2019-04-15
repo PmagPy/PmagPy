@@ -3402,7 +3402,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     else:
         actual_volume=nominal_volume
         factor=1
-    measurements_df['susc_chi_volume']=in_df['Mean susceptibility(SI)']*factor
+    measurements_df['susc_chi_volume']=in_df['Bulk susceptibility(SI)']*factor
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 # parse specimen data into columns
     specimens_df['specimen_name_alternatives']=in_df['Text ID']
