@@ -385,14 +385,12 @@ class TestAniDepthplot(unittest.TestCase):
     def test_aniso_depthplot_with_files(self):
         #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
         main_plot, plot_name = ipmag.ani_depthplot(dir_path=self.aniso_WD,
-                                                      meas_file="fake.txt",
-                                                      sum_file='CoreSummary_XXX_UTESTA.csv')
+                                                      meas_file="fake.txt")
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, ['U1361A_ani_depthplot.svg'])
 
     def test_aniso_depthplot_with_meas_file(self):
-        main_plot, plot_name = ipmag.ani_depthplot(dir_path=self.aniso_WD,
-                                                      sum_file='CoreSummary_XXX_UTESTA.csv')
+        main_plot, plot_name = ipmag.ani_depthplot(dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, ['U1361A_ani_depthplot.svg'])
 
