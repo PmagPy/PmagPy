@@ -3332,11 +3332,11 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         symbol size
     spc_sym : str, default 'ro'
         specimen symbol color and shape, default red circles
-        (see matplotlib documentaiton for more options)
+        (see matplotlib documentation for more options)
     meth : str, default ""
         method codes, ["LT-NO", "AF", "T", "ARM", "IRM", "X"]
     step : int, default 0
-        treatment step for plotting: 
+        treatment step for plotting:
             for AF, in mT, for T, in C
     fmt : str, default "svg"
         format for figures, [svg,jpg,png,pdf]
@@ -11836,7 +11836,17 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
         (this is best used on the command line only)
     crd : str, default ""
        coordinate system [g, t] (geographic, tilt_corrected)
+    sym : str, default "ro"
+        symbol color and shape, default red circles
+        (see matplotlib documentation for more options)
+    symsize : int, default 40
+        symbol size
+    rsym : str, default "g^"
+        symbol for plotting reverse poles
+    rsymsize : int, default 40
+        symbol size for reverse poles
     fmt : str, default "pdf"
+        format for figures, ["svg", "jpg", "pdf", "png"]
     res : str, default "c"
         resolution [c, l, i, h] (crude, low, intermediate, high)
     proj : str, default "ortho"
