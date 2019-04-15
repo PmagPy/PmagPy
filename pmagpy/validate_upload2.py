@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 
 
-from __future__ import print_function
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-import urllib.request, urllib.error, urllib.parse
+#import urllib.request, urllib.error, urllib.parse
 import os
-import http.client
-import pandas as pd
+#import http.client
+#import pandas as pd
 from . import pmag
 from . import find_pmag_dir
 from pmagpy.controlled_vocabularies2 import vocab
@@ -45,7 +40,7 @@ def get_data_model():
     the second level keys are the possible headers for that file type.
     the third level keys are data_type and data_status for that header.
     """
-    print("-I- getting data model, please be patient")
+    #print("-I- getting data model, please be patient!!!!")
     url = 'http://earthref.org/services/MagIC-data-model.txt'
     offline = True # always get cached data model, as 2.5 is now static
     #try:
