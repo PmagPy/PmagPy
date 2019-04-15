@@ -59,7 +59,10 @@ def main():
         sys.exit()
     dir_path = pmag.get_named_arg("-WD", ".")
     # plot: default is 0, if -sav in sys.argv should be 1
-    plot = pmag.get_flag_arg_from_sys("-sav", true=1, false=0)
+    interactive = True
+    save_plots = pmag.get_flag_arg_from_sys("-sav", true=1, false=0)
+    if save_plots:
+        interactive = False
     fmt = pmag.get_named_arg("-fmt", "pdf")
     res = pmag.get_named_arg("-res", "c")
     proj = pmag.get_named_arg("-prj", "ortho")
@@ -87,14 +90,85 @@ def main():
     else:
         lat_0, lon_0 = 90., 0.
     crd = pmag.get_named_arg("-crd", "")
+    results_file = pmag.get_named_arg("-f", "sites.txt")
+    vgpmap_magic(dir_path, results_file, crd, sym, size, rsym, rsize,
+                 fmt, res, proj, flip, anti, fancy, ell, ages, lat_0, lon_0,
+                 save_plots, interactive)
+
+
+def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
+                 sym='ro', size=8, rsym="g^", rsize=8,
+                 fmt="pdf", res="c", proj="ortho",
+                 flip=False, anti=False, fancy=False,
+                 ell=False, ages=False, lat_0=0, lon_0=0,
+                 save_plots=True, interactive=False, contribution=None):
+    """
+    makes a map of vgps and a95/dp,dm for site means in a sites table
+
+    Parameters
+    ----------
+    dir_path : str, default "."
+        input directory path
+    results_file : str, default "sites.txt"
+        name of MagIC format sites file
+    crd : str, default ""
+       coordinate system [g, t] (geographic, tilt_corrected)
+    sym : str, default "ro"
+        symbol color and shape, default red circles
+        (see matplotlib documentation for more color/shape options)
+    size : int, default 8
+        symbol size
+    rsym : str, default "g^"
+        symbol for plotting reverse poles
+        (see matplotlib documentation for more color/shape options)
+    rsize : int, default 8
+        symbol size for reverse poles
+    fmt : str, default "pdf"
+        format for figures, ["svg", "jpg", "pdf", "png"]
+    res : str, default "c"
+        resolution [c, l, i, h] (crude, low, intermediate, high)
+    proj : str, default "ortho"
+        ortho = orthographic
+        lcc = lambert conformal
+        moll = molweide
+        merc = mercator
+    flip : bool, default False
+        if True, flip reverse poles to normal antipode
+    anti : bool, default False
+        if True, plot antipodes for each pole
+    fancy : bool, default False
+        if True, plot topography (not yet implementedj)
+    ell : bool, default False
+        if True, plot ellipses
+    ages : bool, default False
+        if True, plot ages
+    lat_0 : float, default 0.
+        eyeball latitude
+    lon_0 : float, default 0.
+        eyeball longitude
+    save_plots : bool, default True
+        if True, create and save all requested plots
+    interactive : bool, default False
+       if True, interactively plot and display
+        (this is best used on the command line only)
+
+    Returns
+    ---------
+    (status, output_files) - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+
+    """
     coord_dict = {'g': 0, 't': 100}
     coord = coord_dict[crd] if crd else ""
-    results_file = pmag.get_named_arg("-f", "sites.txt")
-
-    con = cb.Contribution(dir_path, single_file=results_file)
+    if contribution is None:
+        con = cb.Contribution(dir_path, single_file=results_file)
+    else:
+        con = contribution
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
-        return
+        return False, []
+    if 'sites' not in con.tables:
+        print("-W - No sites data")
+        return False, []
 
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
@@ -200,7 +274,7 @@ def main():
         Opts['symsize'] = rsize
         # add the lats and lons of the poles
         pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
-    if plot == 0 and not set_env.IS_WIN:
+    if not save_plots and not set_env.IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
         Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
@@ -217,7 +291,7 @@ def main():
                     elats.append(pt[1])
                 # make the base map with a blue triangle at the pole
                 pmagplotlib.plot_map(FIG['map'], elats, elons, Opts)
-                if plot == 0 and not set_env.IS_WIN:
+                if not save_plots and not set_env.IS_WIN:
                     pmagplotlib.draw_figs(FIG)
     files = {}
     for key in list(FIG.keys()):
@@ -237,16 +311,18 @@ def main():
         titles['map'] = location + ' VGP map'
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
         pmagplotlib.save_plots(FIG, files)
-    elif plot == 0:
+    elif interactive:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
             pmagplotlib.save_plots(FIG, files)
+            return True, files
         else:
             print("Good bye")
-            sys.exit()
-    else:
+            return True, []
+    elif save_plots:
         pmagplotlib.save_plots(FIG, files)
+        return True, files
 
 
 if __name__ == "__main__":
