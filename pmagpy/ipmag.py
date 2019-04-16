@@ -12526,7 +12526,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     anti : bool, default False
         if True, plot antipodes for each pole
     fancy : bool, default False
-        if True, plot topography (not yet implementedj)
+        if True, plot topography (not yet implemented)
     ell : bool, default False
         if True, plot ellipses
     ages : bool, default False
