@@ -113,6 +113,7 @@ def remove_ends(arch_demag_step,hole):
         cs_df=cs_df[cs_df.offset<cs_df['offset'].max()-10]
         noends=pd.concat([noends,cs_df])
     noends.drop_duplicates(inplace=True)
+    noends.fillna("",inplace=True)
     noends.to_csv(hole+'/'+hole+'_noends.csv',index=False)  
     print ("Here's your no end DataFrame")
     return noends
@@ -131,6 +132,7 @@ def remove_disturbance(noends,hole):
         nodist=nodist[(nodist['core_depth']<top) | (nodist['core_depth']>bottom)]
     nodist.sort_values(by='core_depth',inplace=True)
     nodist.drop_duplicates(inplace=True)
+    nodist.fillna("",inplace=True)
 # save for later
     nodist.to_csv(hole+'/'+hole+'_nodisturbance.csv',index=False)    
     print ("Here's your no DescLogic disturbance DataFrame")
@@ -181,6 +183,8 @@ def no_xray_disturbance(nodist,hole):
     no_xray_df.sort_values(by='core_depth',inplace=True)
 #no_xray_df.drop_duplicates(inplace=True)
 # save for later
+    no_xray_df.fillna("",inplace=True)
+    no_xray_df.drop_duplicates(inplace=True)
     no_xray_df.to_csv(hole+'/'+hole+'_noXraydisturbance.csv',index=False)    
 #meas_dicts = no_xray_df.to_dict('records')
 #pmag.magic_write(magic_dir+'/no_xray_measurements.txt', meas_dicts, 'measurements')
@@ -202,6 +206,8 @@ def adj_dec(df,hole):
         core_df['adj_dec']=(core_df['dir_dec']-ppars['dec'])%360
         core_df['dir_dec']=(core_df['adj_dec']+90)%360 # set mean normal to 90 for plottingh
         adj_dec_df=pd.concat([adj_dec_df,core_df])
+    adj_dec_df.fillna("",inplace=True)
+    adj_dec_df.drop_duplicates(inplace=True)
     adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv') 
     print ('Adjusted Declination DataFrame returned')
     return adj_dec_df,core_dec_corr
