@@ -136,6 +136,8 @@ class Contribution(object):
             # if providing a filename but no data type
             if dtype == "unknown":
                 filename = os.path.join(self.directory, fname)
+                if not os.path.exists(filename):
+                    return False, False
                 data_container = MagicDataFrame(filename, dmodel=self.data_model)
                 dtype = data_container.dtype
                 if dtype == 'empty':

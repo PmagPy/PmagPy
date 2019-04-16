@@ -1066,6 +1066,40 @@ class TestQuickHyst(unittest.TestCase):
         self.assertFalse(saved)
         self.assertFalse(glob.glob("*.png"))
 
+class TestVgpmapMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.svg", "*.png", "*.pdf"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        status, saved = ipmag.vgpmap_magic("data_files/3_0/McMurdo")
+        self.assertTrue(status)
+        self.assertEqual(1, len(saved))
+        print('saved', saved)
+        for fname in saved:
+            self.assertTrue(fname.endswith('.pdf'))
+
+    def test_success_with_contribution(self):
+        con = cb.Contribution("data_files/3_0/McMurdo")
+        status, saved = ipmag.vgpmap_magic(fmt="png", ell=True,
+                                           contribution=con)
+        self.assertTrue(status)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.png"))
+
+
+    def test_fail(self):
+        status, saved = ipmag.vgpmap_magic()
+        self.assertFalse(status)
+        self.assertFalse(saved)
+
+
 
 
 if __name__ == '__main__':

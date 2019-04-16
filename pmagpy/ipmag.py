@@ -12483,3 +12483,232 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                 print('skipping this one - no hysteresis data')
             k += 1
     return True, saved
+
+
+def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
+                 sym='ro', size=8, rsym="g^", rsize=8,
+                 fmt="pdf", res="c", proj="ortho",
+                 flip=False, anti=False, fancy=False,
+                 ell=False, ages=False, lat_0=0, lon_0=0,
+                 save_plots=True, interactive=False, contribution=None):
+    """
+    makes a map of vgps and a95/dp,dm for site means in a sites table
+
+    Parameters
+    ----------
+    dir_path : str, default "."
+        input directory path
+    results_file : str, default "sites.txt"
+        name of MagIC format sites file
+    crd : str, default ""
+       coordinate system [g, t] (geographic, tilt_corrected)
+    sym : str, default "ro"
+        symbol color and shape, default red circles
+        (see matplotlib documentation for more color/shape options)
+    size : int, default 8
+        symbol size
+    rsym : str, default "g^"
+        symbol for plotting reverse poles
+        (see matplotlib documentation for more color/shape options)
+    rsize : int, default 8
+        symbol size for reverse poles
+    fmt : str, default "pdf"
+        format for figures, ["svg", "jpg", "pdf", "png"]
+    res : str, default "c"
+        resolution [c, l, i, h] (crude, low, intermediate, high)
+    proj : str, default "ortho"
+        ortho = orthographic
+        lcc = lambert conformal
+        moll = molweide
+        merc = mercator
+    flip : bool, default False
+        if True, flip reverse poles to normal antipode
+    anti : bool, default False
+        if True, plot antipodes for each pole
+    fancy : bool, default False
+        if True, plot topography (not yet implementedj)
+    ell : bool, default False
+        if True, plot ellipses
+    ages : bool, default False
+        if True, plot ages
+    lat_0 : float, default 0.
+        eyeball latitude
+    lon_0 : float, default 0.
+        eyeball longitude
+    save_plots : bool, default True
+        if True, create and save all requested plots
+    interactive : bool, default False
+       if True, interactively plot and display
+        (this is best used on the command line only)
+
+    Returns
+    ---------
+    (status, output_files) - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+
+    """
+    coord_dict = {'g': 0, 't': 100}
+    coord = coord_dict[crd] if crd else ""
+    if contribution is None:
+        con = cb.Contribution(dir_path, single_file=results_file)
+    else:
+        con = contribution
+    if not list(con.tables.keys()):
+        print("-W - Couldn't read in data")
+        return False, []
+    if 'sites' not in con.tables:
+        print("-W - No sites data")
+        return False, []
+
+    FIG = {'map': 1}
+    pmagplotlib.plot_init(FIG['map'], 6, 6)
+    # read in sites file
+    lats, lons = [], []
+    Pars = []
+    dates, rlats, rlons = [], [], []
+
+    site_container = con.tables['sites']
+    site_container.front_and_backfill(['location'])
+    site_df = site_container.df
+    # use records with vgp_lat and vgp_lon
+    if 'vgp_lat' in site_df.columns and 'vgp_lon' in site_df.columns:
+        cond1, cond2 = site_df['vgp_lat'].notnull(), site_df['vgp_lon'].notnull()
+    else:
+        print ('nothing to plot')
+        sys.exit()
+    Results = site_df[cond1 & cond2]
+    # use tilt correction
+    if coord and 'dir_tilt_correction' in Results.columns:
+        Results = Results[Results['dir_tilt_correction'] == coord]
+    # get location name and average ages
+    locs = Results['location'].dropna().unique()
+    if len(locs):
+        location = ":".join(Results['location'].unique())
+    else:
+        location = ""
+    if 'age' in Results.columns and ages == 1:
+        dates = Results['age'].unique()
+
+    # go through rows and extract data
+    for ind, row in Results.iterrows():
+        try:
+            lat, lon = float(row['vgp_lat']), float(row['vgp_lon'])
+        except ValueError:
+            lat = float(str(row['vgp_lat']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
+            lon = float(str(row['vgp_lon']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
+        if anti == 1:
+            lats.append(-lat)
+            lon = lon + 180.
+            if lon > 360:
+                lon = lon - 360.
+            lons.append(lon)
+        elif flip == 0:
+            lats.append(lat)
+            lons.append(lon)
+        elif flip == 1:
+            if lat < 0:
+                rlats.append(-lat)
+                lon = lon + 180.
+                if lon > 360:
+                    lon = lon - 360
+                rlons.append(lon)
+            else:
+                lats.append(lat)
+                lons.append(lon)
+
+        ppars = []
+        ppars.append(lon)
+        ppars.append(lat)
+        ell1, ell2 = "", ""
+        if 'vgp_dm' in list(row.keys()) and row['vgp_dm']:
+            ell1 = float(row['vgp_dm'])
+        if 'vgp_dp' in list(row.keys()) and row['vgp_dp']:
+            ell2 = float(row['vgp_dp'])
+        if 'vgp_alpha95' in list(row.keys()) and (row['vgp_alpha95'] or row['vgp_alpha95'] == 0):
+            ell1, ell2 = float(row['vgp_alpha95']), float(row['vgp_alpha95'])
+        if ell1 and ell2:
+            ppars = []
+            ppars.append(lons[-1])
+            ppars.append(lats[-1])
+            ppars.append(ell1)
+            ppars.append(lons[-1])
+            try:
+                isign = abs(lats[-1]) / lats[-1]
+            except ZeroDivisionError:
+                isign = 1
+            ppars.append(lats[-1] - isign * 90.)
+            ppars.append(ell2)
+            ppars.append(lons[-1] + 90.)
+            ppars.append(0.)
+            Pars.append(ppars)
+
+    location = location.strip(':')
+    Opts = {'latmin': -90, 'latmax': 90, 'lonmin': 0., 'lonmax': 360.,
+            'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'bs',
+            'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
+    Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
+                       'countries': 0, 'ocean': 1, 'fancy': fancy}
+    # make the base map with a blue triangle at the pole
+    pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
+    Opts['pltgrid'] = -1
+    Opts['sym'] = sym
+    Opts['symsize'] = size
+    if len(dates) > 0:
+        Opts['names'] = dates
+    if len(lats) > 0:
+        # add the lats and lons of the poles
+        pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
+    Opts['names'] = []
+    if len(rlats) > 0:
+        Opts['sym'] = rsym
+        Opts['symsize'] = rsize
+        # add the lats and lons of the poles
+        pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
+    if not save_plots and not set_env.IS_WIN:
+        pmagplotlib.draw_figs(FIG)
+    if ell == 1:  # add ellipses if desired.
+        Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
+                           'countries': 0, 'ocean': 0, 'fancy': fancy}
+        Opts['pltgrid'] = -1  # turn off meridian replotting
+        Opts['symsize'] = 2
+        Opts['sym'] = 'g-'
+        for ppars in Pars:
+            if ppars[2] != 0:
+                PTS = pmagplotlib.plot_ell(FIG['map'], ppars, 'g.', 0, 0)
+                elats, elons = [], []
+                for pt in PTS:
+                    elons.append(pt[0])
+                    elats.append(pt[1])
+                # make the base map with a blue triangle at the pole
+                pmagplotlib.plot_map(FIG['map'], elats, elons, Opts)
+                if not save_plots and not set_env.IS_WIN:
+                    pmagplotlib.draw_figs(FIG)
+    files = {}
+    for key in list(FIG.keys()):
+        if pmagplotlib.isServer:  # use server plot naming convention
+            files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
+            con.add_magic_table('contribution')
+            con_id = con.get_con_id()
+            if con_id:
+                files[key] = 'MC:_' + str(con_id) + '_' + files[key]
+        else:  # use more readable naming convention
+            files[key] = '{}_VGP_map.{}'.format(location, fmt)
+
+    if pmagplotlib.isServer:
+        black = '#000000'
+        purple = '#800080'
+        titles = {}
+        titles['map'] = location + ' VGP map'
+        FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
+        pmagplotlib.save_plots(FIG, files)
+    elif interactive:
+        pmagplotlib.draw_figs(FIG)
+        ans = input(" S[a]ve to save plot, Return to quit:  ")
+        if ans == "a":
+            pmagplotlib.save_plots(FIG, files)
+            return True, files.values()
+        else:
+            print("Good bye")
+            return True, []
+    elif save_plots:
+        pmagplotlib.save_plots(FIG, files)
+        return True, files.values()
