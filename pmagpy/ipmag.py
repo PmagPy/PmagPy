@@ -1498,7 +1498,7 @@ def plot_XY(X=None, Y=None, sym='ro'):
     plt.plot(X, Y, sym)
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title='', edge=''):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title='', edge='',alpha=1):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -1526,6 +1526,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     label : the default label is blank ('')
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     edge : marker edge color - if blank, is color of marker
+    alpha : opacity
     """
     X_down = []
     X_up = []
@@ -1571,11 +1572,11 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
 
     if len(X_up) > 0:
         plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
-                    s=markersize, marker=marker, label=label)
+                    s=markersize, marker=marker, label=label,alpha=alpha)
 
     if len(X_down) > 0:
         plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
-                    s=markersize, marker=marker, label=label)
+                    s=markersize, marker=marker, label=label,alpha=alpha)
     if legend == 'yes':
         plt.legend(loc=2)
     plt.tight_layout()

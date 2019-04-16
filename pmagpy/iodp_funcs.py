@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
 def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
               gad_inc,depth_min,depth_max,labels):
     arch_df=arch_df[arch_df['core_depth']>depth_min]
@@ -204,3 +205,21 @@ def adj_dec(df,hole):
     adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv') 
     print ('Adjusted Declination DataFrame returned')
     return adj_dec_df,core_dec_corr
+
+def plot_aniso(df,fignum=1):
+    v1_decs=df['v1_dec'].values
+    v1_incs=df['v1_inc'].values
+    v3_decs=df['v3_dec'].values
+    v3_incs=df['v3_inc'].values
+    ipmag.plot_net(fignum)
+    ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
+    ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
+    plt.title('Core coordinates')
+
+    ipmag.plot_net(fignum+1)
+    v1_decs=df['v1_dec_adj'].values
+    v3_decs=df['v3_dec_adj'].values
+
+    ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
+    ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
+    plt.title('Declination Adjusted')
