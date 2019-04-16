@@ -88,15 +88,13 @@ def demag_step(magic_dir,hole,demag_step):
     depth_data=depth_data[['specimen','core_depth']]
     depth_data.sort_values(by='specimen')
     arch_data=pd.merge(arch_data,depth_data,on='specimen')
-
-    arch_demag_step=arch_data[arch_data['treat_ac_field']==demag_step]
     arch_demag_step=arch_data[arch_data['treat_ac_field']==demag_step]
     pieces=arch_demag_step.specimen.str.split('-',expand=True)
     pieces.columns=['exp','hole','core','sect','A/W','offset']
     arch_demag_step['core_sects']=pieces['core'].astype('str')+'-'+pieces['sect'].astype('str')
-
     arch_demag_step['offset']=pieces['offset'].astype('float')
     arch_demag_step['core']=pieces['core']
+    arch_demag_step.drop_duplicates(inplace=True)
     arch_demag_step.to_csv(hole+'/'+hole+'_arch_demag_step.csv',index=False)
     print ("Here's your demagnetization step DataFrame")
     return arch_demag_step
@@ -143,28 +141,25 @@ def no_xray_disturbance(nodist,hole):
     xray_df=pd.read_excel(xray_file,header=3)
     no_xray_df=pd.DataFrame(columns=nodist.columns)
     xray_df=xray_df[['Core','Section','interval (offset cm)']]
-
-    xray_df.dropna(subset=['interval (offset cm)'],inplace=True)
-
+    xray_df.dropna(inplace=True)
+    if 'all' not in xray_df.Section:
+        xray_df.Section=xray_df.Section.astype('int64')
     xray_df.reset_index(inplace=True)
-
     xray_df['core_sect']=xray_df['Core']+'-'+xray_df['Section'].astype('str')
     xr_core_sects=xray_df['core_sect'].tolist()
-
     nd_core_sects=nodist['core_sects'].tolist()
     used=[]
     # put in undisturbed cores
     for coresect in nd_core_sects: 
         if coresect not in used and coresect not in xr_core_sects:
-            core_df=nodist[nodist['core_sects'].str.contains(coresect)]
+            core_df=nodist[nodist['core_sects'].str.match(coresect)]
             no_xray_df=pd.concat([no_xray_df,core_df])
             used.append(coresect)
-        #print ('included all of ',coresect)
 # take out disturbed bits
     for coresect in xr_core_sects: 
         if 'all' not in coresect:
         # pick out core_sect affected by disturbance
-            core_df=nodist[(nodist['core_sects'].str.contains(coresect))]
+            core_df=nodist[(nodist['core_sects'].str.match(coresect))]
             interval=xray_df.loc[xray_df['core_sect']==coresect]\
                  ['interval (offset cm)'].str.split('-').tolist()[0]
             top=int(interval[0])
@@ -179,12 +174,11 @@ def no_xray_disturbance(nodist,hole):
         if 'all' in coresect:
             core=coresect.split('-')[0]
             no_xray_df=no_xray_df[no_xray_df['core'].str.match(core)==False]
-            #print ('excluded all of ',core)
+        #    print ('excluded all of ',core)
     no_xray_df.sort_values(by='core_depth',inplace=True)
-#no_xray_df.drop_duplicates(inplace=True)
 # save for later
-    no_xray_df.fillna("",inplace=True)
     no_xray_df.drop_duplicates(inplace=True)
+    no_xray_df.fillna("",inplace=True)
     no_xray_df.to_csv(hole+'/'+hole+'_noXraydisturbance.csv',index=False)    
 #meas_dicts = no_xray_df.to_dict('records')
 #pmag.magic_write(magic_dir+'/no_xray_measurements.txt', meas_dicts, 'measurements')
