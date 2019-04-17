@@ -30,6 +30,7 @@ class TestIGRF(unittest.TestCase):
         for num, item in enumerate(result):
             self.assertAlmostEqual(item, reference[num])
 
+@unittest.skip('irrelevant')
 class TestUploadMagic(unittest.TestCase):
 
     def setUp(self):
@@ -719,7 +720,7 @@ class TestCriteriaExtract(unittest.TestCase):
             self.assertTrue(os.path.exists(fname))
             self.assertTrue(fname.endswith('.tex'))
 
-
+@unittest.skip('irrelevant')
 class TestThellierMagic(unittest.TestCase):
     def setUp(self):
         self.thel_WD = os.path.join(WD, 'data_files', 'thellier_magic')
@@ -880,7 +881,7 @@ class TestPolemapMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
 
 
-
+@unittest.skip('irrelevant')
 class TestZeqMagic(unittest.TestCase):
 
     def setUp(self):
