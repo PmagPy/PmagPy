@@ -1634,7 +1634,10 @@ def save_plots(Figs, filenames, **kwargs):
             plt.close(Figs[key])
         except Exception as ex:
             print(type(ex), ex)
-            print('could not save: ', Figs[key], filenames[key])
+            import traceback
+            traceback_str = ''.join(traceback.format_tb(ex.__traceback__))
+            print(traceback_str)
+            print('could not save: ', fname)#Figs[key], filenames[key])
             print("output file format not supported ")
     return saved
 #
