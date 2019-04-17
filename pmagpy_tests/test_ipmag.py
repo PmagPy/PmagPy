@@ -1100,6 +1100,23 @@ class TestVgpmapMagic(unittest.TestCase):
         self.assertFalse(saved)
 
 
+class TestHistplotMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.svg", "*.png", "*.pdf"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        norm = pmag.gaussdev(10, 3, 1000)
+        res, saved = ipmag.histplot(data=norm)
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.svg"))
 
 
 if __name__ == '__main__':

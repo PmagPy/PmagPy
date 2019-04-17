@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
+from pmagpy import ipmag
 
 
 def main():
@@ -64,83 +65,8 @@ def main():
         print('-I- Trying to read from stdin... <ctrl>-c to quit')
         data = np.loadtxt(sys.stdin, dtype=np.float)
 
-    histplot(fname, data, outfile, xlab, binsize, norm,
+    ipmag.histplot(fname, data, outfile, xlab, binsize, norm,
              fmt, save_plots, interactive)
-    # read in data
-    #
-
-
-def histplot(infile="", data=(), outfile="",
-             xlab='x', binsize=0, norm=1,
-             fmt='svg', save_plots=True, interactive=False):
-    # set outfile name
-    if outfile:
-        fmt = ""
-    else:
-        outfile = 'hist.'+fmt
-    # read in data from infile or use data argument
-    if os.path.exists(infile):
-        D = np.loadtxt(infile)
-    else:
-        D = np.array(data)
-
-    try:
-        if not D:
-            print('-W- No data found')
-            return
-    except ValueError:
-        pass
-    fig = pmagplotlib.plot_init(1, 8, 7)
-    try:
-        len(D)
-    except TypeError:
-        D = np.array([D])
-    if len(D) < 5:
-        print("-W- Not enough points to plot histogram ({} point(s) provided, 5 required)".format(len(D)))
-        return
-
-    # if binsize not provided, calculate reasonable binsize
-    if not binsize:
-        binsize = int(np.around(1 + 3.22 * np.log(len(D))))
-    Nbins = int(len(D) / binsize)
-    ax = fig.add_subplot(111)
-    if norm == 1:
-        print('normalizing')
-        n, bins, patches = ax.hist(
-            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=True)
-        ax.set_ylabel('Frequency')
-    elif norm == 0:
-        print('not normalizing')
-        n, bins, patches = ax.hist(
-            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=False)
-        ax.set_ylabel('Number')
-    elif norm == -1:
-        print('trying twin')
-        n, bins, patches = ax.hist(
-            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=True)
-        ax.set_ylabel('Frequency')
-        ax2 = ax.twinx()
-        n, bins, patches = ax2.hist(
-            D, bins=Nbins, facecolor='#D3D3D3', histtype='stepfilled', color='black', density=False)
-        ax2.set_ylabel('Number', rotation=-90)
-    plt.axis([D.min(), D.max(), 0, n.max()+.1*n.max()])
-    ax.set_xlabel(xlab)
-    name = 'N = ' + str(len(D))
-    plt.title(name)
-    if interactive:
-        pmagplotlib.draw_figs({1: 'hist'})
-        p = input('s[a]ve to save plot, [q]uit to exit without saving  ')
-        if p != 'a':
-            return True, []
-        plt.savefig(outfile)
-        print('plot saved in ', outfile)
-        return True, [outfile]
-    if pmagplotlib.isServer:
-        pmagplotlib.add_borders({'hist': 1}, {'hist': 'Intensity Histogram'})
-    if save_plots:
-        plt.savefig(outfile)
-        print('plot saved in ', outfile)
-        return True, [outfile]
 
 
 if __name__ == "__main__":
