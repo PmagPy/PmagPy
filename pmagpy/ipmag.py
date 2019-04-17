@@ -12759,7 +12759,7 @@ def histplot(infile="", data=(), outfile="",
     try:
         if not D:
             print('-W- No data found')
-            return
+            return False, []
     except ValueError:
         pass
     fig = pmagplotlib.plot_init(1, 8, 7)
@@ -12769,7 +12769,7 @@ def histplot(infile="", data=(), outfile="",
         D = np.array([D])
     if len(D) < 5:
         print("-W- Not enough points to plot histogram ({} point(s) provided, 5 required)".format(len(D)))
-        return
+        return False, []
 
     # if binsize not provided, calculate reasonable binsize
     if not binsize:

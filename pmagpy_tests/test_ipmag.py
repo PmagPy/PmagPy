@@ -7,6 +7,7 @@ import re
 import matplotlib
 import random
 import glob
+import numpy as np
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
@@ -1106,7 +1107,7 @@ class TestHistplotMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.svg", "*.png", "*.pdf"]
+        glob_strings = ["*.svg", "*.png", "*.pdf", "example.txt"]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
@@ -1117,6 +1118,21 @@ class TestHistplotMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertTrue(saved)
         self.assertTrue(glob.glob("*.svg"))
+
+    def test_success_file(self):
+        norm = pmag.gaussdev(10, 3, 1000)
+        np.savetxt('example.txt', norm)
+        res, saved = ipmag.histplot('example.txt')
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.svg"))
+
+    def test_fail(self):
+        res, saved = ipmag.histplot()
+        self.assertFalse(res)
+        res, saved = ipmag.histplot(data=[1, 2, 3])
+        self.assertFalse(res)
+
 
 
 if __name__ == '__main__':
