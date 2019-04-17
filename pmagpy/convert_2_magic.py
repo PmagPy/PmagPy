@@ -4229,6 +4229,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     srm_file = pmag.resolve_file_name(srm_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     in_df=pd.read_csv(srm_file,header=0)
+    in_df.drop_duplicates(inplace=True)
     in_df.sort_values(by='Treatment Value',inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')

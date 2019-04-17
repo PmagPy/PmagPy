@@ -94,6 +94,7 @@ def demag_step(magic_dir,hole,demag_step):
     arch_demag_step['core_sects']=pieces['core'].astype('str')+'-'+pieces['sect'].astype('str')
     arch_demag_step['offset']=pieces['offset'].astype('float')
     arch_demag_step['core']=pieces['core']
+    arch_demag_step['section']=pieces['sect']
     arch_demag_step.drop_duplicates(inplace=True)
     arch_demag_step.to_csv(hole+'/'+hole+'_arch_demag_step.csv',index=False)
     print ("Here's your demagnetization step DataFrame")
@@ -142,8 +143,9 @@ def no_xray_disturbance(nodist,hole):
     no_xray_df=pd.DataFrame(columns=nodist.columns)
     xray_df=xray_df[['Core','Section','interval (offset cm)']]
     xray_df.dropna(inplace=True)
-    if 'all' not in xray_df.Section:
-        xray_df.Section=xray_df.Section.astype('int64')
+    if type(xray_df.Section)=='str':
+        if 'all' not in xray_df.Section:
+            xray_df.Section=xray_df.Section.astype('int64')
     xray_df.reset_index(inplace=True)
     xray_df['core_sect']=xray_df['Core']+'-'+xray_df['Section'].astype('str')
     xr_core_sects=xray_df['core_sect'].tolist()
@@ -168,7 +170,7 @@ def no_xray_disturbance(nodist,hole):
             core_df=core_df[(core_df['offset']<top) | (core_df['offset']>bottom)]
         # add undisturbed bit to no_xray_df
             no_xray_df=pd.concat([no_xray_df,core_df])
-        #print ('excluded bit from ',coresect,' between ',top,bottom)
+            #print ('excluded bit from ',coresect,' between ',top,bottom)
 # take out entire cores that are disturbed
     for coresect in xr_core_sects:  
         if 'all' in coresect:
