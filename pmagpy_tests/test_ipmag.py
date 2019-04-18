@@ -850,6 +850,8 @@ class TestEqareaMagic(unittest.TestCase):
         else:
             self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
 
+
+@unittest.skip("cartopy problems")
 class TestPolemapMagic(unittest.TestCase):
 
     def setUp(self):
@@ -1067,6 +1069,7 @@ class TestQuickHyst(unittest.TestCase):
         self.assertFalse(saved)
         self.assertFalse(glob.glob("*.png"))
 
+@unittest.skip("cartopy problems")
 class TestVgpmapMagic(unittest.TestCase):
 
     def setUp(self):
