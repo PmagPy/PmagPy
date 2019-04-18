@@ -6,8 +6,8 @@ import os
 if "-pip" in sys.argv:
     os.chdir(sys.prefix)
 
-import pmagpy_tests.test_builder as test_builder
-import pmagpy_tests.test_er_magic_dialogs as test_er_magic_dialogs
+from pmagpy_tests import test_builder
+from pmagpy_tests import test_er_magic_dialogs
 import pmagpy_tests.test_ipmag as test_ipmag
 import pmagpy_tests.test_magic_gui as test_magic_gui
 import pmagpy_tests.test_pmag as test_pmag
