@@ -77,9 +77,14 @@ matrix:
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
-      #before_install: choco install python
+      #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
+      before_install: choco install python
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+      install:
+        - pip3 install cartopy pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==2.2.3
+        - pip3 install cython pillow pytest pep8 shapely six requests
+        - pip3 install -U wxPython
+
 
 #env:
 #    matrix:
