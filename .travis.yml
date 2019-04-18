@@ -81,9 +81,11 @@ matrix:
       before_install: choco install python
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       install:
-        - pip3 install cartopy pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==2.2.3
+        - pip3 install numpy
+        - pip3 install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==2.2.3
         - pip3 install cython pillow pytest pep8 shapely six requests
         - pip3 install -U wxPython
+        - pip3 install cartopy
 
 
 #env:
