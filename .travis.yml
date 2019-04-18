@@ -51,6 +51,30 @@ matrix:
       os: osx
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
       language: shell       # 'language: python' is an error on Travis CI macOS
+      install:
+        # fully install miniconda
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        # configure conda settings
+        - conda config --set always_yes yes --set changeps1 no --set show_channel_urls yes
+        - conda update conda
+        # create test environment
+        - ENV_NAME="test-environment"
+        - conda create -n $ENV_NAME python=$PYTHON_VERSION
+        - source activate $ENV_NAME
+        # install req'd packages with conda
+        - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
+        - conda install --quiet $PACKAGES
+        - conda install --quiet cartopy
+        - conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
+        - conda install --quiet xlwt # for pandas df.to_excel
+        - conda install --quiet wxPython
+        - conda install --quiet appdirs
+        - conda install --quiet matplotlib=2.2.3
+        - pip3 install scripttest #pandas libtiff matplotlib numpy scipy future cartopy
+        - sudo apt-get update
+
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
