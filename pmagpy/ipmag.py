@@ -6544,8 +6544,9 @@ class Site(object):
         return self.site_data
 
 
-def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
-            save=False, save_folder='.', fmt='pdf', data_model=3):
+def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
+                  save=True, save_folder='.', fmt='svg', data_model=3,
+                  interactive=False, contribution=None):
     """
     Makes 'day plots' (Day et al. 1977) and squareness/coercivity plots
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
@@ -6558,7 +6559,7 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     if data_model = 2, then must these are the defaults:
         hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
         rem_file : remanence file (default is 'rmag_remanence.txt')
-    save : boolean argument to save plots (default is False)
+    save : boolean argument to save plots (default is True)
     save_folder : relative directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures (default is 'pdf')
     """
@@ -6573,10 +6574,6 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     # define figure numbers for Day,S-Bc,S-Bcr
     DSC = {}
     DSC['day'], DSC['S-Bc'], DSC['S-Bcr'], DSC['bcr1-bcr2'] = 1, 2, 3, 4
-    plt.figure(num=DSC['day'], figsize=(5, 5))
-    plt.figure(num=DSC['S-Bc'], figsize=(5, 5))
-    plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
-    plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
     hyst_data, file_type = pmag.magic_read(hyst_path)
     rem_data = []
     if data_model == 2 and rem_file != "":
@@ -6612,15 +6609,26 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
                                   rec['er_specimen_name'], ' not found')
     else:
         fnames = {'specimens': hyst_file}
-        con = cb.Contribution(dir_path, read_tables=['specimens'],
-                              custom_filenames=fnames)
+        if contribution:
+            con = contribution
+        else:
+            con = cb.Contribution(dir_path, read_tables=['specimens'],
+                                  custom_filenames=fnames)
+        if 'specimens' not in con.tables:
+            print('-E- No specimen file found in {}'.format(os.path.realpath(dir_path)))
+            return False, []
         spec_container = con.tables['specimens']
         spec_df = spec_container.df
 
-        locations = []
+        # get as much data as possible for naming plots
+        if pmagplotlib.isServer:
+            con.propagate_location_to_specimens()
+
+
+        loc_list = []
 
         if 'location' in spec_df.columns:
-            locations = spec_df['location'].unique()
+            loc_list = spec_df['location'].unique()
         do_rem = bool('rem_bcr' in spec_df.columns)
 
         for ind, row in spec_df.iterrows():
@@ -6647,26 +6655,59 @@ def dayplot(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
+    fnames = {'day': os.path.join(save_folder, 'Day.' + fmt),
+          'S-Bcr': os.path.join(save_folder, 'S-Bcr.' + fmt),
+          'S-Bc': os.path.join(save_folder, 'S-Bc.' + fmt)}
     if len(Bcr1) > 0:
+
+        plt.figure(num=DSC['day'], figsize=(5, 5))
+        #plt.figure(num=DSC['S-Bc'], figsize=(5, 5))
+        plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
+        plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
+
         pmagplotlib.plot_day(DSC['day'], Bcr1Bc, S1, 'ro')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr1, S1, 'ro')
-        pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
+        #pmagplotlib.plot_init(DSC['bcr1-bcr2'], 5, 5)
         pmagplotlib.plot_bcr(DSC['bcr1-bcr2'], Bcr1, Bcr2)
-        plt.show()
+        fnames.pop('S-Bc')
+        fnames['bcr1-bcr2'] = os.path.join(save_folder, 'bcr1-bcr2.png')
+        DSC.pop('S-Bc')
+        if pmagplotlib.isServer:
+            for key in list(DSC.keys()):
+                fnames[key] = 'LO:_' + ":".join(set(loc_list)) + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+        if save:
+            pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+            return True, fnames.values()
+        if interactive:
+            pmagplotlib.draw_figs(DSC)
+            ans = pmagplotlib.save_or_quit()
+            if ans == 'a':
+                pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+                return True, fnames.values()
+
     else:
+        plt.figure(num=DSC['day'], figsize=(5, 5))
+        plt.figure(num=DSC['S-Bc'], figsize=(5, 5))
+        plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
+        #plt.figure(num=DSC['bcr1-bcr2'], figsize=(5, 5))
         del DSC['bcr1-bcr2']
-    if save == True:
-        pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
-        plt.savefig(os.path.join(save_folder, 'Day.' + fmt))
-        pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
-        plt.savefig(os.path.join(save_folder, 'S-Bcr.' + fmt))
-        pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
-        plt.savefig(os.path.join(save_folder, 'S-Bc.' + fmt))
-    else:
+        # do other plots instead
         pmagplotlib.plot_day(DSC['day'], BcrBc, S, 'bs')
         pmagplotlib.plot_s_bcr(DSC['S-Bcr'], Bcr, S, 'bs')
         pmagplotlib.plot_s_bc(DSC['S-Bc'], Bc, S, 'bs')
-        plt.show()
+    if pmagplotlib.isServer:
+        for key in list(DSC.keys()):
+            fnames[key] = 'LO:_' + ":".join(set(loc_list)) + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+    if save:
+        pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+        return True, fnames.values()
+    elif interactive:
+        pmagplotlib.draw_figs(DSC)
+        ans = pmagplotlib.save_or_quit()
+        if ans == 'a':
+            pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+            return True, fnames.values()
+    return True, []
 
 
 def smooth(x, window_len, window='bartlett'):

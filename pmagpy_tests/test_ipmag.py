@@ -1101,7 +1101,7 @@ class TestVgpmapMagic(unittest.TestCase):
         self.assertFalse(saved)
 
 
-class TestHistplotMagic(unittest.TestCase):
+class TestHistplot(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -1132,6 +1132,38 @@ class TestHistplotMagic(unittest.TestCase):
         self.assertFalse(res)
         res, saved = ipmag.histplot(data=[1, 2, 3])
         self.assertFalse(res)
+
+
+
+class TestDayplotMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["*.svg", "*.png", "*.pdf", "example.txt"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_success(self):
+        res, saved = ipmag.dayplot_magic('data_files/dayplot_magic')
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.pdf"))
+
+    def test_fail(self):
+        res, saved = ipmag.dayplot_magic()
+        self.assertFalse(res)
+        self.assertFalse(saved)
+
+    def test_with_contribution(self):
+        con = cb.Contribution('data_files/dayplot_magic')
+        res, saved = ipmag.dayplot_magic(fmt="png", contribution=con)
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.png"))
+
 
 
 
