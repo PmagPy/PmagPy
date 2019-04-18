@@ -9123,7 +9123,8 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
     return True, saved
 
 
-def plot_dmag(data="", title="", fignum=1, norm=1):
+def plot_dmag(data="", title="", fignum=1, norm=1,dmag_key='treat_ac_field',intensity='',
+             quality=False):
     """
     plots demagenetization data versus step for all specimens in pandas dataframe datablock
 
@@ -9132,35 +9133,36 @@ def plot_dmag(data="", title="", fignum=1, norm=1):
     data : Pandas dataframe with MagIC data model 3 columns:
         fignum : figure number
         specimen : specimen name
-        demag_key : one of these: ['treat_temp','treat_ac_field','treat_mw_energy']
+        dmag_key : one of these: ['treat_temp','treat_ac_field','treat_mw_energy']
             selected using method_codes : ['LT_T-Z','LT-AF-Z','LT-M-Z'] respectively
-        intensity  : one of these: ['magn_moment', 'magn_volume', 'magn_mass']
-        quality : the quality column of the DataFrame
+        intensity  : if blank will choose one of these: ['magn_moment', 'magn_volume', 'magn_mass']
+        quality : if True use the quality column of the DataFrame
      title : title for plot
      norm : if True, normalize data to first step
     Output :
       matptlotlib plot
    """
     plt.figure(num=fignum, figsize=(5, 5))
-    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+    if intensity:
+        int_key=intensity
+    else:
+        intlist = ['magn_moment', 'magn_volume', 'magn_mass']
     # get which key we have
-    IntMeths = [col_name for col_name in data.columns if col_name in intlist]
-    int_key = IntMeths[0]
+        IntMeths = [col_name for col_name in data.columns if col_name in intlist]
+        int_key = IntMeths[0]
     data = data[data[int_key].notnull()]  # fish out all data with this key
     units = "U"  # this  sets the units for plotting to undefined
-    if 'treat_temp' in data.columns:
-        units = "K"  # kelvin
-        dmag_key = 'treat_temp'
-    elif 'treat_ac_field' in data.columns:
-        units = "T"  # tesla
-        dmag_key = 'treat_ac_field'
-    elif 'treat_mw_energy' in data.columns:
-        units = "J"  # joules
-        dmag_key = 'treat_mw_energy'
-    else:
+    if not dmag_key:
+        if 'treat_temp' in data.columns: units = "K"  # kelvin
+        elif 'treat_ac_field' in data.columns: units = "T"  # tesla
+        elif 'treat_mw_energy' in data.columns: units = "J"  # joules
+    if dmag_key=='treat_temp': units='K'
+    if dmag_key=='treat_ac_field': units='T'
+    if dmag_key=='treat_mw_energy': units='J'
+    spcs = data.specimen.unique()  # get a list of all specimens in DataFrame data
+    if len(spcs)==0:
         print('no data for plotting')
         return
-    spcs = data.specimen.unique()  # get a list of all specimens in DataFrame data
     # step through specimens to put on plot
     for spc in spcs:
         spec_data = data[data.specimen.str.contains(spc)]
@@ -10172,7 +10174,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
-              samp_file='samples.txt', contribution=None):
+              samp_file='samples.txt', contribution=None,fignum=1):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
 
@@ -10208,6 +10210,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     contribution : cb.Contribution, default None
         if provided, use Contribution object instead of reading in
         data from files
+    fignum : matplotlib figure number
     """
 
     def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock):
@@ -10448,7 +10451,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
             return False, []
 
-    cnt = 1
+    cnt = fignum
     if n_plots != "all":
         if len(specimens) > n_plots:
             specimens = specimens[:n_plots]
