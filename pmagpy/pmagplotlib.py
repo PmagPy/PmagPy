@@ -28,7 +28,7 @@ if has_cartopy:
     from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    from cartopy.feature import LAND, COASTLINE, OCEAN, LAKES, BORDERS
 has_basemap, Basemap = pmag.import_basemap()
 
 
@@ -3350,15 +3350,15 @@ def plot_map(fignum, lats, lons, Opts):
                 ax.coastlines(resolution='10m')
         if Opts['details']['rivers'] == 1:
             ax.add_feature(cfeature.RIVERS)
-        if Opts['details']['states'] == 1:
-            states_provinces = cfeature.NaturalEarthFeature(
-                category='cultural',
-                name='admin_1_states_provinces_lines',
-                scale='50m',
-                edgecolor='black',
-                facecolor='none',
-                linestyle='dotted')
-            ax.add_feature(states_provinces)
+        #if Opts['details']['states'] == 1:
+        #    states_provinces = cfeature.NaturalEarthFeature(
+        #        category='cultural',
+        #        name='admin_1_states_provinces_lines',
+        #        scale='50m',
+        #        edgecolor='black',
+        #        facecolor='none',
+        #        linestyle='dotted')
+        #    ax.add_feature(states_provinces)
         if Opts['details']['countries'] == 1:
             ax.add_feature(BORDERS, linestyle='-', linewidth=2)
         if Opts['details']['ocean'] == 1:
