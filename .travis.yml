@@ -53,7 +53,7 @@ matrix:
       language: shell       # 'language: python' is an error on Travis CI macOS
       install:
         # fully install miniconda
-        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
         - bash miniconda.sh -b -p $HOME/miniconda
         - export PATH="$HOME/miniconda/bin:$PATH"
         # configure conda settings
@@ -78,7 +78,8 @@ matrix:
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install: choco install python
+      before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
+      #before_install: choco install python
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
 #env:
@@ -122,7 +123,7 @@ matrix:
 
   # command to run tests, e.g. python setup.py test
 script:
-  - pythonw -c "print('starting tests')" || python3 -c "print(tests)" || python -c "print(tests)"
+  - pythonw -c "print('starting tests')" || python3 -m unittest pmagpy_tests.test_pmag_gui -v || python -c "print('tests')"
   #- python -m unittest discover -v
   #- python -m unittest pmagpy_tests.test_make_plots -v
   #- python -m unittest pmagpy_tests.test_builder -v
