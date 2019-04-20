@@ -2030,8 +2030,8 @@ def magic_write_old(ofile, Recs, file_type):
     Effects :
         writes a MagIC formatted file from Recs
     """
-
     if len(Recs) < 1:
+        print ('nothing to write')
         return
     pmag_out = open(ofile, 'w')
     outstring = "tab \t" + file_type + "\n"
@@ -2079,9 +2079,8 @@ def magic_write(ofile, Recs, file_type):
 
     """
     if len(Recs) < 1:
-        return False, 'No records to write to file {}'.format(ofile)
-    else:
-        print(len(Recs), ' records written to file ', ofile)
+        print('No records to write to file {}'.format(ofile))
+        return False 
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out = open(ofile, 'w+', errors="backslashreplace")
@@ -2117,6 +2116,7 @@ def magic_write(ofile, Recs, file_type):
         outstring = outstring + '\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()
+    print(len(Recs), ' records written to file ', ofile)
     return True, ofile
 
 
@@ -8778,10 +8778,13 @@ def measurements_methods3(meas_data, noave):
             SpecOuts.append(NewSpecs[0])
     # added to get rid of colons in experiment names
     SpecOutsNoColons=[]
+    num=1
     for rec in SpecOuts:
         experiment=rec['experiment']
         newex=experiment.replace(':','_')
         rec['experiment']=newex
+        rec['measurement']=newex+'-'+str(num)
+        num+=1
         SpecOutsNoColons.append(rec)
     return SpecOutsNoColons
 

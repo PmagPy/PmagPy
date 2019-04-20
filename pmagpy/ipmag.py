@@ -10218,7 +10218,6 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
               samp_file='samples.txt', contribution=None,fignum=1):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
-
     Parameters
     ----------
     meas_file : str
@@ -10539,7 +10538,6 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             cnt += 3
 
     return True, saved
-
 
 def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     """

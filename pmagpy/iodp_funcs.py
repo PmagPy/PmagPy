@@ -5,19 +5,22 @@ import seaborn as sns
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
-              gad_inc,depth_min,depth_max,labels):
+              gad_inc,depth_min,depth_max,labels,spec_df=""):
     arch_df=arch_df[arch_df['core_depth']>depth_min]
     arch_df=arch_df[arch_df['core_depth']<=depth_max]
     edited_df=edited_df[edited_df['core_depth']>depth_min]
     edited_df=edited_df[edited_df['core_depth']<=depth_max]
-
+    if len(spec_df.index)>0:
+        spec_df=spec_df[spec_df['core_depth']>depth_min]
+        spec_df=spec_df[spec_df['core_depth']<=depth_max]
+        plot_spec=True
+    else: plot_spec=False
     max_depth=arch_df.core_depth.max()
     min_depth=arch_df.core_depth.min()
     ax=plt.figure(fignum,(12,20))
     ax.add_subplot(131)
     plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],'go')
     plt.plot(np.log10(arch_df['magn_volume']*1e3),arch_df['core_depth'],'k.',markersize=1)
-#    plt.plot(np.log10(noends['magn_volume']*1e3),noends['core_depth'],'b.',)
 
     for d in sect_depths:
         plt.axhline(-d,color='black',linestyle='dashed')
@@ -32,7 +35,9 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
 
     plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'go')
     plt.plot(arch_df['dir_dec'],arch_df['core_depth'],'k.',markersize=1)
-#    plt.plot(noends['dir_dec'],noends['core_depth'],'b.')
+    if plot_spec:
+        plt.plot(spec_df['dir_dec'],spec_df['core_depth'],'r*',markersize=5)
+    
     plt.axvline(180,color='red')
 
     plt.xlabel('Declination')
@@ -46,7 +51,8 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     ax.add_subplot(133)
     plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'go')
     plt.plot(arch_df['dir_inc'],arch_df['core_depth'],'k.',markersize=1)
-#    plt.plot(noends['dir_inc'],noends['core_depth'],'b.')
+    if plot_spec:
+        plt.plot(spec_df['dir_inc'],spec_df['core_depth'],'r*',markersize=5)
 
     plt.xlabel('Inclination')
     plt.axvline(gad_inc,color='blue',linestyle='dotted')

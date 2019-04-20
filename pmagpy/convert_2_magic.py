@@ -3041,24 +3041,31 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 
 
 ### IODP_dscr_magic conversion
-def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=False,\
-              meas_file="measurements.txt", spec_file="specimens.txt"):
+def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",volume=7,noave=False,\
+              meas_file="measurements.txt", offline_meas_file="",spec_file="specimens.txt"):
     """
     Convert IODP discrete measurement files in MagIC file(s). This program
     assumes that you have created the specimens, samples, sites and location
     files using convert_2_magic.iodp_samples_csv from files downloaded from the LIMS online
     repository and that all samples are in that file.
+   
+    If there are offline treatments, you will also need the extended version of the SRM discrete
+    download file from LORE.
 
     Parameters
     ----------
     dscr_file : str
         input csv file downloaded from LIMS online repository
+    dscr_ex_file : str
+        input extended csv file downloaded from LIMS online repository
     dir_path : str
         output directory, default "."
     input_dir_path : str
         input file directory IF different from dir_path, default ""
     meas_file : str
         output measurement file name, default "measurements.txt"
+    offline_meas_file : str
+        output measurement file for offline measurements , default "". must be specified if dscr_ex_file supplied
     spec_file : str
         specimens file name created by, for example, convert_2_magic.iodp_samples_csv, default "specimens.txt"
         file should already be in dir_path
@@ -3085,6 +3092,7 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
                        'description','timestamp','software_packages',\
                        'external_database_ids','treat_step_num','meas_n_orient']
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
+    if dscr_ex_file:dscr_ex_file = pmag.resolve_file_name(dscr_ex_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
     if len(specimens_df)==0:
@@ -3092,13 +3100,29 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
         print ('see convert_2_magic.iodp_samples_csv for help')
         return False
     LORE_specimens=list(specimens_df.specimen.unique())
-    dscr_df=pd.read_csv(dscr_file,sep='\t',header=1)
-    if len(dscr_df)==0:
+    in_df=pd.read_csv(dscr_file)
+    in_df['offline_treatment']=""
+    if dscr_ex_file:
+        ex_df=pd.read_csv(dscr_ex_file)
+        ex_df['Test No.']=ex_df['test test_number']
+        ex_df['offline_treatment']=ex_df['comments']
+        ex_df=ex_df[['Test No.','offline_treatment']]
+        in_df=in_df.merge(ex_df,on='Test No.')
+        in_df['offline_treatment']=in_df['offline_treatment_y']
+        in_df['offline_treatment'].fillna("",inplace=True)
+    in_df.drop_duplicates(inplace=True)
+    if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
         return False
+    in_df.sort_values(by='Test No.',inplace=True)
+    in_df.reset_index(inplace=True)
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
-    in_df=pd.read_csv(dscr_file)
+    if offline_meas_file:
+        offline_meas_out = os.path.join(output_dir_path, offline_meas_file)
+    if dscr_ex_file and not offline_meas_file:
+        print ("You must specify an output file for the offline measurements with dscr_ex_file")
+        return
     hole,srm_specimens=iodp_sample_names(in_df)
     for spec in list(srm_specimens.unique()):
         if spec not in LORE_specimens:
@@ -3106,6 +3130,9 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
             print ( 'check your sample name or add to specimens table by hand\n')
     # set up defaults
     measurements_df['specimen']=srm_specimens
+    measurements_df['offline_treatment']=in_df['offline_treatment']
+    measurements_df['sequence']=in_df['Test No.']
+    measurements_df['offline_list']=""
     measurements_df['quality']='g'
     measurements_df['citations']='This study'
     measurements_df['meas_temp']=273
@@ -3135,17 +3162,52 @@ def iodp_dscr_lore(dscr_file, dir_path=".", input_dir_path="",volume=7,noave=Fal
     measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
-# add these later when controlled vocabs implemented
-    #measurements_df.loc[measurements_df['description']=='T','method_codes']='LT-T-Z'
-    #measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
-    #                    'instrument_codes']='IODP-SRM:IODP-TDS'
-    #measurements_df.loc[measurements_df['description']=='Lowrie','method_codes']='LP-IRM-3D'
-    #measurements_df.loc[measurements_df['description']=='Lowrie',\
-    #                    'instrument_codes']='IODP-SRM:IODP-IRM'
-    #measurements_df.loc[measurements_df['description']=='Isothermal','method_codes']='LT-IRM'
-    #measurements_df.loc[measurements_df['description']=='Isothermal',\
-       #                 'instrument_codes']='IODP-SRM:IODP-IRM'
-
+    measurements_df.fillna("",inplace=True)
+    if dscr_ex_file:
+        meas_df=measurements_df[measurements_df.offline_treatment==""] # all the records with no offline treatments
+        offline_df=pd.DataFrame(columns=meas_df.columns) # make a container for offline measurements
+        arm_df=measurements_df[measurements_df['offline_treatment'].str.contains('ARM')]
+        if len(arm_df)>0: # there are ARM treatment steps
+           arm_df['offline_list']=arm_df['offline_treatment'].str.split(":")
+           arm_list=arm_df.specimen.unique()
+           for spc in arm_list: # get all the ARM treated specimens
+               spc_df=arm_df[arm_df.specimen.str.match(spc)] # get all the measurements for this specimen
+               seq_no=spc_df[spc_df.specimen.str.match(spc)].sequence.values[0] # get the sequence number of the ARM step
+               end_seq_no=spc_df[spc_df.specimen.str.match(spc)].sequence.values[-1] # get the sequence number of the last ARM demag step
+               arm_df.loc[arm_df.sequence==seq_no,'method_codes']='LT-AF-I:LP-ARM-AFD' # label the ARM record
+               arm_df.loc[arm_df.sequence==seq_no,'experiment']=spc+'_LT-AF-I_LT-AF-Z_LP-ARM-AFD' # label the ARM record
+               arm_df.loc[arm_df.sequence==seq_no,'treat_ac_field']=arm_df['offline_list'].str.get(1).astype('float')*1e-3 # AF peak field in mT converted to tesla
+               arm_df.loc[arm_df.sequence==seq_no,'treat_dc_field']=arm_df['offline_list'].str.get(2).astype('float')*1e-3 # AF peak field in mT converted to tesla
+               arm_df.loc[arm_df.sequence==seq_no,'instrument_codes']='IODP-SRM:IODP-DTECH'
+               arm_df.loc[(arm_df.specimen.str.match(spc)) &
+                          (arm_df.sequence>seq_no) &
+                          (arm_df.sequence<=end_seq_no),'method_codes']= 'LT-AF-Z:LP-ARM-AFD'
+               arm_df.loc[(arm_df.specimen.str.match(spc)) &
+                          (arm_df.sequence>seq_no) &
+                          (arm_df.sequence<=end_seq_no),'experiment']= spc+'LT-AF-I_LT-AF-Z_LP-ARM-AFD'
+               arm_df.loc[(arm_df.specimen.str.match(spc)) &
+                          (arm_df.sequence>seq_no) &
+                          (arm_df.sequence<=end_seq_no),'instrument_codes']= 'IODP-SRM:IDOP-SRM-AF'
+           strings=[]
+           for i in range(len(arm_df)):strings.append(str(i))
+           arm_df['measurement']=arm_df['experiment']+strings
+           arm_df['description']=arm_df['offline_treatment']
+           offline_df=pd.concat([offline_df,arm_df])  # put the arm data into the offline dataframe
+    if dscr_ex_file:
+        offline_df.drop(columns=['offline_list'],inplace=True)
+        offline_df.drop(columns=['offline_treatment'],inplace=True)
+        offline_df.sort_values(by='sequence',inplace=True) 
+        offline_df.drop_duplicates(subset=['sequence'],inplace=True)
+        offline_df.fillna("",inplace=True)
+        offline_dicts = offline_df.to_dict('records')
+        pmag.magic_write(offline_meas_out, offline_dicts, 'measurements')
+        measurements_df=meas_df # put all the non-offline treatments back into measurements_df
+    if 'offline_treatment' in measurements_df.columns:
+        measurements_df.drop(columns=['offline_treatment'],inplace=True)
+    if 'offline_list' in measurements_df.columns:
+        measurements_df.drop(columns=['offline_list'],inplace=True)
+    measurements_df.sort_values(by='sequence',inplace=True)
+    measurements_df.drop_duplicates(subset=['sequence'],inplace=True)
     measurements_df.fillna("",inplace=True)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
@@ -3203,7 +3265,6 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
-# PUT IN SORT BY Test No HERE.
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
         print ('see convert_2_magic.iodp_samples_csv for help')
@@ -3888,7 +3949,6 @@ def iodp_sample_names(df):
     elif 'Offset (cm)' in df.columns:
         offset_key='Offset (cm)'
     else:
-        print (df.columns)
         print ('No offset key found')
         return False,[]
     interval=df[offset_key].astype('float').astype('str')
@@ -4281,6 +4341,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
     return True
+
 
 ### IODP_srm_magic conversion (old)
 

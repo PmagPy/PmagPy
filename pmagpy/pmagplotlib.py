@@ -767,12 +767,6 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Mex, Tex, Vdif = [], [], []
     recbak = []
     for rec in datablock:
-        #if cb.is_null(rec[1]):
-        #    print('-W- You are missing a declination for specimen', s, ', skipping this row')
-        #    continue
-        #if cb.is_null(rec[2]):
-        #    print('-W- You are missing a inclination for specimen', s, ', skipping this row')
-        #    continue
         if rec[5] == 'g':
             if units == "T":
                 T.append(rec[0] * 1e3)
@@ -899,12 +893,12 @@ def plot_zed(ZED, datablock, angle, s, units):
         if not isServer:
             plt.figtext(.02, .01, version_num)
     DIbad, DIgood = [], []
-    for rec in datablock:
-        if cb.is_null(rec[1]):
+    for rec in datablock: 
+        if cb.is_null(rec[1],zero_as_null=False):
             print('-W- You are missing a declination for specimen', s, ', skipping this row')
             continue
-        if cb.is_null(rec[2]):
-            print('-W- You are missing a inclination for specimen', s, ', skipping this row')
+        if cb.is_null(rec[2],zero_as_null=False):
+            print('-W- You are missing an inclination for specimen', s, ', skipping this row')
             continue
         if rec[5] == 'b':
             DIbad.append((rec[1], rec[2]))
