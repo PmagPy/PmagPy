@@ -130,7 +130,11 @@ matrix:
 
   # command to run tests, e.g. python setup.py test
 script:
-  - pythonw -m unittest pmagpy_tests.test_pmag || python3 -m unittest pmagpy_tests.test_pmag_gui -v || python -c "print('tests')"
+  #- pythonw -m unittest pmagpy_tests.test_pmag || python3 -m unittest pmagpy_tests.test_pmag_gui -v || python -c "print('tests')"  # this one works!!
+  # pythonw is for mac, python3 is for osx, python is for windows
+  - pythonw -m unittest discover -v || python3 -m unittest discover -v || python -c "print('tests')"
+
+
   #- python -m unittest discover -v
   #- python -m unittest pmagpy_tests.test_make_plots -v
   #- python -m unittest pmagpy_tests.test_builder -v
