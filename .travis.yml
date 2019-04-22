@@ -2,6 +2,7 @@ language: python
 
 matrix:
   include:
+    # works!
     - name: "Python 3.7.1 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
@@ -48,13 +49,32 @@ matrix:
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
       script : python -m unittest discover -v
-    - name: "Python 3.7.2 on macOS"
-      os: osx
-      osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
-      language: shell       # 'language: python' is an error on Travis CI macOS
+
+    - name: "Python 3.6 on Linux"
+      python: 3.6
+      #dist: xenial          # required for Python >= 3.7
+      services:
+        - xvfb
+      addons:
+        apt:
+          packages: # mainly wxPython dependencies
+            - libwebkitgtk-dev
+            - libjpeg-dev
+            - libtiff-dev
+            - libgtk2.0-dev
+            - libsdl1.2-dev
+            - libgstreamer-plugins-base0.10-dev
+            - freeglut3
+            - freeglut3-dev
+            - libnotify-dev
+            - libproj-dev # Proj.4 is a dependency of cartopy
+      before_install:
+        - sudo apt-get update -qq  # make sure package indexes are up to date
+        - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
+        #- "sh -e /etc/init.d/xvfb start"
       install:
         # fully install miniconda
-        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
         - bash miniconda.sh -b -p $HOME/miniconda
         - export PATH="$HOME/miniconda/bin:$PATH"
         # configure conda settings
@@ -73,23 +93,56 @@ matrix:
         - conda install --quiet wxPython
         - conda install --quiet appdirs
         - conda install --quiet matplotlib=2.2.3
-        - conda install scripttest --channel conda-forge
-      script : pythonw -m unittest discover -v
+        - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
+        - sudo apt-get update
+      script : python -m unittest discover -v
 
-    - name: "Python 3.7.3 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
-      before_install: choco install python
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
-      install:
-        - pip3 install numpy
-        - pip3 install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==2.2.3
-        - pip3 install cython pillow pytest pep8  six requests
-        - pip3 install -U wxPython
-        - pip3 install scripttest
-        # - pip3 install cartopy shapely  # these ones cause errors
-      script: python -m unittest discover -v
+    # seems that GUI testing isn't yet available OR I don't know how to make it work
+    # other tests appear to work correctly
+    #- name: "Python 3.7.2 on macOS"
+    #  os: osx
+    #  osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+    #  language: shell       # 'language: python' is an error on Travis CI macOS
+    #  install:
+    #    # fully install miniconda
+    #    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
+    #    - bash miniconda.sh -b -p $HOME/miniconda
+    #    - export PATH="$HOME/miniconda/bin:$PATH"
+    #    # configure conda settings
+    #    - conda config --set always_yes yes --set changeps1 no --set show_channel_urls yes
+    #    - conda update conda
+    #    # create test environment
+    #    - ENV_NAME="test-environment"
+    #    - conda create -n $ENV_NAME python=$PYTHON_VERSION
+    #    - source activate $ENV_NAME
+    #    # install req'd packages with conda
+    #    - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
+    #    - conda install --quiet $PACKAGES
+    #    - conda install --quiet cartopy
+    #    - conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
+    #    - conda install --quiet xlwt # for pandas df.to_excel
+    #    - conda install --quiet wxPython
+    #    - conda install --quiet appdirs
+    #    - conda install --quiet matplotlib=2.2.3
+    #    - conda install scripttest --channel conda-forge
+    #  script : pythonw -m unittest discover -v
+
+      # seems that GUI testing isn't yet available OR I don't know how to make it work
+      # also, I need to figure out cartopy
+    #- name: "Python 3.7.3 on Windows"
+    #  os: windows           # Windows 10.0.17134 N/A Build 17134
+    #  language: shell       # 'language: python' is an error on Travis CI Windows
+    #  #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
+    #  before_install: choco install python
+    #  env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+    #  install:
+    #    - pip3 install numpy
+    #    - pip3 install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==2.2.3
+    #    - pip3 install cython pillow pytest pep8  six requests
+    #    - pip3 install -U wxPython
+    #    - pip3 install scripttest
+    #    # - pip3 install cartopy shapely  # these ones cause errors
+    #  script: python -m unittest discover -v
 
 
 #env:
