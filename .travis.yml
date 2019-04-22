@@ -48,7 +48,9 @@ matrix:
         - conda install --quiet matplotlib=2.2.3
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
-      script : python -m unittest discover -v
+      script :
+        - python -V
+        - python -m unittest discover -v
 
     - name: "Python 3.6 on Linux"
       python: "3.6"
@@ -96,7 +98,9 @@ matrix:
         - conda install --quiet matplotlib=2.2.3
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
-      script : python -m unittest discover -v
+      script :
+        - python -V
+        - python -m unittest discover -v
 
     # seems that GUI testing isn't yet available OR I don't know how to make it work
     # other tests appear to work correctly
