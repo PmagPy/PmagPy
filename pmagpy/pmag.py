@@ -2080,7 +2080,7 @@ def magic_write(ofile, Recs, file_type):
     """
     if len(Recs) < 1:
         print('No records to write to file {}'.format(ofile))
-        return False 
+        return False, ""
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out = open(ofile, 'w+', errors="backslashreplace")
