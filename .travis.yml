@@ -47,6 +47,7 @@ matrix:
         - conda install --quiet matplotlib=2.2.3
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
+      script : python -m unittest discover -v
     - name: "Python 3.7.2 on macOS"
       os: osx
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
@@ -73,6 +74,7 @@ matrix:
         - conda install --quiet appdirs
         - conda install --quiet matplotlib=2.2.3
         - conda install scripttest --channel conda-forge
+      script : pythonw -m unittest discover -v
 
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
@@ -87,6 +89,7 @@ matrix:
         - pip3 install -U wxPython
         - pip3 install scripttest
         # - pip3 install cartopy shapely  # these ones cause errors
+      script: python -m unittest discover -v
 
 
 #env:
@@ -129,10 +132,10 @@ matrix:
   #  fi
 
   # command to run tests, e.g. python setup.py test
-script:
+#script:
   #- pythonw -m unittest pmagpy_tests.test_pmag || python3 -m unittest pmagpy_tests.test_pmag_gui -v || python -c "print('tests')"  # this one works!!
   # pythonw is for mac, python3 is for osx, python is for windows
-  - pythonw -m unittest discover -v || python3 -m unittest discover -v || python -c "print('tests')"
+#  - pythonw -m unittest discover -v || python3 -m unittest discover -v || python -c "print('tests')"
 
 
   #- python -m unittest discover -v
