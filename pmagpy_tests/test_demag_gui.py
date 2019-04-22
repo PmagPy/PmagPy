@@ -9,7 +9,7 @@ import pmagpy.find_pmag_dir as find_pmag_dir
 from programs import demag_gui
 
 
-#@unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
+@unittest.skipIf(sys.platform == 'darwin' and '-v' in sys.argv, 'these tests cause a seg fault on travis osx environment')
 class TestDemagGUI(unittest.TestCase):
 
     def setUp(self):

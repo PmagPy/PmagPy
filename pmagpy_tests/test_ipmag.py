@@ -367,7 +367,7 @@ class TestAniDepthplot2(unittest.TestCase):
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
-
+@unittest.skipIf("-v" in sys.argv and 'win' in sys.platform, "errors on windows")
 class TestAniDepthplot(unittest.TestCase):
 
     def setUp(self):
