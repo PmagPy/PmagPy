@@ -4,7 +4,7 @@ matrix:
   include:
     # works!
     - name: "Python 3.7.1 on Xenial Linux"
-      python: 3.7           # this works for Linux but is ignored on macOS or Windows
+      python: "3.7"           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
       services:
         - xvfb
@@ -51,7 +51,7 @@ matrix:
       script : python -m unittest discover -v
 
     - name: "Python 3.6 on Linux"
-      python: 3.6
+      python: "3.6"
       #dist: xenial          # required for Python >= 3.7
       services:
         - xvfb
