@@ -6621,8 +6621,8 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         spec_df = spec_container.df
 
         # get as much data as possible for naming plots
-        if pmagplotlib.isServer:
-            con.propagate_location_to_specimens()
+        #if pmagplotlib.isServer:
+        con.propagate_location_to_specimens()
 
 
         loc_list = []
@@ -6655,9 +6655,9 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
-    fnames = {'day': os.path.join(save_folder, 'Day.' + fmt),
-          'S-Bcr': os.path.join(save_folder, 'S-Bcr.' + fmt),
-          'S-Bc': os.path.join(save_folder, 'S-Bc.' + fmt)}
+    fnames = {'day': os.path.join(save_folder, "_".join(loc_list) + '_Day.' + fmt),
+          'S-Bcr': os.path.join(save_folder, "_".join(loc_list) + '_S-Bcr.' + fmt),
+          'S-Bc': os.path.join(save_folder, "_".join(loc_list) + '_S-Bc.' + fmt)}
     if len(Bcr1) > 0:
 
         plt.figure(num=DSC['day'], figsize=(5, 5))
