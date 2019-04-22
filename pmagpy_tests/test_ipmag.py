@@ -1150,7 +1150,7 @@ class TestDayplotMagic(unittest.TestCase):
                 os.remove(fname)
 
     def test_success(self):
-        res, saved = ipmag.dayplot_magic('data_files/dayplot_magic')
+        res, saved = ipmag.dayplot_magic('data_files/dayplot_magic', fmt="pdf")
         self.assertTrue(res)
         self.assertTrue(saved)
         self.assertTrue(glob.glob("*.pdf"))
