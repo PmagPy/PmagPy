@@ -71,7 +71,8 @@ matrix:
       before_install:
         - sudo apt-get update -qq  # make sure package indexes are up to date
         - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
-        #- "sh -e /etc/init.d/xvfb start"
+        # this is needed with non-xenial!
+        - "sh -e /etc/init.d/xvfb start"
       install:
         # fully install miniconda
         - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
