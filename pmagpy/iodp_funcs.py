@@ -5,12 +5,12 @@ import seaborn as sns
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
-              gad_inc,depth_min,depth_max,labels,spec_df=""):
+              gad_inc,depth_min,depth_max,labels,spec_df=[]):
     arch_df=arch_df[arch_df['core_depth']>depth_min]
     arch_df=arch_df[arch_df['core_depth']<=depth_max]
     edited_df=edited_df[edited_df['core_depth']>depth_min]
     edited_df=edited_df[edited_df['core_depth']<=depth_max]
-    if len(spec_df.index)>0:
+    if len(spec_df)>0:
         spec_df=spec_df[spec_df['core_depth']>depth_min]
         spec_df=spec_df[spec_df['core_depth']<=depth_max]
         plot_spec=True
@@ -36,7 +36,7 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'go')
     plt.plot(arch_df['dir_dec'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
-        plt.plot(spec_df['dir_dec'],spec_df['core_depth'],'r*',markersize=5)
+        plt.plot(spec_df['dir_dec'],spec_df['core_depth'],'r*',markersize=10)
     
     plt.axvline(180,color='red')
 
@@ -52,12 +52,11 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'go')
     plt.plot(arch_df['dir_inc'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
-        plt.plot(spec_df['dir_inc'],spec_df['core_depth'],'r*',markersize=5)
+        plt.plot(spec_df['dir_inc'],spec_df['core_depth'],'r*',markersize=10)
 
     plt.xlabel('Inclination')
     plt.axvline(gad_inc,color='blue',linestyle='dotted')
     plt.axvline(-gad_inc,color='blue',linestyle='dotted')
-
     plt.axvline(0,color='red')
     plt.xlim(-90,90)
     for d in sect_depths:

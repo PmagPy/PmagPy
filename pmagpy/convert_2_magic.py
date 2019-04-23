@@ -3163,6 +3163,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
     measurements_df.fillna("",inplace=True)
+    measurements_df.sort_values(by='sequence',inplace=True) 
     if dscr_ex_file:
         meas_df=measurements_df[measurements_df.offline_treatment==""] # all the records with no offline treatments
         offline_df=pd.DataFrame(columns=meas_df.columns) # make a container for offline measurements
@@ -3187,12 +3188,37 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
                           (arm_df.sequence<=end_seq_no),'experiment']= spc+'LT-AF-I_LT-AF-Z_LP-ARM-AFD'
                arm_df.loc[(arm_df.specimen.str.match(spc)) &
                           (arm_df.sequence>seq_no) &
-                          (arm_df.sequence<=end_seq_no),'instrument_codes']= 'IODP-SRM:IDOP-SRM-AF'
+                          (arm_df.sequence<=end_seq_no),'instrument_codes']= 'IODP-SRM:IODP-SRM-AF'
            strings=[]
            for i in range(len(arm_df)):strings.append(str(i))
            arm_df['measurement']=arm_df['experiment']+strings
            arm_df['description']=arm_df['offline_treatment']
            offline_df=pd.concat([offline_df,arm_df])  # put the arm data into the offline dataframe
+        irm_in_df=measurements_df[measurements_df['offline_treatment'].str.contains('IRM')]
+        if len(irm_in_df)>0: # there are IRM treatment steps
+           irm_in_df['offline_list']=irm_in_df['offline_treatment'].str.split(":")
+           irm_list=irm_in_df.specimen.unique()
+           irm_out_df=pd.DataFrame(columns=irm_in_df.columns) # make an output container 
+           for spc in irm_list: # get all the IRM treated specimens
+               # first do IRM acquisition steps
+               spc_df=irm_in_df[irm_in_df.specimen.str.match(spc)] # get all the measurements for this specimen
+               spc_acq_df=spc_df[spc_df.treat_ac_field==0] # IRM acquisition step
+               spc_acq_df['method_codes']='LT-IRM:LP-IRM' # label the IRM records
+               spc_acq_df['experiment']=spc+'_LT-IRM_LP-IRM' # label the IRM experiment
+               spc_acq_df['treat_dc_field']=spc_acq_df['offline_list'].str.get(1).astype('float')*1e-3 # IRM field in mT converted to tesla
+               spc_acq_df['instrument_codes']='IODP-SRM:IODP-IM-10'
+               # do the AF demag of the IRM
+               sirm_seq_no=spc_acq_df[spc_acq_df.specimen.str.match(spc)].sequence.values[-1] # get the sequence number of the last IRM step
+               spc_afd_df=spc_df[(spc_df.treat_ac_field!=0)] #  
+               spc_afd_df['method_codes']= 'LP-IRM:LP-IRM-AFD'
+               spc_afd_df['experiment']= spc+'LP-IRM:LP-IRM-AFD'
+               spc_afd_df['instrument_codes']= 'IODP-SRM:IODP-SRM-AFD'
+               irm_out_df=pd.concat([irm_out_df,spc_acq_df,spc_afd_df])
+           strings=[]
+           for i in range(len(irm_out_df)):strings.append(str(i))
+           irm_out_df['measurement']=irm_out_df['experiment']+strings
+           irm_out_df['description']=irm_out_df['offline_treatment']
+           offline_df=pd.concat([offline_df,irm_out_df])  # put the irm data into the offline dataframe
     if dscr_ex_file:
         offline_df.drop(columns=['offline_list'],inplace=True)
         offline_df.drop(columns=['offline_treatment'],inplace=True)
@@ -3208,6 +3234,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         measurements_df.drop(columns=['offline_list'],inplace=True)
     measurements_df.sort_values(by='sequence',inplace=True)
     measurements_df.drop_duplicates(subset=['sequence'],inplace=True)
+    measurements_df['treat_step_num']=sequence
     measurements_df.fillna("",inplace=True)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
