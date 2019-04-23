@@ -1130,6 +1130,14 @@ class TestHistplot(unittest.TestCase):
         self.assertTrue(saved)
         self.assertTrue(glob.glob("*.svg"))
 
+    def test_with_binsize(self):
+        norm = pmag.gaussdev(10, 3, 1000)
+        res, saved = ipmag.histplot(data=norm, binsize=1)
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.svg"))
+
+
     def test_fail(self):
         res, saved = ipmag.histplot()
         self.assertFalse(res)

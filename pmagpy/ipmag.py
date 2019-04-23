@@ -12796,7 +12796,7 @@ def histplot(infile="", data=(), outfile="",
     else:
         D = np.array(data)
     try:
-        if not D:
+        if not len(D):
             print('-W- No data found')
             return False, []
     except ValueError:
@@ -12813,6 +12813,7 @@ def histplot(infile="", data=(), outfile="",
     # if binsize not provided, calculate reasonable binsize
     if not binsize:
         binsize = int(np.around(1 + 3.22 * np.log(len(D))))
+    binsize = int(binsize)
     Nbins = int(len(D) / binsize)
     ax = fig.add_subplot(111)
     if norm == 1:
