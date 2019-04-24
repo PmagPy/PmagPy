@@ -893,7 +893,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         if not isServer:
             plt.figtext(.02, .01, version_num)
     DIbad, DIgood = [], []
-    for rec in datablock: 
+    for rec in datablock:
         if cb.is_null(rec[1],zero_as_null=False):
             print('-W- You are missing a declination for specimen', s, ', skipping this row')
             continue
@@ -3650,7 +3650,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     im = plt.imshow(Z, interpolation='bilinear', origin='lower',
                     # cmap=plt.color_map.hot, extent=(-1., 1., -1., 1.))
                     cmap=color_map, extent=(-1., 1., -1., 1.))
-    plt.colorbar()
+    plt.colorbar(shrink=0.5)
     x, y = [], []
     # Draws the border
     for i in range(0, 360):
