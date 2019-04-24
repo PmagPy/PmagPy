@@ -3234,7 +3234,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         measurements_df.drop(columns=['offline_list'],inplace=True)
     measurements_df.sort_values(by='sequence',inplace=True)
     measurements_df.drop_duplicates(subset=['sequence'],inplace=True)
-    measurements_df['treat_step_num']=sequence
+    measurements_df['treat_step_num']=measurements_df['sequence']
     measurements_df.fillna("",inplace=True)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
