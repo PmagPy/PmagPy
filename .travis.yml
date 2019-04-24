@@ -35,7 +35,7 @@ matrix:
         - conda update conda
         # create test environment
         - ENV_NAME="test-environment"
-        - conda create -n $ENV_NAME python=$PYTHON_VERSION
+        - conda create -n $ENV_NAME python=3.7.1
         - source activate $ENV_NAME
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
@@ -85,7 +85,7 @@ matrix:
         - conda update conda
         # create test environment
         - ENV_NAME="test-environment"
-        - conda create -n $ENV_NAME python=$PYTHON_VERSION
+        - conda create -n $ENV_NAME python=3.6
         - source activate $ENV_NAME
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
