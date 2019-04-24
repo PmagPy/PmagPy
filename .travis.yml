@@ -35,8 +35,8 @@ matrix:
         - conda update conda
         # create test environment
         - ENV_NAME="test-environment"
-        - conda create -n $ENV_NAME python=3.7.1
-        - source activate $ENV_NAME
+        - conda create -n test-environment python=3.7.1
+        - conda activate test-environment
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
         - conda install --quiet $PACKAGES
@@ -50,6 +50,7 @@ matrix:
         - sudo apt-get update
       script :
         - python -V
+        - conda env list
         - python -m unittest discover -v
 
     - name: "Python 3.6 on Linux"
@@ -86,7 +87,7 @@ matrix:
         # create test environment
         - ENV_NAME="test-environment"
         - conda create -n $ENV_NAME python=3.6
-        - source activate $ENV_NAME
+        - conda activate $ENV_NAME
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
         - conda install --quiet $PACKAGES
@@ -100,6 +101,7 @@ matrix:
         - sudo apt-get update
       script :
         - python -V
+        - conda env list
         - python -m unittest discover -v
 
     # seems that GUI testing isn't yet available OR I don't know how to make it work
@@ -119,7 +121,7 @@ matrix:
         # create test environment
         - ENV_NAME="test-environment"
         - conda create -n $ENV_NAME python=3.7
-        - source activate $ENV_NAME
+        - conda activate $ENV_NAME
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
         - conda install --quiet $PACKAGES
@@ -226,5 +228,5 @@ matrix:
 
 ## specific tasks to run after failure
 #after_failure:
-#  - source activate $ENV_NAME
+#  - conda activate $ENV_NAME
 #  - python -c "from __future__ import print_function; import cartopy.tests.mpl; print(cartopy.tests.mpl.failed_images_html())"
