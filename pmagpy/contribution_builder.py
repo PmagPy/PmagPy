@@ -557,7 +557,7 @@ class Contribution(object):
         """
         return self.propagate_name_down('location', 'samples')
 
-    def propagate_name_down(self, col_name, df_name):
+    def propagate_name_down(self, col_name, df_name, verbose=False):
         """
         Put the data for "col_name" into dataframe with df_name
         Used to add 'site_name' to specimen table, for example.
@@ -588,14 +588,16 @@ class Contribution(object):
             if bottom_table_name not in self.tables:
                 result = self.add_magic_table(bottom_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
-                    print("-W- Couldn't read in {} data for data propagation".format(bottom_table_name))
+                    if verbose:
+                        print("-W- Couldn't read in {} data for data propagation".format(bottom_table_name))
                     return df
             # add child_name to df
             add_df = self.tables[bottom_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=bottom_name)
             if child_name not in df.columns:
-                print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name))
+                if verbose:
+                    print("-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name))
             else:
                 add_df = stringify_col(add_df, child_name)
                 df = stringify_col(df, bottom_name)
@@ -610,17 +612,20 @@ class Contribution(object):
             if child_table_name not in self.tables:
                 result = self.add_magic_table(child_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
-                    print("-W- Couldn't read in {} data".format(child_table_name))
-                    print("-I- Make sure you've provided the correct file name")
+                    if verbose:
+                        print("-W- Couldn't read in {} data".format(child_table_name))
+                        print("-I- Make sure you've provided the correct file name")
                     return df
             # add parent_name to df
             add_df = self.tables[child_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=child_name)
             if parent_name not in add_df:
-                print('-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name))
+                if verbose:
+                    print('-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name))
             elif parent_name not in df:
-                print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
+                if verbose:
+                    print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
                 add_df = stringify_col(add_df, parent_name)
                 df = stringify_col(df, child_name)
@@ -635,17 +640,20 @@ class Contribution(object):
             if parent_table_name not in self.tables:
                 result = self.add_magic_table(parent_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
-                    print("-W- Couldn't read in {} data".format(parent_table_name))
-                    print("-I- Make sure you've provided the correct file name")
+                    if verbose:
+                        print("-W- Couldn't read in {} data".format(parent_table_name))
+                        print("-I- Make sure you've provided the correct file name")
                     return df
             # add grandparent name to df
             add_df = self.tables[parent_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=parent_name)
             if grandparent_name not in add_df.columns:
-                print('-W- could not finish propagating names: {} table is missing {} column'.format(parent_table_name, grandparent_name))
+                if verbose:
+                    print('-W- could not finish propagating names: {} table is missing {} column'.format(parent_table_name, grandparent_name))
             elif parent_name not in df.columns:
-                print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
+                if verbose:
+                    print('-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name))
             else:
                 add_df = stringify_col(add_df, grandparent_name)
                 df = stringify_col(df, parent_name)
