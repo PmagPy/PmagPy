@@ -32,7 +32,7 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
 
     for d in sect_depths:
         plt.axhline(-d,color='black',linestyle='dashed')
-
+    plt.ylabel('Depth (mbsf)')
     plt.xlabel('Log Intensity (mA/m)')
     for d in sect_depths:
         if d<max_depth and d>min_depth:
