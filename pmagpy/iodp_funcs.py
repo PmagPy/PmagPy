@@ -4,8 +4,9 @@ import pandas as pd
 import seaborn as sns
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
+import pmagpy.pmagplotlib as pmagplotlib
 def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
-              gad_inc,depth_min,depth_max,labels,spec_df=[]):
+              gad_inc,depth_min,depth_max,labels,spec_df=[],agemin=0,agemax=0):
     arch_df=arch_df[arch_df['core_depth']>depth_min]
     arch_df=arch_df[arch_df['core_depth']<=depth_max]
     edited_df=edited_df[edited_df['core_depth']>depth_min]
@@ -17,9 +18,16 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     else: plot_spec=False
     max_depth=arch_df.core_depth.max()
     min_depth=arch_df.core_depth.min()
-    ax=plt.figure(fignum,(12,20))
-    ax.add_subplot(131)
-    plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],'go')
+    plot=1
+    if agemax:
+        col=5
+        fig=plt.figure(fignum,(14,16))
+    else:
+        col=3
+        fig=plt.figure(fignum,(8,20))
+    ax=plt.subplot(1,col,plot)
+    plot+=1
+    plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],'co')
     plt.plot(np.log10(arch_df['magn_volume']*1e3),arch_df['core_depth'],'k.',markersize=1)
 
     for d in sect_depths:
@@ -31,9 +39,9 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
             plt.axhline(d,color='black',linestyle='dashed')
     plt.ylim(depth_max,depth_min)
 
-    ax.add_subplot(132)
-
-    plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'go')
+    ax=plt.subplot(1,col,plot)
+    plot+=1
+    plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'co')
     plt.plot(arch_df['dir_dec'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
         plt.plot(spec_df['dir_dec'],spec_df['core_depth'],'r*',markersize=10)
@@ -48,8 +56,9 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.ylim(depth_max,depth_min)
 
     plt.title(hole)
-    ax.add_subplot(133)
-    plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'go')
+    ax=plt.subplot(1,col,plot)
+    plot+=1
+    plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'co')
     plt.plot(arch_df['dir_inc'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
         plt.plot(spec_df['dir_inc'],spec_df['core_depth'],'r*',markersize=10)
@@ -68,6 +77,11 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
         if sect_depths[k]<max_depth and sect_depths[k]>=min_depth:
             plt.text(100,sect_depths[k],labels.values[k],verticalalignment='top')
     plt.ylim(depth_max,depth_min);
+    if agemax:
+        ax=plt.subplot(1,col,plot)
+        ax.axis('off') 
+        ax=plt.subplot(1,col,plot+1)
+        pmagplotlib.plot_ts(ax,agemin,agemax)
     plt.savefig('Figures/'+hole+'_'+str(fignum)+'.pdf')
     print ('Plot saved in', 'Figures/'+hole+'_'+str(fignum)+'.pdf')
 
