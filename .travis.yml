@@ -54,6 +54,7 @@ matrix:
         - pip3 install appdirs
         - pip3 install matplotlib==2.2.3
         - pip3 install scripttest
+        - pip3 install xlwt
         #- pip3 install wxPython # this does NOT work
         - sudo apt-get update
       script :
