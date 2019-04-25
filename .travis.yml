@@ -167,13 +167,12 @@ matrix:
         - pip3 install geos
 
         - curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
-        - C:\temp\osgeo4w-setup-x86-64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P proj
+        - C:\\temp\\osgeo4w-setup-x86-64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P proj
 
         # - pip3 install -U -f 'https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely/Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl' shapely # seems the closest to working, but still fails
         #- pip3 install shapely # breaks
-        #- pip3 install "Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl"
-        #- pip3 install cartopy
-        # - pip3 install cartopy shapely  # these ones cause errors
+        #- pip3 install "Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl" # fails
+        #- pip3 install cartopy # fails because proj4 is not installed
       #script: python -m unittest discover -v
       script:
         - python -V -V
