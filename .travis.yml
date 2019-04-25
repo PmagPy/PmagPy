@@ -50,10 +50,11 @@ matrix:
         - pip3 install cython pillow pytest pep8 pyshp shapely
         - pip3 install six requests pyepsg owslib cartopy future numpy scipy
         - pip3 install pandas libtiff
-        - pip3 install wxPython
+        - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython
         - pip3 install appdirs
         - pip3 install matplotlib=2.2.3
         - pip3 install scripttest
+        #- pip3 install wxPython # this does NOT work
         - sudo apt-get update
       script :
         - python -V -V
