@@ -164,6 +164,7 @@ matrix:
         - pip3 install cython pillow pytest pep8  six requests
         - pip3 install -U wxPython
         - pip3 install scripttest
+        - pip3 install shapely
         # - pip3 install cartopy shapely  # these ones cause errors
       #script: python -m unittest discover -v
       script:
