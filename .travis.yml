@@ -50,19 +50,18 @@ matrix:
         - pip3 install cython pillow pytest pep8 pyshp shapely
         - pip3 install six requests pyepsg owslib cartopy future numpy==1.16.1 scipy
         - pip3 install pandas libtiff
-        - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython
+        - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython # regular pip install wxPython does not work
         - pip3 install appdirs
         - pip3 install matplotlib==2.2.3
         - pip3 install scripttest
         - pip3 install xlwt
-        #- pip3 install wxPython # this does NOT work
         - sudo apt-get update
       script :
         - python -V -V
         - python -c "import sys; print(sys.version)"
         - python -m unittest discover -v
 
-    - name: "Python 3.6 on Linux"
+    - name: "Python 3.6 (Miniconda) on Linux"
       python: "3.6"
       #dist: xenial          # required for Python >= 3.7
       services:
@@ -116,9 +115,9 @@ matrix:
 
     # seems that GUI testing isn't yet available OR I don't know how to make it work
     # other tests appear to work correctly
-    - name: "Python 3.7.2 on macOS"
+    - name: "Python 3.6 (miniconda) on macOS"
       os: osx
-      osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+      osx_image: xcode10.2  #
       language: shell       # 'language: python' is an error on Travis CI macOS
       install:
         # fully install miniconda
@@ -130,7 +129,7 @@ matrix:
         - conda update conda
         # create test environment
         - ENV_NAME="test-environment"
-        - conda create -n $ENV_NAME python=3.7
+        - conda create -n $ENV_NAME python=3.6
         - source activate $ENV_NAME
         # install req'd packages with conda
         - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
@@ -152,7 +151,7 @@ matrix:
 
       # seems that GUI testing isn't yet available OR I don't know how to make it work
       # also, I need to figure out cartopy
-    - name: "Python 3.7.3 on Windows"
+    - name: "Python 3.7.3 (choco) on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
