@@ -31,7 +31,6 @@ def get_pmag_dir():
     #    path = os.path.split(path)[0]
     #    return path
     # this is correct for py2app
-    print('locator', locator)
     try:
         return os.environ['RESOURCEPATH']
     # this works for everything else
@@ -49,20 +48,9 @@ def get_pmag_dir():
         # local github PmagPy and pip-installed PmagPy).
         # must reload because we may have
         # changed directories since importing
-        print('in else')
-        print('locator now', locator)
         temp = os.getcwd()
-        print('cwd', os.getcwd())
         os.chdir('..')
-        print('cwd', os.getcwd())
-        print('try reloading os')
-        reload(os)
-        print('reloaded os')
-        print('locator now', locator)
-        print('reload', reload)
-        print('about to reload')
         reload(locator)
-        print('reloaded')
         lib_file = resource_filename('locator', 'resource.py')
         full_dir = os.path.split(lib_file)[0]
         ind = full_dir.rfind(os.sep)
