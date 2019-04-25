@@ -146,7 +146,8 @@ matrix:
       script :
         - python -V -V
         # these tests all run!  add more
-        - pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder pmagpy_tests.test_validations pmagpy_tests.test_imports3 pmagpy_tests.test_imports2 pmagpy_tests.test_find_pmag_dir pmagpy_tests.test_builder pmagpy_tests.test_env pmagpy_tests.test_simple_example pmagpy_tests.test_map_magic -v
+        - pythonw -m unittest pmagpy_tests.test_find_pmag_dir -v
+        #- pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder pmagpy_tests.test_validations pmagpy_tests.test_imports3 pmagpy_tests.test_imports2 pmagpy_tests.test_find_pmag_dir pmagpy_tests.test_builder pmagpy_tests.test_env pmagpy_tests.test_simple_example pmagpy_tests.test_map_magic -v
         # tests that don't work: test_programs
 
       # seems that GUI testing isn't yet available OR I don't know how to make it work

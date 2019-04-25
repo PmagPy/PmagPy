@@ -49,8 +49,12 @@ def get_pmag_dir():
         # local github PmagPy and pip-installed PmagPy).
         # must reload because we may have
         # changed directories since importing
+        print('in else')
+        print('locator now', locator)
         temp = os.getcwd()
         os.chdir('..')
+        print('locator now', locator)
+        print('reload', reload)
         reload(locator)
         lib_file = resource_filename('locator', 'resource.py')
         full_dir = os.path.split(lib_file)[0]
