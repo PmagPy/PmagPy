@@ -145,8 +145,9 @@ matrix:
       script :
         - python -V -V
         # these tests all run!  add more
-        - pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder pmagpy_tests.test_validations pmagpy_tests.test_imports3 pmagpy_tests.test_imports2  pmagpy_tests.test_builder pmagpy_tests.test_env pmagpy_tests.test_simple_example pmagpy_tests.test_map_magic pmagpy_tests.test_ipmag -v
-        # tests that don't work: test_programs, pmagpy_tests.test_find_pmag_dir
+        - pythonw -m unittest pmagpy_tests.test_builder pmagpy_tests.test_contribution_builder pmagpy_tests.test_env pmagpy_tests.test_imports2 pmagpy_tests.test_imports3 pmagpy_tests.test_ipmag pmagpy_tests.test_make_plots pmagpy_tests.test_map_magic pmagpy_tests.test_plots pmagpy_tests.test_pmag pmagpy_tests.test_pmagplotlib pmagpy_tests.test_simple_example pmagpy_tests.test_validations
+        #- pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder pmagpy_tests.test_validations pmagpy_tests.test_imports3 pmagpy_tests.test_imports2  pmagpy_tests.test_builder pmagpy_tests.test_env pmagpy_tests.test_simple_example pmagpy_tests.test_map_magic pmagpy_tests.test_ipmag pmagpy_tests.test_plots -v
+        # tests that don't work: test_programs, test_find_pmag_dir, all GUI tests
         # tests with GUI stuff don't work
 
       # seems that GUI testing isn't yet available OR I don't know how to make it work
