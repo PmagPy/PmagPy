@@ -27,7 +27,8 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
         fig=plt.figure(fignum,(8,20))
     ax=plt.subplot(1,col,plot)
     plot+=1
-    plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],'co')
+    plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],\
+            'co',markeredgecolor='grey')
     plt.plot(np.log10(arch_df['magn_volume']*1e3),arch_df['core_depth'],'k.',markersize=1)
 
     for d in sect_depths:
@@ -41,7 +42,7 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
 
     ax=plt.subplot(1,col,plot)
     plot+=1
-    plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'co')
+    plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'co',markeredgecolor='grey')
     plt.plot(arch_df['dir_dec'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
         plt.plot(spec_df['dir_dec'],spec_df['core_depth'],'r*',markersize=10)
@@ -58,7 +59,7 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.title(hole)
     ax=plt.subplot(1,col,plot)
     plot+=1
-    plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'co')
+    plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'co',markeredgecolor='grey')
     plt.plot(arch_df['dir_inc'],arch_df['core_depth'],'k.',markersize=1)
     if plot_spec:
         plt.plot(spec_df['dir_inc'],spec_df['core_depth'],'r*',markersize=10)
@@ -162,9 +163,8 @@ def no_xray_disturbance(nodist,hole):
     no_xray_df=pd.DataFrame(columns=nodist.columns)
     xray_df=xray_df[['Core','Section','interval (offset cm)']]
     xray_df.dropna(inplace=True)
-    if type(xray_df.Section)=='str':
-        if 'all' not in xray_df.Section:
-            xray_df.Section=xray_df.Section.astype('int64')
+    if type(xray_df.Section)!='str':
+        xray_df.Section=xray_df.Section.astype('int64')
     xray_df.reset_index(inplace=True)
     xray_df['core_sect']=xray_df['Core']+'-'+xray_df['Section'].astype('str')
     xr_core_sects=xray_df['core_sect'].tolist()
