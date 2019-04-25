@@ -47,7 +47,7 @@ matrix:
         #- conda install --quiet appdirs
         #- conda install --quiet matplotlib=2.2.3
         #- conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
-        - pip3 install cython pillow pytest pep8 proj4==4.* pyshp shapely
+        - pip3 install cython pillow pytest pep8 pyshp shapely
         - pip3 install six requests pyepsg owslib cartopy future numpy scipy
         - pip3 install pandas libtiff
         - pip3 install wxPython
