@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
-import wx
-#import unittest
+#import wx
+import unittest
 
-btn_id = wx.NewId()
+#btn_id = wx.NewId()
 
+class TestThis(unittest.TestCase):
+
+    def test_simple(self):
+        self.assertTrue("hello")
 
 ignore = """
 class MyPanel(wx.Panel):
@@ -12,7 +16,7 @@ class MyPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         #self.btn = wx.Button(self, btn_id, label="OK!!")
 
-        
+
 class MyDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, 'Dialogo')
@@ -48,12 +52,12 @@ class TestMyDialog(unittest.TestCase):
         #wx.CallLater(250, self.DoButtonEvt, self.dia.btn) # also works
         result = self.dia.ShowModal()
         return result
-        
+
     def DoButtonEvt(self, btn):
         event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
         btn.GetEventHandler().ProcessEvent(event)
-        
-        
+
+
 class TestMyPanel(unittest.TestCase):
 
     def setUp(self):
@@ -81,5 +85,4 @@ class TestMyPanel(unittest.TestCase):
 """
 
 if __name__ == '__main__':
-    pass
-    #unittest.main()
+    unittest.main()
