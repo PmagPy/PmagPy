@@ -58,7 +58,6 @@ matrix:
         - sudo apt-get update
       script :
         - python -V -V
-        - conda env list
         - python -c "import sys; print(sys.version)"
         - python -m unittest discover -v
 
