@@ -31,6 +31,7 @@ def get_pmag_dir():
     #    path = os.path.split(path)[0]
     #    return path
     # this is correct for py2app
+    print('locator', locator)
     try:
         return os.environ['RESOURCEPATH']
     # this works for everything else
