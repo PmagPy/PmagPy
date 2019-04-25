@@ -5,7 +5,7 @@ matrix:
     # works!
     - name: "Python 3.7.1 on Xenial Linux"
       python: "3.7"           # this works for Linux but is ignored on macOS or Windows
-      dist: xenial          # required for Python >= 3.7
+      dist: xenial          # required for Python >= 3.7.  BUT doesn't seem to work with conda.
       services:
         - xvfb
       addons:
@@ -49,7 +49,7 @@ matrix:
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
       script :
-        - python -V
+        - python -V -V
         - conda env list
         - python -c "import sys; print(sys.version)"
         - python -m unittest discover -v
@@ -101,7 +101,7 @@ matrix:
         - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - sudo apt-get update
       script :
-        - python -V
+        - python -V -V
         - conda env list
         - python -c "import sys; print(sys.version)"
         - python -m unittest discover -v
@@ -135,7 +135,9 @@ matrix:
         - conda install --quiet matplotlib=2.2.3
         - conda install scripttest --channel conda-forge
       #script : pythonw -m unittest discover -v
-      script : pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder
+      script :
+        - python -V -V
+        - pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder
 
       # seems that GUI testing isn't yet available OR I don't know how to make it work
       # also, I need to figure out cartopy
@@ -153,7 +155,9 @@ matrix:
         - pip3 install scripttest
         # - pip3 install cartopy shapely  # these ones cause errors
       #script: python -m unittest discover -v
-      script: python -m pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder
+      script:
+        - python -V -V
+        - python -m pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder
 
 
 #env:
