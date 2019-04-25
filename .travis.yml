@@ -165,7 +165,7 @@ matrix:
         - pip3 install -U wxPython
         - pip3 install scripttest
         #- pip3 install shapely # breaks
-        - pip3 install -U -f "https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely/Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl" shapely # didn't work (unicodeerror?)
+        - pip3 install -U -f 'https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely/Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl' shapely # didn't work (unicodeerror?)
         #- pip3 install "Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl"
         # https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely/Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl
         # - pip3 install cartopy shapely  # these ones cause errors
