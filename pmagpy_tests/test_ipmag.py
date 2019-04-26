@@ -826,6 +826,16 @@ class TestEqareaMagic(unittest.TestCase):
             for fname in glob.glob(string):
                 os.remove(fname)
 
+    def test_success_windows(self):
+        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True,
+                                           fmt="png", plot_by="sit", n_plots=5)
+        self.assertTrue(res)
+        self.assertTrue(outfiles)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+
+
+    @unittest.skipIf(set_env.IS_WIN, "memory error on windows")
     def test_success(self):
         for fname in glob.glob('*.png'):
             os.remove(fname)
@@ -845,8 +855,8 @@ class TestEqareaMagic(unittest.TestCase):
         self.assertFalse(res)
 
     def test_with_ell(self):
-        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True, fmt="png", plot_by="loc",
-                                           plot_ell="F")
+        res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True,
+                                           fmt="png", plot_by="loc", plot_ell="F")
         self.assertTrue(res)
         if set_env.IS_WIN:
             self.assertTrue(os.path.exists('all_McMurdo_g_eqarea.png'))
