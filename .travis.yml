@@ -166,17 +166,19 @@ matrix:
         - pip3 install scripttest
         - pip3 install geos
 
-        - curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
-        - C:\\temp\\osgeo4w-setup-x86-64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P proj
-
+        ## trying two commands to install proj4 (fails on the second command)
+        #- curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
+        #- C:\\temp\\osgeo4w-setup-x86-64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P proj
+        ## trying to install shapely
         # - pip3 install -U -f 'https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely/Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl' shapely # seems the closest to working, but still fails
         #- pip3 install shapely # breaks
         #- pip3 install "Shapely‑1.6.4.post1‑cp37‑cp37m‑win_amd64.whl" # fails
+        ## trying to install cartopy
         #- pip3 install cartopy # fails because proj4 is not installed
       #script: python -m unittest discover -v
       script:
         - python -V -V
-        - python -m unittest pmagpy_tests.test_simple_example
+        - python -m unittest pmagpy_tests.test_simple_example pmagpy_tests.test_pmag -v
         # exits with 0, but doesn't actually finish running :(
         #- python -m pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder -v
 
