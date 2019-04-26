@@ -205,7 +205,7 @@ class TestCombineMagic(unittest.TestCase):
         self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
 
-    @unittest.skipIf(set_env.IS_WIN and 'discover' in sys.argv, "Fails on Travis Windows env, fine locally")
+    @unittest.skipIf(set_env.IS_WIN, "Fails on Travis Windows env, fine locally")
     def test_with_remove_rows(self):
         flist = ['extra_specimens.txt', 'specimens.txt']
         flist = [os.path.join(self.input_dir, fname) for fname in flist]
