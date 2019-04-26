@@ -1763,18 +1763,19 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         print("-E- Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT")
         return False, "Must provide experiment. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see help for format), NLT"
 
-    if experiment == 'ATRM':
-        if command_line:
-            ind = sys.argv.index("ATRM")
-            atrm_n_pos = int(sys.argv[ind+1])
-        else:
+    if 'ATRM' in experiment:
+        try:
+            experiment, atrm_n_pos = experiment.split()
+            atrm_n_pos = int(atrm_n_pos)
+        except:
+            experiment = 'ATRM'
             atrm_n_pos = 6
-
-    if experiment == 'AARM':
-        if command_line:
-            ind = sys.argv.index("AARM")
-            aarm_n_pos = int(sys.argv[ind+1])
-        else:
+    if 'AARM' in experiment:
+        try:
+            experiment, aarm_n_pos = experiment.split()
+            aarm_n_pos = int(aarm_n_pos)
+        except:
+            experiment = 'AARM'
             aarm_n_pos = 6
 
     if experiment == 'CR':
@@ -3048,7 +3049,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     assumes that you have created the specimens, samples, sites and location
     files using convert_2_magic.iodp_samples_csv from files downloaded from the LIMS online
     repository and that all samples are in that file.
-   
+
     If there are offline treatments, you will also need the extended version of the SRM discrete
     download file from LORE.
 
@@ -3163,7 +3164,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
     measurements_df.fillna("",inplace=True)
-    measurements_df.sort_values(by='sequence',inplace=True) 
+    measurements_df.sort_values(by='sequence',inplace=True)
     if dscr_ex_file:
         meas_df=measurements_df[measurements_df.offline_treatment==""] # all the records with no offline treatments
         offline_df=pd.DataFrame(columns=meas_df.columns) # make a container for offline measurements
@@ -3198,7 +3199,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         if len(irm_in_df)>0: # there are IRM treatment steps
            irm_in_df['offline_list']=irm_in_df['offline_treatment'].str.split(":")
            irm_list=irm_in_df.specimen.unique()
-           irm_out_df=pd.DataFrame(columns=irm_in_df.columns) # make an output container 
+           irm_out_df=pd.DataFrame(columns=irm_in_df.columns) # make an output container
            for spc in irm_list: # get all the IRM treated specimens
                # first do IRM acquisition steps
                spc_df=irm_in_df[irm_in_df.specimen.str.match(spc)] # get all the measurements for this specimen
@@ -3209,7 +3210,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
                spc_acq_df['instrument_codes']='IODP-SRM:IODP-IM-10'
                # do the AF demag of the IRM
                sirm_seq_no=spc_acq_df[spc_acq_df.specimen.str.match(spc)].sequence.values[-1] # get the sequence number of the last IRM step
-               spc_afd_df=spc_df[(spc_df.treat_ac_field!=0)] #  
+               spc_afd_df=spc_df[(spc_df.treat_ac_field!=0)] #
                spc_afd_df['method_codes']= 'LP-IRM:LP-IRM-AFD'
                spc_afd_df['experiment']= spc+'LP-IRM:LP-IRM-AFD'
                spc_afd_df['instrument_codes']= 'IODP-SRM:IODP-SRM-AFD'
@@ -3222,7 +3223,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     if dscr_ex_file:
         offline_df.drop(columns=['offline_list'],inplace=True)
         offline_df.drop(columns=['offline_treatment'],inplace=True)
-        offline_df.sort_values(by='sequence',inplace=True) 
+        offline_df.sort_values(by='sequence',inplace=True)
         offline_df.drop_duplicates(subset=['sequence'],inplace=True)
         offline_df.fillna("",inplace=True)
         offline_dicts = offline_df.to_dict('records')
@@ -3392,7 +3393,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     instrument : str
         instrument name, default ""
     actual_volume : float
-        the nominal volume is assumed to be 8cc or even 10cc, depending on the shipboard 
+        the nominal volume is assumed to be 8cc or even 10cc, depending on the shipboard
         software used, actual_vol is the  actual specimen volume in cc
     dir_path : str
         output directory, default "."

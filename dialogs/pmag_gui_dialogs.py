@@ -602,9 +602,11 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         if 'CR' in EXP:
             options['experiment'], options['cooling_times_list'] = EXP.split()
         elif 'AARM' in EXP:
-            options['experiment'], options['aarm_n_pos'] = EXP.split()
+            options['experiment'] = EXP
+            #options['experiment'], options['aarm_n_pos'] = EXP.split()
         elif 'ATRM' in EXP:
-            options['experiment'], options['atrm_n_pos'] = EXP.split()
+            options['experiment'] = EXP
+            #options['experiment'], options['atrm_n_pos'] = EXP.split()
         else:
             options['experiment'] = EXP
         #-----------
