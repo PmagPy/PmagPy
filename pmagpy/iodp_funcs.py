@@ -223,7 +223,7 @@ def adj_dec(df,hole):
         adj_dec_df=pd.concat([adj_dec_df,core_df])
     adj_dec_df.fillna("",inplace=True)
     adj_dec_df.drop_duplicates(inplace=True)
-    adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv') 
+    adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv',index=False) 
     print ('Adjusted Declination DataFrame returned')
     return adj_dec_df,core_dec_corr
 
@@ -244,3 +244,172 @@ def plot_aniso(df,fignum=1):
     ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
     ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
     plt.title('Declination Adjusted')
+
+def convert_hole_depths(affine_file,hole_df,site,hole):
+    affine=pd.read_csv(affine_file)
+    affine['core']=affine['Core'].astype('str')+affine['Core type']
+    affine['hole']=site+affine['Hole']
+    hole_affine_df=affine[affine['hole'].str.match(hole)] # get the list for this hole
+    hole_df['composite_depth']=hole_df['core_depth']
+    cores=hole_affine_df.core.tolist()
+    for core in cores:
+        mbsf=hole_df[hole_df.core==core]['core_depth']
+        if hole in affine['hole'].tolist() and  core in hole_affine_df.core.tolist():
+            offset=hole_affine_df[hole_affine_df['core']==core]\
+                    ['Cumulative offset (m)'].astype('float').values[0]
+            hole_df.loc[hole_df.core==core,'composite_depth']=mbsf+offset
+    hole_df['affine table']=affine_file
+    return hole_df
+
+def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='UAge_Model_'):
+
+    plt.figure(1,(6,6))
+    diatoms=paleo[paleo.Type.str.contains('DIAT')]
+    rads=paleo[paleo.Type.str.contains('RAD')]
+    diatom_lo=diatoms[diatoms.Event.str.contains('LO')]
+    diatom_lo.reset_index(inplace=True)
+    diatom_fo=diatoms[diatoms.Event.str.contains('FO')]
+    diatom_fo.reset_index(inplace=True)
+    rad_lo=rads[rads.Event.str.contains('LO')]
+    rad_lo.reset_index(inplace=True)
+    rad_fo=rads[rads.Event.str.contains('FO')]
+    rad_fo.reset_index(inplace=True)
+    age_key='Published Age\n(Ma)'
+    mid_key='Mid depth \n(mbsf)'
+    top_key='Top depth \n(mbsf)'
+    bot_key='Bottom depth \n(mbsf)'
+    datums['top']=datums[depth_key]-datums['range (+/-) (m)']
+    datums['bot']=datums[depth_key]+datums['range (+/-) (m)']
+
+    Hole_A=datums[datums['Hole'].str.contains('A')]
+    Hole_B=datums[datums['Hole'].str.contains('B')]
+    Hole_B.reset_index(inplace=True)
+    Hole_C=datums[datums['Hole'].str.contains('C')]
+    Hole_C.reset_index(inplace=True)
+    Hole_E=datums[datums['Hole'].str.contains('E')]
+    Hole_E.reset_index(inplace=True)
+
+
+
+
+# put on curve
+    zero=pd.DataFrame(columns=datums.columns,index=[0])
+    zero['Age (Ma)']=0
+    zero[depth_key]=0
+    datums=pd.concat([zero,datums])
+    datums.dropna(subset=['Age (Ma)',depth_key],   inplace=True)
+    datums.sort_values(by=['Age (Ma)'],inplace=True)
+    coeffs=np.polyfit(datums['Age (Ma)'].values,datums[depth_key].values,3)
+    fit=np.polyval(coeffs,datums['Age (Ma)'].values)
+    plt.plot(datums['Age (Ma)'].values,fit,'c-',lw=3,label='polynomial fit')
+
+
+# plot the paleo
+    for k in rad_lo.index:
+        plt.plot([rad_lo.iloc[k][age_key],rad_lo.iloc[k][age_key]],\
+             [rad_lo.iloc[k][top_key],rad_lo.iloc[k][bot_key]],'g-')
+    plt.scatter(rad_lo[age_key].values,rad_lo[mid_key].values,\
+            marker='v',color='w',label='Rad LO',alpha=0.5,edgecolor='g')
+    for k in rad_fo.index:
+        plt.plot([rad_fo.iloc[k][age_key],rad_fo.iloc[k][age_key]],\
+             [rad_fo.iloc[k][top_key],rad_fo.iloc[k][bot_key]],'g-')
+    plt.scatter(rad_fo[age_key].values,rad_fo[mid_key].values,\
+            marker='^',color='w',label='Rad FO',alpha=0.5,edgecolor='g')
+
+    for k in diatom_fo.index:
+        plt.plot([diatom_fo.iloc[k][age_key],diatom_fo.iloc[k][age_key]],\
+             [diatom_fo.iloc[k][top_key],diatom_fo.iloc[k][bot_key]],'b-')
+    plt.scatter(diatom_fo[age_key].values,diatom_fo[mid_key].values,\
+            marker='^',color='w',label='Diatom FO',alpha=0.5,edgecolor='b')
+
+
+    for k in diatom_lo.index:
+        plt.plot([diatom_lo.iloc[k][age_key],diatom_lo.iloc[k][age_key]],\
+             [diatom_lo.iloc[k][top_key],diatom_lo.iloc[k][bot_key]],'b-')
+    plt.scatter(diatom_lo[age_key].values,diatom_lo[mid_key].values,\
+            marker='v',color='w',label='Diatom LO',alpha=0.5,edgecolor='b')
+
+
+#plot the pmag tie points
+
+
+    plt.scatter(Hole_A['Age (Ma)'].values,Hole_A[depth_key].values,\
+            marker='*',s=size,color='r',label='U1536A')
+    for k in Hole_A.index:
+        plt.plot([Hole_A.iloc[k]['Age (Ma)'],Hole_A.iloc[k]['Age (Ma)']],\
+             [Hole_A.iloc[k]['top'],Hole_A.iloc[k]['bot']],'k-')
+    plt.scatter(Hole_B['Age (Ma)'].values,Hole_B[depth_key].values,\
+            marker='*',s=size,color='b',label='U1536B',alpha=1)
+    for k in Hole_B.index:
+        plt.plot([Hole_B.iloc[k]['Age (Ma)'],Hole_B.iloc[k]['Age (Ma)']],\
+             [Hole_B.iloc[k]['top'],Hole_B.iloc[k]['bot']],'k-')
+    plt.scatter(Hole_C['Age (Ma)'].values,Hole_C[depth_key].values,\
+            marker='*',s=size,color='k',label='U1536C',alpha=1)
+    for k in Hole_C.index:
+        plt.plot([Hole_C.iloc[k]['Age (Ma)'],Hole_C.iloc[k]['Age (Ma)']],\
+             [Hole_C.iloc[k]['top'],Hole_C.iloc[k]['bot']],'k-')
+    plt.scatter(Hole_E['Age (Ma)'].values,Hole_E[depth_key].values,\
+            marker='*',s=size,color='g',label='U1536E',alpha=1)
+
+    for k in Hole_E.index:
+        plt.plot([Hole_E.iloc[k]['Age (Ma)'],Hole_E.iloc[k]['Age (Ma)']],\
+             [Hole_E.iloc[k]['top'],Hole_E.iloc[k]['bot']],'k-')
+
+
+    
+    plt.ylim(600,0)
+    plt.xlim(0,8)
+    plt.xlabel('Age (Ma), GTS12')
+    plt.ylabel('Depth (mbsf)')
+    plt.title(title)
+    plt.legend()
+    plt.savefig('Figures/'+title+'.pdf')
+    return coeffs
+
+def do_affine(affine_file,datums):
+    cmb_top_key='Top Depth CCSF-A (m)'
+    cmb_bot_key='Bottom Depth CCSF-A (m)'
+    mbsf_top_key='Top Depth CSF-A (m)'
+    mbsf_bot_key='Bottom Depth CSF-A (m)'
+    datums.dropna(subset=['Core-Sect-Depth (top)'],inplace=True)
+    holes=datums['Hole'].unique()
+    affine=pd.read_csv(affine_file)
+    datums['top_core_list']=datums['Core-Sect-Depth (top)'].str.split('-')
+    datums['bot_core_list']=datums['Core-Sect-Depth (bottom)'].str.split('-')
+    datums['top_core']=datums['top_core_list'].str.get(0)
+    datums['bot_core']=datums['bot_core_list'].str.get(0)
+    affine['core']=affine['Core'].astype('str')+affine['Core type']
+    affine['hole']='Hole '+affine['Hole']
+    aff_holes=affine['hole'].values.tolist()
+    datums_out=pd.DataFrame(columns=datums.columns)
+    for hole in holes:        
+        hole_df=datums[datums['Hole']==hole]
+        hole_affine_df=affine[affine['hole']==hole]
+        top_cores=hole_df['top_core'].values
+        bot_cores=hole_df['bot_core'].values
+        for core in top_cores:
+            if hole in aff_holes and  core in hole_affine_df.core.tolist():
+                offset=hole_affine_df[hole_affine_df['core']==core]\
+                      ['Cumulative offset (m)'].astype('float').values[0]
+                mbsf=hole_df[hole_df.top_core==core][mbsf_top_key]
+                hole_df.loc[hole_df.top_core==core,cmb_top_key]=mbsf+offset
+            else:
+                mbsf=hole_df[hole_df.top_core==core][mbsf_top_key]
+                hole_df.loc[hole_df.top_core==core,cmb_top_key]=mbsf # no offset possible
+
+        for core in bot_cores:
+            if hole in aff_holes and  core in hole_affine_df.core.tolist():
+                offset=hole_affine_df[hole_affine_df['core']==core]\
+                      ['Cumulative offset (m)'].astype('float').values[0]
+                mbsf=hole_df[hole_df.bot_core==core][mbsf_bot_key]
+                hole_df.loc[hole_df.bot_core==core,cmb_bot_key]=mbsf+offset
+            else:
+                mbsf=hole_df[hole_df.bot_core==core][mbsf_bot_key]
+                hole_df.loc[hole_df.bot_core==core,cmb_bot_key]=mbsf # no offset possible
+
+
+        datums_out=pd.concat([datums_out,hole_df])   
+    datums_out['affine table']=affine_file
+    datums_out['midpoint CCSF-A (m)']=datums_out[cmb_bot_key]+.5*(datums_out[cmb_top_key]-datums_out[cmb_bot_key])
+    return datums_out
+
