@@ -213,7 +213,10 @@ class TestCombineMagic(unittest.TestCase):
         res = ipmag.combine_magic(flist, 'custom.out', data_model=3)
         print('MIDDLE XYZ')
         with open(os.path.join(WD, 'custom.out')) as f:
+            print('XYZ opened custom.out')
             n = len(f.readlines()) - 2
+            print('XYZ read custom.out')
+        print('XYZ about to assert Equal')
         self.assertEqual(n, 2747)
         print('DONE XYZ')
 
