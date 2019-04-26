@@ -908,6 +908,7 @@ class TestZeqMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
         self.assertEqual(9, len(outfiles))
 
+    @unittest.skipIf(set_env.IS_WIN, "memory error on windows")
     def test_success_with_interpretations_long(self):
         res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/3_0/McMurdo",
                                         spec_file="specimens.txt", fmt="png", n_plots=200)
