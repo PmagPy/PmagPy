@@ -413,3 +413,38 @@ def do_affine(affine_file,datums):
     datums_out['midpoint CCSF-A (m)']=datums_out[cmb_bot_key]+.5*(datums_out[cmb_top_key]-datums_out[cmb_bot_key])
     return datums_out
 
+def fix_aniso_data(aniso_df,core_dec_adj,site_df):
+
+
+    aniso_df['aniso_v1_list']=aniso_df['aniso_v1'].str.split(":")
+    aniso_df['tau1']=aniso_df['aniso_v1_list'].str.get(0).astype('float')
+    aniso_df['v1_dec']=aniso_df['aniso_v1_list'].str.get(1).astype('float')
+    aniso_df['v1_inc']=aniso_df['aniso_v1_list'].str.get(2).astype('float')
+    aniso_df['aniso_v2_list']=aniso_df['aniso_v2'].str.split(":")
+    aniso_df['tau2']=aniso_df['aniso_v2_list'].str.get(0).astype('float')
+    aniso_df['v2_inc']=aniso_df['aniso_v2_list'].str.get(2).astype('float')
+    aniso_df['v2_dec']=aniso_df['aniso_v2_list'].str.get(1).astype('float')
+    aniso_df['aniso_v3_list']=aniso_df['aniso_v3'].str.split(":")
+    aniso_df['tau3']=aniso_df['aniso_v3_list'].str.get(0).astype('float')
+    aniso_df['v3_dec']=aniso_df['aniso_v3_list'].str.get(1).astype('float')
+    aniso_df['v3_inc']=aniso_df['aniso_v3_list'].str.get(2).astype('float')
+
+    pieces=aniso_df.specimen.str.split('-',expand=True)
+    pieces.columns=['exp','hole','core','sect','A/W','offset']
+    aniso_df['core']=pieces['core'].astype('str')
+    cores=aniso_df.core.unique()
+    aniso_dec_adj_df=pd.DataFrame(columns=aniso_df.columns)
+    for core in cores:
+        core_df=aniso_df[aniso_df.core.str.match(core)]
+        core_df['v1_dec_adj']=(core_df['v1_dec']-core_dec_adj[core])%360
+        core_df['v2_dec_adj']=(core_df['v2_dec']-core_dec_adj[core])%360
+        core_df['v3_dec_adj']=(core_df['v3_dec']-core_dec_adj[core])%360
+        aniso_dec_adj_df=pd.concat([aniso_dec_adj_df,core_df])
+
+
+
+    site_df['specimen']=site_df['site']
+    site_df=site_df[['specimen','core_depth']]
+    aniso_dec_adj_df=aniso_dec_adj_df.merge(site_df,on='specimen')
+
+    return aniso_dec_adj_df
