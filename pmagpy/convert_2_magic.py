@@ -3524,7 +3524,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     tau3=in_df['Kmin susceptibility (SI)']/3
     v3_dec=in_df['Kmin dec (deg)']
     v3_inc=in_df['Kmin inc (deg)']
-    specimens_df['aniso_v3']=tau1.astype('str')+":"+v3_dec.astype('str')+":"+v3_inc.astype('str')
+    specimens_df['aniso_v3']=tau3.astype('str')+":"+v3_dec.astype('str')+":"+v3_inc.astype('str')
 
 
 # output data files

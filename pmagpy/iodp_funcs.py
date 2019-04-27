@@ -447,4 +447,5 @@ def fix_aniso_data(aniso_df,core_dec_adj,site_df):
     site_df=site_df[['specimen','core_depth']]
     aniso_dec_adj_df=aniso_dec_adj_df.merge(site_df,on='specimen')
 
+    aniso_dec_adj_df.drop(columns=['aniso_v1_list','aniso_v2_list','aniso_v3_list'],inplace=True)
     return aniso_dec_adj_df
