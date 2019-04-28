@@ -227,7 +227,7 @@ def adj_dec(df,hole):
     print ('Adjusted Declination DataFrame returned')
     return adj_dec_df,core_dec_corr
 
-def plot_aniso(df,fignum=1):
+def plot_aniso(df,fignum=1,save_figs=False):
     v1_decs=df['v1_dec'].values
     v1_incs=df['v1_inc'].values
     v3_decs=df['v3_dec'].values
@@ -236,14 +236,17 @@ def plot_aniso(df,fignum=1):
     ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
     ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
     plt.title('Core coordinates')
+    if save_figs: plt.savefig('aniso_core.svg')
 
-    ipmag.plot_net(fignum+1)
+    fig2=ipmag.plot_net(fignum+1)
     v1_decs=df['v1_dec_adj'].values
     v3_decs=df['v3_dec_adj'].values
 
     ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
     ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
     plt.title('Declination Adjusted')
+    if save_figs: plt.savefig('aniso_corr.svg')
+    return 
 
 def convert_hole_depths(affine_file,hole_df,site,hole):
     affine=pd.read_csv(affine_file)
