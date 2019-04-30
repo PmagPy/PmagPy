@@ -159,7 +159,7 @@ def remove_disturbance(noends,hole):
 
 def no_xray_disturbance(nodist,hole):
     xray_file=hole+'/'+hole+'_xray_disturbance.xlsx'
-    xray_df=pd.read_excel(xray_file,header=3)
+    xray_df=pd.read_excel(xray_file,header=2)
     no_xray_df=pd.DataFrame(columns=nodist.columns)
     xray_df=xray_df[['Core','Section','interval (offset cm)']]
     xray_df.dropna(inplace=True)
