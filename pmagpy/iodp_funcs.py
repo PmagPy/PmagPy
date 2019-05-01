@@ -264,7 +264,7 @@ def convert_hole_depths(affine_file,hole_df,site,hole):
     hole_df['affine table']=affine_file
     return hole_df
 
-def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='UAge_Model_'):
+def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='UAge_Model_',dmin=0,dmax=600):
 
     plt.figure(1,(6,6))
     diatoms=paleo[paleo.Type.str.contains('DIAT')]
@@ -360,8 +360,8 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
 
 
     
-    plt.ylim(600,0)
-    plt.xlim(0,8)
+    plt.ylim(dmax,dmin)
+    plt.xlim(amax,amin)
     plt.xlabel('Age (Ma), GTS12')
     plt.ylabel('Depth (mbsf)')
     plt.title(title)
