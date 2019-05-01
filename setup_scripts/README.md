@@ -108,6 +108,21 @@ pyinstaller --clean PmagGUI.spec --upx-dir C:\path\to\upx\upx394w
 
 (Not like this: `--upx-dir C:\path\to\upx\upx394w\upx.exe` or this: `C:\path\to\upx`!)
 
+
+Environment (other configurations may work, but I can confirm that this way does):
+
+Conda python 3.6 # NOT default which is 3.7
+Regular dependencies, but: no cartopy, no scripttest.
+Conda cartopy IS NOT compatible with conda pyinstaller.
+`conda install pyinstaller --channel conda-forge`
+
+Alternatively, install the latest pyinstaller to conda python (possibly still must be 3.6) with:
+
+    pip install git+https://github.com/pyinstaller/pyinstaller.git
+
+This *may* still work, but probably requires either pip<19.0 or the flag `--no-use-pep517`.  See https://github.com/PmagPy/PmagPy/issues/567.
+
+
 ## Compiling on Linux
 
 The Linux binary is generated very similar to the Windows binary. Again you must have all PmagPy dependencies and pyinstaller on your machine all of which can be found in the standard repositories or pypi. Then you should modify and run this script from the PmagPy main directory to make the .spec file:
