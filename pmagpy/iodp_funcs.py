@@ -284,15 +284,6 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
     datums['top']=datums[depth_key]-datums['range (+/-) (m)']
     datums['bot']=datums[depth_key]+datums['range (+/-) (m)']
 
-    Hole_A=datums[datums['Hole'].str.contains('A')]
-    Hole_B=datums[datums['Hole'].str.contains('B')]
-    Hole_B.reset_index(inplace=True)
-    Hole_C=datums[datums['Hole'].str.contains('C')]
-    Hole_C.reset_index(inplace=True)
-    Hole_E=datums[datums['Hole'].str.contains('E')]
-    Hole_E.reset_index(inplace=True)
-
-
 
 
 # put on curve
@@ -334,30 +325,19 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
 
 
 #plot the pmag tie points
+    datums.dropna(subset=['Hole'],inplace=True)
+    datums=datums[datums['bot']<dmax]
+    holes=datums['Hole'].unique()
+    colors=['r','b','k','g']
+    for i in range(len(holes)):
+         hole=datums[datums['Hole'].str.match(holes[i])]
+         hole.reset_index(inplace=True)
 
-
-    plt.scatter(Hole_A['Age (Ma)'].values,Hole_A[depth_key].values,\
-            marker='*',s=size,color='r',label='U1536A')
-    for k in Hole_A.index:
-        plt.plot([Hole_A.iloc[k]['Age (Ma)'],Hole_A.iloc[k]['Age (Ma)']],\
-             [Hole_A.iloc[k]['top'],Hole_A.iloc[k]['bot']],'k-')
-    plt.scatter(Hole_B['Age (Ma)'].values,Hole_B[depth_key].values,\
-            marker='*',s=size,color='b',label='U1536B',alpha=1)
-    for k in Hole_B.index:
-        plt.plot([Hole_B.iloc[k]['Age (Ma)'],Hole_B.iloc[k]['Age (Ma)']],\
-             [Hole_B.iloc[k]['top'],Hole_B.iloc[k]['bot']],'k-')
-    plt.scatter(Hole_C['Age (Ma)'].values,Hole_C[depth_key].values,\
-            marker='*',s=size,color='k',label='U1536C',alpha=1)
-    for k in Hole_C.index:
-        plt.plot([Hole_C.iloc[k]['Age (Ma)'],Hole_C.iloc[k]['Age (Ma)']],\
-             [Hole_C.iloc[k]['top'],Hole_C.iloc[k]['bot']],'k-')
-    plt.scatter(Hole_E['Age (Ma)'].values,Hole_E[depth_key].values,\
-            marker='*',s=size,color='g',label='U1536E',alpha=1)
-
-    for k in Hole_E.index:
-        plt.plot([Hole_E.iloc[k]['Age (Ma)'],Hole_E.iloc[k]['Age (Ma)']],\
-             [Hole_E.iloc[k]['top'],Hole_E.iloc[k]['bot']],'k-')
-
+         plt.scatter(hole['Age (Ma)'].values,hole[depth_key].values,\
+            marker='*',s=size,color=colors[i],label=holes[i])
+         for k in hole.index:
+             plt.plot([hole.iloc[k]['Age (Ma)'],hole.iloc[k]['Age (Ma)']],\
+                 [hole.iloc[k]['top'],hole.iloc[k]['bot']],'k-')
 
     
     plt.ylim(dmax,dmin)
