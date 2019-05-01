@@ -19,7 +19,10 @@ a = Analysis(['programs/magic_gui.py'],
              pathex=[current_dir],
              binaries=[],
              datas=files,
-             hiddenimports=['scipy._lib.messagestream'],
+             hiddenimports=['scipy._lib.messagestream',
+                            # timdeltas appears necessary for Windows with
+                            # conda-installed pyinstaller
+                            'pandas._libs.tslibs.timedeltas'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],

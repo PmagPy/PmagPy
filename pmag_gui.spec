@@ -22,6 +22,9 @@ a = Analysis(['programs/pmag_gui.py'],
              datas=files,
              hiddenimports=['scipy.optimize', 'scipy.interpolate',
                             'scipy._lib.messagestream',
+                            # timdeltas appears necessary for Windows with
+                            # conda-installed pyinstaller
+                            'pandas._libs.tslibs.timedeltas',
                             'pandas.concat'],
              hookspath=[],
              runtime_hooks=[],
