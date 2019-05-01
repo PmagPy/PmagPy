@@ -4089,7 +4089,6 @@ def download_magic(infile, dir_path='.', input_dir_path='',
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
-
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     infile = pmag.resolve_file_name(infile, input_dir_path)
     # try to deal reasonably with unicode errors
@@ -4212,12 +4211,11 @@ def download_magic(infile, dir_path='.', input_dir_path='',
         for dtype in con.tables:
             con.write_table_to_file(dtype)
         locs, locnum = [], 1
-        if 'locations' in type_list:
-            locs, file_type = pmag.magic_read(
-                os.path.join(dir_path, 'locations.txt'))
+        if 'locations' in con.tables:
+            locs = list(con.tables['locations'].df.index.unique())
         if len(locs) > 0:  # at least one location
             # go through unique location names
-            for loc_name in set([loc.get('location') for loc in locs]):
+            for loc_name in locs:
                 if print_progress == True:
                     print('\nlocation_' + str(locnum) + ": ", loc_name)
                 lpath = os.path.join(dir_path, 'Location_' + str(locnum))
@@ -4230,14 +4228,13 @@ def download_magic(infile, dir_path='.', input_dir_path='',
                     if not overwrite:
                         print("-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath))
                         return False
-                for f in type_list:
-                    recs = con.tables[f].convert_to_pmag_data_list()
-                    file_type = f
+                for file_type in con.tables:
+                    recs = con.tables[file_type].convert_to_pmag_data_list()
                     if print_progress == True:
                         print(len(recs), ' read in')
                     lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
                     if len(lrecs) > 0:
-                        outfile_name = os.path.join(lpath, f + ".txt")
+                        outfile_name = os.path.join(lpath, file_type + ".txt")
                         pmag.magic_write(outfile_name, lrecs, file_type)
                         if print_progress == True:
                             print(len(lrecs), ' stored in ', outfile_name)
