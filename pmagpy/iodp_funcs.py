@@ -26,21 +26,22 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
         col=3
         fig=plt.figure(fignum,(8,20))
     ax=plt.subplot(1,col,plot)
+    for d in sect_depths:
+        if d<max_depth and d>min_depth:
+            plt.axhline(d,color='black',linestyle='dashed',linewidth=.75)
     plot+=1
     plt.plot(np.log10(edited_df['magn_volume']*1e3),edited_df['core_depth'],\
             'co',markeredgecolor='grey')
     plt.plot(np.log10(arch_df['magn_volume']*1e3),arch_df['core_depth'],'k.',markersize=1)
 
-    for d in sect_depths:
-        plt.axhline(-d,color='black',linestyle='dashed')
     plt.ylabel('Depth (mbsf)')
     plt.xlabel('Log Intensity (mA/m)')
-    for d in sect_depths:
-        if d<max_depth and d>min_depth:
-            plt.axhline(d,color='black',linestyle='dashed')
     plt.ylim(depth_max,depth_min)
 
     ax=plt.subplot(1,col,plot)
+    for d in sect_depths:
+        if d<max_depth and d>min_depth:
+            plt.axhline(d,color='black',linestyle='dashed',linewidth=.75)
     plot+=1
     plt.plot(edited_df['dir_dec'],edited_df['core_depth'],'co',markeredgecolor='grey')
     plt.plot(arch_df['dir_dec'],arch_df['core_depth'],'k.',markersize=1)
@@ -51,13 +52,13 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
 
     plt.xlabel('Declination')
     plt.ylim(depth_max,depth_min)
-    for d in sect_depths:
-        if d<max_depth and d>min_depth:
-            plt.axhline(d,color='black',linestyle='dashed')
     plt.ylim(depth_max,depth_min)
 
     plt.title(hole)
     ax=plt.subplot(1,col,plot)
+    for d in sect_depths:
+        if d<max_depth and d>min_depth:
+            plt.axhline(d,color='black',linestyle='dashed',linewidth=.75)
     plot+=1
     plt.plot(edited_df['dir_inc'],edited_df['core_depth'],'co',markeredgecolor='grey')
     plt.plot(arch_df['dir_inc'],arch_df['core_depth'],'k.',markersize=1)
@@ -69,9 +70,6 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.axvline(-gad_inc,color='blue',linestyle='dotted')
     plt.axvline(0,color='red')
     plt.xlim(-90,90)
-    for d in sect_depths:
-        if d<max_depth and d>=min_depth:
-            plt.axhline(d,color='black',linestyle='dashed')
 
 
     for k in range(len(labels.values)):
@@ -342,7 +340,7 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
     plt.xlabel('Age (Ma), GTS12')
     plt.ylabel('Depth (mbsf)')
     plt.title(title)
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1.5,1))
     plt.savefig('Figures/'+title+'.pdf')
     return coeffs
 
