@@ -176,24 +176,17 @@ def no_xray_disturbance(nodist,hole):
             used.append(coresect)
 # take out disturbed bits
     for coresect in xr_core_sects: 
-        if 'all' not in coresect:
-        # pick out core_sect affected by disturbance
-            core_df=nodist[(nodist['core_sects'].str.match(coresect))]
-            interval=xray_df.loc[xray_df['core_sect']==coresect]\
-                 ['interval (offset cm)'].str.split('-').tolist()[0]
+        core_df=nodist[(nodist['core_sects'].str.match(coresect))]
+        x_core_df=xray_df[xray_df['core_sect']==coresect]
+        core_sect_intervals=x_core_df['interval (offset cm)'].tolist()
+        for core_sect_interval in core_sect_intervals:
+            interval=core_sect_interval.split('-') 
             top=int(interval[0])
             bottom=int(interval[1])
         # remove disturbed bit
             core_df=core_df[(core_df['offset']<top) | (core_df['offset']>bottom)]
         # add undisturbed bit to no_xray_df
-            no_xray_df=pd.concat([no_xray_df,core_df])
-            #print ('excluded bit from ',coresect,' between ',top,bottom)
-# take out entire cores that are disturbed
-    for coresect in xr_core_sects:  
-        if 'all' in coresect:
-            core=coresect.split('-')[0]
-            no_xray_df=no_xray_df[no_xray_df['core'].str.match(core)==False]
-        #    print ('excluded all of ',core)
+        no_xray_df=pd.concat([no_xray_df,core_df])
     no_xray_df.sort_values(by='core_depth',inplace=True)
 # save for later
     no_xray_df.drop_duplicates(inplace=True)
