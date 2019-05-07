@@ -964,18 +964,19 @@ class TestAnisoMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.png", "*.pdf", os.path.join(WD, 'data_files', '3_0', 'McMurdo', '*.png')]
+        glob_strings = ["*.png", "*.pdf", os.path.join(WD, 'data_files', '3_0', 'McMurdo', '*.png'),
+                         os.path.join(WD, 'data_files', 'aniso_magic', '*.png')]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
 
-    def test_success(self):
+    def test_success_old(self):
         dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
-        ipmag.aniso_magic('dike_specimens.txt', plots=True, input_dir_path=dir_path)
+        ipmag.aniso_magic_old('dike_specimens.txt', plots=True, input_dir_path=dir_path)
         files = glob.glob('*.png')
         self.assertEqual(3, len(files))
 
-    def test_new_success(self):
+    def test_success(self):
         dir_path = os.path.join(WD, 'data_files', 'aniso_magic')
         status, outfiles = ipmag.aniso_magic_nb(infile='dike_specimens.txt',
                                 dir_path=dir_path,
@@ -989,7 +990,7 @@ class TestAnisoMagic(unittest.TestCase):
 
     def test_new_success_by_site(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
-        status, outfiles = ipmag.aniso_magic_nb(infile='specimens.txt',
+        status, outfiles = ipmag.aniso_magic(infile='specimens.txt',
                                 dir_path=dir_path,
                                 iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
                                 save_plots=True, isite=True)
@@ -1002,7 +1003,7 @@ class TestAnisoMagic(unittest.TestCase):
     def test_with_contribution(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
         con = cb.Contribution(dir_path)
-        status, outfiles = ipmag.aniso_magic_nb(iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
+        status, outfiles = ipmag.aniso_magic(iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
                                 save_plots=True, isite=True, contribution=con)
         self.assertTrue(status)
         for fname in outfiles:

@@ -8352,7 +8352,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
             pmagplotlib.save_plots(ZED, files)
 
 
-def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt',
+def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt',
                 ipar=1, ihext=1, ivec=1, iplot=0, isite=1, iboot=1, vec=0,
                 Dir=[], PDir=[], comp=0, user="",
                 fmt="png", crd="s", verbose=True, plots=0,
@@ -8991,7 +8991,20 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         print(" Good bye ")
 
 
+
 def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
+                   ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
+                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
+                   save_plots=True, interactive=False, fmt="png", contribution=None):
+    """
+    Wrapper for aniso_magic
+    """
+    return aniso_magic(infile, samp_file, site_file, verbose, ipar, ihext, ivec,
+                       isite, iloc, iboot, vec, Dir, PDir, crd, num_bootstraps,
+                       dir_path, fignum, save_plots, interactive, fmt, contribution)
+
+
+def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
                    ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
                    Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
                    save_plots=True, interactive=False, fmt="png", contribution=None):
@@ -9030,6 +9043,9 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
             (this is best used on the command line only)
         fmt : str, default "svg"
             format for figures, [svg, jpg, pdf, png]
+        contribution : pmagpy contribution_builder.Contribution object, if not provided will be created
+            in directory (default None).  (if provided, infile/samp_file/dir_path may be left blank)
+
 
     """
     figs = {}

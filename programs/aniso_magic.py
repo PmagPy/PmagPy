@@ -13,7 +13,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.contribution_builder as cb
 
 
-def main():
+def old():
     """
     NAME
         aniso_magic.py
@@ -97,7 +97,7 @@ def main():
                       num_bootstraps=num_bootstraps, dir_path=dir_path,
                       input_dir_path=input_dir_path)
 
-def new():
+def main():
     """
     NAME
         aniso_magic.py
@@ -186,7 +186,7 @@ def new():
 
 
 if __name__ == "__main__":
-    if "-new" in sys.argv:
-        new()
+    if "-old" in sys.argv:
+        old()
     else:
         main()
