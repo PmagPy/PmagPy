@@ -8994,7 +8994,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
                    ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
                    Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
-                   save_plots=True, interactive=False, fmt="png"):
+                   save_plots=True, interactive=False, fmt="png", contribution=None):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
@@ -9042,8 +9042,6 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
     isite = int(isite)
     #iloc = int(iloc) # NOT USED
     iboot = int(iboot)
-    # fix directory
-    input_dir_path = os.path.realpath(dir_path)
     # initialize some variables
     version_num = pmag.get_version()
     hpars, bpars = [], []
@@ -9058,9 +9056,15 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
     #
     # read in the data
 
-    fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
-    con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites', 'contribution'],
-                          custom_filenames=fnames)
+    if contribution is None:
+        # fix directory
+        input_dir_path = os.path.realpath(dir_path)
+        fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
+        con = cb.Contribution(input_dir_path, read_tables=['specimens', 'samples', 'sites', 'contribution'],
+                              custom_filenames=fnames)
+    else:
+        con = contribution
+        dir_path = con.directory
     # get contribution id if available
     con_id = ""
     if 'contribution' in con.tables:

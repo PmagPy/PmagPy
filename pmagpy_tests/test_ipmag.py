@@ -999,6 +999,17 @@ class TestAnisoMagic(unittest.TestCase):
         files = glob.glob('*.png')
         self.assertEqual(24, len(files))
 
+    def test_with_contribution(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = cb.Contribution(dir_path)
+        status, outfiles = ipmag.aniso_magic_nb(iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
+                                save_plots=True, isite=True, contribution=con)
+        self.assertTrue(status)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+        files = glob.glob('*.png')
+        self.assertEqual(24, len(files))
+
 
 class TestChiMagic(unittest.TestCase):
 
