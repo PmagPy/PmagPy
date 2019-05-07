@@ -38,11 +38,11 @@ def main():
        histplot.py [command line options] [<file]
 
     """
+    interactive = True
     save_plots = False
     if '-sav' in sys.argv:
         save_plots = True
         interactive = False
-
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
