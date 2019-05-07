@@ -180,6 +180,22 @@ class TestDownloadMagic(unittest.TestCase):
         for f in files:
             self.assertIn(f, output_files)
 
+    def test_separate_locs(self):
+        dir_path = 'data_files/3_0/Megiddo'
+        res = ipmag.download_magic('Tel-Hazor_Tel-Megiddo_22.Apr.2019.txt',
+                                   dir_path=dir_path, separate_locs=True,
+                                   overwrite=True)
+        self.assertTrue(res)
+        dirs = glob.glob(os.path.join(dir_path, "Location_*"))
+        self.assertEqual(2, len(dirs))
+        fnames_0 = glob.glob(os.path.join(dirs[0], "*"))
+        fnames_1 = glob.glob(os.path.join(dirs[1], "*"))
+        for ftype in ['measurements', 'specimens', 'samples', 'sites', 'locations']:
+            fname1 = os.path.join(dir_path, "Location_1", ftype + ".txt")
+            fname2 = os.path.join(dir_path, "Location_2", ftype + ".txt")
+            self.assertTrue(fname1 in fnames_0 or fname1 in fnames_1)
+            self.assertTrue(fname2 in fnames_0 or fname2 in fnames_1)
+
 
 class TestCombineMagic(unittest.TestCase):
 
@@ -604,7 +620,6 @@ class TestHysteresisMagic(unittest.TestCase):
                                                save_plots=True, fmt="png", n_specs="all")
         self.assertTrue(res)
         for f in outfiles:
-            print('f', f)
             self.assertTrue(os.path.exists(f))
         if set_env.IS_WIN:
             fstring = "*.png"
@@ -803,7 +818,6 @@ class TestOrientationMagic(unittest.TestCase):
     def test_success(self):
         self.assertFalse(os.path.exists(os.path.realpath('./samples.txt')))
         res = ipmag.orientation_magic(input_dir_path=self.orient_WD, orient_file="orient_example.txt")
-        print(res)
         self.assertTrue(res[0])
         self.assertTrue(os.path.exists(os.path.realpath('./samples.txt')))
 

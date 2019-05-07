@@ -4207,7 +4207,8 @@ def download_magic(infile, dir_path='.', input_dir_path='',
     if separate_locs:
         con = cb.Contribution(dir_path)
         con.propagate_location_to_measurements()
-        con.propagate_name_down('location', 'samples')
+        con.propagate_location_to_samples()
+        con.propagate_location_to_specimens()
         for dtype in con.tables:
             con.write_table_to_file(dtype)
         locs, locnum = [], 1
@@ -4218,7 +4219,7 @@ def download_magic(infile, dir_path='.', input_dir_path='',
             # go through unique location names
             for loc_name in set([loc.get('location') for loc in locs]):
                 if print_progress == True:
-                    print('location_' + str(locnum) + ": ", loc_name)
+                    print('\nlocation_' + str(locnum) + ": ", loc_name)
                 lpath = os.path.join(dir_path, 'Location_' + str(locnum))
                 locnum += 1
                 try:
@@ -4230,10 +4231,8 @@ def download_magic(infile, dir_path='.', input_dir_path='',
                         print("-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath))
                         return False
                 for f in type_list:
-                    fname = os.path.join(dir_path, f + '.txt')
-                    if print_progress == True:
-                        print('unpacking: ', fname)
-                    recs, file_type = pmag.magic_read(fname)
+                    recs = con.tables[f].convert_to_pmag_data_list()
+                    file_type = f
                     if print_progress == True:
                         print(len(recs), ' read in')
                     lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
