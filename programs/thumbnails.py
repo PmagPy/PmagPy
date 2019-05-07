@@ -24,7 +24,12 @@ def make_thumbnails(directory=".", fmt="png"):
         #
         lower_infile = infile.lower()
         width, height = im.size   # Get dimensions
-        if "ty:_eqarea_" in lower_infile or "ty:_eq" in lower_infile:
+        if "ty:_eqarea_interpretations" in lower_infile:
+            left = 0 + width * .255
+            top = 0 + height * .21
+            right = width * .77
+            bottom = height * .8
+        elif "ty:_eqarea_" in lower_infile or "ty:_eq" in lower_infile:
             left = 0 + width * .185
             top = 0 + height * .195
             right = width * .84

@@ -10253,16 +10253,21 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     fignum : matplotlib figure number
     """
 
-    def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock):
+    def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock, coord='s'):
+        interpretations = False
         if cb.is_null(spec_container) or cb.is_null(this_specimen_measurements) or cb.is_null(datablock):
-            return ZED
+            return ZED, False
         if 'method_codes' not in spec_container.df.columns:
-            return ZED
+            return ZED, False
         prior_spec_data = spec_container.get_records_for_code(
             'LP-DIR', strict_match=False)  # look up all prior directional interpretations
+        if 'dir_tilt_correction' in prior_spec_data.columns:
+            cond = prior_spec_data['dir_tilt_correction'] == coord
+            cond2 = prior_spec_data['dir_tilt_correction'] == int(coord)
+            prior_spec_data = prior_spec_data[cond | cond2]
         prior_specimen_interpretations=[]
         if not len(prior_spec_data):
-            return ZED
+            return ZED, False
         mpars = {"specimen_direction_type": "Error"}
         if len(prior_spec_data):
             prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].astype(str) == this_specimen]  #.str.match(this_specimen) == True]
@@ -10285,6 +10290,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                             calculation_type = 'DE-FM'  # fisher mean
                         if 'DE-BFL-A' in m:
                             calculation_type = 'DE-BFL-A'  # anchored best fit line
+
                     treatments = pd.to_numeric(this_specimen_measurements.treatment).tolist()
 
                     if len(beg_pcas)!=0:
@@ -10312,6 +10318,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                         if mpars["specimen_direction_type"] != "Error":
                             # put it on the plot
                             pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+                            interpretations = True
                             #if interactive:
                             #    pmagplotlib.draw_figs(ZED)
                         else:
@@ -10322,7 +10329,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                             print(this_specimen_measurements[cols])
                             print('\n    Data will be plotted without interpretations\n')
 
-        return ZED
+        return ZED, interpretations
 
 
     def make_plots(spec, cnt, meas_df, spec_container, samp_container=None):
@@ -10382,7 +10389,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         this_spec_meas_df = None
         datablock = None
         if (not len(spec_df_th.index) > 1) and (not len(spec_df_af.index) > 1):
-            return
+            return False, False
         if len(spec_df_th.index) > 1:  # this is a thermal run
             this_spec_meas_df = pd.concat([spec_df_nrm, spec_df_th])
             # make sure all decs/incs are filled in
@@ -10399,7 +10406,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
             except:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
-                return
+                return False, False
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
@@ -10419,11 +10426,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
             except:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
-                return
+                return False, False
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
                                  'magn_moment', 'blank', 'quality']].values.tolist()
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
-        return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock)
+        return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock, coord)
 
     if interactive:
         save_plots = False
@@ -10499,7 +10506,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     if specimen:
         specimens = [specimen]
     for s in specimens:
-        ZED = make_plots(s, cnt, meas_df, spec_container, samp_container)
+        ZED, interpretations = make_plots(s, cnt, meas_df, spec_container, samp_container)
         if not ZED:
             if pmagplotlib.verbose:
                 print('No plots could be created for specimen:', s)
@@ -10521,9 +10528,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 location = str(meas_container.get_name('location', df_slice))
                 site = str(meas_container.get_name('site', df_slice))
                 sample = str(meas_container.get_name('sample', df_slice))
-                # add coord here!
+                int_str = ""
+                if interpretations and title == "eqarea":
+                    int_str = "_interpretations"
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
-                    '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+'_.png'
+                    '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+int_str+'_.png'
                 titles[title] = filename
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
