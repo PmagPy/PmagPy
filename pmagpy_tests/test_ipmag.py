@@ -182,7 +182,7 @@ class TestDownloadMagic(unittest.TestCase):
 
     def test_separate_locs(self):
         dir_path = 'data_files/3_0/Megiddo'
-        res = ipmag.download_magic('Tel-Hazor_Tel-Megiddo_22.Apr.2019.txt',
+        res = ipmag.download_magic('magic_contribution.txt',
                                    dir_path=dir_path, separate_locs=True,
                                    overwrite=True)
         self.assertTrue(res)
