@@ -1234,20 +1234,23 @@ class TestDmagMagic(unittest.TestCase):
         plt.close("all")
 
     def test_success(self):
-        res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", LT="T", plot_by='sit')
+        res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo",
+                                         LT="T", plot_by='sit', n_plots="all")
         self.assertTrue(res)
+        print('outfiles', outfiles)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
         images = glob.glob("*.svg")
         self.assertEqual(len(images), 126)
 
     def test_alt_success(self):
-        res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", plot_by='spc', fmt="png")
+        res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo",
+                                         plot_by='spc', fmt="png", n_plots=50)
         self.assertTrue(res)
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
         images = glob.glob("*.png")
-        self.assertEqual(len(images), 530)
+        self.assertEqual(len(images), 50)
 
     def test_with_output_dir(self):
         res, outfiles = ipmag.dmag_magic(dir_path="data_files/3_0/McMurdo", plot_by='loc', fmt="png")
@@ -1256,6 +1259,17 @@ class TestDmagMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
         images = glob.glob("data_files/3_0/McMurdo/*.png")
         self.assertEqual(len(images), 1)
+
+    def test_with_contribution(self):
+        con = cb.Contribution("data_files/dmag_magic")
+        res, outfiles = ipmag.dmag_magic(plot_by='spc', fmt="png",
+                                         n_plots=50, contribution=con)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        images = glob.glob("*.png")
+        self.assertEqual(len(images), 50)
+
 
 
     def test_failure(self):

@@ -55,7 +55,10 @@ def main():
     LT = pmag.get_named_arg("-LT", "AF")
     no_norm = pmag.get_flag_arg_from_sys("-N")
     norm = False if no_norm else True
+    interactive = True
     save_plots = pmag.get_flag_arg_from_sys("-sav")
+    if save_plots:
+        interactive = False
     fmt = pmag.get_named_arg("-fmt", "svg")
     XLP = pmag.get_named_arg("-XLP", "")
     spec_file = pmag.get_named_arg("-fsp", default_val="specimens.txt")
@@ -64,7 +67,7 @@ def main():
     loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
     ipmag.dmag_magic(in_file, dir_path, input_dir_path, spec_file, samp_file,
                      site_file, loc_file, plot_by, LT, norm, XLP,
-                     save_plots, fmt)
+                     save_plots, fmt, interactive)
 
 
 if __name__ == "__main__":

@@ -12889,7 +12889,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                spec_file="specimens.txt", samp_file="samples.txt",
                site_file="sites.txt", loc_file="locations.txt",
                plot_by="loc", LT="AF", norm=True, XLP="",
-               save_plots=True, fmt="svg"):
+               save_plots=True, fmt="svg", interactive=False,
+               n_plots=5, contribution=None):
     """
     plots intensity decay curves for demagnetization experiments
 
@@ -12921,6 +12922,15 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         plot and save non-interactively, default True
     fmt : str
         ["png", "svg", "pdf", "jpg"], default "svg"
+    interactive : bool, default False
+        interactively plot and display for each specimen
+        (this is best used on the command line only)
+    n_plots : int, default 5
+        maximum number of plots to make
+        if you want to make all possible plots, specify "all"
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
 
     Returns
     ---------
@@ -12947,7 +12957,6 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
 
     # figure out what kind of experiment
     LT = "LT-" + LT + "-Z"
-    print('LT', LT)
     if LT == "LT-T-Z":
         units, dmag_key = 'K', 'treat_temp'
     elif LT == "LT-AF-Z":
@@ -12960,14 +12969,15 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     # init
     FIG = {}  # plot dictionary
     FIG['demag'] = 1  # demag is figure 1
-    # create contribution and add required headers
-    fnames = {"specimens": spec_file, "samples": samp_file,
-              'sites': site_file, 'locations': loc_file}
-    if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
-        print('-E- Could not find {}'.format(in_file))
-        return False, []
-    contribution = cb.Contribution(input_dir_path, single_file=in_file,
-                                   custom_filenames=fnames)
+    # create or access contribution
+    if contribution is None:
+        fnames = {"specimens": spec_file, "samples": samp_file,
+                  'sites': site_file, 'locations': loc_file}
+        if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
+            print('-E- Could not find {}'.format(in_file))
+            return False, []
+        contribution = cb.Contribution(input_dir_path, single_file=in_file,
+                                       custom_filenames=fnames)
     file_type = list(contribution.tables.keys())[0]
     print(len(contribution.tables['measurements'].df),
           ' records read from ', in_file)
@@ -13007,7 +13017,11 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     plotlist.sort()
     pmagplotlib.plot_init(FIG['demag'], 5, 5)
     last_plot = False
+    saved = []
     # iterate through and plot the data
+    if n_plots != "all":
+        if len(plotlist) > n_plots:
+            plotlist = plotlist[:n_plots]
     for plot in plotlist:
         if plot == plotlist[-1]:
             last_plot = True
@@ -13039,8 +13053,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                             dir_path, title + '_' + LT + '.' + fmt)
                         incl_dir = True
 
-                pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
-            else:
+                saved.extend(pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir))
+            elif interactive:
                 pmagplotlib.draw_figs(FIG)
                 prompt = " S[a]ve to save plot, [q]uit,  Return to continue:  "
                 ans = input(prompt)
@@ -13056,7 +13070,9 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                             files[key] = os.path.join(
                                 dir_path, title + '_' + LT + '.' + fmt)
                             incl_dir = True
-                    pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
+                    saved.extend(pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir))
+            else:
+                pmagplotlib.draw_figs(FIG)
             pmagplotlib.clearFIG(FIG['demag'])
     if last_plot:
-        return True, []
+        return True, saved
