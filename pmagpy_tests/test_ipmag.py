@@ -1233,6 +1233,7 @@ class TestDmagMagic(unittest.TestCase):
                 os.remove(fname)
         plt.close("all")
 
+    @unittest.skipIf(set_env.IS_WIN, "memory error on windows")
     def test_success(self):
         res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo",
                                          LT="T", plot_by='sit', n_plots="all")
