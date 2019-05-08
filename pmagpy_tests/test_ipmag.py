@@ -1253,6 +1253,7 @@ class TestDmagMagic(unittest.TestCase):
         images = glob.glob("*.png")
         self.assertEqual(len(images), 50)
 
+    @unittest.skipIf(set_env.IS_WIN, "can't specify output directory on windows")
     def test_with_output_dir(self):
         res, outfiles = ipmag.dmag_magic(dir_path="data_files/3_0/McMurdo", plot_by='loc', fmt="png")
         self.assertTrue(res)
