@@ -7,18 +7,16 @@ import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
-
-import pmagpy.pmag as pmag
-import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.contribution_builder as cb
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
 
 
 def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
-         spec_file="specimens.txt", samp_file="samples.txt",
-         site_file="sites.txt", loc_file="locations.txt",
-         plot_by="loc", LT="AF", norm=True, XLP="",
-         save_plots=True, fmt="svg"):
-
+               spec_file="specimens.txt", samp_file="samples.txt",
+               site_file="sites.txt", loc_file="locations.txt",
+               plot_by="loc", LT="AF", norm=True, XLP="",
+               save_plots=True, fmt="svg"):
     """
     plots intensity decay curves for demagnetization experiments
 
@@ -68,11 +66,11 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         try:
             plot_key = name_dict[plot_by]
         except KeyError:
-            print('Unrecognized plot_by {}, falling back to plot by location'.format(plot_by))
+            print(
+                'Unrecognized plot_by {}, falling back to plot by location'.format(plot_by))
             plot_key = "loc"
     else:
         plot_key = plot_by
-
 
     # figure out what kind of experiment
     LT = "LT-" + LT + "-Z"
@@ -86,7 +84,6 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     else:
         units = 'U'
 
-
     # init
     FIG = {}  # plot dictionary
     FIG['demag'] = 1  # demag is figure 1
@@ -99,7 +96,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     contribution = cb.Contribution(input_dir_path, single_file=in_file,
                                    custom_filenames=fnames)
     file_type = list(contribution.tables.keys())[0]
-    print(len(contribution.tables['measurements'].df), ' records read from ', in_file)
+    print(len(contribution.tables['measurements'].df),
+          ' records read from ', in_file)
     # add plot_key into measurements table
     if plot_key not in contribution.tables['measurements'].df.columns:
         #contribution.propagate_name_down(plot_key, 'measurements')
@@ -127,7 +125,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
         print('-E- No intensity headers found')
         return False, []
 
-    int_key = IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    int_key = IntMeths[0]
     data = data[data[int_key].notnull()]
     # make list of individual plots
     # by default, will be by location_name
@@ -150,10 +149,11 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                 INTblock = []
                 spec_data = plot_data[plot_data['specimen'] == spc]
                 for ind, rec in spec_data.iterrows():
-                    INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
+                    INTblock.append([float(rec[dmag_key]), 0, 0, float(
+                        rec[int_key]), 1, rec['quality']])
                 if len(INTblock) > 2:
                     pmagplotlib.plot_mag(FIG['demag'], INTblock,
-                                       title, 0, units, norm)
+                                         title, 0, units, norm)
 
             if save_plots:
                 files = {}
@@ -161,8 +161,9 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                     if pmagplotlib.isServer:
                         files[key] = title + '_' + LT + '.' + fmt
                         incl_dir = False
-                    else: # if not server, include directory in output path
-                        files[key] = os.path.join(dir_path, title + '_' + LT + '.' + fmt)
+                    else:  # if not server, include directory in output path
+                        files[key] = os.path.join(
+                            dir_path, title + '_' + LT + '.' + fmt)
                         incl_dir = True
 
                 pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
@@ -178,14 +179,14 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
                         if pmagplotlib.isServer:
                             files[key] = title + '_' + LT + '.' + fmt
                             incl_dir = False
-                        else: # if not server, include directory in output path
-                            files[key] = os.path.join(dir_path, title + '_' + LT + '.' + fmt)
+                        else:  # if not server, include directory in output path
+                            files[key] = os.path.join(
+                                dir_path, title + '_' + LT + '.' + fmt)
                             incl_dir = True
                     pmagplotlib.save_plots(FIG, files, incl_directory=incl_dir)
             pmagplotlib.clearFIG(FIG['demag'])
     if last_plot:
         return True, []
-
 
 
 def main():
@@ -240,8 +241,9 @@ def main():
     site_file = pmag.get_named_arg("-fsi", default_val="sites.txt")
     loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
     dmag_magic(in_file, dir_path, input_dir_path, spec_file, samp_file,
-         site_file, loc_file, plot_by, LT, norm, XLP,
-         save_plots, fmt)
+               site_file, loc_file, plot_by, LT, norm, XLP,
+               save_plots, fmt)
+
 
 if __name__ == "__main__":
     main()
