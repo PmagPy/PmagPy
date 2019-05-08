@@ -7,11 +7,8 @@ import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
-import pmagpy.contribution_builder as cb
-import pmagpy.pmagplotlib as pmagplotlib
-import pmagpy.pmag as pmag
-
-
+from pmagpy import ipmag
+from pmagpy import pmag
 
 
 def main():
