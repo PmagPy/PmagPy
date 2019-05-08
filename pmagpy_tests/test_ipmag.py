@@ -5,6 +5,7 @@ import os
 import sys
 import re
 import matplotlib
+from matplotlib import pyplot as plt
 import random
 import glob
 import numpy as np
@@ -540,9 +541,6 @@ class TestAarmMagic(unittest.TestCase):
            meas_file='aarm_measurements.txt',peakfield=180,labfield=50, phi=-1, theta=-1)
 
 
-
-
-
 class TestAtrmMagic(unittest.TestCase):
     def setUp(self):
         self.atrm_WD = os.path.join(WD, 'data_files', 'atrm_magic')
@@ -575,7 +573,6 @@ class TestAtrmMagic(unittest.TestCase):
         self.assertTrue(any(df.df['sample']))
 
 
-
 class TestHysteresisMagic(unittest.TestCase):
     def setUp(self):
         self.hyst_WD = os.path.join(WD, 'data_files', 'hysteresis_magic')
@@ -592,6 +589,7 @@ class TestHysteresisMagic(unittest.TestCase):
             for fname in files:
                 os.remove(fname)
         os.chdir(WD)
+        plt.close("all")
 
     def test_hysteresis_no_figs(self):
         res, outfiles = ipmag.hysteresis_magic(input_dir_path=self.hyst_WD,
@@ -754,6 +752,7 @@ class TestThellierMagic(unittest.TestCase):
             for fname in files:
                 os.remove(fname)
         os.chdir(WD)
+        plt.close("all")
 
     def test_success(self):
         res, outfiles = ipmag.thellier_magic(input_dir_path=self.thel_WD, n_specs=5)
@@ -838,6 +837,7 @@ class TestEqareaMagic(unittest.TestCase):
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
+        plt.close("all")
 
     def test_success_windows(self):
         res, outfiles = ipmag.eqarea_magic(dir_path="data_files/eqarea_magic", save_plots=True,
@@ -925,6 +925,7 @@ class TestZeqMagic(unittest.TestCase):
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
+        plt.close("all")
 
     def test_success(self):
         res, outfiles = ipmag.zeq_magic(input_dir_path="data_files/zeq_magic", fmt="png", n_plots=3)
@@ -1230,6 +1231,7 @@ class TestDmagMagic(unittest.TestCase):
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
+        plt.close("all")
 
     def test_success(self):
         res, outfiles = ipmag.dmag_magic(dir_path=".", input_dir_path="data_files/3_0/McMurdo", LT="T", plot_by='sit')
