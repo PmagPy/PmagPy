@@ -11890,7 +11890,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                   sym='ro', symsize=40, rsym='g^', rsymsize=40,
                   fmt="pdf", res="c", proj="ortho",
                   flip=False, anti=False, fancy=False,
-                  ell=False, ages=False, lat_0=90., lon_0=0., save_plots=True):
+                  ell=False, ages=False, lat_0=90., lon_0=0., save_plots=True,
+                  contribution=None):
     """
     Use a MagIC format locations table to plot poles.
 
@@ -11949,8 +11950,12 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
         save_plots = False
     full_path = pmag.resolve_file_name(loc_file, dir_path)
     dir_path, loc_file = os.path.split(full_path)
-    # create MagIC contribution
-    con = cb.Contribution(dir_path, single_file=loc_file)
+    # create or access MagIC contribution
+    if contribution is not None:
+        dir_path = contribution.directory
+        con = contribution
+    else:
+        con = cb.Contribution(dir_path, single_file=loc_file)
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
         return False, "Couldn't read in data"

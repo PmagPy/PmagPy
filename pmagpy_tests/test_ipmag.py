@@ -907,6 +907,12 @@ class TestPolemapMagic(unittest.TestCase):
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
 
+    def test_with_contribution(self):
+        con = cb.Contribution("data_files/3_0/McMurdo")
+        res, outfiles = ipmag.polemap_magic(contribution=con)
+        self.assertTrue(res)
+        self.assertEqual(outfiles, ['McMurdo_POLE_map_t.pdf'])
+
 
 
 class TestZeqMagic(unittest.TestCase):
