@@ -187,6 +187,7 @@ def main():
                 if not res:
                     return [], []
                 return data, data_df
+            return [], []
 
         meas_data, meas_df = get_data('measurements', loc)
         spec_data, spec_df = get_data('specimens', loc)
@@ -228,19 +229,6 @@ def main():
             print('using specimen coordinates')
         else:
             print('using geographic coordinates')
-        #if samp_file in filelist and samp_data:  # find coordinate systems
-        #    samps = samp_data
-        #    file_type = "samples"
-        #    # get all non blank sample orientations
-        #    Srecs = pmag.get_dictitem(samps, 'azimuth', '', 'F')
-        #    if len(Srecs) > 0:
-        #        crd = 'g'
-        #        print('using geographic coordinates')
-        #    else:
-        #        print('using specimen coordinates')
-        #else:
-        #    if VERBOSE:
-        #        print('-I- No sample data found')
         if meas_file in filelist and meas_data:  # start with measurement data
             print('working on plotting measurements data')
             data = meas_data
@@ -264,17 +252,19 @@ def main():
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
                 CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
+                CMD = "ipmag.zeq_magic(crd={}, n_plots=30, contribution={})".format(crd, con)
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.zeq_magic(crd=crd, n_plots="all", contribution=con)
+                ipmag.zeq_magic(crd=crd, n_plots=30, contribution=con)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
                 CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
+                CMD = "ipmag.thellier_magic(n_specs=30, fmt='png', contribution={}".format(con)
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.thellier_magic(n_specs="all", fmt="png", contribution=con)
+                ipmag.thellier_magic(n_specs=60, fmt="png", contribution=con)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
                 # check for reqd columns
@@ -283,20 +273,23 @@ def main():
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
                     CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                    CMD = "ipmag.quick_hyst(fmt='png', n_plots=30, contribution={}".format(con)
                     print(CMD)
                     info_log(CMD, loc)
                     #os.system(CMD)
-                    ipmag.quick_hyst(fmt="png", n_plots="all", contribution=con)
+                    ipmag.quick_hyst(fmt="png", n_plots=30, contribution=con)
             # equal area plots of directional data
             # at measurement level (by specimen)
             if data:
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
                     CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots=30, ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements')".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
-                    os.system(CMD)
-
+                    ipmag.eqarea_magic(fmt="png", n_plots=30, ignore_tilt=True, plot_by="spc",
+                                       contribution=con, source_table="measurements")
+                    #os.system(CMD)
 
         else:
             if VERBOSE:
@@ -349,14 +342,19 @@ def main():
                     CRD = ""
                     if len(SiteDIs_t) > 0:
                         CRD = ' -crd t'
+                        crd = "t"
                     elif len(SiteDIs_g) > 0:
                         CRD = ' -crd g'
+                        crd = "g"
                     elif len(SiteDIs_s) > 0:
                         CRD = ' -crd s'
+                        crd = "s"
                     CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+                    CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots=30, contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    ipmag.eqarea_magic(crd=crd, fmt="png", n_plots=30, contribution=con, source_table="sites")
+                    #os.system(CMD)
                 else:
                     if dir_data_found:
                         error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py", con_id=con_id)

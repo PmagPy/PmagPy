@@ -11603,7 +11603,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         # get location names for the data
         locs = []
         if 'location' in plot_data.columns:
-            locs = plot_data['location'].dropna().unique()
+            locs = list(plot_data['location'].dropna().unique())
 
         DIblock = []
         GCblock = []
