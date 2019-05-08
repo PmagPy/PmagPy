@@ -11411,7 +11411,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             site_file="sites.txt", loc_file="locations.txt",
             plot_by="all", crd="g", ignore_tilt=False,
             save_plots=True, fmt="svg", contour=False, color_map="coolwarm",
-            plot_ell="", n_plots=5, interactive=False):
+            plot_ell="", n_plots=5, interactive=False, contribution=None,
+            source_table="sites"):
 
     """
     makes equal area projections from declination/inclination data
@@ -11457,6 +11458,13 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     interactive : bool, default False
         interactively plot and display for each specimen
         (this is best used on the command line or in the Python interpreter)
+    contribution : cb.Contribution, default None
+        if provided, use Contribution object instead of reading in
+        data from files
+    source_table : table to get plot data from (only needed with contribution argument)
+        for example, you could specify source_table="measurements" and plot_by="sites"
+        to plot measurement data by site.
+        default "sites"
 
 
     Returns
@@ -11481,11 +11489,11 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     # get item to plot by
     if plot_by == 'all':
         plot_key = 'all'
-    elif plot_by == 'sit':
+    elif plot_by == 'sit' or plot_by == "site":
         plot_key = 'site'
-    elif plot_by == 'sam':
+    elif plot_by == 'sam' or plot_by == 'sample':
         plot_key = 'sample'
-    elif plot_by == 'spc':
+    elif plot_by == 'spc' or plot_by == "specimen":
         plot_key = 'specimen'
     else:
         plot_by = 'all'
@@ -11500,17 +11508,23 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     inc_key = 'dir_inc'
     tilt_key = 'dir_tilt_correction'
 
-    # create contribution
-    fnames = {"specimens": spec_file, "samples": samp_file,
-              'sites': site_file, 'locations': loc_file}
+    # create/access contribution
 
-    if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
-        print('-E- Could not find {}'.format(in_file))
-        return False, []
+    if contribution is not None:
+        # need to get source table
+        table_name = source_table
+        input_dir_path = contribution.directory
+    else:
+        fnames = {"specimens": spec_file, "samples": samp_file,
+                  'sites': site_file, 'locations': loc_file}
 
-    contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
-                                   single_file=in_file)
-    table_name = list(contribution.tables.keys())[0]
+        if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
+            print('-E- Could not find {}'.format(in_file))
+            return False, []
+
+        contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
+                                       single_file=in_file)
+        table_name = list(contribution.tables.keys())[0]
     contribution.add_magic_table("contribution")
 
     # get contribution id if available for server plots
@@ -11538,8 +11552,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
     if tilt_key not in data.columns:
         data.loc[:, tilt_key] = None
 
-    if verbose:
-        print(len(data), ' records read from ', in_file)
+    print(len(data), ' {} records read in'.format(plot_type))
 
     # find desired dec,inc data:
     dir_type_key = ''
@@ -11961,7 +11974,6 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
         return False, "Couldn't read in data"
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
-
 
     pole_container = con.tables['locations']
     pole_df = pole_container.df

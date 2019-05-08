@@ -876,6 +876,24 @@ class TestEqareaMagic(unittest.TestCase):
         else:
             self.assertTrue(os.path.exists("data_files/eqarea_magic/all_McMurdo_g_eqarea.png"))
 
+    def test_with_contribution(self):
+        con = cb.Contribution("data_files/eqarea_magic")
+        res, outfiles = ipmag.eqarea_magic(save_plots=True, fmt="png",
+                                           plot_by="loc", contribution=con,
+                                           source_table="sites")
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists('all_McMurdo_g_eqarea.png'))
+
+    def test_with_contribution_other(self):
+        con = cb.Contribution("data_files/eqarea_magic")
+        res, outfiles = ipmag.eqarea_magic(save_plots=True, fmt="png",
+                                           plot_by="sample", contribution=con,
+                                           ignore_tilt=True,
+                                           source_table="measurements", n_plots=20)
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists('McMurdo_mc20_mc20f_g_eqarea.png'))
+        self.assertEqual(len(outfiles), 20)
+
 
 class TestPolemapMagic(unittest.TestCase):
 
