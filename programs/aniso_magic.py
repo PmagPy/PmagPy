@@ -90,7 +90,7 @@ def old():
         vec = int(args[ind+1])-1
         Dir = [float(args[ind+2]), float(args[ind+3])]
 
-    ipmag.aniso_magic(infile=infile, samp_file=samp_file, site_file=site_file,
+    ipmag.aniso_magic_old(infile=infile, samp_file=samp_file, site_file=site_file,
                       ipar=ipar, ihext=ihext, ivec=ivec, iplot=iplot, isite=isite, iboot=iboot, vec=vec,
                       Dir=Dir, PDir=PDir, comp=comp, user=user,
                       fmt=fmt, crd=crd, verbose=verbose, plots=plots,
