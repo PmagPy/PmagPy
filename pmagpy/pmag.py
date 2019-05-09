@@ -2639,10 +2639,10 @@ def domean(data, start, end, calculation_type):
     end = end0 - bad_before_start - bad_in_mean
     datablock = [x for x in indata if x[5] == 'g']
     if indata[start0] != datablock[start]:
-        print('problem removing bad data in pmag.domean start of datablock shifted:\norigional: %d\nafter removal: %d' % (
+        print('problem removing bad data in pmag.domean start of datablock shifted:\noriginal: %d\nafter removal: %d' % (
             start0, indata.index(datablock[start])))
     if indata[end0] != datablock[end]:
-        print('problem removing bad data in pmag.domean end of datablock shifted:\norigional: %d\nafter removal: %d' % (
+        print('problem removing bad data in pmag.domean end of datablock shifted:\noriginal: %d\nafter removal: %d' % (
             end0, indata.index(datablock[end])))
     mpars["calculation_type"] = calculation_type
     rad = old_div(np.pi, 180.)
@@ -9684,7 +9684,7 @@ def get_ts(ts):
 def execute(st, **kwargs):
     """
     Work around for Python3 exec function which doesn't allow changes to the local namespace because of scope.
-    This breaks a lot of the old functionality in the code which was origionally in Python2. So this function
+    This breaks a lot of the old functionality in the code which was originally in Python2. So this function
     runs just like exec except that it returns the output of the input statement to the local namespace. It may
     break if you start feeding it multiline monoliths of statements (haven't tested) but you shouldn't do that
     anyway (bad programming).
