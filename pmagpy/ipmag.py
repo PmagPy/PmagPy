@@ -11953,6 +11953,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     save_plots : bool, default True
         if True, create and save all requested plots
     """
+    anti, ell = int(anti), int(ell)
     # initialize and format variables
     saved = []
     lats, lons = [], []
@@ -12000,7 +12001,9 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     coord = coord_dict[crd] if crd else ""
     # filter results by dir_tilt_correction if available
     if (coord or coord == 0) and 'dir_tilt_correction' in Results.columns:
-        Results = Results[Results['dir_tilt_correction'] == coord]
+        cond = Results['dir_tilt_correction'] == coord
+        cond2 = Results['dir_tilt_correction'] == str(coord)
+        Results = Results[cond | cond2]
     # get location name and average ages
     loc_list = Results['location'].values
     locations = ":".join(Results['location'].unique())
@@ -12417,8 +12420,9 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
             return False, []
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
 
-    if len(sids) > n_plots:
-        sids = sids[:n_plots]
+    if n_plots != "all":
+        if len(sids) > n_plots:
+            sids = sids[:n_plots]
 
     while k < len(sids):
         locname, site, sample, synth = '', '', '', ''
