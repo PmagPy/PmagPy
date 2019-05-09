@@ -678,7 +678,10 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     if norm == 0:
         fact = 1.
     else:
-        fact = (1./datablock[0][3])   # normalize to NRM=1
+        try:
+            fact = (1./datablock[0][3])   # normalize to NRM=1
+        except ZeroDivisionError:
+            fact = 1.
     # convert datablock to DataFrame data with  dec,inc, int
     data = pd.DataFrame(datablock)
     if len(data.columns) == 5:
