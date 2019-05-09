@@ -20,6 +20,7 @@ encoding = "ISO-8859-1"
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmagpy import spline
+from pmagpy import version
 from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
@@ -10296,6 +10297,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 spec_methods = prior_specimen_interpretations.method_codes.tolist()
             # step through all prior interpretations and plot them
                 for ind in range(len(beg_pcas)):
+                    interpretations = False
                     spec_meths = spec_methods[ind].split(':')
                     for m in spec_meths:
                         if 'DE-BFL' in m:
@@ -10345,6 +10347,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                             print(this_specimen_measurements[cols])
                             print('\n    Data will be plotted without interpretations\n')
 
+                            interpretations = False
         return ZED, interpretations
 
 
@@ -12119,6 +12122,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                 polarity = polarities[ind]
             polarity = "_" + polarity if polarity else ""
             location = loc_list[ind]
+            if location == "nan":
+                location = "unknown"
             FIG["map_{}".format(ind)] = ind+2
             pmagplotlib.plot_init(FIG['map_{}'.format(ind)], 6, 6)
             pmagplotlib.plot_map(FIG['map_{}'.format(ind)], [90.], [0.], base_Opts)
@@ -12136,7 +12141,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                 file_values = files.values()
                 file_values_short = [fname.rsplit('.')[0] for fname in file_values]
                 if fname_short in file_values_short:
-                    for val in [str(n) for n in range(1, 10)]:
+                    for val in [str(n) for n in range(1, 15)]:
                         fname = fname_short + "_{}.".format(val) + fmt
                         if fname not in file_values:
                             break
