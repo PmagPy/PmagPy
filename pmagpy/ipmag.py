@@ -10232,7 +10232,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
-              samp_file='samples.txt', contribution=None,fignum=1):
+              samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
     zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
     Parameters
@@ -10268,6 +10268,16 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         if provided, use Contribution object instead of reading in
         data from files
     fignum : matplotlib figure number
+    image_records : generate and return a record for each image in a list of dicts
+        which can be ingested by pmag.magic_write
+        bool, default False
+
+    Returns
+    ---------
+    if image_records == False:
+        Tuple : (True or False indicating if conversion was sucessful, output file name written)
+    if image_records == True:
+       Tuple : (True or False indicating if conversion was sucessful, output file name written, list of image recs)
     """
 
     def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock, coord='s'):
@@ -10451,6 +10461,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             ZED = pmagplotlib.plot_zed(ZED, datablock, angle, s, units)
         return plot_interpretations(ZED, spec_container, s, this_spec_meas_df, datablock, coord)
 
+    # beginning of zeq_magic
     if interactive:
         save_plots = False
     # read in MagIC formatted data if contribution object not provided
@@ -10460,6 +10471,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         # read in magic formatted data
         if not os.path.exists(file_path):
             print('No such file:', file_path)
+            if image_records:
+                return False, [], []
             return False, []
         custom_filenames = {'measurements': file_path, 'specimens': spec_file, 'samples': samp_file}
         contribution = cb.Contribution(input_dir_path, custom_filenames=custom_filenames,
@@ -10506,6 +10519,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     specimens = meas_df.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
+        if image_records:
+            return False, [], []
         return False, []
     # check measurement table for req'd fields
     missing = []
@@ -10515,6 +10530,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             missing.append(col)
         if missing:
             print('-W- Missing required column(s) {}, cannot run zeq_magic'.format(', '.join(missing)))
+            if image_records:
+                return False, [], []
             return False, []
 
     cnt = fignum
@@ -10522,6 +10539,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         if len(specimens) > n_plots:
             specimens = specimens[:n_plots]
     saved = []
+    image_recs = []
     if specimen:
         specimens = [specimen]
     for s in specimens:
@@ -10553,6 +10571,13 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
                     '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+int_str+'_.png'
                 titles[title] = filename
+                plot_types = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
+                              "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot"}
+                if image_records:
+                    image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
+                                  'file': filename, 'type': plot_types[title], 'title': " ".join([s, plot_types[title]]), 'timestamp': time.time(),
+                                  'software_packages': version.version}
+                    image_recs.append(image_rec)
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
         elif interactive:
@@ -10565,6 +10590,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         else:
             cnt += 3
 
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
