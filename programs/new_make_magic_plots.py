@@ -62,6 +62,7 @@ def main():
         f = os.path.join(os.getcwd(), fname)
         if os.path.exists(f):
             os.remove(f)
+    image_recs = []
     dirlist = ['./']
     dir_path = os.getcwd()
     #
@@ -257,7 +258,8 @@ def main():
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.zeq_magic(crd=crd, n_plots="all", contribution=con)
+                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots="all", contribution=con)
+                image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
                 CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
@@ -493,6 +495,16 @@ def main():
             #os.system(CMD)
         else:
             print('-I- No poles found')
+
+    if image_recs:
+        new_image_file = os.path.join('new_images.txt', dir_path)
+        old_image_file = os.path.join('images.txt', dir_path)
+        pmag.magic_write(new_image_file, image_recs, 'images')
+        if os.path.exists(old_image_file):
+            ipmag.combine_magic([old_image_file, new_image_file],
+                                magic_table="images", dir_path=dir_path)
+        else:
+            os.rename(new_image_file, old_image_file)
     thumbnails.make_thumbnails(dir_path)
 
 if __name__ == "__main__":
