@@ -3289,7 +3289,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
                       'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
                       'dir_dec','dir_inc','magn_moment','magn_volume',\
                        'description','timestamp','software_packages',\
-                       'external_database_ids','treat_step_num']
+                       'external_database_ids','treat_step_num','meas_n_orient']
     jr6_file = pmag.resolve_file_name(jr6_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
@@ -3323,6 +3323,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
     measurements_df["treat_step_num"] = 1
+    measurements_df['meas_n_orient'] = 3
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
     measurements_df["method_codes"] = 'LT-NO' # assume all are NRMs
