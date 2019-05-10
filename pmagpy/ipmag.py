@@ -10549,6 +10549,11 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 print('No plots could be created for specimen:', s)
                 continue
         titles = {key: s + "_" + key + "." + fmt for key in ZED}
+        # try to get the full hierarchy for plot names
+        df_slice = meas_container.df[meas_container.df['specimen'] == s]
+        location = str(meas_container.get_name('location', df_slice))
+        site = str(meas_container.get_name('site', df_slice))
+        sample = str(meas_container.get_name('sample', df_slice))
         if pmagplotlib.isServer:
             titles = {}
             titles['eqarea'] = 'Equal Area Plot'
@@ -10560,24 +10565,21 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                     con_id = contribution.tables['contribution'].df['id'].values[0]
             pmagplotlib.add_borders(ZED, titles, con_id=con_id)
             for title in titles:
-                # try to get the full hierarchy for plot names
-                df_slice = meas_container.df[meas_container.df['specimen'] == s]
-                location = str(meas_container.get_name('location', df_slice))
-                site = str(meas_container.get_name('site', df_slice))
-                sample = str(meas_container.get_name('sample', df_slice))
                 int_str = ""
                 if interpretations and title == "eqarea":
                     int_str = "_interpretations"
                 filename = 'LO:_'+location+'_SI:_'+site+'_SA:_'+sample + \
                     '_SP:_'+str(s)+'_CO:_' + '_TY:_'+title+int_str+'_.png'
                 titles[title] = filename
+        if image_records:
+            for title, filename in titles.items():
                 plot_types = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
-                              "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot"}
-                if image_records:
-                    image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
-                                  'file': filename, 'type': plot_types[title], 'title': " ".join([s, plot_types[title]]), 'timestamp': time.time(),
-                                  'software_packages': version.version}
-                    image_recs.append(image_rec)
+                  "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot"}
+
+                image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
+                              'file': filename, 'type': plot_types[title], 'title': " ".join([s, plot_types[title]]), 'timestamp': time.time(),
+                              'software_packages': version.version}
+                image_recs.append(image_rec)
         if save_plots:
             saved.extend(pmagplotlib.save_plots(ZED, titles))
         elif interactive:
@@ -10589,7 +10591,6 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 continue
         else:
             cnt += 3
-
     if image_records:
         return True, saved, image_recs
     return True, saved
