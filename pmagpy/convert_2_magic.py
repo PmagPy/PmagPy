@@ -3131,6 +3131,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
             print ( 'check your sample name or add to specimens table by hand\n')
     # set up defaults
     measurements_df['specimen']=srm_specimens
+    measurements_df['comment']=in_df['Comments'] # temporary column
     measurements_df['offline_treatment']=in_df['offline_treatment']
     measurements_df['sequence']=in_df['Test No.']
     measurements_df['offline_list']=""
@@ -3237,6 +3238,8 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df.drop_duplicates(subset=['sequence'],inplace=True)
     measurements_df['treat_step_num']=measurements_df['sequence']
     measurements_df.fillna("",inplace=True)
+    measurements_df['description']=measurements_df['description']+':'+measurements_df['comment']
+    measurements_df.drop(columns=['comment'],inplace=True)
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')

@@ -1424,7 +1424,7 @@ def vspec_magic3(data):
     if len(data) == 0:
         return vdata
     treat_init = ["treat_temp", "treat_temp_decay_rate", "treat_temp_dc_on", "treat_temp_dc_off", "treat_ac_field", "treat_ac_field_decay_rate", "treat_ac_field_dc_on",
-                  "treat_ac_field_dc_off", "treat_dc_field", "treat_dc_field_decay_rate", "treat_dc_field_ac_on", "treat_dc_field_ac_off", "treat_dc_field_phi", "treat_dc_field_theta"]
+                  "treat_ac_field_dc_off", "treat_dc_field", "treat_dc_field_decay_rate", "treat_dc_field_ac_on", "treat_dc_field_ac_off", "treat_dc_field_phi", "treat_dc_field_theta",'description']
     treats = []
 #
 # find keys that are used
@@ -1472,7 +1472,10 @@ def vspec_magic3(data):
                 vrec['magn_moment'] = '%8.3e' % (old_div(R, (i - k + 1)))
                 vrec['dir_csd'] = '%7.1f' % (Fpars['csd'])
                 vrec['meas_n_orient'] = '%7.1f' % (Fpars['n'])
-                vrec['description'] = 'average of multiple measurements'
+                descr=vrec['description']+': average of multiple measurements'
+                descr=descr.strip(':')
+                vrec['description'] =descr
+            
                 if "method_codes" in list(vrec.keys()):
                     meths = vrec["method_codes"].strip().split(":")
                     if "DE-VM" not in meths:
@@ -8397,7 +8400,7 @@ def measurements_methods3(meas_data, noave):
 # first look for replicate measurements
 #
         Ninit = len(NewSpecs)
-        if noave != 1:
+        if not noave:
             # averages replicate measurements, returns treatment keys that are
             # being used
             vdata, treatkeys = vspec_magic3(NewSpecs)
