@@ -4334,6 +4334,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     # assume only one hole
     # set up defaults
     measurements_df['specimen']=srm_specimens
+    measurements_df['comment']=in_df['Comments'] # temporary column
     measurements_df['quality']='g'
     measurements_df['citations']='This study'
     measurements_df['meas_temp']=273
@@ -4369,6 +4370,9 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 
     measurements_df.fillna("",inplace=True)
+    measurements_df['description']=measurements_df['description']+':'+measurements_df['comment']
+    measurements_df.drop(columns=['comment'],inplace=True)
+
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
