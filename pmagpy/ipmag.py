@@ -12883,6 +12883,9 @@ def histplot(infile="", data=(), outfile="",
             return False, []
     except ValueError:
         pass
+    except TypeError:
+        print('-W- Not enough data found')
+        return False, []
     fig = pmagplotlib.plot_init(1, 8, 7)
     try:
         len(D)
