@@ -442,4 +442,17 @@ def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composi
         start+=interval  
     ax[i].axhline(interval,color='black')
     return fig,ax 
+
+def make_composite(affine_file,site,holes):
+    first=True
+    for hole in holes: #holes:
+        adj_dec_df=pd.read_csv(hole+'/'+hole+'_dec_adjusted.csv')
+        adj_dec_df['hole']=hole
+        if first:
+            site_df=pd.DataFrame(columns=adj_dec_df.columns)
+            first=False
+        adj_depth=convert_hole_depths(affine_file,adj_dec_df,site,hole)
+        adj_depth.to_csv(hole+'/'+hole+'_depth_adjusted.csv',index=False)
+        site_df=pd.concat([site_df,adj_depth])
+    return site_df
     
