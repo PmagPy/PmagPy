@@ -1415,7 +1415,7 @@ class MagicDataFrame(object):
 
         # make sure name column is present (i.e., sample column in samples df)
         self.df.index = self.df.index.astype(str)
-        if name not in ['measurement', 'age']:
+        if name not in ['measurement', 'age', 'image']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
             self.add_measurement_names()

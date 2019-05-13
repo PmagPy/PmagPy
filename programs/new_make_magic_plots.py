@@ -268,7 +268,7 @@ def main():
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.thellier_magic(n_specs=20, fmt="png", contribution=con)
+                ipmag.thellier_magic(n_specs=40, fmt="png", contribution=con)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
                 # check for reqd columns

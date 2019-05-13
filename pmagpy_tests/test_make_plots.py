@@ -48,13 +48,14 @@ class TestMakeMagicPlots(unittest.TestCase):
         #    num = random.randint(1, 10)
         #    if num != 3:
         #        return
-
+        # make a backup of images.txt
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
-        if os.path.exists("images.txt.bak"):
-            os.remove("images.txt")
-            copyfile("images.txt.bak", "images.txt")
-        else:
-            copyfile("images.txt", "images.txt.bak")
+        copyfile("images.txt", "images.txt.bak")
+        #if os.path.exists("images.txt.bak"):
+        #    os.remove("images.txt")
+        #    copyfile("images.txt.bak", "images.txt")
+        #else:
+        #    copyfile("images.txt", "images.txt.bak")
         for filename in glob.glob("*error*"):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
@@ -64,4 +65,8 @@ class TestMakeMagicPlots(unittest.TestCase):
             num_thumbnails = len(glob.glob("*thumb.png"))
             self.assertEqual(num_pngs / 2, num_thumbnails)
             self.assertFalse(glob.glob("thumbnail_errors.txt"))
-        self.assertEqual(len(pmag.magic_read("images.txt")[0]), 491)
+        lines = pmag.magic_read("images.txt")[0]
+        self.assertEqual(len(lines), 491)
+        self.assertFalse("image" in lines[0].keys())
+        # restore images.txt to original
+        copyfile("images.txt.bak", "images.txt")
