@@ -258,7 +258,8 @@ def main():
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots="all", contribution=con)
+                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots='all',
+                                                            contribution=con, image_records=True)
                 image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
@@ -497,11 +498,11 @@ def main():
             print('-I- No poles found')
 
     if image_recs:
-        new_image_file = os.path.join('new_images.txt', dir_path)
-        old_image_file = os.path.join('images.txt', dir_path)
+        new_image_file = os.path.join(dir_path, 'new_images.txt')
+        old_image_file = os.path.join(dir_path, 'images.txt')
         pmag.magic_write(new_image_file, image_recs, 'images')
         if os.path.exists(old_image_file):
-            ipmag.combine_magic([old_image_file, new_image_file],
+            ipmag.combine_magic([old_image_file, new_image_file], outfile=old_image_file,
                                 magic_table="images", dir_path=dir_path)
         else:
             os.rename(new_image_file, old_image_file)
