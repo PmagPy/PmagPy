@@ -2,11 +2,12 @@
 
 import unittest
 import os
-import random
+# import random
 import glob
 from pmagpy import pmag
 from pmagpy import pmagplotlib
 from pmag_env import set_env
+from shutil import copyfile
 
 WD = pmag.get_test_WD()
 
@@ -26,10 +27,11 @@ class TestMakeMagicPlots(unittest.TestCase):
         os.chdir(WD)
 
     def test_make_plots(self):
-        os.chdir(os.path.join(WD, 'data_files', '3_0', 'Osler'))
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'Osler')
+        os.chdir(dir_path)
         for filename in glob.glob("*error*"):
             os.remove(filename)
-        os.system("make_magic_plots.py")
+        os.system("new_make_magic_plots.py")
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
             self.assertFalse(glob.glob("thumbnail_errors.txt"))
@@ -46,13 +48,20 @@ class TestMakeMagicPlots(unittest.TestCase):
         #    num = random.randint(1, 10)
         #    if num != 3:
         #        return
+
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
+        if os.path.exists("images.txt.bak"):
+            os.remove("images.txt")
+            copyfile("images.txt.bak", "images.txt")
+        else:
+            copyfile("images.txt", "images.txt.bak")
         for filename in glob.glob("*error*"):
             os.remove(filename)
-        os.system("make_magic_plots.py")
+        os.system("new_make_magic_plots.py")
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
-            self.assertFalse(glob.glob("thumbnail_errors.txt"))
             num_pngs = len(glob.glob("*png"))
             num_thumbnails = len(glob.glob("*thumb.png"))
             self.assertEqual(num_pngs / 2, num_thumbnails)
+            self.assertFalse(glob.glob("thumbnail_errors.txt"))
+        self.assertEqual(len(pmag.magic_read("images.txt")[0]), 491)

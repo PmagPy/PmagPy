@@ -258,7 +258,7 @@ def main():
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots='all',
+                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots=20,
                                                             contribution=con, image_records=True)
                 image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
@@ -268,7 +268,7 @@ def main():
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.thellier_magic(n_specs='all', fmt="png", contribution=con)
+                ipmag.thellier_magic(n_specs=20, fmt="png", contribution=con)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
                 # check for reqd columns
@@ -281,7 +281,7 @@ def main():
                     print(CMD)
                     info_log(CMD, loc)
                     #os.system(CMD)
-                    ipmag.quick_hyst(fmt="png", n_plots='all', contribution=con)
+                    ipmag.quick_hyst(fmt="png", n_plots=20, contribution=con)
             # equal area plots of directional data
             # at measurement level (by specimen)
             if data:
@@ -291,7 +291,7 @@ def main():
                     CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements')".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
-                    ipmag.eqarea_magic(fmt="png", n_plots='all', ignore_tilt=True, plot_by="spc",
+                    ipmag.eqarea_magic(fmt="png", n_plots=20, ignore_tilt=True, plot_by="spc",
                                        contribution=con, source_table="measurements")
                     #os.system(CMD)
 
@@ -357,7 +357,7 @@ def main():
                     CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    ipmag.eqarea_magic(crd=crd, fmt="png", n_plots='all', contribution=con, source_table="sites")
+                    ipmag.eqarea_magic(crd=crd, fmt="png", n_plots=20, contribution=con, source_table="sites")
                     #os.system(CMD)
                 else:
                     if dir_data_found:
