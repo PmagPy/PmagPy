@@ -10385,7 +10385,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                     samp = samps
                 else:
                     samp = samps.iloc[0]
-                samp_df = samp_container.df[samp_container.df.index == samp]
+                try:
+                    samp_df = samp_container.df[samp_container.df.index == samp]
+                except AttributeError:
+                    samp_df = []
         else:
             samp_df = []
         # we can make the figure dictionary that pmagplotlib likes:
