@@ -255,9 +255,9 @@ def convert_hole_depths(affine_file,hole_df,site,hole):
     hole_df['affine table']=affine_file
     return hole_df
 
-def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='UAge_Model_',dmin=0,dmax=600,amin=0,amax=8):
+def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='Age_Model_',dmin=0,dmax=600,amin=0,amax=8,poly=3):
 
-    plt.figure(1,(6,6))
+    plt.figure(1,(8,8))
 # put on curve
     zero=pd.DataFrame(columns=datums.columns,index=[0])
     zero['Age (Ma)']=0
@@ -265,7 +265,7 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
     datums=pd.concat([zero,datums])
     datums.dropna(subset=['Age (Ma)',depth_key],   inplace=True)
     datums.sort_values(by=['Age (Ma)'],inplace=True)
-    coeffs=np.polyfit(datums['Age (Ma)'].values,datums[depth_key].values,3)
+    coeffs=np.polyfit(datums['Age (Ma)'].values,datums[depth_key].values,poly)
     fit=np.polyval(coeffs,datums['Age (Ma)'].values)
     plt.plot(datums['Age (Ma)'].values,fit,'c-',lw=3,label='polynomial fit')
 
@@ -276,6 +276,7 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
     datums=datums[datums['bot']<dmax]
     holes=datums['Hole'].unique()
     colors=['r','b','k','g']
+    pcolors=['c','m','y']
     age_key='Published Age\n(Ma)'
     mid_key='Mid depth \n(mbsf)'
     top_key='Top depth \n(mbsf)'
@@ -297,25 +298,25 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='U
             plt.plot([rad_lo.iloc[k][age_key],rad_lo.iloc[k][age_key]],\
                  [rad_lo.iloc[k][top_key],rad_lo.iloc[k][bot_key]],'g-')
         plt.scatter(rad_lo[age_key].values,rad_lo[mid_key].values,\
-                marker='v',color='w',edgecolor=colors[i],label=holes[i]+':Rad LO')
+                marker='v',color='w',edgecolor=pcolors[i],label=holes[i]+':Rad LO')
         for k in rad_fo.index:
             plt.plot([rad_fo.iloc[k][age_key],rad_fo.iloc[k][age_key]],\
                  [rad_fo.iloc[k][top_key],rad_fo.iloc[k][bot_key]],'g-')
         plt.scatter(rad_fo[age_key].values,rad_fo[mid_key].values,\
-                marker='^',color='w',edgecolor=colors[i],label=holes[i]+':Rad FO')
+                marker='^',color='w',edgecolor=pcolors[i],label=holes[i]+':Rad FO')
 
         for k in diatom_fo.index:
             plt.plot([diatom_fo.iloc[k][age_key],diatom_fo.iloc[k][age_key]],\
                  [diatom_fo.iloc[k][top_key],diatom_fo.iloc[k][bot_key]],'b-')
         plt.scatter(diatom_fo[age_key].values,diatom_fo[mid_key].values,\
-                marker='>',color='w',edgecolor=colors[i],label=holes[i]+':Diatom FO')
+                marker='>',color='w',edgecolor=pcolors[i],label=holes[i]+':Diatom FO')
 
 
         for k in diatom_lo.index:
             plt.plot([diatom_lo.iloc[k][age_key],diatom_lo.iloc[k][age_key]],\
                  [diatom_lo.iloc[k][top_key],diatom_lo.iloc[k][bot_key]],'b-')
         plt.scatter(diatom_lo[age_key].values,diatom_lo[mid_key].values,\
-                marker='<',color='w',edgecolor=colors[i],label=holes[i]+':Diatom LO')
+                marker='<',color='w',edgecolor=pcolors[i],label=holes[i]+':Diatom LO')
 
 # put on the pmag
         hole=datums[datums['Hole'].str.match(holes[i])]
