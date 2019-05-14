@@ -105,6 +105,16 @@ def make_thumbnails(directory=".", fmt="png"):
             top = 0 + height * .155
             right = width * .902
             bottom = height * .86
+        elif "ty:_day" in lower_infile:
+            left = 0 + width * .124
+            top = 0 + height * .12
+            right = width * .902
+            bottom = height * .855
+        elif "ty:_s-bc" in lower_infile or "ty:_s-bcr" in lower_infile:
+            left = 0 + width * .124
+            top = 0 + height * .12
+            right = width * .902
+            bottom = height * .892
         else:
             error_log("Could not crop {}".format(infile))
             im.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
