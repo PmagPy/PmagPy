@@ -12035,6 +12035,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     coord = coord_dict[crd] if crd else ""
     # filter results by dir_tilt_correction if available
     if (coord or coord == 0) and 'dir_tilt_correction' in Results.columns:
+        print('tilt correction', Results['dir_tilt_correction'])
+        print('coord', coord, type(coord))
         cond = Results['dir_tilt_correction'] == coord
         cond2 = Results['dir_tilt_correction'] == str(coord)
         Results = Results[cond | cond2]
