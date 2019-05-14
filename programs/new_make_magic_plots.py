@@ -383,11 +383,7 @@ def main():
                     # old way, wasn't working right:
                     #CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
                     Selection = pmag.get_dictkey(site_data, int_key, dtype="f")
-                    with open('intensities.txt', 'w') as out:
-                        for rec in Selection:
-                            if rec != 0:
-                                out.write(str(rec * 1e6) + "\n")
-
+                    selection = [i * 1e6 for i in Selection if i != 0]
                     loc = loc.replace(" ", "_")
                     if loc == "./":
                         loc_name = ""
@@ -396,10 +392,10 @@ def main():
                     histfile = 'LO:_' + loc_name + \
                         '_TY:_intensities_histogram:_.' + fmt
                     CMD = "histplot.py -twin -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
-                    CMD = "ipmag.histplot('intensities.txt', outfile=histfile, xlab='Intensity (uT)', binsize=1, norm=-1, save_plots=True)".format(histfile)
+                    CMD = "ipmag.histplot(data=selection, outfile=histfile, xlab='Intensity (uT)', binsize=1, norm=-1, save_plots=True)".format(histfile)
                     info_log(CMD, loc)
                     print(CMD)
-                    ipmag.histplot("intensities.txt", outfile=histfile, xlab="Intensity (uT)",
+                    ipmag.histplot(data=selection, outfile=histfile, xlab="Intensity (uT)",
                                    binsize=1, norm=-1, save_plots=True)
                     #os.system(CMD)
                 else:
@@ -419,8 +415,11 @@ def main():
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
                 CMD = 'dayplot_magic.py -f tmp_specimens.txt -sav -fmt ' + fmt
-                info_log(CMD, loc)
+                #CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={})".format(con)
+                #print(ipmag.dayplot_magic(save=True, fmt='png', contribution=con))
+                #info_log(CMD, loc)
                 print(CMD)
+                os.system(CMD)
             else:
                 print('no hysteresis data found')
         if aniso_file in filelist and spec_data:  # do anisotropy plots if possible
@@ -473,10 +472,6 @@ def main():
         # remove temporary files
         for fname in glob.glob('tmp*.txt'):
             os.remove(fname)
-        try:
-            os.remove('intensities.txt')
-        except FileNotFoundError:
-            pass
 
     # now we need full contribution data
     if loc_file in filelist and loc_data:
