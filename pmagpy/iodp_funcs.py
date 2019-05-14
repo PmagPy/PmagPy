@@ -309,14 +309,14 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='A
             plt.plot([diatom_fo.iloc[k][age_key],diatom_fo.iloc[k][age_key]],\
                  [diatom_fo.iloc[k][top_key],diatom_fo.iloc[k][bot_key]],'b-')
         plt.scatter(diatom_fo[age_key].values,diatom_fo[mid_key].values,\
-                marker='>',color='w',edgecolor=pcolors[i],label=holes[i]+':Diatom FO')
+                marker='>',color='w',edgecolor=pcolors[i+1],label=holes[i]+':Diatom FO')
 
 
         for k in diatom_lo.index:
             plt.plot([diatom_lo.iloc[k][age_key],diatom_lo.iloc[k][age_key]],\
                  [diatom_lo.iloc[k][top_key],diatom_lo.iloc[k][bot_key]],'b-')
         plt.scatter(diatom_lo[age_key].values,diatom_lo[mid_key].values,\
-                marker='<',color='w',edgecolor=pcolors[i],label=holes[i]+':Diatom LO')
+                marker='<',color='w',edgecolor=pcolors[i+1],label=holes[i]+':Diatom LO')
 
 # put on the pmag
         hole=datums[datums['Hole'].str.match(holes[i])]
@@ -334,7 +334,8 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='A
     plt.xlabel('Age (Ma), GTS12')
     plt.ylabel('Depth (mbsf)')
     plt.title(title)
-    plt.legend(bbox_to_anchor=(1.5,1))
+    #plt.legend(bbox_to_anchor=(1.5,1))
+    plt.legend()
     plt.savefig('Figures/'+title+'.pdf')
     return coeffs
 
