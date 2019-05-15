@@ -257,7 +257,7 @@ def convert_hole_depths(affine_file,hole_df,site,hole):
 
 def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='Age_Model_',dmin=0,dmax=600,amin=0,amax=8,poly=3):
 
-    plt.figure(1,(8,8))
+    plt.figure(1,(5,5))
 # put on curve
     zero=pd.DataFrame(columns=datums.columns,index=[0])
     zero['Age (Ma)']=0
