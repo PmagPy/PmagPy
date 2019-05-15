@@ -276,7 +276,7 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='A
     datums=datums[datums['bot']<dmax]
     holes=datums['Hole'].unique()
     colors=['r','b','k','g']
-    pcolors=['c','m','y']
+    pcolors=['c','m','y','r','k']
     age_key='Published Age\n(Ma)'
     mid_key='Mid depth \n(mbsf)'
     top_key='Top depth \n(mbsf)'
