@@ -5,8 +5,34 @@ import seaborn as sns
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import pmagpy.pmagplotlib as pmagplotlib
-def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
-              gad_inc,depth_min,depth_max,labels,spec_df=[],agemin=0,agemax=0):
+def make_plot(arch_df,edited_df,sect_depths,hole,\
+              gad_inc,depth_min,depth_max,labels,spec_df=[], fignum=1):
+    """
+    Makes a downhole plot of IODP data.
+    
+    Parameters
+    ___________
+    arch_df : Pandas DataFrame 
+        dataframe of SRM archive measurements
+    edited_df : Panas DataFrame
+        dataframe of edited SRM archive measurements
+    sect_depths : NumPy array
+        array containing section depths of sections for plotting
+    hole : str
+        name of hole
+    gad_inc : float
+        inclination expected at the site from a GAD field
+    depth_min : float
+        minimum depth for plot 
+    depth_max : float
+        maximum depth for plot 
+    labels :  Pandas Series
+        series containing section names (e.g., 1H-2)
+    spec_df : Pandas DataFrame
+        dataframe of specimen data for plotting
+
+    """
+    
     arch_df=arch_df[arch_df['core_depth']>depth_min]
     arch_df=arch_df[arch_df['core_depth']<=depth_max]
     edited_df=edited_df[edited_df['core_depth']>depth_min]
@@ -84,22 +110,46 @@ def make_plot(fignum,arch_df,edited_df,sect_depths,hole,\
     plt.savefig('Figures/'+hole+'_'+str(fignum)+'.pdf')
     print ('Plot saved in', 'Figures/'+hole+'_'+str(fignum)+'.pdf')
 
-def inc_hist(df,hole):
+def inc_hist(df,inc_key='dir_inc'):
+    """
+    Makes a histogram of inclination data from a data frame with 'dir_inc' as the inclination key
+    
+    Parameters
+    __________
+    df : Pandas DataFrame
+        dataframe with  inclination data in "inc_key" column
+    """
     plt.figure(figsize=(12,5))
     plt.subplot(121)
     plt.ylabel('Number of inclinations')
-    sns.distplot(df['dir_inc'],kde=False,bins=24)
+    sns.distplot(df[inc_key],kde=False,bins=24)
     plt.xlabel('Inclination')
     plt.xlim(-90,90)
     plt.subplot(122)
     plt.ylabel('Fraction of inclinations')
-    sns.distplot(df['dir_inc'],bins=24)
+    sns.distplot(df[inc_key],bins=24)
     plt.xlabel('Inclination')
     plt.xlim(-90,90)
-    plt.savefig('Figures/'+hole+'_inclination_histogram.pdf');
-    print ('Plot saved in ','Figures/'+hole+'_inclination_histogram.pdf')
     
 def demag_step(magic_dir,hole,demag_step):
+    """
+    Selects the desired demagnetization step, and puts the core/section/offset information
+    into the returned data frame
+
+    Parameters
+    ___________
+    magic_dir : str
+        directory of the MagIC formatted files
+    hole : str
+        IODP Hole
+    demag_step : float
+        desired demagnetization step in tesla
+
+    Returns
+    ___________
+    DataFrame with selected step and additional metadata
+
+    """
     arch_data=pd.read_csv(magic_dir+'/srm_arch_measurements.txt',sep='\t',header=1) 
     depth_data=pd.read_csv(magic_dir+'/srm_arch_sites.txt',sep='\t',header=1)
     depth_data['specimen']=depth_data['site']
@@ -118,15 +168,35 @@ def demag_step(magic_dir,hole,demag_step):
     print ("Here's your demagnetization step DataFrame")
     return arch_demag_step
 
-def remove_ends(arch_demag_step,hole):
+def remove_ends(arch_demag_step,hole,core_top=80,section_ends=10):
+    """
+    takes an archive measurement DataFrame and peels off the section ends and core tops
+
+    Parameters
+    __________
+    arch_demag_step : Pandas DataFrame
+        data frame filtered by iodp_funcs.demag_step
+    hole : str
+        IODP hole
+    core_top : float
+        cm to remove from the core top
+    setion_ends : float
+        cm to remove from the section ends
+    
+    Returns
+    _______
+    noends : DataFrame
+        filtered data frame
+    """ 
+    
     noends=pd.DataFrame(columns=arch_demag_step.columns)
     core_sects=arch_demag_step.core_sects.unique()
     for core_sect in core_sects:
         cs_df=arch_demag_step[arch_demag_step['core_sects'].str.contains(core_sect)]
         if '-1' in core_sect: 
-            cs_df=cs_df[cs_df.offset>cs_df['offset'].min()+80] # top 80cm
+            cs_df=cs_df[cs_df.offset>cs_df['offset'].min()+core_top] # top 80cm
         else:
-            cs_df=cs_df[cs_df.offset>cs_df['offset'].min()+10] # top 10 cm
+            cs_df=cs_df[cs_df.offset>cs_df['offset'].min()+section_ends] # top 10 cm
         cs_df=cs_df[cs_df.offset<cs_df['offset'].max()-10]
         noends=pd.concat([noends,cs_df])
     noends.drop_duplicates(inplace=True)
@@ -136,6 +206,21 @@ def remove_ends(arch_demag_step,hole):
     return noends
 
 def remove_disturbance(noends,hole):
+    """
+    takes an archive measurement DataFrame and removes disturbed intervals using DescLogic files
+
+    Parameters
+    __________
+    noends : Pandas DataFrame
+        data frame filtered by iodp_funcs.remove_ends
+    hole : str
+        IODP hole
+    
+    Returns
+    _______
+    nodist : DataFrame
+        filtered data frame
+    """ 
     disturbance_file=hole+'/'+hole+'_disturbances.xlsx'
     disturbance_df=pd.read_excel(disturbance_file)
     disturbance_df.dropna(subset=['Drilling disturbance intensity'],inplace=True)
@@ -156,6 +241,25 @@ def remove_disturbance(noends,hole):
     return nodist
 
 def no_xray_disturbance(nodist,hole):
+    """
+    takes an archive measurement DataFrame and removes disturbed intervals using XRAY disturbance files
+
+    Parameters
+    __________
+    nodist : Pandas DataFrame
+        data frame filtered by iodp_funcs.remove_disturbance
+    hole : str
+        IODP hole
+    
+    Returns
+    _______
+    no_xray_df : DataFrame
+        filtered data frame
+    """ 
+    disturbance_file=hole+'/'+hole+'_disturbances.xlsx'
+    disturbance_df=pd.read_excel(disturbance_file)
+    disturbance_df.dropna(subset=['Drilling disturbance intensity'],inplace=True)
+    disturbance_df=disturbance_df[disturbance_df['Drilling disturbance intensity'].str.contains('high')]
     xray_file=hole+'/'+hole+'_xray_disturbance.xlsx'
     xray_df=pd.read_excel(xray_file,header=2)
     no_xray_df=pd.DataFrame(columns=nodist.columns)
@@ -199,6 +303,27 @@ def no_xray_disturbance(nodist,hole):
     return no_xray_df
  
 def adj_dec(df,hole):
+    """
+    takes an archive measurement DataFrame and adjusts the average declination by hole to 90 for "normal"
+
+    Parameters
+    __________
+    df : Pandas DataFrame
+        data frame of archive measurment data
+    hole : str
+        IODP hole
+    
+    Returns
+    _______
+    adj_dec_df : DataFrame
+        adjusted declination  data frame
+    core_dec_corr : dict
+        dictionary of cores and the average declination
+    """ 
+    disturbance_file=hole+'/'+hole+'_disturbances.xlsx'
+    disturbance_df=pd.read_excel(disturbance_file)
+    disturbance_df.dropna(subset=['Drilling disturbance intensity'],inplace=True)
+    disturbance_df=disturbance_df[disturbance_df['Drilling disturbance intensity'].str.contains('high')]
     cores=df.core.unique()
     adj_dec_df=pd.DataFrame(columns=df.columns)
     core_dec_corr={}
