@@ -278,11 +278,12 @@ def main():
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
                     CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
-                    CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}".format(con)
+                    CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}, image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc)
                     #os.system(CMD)
-                    ipmag.quick_hyst(fmt="png", n_plots=20, contribution=con)
+                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots=20, contribution=con, image_records=True)
+                    image_recs.extend(quick_hyst_recs)
             # equal area plots of directional data
             # at measurement level (by specimen)
             if data:

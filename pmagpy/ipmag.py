@@ -12398,7 +12398,7 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
 
 def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                interactive=False, fmt="png", specimen="", verbose=True, n_plots=10,
-               contribution=None):
+               contribution=None, image_records=False):
     """
     makes specimen plots of hysteresis data
 
@@ -12419,12 +12419,18 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
         specific specimen to plot
     verbose : bool, default True
         if True, print more verbose output
+    image_records : bool, default False
+        if True, return a list of created images
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, output file name(s) written)
-    """
+    if image_records == False:
+        Tuple : (True or False indicating if conversion was sucessful, output file name(s) written)
+    if image_records == True:
+        Tuple : (True or False indicating if conversion was sucessful, output file name(s) written, list of images)
 
+    """
+    image_recs = []
     if contribution is None:
         con = cb.Contribution(dir_path, read_tables=['measurements'],
                               custom_filenames={'measurements': meas_file})
@@ -12433,12 +12439,16 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
     # get as much name data as possible (used for naming plots)
     if 'measurements' not in con.tables:
         print("-W- No measurement file found")
+        if image_records:
+            return False, [], []
         return False, []
     con.propagate_location_to_measurements()
 
     if 'measurements' not in con.tables:
         print(main.__doc__)
         print('bad file')
+        if image_records:
+            return False, [], []
         return False, []
     meas_container = con.tables['measurements']
     #meas_df = meas_container.df
@@ -12459,9 +12469,13 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
     #experiment_names = hyst_data['experiment_name'].unique()
     if not len(hyst_data):
         print("-W- No hysteresis data found")
+        if image_records:
+            return False, [], []
         return False, []
     if 'specimen' not in hyst_data.columns:
         print('-W- No specimen names in measurements data, cannot complete quick_hyst.py')
+        if image_records:
+            return False, [], []
         return False, []
     sids = hyst_data['specimen'].unique()
 
@@ -12477,6 +12491,8 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
         except ValueError:
             print('-W- No specimen named: {}.'.format(specimen))
             print('-W- Please provide a valid specimen name')
+            if image_records:
+                return False, [], []
             return False, []
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
 
@@ -12571,7 +12587,16 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
 
             pmagplotlib.save_plots(HDD, files)
             saved.extend([value for value in files.values()])
+            if image_records:
+                for plot_type, filename in files.items():
+                    image_rec = {'location': locname, 'site': site, 'sample': sample, 'specimen': s,
+                                 'file': filename, 'type': PLOT_TYPES[plot_type], 'title' : " ".join(["Hysteresis", s]),
+                                 'timestamp': time.time(), 'software_packages': version.version}
+                    image_recs.append(image_rec)
+
             if specimen:
+                if image_records:
+                    return True, saved, image_recs
                 return True, saved
         if interactive:
             pmagplotlib.draw_figs(HDD)
@@ -12580,25 +12605,25 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
             if ans == "a":
                 files = {}
                 for key in list(HDD.keys()):
-                    if pmagplotlib.isServer:  # use server plot naming convention
-                        locname = locname if locname else ""
-                        site = site if site else ""
-                        sample = sample if sample else ""
-                        files[key] = "LO:_"+locname+'_SI:_'+site + \
-                            '_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
-                    else:  # use more readable plot naming convention
-                        filename = ''
-                        for item in [locname, site, sample, s, key]:
-                            if item:
-                                item = item.replace(' ', '_')
-                                filename += item + '_'
-                        if filename.endswith('_'):
-                            filename = filename[:-1]
-                        filename += ".{}".format(fmt)
-                        files[key] = filename
+                    filename = ''
+                    for item in [locname, site, sample, s, key]:
+                        if item:
+                            item = item.replace(' ', '_')
+                            filename += item + '_'
+                    if filename.endswith('_'):
+                        filename = filename[:-1]
+                    filename += ".{}".format(fmt)
+                    files[key] = filename
 
+                if image_records:
+                    for plot_type, filename in files.items():
+                        image_rec = {'location': locname, 'site': site, 'sample': sample, 'specimen': s,
+                                     'file': filename, 'type': PLOT_TYPES[plot_type], 'title' : " ".join(["Hysteresis", s]),
+                                     'timestamp': time.time(), 'software_packages': version.version}
+                        image_recs.append(image_rec)
                 pmagplotlib.save_plots(HDD, files)
                 saved.extend([value for value in files.values()])
+                k += 1
             if ans == '':
                 k += 1
             if ans == "p":
@@ -12606,7 +12631,9 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
                 k -= 1
             if ans == 'q':
                 print("Good bye")
-                return True, []
+                if image_records:
+                    return True, saved, image_records
+                return True, saved
             if ans == 's':
                 keepon = 1
                 specimen = input(
@@ -12630,6 +12657,8 @@ def quick_hyst(dir_path=".", meas_file="measurements.txt", save_plots=True,
             if verbose:
                 print('skipping this one - no hysteresis data')
             k += 1
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 
@@ -13159,4 +13188,4 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
 
 PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
               "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot",
-              "deremag": "De-Remagnetization Plot"}
+              "deremag": "De-Remagnetization Plot", 'hyst': 'Hysteresis Loop'}

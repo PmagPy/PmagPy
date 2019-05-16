@@ -809,6 +809,7 @@ class TestThellierMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(len(glob.glob("*.svg")), 20)
         self.assertEqual(len(image_recs), 20)
+        self.assertTrue(image_recs[0])
 
     def test_fail_with_images(self):
         res, outfiles, image_recs = ipmag.thellier_magic(input_dir_path=".", n_specs=5,
@@ -1005,6 +1006,7 @@ class TestZeqMagic(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
         self.assertEqual(9, len(outfiles))
         self.assertEqual(9, len(image_recs))
+        self.assertTrue(image_recs[0])
         #pmag.magic_write("images.txt", image_recs, "images")
 
 
@@ -1159,6 +1161,23 @@ class TestQuickHyst(unittest.TestCase):
         self.assertTrue(status)
         self.assertFalse(saved)
         self.assertFalse(glob.glob("*.png"))
+
+    def test_with_image_records(self):
+        status, saved, image_recs = ipmag.quick_hyst("data_files/quick_hyst", "hysteresis_magic_example3.dat",
+                                            n_plots=2, image_records=True)
+        self.assertTrue(status)
+        self.assertEqual(2, len(saved))
+        self.assertEqual(2, len(glob.glob("*.png")))
+        self.assertEqual(2, len(image_recs))
+        self.assertTrue(image_recs[0])
+
+
+    def test_fail_with_image_records(self):
+        status, saved, image_recs = ipmag.quick_hyst(image_records=True)
+        self.assertFalse(status)
+        self.assertFalse(saved)
+        self.assertEqual(len(image_recs), 0)
+
 
 
 class TestVgpmapMagic(unittest.TestCase):

@@ -60,7 +60,7 @@ class TestMakeMagicPlots(unittest.TestCase):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
         lines = pmag.magic_read("images.txt")[0]
-        self.assertEqual(len(lines), 503)
+        self.assertEqual(len(lines), 511)
         self.assertFalse("image" in lines[0].keys())
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
