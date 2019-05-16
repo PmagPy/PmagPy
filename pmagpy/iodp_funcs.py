@@ -423,7 +423,7 @@ def fix_aniso_data(aniso_df,core_dec_adj,site_df):
     aniso_dec_adj_df.drop(columns=['aniso_v1_list','aniso_v2_list','aniso_v3_list'],inplace=True)
     return aniso_dec_adj_df
 
-def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composite_depth'):
+def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composite_depth',cmap='Blues'):
     start=0
     nplots=int(max_depth/interval)
     fig,ax=plt.subplots(nplots,1,figsize=figsize)
@@ -434,7 +434,7 @@ def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composi
         ax[i].xaxis.set_major_locator(plt.NullLocator())
         ax[i].yaxis.set_major_locator(plt.NullLocator())
         df=site_df[(site_df[depth_key]>=start)&(site_df[depth_key]<start+interval)]
-        sns.kdeplot(df['dir_inc'],data2=df[depth_key],cmap='Blues',shade=True,ax=ax[i])
+        sns.kdeplot(df['dir_inc'],data2=df[depth_key],cmap=cmap,shade=True,ax=ax[i])
         ax[i].set_xlim(-90,90)
         ax[i].set_ylim(start+interval,start)
         ax[i].set_xlabel('')
