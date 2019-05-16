@@ -18,6 +18,9 @@ class TestMakeMagicPlots(unittest.TestCase):
         set_env.set_server(True)
         for filename in glob.glob("*error*"):
             os.remove(filename)
+        # make a backup of McMurdo images.txt file
+        copyfile(os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt"), os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt.bak"))
+
 
     def tearDown(self):
         glob_strings = ["*.png", "*errors*", "log.txt"]
@@ -25,6 +28,9 @@ class TestMakeMagicPlots(unittest.TestCase):
             for filename in glob.glob(glob_string):
                 os.remove(filename)
         os.chdir(WD)
+        # restore images.txt to original
+        copyfile(os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt.bak"), os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt"))
+
 
     def test_make_plots(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'Osler')
@@ -50,15 +56,12 @@ class TestMakeMagicPlots(unittest.TestCase):
         #        return
         # make a backup of images.txt
         os.chdir(os.path.join(WD, 'data_files', '3_0', 'McMurdo'))
-        copyfile("images.txt", "images.txt.bak")
         for filename in glob.glob("*error*"):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
         lines = pmag.magic_read("images.txt")[0]
-        self.assertEqual(len(lines), 491)
+        self.assertEqual(len(lines), 503)
         self.assertFalse("image" in lines[0].keys())
-        # restore images.txt to original
-        copyfile("images.txt.bak", "images.txt")
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:
             num_pngs = len(glob.glob("*png"))

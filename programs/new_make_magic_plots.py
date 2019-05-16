@@ -254,7 +254,7 @@ def main():
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
                 CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
-                CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={})".format(crd, con)
+                CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True)".format(crd, con)
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
@@ -264,11 +264,12 @@ def main():
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
                 CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
-                CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}".format(con)
+                CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}, image_records=True)".format(con)
                 print(CMD)
                 info_log(CMD, loc)
                 #os.system(CMD)
-                ipmag.thellier_magic(n_specs=40, fmt="png", contribution=con)
+                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs=50, fmt="png", contribution=con, image_records=True)
+                image_recs.extend(thellier_images)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
                 # check for reqd columns

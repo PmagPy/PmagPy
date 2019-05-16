@@ -803,6 +803,21 @@ class TestThellierMagic(unittest.TestCase):
         self.assertEqual(len(glob.glob("*.png")), 4)
         self.assertTrue(os.path.exists("s2s0-03_arai.png"))
 
+    def test_with_images(self):
+        res, outfiles, image_recs = ipmag.thellier_magic(input_dir_path=self.thel_WD, n_specs=5,
+                                                         image_records=True)
+        self.assertTrue(res)
+        self.assertEqual(len(glob.glob("*.svg")), 20)
+        self.assertEqual(len(image_recs), 20)
+
+    def test_fail_with_images(self):
+        res, outfiles, image_recs = ipmag.thellier_magic(input_dir_path=".", n_specs=5,
+                                                         image_records=True)
+        self.assertFalse(res)
+        self.assertFalse(outfiles)
+        self.assertFalse(image_recs)
+        self.assertEqual(len(image_recs), 0)
+
 
 class TestOrientationMagic(unittest.TestCase):
     def setUp(self):

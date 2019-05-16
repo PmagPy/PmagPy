@@ -10576,11 +10576,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                 titles[title] = filename
         if image_records:
             for title, filename in titles.items():
-                plot_types = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
-                  "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot"}
-
                 image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
-                              'file': filename, 'type': plot_types[title], 'title': " ".join([s, plot_types[title]]), 'timestamp': time.time(),
+                              'file': filename, 'type': PLOT_TYPES[title], 'title': " ".join([s, PLOT_TYPES[title]]), 'timestamp': time.time(),
                               'software_packages': version.version}
                 image_recs.append(image_rec)
         if save_plots:
@@ -10643,7 +10640,7 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
 
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
                    spec="", n_specs=5, save_plots=True,  fmt="svg", interactive=False,
-                   contribution=None):
+                   contribution=None, image_records=False):
     """
     thellier_magic plots arai and other useful plots for Thellier-type experimental data
 
@@ -10673,11 +10670,17 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     contribution : cb.Contribution, default None
         if provided, use Contribution object instead of reading in
         data from files
+    image_records : generate and return a record for each image in a list of dicts
+        which can be ingested by pmag.magic_write
+        bool, default False
+
 
     Returns
     ---------
     status : True or False
     saved : list of figures saved
+    if image_records == True:
+        image_recs : list of image records
     """
 
     def make_plots(this_specimen, thel_data, cnt=1):
@@ -10728,6 +10731,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     # format some things
     if interactive:
         save_plots = False
+    image_recs = []
 
     if not isinstance(contribution, cb.Contribution):
         # get proper paths
@@ -10739,6 +10743,8 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
 
     if not contribution.tables.get('measurements'):
         print('-W- No measurements table found')
+        if image_records:
+            return False, [], []
         return False, []
 
     try:
@@ -10763,10 +10769,14 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     specimens = meas_data.specimen.unique()  # list of specimen names
     if len(specimens) == 0:
         print('there are no data for plotting')
+        if image_records:
+            return False, [], []
         return False, []
     if spec:
         if spec not in specimens:
             print('could not find specimen {}'.format(spec))
+            if image_records:
+                return False, [], []
             return False, []
         specimens = [spec]
     elif n_specs != "all":
@@ -10779,13 +10789,16 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         zed = make_plots(this_specimen, thel_data, cnt)
         # if plots were produced
         if zed:
+
+            files = {}
             if interactive:
                 # draw and save interactively
                 pmagplotlib.draw_figs(zed)
                 ans = input(
                     "S[a]ve plots, [q]uit, <return> to continue\n ")
                 if ans == 'q':
-                    return True, []
+                    if image_records:
+                        return True, [], []
                 if ans == 'a':
                     files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
                     if not set_env.IS_WIN:
@@ -10822,10 +10835,19 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                 cnt += len(zed)
                 # don't even need to draw 'em!  They just appear.
                 #pmagplotlib.draw_figs(zed)
+            if image_records:
+                for plot_type, filename in files.items():
+                    image_rec = {'specimen': this_specimen,
+                                'file': os.path.split(filename)[1], 'type': PLOT_TYPES[plot_type],
+                                 'title': " ".join([this_specimen, PLOT_TYPES[plot_type]]),
+                                'timestamp': time.time(), 'software_packages': version.version}
+                    image_recs.append(image_rec)
         # no plots were produced
         else:
             print ('no data for ',this_specimen)
             print ('skipping')
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 
@@ -13133,3 +13155,8 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
             pmagplotlib.clearFIG(FIG['demag'])
     if last_plot:
         return True, saved
+
+
+PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
+              "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot",
+              "deremag": "De-Remagnetization Plot"}
