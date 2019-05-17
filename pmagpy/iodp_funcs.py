@@ -6,7 +6,8 @@ import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import pmagpy.pmagplotlib as pmagplotlib
 def make_plot(arch_df,edited_df,sect_depths,hole,\
-              gad_inc,depth_min,depth_max,labels,spec_df=[], fignum=1):
+              gad_inc,depth_min,depth_max,labels,spec_df=[], fignum=1,
+              agemin=0,agemax=0):
     """
     Makes a downhole plot of IODP data.
     
@@ -30,6 +31,10 @@ def make_plot(arch_df,edited_df,sect_depths,hole,\
         series containing section names (e.g., 1H-2)
     spec_df : Pandas DataFrame
         dataframe of specimen data for plotting
+    agemin : float
+        if desired, minimum age for time scale plot
+    agemax : float
+        if non-zero an time scale plot will be generated
 
     """
     
@@ -317,7 +322,7 @@ def adj_dec(df,hole):
     _______
     adj_dec_df : DataFrame
         adjusted declination  data frame
-    core_dec_corr : dict
+    core_dec_adj : dict
         dictionary of cores and the average declination
     """ 
     disturbance_file=hole+'/'+hole+'_disturbances.xlsx'
@@ -326,14 +331,14 @@ def adj_dec(df,hole):
     disturbance_df=disturbance_df[disturbance_df['Drilling disturbance intensity'].str.contains('high')]
     cores=df.core.unique()
     adj_dec_df=pd.DataFrame(columns=df.columns)
-    core_dec_corr={}
+    core_dec_adj={}
     for core in cores:
         core_df=df[df['core']==core]
         di_block=core_df[['dir_dec','dir_inc']].values
         ppars=pmag.doprinc(di_block)
         if ppars['inc']>0: # take the antipode
             ppars['dec']=ppars['dec']-180
-        core_dec_corr[core]=ppars['dec']
+        core_dec_adj[core]=ppars['dec']
         core_df['adj_dec']=(core_df['dir_dec']-ppars['dec'])%360
         core_df['dir_dec']=(core_df['adj_dec']+90)%360 # set mean normal to 90 for plottingh
         adj_dec_df=pd.concat([adj_dec_df,core_df])
@@ -341,9 +346,21 @@ def adj_dec(df,hole):
     adj_dec_df.drop_duplicates(inplace=True)
     adj_dec_df.to_csv(hole+'/'+hole+'_dec_adjusted.csv',index=False) 
     print ('Adjusted Declination DataFrame returned')
-    return adj_dec_df,core_dec_corr
+    return adj_dec_df,core_dec_adj
 
 def plot_aniso(df,fignum=1,save_figs=False):
+    """
+    Makes a depth plot (christmas tree plot) of eigenvalues and eigenvectors for AMS data
+    
+    Parameters
+    ___________
+    df : Pandas DataFrame
+        pandas data frame of a MagIC formatted specimens table with AMS data in it
+    fignum : int
+        matplotlib figure number
+    save_figs : Boolean
+       saves figures if True
+    """
     v1_decs=df['v1_dec'].values
     v1_incs=df['v1_inc'].values
     v3_decs=df['v3_dec'].values
@@ -353,18 +370,40 @@ def plot_aniso(df,fignum=1,save_figs=False):
     ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
     plt.title('Core coordinates')
     if save_figs: plt.savefig('aniso_core.svg')
+    if 'v1_dec_adj' in df.columns:
+        fig2=ipmag.plot_net(fignum+1)
+        v1_decs=df['v1_dec_adj'].values
+        v3_decs=df['v3_dec_adj'].values
 
-    fig2=ipmag.plot_net(fignum+1)
-    v1_decs=df['v1_dec_adj'].values
-    v3_decs=df['v3_dec_adj'].values
-
-    ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
-    ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
-    plt.title('Declination Adjusted')
-    if save_figs: plt.savefig('aniso_corr.svg')
+        ipmag.plot_di(dec=v1_decs,inc=v1_incs,marker='s',markersize=50,color='red')
+        ipmag.plot_di(dec=v3_decs,inc=v3_incs,marker='o',markersize=50,color='black')
+        plt.title('Declination Adjusted')
+        if save_figs: plt.savefig('aniso_corr.svg')
     return 
 
 def convert_hole_depths(affine_file,hole_df,site,hole):
+    """
+    converts core depths to composite depths
+
+    Parameters
+    __________
+    affine_file : str
+        file name of affine downloaded from LIMS
+    hole_df : Pandas DataFrame
+        dataframe with data in MagIC measurement data after filtering with iodp_funcs.demag_step
+        
+    site : str
+        IODP Site 
+    hole : str
+        IODP Hole
+    
+    Returns
+    _______
+    hole_df : Pandas DataFrame
+        hole_df with transformed composite_depth column after affine
+
+    """
+     
     affine=pd.read_csv(affine_file)
     affine['core']=affine['Core'].astype('str')+affine['Core type']
     affine['hole']=site+affine['Hole']
@@ -380,9 +419,42 @@ def convert_hole_depths(affine_file,hole_df,site,hole):
     hole_df['affine table']=affine_file
     return hole_df
 
-def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='Age_Model_',dmin=0,dmax=600,amin=0,amax=8,poly=3):
+def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='Age_Model_',dmin=0,dmax=600,amin=0,amax=8,poly=3,figsize=(5,5)):
+    """
+    Makes an age depth plot from data frames with paleomagnetic and biostratigraphic tie points
+    
+    Parameters
+    __________
+    datums : Pandas DataFrame
+        dataframe with paleomagnetic tie points
+    paleo : Pandas DataFrame
+        dataframe with biostratigraphic tie points
+    size : integer
+        size of symbols
+    depth_key : str
+        data frame column name for depths in datums dataframe
+    title : str
+        title for plot
+    dmin :float
+        minimum depth for plot
+    dmax : float
+        maximum depth for plot
+    amin : float
+        minimum age for plot
+    amax : float
+        maximum age for plot
+    poly : int
+        degree of polynomial for best fit curve
+    figsize : tuple
+        figure size
+    
+    Returns
+    _________
+    coeffs : array
+        coefficients of best-fit polynomial
 
-    plt.figure(1,(5,5))
+    """
+    plt.figure(1,figsize)
 # put on curve
     zero=pd.DataFrame(columns=datums.columns,index=[0])
     zero['Age (Ma)']=0
@@ -465,6 +537,21 @@ def age_depth_plot(datums,paleo,size=100,depth_key='midpoint CSF-A (m)',title='A
     return coeffs
 
 def do_affine(affine_file,datums):
+    """
+    converts datum depths to affine depths
+    
+    Parameters
+    __________
+    affine_file : str
+        file downloaded from LORE for affine transformation of depths from mbsf to CCSA
+    datums : Pandas DataFrame
+        datums data frame
+
+    Returns
+    _______
+    datums_out : Pandas DataFrame
+        datums dataframe with affined depths
+    """
     cmb_top_key='Top Depth CCSF-A (m)'
     cmb_bot_key='Bottom Depth CCSF-A (m)'
     mbsf_top_key='Top Depth CSF-A (m)'
@@ -511,9 +598,28 @@ def do_affine(affine_file,datums):
     datums_out['midpoint CCSF-A (m)']=datums_out[cmb_bot_key]+.5*(datums_out[cmb_top_key]-datums_out[cmb_bot_key])
     return datums_out
 
-def fix_aniso_data(aniso_df,core_dec_adj,site_df):
+def fix_aniso_data(aniso_df,core_dec_adj="",site_df=""):
+    """
+    picks apart the MagIC specimens table and 
+    creates columns with eigenvalues and eigenvectors for plotting
+    
+    Parameters
+    __________
+    aniso_df : Pandas DataFrame
+        dataframe created by reading in a specimens.txt formatted file
+    core_dec_adj : dict
+        dictionary with {'core' : dec} for IODP cores and their average declinations
+        returned by iodp_funcs.adj_dec
+    site_df : Pandas dataframe 
+        dataframe with sites.txt information, including core_depth for enabling plotting versus depth
+    
+    Returns
+    _______
+    aniso_dec_adj_df : Pandas DataFrame
+        dataframe with additional columns
+    """
 
-
+         
     aniso_df['aniso_v1_list']=aniso_df['aniso_v1'].str.split(":")
     aniso_df['tau1']=aniso_df['aniso_v1_list'].str.get(0).astype('float')
     aniso_df['v1_dec']=aniso_df['aniso_v1_list'].str.get(1).astype('float')
@@ -533,11 +639,12 @@ def fix_aniso_data(aniso_df,core_dec_adj,site_df):
     cores=aniso_df.core.unique()
     aniso_dec_adj_df=pd.DataFrame(columns=aniso_df.columns)
     for core in cores:
-        core_df=aniso_df[aniso_df.core.str.match(core)]
-        core_df['v1_dec_adj']=(core_df['v1_dec']-core_dec_adj[core])%360
-        core_df['v2_dec_adj']=(core_df['v2_dec']-core_dec_adj[core])%360
-        core_df['v3_dec_adj']=(core_df['v3_dec']-core_dec_adj[core])%360
-        aniso_dec_adj_df=pd.concat([aniso_dec_adj_df,core_df])
+        if core in core_dec_adj.keys():
+            core_df=aniso_df[aniso_df.core.str.match(core)]
+            core_df['v1_dec_adj']=(core_df['v1_dec']-core_dec_adj[core])%360
+            core_df['v2_dec_adj']=(core_df['v2_dec']-core_dec_adj[core])%360
+            core_df['v3_dec_adj']=(core_df['v3_dec']-core_dec_adj[core])%360
+            aniso_dec_adj_df=pd.concat([aniso_dec_adj_df,core_df])
 
 
 
@@ -548,7 +655,32 @@ def fix_aniso_data(aniso_df,core_dec_adj,site_df):
     aniso_dec_adj_df.drop(columns=['aniso_v1_list','aniso_v2_list','aniso_v3_list'],inplace=True)
     return aniso_dec_adj_df
 
-def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composite_depth',cmap='Blues'):
+def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composite_depth',cmap='Oranges'):
+    """
+    creates "heat maps" of inclinations versus depth from archive half measurements
+    
+    Parameters
+    __________
+    site_df : Pandas DataFrame
+        dataframe with archive half data from IODP cores.  Dataframe must have depth information
+        either as composite_depth (returned by iodp_funcs.adj_depth) or core_depth (returned by 
+        iodp_funcs.demag_step or one of the editing functions (e.g., iodp_funcs.remove_ends).   
+    max_depth : float
+        maximum depth for kde plot
+    interval : float
+        the interval over with the kdes will be created (e.g., 5 m)
+    figsize : tuple
+        size of the desired figure
+    depth_key : str
+        column name for the desired depth
+    cmap : str
+        matplotlib color map desired for the plot
+   
+    Returns
+    _______
+    fig,ax : matplotlib figure and axis  objects
+    """
+ 
     start=0
     nplots=int(max_depth/interval)
     fig,ax=plt.subplots(nplots,1,figsize=figsize)
@@ -571,6 +703,24 @@ def kdes_for_incs(site_df,max_depth,interval=5,figsize=(2,12),depth_key='composi
     return fig,ax 
 
 def make_composite(affine_file,site,holes):
+    """
+    Uses an affine file downloaded from LORE to adjust depths for holes from a given IODP Site 
+    to adjust the depths to a composite depth.  Works on the output of iodp_func.dec_adj()
+
+    Parameters
+    __________
+    affine_file : str
+        affine file downloaded from LIMS for adjusting depths
+    site : str
+        name of site
+    holes : list
+        list of holes to adjust
+
+    Returns
+    _______
+    site_df : Pandas DataFrame
+        dataframe for site with combined data from all holes adjusted to composite depth scale
+    """
     first=True
     for hole in holes: #holes:
         adj_dec_df=pd.read_csv(hole+'/'+hole+'_dec_adjusted.csv')
