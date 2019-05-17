@@ -10577,7 +10577,8 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
         if image_records:
             for title, filename in titles.items():
                 image_rec = {'location': location, 'site': site, 'sample': sample, 'specimen': s,
-                              'file': filename, 'type': PLOT_TYPES[title], 'title': " ".join([s, PLOT_TYPES[title]]), 'timestamp': time.time(),
+                              'file': filename, 'type': PLOT_TYPES[title],
+                              'title': " ".join([s, PLOT_TYPES[title]]), 'timestamp': time.time(),
                               'software_packages': version.version}
                 image_recs.append(image_rec)
         if save_plots:
@@ -11468,7 +11469,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             plot_by="all", crd="g", ignore_tilt=False,
             save_plots=True, fmt="svg", contour=False, color_map="coolwarm",
             plot_ell="", n_plots=5, interactive=False, contribution=None,
-            source_table="sites"):
+            source_table="sites", image_records=False):
 
     """
     makes equal area projections from declination/inclination data
@@ -11521,12 +11522,20 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         for example, you could specify source_table="measurements" and plot_by="sites"
         to plot measurement data by site.
         default "sites"
+    image_records : generate and return a record for each image in a list of dicts
+        which can be ingested by pmag.magic_write
+        bool, default False
 
 
     Returns
     ---------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    if image_records == False:
+        type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    if image_records == True:
+       Tuple : (True or False indicating if conversion was sucessful, output file name written, list of image recs)
+
     """
+    image_recs = []
     saved = []
     # parse out input/out directories
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -11576,6 +11585,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
 
         if not os.path.exists(pmag.resolve_file_name(in_file, input_dir_path)):
             print('-E- Could not find {}'.format(in_file))
+            if image_records:
+                return False, [], []
             return False, []
 
         contribution = cb.Contribution(input_dir_path, custom_filenames=fnames,
@@ -11602,6 +11613,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
 
     if plot_key != "all" and plot_key not in data.columns:
         print("-E- You can't plot by {} with the data provided".format(plot_key))
+        if image_records:
+            return False, [], []
         return False, []
 
     # add tilt key into DataFrame columns if it isn't there already
@@ -11622,6 +11635,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         if plot_key not in data.columns:
             print('-E- Can\'t plot by "{}".  That header is not in infile: {}'.format(
                 plot_key, in_file))
+            if image_records:
+                return False, [], []
             return False, []
         plots = data[data[plot_key].notnull()]
         plotlist = plots[plot_key].unique()  # grab unique values
@@ -11933,25 +11948,41 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                 filename = os.path.join(dir_path, filename)
             files[key] = filename
 
+        if image_records:
+            for file_type, filename in files.items():
+                name = specimen or sample or site or locations or "unknown"
+                image_rec = {'location': locations, 'site': site,
+                            'sample': sample, 'specimen': specimen,
+                            'file': filename, 'type': PLOT_TYPES[file_type],
+                            'title': " ".join([name, PLOT_TYPES[file_type]]),
+                            'timestamp': time.time(),
+                            'software_packages': version.version}
+                image_recs.append(image_rec)
+
+        saved_figs = []
         if pmagplotlib.isServer:
             titles = {'eqarea': 'Equal Area Plot'}
             FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
             saved_figs = pmagplotlib.save_plots(FIG, files)
-            saved.extend(saved_figs)
-
+            #saved.extend(saved_figs)
         elif save_plots:
             saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
-            saved.extend(saved_figs)
-            continue
+            #saved.extend(saved_figs)
+            #continue
         elif interactive:
             pmagplotlib.draw_figs(FIG)
             ans = input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans == "q":
-                return True, []
+                if image_records:
+                    return True, saved, image_recs
+                return True, saved
             if ans == "a":
                 saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
-                saved.extend(saved)
+                #saved.extend(saved_figs)
+        saved.extend(saved_figs)
         continue
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 
