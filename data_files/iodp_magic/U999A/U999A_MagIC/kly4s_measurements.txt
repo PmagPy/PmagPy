@@ -1,0 +1,6 @@
+tab 	measurements
+citations	description	dir_dec	dir_inc	experiment	experiments	external_database_ids	instrument_codes	magn_moment	magn_volume	meas_temp	measurement	method_codes	quality	sequence	software_packages	specimen	standard	susc_chi_volume	timestamp	treat_ac_field	treat_dc_field	treat_dc_field_phi	treat_dc_field_theta	treat_step_num	treat_temp
+This study	Bulk sucsecptibility measurement			999-U999A-1H-2-W-15.0_LP-X		LORE[113695221]	IODP-KLY4S			2.730e+02	999-U999A-1H-2-W-15.0_LP-X-0	LP-X	g	0	pmagpy-4.2.25-1	999-U999A-1H-2-W-15.0	u	0.00011177142857142856		0	0	0	0	1	2.730e+02
+This study	Bulk sucsecptibility measurement			999-U999A-1H-1-W-20.0_LP-X		LORE[113685861]	IODP-KLY4S			2.730e+02	999-U999A-1H-1-W-20.0_LP-X-1	LP-X	g	1	pmagpy-4.2.25-1	999-U999A-1H-1-W-20.0	u	0.00011177142857142856		0	0	0	0	1	2.730e+02
+This study	Bulk sucsecptibility measurement			999-U999A-1H-3-W-5.0_LP-X		LORE[113684041]	IODP-KLY4S			2.730e+02	999-U999A-1H-3-W-5.0_LP-X-2	LP-X	g	2	pmagpy-4.2.25-1	999-U999A-1H-3-W-5.0	u	0.00011177142857142856		0	0	0	0	1	2.730e+02
+This study	Bulk sucsecptibility measurement			999-U999A-1H-4-W-14.0_LP-X		LORE[113685271]	IODP-KLY4S			2.730e+02	999-U999A-1H-4-W-14.0_LP-X-3	LP-X	g	3	pmagpy-4.2.25-1	999-U999A-1H-4-W-14.0	u	0.00011177142857142856		0	0	0	0	1	2.730e+02

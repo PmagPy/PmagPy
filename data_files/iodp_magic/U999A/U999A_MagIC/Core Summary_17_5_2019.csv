@@ -1,0 +1,4 @@
+"Exp","Site","Hole","Core","Type","Top depth drilled DSF (m)","Bottom depth drilled DSF (m)","Advanced (m)","Recovered length (m)","Curated length (m)","Top depth cored CSF (m)","Bottom depth recovered (m)","Recovery (%)","Time on deck(UTC)","Sections (no.)","Label ID"
+"999","U999","A","1","H","0.0","9.6","9.6","11.1","10.1","0.0","11.6","116","11/17/2018 00:00","8","999-U999A-1H"
+"999","U999","A","2","H","11.6","22.0","10.4","9.3","9.3","11.6","20.9","89","","7","999-U999A-2H"
+"Totals:","","","","","","","","","","","","","","15",""

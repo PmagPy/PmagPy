@@ -325,10 +325,6 @@ def adj_dec(df,hole):
     core_dec_adj : dict
         dictionary of cores and the average declination
     """ 
-    disturbance_file=hole+'/'+hole+'_disturbances.xlsx'
-    disturbance_df=pd.read_excel(disturbance_file)
-    disturbance_df.dropna(subset=['Drilling disturbance intensity'],inplace=True)
-    disturbance_df=disturbance_df[disturbance_df['Drilling disturbance intensity'].str.contains('high')]
     cores=df.core.unique()
     adj_dec_df=pd.DataFrame(columns=df.columns)
     core_dec_adj={}
