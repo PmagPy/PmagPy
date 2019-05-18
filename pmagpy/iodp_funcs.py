@@ -185,7 +185,7 @@ def remove_ends(arch_demag_step,hole,core_top=80,section_ends=10):
         IODP hole
     core_top : float
         cm to remove from the core top
-    setion_ends : float
+    section_ends : float
         cm to remove from the section ends
     
     Returns
