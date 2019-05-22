@@ -23,22 +23,35 @@ class TestMakeMagicPlots(unittest.TestCase):
 
 
     def tearDown(self):
+        #return
         glob_strings = ["*.png", "*errors*", "log.txt"]
         for glob_string in glob_strings:
             for filename in glob.glob(glob_string):
                 os.remove(filename)
+        # remove Osler images file if one was created
+        if os.path.exists(os.path.join(WD, 'data_files', '3_0', 'Osler', "images.txt")):
+            os.remove(os.path.join(WD, 'data_files', '3_0', 'Osler', "images.txt"))
         os.chdir(WD)
-        # restore images.txt to original
+        # restore McMurdo images.txt to original
+        copyfile(os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt"), os.path.join(WD, 'data_files', '3_0', 'McMurdo', "last_images.txt"))
         copyfile(os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt.bak"), os.path.join(WD, 'data_files', '3_0', 'McMurdo', "images.txt"))
 
 
     def test_make_plots(self):
         dir_path = os.path.join(WD, 'data_files', '3_0', 'Osler')
+        image_file = os.path.join(dir_path, 'images.txt')
         os.chdir(dir_path)
         for filename in glob.glob("*error*"):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
         self.assertFalse(glob.glob("errors.txt"))
+        self.assertTrue(os.path.exists(image_file))
+        lines = pmag.magic_read(image_file)[0]
+        for line in lines:
+            print(line)
+        self.assertEqual(len(lines), 2)
+        self.assertFalse("image" in lines[0].keys())
+
         if pmagplotlib.isServer:
             self.assertFalse(glob.glob("thumbnail_errors.txt"))
             self.assertEqual(14, len(glob.glob("*.png")))
@@ -60,7 +73,7 @@ class TestMakeMagicPlots(unittest.TestCase):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
         lines = pmag.magic_read("images.txt")[0]
-        self.assertEqual(len(lines), 511)
+        self.assertEqual(len(lines), 532)
         self.assertFalse("image" in lines[0].keys())
         self.assertFalse(glob.glob("errors.txt"))
         if pmagplotlib.isServer:

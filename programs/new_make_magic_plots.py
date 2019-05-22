@@ -290,12 +290,15 @@ def main():
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
                     CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
-                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements')".format(con)
+                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
-                    ipmag.eqarea_magic(fmt="png", n_plots=20, ignore_tilt=True, plot_by="spc",
-                                       contribution=con, source_table="measurements")
-                    #os.system(CMD)
+                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots=20,
+                                                                          ignore_tilt=True, plot_by="spc",
+                                                                          contribution=con,
+                                                                          source_table="measurements",
+                                                                          image_records=True)
+                    image_recs.extend(eqarea_spc_images)
 
         else:
             if VERBOSE:
@@ -359,8 +362,10 @@ def main():
                     CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    ipmag.eqarea_magic(crd=crd, fmt="png", n_plots=20, contribution=con, source_table="sites")
-                    #os.system(CMD)
+                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt="png", n_plots=20,
+                                                                   contribution=con, source_table="sites",
+                                                                   image_records=True)
+                    image_recs.extend(eqarea_site_recs)
                 else:
                     if dir_data_found:
                         error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py", con_id=con_id)
