@@ -10546,6 +10546,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     if specimen:
         specimens = [specimen]
     for s in specimens:
+        s = str(s)
         ZED, interpretations = make_plots(s, cnt, meas_df, spec_container, samp_container)
         if not ZED:
             if pmagplotlib.verbose:
