@@ -3042,8 +3042,8 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 
 
 ### IODP_dscr_magic conversion
-def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",volume=7,noave=False,\
-              meas_file="measurements.txt", offline_meas_file="",spec_file="specimens.txt"):
+def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",volume=7,noave=False,
+                   meas_file="measurements.txt", offline_meas_file="",spec_file="specimens.txt"):
     """
     Convert IODP discrete measurement files in MagIC file(s). This program
     assumes that you have created the specimens, samples, sites and location
@@ -3095,11 +3095,14 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     dscr_file = pmag.resolve_file_name(dscr_file, input_dir_path)
     if dscr_ex_file:dscr_ex_file = pmag.resolve_file_name(dscr_ex_file, input_dir_path)
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    # just in case, check if the specimen file is in the input directory instead
+    if not os.path.exists(spec_file):
+        spec_file = pmag.resolve_file_name(os.path.split(spec_file)[1], input_dir_path)
     specimens_df=pd.read_csv(spec_file,sep='\t',header=1)
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
         print ('see convert_2_magic.iodp_samples_csv for help')
-        return False
+        return False, ""
     LORE_specimens=list(specimens_df.specimen.unique())
     in_df=pd.read_csv(dscr_file)
     in_df['offline_treatment']=""
@@ -3114,7 +3117,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     in_df.drop_duplicates(inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
-        return False
+        return False, ""
     in_df.sort_values(by='Test No.',inplace=True)
     in_df.reset_index(inplace=True)
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
@@ -3123,7 +3126,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         offline_meas_out = os.path.join(output_dir_path, offline_meas_file)
     if dscr_ex_file and not offline_meas_file:
         print ("You must specify an output file for the offline measurements with dscr_ex_file")
-        return
+        return False, ""
     hole,srm_specimens=iodp_sample_names(in_df)
     for spec in list(srm_specimens.unique()):
         if spec not in LORE_specimens:
@@ -3244,7 +3247,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
 
-    return True
+    return True, meas_out
 
 ### IODP_jr6_magic
 
@@ -4160,7 +4163,8 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     site_dicts = sites_df.to_dict('records')
     pmag.magic_write(site_out, site_dicts, 'sites')
     pmag.magic_write(loc_out, loc_dicts, 'locations')
-    return True
+    return True, samp_out
+
 
 def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_file="sites.txt",dir_path='.',
                  input_dir_path='',comp_depth_key="",lat="",lon=""):
@@ -4325,7 +4329,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     in_df.sort_values(by='Treatment Value',inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
-        return False
+        return False, ""
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
     hole,srm_specimens=iodp_samples_srm(in_df, spec_file=spec_file,samp_file=samp_file,site_file=site_file,\
@@ -4376,7 +4380,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
-    return True
+    return True, meas_out
 
 
 ### IODP_srm_magic conversion (old)
