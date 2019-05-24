@@ -3251,8 +3251,8 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
 
 ### IODP_jr6_magic
 
-def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False,dc_field=50e-6,\
-              meas_file="measurements.txt", spec_file="specimens.txt"):
+def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False,dc_field=50e-6,
+                  meas_file="measurements.txt", spec_file="specimens.txt"):
     """
     Convert IODP JR6 measurement files in MagIC file(s). This program
     assumes that you have created the specimens, samples, sites and location
@@ -3302,7 +3302,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     if len(specimens_df)==0:
         print ('you must download and process the samples table from LORE prior to using this')
         print ('see convert_2_magic.iodp_samples_csv for help')
-        return False
+        return False, ""
     LORE_specimens=list(specimens_df.specimen.unique())
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
@@ -3310,7 +3310,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     in_df=pd.read_csv(jr6_file)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
-        return False
+        return False, ""
     in_df.sort_values(by='Treatment value (mT or °C or ex. B14)',inplace=True)
     hole,jr6_specimens=iodp_sample_names(in_df)
     for spec in list(jr6_specimens.unique()):
@@ -3376,7 +3376,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
 
-    return True
+    return True, meas_out
 
 
 def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',

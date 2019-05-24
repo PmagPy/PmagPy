@@ -805,7 +805,8 @@ class TestIodpDscrLore(unittest.TestCase):
 
     def tearDown(self):
         files = ['srm_arch_specimens.txt', 'srm_arch_samples.txt',
-                 'srm_arch_sites.txt', 'srm_arch_measurements.txt']
+                 'srm_arch_sites.txt', 'srm_arch_measurements.txt',
+                 'srm_dscr_measurements.txt']
         pmag.remove_files(files, WD)
 
 
@@ -815,6 +816,38 @@ class TestIodpDscrLore(unittest.TestCase):
         res, outfile = convert.iodp_dscr_lore(srm_discrete_file, meas_file='srm_dscr_measurements.txt',
                                               dir_path=".",input_dir_path=srm_discrete_dir,
                                               spec_file='lims_specimens.txt')
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists(outfile))
+
+
+class TestIodpJr6Lore(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.hole_lat = -56.557775
+        self.hole_lon = -42.64212833333333
+        self.dir_path = "data_files/iodp_magic/U999A"
+        # generate specimens/samples files needed for conversion
+        comp_depth_key='Top depth CSF-B (m)'
+        samp_file = "samples_17_5_2019.csv"
+        res, outfile = convert.iodp_samples_csv(samp_file, input_dir_path=self.dir_path,
+                                                spec_file='lims_specimens.txt',
+                                                samp_file='lims_samples.txt', site_file='lims_sites.txt',
+                                                dir_path=".", comp_depth_key=comp_depth_key,
+                                                lat=self.hole_lat, lon=self.hole_lon)
+
+
+    def tearDown(self):
+        files = ['lims_specimens.txt', 'lims_samples.txt',
+                 'lims_sites.txt', 'locations.txt', 'jr6_measurements.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        jr6_dir = os.path.join(self.dir_path, 'JR6_data')
+        jr6_file = "spinner_17_5_2019.csv"
+        res, outfile = convert.iodp_jr6_lore(jr6_file,meas_file='jr6_measurements.txt',dir_path=".",
+                                             input_dir_path=jr6_dir, spec_file='lims_specimens.txt',
+                                             noave=False)
         self.assertTrue(res)
         self.assertTrue(os.path.exists(outfile))
 
