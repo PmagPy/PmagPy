@@ -852,6 +852,42 @@ class TestIodpJr6Lore(unittest.TestCase):
         self.assertTrue(os.path.exists(outfile))
 
 
+class TestIodpKly4sLore(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+        self.hole_lat = -56.557775
+        self.hole_lon = -42.64212833333333
+        self.dir_path = "data_files/iodp_magic/U999A"
+        # generate specimens/samples files needed for conversion
+        comp_depth_key='Top depth CSF-B (m)'
+        samp_file = "samples_17_5_2019.csv"
+        res, outfile = convert.iodp_samples_csv(samp_file, input_dir_path=self.dir_path,
+                                                spec_file='lims_specimens.txt',
+                                                samp_file='lims_samples.txt', site_file='lims_sites.txt',
+                                                dir_path=".", comp_depth_key=comp_depth_key,
+                                                lat=self.hole_lat, lon=self.hole_lon)
+
+    def tearDown(self):
+        files = ['lims_specimens.txt', 'lims_samples.txt',
+                 'lims_sites.txt', 'locations.txt',
+                 'kly4s_specimens.txt', 'kly4s_measurements.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        kly4s_dir = os.path.join(self.dir_path, 'KLY4S_data')
+        kly4s_file = "ex-kappa_17_5_2019.csv"
+        res, outfile = convert.iodp_kly4s_lore(kly4s_file, meas_out='kly4s_measurements.txt',
+                                               spec_infile='lims_specimens.txt',
+                                               spec_out='kly4s_specimens.txt',
+                                               dir_path=".", input_dir_path=kly4s_dir,
+                                               actual_volume=7)
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists(outfile))
+        self.assertTrue(os.path.exists('kly4s_specimens.txt'))
+
+
+
 class TestJr6TxtMagic(unittest.TestCase):
 
     def setUp(self):
