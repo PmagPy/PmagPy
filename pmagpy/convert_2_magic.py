@@ -4048,7 +4048,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
                        'core_depth','composite_depth',\
                        'geologic_types','geologic_classes','lithologies',\
                       'age','age_low','age_high','age_unit','citations']
-    loc_reqd_columns=['expedition_name','expedition_ship','expedition_description','lat_s','lat_n',\
+    loc_reqd_columns=['location', 'expedition_name','expedition_ship','expedition_description','lat_s','lat_n',\
                       'geologic_classes','lithologies','location_type',\
                       'lon_w','lon_e','age_low','age_high','age_unit','citations']
     # fix the path names for input and output directories (if different)
@@ -4097,7 +4097,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     for hole in unique_holes:
         loc_dict={}
         print (hole)
-        loc_dict['location_name']=hole
+        loc_dict['location']=hole
         loc_dict['expedition_name']=exp_name
         loc_dict['expedition_ship']='JOIDES Resolution'
         loc_dict['expedition_description']=exp_desc
