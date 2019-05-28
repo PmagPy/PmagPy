@@ -23,8 +23,6 @@ from programs.conversion_scripts import cit_magic
 from programs.conversion_scripts import huji_magic
 from programs.conversion_scripts import _2g_bin_magic
 from programs.conversion_scripts import ldeo_magic
-from programs.conversion_scripts import iodp_srm_magic
-from programs.conversion_scripts import iodp_dscr_magic
 from programs.conversion_scripts import pmd_magic
 from programs.conversion_scripts import jr6_txt_magic
 from programs.conversion_scripts import jr6_jr6_magic
@@ -1756,10 +1754,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
                 pw.simple_warning("Couldn't read in {}. Trying to continue with next step.".format(samp_infile))
 
         if is_section: # SRM section
-            COMMAND = "iodp_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
-            #program_ran, error_message = convert.iodp_srm(**options)
-            program_ran = True
-            # then do srm conversion
+            COMMAND = "convert.iodp_srm_lore({}, {}, {}, noave={}, comp_depth_key={}, meas_file={}, lat={}, lon={})".format(IODP_file, wd, ID, noave, comp_depth_key, outfile, lat, lon)
             program_ran, error_message = convert.iodp_srm_lore(IODP_file, wd, ID, noave=noave,
                                                                comp_depth_key=comp_depth_key,
                                                                meas_file=outfile,
@@ -1770,8 +1765,8 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
                 pw.simple_warning(error_message)
         else: # SRM discrete
             COMMAND = "iodp_dscr_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
-            #program_ran, error_message = convert.iodp_dscr(**options)
-            # do dscr conversion
+            COMMAND = "convert.iodp_dscr_lore({}, dir_path={}, input_dir_path={}, volume={}, noave={}, meas_file={}, spec_file='specimens.txt')".format(IODP_file, wd, ID, volume, noave, outfile)
+            # check for needed specimens file
             if not os.path.exists(os.path.join(wd, "specimens.txt")):
                 pw.simple_warning("You need to provide an IODP samples data file")
                 return
@@ -1812,9 +1807,9 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
     def on_helpButton(self, event):
         is_section = self.bSizer0a.return_value()
         if is_section:
-            pw.on_helpButton(text=iodp_srm_magic.do_help())
+            pw.on_helpButton(text=convert.iodp_srm_lore.__doc__)
         else:
-            pw.on_helpButton(text=iodp_dscr_magic.do_help())
+            pw.on_helpButton(text=convert.iodp_dscr_lore.__doc__)
 
 
 
