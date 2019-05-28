@@ -49,7 +49,7 @@ class import_magnetometer_data(wx.Dialog):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         formats = ['generic format','SIO format','CIT format','2g-binary format',
-                   'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
+                   'HUJI format','LDEO format','IODP format','PMD (ascii) format',
                    'TDT format', 'JR6 format', 'Utrecht format', 'BGC format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
@@ -1624,7 +1624,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
         pnl = self.panel
 
-        TEXT = "IODP csv format file"
+        TEXT = "IODP format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1634,10 +1634,11 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         label2 = "SRM discrete"
 
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
-        #self.bSizer0a = pw.radio_buttons(pnl, ['old format', 'srm', 'discrete'], 'IODP file type')
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_switch_format, self.bSizer0a.rb1)
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_switch_format, self.bSizer0a.rb2)
 
         #---sizer 0b ---
-        TEXT = "If you don't choose a file, Pmag GUI will try to import any .csv files in your working directory into one MagIC format file"
+        TEXT = "Please provide Depth key and Volume below.  You may optionally provide a samples data file."
         self.bSizer0b = pw.simple_text(pnl, TEXT)
 
         #---sizer 0 ----
@@ -1649,6 +1650,17 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 2 ----
         self.bSizer2 = pw.replicate_measurements(pnl)
 
+        #---sizer 3 ----
+        #self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 12 cc.\nPlease provide volume in cc.')
+        self.bSizer3 = pw.labeled_text_field(pnl, 'Volume in cc, default is 7cc.')
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_text_field(pnl, 'Depth Key, default is "Depth CSF-B (m)"')
+
+        #---sizer 5 ---
+        self.bSizer5 = pw.choose_file(pnl, 'add', method = self.on_add_samples_button,
+                                      text="IODP samples data file downloaded from LIMS")
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1658,13 +1670,13 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer0b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.AddSpacer(10)
@@ -1672,14 +1684,14 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.Add(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.Add(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
 
@@ -1695,6 +1707,13 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         ID, IODP_file = os.path.split(full_file)
         if not ID:
             ID = '.'
+        if not IODP_file:
+            if is_section:
+                ftype = "IODP archive half measurement"
+            else:
+                ftype = "IODP discrete measurement"
+            pw.simple_warning("You must provide an {} file to convert".format(ftype))
+            return
         options['csv_file'] = IODP_file
         options['input_dir_path'] = ID
         outfile = IODP_file + ".magic"
@@ -1710,32 +1729,85 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         replicate = self.bSizer2.return_value()
         if replicate: # do average
             replicate = ''
+            noave = 0
             options['noave'] = 0
         else: # don't average
             replicate = "-A"
             options['noave'] = 1
+            noave = 1
         try: lat,lon = self.bSizer1.return_value().split()
         except ValueError: lat,lon = '',''
         options['lat'] = lat
         options['lon'] = lon
         lat_with_flag,lon_with_flag = '-lat '+lat,'-lon '+lon
+        volume = self.bSizer3.return_value()
+        if not volume:
+            volume = 7
+        comp_depth_key = self.bSizer4.return_value()
+        samp_infile = self.bSizer5.return_value()
+
+        # if sample file is available, run that conversion first
+        if samp_infile:
+            program_ran, error_message = convert.iodp_samples_csv(samp_infile)
+            if program_ran:
+                print('-I- samples are read in')
+            else:
+                print('-W ', error_message)
+                pw.simple_warning("Couldn't read in {}. Trying to continue with next step.".format(samp_infile))
 
         if is_section: # SRM section
             COMMAND = "iodp_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
-            program_ran, error_message = convert.iodp_srm(**options)
+            #program_ran, error_message = convert.iodp_srm(**options)
+            program_ran = True
+            # then do srm conversion
+            program_ran, error_message = convert.iodp_srm_lore(IODP_file, wd, ID, noave=noave,
+                                                               comp_depth_key=comp_depth_key,
+                                                               meas_file=outfile,
+                                                               lat=lat, lon=lon)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
         else: # SRM discrete
             COMMAND = "iodp_dscr_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
-            program_ran, error_message = convert.iodp_dscr(**options)
+            #program_ran, error_message = convert.iodp_dscr(**options)
+            # do dscr conversion
+            if not os.path.exists(os.path.join(wd, "specimens.txt")):
+                pw.simple_warning("You need to provide an IODP samples data file")
+                return
+            program_ran, error_message = convert.iodp_dscr_lore(IODP_file, dir_path=wd,
+                                                                input_dir_path=ID, volume=volume, noave=noave,
+                                                                meas_file=outfile, spec_file="specimens.txt")
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
 
         del wait
+
+    def on_switch_format(self, event):
+        is_section = self.bSizer0a.return_value()
+        if is_section:
+            self.bSizer0b.static_text.SetLabel("Please provide Depth key and Volume below.\nYou may optionally provide a samples data file.")
+            self.bSizer3.text_field.Enable()
+            self.bSizer3.label.SetForegroundColour(wx.BLACK)
+            self.bSizer4.text_field.Enable()
+            self.bSizer4.label.SetForegroundColour(wx.BLACK)
+        else:
+            self.bSizer0b.static_text.SetLabel("If you haven't already imported a samples data file from LIMS, please do so below!\nThis is required to complete the SRM discrete import.")
+            self.bSizer3.text_field.Disable()
+            self.bSizer3.label.SetForegroundColour((190, 190, 190))
+            self.bSizer4.text_field.Disable()
+            self.bSizer4.label.SetForegroundColour((190, 190, 190))
+
+        self.hbox_all.Fit(self)
+
+
+
+    def on_add_samples_button(self, event):
+        text = "choose sample file downloaded from LIMS"
+        pw.on_add_file_button(self.bSizer5, text)
+
 
     def on_helpButton(self, event):
         is_section = self.bSizer0a.return_value()
@@ -2018,7 +2090,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_sampfile_button(self, event):
-        text = "choose er_samples type file"
+        text = "choose samples type file"
         pw.on_add_file_button(self.bSizer0c, text)
 
     def on_okButton(self, event):

@@ -17,7 +17,8 @@ from pmagpy.controlled_vocabularies3 import Vocabulary
 
 class choose_file(wx.StaticBoxSizer):
 
-    def __init__(self, parent, btn_text='add', method=None, remove_button=False):
+    def __init__(self, parent, btn_text='add', method=None, remove_button=False,
+                 text="Choose file (no spaces are allowed in path):"):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
@@ -27,7 +28,6 @@ class choose_file(wx.StaticBoxSizer):
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text, name=btn_text)
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
-        text = "Choose file (no spaces are allowed in path):"
         self.Add(wx.StaticText(self.parent, label=text), flag=wx.ALIGN_LEFT)
         self.AddSpacer(4)
         if remove_button:
@@ -117,7 +117,8 @@ class simple_text(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(simple_text, self).__init__(box, orient=wx.HORIZONTAL)
-        self.Add(wx.StaticText(self.parent, label=TEXT), wx.ALIGN_LEFT)
+        self.static_text = wx.StaticText(self.parent, label=TEXT)
+        self.Add(self.static_text, wx.ALIGN_LEFT)
 
 
 class labeled_text_field(wx.StaticBoxSizer):
@@ -125,7 +126,8 @@ class labeled_text_field(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(labeled_text_field, self).__init__(box, orient=wx.HORIZONTAL)
-        self.Add(wx.StaticText(self.parent, label=label), wx.ALIGN_LEFT)
+        self.label = wx.StaticText(self.parent, label=label)
+        self.Add(self.label, wx.ALIGN_LEFT)
         self.AddSpacer(4)
         self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100, 25))
         self.Add(self.text_field, wx.ALIGN_LEFT)

@@ -3084,7 +3084,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     # format variables
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # convert cc to m^3
-    volume = volume * 1e-6
+    volume = float(volume) * 1e-6
     meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
                        'instrument_codes','citations',\
                        'treat_temp','treat_ac_field','treat_dc_field',\
@@ -4046,10 +4046,10 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
                        'azimuth','dip','azimuth_correction','method_codes','citations']
     site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
                        'core_depth','composite_depth',\
-                       'geologic_types','geologic_classes','geologic_lithologies',\
+                       'geologic_types','geologic_classes','lithologies',\
                       'age','age_low','age_high','age_unit','citations']
     loc_reqd_columns=['expedition_name','expedition_ship','expedition_description','lat_s','lat_n',\
-                      'geologic_classes','geologic_lithologies','location_type',\
+                      'geologic_classes','lithologies','location_type',\
                       'lon_w','lon_e','age_low','age_high','age_unit','citations']
     # fix the path names for input and output directories (if different)
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -4208,7 +4208,7 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
                        'azimuth','dip','azimuth_correction','method_codes','citations','core_depth','composite_depth']
     site_reqd_columns=['site','location','lat','lon','result_type','result_quality','method_codes',\
                        'core_depth','composite_depth',\
-                       'geologic_types','geologic_classes','geologic_lithologies',\
+                       'geologic_types','geologic_classes','lithologies',\
                       'age','age_low','age_high','age_unit','citations']
     # fix the path names for input and output directories (if different)
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -4280,8 +4280,8 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     return holes[0],specimens
 
 def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_depth_key='Depth CSF-B (m)',\
-              meas_file="srm_arch_measurements.txt", spec_file="srm_arch_specimens.txt",\
-                 samp_file='srm_arch_samples.txt',site_file='srm_arch_sites.txt',lat="",lon=""):
+                  meas_file="srm_arch_measurements.txt", spec_file="srm_arch_specimens.txt",\
+                  samp_file='srm_arch_samples.txt',site_file='srm_arch_sites.txt',lat="",lon=""):
     """
     Convert IODP archive half measurement files into MagIC file(s).
 
@@ -4329,7 +4329,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     in_df.sort_values(by='Treatment Value',inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
-        return False, ""
+        return False, 'you must download a csv file from the LIMS database and place it in your input_dir_path'
     measurements_df=pd.DataFrame(columns=meas_reqd_columns)
     meas_out = os.path.join(output_dir_path, meas_file)
     hole,srm_specimens=iodp_samples_srm(in_df, spec_file=spec_file,samp_file=samp_file,site_file=site_file,\
