@@ -80,6 +80,7 @@ matrix:
             - libnotify-dev
             - libproj-dev # Proj.4 is a dependency of cartopy
       before_install:
+        - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 762E3157
         - sudo apt-get update -qq  # make sure package indexes are up to date
         - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
         # this is needed with non-xenial!
