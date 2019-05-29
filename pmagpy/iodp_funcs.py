@@ -136,7 +136,8 @@ def inc_hist(df,inc_key='dir_inc'):
     plt.xlabel('Inclination')
     plt.xlim(-90,90)
     
-def demag_step(magic_dir,hole,demag_step):
+def demag_step(magic_dir,hole,demag_step,meas_file='srm_arch_measurements.txt',
+               site_file='srm_arch_sites.txt',depth_key='core_depth',verbose=True):
     """
     Selects the desired demagnetization step, and puts the core/section/offset information
     into the returned data frame
@@ -149,16 +150,21 @@ def demag_step(magic_dir,hole,demag_step):
         IODP Hole
     demag_step : float
         desired demagnetization step in tesla
-
+    meas_file : str
+        input measurement.txt format file for IODP  measurements
+    site_file : str
+        input sites.txt format file for  sites.
+    verbose : boolean
+        if True, announce return of dataframe
     Returns
     ___________
     DataFrame with selected step and additional metadata
 
     """
-    arch_data=pd.read_csv(magic_dir+'/srm_arch_measurements.txt',sep='\t',header=1) 
-    depth_data=pd.read_csv(magic_dir+'/srm_arch_sites.txt',sep='\t',header=1)
+    arch_data=pd.read_csv(magic_dir+'/'+meas_file,sep='\t',header=1) 
+    depth_data=pd.read_csv(magic_dir+'/'+site_file,sep='\t',header=1)
     depth_data['specimen']=depth_data['site']
-    depth_data=depth_data[['specimen','core_depth']]
+    depth_data=depth_data[['specimen',depth_key]]
     depth_data.sort_values(by='specimen')
     arch_data=pd.merge(arch_data,depth_data,on='specimen')
     arch_demag_step=arch_data[arch_data['treat_ac_field']==demag_step]
@@ -168,9 +174,10 @@ def demag_step(magic_dir,hole,demag_step):
     arch_demag_step['offset']=pieces['offset'].astype('float')
     arch_demag_step['core']=pieces['core']
     arch_demag_step['section']=pieces['sect']
+    arch_demag_step['hole']=hole
     arch_demag_step.drop_duplicates(inplace=True)
     arch_demag_step.to_csv(hole+'/'+hole+'_arch_demag_step.csv',index=False)
-    print ("Here's your demagnetization step DataFrame")
+    if verbose: print ("Here's your demagnetization step DataFrame")
     return arch_demag_step
 
 def remove_ends(arch_demag_step,hole,core_top=80,section_ends=10):
