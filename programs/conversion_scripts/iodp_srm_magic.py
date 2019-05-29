@@ -22,12 +22,14 @@ OPTIONS
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
+    -key : depth key, default "Depth CSF-B (m)"
 
 INPUTS
     IODP .csv file format exported from LIMS database
 """
 import sys
 from pmagpy import convert_2_magic as convert
+from pmagpy import pmag
 
 
 def do_help():
@@ -49,7 +51,7 @@ def main():
         kwargs['noave'] = 1
     if '-f' in sys.argv:
         ind = sys.argv.index("-f")
-        kwargs['csv_file'] = sys.argv[ind+1]
+        kwargs['srm_file'] = sys.argv[ind+1]
     if '-F' in sys.argv:
         ind = sys.argv.index("-F")
         kwargs['meas_file'] = sys.argv[ind+1]
@@ -71,8 +73,9 @@ def main():
     if "-lon" in sys.argv:
         ind = sys.argv.index("-lon")
         kwargs['lon'] = sys.argv[ind+1]
-
-    convert.iodp_srm(**kwargs)
+    kwargs['comp_depth_key'] = pmag.get_named_arg("-key", 'Depth CSF-B (m)')
+    # do conversion
+    convert.iodp_srm_lore(**kwargs)
 
 
 if __name__ == '__main__':
