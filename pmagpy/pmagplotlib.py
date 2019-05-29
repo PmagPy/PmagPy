@@ -734,7 +734,7 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     if angle == 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     plt.xlabel(xlab)
-    #plt.ylabel('Circles: Y; Squares: Z')
+    plt.ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
     plt.axis([amin, amax, amax, amin])
     plt.axis("equal")
