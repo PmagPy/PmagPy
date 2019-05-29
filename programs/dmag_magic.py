@@ -67,7 +67,7 @@ def main():
     loc_file = pmag.get_named_arg("-flo", default_val="locations.txt")
     ipmag.dmag_magic(in_file, dir_path, input_dir_path, spec_file, samp_file,
                      site_file, loc_file, plot_by, LT, norm, XLP,
-                     save_plots, fmt, interactive)
+                     save_plots, fmt, interactive, n_plots="all")
 
 
 if __name__ == "__main__":
