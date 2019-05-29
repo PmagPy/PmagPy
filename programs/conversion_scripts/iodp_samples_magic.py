@@ -15,15 +15,12 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([['WD', False, '.'], ['ID', False, '.'], ['f', True, ''], ['Fsa', False, 'samples.txt'], ['DM', False, 3]])
+    dataframe = extractor.command_line_dataframe([['WD', False, '.'], ['ID', False, '.'], ['f', True, ''], ['Fsa', False, 'samples.txt']])
     args = sys.argv
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    samp_file, output_samp_file, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(['f', 'Fsa', 'WD', 'ID', 'DM'], checked_args)
-    data_model_num = int(float(data_model_num))
-    if '-Fsa' not in args and data_model_num == 2:
-        output_samp_file = "er_samples.txt"
-    ran, error = convert.iodp_samples(samp_file, output_samp_file, output_dir_path,
-                                      input_dir_path, data_model_num=data_model_num)
+    samp_file, output_samp_file, output_dir_path, input_dir_path = extractor.get_vars(['f', 'Fsa', 'WD', 'ID'], checked_args)
+    ran, error = convert.iodp_samples_csv(samp_file, samp_file=output_samp_file, dir_path=output_dir_path,
+                                          input_dir_path=input_dir_path)
     if not ran:
         print("-W- " + error)
 

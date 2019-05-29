@@ -3045,7 +3045,7 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",volume=7,noave=False,
                    meas_file="measurements.txt", offline_meas_file="",spec_file="specimens.txt"):
     """
-    Convert IODP discrete measurement files in MagIC file(s). This program
+    Convert IODP discrete measurement files into MagIC file(s). This program
     assumes that you have created the specimens, samples, sites and location
     files using convert_2_magic.iodp_samples_csv from files downloaded from the LIMS online
     repository and that all samples are in that file.
