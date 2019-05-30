@@ -25,6 +25,7 @@ from setuptools import setup, find_packages
 from codecs import open
 import os
 from os import path
+import glob
 from pmagpy import version
 
 version_num = version.version.strip('pmagpy-')
@@ -67,7 +68,7 @@ def do_walk(data_path):
             continue
         else:
             for Dir in dirs:
-                do_walk(os.path.join(dir_path, Dir))
+                do_walk(path.join(dir_path, Dir))
     return data_files
 
 def parse_dict(dictionary):
@@ -90,8 +91,9 @@ def parse_dict(dictionary):
 data_files = do_walk('data_files')
 formatted, formatted_dict = parse_dict(data_files)
 # add notebooks
-formatted.append(('data_files', ['PmagPy.ipynb']))
-formatted.append(('data_files', ['PmagPy-cli.ipynb']))
+notebooks = glob.glob("*.ipynb")
+for notebook in notebooks:
+    formatted.append(('data_files', [notebook]))
 
 
 # Get the long description from the README file

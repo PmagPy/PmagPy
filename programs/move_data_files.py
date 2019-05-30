@@ -57,15 +57,9 @@ def main():
     # now try to get notebooks
     pmagpy_dir = find_pmag_dir.get_pmag_dir()
     # needs all the notebooks
-    for notebook in glob.glob("PmagPy*.ipynb"):
-        # for pip install
-        notebook_location = path.join(dest, 'data_files', notebook)
-        if path.exists(notebook_location):
-            shutil.copy(path.join(dest, 'data_files', notebook), path.join(dest, notebook))
-        # for developer install
-        elif pmagpy_dir:
-            if path.exists(path.join(pmagpy_dir, notebook)):
-                shutil.copy(path.join(pmagpy_dir, notebook), path.join(dest, notebook))
+    for notebook_location in glob.glob(path.join(source, "data_files", "PmagPy*.ipynb")):
+        notebook_name = os.path.split(notebook_location)[1]
+        shutil.copy(notebook_location, path.join(dest, notebook_name))
 
 
 if __name__ == "__main__":
