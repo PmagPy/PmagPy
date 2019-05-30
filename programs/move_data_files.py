@@ -10,6 +10,7 @@ import shutil
 import sys
 import os
 from os import path
+import glob
 from pmagpy import pmag
 from pmagpy import find_pmag_dir
 
@@ -25,7 +26,7 @@ def copy_directory(src, dest):
         # Any error saying that the directory doesn't exist
     except OSError as error:
         print('-W- Directory not copied. Error: %s' % error)
-        print("    If you have a developer install, move_data_files.py won't work.  Simply navigate to your PmagPy directory.  You can find data_files, PmagPy.ipynb and PmagPy-cli.ipynb there.")
+        print("    If you have a developer install, move_data_files.py won't work.  Simply navigate to your PmagPy directory.  You can find the data_files directory and all PmagPy notebooks there.")
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
         print("    Choose the folder where you want the PmagPy data files to be.")
         print("    Navigate to that folder, and use the command: 'move_data_files.py'")
         print("    Alternatively, you may use the full path to the directory of your choice from anywhere in the file system, using the '-d' flag: 'move_data_files.py -d /Users/***/Desktop' where *** is your username")
-        print("    **IMPORTANT** If you have a developer install, this won\'t work.  Simply navigate to your PmagPy directory.  You can find data_files, PmagPy.ipynb and PmagPy-cli.ipynb there.")
+        print("    **IMPORTANT** If you have a developer install, move_data_files.py won't work.  Simply navigate to your PmagPy directory.  You can find the data_files directory and all PmagPy notebooks there.")
         sys.exit()
     # create PmagPy-data directory
     dest = pmag.get_named_arg('-d', '.', False)
@@ -55,7 +56,8 @@ def main():
     copy_directory(data_files, dest)
     # now try to get notebooks
     pmagpy_dir = find_pmag_dir.get_pmag_dir()
-    for notebook in ['PmagPy.ipynb', 'PmagPy-cli.ipynb']:
+    # needs all the notebooks
+    for notebook in glob.glob("PmagPy*.ipynb"):
         # for pip install
         notebook_location = path.join(dest, 'data_files', notebook)
         if path.exists(notebook_location):
