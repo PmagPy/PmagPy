@@ -3288,7 +3288,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     # format variables
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     # convert cc to m^3
-    volume = volume * 1e-6
+    volume = float(volume) * 1e-6
     meas_reqd_columns=['specimen','measurement','experiment','sequence','quality','method_codes',\
                        'instrument_codes','citations',\
                        'treat_temp','treat_ac_field','treat_dc_field',\
