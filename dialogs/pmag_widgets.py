@@ -348,7 +348,7 @@ class radio_buttons(wx.StaticBoxSizer):
         self.radio_buttons = [rb1]
         for choice in choices[1:]:
             rb = wx.RadioButton(parent, label=choice)
-            self.Add(rb)
+            self.Add(rb, flag=wx.ALL, border=2)
             self.radio_buttons.append(rb)
 
     def return_value(self):
