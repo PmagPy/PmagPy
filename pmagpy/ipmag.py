@@ -14,6 +14,10 @@ import os
 import sys
 import time
 import re
+try:
+    import requests
+except ImportError:
+    requests = None
 encoding = "ISO-8859-1"
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
@@ -4248,6 +4252,37 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                             print(len(lrecs), ' stored in ', outfile_name)
     return True
 
+
+def download_from_magic(con_id, dir_path="."):
+    """
+    Download a MagIC contribution directly from the MagIC API.
+    If successful, this will write individual MagIC files to
+    your chosen dir_path
+
+    Parameters
+    ----------
+    con_id : number
+        MagIC contribution id, i.e. 12366
+    dir_path : str, default "."
+        directory for outputting files
+
+    Returns
+    ---------
+    bool : True or False indicating whether download was successful
+    """
+    if not requests:
+        print('-W- You must install the requests module to use this functionality')
+        return
+    try:
+        res = requests.get('https://earthref.org/MagIC/download/{}/'.format(con_id))
+    except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout):
+        print("-W- Could not connect to MagIC")
+        return
+    if not res.ok:
+        print("-W- Could not connect to MagIC -- check your requested contribution id ({})".format(con_id))
+        return
+    return download_magic(dir_path=dir_path, txt=res.text)
 
 def upload_magic2(concat=0, dir_path='.', data_model=None):
     """
