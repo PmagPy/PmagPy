@@ -1709,10 +1709,10 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         ID, IODP_file = os.path.split(full_file)
         if not ID:
             ID = '.'
+        fmt = self.bSizer0a.return_value()
         if not IODP_file:
-            ftype = self.bSizer0a.return_value()
-            article = "an" if ftype[0] == "S" else "a"
-            pw.simple_warning("You must provide {} {} file to convert".format(article, ftype))
+            article = "an" if fmt[0] == "S" else "a"
+            pw.simple_warning("You must provide {} {} file to convert".format(article, fmt))
             return
         outfile = IODP_file + ".magic"
         spec_outfile = IODP_file[:IODP_file.find('.')] + "_specimens.txt"
@@ -1721,10 +1721,8 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         loc_outfile = IODP_file[:IODP_file.find('.')] + "_locations.txt"
         replicate = self.bSizer2.return_value()
         if replicate: # do average
-            replicate = ''
             noave = 0
         else: # don't average
-            replicate = "-A"
             noave = 1
         try: lat,lon = self.bSizer1.return_value().split()
         except ValueError: lat,lon = '',''
@@ -1732,6 +1730,8 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         if not volume:
             volume = 7
         comp_depth_key = self.bSizer4.return_value()
+        dc_field = self.bSizer4.return_value()
+        instrument = self.bSizer4.return_value()
         samp_infile = self.bSizer5.return_value()
 
         # if sample file is available, run that conversion first
@@ -1749,10 +1749,6 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
                                                                comp_depth_key=comp_depth_key,
                                                                meas_file=outfile,
                                                                lat=lat, lon=lon)
-            if program_ran:
-                pw.close_window(self, COMMAND, outfile)
-            else:
-                pw.simple_warning(error_message)
         elif fmt == 'SRM discrete': # SRM discrete
             COMMAND = "convert.iodp_dscr_lore({}, dir_path={}, input_dir_path={}, volume={}, noave={}, meas_file={}, spec_file='specimens.txt')".format(IODP_file, wd, ID, volume, noave, outfile)
             # check for needed specimens file
@@ -1762,16 +1758,31 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
             program_ran, error_message = convert.iodp_dscr_lore(IODP_file, dir_path=wd,
                                                                 input_dir_path=ID, volume=volume, noave=noave,
                                                                 meas_file=outfile, spec_file="specimens.txt")
-            if program_ran:
-                pw.close_window(self, COMMAND, outfile)
-            else:
-                pw.simple_warning(error_message)
 
         elif fmt == "JR6":
+            COMMAND = "convert.iodp_jr6_lore({}, dir_path={}, input_dir_path={}, volume={}, noave={}, dc_field={}, meas_file={}, spec_file='specimens.txt')".format(IODP_file, wd, ID, volume, noave, dc_field, outfile)
+            program_ran, error_message = convert.iodp_jr6_lore(IODP_file, dir_path=wd,
+                                                               input_dir_path=ID, volume=volume, noave=noave,
+                                                               dc_field=dc_field,
+                                                               meas_file=outfile, spec_file="specimens.txt")
+
             print("convert JR6")
 
         elif fmt == "KLY4S":
+            COMMAND = "convert.iodp_kly4s_lore({}, meas_out={}, instrument={}, dir_path={}, input_dir_path={}, volume={}, noave={}, dc_field={}, meas_file={}, spec_file='specimens.txt')".format(IODP_file, outfile, wd, ID,                                                                                            volume, noave, dc_field, outfile)
+            program_ran, error_message = convert.iodp_jr6_lore(IODP_file, dir_path=wd,
+                                                               input_dir_path=ID, volume=volume, noave=noave,
+                                                               dc_field=dc_field,
+                                                               meas_file=outfile, spec_file="specimens.txt")
+
             print("convert KLY4S")
+
+        print(COMMAND)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
+
 
         del wait
 
