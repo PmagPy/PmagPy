@@ -6,6 +6,8 @@ import sys
 import re
 import matplotlib
 from matplotlib import pyplot as plt
+import requests
+import shutil
 import random
 import glob
 import numpy as np
@@ -168,6 +170,23 @@ class TestDownloadMagic(unittest.TestCase):
                   'locations.txt', 'ages.txt', 'criteria.txt',
                   'contribution.txt']
         pmag.remove_files(tables, self.download_dir)
+
+    def test_with_txt(self):
+        try:
+            res = requests.get('https://earthref.org/MagIC/download/12366/')
+        except requests.exceptions.ConnectionError:
+            return
+        if res.status_code == 200:
+            if not os.path.exists('temp'):
+                os.mkdir('temp')
+            ran = ipmag.download_magic(dir_path='temp', txt=res.text)
+            output_files = glob.glob(os.path.join('temp', '*.txt'))
+            self.assertTrue(len(output_files) == 7)
+            for f in output_files:
+                self.assertIn(f, output_files)
+            shutil.rmtree('temp')
+
+
 
 
     def test_all_files_are_created(self):

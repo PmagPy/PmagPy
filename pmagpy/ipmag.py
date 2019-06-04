@@ -4057,9 +4057,9 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     return main_plot, figname
 
 
-def download_magic(infile, dir_path='.', input_dir_path='',
+def download_magic(infile=None, dir_path='.', input_dir_path='',
                    overwrite=False, print_progress=True,
-                   data_model=3., separate_locs=False):
+                   data_model=3., separate_locs=False, txt=""):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
@@ -4085,21 +4085,28 @@ def download_magic(infile, dir_path='.', input_dir_path='',
     separate_locs : bool
         create a separate directory for each location (Location_*)
         (default False)
+    txt : str, default ""
+        if infile is not provided, you may provide a string with file contents instead
+        (useful for downloading MagIC file directly from earthref)
+
     """
     if data_model == 2.5:
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    infile = pmag.resolve_file_name(infile, input_dir_path)
-    # try to deal reasonably with unicode errors
-    try:
-        f = codecs.open(infile, 'r', "utf-8")
-        infile = f.readlines()
-    except UnicodeDecodeError:
-        f = codecs.open(infile, 'r', "Latin-1")
-        infile = f.readlines()
-    f.close()
+    if infile:
+        infile = pmag.resolve_file_name(infile, input_dir_path)
+        # try to deal reasonably with unicode errors
+        try:
+            f = codecs.open(infile, 'r', "utf-8")
+            infile = f.readlines()
+        except UnicodeDecodeError:
+            f = codecs.open(infile, 'r', "Latin-1")
+            infile = f.readlines()
+        f.close()
+    else:
+        infile = txt.split("\n")
     File = []  # will contain all non-blank lines from downloaded file
     for line in infile:
         line = line.replace('\n', '')
