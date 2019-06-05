@@ -3435,6 +3435,8 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
     spec_file=pmag.resolve_file_name(spec_infile, dir_path)
     meas_out = pmag.resolve_file_name(meas_out, dir_path)
     # read in necessary data:
+    if not os.path.exists(spec_file):
+        return False, "you must download and process the samples table from LORE before importing a KLY4S file"
     specs=pd.read_csv(spec_file,sep='\t',header=1) # read in existing specimen table
     if len(specs)==0:
         print ('you must download and process the samples table from LORE prior to using this')

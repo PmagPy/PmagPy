@@ -1727,7 +1727,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         try: lat,lon = self.bSizer1.return_value().split()
         except ValueError: lat,lon = '',''
         volume = self.bSizer3.return_value()
-        if not volume:
+        if not volume and fmt != 'KLY4S':
             volume = 7
         comp_depth_key = self.bSizer4.return_value()
         dc_field = self.bSizer4.return_value()
@@ -1769,12 +1769,10 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
             print("convert JR6")
 
         elif fmt == "KLY4S":
-            COMMAND = "convert.iodp_kly4s_lore({}, meas_out={}, instrument={}, dir_path={}, input_dir_path={}, volume={}, noave={}, dc_field={}, meas_file={}, spec_file='specimens.txt')".format(IODP_file, outfile, wd, ID,                                                                                            volume, noave, dc_field, outfile)
-            program_ran, error_message = convert.iodp_jr6_lore(IODP_file, dir_path=wd,
-                                                               input_dir_path=ID, volume=volume, noave=noave,
-                                                               dc_field=dc_field,
-                                                               meas_file=outfile, spec_file="specimens.txt")
-
+            COMMAND = "convert.iodp_kly4s_lore({}, meas_out={}, spec_infile='specimens.txt', spec_out='kly4s_specimens.txt', instrument={}, actual_volume={}, dir_path={}, input_dir_path={})".format(IODP_file, outfile, instrument, volume, wd, ID)
+            program_ran, error_message = convert.iodp_kly4s_lore(IODP_file, meas_out=outfile, spec_infile='specimens.txt',
+                                                                 spec_out='kly4s_specimens.txt', instrument=instrument,
+                                                                 actual_volume=volume, dir_path=wd, input_dir_path=ID)
             print("convert KLY4S")
 
         print(COMMAND)
@@ -1811,7 +1809,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
             self.bSizer4.text_field.Enable()
             self.bSizer4.label.SetForegroundColour(wx.BLACK)
         elif fmt == "KLY4S":
-            self.bSizer0b.static_text.SetLabel("Please provide Instrument name and actual specimen volume below (if known).\nYou may optionally provide a samples data file.")
+            self.bSizer0b.static_text.SetLabel("Please provide Instrument name and actual specimen volume below (if known).\nIf you haven't already imported a samples data file from LIMS, please do so below!")
             self.bSizer3.label.SetLabel("Actual specimen volume")
             self.bSizer3.text_field.Enable()
             self.bSizer3.label.SetForegroundColour(wx.BLACK)
