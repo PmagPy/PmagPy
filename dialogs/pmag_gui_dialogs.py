@@ -21,7 +21,6 @@ from programs.conversion_scripts import tdt_magic
 from programs.conversion_scripts import sio_magic
 from programs.conversion_scripts import cit_magic
 from programs.conversion_scripts import huji_magic
-from programs.conversion_scripts import _2g_bin_magic
 from programs.conversion_scripts import ldeo_magic
 from programs.conversion_scripts import pmd_magic
 from programs.conversion_scripts import jr6_txt_magic
@@ -721,7 +720,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
     #    self.parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=generic_magic.do_help())
+        pw.on_helpButton(text=convert.generic.__doc__)
 
     def get_sample_name(self, specimen, sample_naming_convenstion):
         if sample_naming_convenstion[0] == "sample=specimen":
@@ -955,7 +954,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=sio_magic.do_help())
+        pw.on_helpButton(text=convert.sio.__doc__)
 
 
 class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
@@ -1110,7 +1109,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning(error_message)
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=cit_magic.do_help())
+        pw.on_helpButton(text=convert.cit.__doc__)
 
 
 class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
@@ -1289,7 +1288,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning(error_message)
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=huji_magic.do_help())
+        pw.on_helpButton(text=convert.huji.__doc__())
 
 
 class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
@@ -1449,7 +1448,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
 
     def on_helpButton(self, event):
         # to run as module:
-        pw.on_helpButton(text=_2g_bin_magic.do_help())
+        pw.on_helpButton(text=convert._2g_bin.__doc__)
 
         # to run as command line:
         #pw.on_helpButton("_2g_bin_magic.py -h")
