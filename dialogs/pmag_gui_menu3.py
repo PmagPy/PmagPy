@@ -5,10 +5,9 @@ Create Pmag GUI menubar
 """
 
 import wx
+from pmagpy import contribution_builder as cb
 from . import pmag_widgets as pw
 from . import pmag_menu_dialogs
-from pmagpy import builder2 as builder
-from pmagpy import contribution_builder as cb
 
 
 class MagICMenu(wx.MenuBar):
@@ -20,9 +19,8 @@ class MagICMenu(wx.MenuBar):
     #pylint: disable=R0904
     #pylint: disable=R0914
 
-    def __init__(self, parent, data_model_num):
+    def __init__(self, parent):
         self.parent = parent
-        self.data_model_num = data_model_num
         super(MagICMenu, self).__init__()
 
         ## File
@@ -175,12 +173,8 @@ class MagICMenu(wx.MenuBar):
         dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
         clear = dia.do_clear()
         if clear:
-            # clear directory, but use previously acquired data_model
-            if self.data_model_num == 2.5:
-                self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.er_magic.data_model)
-            elif self.data_model_num == 3:
-                self.parent.contribution = cb.Contribution(self.parent.WD,
-                                                           dmodel=self.parent.contribution.data_model)
+            self.parent.contribution = cb.Contribution(self.parent.WD,
+                                                       dmodel=self.parent.contribution.data_model)
 
 
     def on_import1(self, event):

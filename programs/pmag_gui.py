@@ -17,10 +17,8 @@ import webbrowser
 
 from pmagpy import pmag
 from pmagpy import ipmag
-from pmagpy import builder2 as builder
 from pmagpy import contribution_builder as cb
-from dialogs import pmag_gui_dialogs as pgd3
-from dialogs import pmag_gui_dialogs2 as pgd2
+from dialogs import pmag_gui_dialogs
 from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
 from dialogs import ErMagicBuilder
@@ -41,10 +39,9 @@ class MagMainFrame(wx.Frame):
         version = ""
     title = "Pmag GUI   version: %s"%version
 
-    def __init__(self, WD=None, DM=None, dmodel=None):
+    def __init__(self, WD=None, dmodel=None):
         """
-        Input working directory, data model number (2.5 or 3),
-        and data model (optional).
+        Input working directory, and data model object (optional).
         """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
 
@@ -56,16 +53,6 @@ class MagMainFrame(wx.Frame):
             self.SetIcon(self.icon)
         else:
             print("-I- PmagPy icon file not found -- skipping")
-
-        # if DM was provided:
-        if DM:
-            self.data_model_num = int(float(DM))
-        else:
-            self.data_model_num = 3
-        # check that self.data_model is valid, otherwise default 3
-        if self.data_model_num not in [2, 3]:
-            pw.simple_warning("Input data model number {} not recognized, defaulting to 3".format(str(self.data_model_num)))
-            self.data_model_num = 3
 
         self.data_model = dmodel
         self.FIRST_RUN = True
@@ -82,7 +69,6 @@ class MagMainFrame(wx.Frame):
         # use realpath
         self.WD = os.path.realpath(self.WD)
         # set data model and read in data
-        self.set_dm(self.data_model_num)
         self.dir_path.SetValue(self.WD)
 
         # for use as module:
@@ -101,31 +87,11 @@ class MagMainFrame(wx.Frame):
             pw.simple_warning("You have provided a directory that does not exist and cannot be created.\n Please pick a different directory.")
             print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
 
-
-    def set_dm(self, num):
-        """
-        Make GUI changes based on data model num.
-        Get info from WD in appropriate format.
-        """
-        #enable or disable self.btn1a
-        if self.data_model_num == 3:
-            self.btn1a.Enable()
-        else:
-            self.btn1a.Disable()
-        #
-        # set pmag_gui_dialogs
-        global pmag_gui_dialogs
-        if self.data_model_num == 2:
-            pmag_gui_dialogs = pgd2
-            wx.CallAfter(self.get_wd_data2)
-        elif self.data_model_num == 3:
-            pmag_gui_dialogs = pgd3
-            wx.CallAfter(self.get_wd_data)
-
-        # do / re-do menubar
-        menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
+        # do menubar
+        menubar = pmag_gui_menu.MagICMenu(self)
         self.SetMenuBar(menubar)
         self.menubar = menubar
+
 
     def get_wd_data(self):
         """
@@ -139,25 +105,11 @@ class MagMainFrame(wx.Frame):
         self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
         del wait
 
-    def get_wd_data2(self):
-        """
-        Get 2.5 data from self.WD and put it into
-        ErMagicBuilder object.
-        Called by get_dm_and_wd
-        """
-        wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
-        #wx.Yield()
-        print('-I- Read in any available data from working directory (data model 2)')
-
-        self.er_magic = builder.ErMagicBuilder(self.WD,
-                                               data_model=self.data_model)
-        del wait
-
     def InitUI(self):
         """
         Build the mainframe
         """
-        menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
+        menubar = pmag_gui_menu.MagICMenu(self)
         self.SetMenuBar(menubar)
 
         #pnl = self.panel
@@ -262,7 +214,7 @@ class MagMainFrame(wx.Frame):
         bSizer1.AddSpacer(20)
 
         bSizer1_2 = wx.BoxSizer(wx.VERTICAL)
-        spacing = 60 #if self.data_model_num == 3 else 90
+        spacing = 60
         bSizer1_2.AddSpacer(spacing)
 
         bSizer1_2.Add(self.btn4, 0, wx.ALIGN_CENTER, 0)
@@ -387,10 +339,7 @@ class MagMainFrame(wx.Frame):
             os.chdir(self.WD)
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
-            if self.data_model_num == 2:
-                self.get_wd_data2()
-            else:
-                self.get_wd_data()
+            self.get_wd_data()
         else:
             dialog.Destroy()
 
@@ -448,27 +397,24 @@ class MagMainFrame(wx.Frame):
             return
         outstring = "thellier_gui.py -WD %s"%self.WD
         print("-I- running python script:\n %s"%(outstring))
-        if self.data_model_num == 2.5:
-            thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
-        else:
-            # disable and hide Pmag GUI mainframe
-            self.Disable()
-            self.Hide()
-            # show busyinfo
-            wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.SafeYield()
-            # create custom Thellier GUI closing event and bind it
-            ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
-            self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
-            # make and show the Thellier GUI frame
-            thellier_gui_frame = thellier_gui.Arai_GUI(self.WD, self,
-                                                       standalone=False,
-                                                       DM=self.data_model_num,
-                                                       evt_quit=ThellierGuiExitEvent)
-            if not thellier_gui_frame: print("Thellier GUI failed to start aborting"); del wait; return
-            thellier_gui_frame.Centre()
-            thellier_gui_frame.Show()
-            del wait
+        # disable and hide Pmag GUI mainframe
+        self.Disable()
+        self.Hide()
+        # show busyinfo
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.SafeYield()
+        # create custom Thellier GUI closing event and bind it
+        ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
+        self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
+        # make and show the Thellier GUI frame
+        thellier_gui_frame = thellier_gui.Arai_GUI(self.WD, self,
+                                                   standalone=False,
+                                                   DM=3,
+                                                   evt_quit=ThellierGuiExitEvent)
+        if not thellier_gui_frame: print("Thellier GUI failed to start aborting"); del wait; return
+        thellier_gui_frame.Centre()
+        thellier_gui_frame.Show()
+        del wait
 
 
     def on_btn_demag_gui(self, event):
@@ -482,26 +428,23 @@ class MagMainFrame(wx.Frame):
 
         outstring = "demag_gui.py -WD %s"%self.WD
         print("-I- running python script:\n %s"%(outstring))
-        if self.data_model_num == 2:
-            demag_gui.start(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
-        else:
-            # disable and hide Pmag GUI mainframe
-            self.Disable()
-            self.Hide()
-            # show busyinfo
-            wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.SafeYield()
-            # create custom Demag GUI closing event and bind it
-            DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
-            self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
-            # make and show the Demag GUI frame
-            demag_gui_frame = demag_gui.Demag_GUI(self.WD, self,
-                                                  write_to_log_file=False,
-                                                  data_model=self.data_model_num,
-                                                  evt_quit=DemagGuiExitEvent)
-            demag_gui_frame.Centre()
-            demag_gui_frame.Show()
-            del wait
+        # disable and hide Pmag GUI mainframe
+        self.Disable()
+        self.Hide()
+        # show busyinfo
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.SafeYield()
+        # create custom Demag GUI closing event and bind it
+        DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
+        self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
+        # make and show the Demag GUI frame
+        demag_gui_frame = demag_gui.Demag_GUI(self.WD, self,
+                                              write_to_log_file=False,
+                                              data_model=3,
+                                              evt_quit=DemagGuiExitEvent)
+        demag_gui_frame.Centre()
+        demag_gui_frame.Show()
+        del wait
 
 
     def on_analysis_gui_exit(self, event):
@@ -510,7 +453,6 @@ class MagMainFrame(wx.Frame):
         show and enable Pmag GUI main frame.
         Read in an updated contribution object
         based on any changed files.
-        (For Pmag GUI 3.0 only)
         """
         self.Enable()
         self.Show()
@@ -582,14 +524,9 @@ class MagMainFrame(wx.Frame):
         # make sure all files of the same type have been combined
         if not self.check_for_uncombined_files():
             return
-        if self.data_model_num == 2:
-            wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.SafeYield()
-            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)
-        elif self.data_model_num == 3:
-            wait = wx.BusyInfo('Compiling required data, please wait...')
-            wx.SafeYield()
-            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.SafeYield()
+        self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
         #
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
@@ -599,13 +536,6 @@ class MagMainFrame(wx.Frame):
         self.ErMagic_frame.Raise()
         del wait
 
-    def init_check_window2(self):
-        """
-        initiates the object that will control steps 1-6
-        of checking headers, filling in cell values, etc.
-        """
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data',
-                                                                 self.WD, self.er_magic)
 
     def init_check_window(self):
         """
@@ -626,13 +556,9 @@ class MagMainFrame(wx.Frame):
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
-        if self.data_model_num == 3:
-            frame = pmag_gui_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
-                                                        self.WD, self.contribution,
-                                                        size)
-        else:
-            frame = pmag_gui_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',
-                                                        self.WD, self.er_magic, size)
+        frame = pmag_gui_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
+                                                    self.WD, self.contribution,
+                                                    size)
         frame.Show(True)
         frame.Centre()
         self.Hide()
@@ -656,7 +582,7 @@ class MagMainFrame(wx.Frame):
         else:
             return False
 
-        outstring="download_magic.py -f {} -WD {} -ID {} -DM {}".format(f, self.WD, input_dir, self.data_model_num)
+        outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
 
         # run as module:
         print("-I- running python script:\n %s"%(outstring))
@@ -694,14 +620,9 @@ class MagMainFrame(wx.Frame):
         wx.SafeYield()
         if 'measurements' in self.contribution.tables:
             self.contribution.tables['measurements'].add_measurement_names()
-        if self.data_model_num == 3:
-            res, error_message, has_problems, all_failing_items = ipmag.upload_magic(concat=False, dir_path=self.WD,
-                                                                                     vocab=self.contribution.vocab,
-                                                                                     contribution=self.contribution)
-        if self.data_model_num == 2:
-            res, error_message, errors = ipmag.upload_magic2(dir_path=self.WD, data_model=self.er_magic.data_model)
-            del wait
-
+        res, error_message, has_problems, all_failing_items = ipmag.upload_magic(concat=False, dir_path=self.WD,
+                                                                                 vocab=self.contribution.vocab,
+                                                                                 contribution=self.contribution)
         if res:
             text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(res)[1], os.path.split(res)[0])
             dlg = pw.ChooseOne(self, "Go to MagIC for uploading", "Not ready yet", text, "Saved")
@@ -718,38 +639,37 @@ class MagMainFrame(wx.Frame):
         if result == wx.ID_YES:
             pw.on_database_upload(None)
 
-        if self.data_model_num == 3:
-            if not res:
-                from programs import magic_gui
-                self.Disable()
-                self.Hide()
-                self.magic_gui_frame = magic_gui.MainFrame(self.WD,
-                                                           dmodel=self.data_model,
-                                                           title="Validations",
-                                                           contribution=self.contribution)
+        if not res:
+            from programs import magic_gui
+            self.Disable()
+            self.Hide()
+            self.magic_gui_frame = magic_gui.MainFrame(self.WD,
+                                                       dmodel=self.data_model,
+                                                       title="Validations",
+                                                       contribution=self.contribution)
 
-                self.magic_gui_frame.validation_mode = ['specimens']
-                self.magic_gui_frame.failing_items = all_failing_items
-                self.magic_gui_frame.change_dir_button.Disable()
-                self.magic_gui_frame.Centre()
-                self.magic_gui_frame.Show()
-                self.magic_gui_frame.highlight_problems(has_problems)
-                #
-                # change name of upload button to 'exit validation mode'
-                self.magic_gui_frame.bSizer2.GetStaticBox().SetLabel('return to main GUI')
-                self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
-                # bind that button to quitting magic gui and re-enabling Pmag GUI
-                self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
-                # do binding so that closing/quitting re-opens the main frame
-                self.magic_gui_frame.Bind(wx.EVT_CLOSE, self.on_end_validation)
-                # this makes it work with only the validation window open
-                self.magic_gui_frame.Bind(wx.EVT_MENU,
-                                          lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
-                                          self.magic_gui_frame.menubar.file_quit)
-                # this makes it work if an additional grid is open
-                self.Bind(wx.EVT_MENU,
-                          lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
-                          self.magic_gui_frame.menubar.file_quit)
+            self.magic_gui_frame.validation_mode = ['specimens']
+            self.magic_gui_frame.failing_items = all_failing_items
+            self.magic_gui_frame.change_dir_button.Disable()
+            self.magic_gui_frame.Centre()
+            self.magic_gui_frame.Show()
+            self.magic_gui_frame.highlight_problems(has_problems)
+            #
+            # change name of upload button to 'exit validation mode'
+            self.magic_gui_frame.bSizer2.GetStaticBox().SetLabel('return to main GUI')
+            self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
+            # bind that button to quitting magic gui and re-enabling Pmag GUI
+            self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
+            # do binding so that closing/quitting re-opens the main frame
+            self.magic_gui_frame.Bind(wx.EVT_CLOSE, self.on_end_validation)
+            # this makes it work with only the validation window open
+            self.magic_gui_frame.Bind(wx.EVT_MENU,
+                                      lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                                      self.magic_gui_frame.menubar.file_quit)
+            # this makes it work if an additional grid is open
+            self.Bind(wx.EVT_MENU,
+                      lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                      self.magic_gui_frame.menubar.file_quit)
 
 
 
@@ -791,10 +711,7 @@ class MagMainFrame(wx.Frame):
         to continue anyway.
         """
         wd_files = os.listdir(self.WD)
-        if self.data_model_num == 2:
-            ftypes = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt', 'pmag_specimens.txt', 'pmag_samples.txt', 'pmag_sites.txt', 'rmag_specimens.txt', 'rmag_results.txt', 'rmag_anisotropy.txt']
-        else:
-            ftypes = ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        ftypes = ['specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
         uncombined = set()
         for ftype in ftypes:
             if ftype not in wd_files:
@@ -815,12 +732,8 @@ class MagMainFrame(wx.Frame):
         If not found, show a warning and return False.
         Otherwise return True.
         """
-        if self.data_model_num == 2:
-            meas_file_name = "magic_measurements.txt"
-            dm = "2.5"
-        else:
-            meas_file_name = "measurements.txt"
-            dm = "3.0"
+        meas_file_name = "measurements.txt"
+        dm = "3.0"
         if not os.path.isfile(os.path.join(self.WD, meas_file_name)):
             pw.simple_warning("Your working directory must have a {} format {} file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.\n\nIf you are trying to look at data downloaded from MagIC, you must unpack the txt file first. Some contributions do not contain measurement data, in which case you won't be able to use this function.".format(dm, meas_file_name))
             return False
@@ -839,11 +752,10 @@ SYNTAX
     pmag_gui_anaconda [command line options]
 
 OPTIONS
-    -DM NUM: MagIC data model number, default 3
     -WD DIR: working directory, default current directory
 
 EXAMPLE
-    pmag_gui.py -DM 2 -WD projects/my_old_project
+    pmag_gui.py -WD projects/my_project
 
 INFORMATION
     See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial
@@ -857,8 +769,7 @@ INFORMATION
     else:
         app = wx.App(redirect=True)
     dir_path = pmag.get_named_arg("-WD", None)
-    data_model = pmag.get_named_arg('-DM', None)
-    app.frame = MagMainFrame(DM=data_model, WD=dir_path)
+    app.frame = MagMainFrame(WD=dir_path)
     app.frame.Show()
     app.frame.Center()
     ## use for debugging:
