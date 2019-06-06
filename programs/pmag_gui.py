@@ -66,6 +66,8 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         else:
             self.get_dir()
+
+        self.get_wd_data()
         # use realpath
         self.WD = os.path.realpath(self.WD)
         # set data model and read in data
