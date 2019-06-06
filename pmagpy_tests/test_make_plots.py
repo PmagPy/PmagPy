@@ -49,7 +49,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         lines = pmag.magic_read(image_file)[0]
         for line in lines:
             print(line)
-        self.assertEqual(len(lines), 2)
+        self.assertEqual(len(lines), 4)
         self.assertFalse("image" in lines[0].keys())
 
         if pmagplotlib.isServer:

@@ -1259,6 +1259,16 @@ class TestVgpmapMagic(unittest.TestCase):
         self.assertTrue(saved)
         self.assertTrue(glob.glob("*.png"))
 
+    def test_with_image_recs(self):
+        con = cb.Contribution("data_files/3_0/McMurdo")
+        status, saved, image_recs = ipmag.vgpmap_magic(fmt="png", contribution=con,
+                                           image_records=True)
+        self.assertTrue(status)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.png"))
+        self.assertTrue(image_recs)
+        self.assertEqual(1, len(image_recs))
+
 
     def test_fail(self):
         status, saved = ipmag.vgpmap_magic()

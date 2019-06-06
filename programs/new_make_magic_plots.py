@@ -253,21 +253,19 @@ def main():
                     break
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
-                CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
+                #CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
                 CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True)".format(crd, con)
                 print(CMD)
                 info_log(CMD, loc)
-                #os.system(CMD)
                 res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots=20,
                                                             contribution=con, image_records=True)
                 image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
-                CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
+                #CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
                 CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}, image_records=True)".format(con)
                 print(CMD)
                 info_log(CMD, loc)
-                #os.system(CMD)
                 res, outfiles, thellier_images = ipmag.thellier_magic(n_specs=50, fmt="png", contribution=con, image_records=True)
                 image_recs.extend(thellier_images)
             # looking for hysteresis possibilities
@@ -277,11 +275,10 @@ def main():
                 if missing:
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
-                    CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                    #CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
                     CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}, image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    #os.system(CMD)
                     res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots=20, contribution=con, image_records=True)
                     image_recs.extend(quick_hyst_recs)
             # equal area plots of directional data
@@ -289,7 +286,7 @@ def main():
             if data:
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
-                    CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                    #CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
                     CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
@@ -358,7 +355,7 @@ def main():
                     elif len(SiteDIs_s) > 0:
                         CRD = ' -crd s'
                         crd = "s"
-                    CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+                    #CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
                     CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
@@ -374,12 +371,14 @@ def main():
             VGPs = pmag.get_dictitem(
                 SiteDIs, 'vgp_lat', "", 'F')  # are there any VGPs?
             if len(VGPs) > 0:  # YES!
-                CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
+                #CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
                 CMD = "ipmag.vgpmap_magic(proj='moll', sym='ro', size=5, fmt='png', contribution={})".format(con)
                 print(CMD)
                 info_log(CMD, loc, 'vgpmap_magic.py')
-                ipmag.vgpmap_magic(proj='moll', sym='ro', size=5, fmt="png", contribution=con)
-                #os.system(CMD)
+                res, outfiles, vgpmap_recs = ipmag.vgpmap_magic(proj='moll', sym='ro', size=5,
+                                                                fmt="png", contribution=con,
+                                                                image_records=True)
+                image_recs.extend(vgpmap_recs)
             else:
                 print('-I- No vgps found')
 

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 import random
+from datetime import date
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
@@ -12739,7 +12740,8 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
                  fmt="pdf", res="c", proj="ortho",
                  flip=False, anti=False, fancy=False,
                  ell=False, ages=False, lat_0=0, lon_0=0,
-                 save_plots=True, interactive=False, contribution=None):
+                 save_plots=True, interactive=False, contribution=None,
+                 image_records=False):
     """
     makes a map of vgps and a95/dp,dm for site means in a sites table
 
@@ -12789,10 +12791,15 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     interactive : bool, default False
        if True, interactively plot and display
         (this is best used on the command line only)
+    image_records : bool, default False
+        if True, return a list of created images
 
     Returns
     ---------
-    (status, output_files) - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    if image_records == False:
+        type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    if image_records == True:
+       Tuple : (True or False indicating if conversion was sucessful, output file name written, list of image recs)
 
     """
     coord_dict = {'g': 0, 't': 100}
@@ -12803,11 +12810,18 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         con = contribution
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
+        if image_records:
+            return False, [], []
         return False, []
     if 'sites' not in con.tables:
         print("-W - No sites data")
+        if image_records:
+            return False, [], []
         return False, []
 
+    con.add_magic_table('contribution')
+    con_id = con.get_con_id()
+    image_recs = []
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
     # read in sites file
@@ -12934,13 +12948,13 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     files = {}
     for key in list(FIG.keys()):
         if pmagplotlib.isServer:  # use server plot naming convention
-            files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
-            con.add_magic_table('contribution')
-            con_id = con.get_con_id()
             if con_id:
-                files[key] = 'MC:_' + str(con_id) + '_' + files[key]
+                files[key] = 'MC:_' + con_id + '_TY:_VGP_map.' + fmt
+            else:
+                files[key] = 'LO:_' + location + '_TY:_VGP_map.' + fmt
         else:  # use more readable naming convention
             files[key] = '{}_VGP_map.{}'.format(location, fmt)
+
 
     if pmagplotlib.isServer:
         black = '#000000'
@@ -12948,18 +12962,27 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         titles = {}
         titles['map'] = location + ' VGP map'
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple)
-        pmagplotlib.save_plots(FIG, files)
+        save_plots = True
     elif interactive:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
-            pmagplotlib.save_plots(FIG, files)
-            return True, files.values()
+            save_plots = True
         else:
             print("Good bye")
+            if image_recs:
+                return True, [], image_recs
             return True, []
-    elif save_plots:
+    if save_plots:
+        version_num = pmag.get_version()
         pmagplotlib.save_plots(FIG, files)
+        if image_records:
+            for file_type, filename in files.items():
+                image_rec = {'file': filename, 'title': "map of VGPs", 'type': 'map',
+                             'keywords': "", 'software_packages': version_num,
+                             'timestamp': date.today().isoformat()}
+                image_recs.append(image_rec)
+            return True, files.values, image_recs
         return True, files.values()
 
 
