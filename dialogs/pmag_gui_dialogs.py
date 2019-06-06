@@ -17,17 +17,9 @@ from dialogs import magic_grid2 as magic_grid
 #sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 from pmagpy import convert_2_magic as convert
 from programs.conversion_scripts import tdt_magic
-from programs.conversion_scripts import sio_magic
-from programs.conversion_scripts import cit_magic
-from programs.conversion_scripts import huji_magic
-from programs.conversion_scripts import ldeo_magic
-from programs.conversion_scripts import pmd_magic
 from programs.conversion_scripts import jr6_txt_magic
 from programs.conversion_scripts import jr6_jr6_magic
 from programs.conversion_scripts import iodp_jr6_magic
-from programs.conversion_scripts import utrecht_magic
-from programs.conversion_scripts import bgc_magic
-from programs.conversion_scripts import agm_magic
 from pmagpy.mapping import map_magic
 
 
@@ -1609,7 +1601,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning(error_message)
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ldeo_magic.do_help())
+        pw.on_helpButton(text=convert.ldeo.__doc__)
 
 
 class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
@@ -1972,7 +1964,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
 
     def on_helpButton(self, event):
         # to run as module:
-        pw.on_helpButton(text=pmd_magic.do_help())
+        pw.on_helpButton(text=convert.pmd.__doc__)
 
 
 class convert_JR6_files_to_MagIC(wx.Frame):
@@ -2412,7 +2404,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=bgc_magic.do_help())
+        pw.on_helpButton(text=convert.bgc.__doc__)
 
 class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
     """
@@ -2577,7 +2569,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
         """
         Displays utrecht_magic scripts help message
         """
-        pw.on_helpButton(text=utrecht_magic.do_help())
+        pw.on_helpButton(text=convert.utrecht.__doc__)
 
 
 # template for an import window
