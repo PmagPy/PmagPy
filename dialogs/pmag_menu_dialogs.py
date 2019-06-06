@@ -95,11 +95,7 @@ class ImportAzDipFile(wx.Frame):
         output_dir = self.WD
         full_infile = self.bSizer0.return_value()
         input_dir, infile = os.path.split(full_infile)
-        data_model_num = self.Parent.data_model_num
-        if data_model_num == 2:
-            Fsa = os.path.splitext(infile)[0] + "_er_samples.txt"
-        else:
-            Fsa = os.path.splitext(infile)[0] + "_samples.txt"
+        Fsa = os.path.splitext(infile)[0] + "_samples.txt"
         mcd = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
@@ -119,7 +115,7 @@ class ImportAzDipFile(wx.Frame):
             Z = 1
 
         program_completed, error_message = ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc,
-                                                             app, output_dir, input_dir, data_model_num)
+                                                             app, output_dir, input_dir)
         if program_completed:
             args = [str(arg) for arg in [infile, Fsa, ncn, Z, mcd, loc, app] if arg]
             pw.close_window(self, 'ipmag.azdip_magic({}))'.format(", ".join(args)), Fsa)
@@ -407,14 +403,9 @@ class ImportKly4s(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
-        if self.Parent.data_model_num == 2:
-            spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-            ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
-            site_outfile = ''
-        else:
-            spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
-            ani_outfile = ''
-            site_outfile = infile[:infile.find('.')] + "_sites.txt"
+        spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
+        ani_outfile = ''
+        site_outfile = infile[:infile.find('.')] + "_sites.txt"
         full_samp_file = self.bSizer1.return_value()
         samp_file = os.path.split(full_samp_file)[1]
         if not samp_file:
@@ -439,7 +430,7 @@ class ImportKly4s(wx.Frame):
             ins = "-ins " + ins
         else:
             instrument='SIO-KLY4S'
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} -fsa {} -ncn {} {} {} {} {} -ID {} -fsp {} -DM {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile, self.Parent.data_model_num)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} -fsa {} -ncn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile)
         program_ran, error_message = convert.kly4s(infile, specnum=specnum,
                                                    locname=location, inst=instrument,
                                                    samp_con=ncn, user=user, measfile=outfile,
@@ -447,7 +438,6 @@ class ImportKly4s(wx.Frame):
                                                    samp_infile=samp_file, spec_infile='',
                                                    spec_outfile=spec_outfile,
                                                    dir_path=self.WD, input_dir_path=ID,
-                                                   data_model_num=self.Parent.data_model_num,
                                                    samp_outfile=samp_outfile,
                                                    site_outfile=site_outfile)
         if program_ran:
@@ -527,15 +517,11 @@ class ImportK15(wx.Frame):
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
-        data_model_num = self.Parent.data_model_num
         os.chdir(self.WD)
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
-        if data_model_num == 3:
-            samp_outfile = infile[:infile.find('.')] + "_samples.txt"
-        else:
-            samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
+        samp_outfile = infile[:infile.find('.')] + "_samples.txt"
         WD = self.WD
         specnum = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -545,18 +531,12 @@ class ImportK15(wx.Frame):
             loc = "-loc " + loc
         else:
             location = "unknown"
-        if data_model_num == 3:
-            aniso_outfile = infile + '_specimens.txt'
-        else:
-            aniso_outfile = infile + '_rmag_anisotropy.txt'
+        aniso_outfile = infile + '_specimens.txt'
         # result file is only used in data model 3, otherwise ignored
         aniso_results_file = infile + '_rmag_results.txt'
-        DM = ""
-        if data_model_num == 2:
-            DM = "-DM 2"
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {} {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file, DM)
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
         program_ran, error_message = convert.k15(infile, WD, ID, outfile, aniso_outfile, samp_outfile,
-                                                 aniso_results_file, specnum, ncn, location, data_model_num)
+                                                 aniso_results_file, specnum, ncn, location)
         print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
@@ -657,16 +637,10 @@ class ImportSufarAscii(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         meas_outfile = infile[:infile.find('.')] + ".magic"
-        if self.Parent.data_model_num == 2:
-            aniso_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
-            spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-            samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
-            site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
-        else:
-            aniso_outfile = ''
-            spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
-            samp_outfile = infile[:infile.find('.')] + "_samples.txt"
-            site_outfile = infile[:infile.find('.')] + "_sites.txt"
+        aniso_outfile = ''
+        spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
+        samp_outfile = infile[:infile.find('.')] + "_samples.txt"
+        site_outfile = infile[:infile.find('.')] + "_sites.txt"
 
 
         usr = self.bSizer1.return_value()
@@ -697,13 +671,12 @@ class ImportSufarAscii(wx.Frame):
             k15 = "-k15"
             static_15_position_mode = True
         spec_infile = None
-        data_model_num = self.Parent.data_model_num
-        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {} -DM {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID, data_model_num)
+        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID)
         program_ran, error_message = convert.sufar4(infile, meas_outfile, aniso_outfile,
                                                     spec_infile, spec_outfile, samp_outfile,
                                                     site_outfile, specnum, ncn, user,
                                                     location, instrument,static_15_position_mode,
-                                                    WD, ID, data_model_num)
+                                                    WD, ID)
         if program_ran:
             pw.close_window(self, COMMAND, meas_outfile)
             outfiles = [meas_outfile, spec_outfile, samp_outfile, site_outfile]
