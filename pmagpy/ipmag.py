@@ -9046,9 +9046,9 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
 
 
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
-                   ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
-                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
-                   save_plots=True, interactive=False, fmt="png", contribution=None):
+                ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
+                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
+                save_plots=True, interactive=False, fmt="png", contribution=None, image_records=False):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
@@ -9091,6 +9091,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     """
     figs = {}
     saved = []
+    image_recs = []
     # make sure boolean values are in integer form
     # for backwards compatibility
     ipar = int(ipar)
@@ -9179,6 +9180,14 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                         if key not in titles:
                             titles[key] = key
                 pmagplotlib.add_borders(figs, titles, con_id=con_id)
+
+            if image_records:
+                for plot_type, fname in figs.items():
+                    image_rec = {'site': site, 'file': fname, 'type': PLOT_TYPES[plot_type],
+                                 'title': "{} {}".format(site, PLOT_TYPES[plot_type]),
+                                 'timestamp': date.today().isoformat(), 'software_packages': version.version}
+                    image_recs.append(image_rec)
+
             if save_plots:
                 saved.extend(pmagplotlib.save_plots(figs, files))
             elif interactive:
@@ -9214,6 +9223,14 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                     if key not in titles:
                         titles[key] = key
             pmagplotlib.add_borders(figs, titles, con_id=con_id)
+        if image_records:
+            for plot_type, fname in figs.items():
+                image_rec = {'location': locs, 'file': fname, 'type': PLOT_TYPES[plot_type],
+                             'title': "{} {}".format(locs, PLOT_TYPES[plot_type]),
+                             'timestamp': date.today().isoformat(), 'software_packages': version.version}
+                image_recs.append(image_rec)
+
+
         if save_plots:
             saved.extend(pmagplotlib.save_plots(figs, files))
         elif interactive:
@@ -9221,6 +9238,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
                 saved.extend(pmagplotlib.save_plots(figs, files))
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 

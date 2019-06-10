@@ -1118,6 +1118,36 @@ class TestAnisoMagic(unittest.TestCase):
         files = glob.glob('*.png')
         self.assertEqual(24, len(files))
 
+    def test_with_image_recs(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = cb.Contribution(dir_path)
+        status, outfiles,image_recs = ipmag.aniso_magic(iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
+                                                        save_plots=True, isite=True, contribution=con,
+                                                        image_records=True)
+        self.assertTrue(status)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+        files = glob.glob('*.png')
+        self.assertEqual(24, len(files))
+        self.assertTrue(image_recs)
+        self.assertEqual(24, len(image_recs))
+
+    def test_with_image_recs_not_site(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = cb.Contribution(dir_path)
+        status, outfiles,image_recs = ipmag.aniso_magic(iboot=1,ihext=0,ivec=1,ipar=1,vec=2,Dir=[0,90],
+                                                        save_plots=True, isite=False, contribution=con,
+                                                        image_records=True)
+        self.assertTrue(status)
+        for fname in outfiles:
+            self.assertTrue(os.path.exists(fname))
+        files = glob.glob('*.png')
+        self.assertEqual(6, len(files))
+        self.assertTrue(image_recs)
+        self.assertEqual(6, len(image_recs))
+
+
+
 
 class TestChiMagic(unittest.TestCase):
 
