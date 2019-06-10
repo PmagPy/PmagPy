@@ -12027,10 +12027,8 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             titles = {'eqarea': 'Equal Area Plot'}
             FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
             saved_figs = pmagplotlib.save_plots(FIG, files)
-            #saved.extend(saved_figs)
         elif save_plots:
             saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
-            #saved.extend(saved_figs)
             #continue
         elif interactive:
             pmagplotlib.draw_figs(FIG)
@@ -12041,7 +12039,6 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
                 return True, saved
             if ans == "a":
                 saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
-                #saved.extend(saved_figs)
         saved.extend(saved_figs)
         continue
     if image_records:
@@ -12054,7 +12051,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                   fmt="pdf", res="c", proj="ortho",
                   flip=False, anti=False, fancy=False,
                   ell=False, ages=False, lat_0=90., lon_0=0., save_plots=True,
-                  contribution=None):
+                  contribution=None, image_records=False):
     """
     Use a MagIC format locations table to plot poles.
 
@@ -12102,6 +12099,16 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
         eyeball longitude
     save_plots : bool, default True
         if True, create and save all requested plots
+    image_records : generate and return a record for each image in a list of dicts
+        which can be ingested by pmag.magic_write
+        bool, default False
+
+    Returns
+    ---------
+    if image_records == False:
+        type - Tuple : (True or False indicating if conversion was sucessful, file name(s) written)
+    if image_records == True:
+       Tuple : (True or False indicating if conversion was sucessful, output file name written, list of image recs)
     """
     anti, ell = int(anti), int(ell)
     # initialize and format variables
@@ -12110,6 +12117,7 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     Pars = []
     dates, rlats, rlons = [], [], []
     polarities = []
+    image_recs = []
     if interactive:
         save_plots = False
     full_path = pmag.resolve_file_name(loc_file, dir_path)
@@ -12122,6 +12130,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
         con = cb.Contribution(dir_path, single_file=loc_file)
     if not list(con.tables.keys()):
         print("-W - Couldn't read in data")
+        if image_records:
+            return False, "Couldn't read in data", []
         return False, "Couldn't read in data"
     FIG = {'map': 1}
     pmagplotlib.plot_init(FIG['map'], 6, 6)
@@ -12130,6 +12140,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     pole_df = pole_container.df
     if 'pole_lat' not in pole_df.columns or 'pole_lon' not in pole_df.columns:
         print("-W- pole_lat and pole_lon are required columns to run polemap_magic.py")
+        if image_records:
+            return False, "pole_lat and pole_lon are required columns to run polemap_magic.py", []
         return False, "pole_lat and pole_lon are required columns to run polemap_magic.py"
     # use records with pole_lat and pole_lon
     cond1, cond2 = pole_df['pole_lat'].notnull(), pole_df['pole_lon'].notnull()
@@ -12165,6 +12177,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
 
     if not any(Results.index):
         print("-W- No poles could be plotted")
+        if image_records:
+            return False, "No poles could be plotted", []
         return False, "No poles could be plotted"
 
     # go through rows and extract data
@@ -12282,6 +12296,13 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             else:
                 fname = "LO:_{}{}_TY:_POLE_map.{}".format(location, polarity, fmt)
                 fname_short = "LO:_{}{}_TY:_POLE_map".format(location, polarity)
+            if image_records:
+                image_rec = {'location': location, 'file': fname, 'type': 'Pole Map',
+                             'title': 'Pole map ' + location,
+                             'timestamp': date.today().isoformat(),
+                             'software_packages': version.version}
+                image_recs.append(image_rec)
+
 
             # don't allow identically named files
             if files:
@@ -12293,6 +12314,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
                         if fname not in file_values:
                             break
             files["map_{}".format(ind)] = fname
+
+
 
     # truncate location names so that ultra long filenames are not created
     if len(locations) > 50:
@@ -12311,6 +12334,14 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     else:
         # use readable naming convention for non-database use
         files['map'] = '{}_POLE_map_{}.{}'.format(locations, crd, fmt)
+
+    if image_records:
+        image_rec = {'location': locations, 'file': files['map'], 'type': 'Pole Map',
+                     'title': 'Pole map ' + locations,
+                     'timestamp': date.today().isoformat(),
+                     'software_packages': version.version}
+        image_recs.append(image_rec)
+
 
     #
     if interactive and (not set_env.IS_WIN):
@@ -12363,17 +12394,19 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             title = "MagIC contribution {}\n {} {}{} {}".format(con_id, loc_string, npole_string, rpole_string, pole_string)
             titles['map'] = title.replace('  ', ' ')
         FIG = pmagplotlib.add_borders(FIG, titles, black, purple, con_id)
-        saved = pmagplotlib.save_plots(FIG, files)
+        save_plots = True
     elif interactive:
         pmagplotlib.draw_figs(FIG)
         ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
-            saved = pmagplotlib.save_plots(FIG, files)
+            save_plots = True
         else:
             print("Good bye")
-    elif save_plots:
+            return
+    if save_plots:
         saved = pmagplotlib.save_plots(FIG, files)
-
+    if image_records:
+        return True, saved, image_recs
     return True, saved
 
 
@@ -12997,7 +13030,7 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         pmagplotlib.save_plots(FIG, files)
         if image_records:
             for file_type, filename in files.items():
-                image_rec = {'file': filename, 'title': "map of VGPs", 'type': 'map',
+                image_rec = {'file': filename, 'title': "map of VGPs", 'type': 'VGP Map',
                              'keywords': "", 'software_packages': version_num,
                              'timestamp': date.today().isoformat()}
                 image_recs.append(image_rec)
@@ -13302,4 +13335,6 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
 
 PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
               "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot",
-              "deremag": "De-Remagnetization Plot", 'hyst': 'Hysteresis Loop'}
+              "deremag": "De-Remagnetization Plot", 'hyst': 'Hysteresis Loop',
+              "data": "Anisotropy Data Plot", "conf": "Anisotropy Confidence Plot",
+              "tcdf": "tcdf", "cdf_0": "cdf_0", "cdf_1": "cdf_1", "cdf_2": "cdf_2"}
