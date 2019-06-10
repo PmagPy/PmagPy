@@ -49,7 +49,7 @@ class TestMakeMagicPlots(unittest.TestCase):
         lines = pmag.magic_read(image_file)[0]
         for line in lines:
             print(line)
-        self.assertEqual(len(lines), 4)
+        self.assertEqual(len(lines), 7)
         self.assertFalse("image" in lines[0].keys())
 
         if pmagplotlib.isServer:
@@ -73,11 +73,13 @@ class TestMakeMagicPlots(unittest.TestCase):
             os.remove(filename)
         os.system("new_make_magic_plots.py")
         lines = pmag.magic_read("images.txt")[0]
-        self.assertEqual(len(lines), 533)
+        for line in lines[-3:]:
+            print(line)
+        self.assertEqual(len(lines), 538)
+        #self.assertEqual(len(lines), 550)
         self.assertFalse("image" in lines[0].keys())
         self.assertFalse(glob.glob("errors.txt"))
-        if pmagplotlib.isServer:
-            num_pngs = len(glob.glob("*png"))
-            num_thumbnails = len(glob.glob("*thumb.png"))
-            self.assertEqual(num_pngs / 2, num_thumbnails)
-            self.assertFalse(glob.glob("thumbnail_errors.txt"))
+        num_pngs = len(glob.glob("*png"))
+        num_thumbnails = len(glob.glob("*thumb.png"))
+        self.assertEqual(num_pngs / 2, num_thumbnails)
+        self.assertFalse(glob.glob("thumbnail_errors.txt"))

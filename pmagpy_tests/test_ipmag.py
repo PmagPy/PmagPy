@@ -980,6 +980,15 @@ class TestPolemapMagic(unittest.TestCase):
         for f in outfiles:
             self.assertTrue(os.path.exists(f))
 
+    def test_with_image_records(self):
+        res, outfiles, image_recs = ipmag.polemap_magic(dir_path="data_files/polemap_magic",
+                                                        fmt="png", image_records=True)
+        self.assertTrue(res)
+        for f in outfiles:
+            self.assertTrue(os.path.exists(f))
+        self.assertEqual(len(image_recs), 1)
+
+
     def test_with_opts(self):
         res, outfiles = ipmag.polemap_magic(dir_path="data_files/polemap_magic", flip=True, ell=True, lat_0=20, symsize=20)
         self.assertTrue(res)

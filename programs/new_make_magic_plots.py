@@ -6,6 +6,7 @@ import glob
 import shutil
 from pmagpy import pmag
 from pmagpy import ipmag
+from pmagpy import version
 from pmagpy import contribution_builder as cb
 from programs import thumbnails
 VERBOSE = True
@@ -403,7 +404,10 @@ def main():
                     print(CMD)
                     ipmag.histplot(data=selection, outfile=histfile, xlab="Intensity (uT)",
                                    binsize=1, norm=-1, save_plots=True)
-                    #os.system(CMD)
+                    histplot_rec = {'file': histfile, 'type': 'Other', 'title': 'Intensity histogram',
+                                    'software_packages': version.version, 'keywords': "",
+                                    'timestamp': datetime.date.today().isoformat()}
+                    image_recs.append(histplot_rec)
                 else:
                     print('-I- No intensities found')
             else:
@@ -451,30 +455,28 @@ def main():
                 # get specimen coordinates
                 tdata = pmag.get_dictitem(
                     data, aniso_tilt_corr_key, '100', 'T', float_to_int=True)
-                CRD = ""
-                CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt
                 if len(sdata) > 3:
-                    CMD = CMD + ' -crd s'
                     CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='s', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    #iboot, ihext = 0, 1
-                    ipmag.aniso_magic(iboot=0, ihext=1, crd="s", fmt="png", contribution=con)
-                    #os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="s", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
                 if len(gdata) > 3:
-                    CMD = CMD + ' -crd g'
                     CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    ipmag.aniso_magic(iboot=0, ihext=1, crd="g", fmt="png", contribution=con)
-                    #os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="g", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
                 if len(tdata) > 3:
-                    CMD = CMD + ' -crd t'
                     CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    ipmag.aniso_magic(iboot=0, ihext=1, crd="t", fmt="png", contribution=con)
-                    #os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="t", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
+
         # remove temporary files
         for fname in glob.glob('tmp*.txt'):
             os.remove(fname)
@@ -493,8 +495,10 @@ def main():
             CMD =  'ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40, fmt="png", contribution={})'.format(full_con)
             print(CMD)
             info_log(CMD, "all locations", "polemap_magic.py")
-            ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40, fmt="png", contribution=full_con)
-            #os.system(CMD)
+            res, outfiles, polemap_recs = ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40,
+                                                            fmt="png", contribution=full_con,
+                                                            image_records=True)
+            image_recs.extend(polemap_recs)
         else:
             print('-I- No poles found')
 
