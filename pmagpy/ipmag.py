@@ -9210,7 +9210,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 pmagplotlib.add_borders(figs, titles, con_id=con_id)
 
             if image_records:
-                for plot_type, fname in figs.items():
+                for plot_type, fname in files.items():
                     image_rec = {'site': site, 'file': fname, 'type': PLOT_TYPES[plot_type],
                                  'title': "{} {}".format(site, PLOT_TYPES[plot_type]),
                                  'timestamp': date.today().isoformat(), 'software_packages': version.version}
@@ -9252,7 +9252,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                         titles[key] = key
             pmagplotlib.add_borders(figs, titles, con_id=con_id)
         if image_records:
-            for plot_type, fname in figs.items():
+            for plot_type, fname in files.items():
                 image_rec = {'location': locs, 'file': fname, 'type': PLOT_TYPES[plot_type],
                              'title': "{} {}".format(locs, PLOT_TYPES[plot_type]),
                              'timestamp': date.today().isoformat(), 'software_packages': version.version}

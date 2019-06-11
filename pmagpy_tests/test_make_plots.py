@@ -47,8 +47,6 @@ class TestMakeMagicPlots(unittest.TestCase):
         self.assertFalse(glob.glob("errors.txt"))
         self.assertTrue(os.path.exists(image_file))
         lines = pmag.magic_read(image_file)[0]
-        for line in lines:
-            print(line)
         self.assertEqual(len(lines), 7)
         self.assertFalse("image" in lines[0].keys())
 
@@ -76,7 +74,6 @@ class TestMakeMagicPlots(unittest.TestCase):
         for line in lines[-3:]:
             print(line)
         self.assertEqual(len(lines), 541)
-        #self.assertEqual(len(lines), 538)
         self.assertFalse("image" in lines[0].keys())
         self.assertFalse(glob.glob("errors.txt"))
         num_pngs = len(glob.glob("*png"))
