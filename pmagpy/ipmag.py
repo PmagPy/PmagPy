@@ -13365,4 +13365,6 @@ PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
               "zijd": "Zijderveld Plot", "demag": "Demagnetization Plot",
               "deremag": "De-Remagnetization Plot", 'hyst': 'Hysteresis Loop',
               "data": "Anisotropy Data Plot", "conf": "Anisotropy Confidence Plot",
-              "tcdf": "tcdf", "cdf_0": "cdf_0", "cdf_1": "cdf_1", "cdf_2": "cdf_2"}
+              "tcdf": "tcdf", "cdf_0": "cdf_0", "cdf_1": "cdf_1", "cdf_2": "cdf_2",
+              "day": "Day Plot", "S-Bcr": "Day Plot", "S-Bc": "Day Plot",
+              "bcr1-bcr2": "Day Plot"}

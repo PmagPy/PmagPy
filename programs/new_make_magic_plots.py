@@ -424,12 +424,12 @@ def main():
             # there are data for a dayplot
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
-                CMD = 'dayplot_magic.py -f tmp_specimens.txt -sav -fmt ' + fmt
-                #CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={})".format(con)
-                #print(ipmag.dayplot_magic(save=True, fmt='png', contribution=con))
-                #info_log(CMD, loc)
+                CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={})".format(con)
+                info_log(CMD, loc)
                 print(CMD)
-                os.system(CMD)
+                res, outfiles, dayplot_recs = ipmag.dayplot_magic(save=True, fmt='png',
+                                                                  contribution=con, image_records=True)
+                image_recs.extend(dayplot_recs)
             else:
                 print('no hysteresis data found')
         if aniso_file in filelist and spec_data:  # do anisotropy plots if possible
