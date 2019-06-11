@@ -6586,7 +6586,7 @@ class Site(object):
 
 def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
                   save=True, save_folder='.', fmt='svg', data_model=3,
-                  interactive=False, contribution=None):
+                  interactive=False, contribution=None, image_records=False):
     """
     Makes 'day plots' (Day et al. 1977) and squareness/coercivity plots
     (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
@@ -6602,8 +6602,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     save : boolean argument to save plots (default is True)
     save_folder : relative directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures (default is 'pdf')
+    image_records : generate and return a record for each image in a list of dicts
+        which can be ingested by pmag.magic_write
+        bool, default False
+
     """
-    args = sys.argv
     hyst_path = os.path.join(path_to_file, hyst_file)
     if data_model == 2 and rem_file != '':
         rem_path = os.path.join(path_to_file, rem_file)
@@ -6621,6 +6624,7 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     S, BcrBc, Bcr2, Bc, hsids, Bcr = [], [], [], [], [], []
     Ms, Bcr1, Bcr1Bc, S1 = [], [], [], []
     locations = ''
+    image_recs = []
     if data_model == 2:
         for rec in hyst_data:
             if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations:
@@ -6656,6 +6660,8 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
                                   custom_filenames=fnames)
         if 'specimens' not in con.tables:
             print('-E- No specimen file found in {}'.format(os.path.realpath(dir_path)))
+            if image_records:
+                return False, [], []
             return False, []
         spec_container = con.tables['specimens']
         spec_df = spec_container.df
@@ -6699,7 +6705,6 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
           'S-Bcr': os.path.join(save_folder, "_".join(loc_list) + '_S-Bcr.' + fmt),
           'S-Bc': os.path.join(save_folder, "_".join(loc_list) + '_S-Bc.' + fmt)}
     if len(Bcr1) > 0:
-
         plt.figure(num=DSC['day'], figsize=(5, 5))
         #plt.figure(num=DSC['S-Bc'], figsize=(5, 5))
         plt.figure(num=DSC['S-Bcr'], figsize=(5, 5))
@@ -6715,14 +6720,23 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
         if pmagplotlib.isServer:
             for key in list(DSC.keys()):
                 fnames[key] = 'LO:_' + ":".join(set(loc_list)) + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+        if image_records:
+            for ftype, fname in fnames.items():
+                image_rec = {'file': fname, 'type': ftype, 'title': " ".join(set(loc_list)) + " " + ftype,
+                             'timestamp': date.today().isoformat(), 'software_packages': version.version}
+                image_recs.append(image_rec)
         if save:
             pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+            if image_records:
+                return True, fnames.values(), image_recs
             return True, fnames.values()
         if interactive:
             pmagplotlib.draw_figs(DSC)
             ans = pmagplotlib.save_or_quit()
             if ans == 'a':
                 pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+                if image_records:
+                    return True, fnames.values(), image_recs
                 return True, fnames.values()
 
     else:
@@ -6738,15 +6752,29 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     if pmagplotlib.isServer:
         for key in list(DSC.keys()):
             fnames[key] = 'LO:_' + ":".join(set(loc_list)) + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+
+    if image_records:
+        for ftype, fname in fnames.items():
+            image_rec = {'file': fname, 'type': PLOT_TYPES[ftype], 'title': " ".join(set(loc_list)) + " " + ftype,
+                         'timestamp': date.today().isoformat(), 'software_packages': version.version}
+
+            image_recs.append(image_rec)
+
     if save:
         pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+        if image_records:
+            return True, fnames.values(), image_recs
         return True, fnames.values()
     elif interactive:
         pmagplotlib.draw_figs(DSC)
         ans = pmagplotlib.save_or_quit()
         if ans == 'a':
             pmagplotlib.save_plots(DSC, fnames, incl_directory=True)
+            if image_records:
+                return True, fnames.values(), image_recs
             return True, fnames.values()
+    if image_records:
+        return True, [], []
     return True, []
 
 

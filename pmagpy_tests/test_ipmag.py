@@ -1363,7 +1363,8 @@ class TestDayplotMagic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        glob_strings = ["*.svg", "*.png", "*.pdf", "example.txt"]
+        glob_strings = ["*.svg", "*.png", "*.pdf", "example.txt",
+                        os.path.join("data_files", "3_0", "McMurdo", "*.png")]
         for string in glob_strings:
             for fname in glob.glob(string):
                 os.remove(fname)
@@ -1385,6 +1386,16 @@ class TestDayplotMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertTrue(saved)
         self.assertTrue(glob.glob("*.png"))
+
+    def test_with_image_records(self):
+        con = cb.Contribution('data_files/3_0/McMurdo')
+        res, saved, image_records = ipmag.dayplot_magic(fmt="png", contribution=con, image_records=True)
+        self.assertTrue(res)
+        self.assertTrue(saved)
+        self.assertTrue(glob.glob("*.png"))
+        self.assertTrue(image_records)
+        self.assertEqual(3, len(image_records))
+
 
 
 class TestDmagMagic(unittest.TestCase):
