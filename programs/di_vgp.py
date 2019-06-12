@@ -84,7 +84,7 @@ def main():
     else: # single line of data
         if len(data)==4:
             data=[data[0],data[1],0,data[2],data[3]]
-        output = pmag.dia_vgp(data)
+        output = pmag.dia_vgp(*data)
         if out=='': # spit to standard output
             print('%7.1f %7.1f'%(output[0],output[1])) 
         else: # write to file
