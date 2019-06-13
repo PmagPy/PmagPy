@@ -26,8 +26,14 @@ def main():
     cont,Int,Top=1,[],[]
     while cont==1:
         try: 
-            Int.append(int(input(" Enter desired treatment step interval: <return> to quit ")))
-            Top.append(int(input(" Enter upper bound for this interval: ")))
+            interval=input(" Enter desired treatment step interval: <return> to quit ")
+            if interval!="":
+                Int.append(int(interval))
+            else:cont=0
+            if cont:
+                top= input(" Enter upper bound for this interval: ")
+                if top!="":
+                    Top.append(int(top))
         except:
             cont=0
     pmag.chart_maker(Int,Top)
