@@ -258,7 +258,7 @@ def main():
                 CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True)".format(crd, con)
                 print(CMD)
                 info_log(CMD, loc)
-                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots=20,
+                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots='all',
                                                             contribution=con, image_records=True)
                 image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
@@ -267,7 +267,7 @@ def main():
                 CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}, image_records=True)".format(con)
                 print(CMD)
                 info_log(CMD, loc)
-                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs=50, fmt="png", contribution=con, image_records=True)
+                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs='all', fmt="png", contribution=con, image_records=True)
                 image_recs.extend(thellier_images)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
@@ -280,7 +280,7 @@ def main():
                     CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}, image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots=20, contribution=con, image_records=True)
+                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots='all', contribution=con, image_records=True)
                     image_recs.extend(quick_hyst_recs)
             # equal area plots of directional data
             # at measurement level (by specimen)
@@ -291,7 +291,7 @@ def main():
                     CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
-                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots=20,
+                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots='all',
                                                                           ignore_tilt=True, plot_by="spc",
                                                                           contribution=con,
                                                                           source_table="measurements",
@@ -360,7 +360,7 @@ def main():
                     CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt="png", n_plots=20,
+                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt="png", n_plots='all',
                                                                    contribution=con, source_table="sites",
                                                                    image_records=True)
                     image_recs.extend(eqarea_site_recs)
@@ -424,7 +424,7 @@ def main():
             # there are data for a dayplot
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
-                CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={})".format(con)
+                CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={}, image_records=True)".format(con)
                 info_log(CMD, loc)
                 print(CMD)
                 res, outfiles, dayplot_recs = ipmag.dayplot_magic(save=True, fmt='png',
