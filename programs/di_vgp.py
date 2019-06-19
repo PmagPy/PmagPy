@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from builtins import input
-from builtins import range
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -71,10 +68,13 @@ def main():
     else: #
         data = numpy.loadtxt(sys.stdin,dtype=numpy.float) # read from S/I
     if len(data.shape)>1: # 2-D array
-            N=data.shape[0]    
+            N=data.shape[0]
             if data.shape[1]==4:   # only dec,inc,sitelat, site long -no alpha95
                 data=data.transpose()
                 inlist=numpy.array([data[0],data[1],numpy.zeros(N),data[2],data[3]]).transpose()
+            elif data.shape[1]==5:
+                inlist=data
+
             output = pmag.dia_vgp(inlist)
             for k in range(N):
                 if out=='':
