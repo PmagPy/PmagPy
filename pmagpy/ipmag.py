@@ -10891,6 +10891,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
                 if ans == 'q':
                     if image_records:
                         return True, [], []
+                    return True, []
                 if ans == 'a':
                     files = {key : this_specimen + "_" + key + "." + fmt for (key, value) in zed.items()}
                     if not set_env.IS_WIN:
