@@ -182,7 +182,7 @@ matrix:
       #script: python -m unittest discover -v
       script:
         - python -V -V
-        - python -m unittest pmagpy_tests.test_simple_example pmagpy_tests.test_pmag pmagpy_tests.test_ipmag -v
+        - python -m unittest pmagpy_tests.test_simple_example pmagpy_tests.test_pmag pmagpy_tests.test_ipmag pmagpy_tests.testpmagplotlib -v
         # exits with 0, but doesn't actually finish running :(
         #- python -m pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder -v
 
