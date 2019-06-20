@@ -51,7 +51,7 @@ matrix:
         - pip3 install six requests pyepsg owslib cartopy future numpy==1.16.1 scipy
         - pip3 install pandas libtiff
         #- pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython # regular pip install wxPython does not work
-        - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
+        - pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
         - pip3 install appdirs
         - pip3 install matplotlib==3.1
         - pip3 install scripttest
