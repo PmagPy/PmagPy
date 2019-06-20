@@ -337,7 +337,7 @@ def param_argvs(inputs=None):
     save = False
     if '-sav' in inputs:
         save = True
-    fmt = pmag.get_named_arg('-fmt', ".svg")
+    fmt = pmag.get_named_arg('-fmt', "svg")
     fileAdres = pmag.get_named_arg('-f', reqd=True)
     if not os.path.isfile(fileAdres):
         print('-f file not exist')
