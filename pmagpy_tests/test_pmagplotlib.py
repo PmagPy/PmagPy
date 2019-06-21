@@ -4,12 +4,14 @@ import cartopy
 from pmagpy import pmag
 from pmagpy import pmagplotlib
 WD = pmag.get_test_WD()
+import matplotlib
 
 
 class TestPlotMagMap(unittest.TestCase):
 
     def setUp(self):
-        pass
+        print('matplotlib backend', matplotlib.get_backend())
+        print('matplotlib version', matplotlib.__version__)
 
     def tearDown(self):
         pass
