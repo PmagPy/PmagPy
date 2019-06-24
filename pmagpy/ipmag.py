@@ -9198,6 +9198,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                               vec=vec, num_bootstraps=num_bootstraps, title=site)
             files = {key: loc + "_" + site +"_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
             if pmagplotlib.isServer:
+                titles = {}
                 for key in figs.keys():
                     files[key] = "LO:_" + loc + "_SI:_" + site +  '_TY:_aniso_' + key + '_.' + fmt
                     titles = {}
@@ -9241,6 +9242,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         locs = "-".join(locs)
         files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
         if pmagplotlib.isServer:
+            titles = {}
             for key in figs.keys():
                 files[key] = 'MC:_' + con_id + '_TY:_aniso_' + key + '_.' + fmt
                 titles = {}
