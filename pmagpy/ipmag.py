@@ -6685,7 +6685,7 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
                 Bc.append(float(row['hyst_bc']))
                 BcrBc.append(old_div(Bcr[-1], Bc[-1]))
                 hsids.append(row['specimen'])
-            if do_rem:
+            if do_rem and Bc:
                 if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                     try:
                         Bcr1.append(float(row['rem_bcr']))
