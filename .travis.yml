@@ -38,7 +38,7 @@ matrix:
         #- conda create -n my-test-environment python=3.7
         #- source activate my-test-environment
         ## install req'd packages with conda
-        #- PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
+        #- PACKAGES="$PACKAGES cython pillow pytest pep8 proj4 pyshp shapely six requests pyepsg owslib"
         #- conda install --quiet $PACKAGES
         #- conda install --quiet cartopy
         #- conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
@@ -102,7 +102,7 @@ matrix:
 #        - conda create -n $ENV_NAME python=3.6
 #        - source activate $ENV_NAME
 #        # install req'd packages with conda
-#        - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4=4.* pyshp shapely six requests pyepsg owslib"
+#        - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4 pyshp shapely six requests pyepsg owslib"
 #        - conda install --quiet $PACKAGES
 #        - conda install --quiet cartopy
 #        - conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
