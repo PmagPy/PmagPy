@@ -1475,7 +1475,7 @@ def vspec_magic3(data):
                 descr=vrec['description']+': average of multiple measurements'
                 descr=descr.strip(':')
                 vrec['description'] =descr
-            
+
                 if "method_codes" in list(vrec.keys()):
                     meths = vrec["method_codes"].strip().split(":")
                     if "DE-VM" not in meths:
@@ -4987,8 +4987,8 @@ def pt_rot(EP, Lats, Lons):
 
     Returns
     _________
-    RLats : rotated latitudes
-    RLons : rotated longitudes
+    RLats : list of rotated latitudes
+    RLons : list of rotated longitudes
     """
 # gets user input of Rotation pole lat,long, omega for plate and converts
 # to radians
