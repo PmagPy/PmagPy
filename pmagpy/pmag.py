@@ -11330,6 +11330,74 @@ def fix_directories(input_dir_path, output_dir_path):
     output_dir_path = os.path.realpath(output_dir_path)
     return input_dir_path, output_dir_path
 
+def subtract_base_vector(df,rem_type):
+    """ subtracts the last measurement from all the others
+    Paramters
+    _________
+        df : dataframe of measurement data
+        rem_type : remanence type for substracing
+    Returns
+    ________
+        df : after substraction
+    """
+    df['number'] = range(len(df))
+    base_vector_rec=df[df.description.str.contains(rem_type)==True].tail(1)  
+    base_vector_dir=base_vector_rec[['dir_dec','dir_inc','magn_mass']].values
+    base_cart=dir2cart(base_vector_dir)
+    df_not_type=df[df.description.str.contains(rem_type)==False]
+    df_type=df[df.description.str.contains(rem_type)]
+
+    dirs=df_type[['dir_dec','dir_inc','magn_mass']].values
+    carts=dir2cart(dirs)
+    diff=carts-base_cart
+    dir_diff=cart2dir(diff).transpose()
+    df_type['dir_dec_diff']=dir_diff[0]
+    df_type['dir_inc_diff']=dir_diff[1]
+    df_type['magn_mass_diff']=dir_diff[2]
+    df_type.loc[:,'dir_dec_diff']=df_type.dir_dec_diff.fillna(0)
+    df_type.loc[:,'dir_inc_diff']=df_type.dir_inc_diff.fillna(0)
+    df=pd.concat((df_not_type,df_type))
+    df.sort_values(by='number',inplace=True)
+    
+    return df
+
+def find_mdf(df):
+    """
+    Finds the median destructive field for AF demag data
+    Parameters
+    __________
+        df : dataframe of measurements
+    Returns
+    ______
+        mdf : median destructive field
+    """
+    mdf_df=df[df.meas_norm<=0.5]
+    mdf_high=mdf_df.treat_ac_field_mT.values[0]
+    mdf_df=df[df.meas_norm>=0.5]
+    mdf_low=mdf_df.treat_ac_field_mT.values[-1]
+    mdf=int(0.5*(mdf_high+mdf_low))
+    return mdf
+
+def ltd_pars(df,step_min,step_max,xkey,ykey):
+    df=df[df.treat>=step_min]
+    df=df[df.treat<=step_max]
+    n=df.index.max()
+    slope, b, r, p, stderr = linregress(df[xkey].values.astype('float')\
+                                                , df[ykey].values.astype('float'))
+    coeffs=np.polyfit(df[xkey].values.astype('float'),df[ykey].values.astype('float'),1)
+    
+    return n,slope,b,r,stderr,coeffs,df
+ 
+    
+def vds(xyz):
+    R=0
+    cart=xyz.transpose()
+    for i in range(xyz.shape[1]-1):
+        diff=[cart[i][0]-cart[i+1][0],cart[i][1]-cart[i+1][1],cart[i][2]-cart[i+1][2]]
+        dirdiff=cart2dir(diff)
+        R+=dirdiff[2]
+    return R
+                                        
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
