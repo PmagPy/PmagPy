@@ -11379,6 +11379,7 @@ def find_mdf(df):
     return mdf
 
 def ltd_pars(df,step_min,step_max,xkey,ykey):
+    from scipy.stats import linregress
     df=df[df.treat>=step_min]
     df=df[df.treat<=step_max]
     n=df.index.max()
