@@ -73,7 +73,7 @@ class Fit(object):
 
     def get(self,coordinate_system):
         """
-        Return the pmagpy paramters dictionary associated with this fit and the given
+        Return the pmagpy parameters dictionary associated with this fit and the given
         coordinate system
         @param: coordinate_system -> the coordinate system who's parameters to return
         """
@@ -94,7 +94,7 @@ class Fit(object):
         parameters such that it matches the new data.
         @param: specimen -> None if fit is for a site or a sample or a valid specimen from self.GUI
         @param: coordinate_system -> the coordinate system to alter
-        @param: new_pars -> the new paramters to change your fit to
+        @param: new_pars -> the new parameters to change your fit to
         @alters: tmin, tmax, pars, geopars, tiltpars, PCA_type
         """
 
@@ -119,7 +119,7 @@ class Fit(object):
                     elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
                     elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
                     else:
-                        print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
+                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
                         tl[i] = str(t)
                 self.tmin,self.tmax = tl
             elif meas_data != None:
@@ -131,7 +131,7 @@ class Fit(object):
                     elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
                     elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
                     else:
-                        print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
+                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
                         tl[i] = str(t)
                 self.tmin,self.tmax = tl
             else: self.tmin,self.tmax = list(map(str, tl))

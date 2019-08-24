@@ -3127,7 +3127,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     # all data-points, pTRM checks, and tail-checks, should be inside a "scat box"
     # ---------------------------------------------------------------------
 
-    # intialization
+    # initialization
     # fail scat due to arai plot data points
     pars["fail_arai_beta_box_scatter"] = False
     pars["fail_ptrm_beta_box_scatter"] = False  # fail scat due to pTRM checks
@@ -4201,10 +4201,10 @@ def fisher_by_pol(data):
 def dolnp3_0(Data):
     """
     DEPRECATED!!  USE dolnp()
-    Desciption: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
+    Description: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
     Parameters
     __________
-    Data : nested list of dictionarys with keys
+    Data : nested list of dictionaries with keys
         dir_dec
         dir_inc
         dir_tilt_correction
@@ -4382,7 +4382,7 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
     Calculates the best fit vectors for a set of plane interpretations used in fisher mean calculations
     @param: L - a list of the "EL, EM, EN" array of MM88 or the cartisian form of dec and inc of the plane interpretation
     @param: E - the sum of the cartisian coordinates of all the line fits to be used in the mean
-    @param: V - inital direction to start iterating from to get plane best fits
+    @param: V - initial direction to start iterating from to get plane best fits
     @returns: nested list of n_plane by 3 dimension where the 3 are the cartisian dimension of the best fit vector
     """
 
@@ -6668,10 +6668,10 @@ def design(npos):
         # rotatable design of Jelinek for kappabridge (see Tauxe, 1998)
         #
         A = np.array([[.5, .5, 0, -1., 0, 0], [.5, .5, 0, 1., 0, 0], [1, .0, 0, 0, 0, 0], [.5, .5, 0, -1., 0, 0], [.5, .5, 0, 1., 0, 0], [0, .5, .5, 0, -1., 0], [0, .5, .5, 0, 1., 0], [0, 1., 0, 0, 0, 0],
-                      [0, .5, .5, 0, -1., 0], [0, .5, .5, 0, 1., 0], [.5, 0, .5, 0, 0, -1.], [.5, 0, .5, 0, 0, 1.], [0, 0, 1., 0, 0, 0], [.5, 0, .5, 0, 0, -1.], [.5, 0, .5, 0, 0, 1.]])  # design matrix for 15 measurment positions
+                      [0, .5, .5, 0, -1., 0], [0, .5, .5, 0, 1., 0], [.5, 0, .5, 0, 0, -1.], [.5, 0, .5, 0, 0, 1.], [0, 0, 1., 0, 0, 0], [.5, 0, .5, 0, 0, -1.], [.5, 0, .5, 0, 0, 1.]])  # design matrix for 15 measurement positions
     elif npos == 6:
         A = np.array([[1., 0, 0, 0, 0, 0], [0, 1., 0, 0, 0, 0], [0, 0, 1., 0, 0, 0], [.5, .5, 0, 1., 0, 0], [
-                     0, .5, .5, 0, 1., 0], [.5, 0, .5, 0, 0, 1.]])  # design matrix for 6 measurment positions
+                     0, .5, .5, 0, 1., 0], [.5, 0, .5, 0, 0, 1.]])  # design matrix for 6 measurement positions
 
     else:
         print("measurement protocol not supported yet ")
@@ -6732,7 +6732,7 @@ def dosgeo(s, az, pl):
     X2 = dir2cart((az + 90, 0., 1.))
     X3 = cross(X1, X2)
     A = np.transpose([X1, X2, X3])
-    b = np.zeros((3, 3,), 'f')  # initiale the b matrix
+    b = np.zeros((3, 3,), 'f')  # initialize the b matrix
     for i in range(3):
         for j in range(3):
             dum = 0
@@ -6740,7 +6740,7 @@ def dosgeo(s, az, pl):
                 for l in range(3):
                     dum += A[i][k] * A[j][l] * a[k][l]
             b[i][j] = dum
-    s_rot = a2s(b)  # afer rotation
+    s_rot = a2s(b)  # after rotation
     return s_rot
 #
 #
@@ -8996,8 +8996,8 @@ def get_samp_con():
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
             [6] site is entered under a separate column
@@ -9058,7 +9058,7 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     SDir = cart2dir(SCart)
     DipDir = (SDir[0] - 90.) % 360.
     DipDir = (SDir[0] + 90.) % 360.
-# D is creat circle distance between geo direction and strike
+# D is great circle distance between geo direction and strike
 # theta is GCD between geo and tilt (on unit sphere).  use law of cosines
 # to get small cirlce between geo and tilt (dip)
     cosd = GCart[0] * SCart[0] + GCart[1] * \
@@ -10165,7 +10165,7 @@ def initialize_acceptance_criteria(**kwargs):
     # --------------------------------
     category = 'ANI'
     # high cutoff value
-    for crit in ['anisotropy_alt', 'sample_aniso_mean', 'site_aniso_mean']:  # value is in precent
+    for crit in ['anisotropy_alt', 'sample_aniso_mean', 'site_aniso_mean']:  # value is in percent
         acceptance_criteria[crit] = {}
         acceptance_criteria[crit]['category'] = category
         acceptance_criteria[crit]['criterion_name'] = crit
@@ -10409,7 +10409,7 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
 
 def add_flag(var, flag):
     """
-    for use when calling command-line scripts from withing a program.
+    for use when calling command-line scripts from within a program.
     if a variable is present, add its proper command_line flag.
     return a string.
     """
@@ -11332,16 +11332,16 @@ def fix_directories(input_dir_path, output_dir_path):
 
 def subtract_base_vector(df,rem_type):
     """ subtracts the last measurement from all the others
-    Paramters
+    Parameters
     _________
         df : dataframe of measurement data
-        rem_type : remanence type for substracing
+        rem_type : remanence type for subtracting
     Returns
     ________
-        df : after substraction
+        df : after subtraction
     """
     df['number'] = range(len(df))
-    base_vector_rec=df[df.description.str.contains(rem_type)==True].tail(1)  
+    base_vector_rec=df[df.description.str.contains(rem_type)==True].tail(1)
     base_vector_dir=base_vector_rec[['dir_dec','dir_inc','magn_mass']].values
     base_cart=dir2cart(base_vector_dir)
     df_not_type=df[df.description.str.contains(rem_type)==False]
@@ -11358,7 +11358,7 @@ def subtract_base_vector(df,rem_type):
     df_type.loc[:,'dir_inc_diff']=df_type.dir_inc_diff.fillna(0)
     df=pd.concat((df_not_type,df_type))
     df.sort_values(by='number',inplace=True)
-    
+
     return df
 
 def find_mdf(df):
