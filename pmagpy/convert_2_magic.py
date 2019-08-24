@@ -68,7 +68,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
 
     Info
@@ -90,8 +90,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -491,7 +491,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     Info
     --------
@@ -499,8 +499,8 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -775,7 +775,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     Info
     --------
@@ -783,8 +783,8 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name same as sample
         [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
@@ -912,13 +912,13 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
             datelist = row['Date'].split('-')
         else:
             print(
-                "unrecogized date formating on one of the measurement entries for specimen %s" % specimen)
+                "unrecognized date formatting on one of the measurement entries for specimen %s" % specimen)
             datelist = ['', '', '']
         if ':' in row['Time']:
             timelist = row['Time'].split(':')
         else:
             print(
-                "unrecogized time formating on one of the measurement entries for specimen %s" % specimen)
+                "unrecognized time formatting on one of the measurement entries for specimen %s" % specimen)
             timelist = ['', '', '']
         datelist[2] = '19' + \
             datelist[2] if len(datelist[2]) <= 2 else datelist[2]
@@ -990,7 +990,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         norm='cc', oersted=False, noave=False, meas_n_orient='8',
         labfield=0, phi=0, theta=0):
     """
-    Converts CIT formated Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
+    Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
     Parameters
     -----------
@@ -1014,8 +1014,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in sitename column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -1027,7 +1027,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
 
     Returns
     -----------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
     """
 
     def get_dc_params(FIRST_GET_DC, specimen, treat_type, yn):
@@ -1464,7 +1464,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
     experiment : str
         experiment type, see info below
     cooling_times_list : list
-        cooling times in [K/minutes] seperated by comma,
+        cooling times in [K/minutes] separated by comma,
         ordered at the same order as XXX.10,XXX.20 ...XX.70
     sample_nc : list
         sample naming convention, default [1, 0], see info below
@@ -1501,7 +1501,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
             XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
             if using this type, you must also provide cooling rates in [K/minutes] in cooling_times_list
-            seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+            separated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
 
             No need to specify the cooling rate for the zerofield
             But users need to make sure that there are no duplicate meaurements in the file
@@ -1623,7 +1623,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
 
     def average_duplicates(duplicates):
         '''
-        avarage replicate measurements.
+        average replicate measurements.
         '''
         carts_s, carts_g, carts_t = [], [], []
         for rec in duplicates:
@@ -2078,7 +2078,7 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
 
             elif 'NLT' in experiment:
                 print(
-                    "Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu")
+                    "Do not support yet NLT rate experiment file. Contact rshaar@ucsd.edu")
 
             # ---------------------
             # method_codes for this measurement only
@@ -2312,7 +2312,7 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
         location name, default "unknown"
     CR_cooling_times : list
         default None
-        cooling times in [K/minutes] seperated by comma,
+        cooling times in [K/minutes] separated by comma,
         ordered at the same order as XXX.10,XXX.20 ...XX.70
     noave : bool
        do not average duplicate measurements, default False (so by default, DO average)
@@ -2330,15 +2330,15 @@ def huji(magfile="", dir_path=".", input_dir_path="", datafile="", codelist="",
             where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
             XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
             syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx
-            where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+            where xx, yyy,zzz...xxx  are cooling time in [K/minutes], separated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
             if you use a zerofield step then no need to specify the cooling rate for the zerofield
 
     Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -2897,7 +2897,7 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
 
     Info
     --------
@@ -2914,8 +2914,8 @@ def huji_sample(orient_file, meths='FS-FD:SO-POM:SO-SUN', location_name='unknown
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -3077,7 +3077,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
     """
     # initialize defaults
     version_num = pmag.get_version()
@@ -3281,7 +3281,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
     """
     # initialize defaults
     version_num = pmag.get_version()
@@ -3409,7 +3409,7 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
 
     """
     # initialize defaults
@@ -3594,7 +3594,7 @@ def iodp_jr6(mag_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     """
 
@@ -3796,7 +3796,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, samp_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, samp_file name written)
 
     """
     samp_file_name = "samples.txt"
@@ -3880,7 +3880,7 @@ def iodp_samples(samp_file, output_samp_file=None, output_dir_path='.',
     if 'Volume (cm3)' in keys:
         volume_key = 'Volume (cm3)'
     if not text_key:
-        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formatted IODP samples csv file."
     ErSamples, samples, file_format = [], [], 'old'
     for line in file_input[1:]:
         if line[0] != '0':
@@ -4038,7 +4038,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful,file names written)
+    type - Tuple : (True or False indicating if conversion was successful,file names written)
 
     """
     # define required columns for samples, sites, locations (holes).
@@ -4072,7 +4072,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     iodp_sample_data.fillna('',inplace=True)
     # check if there are data
     if len(iodp_sample_data)==0:
-        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formatted IODP samples csv file."
     # create the MagIC data model 3.0 DataFrames with the required column
     specimens_df=pd.DataFrame(columns = spec_reqd_columns)
     samples_df=pd.DataFrame(columns = samp_reqd_columns)
@@ -4200,7 +4200,7 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful,file names written)
+    type - Tuple : (True or False indicating if conversion was successful,file names written)
 
     """
     # define required columns for samples, sites, locations (holes).
@@ -4310,7 +4310,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
     """
     # initialize defaults
     version_num = pmag.get_version()
@@ -4424,7 +4424,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     """
 
@@ -4891,7 +4891,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     Info
     --------
@@ -4899,8 +4899,8 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name same as sample
         [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
@@ -5158,7 +5158,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     """
 
@@ -5341,7 +5341,7 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
         MeasRec['method_codes'] = meas_type
         MeasRecs.append(MeasRec)
 
-        # ignore all the rest of the special characters. Some data files not consistantly formatted.
+        # ignore all the rest of the special characters. Some data files not consistently formatted.
         n += 1
         while ((len(data[n]) <= 5 and data[n] != '') or data[n].startswith('----')):
             n += 1
@@ -5407,7 +5407,7 @@ def k15(k15file, dir_path='.', input_dir_path='',
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, samp_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, samp_file name written)
 
 
     Info
@@ -5420,8 +5420,8 @@ def k15(k15file, dir_path='.', input_dir_path='',
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
             [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -5899,7 +5899,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
           site_outfile='sites.txt'):
     """
 
-    converts files generated by SIO kly4S labview program to MagIC formated
+    converts files generated by SIO kly4S labview program to MagIC formatted
 
     Parameters
     ----------
@@ -5940,7 +5940,7 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
 
     Info
@@ -5962,8 +5962,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -6425,8 +6425,8 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
             "4-Z" XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             "5" site name same as sample
             "6" site is entered under a separate column NOT CURRENTLY SUPPORTED
@@ -6458,7 +6458,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     Effects
     _______
@@ -6776,7 +6776,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
 
 
     Input file format
@@ -6816,7 +6816,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     #
     # BODY:
     # 1) Body includes 22 fields delimited by comma (',')
-    # 2) Body ends with an "END" statment
+    # 2) Body ends with an "END" statement
     #
     # Body fields:
     # Treatment (aka field) (mT / deg C / 10-2 W): (delimiter = space)
@@ -6855,9 +6855,9 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
     #       The program concludes the expected treatment from the following:
     #       ("Experiment Type) + ("Step Number" or "TH Demag/Remag Peak Temperature") + (the order of the measurements).
     #       The conversion script will spit out a WARNING message in a case of contradiction.
-    # (6) If the program finds AF demagnetization before the infield ot zerofield steps:
+    # (6) If the program finds AF demagnetization before the infield to zerofield steps:
     #       then assumes that this is an AFD step domne before the experiment.
-    # (7) The prgram ignores microwave fields (aka field,Microwave Power,Microwave Time) in Thermal experiments. And these fields will not be converted
+    # (7) The program ignores microwave fields (aka field,Microwave Power,Microwave Time) in Thermal experiments. And these fields will not be converted
     #     to MagIC.
     # (8) NRM step: NRM step is regonized either by "Applied field intensity"=0 and "Applied field Dec" =0 and "Applied Field Inc"=0
     #               or if "Step Type" = NRM
@@ -7052,7 +7052,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                         break
 
                     # -------------------------------
-                    # Read infromation from Header and body
+                    # Read information from Header and body
                     # The data is stored in a dictionary:
                     # Data[specimen][Experiment_Type]['header_data']=tmp_header_data  --> a dictionary with header data
                     # Data[specimen][Experiment_Type]['meas_data']=[dict1, dict2, ...] --> a list of dictionaries with measurement data
@@ -7061,7 +7061,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                     header = line.strip('\n').split(",")
                     #header=str(this_line[0]).split()+ this_line[1:-1]
 
-                    # header consists of  fields seperated by spaces and "|"
+                    # header consists of fields separated by spaces and "|"
 
             # if len (header) > 15:
             ##                this_line_data[14:]=" ".join(this_line_data[14:])
@@ -7092,7 +7092,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                     Data[specimen][Experiment_Type]['meas_data'] = []
 
                     # ---------------------------------------------------
-                    # Read infromation from body and sort in dictonaries
+                    # Read information from body and sort in dictonaries
                     # ---------------------------------------------------
 
                     while this_specimen:
@@ -7139,7 +7139,7 @@ def livdb(input_dir_path, output_dir_path=".", meas_out="measurements.txt",
                     # MW-PI-OT+:
                     #  Microwave Thellier Thellier protocol
                     # MW-PI-P:
-                    #  Perpendicular mathod
+                    #  Perpendicular method
                     #  demagnetizations until overprint is removed
                     #  then remagnetization perpendicular to the remaining NRM direction
                     # -----------------------------------
@@ -7638,7 +7638,7 @@ def mini(magfile, dir_path='.', meas_file='measurements.txt',
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     """
 
@@ -7822,7 +7822,7 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
 
 
     Info
@@ -7831,8 +7831,8 @@ def mst(infile, spec_name='unknown', dir_path=".", input_dir_path="",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -8060,7 +8060,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, file name written)
+    Tuple : (True or False indicating if conversion was successful, file name written)
 
 
     Info
@@ -8069,8 +8069,8 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -8270,8 +8270,8 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             "1" XXXXY: where XXXX is an arbitr[ary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            "2" XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            "3" XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
             "4-Z" XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             "5" site name same as sample
             "6" site is entered under a separate column NOT CURRENTLY SUPPORTED
@@ -8300,7 +8300,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
             XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
             syntax in sio_magic is: -LP CR xxx,yyy,zzz,..... xxx -A
-            where xxx, yyy, zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+            where xxx, yyy, zzz...xxx  are cooling time in [K/minutes], separated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
             if you use a zerofield step then no need to specify the cooling rate for the zerofield
             It is important to add to the command line the -A option so the measurements will not be averaged.
             But users need to make sure that there are no duplicate measurements in the file
@@ -8955,7 +8955,7 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
 
     Returns
     ---------
-    Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
 
     Input format
@@ -8970,8 +8970,8 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -9156,7 +9156,7 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
 
     Returns
     --------
-    type - Tuple : (True or False indicating if conversion was sucessful, file name written)
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
 
     Info
     --------
@@ -9164,8 +9164,8 @@ def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotrop
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -9794,7 +9794,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     this_line = list(copy(new_line))
 
                 # -------------------------------
-                # Read infromation from Header and body
+                # Read information from Header and body
                 # The data is stored in a dictionary:
                 # Data[specimen][Experiment_Type]['header_data']=tmp_header_data  --> a dictionary with header data
                 # Data[specimen][Experiment_Type]['meas_data']=[dict1, dict2, ...] --> a list of dictionaries with measurement data
@@ -10352,7 +10352,7 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
 
     Returns
     ----------
-    type - Tuple : (True or False indicating if conversion was sucessful, meas_file name written)
+    type - Tuple : (True or False indicating if conversion was successful, meas_file name written)
 
     Info
     ---------
@@ -10360,8 +10360,8 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -10521,7 +10521,7 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
             elif date.count("/") > 0:
                 date = date.split("/")
             else:
-                print("date format seperator cannot be identified")
+                print("date format separator cannot be identified")
 #            print(date)
             time = items[6]
             time = time.strip('"').replace(' ', '')

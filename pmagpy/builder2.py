@@ -1052,7 +1052,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
                     pmag_string.append(str(add_string))
                 pmag_string = '\t'.join(pmag_string)
                 pmag_strings.append(pmag_string)
-        # write acutal pmag file with all collected data
+        # write actual pmag file with all collected data
         pmag_header_string = '\t'.join(pmag_full_headers)
         pmag_outfile = ''
         if do_pmag:
@@ -1062,7 +1062,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
             for string in pmag_strings:
                 pmag_outfile.write(string + '\n')
             pmag_outfile.close()
-        # write acutal er file with all collected data
+        # write actual er file with all collected data
         er_header_string = '\t'.join(er_full_headers)
         er_outfile = ''
         if do_er:

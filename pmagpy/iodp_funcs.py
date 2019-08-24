@@ -307,13 +307,13 @@ def no_xray_disturbance(nodist,hole):
 # save for later
     no_xray_df.drop_duplicates(inplace=True)
     no_xray_df.fillna("",inplace=True)
-    no_xray_df.to_csv(hole+'/'+hole+'_noXraydisturbance.csv',index=False)    
+    no_xray_df.to_csv(hole+'/'+hole+'_noXraydisturbance.csv',index=False)
 #meas_dicts = no_xray_df.to_dict('records')
 #pmag.magic_write(magic_dir+'/no_xray_measurements.txt', meas_dicts, 'measurements')
 
     print ('Here is your DataFrame with no Xray identified disturbances')
     return no_xray_df
- 
+
 def adj_dec(df,hole):
     """
     takes an archive measurement DataFrame and adjusts the average declination by hole to 90 for "normal"
@@ -321,17 +321,17 @@ def adj_dec(df,hole):
     Parameters
     __________
     df : Pandas DataFrame
-        data frame of archive measurment data
+        data frame of archive measurement data
     hole : str
         IODP hole
-    
+
     Returns
     _______
     adj_dec_df : DataFrame
         adjusted declination  data frame
     core_dec_adj : dict
         dictionary of cores and the average declination
-    """ 
+    """
     cores=df.core.unique()
     adj_dec_df=pd.DataFrame(columns=df.columns)
     core_dec_adj={}

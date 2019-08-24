@@ -162,7 +162,7 @@ def main():
        uh_remote = urllib2.urlopen('https://raw.github.com/ltauxe/PmagPy/master/version.py')
        remote_version = uh_remote.readlines()[0][1:-2] # strips out extra quotation marks
     except Exception as ex:
-       return                # if an error occured (e.g. not online),
+       return                # if an error occurred (e.g. not online),
                               # give up trying to check for an update
     finally:
         try:

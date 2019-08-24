@@ -1641,7 +1641,7 @@ def plot_evec(fignum, Vs, symsize, title):
     """
     plots eigenvector directions of S vectors
 
-    Paramters
+    Parameters
     ________
     fignum : matplotlib figure number
     Vs : nested list of eigenvectors
@@ -1672,7 +1672,7 @@ def plot_evec(fignum, Vs, symsize, title):
 
 def plot_ell(fignum, pars, col, lower, plot):
     """
-    function to calcualte/plot points on an ellipse about Pdec,Pdip with angle beta,gamma
+    function to calculate/plot points on an ellipse about Pdec,Pdip with angle beta,gamma
     Parameters
     _________
     fignum : matplotlib figure number
@@ -2023,7 +2023,7 @@ def plot_hys(fignum, B, M, s):
         plt.axhline(0, color='k')
         plt.axvline(0, color='k')
         plt.title(s)
-# find Mr : average of two spline fits evaluted at B=0 (times Msat)
+# find Mr : average of two spline fits evaluated at B=0 (times Msat)
     Mr = Msat * 0.5 * (Iupper(0.) - Ilower(0.))
     hpars['hysteresis_mr_moment'] = '%8.3e' % (Mr)
 # find Bc (x intercept), interpolate between two bounding points
