@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-
-#import urllib.request, urllib.error, urllib.parse
 import os
-#import http.client
-#import pandas as pd
+
 from . import pmag
 from . import find_pmag_dir
 from pmagpy.controlled_vocabularies2 import vocab

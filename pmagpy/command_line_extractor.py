@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import sys
+
 from builtins import object
 import pandas as pd
-import sys
 import pmagpy.pmag as pmag
 
 class command_line_dataframe(object):

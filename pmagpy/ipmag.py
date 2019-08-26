@@ -1,27 +1,27 @@
 #!/usr/bin/env/pythonw
-from past.utils import old_div
+
 import codecs
 import copy
+from datetime import date
+import os
+import random
+import re
+import sys
+import time
+
+from past.utils import old_div
 import numpy as np
 import pandas as pd
 from scipy import stats
-import random
-from datetime import date
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
 import matplotlib.ticker as mtick
-import os
-import sys
-import time
-import re
 try:
     import requests
 except ImportError:
     requests = None
 encoding = "ISO-8859-1"
-#from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-#from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmagpy import spline
@@ -32,8 +32,10 @@ from . import pmagplotlib
 from . import data_model3 as data_model
 from .contribution_builder import Contribution
 from . import validate_upload3 as val_up3
+
 has_basemap, Basemap = pmag.import_basemap()
 has_cartopy, cartopy = pmag.import_cartopy()
+
 if has_cartopy == True:
     import cartopy.crs as ccrs
 

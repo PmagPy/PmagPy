@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 def get_apwp(plate):
     plate = plate.upper()
     if plate == 'AF':

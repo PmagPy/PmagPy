@@ -1,6 +1,7 @@
 from __future__ import print_function
+
 def coeffs(date):
-    if date < 1600: 
+    if date < 1600:
         print("date too early")
         sys.exit()
     elif date < 1605:

@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import math
+
 from builtins import zip
 from builtins import str
 from builtins import range
+
+import math
 import os
+
 import numpy as np
 from pmagpy import contribution_builder as cb
 

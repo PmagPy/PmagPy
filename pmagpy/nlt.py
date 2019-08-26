@@ -1,8 +1,10 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
+
+import math
+
 from past.utils import old_div
-import  math
 from scipy import optimize
 
 # some functions required by non-linear TRM programs

@@ -1,12 +1,13 @@
-import shapely.geometry as sgeom
 from copy import copy
+
+import shapely.geometry as sgeom
 import cartopy.crs as ccrs
 import numpy as np
+
 def find_side(ls, side):
     """
     Given a shapely LineString which is assumed to be rectangular, return the
     line corresponding to a given side of the rectangle.
-    
     """
     minx, miny, maxx, maxy = ls.bounds
     points = {'left': [(minx, miny), (minx, maxy)],
@@ -24,7 +25,6 @@ def lambert_xticks(ax, ticks):
     ax.xaxis.tick_bottom()
     ax.set_xticks(xticks)
     ax.set_xticklabels([ax.xaxis.get_major_formatter()(xtick) for xtick in xticklabels])
-    
 
 def lambert_yticks(ax, ticks):
     """Draw ricks on the left y-axis of a Lamber Conformal projection."""

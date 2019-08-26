@@ -5,11 +5,11 @@ Module for building or reading in specimen, sample, site, and location data.
 """
 from __future__ import print_function
 
+import os
+
 from builtins import str
 from builtins import range
 from builtins import object
-import os
-# import time
 import pmagpy.pmag as pmag
 import pmagpy.validate_upload2 as validate_upload
 

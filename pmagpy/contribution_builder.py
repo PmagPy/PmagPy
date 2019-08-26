@@ -8,13 +8,13 @@ or you can read in one or more MagIC-format files.
 You can also extract specific data from a table --
 for instance, you can build a DIblock for plotting.
 """
+import math
 import os
 import re
-import math
+
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-# from pmagpy import pmag
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 from pmagpy import pmag
