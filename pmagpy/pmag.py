@@ -4260,7 +4260,7 @@ def dolnp3_0(Data):
 
 def dolnp(data, direction_type_key):
     """
-    Returns fisher mean, a95 for data  using method of Mcfadden and Mcelhinny '88 for lines and planes
+    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes
 
     Parameters
     __________
@@ -11386,10 +11386,10 @@ def ltd_pars(df,step_min,step_max,xkey,ykey):
     slope, b, r, p, stderr = linregress(df[xkey].values.astype('float')\
                                                 , df[ykey].values.astype('float'))
     coeffs=np.polyfit(df[xkey].values.astype('float'),df[ykey].values.astype('float'),1)
-    
+
     return n,slope,b,r,stderr,coeffs,df
- 
-    
+
+
 def vds(xyz):
     R=0
     cart=xyz.transpose()
@@ -11398,7 +11398,7 @@ def vds(xyz):
         dirdiff=cart2dir(diff)
         R+=dirdiff[2]
     return R
-                                        
+
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
