@@ -10652,6 +10652,8 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
             gh.append(lmgh[2][i])
             if lmgh[1][i] != 0:
                 gh.append(lmgh[3][i])
+    while len(gh)<120:gh.append(0)
+    
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
