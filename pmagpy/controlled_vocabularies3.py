@@ -77,7 +77,7 @@ class Vocabulary(object):
         if not requests:
             return False
         try:
-            req = requests.get(url, timeout=.2)
+            req = requests.get(url, timeout=3)
             if not req.ok:
                 return []
             return req
@@ -201,7 +201,7 @@ class Vocabulary(object):
         # used cached
         if not len(data):
             print('-I- Using cached vocabularies')
-            fname = os.path.join(data_model_dir, "controlled_vocabularies_December_10_2018.json")
+            fname = os.path.join(data_model_dir, "controlled_vocabularies_October_3_2019.json")
             data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns
