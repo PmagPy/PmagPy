@@ -4981,7 +4981,8 @@ def pt_rot(EP, Lats, Lons):
 
     Parameters
     ----------
-    EP : Euler pole list [lat,lon,angle]
+    EP : Euler pole list [lat,lon,angle] specifying the location of the pole;
+    the angle is for a counterclockwise rotation about the pole
     Lats : list of latitudes of points to be rotated
     Lons : list of longitudes of points to be rotated
 
