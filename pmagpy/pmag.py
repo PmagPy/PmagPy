@@ -1166,7 +1166,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     pole longitude, pole latitude, dp, dm
 
     if input is list of lists the return is:
-    list of pole longitudes, list of pole latitude, list of dp, list of dm
+    list of pole longitudes, list of pole latitudes, list of dp, list of dm
     """
     # test whether arguments are one 2-D list or 5 floats
     if len(args) == 1:  # args comes in as a tuple of multi-dim lists.
@@ -10653,7 +10653,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
             if lmgh[1][i] != 0:
                 gh.append(lmgh[3][i])
         while len(gh)<120:gh.append(0)
-    
+
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
