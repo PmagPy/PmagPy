@@ -433,7 +433,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         samp_infile="", site_infile="",
         specimen="", specnum=0, samp_con="1", location="unknown",
         instrument="", institution="", bak=False, syn=False, syntype="",
-        units="cgs", fmt='new', user=''):
+        units="cgs", fmt='new', user='',phi='0',theta='0'):
     """
     Convert AGM format file to MagIC file(s)
 
@@ -484,7 +484,11 @@ def agm(agm_file, dir_path=".", input_dir_path="",
     syntype : str
        synthetic type, default ""
     units : str
-       units, default "cgs"
+       units, ['cgs','SI']  default "cgs"
+    phi : str
+       phi, orientation of applied field to sample ,default='0'
+    theta : str
+       theta, orientation of applied field to sample ,default='0'
     fmt: str
         input format, options: ('new', 'old', 'xy', default 'new')
     user : user name
@@ -580,6 +584,8 @@ def agm(agm_file, dir_path=".", input_dir_path="",
             rec = line.strip('\n').strip('\r').split()
             if 'Units' in line:
                 units = rec[-1]
+            if 'Orientation' in line:
+                phi = rec[-1]
             if "Raw" in rec:
                 start = skip + 2
             if ("Field" in rec) and ("Moment" in rec) and (not start):
@@ -660,6 +666,10 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         MeasRec['instrument_codes'] = instrument
         MeasRec['institution'] = institution
         MeasRec['method_codes'] = meth
+        if phi!='0':
+            MeasRec["treat_dc_field_phi"] = phi
+        if theta!='0':
+            MeasRec["treat_dc_field_theta"] = theta
         MeasRec['experiment'] = specimen + ':' + meth
         if fmt == 'xy':
             rec = list(line.strip('\n').split())

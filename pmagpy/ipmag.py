@@ -11072,7 +11072,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
 
             #HDD = {key: value + len(HDD) + k for (key, value) in HDD.items()}
         # initialize a new specimen hysteresis record
-        HystRec = {'specimen': specimen, 'experiment': ""}
+        HystRec = {'specimen': specimen, 'experiments': ""}
         if verbose and make_plots:
             print(specimen, k+1, 'out of ', len(sids))
     #
@@ -11085,14 +11085,19 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         if len(spec_data) > 0:
             meths = spec_data[0]['method_codes'].split(':')
             e = spec_data[0]['experiment']
-            HystRec['experiment'] = spec_data[0]['experiment']
+            HystRec['meas_orient_phi'],HystRec['meas_orient_theta']='0','0'
+            if 'treat_dc_field_phi' in spec_data[0].keys():
+                HystRec['meas_orient_phi']=spec_data[0]['treat_dc_field_phi']
+            if 'treat_dc_field_theta' in spec_data[0].keys():
+                HystRec['meas_orient_theta']=spec_data[0]['treat_dc_field_theta']
+            HystRec['experiments'] = spec_data[0]['experiment']
             for rec in spec_data:
                 B.append(float(rec['meas_field_dc']))
                 M.append(float(rec['magn_moment']))
         # fish out all the data for this specimen
         spec_data = pmag.get_dictitem(dcd_data, 'specimen', specimen, 'T')
         if len(spec_data) > 0:
-            HystRec['experiment'] = HystRec['experiment'] + \
+            HystRec['experiments'] = HystRec['experiments'] + \
                 ':'+spec_data[0]['experiment']
             irm_exp = spec_data[0]['experiment']
             for rec in spec_data:
