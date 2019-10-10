@@ -8335,7 +8335,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
 
     Keywords:
         file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity
+            specimen  treatment  declination inclination intensity 
         units= [mT,C] specify units of mT OR C, default is unscaled
         save=[True,False]  save figure and quit, default is False
         fmt [svg,jpg,png,pdf] set figure format [default is svg]
@@ -8358,25 +8358,27 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
                      'intensity', 'declination', 'inclination']
         # adjust for angle rotation
         f['declination'] = (f['declination']-angle) % 360
-        f['quality'] = 'g'
-        f['type'] = ''
 #
-        s = f['specimen'].tolist()[0]
-        if units == 'mT':
-            f['treatment'] = f['treatment']*1e-3
-        if units == 'C':
-            f['treatment'] = f['treatment']+273
-        data = f[['treatment', 'declination',
-                  'inclination', 'intensity', 'type', 'quality']]
+    else:
+        f=data  
+    f['quality'] = 'g'
+    f['type'] = ''
+    s = f['specimen'].tolist()[0]
+    if units == 'mT':
+        f['treatment'] = f['treatment']*1e-3
+    if units == 'C':
+        f['treatment'] = f['treatment']+273
+    data = f[['treatment', 'declination',
+                  'inclination', 'intensity', 'type','quality']]
     print(s)
     datablock = data.values.tolist()
 # define figure numbers in a dictionary for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
     ZED = {}
     ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
-    plt.figure(num=ZED['zijd'], figsize=(5, 5))
-    plt.figure(num=ZED['eqarea'], figsize=(5, 5))
-    plt.figure(num=ZED['demag'], figsize=(5, 5))
+    plt.figure(num=ZED['zijd'], figsize=(5, 5));
+    plt.figure(num=ZED['eqarea'], figsize=(5, 5));
+    plt.figure(num=ZED['demag'], figsize=(5, 5));
 #
 #
     pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
@@ -8396,7 +8398,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
             print('%i  %7.1f %8.3e %7.1f %7.1f ' %
                   (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
         recnum += 1
-        pmagplotlib.draw_figs(ZED)
+        #pmagplotlib.draw_figs(ZED)
     if begin_pca != "" and end_pca != "" and calculation_type != "":
         pmagplotlib.plot_zed(ZED, datablock, angle, s,
                              SIunits)  # plot the data

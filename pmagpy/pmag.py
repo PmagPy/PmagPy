@@ -4918,11 +4918,11 @@ def dokent(data, NN):
 
 def doprinc(data):
     """
-    Gets principal components from data in form of a list of [dec,inc] data.
+    Gets principal components from data in form of a list of [dec,inc,int] data.
 
     Parameters
     ----------
-    data : nested list of dec, inc directions
+    data : nested list of dec, inc and optinoally intensity vectors
 
     Returns
     -------
@@ -4994,7 +4994,7 @@ def pt_rot(EP, Lats, Lons):
 # gets user input of Rotation pole lat,long, omega for plate and converts
 # to radians
     E = dir2cart([EP[1], EP[0], 1.])  # EP is pole lat,lon omega
-    omega = EP[2] * np.pi / 180.  # convert to radians
+    omega = np.radians(EP[2])  # convert to radians
     RLats, RLons = [], []
     for k in range(len(Lats)):
         if Lats[k] <= 90.:  # peel off delimiters
@@ -5107,8 +5107,7 @@ def magnetic_lat(inc):
     """
     returns magnetic latitude from inclination
     """
-    rad = old_div(np.pi, 180.)
-    paleo_lat = old_div(np.arctan(0.5 * np.tan(inc * rad)), rad)
+    paleo_lat = np.degrees(np.arctan(0.5 * np.tan(np.radians(inc))))
     return paleo_lat
 
 
