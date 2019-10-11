@@ -18,7 +18,7 @@ def main():
 
         -d DIRECTORY: specify directory where the XPEEM files are located, otherwise current directory is used.
 
-        -s: set the starting measurement sequence number. Default:0
+        -s: set the starting measurement sequence number. Default:1
 
     """
 
