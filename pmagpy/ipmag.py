@@ -8314,7 +8314,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 
 
 def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
-        save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0):
+        save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0,make_plots=True,show_data=True):
     """
     NAME
        zeq.py
@@ -8370,42 +8370,44 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         f['treatment'] = f['treatment']+273
     data = f[['treatment', 'declination',
                   'inclination', 'intensity', 'type','quality']]
-    print(s)
+    #print(s)
     datablock = data.values.tolist()
 # define figure numbers in a dictionary for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
-    ZED = {}
-    ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
-    plt.figure(num=ZED['zijd'], figsize=(5, 5));
-    plt.figure(num=ZED['eqarea'], figsize=(5, 5));
-    plt.figure(num=ZED['demag'], figsize=(5, 5));
+    if make_plots:
+        ZED = {}
+        ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
+        plt.figure(num=ZED['zijd'], figsize=(5, 5));
+        plt.figure(num=ZED['eqarea'], figsize=(5, 5));
+        plt.figure(num=ZED['demag'], figsize=(5, 5));
 #
 #
-    pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
+        pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
 #
 # print out data for this sample to screen
 #
     recnum = 0
-    print('step treat  intensity  dec    inc')
-    for plotrec in datablock:
-        if units == 'mT':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0]*1e3, plotrec[3], plotrec[1], plotrec[2]))
-        if units == 'C':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0]-273., plotrec[3], plotrec[1], plotrec[2]))
-        if units == 'U':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
-        recnum += 1
+    if show_data:
+        print('step treat  intensity  dec    inc')
+        for plotrec in datablock:
+            if units == 'mT':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0]*1e3, plotrec[3], plotrec[1], plotrec[2]))
+            if units == 'C':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0]-273., plotrec[3], plotrec[1], plotrec[2]))
+            if units == 'U':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
+            recnum += 1
         #pmagplotlib.draw_figs(ZED)
     if begin_pca != "" and end_pca != "" and calculation_type != "":
-        pmagplotlib.plot_zed(ZED, datablock, angle, s,
+        if make_plots:pmagplotlib.plot_zed(ZED, datablock, angle, s,
                              SIunits)  # plot the data
         # get best-fit direction/great circle
         mpars = pmag.domean(datablock, begin_pca, end_pca, calculation_type)
         # plot the best-fit direction/great circle
-        pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+        if make_plots:pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
         if units == 'mT':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
@@ -8416,7 +8418,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         if units == 'U':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
                                                                mpars["specimen_n"], mpars["measurement_step_min"], mpars["measurement_step_max"], mpars["specimen_mad"], mpars["specimen_dec"], mpars["specimen_inc"]))
-        if save:
+        if save and make_plots:
             files = {}
             for key in list(ZED.keys()):
                 files[key] = s+'_'+key+'.'+fmt

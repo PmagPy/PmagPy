@@ -4922,7 +4922,7 @@ def doprinc(data):
 
     Parameters
     ----------
-    data : nested list of dec, inc and optinoally intensity vectors
+    data : nested list of dec, inc and optionally intensity vectors
 
     Returns
     -------
