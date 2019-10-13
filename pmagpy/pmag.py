@@ -10713,7 +10713,7 @@ def separate_directions(di_block):
     di_block : block of nested dec,inc pairs
 
     Return
-    mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
+    mode_1_block,mode_2_block :  two arrays of nested dec,inc pairs
     """
     ppars = doprinc(di_block)
     di_df = pd.DataFrame(di_block)  # turn into a data frame for easy filtering
@@ -10726,7 +10726,7 @@ def separate_directions(di_block):
     mode2_df = di_df[di_df['angle'] > 90]
     mode1 = mode1_df[['dec', 'inc']].values.tolist()
     mode2 = mode2_df[['dec', 'inc']].values.tolist()
-    return mode1, mode2
+    return np.array(mode1), np.array(mode2)
 
 
 def dovandamme(vgp_df):

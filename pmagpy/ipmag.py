@@ -1275,50 +1275,29 @@ def fishqq(lon=None, lat=None, di_block=None):
 
     ppars = pmag.doprinc(all_dirs)  # get principal directions
 
-    rDIs = []
-    nDIs = []
     QQ_dict1 = {}
     QQ_dict2 = {}
-
-    for rec in all_dirs:
-        angle = pmag.angle([rec[0], rec[1]], [ppars['dec'], ppars['inc']])
-        if angle > 90.:
-            rDIs.append(rec)
-        else:
-            nDIs.append(rec)
-
-    if len(rDIs) >= 10 or len(nDIs) >= 10:
-        D1, I1 = [], []
-        QQ = {'unf': 1, 'exp': 2}
-        if len(nDIs) < 10:
-            ppars = pmag.doprinc(rDIs)  # get principal directions
-            Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
-            Nr = len(rDIs)
-            for di in rDIs:
-                d, irot = pmag.dotilt(
-                    di[0], di[1], Drbar - 180., 90. - Irbar)  # rotate to mean
-                drot = d - 180.
-                if drot < 0:
-                    drot = drot + 360.
-                D1.append(drot)
-                I1.append(irot)
-                Dtit = 'Mode 2 Declinations'
-                Itit = 'Mode 2 Inclinations'
-        else:
-            ppars = pmag.doprinc(nDIs)  # get principal directions
-            Dnbar, Inbar = ppars['dec'], ppars['inc']
-            Nn = len(nDIs)
-            for di in nDIs:
-                d, irot = pmag.dotilt(
-                    di[0], di[1], Dnbar - 180., 90. - Inbar)  # rotate to mean
-                drot = d - 180.
-                if drot < 0:
-                    drot = drot + 360.
-                D1.append(drot)
-                I1.append(irot)
-                Dtit = 'Mode 1 Declinations'
-                Itit = 'Mode 1 Inclinations'
-        plt.figure(figsize=(6, 3))
+    QQ = {'unf': 1, 'exp': 2}
+    fignum=1
+    di=np.array(all_dirs).transpose()
+    decs=di[0]
+    incs=di[1]
+    all_dirs=np.column_stack((decs,incs))
+    nDIs,rDIs=pmag.separate_directions(all_dirs)
+    if len(nDIs) >= 10:
+        ppars = pmag.doprinc(nDIs)  # get principal directions
+        Dnbar, Inbar = ppars['dec'], ppars['inc']
+        Nn = len(nDIs)
+        az=np.ones(Nn)*(Dnbar - 180.)
+        pl=np.ones(Nn)*(90.-Inbar)
+        Ds=nDIs.transpose()[0]
+        Is=nDIs.transpose()[1]
+        ndata=np.column_stack((Ds,Is,az,pl))
+        D1,I1=pmag.dotilt_V(ndata)
+        Dtit = 'Mode 1 Declinations'
+        Itit = 'Mode 1 Inclinations'
+        plt.figure(fignum,figsize=(6, 3))
+        fignum+=1
         Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D1, Dtit, subplot=True)  # make plot
         Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
@@ -1338,22 +1317,22 @@ def fishqq(lon=None, lat=None, di_block=None):
         QQ_dict1['Me_critical'] = Me_ncr
         QQ_dict1['Test_result'] = F_n
 
-    if len(rDIs) > 10 and len(nDIs) > 10:
-        D2, I2 = [], []
+    if len(rDIs) >= 10:
+        #D1, I1 = [], []
         ppars = pmag.doprinc(rDIs)  # get principal directions
         Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
         Nr = len(rDIs)
-        for di in rDIs:
-            d, irot = pmag.dotilt(
-                di[0], di[1], Drbar - 180., 90. - Irbar)  # rotate to mean
-            drot = d - 180.
-            if drot < 0:
-                drot = drot + 360.
-            D2.append(drot)
-            I2.append(irot)
-            Dtit = 'Mode 2 Declinations'
-            Itit = 'Mode 2 Inclinations'
-        plt.figure(figsize=(6, 3))
+        az=np.ones(Nr)*(Drbar - 180.)
+        pl=np.ones(Nr)*(90.-Irbar)
+        Ds=rDIs.transpose()[0]
+        Is=rDIs.transpose()[1]
+        rdata=np.column_stack((Ds,Is,az,pl))
+        D2,I2=pmag.dotilt_V(rdata)
+        Dtit = 'Mode 2 Declinations'
+        Itit = 'Mode 2 Inclinations'
+        ppars = pmag.doprinc(rDIs)  # get principal directions
+        Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
+        plt.figure(fignum,figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D2, Dtit, subplot=True)  # make plot
         Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
