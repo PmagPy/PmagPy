@@ -2792,15 +2792,28 @@ def domean(data, start, end, calculation_type):
 def circ(dec, dip, alpha):
     """
     function to calculate points on an circle about dec,dip with angle alpha
+
+    parameters
+    ___________
+    dec : float
+        declination of vector
+    dip : float
+        dip of vector
+    alpha : float
+        angle of small circle - 90 if vector  is pole to great circle
+
+    returns
+    _______
+    D_out, V_out : list 
+        declinations and inclinations along small (great) circle  about dec,dip
     """
-    rad = old_div(np.pi, 180.)
     D_out, I_out = [], []
-    dec, dip, alpha = dec * rad, dip * rad, alpha * rad
-    dec1 = dec + old_div(np.pi, 2.)
+    dec, dip, alpha = np.radians(dec), np.radians(dip), np.radians(alpha)
+    dec1 = dec + np.pi/2.
     isign = 1
     if dip != 0:
-        isign = (old_div(abs(dip), dip))
-    dip1 = (dip - isign * (old_div(np.pi, 2.)))
+        isign = abs(dip)/ dip
+    dip1 = dip - isign * (np.pi/ 2.)
     t = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
     v = [0, 0, 0]
     t[0][2] = np.cos(dec) * np.cos(dip)
