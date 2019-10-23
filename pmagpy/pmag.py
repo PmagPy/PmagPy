@@ -2789,7 +2789,7 @@ def domean(data, start, end, calculation_type):
     return mpars
 
 
-def circ(dec, dip, alpha):
+def circ(dec, dip, alpha,npts=201):
     """
     function to calculate points on an circle about dec,dip with angle alpha
 
@@ -2801,7 +2801,8 @@ def circ(dec, dip, alpha):
         dip of vector
     alpha : float
         angle of small circle - 90 if vector  is pole to great circle
-
+    npts : int
+        number of points on the circle
     returns
     _______
     D_out, V_out : list 
@@ -2825,8 +2826,8 @@ def circ(dec, dip, alpha):
     t[0][0] = np.cos(dec1)
     t[1][0] = np.sin(dec1)
     t[2][0] = 0
-    for i in range(101):
-        psi = float(i) * np.pi / 50.
+    for i in range(npts):
+        psi = float(i) * np.pi / ((npts-1)/2)  
         v[0] = np.sin(alpha) * np.cos(psi)
         v[1] = np.sin(alpha) * np.sin(psi)
         v[2] = np.sqrt(abs(1. - v[0]**2 - v[1]**2))
