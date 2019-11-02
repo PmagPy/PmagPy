@@ -4081,6 +4081,48 @@ def gausspars(data):
     return mean, stdev
 
 
+def calculate_k(R,N):
+    '''
+    Calculates the the Fisher concentration parameter (k) based on the number of
+    vectors and the resultant vector length. This calculation occurs within the
+    fisher_mean() function. Use of this function can be helpful when R and N
+    are available, but the vectors themselves are not.
+
+    Parameters
+    ----------
+    R : the resultant vector length
+    N : number of vectors
+
+    Returns
+    -------
+    k : the Fisher concentration parameter
+    '''
+    if N != R:
+        k = (N - 1.) / (N - R)
+    else:
+        k = 'inf'
+    return k
+
+
+def calculate_r(alpha95,N):
+    '''
+    Calculates the resultant vector length (R) based on the number of vectors
+    and provided Fisher alpha95. Doing so can be useful for conducting
+    statistical tests that require R when it is not provided.
+
+    Parameters
+    ----------
+    alpha95 : the Fisher alpha_95 value
+    N : number of vectors
+
+    Returns
+    -------
+    R : the resultant vector length
+    '''
+    R = ((20**(1/(N-1))-1)*N)/((20**(1/(N-1)))-np.cos(np.deg2rad(alpha95)))
+    return R
+
+
 def weighted_mean(data):
     """
     calculates weighted mean of data
