@@ -2805,7 +2805,7 @@ def circ(dec, dip, alpha,npts=201):
         number of points on the circle
     returns
     _______
-    D_out, V_out : list 
+    D_out, V_out : list
         declinations and inclinations along small (great) circle  about dec,dip
     """
     D_out, I_out = [], []
@@ -2827,7 +2827,7 @@ def circ(dec, dip, alpha,npts=201):
     t[1][0] = np.sin(dec1)
     t[2][0] = 0
     for i in range(npts):
-        psi = float(i) * np.pi / ((npts-1)/2)  
+        psi = float(i) * np.pi / ((npts-1)/2)
         v[0] = np.sin(alpha) * np.cos(psi)
         v[1] = np.sin(alpha) * np.sin(psi)
         v[2] = np.sqrt(abs(1. - v[0]**2 - v[1]**2))
@@ -4730,9 +4730,15 @@ def doflip(dec, inc):
 
 def doincfish(inc):
     """
-    gets fisher mean inc from inc only data
-    input: list of inclination values
-    output: dictionary of
+    Calculates Fisher mean inclination from inclination-only data.
+
+    Parameters
+    ----------
+    inc: list of inclination values
+
+    Returns
+    -------
+    dictionary of
         'n' : number of inclination values supplied
         'ginc' : gaussian mean of inclinations
         'inc' : estimated Fisher mean
