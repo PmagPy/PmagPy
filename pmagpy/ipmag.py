@@ -1425,14 +1425,14 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum):
+def plot_net(fignum=None):
     """
     Draws circle and tick marks for equal area projection.
     """
 
-# make the perimeter
-    plt.figure(num=fignum,)
-    plt.clf()
+    if fignum != None:
+        plt.figure(num=fignum,)
+        plt.clf()
     plt.axis("off")
     Dcirc = np.arange(0, 361.)
     Icirc = np.zeros(361, 'f')
@@ -8314,7 +8314,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
 
     Keywords:
         file= FILE   a space or tab delimited file with
-            specimen  treatment  declination inclination intensity 
+            specimen  treatment  declination inclination intensity
         units= [mT,C] specify units of mT OR C, default is unscaled
         save=[True,False]  save figure and quit, default is False
         fmt [svg,jpg,png,pdf] set figure format [default is svg]
@@ -8339,7 +8339,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         f['declination'] = (f['declination']-angle) % 360
 #
     else:
-        f=data  
+        f=data
     f['quality'] = 'g'
     f['type'] = ''
     s = f['specimen'].tolist()[0]
