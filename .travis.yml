@@ -164,13 +164,13 @@ matrix:
       before_install: choco install python
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       install:
-        - pip3 install numpy
-        - pip3 install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==3.1
-        - pip3 install cython pillow pytest pep8  six requests
-        - pip3 install -U wxPython
-        - pip3 install scripttest
-        - pip3 install xlwt
-        - pip3 install geos
+        - pip install numpy
+        - pip install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==3.1
+        - pip install cython pillow pytest pep8  six requests
+        - pip install -U wxPython
+        - pip install scripttest
+        - pip install xlwt
+        - pip install geos
 
         ## trying two commands to install proj4 (fails on the second command)
         #- curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
