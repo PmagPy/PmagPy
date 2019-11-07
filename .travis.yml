@@ -60,9 +60,10 @@ matrix:
         - pip3 install xlwt
         - sudo apt-get update
       script :
+        - pip list
         - python -V -V
         - python -c "import sys; print(sys.version)"
-        - python -m unittest discover -v
+        #- python -m unittest discover -v
 
 #    - name: "Python 3.6 (Miniconda) on Linux"
 #      python: "3.6"
