@@ -162,7 +162,8 @@ matrix:
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
-      before_install: choco install python
+      #before_install: choco install python
+      before_install: choco install python --version 3.7.4
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       install:
         - pip install numpy
