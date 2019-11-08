@@ -66,7 +66,7 @@ matrix:
         - python -c "import sys; print(sys.version)"
         - python -c "import wx; print(wx.version)"
         - python -c "import wx.grid; print(wx.grid)"
-        #- python -m unittest discover -v
+        - python -m unittest discover -v
 
 #    - name: "Python 3.6 (Miniconda) on Linux"
 #      python: "3.6"
