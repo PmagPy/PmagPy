@@ -22,6 +22,7 @@ matrix:
             - libnotify-dev
             - libproj-dev # Proj.4 is a dependency of cartopy
       before_install:
+        - lsb_release -a # check ubuntu version
         - sudo apt-get update -qq  # make sure package indexes are up to date
         - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
         #- "sh -e /etc/init.d/xvfb start"
@@ -52,10 +53,8 @@ matrix:
         - pip3 install pandas libtiff
         # get latest version of wxPython4:
         # - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython # regular pip install wxPython does not work
-        # try
-        - pip3 install wxPython
         # get wxPython-4.0.4:
-        #- pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
+        - pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
         - pip3 install appdirs
         - pip3 install matplotlib==3.1
         - pip3 install scripttest
