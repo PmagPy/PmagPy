@@ -255,9 +255,15 @@ class Vocabulary(object):
             if vocab[0] == "magic_table_column":
                 vocab_col_names.remove(("magic_table_column", "table_column"))
                 continue
-            items = data[vocab[0]]['items']
-            stripped_list = [item['item'] for item in items]
-            controlled_vocabularies.append(stripped_list)
+            try:
+                items = data[vocab[0]]['items']
+                stripped_list = [item['item'] for item in items]
+                controlled_vocabularies.append(stripped_list)
+            except KeyError:
+                # this means there is a controlled vocabulary referenced in the data model
+                # that doesn't actually show up in the controlled vocabulary json
+                # so just skip it
+                vocab_col_names.remove(vocab)
         # create series with the column name as the index,
         # and the possible values as the values
         ind_values = [i[1] for i in vocab_col_names]
