@@ -5,6 +5,7 @@ import copy
 import numpy as np
 import pandas as pd
 from scipy import stats
+from scipy.optimize import fminbound
 import random
 from datetime import date
 import matplotlib.pyplot as plt
@@ -8108,6 +8109,78 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("The flattening factor is: " + str(flat_f))
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
+
+
+def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
+    '''
+    Calculate the Bhattacharyya Coefficient, Bayes error and the
+    Kullback-Leibler divergence associated with the comparison of
+    paleomagnetic poles following Heslop and Roberts (2019). The divergence
+    parameter is asymmetric such that the pole that is the reference pole
+    should be (lon_1, lat_1, k_1, r_1) and the pole of interest being compared
+    to that reference pole should be (lon_2, lat_2, k_2, r_2).
+
+    Parameters
+    ----------
+    lon_1 : longitude of pole 1 (reference pole)
+    lat_1 : latitude of pole 1
+    k_1 : Fisher concentration parameter of pole 1
+    r_1 : resultant vector length of pole 1
+    lon_2 : longitude of pole 2 (pole of interest)
+    lat_2: latitude of pole 2
+    k_2 : Fisher concentration parameter of pole 2
+    r_2 : resultant vector length of pole 2
+
+    Returns
+    -------
+    bhattacharyya : Bhattacharyya coefficient
+    bayes : bayes error
+    kld : Kullback-Leibler divergence
+
+    Notes
+    -----
+    This function utilizes code developed by D. Heslop
+    https://github.com/dave-heslop74/kld
+    https://github.com/dave-heslop74/bhattacharyya
+    '''
+    I1 = np.deg2rad(lat_1)
+    D1 = np.deg2rad(lon_1)
+
+    I2 = np.deg2rad(lat_2)
+    D2 = np.deg2rad(lon_2)
+
+    mu1 = np.column_stack((np.cos(D1)*np.cos(I1),np.sin(D1)*np.cos(I1),np.sin(I1)))
+    mu2 = np.column_stack((np.cos(D2)*np.cos(I2),np.sin(D2)*np.cos(I2),np.sin(I2)))
+
+    def log_sinh(k):
+        if k>700:
+            s=k-np.log(2.0)
+        else:
+            s=np.log(np.sinh(k))
+        return s
+
+    def chernoff_H2019(a,MU1,K1,MU2,K2):
+        K12=np.linalg.norm(a*MU1*K1+(1-a)*MU2*K2)
+        JF=a*(log_sinh(K1)-np.log(K1))+(1-a)*(log_sinh(K2)-np.log(K2))-(log_sinh(K12)-np.log(K12))
+        return np.exp(-JF)
+
+    bhattacharyya = chernoff_H2019(0.5,mu1,k_1*r_1,mu2,k_2*r_2)
+
+    alpha0 = fminbound(lambda alpha: chernoff_H2019(alpha,mu1,k_1*r_1,mu2,k_2*r_2),0,1)
+
+    bayes = chernoff_H2019(alpha0,mu1,k_1*r_1,mu2,k_2*r_2)/2
+
+    #Calculate the Kullback-Leibler divergence
+    K1 = k_1*r_1
+    K2 = k_2*r_2
+
+    term1 = np.log(K1)+log_sinh(K2)-np.log(K2)-log_sinh(K1)
+    term2 = 1.0 / np.tanh(K1) - 1.0 / K1
+    term3 = np.dot(mu2,(K2*mu1 - K1*mu2).T)
+
+    kld = float(np.squeeze(term1-term2*term3))
+
+    return bhattacharyya, bayes, kld
 
 
 def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1_age_error,
