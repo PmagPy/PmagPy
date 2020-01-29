@@ -47,6 +47,7 @@ def igrf(input_list, mod='', ghfile=""):
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
         date must be in decimal year format XXXX.XXXX (Common Era)
+        altitude is in kilometers
     mod :  desired model
         "" : Use the IGRF
         custom : use values supplied in ghfile
