@@ -1,3 +1,0 @@
-tab 	contribution
-data_model_version	description
-3.0	Downloaded from MagIC at 2018-07-18T23:54:31.311Z.

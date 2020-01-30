@@ -78,7 +78,7 @@ class Vocabulary(object):
         if not requests:
             return False
         try:
-            req = requests.get(url, timeout=.2)
+            req = requests.get(url, timeout=3)
             if not req.ok:
                 return []
             return req
@@ -202,7 +202,7 @@ class Vocabulary(object):
         # used cached
         if not len(data):
             print('-I- Using cached vocabularies')
-            fname = os.path.join(data_model_dir, "controlled_vocabularies_December_10_2018.json")
+            fname = os.path.join(data_model_dir, "controlled_vocabularies_October_3_2019.json")
             data = pd.io.json.read_json(fname, encoding='utf-8-sig')
         # parse data
         possible_vocabularies = data.columns
@@ -256,9 +256,15 @@ class Vocabulary(object):
             if vocab[0] == "magic_table_column":
                 vocab_col_names.remove(("magic_table_column", "table_column"))
                 continue
-            items = data[vocab[0]]['items']
-            stripped_list = [item['item'] for item in items]
-            controlled_vocabularies.append(stripped_list)
+            try:
+                items = data[vocab[0]]['items']
+                stripped_list = [item['item'] for item in items]
+                controlled_vocabularies.append(stripped_list)
+            except KeyError:
+                # this means there is a controlled vocabulary referenced in the data model
+                # that doesn't actually show up in the controlled vocabulary json
+                # so just skip it
+                vocab_col_names.remove(vocab)
         # create series with the column name as the index,
         # and the possible values as the values
         ind_values = [i[1] for i in vocab_col_names]

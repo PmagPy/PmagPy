@@ -1167,7 +1167,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     pole longitude, pole latitude, dp, dm
 
     if input is list of lists the return is:
-    list of pole longitudes, list of pole latitude, list of dp, list of dm
+    list of pole longitudes, list of pole latitudes, list of dp, list of dm
     """
     # test whether arguments are one 2-D list or 5 floats
     if len(args) == 1:  # args comes in as a tuple of multi-dim lists.
@@ -2790,18 +2790,32 @@ def domean(data, start, end, calculation_type):
     return mpars
 
 
-def circ(dec, dip, alpha):
+def circ(dec, dip, alpha,npts=201):
     """
     function to calculate points on an circle about dec,dip with angle alpha
+
+    parameters
+    ___________
+    dec : float
+        declination of vector
+    dip : float
+        dip of vector
+    alpha : float
+        angle of small circle - 90 if vector  is pole to great circle
+    npts : int
+        number of points on the circle
+    returns
+    _______
+    D_out, V_out : list
+        declinations and inclinations along small (great) circle  about dec,dip
     """
-    rad = old_div(np.pi, 180.)
     D_out, I_out = [], []
-    dec, dip, alpha = dec * rad, dip * rad, alpha * rad
-    dec1 = dec + old_div(np.pi, 2.)
+    dec, dip, alpha = np.radians(dec), np.radians(dip), np.radians(alpha)
+    dec1 = dec + np.pi/2.
     isign = 1
     if dip != 0:
-        isign = (old_div(abs(dip), dip))
-    dip1 = (dip - isign * (old_div(np.pi, 2.)))
+        isign = abs(dip)/ dip
+    dip1 = dip - isign * (np.pi/ 2.)
     t = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
     v = [0, 0, 0]
     t[0][2] = np.cos(dec) * np.cos(dip)
@@ -2813,8 +2827,8 @@ def circ(dec, dip, alpha):
     t[0][0] = np.cos(dec1)
     t[1][0] = np.sin(dec1)
     t[2][0] = 0
-    for i in range(101):
-        psi = float(i) * np.pi / 50.
+    for i in range(npts):
+        psi = float(i) * np.pi / ((npts-1)/2)
         v[0] = np.sin(alpha) * np.cos(psi)
         v[1] = np.sin(alpha) * np.sin(psi)
         v[2] = np.sqrt(abs(1. - v[0]**2 - v[1]**2))
@@ -4068,6 +4082,48 @@ def gausspars(data):
     return mean, stdev
 
 
+def calculate_k(R,N):
+    '''
+    Calculates the the Fisher concentration parameter (k) based on the number of
+    vectors and the resultant vector length. This calculation occurs within the
+    fisher_mean() function. Use of this function can be helpful when R and N
+    are available, but the vectors themselves are not.
+
+    Parameters
+    ----------
+    R : the resultant vector length
+    N : number of vectors
+
+    Returns
+    -------
+    k : the Fisher concentration parameter
+    '''
+    if N != R:
+        k = (N - 1.) / (N - R)
+    else:
+        k = 'inf'
+    return k
+
+
+def calculate_r(alpha95,N):
+    '''
+    Calculates the resultant vector length (R) based on the number of vectors
+    and provided Fisher alpha95. Doing so can be useful for conducting
+    statistical tests that require R when it is not provided.
+
+    Parameters
+    ----------
+    alpha95 : the Fisher alpha_95 value
+    N : number of vectors
+
+    Returns
+    -------
+    R : the resultant vector length
+    '''
+    R = ((20**(1/(N-1))-1)*N)/((20**(1/(N-1)))-np.cos(np.deg2rad(alpha95)))
+    return R
+
+
 def weighted_mean(data):
     """
     calculates weighted mean of data
@@ -4261,7 +4317,7 @@ def dolnp3_0(Data):
 
 def dolnp(data, direction_type_key):
     """
-    Returns fisher mean, a95 for data  using method of Mcfadden and Mcelhinny '88 for lines and planes
+    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes
 
     Parameters
     __________
@@ -4717,9 +4773,15 @@ def doflip(dec, inc):
 
 def doincfish(inc):
     """
-    gets fisher mean inc from inc only data
-    input: list of inclination values
-    output: dictionary of
+    Calculates Fisher mean inclination from inclination-only data.
+
+    Parameters
+    ----------
+    inc: list of inclination values
+
+    Returns
+    -------
+    dictionary of
         'n' : number of inclination values supplied
         'ginc' : gaussian mean of inclinations
         'inc' : estimated Fisher mean
@@ -4919,11 +4981,11 @@ def dokent(data, NN):
 
 def doprinc(data):
     """
-    Gets principal components from data in form of a list of [dec,inc] data.
+    Gets principal components from data in form of a list of [dec,inc,int] data.
 
     Parameters
     ----------
-    data : nested list of dec, inc directions
+    data : nested list of dec, inc and optionally intensity vectors
 
     Returns
     -------
@@ -4982,7 +5044,8 @@ def pt_rot(EP, Lats, Lons):
 
     Parameters
     ----------
-    EP : Euler pole list [lat,lon,angle]
+    EP : Euler pole list [lat,lon,angle] specifying the location of the pole;
+    the angle is for a counterclockwise rotation about the pole
     Lats : list of latitudes of points to be rotated
     Lons : list of longitudes of points to be rotated
 
@@ -4994,7 +5057,7 @@ def pt_rot(EP, Lats, Lons):
 # gets user input of Rotation pole lat,long, omega for plate and converts
 # to radians
     E = dir2cart([EP[1], EP[0], 1.])  # EP is pole lat,lon omega
-    omega = EP[2] * np.pi / 180.  # convert to radians
+    omega = np.radians(EP[2])  # convert to radians
     RLats, RLons = [], []
     for k in range(len(Lats)):
         if Lats[k] <= 90.:  # peel off delimiters
@@ -5107,8 +5170,7 @@ def magnetic_lat(inc):
     """
     returns magnetic latitude from inclination
     """
-    rad = old_div(np.pi, 180.)
-    paleo_lat = old_div(np.arctan(0.5 * np.tan(inc * rad)), rad)
+    paleo_lat = np.degrees(np.arctan(0.5 * np.tan(np.radians(inc))))
     return paleo_lat
 
 
@@ -10653,6 +10715,8 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
             gh.append(lmgh[2][i])
             if lmgh[1][i] != 0:
                 gh.append(lmgh[3][i])
+        while len(gh)<120:gh.append(0)
+
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
@@ -10712,7 +10776,7 @@ def separate_directions(di_block):
     di_block : block of nested dec,inc pairs
 
     Return
-    mode_1_block,mode_2_block :  two lists of nested dec,inc pairs
+    mode_1_block,mode_2_block :  two arrays of nested dec,inc pairs
     """
     ppars = doprinc(di_block)
     di_df = pd.DataFrame(di_block)  # turn into a data frame for easy filtering
@@ -10725,7 +10789,7 @@ def separate_directions(di_block):
     mode2_df = di_df[di_df['angle'] > 90]
     mode1 = mode1_df[['dec', 'inc']].values.tolist()
     mode2 = mode2_df[['dec', 'inc']].values.tolist()
-    return mode1, mode2
+    return np.array(mode1), np.array(mode2)
 
 
 def dovandamme(vgp_df):
@@ -11387,10 +11451,10 @@ def ltd_pars(df,step_min,step_max,xkey,ykey):
     slope, b, r, p, stderr = linregress(df[xkey].values.astype('float')\
                                                 , df[ykey].values.astype('float'))
     coeffs=np.polyfit(df[xkey].values.astype('float'),df[ykey].values.astype('float'),1)
-    
+
     return n,slope,b,r,stderr,coeffs,df
- 
-    
+
+
 def vds(xyz):
     R=0
     cart=xyz.transpose()
@@ -11399,7 +11463,7 @@ def vds(xyz):
         dirdiff=cart2dir(diff)
         R+=dirdiff[2]
     return R
-                                        
+
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")

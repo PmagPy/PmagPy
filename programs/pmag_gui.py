@@ -4,10 +4,8 @@
 
 print("-I- Importing Pmag GUI dependencies")
 from pmag_env import set_env
-#set_env.set_backend(wx=True)
 import matplotlib
-if not matplotlib.get_backend() == 'WXAgg':
-    matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 import sys
 import wx
 import wx.lib.buttons as buttons

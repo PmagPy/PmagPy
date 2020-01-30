@@ -1371,7 +1371,7 @@ class MagicDataFrame(object):
                 return
             elif self.dtype == 'images':
                 return
-            elif self.dtype == 'criteria':
+            elif self.dtype == 'criteria' and 'table_column' in self.df.columns: # protect against bad criteria files
                 self.df.index = self.df['table_column']
                 return
             #

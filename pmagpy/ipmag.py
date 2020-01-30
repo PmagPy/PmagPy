@@ -13,6 +13,7 @@ from past.utils import old_div
 import numpy as np
 import pandas as pd
 from scipy import stats
+from scipy.optimize import fminbound
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
@@ -49,6 +50,7 @@ def igrf(input_list, mod='', ghfile=""):
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
         date must be in decimal year format XXXX.XXXX (Common Era)
+        altitude is in kilometers
     mod :  desired model
         "" : Use the IGRF
         custom : use values supplied in ghfile
@@ -1277,50 +1279,29 @@ def fishqq(lon=None, lat=None, di_block=None):
 
     ppars = pmag.doprinc(all_dirs)  # get principal directions
 
-    rDIs = []
-    nDIs = []
     QQ_dict1 = {}
     QQ_dict2 = {}
-
-    for rec in all_dirs:
-        angle = pmag.angle([rec[0], rec[1]], [ppars['dec'], ppars['inc']])
-        if angle > 90.:
-            rDIs.append(rec)
-        else:
-            nDIs.append(rec)
-
-    if len(rDIs) >= 10 or len(nDIs) >= 10:
-        D1, I1 = [], []
-        QQ = {'unf': 1, 'exp': 2}
-        if len(nDIs) < 10:
-            ppars = pmag.doprinc(rDIs)  # get principal directions
-            Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
-            Nr = len(rDIs)
-            for di in rDIs:
-                d, irot = pmag.dotilt(
-                    di[0], di[1], Drbar - 180., 90. - Irbar)  # rotate to mean
-                drot = d - 180.
-                if drot < 0:
-                    drot = drot + 360.
-                D1.append(drot)
-                I1.append(irot)
-                Dtit = 'Mode 2 Declinations'
-                Itit = 'Mode 2 Inclinations'
-        else:
-            ppars = pmag.doprinc(nDIs)  # get principal directions
-            Dnbar, Inbar = ppars['dec'], ppars['inc']
-            Nn = len(nDIs)
-            for di in nDIs:
-                d, irot = pmag.dotilt(
-                    di[0], di[1], Dnbar - 180., 90. - Inbar)  # rotate to mean
-                drot = d - 180.
-                if drot < 0:
-                    drot = drot + 360.
-                D1.append(drot)
-                I1.append(irot)
-                Dtit = 'Mode 1 Declinations'
-                Itit = 'Mode 1 Inclinations'
-        plt.figure(figsize=(6, 3))
+    QQ = {'unf': 1, 'exp': 2}
+    fignum=1
+    di=np.array(all_dirs).transpose()
+    decs=di[0]
+    incs=di[1]
+    all_dirs=np.column_stack((decs,incs))
+    nDIs,rDIs=pmag.separate_directions(all_dirs)
+    if len(nDIs) >= 10:
+        ppars = pmag.doprinc(nDIs)  # get principal directions
+        Dnbar, Inbar = ppars['dec'], ppars['inc']
+        Nn = len(nDIs)
+        az=np.ones(Nn)*(Dnbar - 180.)
+        pl=np.ones(Nn)*(90.-Inbar)
+        Ds=nDIs.transpose()[0]
+        Is=nDIs.transpose()[1]
+        ndata=np.column_stack((Ds,Is,az,pl))
+        D1,I1=pmag.dotilt_V(ndata)
+        Dtit = 'Mode 1 Declinations'
+        Itit = 'Mode 1 Inclinations'
+        plt.figure(fignum,figsize=(6, 3))
+        fignum+=1
         Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D1, Dtit, subplot=True)  # make plot
         Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
@@ -1340,22 +1321,22 @@ def fishqq(lon=None, lat=None, di_block=None):
         QQ_dict1['Me_critical'] = Me_ncr
         QQ_dict1['Test_result'] = F_n
 
-    if len(rDIs) > 10 and len(nDIs) > 10:
-        D2, I2 = [], []
+    if len(rDIs) >= 10:
+        #D1, I1 = [], []
         ppars = pmag.doprinc(rDIs)  # get principal directions
         Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
         Nr = len(rDIs)
-        for di in rDIs:
-            d, irot = pmag.dotilt(
-                di[0], di[1], Drbar - 180., 90. - Irbar)  # rotate to mean
-            drot = d - 180.
-            if drot < 0:
-                drot = drot + 360.
-            D2.append(drot)
-            I2.append(irot)
-            Dtit = 'Mode 2 Declinations'
-            Itit = 'Mode 2 Inclinations'
-        plt.figure(figsize=(6, 3))
+        az=np.ones(Nr)*(Drbar - 180.)
+        pl=np.ones(Nr)*(90.-Irbar)
+        Ds=rDIs.transpose()[0]
+        Is=rDIs.transpose()[1]
+        rdata=np.column_stack((Ds,Is,az,pl))
+        D2,I2=pmag.dotilt_V(rdata)
+        Dtit = 'Mode 2 Declinations'
+        Itit = 'Mode 2 Inclinations'
+        ppars = pmag.doprinc(rDIs)  # get principal directions
+        Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
+        plt.figure(fignum,figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D2, Dtit, subplot=True)  # make plot
         Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
@@ -1448,14 +1429,14 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum):
+def plot_net(fignum=None):
     """
     Draws circle and tick marks for equal area projection.
     """
 
-# make the perimeter
-    plt.figure(num=fignum,)
-    plt.clf()
+    if fignum != None:
+        plt.figure(num=fignum,)
+        plt.clf()
     plt.axis("off")
     Dcirc = np.arange(0, 361.)
     Icirc = np.zeros(361, 'f')
@@ -8132,6 +8113,78 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         return make_di_block(decs, unsquished_incs)
 
 
+def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
+    '''
+    Calculate the Bhattacharyya Coefficient, Bayes error and the
+    Kullback-Leibler divergence associated with the comparison of
+    paleomagnetic poles following Heslop and Roberts (2019). The divergence
+    parameter is asymmetric such that the pole that is the reference pole
+    should be (lon_1, lat_1, k_1, r_1) and the pole of interest being compared
+    to that reference pole should be (lon_2, lat_2, k_2, r_2).
+
+    Parameters
+    ----------
+    lon_1 : longitude of pole 1 (reference pole)
+    lat_1 : latitude of pole 1
+    k_1 : Fisher concentration parameter of pole 1
+    r_1 : resultant vector length of pole 1
+    lon_2 : longitude of pole 2 (pole of interest)
+    lat_2: latitude of pole 2
+    k_2 : Fisher concentration parameter of pole 2
+    r_2 : resultant vector length of pole 2
+
+    Returns
+    -------
+    bhattacharyya : Bhattacharyya coefficient
+    bayes : bayes error
+    kld : Kullback-Leibler divergence
+
+    Notes
+    -----
+    This function utilizes code developed by D. Heslop
+    https://github.com/dave-heslop74/kld
+    https://github.com/dave-heslop74/bhattacharyya
+    '''
+    I1 = np.deg2rad(lat_1)
+    D1 = np.deg2rad(lon_1)
+
+    I2 = np.deg2rad(lat_2)
+    D2 = np.deg2rad(lon_2)
+
+    mu1 = np.column_stack((np.cos(D1)*np.cos(I1),np.sin(D1)*np.cos(I1),np.sin(I1)))
+    mu2 = np.column_stack((np.cos(D2)*np.cos(I2),np.sin(D2)*np.cos(I2),np.sin(I2)))
+
+    def log_sinh(k):
+        if k>700:
+            s=k-np.log(2.0)
+        else:
+            s=np.log(np.sinh(k))
+        return s
+
+    def chernoff_H2019(a,MU1,K1,MU2,K2):
+        K12=np.linalg.norm(a*MU1*K1+(1-a)*MU2*K2)
+        JF=a*(log_sinh(K1)-np.log(K1))+(1-a)*(log_sinh(K2)-np.log(K2))-(log_sinh(K12)-np.log(K12))
+        return np.exp(-JF)
+
+    bhattacharyya = chernoff_H2019(0.5,mu1,k_1*r_1,mu2,k_2*r_2)
+
+    alpha0 = fminbound(lambda alpha: chernoff_H2019(alpha,mu1,k_1*r_1,mu2,k_2*r_2),0,1)
+
+    bayes = chernoff_H2019(alpha0,mu1,k_1*r_1,mu2,k_2*r_2)/2
+
+    #Calculate the Kullback-Leibler divergence
+    K1 = k_1*r_1
+    K2 = k_2*r_2
+
+    term1 = np.log(K1)+log_sinh(K2)-np.log(K2)-log_sinh(K1)
+    term2 = 1.0 / np.tanh(K1) - 1.0 / K1
+    term3 = np.dot(mu2,(K2*mu1 - K1*mu2).T)
+
+    kld = float(np.squeeze(term1-term2*term3))
+
+    return bhattacharyya, bayes, kld
+
+
 def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1_age_error,
                   pole2_plon, pole2_plat, pole2_kappa, pole2_N, pole2_age, pole2_age_error,
                   ref_loc_lon, ref_loc_lat, samplesize=10000, random_seed=None, plot=True,
@@ -8316,7 +8369,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 
 
 def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL",
-        save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0):
+        save=False, save_folder='.', fmt='svg', begin_pca="", end_pca="", angle=0,make_plots=True,show_data=True):
     """
     NAME
        zeq.py
@@ -8360,52 +8413,56 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
                      'intensity', 'declination', 'inclination']
         # adjust for angle rotation
         f['declination'] = (f['declination']-angle) % 360
-        f['quality'] = 'g'
-        f['type'] = ''
 #
-        s = f['specimen'].tolist()[0]
-        if units == 'mT':
-            f['treatment'] = f['treatment']*1e-3
-        if units == 'C':
-            f['treatment'] = f['treatment']+273
-        data = f[['treatment', 'declination',
-                  'inclination', 'intensity', 'type', 'quality']]
-    print(s)
+    else:
+        f=data
+    f['quality'] = 'g'
+    f['type'] = ''
+    s = f['specimen'].tolist()[0]
+    if units == 'mT':
+        f['treatment'] = f['treatment']*1e-3
+    if units == 'C':
+        f['treatment'] = f['treatment']+273
+    data = f[['treatment', 'declination',
+                  'inclination', 'intensity', 'type','quality']]
+    #print(s)
     datablock = data.values.tolist()
 # define figure numbers in a dictionary for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
-    ZED = {}
-    ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
-    plt.figure(num=ZED['zijd'], figsize=(5, 5))
-    plt.figure(num=ZED['eqarea'], figsize=(5, 5))
-    plt.figure(num=ZED['demag'], figsize=(5, 5))
+    if make_plots:
+        ZED = {}
+        ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
+        plt.figure(num=ZED['zijd'], figsize=(5, 5));
+        plt.figure(num=ZED['eqarea'], figsize=(5, 5));
+        plt.figure(num=ZED['demag'], figsize=(5, 5));
 #
 #
-    pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
+        pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
 #
 # print out data for this sample to screen
 #
     recnum = 0
-    print('step treat  intensity  dec    inc')
-    for plotrec in datablock:
-        if units == 'mT':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0]*1e3, plotrec[3], plotrec[1], plotrec[2]))
-        if units == 'C':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0]-273., plotrec[3], plotrec[1], plotrec[2]))
-        if units == 'U':
-            print('%i  %7.1f %8.3e %7.1f %7.1f ' %
-                  (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
-        recnum += 1
-        pmagplotlib.draw_figs(ZED)
+    if show_data:
+        print('step treat  intensity  dec    inc')
+        for plotrec in datablock:
+            if units == 'mT':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0]*1e3, plotrec[3], plotrec[1], plotrec[2]))
+            if units == 'C':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0]-273., plotrec[3], plotrec[1], plotrec[2]))
+            if units == 'U':
+                print('%i  %7.1f %8.3e %7.1f %7.1f ' %
+                      (recnum, plotrec[0], plotrec[3], plotrec[1], plotrec[2]))
+            recnum += 1
+        #pmagplotlib.draw_figs(ZED)
     if begin_pca != "" and end_pca != "" and calculation_type != "":
-        pmagplotlib.plot_zed(ZED, datablock, angle, s,
+        if make_plots:pmagplotlib.plot_zed(ZED, datablock, angle, s,
                              SIunits)  # plot the data
         # get best-fit direction/great circle
         mpars = pmag.domean(datablock, begin_pca, end_pca, calculation_type)
         # plot the best-fit direction/great circle
-        pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+        if make_plots:pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
         if units == 'mT':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
@@ -8416,7 +8473,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         if units == 'U':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
                                                                mpars["specimen_n"], mpars["measurement_step_min"], mpars["measurement_step_max"], mpars["specimen_mad"], mpars["specimen_dec"], mpars["specimen_inc"]))
-        if save:
+        if save and make_plots:
             files = {}
             for key in list(ZED.keys()):
                 files[key] = s+'_'+key+'.'+fmt
@@ -11074,7 +11131,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
 
             #HDD = {key: value + len(HDD) + k for (key, value) in HDD.items()}
         # initialize a new specimen hysteresis record
-        HystRec = {'specimen': specimen, 'experiment': ""}
+        HystRec = {'specimen': specimen, 'experiments': ""}
         if verbose and make_plots:
             print(specimen, k+1, 'out of ', len(sids))
     #
@@ -11087,14 +11144,19 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
         if len(spec_data) > 0:
             meths = spec_data[0]['method_codes'].split(':')
             e = spec_data[0]['experiment']
-            HystRec['experiment'] = spec_data[0]['experiment']
+            HystRec['meas_orient_phi'],HystRec['meas_orient_theta']='0','0'
+            if 'treat_dc_field_phi' in spec_data[0].keys():
+                HystRec['meas_orient_phi']=spec_data[0]['treat_dc_field_phi']
+            if 'treat_dc_field_theta' in spec_data[0].keys():
+                HystRec['meas_orient_theta']=spec_data[0]['treat_dc_field_theta']
+            HystRec['experiments'] = spec_data[0]['experiment']
             for rec in spec_data:
                 B.append(float(rec['meas_field_dc']))
                 M.append(float(rec['magn_moment']))
         # fish out all the data for this specimen
         spec_data = pmag.get_dictitem(dcd_data, 'specimen', specimen, 'T')
         if len(spec_data) > 0:
-            HystRec['experiment'] = HystRec['experiment'] + \
+            HystRec['experiments'] = HystRec['experiments'] + \
                 ':'+spec_data[0]['experiment']
             irm_exp = spec_data[0]['experiment']
             for rec in spec_data:

@@ -6,8 +6,7 @@ doc string
 # pylint: disable=C0103,E402
 print('-I- Importing MagIC GUI dependencies')
 import matplotlib
-if not matplotlib.get_backend() == 'WXAgg':
-    matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 import sys

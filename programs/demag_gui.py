@@ -55,8 +55,7 @@ AUTHORS
 # ============================================================================================
 import matplotlib
 from functools import reduce
-if not matplotlib.get_backend() == 'WXAgg':
-    matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 import os
 import sys
 import pandas as pd

@@ -22,101 +22,32 @@ matrix:
             - libnotify-dev
             - libproj-dev # Proj.4 is a dependency of cartopy
       before_install:
+        - lsb_release -a # check ubuntu version
         - sudo apt-get update -qq  # make sure package indexes are up to date
         - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
         #- "sh -e /etc/init.d/xvfb start"
       install:
-        ## fully install miniconda
-        #- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-        #- bash miniconda.sh -b -p $HOME/miniconda
-        #- export PATH="$HOME/miniconda/bin:$PATH"
-        ## configure conda settings
-        #- conda config --set always_yes yes --set changeps1 no --set show_channel_urls yes
-        #- conda update conda
-        ## create test environment
-        #- ENV_NAME="test-environment"
-        #- conda create -n my-test-environment python=3.7
-        #- source activate my-test-environment
-        ## install req'd packages with conda
-        #- PACKAGES="$PACKAGES cython pillow pytest pep8 proj4 pyshp shapely six requests pyepsg owslib"
-        #- conda install --quiet $PACKAGES
-        #- conda install --quiet cartopy
-        #- conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
-        #- conda install --quiet xlwt # for pandas df.to_excel
-        #- conda install --quiet wxPython
-        #- conda install --quiet appdirs
-        #- conda install --quiet matplotlib=2.2.3
-        #- conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
         - pip3 install cython pillow pytest pep8 pyshp shapely
         - pip3 install six requests pyepsg owslib cartopy future numpy==1.16.1 scipy
         - pip3 install pandas libtiff
         # get latest version of wxPython4:
-        - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython # regular pip install wxPython does not work
+        # - pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 wxPython # regular pip install wxPython does not work
         # get wxPython-4.0.4:
-        #- pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
+        - pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.4-cp37-cp37m-linux_x86_64.whl
+        # get wxPython-4.0.6:
+        #- pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.6-cp37-cp37m-linux_x86_64.whl
         - pip3 install appdirs
-        - pip3 install matplotlib==3.1
+        - pip3 install matplotlib==3.1.0  # 3.1.2 causes some problems
         - pip3 install scripttest
         - pip3 install xlwt
         - sudo apt-get update
       script :
+        - pip list
         - python -V -V
         - python -c "import sys; print(sys.version)"
+        - python -c "import wx; print(wx.version)"
+        - python -c "import wx.grid; print(wx.grid)"
         - python -m unittest discover -v
-
-#    - name: "Python 3.6 (Miniconda) on Linux"
-#      python: "3.6"
-#      #dist: xenial          # required for Python >= 3.7
-#      services:
-#        - xvfb
-#      addons:
-#        apt:
-#          packages: # mainly wxPython dependencies
-#            - libwebkitgtk-dev
-#            - libjpeg-dev
-#            - libtiff-dev
-#            - libgtk2.0-dev
-#            - libsdl1.2-dev
-#            - libgstreamer-plugins-base0.10-dev
-#            - freeglut3
-#            - freeglut3-dev
-#            - libnotify-dev
-#            - libproj-dev # Proj.4 is a dependency of cartopy
-#      before_install:
-#        # this fix doesn't work :\
-#        #- sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 762E3157
-#        - sudo apt-get update -qq  # make sure package indexes are up to date
-#        - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
-#        # this is needed with non-xenial!
-#        - "sh -e /etc/init.d/xvfb start"
-#      install:
-#        # fully install miniconda
-#        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-#        - bash miniconda.sh -b -p $HOME/miniconda
-#        - export PATH="$HOME/miniconda/bin:$PATH"
-#        # configure conda settings
-#        - conda config --set always_yes yes --set changeps1 no --set show_channel_urls yes
-#        - conda update conda
-#        # create test environment
-#        - ENV_NAME="test-environment"
-#        - conda create -n $ENV_NAME python=3.6
-#        - source activate $ENV_NAME
-#        # install req'd packages with conda
-#        - PACKAGES="$PACKAGES cython pillow pytest pep8 proj4 pyshp shapely six requests pyepsg owslib"
-#        - conda install --quiet $PACKAGES
-#        - conda install --quiet cartopy
-#        - conda install --quiet pandas>=0.24.2 libtiff numpy scipy future requests
-#        - conda install --quiet xlwt # for pandas df.to_excel
-#        - conda install --quiet wxPython
-#        - conda install --quiet appdirs
-#        - conda install --quiet matplotlib=2.2.3
-#        - conda install scripttest --channel conda-forge #pandas libtiff matplotlib numpy scipy future cartopy
-#        - sudo apt-get update
-#      script :
-#        - python -V -V
-#        - conda env list
-#        - python -c "import sys; print(sys.version)"
-#        - python -m unittest discover -v
 
     # seems that GUI testing isn't yet available for OSX OR I don't know how to make it work
     # other tests appear to work correctly
@@ -144,14 +75,13 @@ matrix:
         - conda install --quiet xlwt # for pandas df.to_excel
         - conda install --quiet wxPython
         - conda install --quiet appdirs
-        - conda install --quiet matplotlib=3.1
+        - conda install --quiet matplotlib # 3.1 or higher
         - conda install scripttest --channel conda-forge
       #script : pythonw -m unittest discover -v
       script :
         - python -V -V
         # these tests all run!  add more
         - pythonw -m unittest pmagpy_tests.test_contribution_builder pmagpy_tests.test_env pmagpy_tests.test_imports2 pmagpy_tests.test_imports3 pmagpy_tests.test_ipmag pmagpy_tests.test_make_plots pmagpy_tests.test_map_magic pmagpy_tests.test_pmag pmagpy_tests.test_pmagplotlib pmagpy_tests.test_simple_example pmagpy_tests.test_validations
-        #- pythonw -m unittest pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder pmagpy_tests.test_validations pmagpy_tests.test_imports3 pmagpy_tests.test_imports2  pmagpy_tests.test_env pmagpy_tests.test_simple_example pmagpy_tests.test_map_magic pmagpy_tests.test_ipmag -v
         # tests that don't work: test_programs, test_find_pmag_dir, all GUI tests
         # tests with GUI stuff don't work
 
@@ -160,17 +90,16 @@ matrix:
     - name: "Python 3.7.3 (choco) on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
-      #before_install : start /wait "" Miniconda3-latest-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\Miniconda3
-      before_install: choco install python
+      before_install: choco install python --version 3.7.4
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       install:
-        - pip3 install numpy
-        - pip3 install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib==3.1
-        - pip3 install cython pillow pytest pep8  six requests
-        - pip3 install -U wxPython
-        - pip3 install scripttest
-        - pip3 install xlwt
-        - pip3 install geos
+        - pip install numpy
+        - pip install pandas>=0.24.2 libtiff numpy scipy future requests appdirs matplotlib # 3.1 or higher
+        - pip install cython pillow pytest pep8  six requests
+        - pip install -U wxPython
+        - pip install scripttest
+        - pip install xlwt
+        - pip install geos
 
         ## trying two commands to install proj4 (fails on the second command)
         #- curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
@@ -188,74 +117,6 @@ matrix:
         # can't get cartopy, so pmagplotlib (etc.) can't be run
         # exits with 0, but doesn't actually finish running :(
         #- python -m pmagpy_tests.test_pmag pmagpy_tests.test_contribution_builder -v
-
-
-#env:
-#    matrix:
-#        # python 3.5.3 suffers from some matplotlib/wxpython compatibility problems
-#        #- NAME="Python 3.5.3"
-#        #  PYTHON_VERSION=3.5.3
-#        #  #PACKAGES="numpy=1.10.0 matplotlib=1.5.1 nose scipy=0.16.0 libgfortran=1"
-#        - NAME="Python 3.6"
-#          PYTHON_VERSION=3.6
-#        - NAME="Python 3.7"
-#          PYTHON_VERSION=3.7
-#        #  PACKAGES="numpy matplotlib freetype<2.8 scipy"
-
-# use this OR env/matrix
-#python:
-#    - "3.6"
-#    - "3.7"
-#    #- "2.7"
-#    - "3.5.3" # currently breaks with 3.6, possibly need a different version of wxPython for 3.6
-#    # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-
-
-
-# these lines were causing problems with wxPython
-#virtualenv:
-#  system_site_packages: true
-  ## download and install wxPython
-  #- if [[ "$PYTHON_VERSION" == 3.5* ]]; then
-  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
-  #    pip install "wxPython-4.0.3-cp35-cp35m-linux_x86_64.whl";
-  #  fi
-  #- if [[ "$PYTHON_VERSION" == 3.6* ]]; then
-  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
-  #    pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
-  #  fi
-  #- if [[ "$PYTHON_VERSION" == 3.7* ]]; then
-  #    wget "https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl";
-  #    pip install wxPython-4.0.3-cp36-cp36m-linux_x86_64.whl;
-  #  fi
-
-  # command to run tests, e.g. python setup.py test
-#script:
-  #- pythonw -m unittest pmagpy_tests.test_pmag || python3 -m unittest pmagpy_tests.test_pmag_gui -v || python -c "print('tests')"  # this one works!!
-  # pythonw is for mac, python3 is for osx, python is for windows
-#  - pythonw -m unittest discover -v || python3 -m unittest discover -v || python -c "print('tests')"
-
-
-  #- python -m unittest discover -v
-  #- python -m unittest pmagpy_tests.test_make_plots -v
-  #- python -m unittest pmagpy_tests.test_ipmag -v
-  #- python -m unittest pmagpy_tests.test_thellier_gui -v
-  #- python -m unittest pmagpy_tests.test_imports3 -v
-  #- python -m unittest pmagpy_tests.test_find_pmag_dir -v
-  #- python -m unittest pmagpy_tests.test_pmag_gui -v
-
-
-
-
-  #test_validations.py#        test_builder.py              test_imports2.py             test_pmag_gui.py
-#            test_builder.pyc             test_imports3.py             test_pmagplotlib.py
-#             test_contribution_builder.py test_ipmag.py                test_programs.py
-#           test_demag_gui.py            test_magic_gui.py            test_simple_example.py
-#                 test_dialog_components.py    test_magic_gui2.py           test_thellier_gui.py
-#                    test_er_magic_dialogs.py     test_map_magic.py            test_validations.py
-#                    test_pmag.py
-
-  #- python -m unittest discover -v
 
 
 # https://stackoverflow.com/questions/29290011/using-travis-ci-with-wxpython-tests
