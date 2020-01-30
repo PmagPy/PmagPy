@@ -962,7 +962,7 @@ class TestEqareaMagic(unittest.TestCase):
         self.assertFalse(image_recs)
 
 
-
+@unittest.skipIf(set_env.IS_LINUX, "see github issue #444")
 class TestPolemapMagic(unittest.TestCase):
 
     def setUp(self):
