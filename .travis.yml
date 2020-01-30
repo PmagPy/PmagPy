@@ -37,7 +37,7 @@ matrix:
         # get wxPython-4.0.6:
         #- pip3 install https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/wxPython-4.0.6-cp37-cp37m-linux_x86_64.whl
         - pip3 install appdirs
-        - pip3 install matplotlib
+        - pip3 install matplotlib==3.1.0  # 3.1.2 causes some problems
         - pip3 install scripttest
         - pip3 install xlwt
         - sudo apt-get update
