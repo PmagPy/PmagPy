@@ -1,16 +1,17 @@
 #!/usr/bin/env python
+import json
+import os
+
 import pandas as pd
 from pandas import Series
 try:
     import requests
 except ImportError:
     requests = None
-import json
-import os
-#import cached vocabulries as backup
 from . import find_pmag_dir
 from . import data_model3 as data_model
 from pmag_env import set_env
+
 pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,

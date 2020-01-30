@@ -11,15 +11,17 @@
 # All of the functions are combined with numpy ufuncs; this loses
 # some performance when the functions are used on scalar arguments,
 # but should give a big win on vectors.
-# 
+
 
 from builtins import range
 from builtins import object
+
+import math
+import operator
+from types import *
+
 import numpy
 from numpy import *
-import operator
-import math
-from types import *
 
 ArrayType = type(asarray(1.0))
 UfuncType = type(numpy.add)

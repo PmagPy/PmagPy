@@ -4,12 +4,13 @@
 # pylint: disable-all
 # causes too many errors and crashes
 
-from past.utils import old_div
-import sys
 import os
+import sys
+import warnings
+
+from past.utils import old_div
 import numpy as np
 import pandas as pd
-import warnings
 warnings.filterwarnings("ignore")  # what you don't know won't hurt you
 from distutils.version import LooseVersion
 

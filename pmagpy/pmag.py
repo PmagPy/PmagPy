@@ -1,13 +1,14 @@
-from past.utils import old_div
 import codecs
-import numpy as np
+import math
+import os
 import string
 import sys
+import time
+
+from past.utils import old_div
+import numpy as np
 from numpy import random
 from numpy import linalg
-import os
-import time
-import math
 import pandas as pd
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb

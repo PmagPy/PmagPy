@@ -1,13 +1,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
-import os, sys
+
+from imp import reload
+import os
+import sys
+
 from pkg_resources import resource_filename
 import locator
-from imp import reload
-#import time
-#import urllib2
-#import pickle
-#from Tkinter import *
 
 
 def get_data_files_dir():

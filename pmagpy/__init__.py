@@ -1,5 +1,7 @@
 from __future__ import absolute_import
+
 import sys
+
 if sys.version_info <= (3,):
     raise Exception("""
 You are running Python {}.
@@ -28,7 +30,6 @@ from . import controlled_vocabularies2 as controlled_vocabularies
 from . import data_model3
 from . import contribution_builder
 from . import mapping
-#import set_env
 
 __all__ = [pmag, ipmag, pmagplotlib, find_pmag_dir, version,
            controlled_vocabularies, data_model3, contribution_builder,

@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from __future__ import absolute_import
-from builtins import object
-import pandas as pd
-from pandas import Series
+
 import json
 import os
+from builtins import object
+
+import pandas as pd
+from pandas import Series
 from . import find_pmag_dir
+
 pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,

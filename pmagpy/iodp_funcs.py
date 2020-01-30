@@ -5,6 +5,7 @@ import seaborn as sns
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import pmagpy.pmagplotlib as pmagplotlib
+
 def make_plot(arch_df,edited_df,sect_depths,hole,\
               gad_inc,depth_min,depth_max,labels,spec_df=[], fignum=1,
               agemin=0,agemax=0):

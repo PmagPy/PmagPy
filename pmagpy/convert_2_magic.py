@@ -1,14 +1,15 @@
 #!/usr/bin/env/pythonw
 
-import sys
-import os
-from functools import reduce
-import pytz
-import datetime
 import copy
+import datetime
+from functools import reduce
+import math
+import os
+import sys
+
+import pytz
 import scipy
 import numpy as np
-import math
 import pandas as pd
 import pmagpy.pmag as pmag
 import pmagpy.contribution_builder as cb
