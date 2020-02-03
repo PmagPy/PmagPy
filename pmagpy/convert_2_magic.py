@@ -8528,7 +8528,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                         dd = str(dd)
                     time = code1[1].split(':')
                     hh = int(time[0])
-                    if code3[0] == "PM":
+                    if code3[0] == "PM" and hh<12:
                         hh = hh+12
                     if hh < 10:
                         hh = "0"+str(hh)
@@ -8540,6 +8540,7 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                     else:
                         min = str(min)
                     dt = yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
+                    print (dt,rec)
                     local = pytz.timezone(timezone)
                     naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                     local_dt = local.localize(naive, is_dst=None)
