@@ -8540,7 +8540,6 @@ def sio(mag_file, dir_path=".", input_dir_path="",
                     else:
                         min = str(min)
                     dt = yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
-                    print (dt,rec)
                     local = pytz.timezone(timezone)
                     naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                     local_dt = local.localize(naive, is_dst=None)
