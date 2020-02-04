@@ -405,7 +405,7 @@ class MainFrame(wx.Frame):
         if has_problems:
             self.validation_mode = set(has_problems)
             # highlighting doesn't work with Windows
-            if sys.platform in ['win32', 'win62']:
+            if set_env.IS_WIN or set_env.IS_LINUX:
                 self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
             # highlighting does work with OSX
             else:
