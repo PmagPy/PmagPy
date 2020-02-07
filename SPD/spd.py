@@ -154,6 +154,8 @@ class PintPars(object):
             self.end=self.t_Arai.index(tmax)
         # or find start/end temperatures from index
         else:
+            if not tmin_ind:tmin_ind=0
+            if not tmax_ind:tmax_ind=len(self.t_Arai)
             self.start = tmin_ind
             self.end = tmax_ind
             tmin = self.t_Arai[tmin_ind]

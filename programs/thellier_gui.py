@@ -6926,7 +6926,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     B_NLT.append(float(rec['treatment_dc_field']))
                     M_NLT.append(float(rec['measurement_magn_moment']))'''
 
-            # If cnat find baseline in trm block
+            # If cant find baseline in trm block
             #  search for baseline in the Data block.
             if M_baseline == 0:
                 m_tmp = []
@@ -7930,7 +7930,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
     # first find all the steps
         for k in range(len(datablock)):
             rec = datablock[k]
-            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
+            if rec['treatment_temp'] is None:rec['treatment_temp']=""
+            #if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
+            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
                 temp = float(rec["treatment_temp"])
                 THERMAL = True
                 MICROWAVE = False
@@ -7943,7 +7945,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
-
             methcodes = []
             tmp = rec["magic_method_codes"].split(":")
             for meth in tmp:
