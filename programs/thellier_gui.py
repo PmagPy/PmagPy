@@ -1260,8 +1260,11 @@ else:
             # set to the highest step
             max_step_data = self.Data[self.s]['datablock'][-1]
             step_key = 'treatment_temp'
-            if MICROWAVE:
-                step_key = 'treatment_mw_power'
+            if MICROWAVE: 
+                if 'treatment_mw_energy' in max_step_data.keys(): # to accomodate new way of reporting
+                    step_key = 'treatment_mw_energy'
+                else: 
+                    step_key = 'treatment_mw_power'
             max_step = max_step_data[step_key]
             tmax_index = self.tmax_box.GetCount() - 1
             self.tmax_box.SetSelection(tmax_index)
@@ -6617,7 +6620,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 Data[s]['datablock'].append(rec)
                 # identify the lab DC field
                 if (("LT-PTRM-I" in rec["magic_method_codes"] or "LT-T-I" in rec["magic_method_codes"]) and 'LP-TRM' not in rec["magic_method_codes"])\
-                   or "LT-PMRM-I" in rec["magic_method_codes"]:
+                   or "LT-PMRM-I" in rec["magic_method_codes"] or "LT-M-I" in rec['magic_method_codes']:
                     Data[s]['Thellier_dc_field_uT'] = float(
                         rec["treatment_dc_field"])
                     Data[s]['Thellier_dc_field_phi'] = float(
@@ -6793,12 +6796,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         elif 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) != float:
                             AniSpec['anisotropy_alt'] = ""
 
-                        if 'AniSpec' not in list(Data[s].keys()):
+                        if s in Data.keys() and 'AniSpec' not in list(Data[s].keys()):
                             Data[s]['AniSpec'] = {}  # make a blank
-                        TYPE = AniSpec['anisotropy_type']
-                        Data[s]['AniSpec'][TYPE] = AniSpec
-                        if AniSpec['anisotropy_F_crit'] != "":
-                            Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
+                            TYPE = AniSpec['anisotropy_type']
+                            Data[s]['AniSpec'][TYPE] = AniSpec
+                            if AniSpec['anisotropy_F_crit'] != "":
+                                Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
         else:  # do data_model=2.5 way...
             rmag_anis_data = []
             results_anis_data = []
