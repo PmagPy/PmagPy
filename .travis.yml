@@ -2,7 +2,6 @@ language: python
 
 matrix:
   include:
-    # works!
     - name: "Python 3.7.1 on Xenial Linux"
       python: "3.7"           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7.  BUT doesn't seem to work with conda.
@@ -75,6 +74,7 @@ matrix:
         - conda install --quiet xlwt # for pandas df.to_excel
         - conda install --quiet wxPython
         - conda install --quiet appdirs
+        - conda install --quiet regex
         - conda install --quiet matplotlib # 3.1 or higher
         - conda install scripttest --channel conda-forge
       #script : pythonw -m unittest discover -v
@@ -100,6 +100,7 @@ matrix:
         - pip install scripttest
         - pip install xlwt
         - pip install geos
+        - pip install regex
 
         ## trying two commands to install proj4 (fails on the second command)
         #- curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe
