@@ -10444,6 +10444,9 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
             cond2 = prior_spec_data['dir_tilt_correction'] == int(coord)
             prior_spec_data = prior_spec_data[cond | cond2]
         prior_specimen_interpretations=[]
+        if ('meas_step_min' not in prior_spec_data.columns) or \
+          ('meas_step_max' not in prior_spec_data.columns):
+            return ZED, False
         if not len(prior_spec_data):
             return ZED, False
         mpars = {"specimen_direction_type": "Error"}
