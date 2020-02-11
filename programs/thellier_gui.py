@@ -1155,7 +1155,12 @@ else:
                             temp = float(STEP.split("-")[-1])
                             steps_tr.append(temp)
 
-                else:
+                elif 'treatment_mw_integral' in rec.keys():
+                    integral = rec['treatment_mw_integral']
+                    if '-' in str(integral):
+                        integral = integral.split('-')[-1]
+                    steps_tr.append(int(integral))
+                elif 'treatment_mw_power' in rec.keys():
                     power = rec['treatment_mw_power']
                     if '-' in str(power):
                         power = power.split('-')[-1]
@@ -1235,9 +1240,13 @@ else:
 
     def on_click_listctrl(self, event):
         meas_i = int(event.GetText())
-        step_key = 'treatment_temp'
         if MICROWAVE:
-            step_key = 'treatment_mw_power'
+            if 'treatment_mw_integral' in self.Data[self.s]['datablock'][meas_i].keys():
+                    step_key = 'treatment_mw_integral'
+            else: 
+                    step_key = 'treatment_mw_power'
+        else: 
+            step_key = 'treatment_temp'
         m_step = self.Data[self.s]['datablock'][meas_i][step_key]
         index = self.Data[self.s]['t_Arai'].index(float(m_step))
         self.select_bounds_in_logger(index)
@@ -1261,8 +1270,8 @@ else:
             max_step_data = self.Data[self.s]['datablock'][-1]
             step_key = 'treatment_temp'
             if MICROWAVE: 
-                if 'treatment_mw_energy' in max_step_data.keys(): # to accomodate new way of reporting
-                    step_key = 'treatment_mw_energy'
+                if 'treatment_mw_integral' in max_step_data.keys(): # to accomodate new way of reporting
+                    step_key = 'treatment_mw_integral'
                 else: 
                     step_key = 'treatment_mw_power'
             max_step = max_step_data[step_key]
@@ -6679,14 +6688,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if meth in methods:
                     skip = 1
             if skip == 0:
-                if Data[s]['T_or_MW'] == "T" and 'treatment_temp' in list(rec.keys()):
-                    tr = float(rec["treatment_temp"])
-                elif Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
+                if Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             tr = float(STEP.split("-")[-1])
+                elif Data[s]['T_or_MW'] == "T" and 'treatment_temp' in list(rec.keys()):
+                    tr = float(rec["treatment_temp"])
 
                 # looking for in-field first thellier or microwave data -
                 # otherwise, just ignore this
@@ -6905,9 +6914,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             found_labfield = False
             for rec in datablock:
                 if float(rec['treatment_dc_field']) != 0:
-                    labfield = float(rec['treatment_dc_field'])
-                    found_labfield = True
-                    break
+                   labfield = float(rec['treatment_dc_field'])
+                   found_labfield = True
+                   break
             if not found_labfield:
                 continue
 
@@ -7206,13 +7215,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # thermal or microwave
             rec = datablock[0]
-            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
-                temp = float(rec["treatment_temp"])
-                THERMAL = True
-                MICROWAVE = False
+            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"] != "":
+                THERMAL = False
+                MICROWAVE = True
             elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
                 THERMAL = False
                 MICROWAVE = True
+            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
+                temp = float(rec["treatment_temp"])
+                THERMAL = True
+                MICROWAVE = False
 
             # Fix zijderveld block for Thellier-Thellier protocol (II)
             # (take the vector subtruction instead of the zerofield steps)
@@ -7933,13 +7945,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
     # first find all the steps
         for k in range(len(datablock)):
             rec = datablock[k]
-            if rec['treatment_temp'] is None:rec['treatment_temp']=""
-            #if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
-            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
-                temp = float(rec["treatment_temp"])
-                THERMAL = True
-                MICROWAVE = False
-            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
+            if 'treatment_mw_integral' in list(rec.keys()) and rec['treatment_mw_integral'] is None: rec['treatment_mw_integral']=""
+            if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
+            if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
+            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]:
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7948,6 +7957,19 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
+            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"]:
+                THERMAL = False
+                MICROWAVE = True
+                if "measurement_description" in list(rec.keys()):
+                    MW_step = rec["measurement_description"].strip(
+                        '\n').split(":")
+                    for STEP in MW_step:
+                        if "Number" in STEP:
+                            temp = float(STEP.split("-")[-1])
+            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
+                temp = float(rec["treatment_temp"])
+                THERMAL = True
+                MICROWAVE = False
             methcodes = []
             tmp = rec["magic_method_codes"].split(":")
             for meth in tmp:
