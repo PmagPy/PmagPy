@@ -8,7 +8,7 @@ from builtins import range
 
 import math
 import os
-import regex
+import re
 import numpy as np
 from pmagpy import contribution_builder as cb
 
@@ -205,10 +205,10 @@ def cv(row, col_name, arg, current_data_model, df, con):
     cell_values = [cell_value]
     # split Matrix value rows by semicolons unless they are within quotes
     if col_type == 'Matrix':
-        cell_values = regex.split(';(?=(?:[^"]*"[^"]*")*[^"]*$)', cell_value)
+        cell_values = re.split(';(?=(?:[^"]*"[^"]*")*[^"]*$)', cell_value)
     # split List and Dictionary values by colons unless they are within quotes
     if col_type == 'List' or col_type == 'Dictionary':
-        cell_values = regex.split(':(?=(?:[^"]*"[^"]*")*[^"]*$)', cell_value)
+        cell_values = re.split(':(?=(?:[^"]*"[^"]*")*[^"]*$)', cell_value)
     cell_values = [c.strip() for c in cell_values]
     # get possible values for controlled vocabulary
     # exclude weird unicode

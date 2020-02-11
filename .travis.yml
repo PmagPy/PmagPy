@@ -26,7 +26,7 @@ matrix:
         - "export DISPLAY=:99.0"  # make the GUI testing work with the host machine display
         #- "sh -e /etc/init.d/xvfb start"
       install:
-        - pip3 install cython pillow pytest pep8 pyshp shapely regex
+        - pip3 install cython pillow pytest pep8 pyshp shapely
         - pip3 install six requests pyepsg owslib cartopy future numpy==1.16.1 scipy
         - pip3 install pandas libtiff
         # get latest version of wxPython4:
