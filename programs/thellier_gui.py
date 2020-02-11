@@ -6545,6 +6545,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # fish out all the relavent data
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]
+            meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
+                'LP-PI-MULT') == False]
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
@@ -6672,7 +6674,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #---- Zijderveld block
 
             EX = ["LP-AN-ARM", "LP-AN-TRM", "LP-ARM-AFD", "LP-ARM2-AFD", "LP-TRM-AFD",
-                  "LP-TRM", "LP-TRM-TD", "LP-X", "LP-CR-TRM"]  # list of excluded lab protocols
+                  "LP-TRM", "LP-TRM-TD", "LP-X", "LP-CR-TRM","LP-PI-MULT","LP-PI-REL-PT"]  # list of excluded lab protocols
             #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
             INC = ["LT-NO", "LT-T-Z", "LT-M-Z", "LT-AF-Z"]
             methods = rec["magic_method_codes"].strip('\n').split(":")
@@ -6689,6 +6691,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     skip = 1
             if skip == 0:
                 if Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
+                    if rec['measurement_description']==None:rec['measurement_description']=""
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
                     for STEP in MW_step:
