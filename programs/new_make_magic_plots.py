@@ -255,19 +255,19 @@ def main():
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
                 #CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
-                CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True)".format(crd, con)
+                CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True, fmt={})".format(crd, con, fmt)
                 print(CMD)
                 info_log(CMD, loc)
                 res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots='all',
-                                                            contribution=con, image_records=True)
+                                                            contribution=con, image_records=True, fmt=fmt)
                 image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
                 #CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
-                CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}, image_records=True)".format(con)
+                CMD = "ipmag.thellier_magic(n_specs='all', fmt='{}', contribution={}, image_records=True)".format(fmt, con)
                 print(CMD)
                 info_log(CMD, loc)
-                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs='all', fmt="png", contribution=con, image_records=True)
+                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs='all', fmt=fmt, contribution=con, image_records=True)
                 image_recs.extend(thellier_images)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
@@ -277,10 +277,10 @@ def main():
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
                     #CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
-                    CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}, image_records=True)".format(con)
+                    CMD = "ipmag.quick_hyst(fmt='{}', n_plots='all', contribution={}, image_records=True)".format(fmt, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots='all', contribution=con, image_records=True)
+                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt=fmt, n_plots='all', contribution=con, image_records=True)
                     image_recs.extend(quick_hyst_recs)
             # equal area plots of directional data
             # at measurement level (by specimen)
@@ -288,10 +288,10 @@ def main():
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
                     #CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
-                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
+                    CMD = "ipmag.eqarea_magic(fmt=fmt, n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(fmt, con)
                     print(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
-                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots='all',
+                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt=fmt, n_plots='all',
                                                                           ignore_tilt=True, plot_by="spc",
                                                                           contribution=con,
                                                                           source_table="measurements",
@@ -357,10 +357,10 @@ def main():
                         CRD = ' -crd s'
                         crd = "s"
                     #CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
-                    CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
+                    CMD = "ipmag.eqarea_magic(crd={}, fmt={}, n_plots='all', contribution={}, source_table='sites')".format(fmt, crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt="png", n_plots='all',
+                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt=fmt, n_plots='all',
                                                                    contribution=con, source_table="sites",
                                                                    image_records=True)
                     image_recs.extend(eqarea_site_recs)
@@ -372,12 +372,12 @@ def main():
             VGPs = pmag.get_dictitem(
                 SiteDIs, 'vgp_lat', "", 'F')  # are there any VGPs?
             if len(VGPs) > 0:  # YES!
-                #CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
-                CMD = "ipmag.vgpmap_magic(proj='moll', sym='ro', size=5, fmt='png', contribution={})".format(con)
+                #CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt {}'.format(fmt)
+                CMD = "ipmag.vgpmap_magic(proj='moll', sym='ro', size=5, fmt={}, contribution={})".format(fmt, con)
                 print(CMD)
                 info_log(CMD, loc, 'vgpmap_magic.py')
                 res, outfiles, vgpmap_recs = ipmag.vgpmap_magic(proj='moll', sym='ro', size=5,
-                                                                fmt="png", contribution=con,
+                                                                fmt=fmt, contribution=con,
                                                                 image_records=True)
                 image_recs.extend(vgpmap_recs)
             else:
@@ -424,10 +424,10 @@ def main():
             # there are data for a dayplot
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
-                CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={}, image_records=True)".format(con)
+                CMD = "ipmag.dayplot_magic(save=True, fmt={}, contribution={}, image_records=True)".format(fmt, con)
                 info_log(CMD, loc)
                 print(CMD)
-                res, outfiles, dayplot_recs = ipmag.dayplot_magic(save=True, fmt='png',
+                res, outfiles, dayplot_recs = ipmag.dayplot_magic(save=True, fmt=fmt,
                                                                   contribution=con, image_records=True)
                 image_recs.extend(dayplot_recs)
             else:
@@ -456,24 +456,24 @@ def main():
                 tdata = pmag.get_dictitem(
                     data, aniso_tilt_corr_key, '100', 'T', float_to_int=True)
                 if len(sdata) > 3:
-                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='s', fmt='png', contribution={})".format(con)
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='s', fmt={}, contribution={})".format(fmt, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="s", fmt="png",
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="s", fmt=fmt,
                                                                contribution=con, image_records=True)
                     image_recs.extend(aniso_recs)
                 if len(gdata) > 3:
-                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt={}, contribution={})".format(fmt, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="g", fmt="png",
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="g", fmt=fmt,
                                                                contribution=con, image_records=True)
                     image_recs.extend(aniso_recs)
                 if len(tdata) > 3:
-                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt={}, contribution={})".format(fmt, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="t", fmt="png",
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="t", fmt=fmt,
                                                                contribution=con, image_records=True)
                     image_recs.extend(aniso_recs)
 
@@ -491,12 +491,12 @@ def main():
         poles = pmag.get_dictitem(
             poles, 'pole_lon', "", 'F')  # are there any poles?
         if len(poles) > 0:  # YES!
-            CMD = 'polemap_magic.py -sav -fmt png -rev gv 40'
-            CMD =  'ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40, fmt="png", contribution={})'.format(full_con)
+            CMD = 'polemap_magic.py -sav -fmt {} -rev gv 40'.format(fmt)
+            CMD =  'ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40, fmt="{}", contribution={})'.format(fmt, full_con)
             print(CMD)
             info_log(CMD, "all locations", "polemap_magic.py")
             res, outfiles, polemap_recs = ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40,
-                                                            fmt="png", contribution=full_con,
+                                                            fmt=fmt, contribution=full_con,
                                                             image_records=True)
             image_recs.extend(polemap_recs)
         else:
