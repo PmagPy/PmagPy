@@ -3360,7 +3360,7 @@ def plot_map(fignum, lats, lons, Opts):
             ax.add_feature(OCEAN, color=Opts['oceancolor'])
             ax.add_feature(LAND, color=Opts['landcolor'])
             ax.add_feature(LAKES, color=Opts['oceancolor'])
-    if Opts['proj'] in ['merc', 'pc','lcc']:
+    if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
         if Opts['pltgrid']:
             if Opts['proj']=='lcc':
                 fig.canvas.draw()
@@ -3381,8 +3381,12 @@ def plot_map(fignum, lats, lons, Opts):
                 except:
                     print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
             else:
+                if Opts['proj']=='ortho':
+                    draw_labels=False
+                else:
+                    draw_labels=True
                 gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
-                              linestyle='dotted', draw_labels=True)
+                              linestyle='dotted', draw_labels=draw_labels)
                 gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
                 gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
                 gl.xformatter = LONGITUDE_FORMATTER
