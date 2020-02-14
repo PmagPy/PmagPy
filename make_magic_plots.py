@@ -72,6 +72,7 @@ def main():
         fmt = sys.argv[ind + 1]
     else:
         fmt = 'png'
+    do_thumbnails = False if "-no-thumb" in sys.argv else True
     if '-f' in sys.argv:
         ind = sys.argv.index("-f")
         filelist = [sys.argv[ind + 1]]
@@ -511,7 +512,9 @@ def main():
                                 magic_table="images", dir_path=dir_path)
         else:
             os.rename(new_image_file, old_image_file)
-    thumbnails.make_thumbnails(dir_path)
+
+    if do_thumbnails:
+        thumbnails.make_thumbnails(dir_path)
 
 if __name__ == "__main__":
     main()
