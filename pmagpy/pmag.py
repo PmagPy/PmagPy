@@ -278,7 +278,7 @@ def find_f(data):
         fdata = np.array([Decs, U]).transpose()
         ppars = doprinc(fdata)
         Fs.append(f)
-        Es.append(old_div(ppars["tau2"], ppars["tau3"]))
+        Es.append(ppars["tau2"] / ppars["tau3"])
         ang = angle([D, 0], [ppars["V2dec"], 0])
         if 180. - ang < ang:
             ang = 180. - ang
@@ -295,7 +295,7 @@ def find_f(data):
                     fdata = np.array([Decs, U]).transpose()
                     ppars = doprinc(fdata)
                     Fs.append(f)
-                    Es.append(old_div(ppars["tau2"], ppars["tau3"]))
+                    Es.append(ppars["tau2"] / ppars["tau3"])
                     Is.append(abs(ppars["inc"]))
                     ang = angle([D, 0], [ppars["V2dec"], 0])
                     if 180. - ang < ang:
@@ -374,8 +374,6 @@ def convert_ages(Recs, data_model=3):
         elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
             age = np.mean([rec[keybase + 'age_high'],
                            rec[keybase + "age_low"]])
-            # age = float(rec[keybase + 'age_low']) + old_div(
-            #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
         if age != '':
             rec[keybase + 'age_unit']
             if rec[keybase + 'age_unit'] == 'Ma':
@@ -954,12 +952,12 @@ def get_Sb(data):
             Nsi = rec['average_nn']
             K = old_div(k, (2. * (1. + 3. * np.sin(L)**2) /
                             (5. - 3. * np.sin(L)**2)))
-            Sw = old_div(81., np.sqrt(K))
+            Sw = 81. / np.sqrt(K)
         else:
             Sw, Nsi = 0, 1.
-        Sb += delta**2. - old_div((Sw**2), Nsi)
+        Sb += delta**2. - (Sw**2) / Nsi
         N += 1.
-    return np.sqrt(old_div(Sb, float(N - 1.)))
+    return np.sqrt(Sb / float(N - 1.))
 
 
 def get_sb_df(df, mm97=False):
@@ -1183,13 +1181,13 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     # 1x1 matrix. That's OKAY. Really.
     (dec, dip, a95, slat, slong) = (np.array(decs), np.array(dips), np.array(a95s),
                                     np.array(slats), np.array(slongs))  # package columns into arrays
-    rad = old_div(np.pi, 180.)  # convert to radians
+    rad = np.pi / 180.  # convert to radians
     dec, dip, a95, slat, slong = dec * rad, dip * \
         rad, a95 * rad, slat * rad, slong * rad
     p = np.arctan2(2.0, np.tan(dip))
     plat = np.arcsin(np.sin(slat) * np.cos(p) +
                      np.cos(slat) * np.sin(p) * np.cos(dec))
-    beta = old_div((np.sin(p) * np.sin(dec)), np.cos(plat))
+    beta = (np.sin(p) * np.sin(dec)) / np.cos(plat)
 
     # -------------------------------------------------------------------------
     # The deal with "boolmask":
@@ -1302,7 +1300,7 @@ def int_pars(x, y, vds, **kwargs):
     s = old_div((xy - (xsum * ysum / n)), (xx - old_div((xsum**2.), n)))
     r = old_div((s * xsig), ysig)
     pars["specimen_rsc"] = r**2.
-    ytot = abs(old_div(ysum, n) - slop * xsum / n)
+    ytot = abs(ysum / n - slop * xsum / n)
     for i in range(int(n)):
         xprime.append(old_div((slop * x[i] + y[i] - ytot), (2. * slop)))
         yprime.append((old_div((slop * x[i] + y[i] - ytot), 2.)) + ytot)
@@ -1311,17 +1309,17 @@ def int_pars(x, y, vds, **kwargs):
     for i in range((int(n) - 1)):
         dy.append(abs(yprime[i + 1] - yprime[i]))
         sumdy += dy[i]**2.
-    f = old_div(dyt, ytot)
+    f = dyt / ytot
     pars[f_key] = f
     pars["specimen_ytot"] = ytot
-    ff = old_div(dyt, vds)
+    ff = dyt / vds
     pars[fvds_key] = ff
-    ddy = (old_div(1., dyt)) * sumdy
-    g = 1. - old_div(ddy, dyt)
+    ddy = (1. / dyt) * sumdy
+    g = 1. - ddy / dyt
     pars[g_key] = g
     q = abs(slop) * f * g / sigma
     pars[q_key] = q
-    pars[b_beta_key] = old_div(-sigma, slop)
+    pars[b_beta_key] = -sigma / slop
     return pars, 0
 
 
@@ -2145,7 +2143,7 @@ def dotilt(dec, inc, bed_az, bed_dip):
     >>> pmag.dotilt(91.2,43.1,90.0,20.0)
     (90.952568837153436, 23.103411670066617)
     """
-    rad = old_div(np.pi, 180.)  # converts from degrees to radians
+    rad = np.pi / 180.  # converts from degrees to radians
     X = dir2cart([dec, inc, 1.])  # get cartesian coordinates of dec,inc
 # get some sines and cosines of new coordinate system
     sa, ca = -np.sin(bed_az * rad), np.cos(bed_az * rad)
