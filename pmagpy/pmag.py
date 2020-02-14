@@ -7543,7 +7543,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     z : downward component of the magnetic field in nT
     f : total magnetic field in nT
 
-    By default, igrf12 coefficients are used between 1900 and 2020
+    By default, igrf13 coefficients are used between 1900 and 2020
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
 
 
@@ -7558,7 +7558,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
         lon = lon + 360.
 # ensure all positive east longitudes
     itype = 1
-    models, igrf12coeffs = cf.get_igrf12()
+    models, igrf13coeffs = cf.get_igrf13()
+    #models, igrf12coeffs = cf.get_igrf12()
     if 'mod' in list(kwargs.keys()):
         if kwargs['mod'] == 'arch3k':
             psvmodels, psvcoeffs = cf.get_arch3k()  # use ARCH3k coefficients
@@ -7588,7 +7589,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         if 'mod' in list(kwargs.keys()):
             return psvmodels, psvcoeffs
         else:
-            return models, igrf12coeffs
+            return models, igrf13coeffs
     if date < -12000:
         print('too old')
         return
@@ -7617,22 +7618,24 @@ def doigrf(lon, lat, alt, date, **kwargs):
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(model)]
         if model + incr < 1900:
-            sv = old_div(
-                (psvcoeffs[psvmodels.index(model + incr)] - gh), float(incr))
+            sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
         else:
-            field2 = igrf12coeffs[models.index(1940)][0:120]
-            sv = old_div((field2 - gh), float(1940 - model))
+            field2 = igrf13coeffs[models.index(1940)][0:120]
+            sv = (field2 - gh)/float(1940 - model)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     else:
         model = date - date % 5
-        if date < 2015:
-            gh = igrf12coeffs[models.index(model)]
-            sv = old_div((igrf12coeffs[models.index(model + 5)] - gh), 5.)
+        if date <2020:
+            gh = np.array(igrf13coeffs[models.index(model)])
+            sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
         else:
-            gh = igrf12coeffs[models.index(2015)]
-            sv = igrf12coeffs[models.index(2015.20)]
-            x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+            print ('only dates prior to 2020 supported')
+            return
+            #gh = igrf13coeffs[models.index(2020)]
+            #sv = igrf13coeffs[models.index(2020.2)]
+            #sv=np.zeros(len(gh))
+            #x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
     else:
@@ -10666,7 +10669,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 
     Parameters:
     _________________
-    date = Required date in decimal years (Common Era, negative for Before Common Era)
+    date = Required date in decimal years (Common Era, negative for Before Common Era) - NB: only dates prior to 2020 supported
 
     Optional Parameters:
     ______________
@@ -10686,6 +10689,9 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     lats = list of latitudes evaluated
 
     """
+    if date>=2020:
+        print ('only dates prior to 2020 supported')
+        return
     if resolution=='low':
         incr = 10  # we can vary to the resolution of the model
     elif resolution=='high':
