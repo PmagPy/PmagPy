@@ -3745,3 +3745,38 @@ def save_or_quit(msg="S[a]ve plots - <q> to quit, <return> to continue: "):
         sys.exit()
     if ans == '':
         return
+
+def label_tiepoints(ax,x,tiepoints,levels,color='black',lines=False):
+    """
+    Puts on labels for tiepoints in an age table on a stratigraphic plot.
+    
+    Parameters
+    _______________________________
+        ax : obj
+            axis on which to plot the labels
+        x : float or integer
+            x value for the tiepoint labels
+        levels : float
+            stratigraphic positions of the tiepoints
+        lines : bool
+            put on horizontal lines at the tiepoint heights
+    Returns
+    _______________________________
+        ax : obj
+            axis  object
+    """ 
+    if color=='black':
+        for c in range(len(tiepoints)):
+            ax.text(x,levels[c],'- '+tiepoints[c],va='center',
+               color=color)
+    else:
+        for c in range(len(tiepoints)):
+            ax.text(x,levels[c],'('+tiepoints[c]+')',va='center',
+               color=color)
+    if lines:
+        for  c in range(len(tiepoints)):
+            if '(' in tiepoints[c]:
+                ax.axhline(levels[c],color='green',linewidth=1)
+            else:
+                ax.axhline(levels[c],color='green',linewidth=3)
+
