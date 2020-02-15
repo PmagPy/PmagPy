@@ -4047,7 +4047,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
 
 def download_magic(infile=None, dir_path='.', input_dir_path='',
                    overwrite=False, print_progress=True,
-                   data_model=3., separate_locs=False, txt=""):
+                   data_model=3., separate_locs=False, txt="",excel=False):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
@@ -4076,6 +4076,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
     txt : str, default ""
         if infile is not provided, you may provide a string with file contents instead
         (useful for downloading MagIC file directly from earthref)
+    excel : bool
+        input file is an excel spreadsheet (as downloaded from MagIC)
 
     """
     if data_model == 2.5:
@@ -4085,6 +4087,21 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     if infile:
         infile = pmag.resolve_file_name(infile, input_dir_path)
+        if excel:
+            sheets=['contribution','locations','sites','samples','specimens',
+                   'measurements','ages','criteria','images']
+            for sheet in sheets:
+                try:
+                    table=pd.read_excel(infile,header=3,sheet_name=sheet)
+                    table.fillna("",inplace=True)
+                    table.drop(columns=['Column: '],inplace=True)
+                    table_dicts=table.to_dict('records')
+                    outfile = os.path.join(dir_path, sheet + '.txt')
+                    pmag.magic_write(outfile,table_dicts,sheet)
+                except:
+                    print ('sheet not found ',sheet)
+            return    
+            
         # try to deal reasonably with unicode errors
         try:
             f = codecs.open(infile, 'r', "utf-8")
