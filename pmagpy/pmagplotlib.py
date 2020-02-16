@@ -3204,6 +3204,7 @@ def plot_map(fignum, lats, lons, Opts):
                 states : if True, plot states
                 countries : if True, plot countries
                 ocean : if True, plot ocean
+                lakes : if True, plot lakes
                 fancy : if True, plot etopo 20 grid
                     NB:  etopo must be installed
         if Opts keys not set :these are the defaults:
@@ -3221,7 +3222,7 @@ def plot_map(fignum, lats, lons, Opts):
                      'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
                      'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
                      'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet','oceancolor':'azure','landcolor':'bisque',
-                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0},
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0, 'lakes': 0},
                      'edgecolor': 'face'}
     for key in Opts_defaults.keys():
         if key not in Opts.keys() and key != 'details':
@@ -3359,6 +3360,7 @@ def plot_map(fignum, lats, lons, Opts):
         if Opts['details']['ocean'] == 1:
             ax.add_feature(OCEAN, color=Opts['oceancolor'])
             ax.add_feature(LAND, color=Opts['landcolor'])
+        if Opts['details']['lakes'] == 1:
             ax.add_feature(LAKES, color=Opts['oceancolor'])
     if Opts['proj'] in ['merc', 'pc','lcc']:
         if Opts['pltgrid']:
