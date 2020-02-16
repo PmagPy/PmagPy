@@ -278,7 +278,7 @@ def find_f(data):
         fdata = np.array([Decs, U]).transpose()
         ppars = doprinc(fdata)
         Fs.append(f)
-        Es.append(old_div(ppars["tau2"], ppars["tau3"]))
+        Es.append(ppars["tau2"] / ppars["tau3"])
         ang = angle([D, 0], [ppars["V2dec"], 0])
         if 180. - ang < ang:
             ang = 180. - ang
@@ -295,7 +295,7 @@ def find_f(data):
                     fdata = np.array([Decs, U]).transpose()
                     ppars = doprinc(fdata)
                     Fs.append(f)
-                    Es.append(old_div(ppars["tau2"], ppars["tau3"]))
+                    Es.append(ppars["tau2"] / ppars["tau3"])
                     Is.append(abs(ppars["inc"]))
                     ang = angle([D, 0], [ppars["V2dec"], 0])
                     if 180. - ang < ang:
@@ -374,8 +374,6 @@ def convert_ages(Recs, data_model=3):
         elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
             age = np.mean([rec[keybase + 'age_high'],
                            rec[keybase + "age_low"]])
-            # age = float(rec[keybase + 'age_low']) + old_div(
-            #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
         if age != '':
             rec[keybase + 'age_unit']
             if rec[keybase + 'age_unit'] == 'Ma':
@@ -954,12 +952,12 @@ def get_Sb(data):
             Nsi = rec['average_nn']
             K = old_div(k, (2. * (1. + 3. * np.sin(L)**2) /
                             (5. - 3. * np.sin(L)**2)))
-            Sw = old_div(81., np.sqrt(K))
+            Sw = 81. / np.sqrt(K)
         else:
             Sw, Nsi = 0, 1.
-        Sb += delta**2. - old_div((Sw**2), Nsi)
+        Sb += delta**2. - (Sw**2) / Nsi
         N += 1.
-    return np.sqrt(old_div(Sb, float(N - 1.)))
+    return np.sqrt(Sb / float(N - 1.))
 
 
 def get_sb_df(df, mm97=False):
@@ -1183,13 +1181,13 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     # 1x1 matrix. That's OKAY. Really.
     (dec, dip, a95, slat, slong) = (np.array(decs), np.array(dips), np.array(a95s),
                                     np.array(slats), np.array(slongs))  # package columns into arrays
-    rad = old_div(np.pi, 180.)  # convert to radians
+    rad = np.pi / 180.  # convert to radians
     dec, dip, a95, slat, slong = dec * rad, dip * \
         rad, a95 * rad, slat * rad, slong * rad
     p = np.arctan2(2.0, np.tan(dip))
     plat = np.arcsin(np.sin(slat) * np.cos(p) +
                      np.cos(slat) * np.sin(p) * np.cos(dec))
-    beta = old_div((np.sin(p) * np.sin(dec)), np.cos(plat))
+    beta = (np.sin(p) * np.sin(dec)) / np.cos(plat)
 
     # -------------------------------------------------------------------------
     # The deal with "boolmask":
@@ -1302,7 +1300,7 @@ def int_pars(x, y, vds, **kwargs):
     s = old_div((xy - (xsum * ysum / n)), (xx - old_div((xsum**2.), n)))
     r = old_div((s * xsig), ysig)
     pars["specimen_rsc"] = r**2.
-    ytot = abs(old_div(ysum, n) - slop * xsum / n)
+    ytot = abs(ysum / n - slop * xsum / n)
     for i in range(int(n)):
         xprime.append(old_div((slop * x[i] + y[i] - ytot), (2. * slop)))
         yprime.append((old_div((slop * x[i] + y[i] - ytot), 2.)) + ytot)
@@ -1311,17 +1309,17 @@ def int_pars(x, y, vds, **kwargs):
     for i in range((int(n) - 1)):
         dy.append(abs(yprime[i + 1] - yprime[i]))
         sumdy += dy[i]**2.
-    f = old_div(dyt, ytot)
+    f = dyt / ytot
     pars[f_key] = f
     pars["specimen_ytot"] = ytot
-    ff = old_div(dyt, vds)
+    ff = dyt / vds
     pars[fvds_key] = ff
-    ddy = (old_div(1., dyt)) * sumdy
-    g = 1. - old_div(ddy, dyt)
+    ddy = (1. / dyt) * sumdy
+    g = 1. - ddy / dyt
     pars[g_key] = g
     q = abs(slop) * f * g / sigma
     pars[q_key] = q
-    pars[b_beta_key] = old_div(-sigma, slop)
+    pars[b_beta_key] = -sigma / slop
     return pars, 0
 
 
@@ -2145,7 +2143,7 @@ def dotilt(dec, inc, bed_az, bed_dip):
     >>> pmag.dotilt(91.2,43.1,90.0,20.0)
     (90.952568837153436, 23.103411670066617)
     """
-    rad = old_div(np.pi, 180.)  # converts from degrees to radians
+    rad = np.pi / 180.  # converts from degrees to radians
     X = dir2cart([dec, inc, 1.])  # get cartesian coordinates of dec,inc
 # get some sines and cosines of new coordinate system
     sa, ca = -np.sin(bed_az * rad), np.cos(bed_az * rad)
@@ -7543,7 +7541,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     z : downward component of the magnetic field in nT
     f : total magnetic field in nT
 
-    By default, igrf12 coefficients are used between 1900 and 2020
+    By default, igrf13 coefficients are used between 1900 and 2020
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
 
 
@@ -7558,7 +7556,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
         lon = lon + 360.
 # ensure all positive east longitudes
     itype = 1
-    models, igrf12coeffs = cf.get_igrf12()
+    models, igrf13coeffs = cf.get_igrf13()
+    #models, igrf12coeffs = cf.get_igrf12()
     if 'mod' in list(kwargs.keys()):
         if kwargs['mod'] == 'arch3k':
             psvmodels, psvcoeffs = cf.get_arch3k()  # use ARCH3k coefficients
@@ -7588,7 +7587,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         if 'mod' in list(kwargs.keys()):
             return psvmodels, psvcoeffs
         else:
-            return models, igrf12coeffs
+            return models, igrf13coeffs
     if date < -12000:
         print('too old')
         return
@@ -7617,22 +7616,24 @@ def doigrf(lon, lat, alt, date, **kwargs):
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(model)]
         if model + incr < 1900:
-            sv = old_div(
-                (psvcoeffs[psvmodels.index(model + incr)] - gh), float(incr))
+            sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
         else:
-            field2 = igrf12coeffs[models.index(1940)][0:120]
-            sv = old_div((field2 - gh), float(1940 - model))
+            field2 = igrf13coeffs[models.index(1940)][0:120]
+            sv = (field2 - gh)/float(1940 - model)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     else:
         model = date - date % 5
-        if date < 2015:
-            gh = igrf12coeffs[models.index(model)]
-            sv = old_div((igrf12coeffs[models.index(model + 5)] - gh), 5.)
+        if date <2020:
+            gh = np.array(igrf13coeffs[models.index(model)])
+            sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
         else:
-            gh = igrf12coeffs[models.index(2015)]
-            sv = igrf12coeffs[models.index(2015.20)]
-            x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+            print ('only dates prior to 2020 supported')
+            return
+            #gh = igrf13coeffs[models.index(2020)]
+            #sv = igrf13coeffs[models.index(2020.2)]
+            #sv=np.zeros(len(gh))
+            #x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
     else:
@@ -10666,7 +10667,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 
     Parameters:
     _________________
-    date = Required date in decimal years (Common Era, negative for Before Common Era)
+    date = Required date in decimal years (Common Era, negative for Before Common Era) - NB: only dates prior to 2020 supported
 
     Optional Parameters:
     ______________
@@ -10686,6 +10687,9 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     lats = list of latitudes evaluated
 
     """
+    if date>=2020:
+        print ('only dates prior to 2020 supported')
+        return
     if resolution=='low':
         incr = 10  # we can vary to the resolution of the model
     elif resolution=='high':

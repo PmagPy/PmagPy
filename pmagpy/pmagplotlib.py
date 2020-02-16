@@ -3362,7 +3362,7 @@ def plot_map(fignum, lats, lons, Opts):
             ax.add_feature(LAND, color=Opts['landcolor'])
         if Opts['details']['lakes'] == 1:
             ax.add_feature(LAKES, color=Opts['oceancolor'])
-    if Opts['proj'] in ['merc', 'pc','lcc']:
+    if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
         if Opts['pltgrid']:
             if Opts['proj']=='lcc':
                 fig.canvas.draw()
@@ -3383,8 +3383,12 @@ def plot_map(fignum, lats, lons, Opts):
                 except:
                     print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
             else:
+                if Opts['proj']=='ortho':
+                    draw_labels=False
+                else:
+                    draw_labels=True
                 gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
-                              linestyle='dotted', draw_labels=True)
+                              linestyle='dotted', draw_labels=draw_labels)
                 gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
                 gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
                 gl.xformatter = LONGITUDE_FORMATTER
@@ -3743,3 +3747,38 @@ def save_or_quit(msg="S[a]ve plots - <q> to quit, <return> to continue: "):
         sys.exit()
     if ans == '':
         return
+
+def label_tiepoints(ax,x,tiepoints,levels,color='black',lines=False):
+    """
+    Puts on labels for tiepoints in an age table on a stratigraphic plot.
+    
+    Parameters
+    _______________________________
+        ax : obj
+            axis on which to plot the labels
+        x : float or integer
+            x value for the tiepoint labels
+        levels : float
+            stratigraphic positions of the tiepoints
+        lines : bool
+            put on horizontal lines at the tiepoint heights
+    Returns
+    _______________________________
+        ax : obj
+            axis  object
+    """ 
+    if color=='black':
+        for c in range(len(tiepoints)):
+            ax.text(x,levels[c],'- '+tiepoints[c],va='center',
+               color=color)
+    else:
+        for c in range(len(tiepoints)):
+            ax.text(x,levels[c],'('+tiepoints[c]+')',va='center',
+               color=color)
+    if lines:
+        for  c in range(len(tiepoints)):
+            if '(' in tiepoints[c]:
+                ax.axhline(levels[c],color='green',linewidth=1)
+            else:
+                ax.axhline(levels[c],color='green',linewidth=3)
+

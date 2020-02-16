@@ -87,14 +87,6 @@ def make_thumbnails(directory=".", fmt="png"):
             #top = 0 + height * .16
             #right = width * .895
             #bottom = height * .86
-
-        # with old aniso_magic
-        #elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
-        #    left = 0 + width * .18
-        #    top = 0 + height * .2
-        #    right = width * .84
-        #    bottom = height * .81
-        # with new aniso_magic
         elif "ty:_aniso_data" in lower_infile or "ty:_aniso_conf" in lower_infile:
             left = 0 + width * .215
             top = 0 + height * .115
@@ -120,7 +112,6 @@ def make_thumbnails(directory=".", fmt="png"):
             im.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
             continue
         cropped = im.crop((left, top, right, bottom))
-        #cropped_example.show()
         cropped.thumbnail((300, 300), Image.ANTIALIAS)
         cropped.save(infile[:-4] + ".thumb.{}".format(fmt), fmt, dpi=(300, 300))
         # Pixels ÷ DPI = Inches

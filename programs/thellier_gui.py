@@ -1155,7 +1155,12 @@ else:
                             temp = float(STEP.split("-")[-1])
                             steps_tr.append(temp)
 
-                else:
+                elif 'treatment_mw_integral' in rec.keys():
+                    integral = rec['treatment_mw_integral']
+                    if '-' in str(integral):
+                        integral = integral.split('-')[-1]
+                    steps_tr.append(int(integral))
+                elif 'treatment_mw_power' in rec.keys():
                     power = rec['treatment_mw_power']
                     if '-' in str(power):
                         power = power.split('-')[-1]
@@ -1235,9 +1240,13 @@ else:
 
     def on_click_listctrl(self, event):
         meas_i = int(event.GetText())
-        step_key = 'treatment_temp'
         if MICROWAVE:
-            step_key = 'treatment_mw_power'
+            if 'treatment_mw_integral' in self.Data[self.s]['datablock'][meas_i].keys():
+                    step_key = 'treatment_mw_integral'
+            else: 
+                    step_key = 'treatment_mw_power'
+        else: 
+            step_key = 'treatment_temp'
         m_step = self.Data[self.s]['datablock'][meas_i][step_key]
         index = self.Data[self.s]['t_Arai'].index(float(m_step))
         self.select_bounds_in_logger(index)
@@ -1260,8 +1269,11 @@ else:
             # set to the highest step
             max_step_data = self.Data[self.s]['datablock'][-1]
             step_key = 'treatment_temp'
-            if MICROWAVE:
-                step_key = 'treatment_mw_power'
+            if MICROWAVE: 
+                if 'treatment_mw_integral' in max_step_data.keys(): # to accomodate new way of reporting
+                    step_key = 'treatment_mw_integral'
+                else: 
+                    step_key = 'treatment_mw_power'
             max_step = max_step_data[step_key]
             tmax_index = self.tmax_box.GetCount() - 1
             self.tmax_box.SetSelection(tmax_index)
@@ -6533,6 +6545,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # fish out all the relavent data
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]
+            meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
+                'LP-PI-MULT') == False]
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
@@ -6617,7 +6631,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 Data[s]['datablock'].append(rec)
                 # identify the lab DC field
                 if (("LT-PTRM-I" in rec["magic_method_codes"] or "LT-T-I" in rec["magic_method_codes"]) and 'LP-TRM' not in rec["magic_method_codes"])\
-                   or "LT-PMRM-I" in rec["magic_method_codes"]:
+                   or "LT-PMRM-I" in rec["magic_method_codes"] or "LT-M-I" in rec['magic_method_codes']:
                     Data[s]['Thellier_dc_field_uT'] = float(
                         rec["treatment_dc_field"])
                     Data[s]['Thellier_dc_field_phi'] = float(
@@ -6660,7 +6674,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #---- Zijderveld block
 
             EX = ["LP-AN-ARM", "LP-AN-TRM", "LP-ARM-AFD", "LP-ARM2-AFD", "LP-TRM-AFD",
-                  "LP-TRM", "LP-TRM-TD", "LP-X", "LP-CR-TRM"]  # list of excluded lab protocols
+                  "LP-TRM", "LP-TRM-TD", "LP-X", "LP-CR-TRM","LP-PI-MULT","LP-PI-REL-PT"]  # list of excluded lab protocols
             #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
             INC = ["LT-NO", "LT-T-Z", "LT-M-Z", "LT-AF-Z"]
             methods = rec["magic_method_codes"].strip('\n').split(":")
@@ -6676,14 +6690,15 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if meth in methods:
                     skip = 1
             if skip == 0:
-                if Data[s]['T_or_MW'] == "T" and 'treatment_temp' in list(rec.keys()):
-                    tr = float(rec["treatment_temp"])
-                elif Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
+                if Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
+                    if rec['measurement_description']==None:rec['measurement_description']=""
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             tr = float(STEP.split("-")[-1])
+                elif Data[s]['T_or_MW'] == "T" and 'treatment_temp' in list(rec.keys()):
+                    tr = float(rec["treatment_temp"])
 
                 # looking for in-field first thellier or microwave data -
                 # otherwise, just ignore this
@@ -6793,12 +6808,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         elif 'aniso_alt' in list(AniSpec.keys()) and type(AniSpec['aniso_alt']) != float:
                             AniSpec['anisotropy_alt'] = ""
 
-                        if 'AniSpec' not in list(Data[s].keys()):
+                        if s in Data.keys() and 'AniSpec' not in list(Data[s].keys()):
                             Data[s]['AniSpec'] = {}  # make a blank
-                        TYPE = AniSpec['anisotropy_type']
-                        Data[s]['AniSpec'][TYPE] = AniSpec
-                        if AniSpec['anisotropy_F_crit'] != "":
-                            Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
+                            TYPE = AniSpec['anisotropy_type']
+                            Data[s]['AniSpec'][TYPE] = AniSpec
+                            if AniSpec['anisotropy_F_crit'] != "":
+                                Data[s]['AniSpec'][TYPE]['anisotropy_F_crit'] = AniSpec['anisotropy_F_crit']
         else:  # do data_model=2.5 way...
             rmag_anis_data = []
             results_anis_data = []
@@ -6902,9 +6917,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             found_labfield = False
             for rec in datablock:
                 if float(rec['treatment_dc_field']) != 0:
-                    labfield = float(rec['treatment_dc_field'])
-                    found_labfield = True
-                    break
+                   labfield = float(rec['treatment_dc_field'])
+                   found_labfield = True
+                   break
             if not found_labfield:
                 continue
 
@@ -7203,13 +7218,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # thermal or microwave
             rec = datablock[0]
-            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
-                temp = float(rec["treatment_temp"])
-                THERMAL = True
-                MICROWAVE = False
+            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"] != "":
+                THERMAL = False
+                MICROWAVE = True
             elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
                 THERMAL = False
                 MICROWAVE = True
+            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
+                temp = float(rec["treatment_temp"])
+                THERMAL = True
+                MICROWAVE = False
 
             # Fix zijderveld block for Thellier-Thellier protocol (II)
             # (take the vector subtruction instead of the zerofield steps)
@@ -7930,13 +7948,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
     # first find all the steps
         for k in range(len(datablock)):
             rec = datablock[k]
-            if rec['treatment_temp'] is None:rec['treatment_temp']=""
-            #if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
-            if "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
-                temp = float(rec["treatment_temp"])
-                THERMAL = True
-                MICROWAVE = False
-            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
+            if 'treatment_mw_integral' in list(rec.keys()) and rec['treatment_mw_integral'] is None: rec['treatment_mw_integral']=""
+            if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
+            if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
+            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]:
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7945,6 +7960,19 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
+            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"]:
+                THERMAL = False
+                MICROWAVE = True
+                if "measurement_description" in list(rec.keys()):
+                    MW_step = rec["measurement_description"].strip(
+                        '\n').split(":")
+                    for STEP in MW_step:
+                        if "Number" in STEP:
+                            temp = float(STEP.split("-")[-1])
+            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
+                temp = float(rec["treatment_temp"])
+                THERMAL = True
+                MICROWAVE = False
             methcodes = []
             tmp = rec["magic_method_codes"].split(":")
             for meth in tmp:
