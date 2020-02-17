@@ -3359,16 +3359,9 @@ def plot_map(fignum, lats, lons, Opts):
         if Opts['details']['countries'] == 1:
             ax.add_feature(BORDERS.with_scale(resolution), linestyle='-', linewidth=2)
         if Opts['details']['ocean'] == 1:
-<<<<<<< HEAD
-            ax.add_feature(OCEAN, color=Opts['oceancolor'])
-            ax.add_feature(LAND, color=Opts['landcolor'])
-        if Opts['details']['lakes'] == 1:
-            ax.add_feature(LAKES, color=Opts['oceancolor'])
-=======
             ax.add_feature(OCEAN.with_scale(resolution), color=Opts['oceancolor'])
             ax.add_feature(LAND.with_scale(resolution), color=Opts['landcolor'])
             ax.add_feature(LAKES.with_scale(resolution), color=Opts['oceancolor'])
->>>>>>> 	modified:   pmagplotlib.py
     if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
         if Opts['pltgrid']:
             if Opts['proj']=='lcc':
