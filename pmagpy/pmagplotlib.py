@@ -3337,31 +3337,38 @@ def plot_map(fignum, lats, lons, Opts):
                             transform=ccrs.PlateCarree(),
                             cmap=Opts['cmap'])
             cbar=plt.colorbar(m)
+        if Opts['res']=='c' or Opts['res']=='l':
+            resolution='110m'
+        elif Opts['res']=='i':
+            resolution='50m'
+        elif Opts['res']=='h':
+            resolution='10m'
         if Opts['details']['coasts'] == 1:
-            if Opts['res']=='c' or Opts['res']=='l':
-                ax.coastlines(resolution='110m')
-            elif Opts['res']=='i':
-                ax.coastlines(resolution='50m')
-            elif Opts['res']=='h':
-                ax.coastlines(resolution='10m')
+            ax.coastlines(resolution=resolution)
         if Opts['details']['rivers'] == 1:
             ax.add_feature(cfeature.RIVERS)
         if Opts['details']['states'] == 1:
             states_provinces = cfeature.NaturalEarthFeature(
                 category='cultural',
                 name='admin_1_states_provinces_lines',
-                scale='50m',
+                scale=resolution,
                 edgecolor='black',
                 facecolor='none',
                 linestyle='dotted')
             ax.add_feature(states_provinces)
         if Opts['details']['countries'] == 1:
-            ax.add_feature(BORDERS, linestyle='-', linewidth=2)
+            ax.add_feature(BORDERS.with_scale(resolution), linestyle='-', linewidth=2)
         if Opts['details']['ocean'] == 1:
+<<<<<<< HEAD
             ax.add_feature(OCEAN, color=Opts['oceancolor'])
             ax.add_feature(LAND, color=Opts['landcolor'])
         if Opts['details']['lakes'] == 1:
             ax.add_feature(LAKES, color=Opts['oceancolor'])
+=======
+            ax.add_feature(OCEAN.with_scale(resolution), color=Opts['oceancolor'])
+            ax.add_feature(LAND.with_scale(resolution), color=Opts['landcolor'])
+            ax.add_feature(LAKES.with_scale(resolution), color=Opts['oceancolor'])
+>>>>>>> 	modified:   pmagplotlib.py
     if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
         if Opts['pltgrid']:
             if Opts['proj']=='lcc':
@@ -3488,7 +3495,7 @@ def plot_mag_map_basemap(fignum, element, lons, lats, element_type, cmap='RdYlBu
     cbar = m.colorbar(cs, location='bottom')
 
 
-def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon_0=0, date="", contours=False, proj='PlateCarree'):
+def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon_0=0, date="", contours=False, proj='PlateCarree', min=False,max=False):
     """
     makes a color contour map of geomagnetic field element
 
@@ -3512,6 +3519,10 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
     lon_0 : central longitude of the Mollweide projection
     date : date used for field evaluation,
            if custom ghfile was used, supply filename
+    min : int
+        minimum value for color contour on intensity map : default is minimum value  - useful for making many maps with same scale
+    max : int
+        maximum value for color contour on intensity map : default is maximum value - useful for making many maps with same scale
 
     Effects
     ______________
@@ -3545,7 +3556,13 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
     levmax = 5*round(element.max()/5)+5
     levmin = 5*round(element.min()/5)-5
     if element_type == 'Br' or element_type == 'B':
-        plt.contourf(xx, yy, element,
+        v=np.arange(min,max+5,5)
+        if min and max:
+            plt.contourf(xx, yy, element,v,
+                     vmin=min,vmax=max,
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        else:
+            plt.contourf(xx, yy, element,v,
                      levels=np.arange(levmin, levmax, 1),
                      cmap=cmap, transform=ccrs.PlateCarree())
         cbar = plt.colorbar(orientation='horizontal')
