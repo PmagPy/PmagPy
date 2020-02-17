@@ -3394,11 +3394,11 @@ def plot_map(fignum, lats, lons, Opts):
                 gl.xformatter = LONGITUDE_FORMATTER
                 gl.yformatter = LATITUDE_FORMATTER
                 gl.xlabels_top = False
-        else:
-            gl = ax.gridlines(crs=ccrs.PlateCarree(),
-                              linewidth=2, linestyle='dotted')
+        #else:
+        #    gl = ax.gridlines(crs=ccrs.PlateCarree(),
+        #                      linewidth=2, linestyle='dotted')
     elif Opts['pltgrid']:
-        print('gridlines only supported for PlateCarree, Lambert Conformal, and Mercator plots currently')
+        print('gridlines only supported for PlateCarree, Orthorhombic, Lambert Conformal, and Mercator plots currently')
     prn_name, symsize = 0, 5
     # if 'names' in list(Opts.keys()) > 0:
     #    names = Opts['names']
