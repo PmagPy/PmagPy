@@ -1379,8 +1379,7 @@ class MagicDataFrame(object):
                 try:
                     self.df.index = self.df[name].astype(str)
                 except KeyError as ex:
-                    print(ex, type(ex))
-                    print("-W- File {} is missing required information".format(magic_file))
+                    print("-W- File {} is incomplete and will be ignored".format(magic_file))
                     self.dtype = 'empty'
                     self.df = DataFrame()
                     return
