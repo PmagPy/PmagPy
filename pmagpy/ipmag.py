@@ -4267,7 +4267,7 @@ def wget_from_magic(con_id):
     result True or False, stuff (error msg)
     """
     try:
-        res = wget.download('https://earthref.org/MagIC/download/16676/magic_contribution_{}.txt'.format(con_id))
+        res = wget.download('https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id))
     except NameError:
         return False, "wget module is not available, cannot download from MagIC"
     except urllib.error.HTTPError:
