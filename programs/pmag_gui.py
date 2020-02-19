@@ -177,7 +177,7 @@ class MagMainFrame(wx.Frame):
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_btn_metadata, self.btn3)
 
-        text = "Unpack txt file downloaded from MagIC"
+        text = "Download or unpack MagIC text file"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(330, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
@@ -570,17 +570,61 @@ class MagMainFrame(wx.Frame):
         with download magic.
         Then run download_magic and create self.contribution.
         """
-        dlg = wx.FileDialog(
-            None, message = "choose txt file to unpack",
-            defaultDir=self.WD,
-            defaultFile="",
-            style=wx.FD_OPEN #| wx.FD_CHANGE_DIR
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            FILE = dlg.GetPath()
-            input_dir, f = os.path.split(FILE)
-        else:
-            return False
+
+        def magic_download_dia(warn=""):
+            dia = pw.TextDialog(self, "Download from MagIC", "MagIC ID", warn)
+            res = dia.ShowModal()
+            magic_id = dia.text_ctrl.return_value()
+            if res == wx.ID_CANCEL:
+                return wx.ID_CANCEL
+            if res == wx.ID_OK:
+                return magic_id
+            else:
+                return False
+
+
+
+        dlg = pw.ChooseOne(self, "Download from MagIC",
+                           "Unpack previous downloaded file",
+                           text="You can unpack a downloaded file from MagIC, or download a file from MagIC directly using the contribution id.", title="")
+        dlg.Centre()
+        res = dlg.ShowModal()
+        # try to download directly from MagIC
+        if res == wx.ID_YES:
+            magic_id = True
+            warning = ""
+            while magic_id:
+                magic_id = magic_download_dia(warning)
+                # if magic id was blank
+                if magic_id == "":
+                    warning = "You must provide a MagIC contribution id"
+                    magic_id = True
+                    continue
+                # if user canceled the download
+                if magic_id == wx.ID_CANCEL:
+                    return
+                # if everything looks good, try to download
+                status, stuff = ipmag.wget_from_magic(magic_id)
+                if not status:
+                    warning = stuff
+                if status:
+                    break
+            f = "magic_contribution_{}.txt".format(magic_id)
+            input_dir = self.WD
+
+        # try to unpack a previously downloaded file
+        if res == wx.ID_NO:
+            dlg = wx.FileDialog(
+                None, message = "choose txt file to unpack",
+                defaultDir=self.WD,
+                defaultFile="",
+                style=wx.FD_OPEN #| wx.FD_CHANGE_DIR
+                )
+            if dlg.ShowModal() == wx.ID_OK:
+                FILE = dlg.GetPath()
+                input_dir, f = os.path.split(FILE)
+            else:
+                return False
 
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
 
@@ -594,6 +638,7 @@ class MagMainFrame(wx.Frame):
                 text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/message window for details."
             else:
                 text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
+                return
 
         except Exception as ex:
             text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
@@ -604,7 +649,11 @@ class MagMainFrame(wx.Frame):
                 dlg.Destroy()
             if ex:
                 raise(ex)
+            return
         self.contribution = cb.Contribution(self.WD)
+        # make a success pop-up
+        dlg = wx.MessageDialog(self, caption="Success", message="You can now add orientation information or metadata, or open one of the analysis tools", style=wx.OK)
+        dlg.ShowModal()
 
 
     def on_btn_upload(self, event):
