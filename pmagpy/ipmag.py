@@ -8,6 +8,11 @@ import random
 import re
 import sys
 import time
+import urllib
+try:
+    import wget
+except ModuleNotFoundError:
+    pass
 
 from past.utils import old_div
 import numpy as np
@@ -4100,8 +4105,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                     pmag.magic_write(outfile,table_dicts,sheet)
                 except:
                     print ('sheet not found ',sheet)
-            return    
-            
+            return
+
         # try to deal reasonably with unicode errors
         try:
             f = codecs.open(infile, 'r', "utf-8")
@@ -4253,6 +4258,26 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                             print(len(lrecs), ' stored in ', outfile_name)
     return True
 
+
+
+def wget_from_magic(con_id):
+    """
+    Returns
+    --------
+    result True or False, stuff (error msg)
+    """
+    try:
+        res = wget.download('https://earthref.org/MagIC/download/16676/magic_contribution_{}.txt'.format(con_id))
+    except NameError:
+        return False, "wget module is not available, cannot download from MagIC"
+    except urllib.error.HTTPError:
+        return False, "Looks like you didn't provide a valid contribution id, please try again..."
+    except urllib.error.URLError:
+        return False, "Couldn't connect to MagIC site, please check your internet connection"
+    except Exception as ex:
+        print(ex, type(ex))
+        return False, str(ex)
+    return True, res
 
 def download_from_magic(con_id, dir_path="."):
     """
