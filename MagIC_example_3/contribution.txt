@@ -1,0 +1,3 @@
+tab 	contribution
+contributor	data_model_version	id	reference	timestamp	version
+@ltauxe	3.0	16749	10.1016/J.EPSL.2014.12.034	2020-02-15T20:31:55.746Z	3
