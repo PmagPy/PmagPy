@@ -129,9 +129,9 @@ def igrf_print(igrf_array):
 
     >>> local_field = ipmag.igrf([2013.6544, .052, 37.87, -122.27])
     >>> ipmag.igrf_print(local_field)
-    Declination: 13.949
-    Inclination: 61.353
-    Intensity: 48745.264 nT
+	Declination: 13.950
+	Inclination: 61.352
+	Intensity: 48744.848 nT
     """
 
     print("Declination: %0.3f" % (igrf_array[0]))
