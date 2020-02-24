@@ -39,7 +39,7 @@ def main():
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
        -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,shadif14k,cals10k.1b] specify model for 3ka to 1900 AD, default is cals10k
-             NB:  program uses IGRF12 for dates 1900 to 2015.
+             NB:  program uses IGRF13 for dates 1900 to 2019.
 
     INPUT FORMAT
       interactive entry:

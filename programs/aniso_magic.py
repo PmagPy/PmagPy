@@ -137,7 +137,7 @@ def main():
 
     args = sys.argv
     if '-h' in args:
-        print(new.__doc__)
+        print(main.__doc__)
         return
     dir_path = pmag.get_named_arg("-WD", ".")
     if '-ID' in args and dir_path == '.':
