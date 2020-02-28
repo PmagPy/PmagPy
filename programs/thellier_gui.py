@@ -1243,9 +1243,9 @@ else:
         if MICROWAVE:
             if 'treatment_mw_integral' in self.Data[self.s]['datablock'][meas_i].keys():
                     step_key = 'treatment_mw_integral'
-            else: 
+            else:
                     step_key = 'treatment_mw_power'
-        else: 
+        else:
             step_key = 'treatment_temp'
         m_step = self.Data[self.s]['datablock'][meas_i][step_key]
         index = self.Data[self.s]['t_Arai'].index(float(m_step))
@@ -1269,10 +1269,10 @@ else:
             # set to the highest step
             max_step_data = self.Data[self.s]['datablock'][-1]
             step_key = 'treatment_temp'
-            if MICROWAVE: 
+            if MICROWAVE:
                 if 'treatment_mw_integral' in max_step_data.keys(): # to accomodate new way of reporting
                     step_key = 'treatment_mw_integral'
-                else: 
+                else:
                     step_key = 'treatment_mw_power'
             max_step = max_step_data[step_key]
             tmax_index = self.tmax_box.GetCount() - 1
