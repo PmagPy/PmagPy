@@ -4322,6 +4322,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # try to make a more meaningful name
 
             MagIC_results_data['pmag_results'][sample_or_site]["data_type"] = "i"
+            MagIC_results_data['pmag_results'][sample_or_site]["data_quality"] = "g"
             MagIC_results_data['pmag_results'][sample_or_site]["er_citation_names"] = "This study"
             if self.data_model != 3:  # look for ages in er_ages - otherwise they are in sites.txt already
                 # add ages
@@ -4447,6 +4448,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if len(self.test_for_criteria()):
                         new_data['criteria'] = 'IE-SPEC:IE-SAMP'
                     new_data['result_quality'] = 'g'
+                    new_data['result_type'] = 'i'
                     self.samp_data = self.samp_container.df
                     cond1 = self.samp_data['sample'].str.contains(
                         sample_or_site + "$") == True
