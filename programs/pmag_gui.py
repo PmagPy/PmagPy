@@ -572,7 +572,7 @@ class MagMainFrame(wx.Frame):
         """
 
         def magic_download_dia(warn=""):
-            dia = pw.TextDialog(self, "Download from MagIC", "MagIC ID", warn)
+            dia = pw.TextDialog(self, "Download from MagIC\nusing contribution ID", "MagIC ID", warn)
             res = dia.ShowModal()
             magic_id = dia.text_ctrl.return_value()
             if res == wx.ID_CANCEL:
@@ -610,6 +610,8 @@ class MagMainFrame(wx.Frame):
                 if status:
                     break
             f = "magic_contribution_{}.txt".format(magic_id)
+            if not os.path.exists(os.path.join(self.WD, f)):
+                os.rename(os.path.join(os.getcwd(), f), os.path.join(self.WD, f))
             input_dir = self.WD
 
         # try to unpack a previously downloaded file

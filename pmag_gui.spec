@@ -25,7 +25,7 @@ a = Analysis(['programs/pmag_gui.py'],
                             # timdeltas appears necessary for Windows with
                             # conda-installed pyinstaller
                             'pandas._libs.tslibs.timedeltas',
-                            'pandas.concat'],
+                            'pandas.concat', 'wget', 'pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
