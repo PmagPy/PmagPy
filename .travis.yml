@@ -39,6 +39,7 @@ matrix:
         - pip3 install matplotlib==3.0.3  # 3.1 causes some problems with polemap/vgpmap
         - pip3 install scripttest
         - pip3 install xlwt
+        - pip3 install wget
         - sudo apt-get update
       script :
         - pip list
@@ -77,6 +78,7 @@ matrix:
         - conda install --quiet regex
         - conda install --quiet matplotlib # 3.1 or higher
         - conda install scripttest --channel conda-forge
+        - pip install wget
       #script : pythonw -m unittest discover -v
       script :
         - python -V -V
@@ -101,6 +103,7 @@ matrix:
         - pip install xlwt
         - pip install geos
         - pip install regex
+        - pip install wget
 
         ## trying two commands to install proj4 (fails on the second command)
         #- curl -o C:\temp\osgeo4w-setup-x86-64.exe http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe

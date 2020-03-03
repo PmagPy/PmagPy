@@ -186,18 +186,6 @@ class TestDownloadMagic(unittest.TestCase):
                 self.assertIn(f, output_files)
             shutil.rmtree('temp')
 
-    def test_download_from_magic(self):
-        tables = ['measurements.txt', 'specimens.txt', 'samples.txt',
-                  'locations.txt', 'ages.txt',
-                  'contribution.txt']
-        res = ipmag.download_from_magic(12366)
-        self.assertTrue(res)
-        for fname in tables:
-            self.assertTrue(os.path.exists(fname))
-        pmag.remove_files(tables, ".")
-        res = ipmag.download_from_magic(123)
-        self.assertFalse(res)
-
 
     def test_all_files_are_created(self):
         files = ['locations.txt', 'sites.txt', 'samples.txt', 'specimens.txt',
