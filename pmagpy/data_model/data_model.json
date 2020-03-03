@@ -1,5 +1,5 @@
 ﻿{
-	"updated_day": "2018:10:30",
+	"updated_day": "2019:10:16",
 	"published_day": "2017:09:29",
 	"data_model_version": "3.0",
 	"criteria_map": {
@@ -535,7 +535,8 @@
 						"3.0"
 					],
 					"validations": [
-						"cv(\"magic_version\")"
+						"cv(\"magic_version\")",
+						"downloadOnly()"
 					],
 					"previous_columns": [
 						{
@@ -556,7 +557,8 @@
 						"https://uni.edu/my_phd_thesis.pdf"
 					],
 					"validations": [
-						"type(\"references\")"
+						"type(\"references\")",
+						"required()"
 					],
 					"previous_columns": [
 						{
@@ -586,10 +588,26 @@
 						}
 					]
 				},
+				"lab_names": {
+					"label": "Laboratory Names",
+					"group": "Contribution",
+					"position": 10,
+					"type": "List",
+					"description": "List of labs (with institution and country) where the measurements in the contribution were made",
+					"notes": "European Labs use names from EPOS MLS",
+					"examples": [
+						"Paleomagnetic Laboratory Fort Hoofddijk (Utrecht University, The Netherlands)",
+						"Paleomagnetic Laboratory (INGV,  Italy)"
+					],
+					"validations": [
+						"cv(\"lab_names\")",
+						"suggested()"
+					]
+				},
 				"supplemental_links": {
 					"label": "Supplemental Data Links",
 					"group": "Contribution",
-					"position": 10,
+					"position": 11,
 					"type": "Dictionary",
 					"description": "Display name for the link and the permanent URL to the supplemental data",
 					"examples": [
@@ -600,11 +618,14 @@
 				"description": {
 					"label": "Description",
 					"group": "Contribution",
-					"position": 11,
+					"position": 12,
 					"type": "String",
 					"description": "Contribution description and update comments",
 					"examples": [
 						"Fixes errors in latitudes and adds measurement data"
+					],
+					"validations": [
+						"suggested()"
 					],
 					"previous_columns": [
 						{
@@ -786,7 +807,7 @@
 					"position": 9,
 					"type": "String",
 					"unit": "Flag",
-					"description": "Individual (i), average (a), model (m) or stacked (s) data",
+					"description": "Averaged (a), or model derived (m) data. (i) and (s) types have been depricated for locations",
 					"validations": [
 						"cv(\"data_type\")"
 					],
@@ -806,7 +827,7 @@
 					"description": "Indicating if good (g) or bad (b) data",
 					"validations": [
 						"cv(\"data_quality\")",
-						"requiredUnlessTable(\"sites\")"
+						"suggested()"
 					]
 				},
 				"method_codes": {
@@ -1400,8 +1421,7 @@
 					"type": "String",
 					"description": "Location inferred age, Unit",
 					"validations": [
-						"cv(\"age_unit\")",
-						"required()"
+						"cv(\"age_unit\")"
 					],
 					"previous_columns": [
 						{
@@ -1800,7 +1820,7 @@
 					"notes": "Confidence Level = 95%",
 					"validations": [
 						"min(0)",
-						"max(180)"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -1819,7 +1839,7 @@
 					"notes": "Confidence Level = 95%",
 					"validations": [
 						"min(0)",
-						"max(180)"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -2069,8 +2089,7 @@
 					"description": "Paleolongitude",
 					"validations": [
 						"min(0)",
-						"max(360)",
-						"requiredIfGroup(\"Paleoposition\")"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -2339,9 +2358,9 @@
 					"group": "Metadata",
 					"position": 94,
 					"type": "Matrix",
-					"description": "N by M matrix with N sequential rotations and the length of each row defined by the first element: the rotation type",
+					"description": "M by N matrix with M sequential rotations and the length of each row defined by the first element: the rotation type",
 					"examples": [
-						"1.4:5.2:0;0:-2.1:0.1"
+						"DD:20:124;TP:45:14"
 					],
 					"validations": [
 						"matrix(0,3)"
@@ -2506,6 +2525,7 @@
 					"position": 1,
 					"type": "String",
 					"description": "Name for site",
+					"notes": "In the MagIC database a site is a grouping of samples that are all believed to record the same value of the property that is being measured. The values measured on specimens from those samples are averaged to give the site values. This usually means the samples were all create at the \"same\" time. Multiple places 10's of km apart might be grouped into the same site if it is decided that they belong together. These averages from multiple outcrops should be labeled in the result_type column with an 'a'. Some examples of sites are: A single lava flow, lava flow \"groups\" that stacked on top of each other quickly enough to record the same magnetic direction, a sediment horizon, an archeological horizon, a single depth in a core, the average of samples from 4 cores that were believed to be deposited at the same time.",
 					"examples": [
 						"SFVP01"
 					],
@@ -2701,10 +2721,10 @@
 					"position": 8,
 					"type": "String",
 					"unit": "Flag",
-					"description": "An Individual site (i), an average or stack of multiple sites (a), or model derived data (m) ",
+					"description": "(i) individual site value (an average of samples/specimens), (a) an average value over multiple places thought to be the same, (s) stacked: used for averages of multiple bore hole data, (m) model derived data. ",
+					"notes": "(i) individual: A single lava flow at a single outcrop, a single sediment horizon at a single outcrop, a single level in one core, a single archeological horizon seen as continuous at one place. (a) an average value over multiple places over multiple outcrops that are averaged together as one site because they are thought to be of the same age due to geochemical, age, morphology, weathering characteristics, historical records, geological mapping, etc. (s) stacked: used for bore hole data where data from multiple cores of what is determined to be the same time horizon have been averaged, or (m) model derived data. ",
 					"validations": [
-						"cv(\"data_type\")",
-						"required()"
+						"cv(\"data_type\")"
 					],
 					"previous_columns": [
 						{
@@ -2722,7 +2742,7 @@
 					"description": "Indicating if good (g) or bad (b) data",
 					"validations": [
 						"cv(\"data_quality\")",
-						"required()"
+						"suggested()"
 					],
 					"previous_columns": [
 						{
@@ -3306,8 +3326,7 @@
 					"notes": "use 0 for geographic directions and 100 for stratigraphically corrected directions; use values inbetween for partially corrected percent; unoriented (-1); partially oriented to horizontal only (-2); unknown(-3)",
 					"validations": [
 						"min(-3)",
-						"max(100)",
-						"requiredIfGroup(\"Direction\")"
+						"max(100)"
 					],
 					"previous_columns": [
 						{
@@ -3329,8 +3348,7 @@
 					"description": "Site direction in coordinates specified by tilt correction, Declination",
 					"validations": [
 						"min(0)",
-						"max(360)",
-						"requiredIfGroup(\"Direction\")"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -3360,8 +3378,7 @@
 					"description": "Site direction in coordinates specified by tilt correction, Inclination",
 					"validations": [
 						"min(-90)",
-						"max(90)",
-						"requiredIfGroup(\"Direction\")"
+						"max(90)"
 					],
 					"previous_columns": [
 						{
@@ -3724,8 +3741,7 @@
 					"description": "Virtual geomagnetic pole, Longitude",
 					"validations": [
 						"min(0)",
-						"max(360)",
-						"requiredIfGroup(\"VGP\")"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -3744,7 +3760,7 @@
 					"notes": "Confidence Level = 95%",
 					"validations": [
 						"min(0)",
-						"max(180)"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -3763,7 +3779,7 @@
 					"notes": "Confidence Level = 95%",
 					"validations": [
 						"min(0)",
-						"max(180)"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -3966,8 +3982,7 @@
 					"description": "Paleolongitude",
 					"validations": [
 						"min(0)",
-						"max(360)",
-						"requiredIfGroup(\"Paleoposition\")"
+						"max(360)"
 					],
 					"previous_columns": [
 						{
@@ -4335,6 +4350,14 @@
 					"validations": [
 						"min(0)"
 					]
+				},
+				"int_corr_cooling_mean": {
+					"label": "Paleointensity Cooling Rate Correction Factor",
+					"group": "Paleointensity",
+					"position": 95,
+					"type": "Number",
+					"unit": "Dimensionless",
+					"description": "Mean cooling rate correction for all specimens from a site"
 				},
 				"int_corr_aniso_mean": {
 					"label": "Paleointensity Anisotropy Correction Factor",
@@ -5281,8 +5304,7 @@
 					"unit": "Flag",
 					"description": "Individual (i), average (a), model (m) or stacked (s) data",
 					"validations": [
-						"cv(\"data_type\")",
-						"required()"
+						"cv(\"data_type\")"
 					],
 					"previous_columns": [
 						{
@@ -5300,7 +5322,7 @@
 					"description": "Indicating if good (g) or bad (b) data",
 					"validations": [
 						"cv(\"data_quality\")",
-						"required()"
+						"suggested()"
 					],
 					"previous_columns": [
 						{
@@ -5576,7 +5598,7 @@
 					"position": 28,
 					"type": "Number",
 					"unit": "Degrees",
-					"description": "Dip of the bedding as measured to the right of strike direction",
+					"description": "Dip of the bedding as measured in the bed dip direction (dip right of strike)",
 					"validations": [
 						"min(-90)",
 						"max(90)"
@@ -5594,7 +5616,7 @@
 					"position": 29,
 					"type": "Number",
 					"unit": "Degrees",
-					"description": "Direction of the dip of a paleo-horizontal plane in the bedding",
+					"description": "Direction of the dip of a paleo-horizontal plane of bedding (strike + 90 degrees)",
 					"validations": [
 						"min(0)",
 						"max(360)"
@@ -6032,8 +6054,7 @@
 					"unit": "Flag",
 					"description": "Sample direction polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)",
 					"validations": [
-						"cv(\"polarity\")",
-						"requiredIfGroup(\"Direction\")"
+						"cv(\"polarity\")"
 					],
 					"previous_columns": [
 						{
@@ -6050,8 +6071,7 @@
 					"unit": "Flag",
 					"description": "Origin of the sample direction NRM is primary (p) or secondary (s)",
 					"validations": [
-						"cv(\"nrm\")",
-						"requiredIfGroup(\"Direction\")"
+						"cv(\"nrm\")"
 					],
 					"previous_columns": [
 						{
@@ -7446,7 +7466,7 @@
 					"description": "Indicating if good (g) or bad (b) data",
 					"validations": [
 						"cv(\"data_quality\")",
-						"required()"
+						"suggested()"
 					],
 					"previous_columns": [
 						{
@@ -11539,7 +11559,6 @@
 						"SFVP01-01a-LT-T-Z-1"
 					],
 					"validations": [
-						"unique()",
 						"required()"
 					],
 					"previous_columns": [
@@ -11691,10 +11710,26 @@
 						"-4.34"
 					]
 				},
+				"result_type": {
+					"label": "Result Type",
+					"group": "Measurement",
+					"position": 10,
+					"type": "String",
+					"unit": "Flag",
+					"description": "Individual/raw data (i) or model (m) data",
+					"notes": "Usually this parameter will be set to (i). (m) is used when low level data is calculated using a model. For example the magnetic moment at a location using a SQUID microscope could be modeled (m) from  the raw Bz (i) field measured.",
+					"examples": [
+						"i",
+						"m"
+					],
+					"validations": [
+						"cv(\"data_type\")"
+					]
+				},
 				"citations": {
 					"label": "Citation DOIs",
 					"group": "Measurement",
-					"position": 10,
+					"position": 11,
 					"type": "List",
 					"description": "Colon-delimited list of citation DOIs",
 					"examples": [
@@ -11716,7 +11751,7 @@
 				"treat_temp": {
 					"label": "Lab Treatment Temperature",
 					"group": "Lab Treatments",
-					"position": 11,
+					"position": 12,
 					"type": "Number",
 					"unit": "K",
 					"description": "Demagnetization temperature",
@@ -11733,7 +11768,7 @@
 				"treat_temp_decay_rate": {
 					"label": "Lab Treatment Temperature Decay Rate",
 					"group": "Lab Treatments",
-					"position": 12,
+					"position": 13,
 					"type": "Number",
 					"unit": "K/s",
 					"description": "Decay rate of temperature on cooling",
@@ -11747,7 +11782,7 @@
 				"treat_temp_dc_on": {
 					"label": "Lab Treatment Temperature DC Field On",
 					"group": "Lab Treatments",
-					"position": 13,
+					"position": 14,
 					"type": "Number",
 					"unit": "K",
 					"description": "Temperature in a pTRM experiment at which DC field is turned on",
@@ -11764,7 +11799,7 @@
 				"treat_temp_dc_off": {
 					"label": "Lab Treatment Temperature DC Field Off",
 					"group": "Lab Treatments",
-					"position": 14,
+					"position": 15,
 					"type": "Number",
 					"unit": "K",
 					"description": "Temperature in a pTRM experiment at which DC field is turned off",
@@ -11781,7 +11816,7 @@
 				"treat_ac_field": {
 					"label": "Lab Treatment AC Field",
 					"group": "Lab Treatments",
-					"position": 15,
+					"position": 16,
 					"type": "Number",
 					"unit": "T",
 					"description": "Peak field in AC demagnetization experiment",
@@ -11799,7 +11834,7 @@
 				"treat_ac_field_decay_rate": {
 					"label": "Lab Treatment AC Field Decay Rate",
 					"group": "Lab Treatments",
-					"position": 16,
+					"position": 17,
 					"type": "Number",
 					"unit": "T/s",
 					"description": "Decay rate of AC field in AC field demagnetization experiment",
@@ -11813,7 +11848,7 @@
 				"treat_ac_field_dc_on": {
 					"label": "Lab Treatment AC Field DC Field On",
 					"group": "Lab Treatments",
-					"position": 17,
+					"position": 18,
 					"type": "Number",
 					"unit": "T",
 					"description": "AC field in a pARM experiment at which DC field is turned on",
@@ -11831,7 +11866,7 @@
 				"treat_ac_field_dc_off": {
 					"label": "Lab Treatment AC Field DC Field Off",
 					"group": "Lab Treatments",
-					"position": 18,
+					"position": 19,
 					"type": "Number",
 					"unit": "T",
 					"description": "AC field in a pARM experiment at which DC field is turned off",
@@ -11849,7 +11884,7 @@
 				"treat_dc_field": {
 					"label": "Lab Treatment DC Field",
 					"group": "Lab Treatments",
-					"position": 19,
+					"position": 20,
 					"type": "Number",
 					"unit": "T",
 					"description": "Applied DC field",
@@ -11867,7 +11902,7 @@
 				"treat_dc_field_decay_rate": {
 					"label": "Lab Treatment DC Field Decay Rate",
 					"group": "Lab Treatments",
-					"position": 20,
+					"position": 21,
 					"type": "Number",
 					"unit": "T/s",
 					"description": "Decay rate of DC field after switching off",
@@ -11881,7 +11916,7 @@
 				"treat_dc_field_ac_on": {
 					"label": "Lab Treatment DC Field AC Field On",
 					"group": "Lab Treatments",
-					"position": 21,
+					"position": 22,
 					"type": "Number",
 					"unit": "T",
 					"description": "DC field in DC field experiment at which AC field is turned on",
@@ -11899,7 +11934,7 @@
 				"treat_dc_field_ac_off": {
 					"label": "Lab Treatment DC Field AC Field Off",
 					"group": "Lab Treatments",
-					"position": 22,
+					"position": 23,
 					"type": "Number",
 					"unit": "T",
 					"description": "DC field in DC field experiment at which AC field is turned off",
@@ -11917,7 +11952,7 @@
 				"treat_dc_field_phi": {
 					"label": "Lab Treatment Orientation Phi",
 					"group": "Lab Treatments",
-					"position": 23,
+					"position": 24,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Orientation of the lab field with respect for the specimen",
@@ -11931,7 +11966,7 @@
 				"treat_dc_field_theta": {
 					"label": "Lab Treatment Orientation Theta",
 					"group": "Lab Treatments",
-					"position": 24,
+					"position": 25,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Orientation of the lab field with respect for the specimen",
@@ -11945,7 +11980,7 @@
 				"treat_mw_power": {
 					"label": "Lab Treatment MW Power",
 					"group": "Lab Treatments",
-					"position": 25,
+					"position": 26,
 					"type": "Number",
 					"unit": "W",
 					"description": "Microwave power",
@@ -11959,7 +11994,7 @@
 				"treat_mw_time": {
 					"label": "Lab Treatment MW Time",
 					"group": "Lab Treatments",
-					"position": 26,
+					"position": 27,
 					"type": "Number",
 					"unit": "s",
 					"description": "Time (in seconds) of microwave power application",
@@ -11967,20 +12002,6 @@
 						{
 							"table": "magic_measurements",
 							"column": "treatment_mw_time"
-						}
-					]
-				},
-				"treat_mw_energy": {
-					"label": "Lab Treatment MW Energy",
-					"group": "Lab Treatments",
-					"position": 27,
-					"type": "Number",
-					"unit": "J",
-					"description": "Applied microwave power integrated over total application time",
-					"previous_columns": [
-						{
-							"table": "magic_measurements",
-							"column": "treatment_mw_energy"
 						}
 					]
 				},
@@ -11998,10 +12019,28 @@
 						}
 					]
 				},
+				"treat_mw_step": {
+					"label": "Lab Treatment MW Step Index",
+					"group": "Lab Treatments",
+					"position": 29,
+					"type": "Number",
+					"description": "Number that labels the steps that are the same level in a microwave experiment",
+					"examples": [
+						"1",
+						"2",
+						"3",
+						"4",
+						"4.21",
+						"10.8"
+					],
+					"validations": [
+						"min(0)"
+					]
+				},
 				"treat_step_num": {
 					"label": "Lab Treatment Step Index",
 					"group": "Lab Treatments",
-					"position": 29,
+					"position": 30,
 					"type": "Integer",
 					"description": "An integer that increases by one for each measurement done during an experiment",
 					"notes": "The same 2.5 magic_measurements.measurement_number for SIO and used that way in Thellier GUI.",
@@ -12020,7 +12059,7 @@
 				"meas_pos_x": {
 					"label": "Measurement X Position",
 					"group": "Measurement Parameters",
-					"position": 30,
+					"position": 31,
 					"type": "Number",
 					"unit": "m",
 					"description": "Position of the measurement relative to an arbitrary origin on the specimen, X",
@@ -12034,7 +12073,7 @@
 				"meas_pos_y": {
 					"label": "Measurement Y Position",
 					"group": "Measurement Parameters",
-					"position": 31,
+					"position": 32,
 					"type": "Number",
 					"unit": "m",
 					"description": "Position of the measurement relative to an arbitrary origin on the specimen, Y",
@@ -12048,7 +12087,7 @@
 				"meas_pos_z": {
 					"label": "Measurement Z Position",
 					"group": "Measurement Parameters",
-					"position": 32,
+					"position": 33,
 					"type": "Number",
 					"unit": "m",
 					"description": "Position of the measurement relative to an arbitrary origin on the specimen, Z",
@@ -12062,7 +12101,7 @@
 				"meas_orient_phi": {
 					"label": "Measurement Orientation Phi",
 					"group": "Measurement Parameters",
-					"position": 33,
+					"position": 34,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Orientation of specimen in magnetometer",
@@ -12076,7 +12115,7 @@
 				"meas_orient_theta": {
 					"label": "Measurement Orientation Theta",
 					"group": "Measurement Parameters",
-					"position": 34,
+					"position": 35,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Orientation of specimen in magnetometer",
@@ -12090,7 +12129,7 @@
 				"meas_n_orient": {
 					"label": "Measurement N Orientations",
 					"group": "Measurement Parameters",
-					"position": 35,
+					"position": 36,
 					"type": "Integer",
 					"description": "Number of different orientations in measurement",
 					"validations": [
@@ -12106,7 +12145,7 @@
 				"meas_temp": {
 					"label": "Measurement Temperature",
 					"group": "Measurement Parameters",
-					"position": 36,
+					"position": 37,
 					"type": "Number",
 					"unit": "K",
 					"description": "Temperature",
@@ -12123,7 +12162,7 @@
 				"meas_temp_change": {
 					"label": "Measurement Temperature Change",
 					"group": "Measurement Parameters",
-					"position": 37,
+					"position": 38,
 					"type": "Number",
 					"unit": "K",
 					"description": "Change in temperature during each measurement step",
@@ -12137,7 +12176,7 @@
 				"meas_freq": {
 					"label": "Measurement Frequency",
 					"group": "Measurement Parameters",
-					"position": 38,
+					"position": 39,
 					"type": "Number",
 					"unit": "Hz",
 					"description": "Frequency",
@@ -12154,7 +12193,7 @@
 				"meas_duration": {
 					"label": "Measurement Duration",
 					"group": "Measurement Parameters",
-					"position": 39,
+					"position": 40,
 					"type": "Number",
 					"unit": "s",
 					"description": "The length of time that the measurement was averaged over.",
@@ -12171,7 +12210,7 @@
 				"meas_field_ac": {
 					"label": "Measurement Lab AC Field",
 					"group": "Measurement Parameters",
-					"position": 40,
+					"position": 41,
 					"type": "Number",
 					"unit": "T",
 					"description": "Lab AC field applied during measurement",
@@ -12190,7 +12229,7 @@
 				"meas_field_dc": {
 					"label": "Measurement Lab DC Field",
 					"group": "Measurement Parameters",
-					"position": 41,
+					"position": 42,
 					"type": "Number",
 					"unit": "T",
 					"description": "Lab DC field applied during measurement",
@@ -12208,7 +12247,7 @@
 				"magn_moment": {
 					"label": "Magnetic Moment",
 					"group": "Raw Measurement",
-					"position": 42,
+					"position": 43,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Measured magnetic moment",
@@ -12226,7 +12265,7 @@
 				"magn_x": {
 					"label": "Magnetic Moment X",
 					"group": "Raw Measurement",
-					"position": 43,
+					"position": 44,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Measured magnetic moment, X"
@@ -12234,7 +12273,7 @@
 				"magn_x_sigma": {
 					"label": "Magnetic Moment X Sigma",
 					"group": "Raw Measurement",
-					"position": 44,
+					"position": 45,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Standard deviation in measurements, X",
@@ -12249,7 +12288,7 @@
 				"magn_y": {
 					"label": "Magnetic Moment Y",
 					"group": "Raw Measurement",
-					"position": 45,
+					"position": 46,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Measured magnetic moment, Y"
@@ -12257,7 +12296,7 @@
 				"magn_y_sigma": {
 					"label": "Magnetic Moment Y Sigma",
 					"group": "Raw Measurement",
-					"position": 46,
+					"position": 47,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Standard deviation in measurements, Y",
@@ -12272,7 +12311,7 @@
 				"magn_z": {
 					"label": "Magnetic Moment Z",
 					"group": "Raw Measurement",
-					"position": 47,
+					"position": 48,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Measured magnetic moment, Z"
@@ -12280,7 +12319,7 @@
 				"magn_z_sigma": {
 					"label": "Magnetic Moment Z Sigma",
 					"group": "Raw Measurement",
-					"position": 48,
+					"position": 49,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Standard deviation in measurements, Z",
@@ -12295,7 +12334,7 @@
 				"magn_xyz_sigma": {
 					"label": "Standard Deviation",
 					"group": "Raw Measurement",
-					"position": 49,
+					"position": 50,
 					"type": "Number",
 					"unit": "Am^2",
 					"description": "Standard deviation in measurements, Average X, Y and Z directions",
@@ -12307,10 +12346,78 @@
 						}
 					]
 				},
+				"magn_induction": {
+					"label": "Magnetic Induction",
+					"group": "Raw Measurement",
+					"position": 51,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Measured magnetic induction (B field)"
+				},
+				"magn_b_x": {
+					"label": "Magnetic Induction X",
+					"group": "Raw Measurement",
+					"position": 52,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Measured magnetic induction, X"
+				},
+				"magn_b_x_sigma": {
+					"label": "Magnetic Induction X Sigma",
+					"group": "Raw Measurement",
+					"position": 53,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Standard deviation in measurements, X",
+					"notes": "Standard error or standard deviation at one sigma"
+				},
+				"magn_b_y": {
+					"label": "Magnetic Induction Y",
+					"group": "Raw Measurement",
+					"position": 54,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Measured magnetic induction, Y"
+				},
+				"magn_b_y_sigma": {
+					"label": "Magnetic Induction Y Sigma",
+					"group": "Raw Measurement",
+					"position": 55,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Standard deviation in measurements, Y",
+					"notes": "Standard error or standard deviation at one sigma"
+				},
+				"magn_b_z": {
+					"label": "Magnetic Induction Z",
+					"group": "Raw Measurement",
+					"position": 56,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Measured magnetic induction, Z"
+				},
+				"magn_b_z_sigma": {
+					"label": "Magnetic Induction Z Sigma",
+					"group": "Raw Measurement",
+					"position": 57,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Standard deviation in measurements, Z",
+					"notes": "Standard error or standard deviation at one sigma"
+				},
+				"magn_b_xyz_sigma": {
+					"label": "Standard Deviation",
+					"group": "Raw Measurement",
+					"position": 58,
+					"type": "Number",
+					"unit": "A/m",
+					"description": "Standard deviation in measurements, Average X, Y and Z directions",
+					"notes": "Standard error or standard deviation at one sigma"
+				},
 				"magn_r2_det": {
 					"label": "Coefficient of Determination",
 					"group": "Raw Measurement",
-					"position": 50,
+					"position": 59,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Goodness of fit in regression, R squared",
@@ -12329,7 +12436,7 @@
 				"dir_dec": {
 					"label": "Declination",
 					"group": "Direction",
-					"position": 51,
+					"position": 60,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Directions in specimen coordinates, Declination",
@@ -12348,7 +12455,7 @@
 				"dir_inc": {
 					"label": "Inclination",
 					"group": "Direction",
-					"position": 52,
+					"position": 61,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Directions in specimen coordinates, Inclination",
@@ -12367,7 +12474,7 @@
 				"dir_csd": {
 					"label": "Circular Standard Deviation",
 					"group": "Direction",
-					"position": 53,
+					"position": 62,
 					"type": "Number",
 					"unit": "Degrees",
 					"description": "Circular standard deviation in measurements",
@@ -12382,7 +12489,7 @@
 				"magn_volume": {
 					"label": "Magnetization Volume",
 					"group": "Magnetization",
-					"position": 54,
+					"position": 63,
 					"type": "Number",
 					"unit": "A/m",
 					"description": "Measured intensity of magnetization, Volume normalized",
@@ -12400,7 +12507,7 @@
 				"magn_mass": {
 					"label": "Magnetization Mass",
 					"group": "Magnetization",
-					"position": 55,
+					"position": 64,
 					"type": "Number",
 					"unit": "Am^2/kg",
 					"description": "Measured intensity of magnetization, Mass normalized",
@@ -12418,7 +12525,7 @@
 				"magn_uncal": {
 					"label": "Magnetization Uncalibrated",
 					"group": "Magnetization",
-					"position": 56,
+					"position": 65,
 					"type": "Number",
 					"unit": "Dimensionless",
 					"description": "Measured intensity of magnetization, Uncalibrated",
@@ -12437,7 +12544,7 @@
 				"aniso_type": {
 					"label": "Anisotropy Type",
 					"group": "Anisotropy",
-					"position": 57,
+					"position": 66,
 					"type": "String",
 					"description": "Anisotropy calculation type",
 					"examples": [
@@ -12454,7 +12561,7 @@
 				"aniso_s": {
 					"label": "Anisotropy Tensor Elements",
 					"group": "Anisotropy",
-					"position": 58,
+					"position": 67,
 					"type": "Matrix",
 					"unit": "Number",
 					"description": "Anisotropy tensor diagonal elements, a six-element colon-delimited list of c11, c22, c33, c12, c23, and c13 tensor elements"
@@ -12462,7 +12569,7 @@
 				"hyst_loop": {
 					"label": "Measurement Hysteresis Loop Number",
 					"group": "Hysteresis",
-					"position": 59,
+					"position": 68,
 					"type": "Integer",
 					"description": "Hysteresis loop counter",
 					"validations": [
@@ -12478,7 +12585,7 @@
 				"hyst_sweep_rate": {
 					"label": "Measurement Hysteresis Sweep Rate",
 					"group": "Hysteresis",
-					"position": 60,
+					"position": 69,
 					"type": "Number",
 					"unit": "T/s",
 					"description": "Rate of field sweep during a hysteresis loop measurement",
@@ -12492,7 +12599,7 @@
 				"hyst_charging_mode": {
 					"label": "Measurement Hysteresis Charging Mode",
 					"group": "Hysteresis",
-					"position": 61,
+					"position": 70,
 					"type": "String",
 					"description": "Measurement hysteresis charging mode",
 					"examples": [
@@ -12510,7 +12617,7 @@
 				"susc_chi_volume": {
 					"label": "Susceptibility X Volume",
 					"group": "Susceptibility",
-					"position": 62,
+					"position": 71,
 					"type": "Number",
 					"unit": "SI Dimensionless",
 					"description": "Magnetic susceptibility, Volume normalized",
@@ -12524,7 +12631,7 @@
 				"susc_chi_mass": {
 					"label": "Susceptibility X Mass",
 					"group": "Susceptibility",
-					"position": 63,
+					"position": 72,
 					"type": "Number",
 					"unit": "m^3/kg",
 					"description": "Magnetic susceptibility, Mass normalized",
@@ -12538,7 +12645,7 @@
 				"susc_chi_qdr_volume": {
 					"label": "Susceptibility Xqdr Volume",
 					"group": "Susceptibility",
-					"position": 64,
+					"position": 73,
 					"type": "Number",
 					"unit": "SI Dimensionless",
 					"description": "Quadrature magnetic susceptibility, Volume normalized",
@@ -12552,7 +12659,7 @@
 				"susc_chi_qdr_mass": {
 					"label": "Susceptibility Xqdr Mass",
 					"group": "Susceptibility",
-					"position": 65,
+					"position": 74,
 					"type": "Number",
 					"unit": "m^3/kg",
 					"description": "Quadrature magnetic susceptibility, Mass normalized",
@@ -12566,7 +12673,7 @@
 				"description": {
 					"label": "Description",
 					"group": "Metadata",
-					"position": 66,
+					"position": 75,
 					"type": "String",
 					"description": "Measurement description and comments",
 					"previous_columns": [
@@ -12579,7 +12686,7 @@
 				"timestamp": {
 					"label": "Measurement Timestamp",
 					"group": "Metadata",
-					"position": 67,
+					"position": 76,
 					"type": "Timestamp",
 					"description": "Date and time when the measurement occured",
 					"notes": "ISO 8601 date and time (e.g. \"yyyy-mm-ddThh:mm:ss.sssZ\")",
@@ -12603,7 +12710,7 @@
 				"software_packages": {
 					"label": "MagIC Software Packages",
 					"group": "Metadata",
-					"position": 68,
+					"position": 77,
 					"type": "List",
 					"description": "Colon-delimited list of software used for data reduction",
 					"examples": [
@@ -12620,7 +12727,7 @@
 				"external_database_ids": {
 					"label": "External Database IDs",
 					"group": "Metadata",
-					"position": 69,
+					"position": 78,
 					"type": "Dictionary",
 					"description": "Dictionary of external databases and IDs where data are used",
 					"examples": [
@@ -12642,10 +12749,24 @@
 						}
 					]
 				},
+				"derived_value": {
+					"label": "Derived Value",
+					"group": "Metadata",
+					"position": 79,
+					"type": "Matrix",
+					"description": "Derived values are in the form of key:value:reference;key2:value2:reference2. Keys are from a controlled vocabulary, values are strings, and references should be a DOI or URL.",
+					"notes": "This field is used to place values at the measurement level that are calculated from other measurements but are not an average of measurements that would be placed at the specimen level. For example: X-ray photoemission electron microscopy (XPEEM) data.",
+					"examples": [
+						"XPEEM,2.8,10.1088/1742-6596/430/1/012127"
+					],
+					"validations": [
+						"cv(\"derived_value\")"
+					]
+				},
 				"analysts": {
 					"label": "Analyst Names",
 					"group": "Metadata",
-					"position": 70,
+					"position": 80,
 					"type": "List",
 					"description": "Colon-delimited list of EarthRef handles or ORCIDs or names and emails for analysts or ORCID id",
 					"examples": [
