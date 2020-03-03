@@ -1143,18 +1143,17 @@ else:
         if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
             MICROWAVE = True
             THERMAL = False
-
             steps_tr = []
             for rec in self.Data[s]['datablock']:
-
-                if "measurement_description" in rec:
+                if "treat_mw_step" in rec: # paleointensity.org addition
+                    steps_tr.append(float(rec['treat_mw_step']))
+                elif "measurement_description" in rec:
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
                             steps_tr.append(temp)
-
                 elif 'treatment_mw_integral' in rec.keys():
                     integral = rec['treatment_mw_integral']
                     if '-' in str(integral):
@@ -1213,7 +1212,9 @@ else:
                 self.logger.SetItem(i, 5, "%.2e" %
                                     float(rec['measurement_magn_moment']))
             elif MICROWAVE:  # mcrowave
-                if "measurement_description" in list(rec.keys()):
+                if "treat_mw_step" in rec: # paleointensity.org addition
+                    temp=float(rec['treat_mw_step'])
+                elif "measurement_description" in list(rec.keys()):
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
                     for STEP in MW_step:
@@ -1221,15 +1222,15 @@ else:
                             continue
                         temp = float(STEP.split("-")[-1])
 
-                        self.logger.InsertItem(i, "%i" % i)
-                        self.logger.SetItem(i, 1, step)
-                        self.logger.SetItem(i, 2, "%1.0f" % temp)
-                        self.logger.SetItem(i, 3, "%.1f" %
-                                            float(rec['measurement_dec']))
-                        self.logger.SetItem(i, 4, "%.1f" %
-                                            float(rec['measurement_inc']))
-                        self.logger.SetItem(i, 5, "%.2e" % float(
-                            rec['measurement_magn_moment']))
+                self.logger.InsertItem(i, "%i" % i)
+                self.logger.SetItem(i, 1, step)
+                self.logger.SetItem(i, 2, "%1.0f" % temp)
+                self.logger.SetItem(i, 3, "%.1f" %
+                                    float(rec['measurement_dec']))
+                self.logger.SetItem(i, 4, "%.1f" %
+                                    float(rec['measurement_inc']))
+                self.logger.SetItem(i, 5, "%.2e" % float(
+                    rec['measurement_magn_moment']))
             self.logger.SetItemBackgroundColour(i, "WHITE")
             if i >= tmin_index and i <= tmax_index:
                 self.logger.SetItemBackgroundColour(i, "LIGHT BLUE")
@@ -1241,7 +1242,9 @@ else:
     def on_click_listctrl(self, event):
         meas_i = int(event.GetText())
         if MICROWAVE:
-            if 'treatment_mw_integral' in self.Data[self.s]['datablock'][meas_i].keys():
+            if 'treat_mw_step' in self.Data[self.s]['datablock'][meas_i].keys():
+                    step_key = 'treat_mw_step'
+            elif 'treatment_mw_integral' in self.Data[self.s]['datablock'][meas_i].keys():
                     step_key = 'treatment_mw_integral'
             else:
                     step_key = 'treatment_mw_power'
@@ -1270,7 +1273,9 @@ else:
             max_step_data = self.Data[self.s]['datablock'][-1]
             step_key = 'treatment_temp'
             if MICROWAVE:
-                if 'treatment_mw_integral' in max_step_data.keys(): # to accomodate new way of reporting
+                if 'treat_mw_step' in max_step_data.keys(): # to accomodate new way of reporting
+                    step_key = 'treat_mw_step'
+                elif 'treatment_mw_integral' in max_step_data.keys(): # to accomodate new way of reporting
                     step_key = 'treatment_mw_integral'
                 else:
                     step_key = 'treatment_mw_power'
@@ -6692,7 +6697,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if meth in methods:
                     skip = 1
             if skip == 0:
-                if Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
+                if Data[s]['T_or_MW'] == "MW" and "treat_mw_step" in list(rec.keys()):
+                    if rec['treat_mw_step']==None:rec['treat_mw_step']=""
+                    tr = float(rec['treat_mw_step'])
+                elif Data[s]['T_or_MW'] == "MW" and "measurement_description" in list(rec.keys()):
                     if rec['measurement_description']==None:rec['measurement_description']=""
                     MW_step = rec["measurement_description"].strip(
                         '\n').split(":")
@@ -7220,7 +7228,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # thermal or microwave
             rec = datablock[0]
-            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"] != "":
+            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"] != "":
+                THERMAL = False
+                MICROWAVE = True
+            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"] != "":
                 THERMAL = False
                 MICROWAVE = True
             elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
@@ -7377,12 +7388,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         starting_temperature = (float(rec['treatment_temp']))
                         # found_start_temp=True
                     elif MICROWAVE:
-                        MW_step = rec["measurement_description"].strip(
-                            '\n').split(":")
-                        for STEP in MW_step:
-                            if "Number" in STEP:
-                                starting_temperature = float(
-                                    STEP.split("-")[-1])
+                        if "treat_mw_step" in rec and rec['treat_mw_step']!=None: # paleointensity.org addition
+                            starting_temperature=float(rec['treat_mw_step'])
+                        elif "measurement_description" in rec:
+
+                            MW_step = rec["measurement_description"].strip(
+                                '\n').split(":")
+                            for STEP in MW_step:
+                                if "Number" in STEP:
+                                    starting_temperature = float(
+                                        STEP.split("-")[-1])
                                 # found_start_temp=True
 
                     # if MICROWAVE:
@@ -7950,10 +7965,15 @@ You can combine multiple measurement files into one measurement file using Pmag 
     # first find all the steps
         for k in range(len(datablock)):
             rec = datablock[k]
+            if 'treat_mw_step' in list(rec.keys()) and rec['treat_mw_step'] is None: rec['treat_mw_step']=""
             if 'treatment_mw_integral' in list(rec.keys()) and rec['treatment_mw_integral'] is None: rec['treatment_mw_integral']=""
             if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
             if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
-            if "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]:
+            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"]:
+                THERMAL = False
+                MICROWAVE = True
+                temp = float(rec["treat_mw_step"])
+            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]:
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -8084,7 +8104,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             if ('treatment_temp' in list(datablock[i].keys()) and float(temp) == float(datablock[i]['treatment_temp'])):
                                 foundit = True
                         if MICROWAVE:
-                            if ('measurement_description' in list(datablock[i].keys())):
+                            if ('treat_mw_step' in list(datablock[i].keys())):
+                                ThisStep=float(datablock[i]['treat_mw_step'])
+                                if ThisStep == float(temp):
+                                    foundit = True
+                               
+                            elif ('measurement_description' in list(datablock[i].keys())):
                                 MW_step = datablock[i]["measurement_description"].strip(
                                     '\n').split(":")
                                 for STEP in MW_step:
@@ -8206,7 +8231,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 foundit = True
                 prev_rec = datablock[k - 1]
                 zerofield_index = k - 1
-
             if foundit:
                 prev_dec = float(prev_rec["measurement_dec"])
                 prev_inc = float(prev_rec["measurement_inc"])
