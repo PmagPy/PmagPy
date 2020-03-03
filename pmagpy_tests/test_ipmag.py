@@ -1461,5 +1461,38 @@ class TestDmagMagic(unittest.TestCase):
         self.assertFalse(res)
 
 
+class TestMagICDownload(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        glob_strings = ["magic_contribution*.txt"]
+        for string in glob_strings:
+            for fname in glob.glob(string):
+                os.remove(fname)
+
+    def test_with_bad_contribution_id(self):
+        res, msg = ipmag.download_magic_from_id(1672)
+        self.assertFalse(res)
+        self.assertEqual(msg, "Looks like you didn't provide a valid contribution id, please try again...")
+
+    def test_with_contribution_id(self):
+        res, msg = ipmag.download_magic_from_id(16724)
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists("magic_contribution_16724.txt"))
+
+    def test_with_bad_doi(self):
+        res, msg = ipmag.download_magic_from_doi("10.1029/2018GC008109")
+        self.assertFalse(res)
+        self.assertEqual(msg, "Public contribution with a reference DOI = '10.1029/2018GC008109' not found in MagIC")
+
+    def test_with_doi(self):
+        res, msg = ipmag.download_magic_from_doi("10.1029/2018GC008100")
+        self.assertTrue(res)
+        self.assertTrue(os.path.exists("magic_contribution.txt"))
+
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -13,6 +13,8 @@ try:
     import wget
 except ModuleNotFoundError:
     pass
+import zipfile
+import io
 
 from past.utils import old_div
 import numpy as np
@@ -4259,13 +4261,23 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
     return True
 
 
+def download_magic_from_id(con_id):
+    """
+    Download a public contribution matching the provided
+    contribution ID from earthref.org/MagIC.
 
-def wget_from_magic(con_id):
-    """
+    Parameters
+    ----------
+    doi : str
+        DOI for a MagIC
+
     Returns
-    --------
-    result True or False, stuff (error msg)
+    ---------
+    result : bool
+    message : str
+        Error message if download didn't succeed
     """
+
     try:
         magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
         res = wget.download(magic_url)
@@ -4280,36 +4292,50 @@ def wget_from_magic(con_id):
         return False, str(ex)
     return True, res
 
-def download_from_magic(con_id, dir_path="."):
+
+def download_magic_from_doi(doi):
     """
-    Download a MagIC contribution directly from the MagIC API.
-    If successful, this will write individual MagIC files to
-    your chosen dir_path
+    Download a public contribution matching the provided DOI
+    from earthref.org/MagIC.
 
     Parameters
     ----------
-    con_id : number
-        MagIC contribution id, i.e. 12366
-    dir_path : str, default "."
-        directory for outputting files
+    doi : str
+        DOI for a MagIC
 
     Returns
     ---------
-    bool : True or False indicating whether download was successful
+    result : bool
+    message : str
+        Error message if download didn't succeed
     """
-    if not requests:
-        print('-W- You must install the requests module to use this functionality')
-        return
+    api = 'https://api.earthref.org/v1/MagIC/{}'
     try:
-        res = requests.get('https://earthref.org/MagIC/download/{}/'.format(con_id))
-    except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout):
-        print("-W- Could not connect to MagIC")
-        return
-    if not res.ok:
-        print("-W- Could not connect to MagIC -- check your requested contribution id ({})".format(con_id))
-        return
-    return download_magic(dir_path=dir_path, txt=res.text)
+        response = requests.get(api.format('download'), params={'doi': doi, 'n_max_contributions': 1})
+    except urllib.error.HTTPError:
+        return False, "Looks like you didn't provide a valid DOI, please try again..."
+    except urllib.error.URLError:
+        return False, "Couldn't connect to MagIC site, please check your internet connection"
+    except requests.exceptions.ConnectionError:
+        return False, "Couldn't connect to MagIC site, please check your internet connection"
+    except Exception as ex:
+        print('Unexpected problem downloading from MagIC:', str(ex), type(ex))
+        return False, str(ex)
+    if (response.status_code == 200):
+        contribution_zip = zipfile.ZipFile(io.BytesIO(response.content))
+        for filename in contribution_zip.namelist():
+            if (re.match(r'^\d+\/magic_contribution_\d+\.txt', filename)):
+                contribution_text = io.TextIOWrapper(contribution_zip.open(filename)).read()
+                with open('magic_contribution.txt', 'wt') as fh:
+                    fh.write(contribution_text)
+                print(filename, 'extracted to magic_contribution.txt', '\n')
+                return True, ""
+    elif (response.status_code == 204):
+        return False, 'Public contribution with a reference DOI = \'{}\' not found in MagIC'.format(doi)
+
+    else:
+        return False, 'Error:', response.json()['err'][0]['message'], '\n'
+
 
 def upload_magic2(concat=0, dir_path='.', data_model=None):
     """

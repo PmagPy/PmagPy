@@ -572,7 +572,7 @@ class MagMainFrame(wx.Frame):
         """
 
         def magic_download_dia(warn=""):
-            dia = pw.TextDialog(self, "Download from MagIC\nusing contribution ID", "MagIC ID", warn)
+            dia = pw.TextDialog(self, "Download from MagIC\nusing contribution id or DOI", "MagIC id/DOI", warn)
             res = dia.ShowModal()
             magic_id = dia.text_ctrl.return_value()
             if res == wx.ID_CANCEL:
@@ -586,7 +586,7 @@ class MagMainFrame(wx.Frame):
 
         dlg = pw.ChooseOne(self, "Download from MagIC",
                            "Unpack previous downloaded file",
-                           text="You can unpack a downloaded file from MagIC, or download a file from MagIC directly using the contribution id.", title="")
+                           text="You can unpack a downloaded file from MagIC, or download a file from MagIC directly using the contribution id or DOI.", title="")
         dlg.Centre()
         res = dlg.ShowModal()
         # try to download directly from MagIC
@@ -597,19 +597,24 @@ class MagMainFrame(wx.Frame):
                 magic_id = magic_download_dia(warning)
                 # if magic id was blank
                 if magic_id == "":
-                    warning = "You must provide a MagIC contribution id"
+                    warning = "You must provide a MagIC contribution id or DOI"
                     magic_id = True
                     continue
                 # if user canceled the download
                 if magic_id == wx.ID_CANCEL:
                     return
                 # if everything looks good, try to download
-                status, stuff = ipmag.wget_from_magic(magic_id)
+                if len(str(magic_id)) < 8:  # use contribution id
+                    status, stuff = ipmag.download_magic_from_id(magic_id)
+                    f = "magic_contribution_{}.txt".format(magic_id)
+                else: # use DOI
+                    status, stuff = ipmag.download_magic_from_doi(magic_id)
+                    f = "magic_contribution.txt"
                 if not status:
                     warning = stuff
                 if status:
                     break
-            f = "magic_contribution_{}.txt".format(magic_id)
+
             if not os.path.exists(os.path.join(self.WD, f)):
                 os.rename(os.path.join(os.getcwd(), f), os.path.join(self.WD, f))
             input_dir = self.WD
