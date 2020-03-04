@@ -77,15 +77,30 @@ def requiredIfGroup(col_name, arg, dm, df, *args):
     return None
 
 
-def required(col_name, arg, dm, df, *args):
-    """
-    Col_name is required in df.columns.
-    Return error message if not.
-    """
-    if col_name in df.columns:
-        return None
-    else:
+#def required(col_name, arg, dm, df, *args):
+#    """
+#    Col_name is required in df.columns.
+#    Return error message if not.
+#    """
+#    if col_name in df.columns:
+#        return None
+#    else:
+#        return '"{}" column is required'.format(col_name)
+
+def required(row, col_name, arg, dm, df, con=None):
+    if col_name not in df.columns:
         return '"{}" column is required'.format(col_name)
+    cell_value = row[col_name]
+    if not cell_value:
+        print(col_name)
+        print(cell_value, type(cell_value))
+        return "'{}' column is required and may not have empty cells".format(col_name)
+    cell_value = str(cell_value)
+    if not cell_value:
+        print(col_name)
+        print(cell_value, type(cell_value))
+        return "'{}' column is required and may not have empty cells".format(col_name)
+
 
 def isIn(row, col_name, arg, dm, df, con=None):
     """
@@ -255,11 +270,12 @@ def requiredOneInGroup(col_name, group, dm, df, *args):
 
 
 # validate presence
-presence_operations = {"required": required, "requiredUnless": requiredUnless,
+presence_operations = {"requiredUnless": requiredUnless,
                        "requiredIfGroup": requiredIfGroup,
                        'requiredUnlessTable': requiredUnlessTable}
+
 # validate values
-value_operations = {"max": checkMax, "min": checkMin, "cv": cv, "in": isIn}
+value_operations = {"max": checkMax, "min": checkMin, "cv": cv, "in": isIn, 'required': required}
 
 # validate group
 
@@ -346,7 +362,7 @@ def validate_df(df, dm, con=None):
                 pass_col_name = "presence_pass_" + validation_name + "_" + func.__name__
                 df[pass_col_name] = grade
             # then validate for correct values
-            elif func_name in value_operations:
+            if func_name in value_operations:
                 func = value_operations[func_name]
                 if validation_name in df.columns:
                     grade = df.apply(func, args=(validation_name, arg, dm, df, con), axis=1)
@@ -361,7 +377,7 @@ def validate_df(df, dm, con=None):
                                 break
                     df[col_name] = grade.astype(object)
             # last, validate at the column group level
-            elif func_name in group_operations:
+            if func_name in group_operations:
                 func = group_operations[func_name]
                 missing = func(validation_name, arg, dm, df)
                 if arg not in required_one:
