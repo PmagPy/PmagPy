@@ -160,8 +160,8 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
             else:
                 Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
                 Data[s]['AniSpec'][TYPE]['ftest']=99999
-
-            if 'anisotropy_alt' in list(Data[s]['AniSpec'][TYPE].keys()) and Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
+            
+            if 'anisotropy_alt' in list(Data[s]['AniSpec'][TYPE].keys()) and Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="" and Data[s]['AniSpec'][TYPE]['anisotropy_alt']!=None: # added 3/5/20 LT
                 if acceptance_criteria['anisotropy_alt']['value'] != -999 and \
                 (float(Data[s]['AniSpec'][TYPE]['anisotropy_alt']) > float(acceptance_criteria['anisotropy_alt']['value'])):
                     S_matrix=identity(3,'f')
