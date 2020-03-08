@@ -6886,7 +6886,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         #
         # A) If there are only 2 NLT measurement: C
         #
-        #   Can't do NLT correctio procedure (few data points).
+        #   Can't do NLT correction procedure (few data points).
         #   Instead, check the different in the ratio (M/B) in the two measurements.
         #   slop_diff = max(first slope, second slope)/min(first slope, second slope)
         #   if: 1.1 > slop_diff > 1.05 : WARNING
@@ -6942,7 +6942,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     M_baseline = float(rec['measurement_magn_moment'])
                 B_NLT.append(float(rec['treatment_dc_field']))
                 M_NLT.append(float(rec['measurement_magn_moment']))
-
             # collect more data from araiblock
 
             '''
@@ -7011,10 +7010,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         red_flag = True
 
             if len(trmblock) > 2 and not red_flag:
+            
 
                 B_NLT = append([0.], B_NLT)
                 M_NLT = append([0.], M_NLT)
-
                 try:
                     # print s,B_NLT, M_NLT
                     # First try to fit tanh function (add point 0,0 in the
