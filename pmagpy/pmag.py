@@ -4841,7 +4841,7 @@ def doincfish(inc):
     a95 = 1. - (0.5) * (old_div(S, C))**2 - (old_div(f, (2. * C * k)))
 #    b=20.**(1./(N-1.)) -1.
 #    a=1.-b*(N-R)/R
-#    a95=np.arccos(a)*180./np.pi
+    a95=np.arccos(a95)*180./np.pi
     csd = old_div(81., np.sqrt(k))
     fpars["alpha95"] = a95
     fpars["csd"] = csd
