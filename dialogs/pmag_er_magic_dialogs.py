@@ -247,6 +247,8 @@ class ErMagicCheckFrame3(wx.Frame):
             self.contribution.propagate_lithology_cols()
             wx.MessageBox('Done!', 'Info',
                           style=wx.OK | wx.ICON_INFORMATION)
+            # show main frame
+            self.main_frame.Show()
 
 
     def onbackButton(self, event=None, prev_dia=None):
