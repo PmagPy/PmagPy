@@ -732,6 +732,9 @@ class Contribution(object):
         if not len(source_df):
             return target_df
         # propagate down
+        if add_name not in target_df.columns:
+            print('-W- Something is strange in your data -- {} table is missing {} column'.format(target_df_name, add_name))
+            return target_df
         if down:
             # do merge
             target_df[add_name] = target_df[add_name].astype(str)
@@ -922,6 +925,9 @@ class Contribution(object):
                 source_df.df[col] = pd.to_numeric(source_df.df[col], errors='coerce')
         grouped = source_df.df[cols + [target_name]].groupby(target_name)
         grouped = grouped[cols].apply(np.mean)
+        if grouped.empty:
+            print("-W- Something went wrong -- can't find data for the following columns: {}".format(", ".join(cols)))
+            return target_df
         for col in cols:
             target_df.df['new_' + col] = grouped[col]
             # use custom not_null
