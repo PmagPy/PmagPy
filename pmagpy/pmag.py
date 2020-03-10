@@ -10815,6 +10815,8 @@ def dovandamme(vgp_df):
     ASD = np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
     A = 1.8 * ASD + 5.
     delta_max = vgp_df.delta.max()
+    if (delta_max<A): 
+        return vgp_df, A, ASD
     while delta_max > A:
         delta_max = vgp_df.delta.max()
         if delta_max < A:
