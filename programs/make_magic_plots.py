@@ -5,6 +5,8 @@ import datetime
 import glob
 import shutil
 from pmagpy import pmag
+from pmagpy import ipmag
+from pmagpy import version
 from pmagpy import contribution_builder as cb
 from programs import thumbnails
 VERBOSE = True
@@ -61,6 +63,7 @@ def main():
         f = os.path.join(os.getcwd(), fname)
         if os.path.exists(f):
             os.remove(f)
+    image_recs = []
     dirlist = ['./']
     dir_path = os.getcwd()
     #
@@ -76,9 +79,8 @@ def main():
         filelist = os.listdir(dir_path)
     ## initialize some variables
     samp_file = 'samples.txt'
-    azimuth_key = 'azimuth'
     meas_file = 'measurements.txt'
-    loc_key = 'location'
+    #loc_key = 'location'
     loc_file = 'locations.txt'
     method_key = 'method_codes'
     dec_key = 'dir_dec'
@@ -94,35 +96,35 @@ def main():
     hyst_file = 'specimens.txt'
     aniso_file = 'specimens.txt'
     # create contribution and propagate data throughout
-    con = cb.Contribution()
-    con.propagate_location_to_measurements()
-    con.propagate_location_to_specimens()
-    con.propagate_location_to_samples()
-    if not con.tables:
+    full_con = cb.Contribution()
+    full_con.propagate_location_to_measurements()
+    full_con.propagate_location_to_specimens()
+    full_con.propagate_location_to_samples()
+    if not full_con.tables:
         print('-E- No MagIC tables could be found in this directory')
         error_log("No MagIC tables found")
         return
     # try to get the contribution id for error logging
     con_id = ""
-    if 'contribution' in con.tables:
-        if 'id' in con.tables['contribution'].df.columns:
-            con_id = con.tables['contribution'].df.iloc[0]['id']
+    if 'contribution' in full_con.tables:
+        if 'id' in full_con.tables['contribution'].df.columns:
+            con_id = full_con.tables['contribution'].df.iloc[0]['id']
     # check to see if propagation worked, otherwise you can't plot by location
     lowest_table = None
-    for table in con.ancestry:
-        if table in con.tables:
+    for table in full_con.ancestry:
+        if table in full_con.tables:
             lowest_table = table
             break
 
     do_full_directory = False
     # check that locations propagated down to the lowest table in the contribution
-    if 'location' in con.tables[lowest_table].df.columns:
-        if 'locations' not in con.tables:
+    if 'location' in full_con.tables[lowest_table].df.columns:
+        if 'locations' not in full_con.tables:
             info_log('location names propagated to {}, but could not be validated'.format(lowest_table))
         # are there any locations in the lowest table?
-        elif not all(con.tables[lowest_table].df['location'].isnull()):
-            locs = con.tables['locations'].df.index.unique()
-            lowest_locs = con.tables[lowest_table].df['location'].unique()
+        elif not all(full_con.tables[lowest_table].df['location'].isnull()):
+            locs = full_con.tables['locations'].df.index.unique()
+            lowest_locs = full_con.tables[lowest_table].df['location'].unique()
             incorrect_locs = set(lowest_locs).difference(set(locs))
             # are they actual locations?
             if not incorrect_locs:
@@ -138,13 +140,13 @@ def main():
         error_log('could not propagate location names down to {} table'.format(lowest_table), con_id=con_id)
 
     all_data = {}
-    all_data['measurements'] = con.tables.get('measurements', None)
-    all_data['specimens'] = con.tables.get('specimens', None)
-    all_data['samples'] = con.tables.get('samples', None)
-    all_data['sites'] = con.tables.get('sites', None)
-    all_data['locations'] = con.tables.get('locations', None)
-    if 'locations' in con.tables:
-        locations = con.tables['locations'].df.index.unique()
+    all_data['measurements'] = full_con.tables.get('measurements', None)
+    all_data['specimens'] = full_con.tables.get('specimens', None)
+    all_data['samples'] = full_con.tables.get('samples', None)
+    all_data['sites'] = full_con.tables.get('sites', None)
+    all_data['locations'] = full_con.tables.get('locations', None)
+    if 'locations' in full_con.tables:
+        locations = full_con.tables['locations'].df.index.unique()
     else:
         locations = ['']
     dirlist = [loc for loc in locations if cb.not_null(loc, False) and loc != 'nan']
@@ -185,16 +187,25 @@ def main():
                 data = data_container.convert_to_pmag_data_list(df=data_df)
                 res = data_container.write_magic_file('tmp_{}.txt'.format(dtype), df=data_df)
                 if not res:
-                    return []
-                return data
+                    return [], []
+                return data, data_df
+            return [], []
 
-        meas_data = get_data('measurements', loc)
-        spec_data = get_data('specimens', loc)
-        samp_data = get_data('samples', loc)
-        site_data = get_data('sites', loc)
-        loc_data = get_data('locations', loc)
+        meas_data, meas_df = get_data('measurements', loc)
+        spec_data, spec_df = get_data('specimens', loc)
+        samp_data, samp_df = get_data('samples', loc)
+        site_data, site_df = get_data('sites', loc)
+        loc_data, loc_df = get_data('locations', loc)
+
+        con = cb.Contribution(read_tables=[])
+        con.tables['measurements'] = cb.MagicDataFrame(df=meas_df, dtype="measurements")
+        con.tables['specimens'] = cb.MagicDataFrame(df=spec_df, dtype="specimens")
+        con.tables['samples'] = cb.MagicDataFrame(df=samp_df, dtype="samples")
+        con.tables['sites'] = cb.MagicDataFrame(df=site_df, dtype="sites")
+        con.tables['locations'] = cb.MagicDataFrame(df=loc_df, dtype="locations")
 
         if loc == "./":  # if you can't sort by location, do everything together
+            con = full_con
             try:
                 meas_data = con.tables['measurements'].convert_to_pmag_data_list()
             except KeyError:
@@ -213,21 +224,16 @@ def main():
                 site_data = None
 
         crd = 's'
-        if samp_file in filelist and samp_data:  # find coordinate systems
-            samps = samp_data
-            file_type = "samples"
-            # get all non blank sample orientations
-            Srecs = pmag.get_dictitem(samps, azimuth_key, '', 'F')
-            if len(Srecs) > 0:
-                crd = 'g'
-                print('using geographic coordinates')
-            else:
-                print('using specimen coordinates')
+        if 'samples' in con.tables:
+            if 'azimuth' in con.tables['samples'].df.columns:
+                if any(con.tables['samples'].df['azimuth'].dropna()):
+                    crd = 'g'
+        if crd == 's':
+            print('using specimen coordinates')
         else:
-            if VERBOSE:
-                print('-I- No sample data found')
+            print('using geographic coordinates')
         if meas_file in filelist and meas_data:  # start with measurement data
-            print('working on measurements data')
+            print('working on plotting measurements data')
             data = meas_data
             file_type = 'measurements'
             # looking for  zeq_magic possibilities
@@ -248,16 +254,21 @@ def main():
                     break
             # potential for stepwise demag curves
             if len(AFZrecs) > 0 or len(TZrecs) > 0 or len(MZrecs) > 0 and len(Drecs) > 0 and len(Irecs) > 0 and len(Mrecs) > 0:
-                CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
+                #CMD = 'zeq_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -fsi tmp_sites.txt -sav -fmt ' + fmt + ' -crd ' + crd + " -new"
+                CMD = "ipmag.zeq_magic(crd={}, n_plots='all', contribution={}, image_records=True)".format(crd, con)
                 print(CMD)
                 info_log(CMD, loc)
-                os.system(CMD)
+                res, outfiles, zeq_images = ipmag.zeq_magic(crd=crd, n_plots='all',
+                                                            contribution=con, image_records=True)
+                image_recs.extend(zeq_images)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-PI-TRM', 'has')) > 0:
-                CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
+                #CMD = 'thellier_magic.py -f tmp_measurements.txt -fsp tmp_specimens.txt -sav -fmt ' + fmt
+                CMD = "ipmag.thellier_magic(n_specs='all', fmt='png', contribution={}, image_records=True)".format(con)
                 print(CMD)
                 info_log(CMD, loc)
-                os.system(CMD)
+                res, outfiles, thellier_images = ipmag.thellier_magic(n_specs='all', fmt="png", contribution=con, image_records=True)
+                image_recs.extend(thellier_images)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data, method_key, 'LP-HYS', 'has')) > 0:  # find hyst experiments
                 # check for reqd columns
@@ -265,20 +276,27 @@ def main():
                 if missing:
                     error_log('LP-HYS method code present, but required column(s) [{}] missing'.format(", ".join(missing)), loc, "quick_hyst.py", con_id=con_id)
                 else:
-                    CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                    #CMD = 'quick_hyst.py -f tmp_measurements.txt -sav -fmt ' + fmt
+                    CMD = "ipmag.quick_hyst(fmt='png', n_plots='all', contribution={}, image_records=True)".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    res, outfiles, quick_hyst_recs = ipmag.quick_hyst(fmt="png", n_plots='all', contribution=con, image_records=True)
+                    image_recs.extend(quick_hyst_recs)
             # equal area plots of directional data
-            # at measurment level (by specimen)
-
+            # at measurement level (by specimen)
             if data:
                 missing = check_for_reqd_cols(data, ['dir_dec', 'dir_inc'])
                 if not missing:
-                    CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                    #CMD = "eqarea_magic.py -f tmp_measurements.txt -obj spc -sav -no-tilt -fmt " + fmt
+                    CMD = "ipmag.eqarea_magic(fmt='png', n_plots='all', ignore_tilt=True, plot_by='spc', contribution={}, source_table='measurements', image_records=True)".format(con)
                     print(CMD)
-                    os.system(CMD)
                     info_log(CMD, loc, "eqarea_magic.py")
+                    res, outfiles, eqarea_spc_images = ipmag.eqarea_magic(fmt="png", n_plots='all',
+                                                                          ignore_tilt=True, plot_by="spc",
+                                                                          contribution=con,
+                                                                          source_table="measurements",
+                                                                          image_records=True)
+                    image_recs.extend(eqarea_spc_images)
 
         else:
             if VERBOSE:
@@ -331,14 +349,21 @@ def main():
                     CRD = ""
                     if len(SiteDIs_t) > 0:
                         CRD = ' -crd t'
+                        crd = "t"
                     elif len(SiteDIs_g) > 0:
                         CRD = ' -crd g'
+                        crd = "g"
                     elif len(SiteDIs_s) > 0:
                         CRD = ' -crd s'
-                    CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+                        crd = "s"
+                    #CMD = 'eqarea_magic.py -f tmp_sites.txt -fsp tmp_specimens.txt -fsa tmp_samples.txt -flo tmp_locations.txt -sav -fmt ' + fmt + CRD
+                    CMD = "ipmag.eqarea_magic(crd={}, fmt='png', n_plots='all', contribution={}, source_table='sites')".format(crd, con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    res, outfiles, eqarea_site_recs = ipmag.eqarea_magic(crd=crd, fmt="png", n_plots='all',
+                                                                   contribution=con, source_table="sites",
+                                                                   image_records=True)
+                    image_recs.extend(eqarea_site_recs)
                 else:
                     if dir_data_found:
                         error_log('{} dec/inc pairs found, but no equal area plots were made'.format(dir_data_found), loc, "equarea_magic.py", con_id=con_id)
@@ -347,10 +372,14 @@ def main():
             VGPs = pmag.get_dictitem(
                 SiteDIs, 'vgp_lat', "", 'F')  # are there any VGPs?
             if len(VGPs) > 0:  # YES!
-                CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
+                #CMD = 'vgpmap_magic.py -f tmp_sites.txt -prj moll -res c -sym ro 5 -sav -fmt png'
+                CMD = "ipmag.vgpmap_magic(proj='moll', sym='ro', size=5, fmt='png', contribution={})".format(con)
                 print(CMD)
                 info_log(CMD, loc, 'vgpmap_magic.py')
-                os.system(CMD)
+                res, outfiles, vgpmap_recs = ipmag.vgpmap_magic(proj='moll', sym='ro', size=5,
+                                                                fmt="png", contribution=con,
+                                                                image_records=True)
+                image_recs.extend(vgpmap_recs)
             else:
                 print('-I- No vgps found')
 
@@ -361,11 +390,7 @@ def main():
                     # old way, wasn't working right:
                     #CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
                     Selection = pmag.get_dictkey(site_data, int_key, dtype="f")
-                    with open('intensities.txt', 'w') as out:
-                        for rec in Selection:
-                            if rec != 0:
-                                out.write(str(rec * 1e6) + "\n")
-
+                    selection = [i * 1e6 for i in Selection if i != 0]
                     loc = loc.replace(" ", "_")
                     if loc == "./":
                         loc_name = ""
@@ -373,11 +398,16 @@ def main():
                         loc_name = loc
                     histfile = 'LO:_' + loc_name + \
                         '_TY:_intensities_histogram:_.' + fmt
-                    # maybe run histplot.main here instead, so you can return an error message
                     CMD = "histplot.py -twin -b 1 -xlab 'Intensity (uT)' -sav -f intensities.txt -F " + histfile
-                    os.system(CMD)
+                    CMD = "ipmag.histplot(data=selection, outfile=histfile, xlab='Intensity (uT)', binsize=1, norm=-1, save_plots=True)".format(histfile)
                     info_log(CMD, loc)
                     print(CMD)
+                    ipmag.histplot(data=selection, outfile=histfile, xlab="Intensity (uT)",
+                                   binsize=1, norm=-1, save_plots=True)
+                    histplot_rec = {'file': histfile, 'type': 'Other', 'title': 'Intensity histogram',
+                                    'software_packages': version.version, 'keywords': "",
+                                    'timestamp': datetime.date.today().isoformat()}
+                    image_recs.append(histplot_rec)
                 else:
                     print('-I- No intensities found')
             else:
@@ -394,9 +424,12 @@ def main():
             # there are data for a dayplot
             hdata = pmag.get_dictitem(hdata, hyst_bc_key, '', 'F')
             if len(hdata) > 0:
-                CMD = 'dayplot_magic.py -f tmp_specimens.txt -sav -fmt ' + fmt
+                CMD = "ipmag.dayplot_magic(save=True, fmt='png', contribution={}, image_records=True)".format(con)
                 info_log(CMD, loc)
                 print(CMD)
+                res, outfiles, dayplot_recs = ipmag.dayplot_magic(save=True, fmt='png',
+                                                                  contribution=con, image_records=True)
+                image_recs.extend(dayplot_recs)
             else:
                 print('no hysteresis data found')
         if aniso_file in filelist and spec_data:  # do anisotropy plots if possible
@@ -422,30 +455,33 @@ def main():
                 # get specimen coordinates
                 tdata = pmag.get_dictitem(
                     data, aniso_tilt_corr_key, '100', 'T', float_to_int=True)
-                CRD = ""
-                CMD = 'aniso_magic.py -x -B -sav -fmt ' + fmt + " -new"
                 if len(sdata) > 3:
-                    CMD = CMD + ' -crd s'
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='s', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="s", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
                 if len(gdata) > 3:
-                    CMD = CMD + ' -crd g'
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="g", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
                 if len(tdata) > 3:
-                    CMD = CMD + ' -crd t'
+                    CMD = "ipmag.aniso_magic(iboot=0, ihext=1, crd='g', fmt='png', contribution={})".format(con)
                     print(CMD)
                     info_log(CMD, loc)
-                    os.system(CMD)
+                    res, files, aniso_recs = ipmag.aniso_magic(iboot=0, ihext=1, crd="t", fmt="png",
+                                                               contribution=con, image_records=True)
+                    image_recs.extend(aniso_recs)
+
         # remove temporary files
         for fname in glob.glob('tmp*.txt'):
             os.remove(fname)
-        try:
-            os.remove('intensities.txt')
-        except FileNotFoundError:
-            pass
+
+    # now we need full contribution data
     if loc_file in filelist and loc_data:
         #data, file_type = pmag.magic_read(loc_file)  # read in location data
         data = loc_data
@@ -456,11 +492,25 @@ def main():
             poles, 'pole_lon', "", 'F')  # are there any poles?
         if len(poles) > 0:  # YES!
             CMD = 'polemap_magic.py -sav -fmt png -rev gv 40'
+            CMD =  'ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40, fmt="png", contribution={})'.format(full_con)
             print(CMD)
             info_log(CMD, "all locations", "polemap_magic.py")
-            os.system(CMD)
+            res, outfiles, polemap_recs = ipmag.polemap_magic(flip=True, rsym="gv", rsymsize=40,
+                                                            fmt="png", contribution=full_con,
+                                                            image_records=True)
+            image_recs.extend(polemap_recs)
         else:
             print('-I- No poles found')
+
+    if image_recs:
+        new_image_file = os.path.join(dir_path, 'new_images.txt')
+        old_image_file = os.path.join(dir_path, 'images.txt')
+        pmag.magic_write(new_image_file, image_recs, 'images')
+        if os.path.exists(old_image_file):
+            ipmag.combine_magic([old_image_file, new_image_file], outfile=old_image_file,
+                                magic_table="images", dir_path=dir_path)
+        else:
+            os.rename(new_image_file, old_image_file)
     thumbnails.make_thumbnails(dir_path)
 
 if __name__ == "__main__":
