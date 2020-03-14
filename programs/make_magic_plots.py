@@ -8,6 +8,7 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import version
 from pmagpy import contribution_builder as cb
+from pmag_env import set_env
 from programs import thumbnails
 VERBOSE = True
 
@@ -511,7 +512,8 @@ def main():
                                 magic_table="images", dir_path=dir_path)
         else:
             os.rename(new_image_file, old_image_file)
-    thumbnails.make_thumbnails(dir_path)
+    if set_env.isServer:
+        thumbnails.make_thumbnails(dir_path)
 
 if __name__ == "__main__":
     main()
