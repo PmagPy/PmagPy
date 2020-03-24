@@ -1427,8 +1427,7 @@ class MagicDataFrame(object):
         self.name = name
         self.df.index.name = name + ' name'
 
-    def __str__(self):
-        return(self.df.__str__())
+
 
     ## Methods to change self.df inplace
 
