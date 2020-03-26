@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys,os
-from pmagpy import contribution_builder as cb
 import pandas as pd
 
 def main():
