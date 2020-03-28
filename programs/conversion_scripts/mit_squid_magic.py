@@ -223,14 +223,18 @@ def main():
 
     print("start")
 
-    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt")
+    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt scan_measurements.txt")
+    os.system("rm *.txt ") # for debugging
     dir_list=os.listdir()
     print(sorted(dir_list))
     slide_dir_list=[]
+    add_header=True
     for dir in sorted(dir_list):
         if dir[0] == '.':   # skip . files added by MacOS
             continue
         elif dir == 'command':   # skip command file 
+            continue
+        elif dir == 'log':   # skip log file - used during debugging
             continue
         slide_dir_list.append(dir+'/demag/')
         os.chdir(dir+'/demag')     
@@ -316,7 +320,14 @@ def main():
 
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
-        convert_squid_data(dir,citations,z_pos)
+        print("add_header=", add_header)
+        convert_squid_data(dir,citations,z_pos,meas_dir="../../",add_header=add_header)
+
+        if add_header == True:
+            add_header = False
+            print("add_header Inside=", add_header)
+
+        print("add_header=", add_header)
 
         os.chdir('../..')     
 
@@ -350,14 +361,15 @@ def main():
     return()
 
 
-def convert_squid_data(specimen,citations,z_pos):
-#   Take the SQUID magnetometer files and make MagIC measurement files. This data will not be uploaded 
+def convert_squid_data(specimen, citations, z_pos, meas_dir="./", add_header="True"):
+#   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   Each scan's data is put in a seperate measurements.txt file in its own directory.   
     
-    mf=open('measurements.txt','w')
-    mf.write("tab\tmeasurements\n")
-    mf.write('measurement\texperiment\tspecimen\tsequence\tstandard\tquality\tmethod_codes\tcitations\tmagn_z\tmeas_pos_x\tmeas_pos_y\tmeas_pos_z\tdescription\n')
+    mf=open(meas_dir + 'scan_measurements.txt','a')
+    if add_header==True:
+        mf.write("tab\tmeasurements\n")
+        mf.write('measurement\texperiment\tspecimen\tsequence\tstandard\tquality\tmethod_codes\tcitations\tmagn_z\tmeas_pos_x\tmeas_pos_y\tmeas_pos_z\tdescription\n')
 
     file_list=os.listdir()
     print(sorted(file_list))
