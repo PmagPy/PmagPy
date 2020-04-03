@@ -2081,7 +2081,8 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     colors = color_mapping.to_rgba(colorvalues).tolist()
 
     plot_poles(map_axis, plons, plats, A95s,
-                     label='', color=colors, edgecolor=edgecolor, marker=marker)
+               label='', color=colors, edgecolor=edgecolor, marker=marker,
+               markersize=markersize)
 
     if colorbar == True:
         sm = plt.cm.ScalarMappable(
