@@ -245,6 +245,8 @@ def main():
     os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt")
     os.system("rm *.txt ") # for debugging
     os.system("rm -r images")
+    os.system("rm -r measurements")
+
     dir_list=os.listdir()
     print(sorted(dir_list))
     slide_dir_list=[]
@@ -359,7 +361,11 @@ def main():
         
         os.chdir('../..')     
 
-    # Combine the images tables and put the images in one folder
+#   move all the measurement files to one folder
+    os.system("mkdir measurements")
+    os.system("mv measurements[0-9]*.txt measurements")
+
+#   Combine the images tables and put the images in one folder
     image_files=""
     for dir in image_dir_list:
         image_files+=dir+ "images.txt "
@@ -426,7 +432,8 @@ def main():
     os.system("combine_magic.py -F measurements.txt -f " + meas_files)
 
     os.system("upload_magic.py")
-#    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
+    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
+    os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
 
     print("end")   
     return()
