@@ -59,6 +59,8 @@ def main():
     
         -z_pos: distance from the surface in meters. default:0
 
+        -oe: flag to use cgs units for magnetic field strength(Oe) or mangnetic moment(emu) 
+
         -ncn NCON: specify naming convention.
 
       Sample naming convention (NCON): 
@@ -222,6 +224,13 @@ def main():
     else:
         print("The site name must be set with the -sample flag")
 
+    if '-oe' in sys.argv:
+        oe=' -oe '
+        print("oe=",oe)
+    else:
+        oe=''
+        print("oe=",oe)
+
     if '-z_pos' in sys.argv:
         ind=sys.argv.index('-z_pos')
         z_pos=sys.argv[ind+1]
@@ -267,7 +276,8 @@ def main():
         specimen_list.append(dir)
         print("specimen_list",specimen_list)
         os.chdir(dir+'/demag')     
-        command='cit_magic.py -ncn ' + ncn + ' -f ' + dir + '.sam -loc "' + location + '" -mcd ' + method_codes
+        print("BC oe=",oe)
+        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -mcd ' + method_codes
         print(command)
         os.system(command)
 
