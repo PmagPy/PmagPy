@@ -21,7 +21,7 @@ OPTIONS
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -n [cc,m3,g,kg]: specify normalization, default is cc.
-    -oe: demag step magnetization/magnetic moment values are given in cgs units (oersted or emu)
+    -oe: demag step magnetic field strength(Oe) or magnetic moment(emu) values are given in cgs units
     -A: don't average replicate measurements
     -spc NUM: specify number of characters to designate a  specimen, default = 0
     -ncn NCON: specify naming convention
