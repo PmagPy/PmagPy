@@ -226,10 +226,8 @@ def main():
 
     if '-oe' in sys.argv:
         oe=' -oe '
-        print("oe=",oe)
     else:
         oe=''
-        print("oe=",oe)
 
     if '-z_pos' in sys.argv:
         ind=sys.argv.index('-z_pos')
@@ -275,9 +273,10 @@ def main():
         image_dir_list.append(dir+'/images/')
         specimen_list.append(dir)
         print("specimen_list",specimen_list)
+
+        # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        print("BC oe=",oe)
-        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -mcd ' + method_codes
+        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + dir + '" -mcd ' + method_codes
         print(command)
         os.system(command)
 
@@ -341,7 +340,7 @@ def main():
         df.to_csv("samples.txt",sep='\t',index=False)
         add_head("samples")
 
-        # add info to samples table
+        # add info to specimens table
         df=pd.read_csv("specimens.txt",sep="\t",header=1)
         print(df)
         df=append_column(df,"method_codes",method_codes)
@@ -368,8 +367,8 @@ def main():
         os.system('rm measurements*.txt')
         meas_file_num=convert_squid_data(specimen,citations,z_pos,meas_file_num)
         os.system('mv measurements*.txt ../../') 
-        
-        os.chdir('../..')     
+
+        os.chdir('../../')
 
 #   move all the measurement files to one folder
     os.system("mkdir measurements")
@@ -408,7 +407,7 @@ def main():
     print("Creating specimens header file for images")
     f=open("images/specimens.txt","w")
     f.write("tab\tspecimens\n")
-    f.write("specimen\tsample\tcitations\tmethod_codes\n")
+    f.write("specimen\tsample\tcitations\tmethod_codes\tgeologic_classes\tgeologic_types\tlithologies\n")
     f.close()
 
 #   Create files lists for combining the MagIC data files
@@ -430,7 +429,7 @@ def main():
 #       Also add the specimen names for the scan slides to the specimen table
     for fdf in specimen_list:
         f=open("images/specimens.txt","a")
-        f.write(fdf + tab + sample + tab + citations + tab + method_codes +"\n")
+        f.write(fdf + tab + sample + tab + citations + tab + method_codes + tab + geologic_classes + tab + geologic_types + tab + lithologies + "\n")
         f.close()
 
 
