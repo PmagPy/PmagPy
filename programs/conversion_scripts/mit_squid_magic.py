@@ -16,27 +16,35 @@ def main():
     OPTIONS
         -h: prints the help message and quits.
 
-        -d DIRECTORY: specify directory where the slide folders are located, otherwise current directory is used.
+        -d DIRECTORY: specify directory where the slide folders are located, 
+                      otherwise current directory is used.
 
         -s: set the starting measurement sequence number. Default:1
 
         -location: specify location/study name
 
-        -location_type: specify location_type (see https://www.earthref.org/vocabularies/controlled for a list of types)
+        -location_type: specify location_type 
+                        see https://www.earthref.org/vocabularies/controlled for list 
 
-        -geologic_classes: specify geologic_classes. (see https://www.earthref.org/vocabularies/controlled for a list of classes)
+        -geologic_classes: specify geologic_classes (":" between multiple entries). 
+                           see https://www.earthref.org/vocabularies/controlled for list
 
-        -lithologies: specify lithologies. Put a colon between multiple lithologies (see https://www.earthref.org/vocabularies/controlled for a list of lithologies)
+        -lithologies: specify lithologies. (":" between multiple entries) 
+                      see https://www.earthref.org/vocabularies/controlled for list
 
         -lat_n: specify north latitude of location bounding box.
 
-        -lat_s: specify south latitude of location bounding box. N and S can be the same for a point location.
+        -lat_s: specify south latitude of location bounding box. 
+                N and S can be the same for a point location.
 
         -lon_w: specify west longitude of location bounding box.
 
-        -lon_e: specify east longitude of location bounding box. E and W can be the same for a point location.
+        -lon_e: specify east longitude of location bounding box. 
+                E and W can be the same for a point location.
 
-        -age: specify the age of the samples and location. (One must have an age defined. agelow and agehigh can be used in addition to or in place of age.
+        -age: specify the age of the samples and location.
+              One must have an age defined. age_low and age_high can be used in 
+              addition to or in place of age.
 
         -age_sigma: specify the one sigma error on the age.
 
@@ -44,18 +52,25 @@ def main():
 
         -age_high: specify the hig bound for the age.
 
-        -age_unit: specify the age unit. ka, Ma, Ga are some examples. (see https://www.earthref.org/vocabularies/controlled for the full list)
-        -citations: list of citations. Default: "This study". "This study" can be used for the study this MagIC contribution will be associated with. Use DOIs for other studies.
+        -age_unit: specify the age unit. ka, Ma, Ga are some examples.
+                   see https://www.earthref.org/vocabularies/controlled for list
+        -citations: list of citations (":" between entries). default: "This study". 
+                    "This study" can be used for the study this MagIC contribution 
+                    will be associated with. Will be added when the data is published.
+                    Use DOIs for other studies.
 
         -site: site name for the sample that the scan slides were made from 
 
-        -site_geologic_types: geologic types of the site (put a colon between types if more than one is used)
+        -site_geologic_types: geologic types of the site. (":" between multiple entries)
         
         -sample: sample name from which the slides were made from
 
-        -method_codes: method_codes used at the site, sample, and specimen level (use colon between multiple codes)
+        -method_codes: method_codes used at the site, sample, and specimen level
+                       (":" between multiple entries)
 
-        -instrument_codes: used to identify the insturment that made the measurement. Exact insturment name prefered, not type
+        -instrument_codes: used to identify the insturment that made the measurement. 
+                           Exact insturment name prefered, not type. 
+                           (":" between multiple entries)
     
         -z_pos: distance from the surface in meters. default:0
 
@@ -76,7 +91,7 @@ def main():
         NB: all others you will have to either customize your
             self or e-mail ltauxe@ucsd.edu for help.
 
-      Example command for the example data file. Data from Wiess et al., 2018 (doi:10.1130/G39938.1):
+      Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
       mit_squid_magic.py -location "Jack Hills" -location_type Outcrop -geologic_classes Metamorphic -lithologies Metaconglomerate -lat_n "-26" -lat_s "-26" -lon_w 117 -lon_e 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -method_codes "LP-SQUIDM:GM-UPB" -site_geologic_types "Single crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD magnetometer" -oe 
 
     """
