@@ -1812,13 +1812,15 @@ class MagicDataFrame(object):
         self.df
         """
         cols = list(cols)
+        if not any(cols):
+            return self.df
         for col in cols:
             if col not in self.df.columns: self.df[col] = np.nan
         short_df = self.df[cols]
         # horrible, bizarre hack to test for pandas malfunction
-        tester = short_df.groupby(short_df.index, sort=False).fillna(method='ffill')
+        tester = short_df.groupby(short_df.index, sort=False).ffill()
         if not_null(tester):
-            short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+            short_df = short_df.groupby(short_df.index, sort=False).ffill().groupby(short_df.index, sort=False).bfill()
         else:
             print('-W- Was not able to front/back fill table {} with these columns: {}'.format(self.dtype, ', '.join(cols)))
         if inplace:
