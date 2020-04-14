@@ -997,7 +997,7 @@ def bgc(mag_file, dir_path=".", input_dir_path="",
 def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measurements.txt",
         spec_file="specimens.txt", samp_file="samples.txt",
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
-        sitename="", methods=['SO-MAG'], specnum=0, samp_con='3',
+        sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
         norm='cc', oersted=False, noave=False, meas_n_orient='8',
         labfield=0, phi=0, theta=0):
     """
@@ -1016,6 +1016,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     loc_file : location file name to output (default : locations.txt)
     locname : location name
     sitename : site name set by user instead of using samp_con
+    sampname : sample name set by user instead of using samp_con
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
@@ -1168,10 +1169,13 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
             specimens.append(specimen)
     for specimen in specimens:
         SpecRec, SampRec, SiteRec = {}, {}, {}
-        if specnum != 0:
-            sample = specimen[:specnum]
+        if sampname == "":
+            if specnum != 0:
+               sample = specimen[:specnum]
+            else:
+               sample = specimen
         else:
-            sample = specimen
+            sample=sampname
         if sitename:
             site = sitename
         else:
