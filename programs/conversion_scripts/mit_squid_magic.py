@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import sys,os
 import pandas as pd
 
@@ -8,7 +9,11 @@ def main():
         mit_squid_magic.py
 
     DESCRIPTION
-        converts 2019 SQUID files into a MagIC format measurement file
+        Converts 2019 SQUID files into a MagIC format measurement file.
+        This program currently supports only specimens from a single sample.  
+        Method codes are applied to all rows in each table. To add method codes
+        to individual rows, edit the MagIC file after this program creates it.
+         
 
     SYNTAX
         mit_squid_magic.py [command line options]
@@ -32,17 +37,11 @@ def main():
         -lithologies: specify lithologies. (":" between multiple entries) 
                       see https://www.earthref.org/vocabularies/controlled for list
 
-        -lat_n: specify north latitude of location bounding box.
+        -lat: specify the latitude of the site.  
 
-        -lat_s: specify south latitude of location bounding box. 
-                N and S can be the same for a point location.
+        -lon: specify longitude of the site.
 
-        -lon_w: specify west longitude of location bounding box.
-
-        -lon_e: specify east longitude of location bounding box. 
-                E and W can be the same for a point location.
-
-        -age: specify the age of the samples and location.
+        -age: specify the age of the site.
               One must have an age defined. age_low and age_high can be used in 
               addition to or in place of age.
 
@@ -50,7 +49,7 @@ def main():
 
         -age_low: specify the low bound for the age. 
 
-        -age_high: specify the hig bound for the age.
+        -age_high: specify the high bound for the age.
 
         -age_unit: specify the age unit. ka, Ma, Ga are some examples.
                    see https://www.earthref.org/vocabularies/controlled for list
@@ -59,20 +58,38 @@ def main():
                     will be associated with. Will be added when the data is published.
                     Use DOIs for other studies.
 
-        -site: site name for the sample that the scan slides were made from 
+        -site: site name for the sample that the scan slides were made from
 
-        -site_geologic_types: geologic types of the site. (":" between multiple entries)
+        -geologic_types: geologic types of the site. (":" between multiple entries)
         
         -sample: sample name from which the slides were made from
 
-        -method_codes: method_codes used at the site, sample, and specimen level
+        -loc_method_codes: method_codes used for all locations
                        (":" between multiple entries)
+                       Recommend
+
+        -site_method_codes: method_codes used for all sites
+                       (":" between multiple entries)
+                       Required
+
+        -samp_method_codes: method_codes used for all samples
+                       (":" between multiple entries)
+                       Required
+
+        -spec_method_codes: method_codes used for all specimens
+                       (":" between multiple entries)
+                       Required
+
+        -meas_method_codes: method_codes used for all measurements
+                       (":" between multiple entries)
+                       LP-SQUIDM will be automatically added to the SQUID microscopy measurements
+                       Required
 
         -instrument_codes: used to identify the insturment that made the measurement. 
                            Exact insturment name prefered, not type. 
                            (":" between multiple entries)
     
-        -z_pos: distance from the surface in meters. default:0
+        -z_pos: distance from the surface in micrometers. default:0
 
         -oe: flag to use cgs units for magnetic field strength(Oe) or mangnetic moment(emu) 
 
@@ -92,7 +109,7 @@ def main():
             self or e-mail ltauxe@ucsd.edu for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-      mit_squid_magic.py -location "Jack Hills" -location_type Outcrop -geologic_classes Metamorphic -lithologies Metaconglomerate -lat_n "-26" -lat_s "-26" -lon_w 117 -lon_e 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -method_codes "LP-SQUIDM:GM-UPB" -site_geologic_types "Single crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD magnetometer" -oe 
+      
 
     """
 
@@ -103,7 +120,6 @@ def main():
     if '-s' in sys.argv:
         ind=sys.argv.index('-s')
         sequence=int(sys.argv[ind+1])
-        print("-s =",sys.argv[ind+1])
     else:
         sequence=1
 
@@ -141,32 +157,18 @@ def main():
         print("The litothologies must be set with the -lithologies flag")
         exit()
    
-    if '-lat_n' in sys.argv:
-        ind=sys.argv.index('-lat_n')
-        lat_n=sys.argv[ind+1]
+    if '-lat' in sys.argv:
+        ind=sys.argv.index('-lat')
+        lat=sys.argv[ind+1]
     else:
-        print("The north latitude must be set with the -lat_n flag")
+        print("The latitude must be set with the -lat flag")
         exit()
    
-    if '-lat_s' in sys.argv:
-        ind=sys.argv.index('-lat_s')
-        lat_s=sys.argv[ind+1]
+    if '-lon' in sys.argv:
+        ind=sys.argv.index('-lon')
+        lon=sys.argv[ind+1]
     else:
-        print("The south latitude must be set with the -lat_s flag")
-        exit()
-   
-    if '-lon_w' in sys.argv:
-        ind=sys.argv.index('-lon_w')
-        lon_w=sys.argv[ind+1]
-    else:
-        print("The west longitude must be set with the -lon_w flag")
-        exit()
-   
-    if '-lon_e' in sys.argv:
-        ind=sys.argv.index('-lon_e')
-        lon_e=sys.argv[ind+1]
-    else:
-        print("The east longitude must be set with the -lon_e flag")
+        print("The longitude must be set with the -lon flag")
         exit()
    
     if '-age' in sys.argv:
@@ -207,12 +209,37 @@ def main():
         citations="This study"
         exit()
    
-    if '-method_codes' in sys.argv:
-        ind=sys.argv.index('-method_codes')
-        method_codes=sys.argv[ind+1]
+    if '-loc_method_codes' in sys.argv:
+        ind=sys.argv.index('-loc_method_codes')
+        loc_method_codes=sys.argv[ind+1]
     else:
-        print("The method codes must be set with the -method_codes flag. Set at least the geochronology(GM-) method code.")
-        exit()
+        loc_method_codes=""
+   
+    if '-site_method_codes' in sys.argv:
+        ind=sys.argv.index('-site_method_codes')
+        site_method_codes=sys.argv[ind+1]
+    else:
+        print("method code(s) for the site must be set with the -site_method_code flag")
+   
+    if '-samp_method_codes' in sys.argv:
+        ind=sys.argv.index('-samp_method_codes')
+        samp_method_codes=sys.argv[ind+1]
+    else:
+        print("method code(s) for the sample must be set with the -samp_method_code flag")
+        samp_method_codes=""
+   
+    if '-spec_method_codes' in sys.argv:
+        ind=sys.argv.index('-spec_method_codes')
+        spec_method_codes=sys.argv[ind+1]
+    else:
+        print("method code(s) for the specimen must be set with the -specimen_method_code flag")
+        spec_method_codes=""
+   
+    if '-meas_method_codes' in sys.argv:
+        ind=sys.argv.index('-meas_method_codes')
+        meas_method_codes=sys.argv[ind+1]
+    else:
+        meas_method_codes=""
    
     if '-instrument_codes' in sys.argv:
         ind=sys.argv.index('-instrument_codes')
@@ -226,11 +253,11 @@ def main():
     else:
         print("The site name must be set with the -site flag")
    
-    if '-site_geologic_types' in sys.argv:
-        ind=sys.argv.index('-site_geologic_types')
-        site_geologic_types=sys.argv[ind+1]
+    if '-geologic_types' in sys.argv:
+        ind=sys.argv.index('-geologic_types')
+        geologic_types=sys.argv[ind+1]
     else:
-        print("The site geologic types for the site name must be set with the -site_geologic_types flag")
+        print("The  geologic types must be set with the -geologic_types flag")
         exit()
    
     if '-sample' in sys.argv:
@@ -270,10 +297,39 @@ def main():
     os.system("rm -r measurements")
 
     dir_list=os.listdir()
-    print(sorted(dir_list))
+#    print(sorted(dir_list))
     slide_dir_list=[]
     image_dir_list=[]
     specimen_list=[]
+
+    # create locations table
+    df=pd.DataFrame(columns=["location","location_type","geologic_classes","lithologies","lat_n","lat_s","lon_w","lon_e","age_unit","citations","method_codes"],data=[[location,location_type,geologic_classes,lithologies,lat,lat,lon,lon,age_unit,citations,loc_method_codes]])
+    if age!="":
+        df["age"]=[age]
+    if age_high!="":
+        df["age_high"]=[age_high]
+    if age_low!="":
+        df["age_low"]=[age_low]
+    print(df)
+    df.to_csv("locations.txt",sep='\t',index=False)
+    add_head("locations")
+
+    # create sites table
+    df=pd.DataFrame(columns=["site","location","geologic_classes","geologic_types","lithologies","lat","lon","age_unit","citations","method_codes"],data=[[site,location,geologic_classes,geologic_types,lithologies,lat,lon,age_unit,citations,site_method_codes]])
+    if age!="":
+        df["age"]=[age]
+    if age_high!="":
+        df["age_high"]=[age_high]
+    if age_low!="":
+        df["age_low"]=[age_low]
+    print(df)
+    df.to_csv("sites.txt",sep='\t',index=False)
+    add_head("sites")
+
+    # create samples table
+    df=pd.DataFrame(columns=["sample","site","lat","lon","geologic_classes","geologic_types","lithologies","citations","method_codes"],data=[[sample,site,lat,lon,geologic_classes,geologic_types,lithologies,citations,samp_method_codes]])
+    df.to_csv("samples.txt",sep='\t',index=False)
+    add_head("samples")
 
     meas_file_num=1
     for dir in sorted(dir_list):
@@ -287,100 +343,39 @@ def main():
         slide_dir_list.append(dir+'/demag/')
         image_dir_list.append(dir+'/images/')
         specimen_list.append(dir)
-        print("specimen_list",specimen_list)
+#        print("specimen_list",specimen_list)
 
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + dir + '" -mcd ' + method_codes
+        if spec_method_codes == "":
+            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '"'
+        else:
+            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -mcd ' + spec_method_codes
         print(command)
         os.system(command)
 
-        # add info to locations table
-        df=pd.read_csv("locations.txt",sep="\t",header=1)
-        print(df)
-        df=update_column(df,"location_type",location_type)
-        df=update_column(df,"geologic_classes",geologic_classes)
-        df=update_column(df,"lithologies",lithologies)
-        df=update_column(df,"lat_n",lat_n)
-        df=update_column(df,"lat_s",lat_s)
-        df=update_column(df,"lon_w",lon_w)
-        df=update_column(df,"lon_e",lon_e)
-        if age!="":
-            df=update_column(df,"age",age)
-        if age_high!="":
-            df=update_column(df,"age_high",age_high)
-        if age_low!="":
-            df=update_column(df,"age_low",age_low)
-        df=update_column(df,"age_unit",age_unit)
-        df=update_column(df,"citations",citations)
-        df=update_column(df,"method_codes",method_codes)
-        print(df)
-
-        df.to_csv("locations.txt",sep='\t',index=False)
-        add_head("locations")
-        os.system("cp locations.txt ../..")
-
-        # add info to sites table
-        df=pd.read_csv("sites.txt",sep="\t",header=1)
-        print(df)
-        df=update_column(df,"geologic_classes",geologic_classes)
-        df=update_column(df,"lithologies",lithologies)
-        df=update_column(df,"geologic_types",site_geologic_types)
-        df=update_column(df,"lat",lat_n)
-        df=update_column(df,"lon",lon_w)
-        if age!="":
-            df=update_column(df,"age",age)
-        if age_high!="":
-            df=update_column(df,"age_high",age_high)
-        if age_low!="":
-            df=update_column(df,"age_low",age_low)
-        df=update_column(df,"age_unit",age_unit)
-        df=update_column(df,"method_codes",method_codes)
-        df=update_column(df,"citations",citations)
-        print(df)
-        df.to_csv("sites.txt",sep='\t',index=False)
-        add_head("sites")
-
-        # add info to samples table
-        df=pd.read_csv("samples.txt",sep="\t",header=1)
-        print(df)
-        df=update_column(df,"lat",lat_n)
-        df=update_column(df,"lon",lon_w)
-        df=append_column(df,"method_codes",method_codes)
-        df=update_column(df,"citations",citations)
-        df=update_column(df,"geologic_classes",geologic_classes)
-        df=update_column(df,"lithologies",lithologies)
-        df=update_column(df,"geologic_types",site_geologic_types)
-        print(df)
-        df.to_csv("samples.txt",sep='\t',index=False)
-        add_head("samples")
-
         # add info to specimens table
         df=pd.read_csv("specimens.txt",sep="\t",header=1)
-        print(df)
-        df=append_column(df,"method_codes",method_codes)
+        df=append_column(df,"method_codes",spec_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"geologic_classes",geologic_classes)
         df=update_column(df,"lithologies",lithologies)
-        df=update_column(df,"geologic_types",site_geologic_types)
-        print(df)
+        df=update_column(df,"geologic_types",geologic_types)
         df.to_csv("specimens.txt",sep='\t',index=False)
         add_head("specimens")
 
         # add info to measurements table
         df=pd.read_csv("measurements.txt",sep="\t",header=1)
-        print(df)
-        df=append_column(df,"method_codes",method_codes)
+        df=append_column(df,"method_codes",meas_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"instrument_codes",instrument_codes)
-        print(df)
         df.to_csv("measurements.txt",sep='\t',index=False)
         add_head("measurements")
 
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_file_num=convert_squid_data(specimen,citations,z_pos,meas_file_num)
+        meas_file_num,sequence=convert_squid_data(specimen,citations,z_pos,meas_file_num,meas_method_codes,sequence)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -398,28 +393,25 @@ def main():
     print("image dir list=",image_dir_list)
     os.mkdir("images")
     for dir in image_dir_list:
-#        os.system("rm " + dir + "images.txt")
         os.system("cp " + dir + "* images")
 
 #   Create files for combining into sites and samples tables for the image info
-    lat=lat_n
-    lon=lon_e 
     tab="\t"
-    geologic_types=site_geologic_types
+    geologic_types=geologic_types
 
     f=open("images/sites.txt","w")
     f.write("tab\tsites\n")
     f.write("site\tlocation\tlat\tlon\tcitations\tgeologic_classes\tlithologies\tage_high\tage_low\tage_unit\tmethod_codes\tgeologic_types\n")
-    f.write(site + tab + location + tab + lat + tab + lon + tab + citations + tab + geologic_classes + tab + lithologies + tab +age_high + tab + age_low + tab + age_unit + tab + method_codes + tab + geologic_types + "\n")
+    f.write(site + tab + location + tab + lat + tab + lon + tab + citations + tab + geologic_classes + tab + lithologies + tab +age_high + tab + age_low + tab + age_unit + tab + site_method_codes + tab + geologic_types + "\n")
     f.close()
 
     f=open("images/samples.txt","w")
     f.write("tab\tsamples\n")
     f.write("sample\tsite\tgeologic_classes\tgeologic_types\tlithologies\tcitations\tmethod_codes\tlat\tlon\n")
-    f.write(sample + tab + site + tab + geologic_classes + tab + geologic_types + tab + lithologies + tab + citations + tab + method_codes + tab + lat + tab + lon + "\n")
+    f.write(sample + tab + site + tab + geologic_classes + tab + geologic_types + tab + lithologies + tab + citations + tab + samp_method_codes + tab + lat + tab + lon + "\n")
     f.close()
 
-    print("Creating specimens header file for images")
+    print("Creating specimens header file for images specimens")
     f=open("images/specimens.txt","w")
     f.write("tab\tspecimens\n")
     f.write("specimen\tsample\tcitations\tmethod_codes\tgeologic_classes\tgeologic_types\tlithologies\n")
@@ -428,42 +420,39 @@ def main():
 #   Create files lists for combining the MagIC data files
 
     print("slide dir list=",slide_dir_list)
-    loc_files=""
-    site_files="images/sites.txt "
-    samp_files="images/samples.txt "
-    spec_files="images/specimens.txt "
+    site_files="sites.txt images/sites.txt "
+    samp_files="samples.txt images/samples.txt "
+    spec_files="specimens.txt images/specimens.txt "
     meas_files=""
     for dir in slide_dir_list:
-        print("dir=",dir)
-#        loc_files+=dir+"locations.txt "
-        site_files+=dir+"sites.txt "
-        samp_files+=dir+"samples.txt "
         spec_files+=dir+"specimens.txt "
         meas_files+=dir+"measurements.txt "
 
 #       Also add the specimen names for the scan slides to the specimen table
     for fdf in specimen_list:
         f=open("images/specimens.txt","a")
-        f.write(fdf + tab + sample + tab + citations + tab + method_codes + tab + geologic_classes + tab + geologic_types + tab + lithologies + "\n")
+        f.write(fdf + tab + sample + tab + citations + tab + spec_method_codes + tab + geologic_classes + tab + geologic_types + tab + lithologies + "\n")
         f.close()
 
-
-#    print('loc_files=',loc_files)
-#    os.system("combine_magic.py -F locations.txt -f " + loc_files)
-    os.system("combine_magic.py -F sites.txt -f " + site_files)
-    os.system("combine_magic.py -F samples.txt -f " + samp_files)
     os.system("combine_magic.py -F specimens.txt -f " + spec_files)
     os.system("combine_magic.py -F measurements.txt -f " + meas_files)
 
     os.system("upload_magic.py")
+
+#   Remove MagIC files
+    for dir in slide_dir_list:
+        os.system("rm " + dir + "locations.txt")
+        os.system("rm " + dir + "sites.txt")
+        os.system("rm " + dir + "samples.txt")
+        os.system("rm " + dir + "specimens.txt")
+        os.system("rm " + dir + "measurements.txt")
     os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
     os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
 
     print("end")   
     return()
 
-
-def convert_squid_data(specimen, citations, z_pos, meas_file_num):
+def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_codes,sequence):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   Each scan's data is put in a seperate measurements.txt file in its own directory.   
@@ -569,20 +558,16 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num):
         qdm_data=open(data_name,'r')
         line=qdm_data.readline() 
 #        print('First data line=',line)
-        y=0
+        y=y_start
         while line != "":
             values=line.split()
-            x=0
-            sequence=1
+            x=x_start
             for value in values:
-#                print('value=',value,' x=',x,' y=',y) 
-#                print('sequence=',sequence)
-#                if value == '':
-#                    value='0' 
-#                if value == '\t':
-#                    value='0' 
                 measurement=specimen+ '_' +file+ '_x' +str(x)+ '_y' +str(y)
-                measurement_line=measurement+ '\t' +specimen+ '_' +file+ '\t' +specimen+ '\t' +str(sequence)+ '\tu\tg\tLP-SQUIDM\t' +citations+ '\t' +str(float(value)*calibration_factor)+ '\t' +str(x*x_step)+ '\t' +str(y*y_step)+ '\t' +str(z_pos)+ '\t' +comment+ '\n'
+                if "LP-SQUIDM" in meas_method_codes:
+                    measurement_line=measurement+ '\t' +specimen+ '_' +file+ '\t' +specimen+ '\t' +str(sequence)+ '\tu\tg\t' +meas_method_codes+ '\t' +citations+ '\t' +str(float(value)*calibration_factor)+ '\t' +str(x*x_step)+ '\t' +str(y*y_step)+ '\t' +str(z_pos)+ '\t' +comment+ '\n'
+                else:
+                    measurement_line=measurement+ '\t' +specimen+ '_' +file+ '\t' +specimen+ '\t' +str(sequence)+ '\tu\tg\tLP-SQUIDM:' +meas_method_codes+ '\t' +citations+ '\t' +str(float(value)*calibration_factor)+ '\t' +str(x*x_step)+ '\t' +str(y*y_step)+ '\t' +str(z_pos)+ '\t' +comment+ '\n'
 #                print('measurement_line=',measurement_line) 
                 mf.write(measurement_line)
                 x+=1
@@ -591,15 +576,15 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num):
             line = qdm_data.readline() 
         qdm_data.close()
         mf.close()
-    return(meas_file_num)
+    return(meas_file_num,sequence)
 
 def update_column(df,column,value):
     #add the column with all the same values to a DataFrame
     column_values = []
     for i in df.iterrows():
         column_values.append(value)    
-    print ("column=", column)
-    print ("column_values=", column_values)
+#    print ("column=", column)
+#    print ("column_values=", column_values)
     df[column] = column_values
     return(df)
         
