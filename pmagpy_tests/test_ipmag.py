@@ -15,6 +15,7 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
 from pmagpy import convert_2_magic as convert
+from pmagpy import validate_upload3 as val_up3
 from pmag_env import set_env
 #from pmagpy import find_pmag_dir
 WD = pmag.get_test_WD()
@@ -157,6 +158,27 @@ class TestUploadMagic(unittest.TestCase):
         msg = "Validation of your upload file has failed.\nYou can still upload"
         self.assertTrue(error_message.startswith(msg))
         self.assertTrue(glob.glob("McMurdo*.txt"))
+
+    def test_with_images_good(self):
+        upfile = os.path.join(WD, 'data_files', 'testing', 'validation',
+                      "Jack-Hills_19.Apr.2020_4.txt")
+        ipmag.download_magic(upfile)
+        con = cb.Contribution()
+        fail = val_up3.validate_table(con, "images")
+        self.assertFalse(fail)
+
+    def test_with_images_bad(self):
+        upfile = os.path.join(WD, 'data_files', 'testing', 'validation',
+                              "Jack-Hills_19.Apr.2020_5.txt")
+        ipmag.download_magic(upfile)
+        con = cb.Contribution()
+        fail = val_up3.validate_table(con, "images")
+        self.assertTrue(fail)
+        if fail:
+            dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = fail
+            self.assertEqual(dtype, "images")
+            self.assertIn("Names", missing_groups)
+
 
 
 

@@ -368,16 +368,19 @@ def validate_df(df, dm, con=None):
                     required_one[arg] = [missing]
                 else:
                     required_one[arg].append(missing)
-        # format the group validation columns
-        for key, value in list(required_one.items()):
-            if None in value:
-                # this means at least one value from the required group is present,
-                # so the validation passes
-                continue
-            else:
-                # otherwise, all of the values from the required group are missing,
-                # so the validation fails
-                df["group_pass_{}".format(key)] = "you must have one column from group {}: {}".format(key, ", ".join(value))
+    # format the group validation columns
+    for key, value in list(required_one.items()):
+        if None in value:
+            col_name = "group_pass_{}".format(key)
+            if col_name in df.columns:
+                del df[col_name]
+            # this means at least one value from the required group is present,
+            # so the validation passes
+            continue
+        else:
+            # otherwise, all of the values from the required group are missing,
+            # so the validation fails
+            df["group_pass_{}".format(key)] = "you must have one column from group {}: {}".format(key, ", ".join(value))
 
     return df
 
