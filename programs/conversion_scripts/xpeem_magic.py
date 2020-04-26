@@ -83,7 +83,7 @@ def main():
         file_list.remove('.DS_Store')
     experiment_num=1
     os.system('mkdir measurements')
-    for file in file_list:
+    for file in sorted(file_list):
         experiment_name=file[:-4]
         print("file=",file)
         specimen=file.split('-')
@@ -103,7 +103,7 @@ def main():
         if ',' in line:
             split_char=','
         elif '\t' in line:
-            split_char='/'
+            split_char='\t'
         elif '  ' in line:
             split_char='  '
         else:
