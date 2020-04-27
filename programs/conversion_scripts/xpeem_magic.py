@@ -10,6 +10,7 @@ def main():
     DESCRIPTION
         Converts XPEEM measurement files into a MagIC format measurement file
         Run in the same directory as the XPEEM files and no other files should be present 
+        The measurement files will be put in a directory named "measurements".
 
     SYNTAX
         xpeem_magic_measurements.py [command line options]
@@ -20,6 +21,9 @@ def main():
         -y_spacing: set the y_spacing of the measurement in meters.
         -sequence: set the starting measurement sequence number. default:1
         -meas_num: set the starting measurement name number. default:1
+        -experiment_num: set the starting expiriment number. default:1
+                         This is the number that is used for labeling the measurement file.
+                         e.g., measurement1.txt, measurement2.txt, etc.
 
         -citations: list of citations (":" between entries). default: "This study". 
                     "This study" can be used for the study this MagIC contribution 
@@ -62,6 +66,11 @@ def main():
         meas_num=int(sys.argv[ind+1])
     else:
         meas_num=1
+    if '-experiment_num' in sys.argv:
+        ind=sys.argv.index('-experiment_num')
+        experiment_num=int(sys.argv[ind+1])
+    else:
+        experiment_num=1
     if '-citations' in sys.argv:
         ind=sys.argv.index('-citations')
         citations=sys.argv[ind+1]
@@ -81,7 +90,6 @@ def main():
     file_list=os.listdir()
     if '.DS_Store' in file_list:
         file_list.remove('.DS_Store')
-    experiment_num=1
     os.system('mkdir measurements')
     for file in sorted(file_list):
         experiment_name=file[:-4]
