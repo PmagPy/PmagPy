@@ -81,8 +81,8 @@ def main():
     if '-method_codes' in sys.argv:
         ind=sys.argv.index('-method_codes')
         method_codes=sys.argv[ind+1]
-    if 'LP-XPEEM' not in method_codes:
-        method_codes=method_codes+':LP-XPEEM'
+        if 'LP-XPEEM' not in method_codes:
+           method_codes=method_codes+':LP-XPEEM'
     else:
         method_codes='LP-XPEEM'
     
