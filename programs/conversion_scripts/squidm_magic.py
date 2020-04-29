@@ -556,7 +556,6 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
 
         experiment_name=file.split('.')
         experiment_name=experiment_name[0]
-        exit()
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_file_num)+'.txt','w')
