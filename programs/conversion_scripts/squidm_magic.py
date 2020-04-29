@@ -107,7 +107,7 @@ def main():
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-      squid_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD magnetometer" -oe -z_pos 10.0 
+      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD magnetometer" -oe -z_pos 10.0 
 
       
 
@@ -554,7 +554,9 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         print ("comment=",comment)
         line=info.readline() 
 
-        experiment_name=specimen+'_'+file
+        experiment_name=file.split('.')
+        experiment_name=experiment_name[0]
+        exit()
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_file_num)+'.txt','w')
