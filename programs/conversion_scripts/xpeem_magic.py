@@ -20,7 +20,7 @@ def main():
         -x_spacing: set the x_spacing of the measurement in meters.
         -y_spacing: set the y_spacing of the measurement in meters.
         -sequence: set the starting measurement sequence number. default:1
-        -meas_num: set the starting measurement name number. default:1
+        -meas_num: set the starting measurement name number. default:sequence starting value
         -experiment_num: set the starting expiriment number. default:1
                          This is the number that is used for labeling the measurement file.
                          e.g., measurement1.txt, measurement2.txt, etc.
@@ -65,7 +65,7 @@ def main():
         ind=sys.argv.index('-meas_num')
         meas_num=int(sys.argv[ind+1])
     else:
-        meas_num=1
+        meas_num=sequence
     if '-experiment_num' in sys.argv:
         ind=sys.argv.index('-experiment_num')
         experiment_num=int(sys.argv[ind+1])

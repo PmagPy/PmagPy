@@ -2,6 +2,7 @@
 
 import sys,os
 import pandas as pd
+import re
 
 def main():
     """
@@ -24,6 +25,8 @@ def main():
                       otherwise current directory is used.
 
         -s: set the starting measurement sequence number. Default:1
+
+        -meas_num: set the starting measurement name number. Default:sequence number
 
         -location: specify location/study name
 
@@ -92,7 +95,7 @@ def main():
 
         -oe: flag to use cgs units for magnetic field strength(Oe) or mangnetic moment(emu) 
 
-        -ncn NCON: specify naming convention.
+        -ncn NCON: specify naming convention for the CIT sample files.
 
       Sample naming convention (NCON): 
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -107,10 +110,8 @@ def main():
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD magnetometer" -oe -z_pos 10.0 
-
-      
-
+      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD microscope" -oe 
+    
     """
 
     if '-h' in sys.argv: # check if help is needed
@@ -122,6 +123,12 @@ def main():
         sequence=int(sys.argv[ind+1])
     else:
         sequence=1
+
+    if '-meas_num' in sys.argv:
+        ind=sys.argv.index('-meas_num')
+        meas_num=int(sys.argv[ind+1])
+    else:
+        meas_num=sequence
 
     if '-d' in sys.argv:
         ind=sys.argv.index('-d')
@@ -468,14 +475,12 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
     for file in sorted(file_list):
         if file[0] == '.':   # skip . files added by MacOS
             continue
-        print('file=',file)
         if '.inf' in file:       # do processing on both files in the .bz loop as we need data in both to create the measurements file
             continue
 
+        print('file=',file)
         data_name=file
         info_name=file[:-3]+ '.inf'
-        print('info_name=',info_name)
-        print('info_name=',info_name)
 
 #   Parse the .inf file
         info = open(info_name, encoding="utf8", errors='ignore') # data files have some non-utf8 characters that are ignored    
@@ -571,18 +576,25 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
 
         mf.write('measurement\tsequence\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
         print('meas_file_num=', meas_file_num)
+        print('')
         meas_file_num+=1
 
+        prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z") #for rounding
+        
         qdm_data=open(data_name,'r')
         line=qdm_data.readline() 
 #        print('First data line=',line)
         y=y_start
         while line != "":
+            str_y=stringify(y*y_step)
+            str_y=remove_extra_digits(str_y, prog)
             values=line.split()
             x=x_start
             for value in values:
                 measurement=sequence
-                measurement_line=str(measurement)+'\t'+str(sequence)+'\t'+str(float(value)*calibration_factor)+'\t'+str(x*x_step)+'\t'+str(y*y_step)+'\n'
+                str_x=stringify(x*x_step)
+                str_x=remove_extra_digits(str_x, prog)
+                measurement_line=str(measurement)+'\t'+str(sequence)+'\t'+str(float(value)*calibration_factor)+'\t'+str_x+'\t'+str_y+'\n'
 #                print('measurement_line=',measurement_line) 
                 mf.write(measurement_line)
                 x+=1
@@ -611,7 +623,6 @@ def append_column(df,column,value):
 
 def add_head(table):
     # Add the the magic file format header to a data file given the table name
-    # Needed because I stopped trying to find a way to keep multiple header lines using pandas
     
     file_name=table+".txt" 
     f=open(file_name,"r")
@@ -622,6 +633,61 @@ def add_head(table):
     f.write(f_after)
     f.close()
 
+def stringify(x):
+    # float --> string,
+    # truncating floats like 3.0 --> 3
+    if isinstance(x, float):
+        if x.is_integer():
+            #print('{} --> {}'.format(x, str(x).rstrip('0').rstrip('.')))
+            return str(x).rstrip('0').rstrip('.')
+        return(str(x))
+    # keep strings as they are,
+    # unless it is a string like "3.0",
+    # in which case truncate that too
+    if isinstance(x, str):
+        try:
+            float(x)
+            if x.endswith('0'):
+                if x.rstrip('0').endswith('.'):
+                    #print('{} --> {}'.format(x, x.rstrip('0').rstrip('.')))
+                    return x.rstrip('0').rstrip('.')
+        except (ValueError, TypeError):
+            pass
+    # integer --> string
+    if isinstance(x, int):
+        return str(x)
+    # if it is not int/str/float, just return as is
+    return x
+
+def remove_extra_digits(x, prog):
+    """
+    Remove extra digits
+    x is a string,
+    prog is always the following '_sre.SRE_Pattern':
+    prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z").
+    However, it is compiled outside of this sub-function
+    for performance reasons.
+    """
+    if not isinstance(x, str):
+        return x
+    result = prog.match(x)
+    if result:
+        decimals = result.string.split('.')[1]
+        result = result.string
+        if decimals[-3] == '0':
+            result = x[:-2].rstrip('0')
+        if decimals[-3] == '9':
+            result = x[:-2].rstrip('9')
+            try:
+                last_digit = int(result[-1])
+                result = result[:-1] + str(last_digit + 1)
+            except ValueError:
+                result = float(result[:-1]) + 1
+        #if result != x:
+        #    print('changing {} to {}'.format(x, result))
+        return result
+    return x
+    
 def do_help():
     """
     returns help string of script
