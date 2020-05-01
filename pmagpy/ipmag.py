@@ -5934,7 +5934,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
 #
         # get magnetic declination (corrected with igrf value)
         if dec_correction_con == 1 and MagRec['sample_azimuth'] != "":
-            x, y, z, f = pmag.doigrf(lon, lat, 0, decimal_year)
+            try:
+                x, y, z, f = pmag.doigrf(lon, lat, 0, decimal_year)
+            except TypeError: # see issue 617
+                return None, "Only dates prior to 2020 supported"
             Dir = pmag.cart2dir((x, y, z))
             dec_correction = Dir[0]
         if "bedding_dip" in list(OrRec.keys()):

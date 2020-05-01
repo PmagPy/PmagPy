@@ -3019,11 +3019,11 @@ class OrientFrameGrid3(wx.Frame):
                                                          output_dir_path=self.WD, append=append, data_model=3)
 
         if not success:
-            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
-            print("-E- ERROR: Error in running orientation_magic.py")
+            print("-E- ERROR: Error in running orientation_magic")
             return
         else:
             dlg2 = wx.MessageDialog(None,caption="Message:", message="-I- Successfully ran orientation_magic", style=wx.OK|wx.ICON_INFORMATION)
