@@ -88,7 +88,7 @@ def main():
         file = sys.argv[ind+1]
         inp = numpy.loadtxt(file)
     elif '-i' in sys.argv:
-        while 1:
+        while True:
             try:
                 line = []
                 if mod != 'custom':

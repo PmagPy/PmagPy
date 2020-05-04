@@ -7408,8 +7408,8 @@ def sortmwarai(datablock, exp_type):
             powt = int(float(irec["treatment_mw_energy"]))
             ThetaChecks.append([powt, theta1 + theta2])
             p = (180. - (theta1 + theta2))
-            nstr = rstr * (old_div(np.sin(theta2 * rad), np.sin(p * rad)))
-            tmstr = rstr * (old_div(np.sin(theta1 * rad), np.sin(p * rad)))
+            nstr = rstr * (np.sin(theta2 * rad)/np.sin(p * rad))
+            tmstr = rstr * (np.sin(theta1 * rad)/np.sin(p * rad))
             first_Z.append([powt, ndec, ninc, nstr, 1])
             first_I.append([powt, dec, inc, tmstr, 1])
 # check if zero field steps are parallel to assumed NRM
@@ -7598,15 +7598,13 @@ def doigrf(lon, lat, alt, date, **kwargs):
             incr = 50
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(int(model))]
-        sv = old_div(
-            (psvcoeffs[psvmodels.index(int(model + incr))] - gh), float(incr))
+        sv = psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < -1000:
         incr = 10
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(int(model))]
-        sv = old_div(
-            (psvcoeffs[psvmodels.index(int(model + incr))] - gh), float(incr))
+        sv = psvcoeffs[psvmodels.index(int(model + incr))] - gh)/float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < 1900:
         if kwargs['mod'] == 'cals10k':
@@ -7628,12 +7626,9 @@ def doigrf(lon, lat, alt, date, **kwargs):
             sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
         else:
-            print ('only dates prior to 2020 supported')
-            return
-            #gh = igrf13coeffs[models.index(2020)]
-            #sv = igrf13coeffs[models.index(2020.2)]
-            #sv=np.zeros(len(gh))
-            #x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+            gh = igrf13coeffs[models.index(2020)]
+            sv = np.array(igrf13coeffs[models.index(2020.2)])
+            x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
     else:
