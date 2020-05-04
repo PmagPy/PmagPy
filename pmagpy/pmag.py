@@ -7598,13 +7598,13 @@ def doigrf(lon, lat, alt, date, **kwargs):
             incr = 50
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(int(model))]
-        sv = psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
+        sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < -1000:
         incr = 10
         model = date - date % incr
         gh = psvcoeffs[psvmodels.index(int(model))]
-        sv = psvcoeffs[psvmodels.index(int(model + incr))] - gh)/float(incr)
+        sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/float(incr)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     elif date < 1900:
         if kwargs['mod'] == 'cals10k':
