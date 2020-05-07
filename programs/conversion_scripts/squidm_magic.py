@@ -3,6 +3,7 @@
 import sys,os
 import pandas as pd
 import re
+import math
 
 def main():
     """
@@ -110,7 +111,7 @@ def main():
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD microscope" -oe 
+     squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD microscope" -oe 
     
     """
 
@@ -285,7 +286,7 @@ def main():
         ind=sys.argv.index('-z_pos')
         z_pos=float(sys.argv[ind+1])*1e-6
     else:
-        z_pos=0
+        z_pos=float('nan')
    
     if '-ncn' in sys.argv:
         ind=sys.argv.index('-ncn')
@@ -571,7 +572,8 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         mf.write('* quality\tg\n')
         mf.write('* method_codes\t'+meas_method_codes+'\n')
         mf.write('* citations\t'+citations+'\n')
-        mf.write('* meas_pos_z\t'+str(z_pos)+'\n')
+        if math.isnan(z_pos) is False:
+            mf.write('* meas_pos_z\t'+str(z_pos)+'\n')
         mf.write('* description\t'+comment+'\n')
 
         mf.write('measurement\tsequence\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
@@ -594,7 +596,17 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
                 measurement=sequence
                 str_x=stringify(x*x_step)
                 str_x=remove_extra_digits(str_x, prog)
-                measurement_line=str(measurement)+'\t'+str(sequence)+'\t'+str(float(value)*calibration_factor)+'\t'+str_x+'\t'+str_y+'\n'
+                value=float(value)*calibration_factor #fix rounding problems with zeros
+                str_value=str(value)
+                if 'e' in str_value: 
+                    split_value=str_value.split('e')
+                    str_val_num=split_value[0]
+                    if '0000000' in str_value:
+                        str_val_num_split=str_val_num.split('0000000')
+                        if str_val_num_split[1] == '': str_val_num_split[1]='0'
+                        if int(str_val_num_split[1]) < 10:
+                            str_value=str_val_num_split[0]+'e'+ split_value[1]
+                measurement_line=str(measurement)+'\t'+str(sequence)+'\t'+str_value+'\t'+str_x+'\t'+str_y+'\n'
 #                print('measurement_line=',measurement_line) 
                 mf.write(measurement_line)
                 x+=1
