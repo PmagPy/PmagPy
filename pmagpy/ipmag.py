@@ -2034,7 +2034,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
 
 
 def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
-                        colormap='viridis', edgecolor='k', marker='o', markersize='20',
+                        colormap='viridis', edgecolor='k', marker='o', markersize=20,
                         alpha=1.0, colorbar=True, colorbar_label='pole age (Ma)'):
     """
     This function plots multiple paleomagnetic pole and A95 error ellipse on a cartopy map axis.
