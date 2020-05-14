@@ -19,8 +19,7 @@ def main():
         -h: prints the help message and quits.
         -x_spacing: set the x_spacing of the measurement in meters.
         -y_spacing: set the y_spacing of the measurement in meters.
-        -sequence: set the starting measurement sequence number. default:1
-        -meas_num: set the starting measurement name number. default:sequence starting value
+        -meas_num: set the starting measurement name number. default:1
         -experiment_num: set the starting expiriment number. default:1
                          This is the number that is used for labeling the measurement file.
                          e.g., measurement1.txt, measurement2.txt, etc.
@@ -56,16 +55,11 @@ def main():
     else:
         print("the -y_spacing flag must be set")
         exit()
-    if '-sequence' in sys.argv:
-        ind=sys.argv.index('-sequence')
-        sequence=int(sys.argv[ind+1])
-    else:
-        sequence=1
     if '-meas_num' in sys.argv:
         ind=sys.argv.index('-meas_num')
         meas_num=int(sys.argv[ind+1])
     else:
-        meas_num=sequence
+        meas_num=1
     if '-experiment_num' in sys.argv:
         ind=sys.argv.index('-experiment_num')
         experiment_num=int(sys.argv[ind+1])
@@ -105,7 +99,7 @@ def main():
         mf.write('* method_codes\t'+ method_codes+'\n')
         mf.write('* citations\t'+ citations+'\n')
         mf.write('* derived_value\t'+ 'XPEEM,*,10.1088/1742-6596/430/1/012127\n')
-        mf.write('measurement\tsequence\tderived_value\tmeas_pos_x\tmeas_pos_y\n')
+        mf.write('measurement\tderived_value\tmeas_pos_x\tmeas_pos_y\n')
         xf=open(file,'r') 
         line = xf.readline() 
         if ',' in line:
@@ -123,14 +117,9 @@ def main():
             values=line.split(split_char)
             x=0
             for value in values:
-#                print('value=',value,' x=',x,' y=',y) 
-#                print('sequence=',sequence)
-#                print('x=',x)
-                mline=str(meas_num)+'\t' +str(sequence)+'\t'+value+'\t'+str(x*x_spacing)+'\t'+str(y*y_spacing)+'\n'
+                mline=str(meas_num)+'\t'+value+'\t'+str(x*x_spacing)+'\t'+str(y*y_spacing)+'\n'
                 mf.write(mline)
-#                print('mline=',mline) 
                 x+=1
-                sequence+=1
                 meas_num+=1
             y+=1
             line = xf.readline() 
