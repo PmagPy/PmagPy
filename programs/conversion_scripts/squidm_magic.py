@@ -8,13 +8,43 @@ import math
 def main():
     """
     NAME
-        squid_magic.py
+        squidm_magic.py
     DESCRIPTION
         Converts SQUID microscopy files into a MagIC format measurement file.
         This program currently supports only specimens from a single sample.  
         Method codes are applied to all rows in each table. To add method codes
         to individual rows, edit the MagIC file after this program creates it.
-         
+        
+        This program requires a specific directory/file structure to function.
+        The top directory should contain directories named for each of the SQUID
+        microscopy scan groups. This name will be used as the specimen name in
+        the MagIC specimen table that is created by this program. In each scan
+        directory there should directories labeled "demag", "data", "images". The
+        data directory should contain the .bz and .inf files for each SQUID
+        microscopy scan. The .bz and .inf files must have the same name. The 
+        demag directory should have a .sam file that has the same name as the
+        name of the directory 2 levels up. That is, if the main dirctory is ZirconRun2,
+        then the .sam file should be named ZirconRun2.sam. There should also be
+        the CIT formatted files with the model demag data in them along with an 
+        associated _fits.txt file that has information about how well the model
+        dipole fits the data. In the images directory should be any human viewable
+        image files that will be uploaded to MagIC along with the data. .jpg, .png,
+        .gif, .pdf, etc type files.
+
+        Example file directory tree:
+        ZirconRun1 -- (file hierarchy) 
+        ZirconRun2 -- data -- run2N_140C_100k.bz
+                           -- run2N_140C_100k.inf
+                           -- run2N_173C_100k.bz
+                           -- run2N_173C_100k.inf
+                   -- demag -- 57-1-3
+                            -- 57-1-3_fits.txt
+                            -- 57-19-12
+                            -- 57-19-12_fits.txt
+                            -- ZirconRun2.sam
+                   -- images -- run2N_140C_100k.pdf
+                             -- run2S_89G_1M.pdf
+        ZirconRun3 -- (file hierarchy)
 
     SYNTAX
         mit_squid_magic.py [command line options]
@@ -22,12 +52,7 @@ def main():
     OPTIONS
         -h: prints the help message and quits.
 
-        -d DIRECTORY: specify directory where the slide folders are located, 
-                      otherwise current directory is used.
-
-        -s: set the starting measurement sequence number. Default:1
-
-        -meas_num: set the starting measurement name number. Default:sequence number
+        -meas_name_num: set the starting number for the measurement name. Default:1
 
         -location: specify location/study name
 
@@ -85,8 +110,8 @@ def main():
 
         -meas_method_codes: method_codes used for all measurements
                        (":" between multiple entries)
-                       LP-SQUIDM will be automatically added to the SQUID microscopy measurements
-                       Required
+                       LP-SQUIDM will be automatically added to the measurements method
+                       code list if not already in the provided list of codes
 
         -instrument_codes: used to identify the insturment that made the measurement. 
                            Exact insturment name prefered, not type. 
@@ -119,23 +144,11 @@ def main():
         print(main.__doc__)
         sys.exit() # graceful quit
 
-    if '-s' in sys.argv:
-        ind=sys.argv.index('-s')
-        sequence=int(sys.argv[ind+1])
+    if '-meas_name_num' in sys.argv:
+        ind=sys.argv.index('-meas_name_num')
+        meas_name_num=int(sys.argv[ind+1])
     else:
-        sequence=1
-
-    if '-meas_num' in sys.argv:
-        ind=sys.argv.index('-meas_num')
-        meas_num=int(sys.argv[ind+1])
-    else:
-        meas_num=sequence
-
-    if '-d' in sys.argv:
-        ind=sys.argv.index('-d')
-        dir_name=sys.argv[ind+1]
-    else:
-        dir_name="."
+        meas_name_num=1
 
     if '-location' in sys.argv:
         ind=sys.argv.index('-location')
@@ -386,7 +399,7 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_file_num,sequence=convert_squid_data(specimen,citations,z_pos,meas_file_num,meas_method_codes,sequence)
+        meas_file_num,meas_name_num=convert_squid_data(specimen,citations,z_pos,meas_file_num,meas_method_codes,meas_name_num)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -463,7 +476,7 @@ def main():
     print("end")   
     return()
 
-def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_codes,sequence):
+def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_codes,meas_name_num):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -576,7 +589,7 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
             mf.write('* meas_pos_z\t'+str(z_pos)+'\n')
         mf.write('* description\t'+comment+'\n')
 
-        mf.write('measurement\tsequence\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
+        mf.write('measurement\ttmagn_z\tmeas_pos_x\tmeas_pos_y\n')
         print('meas_file_num=', meas_file_num)
         print('')
         meas_file_num+=1
@@ -585,18 +598,17 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         
         qdm_data=open(data_name,'r')
         line=qdm_data.readline() 
-#        print('First data line=',line)
         y=y_start
         while line != "":
             str_y=stringify(y*y_step)
-            str_y=remove_extra_digits(str_y, prog)
+            str_y=remove_extra_digits(str_y, prog) #fix float to str problems
             values=line.split()
             x=x_start
             for value in values:
-                measurement=sequence
                 str_x=stringify(x*x_step)
                 str_x=remove_extra_digits(str_x, prog)
-                value=float(value)*calibration_factor #fix rounding problems with zeros
+                value=float(value)*calibration_factor 
+# fix rounding problems with exponentials and zeros
                 str_value=str(value)
                 if 'e' in str_value: 
                     split_value=str_value.split('e')
@@ -606,16 +618,15 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
                         if str_val_num_split[1] == '': str_val_num_split[1]='0'
                         if int(str_val_num_split[1]) < 10:
                             str_value=str_val_num_split[0]+'e'+ split_value[1]
-                measurement_line=str(measurement)+'\t'+str(sequence)+'\t'+str_value+'\t'+str_x+'\t'+str_y+'\n'
-#                print('measurement_line=',measurement_line) 
+                measurement_line=str(meas_name_num)+'\t'+str_value+'\t'+str_x+'\t'+str_y+'\n'
                 mf.write(measurement_line)
                 x+=1
-                sequence+=1
+                meas_name_num+=1
             y+=1
             line = qdm_data.readline() 
         qdm_data.close()
         mf.close()
-    return(meas_file_num,sequence)
+    return(meas_file_num,meas_name_num)
 
 def update_column(df,column,value):
     #add the column with all the same values to a DataFrame
