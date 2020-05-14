@@ -9,7 +9,12 @@ def main():
 
     DESCRIPTION
         Converts XPEEM measurement files into a MagIC format measurement file
-        Run in the same directory as the XPEEM files and no other files should be present 
+        Run in the same directory as the XPEEM files and no other files should be present.
+        File names should be in the form of SPECIMEN_NAME-XPEEM_TYPE
+        For example: TeA01-r1offR 
+        The program will label the measurement is from specimen TeA01 and
+        the experiment name will be TeA01-r1offR
+
         The measurement files will be put in a directory named "measurements".
 
     SYNTAX
@@ -17,8 +22,8 @@ def main():
 
     OPTIONS
         -h: prints the help message and quits.
-        -x_spacing: set the x_spacing of the measurement in meters.
-        -y_spacing: set the y_spacing of the measurement in meters.
+        -x_spacing: set the x_spacing of the measurement in meters. Required
+        -y_spacing: set the y_spacing of the measurement in meters. Required
         -meas_num: set the starting measurement name number. default:1
         -experiment_num: set the starting expiriment number. default:1
                          This is the number that is used for labeling the measurement file.
