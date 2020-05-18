@@ -8169,7 +8169,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     plt.plot(Is, Es, 'r')
     plt.xlabel("Inclination")
     plt.ylabel("Elongation")
-    plt.text(Inc, Elong, ' %3.1f' % (flat_f))
+    plt.text(Inc, Elong, ' %4.2f' % (flat_f))
     plt.text(Is[0] - 2, Es[0], ' %s' % ('f=1'))
 
     b = 0

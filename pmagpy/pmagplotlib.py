@@ -2792,7 +2792,7 @@ def plot_ei(fignum, E, I, f):
         plt.xlabel("Inclination")
         plt.ylabel("Elongation")
         EI_plot_num += 1
-        plt.text(I[-1], E[-1], ' %3.1f' % (f))
+        plt.text(I[-1], E[-1], ' %4.2f' % (f))
         plt.text(I[0] - 2, E[0], ' %s' % ('f=1'))
     elif f == 1:
         plt.plot(I, E, 'g-')
