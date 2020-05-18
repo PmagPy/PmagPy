@@ -1793,7 +1793,9 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
     return ax
 
 
-def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
+              marker='o', markersize=20, legend='no',
+              filled_pole=False, fill_color='k', fill_alpha=1.0):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -1817,11 +1819,14 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
 
     Optional Parameters (defaults are used if not specified)
     -----------
-    color : the default color is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    color : symbol color; the default color is black. Other colors can be chosen (e.g. 'r')
+    marker : the default marker is a circle. Other symbols can be chosen (e.g. 's')
     markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    filled_pole : if True, the A95 ellipse will be filled with color
+    fill_color : color of fill; the default is black.
+    fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole')
@@ -1830,51 +1835,17 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
-    equi(map_axis, plon, plat, A95_km, color)
+    if filled_pole==False:
+        equi(map_axis, plon, plat, A95_km, color)
+    elif filled_pole==True:
+        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
 
 
-def plot_pole_filled(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no', fill_color='k', fill_alpha=1.0):
-    """
-    This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
-
-    Identical to plot_pole(), except the error ellipse will be filled.
-
-    Before this function is called, a plot needs to be initialized with code
-    such as that in the make_orthographic_map function.
-
-    Required Parameters
-    -----------
-    map_axis : the name of the current map axis that has been developed using cartopy
-    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
-    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
-    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-
-    Optional Parameters (defaults are used if not specified)
-    -----------
-    color : the default color is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
-    markersize : the default is 20. Other size can be chosen
-    label : the default is no label. Labels can be assigned.
-    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
-    fill_color : the default is black. Other colors can be chosen (e.g. 'r').
-    fill_alpha : the default is 1.0. The facecolor of the filled ellipse will
-                 have this alpha.
-    """
-    if not has_cartopy:
-        print('-W- cartopy must be installed to run ipmag.plot_pole')
-        return
-    A95_km = A95 * 111.32
-    map_axis.scatter(plon, plat, marker=marker,
-                     color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.Geodetic())
-    equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, fill=True)
-    if legend == 'yes':
-        plt.legend(loc=2)
-
-
-def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
+               marker='o', markersize=20, legend='no',
+               filled_pole=False, fill_color='k', fill_alpha=1.0):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -1912,64 +1883,33 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
     markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    filled_pole : if True, the A95 ellipse will be filled with color
+    fill_color : color of fill; the default is black.
+    fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
     """
 
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
-    if isinstance(color,str)==True:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, color)
-    else:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, color[n])
-    if legend == 'yes':
-        plt.legend(loc=2)
+    if filled_pole==False:
+        if isinstance(color,str)==True:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, color)
+        else:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, color[n])
+    elif filled_pole==True:
+        if isinstance(fill_color,str)==True:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, fill=True)
+        else:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, fill=True)
 
-
-def plot_poles_filled(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no', fill_alpha=1.0, fill_color='k'):
-    """
-    This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
-
-    Identical to plot_poles(), except the error ellipses will be filled.
-
-    Before this function is called, a plot needs to be initialized with code
-    such as that in the make_orthographic_map function.
-
-    Required Parameters
-    -----------
-    map_axis : the name of the current map axis that has been developed using cartopy
-    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
-    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
-    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-
-    Optional Parameters (defaults are used if not specified)
-    -----------
-    color : the default color is black. Other colors can be chosen (e.g. 'r')
-            a list of colors can also be given so that each pole has a distinct color
-    edgecolor : the default edgecolor is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
-    markersize : the default is 20. Other size can be chosen
-    label : the default is no label. Labels can be assigned.
-    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
-    fill : the default is False. If True, the error ellipse will be filled.
-    fill_alpha : the default is 1.0. If fill==True, the facecolor of the filled
-                 ellipse will have this alpha.
-    """
-
-    map_axis.scatter(plon, plat, marker=marker,
-                     color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.Geodetic())
-    if isinstance(fill_color,str)==True:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, fill=True)
-    else:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
 
