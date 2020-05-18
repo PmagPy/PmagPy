@@ -1793,7 +1793,9 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
     return ax
 
 
-def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
+              marker='o', markersize=20, legend='no',
+              filled_pole=False, fill_color='k', fill_alpha=1.0):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -1817,11 +1819,14 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
 
     Optional Parameters (defaults are used if not specified)
     -----------
-    color : the default color is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    color : symbol color; the default color is black. Other colors can be chosen (e.g. 'r')
+    marker : the default marker is a circle. Other symbols can be chosen (e.g. 's')
     markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    filled_pole : if True, the A95 ellipse will be filled with color
+    fill_color : color of fill; the default is black.
+    fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole')
@@ -1830,12 +1835,17 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', mar
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
-    equi(map_axis, plon, plat, A95_km, color)
+    if filled_pole==False:
+        equi(map_axis, plon, plat, A95_km, color)
+    elif filled_pole==True:
+        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
 
 
-def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', marker='o', markersize=20, legend='no'):
+def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
+               marker='o', markersize=20, legend='no',
+               filled_pole=False, fill_color='k', fill_alpha=1.0):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -1873,19 +1883,33 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k', ma
     markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    filled_pole : if True, the A95 ellipse will be filled with color
+    fill_color : color of fill; the default is black.
+    fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
     """
 
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=101, transform=ccrs.Geodetic())
-    if isinstance(color,str)==True:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, color)
-    else:
-        for n in range(0,len(A95)):
-            A95_km = A95[n] * 111.32
-            equi(map_axis, plon[n], plat[n], A95_km, color[n])
+    if filled_pole==False:
+        if isinstance(color,str)==True:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, color)
+        else:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, color[n])
+    elif filled_pole==True:
+        if isinstance(fill_color,str)==True:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, fill=True)
+        else:
+            for n in range(0,len(A95)):
+                A95_km = A95[n] * 111.32
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, fill=True)
+
     if legend == 'yes':
         plt.legend(loc=2)
 
@@ -2536,11 +2560,23 @@ def shoot(lon, lat, azimuth, maxdist=None):
     return (glon2, glat2, baz)
 
 
-def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
+def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, fill=False):
     """
     This function enables A95 error ellipses to be drawn in cartopy around
     paleomagnetic poles in conjunction with shoot
     (modified from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
+
+    Parameters
+    -----------
+    map_axis : cartopy axis
+    centerlon : longitude of the center of the ellipse
+    centerlat : latitude of the center of the ellipse
+    radius : radius of ellipse (in degrees)
+    color : color of ellipse
+    alpha : transparency - if filled, the transparency will only apply
+            to the facecolor of the ellipse
+    fill : boolean specifying if the ellipse should be plotted as a filled polygon or
+           as a set of line segments
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.equi')
@@ -2555,9 +2591,27 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0):
         Y.append(glat2)
     X.append(X[0])
     Y.append(Y[0])
+    X = X[::-1]
+    Y = Y[::-1]
 
-    plt.plot(X[::-1], Y[::-1], color=color,
-             transform=ccrs.Geodetic(), alpha=alpha)
+    # for non-filled ellipses
+    if fill==False:
+        plt.plot(X, Y, color=color,
+                 transform=ccrs.Geodetic(), alpha=alpha)
+
+    # for filled ellipses
+    else:
+        XY = np.stack([X,Y],axis=1)
+
+        circle_edge = Polygon(XY,
+                              edgecolor=color,facecolor='none',
+                              transform=ccrs.Geodetic())
+        circle_face = Polygon(XY,
+                              edgecolor='none',facecolor=color,alpha=alpha,
+                              transform=ccrs.Geodetic())
+
+        map_axis.add_patch(circle_face)
+        map_axis.add_patch(circle_edge)
 
 
 def equi_basemap(m, centerlon, centerlat, radius, color):
