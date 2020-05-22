@@ -10,10 +10,15 @@ def main():
     NAME
         squidm_magic.py
     DESCRIPTION
-        Converts SQUID microscopy files into a MagIC format measurement file.
+        Converts SQUID microscopy files into a MagIC format files.
         This program currently supports only specimens from a single sample.  
         Method codes are applied to all rows in each table. To add method codes
         to individual rows, edit the MagIC file after this program creates it.
+        A standard MagiC file is created for the location through specimen tables,
+        along with measurement data from the model fits. The SQUID microscopy 
+        measurement data is placed in individual files for each experiment in the
+        compact MagIC file format. These measurement files are placed in a 
+        directory called "measurements".
         
         This program requires a specific directory/file structure to function.
         The top directory should contain directories named for each of the SQUID
@@ -23,13 +28,13 @@ def main():
         data directory should contain the .bz and .inf files for each SQUID
         microscopy scan. The .bz and .inf files must have the same name. The 
         demag directory should have a .sam file that has the same name as the
-        name of the directory 2 levels up. That is, if the main dirctory is ZirconRun2,
+        name of the directory 2 levels up. That is, if the main directory is ZirconRun2,
         then the .sam file should be named ZirconRun2.sam. There should also be
         the CIT formatted files with the model demag data in them along with an 
         associated _fits.txt file that has information about how well the model
         dipole fits the data. In the images directory should be any human viewable
         image files that will be uploaded to MagIC along with the data. .jpg, .png,
-        .gif, .pdf, etc type files.
+        .gif, .pdf, etc. type files.
 
         Example file directory tree:
         ZirconRun1 -- (file hierarchy) 
