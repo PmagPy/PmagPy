@@ -1409,6 +1409,20 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                     float(line[58:67])*1e-8)  # (convert e-5emu to Am2)
                 MeasRec['magn_y_sigma'] = '%8.2e' % (float(line[67:76])*1e-8)
                 MeasRec['magn_z_sigma'] = '%8.2e' % (float(line[76:85])*1e-8)
+#           if the cit file is from a magnetic model calculation then get the model height and residual from the line 
+#           and add it to the measuerment file
+            if 'height:' in line and 'residuals:' in line:
+                split_line=line.split('height:')
+                end=split_line[1]
+                split_end=end.split()
+                height=split_end[0]
+                residuals=split_end[1]
+                residuals=residuals.split('residuals:')
+                residuals=residuals[1]
+                print('height=',height)
+                print('residuals=',residuals)
+                MeasRec['inversion_height'] = height
+                MeasRec['inversion_residuals'] = residuals 
             MeasRecs.append(MeasRec)
         SpecRecs.append(SpecRec)
         if sample not in samples:
