@@ -118,13 +118,13 @@ def main():
                        LP-SQUIDM will be automatically added to the measurements method
                        code list if not already in the provided list of codes
 
-        -instrument_codes: used to identify the insturment that made the measurement. 
-                           Exact insturment name prefered, not type. 
+        -instrument_codes: used to identify the instrument that made the measurement. 
+                           Exact instrument name prefered, not type. 
                            (":" between multiple entries)
     
         -z_pos: distance from the surface in micrometers. default:0
 
-        -oe: flag to use cgs units for magnetic field strength(Oe) or mangnetic moment(emu) 
+        -oe: flag to use cgs units for magnetic field strength(Oe) or magnetic moment(emu) 
 
         -ncn NCON: specify naming convention for the CIT sample files.
 
@@ -132,8 +132,8 @@ def main():
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
-        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in sitename column in the orient.txt format input file -- NOT CURRENTLY SUPPORTED
