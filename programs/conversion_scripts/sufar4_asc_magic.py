@@ -29,6 +29,7 @@ def main():
         -ncn NCON:  specify naming convention: default is #2 below
         -k15 : specify static 15 position mode - default is spinning
         -new : replace all existing magic files
+        -or_con : specify orientation convention (default is AGICO defaults)
 
     DEFAULTS
         AFILE: rmag_anisotropy.txt  # MagIC 2 only
@@ -53,6 +54,26 @@ def main():
             [8] This is a synthetic
             [9] ODP naming convention
 
+    orientation conventions:
+        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+             of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
+             lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
+        [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
+             Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+             Lab arrow dip = -field_dip
+        [3] Lab arrow is the same as the drill direction;
+             hade was measured in the field.
+             Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
+        [5] Same as AZDIP convention explained below -
+            azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+            lab arrow is as in [1] above.
+            lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
+
+
     """
 
     args = sys.argv
@@ -67,16 +88,17 @@ def main():
                                                    ['Fa', False, 'rmag_anisotropy.txt'],
                                                    ['Fsi', False, 'specimens.txt'],
                                                    ['loc', False, 'unknown'], ['spc', False, 0],
-                                                   ['fsi', False, None], ['DM', False, 3] ])
+                                                   ['fsi', False, None], ['DM', False, 3], 
+                                                   ['or_con', False, None] ])
     #'WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc',
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    output_dir_path, input_dir_path, user, sample_naming_con, static_15_position_mode, instrument, ascfile, meas_output, aniso_output, spec_outfile, locname, specnum, spec_infile, data_model_num = extractor.get_vars(['WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc', 'fsi', 'DM'], checked_args)
+    output_dir_path, input_dir_path, user, sample_naming_con, static_15_position_mode, instrument, ascfile, meas_output, aniso_output, spec_outfile, locname, specnum, spec_infile, data_model_num,or_con = extractor.get_vars(['WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc', 'fsi', 'DM','or_con'], checked_args)
 
     convert.sufar4(ascfile, meas_output, aniso_output, spec_infile,
                    spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con,
                    user=user, locname=locname, instrument=instrument,
                    static_15_position_mode=static_15_position_mode, dir_path=output_dir_path,
-                   input_dir_path=input_dir_path, data_model_num=data_model_num)
+                   input_dir_path=input_dir_path, data_model_num=data_model_num,or_con=or_con)
 
     # do we need -new flag??
 if __name__ == "__main__":

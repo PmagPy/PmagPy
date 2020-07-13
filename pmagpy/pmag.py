@@ -937,6 +937,8 @@ def orient(mag_azimuth, field_dip, or_con):
         return mag_azimuth - 90., 90. - field_dip
     if or_con == "7":  # lab_mag_az=mag_az;  sample_dip = 90.-dip
         return mag_azimuth - 90., 90. - field_dip
+    if or_con == "8":  # lab_mag_az=(mag_az-180)%360;  sample_dip = 90.-dip
+        return (mag_azimuth - 180.)%360, 90. - field_dip
     print("Error in orientation convention")
 
 

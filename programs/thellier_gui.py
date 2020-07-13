@@ -7132,7 +7132,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     moments.append(pair[1])
                     if pair[0] == cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
-                # print s, cooling_rate_data['alteration_check']
+                #print (s, cooling_rate_data['alteration_check'])
+                #print (cooling_rate_data['lab_cooling_rate'],cooling_rate_data['alteration_check']) # DELETE
                 lan_cooling_rates.append(np.math.log(
                     cooling_rate_data['lab_cooling_rate'] / cooling_rate_data['alteration_check'][0]))
                 lab_fast_cr_moments.append(
