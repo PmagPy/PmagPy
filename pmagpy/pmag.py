@@ -12293,6 +12293,77 @@ def vds(xyz):
         R+=dirdiff[2]
     return R
 
-
+def mk_ellipse(pars):
+    """
+    mk_ellipse
+    input parameters:
+        pars: list
+           list of Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc
+    returns
+        PTS:  array
+         array of [Decs,Incs] of points on the ellipse 
+        
+    """
+    Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
+        1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]
+    if beta > 90. or gamma > 90:
+        beta = 180. - beta
+        gamma = 180. - gamma
+        Pdec = Pdec - 180.
+        Pinc = -Pinc
+    beta, gamma = np.radians(beta), np.radians(gamma)  # convert to radians
+    X_ell, Y_ell, X_up, Y_up, PTS = [], [], [], [], []
+    nums = 201
+    xnum = float(nums - 1.)/2.
+# set up t matrix
+    t = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    X = dir2cart((Pdec, Pinc, 1.0))  # convert to cartesian coordintes
+    #if lower == 1 and X[2] < 0:
+    #    for i in range(3):
+    #        X[i] = -X[i]
+# set up rotation matrix t
+    t[0][2] = X[0]
+    t[1][2] = X[1]
+    t[2][2] = X[2]
+    X = dir2cart((Bdec, Binc, 1.0))
+    #if lower == 1 and X[2] < 0:
+    #    for i in range(3):
+    #        X[i] = -X[i]
+    t[0][0] = X[0]
+    t[1][0] = X[1]
+    t[2][0] = X[2]
+    X = dir2cart((Gdec, Ginc, 1.0))
+    #if lower == 1 and X[2] < 0:
+    #    for i in range(3):
+    #        X[i] = -X[i]
+    t[0][1] = X[0]
+    t[1][1] = X[1]
+    t[2][1] = X[2]
+# set up v matrix
+    v = [0, 0, 0]
+    for i in range(nums):  # incremental point along ellipse
+        psi = float(i) * np.pi / xnum
+        v[0] = np.sin(beta) * np.cos(psi)
+        v[1] = np.sin(gamma) * np.sin(psi)
+        v[2] = np.sqrt(1. - v[0]**2 - v[1]**2)
+        elli = [0, 0, 0]
+# calculate points on the ellipse
+        for j in range(3):
+            for k in range(3):
+                # cartesian coordinate j of ellipse
+                elli[j] = elli[j] + t[j][k] * v[k]
+        pts = cart2dir(elli)
+        PTS.append([pts[0], pts[1]])
+        # put on an equal area projection
+        R = np.sqrt(
+            1. - abs(elli[2]))/(np.sqrt(elli[0]**2 + elli[1]**2))
+        if elli[2] <= 0:
+            #            for i in range(3): elli[i]=-elli[i]
+            X_up.append(elli[1] * R)
+            Y_up.append(elli[0] * R)
+        else:
+            X_ell.append(elli[1] * R)
+            Y_ell.append(elli[0] * R)
+    return np.array(PTS).transpose()
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
