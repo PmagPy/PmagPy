@@ -1690,11 +1690,17 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
     lat_grid : specify the latitude grid (default is 30 degree spacing)
     lon_grid : specify the longitude grid (default is 30 degree spacing)
     '''
+    # wrapper class to change the default resolution of the orthographic projection
+    class LowerThresholdOrthographic(ccrs.Orthographic):
+        @property
+        def threshold(self):
+            return 1e3
+
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.make_orthographic_map')
         return
     fig = plt.figure(figsize=figsize)
-    map_projection = ccrs.Orthographic(
+    map_projection = LowerThresholdOrthographic(
         central_longitude=central_longitude, central_latitude=central_latitude)
     ax = plt.axes(projection=map_projection)
     ax.set_global()
@@ -5667,7 +5673,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
         [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
-        [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip 
+        [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
 
 
     Magnetic declination convention:
