@@ -39,13 +39,13 @@ def main():
         Example file directory tree:
         ZirconRun1 -- (file hierarchy) 
         ZirconRun2 -- data -- run2N_140C_100k.bz
+                           -- run2N_140C_100k.fits
                            -- run2N_140C_100k.inf
                            -- run2N_173C_100k.bz
+                           -- run2N_173C_100k.fits
                            -- run2N_173C_100k.inf
                    -- demag -- 57-1-3
-                            -- 57-1-3_fits.txt
                             -- 57-19-12
-                            -- 57-19-12_fits.txt
                             -- ZirconRun2.sam
                    -- images -- run2N_140C_100k.pdf
                              -- run2S_89G_1M.pdf
@@ -122,9 +122,21 @@ def main():
                            Exact instrument name prefered, not type. 
                            (":" between multiple entries)
     
-        -z_pos: distance from the surface in micrometers. default:0
+        -model_height_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
+                            to calculate the model height.
+                            Should correspond to the model_residuals_name
+
+        -model_residuals_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
+                            to calculate the model residuals.
+                            Should correspond to the model_height_name
+
+        -model_doi: doi reference for the model used to calculate the model height, and residuals
 
         -oe: flag to use cgs units for magnetic field strength(Oe) or magnetic moment(emu) 
+
+        -multi_samples: flag used to indicate to not remove the MagIC files upon finishing. This leaves the
+                       MagIC files to be concatenated by another program when there are multiple samples in
+                       the study.
 
         -ncn NCON: specify naming convention for the CIT sample files.
 
@@ -233,7 +245,6 @@ def main():
         citations=sys.argv[ind+1]
     else:
         citations="This study"
-        exit()
    
     if '-loc_method_codes' in sys.argv:
         ind=sys.argv.index('-loc_method_codes')
@@ -246,20 +257,21 @@ def main():
         site_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the site must be set with the -site_method_code flag")
+        exit()
    
     if '-samp_method_codes' in sys.argv:
         ind=sys.argv.index('-samp_method_codes')
         samp_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the sample must be set with the -samp_method_code flag")
-        samp_method_codes=""
+        exit()
    
     if '-spec_method_codes' in sys.argv:
         ind=sys.argv.index('-spec_method_codes')
         spec_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the specimen must be set with the -specimen_method_code flag")
-        spec_method_codes=""
+        exit()
    
     if '-meas_method_codes' in sys.argv:
         ind=sys.argv.index('-meas_method_codes')
@@ -269,18 +281,39 @@ def main():
     else:
         meas_method_codes='LP-SQUIDM'
 
-   
     if '-instrument_codes' in sys.argv:
         ind=sys.argv.index('-instrument_codes')
         instrument_codes=sys.argv[ind+1]
     else:
         instrument_codes=""
         
+    if '-model_height_name' in sys.argv:
+        ind=sys.argv.index('-model_height_name')
+        model_height_name=sys.argv[ind+1]
+    else:
+        print("The model height name must be set with the -model_height_name flag")
+        exit()
+   
+    if '-model_residuals_name' in sys.argv:
+        ind=sys.argv.index('-model_residuals_name')
+        model_residuals_name=sys.argv[ind+1]
+    else:
+        print("The model residuals name must be set with the -model_residuals_name flag")
+        exit()
+   
+    if '-model_doi' in sys.argv:
+        ind=sys.argv.index('-model_doi')
+        model_doi=sys.argv[ind+1]
+    else:
+        print("The model doi must be set with the -model_doi flag")
+        exit()
+   
     if '-site' in sys.argv:
         ind=sys.argv.index('-site')
         site=sys.argv[ind+1]
     else:
         print("The site name must be set with the -site flag")
+        exit()
    
     if '-geologic_types' in sys.argv:
         ind=sys.argv.index('-geologic_types')
@@ -294,18 +327,18 @@ def main():
         sample=sys.argv[ind+1]
     else:
         print("The site name must be set with the -sample flag")
+        exit()
 
     if '-oe' in sys.argv:
         oe=' -oe '
     else:
         oe=''
 
-    if '-z_pos' in sys.argv:
-        ind=sys.argv.index('-z_pos')
-        z_pos=float(sys.argv[ind+1])*1e-6
+    if '-multi_samples' in sys.argv:
+        multi_samples=True
     else:
-        z_pos=float('nan')
-   
+        multi_samples=False
+
     if '-ncn' in sys.argv:
         ind=sys.argv.index('-ncn')
         ncn=sys.argv[ind+1]
@@ -404,7 +437,7 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_file_num,meas_name_num=convert_squid_data(specimen,citations,z_pos,meas_file_num,meas_method_codes,meas_name_num)
+        meas_file_num,meas_name_num=convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -475,13 +508,15 @@ def main():
         os.system("rm " + dir + "samples.txt")
         os.system("rm " + dir + "specimens.txt")
         os.system("rm " + dir + "measurements.txt")
-    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
-    os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
+    print("multi_samples=",multi_samples)
+    if multi_samples == False: 
+        os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
+        os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
 
     print("end")   
     return()
 
-def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_codes,meas_name_num):
+def convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -492,9 +527,11 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
     print(sorted(file_list))
 
     for file in sorted(file_list):
-        if file[0] == '.':   # skip . files added by MacOS
+        if file[0] == '.':  # skip . files added by MacOS
             continue
-        if '.inf' in file:       # do processing on both files in the .bz loop as we need data in both to create the measurements file
+        if '.inf' in file:  # skip .inf files process all files in the .bz loop as we need all the data to create the measurements file
+            continue
+        if '.fits' in file: # skip .inf files process all files in the .bz loop as we need all the data to create the measurements file
             continue
 
         print('file=',file)
@@ -577,9 +614,20 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         comment=comment+", "+line[4:-1]
         print ("comment=",comment)
         line=info.readline() 
+        info.close()
 
         experiment_name=file.split('.')
         experiment_name=experiment_name[0]
+
+#       get the model height and residuals information from the .fits file
+
+        fits_name=file[:-3]+ '.fits'
+        f=open(fits_name,'r')
+        line=f.readline()
+        line_split=line.split(",")
+        # fit file values are moment (emu), inc, dec, height and residuals
+        height=line_split[3]
+        residuals=line_split[4]
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_file_num)+'.txt','w')
@@ -590,11 +638,11 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         mf.write('* quality\tg\n')
         mf.write('* method_codes\t'+meas_method_codes+'\n')
         mf.write('* citations\t'+citations+'\n')
-        if math.isnan(z_pos) is False:
-            mf.write('* meas_pos_z\t'+str(z_pos)+'\n')
         mf.write('* description\t'+comment+'\n')
+        mf.write('* derived_value\t'+model_height_name+','+height+','+model_doi+'\n')
+        mf.write('* derived_value\t'+model_residuals_name+','+residuals+','+model_doi+'\n')
 
-        mf.write('measurement\ttmagn_z\tmeas_pos_x\tmeas_pos_y\n')
+        mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
         print('meas_file_num=', meas_file_num)
         print('')
         meas_file_num+=1
