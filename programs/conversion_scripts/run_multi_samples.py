@@ -21,6 +21,7 @@ def main():
     print("start")
 
     os.system("rm *.txt")
+    os.system("rm last_measurement_number")
 
     dir_list=os.listdir()
     samples=[]

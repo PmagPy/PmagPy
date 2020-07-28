@@ -138,6 +138,8 @@ def main():
                        MagIC files to be concatenated by another program when there are multiple samples in
                        the study.
 
+        -meas_num: set the starting measurement name number. default:1
+
         -ncn NCON: specify naming convention for the CIT sample files.
 
       Sample naming convention (NCON): 
@@ -339,6 +341,17 @@ def main():
     else:
         multi_samples=False
 
+    if '-meas_num' in sys.argv:
+        ind=sys.argv.index('-meas_num')
+        meas_num=int(sys.argv[ind+1])
+    else:
+        if os.path.isfile('../last_measurement_number'):
+            f=open('../last_measurement_number','r')
+            meas_num=int(f.readline())
+            f.close()
+        else:
+            meas_num=1
+
     if '-ncn' in sys.argv:
         ind=sys.argv.index('-ncn')
         ncn=sys.argv[ind+1]
@@ -393,7 +406,7 @@ def main():
     df.to_csv("samples.txt",sep='\t',index=False)
     add_head("samples")
 
-    meas_file_num=1
+    meas_num=meas_num
     for dir in sorted(dir_list):
         if dir[0] == '.':   # skip . files added by MacOS
             continue
@@ -437,7 +450,7 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_file_num,meas_name_num=convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi)
+        meas_num,meas_name_num=convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -513,10 +526,13 @@ def main():
         os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
         os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
 
+    f=open("../last_measurement_number","w")
+    f.write(str(meas_num))
+    f.close()
     print("end")   
     return()
 
-def convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi):
+def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -630,7 +646,7 @@ def convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_n
         residuals=line_split[4]
 
 # open the measurement file for writing and put the compressed headers in
-        mf=open('measurements'+str(meas_file_num)+'.txt','w')
+        mf=open('measurements'+str(meas_num)+'.txt','w')
         mf.write("tab\tmeasurements\n")
         mf.write('* experiment\t'+experiment_name+'\n')
         mf.write('* specimen\t'+specimen+'\n')
@@ -643,9 +659,9 @@ def convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_n
         mf.write('* derived_value\t'+model_residuals_name+','+residuals+','+model_doi+'\n')
 
         mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
-        print('meas_file_num=', meas_file_num)
+        print('meas_num=', meas_num)
         print('')
-        meas_file_num+=1
+        meas_num+=1
 
         prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z") #for rounding
         
@@ -679,7 +695,7 @@ def convert_squid_data(specimen,citations,meas_file_num,meas_method_codes,meas_n
             line = qdm_data.readline() 
         qdm_data.close()
         mf.close()
-    return(meas_file_num,meas_name_num)
+    return(meas_num,meas_name_num)
 
 def update_column(df,column,value):
     #add the column with all the same values to a DataFrame
