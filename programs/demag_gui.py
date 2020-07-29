@@ -4582,7 +4582,8 @@ class Demag_GUI(wx.Frame):
                     self.loc_data['location'] = self.loc_data.index
                 loc2_data = self.loc_data.rename(
                     columns=map_magic.loc_magic3_2_magic2_map)
-                data_er_locations = loc2_data.to_dict('index')
+     # there were problems with this command in some contributions:
+                #data_er_locations = loc2_data.to_dict('index') #TRY 
             else:
                 self.con.add_empty_magic_table('locations')
                 self.loc_data = self.con.tables['locations'].df
