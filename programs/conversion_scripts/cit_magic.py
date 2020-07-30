@@ -28,7 +28,6 @@ OPTIONS
     -loc LOCNAME: specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
     -sn SITENAME: specify site name for all samples
     -sampname SAMPLENAME: specify a sample for all specimens
-
     -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
     -dc B PHI THETA: dc lab field (in microTesla), phi,and theta (in degrees) must be spaced after flag (i.e -dc 30 0 -90)
     -ac B : peak AF field (in mT) for ARM acquisition, default is none
