@@ -9144,7 +9144,7 @@ def measurements_methods(meas_data, noave):
     return SpecOuts
 
 
-def measurements_methods3(meas_data, noave):
+def measurements_methods3(meas_data, noave,savelast=False):
     """
     add necessary method codes, experiment names, sequence, etc.
     """
@@ -9153,6 +9153,7 @@ def measurements_methods3(meas_data, noave):
         noave = 1
     else:
         noave = 0
+    if savelast:noave=0
     version_num = get_version()
     seqnum = 0
     sids = get_specs(meas_data)
@@ -9287,7 +9288,9 @@ def measurements_methods3(meas_data, noave):
 # first look for replicate measurements
 #
         Ninit = len(NewSpecs)
-        if not noave:
+        if savelast:
+            NewSpecs=NewSpecs[-1] # just keep thelast one
+        elif not noave:
             # averages replicate measurements, returns treatment keys that are
             # being used
             vdata, treatkeys = vspec_magic3(NewSpecs)
@@ -9861,11 +9864,13 @@ def parse_site(sample, convention, Z):
         k = int(Z)
         return sample[0:k]
 
-    if convention == "8":  # peel off Z characters for site
-        return ""
+    if convention == "8":  # split by '_', return spec/sample/site
+        parts=sample.split('_')
+        spec=sample
+        samp=parts[0]+'_'+parts[1]
+        site=parts[0]
+        return (spec,samp,site)
 
-    if convention == "9":  # peel off Z characters for site
-        return sample
 
     print("Error in site parsing routine")
     return
