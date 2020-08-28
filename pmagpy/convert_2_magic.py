@@ -1210,7 +1210,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
 #    else:
 #        GET_DC_PARAMS = False
 
-# With the above commented out GET_DC_PARAMS does not get set and this function fail below so setting it here. NAJ
+# With the above commented out( GET_DC_PARAMS does not get set and this function fails below so setting it here. NAJ
     GET_DC_PARAMS = False
     if locname == '' or locname == None:
         locname = 'unknown'
@@ -1459,6 +1459,14 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 MeasRec['treat_dc_field_phi'] = '%1.2f' % DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f' % DC_THETA
                 MeasRec['treat_ac_field'] = '0'
+                #for MIT paleointensity format
+                if treat_type[2] == 'I':
+                    MeasRec['method_codes'] = 'LT-T-I'
+                    MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
+                elif treat_type[2] == 'P':
+                    MeasRec['method_codes'] = 'LT-PTRM-I'
+                    MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
+
             elif line[4] == '0':  # assume decimal IZZI format 0 field thus can hardcode the dc fields
                 MeasRec['method_codes'] = 'LT-T-Z'
                 MeasRec['meas_temp'] = '273'

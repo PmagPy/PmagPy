@@ -134,11 +134,21 @@ def main():
 
         -oe: flag to use cgs units for magnetic field strength(Oe) or magnetic moment(emu) 
 
+        -A: don't average replicant measurements 
+
         -multi_samples: flag used to indicate to not remove the MagIC files upon finishing. This leaves the
                        MagIC files to be concatenated by another program when there are multiple samples in
                        the study.
 
         -meas_num: set the starting measurement name number. default:1
+
+        -labfield: field strength that the sample was demaged under in microTesla. default:0.0
+
+        -phi: Angle between the specimen x-y plane and the dc field direction. 
+              Positive toward the positive z direction. 
+
+        -theta: Angle of the dc field direction when projected into the x-y plane. 
+                Positive x-axis is 0 and increasing toward the positive y-axis. 
 
         -ncn NCON: specify naming convention for the CIT sample files.
 
@@ -336,6 +346,11 @@ def main():
     else:
         oe=''
 
+    if '-A' in sys.argv:
+        average='-A'
+    else:
+        average=''
+
     if '-multi_samples' in sys.argv:
         multi_samples=True
     else:
@@ -351,6 +366,24 @@ def main():
             f.close()
         else:
             meas_num=1
+
+    if '-labfield' in sys.argv:
+        ind=sys.argv.index('-labfield')
+        labfield=sys.argv[ind+1]
+    else:
+        dc_field='0.0'
+
+    if '-phi' in sys.argv:
+        ind=sys.argv.index('-phi')
+        phi=sys.argv[ind+1]
+    else:
+        phi='0.0'
+
+    if '-theta' in sys.argv:
+        ind=sys.argv.index('-theta')
+        theta=sys.argv[ind+1]
+    else:
+        theta='0.0'
 
     if '-ncn' in sys.argv:
         ind=sys.argv.index('-ncn')
@@ -422,10 +455,9 @@ def main():
 
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        if spec_method_codes == "":
-            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '"'
-        else:
-            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -mcd ' + spec_method_codes
+        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
+        if spec_method_codes != "":
+            command+=' -mcd ' + spec_method_codes
         print(command)
         os.system(command)
 
