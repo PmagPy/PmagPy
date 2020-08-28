@@ -42,6 +42,8 @@ def main():
 
     os.system("rm *.txt")
     os.system("rm last_measurement_number")
+    os.system("rm -rf measurements")
+    os.system("rm -rf images")
 
     dir_list=os.listdir()
     samples=[]
@@ -54,8 +56,6 @@ def main():
             continue
         samples.append(sample)
     print("samples=",samples)
-    os.system("rm -rf measurements")
-    os.system("rm -rf images")
     os.system("mkdir measurements")
     os.system("mkdir images")
 #    os.system("")
