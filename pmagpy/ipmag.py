@@ -4816,7 +4816,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
         return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up), failing, all_failing_items
     else:
-        print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without trouble!")
+        print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
     return new_up, '', None, None
 
 

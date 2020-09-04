@@ -919,6 +919,37 @@ def orient(mag_azimuth, field_dip, or_con):
     """
     uses specified orientation convention to convert user supplied orientations
     to laboratory azimuth and plunge
+    Parameters:
+    ________________
+        mag_azimuth: float
+            orientation of the field orientation arrow with respect to north
+        field_dip : float
+            dip (or hade) or field arrow.  
+                if hade, with respect to vertical down
+                if inclination, with respect to horizontal (positive down)
+        or_con : int
+            orientation convention : int
+            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below.
+
+            [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+                 of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
+                 lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
+            [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
+                 Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+                 Lab arrow dip = -field_dip
+            [3] Lab arrow is the same as the drill direction;
+                 hade was measured in the field.
+                 Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+            [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
+            [5] Same as AZDIP convention explained below -
+                azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+                lab arrow is as in [1] above.
+                lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+            [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+       Returns:
+       ___________
+           azimuth and dip of lab arrow
+                
     """
     or_con = str(or_con)
     if mag_azimuth == -999:
