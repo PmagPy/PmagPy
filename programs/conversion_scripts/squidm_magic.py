@@ -109,9 +109,9 @@ def main():
                        (":" between multiple entries)
                        Required
 
-        -spec_method_codes: method_codes used for all specimens
+        -spec_method_codes: method_codes used for all specimens. Put LP-NOMAG method code last, if used.
                        (":" between multiple entries)
-                       Required
+                       Required 
 
         -meas_method_codes: method_codes used for all measurements
                        (":" between multiple entries)
@@ -463,7 +463,7 @@ def main():
 
         # add info to specimens table
         df=pd.read_csv("specimens.txt",sep="\t",header=1)
-        df=append_column(df,"method_codes",spec_method_codes)
+        df=append_to_column(df,"method_codes",spec_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"geologic_classes",geologic_classes)
         df=update_column(df,"lithologies",lithologies)
@@ -473,7 +473,7 @@ def main():
 
         # add info to measurements table
         df=pd.read_csv("measurements.txt",sep="\t",header=1)
-        df=append_column(df,"method_codes",meas_method_codes)
+        df=append_to_column(df,"method_codes",meas_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"instrument_codes",instrument_codes)
         df.to_csv("measurements.txt",sep='\t',index=False)
@@ -739,10 +739,16 @@ def update_column(df,column,value):
     df[column] = column_values
     return(df)
         
-def append_column(df,column,value):
-    # add value to all of the values in column
+def append_to_column(df,column,value):
+    # add value to all of the values in column except when the value already is in the original value
     for index, row in df.iterrows():
-        df.loc[index,column]=value + ":" + df.loc[index,column]    
+        value_list = value.split(':')
+        for method_code in value_list:
+            print("X")
+            print("method_code to add=", method_code, " Current value= ", df.loc[index,column])  
+            print("X")
+            if method_code not in df.loc[index,column]:
+                df.loc[index,column]= method_code + ":" + df.loc[index,column]
     return(df)
 
 def add_head(table):
