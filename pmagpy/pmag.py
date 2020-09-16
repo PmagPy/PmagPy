@@ -11969,6 +11969,9 @@ def import_cartopy():
     has_cartopy : bool
     cartopy : cartopy package if available else None
     """
+    # cartopy breaks Pyinstaller as of 9/16/20
+    if set_env.IS_FROZEN and not set_env.IS_WIN:
+        return False, None
     cartopy = None
     has_cartopy = True
     try:
