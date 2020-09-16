@@ -10,13 +10,48 @@ Install pyinstaller from the developer branch (certain needed bug fixes are here
 
     pip install git+https://github.com/pyinstaller/pyinstaller.git
 
+You may be able to use conda pyinstaller:
+
+    conda install pyinstaller --channel conda-forge
+
+
+Either way, you will need to monkey patch pyinstaller.  Here is information on the issue:
+
+https://stackoverflow.com/questions/63163027/how-to-use-pyinstaller-with-matplotlib-in-use
+
+Here is more information on how to find the file that you need to edit:
+
+    >>> import PyInstaller
+    >>> PyInstaller.__file__
+    '/Users/***/anaconda3/envs/pmagpy_september_2020/lib/python3.7/site-packages/PyInstaller/__init__.py'
+>>>
+
+modify:
+    /Users/***/anaconda3/envs/pmagpy_septempber_2020/lib/python3.7/site-packages/PyInstaller/hooks/hook-matplotlib.py
+
+
+If you have a dll not loading error:
+
+    File "shapely/geos.py", line 112, in <module>
+    File "PyInstaller/loader/pyiboot01_bootstrap.py", line 146, in __init__.__main__.PyInstallerImportError: Failed to load dynlib/dll '/var/folders/qb/3td4bl3s2pz__jc94hp7z2c40000gn/T/_MEICSr2rH/lib/libgeos_c.dylib'. Most probably this dynlib/dll was not found when the application was frozen.
+
+try commenting out line 112 and 113 from geos.py
+
+https://github.com/Toblerity/Shapely/issues/916
+
+The file is here:
+
+~/anaconda3/envs/pmagpy_september)2020/lib/python3.7/site-packages/shapely/geos.py
+
+Cartopy currently causes a seg fault and cannot be used (the executable will compile, but won't run).  To fix this, I've prevented cartopy from being imported for the OSX executable.  See commit fd5a710.
+
+
+If you have a problem with MKL:
+
 Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046)):
 
-    conda install nomkl
 
-
-You will need a spec file to generate the executable.  You should be able to use PmagPy/pmag_gui.spec.  To create that file from scratch, see instructions at the end of this README.
-
+Ok, you're finally ready.  You will need a spec file to generate the executable.  You should be able to use PmagPy/pmag_gui.spec.  To create that file from scratch, see instructions at the end of this README.
 
 
 Then run:
