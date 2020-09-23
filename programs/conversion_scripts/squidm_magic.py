@@ -360,10 +360,13 @@ def main():
         ind=sys.argv.index('-meas_num')
         meas_num=int(sys.argv[ind+1])
     else:
-        if os.path.isfile('../last_measurement_number'):
-            f=open('../last_measurement_number','r')
-            meas_num=int(f.readline())
-            f.close()
+        if multi_samples:
+            if os.path.isfile('../last_measurement_number'):
+                f=open('../last_measurement_number','r')
+                meas_num=int(f.readline())
+                f.close()
+            else:
+                meas_num=1
         else:
             meas_num=1
 
@@ -405,7 +408,7 @@ def main():
     os.system("rm -r measurements")
 
     dir_list=os.listdir()
-#    print(sorted(dir_list))
+    print('dir_list=',sorted(dir_list))
     slide_dir_list=[]
     image_dir_list=[]
     specimen_list=[]
@@ -449,10 +452,27 @@ def main():
             continue
         specimen=dir
         slide_dir_list.append(dir+'/demag/')
-        image_dir_list.append(dir+'/images/')
         specimen_list.append(dir)
 #        print("specimen_list",specimen_list)
 
+        # create images.txt file when images directories are present
+        if os.path.isdir(dir+'/images/'): 
+            image_dir_list.append(dir+'/images/')
+            os.chdir(dir+'/images')
+            if os.path.isfile("images.txt"):
+                os.system("rm images.txt") 
+            image_file_names=os.listdir()
+            f_images=open('images.txt','w')
+            f_images.write('tab\timages\n')
+            f_images.write('specimen\tfile\ttype\ttitle\tkeywords\n')
+            for file_name in image_file_names:
+                title_split=file_name.split(".")
+                title=title_split[0]
+                f_images.write(dir+'\t'+file_name+'\tScanning SQUID Microscopy\t'+title+'\tScanning SQUID Microscopy\n')
+            f_images.close()
+        print("image_dir_list",image_dir_list)
+        os.chdir('../..')
+        
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
         command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
@@ -493,11 +513,12 @@ def main():
 
 #   Combine the images tables and put the images in one folder
     image_files=""
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    print("image dir list=",image_dir_list)
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXX")
     for dir in image_dir_list:
         image_files+=dir+ "images.txt "
     os.system("combine_magic.py -F images.txt -f " + image_files)
-
-    print("image dir list=",image_dir_list)
     os.mkdir("images")
     for dir in image_dir_list:
         os.system("cp " + dir + "* images")
@@ -744,9 +765,6 @@ def append_to_column(df,column,value):
     for index, row in df.iterrows():
         value_list = value.split(':')
         for method_code in value_list:
-            print("X")
-            print("method_code to add=", method_code, " Current value= ", df.loc[index,column])  
-            print("X")
             if method_code not in df.loc[index,column]:
                 df.loc[index,column]= method_code + ":" + df.loc[index,column]
     return(df)
