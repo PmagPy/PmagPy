@@ -39,13 +39,13 @@ def main():
         Example file directory tree:
         ZirconRun1 -- (file hierarchy) 
         ZirconRun2 -- data -- run2N_140C_100k.bz
+                           -- run2N_140C_100k.fits
                            -- run2N_140C_100k.inf
                            -- run2N_173C_100k.bz
+                           -- run2N_173C_100k.fits
                            -- run2N_173C_100k.inf
                    -- demag -- 57-1-3
-                            -- 57-1-3_fits.txt
                             -- 57-19-12
-                            -- 57-19-12_fits.txt
                             -- ZirconRun2.sam
                    -- images -- run2N_140C_100k.pdf
                              -- run2S_89G_1M.pdf
@@ -109,9 +109,9 @@ def main():
                        (":" between multiple entries)
                        Required
 
-        -spec_method_codes: method_codes used for all specimens
+        -spec_method_codes: method_codes used for all specimens. Put LP-NOMAG method code last, if used.
                        (":" between multiple entries)
-                       Required
+                       Required 
 
         -meas_method_codes: method_codes used for all measurements
                        (":" between multiple entries)
@@ -122,9 +122,33 @@ def main():
                            Exact instrument name prefered, not type. 
                            (":" between multiple entries)
     
-        -z_pos: distance from the surface in micrometers. default:0
+        -model_height_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
+                            to calculate the model height.
+                            Should correspond to the model_residuals_name
+
+        -model_residuals_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
+                            to calculate the model residuals.
+                            Should correspond to the model_height_name
+
+        -model_doi: doi reference for the model used to calculate the model height, and residuals
 
         -oe: flag to use cgs units for magnetic field strength(Oe) or magnetic moment(emu) 
+
+        -A: don't average replicant measurements 
+
+        -multi_samples: flag used to indicate to not remove the MagIC files upon finishing. This leaves the
+                       MagIC files to be concatenated by another program when there are multiple samples in
+                       the study.
+
+        -meas_num: set the starting measurement name number. default:1
+
+        -labfield: field strength that the sample was demaged under in microTesla. default:0.0
+
+        -phi: Angle between the specimen x-y plane and the dc field direction. 
+              Positive toward the positive z direction. 
+
+        -theta: Angle of the dc field direction when projected into the x-y plane. 
+                Positive x-axis is 0 and increasing toward the positive y-axis. 
 
         -ncn NCON: specify naming convention for the CIT sample files.
 
@@ -233,7 +257,6 @@ def main():
         citations=sys.argv[ind+1]
     else:
         citations="This study"
-        exit()
    
     if '-loc_method_codes' in sys.argv:
         ind=sys.argv.index('-loc_method_codes')
@@ -246,20 +269,21 @@ def main():
         site_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the site must be set with the -site_method_code flag")
+        exit()
    
     if '-samp_method_codes' in sys.argv:
         ind=sys.argv.index('-samp_method_codes')
         samp_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the sample must be set with the -samp_method_code flag")
-        samp_method_codes=""
+        exit()
    
     if '-spec_method_codes' in sys.argv:
         ind=sys.argv.index('-spec_method_codes')
         spec_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the specimen must be set with the -specimen_method_code flag")
-        spec_method_codes=""
+        exit()
    
     if '-meas_method_codes' in sys.argv:
         ind=sys.argv.index('-meas_method_codes')
@@ -269,18 +293,39 @@ def main():
     else:
         meas_method_codes='LP-SQUIDM'
 
-   
     if '-instrument_codes' in sys.argv:
         ind=sys.argv.index('-instrument_codes')
         instrument_codes=sys.argv[ind+1]
     else:
         instrument_codes=""
         
+    if '-model_height_name' in sys.argv:
+        ind=sys.argv.index('-model_height_name')
+        model_height_name=sys.argv[ind+1]
+    else:
+        print("The model height name must be set with the -model_height_name flag")
+        exit()
+   
+    if '-model_residuals_name' in sys.argv:
+        ind=sys.argv.index('-model_residuals_name')
+        model_residuals_name=sys.argv[ind+1]
+    else:
+        print("The model residuals name must be set with the -model_residuals_name flag")
+        exit()
+   
+    if '-model_doi' in sys.argv:
+        ind=sys.argv.index('-model_doi')
+        model_doi=sys.argv[ind+1]
+    else:
+        print("The model doi must be set with the -model_doi flag")
+        exit()
+   
     if '-site' in sys.argv:
         ind=sys.argv.index('-site')
         site=sys.argv[ind+1]
     else:
         print("The site name must be set with the -site flag")
+        exit()
    
     if '-geologic_types' in sys.argv:
         ind=sys.argv.index('-geologic_types')
@@ -294,18 +339,55 @@ def main():
         sample=sys.argv[ind+1]
     else:
         print("The site name must be set with the -sample flag")
+        exit()
 
     if '-oe' in sys.argv:
         oe=' -oe '
     else:
         oe=''
 
-    if '-z_pos' in sys.argv:
-        ind=sys.argv.index('-z_pos')
-        z_pos=float(sys.argv[ind+1])*1e-6
+    if '-A' in sys.argv:
+        average='-A'
     else:
-        z_pos=float('nan')
-   
+        average=''
+
+    if '-multi_samples' in sys.argv:
+        multi_samples=True
+    else:
+        multi_samples=False
+
+    if '-meas_num' in sys.argv:
+        ind=sys.argv.index('-meas_num')
+        meas_num=int(sys.argv[ind+1])
+    else:
+        if multi_samples:
+            if os.path.isfile('../last_measurement_number'):
+                f=open('../last_measurement_number','r')
+                meas_num=int(f.readline())
+                f.close()
+            else:
+                meas_num=1
+        else:
+            meas_num=1
+
+    if '-labfield' in sys.argv:
+        ind=sys.argv.index('-labfield')
+        labfield=sys.argv[ind+1]
+    else:
+        dc_field='0.0'
+
+    if '-phi' in sys.argv:
+        ind=sys.argv.index('-phi')
+        phi=sys.argv[ind+1]
+    else:
+        phi='0.0'
+
+    if '-theta' in sys.argv:
+        ind=sys.argv.index('-theta')
+        theta=sys.argv[ind+1]
+    else:
+        theta='0.0'
+
     if '-ncn' in sys.argv:
         ind=sys.argv.index('-ncn')
         ncn=sys.argv[ind+1]
@@ -326,7 +408,7 @@ def main():
     os.system("rm -r measurements")
 
     dir_list=os.listdir()
-#    print(sorted(dir_list))
+    print('dir_list=',sorted(dir_list))
     slide_dir_list=[]
     image_dir_list=[]
     specimen_list=[]
@@ -360,7 +442,7 @@ def main():
     df.to_csv("samples.txt",sep='\t',index=False)
     add_head("samples")
 
-    meas_file_num=1
+    meas_num=meas_num
     for dir in sorted(dir_list):
         if dir[0] == '.':   # skip . files added by MacOS
             continue
@@ -370,22 +452,38 @@ def main():
             continue
         specimen=dir
         slide_dir_list.append(dir+'/demag/')
-        image_dir_list.append(dir+'/images/')
         specimen_list.append(dir)
 #        print("specimen_list",specimen_list)
 
+        # create images.txt file when images directories are present
+        if os.path.isdir(dir+'/images/'): 
+            image_dir_list.append(dir+'/images/')
+            os.chdir(dir+'/images')
+            if os.path.isfile("images.txt"):
+                os.system("rm images.txt") 
+            image_file_names=os.listdir()
+            f_images=open('images.txt','w')
+            f_images.write('tab\timages\n')
+            f_images.write('specimen\tfile\ttype\ttitle\tkeywords\n')
+            for file_name in image_file_names:
+                title_split=file_name.split(".")
+                title=title_split[0]
+                f_images.write(dir+'\t'+file_name+'\tScanning SQUID Microscopy\t'+title+'\tScanning SQUID Microscopy\n')
+            f_images.close()
+        print("image_dir_list",image_dir_list)
+        os.chdir('../..')
+        
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        if spec_method_codes == "":
-            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '"'
-        else:
-            command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -mcd ' + spec_method_codes
+        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
+        if spec_method_codes != "":
+            command+=' -mcd ' + spec_method_codes
         print(command)
         os.system(command)
 
         # add info to specimens table
         df=pd.read_csv("specimens.txt",sep="\t",header=1)
-        df=append_column(df,"method_codes",spec_method_codes)
+        df=append_to_column(df,"method_codes",spec_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"geologic_classes",geologic_classes)
         df=update_column(df,"lithologies",lithologies)
@@ -395,7 +493,7 @@ def main():
 
         # add info to measurements table
         df=pd.read_csv("measurements.txt",sep="\t",header=1)
-        df=append_column(df,"method_codes",meas_method_codes)
+        df=append_to_column(df,"method_codes",meas_method_codes)
         df=update_column(df,"citations",citations)
         df=update_column(df,"instrument_codes",instrument_codes)
         df.to_csv("measurements.txt",sep='\t',index=False)
@@ -404,7 +502,7 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_file_num,meas_name_num=convert_squid_data(specimen,citations,z_pos,meas_file_num,meas_method_codes,meas_name_num)
+        meas_num,meas_name_num=convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -415,11 +513,12 @@ def main():
 
 #   Combine the images tables and put the images in one folder
     image_files=""
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXX")
+    print("image dir list=",image_dir_list)
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXX")
     for dir in image_dir_list:
         image_files+=dir+ "images.txt "
     os.system("combine_magic.py -F images.txt -f " + image_files)
-
-    print("image dir list=",image_dir_list)
     os.mkdir("images")
     for dir in image_dir_list:
         os.system("cp " + dir + "* images")
@@ -475,13 +574,18 @@ def main():
         os.system("rm " + dir + "samples.txt")
         os.system("rm " + dir + "specimens.txt")
         os.system("rm " + dir + "measurements.txt")
-    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
-    os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
+    print("multi_samples=",multi_samples)
+    if multi_samples == False: 
+        os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
+        os.system("rm images/sites.txt images/samples.txt images/specimens.txt images/images.txt")
 
+    f=open("../last_measurement_number","w")
+    f.write(str(meas_num))
+    f.close()
     print("end")   
     return()
 
-def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_codes,meas_name_num):
+def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -492,9 +596,11 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
     print(sorted(file_list))
 
     for file in sorted(file_list):
-        if file[0] == '.':   # skip . files added by MacOS
+        if file[0] == '.':  # skip . files added by MacOS
             continue
-        if '.inf' in file:       # do processing on both files in the .bz loop as we need data in both to create the measurements file
+        if '.inf' in file:  # skip .inf files process all files in the .bz loop as we need all the data to create the measurements file
+            continue
+        if '.fits' in file: # skip .inf files process all files in the .bz loop as we need all the data to create the measurements file
             continue
 
         print('file=',file)
@@ -577,12 +683,23 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         comment=comment+", "+line[4:-1]
         print ("comment=",comment)
         line=info.readline() 
+        info.close()
 
         experiment_name=file.split('.')
         experiment_name=experiment_name[0]
 
+#       get the model height and residuals information from the .fits file
+
+        fits_name=file[:-3]+ '.fits'
+        f=open(fits_name,'r')
+        line=f.readline()
+        line_split=line.split(",")
+        # fit file values are moment (emu), inc, dec, height and residuals
+        height=line_split[3]
+        residuals=line_split[4]
+
 # open the measurement file for writing and put the compressed headers in
-        mf=open('measurements'+str(meas_file_num)+'.txt','w')
+        mf=open('measurements'+str(meas_num)+'.txt','w')
         mf.write("tab\tmeasurements\n")
         mf.write('* experiment\t'+experiment_name+'\n')
         mf.write('* specimen\t'+specimen+'\n')
@@ -590,14 +707,14 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
         mf.write('* quality\tg\n')
         mf.write('* method_codes\t'+meas_method_codes+'\n')
         mf.write('* citations\t'+citations+'\n')
-        if math.isnan(z_pos) is False:
-            mf.write('* meas_pos_z\t'+str(z_pos)+'\n')
         mf.write('* description\t'+comment+'\n')
+        mf.write('* derived_value\t'+model_height_name+','+height+','+model_doi+'\n')
+        mf.write('* derived_value\t'+model_residuals_name+','+residuals+','+model_doi+'\n')
 
-        mf.write('measurement\ttmagn_z\tmeas_pos_x\tmeas_pos_y\n')
-        print('meas_file_num=', meas_file_num)
+        mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
+        print('meas_num=', meas_num)
         print('')
-        meas_file_num+=1
+        meas_num+=1
 
         prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z") #for rounding
         
@@ -631,7 +748,7 @@ def convert_squid_data(specimen, citations, z_pos, meas_file_num, meas_method_co
             line = qdm_data.readline() 
         qdm_data.close()
         mf.close()
-    return(meas_file_num,meas_name_num)
+    return(meas_num,meas_name_num)
 
 def update_column(df,column,value):
     #add the column with all the same values to a DataFrame
@@ -643,10 +760,13 @@ def update_column(df,column,value):
     df[column] = column_values
     return(df)
         
-def append_column(df,column,value):
-    # add value to all of the values in column
+def append_to_column(df,column,value):
+    # add value to all of the values in column except when the value already is in the original value
     for index, row in df.iterrows():
-        df.loc[index,column]=value + ":" + df.loc[index,column]    
+        value_list = value.split(':')
+        for method_code in value_list:
+            if method_code not in df.loc[index,column]:
+                df.loc[index,column]= method_code + ":" + df.loc[index,column]
     return(df)
 
 def add_head(table):

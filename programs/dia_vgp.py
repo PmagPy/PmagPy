@@ -6,15 +6,15 @@ from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
-def spitout(*input):
-    output = []
-    if len(input) > 1:
-        (dec,inc,a95,slat,slon) = (input)
+def spitout(line):
+    print (line)
+    if len(line) > 1:
+        (dec,inc,a95,slat,slon) = (line)
         output = pmag.dia_vgp(dec,inc,a95,slat,slon)
     else:
-        input = input[0]
-        output = pmag.dia_vgp(input)
-    return printout(output)
+        line = line[0]
+        output = pmag.dia_vgp(line)
+    return output
 
 def printout(output): # print out returned stuff
     if len(output) > 1:
@@ -61,7 +61,8 @@ def main():
         print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv: # if one is -i
-        while 1:
+        cont=1
+        while cont==1:
             try:
                 ans=input("Input Declination: <cntrl-D to quit>  ")
                 Dec=float(ans)  # assign input to Dec, after conversion to floating point
@@ -72,8 +73,9 @@ def main():
                 ans=input("Input Site Latitude:  ")
                 slat =float(ans)
                 ans=input("Input Site Longitude:  ")
-                slong =float(ans)
-                spitout(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
+                slon =float(ans)
+                plong,plat,dp,dm = pmag.dia_vgp(Dec,Inc,a95,slat,slon)
+                #plong,plat,dp,dm=spitout(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
                 print('%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm)) # print out returned stuff
             except:
                 print("\n Good-bye\n")
@@ -92,9 +94,9 @@ def main():
         spitout(inlist)
 
     else:
-        input = sys.stdin.readlines()  # read from standard input
+        lines = sys.stdin.readlines()  # read from standard input
         inlist  = []
-        for line in input:   # read in the data (as string variable), line by line
+        for line in lines:   # read in the data (as string variable), line by line
             inlist.append([])
             # loop over the elements, split by whitespace
             for el in line.split():

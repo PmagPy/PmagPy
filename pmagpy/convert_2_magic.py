@@ -21,7 +21,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
-            lat="", lon=""):
+            savelast=False,lat="", lon="",labfield=0, labfield_phi=0, labfield_theta=0,
+            experiment="Demag", cooling_times_list=[]):
 
     """
     Convert 2G binary format file to MagIC file(s)
@@ -47,7 +48,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     specnum : int
         number of characters to designate a specimen, default 0
     samp_con : str
-        sample/site naming convention, default '2', see info below
+        (specimen/)sample/site naming convention, default '2', see info below
     corr: str
         default '1'
     gmeths : str
@@ -60,12 +61,25 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         user name, default ""
     noave : bool
        do not average duplicate measurements, default False (so by default, DO average)
+    savelast : bool
+       take the last measurement if replicates at treatment step, default is False
     input_dir : str
         input file directory IF different from dir_path, default ""
     lat : float
         latitude, default ""
     lon : float
         longitude, default ""
+    labfield : float
+        dc lab field (in micro tesla)
+    labfield_phi : float
+        declination 0-360
+    labfield_theta : float
+        inclination -90 - 90
+    experiment : str
+        experiment type, see info below;  default is Demag
+    cooling_times_list : list
+        cooling times in [K/minutes] seperated by comma,
+        ordered at the same order as XXX.10,XXX.20 ...XX.70
 
     Returns
     ---------
@@ -97,6 +111,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+       [8] siteName_sample_specimen: the three are differentiated with '_'
 
     Sampling method codes:
          FS-FD field sampling done with a drill
@@ -107,6 +122,33 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
          SO-ASC   an ASC orientation device was used
          SO-MAG   orientation with magnetic compass
          SO-SUN   orientation with sun compass
+
+    Experiment type:
+        Demag:
+            AF and/or Thermal
+        PI:
+            paleointenisty thermal experiment (ZI/IZ/IZZI)
+        ATRM n:
+
+            ATRM in n positions (n=6)
+
+        AARM n:
+            AARM in n positions
+        CR:
+            cooling rate experiment
+            The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+            where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+            XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+            if using this type, you must also provide cooling rates in [K/minutes] in cooling_times_list
+            separated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+
+            No need to specify the cooling rate for the zerofield
+            But users need to make sure that there are no duplicate meaurements in the file
+
+        NLT:
+            non-linear-TRM experiment
+
+
 
     """
 
@@ -153,17 +195,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         if "6" in samp_con:
             print('Naming convention option [6] not currently supported')
             return False, 'Naming convention option [6] not currently supported'
-            # Z=1
-            # try:
-            #    SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
-            # except:
-            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-            # if file_type == 'bad_file':
-            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-        # else: Z=1
-
     if not mag_file:
         print("mag file is required input")
         return False, "mag file is required input"
@@ -192,6 +223,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         rec_not_null = [i for i in rec if i]
         if len(rec_not_null) < 5:
             continue
+        LPcode=""
         if firstline == 1:
             firstline = 0
             spec, vol = "", 1
@@ -281,7 +313,13 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             meths = reduce(lambda x, y: x+':'+y, methods)
             method_codes = meths
             # parse out the site name
-            site = pmag.parse_site(sample, samp_con, Z)
+            if samp_con=='8':
+                sss = pmag.parse_site(specname, samp_con, Z)
+                sample=sss[1]
+                site=sss[2]
+            else: 
+                site = pmag.parse_site(sample, samp_con, Z)
+            print (specname,sample,site)
             SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
             SpecRec["specimen"] = specname
             SpecRec["sample"] = sample
@@ -344,11 +382,56 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             MeasRec["treat_step_num"] = 0
             MeasRec["specimen"] = specname
             el, demag = 1, ''
+            
             treat = rec[el]
-            if treat[-1] == 'C':
+            treatment = []
+            if treat!='NRM':
+                treatment_code = str(treat).split(".")
+                treatment.append(float(treatment_code[0]))
+                if len(treatment_code) == 1:
+                    treatment.append(0)
+                else:
+                    treatment.append(float(treatment_code[1]))
+
+            if experiment:
+              if 'ATRM' in experiment:
+                  try:
+                      experiment, atrm_n_pos = experiment.split()
+                      atrm_n_pos = int(atrm_n_pos)
+                  except:
+                      experiment = 'ATRM'
+                      atrm_n_pos = 6
+              if 'AARM' in experiment:
+                  try:
+                      experiment, aarm_n_pos = experiment.split()
+                      aarm_n_pos = int(aarm_n_pos)
+                  except:
+                      experiment = 'AARM'
+                      aarm_n_pos = 6
+         
+              if experiment == 'CR':
+                  if command_line:
+                      cooling_times = sys.argv[ind+1]
+                      cooling_times_list = cooling_times.split(',')
+                  noave = True
+        # if not command line, cooling_times_list is already set
+                    
+            if treat[-1] == 'C' or experiment in ['PI','CR','NLT']:
                 demag = 'T'
-            elif treat != 'NRM':
+                if labfield:
+                    if experiment in 'ATRM':
+                        LPcode='LP-AN-TRM'
+                    else:
+                        LPcode='LP-PI-TRM'
+                else:
+                    LPcode='LP-DIR-T'
+
+            elif treat != 'NRM' and demag!='T':
                 demag = 'AF'
+                if experiment in 'AARM' and labfield:
+                    LPcode='LP-AN-ARM'
+                else:
+                    LPcode='LP-DIR-AF'
             el += 1
             while rec[el] == "":
                 el += 1
@@ -367,9 +450,9 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             while rec[el] == "":
                 el += 1
             ginc = rec[el]
-            el = skip(2, el, rec)  # skip bdec,binc
-#                el=skip(4,el,rec) # skip gdec,ginc,bdec,binc
-#                print 'moment emu: ',rec[el]
+            el +=1
+            while 'e-' not in rec[el]: # skip the gdec, ginc if present
+                el +=1
             MeasRec["magn_moment"] = '%10.3e' % (
                 float(rec[el])*1e-3)  # moment in Am^2 (from emu)
             MeasRec["magn_volume"] = '%10.3e' % (
@@ -385,28 +468,62 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 float(rec[el])*1e-3)  # convert from emu
             el += 1  # skip to positions
             MeasRec["meas_n_orient"] = rec[el]
-#                    el=skip(5,el,rec) # skip to date
-#                    mm=str(months.index(date[0]))
-#                    if len(mm)==1:
-#                        mm='0'+str(mm)
-#                    else:
-#                        mm=str(mm)
-#                    dstring=date[2]+':'+mm+':'+date[1]+":"+date[3]
-#                    MeasRec['measurement_date']=dstring
             MeasRec["instrument_codes"] = inst
             MeasRec["analysts"] = user
             MeasRec["citations"] = "This study"
-            MeasRec["method_codes"] = meas_type
+            
+            if experiment in ['PI','NLT','CR']:
+                if treat=='NRM':
+                    MeasRec["treat_dc_field"] = "0"
+                    MeasRec["treat_dc_field_phi"] = "0"
+                    MeasRec["treat_dc_field_theta"] = "0"
+                    meas_type='LT-NO'
+                elif float(treatment[1]) in [0., 3.]:  # zerofield step or tail check
+                    MeasRec["treat_dc_field"] = "0"
+                    MeasRec["treat_dc_field_phi"] = "0"
+                    MeasRec["treat_dc_field_theta"] = "0"
+                    if treatment[1]==0:
+                        meas_type='LT-T-Z'
+                    if treatment[1]==3:
+                        meas_type='LT-PTRM-MD'
+                if not labfield:
+                    print(
+                        "-W- WARNING: labfield (-dc) is a required argument for this experiment type")
+                    return False, "labfield (-dc) is a required argument for this experiment type"
+                elif len(treatment)>0 and float(treatment[1]) in [1.,2. ]:  # zerofield step or tail check
+                    MeasRec["treat_dc_field"] = '%8.3e' % (float(labfield*1e-6))
+                    MeasRec["treat_dc_field_phi"] = "%.2f" % (
+                        float(labfield_phi))
+                    MeasRec["treat_dc_field_theta"] = "%.2f" % (
+                        float(labfield_theta))
+                    if treatment[1]==1:
+                        meas_type='LT-T-I'
+                    else:
+                        meas_type='LT-PTRM-I'
+            else:
+                MeasRec["treat_dc_field"] = ""
+                MeasRec["treat_dc_field_phi"] = ""
+                MeasRec["treat_dc_field_theta"] = ""
             if demag == "AF":
                 MeasRec["treat_ac_field"] = '%8.3e' % (
                     float(treat[:-2])*1e-3)  # peak field in tesla
-                meas_type = "LT-AF-Z"
-                MeasRec["treat_dc_field"] = '0'
-            elif demag == "T":
+                if LPcode=='LP-DIR-AF':
+                    meas_type = "LT-AF-Z"
+                    MeasRec["treat_dc_field"] = '0'
+                elif 'AN' in LPcode:
+                    meas_type = "LT-AF-I"
+                    MeasRec["treat_dc_field"] = labfield*1e-6
+                     
+            elif demag == "T" and treat!='NRM':
                 MeasRec["treat_temp"] = '%8.3e' % (
-                    float(treat[:-1])+273.)  # temp in kelvin
-                meas_type = "LT-T-Z"
-            MeasRec['method_codes'] = meas_type
+                float(treat[:-1])+273.)  # temp in kelvin
+                if LPcode=="LP-DIR-T":
+                    meas_type = "LT-T-Z"
+                #elif LPcode=='LP-PI-TRM':
+                #    meas_type = "LT-T-Z"
+                    if labfield:LPcode="LP-PI-TRM"
+                
+            MeasRec['method_codes'] = LPcode+":"+meas_type
             MeasRecs.append(MeasRec)
 
     con = cb.Contribution(output_dir_path, read_tables=[])
@@ -415,9 +532,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave,savelast=False)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
-
     con.write_table_to_file('specimens', custom_name=spec_file)
     con.write_table_to_file('samples', custom_name=samp_file)
     con.write_table_to_file('sites', custom_name=site_file)
@@ -1094,7 +1210,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
 #    else:
 #        GET_DC_PARAMS = False
 
-# With the above commented out GET_DC_PARAMS does not get set and this function fail below so setting it here. NAJ
+# With the above commented out( GET_DC_PARAMS does not get set and this function fails below so setting it here. NAJ
     GET_DC_PARAMS = False
     if locname == '' or locname == None:
         locname = 'unknown'
@@ -1343,6 +1459,14 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 MeasRec['treat_dc_field_phi'] = '%1.2f' % DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f' % DC_THETA
                 MeasRec['treat_ac_field'] = '0'
+                #for MIT paleointensity format
+                if treat_type[2] == 'I':
+                    MeasRec['method_codes'] = 'LT-T-I'
+                    MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
+                elif treat_type[2] == 'P':
+                    MeasRec['method_codes'] = 'LT-PTRM-I'
+                    MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
+
             elif line[4] == '0':  # assume decimal IZZI format 0 field thus can hardcode the dc fields
                 MeasRec['method_codes'] = 'LT-T-Z'
                 MeasRec['meas_temp'] = '273'
@@ -1409,20 +1533,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                     float(line[58:67])*1e-8)  # (convert e-5emu to Am2)
                 MeasRec['magn_y_sigma'] = '%8.2e' % (float(line[67:76])*1e-8)
                 MeasRec['magn_z_sigma'] = '%8.2e' % (float(line[76:85])*1e-8)
-#           if the cit file is from a magnetic model calculation then get the model height and residual from the line 
-#           and add it to the measuerment file
-            if 'height:' in line and 'residuals:' in line:
-                split_line=line.split('height:')
-                end=split_line[1]
-                split_end=end.split()
-                height=split_end[0]
-                residuals=split_end[1]
-                residuals=residuals.split('residuals:')
-                residuals=residuals[1]
-                print('height=',height)
-                print('residuals=',residuals)
-                MeasRec['inversion_height'] = height
-                MeasRec['inversion_residuals'] = residuals 
             MeasRecs.append(MeasRec)
         SpecRecs.append(SpecRec)
         if sample not in samples:
