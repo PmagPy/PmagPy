@@ -1840,7 +1840,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.Geodetic())
+                     label=label, zorder=101, transform=ccrs.PlateCarree())
     if filled_pole==False:
         equi(map_axis, plon, plat, A95_km, color)
     elif filled_pole==True:
