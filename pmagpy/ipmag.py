@@ -1494,7 +1494,7 @@ def plot_XY(X=None, Y=None, sym='ro'):
     plt.plot(X, Y, sym)
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title='', edge='',alpha=1):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -1576,7 +1576,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend == 'yes':
         plt.legend(loc=2)
     plt.tight_layout()
-    if title != "":
+    if title != None:
         plt.title(title)
 
 
