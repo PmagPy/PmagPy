@@ -72,17 +72,21 @@ def main():
     site_list=""
     samp_list=""
     speci_list=""
+    image_list=""
     meas_list=""
     for sample in samples:
         loc_list=loc_list+sample+"/locations.txt "
         site_list=site_list+sample+"/sites.txt "
         samp_list=samp_list+sample+"/samples.txt "
         speci_list=speci_list+sample+"/specimens.txt "
+        image_list=image_list+sample+"/images.txt "
         meas_list=meas_list+sample+"/measurements.txt "
     os.system("combine_magic.py -F locations.txt -f " + loc_list) 
     os.system("combine_magic.py -F sites.txt -f " + site_list) 
     os.system("combine_magic.py -F samples.txt -f " + samp_list) 
     os.system("combine_magic.py -F specimens.txt -f " + speci_list) 
+    os.system("combine_magic.py -F images.txt -f " + image_list) 
+    print("image_list=", image_list)
     os.system("combine_magic.py -F measurements.txt -f " + meas_list) 
     
     os.system("upload_magic.py")
@@ -92,7 +96,7 @@ def main():
         os.system("rm -rf "+sample+"/images")
         os.system("rm -rf "+sample+"/*.txt")
 
-    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt")
+    os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt images.txt")
     os.system("rm last_measurement_number")
 
     print("end")
