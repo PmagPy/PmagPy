@@ -2162,7 +2162,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
     map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=[edge],
-                     s=markersize, color=color, label=label, zorder=100, transform=ccrs.Geodetic())
+                     s=markersize, color=color, label=label, zorder=100, transform=ccrs.PlateCarree())
     map_axis.set_global()
     if legend == True:
         plt.legend(loc=2)
