@@ -1896,7 +1896,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.Geodetic())
+                     label=label, zorder=101, transform=ccrs.PlateCarree())
     if filled_pole==False:
         if isinstance(color,str)==True:
             for n in range(0,len(A95)):
@@ -2011,10 +2011,10 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     dm_km = dm*111.32
     map_axis.scatter(plon, plat, marker=pole_marker,
                      color=pole_color, edgecolors=pole_edgecolor, s=markersize,
-                     label=pole_label, zorder=101, transform=ccrs.Geodetic())
+                     label=pole_label, zorder=101, transform=ccrs.PlateCarree())
     map_axis.scatter(slon, slat, marker=site_marker,
                      color=site_color, edgecolors=site_edgecolor, s=markersize,
-                     label=site_label, zorder=101, transform=ccrs.Geodetic())
+                     label=site_label, zorder=101, transform=ccrs.PlateCarree())
     # the orientation of the ellipse needs to be determined using the
     # two laws of cosines for spherical triangles where the triangle is
     # A: site, B: north pole, C: paleomagnetic pole (see Fig. A.2 of Butler)
