@@ -10,7 +10,7 @@ def main():
     NAME
         squidm_magic.py
     DESCRIPTION
-        Converts SQUID microscopy files into a MagIC format files.
+        Converts SQUID microscopy files into MagIC format files.
         This program currently supports only specimens from a single sample.  
         Method codes are applied to all rows in each table. To add method codes
         to individual rows, edit the MagIC file after this program creates it.
@@ -24,7 +24,7 @@ def main():
         The top directory should contain directories named for each of the SQUID
         microscopy scan groups. This name will be used as the specimen name in
         the MagIC specimen table that is created by this program. In each scan
-        directory there should directories labeled "demag", "data", "images". The
+        directory there should be directories labeled "demag", "data", "images". The
         data directory should contain the .bz, .inf, and .fits files for each SQUID
         microscopy scan. The .bz, .inf, and .fits files must have the same name. The 
         demag directory should have a .sam file that has the same name as the
@@ -167,7 +167,7 @@ def main():
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-   squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26.16674" -lon 116.99134 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "This study" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM:LP-NOMAG" -geologic_types "Single Crystal" -sample Cong14c -ncn 5 -instrument_codes "MIT SQIUD microscope" -model_height_name "SQUID Microscopy Model Height Lima And Weiss 2016" -model_residuals_name "SQUID Microscopy Risduals Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -multi_samples -labfield 50.0 -phi 0.0 -theta 90 -A 
+    squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_height_name "SQUID Microscopy Model Height Lima And Weiss 2016" -model_residuals_name "SQUID Microscopy Residuals Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -labfield 50.0 -phi 0.0 -theta 90 -A
     """
 
     if '-h' in sys.argv: # check if help is needed
