@@ -25,8 +25,8 @@ def main():
         microscopy scan groups. This name will be used as the specimen name in
         the MagIC specimen table that is created by this program. In each scan
         directory there should directories labeled "demag", "data", "images". The
-        data directory should contain the .bz and .inf files for each SQUID
-        microscopy scan. The .bz and .inf files must have the same name. The 
+        data directory should contain the .bz, .inf, and .fits files for each SQUID
+        microscopy scan. The .bz, .inf, and .fits files must have the same name. The 
         demag directory should have a .sam file that has the same name as the
         name of the directory 2 levels up. That is, if the main directory is ZirconRun2,
         then the .sam file should be named ZirconRun2.sam. There should also be
@@ -35,6 +35,10 @@ def main():
         dipole fits the data. In the images directory should be any human viewable
         image files that will be uploaded to MagIC along with the data. .jpg, .png,
         .gif, .pdf, etc. type files.
+
+        The .fits file format is: moment in emu, declination, inclination, height, residuals
+        An example of the text in a .fits file:
+        1.51e-10,54.36,220.92,0.000429,0.4214
 
         Example file directory tree:
         ZirconRun1 -- (file hierarchy) 
@@ -132,8 +136,6 @@ def main():
 
         -model_doi: doi reference for the model used to calculate the model height, and residuals
 
-        -oe: flag to use cgs units for magnetic field strength(Oe) or magnetic moment(emu) 
-
         -A: don't average replicant measurements 
 
         -multi_samples: flag used to indicate to not remove the MagIC files upon finishing. This leaves the
@@ -165,8 +167,7 @@ def main():
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
       Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-     squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQIUD microscope" -oe 
-    
+   squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26.16674" -lon 116.99134 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "This study" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM:LP-NOMAG" -geologic_types "Single Crystal" -sample Cong14c -ncn 5 -instrument_codes "MIT SQIUD microscope" -model_height_name "SQUID Microscopy Model Height Lima And Weiss 2016" -model_residuals_name "SQUID Microscopy Risduals Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -multi_samples -labfield 50.0 -phi 0.0 -theta 90 -A 
     """
 
     if '-h' in sys.argv: # check if help is needed
@@ -475,7 +476,7 @@ def main():
         
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        command='cit_magic.py -ncn ' + ncn + oe + '-f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
+        command='cit_magic.py -ncn ' + ncn + ' -f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
         if spec_method_codes != "":
             command+=' -mcd ' + spec_method_codes
         print(command)
