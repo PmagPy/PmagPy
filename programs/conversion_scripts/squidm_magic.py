@@ -144,7 +144,8 @@ def main():
 
         -meas_num: set the starting measurement name number. default:1
 
-        -labfield: field strength that the sample was demaged under in microTesla. default:0.0
+        -labfield: the field strength that the sample was magnetized for an in-field step 
+                   in  microTesla. default:0.0
 
         -phi: Angle between the specimen x-y plane and the dc field direction. 
               Positive toward the positive z direction. 
