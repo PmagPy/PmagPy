@@ -95,7 +95,6 @@ def main():
                 d,irot=pmag.dotilt(di[0],di[1],Dnbar-180.,90.-Inbar) # rotate to mean
                 drot=d-180.
                 if drot<0:drot=drot+360.
-                print (drot) #DELETE
                 D1.append(drot)
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
