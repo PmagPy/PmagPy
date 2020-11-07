@@ -1305,6 +1305,7 @@ def fishqq(lon=None, lat=None, di_block=None):
         Is=nDIs.transpose()[1]
         ndata=np.column_stack((Ds,Is,az,pl))
         D1,I1=pmag.dotilt_V(ndata)
+        D1=(D1-180.)%360 # Somehow this got lost
         Dtit = 'Mode 1 Declinations'
         Itit = 'Mode 1 Inclinations'
         plt.figure(fignum,figsize=(6, 3))
@@ -1339,6 +1340,7 @@ def fishqq(lon=None, lat=None, di_block=None):
         Is=rDIs.transpose()[1]
         rdata=np.column_stack((Ds,Is,az,pl))
         D2,I2=pmag.dotilt_V(rdata)
+        D2=(D2-180.)%360 # Somehow this got lost
         Dtit = 'Mode 2 Declinations'
         Itit = 'Mode 2 Inclinations'
         ppars = pmag.doprinc(rDIs)  # get principal directions
