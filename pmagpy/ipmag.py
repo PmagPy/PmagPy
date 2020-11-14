@@ -812,7 +812,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
 
     fignum = 1
     fig = plt.figure(figsize=figsize)
-    fig = plt.subplot(1, 3, 1)
+    #fig = plt.subplot(1, 3, 1)
+    plt.subplot(1, 3, 1)
 
     minimum = int(0.025 * len(X1))
     maximum = int(0.975 * len(X1))
