@@ -8383,15 +8383,16 @@ def doigrf(lon, lat, alt, date, **kwargs):
     Optional Parameters:
     -----------
     coeffs : if True, then return the gh coefficients
-    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k')
+    mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k','shawq2k','shawqIA')
         arch3k (Korte et al., 2009)
         cals3k (Korte and Constable, 2011)
         cals10k.1b (Korte et al., 2011)
         pfm9k  (Nilsson et al., 2014)
         hfm.OL1.A1 (Constable et al., 2016)
         cals10k.2 (Constable et al., 2016)
-        shadif14k (Pavon-Carrasco et al. (2014)
-        shawq2k (Campuzano et al. (2019)
+        shadif14k (Pavon-Carrasco et al., 2014)
+        shawq2k (Campuzano et al., 2019)
+        shawqIA (Osete et al., 2020)
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Return
@@ -8441,6 +8442,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
             psvmodels, psvcoeffs = cf.get_shadif14k()
         elif kwargs['mod'] == 'shawq2k':
             psvmodels, psvcoeffs = cf.get_shawq2k()
+        elif kwargs['mod'] == 'shawqIA':
+            psvmodels, psvcoeffs = cf.get_shawqIA()
         else:
             # Korte and Constable, 2011;  use prior to -1000, back to -8000
             psvmodels, psvcoeffs = cf.get_cals10k()
@@ -8471,7 +8474,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     elif date < 1900:
         if kwargs['mod'] == 'cals10k':
             incr = 50
-        elif kwargs['mod'] == 'shawq2k':
+        elif kwargs['mod'] == 'shawq2k' or kwargs['mod']=='shawqIA':
             incr = 25
         else:
             incr = 10
