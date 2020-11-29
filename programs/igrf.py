@@ -38,7 +38,7 @@ def main():
        -plt; make a plot of the time series
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,shadif14k,cals10k.1b] specify model for 3ka to 1900 AD, default is cals10k
+       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k.2,shadif14k,cals10k.1b,shawq2k] specify model for 3ka to 1900 AD, default is cals10k
              NB:  program uses IGRF13 for dates 1900 to 2019.
 
     INPUT FORMAT
@@ -51,7 +51,7 @@ def main():
            space delimited string: date  alt   lat long
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
-    MODELS:  ARCH3K: (Korte et al., 2009);CALS3K (Korte & Contable, 2011); CALS10k (is .1b of Korte et al., 2011); PFM9K (Nilsson et al., 2014); HFM10k (is HFM.OL1.A1 of Constable et al., 2016); CALS10k_2 (is cals10k.2 of Constable et al., 2016), SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014).
+    MODELS:  ARCH3K: (Korte et al., 2009);CALS3K (Korte & Contable, 2011); CALS10k (is .1b of Korte et al., 2011); PFM9K (Nilsson et al., 2014); HFM10k (is HFM.OL1.A1 of Constable et al., 2016); CALS10k_2 (is cals10k.2 of Constable et al., 2016), SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014), SHAWQ2k Campuzano et al. (2019).
     """
     plot, fmt = 0, 'svg'
     mod, alt, make_plot, lat, lon = 'cals10k', 0, 0, 0, 0

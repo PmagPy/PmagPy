@@ -62,7 +62,7 @@ def igrf(input_list, mod='', ghfile=""):
         "" : Use the IGRF
         custom : use values supplied in ghfile
         or choose from this list
-        ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b']
+        ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k']
         where:
             arch3k (Korte et al., 2009)
             cals3k (Korte and Constable, 2011)
@@ -70,6 +70,8 @@ def igrf(input_list, mod='', ghfile=""):
             pfm9k  (Nilsson et al., 2014)
             hfm10k is the hfm.OL1.A1 of Constable et al. (2016)
             cals10k.2 (Constable et al., 2016)
+            shadif14 (Pavon-Carrasco et al., 2014)
+            shawq2k (Campuzano et al., 2019)
             the first four of these models, are constrained to agree
             with gufm1 (Jackson et al., 2000) for the past four centuries
 

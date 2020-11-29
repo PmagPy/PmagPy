@@ -8391,6 +8391,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         hfm.OL1.A1 (Constable et al., 2016)
         cals10k.2 (Constable et al., 2016)
         shadif14k (Pavon-Carrasco et al. (2014)
+        shawq2k (Campuzano et al. (2019)
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Return
@@ -8438,6 +8439,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
             # use CALS10k.2 (Constable et al., 2016), coefficients from -8000
             # to 1900
             psvmodels, psvcoeffs = cf.get_shadif14k()
+        elif kwargs['mod'] == 'shawq2k':
+            psvmodels, psvcoeffs = cf.get_shawq2k()
         else:
             # Korte and Constable, 2011;  use prior to -1000, back to -8000
             psvmodels, psvcoeffs = cf.get_cals10k()
@@ -8468,9 +8471,11 @@ def doigrf(lon, lat, alt, date, **kwargs):
     elif date < 1900:
         if kwargs['mod'] == 'cals10k':
             incr = 50
+        elif kwargs['mod'] == 'shawq2k':
+            incr = 25
         else:
             incr = 10
-        model = date - date % incr
+        model = int(date - date % incr)
         gh = psvcoeffs[psvmodels.index(model)]
         if model + incr < 1900:
             sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
@@ -8490,8 +8495,29 @@ def doigrf(lon, lat, alt, date, **kwargs):
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
-    else:
-        return x, y, z, f
+        #model = date - date % incr
+        #gh = psvcoeffs[psvmodels.index(model)]
+        #if model + incr < 1900:
+        #    sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
+        #else:
+        #    field2 = igrf13coeffs[models.index(1940)][0:120]
+        #    sv = (field2 - gh)/float(1940 - model)
+        #x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+    #else:
+    #    model = date - date % 5
+    #    if date <2020:
+    #        gh = np.array(igrf13coeffs[models.index(model)])
+    #        sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
+    #        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+    #    else:
+    #        gh = igrf13coeffs[models.index(2020)]
+    #        sv = np.array(igrf13coeffs[models.index(2020.2)])
+    #        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+    #if 'coeffs' in list(kwargs.keys()):
+    #    return gh
+    #else:
+    #    return x, y, z, f
+    return x, y, z, f
 #
 
 
