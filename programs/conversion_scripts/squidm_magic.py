@@ -699,6 +699,7 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         # fit file values are moment (emu), inc, dec, height and residuals
         height=line_split[3]
         residuals=line_split[4]
+        residuals=residuals.strip()
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_num)+'.txt','w')
@@ -710,8 +711,7 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         mf.write('* method_codes\t'+meas_method_codes+'\n')
         mf.write('* citations\t'+citations+'\n')
         mf.write('* description\t'+comment+'\n')
-        mf.write('* derived_value\t'+model_height_name+','+height+','+model_doi+'\n')
-        mf.write('* derived_value\t'+model_residuals_name+','+residuals+','+model_doi+'\n')
+        mf.write('* derived_value\t'+model_height_name+','+height+','+model_doi+';'+model_residuals_name+','+residuals+','+model_doi+'\n')
 
         mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
         print('meas_num=', meas_num)
