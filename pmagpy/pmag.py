@@ -272,6 +272,7 @@ def find_f(data):
     Es, Is, Fs, V2s = [], [], [], []
     ppars = doprinc(data)
     D = ppars['dec']
+    data=np.array(data)
     Decs, Incs = data.transpose()[0], data.transpose()[1]
     Tan_Incs = np.tan(Incs * rad)
     for f in np.arange(1., .2, -.01):
