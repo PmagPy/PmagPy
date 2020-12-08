@@ -8119,7 +8119,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False):
+            site_correction=False, return_new_dirs=False,figfile='ei'):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8138,6 +8138,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     save: Boolean argument to save plots (default is False)
     save_folder: path to folder in which plots should be saved (default is current directory)
     fmt: specify format of saved plots (default is 'svg')
+    figfile : name of saved file plus format string
     site_correction: Boolean argument to specify whether to "unsquish" data to
         1) the elongation/inclination pair consistent with TK03 secular variation model
         (site_correction = False)
@@ -8250,6 +8251,9 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
           str(I[lower]) + ' to ' + str(I[upper]))
     print("and elongation parameter of: " + str(Elong))
     print("The flattening factor is: " + str(flat_f))
+    if save:
+        plt.savefig(save_folder+'/'+figfile+fmt)
+        print ('figure saved as: ',save_folder+'/'+figfile+fmt)
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
 
