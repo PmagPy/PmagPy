@@ -28,7 +28,7 @@ def main():
                                                               F1_115C_Z_150107_h18_map1.fits (step model fit info)
                                                      demag --> 150107_h18     (CIT data file) 
                                                                150107_h18.sam (CIT sample list)
-                                                     images --> F1_115C_Z_150107_h18_map1.pdf (human readable image)
+                                                     images --> F1_115C_Z_150107_h18_map1.pdf (human viewable image)
                            
         Run the program in the directory with the commands and sample directories (in the BorlinaEtAl2020 in this example).
 
