@@ -319,7 +319,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 site=sss[2]
             else: 
                 site = pmag.parse_site(sample, samp_con, Z)
-            print (specname,sample,site)
+            #print (specname,sample,site)
             SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
             SpecRec["specimen"] = specname
             SpecRec["sample"] = sample
@@ -385,14 +385,18 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             
             treat = rec[el]
             treatment = []
+            if 'mT' in treat:
+                treat=treat[0:-2]
+                mT=True
+            else:
+                mT=False
             if treat!='NRM':
                 treatment_code = str(treat).split(".")
                 treatment.append(float(treatment_code[0]))
                 if len(treatment_code) == 1:
                     treatment.append(0)
                 else:
-                    treatment.append(float(treatment_code[1]))
-
+                    treatment.append(float(treatment_code[1])*10)
             if experiment:
               if 'ATRM' in experiment:
                   try:
@@ -505,8 +509,12 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 MeasRec["treat_dc_field_phi"] = ""
                 MeasRec["treat_dc_field_theta"] = ""
             if demag == "AF":
-                MeasRec["treat_ac_field"] = '%8.3e' % (
-                    float(treat[:-2])*1e-3)  # peak field in tesla
+                if mT:
+                    MeasRec["treat_ac_field"] = '%8.3e' % (
+                        float(treat)*1e-2)  # peak field in tesla
+                else:
+                    MeasRec["treat_ac_field"] = '%8.3e' % (
+                        float(treat[:-2])*1e-3)  # peak field in tesla
                 if LPcode=='LP-DIR-AF':
                     meas_type = "LT-AF-Z"
                     MeasRec["treat_dc_field"] = '0'
