@@ -1114,7 +1114,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         spec_file="specimens.txt", samp_file="samples.txt",
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
         sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
-        norm='cc', oersted=False, noave=False, meas_n_orient='8',
+        norm='cc', noave=False, meas_n_orient='8',
         labfield=0, phi=0, theta=0):
     """
     Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
@@ -1408,6 +1408,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 MeasRec['treat_ac_field'] = '0'
             elif treat_type.startswith('AF') or treat_type.startswith('MAF'):
                 MeasRec['method_codes'] = 'LT-AF-Z'
+                if treat_type.startswith('AFz'):
+                    MeasRec['method_codes'] = 'LT-AF-Z-Z'
                 MeasRec['meas_temp'] = '273'
                 MeasRec['treat_temp'] = '273'
                 MeasRec['treat_dc_field'] = '0'
@@ -1437,6 +1439,39 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 else:
                     MeasRec['method_codes'] = "LP-ARM-AFD"
                     MeasRec['treat_ac_field'] = '%10.3e' % (float(treat)*1e-3)
+            # ARM with bias field defined in first 6 charachters for Scott Bogue
+            elif treat_type.startswith('B'):      # "B" code for Scott Bogue.
+                # The first two digits after B is the AF demag level in mT and the next 3 are the bias field in uT.
+                # Need to straighten out the treatment value.
+                AC_DEMAG_FIELD = float(treat_type[1:2])*1e-3  # treat_type contains the AF treatment value in this case
+                DC_FIELD=float(treat)*1e-6 # treat is what is normally the last 3 digits of the demag code
+                if treat_type[1:2] == '00':
+                    MeasRec['method_codes'] = "LP-ARM:LT-NO:LP-DIR-AF"
+                else:
+                    MeasRec['method_codes'] = "LP-ARM-AFD:LT-AF-Z:LP-DIR-AF"
+                MeasRec['meas_temp'] = '273'
+                MeasRec['treat_temp'] = '273'
+                MeasRec['treat_dc_field'] = '0'
+                MeasRec['treat_dc_field_phi'] = '%1.2f' % DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f' % DC_THETA
+                MeasRec['treat_ac_field'] = '%10.3e' % (AC_DEMAG_FIELD)
+                MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
+            # ARM with bias field defined in first 6 charachters for Scott Bogue
+            elif treat_type.startswith('D'): # "D" code for Scott Bogue
+                # The first two digits after D is the bias field in uT and the next three are the demag level in orestead (divided by to get mT).
+                DC_FIELD=float(treat_type[1:2])*1e-6 # treat is what is normally the last 3 digits of the demag code. In this case used for bias field in uT.
+                AC_DEMAG_FIELD = float(treat)*1e-4  # Convert to Tesla. treat_type contains the AF treatment value in oe 
+                if treat == '000':
+                    MeasRec['method_codes'] = "LP-ARM:LT-NO:LP-DIR-AF"
+                else:
+                    MeasRec['method_codes'] = "LP-ARM-AFD:LT-AF-Z:LP-DIR-AF"
+                MeasRec['meas_temp'] = '273'
+                MeasRec['treat_temp'] = '273'
+                MeasRec['treat_dc_field'] = '0'
+                MeasRec['treat_dc_field_phi'] = '%1.2f' % DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f' % DC_THETA
+                MeasRec['treat_ac_field'] = '%10.3e' % (AC_DEMAG_FIELD)
+                MeasRec['treat_dc_field'] = '%1.2e' % DC_FIELD
             elif treat_type.startswith('IRM'):
                 if GET_DC_PARAMS:
                     GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD, DC_PHI, DC_THETA = get_dc_params(

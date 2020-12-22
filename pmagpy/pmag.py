@@ -9246,6 +9246,9 @@ def measurements_methods3(meas_data, noave,savelast=False):
                 CR = 1  # catch these suckers here!
             elif "LT-PTRM-AC" in tmpmeths:
                 AC = 1  # catch these suckers here!
+# Bypass overwriting method codes if "B" and "D" demag types used by Scott Bogue have been used
+            elif rec['method_codes'] == "LP-ARM:LT-NO:LP-DIR-AF" or rec['method_codes'] == "LP-ARM-AFD:LT-AF-Z:LP-DIR-AF":
+                pass 
 #
 # otherwise write over existing method codes
 #
