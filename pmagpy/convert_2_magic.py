@@ -154,16 +154,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 
     """
 
-    def skip(N, ind, L):
-        for b in range(N):
-            ind += 1
-            while L[ind] == "":
-                ind += 1
-        ind += 1
-        while L[ind] == "":
-            ind += 1
-        return ind
-
     #
     # initialize variables
     #
@@ -332,7 +322,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 site=sss[2]
             else: 
                 site = pmag.parse_site(sample, samp_con, Z)
-            #print (specname,sample,site)
             SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
             SpecRec["specimen"] = specname
             SpecRec["sample"] = sample
@@ -342,6 +331,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             SpecRec["geologic_classes"] = sclass
             SpecRec["lithologies"] = lithology
             SpecRec["geologic_types"] = _type
+            SpecRec["citations"] = "This study"
+            SpecRec["method_codes"] = ""
             SpecRecs.append(SpecRec)
 
             if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
@@ -358,6 +349,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 SampRec["lithologies"] = lithology
                 SampRec["geologic_types"] = _type
                 SampRec["method_codes"] = method_codes
+                SampRec["citations"] = "This study"
                 SampRecs.append(SampRec)
             if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
@@ -367,6 +359,12 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 SiteRec["geologic_classes"] = sclass
                 SiteRec["lithologies"] = lithology
                 SiteRec["geologic_types"] = _type
+                SiteRec["age"] ="" 
+                SiteRec["age_low"] ="" 
+                SiteRec["age_high"] ="" 
+                SiteRec["age_unit"] ="" 
+                SiteRec["method_codes"] ="" 
+                SiteRec["citations"] ="This study" 
                 SiteRecs.append(SiteRec)
 
             if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
@@ -375,9 +373,16 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 LocRec['lon_e'] = lon
                 LocRec['lat_s'] = lat
                 LocRec['lon_w'] = lon
-                # LocRec["geologic_classes"]=sclass
-                # LocRec["lithologies"]=lithology
-                # LocRec["geologic_types"]=_type
+                LocRec["geologic_classes"]=sclass
+                LocRec["lithologies"]=lithology
+                LocRec["geologic_types"]=_type
+                LocRec["age"]=""
+                LocRec["age_high"]=""
+                LocRec["age_low"]=""
+                LocRec["age_unit"]=""
+                LocRec["citations"]="This study"
+                LocRec["method_codes"]="This study"
+                LocRec["location_type"]=""
                 LocRecs.append(LocRec)
 
         else:
@@ -500,9 +505,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_df['method_codes']=meas_df['method_codes']+':'+LPcode
     meas_df['measurement']=meas_df['treat_step_num'].astype('str')
     meas_df['experiment']=specname+'_'+LPcode
-    print (meas_df.columns)
     meas_df.drop(columns=['treat_type'],inplace=True)
-    print (meas_df.columns)
     meas_df.fillna("",inplace=True)
     meas_dicts = meas_df.to_dict('records')                                              
     pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
@@ -514,7 +517,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    #MeasOuts = pmag.measurements_methods3(MeasRecs, noave,savelast=False)
+    #MeasOuts = pmag.measurements_methods3(meas_dicts, noave,savelast=False)
     #con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', custom_name=spec_file)
     con.write_table_to_file('samples', custom_name=samp_file)
