@@ -500,7 +500,9 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_df['method_codes']=meas_df['method_codes']+':'+LPcode
     meas_df['measurement']=meas_df['treat_step_num'].astype('str')
     meas_df['experiment']=specname+'_'+LPcode
-    meas_df.drop('treat_type',1)
+    print (meas_df.columns)
+    meas_df.drop(columns=['treat_type'],inplace=True)
+    print (meas_df.columns)
     meas_df.fillna("",inplace=True)
     meas_dicts = meas_df.to_dict('records')                                              
     pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
