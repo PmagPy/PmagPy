@@ -19,7 +19,7 @@ import pmagpy.contribution_builder as cb
 
 def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
-            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',
+            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',specname=False,
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
             savelast=False,lat="", lon="",labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="Demag", cooling_times_list=[]):
@@ -47,6 +47,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         orientation convention, default '3', see info below
     specnum : int
         number of characters to designate a specimen, default 0
+    specname : bool
+        if True, use file name stem for specimen name, if False, read from within file, default = False
     samp_con : str
         (specimen/)sample/site naming convention, default '2', see info below
     corr: str
@@ -177,6 +179,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     input_dir_path, dir_path = pmag.fix_directories(input_dir, dir_path)
 
     if samp_con:
+        samp_con=str(samp_con)
         Z = 1
         if "4" in samp_con:
             if "-" not in samp_con:
@@ -199,7 +202,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
-    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    mag_file_path = pmag.resolve_file_name(mag_file, input_dir_path)
 
     samplist = []
     try:
@@ -208,14 +211,14 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         SampRecs = []
     MeasRecs, SpecRecs, SiteRecs, LocRecs = [], [], [], []
     try:
-        f = open(mag_file, 'br')
+        f = open(mag_file_path, 'br')
         input = str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
         return False, "bad mag file"
-    firstline, date = 1, ""
+    firstline, date,firststep = 1, "",1
     d = input.split('\\xcd')
     for line in d:
         rec = line.split('\\x00')
@@ -250,13 +253,22 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 while rec[el] != '\\x01':
                     el += 1
                 vcc, date, comments = rec[el-3], rec[el+7], []
-            specname = spec.lower()
+            if specname:
+                specname=mag_file.split('.')[0]
+            else:
+                specname = spec.lower()
             print('importing ', specname)
             el += 8
             while rec[el].isdigit() == False:
                 comments.append(rec[el])
                 el += 1
+            if rec[el].isdigit(): 
+                deccorr=float(rec[el])
+                el+=1
+            else:
+                deccorr=0
             while rec[el] == "":
+                print (el, repr(rec[el]))
                 el += 1
             az = float(rec[el])
             el += 1
@@ -287,10 +299,11 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             el += 1
             while rec[el] == "":
                 el += 1
-            if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
-                deccorr = float(rec[el])
+            #if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
+            if deccorr!=0:
+                #deccorr = float(rec[el])
                 az += deccorr
-                bed_dip_dir += deccorr
+                if bed_dip!=0:bed_dip_dir += deccorr
                 fold_az += deccorr
                 if bed_dip_dir >= 360:
                     bed_dip_dir = bed_dip_dir-360.
@@ -346,7 +359,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 SampRec["geologic_types"] = _type
                 SampRec["method_codes"] = method_codes
                 SampRecs.append(SampRec)
-
             if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
@@ -369,184 +381,144 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 LocRecs.append(LocRec)
 
         else:
-            MeasRec = {}
-            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["treat_ac_field"] = '0'
-            MeasRec["treat_dc_field"] = '0'
-            MeasRec["treat_dc_field_phi"] = '0'
-            MeasRec["treat_dc_field_theta"] = '0'
-            meas_type = "LT-NO"
-            MeasRec["quality"] = 'g'
-            MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = 0
-            MeasRec["specimen"] = specname
-            el, demag = 1, ''
-            
-            treat = rec[el]
-            treatment = []
-            if 'mT' in treat:
-                treat=treat[0:-2]
-                mT=True
+            rec_no_spaces=[]
+            for k in range(len(rec)):
+                if rec[k]!="":
+                    rec_no_spaces.append(rec[k])
+            if firststep:               
+                input_df=pd.DataFrame([rec_no_spaces])
+                firststep=0
             else:
-                mT=False
-            if treat!='NRM':
-                treatment_code = str(treat).split(".")
-                treatment.append(float(treatment_code[0]))
-                if len(treatment_code) == 1:
-                    treatment.append(0)
-                else:
-                    treatment.append(float(treatment_code[1])*10)
-            if experiment:
-              if 'ATRM' in experiment:
-                  try:
-                      experiment, atrm_n_pos = experiment.split()
-                      atrm_n_pos = int(atrm_n_pos)
-                  except:
-                      experiment = 'ATRM'
-                      atrm_n_pos = 6
-              if 'AARM' in experiment:
-                  try:
-                      experiment, aarm_n_pos = experiment.split()
-                      aarm_n_pos = int(aarm_n_pos)
-                  except:
-                      experiment = 'AARM'
-                      aarm_n_pos = 6
-         
-              if experiment == 'CR':
-                  if command_line:
-                      cooling_times = sys.argv[ind+1]
-                      cooling_times_list = cooling_times.split(',')
-                  noave = True
-        # if not command line, cooling_times_list is already set
-                    
-            if treat[-1] == 'C' or experiment in ['PI','CR','NLT']:
-                demag = 'T'
-                if labfield:
-                    if experiment in 'ATRM':
-                        LPcode='LP-AN-TRM'
-                    else:
-                        LPcode='LP-PI-TRM'
-                else:
-                    LPcode='LP-DIR-T'
+                tmp_df=pd.DataFrame([rec_no_spaces])
+                input_df=pd.concat([input_df,tmp_df])
+    columns=['treat_temp','treat_ac_field','treat_dc_field','treat_dc_field_phi',
+             'treat_dc_field_theta','method_codes','treat_type','aniso_type']
+    meas_df=pd.DataFrame()
+    treat_df=pd.DataFrame(columns=columns)
 
-            elif treat != 'NRM' and demag!='T':
-                demag = 'AF'
-                if experiment in 'AARM' and labfield:
-                    LPcode='LP-AN-ARM'
-                else:
-                    LPcode='LP-DIR-AF'
-            el += 1
-            while rec[el] == "":
-                el += 1
-            MeasRec["dir_dec"] = rec[el]
-            cdec = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            MeasRec["dir_inc"] = rec[el]
-            cinc = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            gdec = rec[el]
-            el += 1
-            while rec[el] == "":
-                el += 1
-            ginc = rec[el]
-            el +=1
-            while 'e-' not in rec[el]: # skip the gdec, ginc if present
-                el +=1
-            MeasRec["magn_moment"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # moment in Am^2 (from emu)
-            MeasRec["magn_volume"] = '%10.3e' % (
-                float(rec[el])*1e-3/vol)  # magnetization in A/m
-            el = skip(2, el, rec)  # skip to xsig
-            MeasRec["magn_x_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el = skip(3, el, rec)  # skip to ysig
-            MeasRec["magn_y_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el = skip(3, el, rec)  # skip to zsig
-            MeasRec["magn_z_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el += 1  # skip to positions
-            MeasRec["meas_n_orient"] = rec[el]
-            MeasRec["instrument_codes"] = inst
-            MeasRec["analysts"] = user
-            MeasRec["citations"] = "This study"
-            
-            if experiment in ['PI','NLT','CR']:
-                if treat=='NRM':
-                    MeasRec["treat_dc_field"] = "0"
-                    MeasRec["treat_dc_field_phi"] = "0"
-                    MeasRec["treat_dc_field_theta"] = "0"
-                    meas_type='LT-NO'
-                elif float(treatment[1]) in [0., 3.]:  # zerofield step or tail check
-                    MeasRec["treat_dc_field"] = "0"
-                    MeasRec["treat_dc_field_phi"] = "0"
-                    MeasRec["treat_dc_field_theta"] = "0"
-                    if treatment[1]==0:
-                        meas_type='LT-T-Z'
-                    if treatment[1]==3:
-                        meas_type='LT-PTRM-MD'
-                if not labfield:
-                    print(
-                        "-W- WARNING: labfield (-dc) is a required argument for this experiment type")
-                    return False, "labfield (-dc) is a required argument for this experiment type"
-                elif len(treatment)>0 and float(treatment[1]) in [1.,2. ]:  # zerofield step or tail check
-                    MeasRec["treat_dc_field"] = '%8.3e' % (float(labfield*1e-6))
-                    MeasRec["treat_dc_field_phi"] = "%.2f" % (
-                        float(labfield_phi))
-                    MeasRec["treat_dc_field_theta"] = "%.2f" % (
-                        float(labfield_theta))
-                    if treatment[1]==1:
-                        meas_type='LT-T-I'
-                    else:
-                        meas_type='LT-PTRM-I'
+    meas_df['treat_step_num']=range(len(input_df))
+    meas_df['specimen']=specname
+    meas_df['quality']='g'
+    meas_df['standard']='u'
+
+    treatments=input_df[0].to_list()
+
+    for t in treatments:
+        this_treat_df=pd.DataFrame(columns=columns)
+        this_treat_df['method_codes']=['LT-NO']
+        this_treat_df['treat_ac_field']=[0]
+        this_treat_df['treat_temp']=[273]
+        this_treat_df['treat_type']=0
+        this_treat_df['treat_dc_field']=0
+        this_treat_df['treat_dc_field_phi']=0
+        this_treat_df['treat_dc_field_theta']=0
+        this_treat_df['aniso_type']=""
+        if 'mT' in t:        
+            treat_code=t.strip('mT').split('.')
+            this_treat_df['treat_ac_field']=[float(treat_code[0])*1e-3] # convert to tesla
+            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
+            this_treat_df['treat_temp']=[273]
+            if int(treat_code[0])==0:
+                this_treat_df['method_codes']=['LT-NO']
+            elif labfield==0:
+                this_treat_df['method_codes']=['LT-AF-Z']
+            elif labfield:
+                this_treat_df['method_codes']=['LT-AF-I']
+                this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                this_treat_df['treat_dc_field_phi']=lab_field_phi
+                this_treat_df['treat_dc_field_theta']=lab_field_theta
+
+
+
+
+        elif 'C' in t or t!='NRM' and float(t.split('.')[0])!=0: # assume thermal
+            treat_code=t.strip('C').split('.')
+            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
+            this_treat_df['method_codes']=['LT-T-Z']
+            this_treat_df['treat_ac_field']=0 # convert to tesla
+            this_treat_df['treat_temp']=[float(treat_code[0])+273] # convert to kelvin
+            if labfield:
+                LPcode='LP-PI-TRM'
+                if int(treat_code[1])==3:
+                    this_treat_df['method_codes']=['LT-T-Z:LT-PTRM-MD']
+                elif int(treat_code[1])==1: 
+                    this_treat_df['method_codes']=['LT-T-I']
+                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                    this_treat_df['treat_dc_field_phi']=lab_field_phi
+                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+
+
+                elif int(treat_code[1])==2: 
+                    this_treat_df['method_codes']=['LT-T-I:LT-PTRM-I']
+                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                    this_treat_df['treat_dc_field_phi']=lab_field_phi
+                    this_treat_df['treat_dc_field_theta']=lab_field_theta
             else:
-                MeasRec["treat_dc_field"] = ""
-                MeasRec["treat_dc_field_phi"] = ""
-                MeasRec["treat_dc_field_theta"] = ""
-            if demag == "AF":
-                if mT:
-                    MeasRec["treat_ac_field"] = '%8.3e' % (
-                        float(treat)*1e-2)  # peak field in tesla
-                else:
-                    MeasRec["treat_ac_field"] = '%8.3e' % (
-                        float(treat[:-2])*1e-3)  # peak field in tesla
-                if LPcode=='LP-DIR-AF':
-                    meas_type = "LT-AF-Z"
-                    MeasRec["treat_dc_field"] = '0'
-                elif 'AN' in LPcode:
-                    meas_type = "LT-AF-I"
-                    MeasRec["treat_dc_field"] = labfield*1e-6
-                     
-            elif demag == "T" and treat!='NRM':
-                MeasRec["treat_temp"] = '%8.3e' % (
-                float(treat[:-1])+273.)  # temp in kelvin
-                if LPcode=="LP-DIR-T":
-                    meas_type = "LT-T-Z"
-                #elif LPcode=='LP-PI-TRM':
-                #    meas_type = "LT-T-Z"
-                    if labfield:LPcode="LP-PI-TRM"
-                
-            MeasRec['method_codes'] = LPcode+":"+meas_type
-            MeasRecs.append(MeasRec)
+                LPcode='LP-DIR-T'
 
+        treat_df=pd.concat([treat_df,this_treat_df])
+    
+    treat_df['treat_step_num']=range(len(input_df))
+    meths=treat_df['method_codes'].unique()
+    LPcode=""
+    if 'LT-AF-Z' in meths:
+        if labfield:
+            LPcode='LP-PI-ARM'
+            treat_df['aniso_type']='AARM'
+        else:
+            LPcode='LP-DIR-AF'
+    elif 'LT-T-Z' in meths:
+        if labfield:
+            LPcode='LP-PI-TRM'
+        else:
+            LPcode='LP-DIR-T'
+        
+    if experiment:
+        if 'ATRM' in experiment:
+            LPcode='LP-AN-TRM'
+            treat_df['aniso_type']='ATRM'
+        if 'AARM' in experiment:
+            LPcode='LP-AN-AARM'
+        if experiment == 'CR':
+            if command_line:
+                cooling_times = sys.argv[ind+1]
+                cooling_times_list = cooling_times.split(',')
+            noave = True
+            
+    meas_df=pd.merge(meas_df,treat_df,on='treat_step_num')
+    meas_df['dir_dec']=input_df[1].values # specimen coordinates
+    meas_df['dir_inc']=input_df[2].values
+    meas_df['magn_moment']=input_df[7].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_volume']=input_df[8].astype('float').values*1e-3/vol # moment in A/m (from emu)
+    meas_df['magn_x_sigma']=input_df[9].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_y_sigma']=input_df[10].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_z_sigma']=input_df[11].astype('float').values*1e-3 # moment in Am^2 (from emu
+    meas_df['meas_n_orient']=input_df[19].values
+    meas_df['citations']='This study'
+    meas_df['analysts']=user
+    meas_df['instrument_codes']=inst
+    meas_df['method_codes']=meas_df['method_codes']+':'+LPcode
+    meas_df['measurement']=meas_df['treat_step_num'].astype('str')
+    meas_df['experiment']=specname+'_'+LPcode
+    meas_df.drop('treat_type',1)
+    meas_df.fillna("",inplace=True)
+    meas_dicts = meas_df.to_dict('records')                                              
+    pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
+
+# save to files
     con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave,savelast=False)
-    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+    #MeasOuts = pmag.measurements_methods3(MeasRecs, noave,savelast=False)
+    #con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', custom_name=spec_file)
     con.write_table_to_file('samples', custom_name=samp_file)
     con.write_table_to_file('sites', custom_name=site_file)
     con.write_table_to_file('locations', custom_name=loc_file)
-    con.write_table_to_file('measurements', custom_name=meas_file)
+    #con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
 
 # AGM magic conversion
@@ -800,7 +772,6 @@ def agm(agm_file, dir_path=".", input_dir_path="",
             rec = list(line.strip('\n').split())
         else:
             rec = list(line.strip('\n').strip('\r').split(','))
-        #print (rec)
         if rec[0] != "":
             if units == 'cgs':
                 field = float(rec[0]) * 1e-4  # convert from oe to tesla
