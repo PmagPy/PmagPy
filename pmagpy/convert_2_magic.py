@@ -19,7 +19,7 @@ import pmagpy.contribution_builder as cb
 
 def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
-            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',
+            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',specname=False,
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
             savelast=False,lat="", lon="",labfield=0, labfield_phi=0, labfield_theta=0,
             experiment="Demag", cooling_times_list=[]):
@@ -47,6 +47,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         orientation convention, default '3', see info below
     specnum : int
         number of characters to designate a specimen, default 0
+    specname : bool
+        if True, use file name stem for specimen name, if False, read from within file, default = False
     samp_con : str
         (specimen/)sample/site naming convention, default '2', see info below
     corr: str
@@ -152,16 +154,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
 
     """
 
-    def skip(N, ind, L):
-        for b in range(N):
-            ind += 1
-            while L[ind] == "":
-                ind += 1
-        ind += 1
-        while L[ind] == "":
-            ind += 1
-        return ind
-
     #
     # initialize variables
     #
@@ -177,6 +169,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     input_dir_path, dir_path = pmag.fix_directories(input_dir, dir_path)
 
     if samp_con:
+        samp_con=str(samp_con)
         Z = 1
         if "4" in samp_con:
             if "-" not in samp_con:
@@ -199,7 +192,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
-    mag_file = pmag.resolve_file_name(mag_file, input_dir_path)
+    mag_file_path = pmag.resolve_file_name(mag_file, input_dir_path)
 
     samplist = []
     try:
@@ -208,14 +201,14 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         SampRecs = []
     MeasRecs, SpecRecs, SiteRecs, LocRecs = [], [], [], []
     try:
-        f = open(mag_file, 'br')
+        f = open(mag_file_path, 'br')
         input = str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
         return False, "bad mag file"
-    firstline, date = 1, ""
+    firstline, date,firststep = 1, "",1
     d = input.split('\\xcd')
     for line in d:
         rec = line.split('\\x00')
@@ -250,13 +243,22 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 while rec[el] != '\\x01':
                     el += 1
                 vcc, date, comments = rec[el-3], rec[el+7], []
-            specname = spec.lower()
+            if specname:
+                specname=mag_file.split('.')[0]
+            else:
+                specname = spec.lower()
             print('importing ', specname)
             el += 8
             while rec[el].isdigit() == False:
                 comments.append(rec[el])
                 el += 1
+            if rec[el].isdigit(): 
+                deccorr=float(rec[el])
+                el+=1
+            else:
+                deccorr=0
             while rec[el] == "":
+                print (el, repr(rec[el]))
                 el += 1
             az = float(rec[el])
             el += 1
@@ -287,19 +289,20 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             el += 1
             while rec[el] == "":
                 el += 1
-            if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
-                deccorr = float(rec[el])
-                az += deccorr
-                bed_dip_dir += deccorr
-                fold_az += deccorr
-                if bed_dip_dir >= 360:
-                    bed_dip_dir = bed_dip_dir-360.
-                if az >= 360.:
-                    az = az-360.
-                if fold_az >= 360.:
-                    fold_az = fold_az-360.
-            else:
-                deccorr = 0
+            #if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
+            #if deccorr!=0:
+               # #deccorr = float(rec[el])
+               # az += deccorr
+               # if bed_dip!=0:bed_dip_dir += deccorr
+               # fold_az += deccorr
+               # if bed_dip_dir >= 360:
+               #     bed_dip_dir = bed_dip_dir-360.
+               # if az >= 360.:
+               #     az = az-360.
+               # if fold_az >= 360.:
+               #     fold_az = fold_az-360.
+            #else:
+            #    deccorr = 0
             if specnum != 0:
                 sample = specname[:specnum]
             else:
@@ -319,7 +322,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 site=sss[2]
             else: 
                 site = pmag.parse_site(sample, samp_con, Z)
-            #print (specname,sample,site)
             SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}
             SpecRec["specimen"] = specname
             SpecRec["sample"] = sample
@@ -329,6 +331,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             SpecRec["geologic_classes"] = sclass
             SpecRec["lithologies"] = lithology
             SpecRec["geologic_types"] = _type
+            SpecRec["citations"] = "This study"
+            SpecRec["method_codes"] = ""
             SpecRecs.append(SpecRec)
 
             if sample != "" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
@@ -345,8 +349,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 SampRec["lithologies"] = lithology
                 SampRec["geologic_types"] = _type
                 SampRec["method_codes"] = method_codes
+                SampRec["citations"] = "This study"
                 SampRecs.append(SampRec)
-
             if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
@@ -355,6 +359,12 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 SiteRec["geologic_classes"] = sclass
                 SiteRec["lithologies"] = lithology
                 SiteRec["geologic_types"] = _type
+                SiteRec["age"] ="" 
+                SiteRec["age_low"] ="" 
+                SiteRec["age_high"] ="" 
+                SiteRec["age_unit"] ="" 
+                SiteRec["method_codes"] ="" 
+                SiteRec["citations"] ="This study" 
                 SiteRecs.append(SiteRec)
 
             if location != "" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
@@ -363,190 +373,156 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 LocRec['lon_e'] = lon
                 LocRec['lat_s'] = lat
                 LocRec['lon_w'] = lon
-                # LocRec["geologic_classes"]=sclass
-                # LocRec["lithologies"]=lithology
-                # LocRec["geologic_types"]=_type
+                LocRec["geologic_classes"]=sclass
+                LocRec["lithologies"]=lithology
+                LocRec["age"]=""
+                LocRec["age_high"]=""
+                LocRec["age_low"]=""
+                LocRec["age_unit"]=""
+                LocRec["citations"]="This study"
+                LocRec["method_codes"]=""
+                LocRec["location_type"]=""
                 LocRecs.append(LocRec)
 
         else:
-            MeasRec = {}
-            MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
-            MeasRec["treat_ac_field"] = '0'
-            MeasRec["treat_dc_field"] = '0'
-            MeasRec["treat_dc_field_phi"] = '0'
-            MeasRec["treat_dc_field_theta"] = '0'
-            meas_type = "LT-NO"
-            MeasRec["quality"] = 'g'
-            MeasRec["standard"] = 'u'
-            MeasRec["treat_step_num"] = 0
-            MeasRec["specimen"] = specname
-            el, demag = 1, ''
-            
-            treat = rec[el]
-            treatment = []
-            if 'mT' in treat:
-                treat=treat[0:-2]
-                mT=True
+            rec_no_spaces=[]
+            for k in range(len(rec)):
+                if rec[k]!="":
+                    rec_no_spaces.append(rec[k])
+            if firststep:               
+                input_df=pd.DataFrame([rec_no_spaces])
+                firststep=0
             else:
-                mT=False
-            if treat!='NRM':
-                treatment_code = str(treat).split(".")
-                treatment.append(float(treatment_code[0]))
-                if len(treatment_code) == 1:
-                    treatment.append(0)
-                else:
-                    treatment.append(float(treatment_code[1])*10)
-            if experiment:
-              if 'ATRM' in experiment:
-                  try:
-                      experiment, atrm_n_pos = experiment.split()
-                      atrm_n_pos = int(atrm_n_pos)
-                  except:
-                      experiment = 'ATRM'
-                      atrm_n_pos = 6
-              if 'AARM' in experiment:
-                  try:
-                      experiment, aarm_n_pos = experiment.split()
-                      aarm_n_pos = int(aarm_n_pos)
-                  except:
-                      experiment = 'AARM'
-                      aarm_n_pos = 6
-         
-              if experiment == 'CR':
-                  if command_line:
-                      cooling_times = sys.argv[ind+1]
-                      cooling_times_list = cooling_times.split(',')
-                  noave = True
-        # if not command line, cooling_times_list is already set
-                    
-            if treat[-1] == 'C' or experiment in ['PI','CR','NLT']:
-                demag = 'T'
-                if labfield:
-                    if experiment in 'ATRM':
-                        LPcode='LP-AN-TRM'
-                    else:
-                        LPcode='LP-PI-TRM'
-                else:
-                    LPcode='LP-DIR-T'
+                tmp_df=pd.DataFrame([rec_no_spaces])
+                input_df=pd.concat([input_df,tmp_df])
+    columns=['treat_temp','treat_ac_field','treat_dc_field','treat_dc_field_phi',
+             'treat_dc_field_theta','method_codes','treat_type','aniso_type']
+    meas_df=pd.DataFrame()
+    treat_df=pd.DataFrame(columns=columns)
 
-            elif treat != 'NRM' and demag!='T':
-                demag = 'AF'
-                if experiment in 'AARM' and labfield:
-                    LPcode='LP-AN-ARM'
-                else:
-                    LPcode='LP-DIR-AF'
-            el += 1
-            while rec[el] == "":
-                el += 1
-            MeasRec["dir_dec"] = rec[el]
-            cdec = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            MeasRec["dir_inc"] = rec[el]
-            cinc = float(rec[el])
-            el += 1
-            while rec[el] == "":
-                el += 1
-            gdec = rec[el]
-            el += 1
-            while rec[el] == "":
-                el += 1
-            ginc = rec[el]
-            el +=1
-            while 'e-' not in rec[el]: # skip the gdec, ginc if present
-                el +=1
-            MeasRec["magn_moment"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # moment in Am^2 (from emu)
-            MeasRec["magn_volume"] = '%10.3e' % (
-                float(rec[el])*1e-3/vol)  # magnetization in A/m
-            el = skip(2, el, rec)  # skip to xsig
-            MeasRec["magn_x_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el = skip(3, el, rec)  # skip to ysig
-            MeasRec["magn_y_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el = skip(3, el, rec)  # skip to zsig
-            MeasRec["magn_z_sigma"] = '%10.3e' % (
-                float(rec[el])*1e-3)  # convert from emu
-            el += 1  # skip to positions
-            MeasRec["meas_n_orient"] = rec[el]
-            MeasRec["instrument_codes"] = inst
-            MeasRec["analysts"] = user
-            MeasRec["citations"] = "This study"
-            
-            if experiment in ['PI','NLT','CR']:
-                if treat=='NRM':
-                    MeasRec["treat_dc_field"] = "0"
-                    MeasRec["treat_dc_field_phi"] = "0"
-                    MeasRec["treat_dc_field_theta"] = "0"
-                    meas_type='LT-NO'
-                elif float(treatment[1]) in [0., 3.]:  # zerofield step or tail check
-                    MeasRec["treat_dc_field"] = "0"
-                    MeasRec["treat_dc_field_phi"] = "0"
-                    MeasRec["treat_dc_field_theta"] = "0"
-                    if treatment[1]==0:
-                        meas_type='LT-T-Z'
-                    if treatment[1]==3:
-                        meas_type='LT-PTRM-MD'
-                if not labfield:
-                    print(
-                        "-W- WARNING: labfield (-dc) is a required argument for this experiment type")
-                    return False, "labfield (-dc) is a required argument for this experiment type"
-                elif len(treatment)>0 and float(treatment[1]) in [1.,2. ]:  # zerofield step or tail check
-                    MeasRec["treat_dc_field"] = '%8.3e' % (float(labfield*1e-6))
-                    MeasRec["treat_dc_field_phi"] = "%.2f" % (
-                        float(labfield_phi))
-                    MeasRec["treat_dc_field_theta"] = "%.2f" % (
-                        float(labfield_theta))
-                    if treatment[1]==1:
-                        meas_type='LT-T-I'
-                    else:
-                        meas_type='LT-PTRM-I'
+    meas_df['treat_step_num']=range(len(input_df))
+    meas_df['specimen']=specname
+    meas_df['quality']='g'
+    meas_df['standard']='u'
+
+    treatments=input_df[0].to_list()
+
+    for t in treatments:
+        this_treat_df=pd.DataFrame(columns=columns)
+        this_treat_df['method_codes']=['LT-NO']
+        this_treat_df['treat_ac_field']=[0]
+        this_treat_df['treat_temp']=[273]
+        this_treat_df['treat_type']=0
+        this_treat_df['treat_dc_field']=0
+        this_treat_df['treat_dc_field_phi']=0
+        this_treat_df['treat_dc_field_theta']=0
+        this_treat_df['aniso_type']=""
+        if 'mT' in t:        
+            treat_code=t.strip('mT').split('.')
+            this_treat_df['treat_ac_field']=[float(treat_code[0])*1e-3] # convert to tesla
+            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
+            this_treat_df['treat_temp']=[273]
+            if int(treat_code[0])==0:
+                this_treat_df['method_codes']=['LT-NO']
+            elif labfield==0:
+                this_treat_df['method_codes']=['LT-AF-Z']
+            elif labfield:
+                this_treat_df['method_codes']=['LT-AF-I']
+                this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                this_treat_df['treat_dc_field_phi']=lab_field_phi
+                this_treat_df['treat_dc_field_theta']=lab_field_theta
+
+
+
+
+        elif 'C' in t or t!='NRM' and float(t.split('.')[0])!=0: # assume thermal
+            treat_code=t.strip('C').split('.')
+            if len(treat_code)>1:this_treat_df['treat_type']=int(treat_code[1])
+            this_treat_df['method_codes']=['LT-T-Z']
+            this_treat_df['treat_ac_field']=0 # convert to tesla
+            this_treat_df['treat_temp']=[float(treat_code[0])+273] # convert to kelvin
+            if labfield:
+                LPcode='LP-PI-TRM'
+                if int(treat_code[1])==3:
+                    this_treat_df['method_codes']=['LT-T-Z:LT-PTRM-MD']
+                elif int(treat_code[1])==1: 
+                    this_treat_df['method_codes']=['LT-T-I']
+                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                    this_treat_df['treat_dc_field_phi']=lab_field_phi
+                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+
+
+                elif int(treat_code[1])==2: 
+                    this_treat_df['method_codes']=['LT-T-I:LT-PTRM-I']
+                    this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
+                    this_treat_df['treat_dc_field_phi']=lab_field_phi
+                    this_treat_df['treat_dc_field_theta']=lab_field_theta
             else:
-                MeasRec["treat_dc_field"] = ""
-                MeasRec["treat_dc_field_phi"] = ""
-                MeasRec["treat_dc_field_theta"] = ""
-            if demag == "AF":
-                if mT:
-                    MeasRec["treat_ac_field"] = '%8.3e' % (
-                        float(treat)*1e-2)  # peak field in tesla
-                else:
-                    MeasRec["treat_ac_field"] = '%8.3e' % (
-                        float(treat[:-2])*1e-3)  # peak field in tesla
-                if LPcode=='LP-DIR-AF':
-                    meas_type = "LT-AF-Z"
-                    MeasRec["treat_dc_field"] = '0'
-                elif 'AN' in LPcode:
-                    meas_type = "LT-AF-I"
-                    MeasRec["treat_dc_field"] = labfield*1e-6
-                     
-            elif demag == "T" and treat!='NRM':
-                MeasRec["treat_temp"] = '%8.3e' % (
-                float(treat[:-1])+273.)  # temp in kelvin
-                if LPcode=="LP-DIR-T":
-                    meas_type = "LT-T-Z"
-                #elif LPcode=='LP-PI-TRM':
-                #    meas_type = "LT-T-Z"
-                    if labfield:LPcode="LP-PI-TRM"
-                
-            MeasRec['method_codes'] = LPcode+":"+meas_type
-            MeasRecs.append(MeasRec)
+                LPcode='LP-DIR-T'
 
+        treat_df=pd.concat([treat_df,this_treat_df])
+    
+    treat_df['treat_step_num']=range(len(input_df))
+    meths=treat_df['method_codes'].unique()
+    LPcode=""
+    if 'LT-AF-Z' in meths:
+        if labfield:
+            LPcode='LP-PI-ARM'
+            treat_df['aniso_type']='AARM'
+        else:
+            LPcode='LP-DIR-AF'
+    elif 'LT-T-Z' in meths:
+        if labfield:
+            LPcode='LP-PI-TRM'
+        else:
+            LPcode='LP-DIR-T'
+        
+    if experiment:
+        if 'ATRM' in experiment:
+            LPcode='LP-AN-TRM'
+            treat_df['aniso_type']='ATRM'
+        if 'AARM' in experiment:
+            LPcode='LP-AN-AARM'
+        if experiment == 'CR':
+            if command_line:
+                cooling_times = sys.argv[ind+1]
+                cooling_times_list = cooling_times.split(',')
+            noave = True
+            
+    meas_df=pd.merge(meas_df,treat_df,on='treat_step_num')
+    meas_df['dir_dec']=input_df[1].values # specimen coordinates
+    meas_df['dir_inc']=input_df[2].values
+    meas_df['magn_moment']=input_df[7].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_volume']=input_df[8].astype('float').values*1e-3/vol # moment in A/m (from emu)
+    meas_df['magn_x_sigma']=input_df[9].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_y_sigma']=input_df[10].astype('float').values*1e-3 # moment in Am^2 (from emu)
+    meas_df['magn_z_sigma']=input_df[11].astype('float').values*1e-3 # moment in Am^2 (from emu
+    meas_df['meas_n_orient']=input_df[19].values
+    meas_df['citations']='This study'
+    meas_df['analysts']=user
+    meas_df['instrument_codes']=inst
+    meas_df['method_codes']=meas_df['method_codes']+':'+LPcode
+    meas_df['measurement']=meas_df['treat_step_num'].astype('str')
+    meas_df['experiment']=specname+'_'+LPcode
+    meas_df.drop(columns=['treat_type'],inplace=True)
+    meas_df.fillna("",inplace=True)
+    meas_dicts = meas_df.to_dict('records')                                              
+    pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
+
+# save to files
     con = cb.Contribution(output_dir_path, read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave,savelast=False)
-    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+    #MeasOuts = pmag.measurements_methods3(meas_dicts, noave,savelast=False)
+    #con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', custom_name=spec_file)
     con.write_table_to_file('samples', custom_name=samp_file)
     con.write_table_to_file('sites', custom_name=site_file)
     con.write_table_to_file('locations', custom_name=loc_file)
-    con.write_table_to_file('measurements', custom_name=meas_file)
+    #con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
 
 # AGM magic conversion
@@ -800,7 +776,6 @@ def agm(agm_file, dir_path=".", input_dir_path="",
             rec = list(line.strip('\n').split())
         else:
             rec = list(line.strip('\n').strip('\r').split(','))
-        #print (rec)
         if rec[0] != "":
             if units == 'cgs':
                 field = float(rec[0]) * 1e-4  # convert from oe to tesla
@@ -9292,12 +9267,395 @@ def s_magic(sfile, anisfile="specimens.txt", dir_path=".", atype="AMS",
 
 ### SUFAR 4 ASC conversion
 
+def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None, 
+           spec_outfile='specimens.txt', samp_outfile='samples.txt',
+           site_outfile='sites.txt', specnum=0, sample_naming_con='1', user="",
+           locname="unknown", instrument='', static_15_position_mode=False,
+           dir_path='.', input_dir_path='', or_con=False,specname=False):
+    """
+    Converts ascii files generated by SUFAR ver.4.0 to MagIC files
+    for data model 2 output use sufar4_dm2()
 
-def sufar4(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotropy.txt',
+    Parameters
+    ----------
+    ascfile : str
+        input ASC file, required
+    meas_output : str
+        measurement output filename, default "measurements.txt"
+    spec_infile : str
+        specimen infile, default None
+    specname : bool
+        if True, use file name stem for specimen name, if False, read from within file, default = False
+    spec_outfile : str
+        specimen outfile, default "specimens.txt"
+    samp_outfile : str
+        sample outfile, default "samples.txt"
+    site_outfile : str
+        site outfile, default "sites.txt"
+    specnum : int
+        number of characters to designate a specimen, default 0
+    sample_naming_con : str
+        sample/site naming convention, default '1', see info below
+    user : str
+        user name, default ""
+    locname : str
+        location name, default "unknown"
+    instrument : str
+        instrument name, default ""
+    static_15_position_mode : bool
+        specify static 15 position mode - default False (is spinning)
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    or_con : int
+        Orientation convention, default is False
+
+    Returns
+    --------
+    type - Tuple : (True or False indicating if conversion was successful, file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+    orientation conventions:
+        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+             of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
+             lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
+        [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
+             Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+             Lab arrow dip = -field_dip
+        [3] Lab arrow is the same as the drill direction;
+             hade was measured in the field.
+             Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
+        [5] Same as AZDIP convention explained below -
+            azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+            lab arrow is as in [1] above.
+            lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
+        [8] Lab arrow azimuth = mag_azimuth-180; Lab arrow dip = 90-field_dip
+
+
+    """
+
+    citation = 'This study'
+    cont = 0
+    Z = 1
+    AniRecSs, AniRecs, SpecRecs, SampRecs, SiteRecs, MeasRecs = [], [], [], [], [], []
+    isspec = '0'
+    spin = 0
+
+
+    # set column names for MagIC 3
+    spec_name_col = 'specimen'
+    samp_name_col = 'sample'
+    site_name_col = 'site'
+    loc_name_col = 'location'
+    citation_col = 'citations'
+    method_col = 'method_codes'
+    site_description_col = 'description'
+    expedition_col = 'expedition_name'
+    instrument_col = 'instrument_codes'
+    experiment_col = 'experiments'
+    analyst_col = 'analysts'
+    quality_col = 'quality'
+    aniso_quality_col = 'result_quality'
+    meas_standard_col = 'standard'
+    meas_description_col = 'description'
+    aniso_type_col = 'aniso_type'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_n_col = 'aniso_s_n_measurements'
+    azimuth_col = 'azimuth'
+    spec_volume_col = 'volume'
+    samp_dip_col = 'dip'
+    bed_dip_col = 'bed_dip'
+    bed_dip_direction_col = 'bed_dip_direction'
+    chi_vol_col = 'susc_chi_volume'
+    aniso_sigma_col = 'aniso_s_sigma'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_tilt_corr_col = 'aniso_tilt_correction'
+    meas_table_name = 'measurements'
+    spec_table_name = 'specimens'
+    samp_table_name = 'samples'
+    site_table_name = 'sites'
+
+    # create full path for files
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    ascfile_path = os.path.join(input_dir_path, ascfile)
+    # initialized but not used
+    meas_output = os.path.join(output_dir_path, meas_output)
+
+    spec_outfile = os.path.join(output_dir_path, spec_outfile)
+    samp_outfile = os.path.join(output_dir_path, samp_outfile)
+    site_outfile = os.path.join(output_dir_path, site_outfile)
+
+    if "4" in sample_naming_con:
+        if "-" not in sample_naming_con:
+            print("option [4] must be in form 4-Z where Z is an integer")
+            return False, "option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = sample_naming_con.split("-")[1]
+            sample_naming_con = "4"
+    if "7" in sample_naming_con:
+        if "-" not in sample_naming_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = sample_naming_con.split("-")[1]
+            sample_naming_con = "7"
+
+    if static_15_position_mode:
+        spin = 0
+
+    if spec_infile:
+        if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
+            # means an er_specimens.txt file has been provided with sample,
+            # site, location (etc.) info
+            isspec = '1'
+
+    specnum = int(specnum)
+
+    if isspec == "1":
+        specs, file_type = pmag.magic_read(spec_infile)
+
+    specnames, sampnames, sitenames = [], [], []
+
+    try:
+        file_input = open(ascfile_path, 'r')
+    except:
+        print('Error opening file: ', ascfile_path)
+        return False, 'Error opening file: {}'.format(ascfile_path)
+    Data = file_input.readlines()
+    file_input.close()
+    k = 0
+    while k < len(Data):
+        line = Data[k]
+        words = line.split()
+        if "ANISOTROPY" in words:  # first line of data for the spec
+            MeasRec, AniRec, SpecRec, SampRec, SiteRec = {}, {}, {}, {}, {}
+            if specname:
+                specname = ascfile.split('.')[0].lower()+words[0].lower()
+            else:
+                specname = words[0].lower()
+            AniRec[spec_name_col] = specname
+            if isspec == "1":
+                for spec in specs:
+                    if spec[spec_name_col] == specname:
+                        AniRec[samp_name_col] = spec[samp_name_col]
+                        break
+            elif isspec == "0":
+                if specnum != 0:
+                    sampname = specname[:-specnum]
+                else:
+                    sampname = specname
+                AniRec[samp_name_col] = sampname
+                SpecRec[spec_name_col] = specname
+                SpecRec[samp_name_col] = sampname
+                SampRec[samp_name_col] = sampname
+                SiteRec[samp_name_col] = sampname
+                SiteRec[site_description_col] = 's'
+                if sample_naming_con != "9":
+                    SampRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
+                    SiteRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
+                else:
+                    SampRec[site_name_col] = specname
+                    SiteRec[site_name_col] = specname
+                    pieces = specname.split('-')
+                    SiteRec[expedition_col] = pieces[0]
+                    location = pieces[1]
+                SiteRec[loc_name_col] = locname
+                AniRec[citation_col] = "This study"
+                SpecRec[citation_col] = "This study"
+                SampRec[citation_col] = "This study"
+                SiteRec[citation_col] = "This study"
+            AniRec[citation_col] = "This study"
+            AniRec[instrument_col] = instrument
+            AniRec[method_col] = "LP-X:AE-H:LP-AN-MS"
+            AniRec[experiment_col] = specname + "_" + "LP-AN-MS"
+            AniRec[analyst_col] = user
+            for key in list(AniRec.keys()):
+                MeasRec[key] = AniRec[key]
+            MeasRec['experiment'] = AniRec.get('experiments', '')
+            if 'experiments' in MeasRec:
+                MeasRec.pop('experiments')
+            MeasRec[quality_col] = 'g'
+            AniRec[aniso_quality_col] = 'g'
+            MeasRec[meas_standard_col] = 'u'
+            MeasRec[meas_description_col] = 'Bulk sucsecptibility measurement'
+            AniRec[aniso_type_col] = "AMS"
+            AniRec[aniso_unit_col] = "Normalized by trace"
+            if spin == 1:
+                AniRec[aniso_n_col] = "192"
+            else:
+                AniRec[aniso_n_col] = "15"
+        if 'Azi' in words and isspec == '0':
+            az = float(words[1])
+            P1 = float(words[4])
+            P2 = float(words[5])
+            P3 = float(words[6])
+            # P4 relates to a fabric or bedding measurement -- not dealt with
+            # here
+            P4 = float(words[7])
+            az = az + P1 * 360. / 12. - P3 * 360. / 12.
+            if az >= 360:
+                az = az - 360
+            elif az <= -360:
+                az = az + 360
+            labaz = az
+            if not or_con:SampRec[azimuth_col] = str(round(az, 1))
+        if 'Dip' in words:
+            # convert actual volume to m^3 from cm^3
+            SpecRec[spec_volume_col] = '%8.3e' % (float(words[10]) * 1e-6)
+            dip = float(words[1])
+            if P2 == 90:
+                dip = dip - 90.
+            labdip = dip
+            if not or_con:SampRec[samp_dip_col] = str(round(dip, 1))
+        if 'T1' in words and 'F1' in words:
+            k += 2  # read in fourth line down
+            line = Data[k]
+            rec = line.split()
+            dd = rec[1].split('/')
+            dip_direction = int(dd[0]) + 90
+            SampRec[bed_dip_direction_col] = '%i' % (dip_direction)
+            SampRec[bed_dip_col] = dd[1]
+            bed_dip = float(dd[1])
+        if "Mean" in words:
+            k += 4  # read in fourth line down
+            line = Data[k]
+            rec = line.split()
+            MeasRec[chi_vol_col] = rec[1]
+            sigma = .01 * float(rec[2]) / 3.
+            AniRec[aniso_sigma_col] = '%7.4f' % (sigma)
+            AniRec[aniso_unit_col] = 'SI'
+        if "factors" in words:
+            k += 4  # read in second line down
+            line = Data[k]
+            rec = line.split()
+        if "Specimen" in words:  # first part of specimen data
+            # eigenvalues sum to unity - not 3
+            s1_val = '%7.4f' % (float(words[5]) / 3.)
+            s2_val = '%7.4f' % (float(words[6]) / 3.)
+            s3_val = '%7.4f' % (float(words[7]) / 3.)
+            k += 1
+            line = Data[k]
+            rec = line.split()
+            # eigenvalues sum to unity - not 3
+            s4_val= '%7.4f' % (float(rec[5]) / 3.)
+            s5_val = '%7.4f' % (float(rec[6]) / 3.)
+            s6_val = '%7.4f' % (float(rec[7]) / 3.)
+            vals = (s1_val, s2_val, s3_val, s4_val, s5_val, s6_val)
+            AniRec['aniso_s'] = ":".join([v.strip() for v in vals])
+            #
+            AniRec[aniso_tilt_corr_col] = '-1'
+            AniRecs.append(AniRec)
+            AniRecG, AniRecT = {}, {}
+            for key in list(AniRec.keys()):
+                AniRecG[key] = AniRec[key]
+            for key in list(AniRec.keys()):
+                AniRecT[key] = AniRec[key]
+            if or_con: 
+                az,dip=pmag.orient(labaz,labdip,or_con)
+                SampRec[samp_dip_col]=str(round(dip,1))
+                SampRec[azimuth_col]=str(round(az,1))
+                labaz = az
+                labdip = dip
+            sbar = []
+            sbar.append(float(s1_val))
+            sbar.append(float(s2_val))
+            sbar.append(float(s3_val))
+            sbar.append(float(s4_val))
+            sbar.append(float(s5_val))
+            sbar.append(float(s6_val))
+            sbarg = pmag.dosgeo(sbar, labaz, labdip)
+            s1_g = '%12.10f' % (sbarg[0])
+            s2_g = '%12.10f' % (sbarg[1])
+            s3_g = '%12.10f' % (sbarg[2])
+            s4_g = '%12.10f' % (sbarg[3])
+            s5_g = '%12.10f' % (sbarg[4])
+            s6_g = '%12.10f' % (sbarg[5])
+            vals = (s1_g, s2_g, s3_g, s4_g, s5_g, s6_g)
+            AniRecG['aniso_s'] = ":".join([v.strip() for v in vals])
+            AniRecG[aniso_tilt_corr_col] = '0'
+            AniRecs.append(AniRecG)
+            if bed_dip != "" and bed_dip != 0:  # have tilt correction
+                sbart = pmag.dostilt(sbarg, dip_direction, bed_dip)
+                s1_t = '%12.10f' % (sbart[0])
+                s2_t = '%12.10f' % (sbart[1])
+                s3_t = '%12.10f' % (sbart[2])
+                s4_t = '%12.10f' % (sbart[3])
+                s5_t = '%12.10f' % (sbart[4])
+                s6_t = '%12.10f' % (sbart[5])
+                vals = (s1_t, s2_t, s3_t, s4_t, s5_t, s6_t)
+                AniRecT["aniso_s"] = ":".join([v.strip() for v in vals])
+                AniRecT[aniso_tilt_corr_col] = '100'
+                AniRecs.append(AniRecT)
+            for key in ['site','sample']:
+                if key in MeasRec.keys():del MeasRec[key]
+            for key in ['site']:
+                if key in SpecRec.keys():del SpecRec[key]
+            for key in ['sample']:
+                if key in SiteRec.keys():del SiteRec[key]
+            MeasRecs.append(MeasRec)
+            if SpecRec[spec_name_col] not in specnames:
+                SpecRecs.append(SpecRec)
+                specnames.append(SpecRec[spec_name_col])
+            if SampRec[samp_name_col] not in sampnames:
+                SampRecs.append(SampRec)
+                sampnames.append(SampRec[samp_name_col])
+            if SiteRec[site_name_col] not in sitenames:
+                SiteRecs.append(SiteRec)
+                sitenames.append(SiteRec[site_name_col])
+        k += 1  # skip to next specimen
+
+    pmag.magic_write(meas_output, MeasRecs, meas_table_name)
+    print("bulk measurements put in ", meas_output)
+    # if isspec=="0":
+    SpecOut, keys = pmag.fillkeys(SpecRecs)
+    #
+    full_SpecOut = []
+    spec_list = []
+    for rec in SpecOut:
+        full_SpecOut.append(rec)
+        spec_name = rec[spec_name_col]
+        if spec_name not in spec_list:
+            spec_list.append(spec_name)
+            ani_recs = pmag.get_dictitem(AniRecs, spec_name_col, spec_name, 'T')
+            full_SpecOut.extend(ani_recs)
+
+        # FILL KEYS
+            full_SpecOut, keys = pmag.fillkeys(full_SpecOut)
+        else:
+            full_SpecOut = SpecOut
+    pmag.magic_write(spec_outfile, full_SpecOut, spec_table_name)
+    print("specimen/anisotropy info put in ", spec_outfile)
+    SampOut, keys = pmag.fillkeys(SampRecs)
+    pmag.magic_write(samp_outfile, SampOut, samp_table_name)
+    print("sample info put in ", samp_outfile)
+    SiteOut, keys = pmag.fillkeys(SiteRecs)
+    pmag.magic_write(site_outfile, SiteOut, site_table_name)
+    print("site info put in ", site_outfile)
+    return True, meas_output
+
+def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotropy.txt',
            spec_infile=None, spec_outfile='specimens.txt', samp_outfile='samples.txt',
            site_outfile='sites.txt', specnum=0, sample_naming_con='1', user="",
            locname="unknown", instrument='', static_15_position_mode=False,
-           dir_path='.', input_dir_path='', data_model_num=3,or_con=False):
+           dir_path='.', input_dir_path='', data_model_num=2,or_con=False):
     """
     Converts ascii files generated by SUFAR ver.4.0 to MagIC files
 
