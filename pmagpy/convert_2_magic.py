@@ -375,13 +375,12 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 LocRec['lon_w'] = lon
                 LocRec["geologic_classes"]=sclass
                 LocRec["lithologies"]=lithology
-                LocRec["geologic_types"]=_type
                 LocRec["age"]=""
                 LocRec["age_high"]=""
                 LocRec["age_low"]=""
                 LocRec["age_unit"]=""
                 LocRec["citations"]="This study"
-                LocRec["method_codes"]="This study"
+                LocRec["method_codes"]=""
                 LocRec["location_type"]=""
                 LocRecs.append(LocRec)
 
@@ -9451,7 +9450,7 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
             AniRec[citation_col] = "This study"
             AniRec[instrument_col] = instrument
             AniRec[method_col] = "LP-X:AE-H:LP-AN-MS"
-            AniRec[experiment_col] = specname + ":" + "LP-AN-MS"
+            AniRec[experiment_col] = specname + "_" + "LP-AN-MS"
             AniRec[analyst_col] = user
             for key in list(AniRec.keys()):
                 MeasRec[key] = AniRec[key]
