@@ -290,19 +290,19 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             while rec[el] == "":
                 el += 1
             #if rec[el] != "" and rec[el] != '\\x02' and rec[el] != '\\x01':
-            if deccorr!=0:
-                #deccorr = float(rec[el])
-                az += deccorr
-                if bed_dip!=0:bed_dip_dir += deccorr
-                fold_az += deccorr
-                if bed_dip_dir >= 360:
-                    bed_dip_dir = bed_dip_dir-360.
-                if az >= 360.:
-                    az = az-360.
-                if fold_az >= 360.:
-                    fold_az = fold_az-360.
-            else:
-                deccorr = 0
+            #if deccorr!=0:
+               # #deccorr = float(rec[el])
+               # az += deccorr
+               # if bed_dip!=0:bed_dip_dir += deccorr
+               # fold_az += deccorr
+               # if bed_dip_dir >= 360:
+               #     bed_dip_dir = bed_dip_dir-360.
+               # if az >= 360.:
+               #     az = az-360.
+               # if fold_az >= 360.:
+               #     fold_az = fold_az-360.
+            #else:
+            #    deccorr = 0
             if specnum != 0:
                 sample = specname[:specnum]
             else:
