@@ -258,7 +258,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             else:
                 deccorr=0
             while rec[el] == "":
-                print (el, repr(rec[el]))
                 el += 1
             az = float(rec[el])
             el += 1
@@ -307,7 +306,6 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 sample = specname[:specnum]
             else:
                 sample = specname
-
             methods = gmeths.split(':')
             if deccorr != "0":
                 if 'SO-MAG' in methods:
@@ -526,6 +524,10 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     return True, meas_file
 
 # AGM magic conversion
+
+
+
+
 
 
 def agm(agm_file, dir_path=".", input_dir_path="",
