@@ -35,6 +35,8 @@ def main():
         -sav  save figures and quit
     INPUT FILE
     Dec Inc Dip_Direction Dip  in space delimited file
+      where Dec and Inc are the declination and inclination in geographic
+      coordinates. 
 
     OUTPUT PLOTS
         Geographic: is an equal area projection of the input data in

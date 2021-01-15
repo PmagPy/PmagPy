@@ -403,7 +403,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_df['quality']='g'
     meas_df['standard']='u'
 
-    treatments=input_df[0].to_list()
+    treatments=input_df[0].tolist()
 
     for t in treatments:
         this_treat_df=pd.DataFrame(columns=columns)
