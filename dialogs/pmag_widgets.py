@@ -233,7 +233,8 @@ class select_specimen_ocn(wx.StaticBoxSizer):
                     "lab azimuth and dip are same as mag_azimuth, field_dip",
                     "lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90",
                     "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
-        ocn_values = list(range(1, 6))
+        #ocn_values = list(range(1, 6))
+        ocn_values = list(range(1, 7))
         self.sample_orientation_conventions = dict(list(zip(ocn_keys, ocn_values)))
         self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705, 25), choices=ocn_keys, style=wx.CB_READONLY)
         self.Add(label, wx.ALIGN_LEFT)
