@@ -6554,6 +6554,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-MULT') == False]
+            meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
+                'LP-PI-ALT-AFARM') == False] # added this for Daniele Thallner 
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
