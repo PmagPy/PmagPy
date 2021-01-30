@@ -6554,6 +6554,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-MULT') == False]
+            meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
+                'LP-PI-ALT-AFARM') == False] # added this for Daniele Thallner 
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
@@ -7969,11 +7971,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if 'treatment_mw_integral' in list(rec.keys()) and rec['treatment_mw_integral'] is None: rec['treatment_mw_integral']=""
             if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
             if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
-            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"]:
+            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"]!="":
+    
                 THERMAL = False
                 MICROWAVE = True
                 temp = float(rec["treat_mw_step"])
-            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]:
+            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]!="":
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7982,7 +7985,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
-            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"]:
+            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"]!="":
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7991,7 +7994,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
-            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]:
+            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]!="":
                 temp = float(rec["treatment_temp"])
                 THERMAL = True
                 MICROWAVE = False
