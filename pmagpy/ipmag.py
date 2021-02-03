@@ -8123,7 +8123,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False,figfile='ei'):
+            site_correction=False, return_new_dirs=False, figprefix='EI'):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8173,6 +8173,9 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     plot_net(1)
     plot_di(di_block=data)
     plt.title('Original')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_original_directions'+'.'+fmt)
+
     ppars = pmag.doprinc(data)
     Io = ppars['inc']
     n = ppars["N"]
@@ -8219,6 +8222,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             '[%7.1f, %7.1f]' % (I[lower], I[upper])
     else:
         title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
@@ -8226,6 +8231,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt)
 
     # plot corrected directional data
 
@@ -8245,6 +8252,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         plot_net(4)
         plot_di(decs, incs)
         plt.title('Corrected for flattening')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt)
 
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
@@ -8255,9 +8264,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
           str(I[lower]) + ' to ' + str(I[upper]))
     print("and elongation parameter of: " + str(Elong))
     print("The flattening factor is: " + str(flat_f))
-    if save:
-        plt.savefig(save_folder+'/'+figfile+fmt)
-        print ('figure saved as: ',save_folder+'/'+figfile+fmt)
+
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
 
