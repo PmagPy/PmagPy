@@ -6705,8 +6705,7 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
             volume = float(rec[12])
             if volume > 0:
                 # convert to SI (assume Bartington, 10-5 SI)
-                susc_chi_volume = '%10.3e' % (
-                    float(rec[11])*1e-5) / volume
+                susc_chi_volume = '%10.3e' % (float(rec[11])*1e-5 / volume)
             else:
                 # convert to SI (assume Bartington, 10-5 SI)
                 susc_chi_volume = '%10.3e' % (float(rec[11])*1e-5)
@@ -6751,6 +6750,10 @@ def ldeo(magfile, dir_path=".", input_dir_path="",
             LocRecs.append(LocRec)
 
         # fill measurements
+        if mass_or_vol == 'v':
+            MeasRec["susc_chi_volume"] = susc_chi_volume
+        else:
+            SpecRec["susc_chi_mass"] = susc_chi_mass
         MeasRec["treat_temp"] = '%8.3e' % (273)  # room temp in kelvin
         MeasRec["meas_temp"] = '%8.3e' % (273)  # room temp in kelvin
         MeasRec["treat_ac_field"] = '0'
