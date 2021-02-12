@@ -40,7 +40,7 @@ from . import pmagplotlib
 from . import data_model3 as data_model
 from .contribution_builder import Contribution
 from . import validate_upload3 as val_up3
-
+from numpy.linalg import inv, eig
 has_basemap, Basemap = pmag.import_basemap()
 has_cartopy, cartopy = pmag.import_cartopy()
 
@@ -8123,7 +8123,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False,figfile='ei'):
+            site_correction=False, return_new_dirs=False, figprefix='EI'):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8173,6 +8173,9 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     plot_net(1)
     plot_di(di_block=data)
     plt.title('Original')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_original_directions'+'.'+fmt)
+
     ppars = pmag.doprinc(data)
     Io = ppars['inc']
     n = ppars["N"]
@@ -8219,6 +8222,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             '[%7.1f, %7.1f]' % (I[lower], I[upper])
     else:
         title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
@@ -8226,6 +8231,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt)
 
     # plot corrected directional data
 
@@ -8245,6 +8252,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         plot_net(4)
         plot_di(decs, incs)
         plt.title('Corrected for flattening')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt)
 
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
@@ -8255,9 +8264,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
           str(I[lower]) + ' to ' + str(I[upper]))
     print("and elongation parameter of: " + str(Elong))
     print("The flattening factor is: " + str(flat_f))
-    if save:
-        plt.savefig(save_folder+'/'+figfile+fmt)
-        print ('figure saved as: ',save_folder+'/'+figfile+fmt)
+
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
 
@@ -10150,9 +10157,9 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
         return True, rmag_anis
 
 
-def atrm_magic(meas_file, dir_path=".", input_dir_path="",
+def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
                input_spec_file='specimens.txt', output_spec_file='specimens.txt',
-               data_model_num=3):
+               data_model_num=2):
     """
     Converts ATRM  data to best-fit tensor (6 elements plus sigma)
 
@@ -10529,12 +10536,248 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         print("specimen statistics and eigenparameters stored in ", rmag_res)
         return True, rmag_anis
 
+def calculate_atrm_parameters(K):
+    """
+            calculate ATRM anisotropy parameters from 6 positions plus optional baseline measurements
+            ADD DOC STUFF HERE
+    """
+
+    aniso_parameters = {}
+    n_pos=6
+    Matrices = {}
+    Matrices[n_pos] = {}
+    A = np.zeros((n_pos * 3, 6), 'f')
+    positions = np.array([[0., 0., 1.], [90., 0., 1.], [0., 90., 1.],
+                             [180., 0., 1.], [270., 0., 1.], [0., -90., 1.]])
+    tmpH = np.zeros((n_pos, 3), 'f')
+    CART=pmag.dir2cart(positions)
+    for i in range(len(positions)):
+                a = CART[i][0]
+                b = CART[i][1]
+                c = CART[i][2]
+                A[3 * i][0] = a
+                A[3 * i][3] = b
+                A[3 * i][5] = c
+
+                A[3 * i + 1][1] = b
+                A[3 * i + 1][3] = a
+                A[3 * i + 1][4] = c
+
+                A[3 * i + 2][2] = c
+                A[3 * i + 2][4] = b
+                A[3 * i + 2][5] = a
+
+                tmpH[i][0] = CART[i][0]
+                tmpH[i][1] = CART[i][1]
+                tmpH[i][2] = CART[i][2]
+
+    B = np.dot(inv(np.dot(A.transpose(), A)), A.transpose())
+
+    Matrices[n_pos]['A'] = A
+    Matrices[n_pos]['B'] = B
+    Matrices[n_pos]['tmpH'] = tmpH
+    B = Matrices[6]['B']
+    S_bs = np.dot(B, K)
+
+    # normalize by trace
+    trace = S_bs[0] + S_bs[1] + S_bs[2]
+    S_bs = S_bs / trace
+    s1, s2, s3, s4, s5, s6 = S_bs[0], S_bs[1], S_bs[2], S_bs[3], S_bs[4], S_bs[5]
+    s_matrix = [[s1, s4, s6], [s4, s2, s5], [s6, s5, s3]]
+    s_vec=[s1,s2,s3,s4,s5,s6]
+    # calculate eigen vector,
+    t, evectors = eig(s_matrix)
+    # sort vectors
+    t = list(t)
+    t1 = max(t)
+    ix_1 = t.index(t1)
+    t3 = min(t)
+    ix_3 = t.index(t3)
+    for tt in range(3):
+        if t[tt] != t1 and t[tt] != t3:
+            t2 = t[tt]
+            ix_2 = t.index(t2)
+    v1 = [evectors[0][ix_1], evectors[1][ix_1], evectors[2][ix_1]]
+    v2 = [evectors[0][ix_2], evectors[1][ix_2], evectors[2][ix_2]]
+    v3 = [evectors[0][ix_3], evectors[1][ix_3], evectors[2][ix_3]]
+
+    DIR_v1 = pmag.cart2dir(v1)
+    DIR_v2 = pmag.cart2dir(v2)
+    DIR_v3 = pmag.cart2dir(v3)
+    # package up the aniso_s and aniso_tau and aniso_v here:  START HERE
+    aniso_parameters['aniso_s']=s1.astype('str')+':'+ s2.astype('str')+':'+s3.astype('str')+':'+\
+                              s4.astype('str')+':'+ s5.astype('str')+':'+ s6.astype('str')
+    aniso_parameters['aniso_v1']="%f" % t1+":"+"%.1f" % DIR_v1[0]+":"+"%.1f" % DIR_v1[1]
+    aniso_parameters['aniso_v2']="%f" % t2+":"+"%.1f" % DIR_v2[0]+":"+"%.1f" % DIR_v2[1]
+    aniso_parameters['aniso_v3']="%f" % t3+":"+"%.1f" % DIR_v3[0]+":"+"%.1f" % DIR_v3[1]
+    aniso_parameters['aniso_p'] = "%f" % (t1 / t3)
+    if len(K) / 3 == 9 or len(K) / 3 == 6 or len(K) / 3 == 15:
+        n_pos = len(K) / 3
+        tmpH = Matrices[n_pos]['tmpH']
+        a = s_matrix
+        S = 0.
+        comp = np.zeros((int(n_pos) * 3), 'f')
+        for i in range(int(n_pos)):
+            for j in range(3):
+                index = i * 3 + j
+                compare = a[j][0] * tmpH[i][0] + a[j][1] * \
+                    tmpH[i][1] + a[j][2] * tmpH[i][2]
+                comp[index] = compare
+        for i in range(int(n_pos * 3)):
+            d = K[i] / trace - comp[i]  # del values
+            S += d * d
+        nf = float(n_pos * 3 - 6)  # number of degrees of freedom
+        if S > 0:
+            sigma = np.sqrt(S / nf)
+        hpars = pmag.dohext(nf, sigma, [s1, s2, s3, s4, s5, s6])
+        aniso_parameters['aniso_type']='ATRM'
+        aniso_parameters['aniso_tilt_correction']=-1
+        aniso_parameters['aniso_s_sigma'] = "%f" % sigma
+        aniso_parameters['aniso_ftest'] = "%f" % hpars["F"]
+        aniso_parameters['aniso_ftest12'] = "%f" % hpars["F12"]
+        aniso_parameters['aniso_ftest23'] = "%f" % hpars["F23"]
+        aniso_parameters['description'] = "Critical F: %s" % (hpars['F_crit'])
+        aniso_parameters['aniso_s_n_measurements'] = '%i' % (n_pos)
+        if float(hpars["F"]) < float(hpars['F_crit']): # F better than F_crit
+            aniso_parameters['aniso_ftest_quality'] = 'g'
+        else:
+            aniso_parameters['aniso_ftest_quality'] = 'b'
+    return aniso_parameters
+
+
+def atrm_magic(meas_file, dir_path=".", input_dir_path="",
+               input_spec_file='specimens.txt', output_spec_file='specimens.txt'):
+    """
+    Converts ATRM  data to best-fit tensor (6 elements plus sigma)
+
+    Parameters
+    ----------
+    meas_file : str
+        input measurement file
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    input_spec_file : str
+        input specimen file name, default "specimens.txt"
+    output_spec_file : str
+        output specimen file name, default "specimens.txt"
+    
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, output file name written)
+
+    """
+    # fix up file names
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
+    input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
+    output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
+    aniso_spec_columns=['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_ftest_quality','aniso_p',
+                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',	
+                        'aniso_v1','aniso_v2','aniso_v3','citations','description','method_codes','sample','software_packages','specimen']
+
+    # read in data
+    meas_data, file_type = pmag.magic_read(meas_file)
+    if file_type != 'measurements':
+            print(
+                "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
+            print ('for data model 2.0 please use atrm_magic_dm2')
+            return False
+    old_specs=False
+    old_spec_recs, file_type = pmag.magic_read(input_spec_file)
+    if file_type != 'specimens':
+            print("-W- {} is not a valid specimens file ".format(input_spec_file))
+            old_spec_df=pd.DataFrame(columns=aniso_spec_columns)
+            print ('creating new specimens.txt file')
+    else:
+        old_specs=True
+        old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
+    # check format of output specimens table
+    for col in aniso_spec_columns:
+        if col not in old_spec_df.columns:old_spec_df[col]=""
+    df=pd.DataFrame.from_dict(meas_data)
+    df=df[df['method_codes'].str.contains('LP-AN-TRM')]
+    if not len(df):
+        print("-E- No measurement records found with code LP-AN-TRM")
+        return False, "No measurement records found with code LP-AN-TRM"
+    #
+    #
+    # get sorted list of unique specimen names
+    sids=np.sort(df['specimen'].unique())
+    #
+    # reorder measurements
+
+
+    n_pos=6
+
+
+    # work on each specimen
+    #
+    for spec in sids:
+        meas_df=df[df['specimen'].str.match(spec)]
+        atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
+        if len(atrm_df) > 5: 
+            atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
+            atrm_df['original_order']=range(len(atrm_df))
+            atrm_df['order']=np.nan
+            atrm_df['treat_dc_field_phi']=atrm_df['treat_dc_field_phi'].astype('float')
+            atrm_df['treat_dc_field_theta']=atrm_df['treat_dc_field_theta'].astype('float')
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==0) & (atrm_df['treat_dc_field_theta']==0),'order']=0
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==90) & (atrm_df['treat_dc_field_theta']==0),'order']=1
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==0) & (atrm_df['treat_dc_field_theta']==90),'order']=2
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==180) & (atrm_df['treat_dc_field_theta']==0),'order']=3
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==270) & (atrm_df['treat_dc_field_theta']==0),'order']=4
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==0) & (atrm_df['treat_dc_field_theta']==-90),'order']=5
+            atrm_df.loc[(atrm_df['treat_dc_field_phi']==90) & (atrm_df['treat_dc_field_theta']==0),'order']=1
+            atrm_df.sort_values(by=['order'],inplace=True)    
+            atrm_dirs=atrm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
+            M=pmag.dir2cart(atrm_dirs)
+            K = np.zeros(3 * n_pos, 'f')
+            for i in range(n_pos):
+                K[i * 3] = M[i][0]
+                K[i * 3 + 1] = M[i][1]
+                K[i * 3 + 2] = M[i][2]
+            aniso_parameters=calculate_atrm_parameters(K)
+            aniso_alt=0
+            alt_check_df=meas_df[meas_df['method_codes'].str.contains('LT-PTRM-I')]
+            if len(alt_check_df)>0:
+                anis_alt_phi=alt_check_df['treat_dc_field_phi'].astype('float').values[-1]
+                anis_alt_theta=alt_check_df['treat_dc_field_theta'].astype('float').values[-1]
+                base1=atrm_df[atrm_df['treat_dc_field_phi'].astype('float')==anis_alt_phi]
+                base1=base1[base1['treat_dc_field_theta']==anis_alt_theta]
+                if len(base1)>0:
+                    base1_M=base1[['magn_moment']].astype('float').values[0]
+                    base2_M=alt_check_df[['magn_moment']].astype('float').values[0]
+                    aniso_alt=100*np.abs(base1_M-base2_M)/np.mean([base1_M,base2_M]) # anisotropy alteration percent
+            new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
+            new_spec_df['specimen']=spec
+            new_spec_df['citations']='This study'
+            new_spec_df['method_codes']='LP-AN-TRM' 
+            new_spec_df['aniso_alt']='%5.2f'%(aniso_alt)
+            new_spec_df['software_packages']=pmag.get_version()
+            new_spec_df['citations']='This study'
+            if old_specs and 'aniso_s' in old_spec_df.columns: # there is a spec table to modify
+                for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                    old_spec_df.loc[(old_spec_df['specimen'].str.match(spec))&(old_spec_df[col].notnull()),col]=new_spec_df[col].values[0]
+            else: # just append to the end of the existing data frame
+                old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+    old_spec_df.fillna("",inplace=True)
+    spec_dicts=old_spec_df.to_dict('records')
+    pmag.magic_write(output_spec_file,spec_dicts,'specimens')
+
+
+
+
+
+
 
 def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
-    zeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
+    eeq_magic makes zijderveld and equal area plots for magic formatted measurements files.
     Parameters
     ----------
     meas_file : str
@@ -10966,7 +11209,7 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
         number of specimens to plot, default 5
         if you want to make all possible plots, specify "all"
     save_plots : bool, default True
-        if True, create and save all requested plots
+         True, create and save all requested plots
     fmt : str
         format of saved figures (default is 'svg')
     interactive : bool, default False

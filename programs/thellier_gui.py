@@ -3347,15 +3347,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         if Alteration_check_index == i:
                             M_1 = np.sqrt(sum((np.array(M[i])**2)))
                             M_2 = np.sqrt(sum(Alteration_check**2))
-                            # print specimen
-                            # print "M_1,M_2",M_1,M_2
+                            #print (specimen)
+                            #print( "M_1,M_2",M_1,M_2)
                             diff = abs(M_1 - M_2)
-                            # print "diff",diff
-                            # print "np.mean([M_1,M_2])",np.mean([M_1,M_2])
+                            #print ("diff",diff)
+                            #print ("np.mean([M_1,M_2])",np.mean([M_1,M_2]))
                             diff_ratio = diff / np.mean([M_1, M_2])
                             diff_ratio_perc = 100 * diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
                                 anisotropy_alt = diff_ratio_perc
+                            #print (i,anisotropy_alt) 
                 else:
                     aniso_logfile.write(
                         "-W- Warning: no alteration check for specimen %s \n " % specimen)
