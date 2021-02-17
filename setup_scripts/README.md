@@ -219,3 +219,25 @@ Additionally, in the Analysis function you will need to add the following argume
 That should do it!
 
 If you want to include a version file as well, you can find more information here: an example can be found [here](http://stackoverflow.com/questions/14624245/what-does-a-version-file-look-like) and documentation [here](https://msdn.microsoft.com/en-us/library/ff468916(v=vs.85).aspx).
+
+## A workflow that worked on 2/16/2021 for Nick S-H for OSX
+
+Made a new conda environment:
+
+```conda create -n make_executable2 python=3.6.6```
+
+Activated that conda environment:
+
+```conda activate make_executable2```
+
+Installed packages:
+
+```conda install future matplotlib numpy scipy pandas```
+
+```conda install wxpython```
+
+```conda install pyinstaller```
+
+Compiled the program:
+
+```pyinstaller pmag_gui.spec```
