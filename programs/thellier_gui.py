@@ -3446,20 +3446,22 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         except ValueError:
                             print('-W- treat_step_num column must be provided to run "Calculate anisotropy tensors"')
                             return False, 'The treat_step_num column must be provided to run "Calculate anisotropy tensors"'
-                        if float(rec['measurement_number']) == i * 2 + 1:
+                        #if float(rec['measurement_number']) == i * 2 + 1: # this is shifted down one -so results were completely wrong
+                        if float(rec['measurement_number']) == i * 2:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
                             M_baseline = np.array(
                                 pmag.dir2cart([dec, inc, moment]))
 
-                        if float(rec['measurement_number']) == i * 2 + 2:
+                        #if float(rec['measurement_number']) == i * 2 + 2:
+                        if float(rec['measurement_number']) == i * 2 + 1:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
                             M_arm = np.array(pmag.dir2cart([dec, inc, moment]))
-                    M[i] = M_arm - M_baseline
-
+                    M[i] = M_arm - M_baseline 
+                    
                 K = np.zeros(3 * n_pos, 'f')
                 for i in range(n_pos):
                     K[i * 3] = M[i][0]
