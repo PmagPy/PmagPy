@@ -3456,16 +3456,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         except ValueError:
                             print('-W- treat_step_num column must be provided to run "Calculate anisotropy tensors"')
                             return False, 'The treat_step_num column must be provided to run "Calculate anisotropy tensors"'
-                        #if float(rec['measurement_number']) == i * 2 + 1: # this is shifted down one -so results were completely wrong
-                        if float(rec['measurement_number']) == i * 2:
+                        if float(rec['measurement_number']) == i * 2 + 1: 
+                        #if float(rec['measurement_number']) == i * 2:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
                             M_baseline = np.array(
                                 pmag.dir2cart([dec, inc, moment]))
 
-                        #if float(rec['measurement_number']) == i * 2 + 2:
-                        if float(rec['measurement_number']) == i * 2 + 1:
+                        if float(rec['measurement_number']) == i * 2 + 2:
+                        #if float(rec['measurement_number']) == i * 2 + 1:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
@@ -6672,17 +6672,20 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if "LP-AN-ARM" in rec["magic_method_codes"]:
                 # anisotropy calculations require a numeric measurement_number
                 # so go ahead and generate that if it is not provided
+                # Bug fix - alwyas override measurement_number and make it start with 1. 
+                #           because in some contributions measurement_number/treat_step_num starts with 0 and sometime with 1 (RS)
                 exp_name = rec['magic_experiment_name']
                 aarm_num += 1
                 aarm_rec = rec.copy()
                 if saved_exp_name != exp_name:
                     saved_exp_name = exp_name
-                    aarm_num = 0
-                try:
-                    float(rec['measurement_number'])
-                except (ValueError, TypeError):
-                    aarm_rec['measurement_number'] = aarm_num
-
+                    aarm_num = 1
+                #try:
+                #    float(rec['measurement_number'])
+                #except (ValueError, TypeError):
+                #    aarm_rec['measurement_number'] = aarm_num
+                aarm_rec['measurement_number'] = aarm_num
+                
                 if 'aarmblock' not in list(Data[s].keys()):
                     Data[s]['aarmblock'] = []
 
