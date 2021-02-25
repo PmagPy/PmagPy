@@ -481,7 +481,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_READONLY)
         gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
-        gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+        gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="site-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (self.site_naming_convention,wx.ALIGN_LEFT),
             (self.site_naming_convention_char,wx.ALIGN_LEFT)])
