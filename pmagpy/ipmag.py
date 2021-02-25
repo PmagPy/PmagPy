@@ -9708,7 +9708,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
     return figs
 
 
-def aarm_magic(infile, dir_path=".", input_dir_path="",
+def aarm_magic_dm2(infile, dir_path=".", input_dir_path="",
                spec_file='specimens.txt', samp_file="samples.txt", data_model_num=3,
                coord='s'):
     """
@@ -10156,6 +10156,230 @@ def aarm_magic(infile, dir_path=".", input_dir_path="",
         print("specimen statistics and eigenparameters stored in ", rmag_res)
         return True, rmag_anis
 
+def get_matrix(n_pos=6):
+    """
+    returns design matrix for anisotropy experiments
+       #-----------------------------------
+        # Matrices definitions:
+        # A design matrix
+        # B np.dot(inv(np.dot(A.transpose(),A)),A.transpose())
+        # tmpH is used for sigma calculation (9,15 measurements only)
+        #
+        #  Anisotropy tensor:
+        #
+        # |Mx|   |s1 s4 s6|   |Bx|
+        # |My| = |s4 s2 s5| . |By|
+        # |Mz|   |s6 s5 s3|   |Bz|
+        #
+        # A matrix (measurement matrix):
+        # Each mesurement yields three lines in "A" matrix
+        #
+        # |Mi  |   |Bx 0  0   By  0   Bz|   |s1|
+        # |Mi+1| = |0  By 0   Bx  Bz  0 | . |s2|
+        # |Mi+2|   |0  0  Bz  0   By  Bx|   |s3|
+        #                                   |s4|
+        #                                   |s5|
+        #
+        #-----------------------------------
+
+        Returns matrix for n_pos of 6,9, or 15
+    """
+    if n_pos not in [6,9,15]: 
+        print ('n_pos ',n_pos,' not available')
+        return False
+    Matrices = {}
+    A = np.zeros((n_pos * 3, 6), 'f')
+
+    if n_pos == 6:
+            positions = [[0., 0., 1.], [90., 0., 1.], [0., 90., 1.],
+                         [180., 0., 1.], [270., 0., 1.], [0., -90., 1.]]
+
+    if n_pos == 15:
+            positions = [[315., 0., 1.], [225., 0., 1.], [180., 0., 1.], [135., 0., 1.], [45., 0., 1.],
+                         [90., -45., 1.], [270., -45., 1.], [270.,
+                                                             0., 1.], [270., 45., 1.], [90., 45., 1.],
+                         [180., 45., 1.], [180., -45., 1.], [0., -90., 1.], [0, -45., 1.], [0, 45., 1.]]
+    if n_pos == 9:
+            positions = [[315., 0., 1.], [225., 0., 1.], [180., 0., 1.],
+	    [90., -45., 1.], [270., -45., 1.], [270., 0., 1.],
+                         [180., 45., 1.], [180., -45., 1.], [0., -90., 1.]]
+
+    tmpH = np.zeros((n_pos, 3), 'f')  # define tmpH
+    for i in range(len(positions)):
+            CART = pmag.dir2cart(positions[i])
+            a = CART[0]
+            b = CART[1]
+            c = CART[2]
+            A[3 * i][0] = a
+            A[3 * i][3] = b
+            A[3 * i][5] = c
+
+            A[3 * i + 1][1] = b
+            A[3 * i + 1][3] = a
+            A[3 * i + 1][4] = c
+
+            A[3 * i + 2][2] = c
+            A[3 * i + 2][4] = b
+            A[3 * i + 2][5] = a
+
+            tmpH[i][0] = CART[0]
+            tmpH[i][1] = CART[1]
+            tmpH[i][2] = CART[2]
+
+    B = np.dot(inv(np.dot(A.transpose(), A)), A.transpose())
+
+    Matrices['A'] = A
+    Matrices['B'] = B
+    Matrices['tmpH'] = tmpH
+    return Matrices
+
+def aarm_magic(meas_file, dir_path=".", input_dir_path="",
+               input_spec_file='specimens.txt', output_spec_file='specimens.txt'):
+    """
+    Converts AARM  data to best-fit tensor (6 elements plus sigma)
+
+    Parameters
+    ----------
+    meas_file : str
+        input measurement file
+    dir_path : str
+        output directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    input_spec_file : str
+        input specimen file name, default "specimens.txt"
+    output_spec_file : str
+        output specimen file name, default "specimens.txt"
+    
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, output file name written)
+
+    Info
+    ---------
+        Input for is a series of baseline, ARM pairs.
+      The baseline should be the AF demagnetized state (3 axis demag is
+      preferable) for the following ARM acquisition. The order of the
+      measurements is:
+           for 6 positions (AF demag before each step): 
+               1) labfield parallel to X
+               2) labfield parallel to Y
+               3) labfield parallel to Z
+               4) labfield anti-parallel to X
+               5) labfield anti-parallel to Y
+               6) labfield anti-parallel to Z
+            for 9 positions (AF demag before each step):
+                positions 1,2,3, 6,7,8, 11,12,13 (from Figure D.2 in Essentials, earthref.org/MagIC/books/Tauxe/Essentials, Appendix D) 
+            for 15  positions (AF demag before each step):
+                positions 1-15 (for 15 positions)
+
+    """
+    # fix up file names
+    input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
+    input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
+    output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
+    aniso_spec_columns=['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_ftest_quality','aniso_p',
+                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',	
+                        'aniso_v1','aniso_v2','aniso_v3','citations','description','method_codes','sample','software_packages','specimen']
+
+    # read in data
+    meas_data, file_type = pmag.magic_read(meas_file)
+    if file_type != 'measurements':
+            print(
+                "-E- {} is not a valid measurements file, {}".format(meas_file, file_type))
+            print ('for data model 2.0 please use atrm_magic_dm2')
+            return False
+    old_specs=False
+    old_spec_recs, file_type = pmag.magic_read(input_spec_file)
+    if file_type != 'specimens':
+            print("-W- {} is not a valid specimens file ".format(input_spec_file))
+            old_spec_df=pd.DataFrame(columns=aniso_spec_columns)
+            print ('creating new specimens.txt file')
+    else:
+        old_specs=True
+        old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
+    # check format of output specimens table
+    for col in aniso_spec_columns:
+        if col not in old_spec_df.columns:old_spec_df[col]=""
+    df=pd.DataFrame.from_dict(meas_data)
+    df=df[df['method_codes'].str.contains('LP-AN-ARM')]
+    if not len(df):
+        print("-E- No measurement records found with code LP-AN-ARM")
+        return False, "No measurement records found with code LP-AN-ARM"
+    #
+    #
+    # get sorted list of unique specimen names
+    sids=np.sort(df['specimen'].unique())
+    #
+
+
+    # work on each specimen
+    #
+    for spec in sids:
+        meas_df=df[df['specimen']==spec]
+        # first determine n_pos
+        aarm_df=meas_df[meas_df['method_codes'].str.contains('LT-AF-I')]
+        n_pos=len(aarm_df)
+
+        if n_pos!= 6 and n_pos != 9 and n_pos != 15:
+            print( 'aarm_magic only available for n=6,9,15')
+            return
+        else:
+            aarm_df=meas_df[meas_df['method_codes'].str.contains('LP-AN-ARM')]
+            aarm_df['treat_step_num']=range(len(aarm_df))
+            # subtract baseline
+            M=[]
+            aarm_dirs=aarm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
+            M_with_base=pmag.dir2cart(aarm_dirs)
+            for i in range(1,len(aarm_df),2):  
+                M.append(M_with_base[i]-M_with_base[i-1])  # subtract baseline
+            K = np.zeros(3 * n_pos, 'f')
+            for i in range(n_pos):
+                    K[i * 3] = M[i][0]
+                    K[i * 3 + 1] = M[i][1]
+                    K[i * 3 + 2] = M[i][2]
+            if True:
+                aniso_parameters=calculate_aniso_parameters(K,n_pos=n_pos)
+                #alt_check_df=meas_df[meas_df['method_codes'].str.contains('LT-PTRM-I')]
+                #if len(alt_check_df)>0:
+                #    anis_alt_phi=alt_check_df['treat_dc_field_phi'].astype('float').values[-1]
+                #    anis_alt_theta=alt_check_df['treat_dc_field_theta'].astype('float').values[-1]
+                #    base1=atrm_df[atrm_df['treat_dc_field_phi'].astype('float')==anis_alt_phi]
+                #    base1=base1[base1['treat_dc_field_theta']==anis_alt_theta]
+                #    if len(base1)>0:
+                #        base1_M=base1[['magn_moment']].astype('float').values[0]
+                #        base2_M=alt_check_df[['magn_moment']].astype('float').values[0]
+                #        aniso_alt=100*np.abs(base1_M-base2_M)/np.mean([base1_M,base2_M]) # anisotropy alteration percent
+                new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
+                new_spec_df['specimen']=spec
+                new_spec_df['citations']='This study'
+                new_spec_df['method_codes']='LP-AN-ARM' 
+                new_spec_df['aniso_type']='AARM'
+                new_spec_df['software_packages']=pmag.get_version()
+                new_spec_df['citations']='This study'
+                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='AARM')].empty==False: # there is a previous record of AARM for this specimen
+                        print ('replacing existing AARM data for ',spec)
+                        for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                            old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='AARM')&
+                                (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing AARM data for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of AARM for this specimen
+                    print ('adding AARM data for ',spec)
+                    for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                        old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add AARM data for this specimen
+                else: # no record of this specimen, just append to the end of the existing data frame
+                    print ('creating new record for specimen ',spec)
+                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+            else:
+                print ('something wrong with measurements for: ',spec)
+    old_spec_df.fillna("",inplace=True)
+    spec_dicts=old_spec_df.to_dict('records')
+    pmag.magic_write(output_spec_file,spec_dicts,'specimens')
+
+
+
 
 def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
                input_spec_file='specimens.txt', output_spec_file='specimens.txt',
@@ -10536,47 +10760,16 @@ def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
         print("specimen statistics and eigenparameters stored in ", rmag_res)
         return True, rmag_anis
 
-def calculate_atrm_parameters(K):
+def calculate_aniso_parameters(K,n_pos=6):
     """
-            calculate ATRM anisotropy parameters from 6 positions plus optional baseline measurements
+            calculate anisotropy parameters from n_pos positions plus optional baseline measurements
             ADD DOC STUFF HERE
     """
 
     aniso_parameters = {}
-    n_pos=6
-    Matrices = {}
-    Matrices[n_pos] = {}
-    A = np.zeros((n_pos * 3, 6), 'f')
-    positions = np.array([[0., 0., 1.], [90., 0., 1.], [0., 90., 1.],
-                             [180., 0., 1.], [270., 0., 1.], [0., -90., 1.]])
-    tmpH = np.zeros((n_pos, 3), 'f')
-    CART=pmag.dir2cart(positions)
-    for i in range(len(positions)):
-                a = CART[i][0]
-                b = CART[i][1]
-                c = CART[i][2]
-                A[3 * i][0] = a
-                A[3 * i][3] = b
-                A[3 * i][5] = c
-
-                A[3 * i + 1][1] = b
-                A[3 * i + 1][3] = a
-                A[3 * i + 1][4] = c
-
-                A[3 * i + 2][2] = c
-                A[3 * i + 2][4] = b
-                A[3 * i + 2][5] = a
-
-                tmpH[i][0] = CART[i][0]
-                tmpH[i][1] = CART[i][1]
-                tmpH[i][2] = CART[i][2]
-
-    B = np.dot(inv(np.dot(A.transpose(), A)), A.transpose())
-
-    Matrices[n_pos]['A'] = A
-    Matrices[n_pos]['B'] = B
-    Matrices[n_pos]['tmpH'] = tmpH
-    B = Matrices[6]['B']
+    Matrices=get_matrix(n_pos)
+    tmpH=Matrices['tmpH']
+    B = Matrices['B']
     S_bs = np.dot(B, K)
 
     # normalize by trace
@@ -10613,7 +10806,7 @@ def calculate_atrm_parameters(K):
     aniso_parameters['aniso_p'] = "%f" % (t1 / t3)
     if len(K) / 3 == 9 or len(K) / 3 == 6 or len(K) / 3 == 15:
         n_pos = len(K) / 3
-        tmpH = Matrices[n_pos]['tmpH']
+        tmpH = Matrices['tmpH']
         a = s_matrix
         S = 0.
         comp = np.zeros((int(n_pos) * 3), 'f')
@@ -10630,7 +10823,6 @@ def calculate_atrm_parameters(K):
         if S > 0:
             sigma = np.sqrt(S / nf)
         hpars = pmag.dohext(nf, sigma, [s1, s2, s3, s4, s5, s6])
-        aniso_parameters['aniso_type']='ATRM'
         aniso_parameters['aniso_tilt_correction']=-1
         aniso_parameters['aniso_s_sigma'] = "%f" % sigma
         aniso_parameters['aniso_ftest'] = "%f" % hpars["F"]
@@ -10638,7 +10830,7 @@ def calculate_atrm_parameters(K):
         aniso_parameters['aniso_ftest23'] = "%f" % hpars["F23"]
         aniso_parameters['description'] = "Critical F: %s" % (hpars['F_crit'])
         aniso_parameters['aniso_s_n_measurements'] = '%i' % (n_pos)
-        if float(hpars["F"]) < float(hpars['F_crit']): # F better than F_crit
+        if float(hpars["F"]) > float(hpars['F_crit']): # significant anisotropy 
             aniso_parameters['aniso_ftest_quality'] = 'g'
         else:
             aniso_parameters['aniso_ftest_quality'] = 'b'
@@ -10667,6 +10859,20 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     Returns
     ---------
     Tuple : (True or False indicating if conversion was successful, output file name written)
+
+    Info
+    ---------
+        Input for is a series of ATRM measurements with optional alteration check
+       The order of the measurements is:
+
+           positions: 
+               labfield parallel to X
+               labfield parallel to Y
+               labfield parallel to Z
+               labfield anti-parallel to X
+               labfield anti-parallel to Y
+               labfield anti-parallel to Z
+               optional: labfield parallel to X
 
     """
     # fix up file names
@@ -10716,7 +10922,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     # work on each specimen
     #
     for spec in sids:
-        meas_df=df[df['specimen'].str.match(spec)]
+        meas_df=df[df['specimen']==spec]
         atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
         if len(atrm_df) > 5: 
             atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
@@ -10732,37 +10938,49 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
             atrm_df.loc[(atrm_df['treat_dc_field_phi']==0) & (atrm_df['treat_dc_field_theta']==-90),'order']=5
             atrm_df.loc[(atrm_df['treat_dc_field_phi']==90) & (atrm_df['treat_dc_field_theta']==0),'order']=1
             atrm_df.sort_values(by=['order'],inplace=True)    
-            atrm_dirs=atrm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
-            M=pmag.dir2cart(atrm_dirs)
-            K = np.zeros(3 * n_pos, 'f')
-            for i in range(n_pos):
-                K[i * 3] = M[i][0]
-                K[i * 3 + 1] = M[i][1]
-                K[i * 3 + 2] = M[i][2]
-            aniso_parameters=calculate_atrm_parameters(K)
-            aniso_alt=0
-            alt_check_df=meas_df[meas_df['method_codes'].str.contains('LT-PTRM-I')]
-            if len(alt_check_df)>0:
-                anis_alt_phi=alt_check_df['treat_dc_field_phi'].astype('float').values[-1]
-                anis_alt_theta=alt_check_df['treat_dc_field_theta'].astype('float').values[-1]
-                base1=atrm_df[atrm_df['treat_dc_field_phi'].astype('float')==anis_alt_phi]
-                base1=base1[base1['treat_dc_field_theta']==anis_alt_theta]
-                if len(base1)>0:
-                    base1_M=base1[['magn_moment']].astype('float').values[0]
-                    base2_M=alt_check_df[['magn_moment']].astype('float').values[0]
-                    aniso_alt=100*np.abs(base1_M-base2_M)/np.mean([base1_M,base2_M]) # anisotropy alteration percent
-            new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
-            new_spec_df['specimen']=spec
-            new_spec_df['citations']='This study'
-            new_spec_df['method_codes']='LP-AN-TRM' 
-            new_spec_df['aniso_alt']='%5.2f'%(aniso_alt)
-            new_spec_df['software_packages']=pmag.get_version()
-            new_spec_df['citations']='This study'
-            if old_specs and 'aniso_s' in old_spec_df.columns: # there is a spec table to modify
-                for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
-                    old_spec_df.loc[(old_spec_df['specimen'].str.match(spec))&(old_spec_df[col].notnull()),col]=new_spec_df[col].values[0]
-            else: # just append to the end of the existing data frame
-                old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+            if np.array_equal(atrm_df['order'].values[0:6],np.arange(6)):
+                atrm_dirs=atrm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
+                M=pmag.dir2cart(atrm_dirs)
+                K = np.zeros(3 * n_pos, 'f')
+                for i in range(n_pos):
+                    K[i * 3] = M[i][0]
+                    K[i * 3 + 1] = M[i][1]
+                    K[i * 3 + 2] = M[i][2]
+                aniso_parameters=calculate_aniso_parameters(K,n_pos=6)
+                aniso_alt=0
+                alt_check_df=meas_df[meas_df['method_codes'].str.contains('LT-PTRM-I')]
+                if len(alt_check_df)>0:
+                    anis_alt_phi=alt_check_df['treat_dc_field_phi'].astype('float').values[-1]
+                    anis_alt_theta=alt_check_df['treat_dc_field_theta'].astype('float').values[-1]
+                    base1=atrm_df[atrm_df['treat_dc_field_phi'].astype('float')==anis_alt_phi]
+                    base1=base1[base1['treat_dc_field_theta']==anis_alt_theta]
+                    if len(base1)>0:
+                        base1_M=base1[['magn_moment']].astype('float').values[0]
+                        base2_M=alt_check_df[['magn_moment']].astype('float').values[0]
+                        aniso_alt=100*np.abs(base1_M-base2_M)/np.mean([base1_M,base2_M]) # anisotropy alteration percent
+                new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
+                new_spec_df['specimen']=spec
+                new_spec_df['citations']='This study'
+                new_spec_df['method_codes']='LP-AN-TRM' 
+                new_spec_df['aniso_alt']='%5.2f'%(aniso_alt)
+                new_spec_df['software_packages']=pmag.get_version()
+                new_spec_df['citations']='This study'
+                new_spec_df['aniso_type']='ATRM'
+                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='ATRM')].empty==False: # there is a previous record of ATRM for this specimen
+                        print ('replacing existing ATRM data for ',spec)
+                        for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                            old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='ATRM')&
+                                (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing ATRM data for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of ATRM for this specimen
+                    print ('adding ATRM data for ',spec)
+                    for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                        old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add ATRM data for this specimen
+                else: # no record of this specimen, just append to the end of the existing data frame
+                    print ('creating new record for specimen ',spec)
+                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+            else:
+                print ('something wrong with measurements for: ',spec)
     old_spec_df.fillna("",inplace=True)
     spec_dicts=old_spec_df.to_dict('records')
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')

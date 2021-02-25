@@ -3273,6 +3273,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 # sort measurements
 
                 M = np.zeros([6, 3], 'f')
+                moments=[] # collect the moments
 
                 for rec in atrmblock:
 
@@ -3287,6 +3288,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # alteration check
                     if "LT-PTRM-I" in rec['magic_method_codes'].split(":"):
                         Alteration_check = CART
+                        Alteration_check_moment = moment
                         Alteration_check_dc_field_phi = float(
                             rec['treatment_dc_field_phi'])
                         Alteration_check_dc_field_theta = float(
@@ -3312,25 +3314,31 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     treatment_dc_field_theta = float(
                         rec['treatment_dc_field_theta'])
                     treatment_dc_field = float(rec['treatment_dc_field'])
-
+                    #moment = float(rec['measurement_magn_moment'])
                     #+x, M[0]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == 0:
                         M[0] = CART
+                        #moments.append(moment)
                     #+Y , M[1]
                     if treatment_dc_field_phi == 90 and treatment_dc_field_theta == 0:
                         M[1] = CART
+                        #moments.append(moment)
                     #+Z , M[2]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == 90:
                         M[2] = CART
+                        #moments.append(moment)
                     #-x, M[3]
                     if treatment_dc_field_phi == 180 and treatment_dc_field_theta == 0:
                         M[3] = CART
+                        #moments.append(moment)
                     #-Y , M[4]
                     if treatment_dc_field_phi == 270 and treatment_dc_field_theta == 0:
                         M[4] = CART
+                        #moments.append(moment)
                     #-Z , M[5]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == -90:
                         M[5] = CART
+                        #moments.append(moment)
 
                 # check if at least one measurement in missing
                 for i in range(len(M)):
@@ -3345,13 +3353,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if str(Alteration_check) != "":
                     for i in range(len(M)):
                         if Alteration_check_index == i:
-                            M_1 = np.sqrt(sum((np.array(M[i])**2)))
+                            M_1 = np.sqrt(sum((np.array(M[i])**2))) 
                             M_2 = np.sqrt(sum(Alteration_check**2))
-                            #print (specimen)
-                            #print( "M_1,M_2",M_1,M_2)
+                            #M_1 = moments[i] # use original moment instead of reconstituted one to avoid rounding errors; changed by RS to enable substraction from zerofield baseline
+                            #M_2 = Alteration_check_moment; changed by RS to enable substraction from zerofield baseline
                             diff = abs(M_1 - M_2)
-                            #print ("diff",diff)
-                            #print ("np.mean([M_1,M_2])",np.mean([M_1,M_2]))
                             diff_ratio = diff / np.mean([M_1, M_2])
                             diff_ratio_perc = 100 * diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
@@ -3367,16 +3373,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
                 # i.e. +x versus -x, +y versus -y, etc.s
 
-                for i in range(3):
-                    M_1 = np.sqrt(sum(np.array(M[i])**2))
-                    M_2 = np.sqrt(sum(np.array(M[i + 3])**2))
-
-                    diff = abs(M_1 - M_2)
-                    diff_ratio = diff / np.mean([M_1, M_2])
-                    diff_ratio_perc = 100 * diff_ratio
-
-                    if diff_ratio_perc > anisotropy_alt:
-                        anisotropy_alt = diff_ratio_perc
+                #for i in range(3): # this is not how it is defined in Paterson et al., 2014 
+                #    M_1 = np.sqrt(sum(np.array(M[i])**2))
+                #    M_2 = np.sqrt(sum(np.array(M[i + 3])**2))
+#
+#                    diff = abs(M_1 - M_2)
+#                    diff_ratio = diff / np.mean([M_1, M_2])
+#                    diff_ratio_perc = 100 * diff_ratio
+#
+#                    if diff_ratio_perc > anisotropy_alt:
+#                        anisotropy_alt = diff_ratio_perc
 
                 if not Reject_specimen:
 
@@ -3446,7 +3452,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         except ValueError:
                             print('-W- treat_step_num column must be provided to run "Calculate anisotropy tensors"')
                             return False, 'The treat_step_num column must be provided to run "Calculate anisotropy tensors"'
-                        if float(rec['measurement_number']) == i * 2 + 1:
+                        if float(rec['measurement_number']) == i * 2 + 1: 
+                        #if float(rec['measurement_number']) == i * 2:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
@@ -3454,12 +3461,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                                 pmag.dir2cart([dec, inc, moment]))
 
                         if float(rec['measurement_number']) == i * 2 + 2:
+                        #if float(rec['measurement_number']) == i * 2 + 1:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
                             M_arm = np.array(pmag.dir2cart([dec, inc, moment]))
-                    M[i] = M_arm - M_baseline
-
+                    M[i] = M_arm - M_baseline 
+                    
                 K = np.zeros(3 * n_pos, 'f')
                 for i in range(n_pos):
                     K[i * 3] = M[i][0]
@@ -6660,17 +6668,20 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if "LP-AN-ARM" in rec["magic_method_codes"]:
                 # anisotropy calculations require a numeric measurement_number
                 # so go ahead and generate that if it is not provided
+                # Bug fix - alwyas override measurement_number and make it start with 1. 
+                #           because in some contributions measurement_number/treat_step_num starts with 0 and sometime with 1 (RS)
                 exp_name = rec['magic_experiment_name']
                 aarm_num += 1
                 aarm_rec = rec.copy()
                 if saved_exp_name != exp_name:
                     saved_exp_name = exp_name
-                    aarm_num = 0
-                try:
-                    float(rec['measurement_number'])
-                except (ValueError, TypeError):
-                    aarm_rec['measurement_number'] = aarm_num
-
+                    aarm_num = 1
+                #try:
+                #    float(rec['measurement_number'])
+                #except (ValueError, TypeError):
+                #    aarm_rec['measurement_number'] = aarm_num
+                aarm_rec['measurement_number'] = aarm_num
+                
                 if 'aarmblock' not in list(Data[s].keys()):
                     Data[s]['aarmblock'] = []
 
