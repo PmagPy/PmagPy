@@ -3314,31 +3314,31 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     treatment_dc_field_theta = float(
                         rec['treatment_dc_field_theta'])
                     treatment_dc_field = float(rec['treatment_dc_field'])
-                    moment = float(rec['measurement_magn_moment'])
+                    #moment = float(rec['measurement_magn_moment'])
                     #+x, M[0]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == 0:
                         M[0] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
                     #+Y , M[1]
                     if treatment_dc_field_phi == 90 and treatment_dc_field_theta == 0:
                         M[1] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
                     #+Z , M[2]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == 90:
                         M[2] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
                     #-x, M[3]
                     if treatment_dc_field_phi == 180 and treatment_dc_field_theta == 0:
                         M[3] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
                     #-Y , M[4]
                     if treatment_dc_field_phi == 270 and treatment_dc_field_theta == 0:
                         M[4] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
                     #-Z , M[5]
                     if treatment_dc_field_phi == 0 and treatment_dc_field_theta == -90:
                         M[5] = CART
-                        moments.append(moment)
+                        #moments.append(moment)
 
                 # check if at least one measurement in missing
                 for i in range(len(M)):
@@ -3353,15 +3353,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if str(Alteration_check) != "":
                     for i in range(len(M)):
                         if Alteration_check_index == i:
-                            #M_1 = np.sqrt(sum((np.array(M[i])**2))) # this way results in round-off errors
-                            #M_2 = np.sqrt(sum(Alteration_check**2))
-                            M_1 = moments[i] # use original moment instead of reconstituted one to avoid rounding errors
-                            M_2 = Alteration_check_moment
-                            #print (specimen)
-                            #print( "M_1,M_2",M_1,M_2)
+                            M_1 = np.sqrt(sum((np.array(M[i])**2))) 
+                            M_2 = np.sqrt(sum(Alteration_check**2))
+                            #M_1 = moments[i] # use original moment instead of reconstituted one to avoid rounding errors; changed by RS to enable substraction from zerofield baseline
+                            #M_2 = Alteration_check_moment; changed by RS to enable substraction from zerofield baseline
                             diff = abs(M_1 - M_2)
-                            #print ("diff",diff)
-                            #print ("np.mean([M_1,M_2])",np.mean([M_1,M_2]))
                             diff_ratio = diff / np.mean([M_1, M_2])
                             diff_ratio_perc = 100 * diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
