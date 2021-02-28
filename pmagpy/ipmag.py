@@ -16,7 +16,6 @@ except ModuleNotFoundError:
 import zipfile
 import io
 
-from past.utils import old_div
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -1445,9 +1444,15 @@ def inc_from_lat(lat):
     Returns
     -------
     inc : inclination calculated using the dipole equation
+
+    Examples
+    --------
+    Calculate the inclination implied by an latitude of 45 degrees:
+    >>> ipmag.inc_from_lat(45)
+    63.434948822922
     """
-    rad = old_div(np.pi, 180.)
-    inc = old_div(np.arctan(2 * np.tan(lat * rad)), rad)
+    rad = np.pi/180.0
+    inc = np.arctan(2 * np.tan(lat * rad))/rad
     return inc
 
 
@@ -2268,9 +2273,9 @@ def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='si
                                                     np.cos(np.radians(dataframe[dec_tc]))))
         # calculate the longitudinal difference between the pole and the site
         # (beta)
-        dataframe['beta'] = np.degrees(np.arcsin(old_div((np.sin(np.radians(dataframe['colatitude'])) *
-                                                          np.sin(np.radians(dataframe[dec_tc]))),
-                                                         (np.cos(np.radians(dataframe['vgp_lat']))))))
+        dataframe['beta'] = np.degrees(np.arcsin((np.sin(np.radians(dataframe['colatitude'])) *
+                                                          np.sin(np.radians(dataframe[dec_tc])))/
+                                                         (np.cos(np.radians(dataframe['vgp_lat'])))))
         # generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         # and then calculate pole longitude using the site location and
         # calculated beta
@@ -2298,9 +2303,9 @@ def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='si
                                                     np.cos(np.radians(dataframe[dec_is]))))
         # calculate the longitudinal difference between the pole and the site
         # (beta)
-        dataframe['beta'] = np.degrees(np.arcsin(old_div((np.sin(np.radians(dataframe['colatitude'])) *
-                                                          np.sin(np.radians(dataframe[dec_is]))),
-                                                         (np.cos(np.radians(dataframe['vgp_lat']))))))
+        dataframe['beta'] = np.degrees(np.arcsin((np.sin(np.radians(dataframe['colatitude'])) *
+                                                          np.sin(np.radians(dataframe[dec_is])))/
+                                                         (np.cos(np.radians(dataframe['vgp_lat'])))))
         # generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         # and then calculate pole longitude using the site location and
         # calculated beta
@@ -2374,19 +2379,19 @@ def sb_vgp_calc(dataframe, site_correction='yes', dec_tc='dec_tc', inc_tc='inc_t
         # into pole coordinates using the assumption of a Fisherian distribution in
         # directional coordinates and the paleolatitude as calculated from mean
         # inclination using the dipole equation
-        dataframe['K'] = old_div(dataframe['k'], (0.125 * (5 + 18 * np.sin(np.deg2rad(dataframe['paleolatitude']))**2
-                                                           + 9 * np.sin(np.deg2rad(dataframe['paleolatitude']))**4)))
-        dataframe['Sw'] = old_div(81, (dataframe['K']**0.5))
+        dataframe['K'] = dataframe['k']/(0.125 * (5 + 18 * np.sin(np.deg2rad(dataframe['paleolatitude']))**2
+                                                           + 9 * np.sin(np.deg2rad(dataframe['paleolatitude']))**4))
+        dataframe['Sw'] = 81/(dataframe['K']**0.5)
 
         summation = 0
         N = 0
         for n in range(0, len(dataframe)):
             quantity = dataframe['delta_mean_pole'][n]**2 - \
-                old_div(dataframe['Sw'][n]**2, dataframe['n'][n])
+                dataframe['Sw'][n]**2/dataframe['n'][n]
             summation += quantity
             N += 1
 
-        Sb = ((old_div(1.0, (N - 1.0))) * summation)**0.5
+        Sb = ((1.0/(N - 1.0)) * summation)**0.5
 
     if site_correction == 'no':
 
@@ -2397,7 +2402,7 @@ def sb_vgp_calc(dataframe, site_correction='yes', dec_tc='dec_tc', inc_tc='inc_t
             summation += quantity
             N += 1
 
-        Sb = ((old_div(1.0, (N - 1.0))) * summation)**0.5
+        Sb = ((1.0/(N - 1.0)) * summation)**0.5
 
     return Sb
 
@@ -2524,15 +2529,15 @@ def shoot(lon, lat, azimuth, maxdist=None):
     """
     glat1 = lat * np.pi / 180.
     glon1 = lon * np.pi / 180.
-    s = old_div(maxdist, 1.852)
+    s = maxdist/1.852
     faz = azimuth * np.pi / 180.
 
     EPS = 0.00000000005
 #    if ((np.abs(np.cos(glat1)) < EPS) and not (np.abs(np.sin(faz)) < EPS)): #why was this ever a thing? it works fine at the north pole
 #        raise ValueError("Only N-S courses are meaningful, starting at a pole!")
 
-    a = old_div(6378.13, 1.852)
-    f = old_div(1, 298.257223563)
+    a = 6378.13/1.852
+    f = 1/298.257223563
     r = 1 - f
     tu = r * np.tan(glat1)
     sf = np.sin(faz)
@@ -2542,16 +2547,16 @@ def shoot(lon, lat, azimuth, maxdist=None):
     else:
         b = 2. * np.arctan2(tu, cf)
 
-    cu = old_div(1., np.sqrt(1 + tu * tu))
+    cu = 1.0/np.sqrt(1 + tu * tu)
     su = tu * cu
     sa = cu * sf
     c2a = 1 - sa * sa
-    x = 1. + np.sqrt(1. + c2a * (old_div(1., (r * r)) - 1.))
-    x = old_div((x - 2.), x)
+    x = 1. + np.sqrt(1. + c2a * (1./(r * r) - 1.))
+    x = (x - 2.0)/ x
     c = 1. - x
-    c = old_div((x * x / 4. + 1.), c)
+    c = (x * x / 4. + 1.)/ c
     d = (0.375 * x * x - 1.) * x
-    tu = old_div(s, (r * a * c))
+    tu = s/ (r * a * c)
     y = tu
     c = y + 1
     while (np.abs(y - c) > EPS):
@@ -2578,9 +2583,9 @@ def shoot(lon, lat, azimuth, maxdist=None):
 
     baz = (np.arctan2(sa, b) + np.pi) % (2 * np.pi)
 
-    glon2 *= old_div(180., np.pi)
-    glat2 *= old_div(180., np.pi)
-    baz *= old_div(180., np.pi)
+    glon2 *= 180.0/np.pi
+    glat2 *= 180..0/np.pi
+    baz *= 180.0/np.pi
 
     return (glon2, glat2, baz)
 
@@ -2941,7 +2946,7 @@ def ani_depthplot2(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements
         Tau1.append(fpars['t1'])
         Tau2.append(fpars['t2'])
         Tau3.append(fpars['t3'])
-        P.append(old_div(Tau1[-1], Tau3[-1]))
+        P.append(Tau1[-1]/Tau3[-1])
         F23s.append(fpars['F23'])
     if len(Depths) > 0:
         if dmax == -1:
@@ -3262,7 +3267,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         Tau1.append(fpars['t1'])
         Tau2.append(fpars['t2'])
         Tau3.append(fpars['t3'])
-        P.append(old_div(Tau1[-1], Tau3[-1]))
+        P.append(Tau1[-1]/Tau3[-1])
         F23s.append(fpars['F23'])
     if len(Depths) > 0:
         if dmax == -1:
@@ -4122,7 +4127,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         for k in range(len(Chrons) - 1):
             c = Chrons[k]
             cnext = Chrons[k + 1]
-            d = cnext[1] - old_div((cnext[1] - c[1]), 3.)
+            d = cnext[1] - (cnext[1] - c[1])/3.0
             if d >= amin and d < amax:
                 # make the Chron boundary tick
                 ax2.plot([1, 1.5], [c[1], c[1]], 'k-')
@@ -5993,7 +5998,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 yy = 1900 + yy
             else:
                 yy = 2000 + yy
-            decimal_year = yy + old_div(float(mmddyy[0]), 12)
+            decimal_year = yy + float(mmddyy[0])/12
             sample_date = '%i:%s:%s' % (yy, mmddyy[0], mmddyy[1])
             time = OrRec['hhmm']
             if time:
@@ -6767,11 +6772,11 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
             if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations:
                 locations = locations + rec['er_location_name'] + '_'
             if rec['hysteresis_bcr'] != "" and rec['hysteresis_mr_moment'] != "":
-                S.append(old_div(float(rec['hysteresis_mr_moment']), float(
-                    rec['hysteresis_ms_moment'])))
+                S.append(float(rec['hysteresis_mr_moment'])/float(
+                    rec['hysteresis_ms_moment']))
                 Bcr.append(float(rec['hysteresis_bcr']))
                 Bc.append(float(rec['hysteresis_bc']))
-                BcrBc.append(old_div(Bcr[-1], Bc[-1]))
+                BcrBc.append(Bcr[-1]/Bc[-1])
                 if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name'] != "":
                     rec['er_specimen_name'] = rec['er_synthetic_name']
                 hsids.append(rec['er_specimen_name'])
@@ -6781,7 +6786,7 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
                     try:
                         ind = hsids.index(rec['er_specimen_name'])
                         Bcr1.append(float(rec['remanence_bcr']))
-                        Bcr1Bc.append(old_div(Bcr1[-1], Bc[ind]))
+                        Bcr1Bc.append(Bcr1[-1]/Bc[ind])
                         S1.append(S[ind])
                         Bcr2.append(Bcr[ind])
                     except ValueError:
@@ -6816,17 +6821,16 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
 
         for ind, row in spec_df.iterrows():
             if row['hyst_bcr'] and row['hyst_mr_moment']:
-                S.append(
-                    old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
+                S.append(float(row['hyst_mr_moment'])/float(row['hyst_ms_moment']))
                 Bcr.append(float(row['hyst_bcr']))
                 Bc.append(float(row['hyst_bc']))
-                BcrBc.append(old_div(Bcr[-1], Bc[-1]))
+                BcrBc.append(Bcr[-1]/Bc[-1])
                 hsids.append(row['specimen'])
             if do_rem and Bc:
                 if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                     try:
                         Bcr1.append(float(row['rem_bcr']))
-                        Bcr1Bc.append(old_div(Bcr1[-1], Bc[-1]))
+                        Bcr1Bc.append(Bcr1[-1]/Bc[-1])
                         S1.append(S[-1])
                         Bcr2.append(Bcr[-1])
                     except ValueError:
@@ -6964,7 +6968,7 @@ def smooth(x, window_len, window='bartlett'):
         w = ones(window_len, 'd')
     else:
         w = eval('np.' + window + '(window_len)')
-    y = np.convolve(old_div(w, w.sum()), s, mode='same')
+    y = np.convolve(w/w.sum(), s, mode='same')
     return np.array(y[window_len:-window_len])
 
 
@@ -6988,7 +6992,7 @@ def deriv1(x, y, i, n):
         y_ = y_ + y[ix]
         xy_ = xy_ + x[ix] * y[ix]
         x_2 = x_2 + x[ix]**2
-    m = old_div(((n * xy_) - (x_ * y_)), (n * x_2 - (x_)**2))
+    m = ((n * xy_) - (x_ * y_))/(n * x_2 - (x_)**2)
     return(m)
 
 
@@ -7093,7 +7097,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     for i in range(len(M_smooth) - 1):
         Dy = M_smooth[i - 1] - M_smooth[i + 1]
         Dx = T[i - 1] - T[i + 1]
-        d1.append(old_div(Dy, Dx))
+        d1.append(Dy/Dx)
     T_d1 = T[1:len(T - 1)]
     d1 = np.array(d1, 'f')
     d1_smooth = smooth(d1, window_len)
@@ -7111,7 +7115,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
         Dx = T[i - 1] - T[i + 1]
         # print Dy/Dx
-        d2.append(old_div(Dy, Dx))
+        d2.append(Dy/Dx)
     T_d2 = T[2:len(T - 2)]
     d2 = np.array(d2, 'f')
     d2_smooth = smooth(d2, window_len)
@@ -7137,7 +7141,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         for i in range(len(M_smooth) - 1):
             Dy = M_smooth[i - 1] - M_smooth[i + 1]
             Dx = T[i - 1] - T[i + 1]
-            d1.append(old_div(Dy, Dx))
+            d1.append(Dy/Dx)
         T_d1 = T[1:len(T - 1)]
         d1 = np.array(d1, 'f')
         d1_smooth = smooth(d1, win)
@@ -7146,7 +7150,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         for i in range(len(d1_smooth) - 1):
             Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
             Dx = T[i - 1] - T[i + 1]
-            d2.append(old_div(Dy, Dx))
+            d2.append(Dy/Dx)
         T_d2 = T[2:len(T - 2)]
         d2 = np.array(d2, 'f')
         d2_smooth = smooth(d2, win)
@@ -7820,8 +7824,8 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
                                     float(rec[int_key]))
                 INTblock = []
                 for step in sorted(AVGblock.keys()):
-                    INTblock.append([float(step), 0, 0, old_div(
-                        float(sum(AVGblock[step])), float(len(AVGblock[step]))), 1, 'g'])
+                    INTblock.append([float(step), 0, 0,
+                        float(sum(AVGblock[step]))/float(len(AVGblock[step])), 1, 'g'])
                 pmagplotlib.plot_mag(FIG['demag'], INTblock,
                                      title, 0, units, norm)
         if save == True:
@@ -7868,7 +7872,7 @@ def iplot_hys(fignum, B, M, s):
     diff = m_fin - m_init
     Bmin = 0.
     for k in range(Npts):
-        frac = old_div(float(k), float(Npts - 1))
+        frac = float(k)/float(Npts - 1)
         Mfix.append((M[k] - diff * frac))
         if Bzero == "" and B[k] < 0:
             Bzero = k
@@ -7902,7 +7906,7 @@ def iplot_hys(fignum, B, M, s):
     Mupper, Bupper, Mlower, Blower = [], [], [], []
     deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
     for k in range(kmin - 2, 0, -2):
-        Mupper.append(old_div(Moff[k], Msat))
+        Mupper.append(Moff[k]/Msat)
         Bupper.append(B[k])
     for k in range(kmin + 2, len(B)-1):
         Mlower.append(Moff[k] / Msat)
@@ -7916,8 +7920,8 @@ def iplot_hys(fignum, B, M, s):
         deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
     print('whew')
     for k in range(Npts):
-        MadjN.append(old_div(Moff[k], Msat))
-        Mnorm.append(old_div(M[k], Msat))
+        MadjN.append(Moff[k]/Msat)
+        Mnorm.append(M[k]/Msat)
 # find Mr : average of two spline fits evaluated at B=0 (times Msat)
     Mr = Msat * 0.5 * (Iupper(0.) - Ilower(0.))
     hpars['hysteresis_mr_moment'] = '%8.3e' % (Mr)
@@ -7928,10 +7932,10 @@ def iplot_hys(fignum, B, M, s):
     Maz = Moff[Mazero - 1:Mazero + 1]
     try:
         poly = polyfit(Bz, Mz, 1)  # best fit line through two bounding points
-        Bc = old_div(-poly[1], poly[0])  # x intercept
+        Bc = -poly[1]/poly[0]  # x intercept
         # best fit line through two bounding points
         poly = polyfit(Baz, Maz, 1)
-        Bac = old_div(-poly[1], poly[0])  # x intercept
+        Bac = -poly[1]/poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
     except:
         hpars['hysteresis_bc'] = '0'
@@ -8083,9 +8087,9 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
         for k in range(2, len(Bdm)):
             # differnential
             DdeltaM.append(
-                old_div(abs(deltaM[k] - deltaM[k - 2]), (Bdm[k] - Bdm[k - 2])))
+                abs(deltaM[k] - deltaM[k - 2])/(Bdm[k] - Bdm[k - 2]))
         for k in range(len(deltaM)):
-            if old_div(deltaM[k], deltaM[0]) < 0.5:
+            if deltaM[k]/deltaM[0] < 0.5:
                 Mhalf = k
                 break
         try:
@@ -8093,7 +8097,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
             Mhf = deltaM[Mhalf - 1:Mhalf + 1]
             # best fit line through two bounding points
             poly = polyfit(Bhf, Mhf, 1)
-            Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
+            Bcr = (.5 * deltaM[0] - poly[1])/poly[0]
             hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
             hpars['magic_method_codes'] = "LP-BCR-HDM"
             if HDD['deltaM'] != 0:
@@ -8102,7 +8106,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 ax2.set_xlabel('B (T)')
                 ax2.set_ylabel('Delta M')
                 linex = [0, Bcr, Bcr]
-                liney = [old_div(deltaM[0], 2.), old_div(deltaM[0], 2.), 0]
+                liney = [deltaM[0]/2.0, deltaM[0]/2.0, 0]
                 ax2.plot(linex, liney, 'r')
     #             ax2.set_title(sample)
                 ax3 = fig.add_subplot(2, 2, 3)
@@ -8390,8 +8394,8 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
           str(pole1_paleolat))
     print("The paleolatitude for ref_loc resulting from pole 2 is:" +
           str(pole2_paleolat))
-    rate = old_div(((pole1_paleolat - pole2_paleolat) * 111 *
-                    100000), ((pole1_age - pole2_age) * 1000000))
+    rate = ((pole1_paleolat - pole2_paleolat) * 111 *
+                    100000)/((pole1_age - pole2_age) * 1000000)
     print("The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate))
 
     if random_seed != None:
@@ -8483,9 +8487,9 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         Delta_degrees = pole1_MCpaleolat[n] - pole2_MCpaleolat[n]
         Delta_Myr = pole1_MCages[n] - pole2_MCages[n]
         pole1_pole2_Delta_degrees.append(Delta_degrees)
-        degrees_per_myr = old_div(Delta_degrees, Delta_Myr)
-        cm_per_yr = old_div(((Delta_degrees * 111) * 100000),
-                            (Delta_Myr * 1000000))
+        degrees_per_myr = Delta_degrees/Delta_Myr
+        cm_per_yr = ((Delta_degrees * 111) * 100000)/
+                            (Delta_Myr * 1000000)
         pole1_pole2_degrees_per_myr.append(degrees_per_myr)
         pole1_pole2_cm_per_yr.append(cm_per_yr)
 
