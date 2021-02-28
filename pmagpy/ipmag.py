@@ -241,11 +241,11 @@ def fisher_angular_deviation(dec=None, inc=None, di_block=None, confidence=95):
     else:
         mean = pmag.fisher_mean(di_block)
     if confidence == 50:
-        theta = old_div(67.5, np.sqrt(mean['k']))
+        theta = 67.5/np.sqrt(mean['k'])
     if confidence == 63:
-        theta = old_div(81, np.sqrt(mean['k']))
+        theta = 81.0/np.sqrt(mean['k'])
     if confidence == 95:
-        theta = old_div(140, np.sqrt(mean['k']))
+        theta = 140.0/np.sqrt(mean['k'])
     return theta
 
 
@@ -529,14 +529,14 @@ def unsquish(incs, f):
         incs_unsquished = []
         for n in range(0, length):
             inc_rad = np.deg2rad(incs[n])  # convert to radians
-            inc_new_rad = (old_div(1., f)) * np.tan(inc_rad)
+            inc_new_rad = (1.0/f) * np.tan(inc_rad)
             # convert back to degrees
             inc_new = np.rad2deg(np.arctan(inc_new_rad))
             incs_unsquished.append(inc_new)
         return incs_unsquished
     except:
         inc_rad = np.deg2rad(incs)  # convert to radians
-        inc_new_rad = (old_div(1., f)) * np.tan(inc_rad)
+        inc_new_rad = (1.0/f) * np.tan(inc_rad)
         inc_new = np.rad2deg(np.arctan(inc_new_rad))  # convert back to degrees
         return inc_new
 
