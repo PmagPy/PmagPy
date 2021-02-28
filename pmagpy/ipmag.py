@@ -165,8 +165,7 @@ def dms2dd(degrees, minutes, seconds):
     >>> ipmag.dms2dd(180,4,23)
     180.07305555555556
     """
-    dd = float(degrees) + old_div(float(minutes), 60) + \
-        old_div(float(seconds), (60 * 60))
+    dd = float(degrees) + float(minutes)/60 + float(seconds)/(60 * 60)
     return dd
 
 
@@ -10184,7 +10183,7 @@ def get_matrix(n_pos=6):
 
         Returns matrix for n_pos of 6,9, or 15
     """
-    if n_pos not in [6,9,15]: 
+    if n_pos not in [6,9,15]:
         print ('n_pos ',n_pos,' not available')
         return False
     Matrices = {}
@@ -10250,7 +10249,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
         input specimen file name, default "specimens.txt"
     output_spec_file : str
         output specimen file name, default "specimens.txt"
-    
+
 
     Returns
     ---------
@@ -10262,7 +10261,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
       The baseline should be the AF demagnetized state (3 axis demag is
       preferable) for the following ARM acquisition. The order of the
       measurements is:
-           for 6 positions (AF demag before each step): 
+           for 6 positions (AF demag before each step):
                1) labfield parallel to X
                2) labfield parallel to Y
                3) labfield parallel to Z
@@ -10270,7 +10269,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                5) labfield anti-parallel to Y
                6) labfield anti-parallel to Z
             for 9 positions (AF demag before each step):
-                positions 1,2,3, 6,7,8, 11,12,13 (from Figure D.2 in Essentials, earthref.org/MagIC/books/Tauxe/Essentials, Appendix D) 
+                positions 1,2,3, 6,7,8, 11,12,13 (from Figure D.2 in Essentials, earthref.org/MagIC/books/Tauxe/Essentials, Appendix D)
             for 15  positions (AF demag before each step):
                 positions 1-15 (for 15 positions)
 
@@ -10281,7 +10280,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
     output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
     aniso_spec_columns=['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_ftest_quality','aniso_p',
-                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',	
+                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',
                         'aniso_v1','aniso_v2','aniso_v3','citations','description','method_codes','sample','software_packages','specimen']
 
     # read in data
@@ -10333,7 +10332,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
             M=[]
             aarm_dirs=aarm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
             M_with_base=pmag.dir2cart(aarm_dirs)
-            for i in range(1,len(aarm_df),2):  
+            for i in range(1,len(aarm_df),2):
                 M.append(M_with_base[i]-M_with_base[i-1])  # subtract baseline
             K = np.zeros(3 * n_pos, 'f')
             for i in range(n_pos):
@@ -10355,7 +10354,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
                 new_spec_df['specimen']=spec
                 new_spec_df['citations']='This study'
-                new_spec_df['method_codes']='LP-AN-ARM' 
+                new_spec_df['method_codes']='LP-AN-ARM'
                 new_spec_df['aniso_type']='AARM'
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
@@ -10371,7 +10370,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add AARM data for this specimen
                 else: # no record of this specimen, just append to the end of the existing data frame
                     print ('creating new record for specimen ',spec)
-                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record
             else:
                 print ('something wrong with measurements for: ',spec)
     old_spec_df.fillna("",inplace=True)
@@ -10830,7 +10829,7 @@ def calculate_aniso_parameters(K,n_pos=6):
         aniso_parameters['aniso_ftest23'] = "%f" % hpars["F23"]
         aniso_parameters['description'] = "Critical F: %s" % (hpars['F_crit'])
         aniso_parameters['aniso_s_n_measurements'] = '%i' % (n_pos)
-        if float(hpars["F"]) > float(hpars['F_crit']): # significant anisotropy 
+        if float(hpars["F"]) > float(hpars['F_crit']): # significant anisotropy
             aniso_parameters['aniso_ftest_quality'] = 'g'
         else:
             aniso_parameters['aniso_ftest_quality'] = 'b'
@@ -10854,7 +10853,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         input specimen file name, default "specimens.txt"
     output_spec_file : str
         output specimen file name, default "specimens.txt"
-    
+
 
     Returns
     ---------
@@ -10865,7 +10864,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         Input for is a series of ATRM measurements with optional alteration check
        The order of the measurements is:
 
-           positions: 
+           positions:
                labfield parallel to X
                labfield parallel to Y
                labfield parallel to Z
@@ -10881,7 +10880,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     input_spec_file = pmag.resolve_file_name(input_spec_file, input_dir_path)
     output_spec_file = pmag.resolve_file_name(output_spec_file, dir_path)
     aniso_spec_columns=['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_ftest_quality','aniso_p',
-                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',	
+                        'aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_tilt_correction','aniso_type',
                         'aniso_v1','aniso_v2','aniso_v3','citations','description','method_codes','sample','software_packages','specimen']
 
     # read in data
@@ -10924,7 +10923,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     for spec in sids:
         meas_df=df[df['specimen']==spec]
         atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
-        if len(atrm_df) > 5: 
+        if len(atrm_df) > 5:
             atrm_df=meas_df[meas_df['method_codes'].str.contains('LT-T-I')]
             atrm_df['original_order']=range(len(atrm_df))
             atrm_df['order']=np.nan
@@ -10937,7 +10936,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
             atrm_df.loc[(atrm_df['treat_dc_field_phi']==270) & (atrm_df['treat_dc_field_theta']==0),'order']=4
             atrm_df.loc[(atrm_df['treat_dc_field_phi']==0) & (atrm_df['treat_dc_field_theta']==-90),'order']=5
             atrm_df.loc[(atrm_df['treat_dc_field_phi']==90) & (atrm_df['treat_dc_field_theta']==0),'order']=1
-            atrm_df.sort_values(by=['order'],inplace=True)    
+            atrm_df.sort_values(by=['order'],inplace=True)
             if np.array_equal(atrm_df['order'].values[0:6],np.arange(6)):
                 atrm_dirs=atrm_df[['dir_dec','dir_inc','magn_moment']].astype('float').values
                 M=pmag.dir2cart(atrm_dirs)
@@ -10961,7 +10960,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df=pd.DataFrame.from_dict([aniso_parameters])
                 new_spec_df['specimen']=spec
                 new_spec_df['citations']='This study'
-                new_spec_df['method_codes']='LP-AN-TRM' 
+                new_spec_df['method_codes']='LP-AN-TRM'
                 new_spec_df['aniso_alt']='%5.2f'%(aniso_alt)
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
@@ -10978,7 +10977,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add ATRM data for this specimen
                 else: # no record of this specimen, just append to the end of the existing data frame
                     print ('creating new record for specimen ',spec)
-                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record      
+                    old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record
             else:
                 print ('something wrong with measurements for: ',spec)
     old_spec_df.fillna("",inplace=True)
