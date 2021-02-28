@@ -580,6 +580,34 @@ def squish(incs, f):
         return inc_new
 
 
+def f_factor_calc(inc_observed, inc_field):
+    """
+    Calculated the flattening factor (f) from an observed inclination in
+    comparison to the expected inclination.
+
+    Parameters
+    ----------
+    inc_observed : the observed inclination (e.g. magnetization of sediment)
+    inc_field : inclination of field in which magnetization was acquired
+
+    Returns
+    ---------
+    f_factor : the flatting factor
+
+    Examples
+    --------
+    Calculate the f factor for an inclination that was shallowed from 40 degrees
+    to 25 degrees
+
+    >>> ipmag.f_factor_calc(25,40)
+    0.5557238268604126
+    """
+    inc_observed_rad = np.deg2rad(inc_observed)
+    inc_field_rad = np.deg2rad(inc_field)
+    f_factor = np.tan(inc_observed_rad)/np.tan(inc_field_rad)
+    return f_factor
+
+
 def do_flip(dec=None, inc=None, di_block=None):
     """
     This function returns the antipode (i.e. it flips) of directions.
@@ -2584,7 +2612,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
     baz = (np.arctan2(sa, b) + np.pi) % (2 * np.pi)
 
     glon2 *= 180.0/np.pi
-    glat2 *= 180..0/np.pi
+    glat2 *= 180.0/np.pi
     baz *= 180.0/np.pi
 
     return (glon2, glat2, baz)
@@ -8488,8 +8516,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         Delta_Myr = pole1_MCages[n] - pole2_MCages[n]
         pole1_pole2_Delta_degrees.append(Delta_degrees)
         degrees_per_myr = Delta_degrees/Delta_Myr
-        cm_per_yr = ((Delta_degrees * 111) * 100000)/
-                            (Delta_Myr * 1000000)
+        cm_per_yr = ((Delta_degrees * 111) * 100000)/(Delta_Myr * 1000000)
         pole1_pole2_degrees_per_myr.append(degrees_per_myr)
         pole1_pole2_cm_per_yr.append(cm_per_yr)
 
