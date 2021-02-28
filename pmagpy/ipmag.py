@@ -691,7 +691,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     """
 
     if bedding_error != 0:
-        kappa = (old_div(81., bedding_error))**2
+        kappa = (81.0/bedding_error)**2
     else:
         kappa = 0
 
@@ -739,7 +739,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
             plt.plot(Percs, Taus, 'r--')
         # tilt that gives maximum tau
         Untilt.append(Percs[Taus.index(np.max(Taus))])
-        Cdf.append(old_div(float(n), float(num_sims)))
+        Cdf.append(float(n)/float(num_sims))
     plt.plot(Percs, Taus, 'k')
     plt.xlabel('% Untilting')
     plt.ylabel('tau_1 (red), CDF (green)')
@@ -950,7 +950,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     # equation 18 of McFadden and McElhinny, 1990 calculates the critical
     # value of R (Rwc)
 
-    Rwc = Sr - (old_div(Vcrit, 2))
+    Rwc = Sr - (Vcrit/2)
 
     # following equation 19 of McFadden and McElhinny (1990) the critical
     # angle is calculated. If the observed angle (also calculated below)
@@ -967,9 +967,9 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     k2 = pars_2['k']
     R1 = pars_1['r']
     R2 = pars_2['r']
-    critical_angle = np.degrees(np.arccos(old_div(((Rwc**2) - ((k1 * R1)**2)
-                                                   - ((k2 * R2)**2)),
-                                                  (2 * k1 * R1 * k2 * R2))))
+    critical_angle = np.degrees(np.arccos(((Rwc**2) - ((k1 * R1)**2)
+                                                   - ((k2 * R2)**2))/
+                                                  (2 * k1 * R1 * k2 * R2)))
     D1 = (pars_1['dec'], pars_1['inc'])
     D2 = (pars_2['dec'], pars_2['inc'])
     angle = pmag.angle(D1, D2)
@@ -1393,14 +1393,24 @@ def lat_from_inc(inc, a95=None):
     ----------
     if a95 is provided paleo_lat, paleo_lat_max, paleo_lat_min are returned
     otherwise, it just returns paleo_lat
+
+    Examples
+    --------
+    Calculate the paleolatitude implied by an inclination of 45 degrees:
+    >>> ipmag.lat_from_inc(45)
+    26.56505117707799
+
+    Calculate the paleolatitude and the maximum and minimum paleolatitude
+    implied by an inclination of 20 degrees with an uncertainty on the
+    mean (a95) of 5:
+    >>> ipmag.lat_from_inc(20, a95=5)
+    (10.314104815618196, 13.12426812279171, 7.630740212430057)
     """
-    rad = old_div(np.pi, 180.)
-    paleo_lat = old_div(np.arctan(0.5 * np.tan(inc * rad)), rad)
+    rad = np.pi/180.0
+    paleo_lat = np.arctan(0.5 * np.tan(inc * rad))/rad
     if a95 is not None:
-        paleo_lat_max = old_div(
-            np.arctan(0.5 * np.tan((inc + a95) * rad)), rad)
-        paleo_lat_min = old_div(
-            np.arctan(0.5 * np.tan((inc - a95) * rad)), rad)
+        paleo_lat_max = np.arctan(0.5 * np.tan((inc + a95) * rad))/rad
+        paleo_lat_min = np.arctan(0.5 * np.tan((inc - a95) * rad))/rad
         return paleo_lat, paleo_lat_max, paleo_lat_min
     else:
         return paleo_lat
