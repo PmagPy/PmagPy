@@ -17,7 +17,7 @@ import pmagpy.contribution_builder as cb
 
 ### _2g_bin_magic conversion
 
-def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
+def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
             loc_file="locations.txt", or_con='3', specnum=0, samp_con='2', corr='1',specname=False,
             gmeths="FS-FD:SO-POM", location="unknown", inst="", user="", noave=False, input_dir="",
@@ -33,6 +33,8 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
         output directory, default "."
     mag_file : str
         input file name
+    dec_corr : bool
+        if True, declination correction to true north provided
     meas_file : str
         output measurement file name, default "measurements.txt"
     spec_file : str
@@ -187,7 +189,7 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
                 samp_con = "7"
         if "6" in samp_con:
             print('Naming convention option [6] not currently supported')
-            return False, 'Naming convention option [6] not currently supported'
+            False, 'Naming convention option [6] not currently supported'
     if not mag_file:
         print("mag file is required input")
         return False, "mag file is required input"
@@ -252,11 +254,12 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
             while rec[el].isdigit() == False:
                 comments.append(rec[el])
                 el += 1
-            if rec[el].isdigit(): 
-                deccorr=float(rec[el])
-                el+=1
+            if dec_corr: # ADDED 3/3/21
+                if rec[el].isdigit(): 
+                    deccorr=float(rec[el])
             else:
                 deccorr=0
+            el+=1
             while rec[el] == "":
                 el += 1
             az = float(rec[el])
@@ -522,6 +525,323 @@ def _2g_bin(dir_path=".", mag_file="", meas_file='measurements.txt',
     con.write_table_to_file('locations', custom_name=loc_file)
     #con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
+
+# 2G ascii file conversion
+
+
+def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
+            spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
+            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2',
+            gmeths="FS-FD:SO-POM", location="Not Specified", inst="", user="", noave=False, input_dir="",
+            savelast=False,experiment="Demag"):
+
+    """
+    Convert 2G ascii format file to MagIC file(s)
+
+    Parameters
+    ----------
+    dir_path : str
+        output directory, default "."
+    mag_file : str
+        input file name
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+    or_con : number
+        orientation convention, default '3', see info below
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        (specimen/)sample/site naming convention, default '2', see info below
+    gmeths : str
+        sampling method codes, default "FS-FD:SO-POM", see info below
+    location : str
+        location name, default "unknown"
+    inst : str
+        instrument, default ""
+    user : str
+        user name, default ""
+    noave : bool
+       do not average duplicate measurements, default False (so by default, DO average)
+    savelast : bool
+       take the last measurement if replicates at treatment step, default is False
+    input_dir : str
+        input file directory IF different from dir_path, default ""
+    experiment : str
+        experiment type, see info below;  default is Demag
+    cooling_times_list : list
+        cooling times in [K/minutes] seperated by comma,
+        ordered at the same order as XXX.10,XXX.20 ...XX.70
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
+
+
+    Info
+    ----------
+    Orientation convention:
+        [1] Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip
+            i.e., field_dip is degrees from vertical down - the hade [default]
+        [2] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip
+            i.e., mag_azimuth is strike and field_dip is hade
+        [3] Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+            i.e.,  lab arrow same as field arrow, but field_dip was a hade.
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip
+        [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        [7] all others you will have to either customize your
+            self or e-mail ltauxe@ucsd.edu for help.
+
+   Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+       [8] siteName_sample_specimen: the three are differentiated with '_'
+
+    Sampling method codes:
+         FS-FD field sampling done with a drill
+         FS-H field sampling done with hand samples
+         FS-LOC-GPS  field location done with GPS
+         FS-LOC-MAP  field location done with map
+         SO-POM   a Pomeroy orientation device was used
+         SO-ASC   an ASC orientation device was used
+         SO-MAG   orientation with magnetic compass
+         SO-SUN   orientation with sun compass
+
+    Experiment type:
+        Demag:
+            AF and/or Thermal
+        NOTE: no other experiment types supported yet - please post request on github.org/PmagPy/PmagPy
+    """
+    from functools import reduce
+    # format and fix variables
+
+    if mag_file.split('.')[-1].lower()!='asc':
+        print ('file name must have .asc termination')
+        return False, 'file name must have .asc termination'
+    else:
+        specname=""
+        for part in mag_file.split('.')[0:-1]:
+            specname=specname+'.'+part
+        specname=specname.strip('.')
+        print ('importing ',specname)
+        specnum = int(specnum)
+    specnum = -specnum
+    input_dir_path, dir_path = pmag.fix_directories(input_dir, dir_path)
+
+    if samp_con:
+        samp_con=str(samp_con)
+        Z = 1
+        if "4" in samp_con:
+            if "-" not in samp_con:
+                print("option [4] must be in form 4-Z where Z is an integer")
+                return False, "option [4] must be in form 4-Z where Z is an integer"
+            else:
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
+        if "7" in samp_con:
+            if "-" not in samp_con:
+                print("option [7] must be in form 7-Z where Z is an integer")
+                return False, "option [7] must be in form 7-Z where Z is an integer"
+            else:
+                Z = samp_con.split("-")[1]
+                samp_con = "7"
+        if "6" in samp_con:
+            print('Naming convention option [6] not currently supported')
+            return False, 'Naming convention option [6] not currently supported'
+    if not mag_file:
+        print("mag file is required input")
+        return False, "mag file is required input"
+    output_dir_path = dir_path
+    mag_file_path = pmag.resolve_file_name(mag_file, input_dir_path)
+    version_num=pmag.get_version()
+    try:
+        SampRecs, file_type = pmag.magic_read(samp_file)
+    except:
+        SampRecs = []
+    meas_reqd_columns=['specimen','quality','method_codes',\
+                       'citations','standard',\
+                       'treat_temp','treat_ac_field','treat_dc_field',\
+                      'treat_dc_field_phi','treat_dc_field_theta','meas_temp',\
+                      'dir_dec','dir_inc','magn_moment','software_packages']
+    spec_reqd_columns=['specimen','sample','method_codes','volume',\
+                       'citations',]
+    samp_reqd_columns=['sample','site','method_codes',\
+                       'citations','azimuth','azimuth_dec_correction','dip',\
+                      'bed_dip','bed_dip_direction']
+    site_reqd_columns=['site','location','lat','lon','geologic_classes','geologic_types','lithologies',\
+                      'citations','method_codes']
+    loc_reqd_columns=['location','location_type','geologic_classes','geologic_types','lithologies',\
+                      'citations','method_codes','lat_s','lat_n','lon_w','lon_e','age_low','age_high',\
+                     'age_unit']
+    meta_dict={}
+    try:
+        lines=pmag.open_file(mag_file_path)
+        if not lines:
+            print("you must provide a valid mag_file")
+            return False, "you must provide a valid mag_file"
+        line1=lines[1].split()
+        if 'NAME' in line1[0]: # this is a file with meta data
+            skiprows=1
+            line2=lines[2].split('\t')
+            skiprows=4      
+            for k in range(len(line1)):
+                meta_dict[line1[k]]=line2[k]
+            columns=['#','DEMAG','CD','CI','ISD','ISI','RD','RI','M','J']
+            meas_df = pd.read_csv(mag_file_path, sep='\t',\
+                              skiprows=skiprows,header=None,usecols=range(len(columns)))
+            meas_df.columns=columns
+        else:
+            meas_df=pd.read_csv(mag_file_path,delim_whitespace=True,header=0) # no meta data
+
+    except Exception as ex:
+        print('ex', ex)
+        print("bad asc file")
+        return False, "bad asc file"
+
+    if specnum != 0:
+        sample = specname[:specnum]
+    else:
+        sample = specname
+    methods = gmeths.split(':')
+    # parse out the site name
+    sample=specname
+    if samp_con=='8':
+        sss = pmag.parse_site(specname, samp_con, Z)
+        sample=sss[1]
+        site=sss[2]
+    else: 
+        site = pmag.parse_site(sample, samp_con, Z)
+        if specnum!=0:
+            sample=specname[:specnum]
+    if meta_dict and meta_dict['GM']!='0': # declination correction provided
+        if 'SO-MAG' in methods:
+            del methods[methods.index('SO-MAG')]
+        methods.append('SO-CMD-NORTH')
+        meths = reduce(lambda x, y: x+':'+y, methods)
+        method_codes = meths
+# start by creating the measurements table
+    meas_magic_df=pd.DataFrame(columns=meas_reqd_columns)
+    meas_magic_df['dir_dec']=meas_df['CD'].values
+    meas_magic_df['dir_inc']=meas_df['CI'].values
+    meas_magic_df['magn_moment']=meas_df['J'].astype('float')*1e-3 # convert from emu to Am2
+    meas_magic_df.fillna("",inplace=True)
+    meas_magic_df['treat_dc_field']=0
+    meas_magic_df['treat_dc_field_phi']=0
+    meas_magic_df['treat_dc_field_theta']=0
+    meas_magic_df['treat_ac_field']=0
+    meas_magic_df['meas_temp']=273
+    meas_magic_df['specimen']=specname
+    meas_magic_df['standard']='u'
+#    meas_magic_df['measurement']=range(len(meas_df))
+#    meas_magic_df['sequence']=range(len(meas_df))
+    meas_magic_df['quality']='g'
+    meas_magic_df['citations']='This study'
+    meas_magic_df['DEMAG']=meas_df['DEMAG'].values
+    meas_magic_df['method_codes']=""
+    meas_magic_df['software_packages']=pmag.get_version()
+    meas_magic_df.loc[meas_magic_df['DEMAG'].str.contains('NRM'),'method_codes']='LT-NO' # NRM step
+    meas_magic_df.loc[meas_magic_df['DEMAG'].str.contains('NRM'),'treat_temp']=273
+    if experiment=='Demag':
+        # pick out thermal demag
+        therm_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('C')]
+        meas_magic_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('C')==False]
+        therm_df['method_codes']='LT-T-Z'
+        temps=therm_df['DEMAG'].str.strip('C')
+        therm_df['treat_temp']=temps.astype('float')+273 # convert to Kelvin
+        meas_magic_df=pd.concat([meas_magic_df,therm_df])
+        # pick out AF demag
+        af_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('mT')]
+        meas_magic_df=meas_magic_df[meas_magic_df['DEMAG'].str.contains('mT')==False]
+        af_df['method_codes']='LT-AF-Z'
+        afs=af_df['DEMAG'].str.strip('mT')
+        af_df['treat_ac_field']=afs.astype('float')*1e-3 # convert to tesla
+        meas_magic_df=pd.concat([meas_magic_df,af_df])
+    else:
+        print ('experiment ',experiment,' not supported yet - email ltauxe@ucsd.edu for support')
+    meths=list(meas_magic_df['method_codes'].unique())
+    if 'LT-T-Z' in meths and experiment=='Demag':
+        meths.append('LP-DIR-T')
+    if 'LT-AF-Z' in meths and experiment=='Demag':
+        meths.append('LP-DIR-AF')
+
+
+    exp_methods,methods="",""
+    for meth in meths:
+        exp_methods=exp_methods+"_"+meth
+        methods=methods+':'+meth
+    methods=methods.strip(':')
+    meas_magic_df['experiment']=specname+exp_methods
+    meas_magic_df.drop(columns=['DEMAG'],inplace=True)
+    meas_dicts=meas_magic_df.to_dict('records')
+    dicts=pmag.measurements_methods3(meas_dicts,noave)
+    
+    pmag.magic_write(dir_path+'/'+meas_file,dicts,'measurements')
+# now do specimens table
+    spec_dict={}
+    for col in spec_reqd_columns:
+        spec_dict[col]="" # initialize specimen dictionary
+    spec_dict['specimen']=specname
+    spec_dict['sample']=sample
+    spec_dict['method_codes']=methods
+    spec_dict['citations']='This study'
+    if meta_dict:
+        spec_dict['volume']=float(meta_dict['SIZE'])*1e-6 # convert to m^3
+    pmag.magic_write(dir_path+'/'+spec_file,[spec_dict],'specimens')
+    # sample table
+    samp_dict={}
+    for col in samp_reqd_columns:
+        samp_dict[col]="" # initialize specimen dictionary
+    samp_dict['site']=site
+    samp_dict['sample']=sample
+    samp_dict['method_codes']=methods
+    samp_dict['citations']='This study'
+    if meta_dict:
+        labaz, labdip = pmag.orient(float(meta_dict['CA']), float(meta_dict['CP']), or_con)
+        samp_dict['azimuth']=labaz
+        samp_dict['dip']=labdip
+        samp_dict['bed_dip_direction']=meta_dict['DA']
+        samp_dict['bed_dip']=meta_dict['DP']
+    pmag.magic_write(dir_path+'/'+samp_file,[samp_dict],'samples')
+    # sites table
+    site_dict={}
+    for col in site_reqd_columns:
+        site_dict[col]="" # initialize specimen dictionary
+    site_dict['site']=site
+    site_dict['location']=location
+    site_dict['method_codes']=methods
+    site_dict['citations']='This study'
+    pmag.magic_write(dir_path+'/'+site_file,[site_dict],'sites')
+    # locations table
+    loc_dict={}
+    for col in loc_reqd_columns:
+        loc_dict[col]="" # initialize specimen dictionary
+    loc_dict['location']=location
+    loc_dict['method_codes']=methods
+    loc_dict['citations']='This study'
+    pmag.magic_write(dir_path+'/'+loc_file,[loc_dict],'locations')
+
+
+    
+
+
+
+
+
 
 # AGM magic conversion
 

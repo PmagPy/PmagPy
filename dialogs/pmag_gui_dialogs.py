@@ -3369,4 +3369,4 @@ class method_code_dialog(wx.Dialog):
             self.bed_correction = True
         self.bedding_codes_flags = " ".join(bedding_codes)
         self.EndModal(wx.ID_OK)
-        #self.Close()
+        #self.Close()ls *.html

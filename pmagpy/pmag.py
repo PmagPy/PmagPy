@@ -10034,13 +10034,12 @@ def get_azpl(cdec, cinc, gdec, ginc):
      gets azimuth and pl from specimen dec inc (cdec,cinc) and gdec,ginc (geographic)  coordinates
     """
     TOL = 1e-4
-    rad = old_div(np.pi, 180.)
     Xp = dir2cart([gdec, ginc, 1.])
     X = dir2cart([cdec, cinc, 1.])
     # find plunge first
     az, pl, zdif, ang = 0., -90., 1., 360.
     while zdif > TOL and pl < 180.:
-        znew = X[0] * np.sin(pl * rad) + X[2] * np.cos(pl * rad)
+        znew = X[0] * np.sin(np.radians(pl)) + X[2] * np.cos(np.radians(pl))
         zdif = abs(Xp[2] - znew)
         pl += .01
 
