@@ -36,7 +36,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats = ['generic format','SIO format','CIT format','2g-binary format',
+        formats = ['generic format','SIO format','CIT format','2g-binary format','2g-ascii format',
                    'HUJI format','LDEO format','IODP format','PMD (ascii) format',
                    'TDT format', 'JR6 format', 'Utrecht format', 'BGC format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
@@ -115,6 +115,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_CIT_files_to_MagIC(self, self.WD, "PmagPy CIT file conversion")
         elif file_type == '2g-binary':
             dia = convert_2g_binary_files_to_MagIC(self, self.WD, "PmagPy 2g-binary file conversion")
+        elif file_type == '2g-ascii':
+            dia = convert_2g_ascii_files_to_MagIC(self, self.WD, "PmagPy 2g-ascii file conversion")
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self, self.WD, "PmagPy HUJI file conversion")
         elif file_type == 'LDEO':
@@ -1445,6 +1447,167 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
         #pw.on_helpButton("_2g_bin_magic.py -h")
 
 
+class convert_2g_ascii_files_to_MagIC(convert_files_to_MagIC):
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        TEXT = "Folder containing one or more 2g-ascii format files"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        #self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, btn_text = 'add', method = self.on_add_dir_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.sampling_particulars(pnl)
+
+        #---sizer 2 ----
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
+
+        #---sizer 3 ----
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 4 ----
+        self.bSizer4 = pw.select_specimen_ocn(pnl)
+
+        #---sizer 5 ----
+        TEXT="Location name:"
+        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 6 ---
+        TEXT="Instrument name (optional):"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 7 ----
+        self.bSizer7 = pw.replicate_measurements(pnl)
+
+        #---sizer 8 ----
+        self.bSizer8 = pw.site_lat_lon(pnl)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl) # creates ok, cancel, help buttons and binds them to appropriate methods
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.Add(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    #---button methods ---
+
+    def on_okButton(self, event):
+        os.chdir(self.WD)
+        options_dict = {}
+        WD = self.WD
+        options_dict['dir_path'] = WD
+        directory = self.bSizer0.return_value()
+        options_dict['input_dir'] = directory
+        if not directory:
+            pw.simple_warning('You must select a directory containing 2g ascii files')
+            return False
+        files = os.listdir(directory)
+        files = [str(f) for f in files if str(f).endswith('.asc') or str(f).endswith('.ASC')]
+        if not files:
+            pw.simple_warning('No .dat files found in {}'.format(directory))
+            return False
+        ID = "-ID " + directory
+        if self.bSizer1.return_value():
+            particulars = self.bSizer1.return_value()
+            options_dict['gmeths'] = particulars
+            mcd = '-mcd ' + particulars
+        else:
+            mcd = ''
+        ncn = self.bSizer2.return_value()
+        options_dict['samp_con'] = ncn
+        spc = self.bSizer3.return_value()
+        options_dict['specnum'] = spc or 0
+        if not spc:
+            spc = '-spc 1'
+        else:
+            spc = '-spc ' + spc
+        ocn = self.bSizer4.return_value()
+        options_dict['or_con'] = ocn
+        loc_name = self.bSizer5.return_value()
+        options_dict['location'] = loc_name
+        if loc_name:
+            loc_name = "-loc " + loc_name
+        try: lat,lon = self.bSizer8.return_value().split()
+        except ValueError: lat,lon = '',''
+        options_dict['lat'] = lat
+        options_dict['lon'] = lon
+        instrument = self.bSizer6.return_value()
+        options_dict['inst'] = instrument
+        if instrument:
+            instrument = "-ins " + instrument
+        replicate = self.bSizer7.return_value()
+        if replicate:
+            replicate = '-a'
+            options_dict['noave'] = 0
+        else:
+            replicate = ''
+            options_dict['noave'] = 1
+        for f in files:
+            file_2g_asc = f
+            outfile = file_2g_asc + ".magic"
+            options_dict['meas_file'] = outfile
+            options_dict['mag_file'] = f
+            spec_outfile = file_2g_asc + "_specimens.txt"
+            samp_outfile = file_2g_asc + "_samples.txt"
+            site_outfile = file_2g_asc + "_sites.txt"
+            loc_outfile = file_2g_asc + "_locations.txt"
+            options_dict['spec_file'] = spec_outfile
+            options_dict['samp_file'] = samp_outfile
+            options_dict['site_file'] = site_outfile
+            options_dict['loc_file'] = loc_outfile
+            COMMAND = "_2g_asc_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_asc, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
+            if files.index(f) == (len(files) - 1): # terminate process on last file call
+                # to run as module:
+                if convert._2g_asc(**options_dict):
+                    pw.close_window(self, COMMAND, outfile)
+                else:
+                    pw.simple_warning()
+
+            else:
+                print("Running equivalent of python command: ", COMMAND)
+                if convert._2g_asc(**options_dict):
+                    pass # success, continue on to next file
+                else:
+                    pw.simple_warning()
+
+    def on_helpButton(self, event):
+        # to run as module:
+        pw.on_helpButton(text=convert._2g_bin.__doc__)
+
+        # to run as command line:
+        #pw.on_helpButton("_2g_asc_magic.py -h")
 
 class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
 

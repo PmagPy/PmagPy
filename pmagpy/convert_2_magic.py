@@ -531,7 +531,7 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
 
 def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
             spec_file="specimens.txt", samp_file="samples.txt", site_file="sites.txt",
-            loc_file="locations.txt", or_con='3', specnum=0, samp_con='2',
+            loc_file="locations.txt", lat="",lon="",or_con='3', specnum=0, samp_con='2',
             gmeths="FS-FD:SO-POM", location="Not Specified", inst="", user="", noave=False, input_dir="",
             savelast=False,experiment="Demag"):
 
@@ -564,6 +564,10 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
         sampling method codes, default "FS-FD:SO-POM", see info below
     location : str
         location name, default "unknown"
+    lat : float
+        latitude of site
+    lon : float
+        longitude of site
     inst : str
         instrument, default ""
     user : str
@@ -834,6 +838,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     loc_dict['method_codes']=methods
     loc_dict['citations']='This study'
     pmag.magic_write(dir_path+'/'+loc_file,[loc_dict],'locations')
+    return True, meas_file
 
 
     
