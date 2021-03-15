@@ -199,7 +199,7 @@ class select_ncn(wx.StaticBoxSizer):
         self.sample_naming_conventions = dict(list(zip(ncn_keys, ncn_values)))
         self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440, 25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40, 25))
-        label1 = wx.StaticText(parent, label="sample-site naming convention:", style=wx.TE_CENTER)
+        label1 = wx.StaticText(parent, label="site-sample naming convention:", style=wx.TE_CENTER)
         label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
         gridbSizer = wx.GridBagSizer(5, 10)
         gridbSizer.Add(label1, (0, 0))
