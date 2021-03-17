@@ -465,7 +465,7 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia = pmag_gui_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
-        self.Hide()
+#        self.Hide()
 
     def on_btn_convert_3(self, event):
         """
