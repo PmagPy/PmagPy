@@ -104,13 +104,13 @@ Same idea but with miniconda, (a stripped down version of Anaconda Python):
 - Then you can generate a .spec file and run Pyinstaller, as explained above!
 
 
-## Compiling on Windows
+## Compiling on Windows (Updated 2020-03-17)
 
 Windows standalone binaries are compiled using the pyinstaller utility. Before compiling you must ensure you have all dependencies installed and the Pmag GUI runs correctly on your local machine. Next, you need a spec file.  You can generate the .spec file using the instructions in the last section of this README, or you can use the file that's already been created in PmagPy/pmag_gui.spec.
 
 
 ```bash
-pyinstaller --clean PmagGUI.spec
+pyinstaller --clean pmag_gui.spec
 ```
 
 The executable will be in the dist directory. If you're having trouble because your computer can't find pyinstaller try replacing pyinstaller with a direct path the the pyinstaller.exe usually in the scripts file of wherever your python environment is installed. If dependencies are not being bundled make sure all dependencies are in your $PATH variable or added to the -p flag like so -p="PATH1;PATH2".
@@ -118,7 +118,7 @@ The executable will be in the dist directory. If you're having trouble because y
 Optional: To reduce the application size, you can download [UPX](https://github.com/upx/upx/releases/latest), which is a tool for compressing executables.  After downloading, you will unzip it by selecting "extract all".  Then, you'll need to specify the full path to upx.exe in your call to pyinstaller.  So, if upx.exe is C:\path\to\upx\upx394w\upx.exe, your call will look like this:
 
 ```bash
-pyinstaller --clean PmagGUI.spec --upx-dir C:\path\to\upx\upx394w
+pyinstaller --clean pmag_gui.spec --upx-dir C:\path\to\upx\upx394w
 ```
 
 (Not like this: `--upx-dir C:\path\to\upx\upx394w\upx.exe` or this: `C:\path\to\upx`!)
@@ -129,18 +129,23 @@ Environment (other configurations may work, but I can confirm that this way does
 You need to activate a conda environment to this work -- you cannot just use your base environment.  Here are the steps to create and activate the environment, install pyinstaller, and then make the executable.
 
     # create an environment with the required packages
-    conda create --name pmagpy python=3.7 future wxPython pandas matplotlib
+    conda create --name pmagpy-standalone python=3.8 future pandas matplotlib
     # activate that environment
-    conda activate pmagpy
+    conda activate pmagpy-standalone
+    # install wxpython for Python 3.8 (wxpython cannot be installed with conda)
+    pip install wxpython
     # install pyinstaller
     conda install pyinstaller --channel conda-forge
-    # create executable
+    # install scipy
+    conda install scipy
+    # create executable (pmag_gui.spec is in PmagPy/ and the standalone is created in PmagPy/dist/)
     pyinstaller --clean pmag_gui.spec
 
 
 Windows 10
-Conda python 3.7
+Conda python 3.8
 Regular dependencies, but: no cartopy, no scripttest.
+
 You can also install the `requests` module
 Conda cartopy IS NOT compatible with conda pyinstaller.
 Pyinstaller from conda-forge seems to work well currently, but you can install the latest pyinstaller directly from Github if needed:
