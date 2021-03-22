@@ -10916,7 +10916,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                                     IZorZI = "Z"
 
                     # Infield step
-                    elif float(treatments[1]) == 1 or float(treatments[1]) == 10:
+                    elif float(treatments[1]) == 1 or float(treatments[1]) == 10 or float(treatments[1]) == 11:
                         MeasRec["method_codes"] = "LT-T-I"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
@@ -10932,7 +10932,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                                 else:
                                     IZorZI = "I"
                     # pTRM check step
-                    elif float(treatments[1]) == 2 or float(treatments[1]) == 20:
+                    elif float(treatments[1]) == 2 or float(treatments[1]) == 20 or float(treatments[1]) == 12:
                         MeasRec["method_codes"] = "LT-PTRM-I"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
@@ -10940,7 +10940,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                             methcodes.append("LP-PI-ALT")
 
                     # Tail check step
-                    elif float(treatments[1]) == 3 or float(treatments[1]) == 30:
+                    elif float(treatments[1]) == 3 or float(treatments[1]) == 30 or float(treatments[1]) == 13:
                         MeasRec["method_codes"] = "LT-PTRM-MD"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
@@ -10951,7 +10951,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                             MeasRec["treat_dc_field_theta"] = "0"
 
                     # Additivity check step
-                    elif float(treatments[1]) == 4 or float(treatments[1]) == 40:
+                    elif float(treatments[1]) == 4 or float(treatments[1]) == 40 or float(treatments[1]) == 14:
                         MeasRec["method_codes"] = "LT-PTRM-AC"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
