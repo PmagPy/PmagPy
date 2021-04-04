@@ -9445,9 +9445,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             loc = ""
             if 'sites' in con.tables:
                 if 'location' in con.tables['sites'].df.columns:
-                    locs = con.tables['sites'].df.loc[site, 'location'].dropna()
-                    if any(locs):
-                        loc = locs.iloc[0]
+                    locs = con.tables['sites'].df.loc[site, 'location']
+                    if len(con.tables['sites'].df)>1:
+                        loc=locs[0]
+                    else:
+                        loc=locs
+
             figs = plot_aniso(fignum, site_df, Dir=Dir, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
                               vec=vec, num_bootstraps=num_bootstraps, title=site)

@@ -9776,22 +9776,22 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
         if "ANISOTROPY" in words:  # first line of data for the spec
             MeasRec, AniRec, SpecRec, SampRec, SiteRec = {}, {}, {}, {}, {}
             if specname:
-                specname = ascfile.split('.')[0].lower()+words[0].lower()
+                specimen = ascfile.split('.')[0].lower()+words[0].lower()
             else:
-                specname = words[0].lower()
-            AniRec[spec_name_col] = specname
+                specimen = words[0].lower()
+            AniRec[spec_name_col] = specimen
             if isspec == "1":
                 for spec in specs:
-                    if spec[spec_name_col] == specname:
+                    if spec[spec_name_col] == specimen:
                         AniRec[samp_name_col] = spec[samp_name_col]
                         break
             elif isspec == "0":
                 if specnum != 0:
-                    sampname = specname[:-specnum]
+                    sampname = specimen[:-specnum]
                 else:
-                    sampname = specname
+                    sampname = specimen
                 AniRec[samp_name_col] = sampname
-                SpecRec[spec_name_col] = specname
+                SpecRec[spec_name_col] = specimen
                 SpecRec[samp_name_col] = sampname
                 SampRec[samp_name_col] = sampname
                 SiteRec[samp_name_col] = sampname
@@ -9802,9 +9802,9 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
                     SiteRec[site_name_col] = pmag.parse_site(
                         AniRec[samp_name_col], sample_naming_con, Z)
                 else:
-                    SampRec[site_name_col] = specname
-                    SiteRec[site_name_col] = specname
-                    pieces = specname.split('-')
+                    SampRec[site_name_col] = specimen
+                    SiteRec[site_name_col] = specimen
+                    pieces = specimen.split('-')
                     SiteRec[expedition_col] = pieces[0]
                     location = pieces[1]
                 SiteRec[loc_name_col] = locname
@@ -9815,7 +9815,7 @@ def sufar4(ascfile, meas_output='measurements.txt', spec_infile=None,
             AniRec[citation_col] = "This study"
             AniRec[instrument_col] = instrument
             AniRec[method_col] = "LP-X:AE-H:LP-AN-MS"
-            AniRec[experiment_col] = specname + "_" + "LP-AN-MS"
+            AniRec[experiment_col] = specimen + "_" + "LP-AN-MS"
             AniRec[analyst_col] = user
             for key in list(AniRec.keys()):
                 MeasRec[key] = AniRec[key]
@@ -10192,26 +10192,6 @@ def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_aniso
         specs, file_type = pmag.magic_read(spec_infile)
 
     specnames, sampnames, sitenames = [], [], []
-    # if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
-    #    try:
-    #        SpecRecs,file_type=pmag.magic_read(input_dir_path+'/er_specimens.txt')
-    #        for spec in SpecRecs:
-    #            if spec['er_specimen_name'] not in specnames:
-    #                specnames.append(samp['er_specimen_name'])
-    #    except:
-    #        SpecRecs,specs=[],[]
-    #    try:
-    #        SampRecs,file_type=pmag.magic_read(input_dir_path+'/er_samples.txt')
-    #        for samp in SampRecs:
-    #            if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
-    #    except:
-    #        sampnames,SampRecs=[],[]
-    #    try:
-    #        SiteRecs,file_type=pmag.magic_read(input_dir_path+'/er_sites.txt')
-    #        for site in SiteRecs:
-    #            if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
-    #    except:
-    #        sitenames,SiteRecs=[],[]
 
     try:
         file_input = open(ascfile, 'r')
