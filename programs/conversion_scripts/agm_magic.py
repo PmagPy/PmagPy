@@ -53,19 +53,19 @@ def main():
         kwargs['dir_path'] = sys.argv[ind + 1]
     if '-F' in sys.argv:
         ind = sys.argv.index("-F")
-        kwargs['meas_file'] = sys.argv[ind + 1]
+        kwargs['meas_outfile'] = sys.argv[ind + 1]
     if '-Fsp' in sys.argv:
         ind = sys.argv.index("-Fsp")
-        kwargs['spec_file'] = sys.argv[ind + 1]
+        kwargs['spec_outfile'] = sys.argv[ind + 1]
     if '-Fsa' in sys.argv:
         ind = sys.argv.index("-Fsa")
-        kwargs['samp_file'] = sys.argv[ind + 1]
+        kwargs['samp_outfile'] = sys.argv[ind + 1]
     if '-Fsi' in sys.argv:
         ind = sys.argv.index("-Fsi")
-        kwargs['site_file'] = sys.argv[ind + 1]
+        kwargs['site_outfile'] = sys.argv[ind + 1]
     if '-Flo' in sys.argv:
         ind = sys.argv.index("-Flo")
-        kwargs['loc_file'] = sys.argv[ind + 1]
+        kwargs['loc_outfile'] = sys.argv[ind + 1]
     if '-f' in sys.argv:
         ind = sys.argv.index("-f")
         kwargs['agm_file'] = sys.argv[ind + 1]
