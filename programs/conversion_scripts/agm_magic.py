@@ -4,7 +4,7 @@ NAME
     agm_magic.py
 
 DESCRIPTION
-    converts Micromag agm files to magic format
+    converts MicroMag agm files to magic format
 
 SYNTAX
     agm_magic.py [-h] [command line options]
