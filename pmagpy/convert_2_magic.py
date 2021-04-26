@@ -860,7 +860,7 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         site_outfile="", loc_outfile="", spec_infile="",
         samp_infile="", site_infile="",
         specimen="", specnum=0, samp_con="1", location="unknown",
-        instrument="", institution="", bak=False, syn=False, syntype="",
+        instrument="", bak=False, syn=False, syntype="",
         units="cgs", fmt='new', user='',phi='0',theta='0'):
     """
     Convert AGM format file to MagIC file(s)
@@ -903,8 +903,6 @@ def agm(agm_file, dir_path=".", input_dir_path="",
         location name, default "unknown"
     instrument : str
         instrument name, default ""
-    institution : str
-        institution name, default ""
     bak : bool
        IRM backfield curve, default False
     syn : bool
@@ -1092,7 +1090,6 @@ def agm(agm_file, dir_path=".", input_dir_path="",
                 SpecRec['sample'] = sample
                 SpecRecs.append(SpecRec)
         MeasRec['instrument_codes'] = instrument
-        MeasRec['institution'] = institution
         MeasRec['method_codes'] = meth
         if phi!='0':
             MeasRec["treat_dc_field_phi"] = phi
