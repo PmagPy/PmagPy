@@ -38,6 +38,10 @@ def main():
 
     """
 
+    if '-h' in sys.argv: # check if help is needed
+        print(main.__doc__)
+        sys.exit() # graceful quit
+
     print("start")
 
     os.system("rm *.txt")
