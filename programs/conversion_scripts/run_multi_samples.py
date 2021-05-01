@@ -20,9 +20,9 @@ def main():
                             commandD175C
                             commandD175H
                             commandD175L
-                            Cong14c (sample name)
-                            D175C
-                            D175H
+                            Cong14c (sample name) --> ...
+                            D175C --> ...
+                            D175H --> ...
                             D175L --> 150107_h18 --> data --> F1_115C_Z_150107_h18_map1.bz   (step raw data)
                                      (specimen name)          F1_115C_Z_150107_h18_map1.inf  (step info file)
                                                               F1_115C_Z_150107_h18_map1.fits (step model fit info)
