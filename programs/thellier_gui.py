@@ -1092,12 +1092,12 @@ else:
                 continue
             elif crit == "specimen_scat":
                 if self.acceptance_criteria[crit]['value'] in ['g', 1, '1', True, "True", "t"]:
-                    value = "True"
+                    #value = "True"
                     value = "t"
                     #self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
                 else:
-                    value = ""
                     value = "f"
+                    #value = "False"
                     self.threshold_windows['scat'].SetBackgroundColour(
                         (128, 128, 128))
                     #self.scat_threshold_window.SetBackgroundColour((128, 128, 128))

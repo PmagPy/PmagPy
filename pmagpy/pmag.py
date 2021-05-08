@@ -15,6 +15,7 @@ from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 from pmag_env import set_env
 import pandas as pd
+import SPD.lib.leastsq_jacobian as lib_k
 
 WARNINGS = {'basemap': False, 'cartopy': False}
 
@@ -1281,7 +1282,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
 def int_pars(x, y, vds, **kwargs):
     """
-     calculates York regression and Coe parameters (with Tauxe Fvds)
+     calculates York regression and paleointensity parameters (with Tauxe Fvds)
     """
     # first do linear regression a la York
     # do Data Model 3 way:
@@ -1357,6 +1358,27 @@ def int_pars(x, y, vds, **kwargs):
     pars[b_beta_key] = -sigma / slop
     return pars, 0
 
+def get_curve(araiblock,**kwargs):
+#   curvature stuff
+    pars={}
+    first_Z,first_I=araiblock[0],araiblock[1] 
+    first_Z=np.array(first_Z).transpose()
+    first_I=np.array(first_I).transpose()
+    x_Arai=first_I[3]/first_Z[3][0]
+    y_Arai=first_Z[3]/first_Z[3][0]
+    krv_data=lib_k.AraiCurvature(x=x_Arai,y=y_Arai)
+    pars['int_k']=krv_data[0]
+    pars['int_k_sse']=krv_data[1]
+    # segment
+    if 'start' in kwargs.keys() and 'end' in kwargs.keys():
+        start=kwargs['start']
+        end=kwargs['end']
+        x_Arai_segment = x_Arai[start:end + 1]  # chosen segent in the Arai plot
+        y_Arai_segment = y_Arai[start:end + 1]  # chosen segent in the Arai plot
+        krv_data=lib_k.AraiCurvature(x=x_Arai_segment,y=y_Arai_segment)
+        pars['int_k_prime']=krv_data[0]
+        pars['int_k_prime_sse']=krv_data[1]
+    return pars
 
 def dovds(data):
     """
@@ -2878,6 +2900,7 @@ def circ(dec, dip, alpha,npts=201):
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
      calculate the paleointensity magic parameters  make some definitions
+     
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         meth_key = 'method_codes'
@@ -2974,7 +2997,9 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             if irec[0] == first_Z[k][0]:
                 xi.append(irec[3])
                 yi.append(first_Z[k][3])
-    pars, errcode = int_pars(xi, yi, vds)
+    kwargs['start']=start
+    kwargs['end']=end
+    pars, errcode = int_pars(xi, yi, vds,**kwargs)
     if errcode == 1:
         return pars, errcode
 #    for k in range(start,end+1):
@@ -3421,7 +3446,9 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
             pars[scat_key] = 'f'
         else:
             pars[scat_key] = 't'
-
+    krv_pars=get_curve(araiblock,**kwargs)
+    for key in krv_pars:
+        pars[key]=krv_pars[key]
     return pars, 0
 
 
