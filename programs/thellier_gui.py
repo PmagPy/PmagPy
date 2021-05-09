@@ -3947,9 +3947,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%i" % (
                             self.Data[specimen]['pars'][key])
                     elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] in ["Fail", 'f']:
-                        MagIC_results_data['pmag_specimens'][specimen][key] = "f"
+                        MagIC_results_data['pmag_specimens'][specimen][key] = "False"
                     elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] in ["Pass", 't']:
-                        MagIC_results_data['pmag_specimens'][specimen][key] = "t"
+                        MagIC_results_data['pmag_specimens'][specimen][key] = "True"
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%.2f" % (
                             self.Data[specimen]['pars'][key])
@@ -4464,7 +4464,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     if len(self.test_for_criteria()):
                         new_data['criteria'] = 'IE-SPEC:IE-SAMP'
                     new_data['result_quality'] = 'g'
-                    new_data['result_type'] = 'i'
+                    #new_data['result_type'] = 'i' # no longer required
                     self.samp_data = self.samp_container.df
                     cond1 = self.samp_data['sample'].str.contains(
                         sample_or_site + "$") == True
