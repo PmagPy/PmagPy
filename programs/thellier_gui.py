@@ -929,7 +929,9 @@ DESCRIPTION
 
         #----------------Bottom Outer Sizer----------------------------------
         sizer_bottom_bar = wx.BoxSizer(wx.VERTICAL)
-        sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND | wx.ALIGN_BOTTOM | wx.BOTTOM, v_space),
+        # TRY THIS: DEBUG
+        #sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND | wx.ALIGN_BOTTOM | wx.BOTTOM, v_space),
+        sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND | wx.BOTTOM, v_space),
                                   (sizer_criteria_boxes, 1, wx.EXPAND |
                                    wx.BOTTOM | wx.ALIGN_TOP, v_space),
                                   (sizer_stats_boxes, 1, wx.EXPAND | wx.ALIGN_TOP)])
