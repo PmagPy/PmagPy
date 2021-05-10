@@ -8953,13 +8953,14 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             MeasRec["treat_dc_field_theta"] = '0'
             meas_type = "LT-NO"
             rec = line.split()
-            try:
-                float(rec[0])
-                print("No specimen name for line #%d in the measurement file" %
-                      lines.index(line))
-                continue
-            except ValueError:
-                pass
+            #print (rec) #DEBUG
+            #try:
+            #    float(rec[0])
+            #    print("No specimen name for line #%d in the measurement file" %
+            #          lines.index(line))
+            #    continue
+            #except ValueError:
+            #    pass
             if rec[1] == ".00":
                 rec[1] = "0.00"
             treat = rec[1].split('.')
