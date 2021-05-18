@@ -4768,7 +4768,13 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             unrecognized_cols = container.get_non_magic_cols()
             if unrecognized_cols:
                 print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
-                                                                                    ", ".join(unrecognized_cols)))
+                                                                        ", ".join(unrecognized_cols)))
+            # convert int_scat to True/False
+            if 'int_scat' in df.columns:
+                df.loc[df['int_scat']=='t','int_scat']='True'
+                df.loc[df['int_scat']=='f','int_scat']='False'
+            if 'int_md' in df.columns: 
+                df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
