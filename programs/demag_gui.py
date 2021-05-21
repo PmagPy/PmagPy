@@ -5220,7 +5220,8 @@ class Demag_GUI(wx.Frame):
             cdf = DataFrame(new_crits)
             cdf = cdf.set_index("table_column")
             cdf["table_column"] = cdf.index
-            cdf = cdf.reindex_axis(sorted(cdf.columns), axis=1)
+            #cdf = cdf.reindex_axis(sorted(cdf.columns), axis=1)
+            cdf = cdf.reindex(sorted(cdf.columns), axis=1) # reindex_axis is gone
             if 'criteria' not in self.con.tables:
                 cols = ['criterion', 'criterion_value', 'criterion_operation',
                         'table_column', 'citations', 'description']
@@ -5601,7 +5602,8 @@ class Demag_GUI(wx.Frame):
                 if not vgps == 1:
                     nsdf.drop([col for col in nsdf.columns if type(
                         col) == str and col.startswith('vgp')], axis=1, inplace=True)
-                nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                #nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                nsdf = nsdf.reindex(sorted(nsdf.columns), axis=1)
                 self.con.tables['samples'].df = nsdf
                 self.con.tables['samples'].write_magic_file(dir_path=self.WD)
 
@@ -5796,7 +5798,8 @@ class Demag_GUI(wx.Frame):
                 if not dia.cb_site_mean_VGP.GetValue():
                     nsdf.drop([col for col in nsdf.columns if type(
                         col) == str and col.startswith('vgp')], axis=1, inplace=True)
-                nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                #nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                nsdf = nsdf.reindex(sorted(nsdf.columns), axis=1)
                 self.con.tables['sites'].df = nsdf
                 self.con.tables['sites'].write_magic_file(dir_path=self.WD)
 
@@ -5977,7 +5980,8 @@ class Demag_GUI(wx.Frame):
                 if not dia.cb_location_mean_VGP.GetValue():
                     nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith(
                         'pole') and col != 'pol_comp_name'], axis=1, inplace=True)
-                nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                #nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                nsdf = nsdf.reindex(sorted(nsdf.columns), axis=1)
                 self.con.tables['locations'].df = nsdf
                 self.con.tables['locations'].write_magic_file(dir_path=self.WD)
 
