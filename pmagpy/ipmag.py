@@ -1315,7 +1315,6 @@ def fishqq(lon=None, lat=None, di_block=None):
         all_dirs = di_block
 
     ppars = pmag.doprinc(all_dirs)  # get principal directions
-
     QQ_dict1 = {}
     QQ_dict2 = {}
     QQ = {'unf': 1, 'exp': 2}
@@ -1374,7 +1373,10 @@ def fishqq(lon=None, lat=None, di_block=None):
         Dtit = 'Mode 2 Declinations'
         Itit = 'Mode 2 Inclinations'
         ppars = pmag.doprinc(rDIs)  # get principal directions
-        Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
+        if ppars['dec']>90 and ppars['dec']<270:
+            Drbar = ppars['dec'] - 180.
+        if ppars['inc']<0:
+            Irbar['inc']=-ppars['inc']
         plt.figure(fignum,figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D2, Dtit, subplot=True)  # make plot

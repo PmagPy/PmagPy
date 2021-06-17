@@ -277,7 +277,7 @@ def find_f(data):
     Decs, Incs = data.transpose()[0], data.transpose()[1]
     Tan_Incs = np.tan(Incs * rad)
     for f in np.arange(1., .2, -.01):
-        U = old_div(np.arctan((old_div(1., f)) * Tan_Incs), rad)
+        U = np.arctan((1./f) * Tan_Incs)/ rad
         fdata = np.array([Decs, U]).transpose()
         ppars = doprinc(fdata)
         Fs.append(f)
@@ -294,7 +294,7 @@ def find_f(data):
             del V2s[-1]
             if len(Fs) > 0:
                 for f in np.arange(Fs[-1], .2, -.005):
-                    U = old_div(np.arctan((old_div(1., f)) * Tan_Incs), rad)
+                    U = np.arctan((1./ f) * Tan_Incs)/ rad
                     fdata = np.array([Decs, U]).transpose()
                     ppars = doprinc(fdata)
                     Fs.append(f)
