@@ -395,7 +395,7 @@ def plot_qq_unf(fignum, D, title, subplot=False, degrees=True):
     ds_neg = X-(i-1)/n # bugfix from Qian (6/17/21)
     dpos = ds.max()
     #dneg = ds.min() # this is wrong
-    dneg = ds_neg.min() # bugfix from Qian (6/17/21)
+    dneg = ds_neg.max() # bugfix from Qian (6/17/21)
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16

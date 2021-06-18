@@ -1245,7 +1245,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None):
+def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -1344,6 +1344,8 @@ def fishqq(lon=None, lat=None, di_block=None):
         Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I1, Itit, subplot=True)  # make plot
         plt.tight_layout()
+        if save:
+            plt.savefig('QQ_mode1.'+fmt)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'consistent with Fisherian model'
         else:
@@ -1383,6 +1385,8 @@ def fishqq(lon=None, lat=None, di_block=None):
         Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I2, Itit, subplot=True)  # make plot
         plt.tight_layout()
+        if save:
+            plt.savefig('QQ_mode2.'+fmt)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'consistent with Fisherian model'
