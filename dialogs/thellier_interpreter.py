@@ -124,7 +124,7 @@ class thellier_auto_interpreter():
         thellier_interpreter_all = open(
             self.WD + "/thellier_interpreter/thellier_interpreter_all.txt", 'w')
         thellier_interpreter_all.write("tab\tpmag_specimens\n")
-        String = "er_specimen_name\tmeasurement_step_min\tmeasurement_step_max\tspecimen_lab_field_dc_uT\tspecimen_int_corr_anisotropy\tspecimen_int_corr_nlt\tspecimen_int_corr_cooling_rate\tspecimen_int_uT\t"
+        String = "er_specimen_name\tmeasurement_step_min\tmeasurement_step_max\tspecimen_lab_field_dc_uT\tspecimen_int_corr_anisotropy\tspecimen_int_corr_nlt\tspecimen_int_corr_cooling_rate\tspecimen_int_uT\t" # fixed duplicate measurement_step_min
         # + ["specimen_b"] + ['specimen_cm_x'] + ['specimen_cm_y']:
         for crit in self.specimen_criteria:
             String = String + crit + "\t"
@@ -192,7 +192,7 @@ class thellier_auto_interpreter():
                 self.WD + "/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt", 'w')
 
             self.Fout_STDEV_OPT_specimens.write("tab\tpmag_specimens\n")
-            String = "er_sample_name\ter_specimen_name\tspecimen_int_uT\tmeasurement_step_min\tmeasurement_step_min\tspecimen_lab_field_dc\tAnisotropy_correction_factor\tNLT_correction_factor\tCooling_rate_correction_factor\t"
+            String = "er_sample_name\ter_specimen_name\tspecimen_int_uT\tmeasurement_step_min\tmeasurement_step_max\tspecimen_lab_field_dc\tAnisotropy_correction_factor\tNLT_correction_factor\tCooling_rate_correction_factor\t"
             for crit in self.specimen_criteria:
                 String = String + crit + "\t"
             self.Fout_STDEV_OPT_specimens.write(String[:-1] + "\n")

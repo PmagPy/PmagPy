@@ -392,12 +392,14 @@ def plot_qq_unf(fignum, D, title, subplot=False, degrees=True):
     i = np.arange(0, len(D))
     Y = (i-0.5)/n
     ds = (i/n)-X
+    ds_neg = X-(i-1)/n # bugfix from Qian (6/17/21)
     dpos = ds.max()
-    dneg = ds.min()
+    #dneg = ds.min() # this is wrong
+    dneg = ds_neg.max() # bugfix from Qian (6/17/21)
     plt.plot(Y, X, 'ro')
     v = dneg + dpos  # kuiper's v
     # Mu of fisher et al. equation 5.16
-    Mu = v * (np.sqrt(n) - 0.567 + (old_div(1.623, (np.sqrt(n)))))
+    Mu = v * (np.sqrt(n) - 0.567 + 1.623/np.sqrt(n))
     plt.axis([0, 1., 0., 1.])
     bounds = plt.axis()
     notestr = 'N: ' + '%i' % (n)
@@ -415,6 +417,7 @@ def plot_qq_unf(fignum, D, title, subplot=False, degrees=True):
     plt.title(title)
     plt.xlabel('Uniform Quantile')
     plt.ylabel('Data Quantile')
+    #print (v,dneg,dpos)#DEBUG
     return Mu, 1.207
 
 
@@ -444,21 +447,21 @@ def plot_qq_exp(fignum, I, title, subplot=False):
     n = float(len(X))
     kappa = old_div((n - 1.), xsum)
     for i in range(len(X)):
-        p = old_div((float(i) - 0.5), n)
+        p = (float(i) - 0.5)/n
         Y.append(-np.log(1. - p))
         f = 1. - np.exp(-kappa * X[i])
-        ds = old_div(float(i), n) - f
+        ds = float(i)/n - f
         if dpos < ds:
             dpos = ds
-        ds = f - old_div((float(i) - 1.), n)
+        ds = f - (float(i) - 1.)/n
         if dneg < ds:
             dneg = ds
     if dneg > dpos:
         ds = dneg
     else:
         ds = dpos
-    Me = (ds - (old_div(0.2, n))) * (np.sqrt(n) + 0.26 +
-                                     (old_div(0.5, (np.sqrt(n)))))  # Eq. 5.15 from Fisher et al. (1987)
+    Me = (ds - (0.2/n)) * (np.sqrt(n) + 0.26 +
+                                     (0.5/(np.sqrt(n))))  # Eq. 5.15 from Fisher et al. (1987)
 
     plt.plot(Y, X, 'ro')
     bounds = plt.axis()

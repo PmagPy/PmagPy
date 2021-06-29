@@ -277,7 +277,7 @@ def find_f(data):
     Decs, Incs = data.transpose()[0], data.transpose()[1]
     Tan_Incs = np.tan(Incs * rad)
     for f in np.arange(1., .2, -.01):
-        U = old_div(np.arctan((old_div(1., f)) * Tan_Incs), rad)
+        U = np.arctan((1./f) * Tan_Incs)/ rad
         fdata = np.array([Decs, U]).transpose()
         ppars = doprinc(fdata)
         Fs.append(f)
@@ -294,7 +294,7 @@ def find_f(data):
             del V2s[-1]
             if len(Fs) > 0:
                 for f in np.arange(Fs[-1], .2, -.005):
-                    U = old_div(np.arctan((old_div(1., f)) * Tan_Incs), rad)
+                    U = np.arctan((1./ f) * Tan_Incs)/ rad
                     fdata = np.array([Decs, U]).transpose()
                     ppars = doprinc(fdata)
                     Fs.append(f)
@@ -926,7 +926,7 @@ def orient(mag_azimuth, field_dip, or_con):
         mag_azimuth: float
             orientation of the field orientation arrow with respect to north
         field_dip : float
-            dip (or hade) or field arrow.  
+            dip (or hade) or field arrow.
                 if hade, with respect to vertical down
                 if inclination, with respect to horizontal (positive down)
         or_con : int
@@ -951,7 +951,7 @@ def orient(mag_azimuth, field_dip, or_con):
        Returns:
        ___________
            azimuth and dip of lab arrow
-                
+
     """
     or_con = str(or_con)
     if mag_azimuth == -999:
@@ -1361,7 +1361,7 @@ def int_pars(x, y, vds, **kwargs):
 def get_curve(araiblock,**kwargs):
 #   curvature stuff
     pars={}
-    first_Z,first_I=araiblock[0],araiblock[1] 
+    first_Z,first_I=araiblock[0],araiblock[1]
     first_Z=np.array(first_Z).transpose()
     first_I=np.array(first_I).transpose()
     x_Arai=first_I[3]/first_Z[3][0]
@@ -2900,7 +2900,7 @@ def circ(dec, dip, alpha,npts=201):
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
      calculate the paleointensity magic parameters  make some definitions
-     
+
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         meth_key = 'method_codes'
@@ -9275,7 +9275,7 @@ def measurements_methods3(meas_data, noave,savelast=False):
                 AC = 1  # catch these suckers here!
 # Bypass overwriting method codes if "B" and "D" demag types used by Scott Bogue have been used
             elif rec['method_codes'] == "LP-ARM:LT-NO:LP-DIR-AF" or rec['method_codes'] == "LP-ARM-AFD:LT-AF-Z:LP-DIR-AF":
-                pass 
+                pass
 #
 # otherwise write over existing method codes
 #
@@ -11733,7 +11733,7 @@ def dovandamme(vgp_df):
     ASD = np.sqrt(np.sum(vgp_df.delta**2)/(vgp_df.shape[0]-1))
     A = 1.8 * ASD + 5.
     delta_max = vgp_df.delta.max()
-    if (delta_max<A): 
+    if (delta_max<A):
         return vgp_df, A, ASD
     while delta_max > A:
         delta_max = vgp_df.delta.max()
@@ -11744,9 +11744,11 @@ def dovandamme(vgp_df):
         A = 1.8 * ASD + 5.
 
 
-def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=0, mm97=0, nb=1000):
+def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=False, mm97=False, nb=1000):
     """
-    Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
+    Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k,
+    site latitude and N information can be used to correct for within site
+    scatter (McElhinny & McFadden, 1997)
 
     Parameters
     _________
@@ -12399,8 +12401,8 @@ def mk_ellipse(pars):
            list of Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc
     returns
         PTS:  array
-         array of [Decs,Incs] of points on the ellipse 
-        
+         array of [Decs,Incs] of points on the ellipse
+
     """
     Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
         1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]

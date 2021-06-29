@@ -60,6 +60,7 @@ def main():
             rec=line.split() # split each line on space to get records
         DIs.append([float(rec[0]),float(rec[1])]) # append data to Inc
 # split into two modes
+    
     ppars=pmag.doprinc(DIs) # get principal directions
     for rec in DIs:
         angle=pmag.angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])

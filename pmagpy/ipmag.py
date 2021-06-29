@@ -1245,7 +1245,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None):
+def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -1315,7 +1315,6 @@ def fishqq(lon=None, lat=None, di_block=None):
         all_dirs = di_block
 
     ppars = pmag.doprinc(all_dirs)  # get principal directions
-
     QQ_dict1 = {}
     QQ_dict2 = {}
     QQ = {'unf': 1, 'exp': 2}
@@ -1345,6 +1344,8 @@ def fishqq(lon=None, lat=None, di_block=None):
         Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I1, Itit, subplot=True)  # make plot
         plt.tight_layout()
+        if save:
+            plt.savefig('QQ_mode1.'+fmt)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'consistent with Fisherian model'
         else:
@@ -1374,13 +1375,18 @@ def fishqq(lon=None, lat=None, di_block=None):
         Dtit = 'Mode 2 Declinations'
         Itit = 'Mode 2 Inclinations'
         ppars = pmag.doprinc(rDIs)  # get principal directions
-        Drbar, Irbar = ppars['dec'] - 180., -ppars['inc']
+        if ppars['dec']>90 and ppars['dec']<270:
+            Drbar = ppars['dec'] - 180.
+        if ppars['inc']<0:
+            Irbar['inc']=-ppars['inc']
         plt.figure(fignum,figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
             QQ['unf'], D2, Dtit, subplot=True)  # make plot
         Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
             QQ['exp'], I2, Itit, subplot=True)  # make plot
         plt.tight_layout()
+        if save:
+            plt.savefig('QQ_mode2.'+fmt)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'consistent with Fisherian model'
@@ -4768,7 +4774,13 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             unrecognized_cols = container.get_non_magic_cols()
             if unrecognized_cols:
                 print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
-                                                                                    ", ".join(unrecognized_cols)))
+                                                                        ", ".join(unrecognized_cols)))
+            # convert int_scat to True/False
+            if 'int_scat' in df.columns:
+                df.loc[df['int_scat']=='t','int_scat']='True'
+                df.loc[df['int_scat']=='f','int_scat']='False'
+            if 'int_md' in df.columns: 
+                df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
