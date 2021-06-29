@@ -5319,6 +5319,178 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
 
     return (True, meas_file)
 
+### IRM_magic conversion
+
+def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This study",
+        meas_file="measurements.txt", spec_file="specimens.txt",
+        samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",):
+
+    """
+    Convert a IRM excel data export file to MagIC file(s)
+
+    Parameters
+    ----------
+    mag_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_file : str
+        output measurement file name, default "measurements.txt"
+    spec_file : str
+        output specimen file name, default "specimens.txt"
+    samp_file: str
+        output sample file name, default "samples.txt"
+    site_file : str
+        output site file name, default "sites.txt"
+    loc_file : str
+        output location file name, default "locations.txt"
+
+    """
+    # MagIC tables
+    MagRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = {},{},{},{},{}
+
+    print("start")
+
+    # read and process the IRM "Specimen Info" table
+    f = pd.ExcelFile(mag_file)
+
+    for sheet_name in f.sheet_names:
+        if sheet_name == "Specimen Info":
+            print("Sheet Name:",sheet_name)
+            spec_info = f.parse(sheet_name=sheet_name)
+            spec_info.drop(0,inplace=True)
+            specId=spec_info['Specimen_ID']
+            # Set up columns in the order as they appear in the IRM 'Specimen Info' worksheet
+            SpecRecs['specimen']=spec_info['Specimen_ID']
+            SpecRecs['specimen_alternatives']=spec_info['Key']
+            SpecRecs['sample']=spec_info['Sample']
+            SpecRecs['analysts']=spec_info['Specimen_owner']
+            SpecRecs['description']=spec_info['Specimen_description']
+        #    SpecRecs['']=spec_info['Specimen_azimuth']
+        #    SpecRecs['']=spec_info['Specimen_plunge']
+            SpecRecs['volume']=[element*1e-6 for element in spec_info['Specimen_volume']]
+            SpecRecs['weight']=[element*1e-3 for element in spec_info['Specimen_mass[g]']]
+        # Other columns in the IRM worksheet currently not used
+        #    SpecRecs['']=spec_info['Expedition']
+        #    SpecRecs['']=spec_info['Z_coordinate']
+        #    SpecRecs['']=spec_info['Batch_ID']
+        #    SpecRecs['']=spec_info['synthetic_material']
+        #    SpecRecs['']=spec_info['mineral']
+        #    SpecRecs['']=spec_info['Specimen_length[cm]']
+        #    SpecRecs['']=spec_info['Specimen_area[cm2]']
+        #    SpecRecs['igsn_parent']=spec_info['IGSN_parent']
+            SpecRecs['igsn']=spec_info['IGSN']
+            SpecRecs['method_codes']=['Add method codes here'] * len(spec_info.index)
+            SpecRecs['citations']=[citation] * len(spec_info.index)
+            df=pd.DataFrame(data=SpecRecs)
+            df.to_csv(spec_file,sep='\t',index=False)
+
+        #   create and write out samples table
+            temp_dict={}
+            temp_dict['sample']=spec_info['Sample']
+            temp_dict['site']=spec_info['Site']
+            temp_dict['citations']=SpecRecs['citations']
+            temp_dict['method_codes']=SpecRecs['method_codes']
+            samp_info=pd.DataFrame(data=temp_dict)
+            samp_info.drop_duplicates(inplace=True)
+            samp_info.to_csv(samp_file,sep='\t',index=False)
+
+        #   create and write out sites table
+
+            del temp_dict['sample']
+            temp_dict['location']=spec_info['Locality']
+            temp_dict['geologic_classes']=[''] * len(spec_info.index)
+            temp_dict['geologic_types']=[''] * len(spec_info.index)
+            temp_dict['lithologies']=[''] * len(spec_info.index)
+            temp_dict['lat']=[''] * len(spec_info.index)
+            temp_dict['lon']=[''] * len(spec_info.index)
+            temp_dict['age']=[''] * len(spec_info.index)
+            temp_dict['age_sigma']=[''] * len(spec_info.index)
+            temp_dict['age_unit']=[''] * len(spec_info.index)
+            temp_dict['age_low']=[''] * len(spec_info.index)
+            temp_dict['age_high']=[''] * len(spec_info.index)
+            temp_dict['citations']=SpecRecs['citations']
+            temp_dict['method_codes']=SpecRecs['method_codes']
+            site_info=pd.DataFrame(data=temp_dict)
+            site_info.drop_duplicates(inplace=True)
+            site_info.to_csv(site_file,sep='\t',index=False)
+
+        #   create and write out locations table
+
+            del temp_dict['site']
+            del temp_dict['geologic_types']
+            del temp_dict['lat']
+            del temp_dict['lon']
+            temp_dict['location_type']=[''] * len(spec_info.index)
+            temp_dict['lat_n']=[''] * len(spec_info.index)
+            temp_dict['lat_s']=[''] * len(spec_info.index)
+            temp_dict['lon_w']=[''] * len(spec_info.index)
+            temp_dict['lon_e']=[''] * len(spec_info.index)
+            loc_info=pd.DataFrame(data=temp_dict)
+            loc_info.drop_duplicates(inplace=True)
+            loc_info.to_csv(loc_file,sep='\t',index=False)
+
+        if sheet_name == "measurement_history":
+            print("Sheet Name:", sheet_name)
+
+        if sheet_name == "Magnon_suscep":
+            temp_dict={}
+            print("Sheet Name:", sheet_name)
+            magnon_info = f.parse(sheet_name=sheet_name)
+            magnon_info.drop(0,inplace=True) #remove blank line under headers
+            print("temp_dict=", temp_dict)
+            temp_dict['specimen']= magnon_info['Specimen']
+            temp_dict['quality']=''
+            temp_dict['method_codes']='LP-X'
+            temp_dict['citations']= citation
+            temp_dict['sequence']= range(1,len(magnon_info.index)+1)
+            temp_dict['standard']= 'u'
+            temp_dict['instrument_codes']= magnon_info['Instrument']
+            temp_dict['treat_temp']= magnon_info['T [K]']
+            temp_dict['(f [Hz])']= magnon_info['f [Hz]']
+            temp_dict['treat_ac_field']= magnon_info['Hac [A/m]']
+            print(temp_dict)
+            meas_info=pd.DataFrame(data=temp_dict)
+            meas_info.to_csv(meas_file,sep='\t',index=False)
+        if sheet_name == "high_T susceptibility":
+            temp_dict={}
+            print("Sheet Name:", sheet_name)
+            highT_info = f.parse(sheet_name=sheet_name)
+            highT_info.drop(0,inplace=True) #remove units line under headers
+            highT_info.drop(1,inplace=True) #remove blank line under headers
+            temp_dict['instrument']=[]
+            columns= highT_info.columns
+
+               specs.append(columns[i])
+            print("specs=",specs)
+            for i in range(0,len(columns),3):
+
+            exit()
+            for column in highT_info.columns:
+                print("column=",column)
+
+            exit()
+            print("specimen=",highT_info.iat[0,0])
+            print("specimen=",highT_info.iat[0,1])
+            print("specimen=",highT_info.iat[1,1])
+            for i in range(0,len(highT_info.columns),2):
+               print("specimen=",highT_info.iat[0,i])
+
+            exit()
+
+        if sheet_name == "measurement_history":
+            print("Sheet Name:", sheet_name)
+        if sheet_name == "measurement_history":
+            print("Sheet Name:", sheet_name)
+        if sheet_name == "measurement_history":
+            print("Sheet Name:", sheet_name)
+        if sheet_name == "measurement_history":
+            print("Sheet Name:", sheet_name)
+    print("end")
+    return(True, meas_file)
+
 
 ### JR6_jr6_magic conversion
 
