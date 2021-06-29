@@ -11500,3 +11500,178 @@ def utrecht(mag_file, dir_path=".",  input_dir_path="", meas_file="measurements.
     con.tables['measurements'].write_magic_file(custom_name=meas_file)
 
     return True, meas_file
+
+
+### XPEEM experiments
+
+def xpeem(output_dir_path="", input_dir_path="", spec_name="", spec_id="", spec_type="", citation="", spec_age="", spec_age_1s="", dating_method="", dating_unit="", method="", sitenames=[''], nb_samples=[''], paleoint=[''], paleoint_1s=[''], x_spacing=float(), y_spacing=float(), meas_num=int(), exp_num=int()):
+    """
+    Creates MagIC header file and converts average XPEEM text files into MagIC format for contribution to the MagIC database. The input text files are created from XPEEM average images and must be labelled as follows:
+            identifier for the meteorite + interface + location (2 digit) + "-" + rotation (starting with "r") + energy level (on/off) + polarization (L/R)
+            
+            Example: TeA01-r1offR.txt
+
+    Parameters
+    -----------
+    output_dir_path : str
+        directory to output files to (default : current directory)
+    input_dir_path : str
+        directory to input files (default : current directory)
+    spec_name : str
+        specimen full name
+    spec_id : str
+        specimen short name, identifier
+    spec_type : str
+        specimen type
+    citation : str
+        citation (default : This study)
+    spec_age : str
+        age of the specimen
+    spec_age_1s : str
+        1 sigma uncertainty on the age of the specimen
+    dating_method : str
+        dating method (default : GM-ARAR)
+    dating_unit : str
+        dating unit (default : Ga)
+    method : str
+        experiment method (default : LP-XPEEM-3)
+    sitenames : list of str
+        list of names of sites (corresponds to the K-T interfaces)
+    nb_samples : list of str
+        list of numbers of samples for each site (corresponds to the locations on each K-T interfaces)
+    paleoint : list of str
+        list of paleointensities for each site
+    paleoint_1s : list of str
+        list of 1 sigma uncertainties in paleointensity for each site
+    x_spacing : float
+        set the x spacing of the measurement in meters. Default (LBNL ALS): 9.488e-9 m
+    y_spacing : float
+        set the y spacing of the measurement in meters. Default (LBNL ALS): 9.709e-9 m
+    meas_num: int
+        set the starting number for labeling measurement files. Default: 1
+    exp_num: int
+        set the starting number for labeling measurement files. Default: 1
+
+    Returns
+    -----------
+    type - int : True or False indicating if conversion was successful
+    """
+
+    Header = dict()
+    Header["name"] = spec_name
+    Header["loc"] = spec_id
+    Header["type"] = spec_type
+    Header["citation"] = citation
+    Header["age"] = spec_age
+    Header["age_1s"] = spec_age_1s
+    Header["datingmethod"] = dating_method
+    Header["datingunit"] = dating_unit
+    Header["methodcode"] = method
+    Header["sites"] = sitenames
+    Header["nbsamples"] = list(map(int,nb_samples))
+    Header["paleoint"] = paleoint
+    Header["paleoint_1s"] = paleoint_1s
+    Header["samples"] = [[str(k).zfill(2) for k in np.arange(1,Header["nbsamples"][j]+1)] for j in np.arange(len(Header["nbsamples"]))]
+
+    fp_header = open(output_dir_path+'/'+Header["name"]+'_MagIC_header.txt','w')
+    ## Tab delimited locations ##
+    fp_header.write('tab delimited'+'\t'+'locations'+'\n')
+    fp_header.write('location'+'\t'+'location_type'+'\t'+'geologic_classes'+'\t'+'lithologies'+'\t'+'lat_s'+'\t'+'lat_n'+'\t'+'lon_w'+'\t'+'lon_e'+'\t'+'method_codes'+'\t'+'age'+'\t'+'age_sigma'+'\t'+'age_unit'+'\n')
+    fp_header.write(Header["name"]+'\t'+'Meteorite'+'\t'+'Meteorite'+'\t'+Header["type"]+'\t'+'0'+'\t'+'0'+'\t'+'0'+'\t'+'0'+'\t'+Header["datingmethod"]+'\t'+Header["age"]+'\t'+Header["age_1s"]+'\t'+Header["datingunit"]+'\n')
+    fp_header.write('>>>>>>>>>>'+'\n')
+    
+    ## Tab delimited sites ##
+    fp_header.write('tab delimited'+'\t'+'sites'+'\n')
+    fp_header.write('site'+'\t'+'location'+'\t'+'result_type'+'\t'+'result_quality'+'\t'+'citations'+'\t'+'geologic_classes'+'\t'+'geologic_types'+'\t'+'lithologies'+'\t'+'lat'+'\t'+'lon'+'\t'+'method_codes'+'\t'+'int_abs'+'\t'+'int_abs_sigma'+'\n')
+    for ii in np.arange(len(Header["sites"])):
+        fp_header.write('Interface '+Header["sites"][ii]+'\t'+Header["name"]+'\t'+'i'+'\t'+'g'+'\t'+Header["citation"]+'\t'+'Meteorite'+'\t'+'Meteorite'+'\t'+Header["type"]+'\t'+'0'+'\t'+'0'+'\t'+Header["methodcode"]+'\t'+Header["paleoint"][ii]+'\t'+Header["paleoint_1s"][ii]+'\n')
+    fp_header.write('>>>>>>>>>>'+'\n')
+
+    ## Tab delimited samples ##
+    fp_header.write('tab delimited'+'\t'+'samples'+'\n')
+    fp_header.write('sample'+'\t'+'site'+'\t'+'result_type'+'\t'+'result_quality'+'\t'+'method_codes'+'\t'+'citations'+'\t'+'geologic_classes'+'\t'+'geologic_types'+'\t'+'lithologies'+'\n')
+
+    for ii in np.arange(len(Header["sites"])):
+        for jj in np.arange(len(Header["samples"][ii])):
+            col1 = Header["loc"]+Header["sites"][ii]+Header["samples"][ii][jj]
+            col2 = 'Interface '+Header["sites"][ii]
+            col3 = 'i'
+            col4 = 'g'
+            col5 = Header["methodcode"]
+            col6 = Header["citation"]
+            col7 = 'Meteorite'
+            col8 = 'Meteorite'
+            col9 = Header["type"]
+            fp_header.write(col1+'\t'+col2+'\t'+col3+'\t'+col4+'\t'+col5+'\t'+col6+'\t'+col7+'\t'+col8+'\t'+col9+'\n')
+    fp_header.write('>>>>>>>>>>'+'\n')
+
+    ## Tab delimited specimens ##
+    fp_header.write('tab delimited'+'\t'+'specimens'+'\n')
+    fp_header.write('specimen'+'\t'+'sample'+'\t'+'result_quality'+'\t'+'method_codes'+'\t'+'citations'+'\t'+'geologic_classes'+'\t'+'geologic_types'+'\t'+'lithologies'+'\n')
+
+    for ii in np.arange(len(Header["sites"])):
+        for jj in np.arange(len(Header["samples"][ii])):
+            col1 = Header["loc"]+Header["sites"][ii]+Header["samples"][ii][jj]
+            col2 = Header["loc"]+Header["sites"][ii]+Header["samples"][ii][jj]
+            col3 = 'g'
+            col4 = Header["methodcode"]
+            col5 = Header["citation"]
+            col6 = 'Meteorite'
+            col7 = 'Meteorite'
+            col8 = Header["type"]
+            fp_header.write(col1+'\t'+col2+'\t'+col3+'\t'+col4+'\t'+col5+'\t'+col6+'\t'+col7+'\t'+col8+'\n')
+    fp_header.close()
+
+    text_files_list=os.listdir(input_dir_path)
+    if '.DS_Store' in text_files_list:
+        text_files_list.remove('.DS_Store')
+    if 'measurements' in text_files_list:
+        text_files_list.remove('measurements')
+    if Header["name"]+'_MagIC_header.txt' in text_files_list:
+        text_files_list.remove(Header["name"]+'_MagIC_header.txt')
+    if not os.path.exists(output_dir_path+'/measurements'):
+        os.mkdir(output_dir_path+'/measurements')
+
+    for file in sorted(text_files_list):
+        if file.split('.')[1] == 'txt':
+            experiment_name=file.split('.')[0]
+            print(("file=",file))
+            specimen=file.split('-')[0]
+            mf=open(output_dir_path+'/measurements/measurements'+str(exp_num)+'.txt','w')
+            mf.write('tab\tmeasurements\n')
+            mf.write('* experiment\t'+experiment_name+'\n')
+            mf.write('* specimen\t'+ specimen+'\n')
+            mf.write('* standard\tu\n')
+            mf.write('* quality\tg\n')
+            mf.write('* method_codes\t'+ Header["methodcode"]+'\n')
+            mf.write('* citations\t'+ Header["citation"]+'\n')
+            mf.write('* derived_value\t'+ 'XPEEM,*,10.1088/1742-6596/430/1/012127\n')
+            mf.write('measurement\tderived_value\tmeas_pos_x\tmeas_pos_y\n')
+            xf=open(output_dir_path+'/'+file,'r')
+            line = xf.readline()
+            if ',' in line:
+                split_char=','
+            elif '\t' in line:
+                split_char='\t'
+            elif '  ' in line:
+                split_char='  '
+            else:
+                print('The separator between values is not a comma, tab, or two spaces. Exiting.')
+                exit()
+            y=0
+            while line != "":
+                line=line[:-1]  #remove newline
+                values=line.split(split_char)
+                x=0
+                for value in values:
+                    mline=str(meas_num)+'\t'+value+'\t'+str.format("{0:.7e}",x*x_spacing)+'\t'+str.format("{0:.7e}",y*y_spacing)+'\n'
+                    mf.write(mline)
+                    x+=1
+                    meas_num+=1
+                y+=1
+                line = xf.readline()
+            exp_num+=1
+            xf.close()
+            mf.close()
+
+    return True
