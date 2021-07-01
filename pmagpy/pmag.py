@@ -5656,6 +5656,24 @@ def doflip(dec, inc):
     return dec, inc
 
 
+def doreverse(dec, inc):
+    """
+    calculates the antipode of a direction
+    """
+    inc = -inc
+    dec = (dec + 180.) % 360.
+    return dec, inc
+
+
+def doreverse_list(decs, incs):
+    """
+    calculates the antipode of list of directions
+    """
+    incs_flipped = [-i for i in incs]
+    decs_flipped = [(dec + 180.) % 360. for dec in decs]
+    return decs_flipped, incs_flipped
+
+
 def doincfish(inc):
     """
     Calculates Fisher mean inclination from inclination-only data.
