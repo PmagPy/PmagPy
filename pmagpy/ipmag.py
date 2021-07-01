@@ -4779,7 +4779,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
                 df.loc[df['int_scat']=='f','int_scat']='False'
-            if 'int_md' in df.columns: 
+            if 'int_md' in df.columns:
                 df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
@@ -8310,14 +8310,17 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
-    print("The original inclination was: " + str(Io))
+    print("The original inclination was: " + str(np.round(Io,2)))
     print("")
-    print("The corrected inclination is: " + str(Inc))
+    print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(I[lower]) + ' to ' + str(I[upper]))
-    print("and elongation parameter of: " + str(Elong))
-    print("The flattening factor is: " + str(flat_f))
-
+          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+    print("and elongation parameter of: " + str(np.round(Elong,2)))
+    print("The flattening factor is: " + str(np.round(flat_f,2)))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    print("with bootstrapped confidence bounds of: " +
+           str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
 
