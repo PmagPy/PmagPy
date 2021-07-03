@@ -5485,8 +5485,6 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             print("Sheet Name:", sheet_name)
             magnon_info = f.parse(sheet_name=sheet_name)
             magnon_info.drop(0,inplace=True) #remove blank line under headers
-            temp_dict['sequence']= range(sequence,sequence+len(magnon_info.index))
-            sequence=sequence+len(magnon_info.index)+1
 
             prev_speci="" 
             meas_list=[]
@@ -5499,6 +5497,10 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
                 meas_num+=1
             measdf=pd.DataFrame(data=meas_list,columns=['measurement'])
             magnon_info['measlist']=measdf
+            
+            temp_dict['sequence']= range(sequence,sequence+len(magnon_info.index))
+            sequence=sequence+len(magnon_info.index)+1
+            measdf.drop([0],inplace=True) # remove line to match with the Excel DataFrame
 
             temp_dict['measurement']= magnon_info['Specimen'] + "_" + magnon_info['Instrument'] + "_" + magnon_info['measlist'] 
             temp_dict['experiment']= magnon_info['Specimen'] + "_" + magnon_info['Instrument']
@@ -5515,6 +5517,7 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             temp_dict['description']= "X` [m3/kg]=" + magnon_info["X` [m3/kg]"].astype({"X` [m3/kg]": str}) + ", " +  magnon_info['Comment']
 #            temp_dict['description']= "X` [m3/kg]= " + str(magnon_info["X` [m3/kg]"]) + ", " + magnon_info['Comment']
             temp_dict['treat_step_num']= magnon_info['measlist']
+            temp_dict.drop([0],inplace=True) # remove wierd extra top line NEED TO FIND BETTER FIX 
             meas_info=pd.DataFrame(data=temp_dict)
             file=open(meas_file + "_Magnon.txt","w")
             file.write("tab\tmeasurements\n")
@@ -5566,7 +5569,6 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             file.write("tab\tmeasurements\n")
             file.close()
             meas_info.to_csv(meas_file + '_' + file_sheet_name + '.txt',sep='\t',index=False,mode='a')
-            
             meas_file_list= meas_file_list + meas_file + '_' + file_sheet_name + '.txt ' 
 
             for column_num in range(6,len(columns)-1,6):
@@ -5601,6 +5603,81 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
                 meas_info=pd.DataFrame(data=temp_dict)
                 meas_info.to_csv(meas_file + '_hysteresis.txt',sep='\t',index=False,mode='a',header=False)
            
+        if "VSM backfield measurements" in sheet_name:
+            temp_dict=pd.DataFrame()
+            print("Sheet Name:", sheet_name)
+            info = f.parse(sheet_name=sheet_name)
+            columns=info.columns
+            temperatures=info.iloc[0]
+            decs=info.iloc[1]
+            incs=info.iloc[2]
+            speci_name=columns[1]
+            Bapp_col="specimen"
+            M_col=speci_name
+            treat_temp=temperatures[1]
+            info.drop([0,1,2,3,4],inplace=True) # after getting info in header remove them
+            temp_dict['treat_dc_field']= [element*1e-3 for element in info[Bapp_col]]  
+            temp_dict['magn_mass']= info[M_col]  
+            temp_dict.dropna(inplace=True)
+            temp_dict['treat_temp']= treat_temp  
+            num_rows=len(temp_dict.index)
+            meas_num=[]
+            for i in range(1,num_rows+1):
+                meas_num.append(str(i))
+            temp_dict["meas_num"]=meas_num
+            temp_dict['sequence']= range(sequence,sequence+num_rows)
+            temp_dict['measurement']= speci_name + "_VSM_backfield_" + temp_dict['meas_num'] 
+            temp_dict['experiment']=  speci_name + "VSM_backfield" 
+            temp_dict['specimen']= speci_name
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='LP-BCR-BF'
+#            temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+            temp_dict['citations']= citation
+            sequence=sequence+num_rows+1
+            temp_dict['treat_step_num']=temp_dict['meas_num']
+            temp_dict.drop(columns=['meas_num'], inplace=True)
+            meas_info=pd.DataFrame(data=temp_dict)
+            file_sheet_name=sheet_name.replace(' ','_')
+            file=open(meas_file + '_' + file_sheet_name + '.txt',"w")
+            file.write("tab\tmeasurements\n")
+            file.close()
+            meas_info.to_csv(meas_file + '_' + file_sheet_name + '.txt',sep='\t',index=False,mode='a')
+            meas_file_list= meas_file_list + meas_file + '_' + file_sheet_name + '.txt ' 
+            for column_num in range(3,len(columns)-1,3):
+                temp_dict=pd.DataFrame()
+                speci_name=columns[column_num+1]
+                Bapp_col="specimen"
+                M_col=speci_name
+                treat_temp=temperatures[1]
+                temp_dict['treat_dc_field']= [element*1e-3 for element in info[Bapp_col]]
+                temp_dict['magn_mass']= info[M_col]
+                temp_dict.dropna(inplace=True)
+                temp_dict['treat_temp']= treat_temp
+                num_rows=len(temp_dict.index)
+                meas_num=[]
+                for i in range(1,num_rows+1):
+                    meas_num.append(str(i))
+                temp_dict["meas_num"]=meas_num
+                temp_dict['sequence']= range(sequence,sequence+num_rows)
+                temp_dict['measurement']= speci_name + "_VSM_backfield_" + temp_dict['meas_num']
+                temp_dict['experiment']=  speci_name + "VSM_backfield"
+                temp_dict['specimen']= speci_name
+                temp_dict['quality']='g'
+                temp_dict['standard']= 'u'
+                temp_dict['method_codes']='LP-BCR-BF'
+#                temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+                temp_dict['citations']= citation
+                sequence=sequence+num_rows+1
+                temp_dict['treat_step_num']=temp_dict['meas_num']
+                temp_dict.drop(columns=['meas_num'], inplace=True)
+                meas_info=pd.DataFrame(data=temp_dict)
+                file_sheet_name=sheet_name.replace(' ','_')
+                file=open(meas_file + '_' + file_sheet_name + '.txt',"w")
+                file.write("tab\tmeasurements\n")
+                file.close()
+                meas_info.to_csv(meas_file + '_' + file_sheet_name + '.txt',sep='\t',index=False,mode='a')
+
         if sheet_name == "high_T susceptibility":
             temp_dict=pd.DataFrame()
             print("Sheet Name:", sheet_name)
@@ -5731,11 +5808,12 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             file=open(meas_file + '_' + file_sheet_name + '.txt',"w")
             file.write("tab\tmeasurements\n")
 
-            meas_file_list= meas_file_list + meas_file + file_sheet_name +".txt "  
+            meas_file_list= meas_file_list + meas_file + "_" + file_sheet_name +".txt "  
 
             temp_dict=pd.DataFrame()
             info = f.parse(sheet_name=sheet_name)
             columns=info.columns
+
             speci_name=columns[1]
             T_name="specimen"
             Bapp_name=speci_name
@@ -5767,14 +5845,14 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             temp_dict['treat_step_num']=temp_dict['meas_num']
             temp_dict.drop(columns=['meas_num'], inplace=True)
             meas_info=pd.DataFrame(data=temp_dict)
-            meas_info.to_csv(meas_file + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
+            meas_info.to_csv(meas_file + "_" + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
             for column_num in range(6,len(columns)-1,6):
                 speci_name=columns[column_num+1]
                 T_name="specimen." + str(int(column_num/6))
                 Bapp_name=speci_name
-                M_name='Unnamed: ' + str(int(column_num+3))
-                reg_fit='Unnamed: ' + str(int(column_num+4))
-                timestamp_name='Unnamed: ' + str(int(column_num+5))
+                M_name='Unnamed: ' + str(int(column_num+2))
+                reg_fit='Unnamed: ' + str(int(column_num+3))
+                timestamp_name='Unnamed: ' + str(int(column_num+4))
                 temp_dict['meas_temp']= info[T_name]
                 temp_dict['meas_field_dc']= info[Bapp_name]
                 temp_dict['magn_mass']= info[M_name]
@@ -5799,7 +5877,7 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
                 temp_dict['treat_step_num']=temp_dict['meas_num']
                 temp_dict.drop(columns=['meas_num'], inplace=True)
                 meas_info=pd.DataFrame(data=temp_dict)
-                meas_info.to_csv(meas_file + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
+                meas_info.to_csv(meas_file + "_" + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
 
     #combine specimen and measurement tables
     # do this at the end - may not be needed           dfSpec.fillna('', inplace=True) # replace "NaN"s with blanks 

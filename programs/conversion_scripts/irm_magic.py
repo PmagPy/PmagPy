@@ -4,7 +4,14 @@ NAME
     irm_magic.py
 
 DESCRIPTION
-    Creates MagIC file from an IRM excel file.
+    Creates MagIC file from an IRM excel file. If you have multiple Excel files you will have to run the
+    program for each Excel file and combine them manually using "combine_magic.py"
+
+    The program creates the standard file names for MagIC uploading (locations.txt, sites.txt, sample.txt,
+    specimens.txt, measurements.txt) and creates a measurement file with the Excel worksheet name attached
+    so that individual table conversions can be inspected, if desired. You will have to fill in the meta-data
+    missing in these files before they will pass data verification. Many empty required data columns have
+    been included in the files.
 
 SYNTAX
     irm_magic.py [command line options]
@@ -13,7 +20,8 @@ OPTIONS
     -h: prints the help message and quits
     -ID DIRECTORY: directory for input files, default = current directory
     -WD DIRECTORY: directory for output files, default = current directory
-    -f File: the irm excel data file
+    -f File: the irm excel data file name, required 
+       (the file name flag may be ommited and just the file name used, if no other flags are present)
     -cite CITATION: specify the citation, default = This study
     
 EXAMPLE
@@ -49,6 +57,8 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         kwargs['mag_file'] = sys.argv[ind+1]
+    elif len(sys.argv) == 2:
+        kwargs['mag_file'] = sys.argv[1]
     else:
         print("You must specify the IRM excel data file name with the -f flag.") 
         exit()
