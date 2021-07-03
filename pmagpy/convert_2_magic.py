@@ -5322,7 +5322,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
 ### IRM_magic conversion
 
 def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This study",
-        meas_file="measurements.txt", spec_file="specimens.txt",
+        meas_file="measurements", spec_file="specimens",
         samp_file="samples.txt", site_file="sites.txt", loc_file="locations.txt",):
 
     """
@@ -5348,28 +5348,30 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
         output location file name, default "locations.txt"
 
     """
-    # MagIC tables
-    MagRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = {},{},{},{},{}
-
     print("start")
 
-    # read and process the IRM "Specimen Info" table
     f = pd.ExcelFile(mag_file)
-
+    sequence=1
+    meas=pd.DataFrame()
+    meas_file_list=""
+    speci_file_list=""
     for sheet_name in f.sheet_names:
+        # create specimens table 
+        print("Sheet Name Top=",sheet_name)
         if sheet_name == "Specimen Info":
             print("Sheet Name:",sheet_name)
             spec_info = f.parse(sheet_name=sheet_name)
             spec_info.drop(0,inplace=True)
-            specId=spec_info['Specimen_ID']
+# not needed?            specId=spec_info['Specimen_ID']
             # Set up columns in the order as they appear in the IRM 'Specimen Info' worksheet
+            SpecRecs=pd.DataFrame()
             SpecRecs['specimen']=spec_info['Specimen_ID']
             SpecRecs['specimen_alternatives']=spec_info['Key']
             SpecRecs['sample']=spec_info['Sample']
             SpecRecs['analysts']=spec_info['Specimen_owner']
             SpecRecs['description']=spec_info['Specimen_description']
-        #    SpecRecs['']=spec_info['Specimen_azimuth']
-        #    SpecRecs['']=spec_info['Specimen_plunge']
+            SpecRecs['']=spec_info['Specimen_azimuth'] # need to check orientation parameters from IRM
+            SpecRecs['']=[90-element for element in spec_info['Specimen_plunge']] # need to check orientation parameters from IRM
             SpecRecs['volume']=[element*1e-6 for element in spec_info['Specimen_volume']]
             SpecRecs['weight']=[element*1e-3 for element in spec_info['Specimen_mass[g]']]
         # Other columns in the IRM worksheet currently not used
@@ -5385,7 +5387,11 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             SpecRecs['method_codes']=['Add method codes here'] * len(spec_info.index)
             SpecRecs['citations']=[citation] * len(spec_info.index)
             df=pd.DataFrame(data=SpecRecs)
-            df.to_csv(spec_file,sep='\t',index=False)
+            file=open(spec_file+"_SpecInfo.txt","w")
+            file.write("tab\tspecimens\n")
+            file.close()
+            speci_file_list=speci_file_list + spec_file +"_SpecInfo.txt "
+            df.to_csv(spec_file+"_SpecInfo.txt",sep='\t',index=False,mode='a')
 
         #   create and write out samples table
             temp_dict={}
@@ -5395,7 +5401,10 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             temp_dict['method_codes']=SpecRecs['method_codes']
             samp_info=pd.DataFrame(data=temp_dict)
             samp_info.drop_duplicates(inplace=True)
-            samp_info.to_csv(samp_file,sep='\t',index=False)
+            file=open(samp_file,"w")
+            file.write("tab\tsamples\n")
+            file.close()
+            samp_info.to_csv(samp_file,sep='\t',index=False,mode='a')
 
         #   create and write out sites table
 
@@ -5415,7 +5424,10 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             temp_dict['method_codes']=SpecRecs['method_codes']
             site_info=pd.DataFrame(data=temp_dict)
             site_info.drop_duplicates(inplace=True)
-            site_info.to_csv(site_file,sep='\t',index=False)
+            file=open(site_file,"w")
+            file.write("tab\tsites\n")
+            file.close()
+            site_info.to_csv(site_file,sep='\t',index=False,mode='a')
 
         #   create and write out locations table
 
@@ -5430,64 +5442,371 @@ def irm(mag_file, output_dir_path="./", input_dir_path="./", citation="This stud
             temp_dict['lon_e']=[''] * len(spec_info.index)
             loc_info=pd.DataFrame(data=temp_dict)
             loc_info.drop_duplicates(inplace=True)
-            loc_info.to_csv(loc_file,sep='\t',index=False)
+            file=open(loc_file,"w")
+            file.write("tab\tlocations\n")
+            file.close()
+            loc_info.to_csv(loc_file,sep='\t',index=False,mode='a')
+
+        # Create additional specimens table 
+        if sheet_name == "hysteresis properties":
+            print("Sheet Name:",sheet_name)
+            info = f.parse(sheet_name=sheet_name)
+            info.drop(0,inplace=True)
+            SpecRecs=pd.DataFrame()
+            SpecRecs['specimen']=info['specimen']
+            SpecRecs['sample']=info['specimen']
+            # Set up columns in the order as they appear in the IRM 'hysteresis properties' worksheet
+            SpecRecs['hyst_ms_mass']=info['Ms [Am/kg]']
+            SpecRecs['hyst_mr_mass']=info['Mr [Am/kg]']
+            SpecRecs['hyst_bc']=[element*1e-3 for element in info['Bc [mT]']]
+            SpecRecs['hyst_bcr']=[element*1e-3 for element in info['Bcr [mT]']]
+            SpecRecs['hyst_xhf']=info['Xhf [m3/kg]']
+            SpecRecs['meas_temp']=info['T [K]']
+            SpecRecs['hyst_bc_offset']=info['loop offset [Am/kg]']
+            SpecRecs['instrument_codes']=info['Instrument']
+            SpecRecs['description']=info['loop_comment']
+            SpecRecs['method_codes']=['LP-X'] * len(info.index)
+            SpecRecs['citations']=[citation] * len(info.index)
+            df=pd.DataFrame(data=SpecRecs)
+            file=open(spec_file+"_hyster_prop.txt","w")
+            file.write("tab\tspecimens\n")
+            file.close()
+            speci_file_list=speci_file_list + spec_file +"_hyster_prop.txt "
+            df.to_csv(spec_file+"_hyster_prop.txt",sep='\t',index=False,mode='a')
+
 
         if sheet_name == "measurement_history":
             print("Sheet Name:", sheet_name)
+            # This table could be used to add date/time to the measurements, but not straight forward
+            # Skip for now
 
         if sheet_name == "Magnon_suscep":
-            temp_dict={}
+            temp_dict=pd.DataFrame()
             print("Sheet Name:", sheet_name)
             magnon_info = f.parse(sheet_name=sheet_name)
             magnon_info.drop(0,inplace=True) #remove blank line under headers
-            print("temp_dict=", temp_dict)
+            temp_dict['sequence']= range(sequence,sequence+len(magnon_info.index))
+            sequence=sequence+len(magnon_info.index)+1
+
+            prev_speci="" 
+            meas_list=[]
+            for row in range(len(magnon_info.index)):
+                if magnon_info.iloc[row,0] != prev_speci:
+                    meas_num=1
+                    prev_speci=magnon_info.iloc[row,0]
+                meas_str=str(meas_num)
+                meas_list.append(meas_str)
+                meas_num+=1
+            measdf=pd.DataFrame(data=meas_list,columns=['measurement'])
+            magnon_info['measlist']=measdf
+
+            temp_dict['measurement']= magnon_info['Specimen'] + "_" + magnon_info['Instrument'] + "_" + magnon_info['measlist'] 
+            temp_dict['experiment']= magnon_info['Specimen'] + "_" + magnon_info['Instrument']
             temp_dict['specimen']= magnon_info['Specimen']
-            temp_dict['quality']=''
-            temp_dict['method_codes']='LP-X'
-            temp_dict['citations']= citation
-            temp_dict['sequence']= range(1,len(magnon_info.index)+1)
-            temp_dict['standard']= 'u'
-            temp_dict['instrument_codes']= magnon_info['Instrument']
+            temp_dict['susc_chi_mass']= magnon_info['X [m3/kg]']
             temp_dict['treat_temp']= magnon_info['T [K]']
-            temp_dict['(f [Hz])']= magnon_info['f [Hz]']
-            temp_dict['treat_ac_field']= magnon_info['Hac [A/m]']
-            print(temp_dict)
+            temp_dict['meas_freq']= magnon_info['f [Hz]']
+            temp_dict['meas_field_dc']= [element*1e-3 for element in magnon_info['Hac [A/m]']]
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='LP-X-F'
+            temp_dict['instrument_codes']= magnon_info['Instrument']
+            temp_dict['citations']= citation
+            temp_dict['description']= "X` [m3/kg]=" + magnon_info["X` [m3/kg]"].astype({"X` [m3/kg]": str}) + ", " +  magnon_info['Comment']
+#            temp_dict['description']= "X` [m3/kg]= " + str(magnon_info["X` [m3/kg]"]) + ", " + magnon_info['Comment']
+            temp_dict['treat_step_num']= magnon_info['measlist']
             meas_info=pd.DataFrame(data=temp_dict)
-            meas_info.to_csv(meas_file,sep='\t',index=False)
+            file=open(meas_file + "_Magnon.txt","w")
+            file.write("tab\tmeasurements\n")
+            file.close()
+            meas_info.to_csv(meas_file + "_Magnon.txt",sep='\t',index=False,mode="a")
+            meas_file_list= meas_file_list + meas_file + "_Magnon.txt " 
+
+        # add to measurements table
+
+        if "hysteresis measurements" in sheet_name:
+            temp_dict=pd.DataFrame()
+            print("Sheet Name:", sheet_name)
+            info = f.parse(sheet_name=sheet_name)
+            columns=info.columns
+            temperatures=info.iloc[0]
+            decs=info.iloc[1]
+            incs=info.iloc[2]
+            speci_name=columns[1]
+            Bapp_col_name="specimen"
+            M_BKcor_name='Unnamed: 2'
+            Mf_BKcor_name='Unnamed: 3'
+            treat_temp=temperatures[1]
+            info.drop([0,1,2,3,4],inplace=True) # after getting info in header remove them
+            temp_dict['treat_dc_field']= [element*1e-3 for element in info[Bapp_col_name]]  
+            temp_dict['magn_mass']= info[M_BKcor_name]  
+            temp_dict.dropna(inplace=True)
+            temp_dict['description']="Mf_BKcor_name=" + info[Mf_BKcor_name].astype({Mf_BKcor_name: str})
+            temp_dict['treat_temp']= treat_temp  
+            num_rows=len(temp_dict.index)
+            meas_num=[]
+            for i in range(1,num_rows+1):
+                meas_num.append(str(i))
+            temp_dict["meas_num"]=meas_num
+            temp_dict['sequence']= range(sequence,sequence+num_rows)
+            temp_dict['measurement']= speci_name + "_hysteresis_" + temp_dict['meas_num'] 
+            temp_dict['experiment']=  speci_name + "_hysteresis" 
+            temp_dict['specimen']= speci_name
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='LP-HYS-T'
+#            temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+            temp_dict['citations']= citation
+            sequence=sequence+num_rows+1
+            temp_dict['treat_step_num']=temp_dict['meas_num']
+            temp_dict.drop(columns=['meas_num'], inplace=True)
+            meas_info=pd.DataFrame(data=temp_dict)
+            file_sheet_name=sheet_name.replace(' ','_')
+            file=open(meas_file + '_' + file_sheet_name + '.txt',"w")
+            file.write("tab\tmeasurements\n")
+            file.close()
+            meas_info.to_csv(meas_file + '_' + file_sheet_name + '.txt',sep='\t',index=False,mode='a')
+            
+            meas_file_list= meas_file_list + meas_file + '_' + file_sheet_name + '.txt ' 
+
+            for column_num in range(6,len(columns)-1,6):
+                temp_dict=pd.DataFrame()
+                speci_name=columns[column_num+1]
+                Bapp_col_name="specimen." + str(int(column_num/6))
+                M_BKcor_name='Unnamed: ' + str(int(column_num+3))
+                Mf_BKcor_name='Unnamed: ' + str(int(column_num+4))
+                treat_temp=temperatures[column_num+1]
+                temp_dict['treat_dc_field']= info[Bapp_col_name]  
+                temp_dict['magn_mass']= info[M_BKcor_name]  
+                temp_dict.dropna(inplace=True)
+                temp_dict['description']="Mf_BKcor_name=" + info[Mf_BKcor_name].astype({Mf_BKcor_name: str})
+                temp_dict['treat_temp']= treat_temp  
+                num_rows=len(temp_dict.index)
+                meas_num=[]
+                for i in range(1,num_rows+1):
+                    meas_num.append(str(i))
+                temp_dict["meas_num"]=meas_num
+                temp_dict['sequence']= range(sequence,sequence+num_rows)
+                temp_dict['measurement']= speci_name + "_hysteresis_" + temp_dict['meas_num'] 
+                temp_dict['experiment']=  speci_name + "_hysteresis" 
+                temp_dict['specimen']= speci_name
+                temp_dict['quality']='g'
+                temp_dict['standard']= 'u'
+                temp_dict['method_codes']='LP-HYS-T'
+#                temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+                temp_dict['citations']= citation
+                sequence=sequence+num_rows+1
+                temp_dict['treat_step_num']=temp_dict['meas_num']
+                temp_dict.drop(columns=['meas_num'], inplace=True)
+                meas_info=pd.DataFrame(data=temp_dict)
+                meas_info.to_csv(meas_file + '_hysteresis.txt',sep='\t',index=False,mode='a',header=False)
+           
         if sheet_name == "high_T susceptibility":
-            temp_dict={}
+            temp_dict=pd.DataFrame()
             print("Sheet Name:", sheet_name)
             highT_info = f.parse(sheet_name=sheet_name)
             highT_info.drop(0,inplace=True) #remove units line under headers
             highT_info.drop(1,inplace=True) #remove blank line under headers
-            temp_dict['instrument']=[]
-            columns= highT_info.columns
+            columns=highT_info.columns
+            speci_name=columns[1]
+            T_col_name="Specimen"
+            k_col_name=speci_name
+            temp_dict['treat_temp']= highT_info[T_col_name]  
+            temp_dict['susc_chi_mass']= highT_info[k_col_name]  
+            temp_dict.dropna(inplace=True)
+            num_rows=len(temp_dict.index)
+            meas_num=[]
+            for i in range(1,num_rows+1):
+                meas_num.append(str(i))
+            temp_dict["meas_num"]=meas_num
+            temp_dict['sequence']= range(sequence,sequence+num_rows)
+            temp_dict['measurement']= speci_name + "_high_T_k_" + temp_dict['meas_num'] 
+            temp_dict['experiment']=  speci_name + "_high_T_k" 
+            temp_dict['specimen']= speci_name
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='LP-X-T'
+            temp_dict['instrument_codes']= "IRM Kappabridge" 
+            temp_dict['citations']= citation
+            sequence=sequence+num_rows+1
+            temp_dict['treat_step_num']=temp_dict['meas_num']
+            temp_dict.drop(columns=['meas_num'], inplace=True)
+            meas_info=pd.DataFrame(data=temp_dict)
+            file=open(meas_file + "_high_T.txt","w")
+            file.write("tab\tmeasurements\n")
+            file.close()
+            meas_info.to_csv(meas_file + "_high_T.txt",sep='\t',index=False,mode='a')
+            meas_file_list= meas_file_list + meas_file + '_high_T.txt ' 
 
-               specs.append(columns[i])
-            print("specs=",specs)
-            for i in range(0,len(columns),3):
+            for column_num in range(3,len(columns)-1,3):
+                temp_dict=pd.DataFrame()
+                speci_name=columns[column_num+1]
+                T_col_name="Specimen." + str(int(column_num/3))
+                k_col_name=speci_name
+                
+                temp_dict['treat_temp']= highT_info[T_col_name]  
+                temp_dict['susc_chi_mass']= highT_info[k_col_name]  
+                temp_dict.dropna(inplace=True)
+                num_rows=len(temp_dict.index)
+                meas_num=[]
+                for i in range(1,num_rows+1):
+                    meas_num.append(str(i))
+                temp_dict["meas_num"]=meas_num
+                temp_dict['sequence']= range(sequence,sequence+num_rows)
+                temp_dict['measurement']= speci_name + "_high_T_k_" + temp_dict['meas_num']
+                #  * num_rows + [str(range(sequence,sequence+num_rows))] 
+                temp_dict['experiment']=  speci_name + "_high_T_k" 
+                temp_dict['specimen']= speci_name
+                temp_dict['quality']='g'
+                temp_dict['standard']= 'u'
+                temp_dict['method_codes']='LP-X-T'
+                temp_dict['instrument_codes']= "IRM Kappabridge" 
+                temp_dict['citations']= citation
+                sequence=sequence+num_rows+1
+                temp_dict['treat_step_num']=temp_dict['meas_num']
+                temp_dict.drop(columns=['meas_num'], inplace=True)
 
-            exit()
-            for column in highT_info.columns:
-                print("column=",column)
+                meas_info=pd.DataFrame(data=temp_dict)
+                meas_info.to_csv(meas_file + "_high_T.txt",sep='\t',index=False, mode='a', header=False)
 
-            exit()
-            print("specimen=",highT_info.iat[0,0])
-            print("specimen=",highT_info.iat[0,1])
-            print("specimen=",highT_info.iat[1,1])
-            for i in range(0,len(highT_info.columns),2):
-               print("specimen=",highT_info.iat[0,i])
-
-            exit()
-
-        if sheet_name == "measurement_history":
+        if sheet_name == "remanence measurements":
             print("Sheet Name:", sheet_name)
-        if sheet_name == "measurement_history":
+            temp_dict=pd.DataFrame()
+            info = f.parse(sheet_name=sheet_name)
+            columns=info.columns
+            prev_speci=""
+            meas_num=1
+            meas_list=[]
+            for row in range(len(info.index)):
+                if info.iloc[row,0] != prev_speci:
+                    meas_num=1
+                    prev_speci=info.iloc[row,0]
+                meas_str=str(meas_num)
+                meas_list.append(meas_str)
+                meas_num+=1
+            measdf=pd.DataFrame(data=meas_list,columns=['measurement'])
+            info['measlist']=measdf
+            info.drop([0],inplace=True) # remove blank line
+            measdf.drop([0],inplace=True) # remove line to match with the Excel DataFrame
+            temp_dict['measurement']=info["specimen"] + "_remanence_" + info['measlist']
+            temp_dict['experiment']=  info["specimen"] + "_remanence" 
+            temp_dict['specimen']= info["specimen"]
+            temp_dict['magn_x']= info['Mx [Am2]']  
+            temp_dict['magn_y']= info['My [Am2]']  
+            temp_dict['magn_z']= info['Mz [Am2]']  
+            temp_dict['magn_moment']= info['Mtot [Am2]']  
+            temp_dict['dir_dec']= info['Dec [deg]']  
+            temp_dict['dir_inc']= info['Inc [deg]']  
+            temp_dict['magn_mass']= info['Jarm [Am2/kg]']  
+            temp_dict['treat_ac_field']= [element*1e-3 for element in info['AF [mT]']]
+            temp_dict['treat_temp']=[element+273.15 for element in info['T [C]']]
+            temp_dict['treat_dc_field']= info['Hdc [mT]']  
+            temp_dict['treat_dc_field_phi']= [90-element for element in info['Hdc inc [deg]']] # These need to be checked by the IRM  
+            temp_dict['treat_dc_field_theta']= [90-element for element in info['Hdc inc [deg]']] # These need to be checked by the IRM
+            temp_dict['description']='Description='
+            temp_dict['treat_step_num']=info['measlist']
+            #,+info['Description']
+            #+'date='+info['date']+', time='+info['time']+', series='+info['series']+', position[cm]='+info['position[cm]']+', Drift_ratio='+info['Drift_ratio']+' run#='+info['run#']+', Mode=', info['Mode']+', Type=',+info['Type']
+            temp_dict['treat_temp']= info['Meas_T [K]']
+            num_rows=len(temp_dict.index)
+            temp_dict['sequence']= range(sequence,sequence+num_rows)
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='place method codes here'
+#            temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+            temp_dict['citations']= citation
+            sequence=sequence+num_rows+1
+            meas_info=pd.DataFrame(data=temp_dict)
+            file=open(meas_file + '_remanence.txt',"w")
+            file.write("tab\tmeasurements\n")
+            file.close()
+            meas_info.to_csv(meas_file + '_remanence.txt',sep='\t',index=False,mode='a')
+            meas_file_list= meas_file_list + meas_file + '_remanence.txt ' 
+            
+        if "MPMSdc measurements" in sheet_name:
             print("Sheet Name:", sheet_name)
-        if sheet_name == "measurement_history":
-            print("Sheet Name:", sheet_name)
-        if sheet_name == "measurement_history":
-            print("Sheet Name:", sheet_name)
+
+            # create magic table header
+            file_sheet_name=sheet_name.replace(' ','_')
+            file=open(meas_file + '_' + file_sheet_name + '.txt',"w")
+            file.write("tab\tmeasurements\n")
+
+            meas_file_list= meas_file_list + meas_file + file_sheet_name +".txt "  
+
+            temp_dict=pd.DataFrame()
+            info = f.parse(sheet_name=sheet_name)
+            columns=info.columns
+            speci_name=columns[1]
+            T_name="specimen"
+            Bapp_name=speci_name
+            M_name='Unnamed: 2'
+            reg_fit='Unnamed: 3'
+            timestamp_name='Unnamed: 4'
+            info.drop([0,1,2,3,4],inplace=True) # remove rows before data
+            temp_dict['meas_temp']= info[T_name]  
+            temp_dict['meas_field_dc']= info[Bapp_name]  
+            temp_dict['magn_mass']= info[M_name]
+            temp_dict['description']="reg fit=" + info[reg_fit].astype({reg_fit: str})
+            temp_dict['timestamp']= info[timestamp_name]  
+            num_rows=len(temp_dict.index)
+            meas_num=[]
+            for i in range(1,num_rows+1):
+                meas_num.append(str(i))
+            temp_dict["meas_num"]=meas_num
+            temp_dict['sequence']= range(sequence,sequence+num_rows)
+            temp_dict['measurement']= speci_name + "_MPMSdc" + temp_dict['meas_num'] 
+            temp_dict['experiment']=  speci_name + "_MPMSdc" 
+            temp_dict['specimen']= speci_name
+            temp_dict['quality']='g'
+            temp_dict['standard']= 'u'
+            temp_dict['method_codes']='LP-MRT'
+#            temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+            temp_dict['citations']= citation
+            temp_dict.dropna(inplace=True)
+            sequence=sequence+num_rows+1
+            temp_dict['treat_step_num']=temp_dict['meas_num']
+            temp_dict.drop(columns=['meas_num'], inplace=True)
+            meas_info=pd.DataFrame(data=temp_dict)
+            meas_info.to_csv(meas_file + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
+            for column_num in range(6,len(columns)-1,6):
+                speci_name=columns[column_num+1]
+                T_name="specimen." + str(int(column_num/6))
+                Bapp_name=speci_name
+                M_name='Unnamed: ' + str(int(column_num+3))
+                reg_fit='Unnamed: ' + str(int(column_num+4))
+                timestamp_name='Unnamed: ' + str(int(column_num+5))
+                temp_dict['meas_temp']= info[T_name]
+                temp_dict['meas_field_dc']= info[Bapp_name]
+                temp_dict['magn_mass']= info[M_name]
+                temp_dict['description']="reg fit=" + info[reg_fit].astype({reg_fit: str})
+                temp_dict['timestamp']= info[timestamp_name]
+                num_rows=len(temp_dict.index)
+                meas_num=[]
+                for i in range(1,num_rows+1):
+                    meas_num.append(str(i))
+                temp_dict["meas_num"]=meas_num
+                temp_dict['sequence']= range(sequence,sequence+num_rows)
+                temp_dict['measurement']= speci_name + "_MPMSdc" + temp_dict['meas_num']
+                temp_dict['experiment']=  speci_name + "_MPMSdc"
+                temp_dict['specimen']= speci_name
+                temp_dict['quality']='g'
+                temp_dict['standard']= 'u'
+                temp_dict['method_codes']='LP-MRT'
+#                temp_dict['instrument_codes']= ""  # Could get this from measurement history table
+                temp_dict['citations']= citation
+                temp_dict.dropna(inplace=True)
+                sequence=sequence+num_rows+1
+                temp_dict['treat_step_num']=temp_dict['meas_num']
+                temp_dict.drop(columns=['meas_num'], inplace=True)
+                meas_info=pd.DataFrame(data=temp_dict)
+                meas_info.to_csv(meas_file + file_sheet_name + ".txt",sep='\t',index=False,mode='a')
+
+    #combine specimen and measurement tables
+    # do this at the end - may not be needed           dfSpec.fillna('', inplace=True) # replace "NaN"s with blanks 
+    print("speci_file_list=",speci_file_list)
+    os.system("combine_magic.py -F specimens.txt -f " + speci_file_list)
+    print("meas_file_list=",meas_file_list)
+    os.system("combine_magic.py -F measurements.txt -f " + meas_file_list)
     print("end")
     return(True, meas_file)
 
