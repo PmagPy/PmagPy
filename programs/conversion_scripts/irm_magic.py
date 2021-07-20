@@ -5,13 +5,14 @@ NAME
 
 DESCRIPTION
     Creates MagIC file from an IRM excel file. If you have multiple Excel files you will have to run the
-    program for each Excel file and combine them manually using "combine_magic.py"
+    program for each Excel file and combine each type of file (locations.txt, sites.txt, etc.) manually 
+    using "combine_magic.py"
 
     The program creates the standard file names for MagIC uploading (locations.txt, sites.txt, sample.txt,
-    specimens.txt, measurements.txt) and creates a measurement file with the Excel worksheet name attached
-    so that individual table conversions can be inspected, if desired. You will have to fill in the meta-data
-    missing in these files before they will pass data verification. Many empty required data columns have
-    been included in the files.
+    specimens.txt, measurements.txt) and creates measurements files of each Excel measurement worksheet name 
+    attached so that individual table conversions can be inspected, if desired. You will have to fill in the 
+    meta-data missing in these files before they will pass data verification. Many empty required data columns 
+    have been included in the files for convenience.
 
 SYNTAX
     irm_magic.py [command line options]
@@ -22,10 +23,13 @@ OPTIONS
     -WD DIRECTORY: directory for output files, default = current directory
     -f File: the irm excel data file name, required 
        (the file name flag may be ommited and just the file name used, if no other flags are present)
-    -cite CITATION: specify the citation, default = This study
+    -cite CITATION: specify the citation, default = This study (use "This study" unless you already 
+                    have the DOI for the paper the dataset is associated with.
     
 EXAMPLE
     Command line for the example dataset:
+    irm_magic.py example.xlsx   (example dataset yet to be choosen)
+
 
 """
 
