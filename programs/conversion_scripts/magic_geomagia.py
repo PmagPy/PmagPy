@@ -17,6 +17,9 @@ def main():
     DESCRIPTION
        Takes a MagIC file and outputs data for easier input into Max Brown's GEOMAGIA database
 
+       Requires the habanero python package to be installed. Try "pip install habanero" if you
+       get a "ModuleNotFoundError: No module named 'habanero'" error.
+
     SYNTAX
        magic_geomagia.py [command line options]
 
@@ -25,7 +28,7 @@ def main():
         -f FILE: the MagIC data file name that will be converted to GEOMAGIA files
     
     OUTPUT:
-       print to stdout the GEOMAGIA insert command for the reference and all of the site level data 
+       Print to standard out the GEOMAGIA insert command for the reference and the site level data 
 
     EXAMPLE:
         magic_geomagia.py -f magic_contribution_16578.txt
@@ -35,11 +38,13 @@ def main():
     if '-h' in sys.argv: # check if help is needed
         print(main.__doc__)
         sys.exit() # graceful quit
+
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file_name=sys.argv[ind+1]
     else:
         print("MagIC file name needed. Please add the file name after the -f option.")
+        sys.exit()
 
 
 #   Create all the table files from the magic.txt file so they can be imported by the cb
