@@ -4891,6 +4891,213 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     return new_up, '', None, None
 
 
+def create_private_contribution(username="",password=""):
+    """
+    Create a private contribution on earthref.org/MagIC.
+
+    Parameters
+    ----------
+    username : str
+        personal username for MagIC
+    password : str
+        password for username
+
+    Returns
+    ---------
+    response: API requests.models.Response
+        response.status_code: bool
+            True : successful creation of private workspace
+        response['url'] : str 
+            URL of request
+        response['method']='POST'
+        response['id'] : str 
+            if successful, MagIC ID number created
+        response['errors'] : str
+            if unsuccessful, error message 
+    """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+    response={}
+    response['status_code']=False
+    response['errors']='Failed to contact database'
+    response['status_code']=False
+    response['method']='POST'
+    try:
+        create_response = requests.post(api.format('private'), auth=(username, password))
+        if create_response.status_code==200:
+            response['status_code']=True
+            response['method']='POST'
+            response['url']=create_response.request.url
+            response['id']=create_response.json()['id']
+        else:
+            response['status_code']=False
+            response['method']='POST'
+            response['url']=create_response.request.url
+            response['id']='None'
+            response['errors']=create_response.json()['errors'][0]['message']
+    except:
+        pass
+    return response
+
+
+def delete_private_contribution(contribution_id,username="",password=""):
+    """
+    Delete a private contribution on earthref.org/MagIC.
+
+    Parameters
+    ----------
+    contribution_id: int
+        ID of MagIC contribution to delete
+    username : str
+        personal username for MagIC
+    password : str
+        password for username
+
+    Returns
+    ---------
+    response: API requests.models.Response
+        response.status_code: bool
+            True : successful creation of private workspace
+        response['url'] : str
+            URL of request
+        response['method']='DELETE'
+        response['id'] : str
+            if successful, MagIC ID contribution deleted
+        response['errors'] : str
+            if unsuccessful, error message
+    """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+    response={}
+    response['status_code']=False
+    response['errors']='Failed to contact database'
+    response['method']='DELETE'
+    try:
+        delete_response = requests.delete(api.format('private'), 
+                                          params={'id':contribution_id},
+                                          auth=(username, password))
+        if delete_response.status_code==200:
+            response['status_code']=True
+            response['url']=delete_response.request.url
+            response['id']=contribution_id
+            response['errors']='None'
+        else:
+            response['status_code']=False
+            response['url']=delete_response.request.url
+            response['id']='None'
+            response['errors']=delete_response.json()['errors'][0]['message']
+    except:
+        pass
+    return response
+
+
+def upload_to_private_contribution(contribution_id, upload_file,username="",password=""):
+    """
+    Upload to a private contribution on earthref.org/MagIC.
+
+    Parameters
+    ----------
+    contribution_id: int
+        ID of MagIC contribution to delete
+    upload_file: str
+        file to upload (complete path)
+    username : str
+        personal username for MagIC
+    password : str
+        password for username
+
+    Returns
+    ---------
+    response: API requests.models.Response
+        response.status_code: bool
+            True : successful creation of private workspace
+        response['url'] : str
+            URL of request
+        response['method']='PUT'
+        response['errors'] : str
+            if unsuccessful, error message
+    """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+    response={}
+    response['status_code']=False
+    response['errors']='Failed to contact database'
+    response['method']='PUT'
+    response['upload_file']=upload_file
+    try:
+        with open(upload_file, 'rb') as f:
+            upload_response = requests.put(api.format('private'),
+                                          params={'id':contribution_id},
+                                          auth=(username, password),
+                                          headers={'Content-Type': 'text/plain'},
+                                          data=f)
+        if upload_response.status_code==200:
+            response['status_code']=True
+            response['url']=upload_response.request.url
+            response['errors']='None'
+        else:
+            response['status_code']=False
+            response['url']=upload_response.request.url
+            response['errors']=upload_response.json()['errors'][0]['message']
+    except:
+        print ('trouble uploading:')
+        print (upload_response.json()['errors'])
+    return response
+
+
+def validate_private_contribution(contribution_id,username="",password=""):
+    """
+    validate private contribution in MagIC
+
+    Parameters
+    ----------
+    contribution_id: int
+        ID of MagIC contribution to delete
+    username : str
+        personal username for MagIC
+    password : str
+        password for username
+
+    Returns
+    ---------
+    response: API requests.models.Response
+        response.status_code: bool
+            True : successful creation of private workspace
+        response['url'] : str
+            URL of request
+        response['results'] : dictionary of validation results
+        response['method']='POST'
+        response['errors'] : str
+            if unsuccessful, error message
+    """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+    import json
+    response={}
+    response['status_code']=False
+    response['errors']='Failed to contact database'
+    response['method']='POST'
+    response['contribution_id']=contribution_id
+    try:
+        create_response = requests.post(api.format('private/validate'),
+                                          params={'id':contribution_id},
+                                          auth=(username, password))
+        if create_response.status_code==200:
+            response['status_code']=True
+            response['url']=create_response.request.url
+            response['errors']='None'
+            errors_dict=json.loads(create_response.text)
+            response['validation_results']=errors_dict['validation']['errors']
+            print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
+        elif create_response.status_code==204:
+            response['status_code']=False
+            response['url']=create_response.request.url
+            response['errors']=create_response.json()['errors'][0]['message']
+            response['validation_results']='None'
+            print('A private contribution with ID', contribution_id, 
+                  ' could not be found in your private workspace for validation\n')
+    except:
+        print ('trouble validating:')
+    return response
+
+
+
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites=False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM', 'DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
     Writes magic_instruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages.

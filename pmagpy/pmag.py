@@ -2121,13 +2121,16 @@ def magic_write_old(ofile, Recs, file_type):
     pmag_out.close()
 
 
-def magic_write(ofile, Recs, file_type):
+def magic_write(ofile, Recs, file_type, dataframe=False):
     """
     Parameters
     _________
     ofile : path to output file
     Recs : list of dictionaries in MagIC format
     file_type : MagIC table type (e.g., specimens)
+    dataframe : boolean
+        if True, Recs is a pandas dataframe which must be converted
+           to a list of dictionaries
 
     Return :
     [True,False] : True if successful
@@ -2140,6 +2143,9 @@ def magic_write(ofile, Recs, file_type):
     if len(Recs) < 1:
         print('No records to write to file {}'.format(ofile))
         return False, ""
+    if dataframe: # convert to traditional list of dictionaries
+        Recs.fillna("") 
+        Recs=Recs.to_dict('records')
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out = open(ofile, 'w+', errors="backslashreplace")
