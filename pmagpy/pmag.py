@@ -2083,7 +2083,7 @@ def magic_write_old(ofile, Recs, file_type):
     Parameters
     _________
     ofile : path to output file
-    Recs : list of dictionaries in MagIC format
+    Recs : list of dictionaries in MagIC format, or Pandas Dataframe
     file_type : MagIC table type (e.g., specimens)
 
     Effects :
