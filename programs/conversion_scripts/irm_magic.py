@@ -21,14 +21,17 @@ OPTIONS
     -h: prints the help message and quits
     -ID DIRECTORY: directory for input files, default = current directory
     -WD DIRECTORY: directory for output files, default = current directory
-    -f File: the irm excel data file name, required 
+    -f FILE: the IRM Excel data file name, required 
        (the file name flag may be ommited and just the file name used, if no other flags are present)
     -cite CITATION: specify the citation, default = This study (use "This study" unless you already 
                     have the DOI for the paper the dataset is associated with.
-    
+    -M flag: the MPMSdc file type (default:0) 
+             use 0 for IRM file type as of July 7th, 2021. Data has header with the specimen name on 4 columns
+             use 1 for earlier type where the first two header columns are "specimen" and the specimen name
+             example IRM data file Sprain is of this type
 EXAMPLE
     Command line for the example dataset:
-    irm_magic.py example.xlsx   (example dataset yet to be choosen)
+    irm_magic.py example.xlsx -   (example dataset yet to be choosen)
 
 
 """
@@ -71,6 +74,11 @@ def main():
         kwargs['citation'] = sys.argv[ind+1]
     else:
         kwargs['citation'] = 'This study'
+    if '-M' in sys.argv:
+        ind=sys.argv.index('-M')
+        kwargs['MPMSdc_type'] = sys.argv[ind+1]
+    else:
+        kwargs['MPMSdc_type'] = '0'
         
     convert.irm(**kwargs)
 
