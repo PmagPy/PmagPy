@@ -4663,10 +4663,13 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
 
 
 def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None,
-                 input_dir_path=""):
+                 input_dir_path="",keep_workspace_upload=False,username="",password=""):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
+    If username/password set, then data will be uploaded to private workspace, otherwise
+    validation will be done on this computer.
+
     Parameters
     ----------
     concat : boolean where True means do concatenate to upload.txt file in dir_path,
@@ -4680,13 +4683,21 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         in directory (default None)
     input_dir_path : str, default ""
         path for intput files if different from output dir_path (default is same)
+    keep_workspace_upload : bool
+        when True, contribution created in MagIC private workspace is kept
+        for this to work you must supply your own username/password
+    username : str 
+        MagIC database username
+    password : str
+        MagIC database password
 
     Returns
     ----------
-    tuple of either: (False, error_message, errors, all_failing_items)
+    tuple of either: (False, error_message, validation dictionary val_response['validation_results'])
     if there was a problem creating/validating the upload file
-    or: (filename, '', None, None) if the file creation was fully successful.
+    or: (filename, '', None) if the file creation was fully successful.
     """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
@@ -4694,13 +4705,14 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
               "criteria", "contribution", "images"]
     fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
-    error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
-    error_full_fnames = [os.path.join(
+    if username=="":
+        error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
+        error_full_fnames = [os.path.join(
         dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
-    print('-I- Removing old error files from {}: {}'.format(dir_path,
+        print('-I- Removing old error files from {}: {}'.format(dir_path,
                                                             ", ".join(error_fnames)))
-    for error in error_full_fnames:
-        os.remove(error)
+    #for error in error_full_fnames:
+    #    os.remove(error)
     if isinstance(contribution, cb.Contribution):
         # if contribution object provided, use it
         con = contribution
@@ -4713,20 +4725,20 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         # if no contribution is provided and no contribution could be created,
         # you are out of luck
         print("-W- No 3.0 files found in your directory: {}, upload file not created".format(input_dir_path))
-        return False, "no 3.0 files found, upload file not created", None, None
+        return False, "no 3.0 files found, upload file not created", None
 
     # if the contribution has no tables, you can't make an upload file
     if not con.tables.keys():
         print("-W- No tables found in your contribution in directory {}, file not created".format(input_dir_path))
-        return False, "-W- No tables found in your contribution, file not created", None, None
+        return False, "-W- No tables found in your contribution, file not created", None
 
-    con.propagate_cols(['core_depth', 'composite_depth'],
-                       'sites', 'samples', down=False)
+    #con.propagate_cols(['core_depth', 'composite_depth'], # WHY IS THIS HERE?
+    #                   'sites', 'samples', down=False)
 
     # take out any extra added columns
     # con.remove_non_magic_cols()
 
-    # begin the upload process
+    # begin the upload file preparation 
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
@@ -4741,11 +4753,11 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
-                                  'age_low', 'age_sigma', 'specimen_core_depth'],
+                                  'age_low', 'age_sigma', 'specimen_core_depth','result_type'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
-                                'age_sigma', 'core_depth', 'composite_depth'],
+                                'age_sigma', 'core_depth', 'composite_depth','result_type'],
                     'sites': ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
-                              'orientation_quality', 'sample_alternatives', 'timestamp'],
+                              'orientation_quality', 'sample_alternatives', 'timestamp','result_type'],
                     'ages': ['level']}
 
     failing = []
@@ -4798,7 +4810,13 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             # get list of location names
             if file_type == 'locations':
                 locations = sorted(df['location'].unique())
-            # LJ: need to deal with this
+            elif file_type == 'contribution': # need to wipe out id and version
+                if 'id' in df.columns:
+                    df['id']=""
+                if 'version' in df.columns:
+                    df['version']=""
+                if 'lab_names' not in df.columns:
+                    df['lab_names']="Not Specified" # THIS MUST BE REPLACED WHEN MAKING PUBLIC 
             # use only highest priority orientation -- not sure how this works
             elif file_type == 'samples':
                 # orient,az_type=pmag.get_orient(Data,rec['sample'])
@@ -4815,17 +4833,19 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                 if 'specimens' in con.tables:
                     spec_df = con.tables['specimens'].df
                     df = df[df['specimen'].isin(spec_df.index.unique())]
-    # run validations
-            res = val_up3.validate_table(
-                con, file_type, output_dir=dir_path)  # , verbose=True)
-            if res:
-                dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
-                if dtype not in all_failing_items:
-                    all_failing_items[dtype] = {}
-                all_failing_items[dtype]["rows"] = failing_items
-                all_failing_items[dtype]["missing_columns"] = missing_cols
-                all_failing_items[dtype]["missing_groups"] = missing_groups
-                failing.append(dtype)
+    # run validations locally not through database
+            if username=="": 
+               res = val_up3.validate_table(
+                   con, file_type, output_dir=dir_path, verbose=True)
+               print(res)#DEBUG
+               if res:
+                   dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
+                   if dtype not in all_failing_items:
+                       all_failing_items[dtype] = {}
+                   all_failing_items[dtype]["rows"] = failing_items
+                   all_failing_items[dtype]["missing_columns"] = missing_cols
+                   all_failing_items[dtype]["missing_groups"] = missing_groups
+                   failing.append(dtype)
     # write out the data
             if len(df):
                 container.write_magic_file(up, append=True, multi_type=True)
@@ -4882,12 +4902,47 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         return False, "Could not create an upload file", None, None
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
-    if failing:
-        print("-W- These tables have errors: {}".format(", ".join(failing)))
-        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
-        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up), failing, all_failing_items
+    # create private workspace
+    if username== "":
+        print (failing)#DEBUG
+        if failing:
+            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
+            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up),val_response['validation_results']
+
+        print (' You can upload ',new_up,' to a private workspace. ') 
+        return new_up, '', None, None
     else:
-        print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
+        create_response=create_private_contribution(username=username,password=password)
+        if create_response['status_code']: 
+            contribution_id=create_response['id']
+            print ('Created Private Workspace on MagIC ',contribution_id)
+    # upload to new workspace
+            print ('Uploading ',new_up,' to Private Workspace on MagIC ',contribution_id)
+            upload_response=upload_to_private_contribution(contribution_id,new_up, username=username,password=password)
+    # validate in magic workspace
+            if upload_response['status_code']: 
+                print ('Validating ',new_up,' in Private Workspace on MagIC id: ',contribution_id)
+                val_response=validate_private_contribution(contribution_id,username=username,password=password,verbose=False)
+                if len(val_response['validation_results'])>0:
+                    failing=True
+            else:
+                print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
+            if keep_workspace_upload:
+                print ('Keeping Private Workspace ',contribution_id)
+            else:
+                print ('Deleting Private Workspace ',contribution_id)
+                delete_response=delete_private_contribution(contribution_id,username=username,password=password)
+                print (delete_response)
+     
+        if failing:
+            for entry in val_response['validation_results']:
+                print (entry['table'])
+                print ('-W-',entry['message'])
+                print ('\t','rows:',entry['rows'])
+            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
+            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up),val_response['validation_results']
+    #else:
+    #    print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
     return new_up, '', None, None
 
 
@@ -5042,7 +5097,7 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     return response
 
 
-def validate_private_contribution(contribution_id,username="",password=""):
+def validate_private_contribution(contribution_id,username="",password="",verbose=True):
     """
     validate private contribution in MagIC
 
@@ -5054,12 +5109,14 @@ def validate_private_contribution(contribution_id,username="",password=""):
         personal username for MagIC
     password : str
         password for username
+    verbose : bool
+        if True, print error messages
 
     Returns
     ---------
     response: API requests.models.Response
         response.status_code: bool
-            True : successful creation of private workspace
+            True : successful validation of private workspace
         response['url'] : str
             URL of request
         response['results'] : dictionary of validation results
@@ -5084,7 +5141,7 @@ def validate_private_contribution(contribution_id,username="",password=""):
             response['errors']='None'
             errors_dict=json.loads(create_response.text)
             response['validation_results']=errors_dict['validation']['errors']
-            print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
+            if verbose:print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
         elif create_response.status_code==204:
             response['status_code']=False
             response['url']=create_response.request.url
