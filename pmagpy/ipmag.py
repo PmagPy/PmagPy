@@ -4652,8 +4652,8 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
     if not validated:
-        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
-        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up), errors
+        print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
+        return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up), errors
     return new_up, '', None
 
 
@@ -4663,7 +4663,7 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
 
 
 def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None,
-                 input_dir_path="",keep_workspace_upload=False,username="",password=""):
+                 input_dir_path="",keep_workspace_upload=False,username=False,password=False):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
@@ -4693,11 +4693,11 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
 
     Returns
     ----------
-    tuple of either: (False, error_message, validation dictionary val_response['validation_results'])
+    tuple of either: True/False or (False, error_message, validation dictionary val_response['validation_results'])
     if there was a problem creating/validating the upload file
     or: (filename, '', None) if the file creation was fully successful.
     """
-    api = 'https://api.earthref.org/v1/MagIC/{}'
+    if username: api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
@@ -4705,7 +4705,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
               "criteria", "contribution", "images"]
     fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
-    if username=="":
+    if not username:
         error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
         error_full_fnames = [os.path.join(
         dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
@@ -4834,10 +4834,9 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                     spec_df = con.tables['specimens'].df
                     df = df[df['specimen'].isin(spec_df.index.unique())]
     # run validations locally not through database
-            if username=="": 
+            if not username: 
                res = val_up3.validate_table(
                    con, file_type, output_dir=dir_path, verbose=True)
-               print(res)#DEBUG
                if res:
                    dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
                    if dtype not in all_failing_items:
@@ -4902,16 +4901,16 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         return False, "Could not create an upload file", None, None
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
-    # create private workspace
-    if username== "":
-        print (failing)#DEBUG
+    if not username:
         if failing:
-            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
-            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up),val_response['validation_results']
+            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
+            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),val_response['validation_results']
 
-        print (' You can upload ',new_up,' to a private workspace. ') 
+        else:
+            print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
         return new_up, '', None, None
     else:
+    # create private workspace
         create_response=create_private_contribution(username=username,password=password)
         if create_response['status_code']: 
             contribution_id=create_response['id']
@@ -4921,6 +4920,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             upload_response=upload_to_private_contribution(contribution_id,new_up, username=username,password=password)
     # validate in magic workspace
             if upload_response['status_code']: 
+                time.sleep(1) # one second delay to allow indexing    
                 print ('Validating ',new_up,' in Private Workspace on MagIC id: ',contribution_id)
                 val_response=validate_private_contribution(contribution_id,username=username,password=password,verbose=False)
                 if len(val_response['validation_results'])>0:
@@ -4933,16 +4933,18 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                 print ('Deleting Private Workspace ',contribution_id)
                 delete_response=delete_private_contribution(contribution_id,username=username,password=password)
                 print (delete_response)
+                contribution_id='None'
      
         if failing:
             for entry in val_response['validation_results']:
                 print (entry['table'])
                 print ('-W-',entry['message'])
                 print ('\t','rows:',entry['rows'])
-            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up))
-            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be activated.".format(new_up),val_response['validation_results']
-    #else:
-    #    print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
+            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
+            
+            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),val_response['validation_results'],contribution_id
+        else:
+            print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
     return new_up, '', None, None
 
 
