@@ -4698,6 +4698,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     or: (filename, '', None) if the file creation was fully successful.
     """
     if username: api = 'https://api.earthref.org/v1/MagIC/{}'
+    if not username:val_response=""
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
@@ -4751,7 +4752,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
               'Site', 'Object Number', 'version', 'site_definition')
     #print("-I- Removing: ", RmKeys)
-    extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
+    extra_RmKeys = {'measurements': ['sample', 'site', 'location','treat_mw_energy'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
                                   'age_low', 'age_sigma', 'specimen_core_depth','result_type'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
@@ -4904,7 +4905,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     if not username:
         if failing:
             print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
-            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),val_response['validation_results']
+            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),False
 
         else:
             print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
