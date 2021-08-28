@@ -4456,6 +4456,49 @@ def download_magic_from_doi(doi):
     else:
         return False, 'Error:', response.json()['err'][0]['message'], '\n'
 
+def validate_with_public_endpoint(contribution_file):
+    """
+    validate contribution to MagIC using public endpoint
+
+    Parameters
+    ----------
+    contribution_file: str
+        file to validate
+    verbose : bool
+        if True, print error messages
+
+    Returns
+    ---------
+    response: API requests.models.Response
+        response.status_code: bool
+            True : successful validation of private workspace
+        response['errors'] : None or 'trouble validating'
+        response['validation_results'] : dictionary of validation errors
+        response['warnings'] : list of warnings
+    """
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+    import json
+    f=open(contribution_file,'rb')
+    response={}
+    response['validation_results']={}
+    response['status_code']=False
+    response['errors']='Trouble validating'
+    response['warnings']=[]
+    try:
+        validation_response = requests.post(api.format('validate'),
+                                          headers={'Content-Type':'text/plain'},
+                                          data=f)
+        if validation_response.status_code==200:
+            response['status_code']=True
+            response['errors']='None'
+            errors_dict=json.loads(validation_response.text)
+            response['validation_results']=errors_dict['validation']['errors'][0]
+            response['warnings']=errors_dict['validation']['warnings'][0]
+        else: 
+            print('Error Validating a MagIC Contribution:')
+    except:
+        print('Error Validating a MagIC Contribution:') 
+    return response
 
 def upload_magic2(concat=0, dir_path='.', data_model=None):
     """
@@ -4706,20 +4749,21 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
               "criteria", "contribution", "images"]
     fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
-    if not username:
-        error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
-        error_full_fnames = [os.path.join(
-        dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
-        print('-I- Removing old error files from {}: {}'.format(dir_path,
-                                                            ", ".join(error_fnames)))
+    #if not username:
+    #    error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
+    #    error_full_fnames = [os.path.join(
+    #    dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
+    #    print('-I- Removing old error files from {}: {}'.format(dir_path,
+    #                                                        ", ".join(error_fnames)))
     #for error in error_full_fnames:
     #    os.remove(error)
-    if isinstance(contribution, cb.Contribution):
+    if isinstance(contribution, cb.Contribution): 
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
             con.tables[table_name].write_magic_file()
     elif file_names:
+    #if file_names:
         # otherwise create a new Contribution in dir_path
         con = Contribution(input_dir_path, vocabulary=vocab)
     else:
