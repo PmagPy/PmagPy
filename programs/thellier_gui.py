@@ -3355,7 +3355,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 if str(Alteration_check) != "":
                     for i in range(len(M)):
                         if Alteration_check_index == i:
-                            M_1 = np.sqrt(sum((np.array(M[i])**2))) 
+                            M_1 = np.sqrt(sum((np.array(M[i])**2)))
                             M_2 = np.sqrt(sum(Alteration_check**2))
                             #M_1 = moments[i] # use original moment instead of reconstituted one to avoid rounding errors; changed by RS to enable substraction from zerofield baseline
                             #M_2 = Alteration_check_moment; changed by RS to enable substraction from zerofield baseline
@@ -3364,7 +3364,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             diff_ratio_perc = 100 * diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
                                 anisotropy_alt = diff_ratio_perc
-                            #print (i,anisotropy_alt) 
+                            #print (i,anisotropy_alt)
                 else:
                     aniso_logfile.write(
                         "-W- Warning: no alteration check for specimen %s \n " % specimen)
@@ -3375,7 +3375,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
                 # i.e. +x versus -x, +y versus -y, etc.s
 
-                #for i in range(3): # this is not how it is defined in Paterson et al., 2014 
+                #for i in range(3): # this is not how it is defined in Paterson et al., 2014
                 #    M_1 = np.sqrt(sum(np.array(M[i])**2))
                 #    M_2 = np.sqrt(sum(np.array(M[i + 3])**2))
 #
@@ -3454,7 +3454,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         except ValueError:
                             print('-W- treat_step_num column must be provided to run "Calculate anisotropy tensors"')
                             return False, 'The treat_step_num column must be provided to run "Calculate anisotropy tensors"'
-                        if float(rec['measurement_number']) == i * 2 + 1: 
+                        if float(rec['measurement_number']) == i * 2 + 1:
                         #if float(rec['measurement_number']) == i * 2:
                             dec = float(rec['measurement_dec'])
                             inc = float(rec['measurement_inc'])
@@ -3468,8 +3468,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             inc = float(rec['measurement_inc'])
                             moment = float(rec['measurement_magn_moment'])
                             M_arm = np.array(pmag.dir2cart([dec, inc, moment]))
-                    M[i] = M_arm - M_baseline 
-                    
+                    M[i] = M_arm - M_baseline
+
                 K = np.zeros(3 * n_pos, 'f')
                 for i in range(n_pos):
                     K[i * 3] = M[i][0]
@@ -6566,7 +6566,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-MULT') == False]
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
-                'LP-PI-ALT-AFARM') == False] # added this for Daniele Thallner 
+                'LP-PI-ALT-AFARM') == False] # added this for Daniele Thallner
             intensity_types = [
                 col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             # drop any intensity columns with no data
@@ -6670,7 +6670,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if "LP-AN-ARM" in rec["magic_method_codes"]:
                 # anisotropy calculations require a numeric measurement_number
                 # so go ahead and generate that if it is not provided
-                # Bug fix - alwyas override measurement_number and make it start with 1. 
+                # Bug fix - alwyas override measurement_number and make it start with 1.
                 #           because in some contributions measurement_number/treat_step_num starts with 0 and sometime with 1 (RS)
                 exp_name = rec['magic_experiment_name']
                 aarm_num += 1
@@ -6683,7 +6683,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 #except (ValueError, TypeError):
                 #    aarm_rec['measurement_number'] = aarm_num
                 aarm_rec['measurement_number'] = aarm_num
-                
+
                 if 'aarmblock' not in list(Data[s].keys()):
                     Data[s]['aarmblock'] = []
 
@@ -7026,7 +7026,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         red_flag = True
 
             if len(trmblock) > 2 and not red_flag:
-            
+
 
                 B_NLT = append([0.], B_NLT)
                 M_NLT = append([0.], M_NLT)
@@ -7986,7 +7986,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
             if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
             if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"]!="":
-    
+
                 THERMAL = False
                 MICROWAVE = True
                 temp = float(rec["treat_mw_step"])
@@ -8125,7 +8125,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                                 ThisStep=float(datablock[i]['treat_mw_step'])
                                 if ThisStep == float(temp):
                                     foundit = True
-                               
+
                             elif ('measurement_description' in list(datablock[i].keys())):
                                 MW_step = datablock[i]["measurement_description"].strip(
                                     '\n').split(":")
