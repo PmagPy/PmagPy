@@ -4513,7 +4513,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
                             sample_or_site, new_data, condition, debug=True)
                     except:
                         pass  # no site
+
                 else:  # do this by site and not by sample START HERE
+                    # new_data is getting grabbed from where it was defined earlier for specimens
+                    # we need to create new_data right here right now
+                    # convert data from magic2 to magic3
+                    new_data = map_magic.convert_site('magic3', new_sample_or_site_data)
                     cond1 = self.site_data['site'].str.contains(
                         sample_or_site + "$") == True
                     if 'int_abs' not in self.site_data.columns:
@@ -4526,6 +4531,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         loc = locs.values[0]
                     new_data['site'] = sample_or_site
                     new_data['location'] = loc
+                    if len(self.test_for_criteria()):
+                        new_data['criteria'] = 'IE-SPEC:IE-SITE'
+
                     self.site_data = self.site_container.update_record(
                         sample_or_site, new_data, condition)
                     # remove intensity data from sample level.   # need to look
