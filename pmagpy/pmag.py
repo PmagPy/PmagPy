@@ -2121,7 +2121,7 @@ def magic_write_old(ofile, Recs, file_type):
     pmag_out.close()
 
 
-def magic_write(ofile, Recs, file_type, dataframe=False):
+def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
     """
     Parameters
     _________
@@ -2131,6 +2131,8 @@ def magic_write(ofile, Recs, file_type, dataframe=False):
     dataframe : boolean
         if True, Recs is a pandas dataframe which must be converted
            to a list of dictionaries
+    append : boolean
+	if True, file will be appended to named file
 
     Return :
     [True,False] : True if successful
@@ -2148,7 +2150,10 @@ def magic_write(ofile, Recs, file_type, dataframe=False):
         Recs=Recs.to_dict('records')
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
-    pmag_out = open(ofile, 'w+', errors="backslashreplace")
+    if append:
+        pmag_out = open(ofile, 'a', errors='backslashreplace')
+    else:
+        pmag_out = open(ofile, 'w+', errors="backslashreplace")
     outstring = "tab \t" + file_type
     outstring = outstring.strip("\n").strip(
         "\r") + "\n"  # make sure it's clean for Windows

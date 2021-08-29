@@ -4456,7 +4456,7 @@ def download_magic_from_doi(doi):
     else:
         return False, 'Error:', response.json()['err'][0]['message'], '\n'
 
-def validate_with_public_endpoint(contribution_file):
+def validate_with_public_endpoint(contribution_file,verbose=False):
     """
     validate contribution to MagIC using public endpoint
 
@@ -4478,27 +4478,30 @@ def validate_with_public_endpoint(contribution_file):
     """
     api = 'https://api.earthref.org/v1/MagIC/{}'
     import json
+    validation_results={}
     f=open(contribution_file,'rb')
     response={}
-    response['validation_results']={}
-    response['status_code']=False
-    response['errors']='Trouble validating'
-    response['warnings']=[]
-    try:
-        validation_response = requests.post(api.format('validate'),
+    response['status']=False
+    response['validation']=[]
+    response['warnings']=None
+    validation_response = requests.post(api.format('validate'),
                                           headers={'Content-Type':'text/plain'},
                                           data=f)
-        if validation_response.status_code==200:
-            response['status_code']=True
-            response['errors']='None'
-            errors_dict=json.loads(validation_response.text)
-            response['validation_results']=errors_dict['validation']['errors'][0]
-            response['warnings']=errors_dict['validation']['warnings'][0]
-        else: 
-            print('Error Validating a MagIC Contribution:')
-    except:
-        print('Error Validating a MagIC Contribution:') 
+    if verbose:
+        print('status_code=',validation_response.status_code)
+    if validation_response.status_code==200:
+        response['status']=True
+        validation_results = validation_response.json()['validation']
+        response['validation']=validation_results
+        if verbose:
+            for error in response['validation']['errors']:
+                print (error['message'],'in rows: ')
+                print (error['rows'])
+    else: 
+        response['warnings']=validation_results.json()['errors'][0]['message']
+        print ('unable to validate contribution')
     return response
+
 
 def upload_magic2(concat=0, dir_path='.', data_model=None):
     """
@@ -4705,8 +4708,7 @@ def upload_magic3(concat=1, dir_path='.', dmodel=None, vocab="", contribution=No
     return upload_magic(concat, dir_path, dmodel, vocab, contribution)
 
 
-def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution=None,
-                 input_dir_path="",keep_workspace_upload=False,username=False,password=False):
+def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,verbose=True):
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
@@ -4718,70 +4720,35 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
     concat : boolean where True means do concatenate to upload.txt file in dir_path,
         False means write a new file (default is False)
     dir_path : string for input/output directory (default ".")
-    dmodel : pmagpy data_model.DataModel object,
-        if not provided will be created (default None)
-    vocab : pmagpy controlled_vocabularies3.Vocabulary object,
-        if not provided will be created (default None)
-    contribution : pmagpy contribution_builder.Contribution object, if not provided will be created
-        in directory (default None)
     input_dir_path : str, default ""
         path for intput files if different from output dir_path (default is same)
-    keep_workspace_upload : bool
-        when True, contribution created in MagIC private workspace is kept
-        for this to work you must supply your own username/password
-    username : str 
-        MagIC database username
-    password : str
-        MagIC database password
-
+    validate : boolean
+        validate upload file on MagIC's public endpoint
+    verbose : boolean
+        if True print progress and validation results
     Returns
     ----------
-    tuple of either: True/False or (False, error_message, validation dictionary val_response['validation_results'])
+    tuple of either: True/False or (False, error_message, validation dictionary val_response['validation'])
     if there was a problem creating/validating the upload file
     or: (filename, '', None) if the file creation was fully successful.
     """
-    if username: api = 'https://api.earthref.org/v1/MagIC/{}'
-    if not username:val_response=""
+
+    api = 'https://api.earthref.org/v1/MagIC/{}'
+
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
-              "criteria", "contribution", "images"]
+              "criteria","images"] # don't upload the contribution.txt file!
     fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
-    #if not username:
-    #    error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
-    #    error_full_fnames = [os.path.join(
-    #    dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
-    #    print('-I- Removing old error files from {}: {}'.format(dir_path,
-    #                                                        ", ".join(error_fnames)))
-    #for error in error_full_fnames:
-    #    os.remove(error)
-    if isinstance(contribution, cb.Contribution): 
-        # if contribution object provided, use it
-        con = contribution
-        for table_name in con.tables:
-            con.tables[table_name].write_magic_file()
-    elif file_names:
-    #if file_names:
-        # otherwise create a new Contribution in dir_path
-        con = Contribution(input_dir_path, vocabulary=vocab)
-    else:
+    first_file=True
+    last_file_type=file_names[-1]
+    if not file_names:
         # if no contribution is provided and no contribution could be created,
         # you are out of luck
         print("-W- No 3.0 files found in your directory: {}, upload file not created".format(input_dir_path))
         return False, "no 3.0 files found, upload file not created", None
-
-    # if the contribution has no tables, you can't make an upload file
-    if not con.tables.keys():
-        print("-W- No tables found in your contribution in directory {}, file not created".format(input_dir_path))
-        return False, "-W- No tables found in your contribution, file not created", None
-
-    #con.propagate_cols(['core_depth', 'composite_depth'], # WHY IS THIS HERE?
-    #                   'sites', 'samples', down=False)
-
-    # take out any extra added columns
-    # con.remove_non_magic_cols()
 
     # begin the upload file preparation 
     up = os.path.join(dir_path, "upload.txt")
@@ -4805,18 +4772,10 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                               'orientation_quality', 'sample_alternatives', 'timestamp','result_type'],
                     'ages': ['level']}
 
-    failing = []
-    all_failing_items = {}
-    if not dmodel:
-        dmodel = data_model.DataModel()
-    last_file_type = sorted(con.tables.keys())[-1]
-    for file_type in sorted(con.tables.keys()):
-        container = con.tables[file_type]
-        # format all float values to have correct number of decimals
-        container.all_to_str()
-        # make sure all nans and Nones are changed to ''
-        container.df.fillna('')
-        df = container.df
+    dmodel = data_model.DataModel()
+    for file_type in file_names:
+        df = pd.read_csv(file_type,sep='\t',header=1)
+        df.fillna("",inplace=True)
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
@@ -4827,11 +4786,6 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                 print(
                     '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                 df.drop(DropKeys, axis=1, inplace=True)
-            container.df = df
-            unrecognized_cols = container.get_non_magic_cols()
-            if unrecognized_cols:
-                print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
-                                                                        ", ".join(unrecognized_cols)))
             # convert int_scat to True/False
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
@@ -4853,46 +4807,16 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
             for col in relevant_cols:
                 df[col] = df[col].apply(pmag.adjust_val_to_360)
             # get list of location names
-            if file_type == 'locations':
+            if 'locations' in file_type:
                 locations = sorted(df['location'].unique())
-            elif file_type == 'contribution': # need to wipe out id and version
-                if 'id' in df.columns:
-                    df['id']=""
-                if 'version' in df.columns:
-                    df['version']=""
-                if 'lab_names' not in df.columns:
-                    df['lab_names']="Not Specified" # THIS MUST BE REPLACED WHEN MAKING PUBLIC 
-            # use only highest priority orientation -- not sure how this works
-            elif file_type == 'samples':
-                # orient,az_type=pmag.get_orient(Data,rec['sample'])
-                pass
-            # include only specimen records with samples
-            elif file_type == 'specimens':
-                df = df[df['sample'].notnull()]
-                if 'samples' in con.tables:
-                    samp_df = con.tables['samples'].df
-                    df = df[df['sample'].isin(samp_df.index.unique())]
-            # include only measurements with specmiens
-            elif file_type == 'measurements':
-                df = df[df['specimen'].notnull()]
-                if 'specimens' in con.tables:
-                    spec_df = con.tables['specimens'].df
-                    df = df[df['specimen'].isin(spec_df.index.unique())]
-    # run validations locally not through database
-            if not username: 
-               res = val_up3.validate_table(
-                   con, file_type, output_dir=dir_path, verbose=True)
-               if res:
-                   dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
-                   if dtype not in all_failing_items:
-                       all_failing_items[dtype] = {}
-                   all_failing_items[dtype]["rows"] = failing_items
-                   all_failing_items[dtype]["missing_columns"] = missing_cols
-                   all_failing_items[dtype]["missing_groups"] = missing_groups
-                   failing.append(dtype)
     # write out the data
             if len(df):
-                container.write_magic_file(up, append=True, multi_type=True)
+                ftype=file_type.split('/')[-1].split('.')[0] # 
+                if first_file:
+                    pmag.magic_write(up, df, ftype, dataframe=True)
+                    first_file=False
+                else:
+                    pmag.magic_write(up, df, ftype, dataframe=True, append=True)
     # write out the file separator
             if last_file_type != file_type:
                 f = open(up, 'a')
@@ -4900,10 +4824,7 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
                 f.close()
                 print("-I-", file_type, 'written to ', up)
             else:  # last file, no newline at end of file
-                #f = open(up, 'a')
-                # f.write('>>>>>>>>>>')
-                # f.close()
-                print("-I-", file_type, 'written to ', up)
+                 print("-I-", file_type, 'written to ', up)
     # if there was no understandable data
         else:
             print(file_type, 'is bad or non-existent - skipping ')
@@ -4946,52 +4867,13 @@ def upload_magic(concat=False, dir_path='.', dmodel=None, vocab="", contribution
         return False, "Could not create an upload file", None, None
     os.rename(up, new_up)
     print("Finished preparing upload file: {} ".format(new_up))
-    if not username:
-        if failing:
-            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
-            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),False
-
-        else:
-            print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
-        return new_up, '', None, None
-    else:
-    # create private workspace
-        create_response=create_private_contribution(username=username,password=password)
-        if create_response['status_code']: 
-            contribution_id=create_response['id']
-            print ('Created Private Workspace on MagIC ',contribution_id)
-    # upload to new workspace
-            print ('Uploading ',new_up,' to Private Workspace on MagIC ',contribution_id)
-            upload_response=upload_to_private_contribution(contribution_id,new_up, username=username,password=password)
-    # validate in magic workspace
-            if upload_response['status_code']: 
-                time.sleep(1) # one second delay to allow indexing    
-                print ('Validating ',new_up,' in Private Workspace on MagIC id: ',contribution_id)
-                val_response=validate_private_contribution(contribution_id,username=username,password=password,verbose=False)
-                if len(val_response['validation_results'])>0:
-                    failing=True
-            else:
-                print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
-            if keep_workspace_upload:
-                print ('Keeping Private Workspace ',contribution_id)
-            else:
-                print ('Deleting Private Workspace ',contribution_id)
-                delete_response=delete_private_contribution(contribution_id,username=username,password=password)
-                print (delete_response)
-                contribution_id='None'
-     
-        if failing:
-            for entry in val_response['validation_results']:
-                print (entry['table'])
-                print ('-W-',entry['message'])
-                print ('\t','rows:',entry['rows'])
-            print("-W- validation of upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up))
-            
-            return False, "Validation of your upload file has failed.\nYou can still upload {} to MagIC,\nbut you will need to fix the above errors before your contribution can be published.".format(new_up),val_response['validation_results'],contribution_id
-        else:
-            print("-I- Your file has passed validation.  You should be able to upload it to the MagIC database without any troubles - at least very few!")
-    return new_up, '', None, None
-
+    val_response={}
+    if validate:
+        print ('Validating upload file with public endpoint')
+        val_response=validate_with_public_endpoint(new_up,verbose=verbose)
+    
+    
+    return new_up, val_response, None, None
 
 def create_private_contribution(username="",password=""):
     """
@@ -5025,8 +4907,9 @@ def create_private_contribution(username="",password=""):
     response['method']='POST'
     try:
         create_response = requests.post(api.format('private'), auth=(username, password))
-        if create_response.status_code==200:
+        if create_response.status_code==201:
             response['status_code']=True
+            response['errors']=None
             response['method']='POST'
             response['url']=create_response.request.url
             response['id']=create_response.json()['id']
@@ -5130,14 +5013,14 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
                                           auth=(username, password),
                                           headers={'Content-Type': 'text/plain'},
                                           data=f)
-        if upload_response.status_code==200:
+        if upload_response.status_code==202:
             response['status_code']=True
             response['url']=upload_response.request.url
             response['errors']='None'
         else:
             response['status_code']=False
             response['url']=upload_response.request.url
-            response['errors']=upload_response.json()['errors'][0]['message']
+            #response['errors']=upload_response.json()['errors'][0]['message']
     except:
         print ('trouble uploading:')
         print (upload_response.json()['errors'])
@@ -5179,7 +5062,7 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
     response['method']='POST'
     response['contribution_id']=contribution_id
     try:
-        create_response = requests.post(api.format('private/validate'),
+        create_response = requests.put(api.format('private/validate'),
                                           params={'id':contribution_id},
                                           auth=(username, password))
         if create_response.status_code==200:
@@ -5189,7 +5072,7 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             errors_dict=json.loads(create_response.text)
             response['validation_results']=errors_dict['validation']['errors']
             if verbose:print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
-        elif create_response.status_code==204:
+        else: 
             response['status_code']=False
             response['url']=create_response.request.url
             response['errors']=create_response.json()['errors'][0]['message']
