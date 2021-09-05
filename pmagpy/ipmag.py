@@ -4786,6 +4786,15 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 print(
                     '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                 df.drop(DropKeys, axis=1, inplace=True)
+            n_cols=df.filter(like='_n',axis=1)
+            other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
+            for col in n_cols: 
+                if col in df.columns:
+                    df[col]=df[col].astype('str').str.strip(".0")
+            for col in other_int_cols: 
+                if col in df.columns:
+                    df[col]=df[col].astype('str').str.strip(".0")
+             
             # convert int_scat to True/False
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
@@ -4811,6 +4820,9 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 locations = sorted(df['location'].unique())
     # write out the data
             if len(df):
+                df.replace('-9999','',inplace=True)
+                #for col in df.columns:
+                #    df.loc[df[col]=='-9999',col]=""
                 ftype=file_type.split('/')[-1].split('.')[0] # 
                 if first_file:
                     pmag.magic_write(up, df, ftype, dataframe=True)
