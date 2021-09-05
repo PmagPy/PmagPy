@@ -676,16 +676,14 @@ class MagMainFrame(wx.Frame):
         wx.SafeYield()
         if 'measurements' in self.contribution.tables:
             self.contribution.tables['measurements'].add_measurement_names()
-        res, error_message, has_problems, all_failing_items = ipmag.upload_magic(concat=False, dir_path=self.WD,
-                                                                                 vocab=self.contribution.vocab,
-                                                                                 contribution=self.contribution)
-        if res:
+        upload_file, val_response, dummy1, dummy2 = ipmag.upload_magic(concat=False, dir_path=self.WD)
+        if val_response in ['200', 200, '201', 201]:
             text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(res)[1], os.path.split(res)[0])
             dlg = pw.ChooseOne(self, "Go to MagIC for uploading", "Not ready yet", text, "Saved")
             del wait
             #dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         else:
-            text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/message window for details".format(error_message)
+            text = "There were some problems with the creation of your upload file.\See Terminal/message window for details"
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
 
         dlg.Centre()
@@ -694,6 +692,8 @@ class MagMainFrame(wx.Frame):
             dlg.Destroy()
         if result == wx.ID_YES:
             pw.on_database_upload(None)
+
+        return
 
         if not res:
             from programs import magic_gui
