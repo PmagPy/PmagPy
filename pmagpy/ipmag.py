@@ -4780,12 +4780,19 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
             # drop non MagIC keys
-            DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
-            DropKeys = set(DropKeys).intersection(df.columns)
-            if DropKeys:
+            DropKeys = set(RmKeys).intersection(df.columns)
+            if len(DropKeys)>0:
                 print(
                     '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                 df.drop(DropKeys, axis=1, inplace=True)
+            ftype=file_type.split('/')[-1].split('.')[0]
+            if ftype in list(extra_RmKeys.keys()):
+                DropKeys = list(extra_RmKeys[ftype])
+                DropKeys = set(DropKeys).intersection(df.columns)
+                if len(DropKeys)>0:
+                    print(
+                        '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
+                    df.drop(DropKeys, axis=1, inplace=True)
             n_cols=df.filter(like='_n',axis=1)
             other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
             for col in n_cols: 
