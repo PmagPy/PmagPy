@@ -5989,7 +5989,10 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     noave : bool
        do not average duplicate measurements, default False (so by default, DO average)
     meth_code : str
-        colon-delimited method codes, default "LP-NO"
+        colon-delimited method codes to describe experiment
+        default:  "LP-NO"
+        if AF demag, meth_code='LP-DIR-AF'
+        if thermal demag, meth_code='LP-DIR-T'
     volume : float
         volume in ccs, default 12
     JR : bool
@@ -6157,30 +6160,35 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec["standard"] = 'u'
         MeasRec["treat_step_num"] = 0
         MeasRec["treat_ac_field"] = '0'
-        if row['step'] == 'NRM':
+        if row['step'] == 'NRM' or row['step']=='0':
             meas_type = "LT-NO"
-        elif 'step_unit' in row and row['step_unit'] == 'C':
+        elif 'step_unit' in row and row['step_unit'] == 'C' or meth_code=='LP-DIR-T':
             meas_type = "LT-T-Z"
             treat = float(row['step'])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
-        elif row['step'][0:2] == 'AD':
+        elif 'AD' in str(row['step']):
             meas_type = "LT-AF-Z"
             treat = float(row['step'][2:])
             MeasRec["treat_ac_field"] = '%8.3e' % (
                 treat*1e-3)  # convert from mT to tesla
-        elif row['step'][0] == 'A':
+        elif str(row['step'])[0] == 'A':
             meas_type = "LT-AF-Z"
             treat = float(row['step'][1:])
             MeasRec["treat_ac_field"] = '%8.3e' % (
                 treat*1e-3)  # convert from mT to tesla
-        elif row['step'][0] == 'TD':
+        elif str(row['step'])[0] == 'TD':
             meas_type = "LT-T-Z"
             treat = float(row['step'][2:])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
-        elif row['step'][0] == 'T':
+        elif str(row['step'])[0] == 'T':
             meas_type = "LT-T-Z"
             treat = float(row['step'][1:])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.)  # temp in kelvin
+        elif meth_code=='LP-DIR-AF':
+            meas_type = "LT-AF-Z"
+            treat = float(row['step'])
+            MeasRec["treat_ac_field"] = '%8.3e' % (
+                treat*1e-3)  # convert from mT to tesla
         else:  # need to add IRM, and ARM options
             print("measurement type unknown", row['step'])
             return False, "measurement type unknown"
