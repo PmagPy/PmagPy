@@ -6022,7 +6022,10 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
 
     version_num = pmag.get_version()
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    specnum = - int(specnum)
+    if specnum:
+        specnum = - int(specnum)
+    else:
+        specnum=0
     samp_con = str(samp_con)
     volume = float(volume) * 1e-6
     # need to add these
@@ -6094,6 +6097,7 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
                            names=column_names, index_col=False)
     if JR:
         data['z'] = -data['negz']
+        
     cart = np.array([data['x'], data['y'], data['z']]).transpose()
     dir_dat = pmag.cart2dir(cart).transpose()
     data['dir_dec'] = dir_dat[0]
@@ -6102,19 +6106,19 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     data['magn_moment'] = dir_dat[2]*(10.0**data['expon'])*volume
     data['magn_volume'] = dir_dat[2] * \
         (10.0**data['expon'])  # A/m  - data in A/m
-    data['dip'] = -data['dip']
 
-    data['specimen']
     # put data into magic tables
     MagRecs, SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], [], []
     for rowNum, row in data.iterrows():
         MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
         specimen = row['specimen']
-        if specnum != 0:
+        if specnum:
             sample = specimen[:specnum]
         else:
             sample = specimen
         site = pmag.parse_site(sample, samp_con, Z)
+        #azimuth=float(row['azimuth'])
+        #dip=float(row['dip'])
         if specimen != "" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
@@ -6127,6 +6131,14 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             SampRec['site'] = site
             SampRec["citations"] = "This study"
             SampRec["analysts"] = user
+            if row['param3']==3:
+                row['azimuth']=(row['azimuth']+90)%360
+            if row['param3']==9:
+                row['azimuth']=(row['azimuth']-90)%360
+            if row['param3']==12:
+                row['azimuth']=(row['azimuth']-180)%360
+            if row['param2']==90:
+                row['dip']=90-row['dip']
             SampRec['azimuth'] = row['azimuth']
             SampRec['dip'] = row['dip']
             SampRec['bed_dip_direction'] = row['bed_dip_direction']
@@ -6194,6 +6206,12 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             return False, "measurement type unknown"
         MeasRec["magn_moment"] = str(row['magn_moment'])
         MeasRec["magn_volume"] = str(row['magn_volume'])
+        if row['param1']==3: 
+            row['dir_dec']=(row['dir_dec']-90)%360
+        if row['param1']==6: 
+            row['dir_dec']=(row['dir_dec']-180)%360
+        if row['param1']==9: 
+            row['dir_dec']=(row['dir_dec']+90)%360
         MeasRec["dir_dec"] = str(row['dir_dec'])
         MeasRec["dir_inc"] = str(row['dir_inc'])
         MeasRec['method_codes'] = meas_type
@@ -9588,7 +9606,6 @@ def sio(mag_file, dir_path=".", input_dir_path="",
             MeasRec["treat_dc_field_theta"] = '0'
             meas_type = "LT-NO"
             rec = line.split()
-            #print (rec) #DEBUG
             #try:
             #    float(rec[0])
             #    print("No specimen name for line #%d in the measurement file" %
