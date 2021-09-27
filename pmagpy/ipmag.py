@@ -4497,7 +4497,7 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
             for error in response['validation']['errors']:
                 print (error['message'],'in rows: ')
                 print (error['rows'])
-    else: 
+    else:
         response['warnings']=validation_results.json()['errors'][0]['message']
         print ('unable to validate contribution')
     return response
@@ -4743,14 +4743,13 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     fnames = [os.path.join(input_dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
     first_file=True
-    last_file_type=file_names[-1]
     if not file_names:
         # if no contribution is provided and no contribution could be created,
         # you are out of luck
         print("-W- No 3.0 files found in your directory: {}, upload file not created".format(input_dir_path))
-        return False, "no 3.0 files found, upload file not created", None
-
-    # begin the upload file preparation 
+        return False, "no 3.0 files found, upload file not created", None, None
+    last_file_type=file_names[-1]
+    # begin the upload file preparation
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
@@ -4795,13 +4794,13 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                     df.drop(DropKeys, axis=1, inplace=True)
             n_cols=df.filter(like='_n',axis=1)
             other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
-            for col in n_cols: 
+            for col in n_cols:
                 if col in df.columns:
                     df[col]=df[col].astype('str').str.strip(".0")
-            for col in other_int_cols: 
+            for col in other_int_cols:
                 if col in df.columns:
                     df[col]=df[col].astype('str').str.strip(".0")
-             
+
             # convert int_scat to True/False
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
@@ -4830,7 +4829,7 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                 df.replace('-9999','',inplace=True)
                 #for col in df.columns:
                 #    df.loc[df[col]=='-9999',col]=""
-                ftype=file_type.split('/')[-1].split('.')[0] # 
+                ftype=file_type.split('/')[-1].split('.')[0] #
                 if first_file:
                     pmag.magic_write(up, df, ftype, dataframe=True)
                     first_file=False
@@ -4890,8 +4889,8 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     if validate:
         print ('Validating upload file with public endpoint')
         val_response=validate_with_public_endpoint(new_up,verbose=verbose)
-    
-    
+
+
     return new_up, val_response, None, None
 
 def create_private_contribution(username="",password=""):
@@ -4910,13 +4909,13 @@ def create_private_contribution(username="",password=""):
     response: API requests.models.Response
         response.status_code: bool
             True : successful creation of private workspace
-        response['url'] : str 
+        response['url'] : str
             URL of request
         response['method']='POST'
-        response['id'] : str 
+        response['id'] : str
             if successful, MagIC ID number created
         response['errors'] : str
-            if unsuccessful, error message 
+            if unsuccessful, error message
     """
     api = 'https://api.earthref.org/v1/MagIC/{}'
     response={}
@@ -4975,7 +4974,7 @@ def delete_private_contribution(contribution_id,username="",password=""):
     response['errors']='Failed to contact database'
     response['method']='DELETE'
     try:
-        delete_response = requests.delete(api.format('private'), 
+        delete_response = requests.delete(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password))
         if delete_response.status_code==200:
@@ -5091,12 +5090,12 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             errors_dict=json.loads(create_response.text)
             response['validation_results']=errors_dict['validation']['errors']
             if verbose:print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
-        else: 
+        else:
             response['status_code']=False
             response['url']=create_response.request.url
             response['errors']=create_response.json()['errors'][0]['message']
             response['validation_results']='None'
-            print('A private contribution with ID', contribution_id, 
+            print('A private contribution with ID', contribution_id,
                   ' could not be found in your private workspace for validation\n')
     except:
         print ('trouble validating:')
@@ -10472,7 +10471,7 @@ def get_matrix(n_pos=6):
                          [180., 45., 1.], [180., -45., 1.], [0., -90., 1.], [0, -45., 1.], [0, 45., 1.]]
     if n_pos == 9:
             positions = [[315., 0., 1.], [225., 0., 1.], [180., 0., 1.],
-	    [90., -45., 1.], [270., -45., 1.], [270., 0., 1.],
+        [90., -45., 1.], [270., -45., 1.], [270., 0., 1.],
                          [180., 45., 1.], [180., -45., 1.], [0., -90., 1.]]
 
     tmpH = np.zeros((n_pos, 3), 'f')  # define tmpH
