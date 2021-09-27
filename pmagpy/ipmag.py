@@ -4888,9 +4888,12 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     val_response={}
     if validate:
         print ('Validating upload file with public endpoint')
-        val_response=validate_with_public_endpoint(new_up,verbose=verbose)
-
-
+        try:
+            val_response=validate_with_public_endpoint(new_up,verbose=verbose)
+        except Exception as ex:
+            print("-E- Couldn't connect to MagIC for validation")
+            print(ex)
+            return False, "Could not create an upload file", None, None
     return new_up, val_response, None, None
 
 def create_private_contribution(username="",password=""):

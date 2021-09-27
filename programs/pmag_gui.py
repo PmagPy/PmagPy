@@ -674,11 +674,12 @@ class MagMainFrame(wx.Frame):
         print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.SafeYield()
-        success_responses = ['200', 200, '201', 201]
+        success_responses = ['200', 200, '201', 201, True]
         if 'measurements' in self.contribution.tables:
             self.contribution.tables['measurements'].add_measurement_names()
         upload_file, val_response, dummy1, dummy2 = ipmag.upload_magic(concat=False, input_dir_path=self.WD, dir_path=self.WD)
-        if val_response in success_responses:
+        validation_errors = val_response['validation']
+        if not validation_errors:
             text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(res)[1], os.path.split(res)[0])
             dlg = pw.ChooseOne(self, "Go to MagIC for uploading", "Not ready yet", text, "Saved")
             del wait
