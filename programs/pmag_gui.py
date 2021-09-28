@@ -679,56 +679,49 @@ class MagMainFrame(wx.Frame):
             self.contribution.tables['measurements'].add_measurement_names()
         upload_file, val_response, dummy1, dummy2 = ipmag.upload_magic(concat=False, input_dir_path=self.WD, dir_path=self.WD)
         validation_errors = val_response['validation']
-        if not validation_errors:
-            text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(res)[1], os.path.split(res)[0])
+        if (not validation_errors['warnings']) and (not validation_errors['errors']):
+            text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(upload_file)[1], self.WD)
             dlg = pw.ChooseOne(self, "Go to MagIC for uploading", "Not ready yet", text, "Saved")
             del wait
-            #dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
-        else:
-            text = "There were some problems with the creation of your upload file.\See Terminal/message window for details"
-            dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
+            dlg.Centre()
+            result = dlg.ShowModal()
+            if result == wx.ID_OK:
+                dlg.Destroy()
+            if result == wx.ID_YES:
+                pw.on_database_upload(None)
+            return
 
+        # there were problems, so display validation
+        text = "There were some problems with the creation of your upload file.\See Terminal/message window for details"
+        dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         dlg.Centre()
         result = dlg.ShowModal()
-        if result == wx.ID_OK:
-            dlg.Destroy()
-        if result == wx.ID_YES:
-            pw.on_database_upload(None)
 
-        return
-
-        if not res:
-            from programs import magic_gui
-            self.Disable()
-            self.Hide()
-            self.magic_gui_frame = magic_gui.MainFrame(self.WD,
-                                                       dmodel=self.data_model,
-                                                       title="Validations",
-                                                       contribution=self.contribution)
-
-            self.magic_gui_frame.validation_mode = ['specimens']
-            self.magic_gui_frame.failing_items = all_failing_items
-            self.magic_gui_frame.change_dir_button.Disable()
-            self.magic_gui_frame.Centre()
-            self.magic_gui_frame.Show()
-            self.magic_gui_frame.highlight_problems(has_problems)
-            #
-            # change name of upload button to 'exit validation mode'
-            self.magic_gui_frame.bSizer2.GetStaticBox().SetLabel('return to main GUI')
-            self.magic_gui_frame.btn_upload.SetLabel("exit validation mode")
-            # bind that button to quitting magic gui and re-enabling Pmag GUI
-            self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.btn_upload)
-            # do binding so that closing/quitting re-opens the main frame
-            self.magic_gui_frame.Bind(wx.EVT_CLOSE, self.on_end_validation)
-            # this makes it work with only the validation window open
-            self.magic_gui_frame.Bind(wx.EVT_MENU,
-                                      lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
-                                      self.magic_gui_frame.menubar.file_quit)
-            # this makes it work if an additional grid is open
-            self.Bind(wx.EVT_MENU,
-                      lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
-                      self.magic_gui_frame.menubar.file_quit)
-
+        # TODO: get the error-y business formatted into a dict of lists of dicts
+        from programs import magic_gui
+        self.Disable()
+        self.Hide()
+        self.magic_gui_frame = magic_gui.MainFrame(self.WD,
+                                                   dmodel=self.data_model,
+                                                   title="Validations",
+                                                   contribution=self.contribution,
+                                                   errors={})
+        self.magic_gui_frame.validation_mode = ['specimens']
+        self.magic_gui_frame.Centre()
+        self.magic_gui_frame.Show()
+        #self.magic_gui_frame.highlight_problems(has_problems)
+        # bind that button to quitting magic gui and re-enabling Pmag GUI
+        self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.return_btn)
+        # do binding so that closing/quitting re-opens the main frame
+        self.magic_gui_frame.Bind(wx.EVT_CLOSE, self.on_end_validation)
+        # this makes it work with only the validation window open
+        self.magic_gui_frame.Bind(wx.EVT_MENU,
+                                  lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                                  self.magic_gui_frame.menubar.file_quit)
+        # this makes it work if an additional grid is open
+        self.Bind(wx.EVT_MENU,
+                  lambda event: self.menubar.on_quit(event, self.magic_gui_frame),
+                  self.magic_gui_frame.menubar.file_quit)
 
 
     def on_end_validation(self, event):

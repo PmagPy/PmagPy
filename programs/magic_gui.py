@@ -28,7 +28,7 @@ class MainFrame(wx.Frame):
     MagIC GUI
     """
 
-    def __init__(self, WD=None, name='Main Frame', dmodel=None, title=None, contribution=None):
+    def __init__(self, WD=None, name='Main Frame', dmodel=None, title=None, contribution=None, errors={}):
         try:
             version = pmag.get_version()
         except:
@@ -49,6 +49,7 @@ class MainFrame(wx.Frame):
 
         self.edited = False
         self.validation_mode = False
+        self.errors = errors
 
         print('-I- Initializing interface')
         self.InitUI()
@@ -56,10 +57,8 @@ class MainFrame(wx.Frame):
         print('-I- Completed interface')
         if contribution:
             self.contribution = contribution
-        elif not WD:
-            wx.CallAfter(self.on_change_dir_button)
         else:
-            wx.CallAfter(self.get_wd_data)
+            print("-E- Something went really wrong.  Try again or make a bug report.")
 
     def get_wd_data(self):
         self.edited = False
@@ -94,13 +93,6 @@ class MainFrame(wx.Frame):
         )
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
-        self.change_dir_button = buttons.GenButton(
-            self.panel, id=-1, label="change directory", size=(-1, -1), name='change_dir_btn'
-        )
-        self.change_dir_button.SetBackgroundColour("#F8F8FF")
-        self.change_dir_button.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
-        bSizer0.Add(self.change_dir_button, wx.ALIGN_LEFT)
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
 
@@ -186,19 +178,12 @@ class MainFrame(wx.Frame):
 
         #---sizer 2 ----
 
-        self.bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Create file for upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
-
-        text = "prepare upload txt file"
-        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text,
-                                            size=(300, 50), name='upload_btn')
-        self.btn_upload.SetBackgroundColour("#C4DF9B")
-        self.btn_upload.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_upload_file, self.btn_upload)
-
+        self.bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Return to main GUI", name='bSizer2'), wx.HORIZONTAL)
+        self.return_btn = buttons.GenButton(self.panel, id=-1, label="Return to Pmag GUI",
+                                        size=(300, 50), name='return_btn')
+        self.return_btn.SetBackgroundColour("#C4DF9B")
+        self.bSizer2.Add(self.return_btn, 0, wx.ALIGN_CENTER, 0)
         self.bSizer2.AddSpacer(20)
-        self.bSizer2.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
-        self.bSizer2.AddSpacer(20)
-        #self.Bind(wx.EVT_BUTTON, self.on_btn_upload, self.btn_upload)
 
 
         #---arrange sizers ----
@@ -234,23 +219,6 @@ class MainFrame(wx.Frame):
         self.menubar = menubar
 
 
-    def on_change_dir_button(self, event=None):
-        """
-        create change directory frame
-        """
-        currentDirectory = self.WD #os.getcwd()
-        change_dir_dialog = wx.DirDialog(self.panel,
-                                         "Choose your working directory to create or edit a MagIC contribution:",
-                                         defaultPath=currentDirectory,
-                                         style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        result = change_dir_dialog.ShowModal()
-        if result == wx.ID_CANCEL:
-            return
-        if result == wx.ID_OK:
-            self.WD = change_dir_dialog.GetPath()
-            self.dir_path.SetValue(self.WD)
-        change_dir_dialog.Destroy()
-        self.get_wd_data()
 
     def on_open_grid_frame(self):
         self.Hide()
@@ -258,23 +226,8 @@ class MainFrame(wx.Frame):
     def on_close_grid_frame(self, event=None):
         if self.grid_frame != None and self.grid_frame.grid.changes:
             self.edited = True
-            if self.validation_mode:
-                # re run validations on the table that was edited
-                res = val_up3.validate_table(self.contribution, self.grid_frame.grid_type)
-                if res:
-                    dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
-                    if dtype not in self.failing_items:
-                        self.failing_items[dtype] = {}
-                    self.failing_items[dtype]["rows"] = failing_items
-                    self.failing_items[dtype]["missing_columns"] = missing_cols
-                    self.failing_items[dtype]["missing_groups"] = missing_groups
-                else:
-                    self.failing_items.pop(self.grid_frame.grid_type)
-                    self.validation_mode.remove(self.grid_frame.grid_type)
-                # re-run self.highlight_problems
-                self.reset_highlights()
-                self.highlight_problems(self.failing_items.keys())
-
+        # we used to re-run partial validations here, but since we're now doing this
+        # on the server, that's not going to work
         if self.grid_frame.error_frame:
             self.grid_frame.error_frame.Destroy()
         self.grid_frame = None
@@ -334,76 +287,29 @@ class MainFrame(wx.Frame):
                 else:
                     skip_cell_render = False
                 self.grid_frame.toggle_help(None, "open")
-                row_problems = self.failing_items[grid_type]["rows"]
-                missing_columns = self.failing_items[grid_type]["missing_columns"]
-                missing_groups = self.failing_items[grid_type]["missing_groups"]
-                #all_cols = row_problems.columns
-                #col_nums = range(len(all_cols))
-                #col_pos = dict(zip(all_cols, col_nums))
-                if len(row_problems):
-                    row_string = "Columns and rows with problem data have been highlighted in blue.\n"
-                    if not skip_cell_render:
-                        row_string += "Cells with problem data are highlighted according to the type of problem.\nRed: incorrect data\n"
-                    row_string += "For full error messages, see {}.".format(grid_type + "_errors.txt")
-                    # reset codes button to show error file instead
-                    self.grid_frame.toggle_codes_btn.SetLabel("Show errors")
-                    self.grid_frame.Bind(wx.EVT_BUTTON, self.grid_frame.show_errors,
-                                         self.grid_frame.toggle_codes_btn)
-                    # paint cells
-                    for row in row_problems['num']:
-                        self.grid_frame.grid.paint_invalid_row(row)
-                        mask = row_problems["num"] == row
-                        items = row_problems[mask]
-                        cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
-                        for col in cols:
-                            pre, col_name = val_up3.extract_col_name(col)
-                            col_ind = self.grid_frame.grid.col_labels.index(col_name)
-                            self.grid_frame.grid.paint_invalid_cell(row, col_ind,
-                                                                    skip_cell=skip_cell_render)
-                current_label = self.grid_frame.msg_text.GetLabel()
-                if len(missing_columns):
-                    col_string = "You are missing the following required columns: {}\n\n".format(", ".join(missing_columns))
-                else:
-                    col_string = ""
-                if len(missing_groups):
-                    group_string = "You must have at least one column from each of the following groups: {}\n\n".format(", ".join(missing_groups))
-                else:
-                    group_string = ""
-                #
-                add_text = """{}{}{}""".format(col_string, group_string, row_string)
-                self.grid_frame.msg_text.SetLabel(add_text)
-        #self.on_finish_change_dir(self.change_dir_dialog)
+                # TODO: adapt paint cells to work with the new validation format
+                #    # paint cells
+                #    for row in row_problems['num']:
+                #        self.grid_frame.grid.paint_invalid_row(row)
+                #        mask = row_problems["num"] == row
+                #        items = row_problems[mask]
+                #        cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
+                #        for col in cols:
+                #            pre, col_name = val_up3.extract_col_name(col)
+                #            col_ind = self.grid_frame.grid.col_labels.index(col_name)
+                #            self.grid_frame.grid.paint_invalid_cell(row, col_ind,
+                #                                                    skip_cell=skip_cell_render)
+
         self.grid_frame.do_fit(None)
         del wait
 
 
-    def on_upload_file(self, event):
-        if not hasattr(self, "contribution"):
-            self.contribution = cb.Contribution(self.WD, dmodel=self.data_model)
-        wait = wx.BusyInfo('Validating data, please wait...')
-        wx.SafeYield()
-        res, error_message, has_problems, all_failing_items = ipmag.upload_magic(dir_path=self.WD,
-                                                                                 vocab=self.contribution.vocab)
-        self.failing_items = all_failing_items
-        if has_problems:
-            self.highlight_problems(has_problems)
-        if not has_problems:
-            self.validation_mode = set()
-            self.message.SetLabel('Validated!')
-            self.bSizer_msg.ShowItems(False)
-            self.hbox.Fit(self)
-            # do alert that your file passed
-            dlg = wx.MessageDialog(self,caption="Message:", message="Your contribution has passed validations!\nGo to https://www.earthref.org/MagIC to upload:\n{}".format(res), style=wx.OK)
-            dlg.ShowModal()
-
-        del wait
-
-    def highlight_problems(self, has_problems):
+    def highlight_problems(self):
         """
         Outline grid buttons in red if they have validation errors
         """
-        if has_problems:
-            self.validation_mode = set(has_problems)
+        if self.errors:
+            self.validation_mode = self.errors.keys()
             # highlighting doesn't work with Windows
             if set_env.IS_WIN or set_env.IS_LINUX:
                 self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
