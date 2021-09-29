@@ -4805,8 +4805,13 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
             if 'int_scat' in df.columns:
                 df.loc[df['int_scat']=='t','int_scat']='True'
                 df.loc[df['int_scat']=='f','int_scat']='False'
+            # make sure int_md is positive
             if 'int_md' in df.columns:
-                df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
+                try:
+                    df['int_md'] = df['int_md'].replace('', np.nan)
+                    df.loc[df['int_md'].astype('float')<0,'int_md']=np.nan
+                except Exception as ex:
+                    print("-W-", ex)
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
