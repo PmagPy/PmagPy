@@ -4497,6 +4497,9 @@ def validate_with_public_endpoint(contribution_file,verbose=False):
             for error in response['validation']['errors']:
                 print (error['message'],'in rows: ')
                 print (error['rows'])
+    elif validation_response.status_code == 500:
+        response['status'] = False
+        response['warnings'] = "Status code 500"
     else:
         response['warnings']=validation_results.json()['errors'][0]['message']
         print ('unable to validate contribution')

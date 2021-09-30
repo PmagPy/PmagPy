@@ -678,11 +678,16 @@ class MagMainFrame(wx.Frame):
         if 'measurements' in self.contribution.tables:
             self.contribution.tables['measurements'].add_measurement_names()
         upload_file, val_response, dummy1, dummy2 = ipmag.upload_magic(concat=False, input_dir_path=self.WD, dir_path=self.WD)
+        status = val_response['status']
+        del wait
+        if not status:
+            pw.simple_warning("Oops, something went wrong with validating on the server.\n{}\nTry again later or submit a bug report.".format(val_response['warnings']))
+            return
         validation_errors = val_response['validation']
         if (not validation_errors['warnings']) and (not validation_errors['errors']):
             text = "You are ready to upload!\n{} was generated in {}".format(os.path.split(upload_file)[1], self.WD)
             dlg = pw.ChooseOne(self, "Go to MagIC for uploading", "Not ready yet", text, "Saved")
-            del wait
+
             dlg.Centre()
             result = dlg.ShowModal()
             if result == wx.ID_OK:
@@ -692,7 +697,7 @@ class MagMainFrame(wx.Frame):
             return
 
         # there were problems, so display validation
-        text = "There were some problems with the creation of your upload file.\See Terminal/message window for details"
+        text = "There were some problems with the creation of your upload file.\nSee Terminal/message window for details"
         dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         dlg.Centre()
         result = dlg.ShowModal()

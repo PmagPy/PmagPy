@@ -54,6 +54,8 @@ class MainFrame(wx.Frame):
         for table_name in ['measurements', 'specimens', 'samples',
                            'sites', 'locations', 'ages']:
             self.errors[table_name] = list(self.get_table_errors(table_name, errors))
+            if not self.errors[table_name]:
+                self.errors.pop(table_name)
         self.validation_mode = self.errors.keys()
 
         print('-I- Initializing interface')
@@ -307,6 +309,11 @@ class MainFrame(wx.Frame):
                     for row in rows:
                         self.grid_frame.grid.paint_invalid_cell(row - 1, col_ind,
                                                                 skip_cell=skip_cell_render)
+            else:
+                self.grid_frame.msg_text.SetLabel("No problems here. Hooray!")
+                self.grid_frame.help_msg_boxsizer.Fit(self.grid_frame.help_msg_boxsizer.GetStaticBox())
+                self.grid_frame.main_sizer.Fit(self.grid_frame)
+
 
         self.grid_frame.do_fit(None)
         del wait
