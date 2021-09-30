@@ -48,8 +48,13 @@ class MainFrame(wx.Frame):
         self.data_model = dmodel
 
         self.edited = False
-        self.validation_mode = False
-        self.errors = errors
+
+        # process the errors into a nicer format
+        self.errors = {}
+        for table_name in ['measurements', 'specimens', 'samples',
+                           'sites', 'locations', 'ages']:
+            self.errors[table_name] = list(self.get_table_errors(table_name, errors))
+        self.validation_mode = self.errors.keys()
 
         print('-I- Initializing interface')
         self.InitUI()
@@ -278,7 +283,6 @@ class MainFrame(wx.Frame):
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD,
                                                grid_type, grid_type,
                                                self.panel, huge=huge)
-        row_string = ""
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
@@ -287,22 +291,35 @@ class MainFrame(wx.Frame):
                 else:
                     skip_cell_render = False
                 self.grid_frame.toggle_help(None, "open")
-                # TODO: adapt paint cells to work with the new validation format
-                #    # paint cells
-                #    for row in row_problems['num']:
-                #        self.grid_frame.grid.paint_invalid_row(row)
-                #        mask = row_problems["num"] == row
-                #        items = row_problems[mask]
-                #        cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
-                #        for col in cols:
-                #            pre, col_name = val_up3.extract_col_name(col)
-                #            col_ind = self.grid_frame.grid.col_labels.index(col_name)
-                #            self.grid_frame.grid.paint_invalid_cell(row, col_ind,
-                #                                                    skip_cell=skip_cell_render)
+                # put all the errors into the help message box
+                text = "\n".join([dic['message'] for dic in self.errors[grid_type]])
+                self.grid_frame.msg_text.SetLabel(text)
+                self.grid_frame.help_msg_boxsizer.Fit(self.grid_frame.help_msg_boxsizer.GetStaticBox())
+                self.grid_frame.main_sizer.Fit(self.grid_frame)
+                # paint boxes around the problem cells
+                for err in self.errors[grid_type]:
+                    col_name = err['column']
+                    try:
+                        col_ind = self.grid_frame.grid.col_labels.index(col_name)
+                    except ValueError:
+                        continue
+                    rows = err['rows']
+                    for row in rows:
+                        self.grid_frame.grid.paint_invalid_cell(row - 1, col_ind,
+                                                                skip_cell=skip_cell_render)
 
         self.grid_frame.do_fit(None)
         del wait
 
+
+    def get_table_errors(self, table, errors):
+        """
+        Input: table name (i.e., specimens)
+               errors (errors as formatted from upload_magic validation)
+        """
+        for error_dict in errors:
+            if error_dict['table'] == table:
+                yield error_dict
 
     def highlight_problems(self):
         """

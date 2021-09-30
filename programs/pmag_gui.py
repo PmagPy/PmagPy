@@ -705,8 +705,7 @@ class MagMainFrame(wx.Frame):
                                                    dmodel=self.data_model,
                                                    title="Validations",
                                                    contribution=self.contribution,
-                                                   errors={})
-        self.magic_gui_frame.validation_mode = ['specimens']
+                                                   errors=validation_errors['errors'])
         self.magic_gui_frame.Centre()
         self.magic_gui_frame.Show()
         #self.magic_gui_frame.highlight_problems(has_problems)

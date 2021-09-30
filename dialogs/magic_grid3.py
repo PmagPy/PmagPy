@@ -446,6 +446,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         Take row, column, and turn it color
         """
         self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
+        self.SetRowLabelRenderer(row, MyRowLabelRenderer('#1101e0'))
         # SetCellRenderer doesn't work with table-based grid (HugeGrid class)
         if not skip_cell:
             self.SetCellRenderer(row, col, MyCustomRenderer(color))
