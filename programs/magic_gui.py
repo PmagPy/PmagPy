@@ -70,7 +70,6 @@ class MainFrame(wx.Frame):
     def get_wd_data(self):
         self.edited = False
         self.validation_mode = False
-        self.reset_highlights()
 
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         wx.SafeYield()
@@ -332,61 +331,12 @@ class MainFrame(wx.Frame):
         """
         Outline grid buttons in red if they have validation errors
         """
-        if self.errors:
-            self.validation_mode = self.errors.keys()
-            # highlighting doesn't work with Windows
-            if set_env.IS_WIN or set_env.IS_LINUX:
-                self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
-            # highlighting does work with OSX
-            else:
-                for dtype in ["specimens", "samples", "sites", "locations", "ages", "measurements"]:
-                    wind = self.FindWindowByName(dtype + '_btn')
-                    if dtype not in has_problems:
-                        wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
-                    else:
-                        wind.Bind(wx.EVT_PAINT, self.highlight_button)
-                self.Refresh()
-                self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
-            self.bSizer_msg.ShowItems(True)
-            # manually fire a paint event to make sure all buttons
-            # are highlighted/unhighlighted appropriately
-            paintEvent = wx.CommandEvent(wx.wxEVT_PAINT,
-                                         self.GetId())
-            self.GetEventHandler().ProcessEvent(paintEvent)
-
+        if self.validation_mode:
+            self.message.SetLabel('The following table(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
         else:
-            self.message.SetLabel("Validated!")
+            self.message.SetLabel("No errors here!")
             self.bSizer_msg.ShowItems(True)
         self.hbox.Fit(self)
-
-    def reset_highlights(self):
-        """
-        Remove red outlines from all buttons
-        """
-        for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
-            wind = self.FindWindowByName(dtype + '_btn')
-            wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
-        self.Refresh()
-        #self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
-        self.bSizer_msg.ShowItems(False)
-        self.hbox.Fit(self)
-
-
-    def highlight_button(self, event):
-        """
-        Draw a red highlight line around the event object
-        """
-        wind = event.GetEventObject()
-        pos = wind.GetPosition()
-        size = wind.GetSize()
-        try:
-            dc = wx.PaintDC(self)
-        except wx._core.PyAssertionError:
-            # if it's not a native paint event, we can't us wx.PaintDC
-            dc = wx.ClientDC(self)
-        dc.SetPen(wx.Pen('red', 5, wx.SOLID))
-        dc.DrawRectangle(pos[0], pos[1], size[0], size[1])
-        event.Skip()
 
 
 class MagICMenu(wx.MenuBar):

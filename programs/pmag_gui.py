@@ -713,7 +713,7 @@ class MagMainFrame(wx.Frame):
                                                    errors=validation_errors['errors'])
         self.magic_gui_frame.Centre()
         self.magic_gui_frame.Show()
-        #self.magic_gui_frame.highlight_problems(has_problems)
+        self.magic_gui_frame.highlight_problems()
         # bind that button to quitting magic gui and re-enabling Pmag GUI
         self.magic_gui_frame.Bind(wx.EVT_BUTTON, self.on_end_validation, self.magic_gui_frame.return_btn)
         # do binding so that closing/quitting re-opens the main frame
