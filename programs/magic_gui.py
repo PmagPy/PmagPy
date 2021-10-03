@@ -106,8 +106,8 @@ class MainFrame(wx.Frame):
             self.panel, wx.ID_ANY, "Message", name='bsizer_msg'),
                                             wx.HORIZONTAL)
         self.message = wx.StaticText(self.panel, -1,
-                                     label="Some text will be here",
-                                     name='messages')
+                                     label="The following table(s) have incorrect or incomplete data:\nmeasurements, specimens, samples, sites, locations, ages.",
+                                     name='messages', style=wx.ST_NO_AUTORESIZE)
         self.bSizer_msg.Add(self.message)
 
         #---sizer 1 ----
@@ -204,7 +204,7 @@ class MainFrame(wx.Frame):
         #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
         #vbox.AddSpacer(10)
         vbox.Add(self.bSizer_msg, 0, wx.ALIGN_CENTER, 0)
-        self.bSizer_msg.ShowItems(False)
+        #self.bSizer_msg.ShowItems(False)
         vbox.Add(bSizer1, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
@@ -223,7 +223,6 @@ class MainFrame(wx.Frame):
         menubar = MagICMenu(self)
         self.SetMenuBar(menubar)
         self.menubar = menubar
-
 
 
     def on_open_grid_frame(self):
@@ -293,7 +292,12 @@ class MainFrame(wx.Frame):
                     skip_cell_render = False
                 self.grid_frame.toggle_help(None, "open")
                 # put all the errors into the help message box
-                text = "\n".join([dic['message'] for dic in self.errors[grid_type]])
+                if len(self.errors[grid_type]) > 20:
+                    text = "\n".join([dic['message'] for dic in self.errors[grid_type][:20]])
+                    text += "\nNote: There were too many errors to fit in this interface."
+                    text += "\nPlease check your Terminal/Command Prompt for the rest.\n"
+                else:
+                    text = "\n".join([dic['message'] for dic in self.errors[grid_type]])
                 self.grid_frame.msg_text.SetLabel(text)
                 self.grid_frame.help_msg_boxsizer.Fit(self.grid_frame.help_msg_boxsizer.GetStaticBox())
                 self.grid_frame.main_sizer.Fit(self.grid_frame)
@@ -312,7 +316,6 @@ class MainFrame(wx.Frame):
                 self.grid_frame.msg_text.SetLabel("No problems here. Hooray!")
                 self.grid_frame.help_msg_boxsizer.Fit(self.grid_frame.help_msg_boxsizer.GetStaticBox())
                 self.grid_frame.main_sizer.Fit(self.grid_frame)
-
 
         self.grid_frame.do_fit(None)
         del wait
@@ -333,6 +336,7 @@ class MainFrame(wx.Frame):
         """
         if self.validation_mode:
             self.message.SetLabel('The following table(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
+            #self.bSizer_msg.ShowItems(True)
         else:
             self.message.SetLabel("No errors here!")
             self.bSizer_msg.ShowItems(True)

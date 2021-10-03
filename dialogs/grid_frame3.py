@@ -323,6 +323,11 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             if larger_width > actual_size[0] or larger_height > actual_size[1]:
                 self.SetSize((larger_width, larger_height))
         self.Centre()
+        # this forces a resize which works
+        s = self.GetSize()
+        self.SetSize((0,0))
+        self.SetSize(s)
+
 
     def toggle_help(self, event, mode=None):
         """
