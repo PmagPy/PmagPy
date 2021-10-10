@@ -678,8 +678,11 @@ class MagMainFrame(wx.Frame):
         if 'measurements' in self.contribution.tables:
             self.contribution.tables['measurements'].add_measurement_names()
         upload_file, val_response, dummy1, dummy2 = ipmag.upload_magic(concat=False, input_dir_path=self.WD, dir_path=self.WD)
-        status = val_response['status']
         del wait
+        if val_response == "no 3.0 files found, upload file not created":
+            pw.simple_warning("No 3.0 files were found in your directory, so no upload could be created!")
+            return
+        status = val_response['status']
         if not status:
             pw.simple_warning("Oops, something went wrong with validating on the server.\n{}\nTry again later or submit a bug report.".format(val_response['warnings']))
             return
