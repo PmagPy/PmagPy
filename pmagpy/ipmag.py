@@ -4722,9 +4722,8 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     ----------
     concat : boolean where True means do concatenate to upload.txt file in dir_path,
         False means write a new file (default is False)
-    dir_path : string for input/output directory (default ".")
-    input_dir_path : str, default ""
-        path for intput files (default is '.' )
+    dir_path : string for output directory (default ".")
+    input_dir_path : str, default "."
     validate : boolean
         validate upload file on MagIC's public endpoint
     verbose : boolean
@@ -4738,7 +4737,6 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
 
     api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
-    print (input_dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
