@@ -103,8 +103,11 @@ def loadData(filePath=None):
             else:
                 skiprows=None
     skiprows = skiprows if isinstance(skiprows,int) else 1
-    rawDf = pd.read_csv(filePath, sep='\s+', delimiter=',', names=['field','remanance'],
-                        dtype=np.float64, skiprows=skiprows, skipfooter=1,engine='python')
+    #rawDf = pd.read_csv(filePath, sep='\s+', delimiter=',', names=['field','remanance'],
+    #                    dtype=np.float64, skiprows=skiprows, skipfooter=1,engine='python')
+    rawDf = pd.read_csv(filePath, delimiter=',', names=['field','remanance'],
+                        dtype=np.float64, skiprows=skiprows, 
+                        skipfooter=1,engine='python', encoding='cp1252')
     rawDf = rawDf[(rawDf['field']>0)]
     rawDf = rawDf.sort_values(by=['field'])
     rawDf['field'] = rawDf['field']*10**3 # mT to # T
