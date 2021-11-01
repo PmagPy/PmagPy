@@ -11118,10 +11118,10 @@ def sufar4_dm2(ascfile, meas_output='measurements.txt', aniso_output='rmag_aniso
 def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements.txt",
         spec_file_name="specimens.txt", samp_file_name="samples.txt",
         site_file_name="sites.txt", loc_file_name="locations.txt",
-        user="", location="", lab_dec=0, lab_inc=90, moment_units="mA/m",
+        user="", location="", lab_dec=0, lab_inc=90, moment_units="mA/m",spec_name_con=1,
         samp_name_con="sample=specimen", samp_name_chars=0,
         site_name_con="site=sample", site_name_chars=0, volume=12.,
-        output_dir_path=""):
+        output_dir_path="",verbose=False):
 
     """
     converts TDT formatted files to measurements format files
@@ -11152,6 +11152,10 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         default 90
     moment_units : str
         must be one of: ["mA/m", "emu", "Am^2"], default "mA/m"
+    spec_name_con : int 
+        1 : specimen=spec_name, where "spec_name" is the first column in the file
+        2 : specimen=filename, where filename is the name of the file without the extension '.tdt' of 'TDT'
+        default = 1
     samp_name_con : str or int
         {1: "sample=specimen", 2: "no. of terminate characters", 3: "character delimited"}
     samp_name_chars : str or int
@@ -11289,7 +11293,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     for files in os.listdir(input_dir_path):
         if files.endswith(".tdt"):
             fname = os.path.join(input_dir_path, files)
-            print("Open file: ", fname)
+            if verbose:print("Open file: ", fname)
             fin = open(fname, 'r')
             header_codes = ['labfield', 'core_azimuth',
                             'core_plunge', 'bedding_dip_direction', 'bedding_dip']
@@ -11359,7 +11363,13 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
 
                     # ------------
 
-                    specimen = tmp_body[0]['specimen_name']
+                    if spec_name_con==1:
+                        specimen = tmp_body[0]['specimen_name']
+                    else:
+                        if 'TDT' in fname:
+                            specimen=fname.split("/")[-1].strip('.TDT')
+                        elif 'tdt' in fname:
+                            specimen=fname.split("/")[-1].strip('.tdt')
                     line_number += 1
 
             if specimen not in list(Data.keys()):
