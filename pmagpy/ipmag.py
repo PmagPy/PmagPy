@@ -11248,12 +11248,12 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                 if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
                     (old_spec_df['aniso_type']=='ATRM')].empty==False: # there is a previous record of ATRM for this specimen
                         print ('replacing existing ATRM data for ',spec)
-                        for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                        for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                             old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='ATRM')&
                                 (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing ATRM data for this specimen
                 elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of ATRM for this specimen
                     print ('adding ATRM data for ',spec)
-                    for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
+                    for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add ATRM data for this specimen
                 else: # no record of this specimen, just append to the end of the existing data frame
                     print ('creating new record for specimen ',spec)
