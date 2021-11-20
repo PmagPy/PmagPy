@@ -3950,6 +3950,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         MagIC_results_data['pmag_specimens'][specimen][key] = "False"
                     elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key] in ["Pass", 't']:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "True"
+                    elif key in ['specimen_k_prime','specimen_k']:
+                        MagIC_results_data['pmag_specimens'][specimen][key] = "%.4f" % (
+                            self.Data[specimen]['pars'][key])
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%.2f" % (
                             self.Data[specimen]['pars'][key])
