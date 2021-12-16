@@ -2629,7 +2629,7 @@ def dir2cart(d):
     """
     ints = np.ones(len(d)).transpose(
     )  # get an array of ones to plug into dec,inc pairs
-    d = np.array(d)
+    d = np.array(d).astype('float')
     rad = np.pi/180.
     if len(d.shape) > 1:  # array of vectors
         decs, incs = d[:, 0] * rad, d[:, 1] * rad
@@ -2641,6 +2641,8 @@ def dir2cart(d):
             ints = np.array(d[2])
         else:
             ints = np.array([1.])
+    cart = np.array([ints * np.cos(decs) * np.cos(incs), ints *
+                     np.sin(decs) * np.cos(incs), ints * np.sin(incs)])
     cart = np.array([ints * np.cos(decs) * np.cos(incs), ints *
                      np.sin(decs) * np.cos(incs), ints * np.sin(incs)]).transpose()
     return cart
