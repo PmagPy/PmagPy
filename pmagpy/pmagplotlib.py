@@ -1834,7 +1834,7 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     else:
         lw = 1
     if color != "":
-        plt.plot(X, Y, color=sym, linewidth=lw)
+        plt.plot(X, Y, color=color, linewidth=lw)
     else:
         plt.plot(X, Y, sym, linewidth=lw)
 
