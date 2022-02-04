@@ -8428,7 +8428,7 @@ def docustom(lon, lat, alt, gh):
 
 def doigrf(lon, lat, alt, date, **kwargs):
     """
-    Calculates the interpolated (<2015) or extrapolated (>2015) main field and
+    Calculates the interpolated (<=2020) or extrapolated (>2020) main field and
     secular variation coefficients and passes them to the Malin and Barraclough
     routine (function pmag.magsyn) to calculate the field from the coefficients.
 
@@ -8452,6 +8452,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         shadif14k (Pavon-Carrasco et al., 2014)
         shawq2k (Campuzano et al., 2019)
         shawqIA (Osete et al., 2020)
+        ggf100k (Panofska et al., 2018) [in 200 year increments from -99950 to 1850 only]
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
     Return
@@ -8503,6 +8504,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
             psvmodels, psvcoeffs = cf.get_shawq2k()
         elif kwargs['mod'] == 'shawqIA':
             psvmodels, psvcoeffs = cf.get_shawqIA()
+        elif kwargs['mod'] == 'ggf100k':
+            psvmodels, psvcoeffs = cf.get_ggf100k()
         else:
             # Korte and Constable, 2011;  use prior to -1000, back to -8000
             psvmodels, psvcoeffs = cf.get_cals10k()
@@ -8512,10 +8515,17 @@ def doigrf(lon, lat, alt, date, **kwargs):
             return psvmodels, psvcoeffs
         else:
             return models, igrf13coeffs
-    if date < -12000:
+    if date < -100000:
         print('too old')
         return
-    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
+    if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
+        incr = 200
+        #model = date - date % incr
+        model = date
+        gh = psvcoeffs[psvmodels.index(int(model))]
+        sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
+        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+    elif 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'shadif14k':
         if date < -10000:
             incr = 100
         else:
@@ -8547,38 +8557,21 @@ def doigrf(lon, lat, alt, date, **kwargs):
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     else:
         model = date - date % 5
-        if date <2020:
+        if date <=2025:
             gh = np.array(igrf13coeffs[models.index(model)])
-            sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
+            if date<2025:
+                sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
+            else:
+                sv = (np.zeros(len(igrf13coeffs[models.index(model)])))
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
         else:
-            gh = igrf13coeffs[models.index(2020)]
-            sv = np.array(igrf13coeffs[models.index(2020.2)])
-            x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+            print ('model not available past 2025')
+            x,y,z,f=0,0,0,0
+        #    gh = igrf13coeffs[models.index(2020)]
+        #    sv = np.array(igrf13coeffs[models.index(2020.2)])
+        #    x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
-        #model = date - date % incr
-        #gh = psvcoeffs[psvmodels.index(model)]
-        #if model + incr < 1900:
-        #    sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
-        #else:
-        #    field2 = igrf13coeffs[models.index(1940)][0:120]
-        #    sv = (field2 - gh)/float(1940 - model)
-        #x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
-    #else:
-    #    model = date - date % 5
-    #    if date <2020:
-    #        gh = np.array(igrf13coeffs[models.index(model)])
-    #        sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
-    #        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
-    #    else:
-    #        gh = igrf13coeffs[models.index(2020)]
-    #        sv = np.array(igrf13coeffs[models.index(2020.2)])
-    #        x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
-    #if 'coeffs' in list(kwargs.keys()):
-    #    return gh
-    #else:
-    #    return x, y, z, f
     return x, y, z, f
 #
 
@@ -11616,7 +11609,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 
     Parameters:
     _________________
-    date = Required date in decimal years (Common Era, negative for Before Common Era) - NB: only dates prior to 2020 supported
+    date = Required date in decimal years (Common Era, negative for Before Common Era) - NB: only dates prior to 2025 supported
 
     Optional Parameters:
     ______________
@@ -11636,7 +11629,7 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     lats = list of latitudes evaluated
 
     """
-    if date>=2020:
+    if date>=2025:
         print ('only dates prior to 2020 supported')
         return
     if resolution=='low':

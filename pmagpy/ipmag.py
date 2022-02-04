@@ -58,10 +58,10 @@ def igrf(input_list, mod='', ghfile=""):
         date must be in decimal year format XXXX.XXXX (Common Era)
         altitude is in kilometers
     mod :  desired model
-        "" : Use the IGRF
+        "" : Use the IGRF13 model
         custom : use values supplied in ghfile
         or choose from this list
-        ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA']
+        ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
         where:
             arch3k (Korte et al., 2009)
             cals3k (Korte and Constable, 2011)
@@ -72,6 +72,7 @@ def igrf(input_list, mod='', ghfile=""):
             shadif14 (Pavon-Carrasco et al., 2014)
             shawq2k (Campuzano et al., 2019)
             shawqIA (Osete et al., 2020)
+            ggk100k (Panovska et al., 2018)[only models from -99950 in 200 year increments allowed)
             the first four of these models, are constrained to agree
             with gufm1 (Jackson et al., 2000) for the past four centuries
 
