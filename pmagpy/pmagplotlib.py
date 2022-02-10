@@ -3795,3 +3795,131 @@ def label_tiepoints(ax,x,tiepoints,levels,color='black',lines=False):
             else:
                 ax.axhline(levels[c],color='green',linewidth=3)
 
+
+
+def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=False,fmt ='pdf'):
+    """   
+    makes plots and calculations for MSP method of Dekkers & Boehnel (2006) (DB) and Fabian and Leonhardt (2010) method
+    (DSC) of multi-specimen paleointensity technique. 
+    NB: this code requires seaborn and scipy to be installed
+    
+    Parameters: 
+    _____________
+    spec_df : pandas dataframe
+        data frame with MagIC measurement formatted data for one MSP experiment.
+        measurements must have these MagIC method codes: 
+        Mo (NRM step): must contain 'LT-NO' 
+        M1 (pTRM at T || NRM): must contain 'LT-NRM-PAR' and not 'LT-PTRM-I'
+        M2 (pTRM \\ NRM: must contain 'LT-NRM-APAR'
+        M3 (heat to T, cool in lab field): must contain 'LT-Z-NRM-PAR'
+        M4 (repeat of M1): must contain 'LT-PTRM-I'
+        lab field must be in 'treat_dc_field'
+
+
+    axa : matplotlib figure subplot for DB plot, default is to create and return.
+    axb : matplotlib figure subplot for DSC plot, default is to create and return.
+    site : name of group of specimens for y-axis label, default is generic 'site'
+    labels : plot labels as specified. 
+    save_plots : bool, default False
+        if True, creat and save plot
+    fmt : str
+        format of saved figure (default is 'pdf')
+    
+    Returns: 
+        B (in uT)
+        standard error of slope
+        axa, axb    
+    
+    
+    
+    """
+    try: 
+        import seaborn as sns
+    except:
+        " You must install seaborn to use this " 
+        return False,False, axa, axb
+    try: 
+        import scipy.stats as stats
+    except:
+        " You must install scipy " 
+        return False,False, axa, axb
+    fontsize=14
+    if axa=="":
+        fig=plt.figure(1,(10,5))
+        axa=fig.add_subplot(121) 
+        axb=fig.add_subplot(122) 
+    tinv=lambda p,df:abs(stats.t.ppf(p/2,df))
+    M1s=spec_df[(spec_df['method_codes'].str.contains('LT-NRM-PAR'))&
+        (spec_df['method_codes'].str.contains('LT-PTRM-I')==False)]
+
+    Mos=spec_df[spec_df['method_codes'].str.contains('LT-NO')]
+    Mos=Mos['magn_moment'].values
+    
+    Bs_uT=M1s['treat_dc_field'].values*1e6
+
+    M1s=M1s['magn_moment'].values
+    
+    M2s=spec_df[spec_df['method_codes'].str.contains('LT-NRM-APAR')]
+    M2s=M2s['magn_moment'].values
+
+    M3s=spec_df[spec_df['method_codes'].str.contains('LT-Z-NRM-PAR')]
+    M3s=M3s['magn_moment'].values
+
+    M4s=spec_df[spec_df['method_codes'].str.contains('LT-PTRM-I')]
+    M4s=M4s['magn_moment'].values
+    
+    Q_DB=(M1s-Mos)/Mos
+    #coeffs=np.polyfit(Bs_uT,Q_DB,1)
+    #newYs=np.polyval(coeffs,Bs_uT)
+    q_data=pd.DataFrame()
+    q_data['Bs_uT']=Bs_uT
+    q_data['Q_DB']=Q_DB
+
+    #axa.plot(Bs_uT,Q_DB,'co')
+    axa.set_xlabel(r'B$_{lab} (\mu$T)',fontsize=fontsize) 
+    axa.set_ylabel(r'Q_${DB}$: '+site,fontsize=fontsize)
+
+
+    #axa.plot(Bs_uT,newYs,'k-')
+    axa.axhline(0,linestyle='dotted')
+    axa.axvline(70,linestyle='dashed')
+    sns.regplot(data=q_data,x='Bs_uT',y='Q_DB',ax=axa)
+    alpha=.5 # per Fabian and Leonhardt 2010
+    Q_DSC=2.*((1.+alpha)*M1s-Mos-alpha*M3s)/(2.*Mos-M1s-M2s)
+#    print (spec_df['specimen'].unique())
+#    print (Q_DSC)
+    q_data['Q_DSC']=Q_DSC
+
+
+
+    #axb.plot(Bs_uT,Q_DSC,'co')
+    axb.set_xlabel(r'B$_{lab} (\mu$T)',fontsize=fontsize)
+    axb.set_ylabel(r'Q_${DSC}$: '+site,fontsize=fontsize)
+
+    #coeffs,cov=np.polyfit(Bs_uT,Q_DSC,1,cov=True)
+    
+    Brange=np.arange(0,100,20)
+    #newYs=np.polyval(coeffs,Brange)
+    sns.regplot(data=q_data,x='Bs_uT',y='Q_DSC',ax=axb)
+    #axb.plot(Brange,newYs,'k-')
+    axb.axhline(0,linestyle='dotted')
+    axb.axvline(70,linestyle='dashed')
+    #axb.text(.2,.9,'B$_{msp}$='+str((-coeffs[1]/coeffs[0]).round(1))+' $\mu$T',
+     #        transform=axb.transAxes,fontsize=fontsize)
+    res=stats.linregress(Q_DSC,Bs_uT)
+    ts=tinv(0.05,len(Q_DSC)-2)
+    axb.text(.1,.9,f'Bmsp =: {res.intercept:.1f} $\pm$  {.5*ts*res.intercept_stderr:.1f} $\mu$T',
+    #axb.text(.1,.9,f'Bmsp =: {res.intercept:.1f} $\pm$  {res.intercept_stderr:.1f} $\mu$T',
+            transform=axb.transAxes,fontsize=fontsize)
+    
+    print(f"intercept (1 sigma): {res.intercept:.1f} +/- {res.intercept_stderr:.1f}")
+    #axb.plot([res.intercept+.5*ts*res.intercept_stderr],[0],'b+')
+    #axb.plot([res.intercept-.5*ts*res.intercept_stderr],[0],'b+')    
+    axa.text(.9,.1,labels[0],fontsize=fontsize,transform=axa.transAxes)
+    axb.text(.9,.1,labels[1],fontsize=fontsize,transform=axb.transAxes)
+    if save_plots: 
+        plt.tight_layout()
+        plt.savefig('site.'+fmt)
+    return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
+
+
