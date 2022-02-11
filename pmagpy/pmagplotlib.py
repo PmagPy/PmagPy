@@ -3811,7 +3811,7 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         Mo (NRM step): must contain 'LT-NO' 
         M1 (pTRM at T || NRM): must contain 'LT-NRM-PAR' and not 'LT-PTRM-I'
         M2 (pTRM \\ NRM: must contain 'LT-NRM-APAR'
-        M3 (heat to T, cool in lab field): must contain 'LT-Z-NRM-PAR'
+        M3 (heat to T, cool in lab field): must contain 'LT-T-Z-NRM-PAR'
         M4 (repeat of M1): must contain 'LT-PTRM-I'
         lab field must be in 'treat_dc_field'
 
@@ -3862,7 +3862,7 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     M2s=spec_df[spec_df['method_codes'].str.contains('LT-NRM-APAR')]
     M2s=M2s['magn_moment'].values
 
-    M3s=spec_df[spec_df['method_codes'].str.contains('LT-Z-NRM-PAR')]
+    M3s=spec_df[spec_df['method_codes'].str.contains('LT-T-Z-NRM-PAR')]
     M3s=M3s['magn_moment'].values
 
     M4s=spec_df[spec_df['method_codes'].str.contains('LT-PTRM-I')]
