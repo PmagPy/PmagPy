@@ -3829,9 +3829,6 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         B (in uT)
         standard error of slope
         axa, axb    
-    
-    
-    
     """
     try: 
         import seaborn as sns
@@ -3921,5 +3918,4 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         plt.tight_layout()
         plt.savefig('site.'+fmt)
     return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
-
 
