@@ -1,3 +1,0 @@
-tab 	specimens
-azimuth	citations	description	dip	dir_tilt_correction	experiments	method_codes	result_quality	result_type	sample	software_packages	specimen	weight
-0	na		0	-1	mc120c-SA4:LP-PI-TRM:LP-PI-ALT-AFARM:LP-LT	LP-PI-TRM:LP-PI-ALT-AFARM:LP-LT	g	i	mc120c-SA4	pmagpy-4.2.96	mc120c-SA4	1e-05
