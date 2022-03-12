@@ -1,0 +1,3 @@
+tab 	samples
+azimuth	citations	description	dip	lat	lon	method_codes	orientation_quality	result_quality	result_type	sample	site
+0	na	measurements directions corrected with: azimuth=0.0 dip=0.0	0	0	0	FS-FD:SO-SM	g	g	i	mc120c-SA4	mc120c

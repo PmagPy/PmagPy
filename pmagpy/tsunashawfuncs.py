@@ -1184,4 +1184,33 @@ def zijd_PCA_calc(df,start,end):
     return step_min,step_max,mad,dang,spec_n 
 
 
+def subtract_base_vector(df,rem_type):
+    """ subtracts the last measurement from all the others
+    Paramters
+    _________
+        df : dataframe of measurement data
+        rem_type : remanence type for substracing
+    Returns
+    ________
+        df : after substraction
+    """
+    df['number'] = range(len(df))
+    base_vector_rec=df[df.description.str.contains(rem_type)==True].tail(1)  
+    base_vector_dir=base_vector_rec[['dir_dec','dir_inc','magn_mass']].values
+    base_cart=pmag.dir2cart(base_vector_dir)
+    df_not_type=df[df.description.str.contains(rem_type)==False]
+    df_type=df[df.description.str.contains(rem_type)]
 
+    dirs=df_type[['dir_dec','dir_inc','magn_mass']].values
+    carts=pmag.dir2cart(dirs)
+    diff=carts-base_cart
+    dir_diff=pmag.cart2dir(diff).transpose()
+    df_type['dir_dec_diff']=dir_diff[0]
+    df_type['dir_inc_diff']=dir_diff[1]
+    df_type['magn_mass_diff']=dir_diff[2]
+    df_type.loc[:,'dir_dec_diff']=df_type.dir_dec_diff.fillna(0)
+    df_type.loc[:,'dir_inc_diff']=df_type.dir_inc_diff.fillna(0)
+    df=pd.concat((df_not_type,df_type))
+    df.sort_values(by='number',inplace=True)
+    
+    return df
