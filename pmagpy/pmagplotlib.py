@@ -1424,8 +1424,10 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     Parameters
     _________
     fignum : number of plt.figure() object
+    s : str
+      name of site for title
     datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
-        3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], direction_type_key =['p','l']
+        3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], method_codes =['DE-BFP','DE-BFL']
         2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
     fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
     direction_type_key : key for dictionary direction_type ('specimen_direction_type')
@@ -1451,7 +1453,8 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
         title = title + ": tilt corrected coordinates"
     DIblock, GCblock = [], []
     for plotrec in datablock:
-        if plotrec[direction_type_key] == 'p':  # direction is pole to plane
+        if ('direction_type_key' in plotrec.keys() and plotrec[direction_type_key] == 'p') or 'DE-BFP' in plotrec['method_codes']:  # direction is pole to plane
+       # if plotrec[direction_type_key] == 'p':  # direction is pole to plane
             GCblock.append((float(plotrec[dec_key]), float(plotrec[inc_key])))
         else:  # assume direction is a directed line
             DIblock.append((float(plotrec[dec_key]), float(plotrec[inc_key])))
