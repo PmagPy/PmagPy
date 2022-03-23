@@ -11283,7 +11283,6 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
         print("-W- You have selected the site naming convention: 'no. of terminate characters',\n    but have provided the number of characters as 0.\n    Defaulting to use 'site=sample' instead.")
         site_name_con = 'site=sample'
 
-
     Data = {}
 
     # -----------------------------------
