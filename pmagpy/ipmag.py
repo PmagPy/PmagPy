@@ -3625,6 +3625,9 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
         # propagate depth info from sites --> samples
         con.propagate_cols(
             ['core_depth', 'composite_depth'], 'samples', 'sites')
+        # propagate depth info from samples-> specimens
+        con.propagate_cols(
+            ['core_depth', 'composite_depth'], 'specimens', 'samples')
 
         if age_file == "":
             # get sample data straight from the contribution
@@ -12785,9 +12788,10 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
         if len(GCblock) > 0:
             for rec in GCblock:
                 pmagplotlib.plot_circ(FIG['eqarea'], rec, 90., 'g')
-        if len(DIblock) == 0 and len(GCblock) == 0:
+        #if len(DIblock) == 0 and len(GCblock) == 0:
+        if len(DIblock)+len(GCblock)<5:
             if verbose:
-                print("no records for plotting")
+                print("insufficient records for plotting")
                 fignum -= 1
                 if 'bdirs' in FIG:
                     fignum -= 1
@@ -14328,3 +14332,49 @@ PLOT_TYPES = {'eqarea': "Equal Area Plot", "arai": "ARAI plot",
               "tcdf": "tcdf", "cdf_0": "cdf_0", "cdf_1": "cdf_1", "cdf_2": "cdf_2",
               "day": "Day Plot", "S-Bcr": "Day Plot", "S-Bc": "Day Plot",
               "bcr1-bcr2": "Day Plot"}
+
+def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
+    """
+    Makes depth (or height) plots of various columns in the dataframe
+
+    Parameters
+    ----------------------
+    df : pandas dataframe
+    d_key : str
+        name of column for plotting against ['core_depth','composite_depth','height']
+    fmt : str
+        format of saved figure, default is 'png'
+    location : str
+        name of location
+    save : boolean
+        if True, save plot to location.fmt
+    """
+    plot_keys=['dir_dec','dir_inc','int_rel','int_rel_ARM','int_rel_IRM','int_rel_chi',
+               'int_abs','vgp_lat','vgp_lon','magn_moment','magn_volume','magn_mass',
+              'susc_chi_volume','susc_chi_mass']
+    use_keys=plot_keys[:]
+    for key in plot_keys:
+        if key not in df.columns:
+            use_keys.remove(key)
+        else:
+            test_df=df.dropna(subset=[key])
+            if len(test_df)==0:
+                use_keys.remove(key)
+    print('plotting these columns: ',use_keys)
+    cols=len(use_keys)
+    height=11
+    width=cols*2
+    plt_num=1
+    pmagplotlib.clearFIG(1)
+    fig=plt.figure(1,figsize=(width,height))
+    for key in use_keys:
+        fig.add_subplot(1,cols,plt_num)
+        plt.plot(df[key],df[d_key],'k.')
+        plt.xlabel(key)
+        if plt_num==1:
+            plt.ylabel=(d_key)
+        plt_num+=1
+    #plt.title(location)
+    if save:
+        plt.savefig(location+'.'+fmt)
+
