@@ -5,3 +5,4 @@ and used by setuptools to assign number to pmagpy/pmagpy-cli.
 """
 "pmagpy-4.2.98"
 version = 'pmagpy-4.2.98'
+#hi from Christeanne
