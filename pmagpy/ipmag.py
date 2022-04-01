@@ -2182,7 +2182,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
 
 
 def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
-             edge='black', markersize=20, legend=False):
+             edge='black', markersize=20, alpha=1, legend=False):
     """
     This function plots a paleomagnetic pole position on a cartopy map axis.
 
@@ -2208,6 +2208,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
     edge : the color of the edge of the marker (default is black)
     markersize : size of the marker in pt (default is 20)
+    alpha : the transparency of the points (defaul is 1 which is opaque, 0 is fully transparent)
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend (False). Putting True will plot a legend.
     """
