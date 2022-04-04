@@ -8402,7 +8402,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False, figprefix='EI'):
+            site_correction=False, return_new_dirs=False, figprefix='EI', return_values=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8429,7 +8429,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         2) a Fisherian distribution (site_correction = True). Default is FALSE.
         Note that many directions (~ 100) are needed for this correction to be reliable.
     return_new_dirs: optional return of newly "unflattened" directions (default is False)
-
+    return_values: optional return of all bootstrap result inclinations, elongations, and f factors
+    
     Returns
     -----------
     four plots:   1) equal area plot of original directions
@@ -8437,7 +8438,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
                   3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
                      Estimate from original data set plotted as solid line
                   4) Orientation of principle direction through unflattening
-
+     
     NOTE: If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
        valid solutions and those are plotted in the CDFs and E/I plot.
     """
@@ -8547,8 +8548,18 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
-    if return_new_dirs is True:
+    
+    F = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I))
+    
+    if return_new_dirs and return_values :
+        return make_di_block(decs, unsquished_incs), I, E, F
+    
+    elif return_new_dirs:
         return make_di_block(decs, unsquished_incs)
+    elif return_values:
+        return I, E, F
+    else:
+        return
 
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
