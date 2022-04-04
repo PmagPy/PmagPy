@@ -8428,8 +8428,11 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         or
         2) a Fisherian distribution (site_correction = True). Default is FALSE.
         Note that many directions (~ 100) are needed for this correction to be reliable.
-    return_new_dirs: optional return of newly "unflattened" directions (default is False)
-    return_values: optional return of all bootstrap result inclinations, elongations, and f factors
+    return_new_dirs: optional return of newly "unflattened" directions as di_block (default is False)
+    return_values: optional return of all bootstrap result inclinations, elongations, and 
+        f factors (default is False)
+    if both return_new_dirs=True and return_values=True, the function will return:
+        di_block of new directions, inclinations, elongations,and f factors
     
     Returns
     -----------
