@@ -1677,7 +1677,7 @@ def plot_evec(fignum, Vs, symsize, title):
 #
 
 
-def plot_ell(fignum, pars, col, lower, plot):
+def plot_ell(fignum, pars, col='k', lower=True, plot=True):
     """
     function to calculate/plot points on an ellipse about Pdec,Pdip with angle beta,gamma
     Parameters
@@ -1685,11 +1685,10 @@ def plot_ell(fignum, pars, col, lower, plot):
     fignum : matplotlib figure number
     pars : list of [Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc ]
          where P is direction, Bdec,Binc are beta direction, and Gdec,Ginc are gamma direction
-    col : color for ellipse
+    col : color for ellipse (default is black 'k')
     lower : boolean, if True, lower hemisphere projection
-    plot : boolean, if False, return the points, if False, make the plot
+    plot : boolean, if False, return the points, if True, make the plot
     """
-    plt.figure(num=fignum)
     rad = old_div(np.pi, 180.)
     Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
         1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]
@@ -1752,6 +1751,7 @@ def plot_ell(fignum, pars, col, lower, plot):
             X_ell.append(elli[1] * R)
             Y_ell.append(elli[0] * R)
     if plot == 1:
+        plt.figure(num=fignum)
         col = col[0]+'.'
         if X_ell != []:
             plt.plot(X_ell, Y_ell, col, markersize=3)
