@@ -5766,7 +5766,7 @@ def doincfish(inc):
     return fpars
 
 
-def dokent(data, NN):
+def dokent(data, NN, distribution_95=False):
     """
     gets Kent  parameters for data
     Parameters
@@ -5775,6 +5775,10 @@ def dokent(data, NN):
     NN  : normalization
         NN is the number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
+    distribution_95 : the default behavior (distribution_95=False) is for
+        the function to return the confidence region for the mean direction.
+        if distribution_95=True what instead will be returned is the parameters
+        associated with the region containing 95% of the directions.
 
     Return
     kpars dictionary keys
@@ -5861,17 +5865,22 @@ def dokent(data, NN):
         sigma1 = sigma1 + xg[i][0]**2
         sigma2 = sigma2 + xg[i][1]**2
     xmu = old_div(xmu, float(N))
-    sigma1 = old_div(sigma1, float(N))
-    sigma2 = old_div(sigma2, float(N))
-    g = -2.0 * np.log(0.05) / (float(NN) * xmu**2)
+    sigma1 = sigma1/float(N)
+    sigma2 = sigma2/float(N)
+    
+    if distribution_95==False:
+        g = -2.0 * np.log(0.05) / (float(NN) * xmu**2)
+    if distribution_95==True:
+        g = -2.0 * np.log(0.05) / (xmu**2)
+    
     if np.sqrt(sigma1 * g) < 1:
         eta = np.arcsin(np.sqrt(sigma1 * g))
     if np.sqrt(sigma2 * g) < 1:
         zeta = np.arcsin(np.sqrt(sigma2 * g))
     if np.sqrt(sigma1 * g) >= 1.:
-        eta = old_div(np.pi, 2.)
+        eta = np.pi/2.0
     if np.sqrt(sigma2 * g) >= 1.:
-        zeta = old_div(np.pi, 2.)
+        zeta = np.pi/2.0
 #
 #  convert Kent parameters to directions,angles
 #
