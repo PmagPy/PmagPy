@@ -453,6 +453,53 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
             declinations.append(drot)
             inclinations.append(irot)
         return declinations, inclinations
+    
+    
+def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
+    """
+    Generates resamples of directional means from a Fisher mean with a specified
+    alpha95. Equivelant of sampling from angular standard deviation.
+
+    Parameters
+    ----------
+    alpha95 : 95% confidence on mean direction (default is 5)
+    n : number of vectors to determine (default is 100)
+    dec : mean declination of distribution (default is 0)
+    inc : mean inclination of distribution (default is 90)
+    di_block : this function returns a nested list of [dec,inc,1.0] as the default
+    if di_block = False it will return a list of dec and a list of inc
+
+    Returns
+    ---------
+    di_block : a nested list of [dec,inc,1.0] (default)
+    dec, inc : a list of dec and a list of inc (if di_block = False)
+
+    Examples
+    --------
+    >>> ipmag.fisher_mean_resample(alpha95=5, n=5, dec=40, inc=60)
+    >>> [[41.47587050719005, 62.44682515754436, 1.0],
+        [33.738299775944085, 55.88461662263949, 1.0],
+        [42.98707546462242, 60.21460942319564, 1.0],
+        [28.282076485842992, 59.67015046929257, 1.0],
+        [41.87081053973009, 57.18064045614739, 1.0]]
+    """
+    directions = []
+    declinations = []
+    inclinations = []
+    k = 140.0**2 / alpha95**2
+    if di_block == True:
+        for data in range(n):
+            d, i = pmag.fshdev(k)
+            drot, irot = pmag.dodirot(d, i, dec, inc)
+            directions.append([drot, irot, 1.])
+        return directions
+    else:
+        for data in range(n):
+            d, i = pmag.fshdev(k)
+            drot, irot = pmag.dodirot(d, i, dec, inc)
+            declinations.append(drot)
+            inclinations.append(irot)
+        return declinations, inclinations
 
 
 def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0):
