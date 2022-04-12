@@ -98,13 +98,13 @@ class Fit(object):
         @param: new_pars -> the new parameters to change your fit to
         @alters: tmin, tmax, pars, geopars, tiltpars, PCA_type
         """
-
         if specimen != None:
             if type(new_pars)==dict:
                 if 'er_specimen_name' not in list(new_pars.keys()): new_pars['er_specimen_name'] = specimen
                 if 'specimen_comp_name' not in list(new_pars.keys()): new_pars['specimen_comp_name'] = self.name
             if type(new_pars) != dict or 'measurement_step_min' not in list(new_pars.keys()) or 'measurement_step_max' not in list(new_pars.keys()) or 'calculation_type' not in list(new_pars.keys()):
                 print("-E- invalid parameters cannot assign to fit %s for specimen %s - was given:\n%s"%(self.name,specimen,str(new_pars)))
+                coordinate_system=""
                 return self.get(coordinate_system)
 
             self.tmin = new_pars['measurement_step_min']
