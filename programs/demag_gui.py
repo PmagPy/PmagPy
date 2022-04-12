@@ -833,8 +833,11 @@ class Demag_GUI(wx.Frame):
         initial_coordinate = 'specimen'
         for specimen in self.specimens:
             if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
-                coordinate_list.append('geographic')
-                initial_coordinate = 'geographic'
+                coordinate_list.append('geographic')               
+#                initial_coordinate = 'geographic'
+# Commented this intial_coordinate change out so that heterogenous data sets that have 
+# specimen only data in addition to geographic data can be opened without seg fault
+# (would be nice to have a more involved  solution given that geographic coordinates is a nice default) 
             if 'tilt-corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
                 coordinate_list.append('tilt-corrected')
         return initial_coordinate, coordinate_list
