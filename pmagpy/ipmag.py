@@ -14122,8 +14122,12 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     if len(rlats) > 0:
         Opts['sym'] = rsym
         Opts['symsize'] = rsize
-        # add the lats and lons of the poles
-        pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
+        if len(lats) > 0:
+            color, symbol = Opts['sym'][0], Opts['sym'][1]
+            plt.gca().scatter(rlons, rlats, s=Opts['symsize'], c=color, marker=symbol,
+                              transform=ccrs.PlateCarree(), edgecolors=Opts['edgecolor'])
+        else:
+            pmagplotlib.plot_map(FIG['map'], rlats, rlons, Opts)
     if not save_plots and not set_env.IS_WIN:
         pmagplotlib.draw_figs(FIG)
     if ell == 1:  # add ellipses if desired.
