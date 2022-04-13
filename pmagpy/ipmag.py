@@ -14056,16 +14056,16 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
         except ValueError:
             lat = float(str(row['vgp_lat']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
             lon = float(str(row['vgp_lon']).replace(' ', '').translate({0x2c: '.', 0xa0: None, 0x2212: '-'}))
-        if anti == 1:
+        if anti:
             lats.append(-lat)
             lon = lon + 180.
             if lon > 360:
                 lon = lon - 360.
             lons.append(lon)
-        elif flip == 0:
+        elif not flip:
             lats.append(lat)
             lons.append(lon)
-        elif flip == 1:
+        elif flip:
             if lat < 0:
                 rlats.append(-lat)
                 lon = lon + 180.
@@ -14113,12 +14113,12 @@ def vgpmap_magic(dir_path=".", results_file="sites.txt", crd="",
     Opts['pltgrid'] = -1
     Opts['sym'] = sym
     Opts['symsize'] = size
+    Opts['names'] = []
     if len(dates) > 0:
         Opts['names'] = dates
     if len(lats) > 0:
         # add the lats and lons of the poles
         pmagplotlib.plot_map(FIG['map'], lats, lons, Opts)
-    Opts['names'] = []
     if len(rlats) > 0:
         Opts['sym'] = rsym
         Opts['symsize'] = rsize

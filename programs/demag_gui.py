@@ -2473,9 +2473,11 @@ class Demag_GUI(wx.Frame):
         if color == None:
             color = self.colors[(int(next_fit)-1) % len(self.colors)]
         new_fit = Fit(name, fmax, fmin, color, self, PCA_type, saved)
+        #if new_fit==None: fmin,fmax=None,None
         if fmin != None and fmax != None:
             new_fit.put(specimen, self.COORDINATE_SYSTEM, self.get_PCA_parameters(
                 specimen, new_fit, fmin, fmax, self.COORDINATE_SYSTEM, PCA_type))
+            print ('new_fit: ',new_fit,fmin,fmax)#DEBUG
             if ('specimen_dec' not in list(new_fit.get(self.COORDINATE_SYSTEM).keys())
                     or 'specimen_inc' not in list(new_fit.get(self.COORDINATE_SYSTEM).keys()))\
                     and not suppress_warnings:
