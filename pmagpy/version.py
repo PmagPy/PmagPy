@@ -3,5 +3,5 @@ Module contains current pmagpy version number.
 Version number is displayed by GUIs
 and used by setuptools to assign number to pmagpy/pmagpy-cli.
 """
-"pmagpy-4.2.98"
-version = 'pmagpy-4.2.98'
+"pmagpy-4.2.100"
+version = 'pmagpy-4.2.100'
