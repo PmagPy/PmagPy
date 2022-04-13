@@ -3417,13 +3417,13 @@ def plot_map(fignum, lats, lons, Opts):
     if Opts['sym'][-1] != '-':  # just plot points
         color, symbol = Opts['sym'][0], Opts['sym'][1]
         ax.scatter(lons, lats, s=Opts['symsize'], c=color, marker=symbol,
-                   transform=ccrs.Geodetic(), edgecolors=Opts['edgecolor'])
+                   transform=ccrs.PlateCarree(), edgecolors=Opts['edgecolor'])
         if prn_name == 1:
             print('labels not yet implemented in plot_map')
             # for pt in range(len(lats)):
             #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
     else:  # for lines,  need to separate chunks using lat==100.
-        ax.plot(lons, lats, Opts['sym'], transform=ccrs.Geodetic())
+        ax.plot(lons, lats, Opts['sym'], transform=ccrs.PlateCarree())
     if Opts['global']:
         ax.set_global()
 
