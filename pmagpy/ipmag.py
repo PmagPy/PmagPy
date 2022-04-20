@@ -1335,7 +1335,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
+def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -1356,6 +1356,9 @@ def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
     di_block: a nested list of [dec,inc]
         A di_block can be provided in which case it will be used instead of
         dec, inc lists.
+    plot : boolean to decide whether to make a plot (default is True)
+    save : boolean to decide whether plot is saved (default is False)
+    fmt : format of saved plot (default is 'png')
 
     Output:
     -----------
@@ -1427,15 +1430,16 @@ def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
         D1=(D1-180.)%360 # Somehow this got lost
         Dtit = 'Mode 1 Declinations'
         Itit = 'Mode 1 Inclinations'
-        plt.figure(fignum,figsize=(6, 3))
-        fignum+=1
-        Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
-            QQ['unf'], D1, Dtit, subplot=True)  # make plot
-        Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
-            QQ['exp'], I1, Itit, subplot=True)  # make plot
-        plt.tight_layout()
-        if save:
-            plt.savefig('QQ_mode1.'+fmt)
+        if plot == True:
+            plt.figure(fignum,figsize=(6, 3))
+            fignum+=1
+            Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
+                QQ['unf'], D1, Dtit, subplot=True)  # make plot
+            Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
+                QQ['exp'], I1, Itit, subplot=True)  # make plot
+            plt.tight_layout()
+            if save == True:
+                plt.savefig('QQ_mode1.'+fmt)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'consistent with Fisherian model'
         else:
@@ -1469,14 +1473,15 @@ def fishqq(lon=None, lat=None, di_block=None,save=False,fmt='png'):
             Drbar = ppars['dec'] - 180.
         if ppars['inc']<0:
             Irbar['inc']=-ppars['inc']
-        plt.figure(fignum,figsize=(6, 3))
-        Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
-            QQ['unf'], D2, Dtit, subplot=True)  # make plot
-        Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
-            QQ['exp'], I2, Itit, subplot=True)  # make plot
-        plt.tight_layout()
-        if save:
-            plt.savefig('QQ_mode2.'+fmt)
+        if plot == True:
+            plt.figure(fignum,figsize=(6, 3))
+            Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
+                QQ['unf'], D2, Dtit, subplot=True)  # make plot
+            Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
+                QQ['exp'], I2, Itit, subplot=True)  # make plot
+            plt.tight_layout()
+            if save == True:
+                plt.savefig('QQ_mode2.'+fmt)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'consistent with Fisherian model'
