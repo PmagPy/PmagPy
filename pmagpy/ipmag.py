@@ -680,7 +680,7 @@ def squish(incs, f):
 
 def f_factor_calc(inc_observed, inc_field):
     """
-    Calculated the flattening factor (f) from an observed inclination in
+    Calculate the flattening factor (f) from an observed inclination in
     comparison to the expected inclination.
 
     Parameters
@@ -690,7 +690,7 @@ def f_factor_calc(inc_observed, inc_field):
 
     Returns
     ---------
-    f_factor : the flatting factor
+    f_factor : the flattening factor
 
     Examples
     --------
