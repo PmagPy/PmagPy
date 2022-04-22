@@ -378,11 +378,19 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     Use lists of declination and inclination to calculate a Kent mean:
 
     >>> ipmag.kent_distribution_95(dec=[140,127,142,136],inc=[21,23,19,22])
-
+    {'dec': 136.30838974272072,
+    'inc': 21.347784026899987,
+    'n': 4,
+    'Zdec': 40.82469002841276,
+    'Zinc': 13.739412321974067,
+    'Edec': 280.38683553668795,
+    'Einc': 64.23659892174429,
+    'Zeta': 13.677129096579478,
+    'Eta': 1.4597607031196376}
     Use a di_block to calculate a Kent mean (will give the same output as the
     example with the lists):
 
-    >>> ipmag.kent_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+    >>> ipmag.kent_distribution_95(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec, inc)
