@@ -1810,7 +1810,7 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     fignum : matplotlib figure number
     data : list of data to be plotted - doesn't need to be sorted
     sym : matplotlib symbol for plotting, e.g., 'r--' for a red dashed line
-    **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth}
+    **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth, 'fontsize':fontsize for axes labels}
 
     Returns
     __________
@@ -1828,7 +1828,7 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     X, Y = [], []
     color = ""
     for j in range(len(sdata)):
-        Y.append(old_div(float(j), float(len(sdata))))
+        Y.append(float(j)/float(len(sdata)))
         X.append(sdata[j])
     if 'color' in list(kwargs.keys()):
         color = kwargs['color']
@@ -1841,8 +1841,8 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     else:
         plt.plot(X, Y, sym, linewidth=lw)
 
-    plt.xlabel(xlab)
-    plt.ylabel('Cumulative Distribution')
+    plt.xlabel(xlab, kwargs.get('fontsize', 12))
+    plt.ylabel('Cumulative Distribution', kwargs.get('fontsize', 12))
     plt.title(title)
     return X, Y
 #
