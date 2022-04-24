@@ -1841,8 +1841,8 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     else:
         plt.plot(X, Y, sym, linewidth=lw)
 
-    plt.xlabel(xlab, kwargs.get('fontsize', 12))
-    plt.ylabel('Cumulative Distribution', kwargs.get('fontsize', 12))
+    plt.xlabel(xlab, fontsize=kwargs.get('fontsize', 12))
+    plt.ylabel('Cumulative Distribution', fontsize=kwargs.get('fontsize', 12))
     plt.title(title)
     return X, Y
 #
