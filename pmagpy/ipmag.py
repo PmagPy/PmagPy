@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
 import matplotlib.ticker as mtick
+from matplotlib import colors
+from matplotlib import cm
 try:
     import requests
 except ImportError:
@@ -8720,6 +8722,229 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
+def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
+                return_new_dirs=False, return_values=False, figprefix='EI', 
+                num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
+                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
+    """
+    Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
+    Finds flattening factor that gives elongation/inclination pair consistent with TK03
+    Finds bootstrap confidence bounds
+    Based on all flattening factors from the E/I bootstrap results find the distribution of paleolatitudes and fit with a normal distribution
+    Based on all flattening factors from the E/I bootstrap results calculate the correspondant VGP pole positions and their mean poles associated with each factor
+    Perform Monte Carlo resample of the mean poles associated with each flattening factor
+    Finds the Kent distribution statistics: mean, major and minor axes and their associated angles of dispersion. 
+    
+    
+    Required Parameter
+    -----------
+    data: a nested list of dec/inc pairs
+    site_latitude, site_longitude: location of the paleomagentic site
+    
+
+    Optional Parameters (defaults are used unless specified)
+    -----------
+    Kent_color: color of the Kent ellipse to plot
+    nb: number of bootstrapped pseudo-samples (default is 1000)
+    save: Boolean argument to save plots (default is False)
+    save_folder: path to folder in which plots should be saved (default is current directory)
+    fmt: specify format of saved plots (default is 'svg')
+    return_new_dirs: optional return of newly "unflattened" directions as di_block (default is False)
+    return_values: optional return of all bootstrap result inclinations, elongations, and 
+        f factors (default is False)
+    if both return_new_dirs=True and return_values=True, the function will return:
+        di_block of new directions, inclinations, elongations,and f factors
+    figprefix: prefix string for the name of the figures to be saved
+    num_resample_to_plot: number of bootstrap resamples to plot in the elongation/inclination figure
+    EI_color: color of the most elongation/inclination curve corresponding to the most frequent f value
+    resample_EI_color: color of all other elongation/inclination curves
+    vgp_nb: number of virtual geomagnetic poles to resample for each iteration, the total VGPs resampled will be vgp_nb*nb
+    cmap: matplotlib color map used for plotting corrected paleomagnetic directions
+    central_longitude, central_latitude: central point of pole projection (defaults are 0)
+    
+    Note that many directions (~ 100) are needed for this correction to be reliable.
+    return_new_dirs: optional return of newly "unflattened" directions as di_block (default is False)
+    return_values: optional return of all bootstrap result inclinations, elongations, and 
+        f factors (default is False)
+    if both return_new_dirs=True and return_values=True, the function will return:
+        di_block of new directions, inclinations, elongations,and f factors
+    num_resample_to_plot: number of bootstrap resample elongation/inclination curves to plot (default to to plot all)
+    vgp_nb: number of vgp to resample using a Monte Carlo approach with each f factor
+    cmap: matplotlib color map for color-coding the directions and mean poles based on the f factor
+    
+    
+    EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
+    resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
+    resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+
+    Returns
+    -----------
+    four plots:   1) equal area plot of original directions
+                  2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+                  3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
+                     Estimate from original data set plotted as solid line
+                  4) Orientation of principle direction through unflattening
+     
+    NOTE: If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
+       valid solutions and those are plotted in the CDFs and E/I plot.
+    """
+    
+    print("Bootstrapping.... be patient")
+    print("")
+    sys.stdout.flush()
+
+    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
+    E, I = [], []
+
+    ppars = pmag.doprinc(data)
+    Io = ppars['inc']
+    n = ppars["N"]
+    Es, Is, Fs, V2s = pmag.find_f(data)
+
+    Inc, Elong = Is[-1], Es[-1]
+    flat_f = Fs[-1]
+    # plot E/I figure
+    plt.figure(num=1, figsize=(4, 4))
+    plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
+    plt.xlabel("Inclination", fontsize=12)
+    plt.ylabel("Elongation", fontsize=12)
+    plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
+
+    b = 0
+
+    while b < nb:
+        bdata = pmag.pseudo(data)
+        Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
+        if b < num_resample_to_plot:
+            plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
+        if Esb[-1] != 0:
+            ppars = pmag.doprinc(bdata)
+
+            I.append(abs(Isb[-1]))
+            E.append(Esb[-1])
+            b += 1
+
+    I.sort()
+    E.sort()
+    plt.xlim(min(I)*0.8, max(I)*1.05)
+    plt.ylim(min(E)*0.5, max(E)*1.05)
+    Eexp = []
+    for i in I:
+        Eexp.append(pmag.EI(i))
+    plt.plot(I, Eexp, 'k')
+    if Inc == 0:
+        title = 'Pathological Distribution: ' + \
+            '[%7.1f, %7.1f]' % (I[lower], I[upper])
+    else:
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+    plt.figure(figsize=(4, 4))
+    pmagplotlib.plot_cdf(2, I, 'Inclinations', 'r', title)
+    pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(2, [Inc], 'g', '-')
+    pmagplotlib.plot_vs(2, [Io], 'k', '-')
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+    # plot directional data corrected by all f
+    F = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I))
+    
+    plt.figure(figsize=(4,4))
+    plot_net()
+    cNorm  = colors.Normalize(vmin=min(F), vmax=max(F))
+    f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
+    
+    di_lists = unpack_di_block(data)
+    if len(di_lists) == 3:
+        decs, incs, intensity = di_lists
+    if len(di_lists) == 2:
+        decs, incs = di_lists
+        
+    mean_lons = []
+    mean_lats = []
+    
+    for f in F:
+        unsquish_incs = unsquish(incs, f)
+        unsquish_VGPs = pmag.dia_vgp(np.array([decs, unsquish_incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+        unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
+        unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
+                                                       dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+        mean_lons.extend(resampled_lons)
+        mean_lats.extend(resampled_lats)
+        
+        rgba = f_scalarMap.to_rgba(f)
+        hex_color = colors.rgb2hex(rgba)
+
+        plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
+    cb = plt.colorbar(f_scalarMap,orientation='horizontal',fraction=0.05, pad=0.05)
+    cb.ax.tick_params(labelsize=14)
+    cb.ax.set_title(label='$f$ values', fontsize=14)
+
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+    # plot paleolatitudes distribution
+    EI_plats = np.degrees(np.arctan(np.tan(np.radians(I))/2))
+    plat_mode = stats.mode(np.round(EI_plats, 1))[0][0]
+    plat_lower, plat_upper = np.round(np.percentile(EI_plats, [2.5, 97.5]), 1)
+    mu, std = stats.norm.fit(EI_plats)
+    x = np.linspace(min(EI_plats), max(EI_plats), 100)
+    p = stats.norm.pdf(x, mu, std)
+
+    plt.figure(figsize=(4, 4))
+    plt.hist(EI_plats, bins=15, alpha=0.6, density=1)
+    plt.plot(x, p, 'k', linewidth=1)
+
+    plt.axvline(x=plat_lower, color = 'gray', ls='--')
+    plt.axvline(x=plat_upper, color = 'gray', ls='--')
+
+    plt.text(16.5, 0.10, str(plat_lower), fontsize=14)
+    plt.text(29.5, 0.10, str(plat_upper), fontsize=14)
+    plt.title('%7.1f [%7.1f, %7.1f]' % (plat_mode, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('paleolatitudes ($^\circ$)', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+    
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+        
+    # plot resampled mean poles
+    plt.figure(figsize=(8,8))
+    m = make_orthographic_map(central_longitude, central_latitude)
+    plot_vgp(m, mean_lons, mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
+    
+    kent_stats = kent_distribution_95(dec=mean_lons,inc=mean_lats) 
+    plot_pole_ellipse(m,kent_stats, color=Kent_color)
+        
+    if (Inc, Elong, flat_f) == (0, 0, 0):
+        print("PATHOLOGICAL DISTRIBUTION")
+    print("The original inclination was: " + str(np.round(Io,2)))
+    print("")
+    print("The corrected inclination is: " + str(np.round(Inc,2)))
+    print("with bootstrapped confidence bounds of: " +
+          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+    print("and elongation parameter of: " + str(np.round(Elong,2)))
+    print("The flattening factor is: " + str(np.round(flat_f,2)))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    print("with bootstrapped confidence bounds of: " +
+           str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
+        
+    if return_new_dirs and return_values :
+        unsquished_incs = unsquish(incs, flat_f)
+        return make_di_block(decs, unsquished_incs), I, E, F
+    
+    elif return_new_dirs:
+        unsquished_incs = unsquish(incs, flat_f)
+        return make_di_block(decs, unsquished_incs)
+    elif return_values:
+        return I, E, F
+    else:
+        return
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
