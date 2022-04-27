@@ -8722,7 +8722,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
-def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
+def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
                 return_new_dirs=False, return_values=False, figprefix='EI', 
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
@@ -8936,15 +8936,15 @@ def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, s
         
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-        return make_di_block(decs, unsquished_incs), I, E, F
+        return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
     
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
         return make_di_block(decs, unsquished_incs)
     elif return_values:
-        return I, E, F
+        return kent_stats, I, E, F
     else:
-        return
+        return kent_stats
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
