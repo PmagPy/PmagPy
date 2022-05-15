@@ -253,7 +253,7 @@ def bingham_mean(dec=None, inc=None, di_block=None):
     """
     Calculates the Bingham mean and associated statistical parameters from
     either a list of declination values and a separate list of inclination
-    values or from a di_block (a nested list a nested list of [dec,inc,1.0]).
+    values or from a di_block (a nested list of [dec, inc, 1.0]).
     Returns a dictionary with the Bingham mean and statistical parameters.
 
     Parameters
@@ -301,9 +301,9 @@ def bingham_mean(dec=None, inc=None, di_block=None):
 
 def kent_mean(dec=None, inc=None, di_block=None):
     """
-    Calculates the Kent mean and associated statistical parameters from either a list of
-    declination values and a separate list of inclination values or from a
-    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
+    Calculates the Kent mean and associated statistical parameters from either
+    a list of declination values and a separate list of inclination values or 
+    from a di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
     dictionary with the Kent mean and statistical parameters.
 
     Parameters
@@ -406,12 +406,12 @@ def print_direction_mean(mean_dictionary):
 
     Parameters
     ----------
-    mean_dictionary: output dictionary of pmag.fisher_mean
+    mean_dictionary : output dictionary of pmag.fisher_mean()
 
     Examples
     --------
-    Generate a Fisher mean using ``ipmag.fisher_mean`` and then print it nicely
-    using ``ipmag.print_direction_mean``
+    Generate a Fisher mean using ``ipmag.fisher_mean()`` and then print it nicely
+    using ``ipmag.print_direction_mean()``
 
     >>> my_mean = ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     >>> ipmag.print_direction_mean(my_mean)
@@ -436,12 +436,12 @@ def print_pole_mean(mean_dictionary):
 
     Parameters
     ----------
-    mean_dictionary: output dictionary of pmag.fisher_mean
+    mean_dictionary : output dictionary of pmag.fisher_mean()
 
     Examples
     --------
-    Generate a Fisher mean using ``ipmag.fisher_mean`` and then print it nicely
-    using ``ipmag.print_pole_mean``
+    Generate a Fisher mean using ``ipmag.fisher_mean()`` and then print it nicely
+    using ``ipmag.print_pole_mean()``
 
     >>> my_mean = ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     >>> ipmag.print_pole_mean(my_mean)
@@ -462,7 +462,7 @@ def print_pole_mean(mean_dictionary):
 def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
-    using the pmag.py fshdev and dodirot functions.
+    using the pmag.py function fshdev() and dodirot() functions.
 
     Parameters
     ----------
@@ -508,7 +508,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
 def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
     """
     Generates resamples of directional means from a Fisher mean with a specified
-    alpha95. Equivelant of sampling from angular standard deviation.
+    alpha95. Equivalent of sampling from the angular standard deviation.
 
     Parameters
     ----------
@@ -614,7 +614,8 @@ def unsquish(incs, f):
     Examples
     --------
     Take a list of inclinations, flatten them using ``ipmag.squish`` and then
-    use ``ipmag.squish`` and the flattening factor to unflatten them.
+    use ``ipmag.squish`` and the flattening factor to unflatten (i.e. 
+    "unsquish") them:
 
     >>> inclinations = [43,47,41]
     >>> squished_incs = ipmag.squish(inclinations,0.4)
@@ -654,7 +655,7 @@ def squish(incs, f):
 
     Examples
     --------
-    Take a list of inclinations, flatten them.
+    Take a list of inclinations, flatten (i.e. "squish") them:
 
     >>> inclinations = [43,47,41]
     >>> ipmag.squish(inclinations,0.4)
@@ -695,7 +696,7 @@ def f_factor_calc(inc_observed, inc_field):
     Examples
     --------
     Calculate the f factor for an inclination that was shallowed from 40 degrees
-    to 25 degrees
+    to 25 degrees:
 
     >>> ipmag.f_factor_calc(25,40)
     0.5557238268604126
@@ -718,12 +719,12 @@ def do_flip(dec=None, inc=None, di_block=None):
 
     Parameters
     ----------
-    dec: list of declinations
-    inc: list of inclinations
+    dec : list of declinations
+    inc : list of inclinations
 
     or
 
-    di_block: a nested list of [dec, inc, 1.0]
+    di_block : a nested list of [dec, inc, 1.0]
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
