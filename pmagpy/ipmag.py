@@ -378,11 +378,19 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     Use lists of declination and inclination to calculate a Kent mean:
 
     >>> ipmag.kent_distribution_95(dec=[140,127,142,136],inc=[21,23,19,22])
-
+    {'dec': 136.30838974272072,
+    'inc': 21.347784026899987,
+    'n': 4,
+    'Zdec': 40.82469002841276,
+    'Zinc': 13.739412321974067,
+    'Edec': 280.38683553668795,
+    'Einc': 64.23659892174429,
+    'Zeta': 13.677129096579478,
+    'Eta': 1.4597607031196376}
     Use a di_block to calculate a Kent mean (will give the same output as the
     example with the lists):
 
-    >>> ipmag.kent_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+    >>> ipmag.kent_distribution_95(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec, inc)
@@ -672,7 +680,7 @@ def squish(incs, f):
 
 def f_factor_calc(inc_observed, inc_field):
     """
-    Calculated the flattening factor (f) from an observed inclination in
+    Calculate the flattening factor (f) from an observed inclination in
     comparison to the expected inclination.
 
     Parameters
@@ -682,7 +690,7 @@ def f_factor_calc(inc_observed, inc_field):
 
     Returns
     ---------
-    f_factor : the flatting factor
+    f_factor : the flattening factor
 
     Examples
     --------
@@ -8546,7 +8554,8 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False, figprefix='EI', return_values=False):
+            site_correction=False, return_new_dirs=False, figprefix='EI', 
+            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8577,7 +8586,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         f factors (default is False)
     if both return_new_dirs=True and return_values=True, the function will return:
         di_block of new directions, inclinations, elongations,and f factors
-    
+    num_resample_to_plot: number of bootstrap resample elongation/inclination curves to plot (default to to plot all)
+    data_color: the color of the direction equal area plot data (default is black)
+    EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
+    resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
+    resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+
     Returns
     -----------
     four plots:   1) equal area plot of original directions
@@ -8598,10 +8612,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
-    plot_di(di_block=data)
+    plot_di(di_block=data, color=data_color)
     plt.title('Original')
-    if save:
-        plt.savefig(save_folder+'/'+figprefix+'_original_directions'+'.'+fmt)
 
     ppars = pmag.doprinc(data)
     Io = ppars['inc']
@@ -8615,19 +8627,19 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         flat_f = Fs[-1]
 
     plt.figure(num=2, figsize=(4, 4))
-    plt.plot(Is, Es, 'r')
-    plt.xlabel("Inclination")
-    plt.ylabel("Elongation")
-    plt.text(Inc, Elong, ' %4.2f' % (flat_f))
-    plt.text(Is[0] - 2, Es[0], ' %s' % ('f=1'))
+    plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
+    plt.xlabel("Inclination", fontsize=12)
+    plt.ylabel("Elongation", fontsize=12)
+    plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
+#     plt.text(Is[0] - 2, Es[0], ' %s' % ('f=1'), fontsize=12)
 
     b = 0
 
     while b < nb:
         bdata = pmag.pseudo(data)
         Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
-        if b < 25:
-            plt.plot(Isb, Esb, 'y')
+        if b < num_resample_to_plot:
+            plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
         if Esb[-1] != 0:
             ppars = pmag.doprinc(bdata)
             if site_correction == True:
@@ -8643,14 +8655,14 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     Eexp = []
     for i in I:
         Eexp.append(pmag.EI(i))
-    plt.plot(I, Eexp, 'g-')
+    plt.plot(I, Eexp, 'k')
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
             '[%7.1f, %7.1f]' % (I[lower], I[upper])
     else:
         title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
     if save:
-        plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt)
+        plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
@@ -8659,7 +8671,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
-        plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt)
+        plt.savefig(save_folder+'/'+figprefix+'_inc_CDF'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     # plot corrected directional data
 
@@ -8672,15 +8684,15 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         unsquished_incs = unsquish(incs, flat_f)
         plt.figure(num=4, figsize=(4, 4))
         plot_net(4)
-        plot_di(decs, unsquished_incs)
+        plot_di(decs, unsquished_incs, color=data_color)
         plt.title('Corrected for flattening')
     else:
         plt.figure(num=4, figsize=(4, 4))
         plot_net(4)
-        plot_di(decs, incs)
+        plot_di(decs, incs, color=data_color)
         plt.title('Corrected for flattening')
     if save:
-        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt)
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
