@@ -187,12 +187,12 @@ def gaussfunc(y, ybar, sigma):
     sigma : standard deviation
 
     """
-    x = old_div((y - ybar), (np.sqrt(2.) * sigma))
-    t = old_div(1.0, (1.0 + .3275911 * abs(x)))
+    x = (y - ybar)/(np.sqrt(2.) * sigma)
+    t = 1.0/(1.0 + .3275911 * abs(x))
     erf = 1.0 - np.exp(-x * x) * t * (.254829592 - t * (.284496736 -
                                                         t * (1.421413741 - t * (1.453152027 - t * 1.061405429))))
     erf = abs(erf)
-    sign = old_div(x, abs(x))
+    sign = x/abs(x)
     return 0.5 * (1.0 + sign * erf)
 
 
@@ -205,7 +205,7 @@ def k_s(X):
     xbar, sigma = pmag.gausspars(X)
     d, f = 0, 0.
     for i in range(1, len(X) + 1):
-        b = old_div(float(i), float(len(X)))
+        b = float(i)/float(len(X))
         a = gaussfunc(X[i - 1], xbar, sigma)
         if abs(f - a) > abs(b - a):
             delta = abs(f - a)
@@ -233,7 +233,7 @@ def qsnorm(p):
     if (d - 0.5) < 0:
         t2 = -2. * np.log(d)
         t = np.sqrt(t2)
-        x = t - old_div((2.515517 + .802853 * t + .010328 * t2),
+        x = t - ((2.515517 + .802853 * t + .010328 * t2)/
                         (1. + 1.432788 * t + .189269 * t2 + .001308 * t * t2))
         if p < 0.5:
             x = -x
@@ -337,10 +337,10 @@ def plot_qq_norm(fignum, Y, title):
     Y = np.sort(Y)  # sort the data
     n = len(Y)
     d, mean, sigma = k_s(Y)
-    dc = old_div(0.886, np.sqrt(float(n)))
+    dc = 0.886/np.sqrt(float(n))
     X = []  # list for normal quantile
     for i in range(1, n + 1):
-        p = old_div(float(i), float(n + 1))
+        p = float(i)/float(n + 1)
         X.append(qsnorm(p))
     plt.plot(X, Y, 'ro')
     plt.title(title)
@@ -437,7 +437,7 @@ def plot_qq_exp(fignum, I, title, subplot=False):
     else:
         plt.figure(num=fignum)
     X, Y, dpos, dneg = [], [], 0., 0.
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     xsum = 0
     for i in I:
         theta = (90. - i) * rad
@@ -445,7 +445,7 @@ def plot_qq_exp(fignum, I, title, subplot=False):
         xsum += X[-1]
     X.sort()
     n = float(len(X))
-    kappa = old_div((n - 1.), xsum)
+    kappa = (n - 1.)/xsum
     for i in range(len(X)):
         p = (float(i) - 0.5)/n
         Y.append(-np.log(1. - p))
@@ -805,7 +805,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
                 if recnum > 0:
                     Tv.append(rec[0])
             if norm:
-                M.append(old_div(rec[3], Ints[-1]))
+                M.append(rec[3]/Ints[-1])
             else:
                 M.append(rec[3])
             if recnum > 0 and len(rec) > 0 and len(recbak) > 0:
@@ -817,8 +817,8 @@ def plot_mag(fignum, datablock, s, num, units, norm):
                         v.append(abs(V1[el] - V0[el]))
                     vdir = pmag.cart2dir(v)
                     # append vector difference
-                    Vdif.append(old_div(vdir[2], Ints[-1]))
-                    Vdif.append(old_div(vdir[2], Ints[-1]))
+                    Vdif.append(vdir[2]/Ints[-1])
+                    Vdif.append(vdir[2]/Ints[-1])
             recbak = []
             for el in rec:
                 recbak.append(el)
@@ -833,7 +833,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
                 Tex.append(rec[0] * 1e3)
             if rec[0] >= 200:
                 Tex.append(rec[0] - 273)
-            Mex.append(old_div(rec[3], Ints[-1]))
+            Mex.append(rec[3]/Ints[-1])
             recnum += 1
     if globals != 0:
         globals.MTlist = T
@@ -841,7 +841,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     if len(Mex) > 0 and len(Tex) > 0:
         plt.scatter(Tex, Mex, marker='d', color='k')
     if len(Vdif) > 0:
-        Vdif.append(old_div(vdir[2], Ints[-1]))
+        Vdif.append(vdir[2]/Ints[-1])
         Vdif.append(0)
     if Tv:
         Tv.append(Tv[-1])
@@ -930,8 +930,8 @@ def plot_zed(ZED, datablock, angle, s, units):
     plt.plot(AngleX, AngleY, 'r-')
     if AngleX[-1] == 0:
         AngleX[-1] = 0.01
-    plt.text(AngleX[-1] + (old_div(AngleX[-1], abs(AngleX[-1]))) * .1,
-             AngleY[-1] + (old_div(AngleY[-1], abs(AngleY[-1]))) * .1, 'X')
+    plt.text(AngleX[-1] + (AngleX[-1]/abs(AngleX[-1])) * .1,
+             AngleY[-1] + (AngleY[-1]/abs(AngleY[-1])) * .1, 'X')
     norm = 1
     #if units=="U": norm=0
     # if there are NO good points, don't try to plot
@@ -1094,7 +1094,7 @@ def plot_arai(fignum, indata, s, units):
 # plot the NRM-pTRM data
     forVDS = []
     for zrec in first_Z:
-        forVDS.append([zrec[1], zrec[2], old_div(zrec[3], first_Z[0][3])])
+        forVDS.append([zrec[1], zrec[2], zrec[3]/first_Z[0][3]])
         ZI = zrec[4]
         if zrec[0] == '0':
             irec = ['0', 0, 0, 0]
@@ -1105,14 +1105,14 @@ def plot_arai(fignum, indata, s, units):
                 if irec[0] == zrec[0]:
                     break
 # save the NRM data used for calculation in Vi
-        x.append(old_div(irec[3], first_Z[0][3]))
-        y.append(old_div(zrec[3], first_Z[0][3]))
+        x.append(irec[3]/first_Z[0][3])
+        y.append(zrec[3]/first_Z[0][3])
         if ZI == 1:
-            x_zi.append(old_div(irec[3], first_Z[0][3]))
-            y_zi.append(old_div(zrec[3], first_Z[0][3]))
+            x_zi.append(irec[3]/first_Z[0][3])
+            y_zi.append(zrec[3]/first_Z[0][3])
         else:
-            x_iz.append(old_div(irec[3], first_Z[0][3]))
-            y_iz.append(old_div(zrec[3], first_Z[0][3]))
+            x_iz.append(irec[3]/first_Z[0][3])
+            y_iz.append(zrec[3]/first_Z[0][3])
         plt.text(x[-1], y[-1], (' ' + str(recnum)), fontsize=9)
         recnum += 1
 # now deal with ptrm checks.
@@ -1122,8 +1122,8 @@ def plot_arai(fignum, indata, s, units):
             for zrec in first_Z:
                 if zrec[0] == step:
                     break
-            xptrm.append(old_div(prec[3], first_Z[0][3]))
-            yptrm.append(old_div(zrec[3], first_Z[0][3]))
+            xptrm.append(prec[3]/first_Z[0][3])
+            yptrm.append(zrec[3]/first_Z[0][3])
 # now deal with zptrm checks.
     if len(zptrm_check) != 0:
         for prec in zptrm_check:
@@ -1131,8 +1131,8 @@ def plot_arai(fignum, indata, s, units):
             for zrec in first_Z:
                 if zrec[0] == step:
                     break
-            xzptrm.append(old_div(prec[3], first_Z[0][3]))
-            yzptrm.append(old_div(zrec[3], first_Z[0][3]))
+            xzptrm.append(prec[3]/first_Z[0][3])
+            yzptrm.append(zrec[3]/first_Z[0][3])
 # and the pTRM tails
     if len(ptrm_tail) != 0:
         for trec in ptrm_tail:
@@ -1140,8 +1140,8 @@ def plot_arai(fignum, indata, s, units):
             for irec in first_I:
                 if irec[0] == step:
                     break
-            xptrmt.append(old_div(irec[3], first_Z[0][3]))
-            yptrmt.append((old_div(trec[3], first_Z[0][3])))
+            xptrmt.append(irec[3]/first_Z[0][3])
+            yptrmt.append((trec[3]/first_Z[0][3]))
 # now plot stuff
     if len(x) == 0:
         print("Can't do nuttin for ya")
@@ -1183,8 +1183,6 @@ def plot_arai(fignum, indata, s, units):
     plt.text(1., vds - .1, ('VDS '), fontsize=9)
 #    bounds=plt.axis()
 #    if bounds[1]<1:plt.axis([bounds[0], 1., bounds[2], bounds[3]])
-#
-#
 
 
 def plot_np(fignum, indata, s, units):
@@ -1689,7 +1687,7 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
     lower : boolean, if True, lower hemisphere projection
     plot : boolean, if False, return the points, if True, make the plot
     """
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     Pdec, Pinc, beta, Bdec, Binc, gamma, Gdec, Ginc = pars[0], pars[
         1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7]
     if beta > 90. or gamma > 90:
@@ -3680,16 +3678,16 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     x, y = [], []
     # Draws the border
     for i in range(0, 360):
-        x.append(np.sin((old_div(np.pi, 180.)) * float(i)))
-        y.append(np.cos((old_div(np.pi, 180.)) * float(i)))
+        x.append(np.sin((np.pi/180.) * float(i)))
+        y.append(np.cos((np.pi/180.) * float(i)))
     plt.plot(x, y, 'w-')
     x, y = [], []
     # the map will be a square of 1X1..this is how I erase the redundant area
     for j in range(1, 4):
         for i in range(0, 360):
-            x.append(np.sin((old_div(np.pi, 180.)) * float(i))
+            x.append(np.sin((np.pi/180.) * float(i))
                      * (1. + (old_div(float(j), 10.))))
-            y.append(np.cos((old_div(np.pi, 180.)) * float(i))
+            y.append(np.cos((np.pi/180.) * float(i))
                      * (1. + (old_div(float(j), 10.))))
         plt.plot(x, y, 'w-', linewidth=26)
         x, y = [], []

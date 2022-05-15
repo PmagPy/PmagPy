@@ -2244,7 +2244,7 @@ def dotilt_V(indat):
     indat = indat.transpose()
     # unpack input array into separate arrays
     dec, inc, bed_az, bed_dip = indat[0], indat[1], indat[2], indat[3]
-    rad = old_div(np.pi, 180.)  # convert to radians
+    rad = np.pi/180.  # convert to radians
     Dir = np.array([dec, inc]).transpose()
     X = dir2cart(Dir).transpose()  # get cartesian coordinates
     N = np.size(dec)
@@ -2537,7 +2537,7 @@ def cart2dir(cart):
     array([ 90.,   0.,   1.])
     """
     cart = np.array(cart)
-    rad = old_div(np.pi, 180.)  # constant to convert degrees to radians
+    rad = np.pi/180.  # constant to convert degrees to radians
     if len(cart.shape) > 1:
         Xs, Ys, Zs = cart[:, 0], cart[:, 1], cart[:, 2]
     else:  # single vector
@@ -2717,7 +2717,7 @@ def domean(data, start, end, calculation_type):
         print('problem removing bad data in pmag.domean end of datablock shifted:\noriginal: %d\nafter removal: %d' % (
             end0, indata.index(datablock[end])))
     mpars["calculation_type"] = calculation_type
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     if end > len(datablock) - 1 or end < start:
         end = len(datablock) - 1
     control, data, X, Nrec = [], [], [], float(end - start + 1)
@@ -4010,7 +4010,7 @@ def gha(julian_day, f):
     """
     returns greenwich hour angle
     """
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     d = julian_day - 2451545.0 + f
     L = 280.460 + 0.9856474 * d
     g = 357.528 + 0.9856003 * d
@@ -4726,7 +4726,7 @@ def vdm_b(vdm, lat):
     -------
     B: local magnetic field strength in tesla
     """
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     # changed radius of the earth from 3.367e6 3/12/2010
     fact = ((6.371e6)**3) * 1e7
     colat = (90. - lat) * rad
@@ -5706,7 +5706,7 @@ def doincfish(inc):
         'alpha95' : estimated fisher alpha_95
         'csd' : estimated circular standard deviation
     """
-    rad, SCOi, SSOi = old_div(np.pi, 180.), 0., 0.  # some definitions
+    rad, SCOi, SSOi = np.pi/180., 0., 0.  # some definitions
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -5928,7 +5928,7 @@ def doprinc(data):
         Edir : elongation direction [dec, inc, length]
     """
     ppars = {}
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     X = dir2cart(data)
     # for rec in data:
     #    dir=[]
@@ -8239,7 +8239,7 @@ def sortmwarai(datablock, exp_type):
     field, phi, theta = "", "", ""
     POWT_I, POWT_Z, POWT_PZ, POWT_PI, POWT_M = [], [], [], [], []
     ISteps, ZSteps, PZSteps, PISteps, MSteps = [], [], [], [], []
-    rad = old_div(np.pi, 180.)
+    rad = np.pi/180.
     ThetaChecks = []
     DeltaChecks = []
     GammaChecks = []
