@@ -279,7 +279,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.main_sizer.Add(self.code_msg_boxsizer, 0,
                             flag=wx.BOTTOM|wx.ALIGN_CENTRE,#|wx.SHAPED,
                             border=5)
-        self.main_sizer.Add(self.grid_box, 2, flag=wx.ALL|wx.ALIGN_CENTER|wx.EXPAND, border=10)
+        #self.main_sizer.Add(self.grid_box, 2, flag=wx.ALL|wx.ALIGN_CENTER|wx.EXPAND, border=10) # DEBUG
+        self.main_sizer.Add(self.grid_box, 2, flag=wx.ALL)
         self.panel.SetSizer(self.main_sizer)
         panel_sizer = wx.BoxSizer(wx.VERTICAL)
         panel_sizer.Add(self.panel, 1, wx.EXPAND)
