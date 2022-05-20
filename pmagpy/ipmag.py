@@ -8558,14 +8558,14 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             site_correction=False, return_new_dirs=False, figprefix='EI', 
             return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05):
     """
-    Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
+    Applies series of assumed flattening factors and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
-    or, if correcting by site instead of for study-level secular variation,
+    or, if correcting by site instead for study-level secular variation,
     finds flattening factor that minimizes elongation and most resembles a
     Fisherian distribution.
     Finds bootstrap confidence bounds
 
-    Required Parameter
+    Required Parameters
     -----------
     data: a nested list of dec/inc pairs
 
@@ -8631,6 +8631,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
     plt.xlabel("Inclination", fontsize=12)
     plt.ylabel("Elongation", fontsize=12)
+    plt.ylim(.9,5)
     plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
 #     plt.text(Is[0] - 2, Es[0], ' %s' % ('f=1'), fontsize=12)
 
