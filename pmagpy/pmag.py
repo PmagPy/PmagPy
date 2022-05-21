@@ -8429,7 +8429,7 @@ def docustom(lon, lat, alt, gh):
     alt   = height above mean sea level in km (itype = 1 assumed)
     """
     model, date, itype = 0, 0, 1
-    sv = np.zeros(len(gh))
+    sv = np.zeros(4*len(gh))
     colat = 90. - lat
     x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     return x, y, z, f
@@ -8722,10 +8722,10 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 #
 # synthesize x, y, and z in geocentric coordinates.
 # 4
-        #print (l,ll,t,rr)
         one = (gh[l - 1] + sv[ll + l - 1] * t) * rr
         if m != 0:  # else go to 7
             two = (gh[l] + sv[ll + l] * t) * rr
+            two = (gh[l]) * rr
             three = one * cl[m - 1] + two * sl[m - 1]
             x = x + three * q[k]
             z = z - (fn + 1.0) * three * p[k]
