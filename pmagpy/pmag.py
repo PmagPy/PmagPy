@@ -11777,7 +11777,7 @@ def dovandamme(vgp_df):
         A = 1.8 * ASD + 5.
 
 
-def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=False, mm97=False, nb=1000):
+def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=False, mm97=False, nb=1000,verbose=True):
     """
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k,
     site latitude and N information can be used to correct for within site
@@ -11785,7 +11785,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
 
     Parameters
     _________
-    df : Pandas Dataframe with columns
+    vgp_df : Pandas Dataframe with columns
         REQUIRED:
         vgp_lat :  VGP latitude
         ONLY REQUIRED for MM97 correction:
@@ -11796,6 +11796,23 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         OPTIONAL:
         boot : if True. do bootstrap
         nb : number of bootstraps, default is 1000
+    anti : Boolean
+        if True, take antipodes of reverse poles
+    spin : Boolean
+        if True, transform data to spin axis
+    rev : Boolean
+        if True, take only reverse poles
+    v : Boolean
+        if True, filter data with Vandamme (1994) cutoff
+    boot : Boolean
+        if True, use bootstrap for confidence 95% interval
+    mm97 : Boolean
+        if True, use McFadden McElhinny 1997 correction for S
+    nb : int
+        number of bootstrapped pseudosamples for confidence estimate
+    verbose : Boolean
+        if True, print messages
+         
 
     Returns
     _____________
@@ -11821,7 +11838,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         vgp_df['vgp_lat'] = lats
         vgp_df['delta'] = 90.-vgp_df.vgp_lat
     if anti:
-        print('flipping reverse')
+        if verbose: print('flipping reverse')
         vgp_rev = vgp_df[vgp_df.vgp_lat < 0]
         vgp_norm = vgp_df[vgp_df.vgp_lat >= 0]
         vgp_anti = vgp_rev

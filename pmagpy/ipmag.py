@@ -552,7 +552,7 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
         return declinations, inclinations
 
 
-def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0):
+def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
@@ -567,6 +567,7 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0):
     rev : if reversals are to be included this should be 'yes' (default is 'no')
     G2 : specify average g_2^0 fraction (default is 0)
     G3 : specify average g_3^0 fraction (default is 0)
+    B_threshold : return vectors with B>B_threshold (in nT)
 
     Returns
     ----------
@@ -582,7 +583,8 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0):
      [352.48366219759953, 11.579098286352332, 24928.412830772766]]
     """
     tk_03_output = []
-    for k in range(n):
+    k=0
+    while k < n: 
         gh = pmag.mktk03(8, k, G2, G3)  # terms and random seed
         # get a random longitude, between 0 and 359
         lon = random.randint(0, 360)
@@ -593,7 +595,11 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0):
         if k % 2 == 0 and rev == 'yes':
             vec[0] += 180.
             vec[1] = -vec[1]
-        tk_03_output.append([vec[0], vec[1], vec[2]])
+        if vec[2]>B_threshold:
+            tk_03_output.append([vec[0], vec[1], vec[2]])
+            k+=1
+        else: # do more 
+            k-=1
     return tk_03_output
 
 
