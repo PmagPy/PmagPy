@@ -5661,7 +5661,16 @@ def dobingham(di_block):
 
 def doflip(dec, inc):
     """
-    flips lower hemisphere data to upper hemisphere
+    flips upper hemisphere data to lower hemisphere
+    Parameters
+    _________________
+    dec : float
+        declination
+    inc : float
+        inclination
+    Returns: 
+   _____________
+    flipped declination, inclination    
     """
     if inc < 0:
         inc = -inc
@@ -5915,7 +5924,7 @@ def doprinc(data):
     Returns
     -------
     ppars : dictionary with the principal components
-        dec : principal directiion declination
+        dec : principal direction declination
         inc : principal direction inclination
         V2dec : intermediate eigenvector declination
         V2inc : intermediate eigenvector inclination

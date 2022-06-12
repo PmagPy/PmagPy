@@ -430,8 +430,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             elif labfield:
                 this_treat_df['method_codes']=['LT-AF-I']
                 this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                this_treat_df['treat_dc_field_phi']=lab_field_phi
-                this_treat_df['treat_dc_field_theta']=lab_field_theta
+                this_treat_df['treat_dc_field_phi']=labfield_phi
+                this_treat_df['treat_dc_field_theta']=labfield_theta
 
 
 
@@ -449,15 +449,15 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
                 elif int(treat_code[1])==1: 
                     this_treat_df['method_codes']=['LT-T-I']
                     this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=lab_field_phi
-                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+                    this_treat_df['treat_dc_field_phi']=labfield_phi
+                    this_treat_df['treat_dc_field_theta']=labfield_theta
 
 
                 elif int(treat_code[1])==2: 
                     this_treat_df['method_codes']=['LT-T-I:LT-PTRM-I']
                     this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=lab_field_phi
-                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+                    this_treat_df['treat_dc_field_phi']=labfield_phi
+                    this_treat_df['treat_dc_field_theta']=labfield_theta
             else:
                 LPcode='LP-DIR-T'
 
@@ -1994,13 +1994,13 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         X determines which kind of convention (initial characters, terminal characters, or delimiter
         Y determines how many characters to remove to go from specimen --> sample OR which delimiter to use
         X=0 Y=n: specimen is distinguished from sample by n initial characters.
-                 (example: generic(samp_nc=[0, 4], ...)
+                 (example: generic(sample_nc=[0, 4], ...)
                   if n=4 then and specimen = mgf13a then sample = mgf13)
         X=1 Y=n: specimen is distiguished from sample by n terminate characters.
-                 (example: generic(samp_nc=[1, 1], ...))
+                 (example: generic(sample_nc=[1, 1], ...))
                   if n=1 then and specimen = mgf13a then sample = mgf13)
         X=2 Y=c: specimen is distinguishing from sample by a delimiter.
-                 (example: generic([2, "-"]))
+                 (example: generic(sample_nc=[2, "-"]))
                   if c=- then and specimen = mgf13-a then sample = mgf13)
         default: sample is the same as specimen name
 
