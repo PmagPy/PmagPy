@@ -144,8 +144,32 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
 
 def get_dictkey(In, k, dtype):
     """
-        returns list of given key (k)  from input list of dictionaries (In) in data type dtype.  uses command:
-        get_dictkey(In,k,dtype).  If dtype =="", data are strings; if "int", data are integers; if "f", data are floats.
+    Returns list of given key (k) from input list of dictionaries (In) in data typed
+    dtype.
+    
+    Parameters
+    __________
+        In : list of dictionaries to work on
+        k : key to return
+        dtype : str
+            "" : returns string value
+            "f" : returns float
+            "int" : returns integer
+    Returns
+    ______
+        list of values of the key specified to return
+        
+    Examples
+    _________
+    >>> get_dictkey(In,k,dtype)
+     In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
+         {'specimen':'abc01b02','dec':'12.3','inc':'42','int':'4.9e-6'}]
+    >>> k = 'specimen'
+    >>> dtype = ''
+    >>> get_dictkey(In,k,dtype)
+    ['abc01b01', 'abc01b02']
+   
+    
     """
 
     Out = []
