@@ -62,9 +62,10 @@ def sort_diclist(undecorated, sort_on):
 
 
 def get_dictitem(In, k, v, flag, float_to_int=False):
-    """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
-        requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F
-        ,has or not and requires they be castable to float if flag is eval, min, or max.
+    """ 
+    Returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
+        requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F, 
+        has or not and requires they be castable to float if flag is eval, min, or max.
         float_to_int goes through the relvant values in In and truncates them,
         (like "0.0" to "0") for evaluation, default is False
 
@@ -77,7 +78,18 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
         float_to int : if True, truncates to integer
     Returns
     ______
-        list of dictionaries that meet condition
+        list of dictionaries that meet conditions
+        
+    Examples
+    _________
+    >>> In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
+         {'specimen':'abc01b02','dec':'12.3','inc':'42','int':'4.9e-6'}]
+    >>> k = 'specimen'
+    >>> v = 'abc01b02'
+    >>> flag='T'
+    >>> get_dictitem(In,k,v,flag)
+    [{'specimen': 'abc01b02', 'dec': '12.3', 'inc': '42', 'int': '4.9e-6'}]
+   
     """
     if float_to_int:
         try:
