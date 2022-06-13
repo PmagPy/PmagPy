@@ -168,8 +168,6 @@ def get_dictkey(In, k, dtype):
     >>> dtype = ''
     >>> get_dictkey(In,k,dtype)
     ['abc01b01', 'abc01b02']
-   
-    
     """
 
     Out = []
