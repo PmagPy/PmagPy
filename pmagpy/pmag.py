@@ -12466,7 +12466,22 @@ def fix_directories(input_dir_path, output_dir_path):
     output_dir_path = os.path.realpath(output_dir_path)
     return input_dir_path, output_dir_path
 
-
+def deg_min_sec_2_decimal_degrees(d,m,s):
+    """
+    converts degrees, minutes, seconds to decimal degrees
+    Parameters
+    ___________
+    d : float
+       degrees
+    m : float
+       minutes
+    s : float
+       seconds
+    Returns:
+    ________
+    decimal degrees
+    """
+    return d+m/60+s/3600
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
