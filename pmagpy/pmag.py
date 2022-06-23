@@ -25,8 +25,8 @@ def get_version():
     Determines the version of PmagPy installed on your machine.
 
     Returns
-    ---------
-    version : string of pmagpy version, such as "pmagpy-3.8.8"
+    ________
+        version : string of pmagpy version, such as "pmagpy-3.8.8"
     """
     version = find_pmag_dir.get_version()
     return version
@@ -38,17 +38,17 @@ def sort_diclist(undecorated, sort_on):
     dictionary for the sorting key
 
     Parameters
-    ----------
-    undecorated : list of dicts
-    sort_on : str, numeric
-        key that is present in all dicts to sort on
+    __________
+        undecorated : list of dicts
+        sort_on : str, numeric
+            key that is present in all dicts to sort on
 
     Returns
-    ---------
-    ordered list of dicts
+    _______
+        ordered list of dicts
 
     Examples
-    ---------
+    ________
     >>> lst = [{'key1': 10, 'key2': 2}, {'key1': 1, 'key2': 20}]
     >>> sort_diclist(lst, 'key1')
     [{'key2': 20, 'key1': 1}, {'key2': 2, 'key1': 10}]
@@ -77,7 +77,7 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
         flag : [T,F,has, or not]
         float_to int : if True, truncates to integer
     Returns
-    ______
+    _______
         list of dictionaries that meet conditions
         
     Examples
@@ -161,8 +161,7 @@ def get_dictkey(In, k, dtype):
         
     Examples
     _________
-    >>> get_dictkey(In,k,dtype)
-     In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
+    >>> In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
          {'specimen':'abc01b02','dec':'12.3','inc':'42','int':'4.9e-6'}]
     >>> k = 'specimen'
     >>> dtype = ''
@@ -192,6 +191,23 @@ def get_dictkey(In, k, dtype):
 
 
 def find(f, seq):
+    """
+    Returns input value (f) if it is in the given array (seq). 
+    
+    Parameters: 
+    ___________
+        f : value
+        seq : array of values
+    Returns:
+    ________
+        value 'f' if it is in seq 
+        
+    Examples
+    ________
+    >>> A = ['11', '12', '13', '14']
+    >>> find('11',A)
+    '11'
+    """
     for item in seq:
         if f in item:
             return item
@@ -200,8 +216,15 @@ def find(f, seq):
 
 def get_orient(samp_data, er_sample_name, **kwargs):
     """
-    samp_data : PmagPy list of dicts or pandas DataFrame
-    er_sample_name : sample name
+    Returns orientation and orientation method of input sample (er_sample_name). 
+    
+    Parameters: 
+    ___________
+        samp_data : PmagPy list of dicts or pandas DataFrame
+        er_sample_name : sample name
+    Returns:
+    ________
+        orientation data and corresponding orientation method of specified sample (er_sample_name)
     """
     if isinstance(samp_data, pd.DataFrame):
         samp_data = (samp_data.T.apply(dict))
@@ -260,11 +283,11 @@ def EI(inc):
 
     Parameters
     ----------
-    inc : inclination in degrees (int or float)
+        inc : inclination in degrees (int or float)
 
     Returns
     ---------
-    elongation : float
+        elongation : float
 
     Examples
     ---------
@@ -286,15 +309,15 @@ def find_f(data):
 
     Parameters
     ----------
-    data : array of declination, inclination pairs
-        (e.g. np.array([[140,21],[127,23],[142,19],[136,22]]))
+        data : array of declination, inclination pairs
+            (e.g. np.array([[140,21],[127,23],[142,19],[136,22]]))
 
     Returns
     ---------
-    Es : list of elongation values
-    Is : list of inclination values
-    Fs : list of flattening factors
-    V2s : list of elongation directions (relative to the distribution)
+        Es : list of elongation values
+        Is : list of inclination values
+        Fs : list of flattening factors
+        V2s : list of elongation directions (relative to the distribution)
 
     The function will return a zero list ([0]) for each of these parameters if the directions constitute a pathological distribution.
 
@@ -387,11 +410,12 @@ def convert_lat(Recs):
 
 def convert_ages(Recs, data_model=3):
     """
-    converts ages to Ma
+    Converts ages in a list of dictionsaries to units of Millions of years ago, Ma. 
+    
     Parameters
     _________
-    Recs : list of dictionaries in data model by data_model
-    data_model : MagIC data model (default is 3)
+        Recs : list of dictionaries in data model by data_model
+        data_model : MagIC data model (default is 3)
     """
     if data_model == 3:
         site_key = 'site'
@@ -447,9 +471,14 @@ def convert_meas_2_to_3(meas_data_2):
 
 def convert_items(data, mapping):
     """
-    Input: list of dicts (each dict a record for one item),
-    mapping with column names to swap into the records.
-    Output: updated list of dicts.
+    This function maps a given set of dictionsaries to the new given map and outputs an updated dictionary.
+    Parameters
+    __________
+        data : list of dicts (each dict a record for one item)
+        mapping : mapping with column names to swap into the records
+    Returns
+    _______
+        updated list of dicts
     """
     new_recs = []
     for rec in data:
@@ -467,18 +496,18 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
 
     Parameters
     ----------
-    meas_name : name of measurement file (do not include full path,
+        meas_name : name of measurement file (do not include full path,
         default is "magic_measurements.txt")
-    input_dir : name of input directory (default is ".")
-    output_dir : name of output directory (default is ".")
-    meas_only : boolean, convert only measurement data (default is False)
-    data_model : data_model3.DataModel object (default is None)
+        input_dir : name of input directory (default is ".")
+        output_dir : name of output directory (default is ".")
+        meas_only : boolean, convert only measurement data (default is False)
+        data_model : data_model3.DataModel object (default is None)
 
     Returns
     ---------
-    NewMeas : 3.0 measurements data (output of pmag.convert_items)
-    upgraded : list of files successfully upgraded to 3.0
-    no_upgrade: list of 2.5 files not upgraded to 3.0
+        NewMeas : 3.0 measurements data (output of pmag.convert_items)
+        upgraded : list of files successfully upgraded to 3.0
+        no_upgrade: list of 2.5 files not upgraded to 3.0
     """
     convert = {'specimens': map_magic.spec_magic2_2_magic3_map,
                'samples': map_magic.samp_magic2_2_magic3_map,
@@ -543,15 +572,15 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
 
     Parameters
     ----------
-    dtype : string for input type (specimens, samples, sites, etc.)
-    map_dict : dictionary with format {header2_format: header3_format, ...} (from mapping.map_magic module)
-    input_dir : input directory, default "."
-    output_dir : output directory, default "."
-    data_model : data_model3.DataModel object, default None
+        dtype : string for input type (specimens, samples, sites, etc.)
+        map_dict : dictionary with format {header2_format: header3_format, ...} (from mapping.map_magic module)
+        input_dir : input directory, default "."
+        output_dir : output directory, default "."
+        data_model : data_model3.DataModel object, default None
 
     Returns
     ---------
-    output_file_name with 3.0 format data (or None if translation failed)
+        output_file_name with 3.0 format data (or None if translation failed)
     """
     # read in er_ data & make DataFrame
     er_file = os.path.join(input_dir, 'er_{}.txt'.format(dtype))
@@ -604,15 +633,15 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
 
     Parameters
     ----------
-    fname : string of filename (default "pmag_criteria.txt")
-    input_dir : string of input directory (default ".")
-    output_dir : string of output directory (default ".")
-    data_model : data_model.DataModel object (default None)
+        fname : string of filename (default "pmag_criteria.txt")
+        input_dir : string of input directory (default ".")
+        output_dir : string of output directory (default ".")
+        data_model : data_model.DataModel object (default None)
 
     Returns
     ---------
-    outfile : string output criteria filename, or False
-    crit_container : cb.MagicDataFrame with 3.0 criteria table
+        outfile : string output criteria filename, or False
+        crit_container : cb.MagicDataFrame with 3.0 criteria table
     """
     # get criteria from infile
     fname = os.path.join(input_dir, fname)
