@@ -632,14 +632,14 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
     Convert a criteria file from 2.5 to 3.0 format and write it out to file
 
     Parameters
-    ----------
+    __________
         fname : string of filename (default "pmag_criteria.txt")
         input_dir : string of input directory (default ".")
         output_dir : string of output directory (default ".")
         data_model : data_model.DataModel object (default None)
 
     Returns
-    ---------
+    _______
         outfile : string output criteria filename, or False
         crit_container : cb.MagicDataFrame with 3.0 criteria table
     """
@@ -692,6 +692,8 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
 
 
 def getsampVGP(SampRec, SiteNFO, data_model=2.5):
+    """
+    """
     if float(data_model) == 3.0:
         site = get_dictitem(SiteNFO, 'site', SampRec['site'], 'T')
         if len(site) > 1:
@@ -705,7 +707,7 @@ def getsampVGP(SampRec, SiteNFO, data_model=2.5):
         else:
             lat = float(site[0]['lat'])
             lon = float(site[0]['lon'])
-        dec = float(SampRec['dir_dec'])
+        dec = float1(SampRec['dir_dec'])
         inc = float(SampRec['dir_inc'])
         if SampRec['dir_alpha95'] != "":
             a95 = float(SampRec['dir_alpha95'])
@@ -1265,6 +1267,11 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
     if input is list of lists the return is:
     list of pole longitudes, list of pole latitudes, list of dp, list of dm
+    
+    Examples
+    ________
+    >>> pmag.dia_vgp(4, 41, 0, 33, -117)
+    (41.68629415047637, 79.86259998889103, 0.0, 0.0)
     """
     # test whether arguments are one 2-D list or 5 floats
     if len(args) == 1:  # args comes in as a tuple of multi-dim lists.
