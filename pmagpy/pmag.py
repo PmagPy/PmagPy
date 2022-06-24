@@ -2721,18 +2721,18 @@ def Tmatrix(X):
 def dir2cart(d):
     """
     Converts a list or array of vector directions in degrees (declination,
-    inclination) to an array of the direction in cartesian coordinates (x,y,z)
+    inclination) to an array of the direction in cartesian coordinates (x,y,z).
 
     Parameters
-    ----------
-    d : list or array of [dec,inc] or [dec,inc,intensity]
+    __________
+        d : list or array of [dec,inc] or [dec,inc,intensity]
 
     Returns
-    -------
-    cart : array of [x,y,z]
+    _______
+        cart : array of [x,y,z]
 
     Examples
-    --------
+    ________
     >>> pmag.dir2cart([200,40,1])
     array([-0.71984631, -0.26200263,  0.64278761])
     """
@@ -2758,6 +2758,23 @@ def dir2cart(d):
 
 
 def dms2dd(d):
+    """
+    Converts a list or array degree, minute, second locations to an array of decimal degrees. 
+    
+    Parameters
+    __________
+        d : list or array of [deg, min, sec]
+    Returns
+    _______
+        d : input list or array and its corresponding
+        dd : decimal degree
+        
+    Examples
+    ________
+    >>> pmag.dms2dd([60,35,15])
+    60 35 15
+    array(60.587500000000006)
+    """
     # converts list or array of degree, minute, second locations to array of
     # decimal degrees
     d = np.array(d)
@@ -2969,22 +2986,32 @@ def domean(data, start, end, calculation_type):
 
 def circ(dec, dip, alpha,npts=201):
     """
-    function to calculate points on an circle about dec,dip with angle alpha
+    Calculates points on an circle about dec, dip with angle alpha.
 
-    parameters
+    Parameters
     ___________
-    dec : float
-        declination of vector
-    dip : float
-        dip of vector
-    alpha : float
-        angle of small circle - 90 if vector  is pole to great circle
-    npts : int
-        number of points on the circle
-    returns
+        dec : float
+            declination of vector
+        dip : float
+            dip of vector
+        alpha : float
+            angle of small circle - 90 if vector  is pole to great circle
+        npts : int
+            number of points on the circle
+    Returns
     _______
-    D_out, V_out : list
-        declinations and inclinations along small (great) circle  about dec,dip
+        D_out, V_out : list
+            declinations and inclinations along small (great) circle about dec, dip
+            
+    Examples
+    ________
+    >>> pmag.circ(50,10,10,5)
+    ([60.15108171104812,
+      50.0,
+      39.848918288951864,
+      49.99999999999999,
+      60.15108171104812],
+     [9.846551939834077, 0.0, 9.846551939834077, 20.0, 9.846551939834079])
     """
     D_out, I_out = [], []
     dec, dip, alpha = np.radians(dec), np.radians(dip), np.radians(alpha)
