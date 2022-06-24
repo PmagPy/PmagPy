@@ -3048,7 +3048,7 @@ def circ(dec, dip, alpha,npts=201):
 
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
-     calculate the paleointensity magic parameters  make some definitions
+    Calculate the paleointensity magic parameters make some definitions
 
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
@@ -3603,7 +3603,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
 def getkeys(table):
     """
-    customize by commenting out unwanted keys
+    Customize by commenting out unwanted keys.
     """
     keys = []
     if table == "ER_expedition":
@@ -3779,7 +3779,20 @@ def getnames():
 
 def magic_help(keyhelp):
     """
-    returns a help message for a give magic key
+    Returns a help message for a given magic key.
+    
+    Parameters
+    __________
+        keyhelp : str
+            key name that the user seeks more information about
+    Returns
+    _______
+        Str with more information about the input key
+    
+    Examples
+    ________
+    >>> pmag.magic_help('location_url')
+    'Website URL for the location explicitly'
     """
     helpme = {}
     helpme["er_location_name"] = "Name for location or drill site"
@@ -4085,7 +4098,8 @@ def magic_help(keyhelp):
 
 def dosundec(sundata):
     """
-    returns the declination for a given set of suncompass data
+    Returns the declination for a given set of suncompass data.
+    
     Parameters
     __________
       sundata : dictionary with these keys:
