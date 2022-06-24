@@ -982,8 +982,9 @@ def ReorderSamples(specfile, sampfile, outfile):
 
 def orient(mag_azimuth, field_dip, or_con):
     """
-    uses specified orientation convention to convert user supplied orientations
-    to laboratory azimuth and plunge
+    Uses specified orientation convention to convert user supplied orientations
+    to laboratory azimuth and plunge. 
+    
     Parameters:
     ________________
         mag_azimuth: float
@@ -1040,7 +1041,15 @@ def orient(mag_azimuth, field_dip, or_con):
 
 def get_Sb(data):
     """
-    returns vgp scatter for data set
+    Returns vgp scatter for data set.
+    
+    Parameters
+    __________
+        data : data set as a list or a pandas dataframe 
+    
+    Returns
+    _______
+        float value of the vgp scatter
     """
     Sb, N = 0., 0.
     for rec in data:
@@ -1065,18 +1074,18 @@ def get_sb_df(df, mm97=False):
 
     Parameters
     _________
-    df : Pandas Dataframe with columns
-        REQUIRED:
-        vgp_lat :  VGP latitude
-        ONLY REQUIRED for MM97 correction:
-        dir_k : Fisher kappa estimate
-        dir_n : number of specimens (samples) per site
-        lat : latitude of the site
-    mm97 : if True, will do the correction for within site scatter
+        df : Pandas Dataframe with columns
+            REQUIRED:
+                vgp_lat :  VGP latitude
+            ONLY REQUIRED for MM97 correction:
+                dir_k : Fisher kappa estimate
+                dir_n : number of specimens (samples) per site
+                lat : latitude of the site
+        mm97 : if True, will do the correction for within site scatter
 
     Returns:
     _______
-    Sf : Sf
+        Sf : float value for the Sf
     """
     df['delta'] = 90.-df.vgp_lat
     Sp2 = np.sum(df.delta**2)/(df.shape[0]-1)
@@ -1820,12 +1829,12 @@ def open_file(infile, verbose=True):
     Try to use utf-8 encoding, and if that fails use Latin-1.
 
     Parameters
-    ----------
+    __________
     infile : str
         full path to file
 
     Returns
-    ----------
+    _______
     data: list
         all lines in the file
     """
@@ -1865,7 +1874,7 @@ def open_file(infile, verbose=True):
 
 def magic_read(infile, data=None, return_keys=False, verbose=False):
     """
-    Reads  a Magic template file, returns  data in a list of dictionaries.
+    Reads a Magic template file, returns data in a list of dictionaries.
 
     Parameters
     ___________
@@ -2043,9 +2052,9 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
 
 
 def sort_magic_data(magic_data, sort_name):
-    '''
+    """
     Sort magic_data by header (like er_specimen_name for example)
-    '''
+    """
     magic_data_sorted = {}
     for rec in magic_data:
         name = rec[sort_name]
@@ -2104,7 +2113,7 @@ def upload_read(infile, table):
 
 def putout(ofile, keylist, Rec):
     """
-    writes out a magic format record to ofile
+    Writes out a magic format record to ofile
     """
     pmag_out = open(ofile, 'a')
     outstring = ""
@@ -2121,7 +2130,7 @@ def putout(ofile, keylist, Rec):
 
 def first_rec(ofile, Rec, file_type):
     """
-    opens the file ofile as a magic template file with headers as the keys to Rec
+    Opens the file ofile as a magic template file with headers as the keys to Rec
     """
     keylist = []
     opened = False
@@ -2147,7 +2156,7 @@ def first_rec(ofile, Rec, file_type):
 
 def magic_write_old(ofile, Recs, file_type):
     """
-    writes out a magic format list of dictionaries to ofile
+    Writes out a magic format list of dictionaries to ofile
 
     Parameters
     _________
@@ -2265,18 +2274,18 @@ def dotilt(dec, inc, bed_az, bed_dip):
     and bedding dip.
 
     Parameters
-    ----------
-    dec : declination directions in degrees
-    inc : inclination direction in degrees
-    bed_az : bedding dip direction
-    bed_dip : bedding dip
+    __________
+        dec : declination directions in degrees
+        inc : inclination direction in degrees
+        bed_az : bedding dip direction
+        bed_dip : bedding dip
 
     Returns
-    -------
-    dec,inc : a tuple of rotated dec, inc values
+    _______
+        dec,inc : a tuple of rotated dec, inc values
 
     Examples
-    -------
+    ________
     >>> pmag.dotilt(91.2,43.1,90.0,20.0)
     (90.952568837153436, 23.103411670066617)
     """
@@ -2302,13 +2311,13 @@ def dotilt_V(indat):
     Does a tilt correction on an array with rows of dec,inc bedding dip direction and dip.
 
     Parameters
-    ----------
-    input : declination, inclination, bedding dip direction and bedding dip
+    __________
+        input : declination, inclination, bedding dip direction and bedding dip
     nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
 
     Returns
-    -------
-    dec,inc : arrays of rotated declination, inclination
+    _______
+        dec,inc : arrays of rotated declination, inclination
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
