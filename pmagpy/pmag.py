@@ -692,8 +692,6 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
 
 
 def getsampVGP(SampRec, SiteNFO, data_model=2.5):
-    """
-    """
     if float(data_model) == 3.0:
         site = get_dictitem(SiteNFO, 'site', SampRec['site'], 'T')
         if len(site) > 1:
@@ -1214,16 +1212,17 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 
 def flip(di_block, combine=False):
     """
-    determines 'normal' direction along the principle eigenvector, then flips the antipodes of
+    Determines 'normal' direction along the principle eigenvector, then flips the antipodes of
     the reverse mode to the antipode
 
     Parameters
     ___________
-    di_block : nested list of directions
-    Return
-    D1 : normal mode
-    D2 : flipped reverse mode as two DI blocks
-    combine : if True return combined D1, D2, nested D,I pairs
+        di_block : nested list of directions
+    Returns
+    ______
+        D1 : normal mode
+        D2 : flipped reverse mode as two DI blocks
+        combine : if True return combined D1, D2, nested D,I pairs
     """
     ppars = doprinc(di_block)  # get principle direction
     if combine:
@@ -1255,10 +1254,10 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
     Parameters
     ----------
-    Takes input as (Dec, Inc, a95, Site latitude, Site longitude)
-    Input can be as individual values (5 parameters)
-    or
-    as a list of lists: [[Dec, Inc, a95, lat, lon],[Dec, Inc, a95, lat, lon]]
+        Takes input as (Dec, Inc, a95, Site latitude, Site longitude)
+        Input can be as individual values (5 parameters)
+        or
+        as a list of lists: [[Dec, Inc, a95, lat, lon],[Dec, Inc, a95, lat, lon]]
 
     Returns
     ----------
@@ -1352,7 +1351,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
 def int_pars(x, y, vds, **kwargs):
     """
-     calculates York regression and paleointensity parameters (with Tauxe Fvds)
+    Calculates York regression and paleointensity parameters (with Tauxe Fvds).
     """
     # first do linear regression a la York
     # do Data Model 3 way:
@@ -1452,7 +1451,7 @@ def get_curve(araiblock,**kwargs):
 
 def dovds(data):
     """
-     calculates vector difference sum for demagnetization data
+    Calculates vector difference sum for demagnetization data
     """
     vds, X = 0, []
     for rec in data:
@@ -2540,7 +2539,20 @@ def vspec(data):
 
 def Vdiff(D1, D2):
     """
-    finds the vector difference between two directions D1,D2
+    Calculates the vector difference between two directions D1, D2.
+    
+    Parameters
+    __________
+        D1 : Direction 1 as an array of [declination, inclination] pair or pairs
+        D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+    Returns
+    _______
+        an array that is the vector difference between D1 and D2
+        
+    Examples
+    ________
+    >>> pmag.Vdiff([350.0,10.0],[320.0,20.0])
+    array([ 60.00000000000001 , -18.61064009110688 ,   0.527588019973717])
     """
     A = dir2cart([D1[0], D1[1], 1.])
     B = dir2cart([D2[0], D2[1], 1.])
@@ -2555,16 +2567,16 @@ def angle(D1, D2):
     Calculate the angle between two directions.
 
     Parameters
-    ----------
-    D1 : Direction 1 as an array of [declination, inclination] pair or pairs
-    D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+    __________
+        D1 : Direction 1 as an array of [declination, inclination] pair or pairs
+        D2 : Direction 2 as an array of [declination, inclination] pair or pairs
 
     Returns
-    -------
-    angle : angle between the directions as a single-element array
+    _______
+        angle : angle between the directions as a single-element array
 
     Examples
-    --------
+    ________
     >>> pmag.angle([350.0,10.0],[320.0,20.0])
     array([ 30.59060998])
     """
@@ -2594,15 +2606,15 @@ def cart2dir(cart):
     Converts a direction in cartesian coordinates into declination, inclinations
 
     Parameters
-    ----------
-    cart : input list of [x,y,z] or list of lists [[x1,y1,z1],[x2,y2,z2]...]
+    __________
+        cart : input list of [x,y,z] or list of lists [[x1,y1,z1],[x2,y2,z2]...]
 
     Returns
-    -------
-    direction_array : returns an array of [declination, inclination, intensity]
+    _______
+        direction_array : returns an array of [declination, inclination, intensity]
 
     Examples
-    --------
+    ________
     >>> pmag.cart2dir([0,1,0])
     array([ 90.,   0.,   1.])
     """
@@ -2634,7 +2646,34 @@ def cart2dir(cart):
 
 def tauV(T):
     """
-    Gets the eigenvalues (tau) and eigenvectors (V) from matrix T
+    Gets the eigenvalues (tau) and eigenvectors (V) from 3x3 matrix T
+    
+    Parameters
+    __________
+        T : 3x3 matrix 
+        
+    Returns
+    _______
+        tau : eigenvalues for the given matrix (T)
+        V : eigenvectors for the given matrix (T)
+        
+    Examples 
+    ________
+    >>> T = [[2,4,6],
+             [10,2,5],
+             [1,7,8]]
+    >>> pmag.tauV(T)
+    ([(1.2709559412652764+0j),
+      (-0.13547797063263817+0.11627030078868397j),
+      (-0.13547797063263817-0.11627030078868397j)],
+     [array([0.473150982577391+0.j, 0.600336609447566+0.j,
+         0.644766704353637+0.j]),
+      array([-0.006695867252108+0.161305398937403j,
+          0.801217123829199+0.j               ,
+         -0.567608562961462-0.09903218351161j ]),
+      array([-0.006695867252108-0.161305398937403j,
+          0.801217123829199-0.j               ,
+         -0.567608562961462+0.09903218351161j ])])
     """
     t, V, tr = [], [], 0.
     ind1, ind2, ind3 = 0, 1, 2
