@@ -1649,15 +1649,16 @@ def get_specs(data):
 
 def vector_mean(data):
     """
-    calculates the vector mean of a given set of vectors
+    Calculates the vector mean of a given set of vectors.
+    
     Parameters
     __________
-    data :  nested array of [dec,inc,intensity]
+        data :  nested array of [dec,inc,intensity]
 
     Returns
     _______
-    dir : array of [dec, inc, 1]
-    R : resultant vector length
+        dir : array of [dec, inc, 1]
+        R : resultant vector length
 
     """
     Xbar = np.zeros((3))
@@ -1672,7 +1673,7 @@ def vector_mean(data):
 
 def mark_dmag_rec(s, ind, data):
     """
-    Edits demagnetization data to mark "bad" points with measurement_flag
+    Edits demagnetization data to mark "bad" points with measurement_flag.
     """
     datablock = []
     for rec in data:
@@ -1704,25 +1705,25 @@ def mark_samp(Samps, data, crd):
 def find_dmag_rec(s, data, **kwargs):
     """
     Returns demagnetization data for specimen s from the data. Excludes other
-    kinds of experiments and "bad" measurements
+    kinds of experiments and "bad" measurements.
 
     Parameters
     __________
-    s : specimen name
-    data : DataFrame with measurement data
-    **kwargs :
-        version : if not 3, assume data model = 2.5
+        s : specimen name
+        data : DataFrame with measurement data
+        **kwargs :
+            version : if not 3, assume data model = 2.5
     Returns
     ________
-    datablock : nested list of data for zijderveld plotting
-         [[tr, dec, inc, int, ZI, flag],...]
-         tr : treatment step
-         dec : declination
-         inc : inclination
-         int : intensity
-         ZI : whether zero-field first or infield-first step
-         flag : g or b , default is set to 'g'
-     units : list of units found ['T','K','J'] for tesla, kelvin or joules
+        datablock : nested list of data for zijderveld plotting
+             [[tr, dec, inc, int, ZI, flag],...]
+             tr : treatment step
+             dec : declination
+             inc : inclination
+             int : intensity
+             ZI : whether zero-field first or infield-first step
+             flag : g or b , default is set to 'g'
+         units : list of units found ['T','K','J'] for tesla, kelvin or joules
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         # convert dataframe to list of dictionaries
@@ -1830,13 +1831,13 @@ def open_file(infile, verbose=True):
 
     Parameters
     __________
-    infile : str
-        full path to file
+        infile : str
+            full path to file
 
     Returns
     _______
-    data: list
-        all lines in the file
+        data: list
+            all lines in the file
     """
     try:
         with codecs.open(infile, "r", "utf-8") as f:
@@ -1992,7 +1993,7 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
 
 def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     """
-    Read a magic-formatted tab-delimited file and return a dictionary of
+    Read a magic-formatted tab-delimited file and returns a dictionary of
     dictionaries, with this format:
     {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
     return data, file_type, and keys (if return_keys is true)
@@ -2203,22 +2204,23 @@ def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
     """
     Parameters
     _________
-    ofile : path to output file
-    Recs : list of dictionaries in MagIC format OR pandas dataframe
-    file_type : MagIC table type (e.g., specimens)
-    dataframe : boolean
-        if True, Recs is a pandas dataframe which must be converted
-           to a list of dictionaries
-    append : boolean
-	if True, file will be appended to named file
+        ofile : path to output file
+        Recs : list of dictionaries in MagIC format OR pandas dataframe
+        file_type : MagIC table type (e.g., specimens)
+        dataframe : boolean
+            if True, Recs is a pandas dataframe which must be converted
+               to a list of dictionaries
+        append : boolean
+        if True, file will be appended to named file
 
-    Return :
-    [True,False] : True if successful
-    ofile : same as input
+    Returns
+    ______
+        [True,False] : True if successful
+        ofile : same as input
 
-    Effects :
+    Effects
+    ______
         writes a MagIC formatted file from Recs
-
     """
     if len(Recs) < 1:
         print('No records to write to file {}'.format(ofile))
@@ -2313,7 +2315,7 @@ def dotilt_V(indat):
     Parameters
     __________
         input : declination, inclination, bedding dip direction and bedding dip
-    nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
+        nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
 
     Returns
     _______
@@ -2349,16 +2351,16 @@ def dogeo(dec, inc, az, pl):
     azimuth and plunge of the X direction (lab arrow) of a specimen.
 
     Parameters
-    ----------
-    dec : declination in specimen coordinates
-    inc : inclination in specimen coordinates
+    __________
+        dec : declination in specimen coordinates
+        inc : inclination in specimen coordinates
 
     Returns
-    -------
-    rotated_direction : tuple of declination, inclination in geographic coordinates
+    _______
+        rotated_direction : tuple of declination, inclination in geographic coordinates
 
     Examples
-    --------
+    ________
     >>> pmag.dogeo(0.0,90.0,0.0,45.5)
     (180.0, 44.5)
     """
@@ -2391,14 +2393,12 @@ def dogeo_V(indat):
     azimuth and plunge of the X direction (lab arrow) of a specimen.
 
     Parameters
-    ----------
-    indat: nested list of [dec, inc, az, pl] data
+    __________
+        indat: nested list of [dec, inc, az, pl] data
 
     Returns
-    -------
-    rotated_directions : arrays of Declinations and Inclinations
-
-
+    _______
+        rotated_directions : arrays of Declinations and Inclinations
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
@@ -2429,18 +2429,23 @@ def dogeo_V(indat):
 def dodirot(D, I, Dbar, Ibar):
     """
     Rotate a direction (declination, inclination) by the difference between
-    dec=0 and inc = 90 and the provided desired mean direction
+    dec=0 and inc = 90 and the provided desired mean direction.
 
     Parameters
-    ----------
-    D : declination to be rotated
-    I : inclination to be rotated
-    Dbar : declination of desired mean
-    Ibar : inclination of desired mean
+    __________
+        D : declination to be rotated
+        I : inclination to be rotated
+        Dbar : declination of desired mean
+        Ibar : inclination of desired mean
 
     Returns
-    ----------
-    drot, irot : rotated declination and inclination
+    _______
+        drot, irot : rotated declination and inclination
+        
+    Examples
+    ________
+    >>> pmag.dodirot(0,90,5,85)
+    (5.0, 85.0)
     """
     d, irot = dogeo(D, I, Dbar, 90. - Ibar)
     drot = d - 180.
@@ -2457,13 +2462,18 @@ def dodirot_V(di_block, Dbar, Ibar):
 
     Parameters
     ___________________
-    di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
-    Dbar : declination of desired center
-    Ibar : inclination of desired center
+        di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
+        Dbar : declination of desired center
+        Ibar : inclination of desired center
 
     Returns
     __________
-    array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
+        array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
+    
+    Examples
+    ________
+    >>> di_block = np.array([[0,90],[0,92],[0,92]])
+    pmag.dodirot_V(di_block,5,93)
     """
     N = di_block.shape[0]
     DipDir, Dip = np.ones(N, dtype=np.float).transpose(
@@ -3057,8 +3067,7 @@ def circ(dec, dip, alpha,npts=201):
 
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
-    Calculate the paleointensity magic parameters make some definitions
-
+    Calculate the paleointensity with magic parameters and make some definitions.
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         meth_key = 'method_codes'
@@ -4167,7 +4176,7 @@ def dosundec(sundata):
 
 def gha(julian_day, f):
     """
-    returns greenwich hour angle
+    Returns greenwich hour angle.
     """
     rad = np.pi/180.
     d = julian_day - 2451545.0 + f
@@ -4200,7 +4209,22 @@ def gha(julian_day, f):
 
 def julian(mon, day, year):
     """
-    returns julian day
+    Returns julian day.
+    
+    Parameters
+    __________
+        mon : input month
+        day : input day
+        year : input year
+    
+    Returns
+    _______
+        Julian day as a flt
+    
+    Examples
+    ________
+    >>> pmag.julian(10,20,2000)
+    2451838
     """
     ig = 15 + 31 * (10 + 12 * 1582)
     if year == 0:
