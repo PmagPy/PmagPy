@@ -14560,4 +14560,56 @@ def df_depthplot(df,d_key='core_depth',fmt='png',location='unknown',save=False):
     #plt.title(location)
     if save:
         plt.savefig(location+'.'+fmt)
+def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
+    """
+    download and validate a magic contribution
+    Parameters
+    -----------
+    top_dir: str
+        name of project
+    doi: str
+        DOI of paper to download
+    contribution_id: str
+         id of contribution
+    private_key : str
+         private key of contribution in private workspace
+    """
+    # set up directories
+    magic_dir=top_dir+'/MagIC'
+    dirs=os.listdir()
+    if top_dir not in dirs:
+        os.makedirs(top_dir)
+    dirs=os.listdir(top_dir)
+    if 'MagIC' not in dirs:
+        os.makedirs(magic_dir)
+    if doi:
+        magic_contribution='magic_contribution.txt' # set the file name string
+        download_magic_from_doi(doi) # download the contribution from MagIC
+        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
+        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+    elif contribution_id:
+        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt' # set the file name string
+        download_magic_from_id(contribution_id) # download the contribution from MagIC
+        os.rename(magic_contribution, magic_dir+'/'+magic_contribution) # move the contribution to the directory
+        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+        
+    elif private_key:
+        shared_contribution_response = requests.get(api.format('data'), params={'id': contribution_id, 'key': private_key})
+        if (shared_contribution_response.status_code == 200):
+            shared_contribution_text = shared_contribution_response.text
+            print(shared_contribution_text[0:200], '\n')
+        elif (shared_contribution_response.status_code == 204): # bad file
+            print('Contribution ID and/or private key do not match any contributions in MagIC.', '\n')
+        else:
+            print('Error:', shared_contribution_response.json()['err'][0]['message'], '\n')
+            return False,False
+         # save and unpack downloaded data  
+        magic_contribution='magic_contribution_'+str(contribution_id)+'.txt'
+        magic_out=open(magic_dir+'/'+magic_contribution, 'w', errors="backslashreplace")
+        magic_out.write(shared_contribution_text)
+        download_magic(magic_contribution,dir_path=magic_dir,print_progress=False) # unpack the file
+    validation=upload_magic(dir_path=magic_dir,input_dir_path=magic_dir,concat=True)
+    upload_file=validation[0].split('/')[-1]
 
+
+    return magic_dir,upload_file
