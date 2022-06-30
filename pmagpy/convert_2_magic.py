@@ -11206,7 +11206,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     #
     #   ATRM in six positions
     #
-    # Tretment: XXX.0 zerofield
+    # Treatment: XXX.0 zerofield
     #           XXX.1 +x
     #           XXX.2 +y
     #           XXX.3 +z
