@@ -1,3 +1,4 @@
+
 import codecs
 import math
 import os
@@ -2802,7 +2803,7 @@ def dms2dd(d):
         print(degs, mins, secs)
     else:  # single vector
         degs, mins, secs = np.array(d[0]), np.array(d[1]), np.array(d[2])
-        print(degs, mins, secs)
+        #print(degs, mins, secs)
     dd = np.array(degs + old_div(mins, 60.) + old_div(secs, 3600.)).transpose()
     return dd
 
@@ -12585,23 +12586,6 @@ def fix_directories(input_dir_path, output_dir_path):
     input_dir_path = os.path.realpath(input_dir_path)
     output_dir_path = os.path.realpath(output_dir_path)
     return input_dir_path, output_dir_path
-
-def deg_min_sec_2_decimal_degrees(d,m,s):
-    """
-    converts degrees, minutes, seconds to decimal degrees
-    Parameters
-    ___________
-    d : float
-       degrees
-    m : float
-       minutes
-    s : float
-       seconds
-    Returns:
-    ________
-    decimal degrees
-    """
-    return d+m/60+s/3600
 
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
