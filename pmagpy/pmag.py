@@ -9351,7 +9351,7 @@ def measurements_methods(meas_data, noave):
                     newmeths = []
                     for meth in meths:
                         if meth not in newmeths:
-                            newmeths.append(meth)  # try to get uniq set
+                            newmeths.append(meth)  # try to get unique set
                     methcode = ""
                     for meth in newmeths:
                         methcode = methcode + meth + ":"
@@ -9507,7 +9507,8 @@ def measurements_methods3(meas_data, noave,savelast=False):
 #
 # find NRM data (LT-NO)
 #
-            elif float(rec["meas_temp"]) >= 273. and float(rec["meas_temp"]) < 323.:
+      
+            elif float(rec["meas_temp"]) >= 273. and float(rec["meas_temp"]) <= 323.:
                 # between 0 and 50C is room T measurement
                 if ("meas_dc_field" not in list(rec.keys()) or float(rec["meas_dc_field"]) == 0 or rec["meas_dc_field"] == "") and ("meas_ac_field" not in list(rec.keys()) or float(rec["meas_ac_field"]) == 0 or rec["meas_ac_field"] == ""):
                     # measurement done in zero field!
@@ -9534,7 +9535,7 @@ def measurements_methods3(meas_data, noave,savelast=False):
 #
 # find Thermal/infield/zerofield
 #
-                    elif float(rec["treat_temp"]) >= 323:  # treatment done at  high T
+                    elif float(rec["treat_temp"]) > 323:  # treatment done at  high T
                         if TRM == 1:
                             if "LT-T-I" not in meths:
                                 # TRM - even if zero applied field!
@@ -9647,7 +9648,7 @@ def measurements_methods3(meas_data, noave,savelast=False):
                     experiment_name = "LP-TRM"
             else:
                 TI = 0  # no infield steps at all
-            if ("LT-T-Z" in SpecMeths or "LT-LT-Z" in SpecMeths)and experiment_name == "":  # thermal demag steps
+            if ("LT-T-Z" in SpecMeths or "LT-LT-Z" in SpecMeths) and experiment_name == "":  # thermal demag steps
                 if TI == 0:
                     experiment_name = "LP-DIR-T"  # just ordinary thermal demag
                 elif TRM != 1:  # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment

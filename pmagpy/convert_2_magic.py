@@ -10036,7 +10036,13 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    for rec in MeasRecs: 
+        print (float(rec['treat_temp'])-273,rec['method_codes'])
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    for rec in MeasOuts:
+        print (float(rec['treat_temp'])-273,rec['method_codes'])
+
+#    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     # write MagIC tables to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
@@ -11590,6 +11596,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     # Tail check step
                     elif float(treatments[1]) == 3 or float(treatments[1]) == 30 or float(treatments[1]) == 13:
                         MeasRec["method_codes"] = "LT-PTRM-MD"
+                        MeasRec["treat_dc_field"] = "0"
+                        MeasRec["treat_dc_field_phi"] = "0"
+                        MeasRec["treat_dc_field_theta"] = "0"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
                         if "LP-PI-BT-MD" not in methcodes:
@@ -11830,7 +11839,8 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    #MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=True)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', spec_file_name)
     con.write_table_to_file('samples', samp_file_name)
