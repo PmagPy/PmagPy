@@ -2482,7 +2482,7 @@ def dodirot_V(di_block, Dbar, Ibar):
     di_block = di_block.transpose()
     data = np.array([di_block[0], di_block[1], DipDir, Dip]).transpose()
     drot, irot = dotilt_V(data)
-    drot = (drot-180.) % 360.  #
+    #drot = (drot-180.) % 360.  #
     return np.column_stack((drot, irot))
 
 
