@@ -460,6 +460,31 @@ def print_pole_mean(mean_dictionary):
     print('Precision parameter (k) estimate: ' +
           str(round(mean_dictionary['k'], 1)))
 
+def print_kent_mean(mean_dictionary):
+    """
+    Does a pretty job printing a Kent mean and associated statistics.
+
+    Parameters
+    ----------
+    mean_dictionary: output dictionary of ipmag.kent_mean
+
+    Examples
+    --------
+    Generate a Kent mean using ``ipmag.kent_mean`` and then print it nicely
+    using ``ipmag.print_kent_mean``
+
+    """
+    print('Plon: ' + str(round(mean_dictionary['dec'], 1)) +
+          '  Plat: ' + str(round(mean_dictionary['inc'], 1)))
+    print('Major axis lon: ' + str(round(mean_dictionary['Zdec'], 1)) +
+          '  Major axis lat: ' + str(round(mean_dictionary['Zinc'], 1)))
+    print('Minor axis lon: ' + str(round(mean_dictionary['Edec'], 1)) +
+          '  Minor axis lat: ' + str(round(mean_dictionary['Einc'], 1)))
+    print('Major axis angle of 95% ellipse (Zeta): ' +
+          str(round(mean_dictionary['Zeta'], 1)))  
+    print('Minor axis angle of 95% ellipse (Eta): ' +
+          str(round(mean_dictionary['Eta'], 1)))
+    print('Number of directions in mean (n): ' + str(mean_dictionary['n']))
 
 def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     """
@@ -8654,6 +8679,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     I.sort()
     E.sort()
+    plt.xlim(min(I)*0.8, max(I)*1.05)
+    plt.ylim(min(E)*0.5, max(E)*1.05)
     Eexp = []
     for i in I:
         Eexp.append(pmag.EI(i))
@@ -8722,7 +8749,11 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
+<<<<<<< Updated upstream
 def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
+=======
+def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
+>>>>>>> Stashed changes
                 return_new_dirs=False, return_values=False, figprefix='EI', 
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
@@ -8936,15 +8967,25 @@ def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, s
         
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
+<<<<<<< Updated upstream
         return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
+=======
+        return make_di_block(decs, unsquished_incs), I, E, F
+>>>>>>> Stashed changes
     
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
         return make_di_block(decs, unsquished_incs)
     elif return_values:
+<<<<<<< Updated upstream
         return kent_stats, I, E, F
     else:
         return kent_stats
+=======
+        return I, E, F
+    else:
+        return
+>>>>>>> Stashed changes
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
