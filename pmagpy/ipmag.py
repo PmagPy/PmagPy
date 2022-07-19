@@ -8582,7 +8582,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             site_correction=False, return_new_dirs=False, figprefix='EI', 
-            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05):
+            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -8679,8 +8679,9 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     I.sort()
     E.sort()
-    plt.xlim(min(I)*0.8, max(I)*1.05)
-    plt.ylim(min(E)*0.5, max(E)*1.05)
+    if tight_axes:
+        plt.xlim(min(I)*0.8, max(I)*1.05)
+        plt.ylim(min(E)*0.5, max(E)*1.05)
     Eexp = []
     for i in I:
         Eexp.append(pmag.EI(i))
