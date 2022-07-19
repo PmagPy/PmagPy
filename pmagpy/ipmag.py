@@ -8749,11 +8749,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
-<<<<<<< Updated upstream
 def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
-=======
-def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
->>>>>>> Stashed changes
                 return_new_dirs=False, return_values=False, figprefix='EI', 
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
@@ -8964,28 +8960,21 @@ def find_ei_Kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, s
     f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
-        
+    print("")
+    print('The Kent distribution parameters for the resampled mean pole position are:')
+    print_kent_mean(kent_stats)
+
     if return_new_dirs and return_values :
         unsquished_incs = unsquish(incs, flat_f)
-<<<<<<< Updated upstream
         return make_di_block(decs, unsquished_incs), kent_stats, I, E, F
-=======
-        return make_di_block(decs, unsquished_incs), I, E, F
->>>>>>> Stashed changes
     
     elif return_new_dirs:
         unsquished_incs = unsquish(incs, flat_f)
         return make_di_block(decs, unsquished_incs)
     elif return_values:
-<<<<<<< Updated upstream
         return kent_stats, I, E, F
     else:
         return kent_stats
-=======
-        return I, E, F
-    else:
-        return
->>>>>>> Stashed changes
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
