@@ -8618,6 +8618,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
     resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
     resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
+    tight_axes: optional argument to tighten up the axes limits for the inclination-elongation figure
 
     Returns
     -----------
@@ -8750,7 +8751,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
-def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
+def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
                 return_new_dirs=False, return_values=False, figprefix='EI', 
                 num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
                  vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
@@ -8772,7 +8773,7 @@ def find_ei_kent(data, site_latitude, site_longitude, Kent_color='k', nb=1000, s
 
     Optional Parameters (defaults are used unless specified)
     -----------
-    Kent_color: color of the Kent ellipse to plot
+    kent_color: color of the Kent ellipse to plot
     nb: number of bootstrapped pseudo-samples (default is 1000)
     save: Boolean argument to save plots (default is False)
     save_folder: path to folder in which plots should be saved (default is current directory)
