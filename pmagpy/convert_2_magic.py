@@ -4821,7 +4821,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     # assume only one hole
     # set up defaults
     measurements_df['specimen']=srm_specimens
-    measurements_df['comment']=in_df['Comments'] # temporary column
+    if 'Comments' in in_df.columns: measurements_df['comment']=in_df['Comments'] # temporary column
     measurements_df['quality']='g'
     measurements_df['citations']='This study'
     measurements_df['meas_temp']=273

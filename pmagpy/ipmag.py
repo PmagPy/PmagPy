@@ -625,8 +625,8 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
         if vec[2]>B_threshold:
             tk_03_output.append([vec[0], vec[1], vec[2]])
             k+=1
-        else: # do more 
-            k-=1
+        #else: # do more 
+        #    k-=1
     return tk_03_output
 
 
