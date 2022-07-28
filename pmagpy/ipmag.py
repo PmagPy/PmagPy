@@ -1994,7 +1994,8 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
 
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
-              filled_pole=False, fill_color='k', fill_alpha=1.0):
+              filled_pole=False, fill_color='k', fill_alpha=1.0, 
+              mean_alpha = 1.0, A95_alpha=1.0):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -2033,11 +2034,11 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.PlateCarree())
+                     label=label, zorder=1, transform=ccrs.PlateCarree(), alpha = mean_alpha)
     if filled_pole==False:
-        equi(map_axis, plon, plat, A95_km, color)
+        ipmag.equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
     elif filled_pole==True:
-        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
+        ipmag.equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
 
