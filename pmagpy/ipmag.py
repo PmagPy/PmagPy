@@ -8939,8 +8939,6 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     plt.axvline(x=plat_lower, color = 'gray', ls='--')
     plt.axvline(x=plat_upper, color = 'gray', ls='--')
 
-    plt.text(16.5, 0.10, str(plat_lower), fontsize=14)
-    plt.text(29.5, 0.10, str(plat_upper), fontsize=14)
     plt.title('%7.1f [%7.1f, %7.1f]' % (plat_mode, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -8949,15 +8947,17 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+    
+    plt.show()
         
     # plot resampled mean poles
-    plt.figure(figsize=(8,8))
     m = make_orthographic_map(central_longitude, central_latitude)
     plot_vgp(m, mean_lons, mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
     
     kent_stats = kent_distribution_95(dec=mean_lons,inc=mean_lats) 
-    plot_pole_ellipse(m,kent_stats, color=Kent_color)
-        
+    plot_pole_ellipse(m,kent_stats, color=kent_color)
+    plt.show()
+
     if (Inc, Elong, flat_f) == (0, 0, 0):
         print("PATHOLOGICAL DISTRIBUTION")
     print("The original inclination was: " + str(np.round(Io,2)))
@@ -8972,7 +8972,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     print("")
-    print('The Kent distribution parameters for the resampled mean pole position are:')
+    print('The Kent mean incorporating inclination flattening uncertainty is:')
     print_kent_mean(kent_stats)
 
     if return_new_dirs and return_values :
