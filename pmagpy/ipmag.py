@@ -2630,6 +2630,124 @@ def sb_vgp_calc(dataframe, site_correction='yes', dec_tc='dec_tc', inc_tc='inc_t
     return Sb
 
 
+def bin_trace(lon_samples, lat_samples, resolution):
+    """
+    Given a trace of samples in longitude and latitude, bin them
+    in latitude and longitude, and normalize the bins so that
+    the integral of probability density over the sphere is one.
+
+    The resolution keyword gives the number of divisions in latitude.
+    The divisions in longitude is twice that.
+
+    Parameters
+    -----------
+    lon_samples: a list of longitudes
+    lat_samples: a list of latitudes
+
+    resolution: The resolution keyword gives the number of divisions in latitude.
+        The divisions in longitude is twice that.
+
+    """
+    lats = np.linspace(-90., 90., resolution, endpoint=True)
+    lons = np.linspace(-180., 180., 2 * resolution, endpoint=True)
+    lon_grid, lat_grid = np.meshgrid(lons, lats)
+    hist = np.zeros_like(lon_grid)
+
+    dlon = 360. / (2. * resolution)
+    dlat = 180. / resolution
+
+    for lon, lat in zip(lon_samples, lat_samples):
+
+        lon = np.mod(lon, 360.)
+        if lon > 180.:
+            lon = lon - 360.
+        if lat < -90. or lat > 90.:
+            # Just skip invalid latitudes if they happen to arise
+            continue
+
+        lon_index = int(np.floor((lon + 180.) / dlon))
+        lat_index = int(np.floor((lat + 90.) / dlat))
+        hist[lat_index, lon_index] += 1
+
+    lat_grid += dlat / 2.
+    lon_grid += dlon / 2.
+    return lon_grid, lat_grid, hist
+
+
+def density_distribution(lon_samples, lat_samples, resolution=30):
+    '''
+    calculate density distribution of a given set of vectos on a sphere
+    
+    Parameters
+    -----------
+    lon_samples: a list of longitudes
+    lat_samples: a list of latitudes
+
+    optinal parameters:
+    resolution: the resolution at which to calculate the vectors distribution.
+        the higher the number, the finer the resolution
+    '''
+    count = len(lon_samples)
+    lon_grid, lat_grid, hist = bin_trace(lon_samples, lat_samples, resolution)
+    return lon_grid, lat_grid, hist / count
+
+
+def cumulative_density_distribution(lon_samples, lat_samples, resolution=30):
+    '''
+    compute cumulative density distribution of a set of vectors on a unit sphere
+
+    Parameters
+    -----------
+    lon_samples: a list of longitudes
+    lat_samples: a list of latitudes
+    
+    optinal parameters:
+    resolution: the resolution at which to calculate the vectors distribution.
+        the higher the number, the finer the resolution
+    '''
+
+    lon_grid, lat_grid, hist = bin_trace(lon_samples, lat_samples, resolution)
+
+    # Compute the cumulative density
+    hist = hist.ravel()
+    i_sort = np.argsort(hist)[::-1]
+    i_unsort = np.argsort(i_sort)
+    hist_cumsum = hist[i_sort].cumsum()
+    hist_cumsum /= hist_cumsum[-1]
+
+    return lon_grid, lat_grid, hist_cumsum[i_unsort].reshape(lat_grid.shape)
+
+
+def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100, **kwargs):
+    '''
+    plot distributions of a group of vectors on a unit sphere
+    '''
+    cmap=kwargs.get('cmap', 'viridis')
+
+    artists = []
+
+    if 'd' in to_plot:
+        lon_grid, lat_grid, density = density_distribution(
+            lon_samples, lat_samples, resolution)
+        density = ma.masked_where(density <= 0.05*density.max(), density)
+        a = ax.pcolormesh(lon_grid, lat_grid, density, cmap=cmap,
+                          transform=ccrs.PlateCarree())
+        artists.append(a)
+
+    if 'e' in to_plot:
+        lon_grid, lat_grid, cumulative_density = cumulative_density_distribution(
+            lon_samples, lat_samples, resolution)
+        a = ax.contour(lon_grid, lat_grid, cumulative_density, levels=[
+                       0.95], colors=kwargs.get('colors', 'k'), transform=ccrs.PlateCarree(), 
+                       linewidths=kwargs.get('lw', 1), zorder = kwargs.get('zorder', 100))
+        artists.append(a)
+
+    if 's' in to_plot:
+        a = ax.scatter(lon_samples, lat_samples, color=kwargs.get('color', 'C0'), alpha=0.1, transform=ccrs.PlateCarree(), edgecolors=None, **kwargs)
+        artists.append(a)
+
+    return artists
+
 def make_di_block(dec, inc):
     """
     Some pmag.py and ipmag.py functions require or will take a list of unit
