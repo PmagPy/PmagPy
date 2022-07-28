@@ -2036,9 +2036,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=1, transform=ccrs.PlateCarree(), alpha = mean_alpha)
     if filled_pole==False:
-        ipmag.equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
+        equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
     elif filled_pole==True:
-        ipmag.equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
+        equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
 
