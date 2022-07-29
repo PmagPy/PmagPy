@@ -2737,8 +2737,8 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
     if 'e' in to_plot:
         lon_grid, lat_grid, cumulative_density = cumulative_density_distribution(
             lon_samples, lat_samples, resolution)
-        a = ax.contour(lon_grid, lat_grid, cumulative_density, levels=[
-                       0.95], colors=kwargs.get('colors', 'k'), transform=ccrs.PlateCarree(), 
+        a = ax.contour(lon_grid, lat_grid, cumulative_density, levels=kwargs.get('levels',[
+                       0.95]), colors=kwargs.get('colors', 'k'), transform=ccrs.PlateCarree(), 
                        linewidths=kwargs.get('lw', 1), zorder = kwargs.get('zorder', 100))
         artists.append(a)
 
