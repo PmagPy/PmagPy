@@ -8987,7 +8987,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     else:
         return kent_stats
 
-def find_compilation_kent(plon, plat, A95, slon, slat, mu=0.62, std=0.14, n=1000, n_fish=100, return_poles=True, return_kent_stats=True):
+def find_compilation_kent(plon, plat, A95, slon, slat, mu, std, n=1000, n_fish=100, return_poles=True, return_kent_stats=True):
     '''
     Applies a series of assumed flattening factors given a normal distribution of f factors to a legacy 
     sedimentary paleomagnetic pole where only pole longitude, pole latitude, A95, site longitude, site latitude,
@@ -9007,17 +9007,34 @@ def find_compilation_kent(plon, plat, A95, slon, slat, mu=0.62, std=0.14, n=1000
     A95: legacy mean pole A95 
     slon: site longitude
     slat: site latitude
-    
+    mu: mean of the normal distribution, 
+        for rocks with hematite carrying the DRM, the recommended value is 0.57
+        for rocks with magnetite carrying the DRM the recommended value is 0.67
+        for rocks with both hematite and magnetite carrying the DRM, the recommended value is 0.67
+        if you would like to use all data compiled for the three categories above, use 0.62
+    std: one standard deviation of the normal disttribution 
+        for rocks with hematite carrying the DRM, the recommended value is 0.13
+        for rocks with magnetite carrying the DRM the recommended value is 0.14
+        for rocks with both hematite and magnetite carrying the DRM, the recommended value is 0.11
+        if you would like to use all data compiled for the three categories above, use 0.14
+    these values are based on the compilation of Pierce et al., 2022 Table S1. 
+
     Optional Parameters:
     -----------
-    mu: mean of the normal distribution, default is 0.62
-    std: one standard deviation of the normal disttribution, default is 0.14
-    these numbers are based on the compilation of Pierce et al., 2022 Table S1. 
+    n: number of resample from the normal distribution
+    n_fish: number of resample from each Fisher mean pole position
+    return_poles: whether or not to return the resampled mean pole positions, default is True
+    return_kent_stats: whether or not to return the calculate kent disttribution statistics of the resampled mean poles
+        default is True
+
     '''
     # get the uncorrected dec and inc from a given paleomagnetic pole
     original_dec, original_inc = pmag.vgp_di(plat, plon, slat, slon)
     # generate resamples of a distribution 
-    f_from_compilation=np.random.normal(mu, std, size=n)
+    f_from_compilation = np.random.normal(mu, std, size=n)
+    for i in f_from_compilation:
+        if
+    
     plt.figure(figsize=(6,6))
     plt.hist(f_from_compilation, alpha=0.6, density=1)
     plt.xticks(fontsize=14)
