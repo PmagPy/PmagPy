@@ -8987,6 +8987,83 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     else:
         return kent_stats
 
+def find_compilation_kent(plon, plat, A95, slon, slat, mu=0.62, std=0.14, n=1000, n_fish=100, return_poles=True, return_kent_stats=True):
+    '''
+    Applies a series of assumed flattening factors given a normal distribution of f factors to a legacy 
+    sedimentary paleomagnetic pole where only pole longitude, pole latitude, A95, site longitude, site latitude,
+    are available. 
+    First calculate the paleomagnetic direction at the site of the mean pole using plon, plat using pmag.vgp_di 
+    Draw n resamples from a normal distribution for f with prescribed mu and std
+    Unsquish the directions with the resampled f factors, then convert the mean directions back to pole space
+    Assume the pole is well-grouped and the A95 does not change much if the original site-level data were available
+    Resample n_fish mean poles from the fisher distribution given the unsquished plon, plat, and A95
+    This will result in a total of n*n_fish number of resampled mean poles
+    Summarize the distribution of the mean poles using a Kent distribution 
+    
+    Required Parameters
+    -----------
+    plon: legacy mean pole longitude
+    plat: legacy mean pole latitude
+    A95: legacy mean pole A95 
+    slon: site longitude
+    slat: site latitude
+    
+    Optional Parameters:
+    -----------
+    mu: mean of the normal distribution, default is 0.62
+    std: one standard deviation of the normal disttribution, default is 0.14
+    these numbers are based on the compilation of Pierce et al., 2022 Table S1. 
+    '''
+    # get the uncorrected dec and inc from a given paleomagnetic pole
+    original_dec, original_inc = pmag.vgp_di(plat, plon, slat, slon)
+    # generate resamples of a distribution 
+    f_from_compilation=np.random.normal(mu, std, size=n)
+    plt.figure(figsize=(6,6))
+    plt.hist(f_from_compilation, alpha=0.6, density=1)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('resample of compilation f factors', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+    
+    #calculate corrected inclinations
+    compilation_incs = [pmag.unsquish(original_inc, f) for f in f_from_compilation]
+    # calculate corrected paleolatitudes
+    compilation_paleolats = np.degrees(np.arctan(np.tan(np.radians(compilation_incs))/2))
+    
+    plt.figure(figsize=(6,6))
+    plt.hist(compilation_paleolats, alpha=0.6, density=1)
+
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel('compilation paleolatitudes ($^\circ$)', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+    
+    compilation_mean_lons = []
+    compilation_mean_lats = []
+
+    for i in range(len(f_from_compilation)):
+        unsquish_plon, unsquish_plats,_,_ = pmag.dia_vgp(original_dec, compilation_incs[i], A95, slat, slon)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=A95, n=n_fish, 
+                                                       dec=unsquish_plon, inc=unsquish_plats, di_block=0)
+        compilation_mean_lons.extend(resampled_lons)
+        compilation_mean_lats.extend(resampled_lats)
+
+    m = make_orthographic_map(200, 20)
+    plot_vgp(m, compilation_mean_lons, compilation_mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
+    
+    f_compilation_kent_distribution_95 = kent_distribution_95(dec=compilation_mean_lons, 
+                                                                inc=compilation_mean_lats) 
+    plot_pole_ellipse(m,f_compilation_kent_distribution_95, color='darkred', label='Kent mean pole')
+    plot_pole(m, plon, plat, A95, label='uncorrected pole position', color='C0')
+    plt.legend(loc=8, fontsize=14)
+    
+    if return_poles and return_kent_stats:
+        return compilation_mean_lons, compilation_mean_lats, f_compilation_kent_distribution_95
+    elif return_poles:
+        return compilation_mean_lons, compilation_mean_lats
+    elif return_kent_stats:
+        f_compilation_kent_distribution_95
+
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
     Calculate the Bhattacharyya Coefficient, Bayes error and the
