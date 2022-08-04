@@ -578,6 +578,70 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
             inclinations.append(irot)
         return declinations, inclinations
 
+def kentrot(kent_dict, n=100, di_block=True):
+    '''
+    Generates Kent distributed unit vectors from a specified distribution
+    using the pmag.py function kentdev().
+
+    Parameters
+    ----------
+    kent_dict: a dictionary for Kent distribution parameters. It should at least have:
+        dec: mean axis dec,
+        inc: mean axis inc,
+        Zdec: major axis dec,
+        Zinc: major axis inc,
+        Edec: minor axis dec,
+        Einc: minor axis inc,
+        R1: Kent distribution size quantity for calculating kappa and beta,
+        R2: Kent distribution shape quantity for calculating kappa and beta}
+    di_block : this function returns a nested list of [dec,inc,1.0] as the default
+    if di_block = False it will return a list of dec and a list of inc
+
+    Returns
+    ---------
+    di_block : a nested list of [dec,inc,1.0] (default)
+    dec, inc : a list of dec and a list of inc (if di_block = False)
+    '''
+    # get kent states from dictionary
+    mean_lon = kent_dict['dec']
+    mean_lat = kent_dict['inc']
+    major_lon = kent_dict['Zdec']
+    major_lat = kent_dict['Zinc']
+    minor_lon = kent_dict['Edec']
+    minor_lat = kent_dict['Einc']
+    R1 = kent_dict['R1']
+    R2 = kent_dict['R2']
+
+    # calculate kappa and beta
+    kappa = 1/(2-2*R1-R2)+1/(2-2*R1+R2)
+    beta = 1/2*(1/(2-2*R1-R2)-1/(2-2*R1+R2))
+    
+    # generate unrotated decs and incs
+    decs, incs = pmag.kentdev(kappa, beta, n)
+    
+    #convert to cartesion coordinates
+    X = pmag.dir2cart(np.array([decs, incs]).T)
+
+    # new axes:
+    new_axes  = pmag.dir2cart([[360-minor_lon,-minor_lat],[major_lon,major_lat],[mean_lon,mean_lat]])
+
+    # old axes:
+    old_axes = pmag.dir2cart([[-90,0],[0,0],[0,90]])
+
+    # construct coordinate rotation matrix
+    rotation_matrix = np.inner(new_axes,old_axes)
+
+    rotated_X = X@rotation_matrix
+
+    rotated_dir = pmag.cart2dir(rotated_X).T
+    
+    rotated_decs, rotated_incs = rotated_dir[0]-90, rotated_dir[1]
+    
+    if di_block:
+        return make_di_block(rotated_decs, rotated_incs)
+    
+    else:
+        return rotated_decs, rotated_incs
 
 def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
     """
