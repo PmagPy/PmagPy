@@ -8906,31 +8906,31 @@ def unpack(gh):
 
 def magsyn(gh, sv, b, date, itype, alt, colat, elong):
     """
-# Computes x, y, z, and f for a given date and position, from the
-# spherical harmonic coefficients of the International Geomagnetic
-# Reference Field (IGRF).
-# From Malin and Barraclough (1981), Computers and Geosciences, V.7, 401-405.
-#
-# Input:
-#       date  = Required date in years and decimals of a year (A.D.)
-#       itype = 1, if geodetic coordinates are used, 2 if geocentric
-#       alt   = height above mean sea level in km (if itype = 1)
-#       alt   = radial distance from the center of the earth (itype = 2)
-#       colat = colatitude in degrees (0 to 180)
-#       elong = east longitude in degrees (0 to 360)
-#               gh        = main field values for date (calc. in igrf subroutine)
-#               sv        = secular variation coefficients (calc. in igrf subroutine)
-#               begin = date of dgrf (or igrf) field prior to required date
-#
-# Output:
-#       x     - north component of the magnetic force in nT
-#       y     - east component of the magnetic force in nT
-#       z     - downward component of the magnetic force in nT
-#       f     - total magnetic force in nT
-#
-#       NB: the coordinate system for x,y, and z is the same as that specified
-#       by itype.
-#
+  Computes x, y, z, and f for a given date and position, from the
+  spherical harmonic coefficients of the International Geomagnetic
+  Reference Field (IGRF).
+  From Malin and Barraclough (1981), Computers and Geosciences, V.7, 401-405.
+ 
+  Input:
+        date  = Required date in years and decimals of a year (A.D.)
+        itype = 1, if geodetic coordinates are used, 2 if geocentric
+        alt   = height above mean sea level in km (if itype = 1)
+        alt   = radial distance from the center of the earth (itype = 2)
+        colat = colatitude in degrees (0 to 180)
+        elong = east longitude in degrees (0 to 360)
+                gh        = main field values for date (calc. in igrf subroutine)
+                sv        = secular variation coefficients (calc. in igrf subroutine)
+                begin = date of dgrf (or igrf) field prior to required date
+ 
+  Output:
+        x     - north component of the magnetic force in nT
+        y     - east component of the magnetic force in nT
+        z     - downward component of the magnetic force in nT
+        f     - total magnetic force in nT
+ 
+        NB: the coordinate system for x,y, and z is the same as that specified
+        by itype.
+ 
 # Modified 4/9/97 to use DGRFs from 1945 to 1990 IGRF
 # Modified 10/13/06 to use  1995 DGRF, 2005 IGRF and sv coefficient
 # for extrapolation beyond 2005. Coefficients from Barton et al. PEPI, 97: 23-26
