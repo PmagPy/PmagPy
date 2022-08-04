@@ -6031,6 +6031,11 @@ def dokent(data, NN, distribution_95=False):
         for j in range(3):
             for k in range(3):
                 b[i][j] += H[k][i] * w[k][j]
+
+# get the upper 2x2 matrix of B as BL
+    BL = np.array(b)[np.ix_([0,1],[0,1])]
+# compute the eigenvalues of BL
+    BL_ei = np.linalg.eig(BL)[0]
 #
 # choose a rotation w about North pole to diagonalize upper part of B
 #
@@ -6094,6 +6099,8 @@ def dokent(data, NN, distribution_95=False):
         kpars["Edec"] = (kpars["Edec"] + 180.) % 360.
     kpars["Zeta"] = zeta * 180. / np.pi
     kpars["Eta"] = eta * 180. / np.pi
+    kpars['R1'] = fpars['r']/N        
+    kpars['R2'] = abs(BL_ei[0]-BL_ei[1])
     return kpars
 
 
