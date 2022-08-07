@@ -1222,17 +1222,19 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 
 def flip(di_block, combine=False):
     """
-    Determines 'normal' direction along the principle eigenvector, then flips the antipodes of
+    Determines 'normal' direction along the principle eigenvector, then flips 
     the reverse mode to the antipode
 
     Parameters
-    ___________
+    ----------
         di_block : nested list of directions
+        combine : whether to return directions as one di_block (default is False)
+        
     Returns
-    ______
+    ---------
         D1 : normal mode
         D2 : flipped reverse mode as two DI blocks
-        combine : if True return combined D1, D2, nested D,I pairs
+        If combine=True one combined D1 + D2 di_block will be returned
     """
     ppars = doprinc(di_block)  # get principle direction
     if combine:
