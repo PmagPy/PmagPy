@@ -6033,6 +6033,11 @@ def dokent(data, NN, distribution_95=False):
         for j in range(3):
             for k in range(3):
                 b[i][j] += H[k][i] * w[k][j]
+
+# get the upper 2x2 matrix of B as BL
+    BL = np.array(b)[np.ix_([0,1],[0,1])]
+# compute the eigenvalues of BL
+    BL_ei = np.linalg.eig(BL)[0]
 #
 # choose a rotation w about North pole to diagonalize upper part of B
 #
@@ -6096,6 +6101,8 @@ def dokent(data, NN, distribution_95=False):
         kpars["Edec"] = (kpars["Edec"] + 180.) % 360.
     kpars["Zeta"] = zeta * 180. / np.pi
     kpars["Eta"] = eta * 180. / np.pi
+    kpars['R1'] = fpars['r']/N        
+    kpars['R2'] = abs(BL_ei[0]-BL_ei[1])
     return kpars
 
 
@@ -6257,6 +6264,100 @@ def fshdev(k):
     else:
         return dec, inc
 
+def kentdev(kappa, beta, n=1000):
+
+    '''
+    Generate a random draw from a Kent distribution with mean declination
+    of 0 and inclination of 90, elongated along -90 to 90 longitude 
+    with a specified kappa and beta
+
+    Parameters
+    ----------
+    kappa : kappa (precision parameter) of the distribution
+    beta: beta ellipticity of the contours of equal probability of the distribution
+    n: number of samples to redraw
+
+    Returns
+    ----------
+    dec, inc : declination and inclination of random Kent distribution draw
+    
+    '''
+    
+    # initialize dec, inc lists to be reported
+    decs = []
+    incs = []
+    
+    # Normalization constant given kappa and beta
+    normalization = np.log(2*np.pi)+kappa-np.log(np.sqrt((kappa-2*beta)*(kappa+2*beta)))
+
+    # Variables for the sampler
+    a = 4*(kappa-2*beta)
+    b = 4*(kappa+2*beta)
+    gamma = (b-a)/2
+
+    if(b>0):
+        c2 = 0.5*b/(b-gamma)
+    else:
+        c2 = 0
+
+    lam1 = np.sqrt(a+2*np.sqrt(gamma))
+    lam2 = np.sqrt(b)
+    
+    # effective samples
+    N=0
+    
+    while N<n:
+        v1=random.random()
+        v2=random.random()
+        u1=random.random()
+        u2=random.random()
+
+        try:
+            x1 = -np.log(1-v1*(1-np.exp(-lam1)))/lam1
+        except:
+            x1 = v1
+
+        try:
+            x2 = -np.log(1-v2*(1-np.exp(-lam2)))/lam2
+        except:
+            x2=v2
+
+        if (x1*x1+x2*x2)>1:
+            continue
+
+        ratio1 = np.exp(-0.5*(a*x1*x1+gamma*x1*x1*x1*x1)-1+lam1*x1);
+
+        if u1 > ratio1:
+            continue
+
+        ratio2 = np.exp(-0.5*(b*x2*x2-gamma*x2*x2*x2*x2)-c2+lam2*x2);
+
+        if u2 > ratio2:
+            continue
+        
+        sign1 = [-1 if random.random()-0.5 < 0 else 1][0]
+        sign2 = [-1 if random.random()-0.5 < 0 else 1][0]
+
+        x1=x1*sign1
+        x2=x2*sign2
+
+        theta=np.arccos(1-2*(x1*x1+x2*x2))
+        phi=np.arctan2(x2, x1)
+        ct=np.cos(theta)
+        st=np.sin(theta)
+        cp=np.cos(phi)
+        sp=np.sin(phi)
+        x=ct
+        y=st*cp
+        z=st*sp
+    
+        d,i,_ = cart2dir([x,y,z])
+        drot, irot = dodirot(d, i, 0, 0)
+        
+        decs.append(drot)
+        incs.append(irot)
+        N = N + 1
+    return decs, incs
 
 def lowes(data):
     """
