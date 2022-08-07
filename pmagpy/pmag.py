@@ -1217,8 +1217,6 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
                         kill.append(key)
     return kill
 
-#
-
 
 def flip(di_block, combine=False):
     """
@@ -1255,7 +1253,6 @@ def flip(di_block, combine=False):
         return D3
     else:
         return D1, D2
-#
 
 
 def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
