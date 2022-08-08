@@ -10947,6 +10947,25 @@ def linreg(x, y):
     return linpars
 
 
+def interval_overlap(interval_a, interval_b):
+    """
+    Determine the extent of overlap between two ranges of numbers 
+    
+    Parameters
+    ----------
+    interval_a : a list of [min, max]
+    interval_b : a list of [min, max]
+    
+    Returns
+    -------
+    overlap : the amount of overlap between interval_a and interval_b
+    """
+    a0,a1 = interval_a
+    b0,b1 = interval_b
+    overlap = max(0,min(a1,b1)-max(a0,b0))
+    return overlap
+
+
 def squish(incs, f):
     """
     returns 'flattened' inclination, assuming factor, f and King (1955) formula:

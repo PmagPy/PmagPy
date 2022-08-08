@@ -1013,6 +1013,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     Returns
     -------
     three plots : cumulative distributions of the X, Y, Z of bootstrapped means
+    result : a boolean where 0 is fail and 1 is pass
 
     Examples
     --------
@@ -1034,15 +1035,14 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
     else:
         cart = pmag.dir2cart(Data2).transpose()
-
-    fignum = 1
-    fig = plt.figure(figsize=figsize)
-    #fig = plt.subplot(1, 3, 1)
-    plt.subplot(1, 3, 1)
-
+    
     minimum = int(0.025 * len(X1))
     maximum = int(0.975 * len(X1))
+    
+    fignum = 1
+    fig = plt.figure(figsize=figsize)
 
+    plt.subplot(1, 3, 1)
     X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", 'r', "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
@@ -1054,9 +1054,9 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
         pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
+    x_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.subplot(1, 3, 2)
-
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", 'r', "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
@@ -1067,9 +1067,9 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     else:
         pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
     plt.ylim(0, 1)
-
+    y_overlap = pmag.interval_overlap(bounds1,bounds2)
+    
     plt.subplot(1, 3, 3)
-
     Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", 'r', "")
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
@@ -1082,13 +1082,47 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
         pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
+    z_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.tight_layout()
     if save == True:
         plt.savefig(os.path.join(
             save_folder, 'common_mean_bootstrap') + '.' + fmt)
     plt.show()
-
+    
+    if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
+        print('Pass')
+        result = 1
+        return result
+    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
+        print('Fail, distinct in x')
+        result = 0
+        return result
+    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
+        print('Fail, distinct in y')
+        result = 0
+        return result
+    elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
+        print('Fail, distinct in z')
+        result = 0
+        return result
+    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
+        print('Fail, distinct in x and y')
+        result = 0
+        return result
+    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
+        print('Fail, distinct in x and z')
+        result = 0
+        return result
+    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
+        print('Fail, distinct in y and z')
+        result = 0
+        return result
+    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
+        print('Fail, distinct in x, y and z')
+        result = 0
+        return result
+        
 
 def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no', save=False, save_folder='.', fmt='svg'):
     """
@@ -1278,8 +1312,9 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
     Returns
     -------
-    plots : Plots of the cumulative distribution of Cartesian components are
-        shown as is an equal area plot if plot_stereo = True
+    plots : Plots of the cumulative distribution of Cartesian components are shown
+        an equal area plot is plotted if plot_stereo = True
+    result : a boolean where 0 is fail and 1 is pass
 
     Examples
     --------
@@ -1314,8 +1349,10 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
         plot_di(di_block=directions1, color='b'),
         plot_di(di_block=do_flip(di_block=directions2), color='r')
 
-    common_mean_bootstrap(directions1, directions2,
-                          save=save, save_folder=save_folder, fmt=fmt)
+    result = common_mean_bootstrap(directions1, directions2,
+                                   save=save, save_folder=save_folder, fmt=fmt)
+    
+    return result
 
 
 def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
