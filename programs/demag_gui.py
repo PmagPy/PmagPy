@@ -4492,8 +4492,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = PCA_type_list[0].strip()
             else:
                 PCA_type = "DE-BFL"
-
-            fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
+            if "DE-BLANKET" not in str(fdict[i]['method_codes']):
+                fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
 
             if fdict[i]['result_quality'] == 'b':
                 self.bad_fits.append(fit)
