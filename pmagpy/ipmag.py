@@ -1087,7 +1087,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     plt.tight_layout()
     if save == True:
         plt.savefig(os.path.join(
-            save_folder, 'common_mean_bootstrap') + '.' + fmt)
+            save_folder, 'common_mean_bootstrap') + '.' + fmt,
+                    dpi=300,bbox_inches='tight')
     plt.show()
     
     if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
@@ -2849,16 +2850,17 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
 
     return artists
 
-def make_di_block(dec, inc):
+def make_di_block(dec, inc, unit_vector=True):
     """
     Some pmag.py and ipmag.py functions require or will take a list of unit
     vectors [dec,inc,1.] as input. This function takes declination and
-    inclination data and make it into such a nest list of lists.
+    inclination data and make it into such a nested list of lists.
 
     Parameters
     -----------
     dec : list of declinations
     inc : list of inclinations
+    unit_vector : if True will return [dec,inc,1.]; if False will return [dec,inc]
 
     Returns
     -----------
@@ -2872,8 +2874,12 @@ def make_di_block(dec, inc):
     [[180.3, 12.1, 1.0], [179.2, 13.7, 1.0], [177.2, 11.9, 1.0]]
     """
     di_block = []
-    for n in range(0, len(dec)):
-        di_block.append([dec[n], inc[n], 1.0])
+    if unit_vector==True:
+        for n in range(0, len(dec)):
+            di_block.append([dec[n], inc[n], 1.0])
+    if unit_vector==False:
+        for n in range(0, len(dec)):
+            di_block.append([dec[n], inc[n]])
     return di_block
 
 
