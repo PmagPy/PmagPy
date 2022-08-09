@@ -1268,6 +1268,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
             if critical_angle < 5:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'A'")
+                test_result = 
             elif critical_angle < 10:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'B'")
@@ -1483,7 +1484,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png'):
+def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -1506,6 +1507,8 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png'):
         dec, inc lists.
     plot : boolean to decide whether to make a plot (default is True)
     save : boolean to decide whether plot is saved (default is False)
+    save_folder : relative directory where plots will be saved
+        (default is current directory, '.')
     fmt : format of saved plot (default is 'png')
 
     Output:
@@ -1587,7 +1590,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png'):
                 QQ['exp'], I1, Itit, subplot=True)  # make plot
             plt.tight_layout()
             if save == True:
-                plt.savefig('QQ_mode1.'+fmt)
+                plt.savefig(os.path.join(save_folder, 'QQ_mode1')+'.'+fmt, dpi=450)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'consistent with Fisherian model'
         else:
@@ -1629,7 +1632,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png'):
                 QQ['exp'], I2, Itit, subplot=True)  # make plot
             plt.tight_layout()
             if save == True:
-                plt.savefig('QQ_mode2.'+fmt)
+                plt.savefig(os.path.join(save_folder, 'QQ_mode2')+'.'+fmt, dpi=450)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'consistent with Fisherian model'
