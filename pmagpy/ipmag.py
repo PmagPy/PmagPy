@@ -804,7 +804,7 @@ def f_factor_calc(inc_observed, inc_field):
     return f_factor
 
 
-def do_flip(dec=None, inc=None, di_block=None):
+def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
     """
     This function returns the antipode (i.e. it flips) of directions.
 
@@ -822,6 +822,7 @@ def do_flip(dec=None, inc=None, di_block=None):
     or
 
     di_block : a nested list of [dec, inc, 1.0]
+    unit_vector : if True will return [dec,inc,1.]; if False will return [dec,inc]
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
@@ -830,7 +831,7 @@ def do_flip(dec=None, inc=None, di_block=None):
     ----------
     dec_flip, inc_flip : list of flipped declinations and inclinations
     or
-    dflip : a nested list of [dec, inc, 1.0]
+    dflip : a nested list of [dec, inc, 1.0] or [dec, inc]
 
     Examples
     ----------
@@ -858,7 +859,10 @@ def do_flip(dec=None, inc=None, di_block=None):
         dflip = []
         for rec in di_block:
             d, i = (rec[0] - 180.) % 360., -rec[1]
-            dflip.append([d, i, 1.0])
+            if unit_vector==True:
+                dflip.append([d, i, 1.0])
+            if unit_vector==False:
+                dflip.append([d, i])
         return dflip
 
 
@@ -2849,6 +2853,7 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
         artists.append(a)
 
     return artists
+
 
 def make_di_block(dec, inc, unit_vector=True):
     """
