@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.optimize import fminbound
+from scipy.integrate import quad
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
@@ -1300,6 +1301,91 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     return result, angle[0], critical_angle, classification
 
 
+def common_mean_bayes(Data1, Data2, reversal_test=False):
+    '''    
+    Estimate the probability that two Fisher-distributed sets of 
+    directions originate from populations with a common mean using
+    the Bayesian framework of Heslop and Roberts (2018). This version
+    of the test is the one involving distributions with common precision.
+    
+    Parameters
+    ----------
+    Data1 : a nested list of directional data [dec,inc] (a di_block)
+    Data2 : a nested list of directional data [dec,inc] (a di_block)
+    reversal_test : whether to flip one populations to its antipode
+        (default is False)
+    
+    Returns
+    -------
+    BF0 : Bayes factor
+    P : posterior probability of the hypothesis
+    support : category of support based on classification of P
+    '''    
+    
+    X1=pmag.dir2cart(Data1)
+    X2=pmag.dir2cart(Data2) 
+    
+    if reversal_test==True:
+        X12=np.concatenate((X1,-X2), axis=0) #pool site directions
+    else:
+        X12=np.concatenate((X1,X2), axis=0) #pool site directions
+
+    def log_like(k,N,R):
+        return N*np.log(k/4/np.pi)-N*log_sinh(k)+np.log(4*np.pi) \
+                +log_sinh(k*R)-np.log(k*R)
+
+    def log_sinh(k):
+        if k>700:
+            s=k-np.log(2.0)
+        else:
+            s=np.log(np.sinh(k))
+        return s
+
+    def log_prior(k):
+        return np.log(4.0)+2.0*np.log(k)-np.log(np.pi)-2.0*np.log(1.+k**2)
+
+    def integrand1(k,x):
+        R=np.sqrt(np.sum(np.sum(x,axis=0)**2))
+        N=np.size(x,axis=0)
+        val = np.exp(log_like(k,N,R)+log_prior(k))
+        return val
+
+    def integrand2(k,x1,x2):
+        R1=np.sqrt(np.sum(np.sum(x1,axis=0)**2))
+        N1=np.size(x1,axis=0)
+
+        R2=np.sqrt(np.sum(np.sum(x2,axis=0)**2))
+        N2=np.size(x2,axis=0)
+
+        val = np.exp(log_like(k,N1,R1)+log_like(k,N2,R2)+log_prior(k))
+
+        return val        
+    
+    mL1 = quad(integrand1, 0, np.inf, args=(X12))[0] #Bayes factor numerator (Eqn 13)
+    mL2 = quad(integrand2, 0, np.inf, args=(X1,X2))[0] #Bayes factor denominator (Eqn 14)
+    
+    BF0=mL1/mL2
+    P=BF0/(1.+BF0)
+    
+    if P<0.01: 
+        support = 'Different means: very strong support'
+    if P>=0.01 and P<0.05: 
+        support = 'Different means: strong support'
+    if P>=0.05 and P<0.25:
+        support = 'Different means: positive support'
+    if P>=0.25 and P<0.75:
+        support = 'Ambiguous: weak support'
+    if P>=0.75 and P<0.95: 
+        support = 'Common mean: positive support'
+    if P>=0.95 and P<0.99: 
+        support = 'Common mean: strong support'
+    if P>=0.99:
+        support = 'Common mean: very strong support'
+    
+    print(support)
+    return BF0, P, support
+
+
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
@@ -1720,6 +1806,10 @@ def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
     ref_loc_lat: latitude of reference location
     pole_plon: paleopole longitude in degrees
     pole_plat: paleopole latitude in degrees
+    
+    Returns
+    -------
+    paleo_lat : paleolatitude based on pole
     """
 
     ref_loc = (ref_loc_lon, ref_loc_lat)
