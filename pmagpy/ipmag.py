@@ -1157,6 +1157,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     result : a boolean where 0 is fail and 1 is pass
     angle : angle between the Fisher means of the two data sets
     critical_angle : critical angle for the test to pass
+    classification : MM1990 classification for a positive test
 
     Examples
     --------
@@ -1253,7 +1254,8 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
             print('"Fail": Since V is greater than Vcrit, the two means can')
             print('be distinguished at the 95% confidence level.')
         result = 0
-
+        classification = ''
+        
     if print_result == True:
         print("")
         print("M&M1990 classification:")
@@ -1268,16 +1270,19 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
             if critical_angle < 5:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'A'")
-                test_result = 
+                classification = 'A'
             elif critical_angle < 10:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'B'")
+                classification = 'B'
             elif critical_angle < 20:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'C'")
+                classification = 'C'
             else:
                 print("The McFadden and McElhinny (1990) classification for")
                 print("this test is: 'INDETERMINATE;")
+                classification = 'indeterminate'
 
     if plot == 'yes':
         CDF = {'cdf': 1}
@@ -1292,7 +1297,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
                 save_folder, 'common_mean_watson') + '.' + fmt)
         pmagplotlib.show_fig(CDF['cdf'])
 
-    return result, angle[0], critical_angle
+    return result, angle[0], critical_angle, classification
 
 
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
