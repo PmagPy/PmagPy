@@ -1390,6 +1390,14 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     save_folder : relative directory where plots will be saved
         (default is current directory, '.')
     fmt : format of saved figures (default is 'svg')
+    
+    Returns
+    -------
+    printed text : text describing the test result is printed
+    result : a boolean where 0 is fail and 1 is pass
+    angle : angle between the Fisher means of the two data sets
+    critical_angle : critical angle for the test to pass
+    classification : MM1990 classification for a positive test
 
     Examples
     --------
@@ -1425,11 +1433,13 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
         plot_di(di_block=do_flip(di_block=directions2), color='r')
 
     if plot_CDF == False:
-        common_mean_watson(directions1, directions2, save=save,
-                           save_folder=save_folder, fmt=fmt)
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, 
+                                                                         save=save, save_folder=save_folder, fmt=fmt)
     else:
-        common_mean_watson(directions1, directions2, plot='yes',
-                           save=save, save_folder=save_folder, fmt=fmt)
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot='yes',
+                                                                         save=save, save_folder=save_folder, fmt=fmt)
+    
+    return result, angle, critical_angle, classification
 
 
 def conglomerate_test_Watson(R, n):
