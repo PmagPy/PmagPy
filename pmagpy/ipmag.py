@@ -1607,9 +1607,9 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
             if save == True:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode1')+'.'+fmt, dpi=450)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
-            F_n = 'consistent with Fisherian model'
+            F_n = 'Consistent with Fisher distribution'
         else:
-            F_n = 'Fisherian model rejected'
+            F_n = 'Fisher distribution rejected'
         QQ_dict1['Mode'] = 'Mode 1'
         QQ_dict1['Dec'] = Dnbar
         QQ_dict1['Inc'] = Inbar
@@ -1650,9 +1650,9 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
                 plt.savefig(os.path.join(save_folder, 'QQ_mode2')+'.'+fmt, dpi=450)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
-            F_r = 'consistent with Fisherian model'
+            F_r = 'Consistent with Fisher distribution'
         else:
-            F_r = 'Fisherian model rejected'
+            F_r = 'Fisher distribution rejected'
         QQ_dict2['Mode'] = 'Mode 2'
         QQ_dict2['Dec'] = Drbar
         QQ_dict2['Inc'] = Irbar
