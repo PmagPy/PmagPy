@@ -10036,11 +10036,11 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    for rec in MeasRecs: 
-        print (float(rec['treat_temp'])-273,rec['method_codes'])
+    #for rec in MeasRecs: 
+    #    print (float(rec['treat_temp'])-273,rec['method_codes'])
     MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
-    for rec in MeasOuts:
-        print (float(rec['treat_temp'])-273,rec['method_codes'])
+    #for rec in MeasOuts:
+    #    print (float(rec['treat_temp'])-273,rec['method_codes'])
 
 #    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
