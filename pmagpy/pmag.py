@@ -2320,6 +2320,12 @@ def dotilt_V(indat):
     Returns
     _______
         dec,inc : arrays of rotated declination, inclination
+        
+    Examples
+    ________
+    >>> pmag.dotilt_V(np.array([[91.2,43.1,90.0,20.0],[92.0,40.4,90.5,21.3]]))
+    (array([90.95256883715344, 91.70884991139725]),
+     array([23.103411670066613, 19.105747819853423]))
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
@@ -2399,6 +2405,11 @@ def dogeo_V(indat):
     Returns
     _______
         rotated_directions : arrays of Declinations and Inclinations
+        
+    Examples
+    ________
+    >>> pmag.dogeo_V(np.array([[0.0,90.0,0.0,45.5],[0.0,90.0,0.0,45.5]]))
+    (array([180., 180.]), array([44.5, 44.5]))
     """
     indat = indat.transpose()
     # unpack input array into separate arrays
