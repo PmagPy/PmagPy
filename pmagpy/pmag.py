@@ -2484,7 +2484,10 @@ def dodirot_V(di_block, Dbar, Ibar):
     Examples
     ________
     >>> di_block = np.array([[0,90],[0,92],[0,92]])
-    pmag.dodirot_V(di_block,5,93)
+    >>> pmag.dodirot_V(di_block,5,93)
+    array([[185.              ,  87.00000000000009],
+       [194.81338201697608,  88.97743662195866],
+       [194.81338201697608,  88.97743662195866]])
     """
     N = di_block.shape[0]
     DipDir, Dip = np.ones(N, dtype=np.float).transpose(
@@ -2835,7 +2838,7 @@ def domean(data, start, end, calculation_type):
     or plane) methods
 
     Parameters
-    ----------
+    __________
     data : nest list of data: [[treatment,dec,inc,int,quality],...]
     start : step being used as start of fit (often temperature minimum)
     end : step being used as end of fit (often temperature maximum)
@@ -2844,7 +2847,7 @@ def domean(data, start, end, calculation_type):
     'DE-BFP' (plane), 'DE-FM' (Fisher mean)
 
     Returns
-    -------
+    _______
     mpars : dictionary with the keys "specimen_n","measurement_step_min",
     "measurement_step_max","specimen_mad","specimen_dec","specimen_inc"
     """
@@ -4140,6 +4143,11 @@ def dosundec(sundata):
     Returns
     ________
        sunaz : the declination of the desired direction wrt true north.
+    
+    Examples
+    ________
+    >>> sundata={'date':'1994:05:23:16:9','delta_u':3,'lat':35,'lon':33,'shadow_angle':68}
+    154.24420046668928
     """
     iday = 0
     timedate = sundata["date"]
@@ -4188,6 +4196,24 @@ def dosundec(sundata):
 def gha(julian_day, f):
     """
     Returns greenwich hour angle.
+    
+    Parameters
+    __________
+        julian_day: julian day as an integer 
+        f: fraction of the day in Universal Time 
+    
+    Returns
+    _______
+        H: hour
+        delta: angle
+    
+    Examples
+    ________
+    >>> julianday = pmag.julian(10,20,2000)
+    >>> pmag.gha(julianday, 33)
+    (183.440612472039, -20.255315389871825)
+    >>> pmag.gha(2451838, 33)
+    (183.440612472039, -20.255315389871825)
     """
     rad = np.pi/180.
     d = julian_day - 2451545.0 + f
