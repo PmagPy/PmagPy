@@ -3792,21 +3792,21 @@ def getkeys(table):
         keys.append("measurement_csd")
     return keys
 
-
-def getnames():
-    """
-    get mail names
-    """
-    namestring = ""
-    addmore = 1
-    while addmore:
-        scientist = input("Enter  name  - <Return> when done ")
-        if scientist != "":
-            namestring = namestring + ":" + scientist
-        else:
-            namestring = namestring[1:]
-            addmore = 0
-    return namestring
+# commented out as of 8/18/22
+#def getnames():
+#    """
+#    get mail names
+#    """
+#    namestring = ""
+#    addmore = 1
+#    while addmore:
+#        scientist = input("Enter  name  - <Return> when done ")
+#        if scientist != "":
+#            namestring = namestring + ":" + scientist
+#        else:
+#            namestring = namestring[1:]
+#            addmore = 0
+#    return namestring
 
 
 def magic_help(keyhelp):
@@ -4200,7 +4200,8 @@ def gha(julian_day, f):
     Parameters
     __________
         julian_day: julian day as an integer 
-        f: fraction of the day in Universal Time 
+        f: fraction of the day in Universal Time
+         : (hrs + (min/60))/24
     
     Returns
     _______
@@ -4307,11 +4308,11 @@ def fisher_mean(data):
     Calculates the Fisher mean and associated parameter from a di_block
 
     Parameters
-    ----------
+    __________
     di_block : a nested list of [dec,inc] or [dec,inc,intensity]
 
     Returns
-    -------
+    _______
     fpars : dictionary containing the Fisher mean and statistics
         dec : mean declination
         inc : mean inclination
@@ -4320,6 +4321,18 @@ def fisher_mean(data):
         k : Fisher k value
         csd : Fisher circular standard deviation
         alpha95 : Fisher circle of 95% confidence
+        
+    Examples
+    ________
+    >>> di_block = [[-45,150],[-40,150],[-38,145]]
+    >>> pmag.fisher_mean(di_block)
+    {'dec': 138.94545436727873,
+     'inc': 31.699974714611297,
+     'n': 3,
+     'r': 2.9946002939178036,
+     'k': 370.39053043910616,
+     'alpha95': 6.414731246264079,
+     'csd': 4.20876891770567}    
     """
     R, Xbar, X, fpars = 0, [0, 0, 0], [], {}
     N = len(data)
@@ -4383,13 +4396,19 @@ def calculate_k(R,N):
     are available, but the vectors themselves are not.
 
     Parameters
-    ----------
+    __________
     R : the resultant vector length
     N : number of vectors
 
     Returns
-    -------
+    _______
     k : the Fisher concentration parameter
+    
+    Examples
+    ________
+    >>> n,r = 3, 4.335
+    pmag.calculate_k(r,n)
+    -1.4981273408
     '''
     if N != R:
         k = (N - 1.) / (N - R)
@@ -4474,14 +4493,43 @@ def lnpbykey(data, key0, key1):  # calculate a fisher mean of key1 data for a gr
 
 def fisher_by_pol(data):
     """
-    input:    as in dolnp (list of dictionaries with 'dec' and 'inc')
-    description: do fisher mean after splitting data into two polarity domains.
-    output: three dictionaries:
+    Do fisher mean after splitting data into two polarity domains.
+    
+    Parameters
+    __________
+    data: list of dictionaries with 'dec' and 'inc'
+    
+    Returns: 
+    ________
+    three dictionaries:
         'A'= polarity 'A'
         'B = polarity 'B'
         'ALL'= switching polarity of 'B' directions, and calculate fisher mean of all data
-    code modified from eqarea_ell.py b rshaar 1/23/2014
+        
+    Examples
+    ________
+    >>> data = [{'dec':-45,'inc':150}, {'dec':-44,'inc':150},{'dec':-45.3,'inc':149}]
+    >>> pmag.fisher_by_pol(data)
+    {'B': {'dec': 135.23515314555496,
+      'inc': 30.334504880687444,
+      'n': 3,
+      'r': 2.9997932987279383,
+      'k': 9675.799186195498,
+      'alpha95': 1.2533447889568254,
+      'csd': 0.8234582703442529,
+      'sites': '',
+      'locs': ''},
+     'All': {'dec': 315.23515314555493,
+      'inc': -30.334504880687444,
+      'n': 3,
+      'r': 2.999793298727938,
+      'k': 9675.79918617471,
+      'alpha95': 1.2533447889582796,
+      'csd': 0.8234582703451375,
+      'sites': '',
+      'locs': ''}}
     """
+    # code modified from eqarea_ell.py b rshaar 1/23/2014
     FisherByPoles = {}
     DIblock, nameblock, locblock = [], [], []
     for rec in data:
@@ -12235,7 +12283,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
 
 def watsons_f(DI1, DI2):
     """
-    calculates Watson's F statistic (equation 11.16 in Essentials text book).
+    Calculates Watson's F statistic (equation 11.16 in Essentials text book).
 
     Parameters
     _________
@@ -12246,6 +12294,13 @@ def watsons_f(DI1, DI2):
     _______
     F : Watson's F
     Fcrit : critical value from F table
+    
+    Examples
+    ________
+    >>> D1= [[-45,150],[-40,150],[-38,145]]
+    >>> D2= [[-43,140],[-39,130],[-38,145]]
+    >>> pmag.watsons_f(D1,D2)
+    (3.7453156915587567, 4.459)
     """
     # first calculate R for the combined data set, then R1 and R2 for each individually.
     # create a new array from two smaller ones
