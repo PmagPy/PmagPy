@@ -4424,13 +4424,19 @@ def calculate_r(alpha95,N):
     statistical tests that require R when it is not provided.
 
     Parameters
-    ----------
+    __________
     alpha95 : the Fisher alpha_95 value
     N : number of vectors
 
     Returns
-    -------
+    _______
     R : the resultant vector length
+    
+    Examples 
+    ________
+    >>> alpha95, N = 6.41, 3
+    >>> pmag.calculate_r(alpha95,N)
+    2.994608233588127
     '''
     R = ((20**(1/(N-1))-1)*N)/((20**(1/(N-1)))-np.cos(np.deg2rad(alpha95)))
     return R
