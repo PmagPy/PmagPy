@@ -26,8 +26,13 @@ def get_version():
     Determines the version of PmagPy installed on your machine.
 
     Returns
-    ________
+    -------
         version : string of pmagpy version, such as "pmagpy-3.8.8"
+        
+    Examples
+    --------
+    >>> pmag.get_version()
+    'pmagpy-4.2.106'
     """
     version = find_pmag_dir.get_version()
     return version
@@ -39,17 +44,17 @@ def sort_diclist(undecorated, sort_on):
     dictionary for the sorting key
 
     Parameters
-    __________
+    ----------
         undecorated : list of dicts
         sort_on : str, numeric
             key that is present in all dicts to sort on
 
     Returns
-    _______
+    -------
         ordered list of dicts
 
     Examples
-    ________
+    --------
     >>> lst = [{'key1': 10, 'key2': 2}, {'key1': 1, 'key2': 20}]
     >>> sort_diclist(lst, 'key1')
     [{'key2': 20, 'key1': 1}, {'key2': 2, 'key1': 10}]
@@ -71,18 +76,18 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
         (like "0.0" to "0") for evaluation, default is False
 
     Parameters
-    __________
+    ----------
         In : list of dictionaries to work on
         k : key to test
         v : key value to test
         flag : [T,F,has, or not]
         float_to int : if True, truncates to integer
     Returns
-    _______
+    -------
         list of dictionaries that meet conditions
         
     Examples
-    _________
+    --------
     >>> In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
          {'specimen':'abc01b02','dec':'12.3','inc':'42','int':'4.9e-6'}]
     >>> k = 'specimen'
@@ -90,7 +95,6 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
     >>> flag='T'
     >>> get_dictitem(In,k,v,flag)
     [{'specimen': 'abc01b02', 'dec': '12.3', 'inc': '42', 'int': '4.9e-6'}]
-   
     """
     if float_to_int:
         try:
@@ -149,7 +153,7 @@ def get_dictkey(In, k, dtype):
     dtype.
     
     Parameters
-    __________
+    ----------
         In : list of dictionaries to work on
         k : key to return
         dtype : str
@@ -157,11 +161,11 @@ def get_dictkey(In, k, dtype):
             "f" : returns float
             "int" : returns integer
     Returns
-    ______
+    -------
         list of values of the key specified to return
         
     Examples
-    _________
+    --------
     >>> In=[{'specimen':'abc01b01','dec':'10.3','inc':'43','int':'5.2e-6'},  
          {'specimen':'abc01b02','dec':'12.3','inc':'42','int':'4.9e-6'}]
     >>> k = 'specimen'
@@ -196,15 +200,15 @@ def find(f, seq):
     Returns input value (f) if it is in the given array (seq). 
     
     Parameters: 
-    ___________
+    -----------
         f : value
         seq : array of values
     Returns:
-    ________
+    --------
         value 'f' if it is in seq 
         
     Examples
-    ________
+    --------
     >>> A = ['11', '12', '13', '14']
     >>> find('11',A)
     '11'
@@ -220,11 +224,11 @@ def get_orient(samp_data, er_sample_name, **kwargs):
     Returns orientation and orientation method of input sample (er_sample_name). 
     
     Parameters: 
-    ___________
+    ----------
         samp_data : PmagPy list of dicts or pandas DataFrame
         er_sample_name : sample name
     Returns:
-    ________
+    --------
         orientation data and corresponding orientation method of specified sample (er_sample_name)
     """
     if isinstance(samp_data, pd.DataFrame):
@@ -414,7 +418,7 @@ def convert_ages(Recs, data_model=3):
     Converts ages in a list of dictionsaries to units of Millions of years ago, Ma. 
     
     Parameters
-    _________
+    ----------
         Recs : list of dictionaries in data model by data_model
         data_model : MagIC data model (default is 3)
     """
@@ -473,12 +477,14 @@ def convert_meas_2_to_3(meas_data_2):
 def convert_items(data, mapping):
     """
     This function maps a given set of dictionsaries to the new given map and outputs an updated dictionary.
+    
     Parameters
-    __________
+    ----------
         data : list of dicts (each dict a record for one item)
         mapping : mapping with column names to swap into the records
+        
     Returns
-    _______
+    -------
         updated list of dicts
     """
     new_recs = []
@@ -986,8 +992,8 @@ def orient(mag_azimuth, field_dip, or_con):
     Uses specified orientation convention to convert user supplied orientations
     to laboratory azimuth and plunge. 
     
-    Parameters:
-    ________________
+    Parameters
+    -----------
         mag_azimuth: float
             orientation of the field orientation arrow with respect to north
         field_dip : float
@@ -1013,8 +1019,8 @@ def orient(mag_azimuth, field_dip, or_con):
                 lab arrow is as in [1] above.
                 lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
             [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-       Returns:
-       ___________
+       Returns
+       -------
            azimuth and dip of lab arrow
 
     """
@@ -1045,11 +1051,11 @@ def get_Sb(data):
     Returns vgp scatter for data set.
     
     Parameters
-    __________
+    ----------
         data : data set as a list or a pandas dataframe 
     
     Returns
-    _______
+    -------
         float value of the vgp scatter
     """
     Sb, N = 0., 0.
@@ -4424,16 +4430,16 @@ def calculate_r(alpha95,N):
     statistical tests that require R when it is not provided.
 
     Parameters
-    __________
+    ----------
     alpha95 : the Fisher alpha_95 value
     N : number of vectors
 
     Returns
-    _______
+    -------
     R : the resultant vector length
     
     Examples 
-    ________
+    --------
     >>> alpha95, N = 6.41, 3
     >>> pmag.calculate_r(alpha95,N)
     2.994608233588127
