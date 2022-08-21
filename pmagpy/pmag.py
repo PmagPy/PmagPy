@@ -10688,7 +10688,7 @@ def s_l(l, alpha=27.7):
 #
 
 
-def mktk03(terms, seed, G2, G3,verbose=False):
+def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
     """
     generates a list of gauss coefficients drawn from the TK03 distribution
     Parameters
@@ -10700,6 +10700,8 @@ def mktk03(terms, seed, G2, G3,verbose=False):
          ratio of axial quadrupole term to dipole term
     G3 : int
          ratio of axial octupole term to dipole term
+    G1 : flost
+         value of the axial dipole, default is -18e3 (in nT)
     
     Returns
     ________________
@@ -10709,7 +10711,7 @@ def mktk03(terms, seed, G2, G3,verbose=False):
 # random.seed(n)
     n = seed
     gh = []
-    g10, beta, afact = -18e3, 3.8, 2.4
+    g10, beta, afact = G1, 3.8, 2.4
     g20 = G2 * g10
     g30 = G3 * g10
     alpha = g10/afact
