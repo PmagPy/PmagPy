@@ -3041,22 +3041,23 @@ def circ(dec, dip, alpha,npts=201):
     Calculates points on an circle about dec, dip with angle alpha.
 
     Parameters
-    ___________
-        dec : float
-            declination of vector
-        dip : float
-            dip of vector
-        alpha : float
-            angle of small circle - 90 if vector  is pole to great circle
-        npts : int
-            number of points on the circle
+    ----------
+    dec : float
+        declination of vector
+    dip : float
+        dip of vector
+    alpha : float
+        angle of small circle - 90 if vector  is pole to great circle
+    npts : int
+        number of points on the circle
+    
     Returns
-    _______
-        D_out, V_out : list
-            declinations and inclinations along small (great) circle about dec, dip
+    -------
+    D_out, V_out : list
+        declinations and inclinations along small (great) circle about dec, dip
             
     Examples
-    ________
+    --------
     >>> pmag.circ(50,10,10,5)
     ([60.15108171104812,
       50.0,
@@ -3833,15 +3834,16 @@ def magic_help(keyhelp):
     Returns a help message for a given magic key.
     
     Parameters
-    __________
-        keyhelp : str
-            key name that the user seeks more information about
+    ----------
+    keyhelp : str
+        key name that the user seeks more information about
     Returns
-    _______
-        Str with more information about the input key
+    -------
+    str 
+        More information about the input key
     
     Examples
-    ________
+    --------
     >>> pmag.magic_help('location_url')
     'Website URL for the location explicitly'
     """
@@ -4152,19 +4154,20 @@ def dosundec(sundata):
     Returns the declination for a given set of suncompass data.
     
     Parameters
-    __________
-      sundata : dictionary with these keys:
-          date: time string with the format 'yyyy:mm:dd:hr:min'
-          delta_u: time to SUBTRACT from local time for Universal time
-          lat: latitude of location (negative for south)
-          lon: longitude of location (negative for west)
-          shadow_angle: shadow angle of the desired direction with respect to the sun.
+    ----------
+    sundata : dictionary with these keys:
+        date: time string with the format 'yyyy:mm:dd:hr:min'
+        delta_u: time to SUBTRACT from local time for Universal time
+        lat: latitude of location (negative for south)
+        lon: longitude of location (negative for west)
+        shadow_angle: shadow angle of the desired direction with respect to the sun.
+    
     Returns
-    ________
-       sunaz : the declination of the desired direction wrt true north.
+    -------
+    sunaz : the declination of the desired direction wrt true north.
     
     Examples
-    ________
+    --------
     >>> sundata={'date':'1994:05:23:16:9','delta_u':3,'lat':35,'lon':33,'shadow_angle':68}
     154.24420046668928
     """
@@ -4217,18 +4220,18 @@ def gha(julian_day, f):
     Returns greenwich hour angle.
     
     Parameters
-    __________
-        julian_day: julian day as an integer 
-        f: fraction of the day in Universal Time
-         : (hrs + (min/60))/24
+    ----------
+    julian_day: int, julian day
+    f: int 
+        fraction of the day in Universal Time, (hrs + (min/60))/24
     
     Returns
-    _______
-        H: hour
-        delta: angle
+    -------
+        H: int, hour
+        delta: int, angle
     
     Examples
-    ________
+    --------
     >>> julianday = pmag.julian(10,20,2000)
     >>> pmag.gha(julianday, 33)
     (183.440612472039, -20.255315389871825)
@@ -4269,14 +4272,14 @@ def julian(mon, day, year):
     Returns julian day.
     
     Parameters
-    __________
-        mon : input month
-        day : input day
-        year : input year
+    ----------
+        mon : int, month
+        day : int, day
+        year : int, year
     
     Returns
-    _______
-        Julian day as a flt
+    -------
+    Julian day as a flt
     
     Examples
     ________
@@ -4322,16 +4325,16 @@ def fillkeys(Recs):
     return OutRecs, keylist
 
 
-def fisher_mean(data):
+def fisher_mean(di_block):
     """
-    Calculates the Fisher mean and associated parameter from a di_block
+    Calculates the Fisher mean and associated parameter from a di_block.
 
     Parameters
-    __________
-    di_block : a nested list of [dec,inc] or [dec,inc,intensity]
+    ----------
+    di_block : nested list of [dec,inc] or [dec,inc,intensity]
 
     Returns
-    _______
+    -------
     fpars : dictionary containing the Fisher mean and statistics
         dec : mean declination
         inc : mean inclination
@@ -4342,7 +4345,7 @@ def fisher_mean(data):
         alpha95 : Fisher circle of 95% confidence
         
     Examples
-    ________
+    --------
     >>> di_block = [[-45,150],[-40,150],[-38,145]]
     >>> pmag.fisher_mean(di_block)
     {'dec': 138.94545436727873,
@@ -4415,18 +4418,18 @@ def calculate_k(R,N):
     are available, but the vectors themselves are not.
 
     Parameters
-    __________
-    R : the resultant vector length
-    N : number of vectors
+    ----------
+    R : Resultant vector length
+    N : Number of vectors
 
     Returns
-    _______
-    k : the Fisher concentration parameter
+    -------
+    k : Fisher concentration parameter
     
     Examples
-    ________
+    --------
     >>> n,r = 3, 4.335
-    pmag.calculate_k(r,n)
+    >>> pmag.calculate_k(r,n)
     -1.4981273408
     '''
     if N != R:
@@ -4444,12 +4447,12 @@ def calculate_r(alpha95,N):
 
     Parameters
     ----------
-    alpha95 : the Fisher alpha_95 value
+    alpha95 : Fisher alpha_95 value
     N : number of vectors
 
     Returns
     -------
-    R : the resultant vector length
+    R : resultant vector length
     
     Examples 
     --------
@@ -4521,18 +4524,18 @@ def fisher_by_pol(data):
     Do fisher mean after splitting data into two polarity domains.
     
     Parameters
-    __________
+    ----------
     data: list of dictionaries with 'dec' and 'inc'
     
-    Returns: 
-    ________
+    Returns 
+    -------
     three dictionaries:
         'A'= polarity 'A'
         'B = polarity 'B'
         'ALL'= switching polarity of 'B' directions, and calculate fisher mean of all data
         
     Examples
-    ________
+    --------
     >>> data = [{'dec':-45,'inc':150}, {'dec':-44,'inc':150},{'dec':-45.3,'inc':149}]
     >>> pmag.fisher_by_pol(data)
     {'B': {'dec': 135.23515314555496,
@@ -4686,7 +4689,7 @@ def dolnp(data, direction_type_key):
     Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes
 
     Parameters
-    __________
+    ----------
     Data : nested list of dictionaries with keys
         Data model 3.0:
             dir_dec
@@ -4710,6 +4713,7 @@ def dolnp(data, direction_type_key):
             R : fisher R value of Data
             K : fisher k value of Data
     Effects
+    -------
         prints to screen in case of no data
     """
 
@@ -4789,7 +4793,7 @@ def dolnp(data, direction_type_key):
 
 def vclose(L, V):
     """
-    gets the closest vector
+    Calculates the closest vector.
     """
     lam, X = 0, []
     for k in range(3):
@@ -4995,7 +4999,6 @@ def b_vdm(B, lat):
     Examples
     --------
     >>> pmag.b_vdm(33e-6,22)*1e-21
-
     71.58815974511788
     """
     # changed radius of the earth from 3.367e6 3/12/2010
@@ -5028,9 +5031,13 @@ def vdm_b(vdm, lat):
 def binglookup(w1i,w2i):
     """
     Bingham statistics lookup table.
-    Parameters:
-        w1i,w2i : initial values for w1 and w2
+    
+    Parameters
+    ----------
+    w1i,w2i : initial values for w1 and w2
+    
     Returns
+    -------
         k1,k2 : k1 and k2 for Bingham distribution
     """
     ## find PYTHONPATH
@@ -5954,16 +5961,24 @@ def dobingham(di_block):
 
 def doflip(dec, inc):
     """
-    flips upper hemisphere data to lower hemisphere
+    Flips upper hemisphere data to lower hemisphere.
+    
     Parameters
-    _________________
+    ----------
     dec : float
         declination
     inc : float
         inclination
-    Returns: 
-   _____________
-    flipped declination, inclination    
+    
+    Returns 
+    -------
+    tuple
+        contianing the flipped declination and inclination 
+        
+    Examples
+    -------
+    >>> pmag.doflip(30,-45)
+    (210.0, 45)
     """
     if inc < 0:
         inc = -inc
@@ -5973,7 +5988,19 @@ def doflip(dec, inc):
 
 def doreverse(dec, inc):
     """
-    calculates the antipode of a direction
+    Calculates the antipode of a direction.
+    
+    Parameters
+    ----------
+    dec: float
+        declination
+    inc: float 
+        inclination
+    
+    Examples
+    --------
+    >>> pmag.doreverse(30,45)
+    (210.0, -45)
     """
     inc = -inc
     dec = (dec + 180.) % 360.
