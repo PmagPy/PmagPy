@@ -644,7 +644,7 @@ def kentrot(kent_dict, n=100, di_block=True):
     else:
         return rotated_decs, rotated_incs
 
-def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
+def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3,G2=0, G3=0,B_threshold=0):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
@@ -657,6 +657,7 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
     dec : mean declination of data set (default is 0)
     lat : latitude at which secular variation is simulated (default is 0)
     rev : if reversals are to be included this should be 'yes' (default is 'no')
+    G1 : specify average g_1^0 fraction (default is -18e3 in nT, minimum = 1)
     G2 : specify average g_2^0 fraction (default is 0)
     G3 : specify average g_3^0 fraction (default is 0)
     B_threshold : return vectors with B>B_threshold (in nT)
@@ -677,7 +678,7 @@ def tk03(n=100, dec=0, lat=0, rev='no', G2=0, G3=0,B_threshold=0):
     tk_03_output = []
     k=0
     while k < n: 
-        gh = pmag.mktk03(8, k, G2, G3)  # terms and random seed
+        gh = pmag.mktk03(8, k, G2, G3,G1=G1)  # terms and random seed
         # get a random longitude, between 0 and 359
         lon = random.randint(0, 360)
         vec = pmag.getvec(gh, lat, lon)  # send field model and lat to getvec
