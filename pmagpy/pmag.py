@@ -639,14 +639,14 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
     Convert a criteria file from 2.5 to 3.0 format and write it out to file
 
     Parameters
-    __________
+    ----------
         fname : string of filename (default "pmag_criteria.txt")
         input_dir : string of input directory (default ".")
         output_dir : string of output directory (default ".")
         data_model : data_model.DataModel object (default None)
 
     Returns
-    _______
+    -------
         outfile : string output criteria filename, or False
         crit_container : cb.MagicDataFrame with 3.0 criteria table
     """
@@ -1658,14 +1658,20 @@ def vector_mean(data):
     Calculates the vector mean of a given set of vectors.
     
     Parameters
-    __________
+    ----------
         data :  nested array of [dec,inc,intensity]
 
     Returns
-    _______
+    -------
         dir : array of [dec, inc, 1]
         R : resultant vector length
-
+    
+    Examples 
+    --------
+    >>> data=np.loadtxt('data_files/vector_mean/vector_mean_example.dat')
+    >>> Dir,R=pmag.vector_mean(data)
+    >>> data.shape[0],Dir[0],Dir[1],R  
+    (100, 1.2702459152657795, 49.62123008281823, 2289431.9813831896)
     """
     Xbar = np.zeros((3))
     X = dir2cart(data).transpose()
@@ -1714,13 +1720,13 @@ def find_dmag_rec(s, data, **kwargs):
     kinds of experiments and "bad" measurements.
 
     Parameters
-    __________
+    ----------
         s : specimen name
         data : DataFrame with measurement data
         **kwargs :
             version : if not 3, assume data model = 2.5
     Returns
-    ________
+    -------
         datablock : nested list of data for zijderveld plotting
              [[tr, dec, inc, int, ZI, flag],...]
              tr : treatment step
@@ -1836,12 +1842,12 @@ def open_file(infile, verbose=True):
     Try to use utf-8 encoding, and if that fails use Latin-1.
 
     Parameters
-    __________
+    ----------
         infile : str
             full path to file
 
     Returns
-    _______
+    -------
         data: list
             all lines in the file
     """
@@ -1884,14 +1890,14 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
     Reads a Magic template file, returns data in a list of dictionaries.
 
     Parameters
-    ___________
+    ----------
         Required:
             infile : the MagIC formatted tab delimited data file
                 first line contains 'tab' in the first column and the data file type in the second (e.g., measurements, specimen, sample, etc.)
         Optional:
             data : data read in with, e.g., file.readlines()
     Returns
-    _______
+    -------
         list of dictionaries, file type
     """
     if infile:
@@ -2166,12 +2172,13 @@ def magic_write_old(ofile, Recs, file_type):
     Writes out a magic format list of dictionaries to ofile
 
     Parameters
-    _________
+    ----------
     ofile : path to output file
     Recs : list of dictionaries in MagIC format, or Pandas Dataframe
     file_type : MagIC table type (e.g., specimens)
 
-    Effects :
+    Effects
+    -------
         writes a MagIC formatted file from Recs
     """
     if len(Recs) < 1:
@@ -2209,7 +2216,7 @@ def magic_write_old(ofile, Recs, file_type):
 def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
     """
     Parameters
-    _________
+    ----------
         ofile : path to output file
         Recs : list of dictionaries in MagIC format OR pandas dataframe
         file_type : MagIC table type (e.g., specimens)
@@ -2220,12 +2227,12 @@ def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
         if True, file will be appended to named file
 
     Returns
-    ______
+    -------
         [True,False] : True if successful
         ofile : same as input
 
     Effects
-    ______
+    -------
         writes a MagIC formatted file from Recs
     """
     if len(Recs) < 1:
@@ -2282,18 +2289,18 @@ def dotilt(dec, inc, bed_az, bed_dip):
     and bedding dip.
 
     Parameters
-    __________
-        dec : declination directions in degrees
-        inc : inclination direction in degrees
-        bed_az : bedding dip direction
-        bed_dip : bedding dip
+    ----------
+    dec : declination directions in degrees
+    inc : inclination direction in degrees
+    bed_az : bedding dip direction
+    bed_dip : bedding dip
 
     Returns
-    _______
-        dec,inc : a tuple of rotated dec, inc values
+    -------
+    dec,inc : a tuple of rotated dec, inc values
 
     Examples
-    ________
+    --------
     >>> pmag.dotilt(91.2,43.1,90.0,20.0)
     (90.952568837153436, 23.103411670066617)
     """
@@ -2319,16 +2326,16 @@ def dotilt_V(indat):
     Does a tilt correction on an array with rows of dec,inc bedding dip direction and dip.
 
     Parameters
-    __________
-        input : declination, inclination, bedding dip direction and bedding dip
-        nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
+    ----------
+    indat : nested array of [[dec1, inc1, bed_az1, bed_dip1],[dec2,inc2,bed_az2,bed_dip2]...]
+        declination, inclination, bedding dip direction and bedding dip
 
     Returns
-    _______
-        dec,inc : arrays of rotated declination, inclination
+    -------
+    dec, inc : arrays of rotated declination, inclination
         
     Examples
-    ________
+    --------
     >>> pmag.dotilt_V(np.array([[91.2,43.1,90.0,20.0],[92.0,40.4,90.5,21.3]]))
     (array([90.95256883715344, 91.70884991139725]),
      array([23.103411670066613, 19.105747819853423]))
@@ -2363,16 +2370,16 @@ def dogeo(dec, inc, az, pl):
     azimuth and plunge of the X direction (lab arrow) of a specimen.
 
     Parameters
-    __________
-        dec : declination in specimen coordinates
-        inc : inclination in specimen coordinates
+    ----------
+    dec : declination in specimen coordinates
+    inc : inclination in specimen coordinates
 
     Returns
-    _______
-        rotated_direction : tuple of declination, inclination in geographic coordinates
+    -------
+    rotated_direction : tuple of declination, inclination in geographic coordinates
 
     Examples
-    ________
+    --------
     >>> pmag.dogeo(0.0,90.0,0.0,45.5)
     (180.0, 44.5)
     """
@@ -2405,15 +2412,15 @@ def dogeo_V(indat):
     azimuth and plunge of the X direction (lab arrow) of a specimen.
 
     Parameters
-    __________
-        indat: nested list of [dec, inc, az, pl] data
+    ----------
+    indat: nested list of [dec, inc, az, pl] data
 
     Returns
-    _______
-        rotated_directions : arrays of Declinations and Inclinations
+    -------
+    rotated_directions : arrays of declinations and inclinations
         
     Examples
-    ________
+    --------
     >>> pmag.dogeo_V(np.array([[0.0,90.0,0.0,45.5],[0.0,90.0,0.0,45.5]]))
     (array([180., 180.]), array([44.5, 44.5]))
     """
@@ -2449,18 +2456,18 @@ def dodirot(D, I, Dbar, Ibar):
     dec=0 and inc = 90 and the provided desired mean direction.
 
     Parameters
-    __________
-        D : declination to be rotated
-        I : inclination to be rotated
-        Dbar : declination of desired mean
-        Ibar : inclination of desired mean
+    ----------
+    D : declination to be rotated
+    I : inclination to be rotated
+    Dbar : declination of desired mean
+    Ibar : inclination of desired mean
 
     Returns
-    _______
-        drot, irot : rotated declination and inclination
+    -------
+    drot, irot : rotated declination and inclination
         
     Examples
-    ________
+    --------
     >>> pmag.dodirot(0,90,5,85)
     (5.0, 85.0)
     """
@@ -2478,17 +2485,18 @@ def dodirot_V(di_block, Dbar, Ibar):
     Rotate an array of dec/inc pairs to coordinate system with Dec,Inc as 0,90
 
     Parameters
-    ___________________
-        di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
-        Dbar : declination of desired center
-        Ibar : inclination of desired center
+    ----------
+    di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
+    Dbar : Declination of desired center
+    Ibar : Inclination of desired center
 
     Returns
-    __________
-        array of rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
+    -------
+    array 
+        Rotated decs and incs: [[rot_Dec1,rot_Inc1],[rot_Dec2,rot_Inc2],....]
     
     Examples
-    ________
+    --------
     >>> di_block = np.array([[0,90],[0,92],[0,92]])
     >>> pmag.dodirot_V(di_block,5,93)
     array([[185.              ,  87.00000000000009],
@@ -2581,15 +2589,17 @@ def Vdiff(D1, D2):
     Calculates the vector difference between two directions D1, D2.
     
     Parameters
-    __________
-        D1 : Direction 1 as an array of [declination, inclination] pair or pairs
-        D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+    ----------
+    D1 : Direction 1 as an array of [declination, inclination] pair or pairs
+    D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+    
     Returns
-    _______
-        an array that is the vector difference between D1 and D2
+    ------
+    array 
+        The vector difference between D1 and D2
         
     Examples
-    ________
+    --------
     >>> pmag.Vdiff([350.0,10.0],[320.0,20.0])
     array([ 60.00000000000001 , -18.61064009110688 ,   0.527588019973717])
     """
@@ -2606,16 +2616,17 @@ def angle(D1, D2):
     Calculate the angle between two directions.
 
     Parameters
-    __________
-        D1 : Direction 1 as an array of [declination, inclination] pair or pairs
-        D2 : Direction 2 as an array of [declination, inclination] pair or pairs
+    ----------
+    D1 : Direction 1 as an array of [declination, inclination] pair or pairs
+    D2 : Direction 2 as an array of [declination, inclination] pair or pairs
 
     Returns
-    _______
-        angle : angle between the directions as a single-element array
+    -------
+    angle : single-element array 
+        angle between the directions
 
     Examples
-    ________
+    --------
     >>> pmag.angle([350.0,10.0],[320.0,20.0])
     array([ 30.59060998])
     """
@@ -2645,15 +2656,15 @@ def cart2dir(cart):
     Converts a direction in cartesian coordinates into declination, inclinations
 
     Parameters
-    __________
-        cart : input list of [x,y,z] or list of lists [[x1,y1,z1],[x2,y2,z2]...]
+    ----------
+    cart : list of [x,y,z] or list of lists [[x1,y1,z1],[x2,y2,z2]...]
 
     Returns
-    _______
-        direction_array : returns an array of [declination, inclination, intensity]
+    -------
+    direction_array : array of [declination, inclination, intensity]
 
     Examples
-    ________
+    --------
     >>> pmag.cart2dir([0,1,0])
     array([ 90.,   0.,   1.])
     """
@@ -2688,16 +2699,16 @@ def tauV(T):
     Gets the eigenvalues (tau) and eigenvectors (V) from 3x3 matrix T
     
     Parameters
-    __________
-        T : 3x3 matrix 
+    ----------
+    T : 3x3 matrix 
         
     Returns
-    _______
-        tau : eigenvalues for the given matrix (T)
-        V : eigenvectors for the given matrix (T)
+    -------
+    tau : eigenvalues for the given matrix (T)
+    V : eigenvectors for the given matrix (T)
         
     Examples 
-    ________
+    --------
     >>> T = [[2,4,6],
              [10,2,5],
              [1,7,8]]
@@ -2763,15 +2774,15 @@ def dir2cart(d):
     inclination) to an array of the direction in cartesian coordinates (x,y,z).
 
     Parameters
-    __________
-        d : list or array of [dec,inc] or [dec,inc,intensity]
+    ----------
+    d : list or array of [dec,inc] or [dec,inc,intensity]
 
     Returns
-    _______
-        cart : array of [x,y,z]
+    -------
+    cart : array of [x,y,z]
 
     Examples
-    ________
+    --------
     >>> pmag.dir2cart([200,40,1])
     array([-0.71984631, -0.26200263,  0.64278761])
     """
@@ -2801,15 +2812,17 @@ def dms2dd(d):
     Converts a list or array degree, minute, second locations to an array of decimal degrees. 
     
     Parameters
-    __________
-        d : list or array of [deg, min, sec]
+    ----------
+    d : list or array of [deg, min, sec]
+    
     Returns
-    _______
-        d : input list or array and its corresponding
-        dd : decimal degree
+    -------
+    d : input list or array 
+    dd : int 
+        decimal degree corresponding to d
         
     Examples
-    ________
+    --------
     >>> pmag.dms2dd([60,35,15])
     60 35 15
     array(60.587500000000006)
@@ -2844,7 +2857,7 @@ def domean(data, start, end, calculation_type):
     or plane) methods
 
     Parameters
-    __________
+    ----------
     data : nest list of data: [[treatment,dec,inc,int,quality],...]
     start : step being used as start of fit (often temperature minimum)
     end : step being used as end of fit (often temperature maximum)
@@ -2853,7 +2866,7 @@ def domean(data, start, end, calculation_type):
     'DE-BFP' (plane), 'DE-FM' (Fisher mean)
 
     Returns
-    _______
+    -------
     mpars : dictionary with the keys "specimen_n","measurement_step_min",
     "measurement_step_max","specimen_mad","specimen_dec","specimen_inc"
     """
