@@ -27,7 +27,7 @@ def get_version():
 
     Returns
     -------
-        version : string of pmagpy version, such as "pmagpy-3.8.8"
+    version : string of pmagpy version, such as "pmagpy-3.8.8"
         
     Examples
     --------
@@ -40,18 +40,17 @@ def get_version():
 
 def sort_diclist(undecorated, sort_on):
     """
-    Sort a list of dictionaries by the value in each
-    dictionary for the sorting key
+    Sort a list of dictionaries by the value in each dictionary for the sorting key.
 
     Parameters
     ----------
-        undecorated : list of dicts
-        sort_on : str, numeric
-            key that is present in all dicts to sort on
+    undecorated : list of dicts
+    sort_on : str, numeric
+        key that is present in all dicts to sort on
 
     Returns
     -------
-        ordered list of dicts
+    Ordered list of dicts
 
     Examples
     --------
@@ -69,7 +68,9 @@ def sort_diclist(undecorated, sort_on):
 
 def get_dictitem(In, k, v, flag, float_to_int=False):
     """ 
-    Returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
+    Returns a list of dictionaries from list In with key (k)  = value (v) . 
+    
+    CASE INSENSITIVE # allowed keywords:
         requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F, 
         has or not and requires they be castable to float if flag is eval, min, or max.
         float_to_int goes through the relvant values in In and truncates them,
@@ -77,14 +78,15 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
 
     Parameters
     ----------
-        In : list of dictionaries to work on
-        k : key to test
-        v : key value to test
-        flag : [T,F,has, or not]
-        float_to int : if True, truncates to integer
+    In : list of dictionaries
+    k : key to test
+    v : key value to test
+    flag : [T,F,has, or not]
+    float_to int : if True, truncates to integer
+    
     Returns
     -------
-        list of dictionaries that meet conditions
+    List of dictionaries that meet conditions
         
     Examples
     --------
@@ -149,20 +151,20 @@ def get_dictitem(In, k, v, flag, float_to_int=False):
 
 def get_dictkey(In, k, dtype):
     """
-    Returns list of given key (k) from input list of dictionaries (In) in data typed
-    dtype.
+    Returns list of given key (k) from input list of dictionaries (In) in data typed dtype.
     
     Parameters
     ----------
-        In : list of dictionaries to work on
-        k : key to return
-        dtype : str
-            "" : returns string value
-            "f" : returns float
-            "int" : returns integer
+    In : list of dictionaries to work on
+    k : key to return
+    dtype : str
+        "" : returns string value
+        "f" : returns float
+        "int" : returns integer
+    
     Returns
     -------
-        list of values of the key specified to return
+    Out : List of values of the key specified to return
         
     Examples
     --------
@@ -199,13 +201,14 @@ def find(f, seq):
     """
     Returns input value (f) if it is in the given array (seq). 
     
-    Parameters: 
-    -----------
-        f : value
-        seq : array of values
-    Returns:
-    --------
-        value 'f' if it is in seq 
+    Parameters 
+    ----------
+    f : string value
+    seq : array of strings
+
+    Returns
+    -------
+    String value 'f' if it is found in seq.
         
     Examples
     --------
@@ -223,13 +226,14 @@ def get_orient(samp_data, er_sample_name, **kwargs):
     """
     Returns orientation and orientation method of input sample (er_sample_name). 
     
-    Parameters: 
+    Parameters 
     ----------
-        samp_data : PmagPy list of dicts or pandas DataFrame
-        er_sample_name : sample name
-    Returns:
-    --------
-        orientation data and corresponding orientation method of specified sample (er_sample_name)
+    samp_data : PmagPy list of dicts or pandas DataFrame
+    er_sample_name : string for the sample name
+        
+    Returns
+    -------
+    Orientation data and corresponding orientation method of specified sample (er_sample_name).
     """
     if isinstance(samp_data, pd.DataFrame):
         samp_data = (samp_data.T.apply(dict))
@@ -288,11 +292,12 @@ def EI(inc):
 
     Parameters
     ----------
-        inc : inclination in degrees (int or float)
+    inc : Integer or float
+        Inclination in degrees.
 
     Returns
-    ---------
-        elongation : float
+    -------
+    elongation : float
 
     Examples
     ---------
@@ -314,20 +319,19 @@ def find_f(data):
 
     Parameters
     ----------
-        data : array of declination, inclination pairs
-            (e.g. np.array([[140,21],[127,23],[142,19],[136,22]]))
+    data : array of declination, inclination pairs
 
     Returns
-    ---------
-        Es : list of elongation values
-        Is : list of inclination values
-        Fs : list of flattening factors
-        V2s : list of elongation directions (relative to the distribution)
+    -------
+    Es : list of elongation values
+    Is : list of inclination values
+    Fs : list of flattening factors
+    V2s : list of elongation directions (relative to the distribution)
 
     The function will return a zero list ([0]) for each of these parameters if the directions constitute a pathological distribution.
 
     Examples
-    ---------
+    --------
     >>> directions = np.array([[140,21],[127,23],[142,19],[136,22]])
     >>> Es, Is, Fs, V2s = pmag.find_f(directions)
     """
@@ -397,7 +401,16 @@ def cooling_rate(SpecRec, SampRecs, crfrac, crtype):
 
 def convert_lat(Recs):
     """
-    uses lat, for age<5Ma, model_lat if present, else tries to use average_inc to estimate plat.
+    Uses lat, for age<5Ma, model_lat if present, else tries to use average_inc to estimate plat.
+    
+    Parameters
+    ----------
+    Recs : list of dictionaries in data model by data_model
+        This list of dictionaries must only include data with ages less than 5 Ma
+    
+    Returns
+    -------
+    New : list of dictionaries with plat estimate
     """
     New = []
     for rec in Recs:
@@ -424,7 +437,7 @@ def convert_ages(Recs, data_model=3):
     
     Returns
     -------
-    New : list of dictionsaries with the converted ages
+    New : list of dictionaries with the converted ages
     
     Examples 
     --------
@@ -508,12 +521,12 @@ def convert_items(data, mapping):
     
     Parameters
     ----------
-        data : list of dicts (each dict a record for one item)
-        mapping : mapping with column names to swap into the records
+    data : list of dicts (each dict a record for one item)
+    mapping : mapping with column names to swap into the records
         
     Returns
     -------
-        updated list of dicts
+    new_recs : updated list of dicts
     """
     new_recs = []
     for rec in data:
@@ -531,18 +544,18 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
 
     Parameters
     ----------
-        meas_name : name of measurement file (do not include full path,
+    meas_name : name of measurement file (do not include full path,
         default is "magic_measurements.txt")
-        input_dir : name of input directory (default is ".")
-        output_dir : name of output directory (default is ".")
-        meas_only : boolean, convert only measurement data (default is False)
-        data_model : data_model3.DataModel object (default is None)
+    input_dir : name of input directory (default is ".")
+    output_dir : name of output directory (default is ".")
+    meas_only : boolean, convert only measurement data (default is False)
+    data_model : data_model3.DataModel object (default is None)
 
     Returns
-    ---------
-        NewMeas : 3.0 measurements data (output of pmag.convert_items)
-        upgraded : list of files successfully upgraded to 3.0
-        no_upgrade: list of 2.5 files not upgraded to 3.0
+    -------
+    NewMeas : 3.0 measurements data (output of pmag.convert_items)
+    upgraded : list of files successfully upgraded to 3.0
+    no_upgrade: list of 2.5 files not upgraded to 3.0
     """
     convert = {'specimens': map_magic.spec_magic2_2_magic3_map,
                'samples': map_magic.samp_magic2_2_magic3_map,
@@ -607,15 +620,15 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
 
     Parameters
     ----------
-        dtype : string for input type (specimens, samples, sites, etc.)
-        map_dict : dictionary with format {header2_format: header3_format, ...} (from mapping.map_magic module)
-        input_dir : input directory, default "."
-        output_dir : output directory, default "."
-        data_model : data_model3.DataModel object, default None
+    dtype : string for input type (specimens, samples, sites, etc.)
+    map_dict : dictionary with format {header2_format: header3_format, ...} (from mapping.map_magic module)
+    input_dir : input directory, default "."
+    output_dir : output directory, default "."
+    data_model : data_model3.DataModel object, default None
 
     Returns
-    ---------
-        output_file_name with 3.0 format data (or None if translation failed)
+    -------
+    output_file_name with 3.0 format data (or None if translation failed)
     """
     # read in er_ data & make DataFrame
     er_file = os.path.join(input_dir, 'er_{}.txt'.format(dtype))
@@ -668,15 +681,15 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
 
     Parameters
     ----------
-        fname : string of filename (default "pmag_criteria.txt")
-        input_dir : string of input directory (default ".")
-        output_dir : string of output directory (default ".")
-        data_model : data_model.DataModel object (default None)
+    fname : string of filename (default "pmag_criteria.txt")
+    input_dir : string of input directory (default ".")
+    output_dir : string of output directory (default ".")
+    data_model : data_model.DataModel object (default None)
 
     Returns
     -------
-        outfile : string output criteria filename, or False
-        crit_container : cb.MagicDataFrame with 3.0 criteria table
+    outfile : string output criteria filename, or False
+    crit_container : cb.MagicDataFrame with 3.0 criteria table
     """
     # get criteria from infile
     fname = os.path.join(input_dir, fname)
@@ -1022,35 +1035,36 @@ def orient(mag_azimuth, field_dip, or_con):
     
     Parameters
     -----------
-        mag_azimuth: float
-            orientation of the field orientation arrow with respect to north
-        field_dip : float
-            dip (or hade) or field arrow.
-                if hade, with respect to vertical down
-                if inclination, with respect to horizontal (positive down)
-        or_con : int
-            orientation convention : int
-            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below.
+    mag_azimuth: float
+        orientation of the field orientation arrow with respect to north
+    field_dip : float
+        dip (or hade) or field arrow.
+            if hade, with respect to vertical down
+            if inclination, with respect to horizontal (positive down)
+    or_con : int
+        orientation convention : int
+    
+    Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below.
 
-            [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
-                 of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
-                 lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
-            [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
-                 Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
-                 Lab arrow dip = -field_dip
-            [3] Lab arrow is the same as the drill direction;
-                 hade was measured in the field.
-                 Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
-            [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
-            [5] Same as AZDIP convention explained below -
-                azimuth and inclination of the drill direction are mag_azimuth and field_dip;
-                lab arrow is as in [1] above.
-                lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
-            [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-       Returns
-       -------
-           azimuth and dip of lab arrow
-
+        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+            of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
+            lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
+        [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
+            Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+            Lab arrow dip = -field_dip
+        [3] Lab arrow is the same as the drill direction;
+            hade was measured in the field.
+            Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
+        [5] Same as AZDIP convention explained below -
+            azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+            lab arrow is as in [1] above.
+            lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        
+    Returns
+    -------
+    azimuth and dip of lab arrow
     """
     or_con = str(or_con)
     if mag_azimuth == -999:
@@ -1076,15 +1090,15 @@ def orient(mag_azimuth, field_dip, or_con):
 
 def get_Sb(data):
     """
-    Returns vgp scatter for data set.
+    Returns vgp scatter for a data set.
     
     Parameters
     ----------
-        data : data set as a list or a pandas dataframe 
+    data : data set as a list or a pandas dataframe 
     
     Returns
     -------
-        float value of the vgp scatter
+    float value of the vgp scatter
     """
     Sb, N = 0., 0.
     for rec in data:
@@ -1109,18 +1123,18 @@ def get_sb_df(df, mm97=False):
 
     Parameters
     ----------
-        df : Pandas Dataframe with columns
-            REQUIRED:
-                vgp_lat :  VGP latitude
-            ONLY REQUIRED for MM97 correction:
-                dir_k : Fisher kappa estimate
-                dir_n : number of specimens (samples) per site
-                lat : latitude of the site
-        mm97 : if True, will do the correction for within site scatter
+    df : Pandas Dataframe with columns
+        REQUIRED:
+            vgp_lat :  VGP latitude
+        ONLY REQUIRED for MM97 correction:
+            dir_k : Fisher kappa estimate
+            dir_n : number of specimens (samples) per site
+            lat : latitude of the site
+    mm97 : if True, will do the correction for within site scatter
 
     Returns
     -------
-        Sf : float value for the Sf
+    Sf : float value for the Sf
     """
     df['delta'] = 90.-df.vgp_lat
     Sp2 = np.sum(df.delta**2)/(df.shape[0]-1)
@@ -1255,18 +1269,18 @@ def grade(PmagRec, ACCEPT, type, data_model=2.5):
 def flip(di_block, combine=False):
     """
     Determines 'normal' direction along the principle eigenvector, then flips 
-    the reverse mode to the antipode
+    the reverse mode to the antipode.
 
     Parameters
     ----------
-        di_block : nested list of directions
-        combine : whether to return directions as one di_block (default is False)
+    di_block : nested list of directions
+    combine : whether to return directions as one di_block (default is False)
         
     Returns
-    ---------
-        D1 : normal mode
-        D2 : flipped reverse mode as two DI blocks
-        If combine=True one combined D1 + D2 di_block will be returned
+    -------
+    D1 : normal mode
+    D2 : flipped reverse mode as two DI blocks
+    If combine=True one combined D1 + D2 di_block will be returned
     """
     ppars = doprinc(di_block)  # get principle direction
     if combine:
@@ -1293,7 +1307,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     """
     Converts directional data (declination, inclination, alpha95) at a given
     location (Site latitude, Site longitude) to pole position (pole longitude,
-    pole latitude, dp, dm)
+    pole latitude, dp, dm).
 
     Parameters
     ----------
@@ -1494,7 +1508,7 @@ def get_curve(araiblock,**kwargs):
 
 def dovds(data):
     """
-    Calculates vector difference sum for demagnetization data
+    Calculates vector difference sum for demagnetization data.
     """
     vds, X = 0, []
     for rec in data:
@@ -1510,7 +1524,7 @@ def dovds(data):
 
 def vspec_magic(data):
     """
-    Takes average vector of replicate measurements
+    Takes average vector of replicate measurements.
     """
     vdata, Dirdata, step_meth = [], [], ""
     if len(data) == 0:
@@ -1586,7 +1600,7 @@ def vspec_magic(data):
 
 def vspec_magic3(data):
     """
-    Takes average vector of replicate measurements
+    Takes average vector of replicate measurements.
     """
     vdata, Dirdata, step_meth = [], [], ""
     if len(data) == 0:
@@ -1666,7 +1680,7 @@ def vspec_magic3(data):
 
 def get_specs(data):
     """
-    Takes a magic format file and returns a list of unique specimen names
+    Takes a magic format file and returns a list of unique specimen names.
     """
     # sort the specimen names
     speclist = []
@@ -1687,12 +1701,12 @@ def vector_mean(data):
     
     Parameters
     ----------
-        data :  nested array of [dec,inc,intensity]
+    data :  nested array of [dec,inc,intensity]
 
     Returns
     -------
-        dir : array of [dec, inc, 1]
-        R : resultant vector length
+    dir : array of [dec, inc, 1]
+    R : resultant vector length
     
     Examples 
     --------
@@ -1749,21 +1763,22 @@ def find_dmag_rec(s, data, **kwargs):
 
     Parameters
     ----------
-        s : specimen name
-        data : DataFrame with measurement data
-        **kwargs :
-            version : if not 3, assume data model = 2.5
+    s : specimen name
+    data : DataFrame with measurement data
+    **kwargs :
+        version : if not 3, assume data model = 2.5
+        
     Returns
     -------
-        datablock : nested list of data for zijderveld plotting
-             [[tr, dec, inc, int, ZI, flag],...]
-             tr : treatment step
-             dec : declination
-             inc : inclination
-             int : intensity
-             ZI : whether zero-field first or infield-first step
-             flag : g or b , default is set to 'g'
-         units : list of units found ['T','K','J'] for tesla, kelvin or joules
+    datablock : nested list of data for zijderveld plotting
+        [[tr, dec, inc, int, ZI, flag],...]
+        tr : treatment step
+        dec : declination
+        inc : inclination
+        int : intensity
+        ZI : whether zero-field first or infield-first step
+        flag : g or b , default is set to 'g'
+    units : list of units found ['T','K','J'] for tesla, kelvin or joules
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         # convert dataframe to list of dictionaries
@@ -1871,13 +1886,13 @@ def open_file(infile, verbose=True):
 
     Parameters
     ----------
-        infile : str
-            full path to file
+    infile : str
+        full path to file
 
     Returns
     -------
-        data: list
-            all lines in the file
+    data: list
+        all lines in the file
     """
     try:
         with codecs.open(infile, "r", "utf-8") as f:
@@ -11184,12 +11199,11 @@ def squish(incs, f):
 
 def unsquish(incs, f):
     """
-    returns 'unflattened' inclination, assuming factor, f and King (1955) formula:
-    tan (I_o) = tan (I_f)/f
+    Returns 'unflattened' inclination, assuming factor, f and King (1955) formula: tan (I_o) = tan (I_f)/f.
 
     Parameters
     ----------
-    incs : array of inclination (I_f)  data to unflatten
+    incs : array of inclination (I_f) data to unflatten
     f : flattening factor
 
     Returns
@@ -11199,8 +11213,16 @@ def unsquish(incs, f):
     Examples
     --------
     >>> incs = [63.4,59.2,73.9,85,-49.1,70.7]
-    np.round(pmag.unsquish(incs,2),1)
+    >>> np.round(pmag.unsquish(incs,2),1)
     array([ 45. ,  40. ,  60. ,  80.1, -30. ,  55. ])
+    
+    >>> incs=np.loadtxt('data_files/unsquish/unsquish_example.dat')
+    >>> pmag.unsquish(incs,2)
+    array([[ -5.140729823126393,  11.420796025697275],
+       [  0.900222120901553,  10.204588442982518],
+       [  2.957841023919168,   7.263099363956552],
+       [  0.100000304618348,  14.648986731143856],
+       [ 14.887975603633317,  11.476705854028246], ...
     """
     incs = np.radians(incs)
     I_o = np.tan(incs)/f  # divide tangent by flattening factor
