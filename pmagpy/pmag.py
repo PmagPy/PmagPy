@@ -415,12 +415,40 @@ def convert_lat(Recs):
 
 def convert_ages(Recs, data_model=3):
     """
-    Converts ages in a list of dictionsaries to units of Millions of years ago, Ma. 
+    Converts ages in a list of dictionaries to units of Millions of years ago, Ma. 
     
     Parameters
     ----------
-        Recs : list of dictionaries in data model by data_model
-        data_model : MagIC data model (default is 3)
+    Recs : list of dictionaries in data model by data_model
+    data_model : MagIC data model (default is 3)
+    
+    Returns
+    -------
+    New : list of dictionsaries with the converted ages
+    
+    Examples 
+    --------
+    >>> sites = pd.read_csv('data_files/convert_ages/sites.txt',sep='\t',header=1) # create a dataframe from example file
+    >>> sites_age = sites.dropna(subset=['age'])     # drop all rows that have nan in the age column since our function does not work with nans
+    >>> sites_dict = sites_age.to_dict('records')    # 'records' to return list like values within dict
+    >>> sites_ages_converted = pmag.convert_ages(sites_dict)
+    >>> sites_ages_converted_df = pd.DataFrame.from_dict(sites_ages_converted)   # convert new age converted list of dictionaries back to a dataframe
+    >>> print('ORIGINAL FILE: \n',sites_age['age'].head())
+    >>> print('CONVERTED AGES FILE: \n',sites_ages_converted_df['age'].head());   
+    ORIGINAL FILE: 
+    1    100.0
+    3    625.0
+    5    625.0
+    7    750.0
+    9    800.0
+    Name: age, dtype: float64
+    CONVERTED AGES FILE: 
+     0    1.9110e-03
+    1    1.3860e-03
+    2    1.3860e-03
+    3    1.2610e-03
+    4    1.2110e-03
+    Name: age, dtype: object
     """
     if data_model == 3:
         site_key = 'site'
@@ -1080,7 +1108,7 @@ def get_sb_df(df, mm97=False):
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k, site latitude and N information can be used to correct for within site scatter (McElhinny & McFadden, 1997)
 
     Parameters
-    _________
+    ----------
         df : Pandas Dataframe with columns
             REQUIRED:
                 vgp_lat :  VGP latitude
@@ -1090,8 +1118,8 @@ def get_sb_df(df, mm97=False):
                 lat : latitude of the site
         mm97 : if True, will do the correction for within site scatter
 
-    Returns:
-    _______
+    Returns
+    -------
         Sf : float value for the Sf
     """
     df['delta'] = 90.-df.vgp_lat
@@ -1275,7 +1303,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
         as a list of lists: [[Dec, Inc, a95, lat, lon],[Dec, Inc, a95, lat, lon]]
 
     Returns
-    ----------
+    -------
     if input is individual values for one pole the return is:
     pole longitude, pole latitude, dp, dm
 
@@ -1283,7 +1311,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     list of pole longitudes, list of pole latitudes, list of dp, list of dm
     
     Examples
-    ________
+    --------
     >>> pmag.dia_vgp(4, 41, 0, 33, -117)
     (41.68629415047637, 79.86259998889103, 0.0, 0.0)
     """
@@ -4282,7 +4310,7 @@ def julian(mon, day, year):
     Julian day as a flt
     
     Examples
-    ________
+    --------
     >>> pmag.julian(10,20,2000)
     2451838
     """
@@ -4629,7 +4657,7 @@ def dolnp3_0(Data):
     DEPRECATED!!  USE dolnp()
     Description: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
     Parameters
-    __________
+    ---------------_
     Data : nested list of dictionaries with keys
         dir_dec
         dir_inc
@@ -6980,8 +7008,8 @@ def adjust_ages(AgesIn):
 def gaussdev(mean, sigma, N=1):
     """
     returns a number randomly drawn from a gaussian distribution with the given mean, sigma
-    Parmeters:
-    _____________________________
+    Parmeters
+    ---------------
     mean : mean of the gaussian distribution from which to draw deviates
     sigma : standard deviation of same
     N : number of deviates desired
@@ -7001,7 +7029,7 @@ def get_unf(N=100):
     Generates N uniformly distributed directions
     using the way described in Fisher et al. (1987).
     Parameters
-    __________
+    ----------------
     N : number of directions, default is 100
 
     Returns
@@ -7076,11 +7104,11 @@ def doseigs(s):
     convert s format for eigenvalues and eigenvectors
 
     Parameters
-    __________
+    ----------------
     s=[x11,x22,x33,x12,x23,x13] : the six tensor elements
 
     Return
-    __________
+    ----------------
         tau : [t1,t2,t3]
            tau is an list of eigenvalues in decreasing order:
         V : [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
@@ -7135,11 +7163,12 @@ def fcalc(col, row):
   looks up an F-test stastic from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
 
     Parameters
-    _________
+    ----------
         col : degrees of freedom column
         row : degrees of freedom row
 
     Returns
+    -------
         F : value for 95% confidence from the F-table
     """
 #
@@ -8002,7 +8031,7 @@ def dohext(nf, sigma, s):
     calculates hext parameters for nf, sigma and s
 
     Parameters
-    __________
+    ----------------
     nf :  number of degrees of freedom (measurements - 6)
     sigma : the sigma of the measurements
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
@@ -8141,7 +8170,7 @@ def dosgeo(s, az, pl):
     """
     rotates  matrix a to az,pl returns  s
     Parameters
-    __________
+    ----------------
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
     az : the azimuth of the specimen X direction
     pl : the plunge (inclination) of the specimen X direction
@@ -8175,7 +8204,7 @@ def dostilt(s, bed_az, bed_dip):
     Rotates "s" tensor to stratigraphic coordinates
 
     Parameters
-    __________
+    ----------------
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
     bed_az : bedding dip direction
     bed_dip :  bedding dip
@@ -8278,13 +8307,13 @@ def s_boot(Ss, ipar=0, nb=1000):
     Returns bootstrap parameters for S data
 
     Parameters
-    __________
+    ----------
     Ss : nested array of [[x11 x22 x33 x12 x23 x13],....] data
     ipar : if True, do a parametric bootstrap
     nb : number of bootstraps
 
     Returns
-    ________
+    -------
     Tmean : average eigenvalues
     Vmean : average eigvectors
     Taus : bootstrapped eigenvalues
@@ -8468,10 +8497,10 @@ def cleanup(first_I, first_Z):
 
 def sortarai(datablock, s, Zdiff, **kwargs):
     """
-     sorts data block in to first_Z, first_I, etc.
+    Sorts data block in to first_Z, first_I, etc.
 
     Parameters
-    _________
+    ----------
     datablock : Pandas DataFrame with Thellier-Tellier type data
     s : specimen name
     Zdiff : if True, take difference in Z values instead of vector difference
@@ -8480,7 +8509,7 @@ def sortarai(datablock, s, Zdiff, **kwargs):
         version : data model.  if not 3, assume data model = 2.5
 
     Returns
-    _______
+    -------
     araiblock : [first_Z, first_I, ptrm_check,
                  ptrm_tail, zptrm_check, GammaChecks]
     field : lab field (in tesla)
@@ -12123,20 +12152,20 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.
 
-    Parameters:
-    _________________
+    Parameters
+    ----------
     date = Required date in decimal years (Common Era, negative for Before Common Era) - NB: only dates prior to 2025 supported
 
-    Optional Parameters:
-    ______________
+    Optional Parameters
+    -------------------
     mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','shadif14k','cals10k.1b','custom')
     file = l m g h formatted filefor custom model
     lon_0 : central longitude for Hammer projection
     alt  = altitude
     resolution = ['low','high'] default is low
 
-    Returns:
-    ______________
+    Returns
+    -------
     Bdec=list of declinations
     Binc=list of inclinations
     B = list of total field intensities in nT
@@ -12210,7 +12239,7 @@ def doeqdi(x, y, UP=False):
     Takes digitized x,y, data and returns the dec,inc, assuming an
     equal area projection
     Parameters
-    __________________
+    ----------
         x : array of digitized x from point on equal area projection
         y : array of  igitized y from point on equal area projection
         UP : if True, is an upper hemisphere projection
@@ -12234,10 +12263,11 @@ def separate_directions(di_block):
     Separates set of directions into two modes based on principal direction
 
     Parameters
-    _______________
+    ----------
     di_block : block of nested dec,inc pairs
 
-    Return
+    Returns
+    -------
     mode_1_block,mode_2_block :  two arrays of nested dec,inc pairs
     """
     ppars = doprinc(di_block)
@@ -12256,15 +12286,16 @@ def separate_directions(di_block):
 
 def dovandamme(vgp_df):
     """
-    determine the S_b value for VGPs using the Vandamme (1994) method
+    Determine the S_b value for VGPs using the Vandamme (1994) method
     for determining cutoff value for "outliers".
+    
     Parameters
-    ___________
+    ----------
     vgp_df : pandas DataFrame with required column "vgp_lat"
              This should be in the desired coordinate system and assumes one polarity
 
     Returns
-    _________
+    -------
     vgp_df : after applying cutoff
     cutoff : colatitude cutoff
     S_b : S_b of vgp_df  after applying cutoff
@@ -12291,7 +12322,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
     scatter (McElhinny & McFadden, 1997)
 
     Parameters
-    _________
+    ----------
     vgp_df : Pandas Dataframe with columns
         REQUIRED:
         vgp_lat :  VGP latitude
@@ -12322,7 +12353,7 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
          
 
     Returns
-    _____________
+    -------
         N : number of VGPs used in calculation
         S : S
         low : 95% confidence lower bound [0 if boot=0]
@@ -12456,14 +12487,14 @@ def chart_maker(Int, Top, start=100, outfile='chart.txt'):
     P : a pTRM step - performed at the temperature and in the lab field.
 
     Parameters
-    __________
+    ----------
     Int : list of intervals [e.g., 50,10,5]
     Top : list of upper bounds for each interval [e.g., 500, 550, 600]
     start : first temperature step, default is 100
     outfile : name of output file, default is 'chart.txt'
 
     Output
-    _________
+    ------
     creates a file with:
          file:  write down the name of the measurement file
          field:  write down the lab field for the infield steps (in uT)
@@ -12538,7 +12569,7 @@ def import_basemap():
     environment variables.
 
     Returns
-    ---------
+    -------
     has_basemap : bool
     Basemap : Basemap package if possible else None
     """
@@ -12592,7 +12623,7 @@ def import_cartopy():
     if it is not installed
 
     Returns
-    ---------
+    -------
     has_cartopy : bool
     cartopy : cartopy package if available else None
     """
@@ -12619,7 +12650,7 @@ def age_to_BP(age, age_unit):
     Convert an age value into the equivalent in time Before Present(BP) where Present is 1950
 
     Returns
-    ---------
+    -------
     ageBP : number
     """
     ageBP = -1e9
@@ -12884,7 +12915,7 @@ def fix_directories(input_dir_path, output_dir_path):
     output_dir_path : str
 
     Returns
-    ---------
+    -------
     input_dir_path, output_dir_path
     """
     if not input_dir_path:
