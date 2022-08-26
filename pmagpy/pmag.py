@@ -1934,11 +1934,11 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
 
     Parameters
     ----------
-        Required:
-            infile : the MagIC formatted tab delimited data file
-                first line contains 'tab' in the first column and the data file type in the second (e.g., measurements, specimen, sample, etc.)
-        Optional:
-            data : data read in with, e.g., file.readlines()
+    Required:
+        infile : the MagIC formatted tab delimited data file
+            first line contains 'tab' in the first column and the data file type in the second (e.g., measurements, specimen, sample, etc.)
+    Optional:
+        data : data read in with, e.g., file.readlines()
     Returns
     -------
         list of dictionaries, file type
@@ -2048,8 +2048,8 @@ def magic_read(infile, data=None, return_keys=False, verbose=False):
 
 def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     """
-    Read a magic-formatted tab-delimited file and returns a dictionary of
-    dictionaries, with this format:
+    Read a magic-formatted tab-delimited file and returns a dictionary of dictionaries, with this format:
+    
     {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
     return data, file_type, and keys (if return_keys is true)
     """
