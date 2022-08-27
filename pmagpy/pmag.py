@@ -2222,7 +2222,7 @@ def magic_write_old(ofile, Recs, file_type):
 
     Effects
     -------
-        writes a MagIC formatted file from Recs
+    writes a MagIC formatted file from Recs
     """
     if len(Recs) < 1:
         print ('nothing to write')
@@ -2260,23 +2260,23 @@ def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
     """
     Parameters
     ----------
-        ofile : path to output file
-        Recs : list of dictionaries in MagIC format OR pandas dataframe
-        file_type : MagIC table type (e.g., specimens)
-        dataframe : boolean
-            if True, Recs is a pandas dataframe which must be converted
-               to a list of dictionaries
-        append : boolean
+    ofile : path to output file
+    Recs : list of dictionaries in MagIC format OR pandas dataframe
+    file_type : MagIC table type (e.g., specimens)
+    dataframe : boolean
+        if True, Recs is a pandas dataframe which must be converted
+            to a list of dictionaries
+    append : boolean
         if True, file will be appended to named file
 
     Returns
     -------
-        [True,False] : True if successful
-        ofile : same as input
+    [True,False] : True if successful
+    ofile : same as input
 
     Effects
     -------
-        writes a MagIC formatted file from Recs
+    writes a MagIC formatted file from Recs
     """
     if len(Recs) < 1:
         print('No records to write to file {}'.format(ofile))
@@ -2496,7 +2496,7 @@ def dogeo_V(indat):
 def dodirot(D, I, Dbar, Ibar):
     """
     Rotate a direction (declination, inclination) by the difference between
-    dec=0 and inc = 90 and the provided desired mean direction.
+    dec = 0 and inc = 90 and the provided desired mean direction.
 
     Parameters
     ----------
@@ -2525,7 +2525,7 @@ def dodirot(D, I, Dbar, Ibar):
 
 def dodirot_V(di_block, Dbar, Ibar):
     """
-    Rotate an array of dec/inc pairs to coordinate system with Dec,Inc as 0,90
+    Rotate an array of dec/inc pairs to coordinate system with Dec, Inc as 0, 90.
 
     Parameters
     ----------
