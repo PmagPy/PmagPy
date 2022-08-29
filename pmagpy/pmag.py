@@ -2558,7 +2558,7 @@ def dodirot_V(di_block, Dbar, Ibar):
 
 def find_samp_rec(s, data, az_type):
     """
-    find the orientation info for samp s
+    Find the orientation info for samp s
     """
     datablock, or_error, bed_error = [], 0, 0
     orient = {}
@@ -2600,7 +2600,7 @@ def find_samp_rec(s, data, az_type):
 
 def vspec(data):
     """
-    Takes the vector mean of replicate measurements at a given step
+    Takes the vector mean of replicate measurements at a given step.
     """
     vdata, Dirdata, step_meth = [], [], []
     tr0 = data[0][0]  # set beginning treatment
@@ -2739,7 +2739,7 @@ def cart2dir(cart):
 
 def tauV(T):
     """
-    Gets the eigenvalues (tau) and eigenvectors (V) from 3x3 matrix T
+    Gets the eigenvalues (tau) and eigenvectors (V) from 3x3 matrix T.
     
     Parameters
     ----------
@@ -2801,7 +2801,22 @@ def tauV(T):
 
 def Tmatrix(X):
     """
-    gets the orientation matrix (T) from data in X
+    Gets the orientation matrix (T) from data in X.
+    
+    Parameters
+    ----------
+    X : list of lists
+        input data 
+    
+    Returns
+    -------
+    T : orientation matrix as a list of lists
+    
+    Examples 
+    --------
+    >>> X = [[1., 0.8, 5.], [0.5, 0.2, 2.], [1.4, 0.6, 0.1]]
+    >>> pmag.Tmatrix(X)
+    [[3.21, 1.74, 6.14], [1.74, 1.04, 4.46], [6.14, 4.46, 29.01]]
     """
     T = [[0., 0., 0.], [0., 0., 0.], [0., 0., 0.]]
     for row in X:
