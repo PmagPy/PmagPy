@@ -1311,10 +1311,10 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
     Parameters
     ----------
-        Takes input as (Dec, Inc, a95, Site latitude, Site longitude)
-        Input can be as individual values (5 parameters)
-        or
-        as a list of lists: [[Dec, Inc, a95, lat, lon],[Dec, Inc, a95, lat, lon]]
+    Takes input as (Dec, Inc, a95, Site latitude, Site longitude)
+    Input can be as individual values (5 parameters)
+    or
+    as a list of lists: [[Dec, Inc, a95, lat, lon],[Dec, Inc, a95, lat, lon]]
 
     Returns
     -------
@@ -1509,6 +1509,24 @@ def get_curve(araiblock,**kwargs):
 def dovds(data):
     """
     Calculates vector difference sum for demagnetization data.
+    
+    Parameters
+    ----------
+    data : nested array of data 
+    
+    Returns
+    -------
+    vds : vector difference of data as a float
+    
+    Examples
+    --------
+    >>> data = np.array([  [16.0,    43.0, 21620.33],
+           [30.5,    53.6, 12922.58],
+            [6.9,    33.2, 15780.08],
+          [352.5,    40.2, 33947.52], 
+          [354.2,    45.1, 19725.45]])
+    >>> pmag.dovds(data)
+    69849.6597634
     """
     vds, X = 0, []
     for rec in data:
@@ -1714,6 +1732,15 @@ def vector_mean(data):
     >>> Dir,R=pmag.vector_mean(data)
     >>> data.shape[0],Dir[0],Dir[1],R  
     (100, 1.2702459152657795, 49.62123008281823, 2289431.9813831896)
+    
+    >>> data = np.array([  [16.0,    43.0, 21620.33],
+           [30.5,    53.6, 12922.58],
+            [6.9,    33.2, 15780.08],
+          [352.5,    40.2, 33947.52], 
+          [354.2,    45.1, 19725.45]])
+    >>> pmag.vector_mean(data)
+    (array([ 3.875568482416763, 43.02570375878505 ,  1.]),
+     102107.93048882612)
     """
     Xbar = np.zeros((3))
     X = dir2cart(data).transpose()
