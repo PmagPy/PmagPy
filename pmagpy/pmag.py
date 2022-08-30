@@ -2900,7 +2900,23 @@ def dms2dd(d):
 
 def findrec(s, data):
     """
-    finds all the records belonging to s in data
+    Finds all the records belonging to s in data.
+    
+    Parameters
+    ----------
+    s : str
+        data value of interest
+    data : nested list of data 
+        eg. [[treatment,dec,inc,int,quality],...]
+    
+    Returns
+    -------
+    datablock : nested list of data relating to s.
+    
+    Examples 
+    --------
+    >>> data = [['treatment','dec','inc','int','quality'],['treatment1','dec1','inc1','int1','quality1']]
+    >>> pmag.findrec('treatment', data)
     """
     datablock = []
     for rec in data:
@@ -2912,11 +2928,12 @@ def findrec(s, data):
 def domean(data, start, end, calculation_type):
     """
     Gets average direction using Fisher or principal component analysis (line
-    or plane) methods
+    or plane) methods.
 
     Parameters
     ----------
-    data : nest list of data: [[treatment,dec,inc,int,quality],...]
+    data : nest list of data
+        eg. [[treatment,dec,inc,int,quality],...]
     start : step being used as start of fit (often temperature minimum)
     end : step being used as end of fit (often temperature maximum)
     calculation_type : string describing type of calculation to be made
@@ -2925,8 +2942,8 @@ def domean(data, start, end, calculation_type):
 
     Returns
     -------
-    mpars : dictionary with the keys "specimen_n","measurement_step_min",
-    "measurement_step_max","specimen_mad","specimen_dec","specimen_inc"
+    mpars : dictionary 
+        The keys within are "specimen_n","measurement_step_min", "measurement_step_max","specimen_mad","specimen_dec","specimen_inc".
     """
     mpars = {}
     datablock = []
@@ -3096,7 +3113,7 @@ def domean(data, start, end, calculation_type):
 
 def circ(dec, dip, alpha,npts=201):
     """
-    Calculates points on an circle about dec, dip with angle alpha.
+    Calculates points on an circle about dec and dip with angle alpha.
 
     Parameters
     ----------
@@ -3105,7 +3122,7 @@ def circ(dec, dip, alpha,npts=201):
     dip : float
         dip of vector
     alpha : float
-        angle of small circle - 90 if vector  is pole to great circle
+        angle of small circle - 90 if vector is pole to great circle
     npts : int
         number of points on the circle
     
@@ -3895,6 +3912,7 @@ def magic_help(keyhelp):
     ----------
     keyhelp : str
         key name that the user seeks more information about
+        
     Returns
     -------
     str 
@@ -4222,11 +4240,12 @@ def dosundec(sundata):
     
     Returns
     -------
-    sunaz : the declination of the desired direction wrt true north.
+    sunaz : the declination of the desired direction with respect to true north
     
     Examples
     --------
     >>> sundata={'date':'1994:05:23:16:9','delta_u':3,'lat':35,'lon':33,'shadow_angle':68}
+    >>> pmag.dosundec(sundata)
     154.24420046668928
     """
     iday = 0
@@ -4279,14 +4298,14 @@ def gha(julian_day, f):
     
     Parameters
     ----------
-    julian_day: int, julian day
-    f: int 
+    julian_day : int, julian day
+    f : int 
         fraction of the day in Universal Time, (hrs + (min/60))/24
     
     Returns
     -------
-        H: int, hour
-        delta: int, angle
+    H: int, hour
+    delta: int, angle
     
     Examples
     --------
@@ -4331,9 +4350,9 @@ def julian(mon, day, year):
     
     Parameters
     ----------
-        mon : int, month
-        day : int, day
-        year : int, year
+    mon : int, month
+    day : int, day
+    year : int, year
     
     Returns
     -------
@@ -4368,7 +4387,16 @@ def julian(mon, day, year):
 
 def fillkeys(Recs):
     """
-    reconciles keys of dictionaries within Recs.
+    Reconciles keys of dictionaries within Recs.
+    
+    Parameters
+    ----------
+    Recs : list of dictionaries in MagIC format OR pandas dataframe
+    
+    Returns
+    -------
+    input Recs 
+    key list : list of keys found in Recs
     """
     keylist, OutRecs = [], []
     for rec in Recs:
@@ -4393,7 +4421,7 @@ def fisher_mean(di_block):
 
     Returns
     -------
-    fpars : dictionary containing the Fisher mean and statistics
+    fpars : dictionary containing the Fisher mean and statistics with keys
         dec : mean declination
         inc : mean inclination
         r : resultant vector length
@@ -4453,7 +4481,33 @@ def fisher_mean(di_block):
 
 def gausspars(data):
     """
-    calculates gaussian statistics for data
+    Calculates gaussian statistics for data. 
+    
+    Parmeters
+    ---------
+    data : array of data 
+    
+    Returns 
+    -------
+    Array the length of rows in data containing the mean in the first row and the stdev in the second. 
+    The mean and the stdev are given as floats.
+    
+    Examples
+    --------
+    >>> data=np.loadtxt('data_files/vector_mean/vector_mean_example.dat')
+    >>> pmag.gausspars(data)
+    (array([  154.72699999999995,    44.43599999999999, 23709.242399999992  ]),
+     array([  166.93766686153165 ,    19.578257988354988,
+        11563.604723319804   ]))
+          
+    >>> data = np.array([  [16.0,    43.0, 21620.33],
+           [30.5,    53.6, 12922.58],
+            [6.9,    33.2, 15780.08],
+          [352.5,    40.2, 33947.52], 
+          [354.2,    45.1, 19725.45]])
+    >>> pmag.gausspars(data)
+    (array([  152.02, 43.019999999999996, 20799.192]),
+     array([1.839818931308187e+02, 7.427112494098901e+00, 8.092252785230450e+03]))
     """
     N, mean, d = len(data), 0., 0.
     if N < 1:
