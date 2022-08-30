@@ -1,4 +1,3 @@
-
 import codecs
 import math
 import os
@@ -4399,24 +4398,23 @@ def fisher_mean(di_block):
      'alpha95': 6.414731246264079,
      'csd': 4.20876891770567}    
     """
-    R, Xbar, X, fpars = 0, [0, 0, 0], [], {}
-    N = len(data)
-    if N < 2:
-        return fpars
-    X = dir2cart(data)
-    for i in range(len(X)):
-        for c in range(3):
-            Xbar[c] += X[i][c]
-    for c in range(3):
-        R += Xbar[c]**2
-    R = np.sqrt(R)
-    for c in range(3):
-        Xbar[c] = Xbar[c]/R
+    N, fpars = len(di_block), {}
+    
+    if N < 2: 
+        return {'dec': di_block[0][0], 
+                'inc': di_block[0][1]}
+    
+    X = np.array(dir2cart(di_block))
+    Xbar = X.sum(axis=0)
+    R = np.linalg.norm(Xbar)
+    Xbar /= R
     dir = cart2dir(Xbar)
+
     fpars["dec"] = dir[0]
     fpars["inc"] = dir[1]
     fpars["n"] = N
     fpars["r"] = R
+    
     if N != R:
         k = (N - 1.) / (N - R)
         fpars["k"] = k
