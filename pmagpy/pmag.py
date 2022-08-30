@@ -2196,7 +2196,7 @@ def upload_read(infile, table):
 
 def putout(ofile, keylist, Rec):
     """
-    Writes out a magic format record to ofile
+    Writes out a magic format record to ofile.
     """
     pmag_out = open(ofile, 'a')
     outstring = ""
@@ -2213,7 +2213,7 @@ def putout(ofile, keylist, Rec):
 
 def first_rec(ofile, Rec, file_type):
     """
-    Opens the file ofile as a magic template file with headers as the keys to Rec
+    Opens the file ofile as a magic template file with headers as the keys to Rec.
     """
     keylist = []
     opened = False
@@ -2483,11 +2483,14 @@ def dogeo_V(indat):
 
     Parameters
     ----------
-    indat: nested list of [dec, inc, az, pl] data
+    indat : array of lists 
+        data format: [dec, inc, az, pl] 
 
     Returns
     -------
-    rotated_directions : arrays of declinations and inclinations
+    two arrays : 
+        an array of declinations
+        an array of inclinations
         
     Examples
     --------
@@ -2723,7 +2726,7 @@ def angle(D1, D2):
 
 def cart2dir(cart):
     """
-    Converts a direction in cartesian coordinates into declination, inclinations
+    Converts a direction in cartesian coordinates into declinations and inclination.
 
     Parameters
     ----------
@@ -2774,7 +2777,7 @@ def tauV(T):
         
     Returns
     -------
-    tau : eigenvalues for the given matrix (T)
+    t : eigenvalues for the given matrix (T)
     V : eigenvectors for the given matrix (T)
         
     Examples 
@@ -2832,12 +2835,11 @@ def Tmatrix(X):
     
     Parameters
     ----------
-    X : list of lists
-        input data 
+    X : nested lists of input data 
     
     Returns
     -------
-    T : orientation matrix as a list of lists
+    T : orientation matrix as a nested list
     
     Examples 
     --------
@@ -2870,6 +2872,21 @@ def dir2cart(d):
     --------
     >>> pmag.dir2cart([200,40,1])
     array([-0.71984631, -0.26200263,  0.64278761])
+    
+    >>> pmag.dir2cart([200,40])
+    array([[-0.719846310392954, -0.262002630229385,  0.642787609686539]])
+    
+    >>> data = np.array([  [16.0,    43.0, 21620.33],
+           [30.5,    53.6, 12922.58],
+            [6.9,    33.2, 15780.08],
+          [352.5,    40.2, 33947.52], 
+          [354.2,    45.1, 19725.45]])
+    >>> pmag.dir2cart(data)
+    array([[15199.574113612794 ,  4358.407742577491 , 14745.029604010038 ],
+       [ 6607.405832448041 ,  3892.0594770716   , 10401.304487835589 ],
+       [13108.574245285025 ,  1586.3117853121191,  8640.591471770322 ],
+       [25707.154931463603 , -3384.411152593326 , 21911.687763162565 ],
+       [13852.355235322588 , -1407.0709331498472, 13972.322052043308 ]])
     """
     ints = np.ones(len(d)).transpose(
     )  # get an array of ones to plug into dec,inc pairs
@@ -2894,7 +2911,7 @@ def dir2cart(d):
 
 def dms2dd(d):
     """
-    Converts a list or array degree, minute, second locations to an array of decimal degrees. 
+    Converts a list or array of degree, minute, second locations to an array of decimal degrees. 
     
     Parameters
     ----------
@@ -2911,6 +2928,16 @@ def dms2dd(d):
     >>> pmag.dms2dd([60,35,15])
     60 35 15
     array(60.587500000000006)
+    
+    >>> data = np.array([  [16.0,    43.0, 33],
+           [30.5,    53.6, 58],
+            [6.9,    33.2, 8],
+          [352.5,    40.2, 52], 
+          [354.2,    45.1, 45]])
+    >>> pmag.dms2dd(data)
+    [ 16.   30.5   6.9 352.5 354.2] [43.  53.6 33.2 40.2 45.1] [33. 58.  8. 52. 45.]
+array([ 16.72583333333333 ,  31.409444444444446,   7.455555555555557,
+       353.18444444444447 , 354.96416666666664 ])
     """
     # converts list or array of degree, minute, second locations to array of
     # decimal degrees
@@ -2938,12 +2965,13 @@ def findrec(s, data):
     
     Returns
     -------
-    datablock : nested list of data relating to s.
+    datablock : nested list of data relating to s
     
     Examples 
     --------
     >>> data = [['treatment','dec','inc','int','quality'],['treatment1','dec1','inc1','int1','quality1']]
     >>> pmag.findrec('treatment', data)
+    [['dec', 'inc', 'int', 'quality']]
     """
     datablock = []
     for rec in data:
@@ -3155,7 +3183,7 @@ def circ(dec, dip, alpha,npts=201):
     
     Returns
     -------
-    D_out, V_out : list
+    D_out, I_out : list
         declinations and inclinations along small (great) circle about dec, dip
             
     Examples
@@ -4383,7 +4411,7 @@ def julian(mon, day, year):
     
     Returns
     -------
-    Julian day as a flt
+    julian_day : Julian day as a flt
     
     Examples
     --------
@@ -4550,7 +4578,7 @@ def gausspars(data):
 
 
 def calculate_k(R,N):
-    '''
+    """
     Calculates the the Fisher concentration parameter (k) based on the number of
     vectors and the resultant vector length. This calculation occurs within the
     fisher_mean() function. Use of this function can be helpful when R and N
@@ -4570,7 +4598,7 @@ def calculate_k(R,N):
     >>> n,r = 3, 4.335
     >>> pmag.calculate_k(r,n)
     -1.4981273408
-    '''
+    """
     if N != R:
         k = (N - 1.) / (N - R)
     else:
@@ -4579,7 +4607,7 @@ def calculate_k(R,N):
 
 
 def calculate_r(alpha95,N):
-    '''
+    """
     Calculates the resultant vector length (R) based on the number of vectors
     and provided Fisher alpha95. Doing so can be useful for conducting
     statistical tests that require R when it is not provided.
@@ -4598,14 +4626,33 @@ def calculate_r(alpha95,N):
     >>> alpha95, N = 6.41, 3
     >>> pmag.calculate_r(alpha95,N)
     2.994608233588127
-    '''
+    """
     R = ((20**(1/(N-1))-1)*N)/((20**(1/(N-1)))-np.cos(np.deg2rad(alpha95)))
     return R
 
 
 def weighted_mean(data):
     """
-    calculates weighted mean of data
+    Calculates the weighted mean of data.
+    
+    Parameters
+    ----------
+    data : array of data as floats
+    
+    Returns
+    -------
+    mean : mean of the data as a float
+    stdev : standard deviation of the data as a float
+    
+    Examples
+    --------
+    >>> data = np.array([  [16.0,    43.0, 33],
+           [30.5,    53.6, 58],
+            [6.9,    33.2, 8],
+          [352.5,    40.2, 52], 
+          [354.2,    45.1, 45]])
+    >>> pmag.weighted_mean(data)
+    (152.00743840074387, 81.7174866362813)
     """
     W, N, mean, d = 0, len(data), 0, 0
     if N < 1:
