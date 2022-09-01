@@ -4554,8 +4554,8 @@ def gausspars(data):
     
     Returns 
     -------
-    Array the length of rows in data containing the mean in the first row and the stdev in the second. 
-    The mean and the stdev are given as floats.
+    mean : array the length of the data array  
+    stdev : second array the length of the data array
     
     Examples
     --------
@@ -4647,7 +4647,7 @@ def weighted_mean(data):
     
     Parameters
     ----------
-    data : array of data as floats
+    data : array of data 
     
     Returns
     -------
@@ -4882,7 +4882,7 @@ def dolnp3_0(Data):
 
 def dolnp(data, direction_type_key):
     """
-    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes
+    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
 
     Parameters
     ----------
@@ -4897,20 +4897,22 @@ def dolnp(data, direction_type_key):
             inc
             tilt_correction
             magic_method_codes
-         direction_type_key :  ['specimen_direction_type']
+    direction_type_key :  ['specimen_direction_type']
+    
     Returns
     -------
-        ReturnData : dictionary with keys
-            dec : fisher mean dec of data in Data
-            inc : fisher mean inc of data in Data
-            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-            n_planes : number of best fit planes [method_code = DE-BFP]
-            alpha95  : fisher confidence circle from Data
-            R : fisher R value of Data
-            K : fisher k value of Data
+    ReturnData : dictionary with keys
+        dec : fisher mean dec of data in Data
+        inc : fisher mean inc of data in Data
+        n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
+        n_planes : number of best fit planes [method_code = DE-BFP]
+        alpha95  : fisher confidence circle from Data
+        R : fisher R value of Data
+        K : fisher k value of Data
+        
     Effects
     -------
-        prints to screen in case of no data
+    prints to screen in case of no data
     """
 
     if 'dir_dec' in data[0].keys():
@@ -5002,11 +5004,18 @@ def vclose(L, V):
 
 def calculate_best_fit_vectors(L, E, V, n_planes):
     """
-    Calculates the best fit vectors for a set of plane interpretations used in fisher mean calculations
-    @param: L - a list of the "EL, EM, EN" array of MM88 or the cartisian form of dec and inc of the plane interpretation
-    @param: E - the sum of the cartisian coordinates of all the line fits to be used in the mean
-    @param: V - initial direction to start iterating from to get plane best fits
-    @returns: nested list of n_plane by 3 dimension where the 3 are the cartisian dimension of the best fit vector
+    Calculates the best fit vectors for a set of plane interpretations used in fisher mean calculations.
+    
+    Parameters
+    ----------
+    L : a list of the "EL, EM, EN" array of MM88 or the cartisian form of dec and inc of the plane interpretation
+    E : the sum of the cartisian coordinates of all the line fits to be used in the mean
+    V : initial direction to start iterating from to get plane best fits
+    n_planes : number of planes
+    
+    Returns
+    -------
+    XV : nested list of n_plane by 3 dimension where the 3 are the cartisian dimension of the best fit vector
     """
 
     U, XV = E[:], []  # make a copy of E to prevent mutation
@@ -5041,17 +5050,20 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
 
 def process_data_for_mean(data, direction_type_key):
     """
-    takes list of dicts with dec and inc as well as direction_type if possible or method_codes and sorts the data into lines and planes and process it for fisher means
-
-    @param: data - list of dicts with dec inc and some manner of PCA type info
-    @param: direction_type_key - key that indicates the direction type variable in the dictionaries of data
-    @return: tuple with values - (
-                                list of lists with [dec, inc, 1.] for all lines
-                                number of line
-                                list of lists with [EL,EM,EN] of all planes
-                                number of planes
-                                list of sum of the cartezian components of all lines
-                                )
+    Takes a list of dicts with dec and inc as well as direction_type if possible or method_codes and sorts the data into lines and planes and process it for fisher means
+    
+    Parameters
+    ----------
+    data : list of dicts with dec inc and some manner of PCA type info
+    direction_type_key : key that indicates the direction type variable in the dictionaries of data
+    
+    Returns
+    -------
+    tuple with values: list of lists with [dec, inc, 1.] for all lines
+                       number of line
+                       list of lists with [EL,EM,EN] of all planes
+                       number of planes
+                       list of sum of the cartezian components of all lines
     """
     dec_key, inc_key, meth_key = 'dec', 'inc', 'magic_method_codes'  # data model 2.5
     if 'dir_dec' in data[0].keys():  # this is data model 3.0
@@ -5111,7 +5123,7 @@ def process_data_for_mean(data, direction_type_key):
 
 def scoreit(pars, PmagSpecRec, accept, text, verbose):
     """
-    gets a grade for a given set of data, spits out stuff
+    Gets a grade for a given set of data, spits out stuff.
     """
     s = PmagSpecRec["er_specimen_name"]
     PmagSpecRec["measurement_step_min"] = '%8.3e' % (
@@ -5179,18 +5191,17 @@ def scoreit(pars, PmagSpecRec, accept, text, verbose):
 
 def b_vdm(B, lat):
     """
-    Converts a magnetic field value (input in units of tesla) to a virtual
-    dipole moment (VDM) or a virtual axial dipole moment (VADM); output
-    in units of Am^2)
-
+    Converts a magnetic field value to a virtual dipole moment (VDM)
+    or a virtual axial dipole moment (VADM).
+    
     Parameters
     ----------
     B: local magnetic field strength in tesla
     lat: latitude of site in degrees
 
     Returns
-    ----------
-    V(A)DM in units of Am^2
+    -------
+    VDM or V(A)DM in units of Am^2
 
     Examples
     --------
@@ -5206,8 +5217,7 @@ def b_vdm(B, lat):
 def vdm_b(vdm, lat):
     """
     Converts a virtual dipole moment (VDM) or a virtual axial dipole moment
-    (VADM; input in units of Am^2) to a local magnetic field value (output in
-    units of tesla)
+    (VADM) to a local magnetic field value 
 
     Parameters
     ----------
@@ -5217,6 +5227,11 @@ def vdm_b(vdm, lat):
     Returns
     -------
     B: local magnetic field strength in tesla
+    
+    Examples 
+    --------
+    >>> pmag.vdm_b(65, 20)
+    2.9215108300460446e-26
     """
     rad = np.pi/180.
     # changed radius of the earth from 3.367e6 3/12/2010
@@ -5234,7 +5249,12 @@ def binglookup(w1i,w2i):
     
     Returns
     -------
-        k1,k2 : k1 and k2 for Bingham distribution
+    k1,k2 : k1 and k2 for Bingham distribution
+    
+    Examples 
+    --------
+    >>> pmag.binglookup(0.12,0.15)
+    (-4.868, -3.7289999999999996)
     """
     ## find PYTHONPATH
     #pdirs=os.environ['PYTHONPATH'].split(os.pathsep)
