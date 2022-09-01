@@ -58,7 +58,6 @@ def sort_diclist(undecorated, sort_on):
     >>> sort_diclist(lst, 'key1')
     [{'key2': 20, 'key1': 1}, {'key2': 2, 'key1': 10}]
     >>> sort_diclist(lst, 'key2')
-    [{'key2': 2, 'key1': 10}, {'key2': 20, 'key1': 1}]
     """
     decorated = [(len(dict_[sort_on]) if hasattr(dict_[sort_on], '__len__') else dict_[
                   sort_on], index) for (index, dict_) in enumerate(undecorated)]
@@ -2136,7 +2135,17 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
 
 def sort_magic_data(magic_data, sort_name):
     """
-    Sort magic_data by header (like er_specimen_name for example)
+    Sort magic_data by header.
+    
+    Parameters
+    ----------
+    magic_data : table from a MagIC upload (or downloaded) txt file
+    sort_name : str
+        name of header to sort by, ('er_specimen_name' for example)
+    
+    Returns 
+    -------
+    magic_data : sorted table by indicated sort_name
     """
     magic_data_sorted = {}
     for rec in magic_data:
@@ -2149,8 +2158,8 @@ def sort_magic_data(magic_data, sort_name):
 
 def upload_read(infile, table):
     """
-    Reads a table from a MagIC upload (or downloaded) txt file, puts data in a
-    list of dictionaries
+    Reads a table from a MagIC upload (or downloaded) txt file and puts data in a
+    list of dictionaries.
     """
     delim = 'tab'
     hold, magic_data, magic_record, magic_keys = [], [], {}, []
@@ -2239,7 +2248,7 @@ def first_rec(ofile, Rec, file_type):
 
 def magic_write_old(ofile, Recs, file_type):
     """
-    Writes out a magic format list of dictionaries to ofile
+    Writes out a magic format list of dictionaries to ofile.
 
     Parameters
     ----------
@@ -2285,6 +2294,8 @@ def magic_write_old(ofile, Recs, file_type):
 
 def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
     """
+    Writes out a magic format list of dictionaries to ofile.
+
     Parameters
     ----------
     ofile : path to output file
@@ -2982,8 +2993,7 @@ def findrec(s, data):
 
 def domean(data, start, end, calculation_type):
     """
-    Gets average direction using Fisher or principal component analysis (line
-    or plane) methods.
+    Gets average direction using Fisher or principal component analysis (line or plane) methods.
 
     Parameters
     ----------
@@ -3179,7 +3189,7 @@ def circ(dec, dip, alpha,npts=201):
     alpha : float
         angle of small circle - 90 if vector is pole to great circle
     npts : int
-        number of points on the circle
+        number of points on the circle, default 201
     
     Returns
     -------
@@ -3971,7 +3981,7 @@ def magic_help(keyhelp):
     Returns
     -------
     str 
-        More information about the input key
+        Information about the input key
     
     Examples
     --------
@@ -4451,7 +4461,7 @@ def fillkeys(Recs):
     Returns
     -------
     input Recs 
-    key list : list of keys found in Recs
+    keylist : list of keys found in Recs
     """
     keylist, OutRecs = [], []
     for rec in Recs:
@@ -4466,13 +4476,13 @@ def fillkeys(Recs):
     return OutRecs, keylist
 
 
-def fisher_mean(di_block):
+def fisher_mean(data):
     """
     Calculates the Fisher mean and associated parameter from a di_block.
 
     Parameters
     ----------
-    di_block : nested list of [dec,inc] or [dec,inc,intensity]
+    data : nested list of [dec,inc] or [dec,inc,intensity]
 
     Returns
     -------
@@ -4487,8 +4497,8 @@ def fisher_mean(di_block):
         
     Examples
     --------
-    >>> di_block = [[-45,150],[-40,150],[-38,145]]
-    >>> pmag.fisher_mean(di_block)
+    >>> data = [[-45,150],[-40,150],[-38,145]]
+    >>> pmag.fisher_mean(data)
     {'dec': 138.94545436727873,
      'inc': 31.699974714611297,
      'n': 3,
