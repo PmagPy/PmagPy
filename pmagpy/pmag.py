@@ -6283,7 +6283,7 @@ def doincfish(inc):
      'k': 2.999863106921461,
      'alpha95': 57.453002724988956,
      'csd': 46.76643881682904}
-    """
+    """''
     rad, SCOi, SSOi = np.pi/180., 0., 0.  # some definitions
     abinc = []
     for i in inc:
@@ -6603,8 +6603,8 @@ def pt_rot(EP, Lats, Lons):
 
 def dread(infile, cols):
     """
-     Reads in specimen, tr, dec, inc int into data[].  position of
-     tr, dec, inc, int determined by cols[]
+    Reads in specimen, tr, dec, inc int into data[].  position of
+    tr, dec, inc, int determined by cols[]
     """
     data = []
     f = open(infile, "r")
@@ -6628,7 +6628,7 @@ def fshdev(k):
         kappa (precision parameter) of the distribution
 
     Returns
-    ----------
+    -------
     dec, inc : declination and inclination of random Fisher distribution draw
                if k is an array, dec, inc are returned as arrays, otherwise, single values
     """
@@ -6653,7 +6653,7 @@ def kentdev(kappa, beta, n=1000):
     """
     Generate a random draw from a Kent distribution with mean declination
     of 0 and inclination of 90, elongated along -90 to 90 longitude 
-    with a specified kappa and beta
+    with a specified kappa and beta.
 
     Parameters
     ----------
