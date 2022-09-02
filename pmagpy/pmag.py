@@ -6114,7 +6114,7 @@ def cdfout(data, file):
 def dobingham(di_block):
     """
     Calculates the Bingham mean and associated statistical parameters from
-    directions that are input as a di_block
+    directions that are input as a di_block.
 
     Parameters
     ----------
@@ -6189,7 +6189,7 @@ def doflip(dec, inc):
     Returns 
     -------
     tuple
-        contianing the flipped declination and inclination 
+        containing the flipped declination and inclination 
         
     Examples
     -------
@@ -6212,6 +6212,13 @@ def doreverse(dec, inc):
         declination
     inc: float 
         inclination
+        
+    Returns 
+    -------
+    dec: float
+        antipode of the declination
+    inc: float 
+        antipode of the inclination
     
     Examples
     --------
@@ -6225,7 +6232,22 @@ def doreverse(dec, inc):
 
 def doreverse_list(decs, incs):
     """
-    calculates the antipode of list of directions
+    Calculates the antipode of list of directions.
+    
+    Parameters
+    ----------
+    decs : list of declinations
+    incs : list of inclinations
+    
+    Returns
+    -------
+    decs_flipped : antipode list of declinations
+    incs_flipped : antipode list of inclinations
+    
+    Examples 
+    --------
+    >>> pmag.doreverse_list([30,32,70,54],[60,62,0,10])
+    ([210.0, 212.0, 250.0, 234.0], [-60, -62, 0, -10])
     """
     incs_flipped = [-i for i in incs]
     decs_flipped = [(dec + 180.) % 360. for dec in decs]
@@ -6250,6 +6272,17 @@ def doincfish(inc):
         'k' : estimated Fisher kappa
         'alpha95' : estimated fisher alpha_95
         'csd' : estimated circular standard deviation
+    
+    Examples 
+    --------
+    >>> pmag.doincfish([60,62,0,10])
+    {'n': 4,
+     'ginc': 33.0,
+     'inc': 39.85999999999957,
+     'r': 2.9999543668915347,
+     'k': 2.999863106921461,
+     'alpha95': 57.453002724988956,
+     'csd': 46.76643881682904}
     """
     rad, SCOi, SSOi = np.pi/180., 0., 0.  # some definitions
     abinc = []
@@ -6319,7 +6352,7 @@ def dokent(data, NN, distribution_95=False):
     ----------
     data :  nested pairs of [Dec,Inc]
     NN  : normalization
-        NN is the number of data for Kent ellipse
+        Number of data for Kent ellipse
         NN is 1 for Kent ellipses of bootstrapped mean directions
     distribution_95 : the default behavior (distribution_95=False) is for
         the function to return the confidence region for the mean direction.
@@ -6570,7 +6603,7 @@ def pt_rot(EP, Lats, Lons):
 
 def dread(infile, cols):
     """
-     reads in specimen, tr, dec, inc int into data[].  position of
+     Reads in specimen, tr, dec, inc int into data[].  position of
      tr, dec, inc, int determined by cols[]
     """
     data = []
