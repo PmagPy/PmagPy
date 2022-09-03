@@ -6631,6 +6631,11 @@ def fshdev(k):
     -------
     dec, inc : declination and inclination of random Fisher distribution draw
                if k is an array, dec, inc are returned as arrays, otherwise, single values
+    
+    Examples
+    --------
+    >>> pmag.fshdev(8)
+    (334.3434290469283, 61.06963783415771)
     """
     k = np.array(k)
     if len(k.shape) != 0:
@@ -6662,7 +6667,7 @@ def kentdev(kappa, beta, n=1000):
     n : number of samples to redraw
 
     Returns
-    ----------
+    -------
     dec, inc : declination and inclination of random Kent distribution draw
     
     Examples
@@ -6760,7 +6765,6 @@ def lowes(data):
     -------
     Ls : list of degrees l
     Rs : power at degree l
-
     """
     lmax = data[-1][0]
     Ls = list(range(1, lmax+1))
@@ -6778,7 +6782,25 @@ def lowes(data):
 
 def magnetic_lat(inc):
     """
-    returns magnetic latitude from inclination
+    Calculates the magnetic latitude from inclination.
+    
+    Parameters
+    ----------
+    inc : single float or array 
+        inclination value(s)
+    
+    Returns
+    -------
+    paleo_lat : single float or array
+        magnetic latitude from the given inclination(s) 
+    
+    Examples 
+    --------
+    >>> pmag.magnetic_lat(35)
+    19.29534273533122
+    
+    >>> pmag.magnetic_lat([35,60,20])
+    array([19.29534273533122 , 40.8933946491309  , 10.314104815618196])
     """
     paleo_lat = np.degrees(np.arctan(0.5 * np.tan(np.radians(inc))))
     return paleo_lat
@@ -6825,7 +6847,7 @@ def check_F(AniSpec):
 
 def Dir_anis_corr(InDir, AniSpec):
     """
-    takes the 6 element 's' vector and the Dec,Inc 'InDir' data,
+    Takes the 6 element 's' vector and the Dec,Inc 'InDir' data,
     performs simple anisotropy correction. returns corrected Dec, Inc
     """
     Dir = np.zeros((3), 'f')
@@ -6843,7 +6865,7 @@ def Dir_anis_corr(InDir, AniSpec):
 
 def doaniscorr(PmagSpecRec, AniSpec):
     """
-    takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
+    Takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
     performs simple anisotropy correction. returns corrected Dec, Inc, Int
     """
     AniSpecRec = {}
@@ -6932,7 +6954,7 @@ def vgp_di(plat, plong, slat, slong):
     slong : longitude of site
 
     Returns
-    ----------
+    -------
     dec,inc : tuple of declination and inclination
     """
     plong = plong % 360
@@ -6967,7 +6989,7 @@ def vgp_di(plat, plong, slat, slong):
 
 def watsonsV(Dir1, Dir2):
     """
-    calculates Watson's V statistic for two sets of directions
+    Calculates Watson's V statistic for two sets of directions
     """
     counter, NumSims = 0, 500
 #
@@ -7012,7 +7034,7 @@ def watsonsV(Dir1, Dir2):
 
 def dimap(D, I):
     """
-    Function to map directions  to x,y pairs in equal area projection
+    Function to map directions  to x,y pairs in equal area projection.
 
     Parameters
     ----------
@@ -7055,11 +7077,22 @@ def dimap(D, I):
 
 def dimap_V(D, I):
     """
-    FUNCTION TO MAP DECLINATION, INCLINATIONS INTO EQUAL AREA PROJECTION, X,Y
+    Maps declinations and inclinations into equal area projections.
 
-    Usage:     dimap_V(D, I)
-        D and I are both numpy arrays
-
+    Parameters 
+    ----------
+    D, I : numpy arrays
+    
+    Returns
+    -------
+    XY : array of equal area projections
+    
+    Examples
+    --------
+    >>> pmag.dimap_V([35,60,20],[70,80,-10])
+    array([[0.140856382055789, 0.20116376126988 ],
+       [0.106743548942519, 0.061628416716219],
+       [0.310909633795401, 0.85421719834377 ]])
     """
 # GET CARTESIAN COMPONENTS OF INPUT DIRECTION
     DI = np.array([D, I]).transpose()
@@ -7075,7 +7108,15 @@ def dimap_V(D, I):
 
 def getmeths(method_type):
     """
-    returns MagIC  method codes available for a given type
+    Returns MagIC method codes available for a given type.
+    
+    Parameters
+    ----------
+    method_type : str
+    
+    Returns
+    -------
+    meths : specified methods codes for the given type 
     """
     meths = []
     if method_type == 'GM':
@@ -7117,7 +7158,7 @@ def getmeths(method_type):
 
 def first_up(ofile, Rec, file_type):
     """
-    writes the header for a MagIC template file
+    Writes the header for a MagIC template file.
     """
     keylist = []
     pmag_out = open(ofile, 'a')
@@ -7155,7 +7196,7 @@ def average_int(data, keybase, outkey):
 
 def get_age(Rec, sitekey, keybase, Ages, DefaultAge):
     """
-    finds the age record for a given site
+    Finds the age record for a given site.
     """
     site = Rec[sitekey]
     gotone = 0
@@ -7181,7 +7222,7 @@ def get_age(Rec, sitekey, keybase, Ages, DefaultAge):
 
 def adjust_ages(AgesIn):
     """
-    Function to adjust ages to a common age_unit
+    Function to adjust ages to a common age_unit.
     """
 # get a list of age_units first
     age_units, AgesOut, factors, factor, maxunit, age_unit = [], [], [], 1, 1, "Ma"
@@ -7228,16 +7269,16 @@ def adjust_ages(AgesIn):
 
 def gaussdev(mean, sigma, N=1):
     """
-    returns a number randomly drawn from a gaussian distribution with the given mean, sigma
+    Returns a number randomly drawn from a gaussian distribution with the given mean, sigma
+    
     Parmeters
-    ---------------
+    ---------
     mean : mean of the gaussian distribution from which to draw deviates
     sigma : standard deviation of same
     N : number of deviates desired
 
     Returns
     -------
-
     N deviates from the normal distribution from
 .
     """
@@ -7249,12 +7290,13 @@ def get_unf(N=100):
     """
     Generates N uniformly distributed directions
     using the way described in Fisher et al. (1987).
+    
     Parameters
-    ----------------
+    ----------
     N : number of directions, default is 100
 
     Returns
-    ______
+    -------
     array of nested dec,inc pairs
     """
 #
