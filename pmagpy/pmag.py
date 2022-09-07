@@ -853,6 +853,7 @@ def getsampVDM(SampRec, SampNFO):
 
 
 def getfield(irmunits, coil, treat):
+    
     # calibration of ASC Impulse magnetizer
     if coil == "3":
         m, b = 0.0071, -0.004  # B=mh+b where B is in T, treat is in Volts
@@ -1407,6 +1408,8 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
 
 def int_pars(x, y, vds, **kwargs):
     """
+    Depricated 9/7/2022 
+    
     Calculates York regression and paleointensity parameters (with Tauxe Fvds).
     """
     # first do linear regression a la York
@@ -1732,7 +1735,7 @@ def vector_mean(data):
     >>> data.shape[0],Dir[0],Dir[1],R  
     (100, 1.2702459152657795, 49.62123008281823, 2289431.9813831896)
     
-    >>> data = np.array([  [16.0,    43.0, 21620.33],
+    >>> data = np.array([[16.0,    43.0, 21620.33],
            [30.5,    53.6, 12922.58],
             [6.9,    33.2, 15780.08],
           [352.5,    40.2, 33947.52], 
@@ -2223,6 +2226,10 @@ def putout(ofile, keylist, Rec):
 def first_rec(ofile, Rec, file_type):
     """
     Opens the file ofile as a magic template file with headers as the keys to Rec.
+    
+    Parameters
+    ----------
+    ofile : string with the path of the input file
     """
     keylist = []
     opened = False
@@ -2707,7 +2714,7 @@ def angle(D1, D2):
     Returns
     -------
     angle : single-element array 
-        angle between the directions
+        angle between the input directions
 
     Examples
     --------
@@ -2774,8 +2781,10 @@ def cart2dir(cart):
     except:
         print('trouble in cart2dir')  # most likely division by zero somewhere
         return np.zeros(3)
-
-    return np.array([Decs, Incs, Rs]).transpose()  # return the directions list
+    
+    direction_array = np.array([Decs, Incs, Rs]).transpose()  # directions list
+    
+    return direction_array  # return the directions list
 
 
 def tauV(T):
