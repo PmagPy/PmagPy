@@ -7279,8 +7279,13 @@ def gaussdev(mean, sigma, N=1):
 
     Returns
     -------
-    N deviates from the normal distribution from
-.
+    N deviates from the normal distribution
+    
+    Examples
+    --------
+    >>> pmag.gaussdev(5.5,1.2,6)
+    array([5.090856280215007, 3.305193918953536, 7.313490558588299,
+           5.412029315803913, 6.819820301799303, 7.632257251681613])
     """
     return random.normal(mean, sigma, N)  # return gaussian deviate
 #
@@ -7297,7 +7302,16 @@ def get_unf(N=100):
 
     Returns
     -------
-    array of nested dec,inc pairs
+    array of nested dec, inc pairs
+    
+    Examples
+    --------
+    >>> pmag.get_unf(5)
+    array([[ 62.916547703466684, -30.751721919151798],
+       [145.94851610484855 ,  76.45636268514875 ],
+       [312.61910867788174 , -67.24338629811932 ],
+       [ 61.71574344812653 ,  -4.005335509042522],
+       [ 15.867001505749716,  -1.404412703673322]])
     """
 #
 # get uniform directions  [dec,inc]
@@ -7337,7 +7351,22 @@ def get_unf(N=100):
 
 def s2a(s):
     """
-     convert 6 element "s" list to 3,3 a matrix (see Tauxe 1998)
+    Convert 6 element "s" list to 3x3 a matrix (see Tauxe 1998). 
+    
+    Parameters
+    ----------
+    s : six element list of floats
+    
+    Returns 
+    -------
+    a : 3x3 matrix as an array
+    
+    Examples 
+    --------
+    >>> pmag.s2a([1,2,3,4,5,6])
+    array([[1., 4., 6.],
+       [4., 2., 5.],
+       [6., 5., 3.]], dtype=float32)
     """
     a = np.zeros((3, 3,), 'f')  # make the a matrix
     for i in range(3):
@@ -7351,7 +7380,22 @@ def s2a(s):
 
 def a2s(a):
     """
-     convert 3,3 a matrix to 6 element "s" list  (see Tauxe 1998)
+    Convert 3x3 a matrix to 6 element "s" list  (see Tauxe 1998).
+    
+    Parameters
+    ----------
+    a : 3x3 matrix as an array
+    
+    Returns
+    -------
+    s : list of six elements based on a
+    
+    Examples
+    --------
+    >>> pmag.a2s([[1, 4, 6],
+                  [4, 2, 5],
+                  [6, 5, 3]])
+    array([1., 2., 3., 4., 5., 6.], dtype=float32)
     """
     s = np.zeros((6,), 'f')  # make the a matrix
     for i in range(3):
@@ -7364,18 +7408,28 @@ def a2s(a):
 
 def doseigs(s):
     """
-    convert s format for eigenvalues and eigenvectors
+    Convert s format for eigenvalues and eigenvectors.
 
     Parameters
-    ----------------
-    s=[x11,x22,x33,x12,x23,x13] : the six tensor elements
+    ----------
+    s : the six tensor elements as a list 
+        (s=[x11,x22,x33,x12,x23,x13])
 
-    Return
-    ----------------
-        tau : [t1,t2,t3]
-           tau is an list of eigenvalues in decreasing order:
-        V : [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
-            is an list of the eigenvector directions
+    Returns
+    -------
+    A three element array and a nested list of dec, inc pairs
+    tau : three element array ([t1,t2,t3])
+        tau is an list of eigenvalues in decreasing order:
+    V : second array ([[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]])
+        is an list of the eigenvector directions
+        
+    Examples
+    --------
+    >>> pmag.doseigs([1,2,3,4,5,6])
+    ([2.021399, -0.33896524, -0.6824337],
+     [[44.59696385583322, 40.45122920806129],
+      [295.4500678147439, 21.04129013670037],
+      [185.0807541485627, 42.138918019674385]])
     """
 #
     A = s2a(s)  # convert s to a (see Tauxe 1998)
@@ -7394,17 +7448,28 @@ def doseigs(s):
 
 def doeigs_s(tau, Vdirs):
     """
-     get elements of s from eigenvaulues - note that this is very unstable
-     Input:
-         tau,V:
-           tau is an list of eigenvalues in decreasing order:
-              [t1,t2,t3]
-           V is an list of the eigenvector directions
-              [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
-    Output:
-        The six tensor elements as a list:
-          s=[x11,x22,x33,x12,x23,x13]
+    Gets elements of s from eigenvaulues - note that this is very unstable.
+     
+    Parameters
+    ----------
+    tau : 3 element array
+        list of eigenvalues in decreasing order: [t1,t2,t3]
+    V : list of the eigenvector directions
+        [[V1_dec,V1_inc],[V2_dec,V2_inc],[V3_dec,V3_inc]]
 
+    Returns
+    -------
+    The six tensor elements as a list:
+        s = [x11,x22,x33,x12,x23,x13]
+    
+    Examples
+    --------
+    >>> pmag.doeigs_s([2.2, -0.33, -0.68],
+         [[44.59, 40.45],
+          [295.45, 21.04],
+          [185.08, 42.13]])
+    array([0.22194667, 0.3905577 , 0.57749563, 0.7154779 , 0.8923144 ,
+       1.0629525 ], dtype=float32)
     """
     t = np.zeros((3, 3,), 'f')  # initialize the tau diagonal matrix
     V = []
@@ -7423,16 +7488,21 @@ def doeigs_s(tau, Vdirs):
 
 def fcalc(col, row):
     """
-  looks up an F-test stastic from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
+    Looks up an F-test stastic from F tables F(col,row), where row is number of degrees of freedom - this is 95% confidence (p=0.05).
 
     Parameters
     ----------
-        col : degrees of freedom column
-        row : degrees of freedom row
+    col : degrees of freedom column
+    row : degrees of freedom row
 
     Returns
     -------
-        F : value for 95% confidence from the F-table
+    F : value for 95% confidence from the F-table
+    
+    Examples
+    --------
+    >>> pmag.fcalc(3,4.8)
+    6.5915
     """
 #
     if row > 200:
@@ -7844,7 +7914,27 @@ def fcalc(col, row):
 
 def tcalc(nf, p):
     """
-     t-table for nf degrees of freedom (95% confidence)
+    T-table for nf degrees of freedom (95% confidence).
+    
+    Parameters
+    ----------
+    nf : degrees of freedom
+    p : either 0.05 or 0.01
+    
+    Returns
+    -------
+    t value or 0 if given an invalid p value
+    
+    Examples
+    --------
+    >>> pmag.tcalc(8,0.05)
+    2.3646
+    
+    >>> pmag.tcalc(8,0.07)
+    0
+    
+    >>> pmag.tcalc(8,0.01)
+    3.4995
     """
 #
     if p == .05:
@@ -8256,7 +8346,7 @@ def tcalc(nf, p):
 
 def sbar(Ss):
     """
-    calculate average s,sigma from list of "s"s.
+    Calculate average s,sigma from list of "s"s.
     """
     if type(Ss) == list:
         Ss = np.array(Ss)
