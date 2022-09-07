@@ -8347,6 +8347,21 @@ def tcalc(nf, p):
 def sbar(Ss):
     """
     Calculate average s,sigma from list of "s"s.
+    
+    Parameters
+    ----------
+    Ss : six element tensor list
+    
+    Returns
+    -------
+    nf : degrees of freedom
+    sigma : sigma of the list
+    avs : the original list
+    
+    Examples
+    --------
+    >>> pmag.sbar([2,2,1,6,0.5,3])
+    30, 0.0, [2.0, 2.0, 1.0, 6.0, 0.5, 3.0])
     """
     if type(Ss) == list:
         Ss = np.array(Ss)
@@ -8381,15 +8396,16 @@ def sbar(Ss):
 
 def dohext(nf, sigma, s):
     """
-    calculates hext parameters for nf, sigma and s
+    Calculates hext parameters for nf, sigma and s.
 
     Parameters
-    ----------------
+    ----------
     nf :  number of degrees of freedom (measurements - 6)
     sigma : the sigma of the measurements
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
 
-    Return
+    Returns
+    -------
     hpars : dictionary of Hext statistics with keys:
         'F_crit' : critical value for anisotropy
         'F12_crit' : critical value for tau1>tau2, tau2>3
@@ -8410,7 +8426,27 @@ def dohext(nf, sigma, s):
         'e13': angle of confidence ellipse of principal eigenvector in direction of minor eigenvector
 
     If working with data set with no sigmas and the average is desired, use nf,sigma,avs=pmag.sbar(Ss) as input
-
+    
+    Examples
+    --------
+    >>> pmag.dohext(30, 1, [2.0, 2.0, 1.0, 6.0, 0.5, 3.0])
+    {'F_crit': '2.5335',
+     'F12_crit': '3.3158',
+     'F': -1.7413331718202096,
+     'F12': 1.2829797136717218,
+     'F23': 0.5853916853739065,
+     'v1_dec': 42.41520495330697,
+     'v1_inc': 18.096773205117113,
+     'v2_dec': 271.97218729760635,
+     'v2_inc': 63.26263630433889,
+     'v3_dec': 138.87353904495313,
+     'v3_inc': 18.993498146824784,
+     't1': 1.7619166,
+     't2': 0.1600554,
+     't3': -0.92197204,
+     'e12': 38.79272491061082,
+     'e23': 49.95805661160978,
+     'e13': 25.629346773461997}
     """
 
 #
@@ -8467,7 +8503,51 @@ def dohext(nf, sigma, s):
 
 def design(npos):
     """
-     make a design matrix for an anisotropy experiment
+    Make a design matrix for an anisotropy experiment. 
+    
+    Parameters
+    ----------
+    npos : number of measurement positions.
+        either 15 or 6
+
+    Returns
+    -------
+    A : design matrix array for the given number of positions
+    B : suseptibilities array
+    
+    Examples
+    --------
+    >>> pmag.design(10)
+    measurement protocol not supported yet 
+
+    >>> pmag.design(15)
+    (array([[ 0.5,  0.5,  0. , -1. ,  0. ,  0. ],
+        [ 0.5,  0.5,  0. ,  1. ,  0. ,  0. ],
+        [ 1. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+        [ 0.5,  0.5,  0. , -1. ,  0. ,  0. ],
+        [ 0.5,  0.5,  0. ,  1. ,  0. ,  0. ],
+        [ 0. ,  0.5,  0.5,  0. , -1. ,  0. ],
+        [ 0. ,  0.5,  0.5,  0. ,  1. ,  0. ],
+        [ 0. ,  1. ,  0. ,  0. ,  0. ,  0. ],
+        [ 0. ,  0.5,  0.5,  0. , -1. ,  0. ],
+        [ 0. ,  0.5,  0.5,  0. ,  1. ,  0. ],
+        [ 0.5,  0. ,  0.5,  0. ,  0. , -1. ],
+        [ 0.5,  0. ,  0.5,  0. ,  0. ,  1. ],
+        [ 0. ,  0. ,  1. ,  0. ,  0. ,  0. ],
+        [ 0.5,  0. ,  0.5,  0. ,  0. , -1. ],
+        [ 0.5,  0. ,  0.5,  0. ,  0. ,  1. ]]),
+     array([[ 0.15,  0.15,  0.4 ,  0.15,  0.15, -0.1 , -0.1 , -0.1 , -0.1 ,
+         -0.1 ,  0.15,  0.15, -0.1 ,  0.15,  0.15],
+        [ 0.15,  0.15, -0.1 ,  0.15,  0.15,  0.15,  0.15,  0.4 ,  0.15,
+          0.15, -0.1 , -0.1 , -0.1 , -0.1 , -0.1 ],
+        [-0.1 , -0.1 , -0.1 , -0.1 , -0.1 ,  0.15,  0.15, -0.1 ,  0.15,
+          0.15,  0.15,  0.15,  0.4 ,  0.15,  0.15],
+        [-0.25,  0.25,  0.  , -0.25,  0.25,  0.  ,  0.  ,  0.  ,  0.  ,
+          0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+        [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -0.25,  0.25,  0.  , -0.25,
+          0.25,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+        [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,
+          0.  , -0.25,  0.25,  0.  , -0.25,  0.25]]))
     """
     if npos == 15:
         #
@@ -8492,7 +8572,7 @@ def design(npos):
 
 def dok15_s(k15):
     """
-    calculates least-squares matrix for 15 measurements from Jelinek [1976]
+    Calculates least-squares matrix for 15 measurements from Jelinek [1976]. 
     """
 #
     A, B = design(15)  # get design matrix for 15 measurements
