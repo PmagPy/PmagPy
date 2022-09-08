@@ -8584,7 +8584,43 @@ def design(npos):
 
 def dok15_s(k15):
     """
-    Calculates least-squares matrix for 15 measurements from Jelinek [1976]. 
+    Calculates least-squares matrix for 15 measurements from Jelinek [1976].
+    
+    Parameters
+    ----------
+    k15 : k15 value
+    
+    Returns
+    -------
+    sbar : array of six 15 element tensors
+    sigma : array of sigma, standard deviation, of the measurement
+    bulk : array of bulk susptibility 
+    
+    Examples
+    --------
+    >>> pmag.dok15_s(0.5)
+    (array([[ 0.75,  0.75,  2.  ,  0.75,  0.75, -0.5 , -0.5 , -0.5 , -0.5 ,
+         -0.5 ,  0.75,  0.75, -0.5 ,  0.75,  0.75],
+        [ 0.75,  0.75, -0.5 ,  0.75,  0.75,  0.75,  0.75,  2.  ,  0.75,
+          0.75, -0.5 , -0.5 , -0.5 , -0.5 , -0.5 ],
+        [-0.5 , -0.5 , -0.5 , -0.5 , -0.5 ,  0.75,  0.75, -0.5 ,  0.75,
+          0.75,  0.75,  0.75,  2.  ,  0.75,  0.75],
+        [-1.25,  1.25,  0.  , -1.25,  1.25,  0.  ,  0.  ,  0.  ,  0.  ,
+          0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+        [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.25,  1.25,  0.  , -1.25,
+          1.25,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+        [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,
+          0.  , -1.25,  1.25,  0.  , -1.25,  1.25]]),
+     array([6.101001739241042, 6.101001739241042, 6.101001739241042,
+        6.101001739241042, 6.101001739241042, 6.101001739241042,
+        6.101001739241042, 6.101001739241042, 6.101001739241042,
+        6.101001739241042, 6.10100173924104 , 6.10100173924104 ,
+        6.101001739241042, 6.10100173924104 , 6.10100173924104 ]),
+     array([0.033333333333333, 0.033333333333333, 0.033333333333333,
+        0.033333333333333, 0.033333333333333, 0.033333333333333,
+        0.033333333333333, 0.033333333333333, 0.033333333333333,
+        0.033333333333333, 0.033333333333333, 0.033333333333333,
+        0.033333333333333, 0.033333333333333, 0.033333333333333]))
     """
 #
     A, B = design(15)  # get design matrix for 15 measurements
@@ -8602,7 +8638,21 @@ def dok15_s(k15):
 
 def cross(v, w):
     """
-     cross product of two vectors
+    Cross product of two vectors.
+    
+    Parameters
+    ----------
+    v : 3 value vector list
+    w : 3 value vector list
+    
+    Returns
+    -------
+    [x, y, z] : cross product resultant vector
+    
+    Examples 
+    --------
+    >>> pmag.cross([3,6,0],[1,5,1])
+    [6, -3, 9]
     """
     x = v[1] * w[2] - v[2] * w[1]
     y = v[2] * w[0] - v[0] * w[2]
@@ -8613,15 +8663,23 @@ def cross(v, w):
 
 def dosgeo(s, az, pl):
     """
-    rotates  matrix a to az,pl returns  s
+    Rotates matrix a to its azimuth and plunge. 
+    
     Parameters
-    ----------------
+    ----------
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
     az : the azimuth of the specimen X direction
     pl : the plunge (inclination) of the specimen X direction
 
-    Return
-    s_rot : [x11,x22,x33,x12,x23,x13] - after rotation
+    Returns
+    -------
+    s_rot : [x11,x22,x33,x12,x23,x13] after rotation
+    
+    Examples
+    --------
+    >>> pmag.dosgeo([2,2,1,6,0.5,3],12,33)
+    array([-2.8419213,  3.8046532,  4.037268 ,  3.7305217,  3.9552603,
+        0.8737309], dtype=float32)
     """
 #
     a = s2a(s)  # convert to 3,3 matrix
