@@ -8677,9 +8677,6 @@ def dosgeo(s, az, pl):
     
     Examples
     --------
-    >>> pmag.dosgeo([2,2,1,6,0.5,3],12,33)
-    array([-2.8419213,  3.8046532,  4.037268 ,  3.7305217,  3.9552603,
-        0.8737309], dtype=float32)
     """
 #
     a = s2a(s)  # convert to 3,3 matrix
@@ -8707,14 +8704,20 @@ def dostilt(s, bed_az, bed_dip):
     Rotates "s" tensor to stratigraphic coordinates
 
     Parameters
-    ----------------
+    ----------
     s : [x11,x22,x33,x12,x23,x13] - the six tensor elements
     bed_az : bedding dip direction
     bed_dip :  bedding dip
 
-    Return
+    Returns
+    -------
     s_rot : [x11,x22,x33,x12,x23,x13] - after rotation
-
+    
+    Examples 
+    --------
+    >>> pmag.dostilt([2,2,1,6,0.5,3],20,38)
+    array([ 0.7565524 ,  0.2555238 , -0.01207618,  1.0664147 , -0.72588634,
+       -0.08333015], dtype=float32)
     """
     tau, Vdirs = doseigs(s)
     Vrot = []
@@ -8729,7 +8732,11 @@ def dostilt(s, bed_az, bed_dip):
 
 def apseudo(Ss, ipar, sigma):
     """
-     draw a bootstrap sample of Ss
+    Draw a bootstrap sample of Ss
+    
+    Parameters
+    ----------
+    
     """
 #
     Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
