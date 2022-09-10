@@ -8735,13 +8735,26 @@ def dostilt(s, bed_az, bed_dip):
 
 def apseudo(Ss, ipar, sigma):
     """
-    Draw a bootstrap sample of Ss
+    Draw a bootstrap sample of Ss.
     
     Parameters
     ----------
+    Ss : six element tensor as a list
+    ipar : zero value
+    sigma : sigma of Ss
     
+    Returns
+    -------
+    BSs : array 
+        bootstrap sample of Ss
+        
+    Examples 
+    --------
+    >>> pmag.apseudo(np.array([2,2,1,6,1,1]),0,0)
+    array([1, 2, 1, 2, 2, 1])
     """
 #
+    Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
     Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
     #Ss = np.array(Ss)
     if not ipar: # ipar == 0:
