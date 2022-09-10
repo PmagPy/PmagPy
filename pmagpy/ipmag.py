@@ -5325,6 +5325,8 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                         '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                     df.drop(DropKeys, axis=1, inplace=True)
             n_cols=df.filter(like='_n',axis=1)
+            if 'lat_n' in n_cols.columns:
+                n_cols.drop(columns=['lat_n'],inplace=True) #  oops: lat_n was also getting stripped of '0.' below!
             other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
             for col in n_cols:
                 if col in df.columns:
