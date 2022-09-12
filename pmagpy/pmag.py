@@ -8773,7 +8773,54 @@ def apseudo(Ss, ipar, sigma):
 
 def sbootpars(Taus, Vs):
     """
-     get bootstrap parameters for s data
+    Get bootstrap parameters for s data from bootstrap eigenvalues and eigenvectors.
+    
+    Parameters
+    ----------
+    Taus : nested list of eigenvalues
+    Vs : nested list of eigenvectors
+    
+    Returns 
+    -------
+    bpars : dictionary of bootstrap parameters for the bootstrap eigenvalues and eigenvectors.
+    
+    Examples 
+    --------
+    >>> Taus = [[0.89332515, 0.2421235, -0.13544868], [1.2330734, 0.033398163, -0.26647156]]
+    >>> Vs = [[[16.71852040881784, 22.059363998317398],
+           [122.30845200565045, 33.55240424468586],
+           [259.90057243022835, 48.06963167162283]],
+          [[36.31805058172574, 15.477280574403938],
+           [183.99811452360234, 71.85809815162672],
+           [303.738439079619, 9.23224775163199]]]
+    >>> pmag.sbootpars(Taus, Vs)
+    {'t1_sigma': 0.24023829147126252,
+     't2_sigma': 0.1475911011981474,
+     't3_sigma': 0.09264716693859128,
+     'v1_dec': 26.711662224665808,
+     'v1_inc': 19.026277799227568,
+     'v1_zeta': 24.690888880899667,
+     'v1_eta': 1.249303736510881e-14,
+     'v1_zeta_dec': 290.06398627901706,
+     'v1_zeta_inc': 18.55700265945684,
+     'v1_eta_dec': 159.07273109103403,
+     'v1_eta_inc': 62.89733254726475,
+     'v2_dec': 137.92012533786792,
+     'v2_inc': 55.87313967394276,
+     'v2_zeta': 1.250107785929978e-14,
+     'v2_eta': 75.07258147484707,
+     'v2_zeta_dec': 20.268001361016218,
+     'v2_zeta_inc': 17.460349183865556,
+     'v2_eta_dec': 280.5183204912709,
+     'v2_eta_inc': 28.297554981599696,
+     'v3_dec': 286.25118089868266,
+     'v3_inc': 30.42076774734727,
+     'v3_zeta': 2.4071834979709793e-14,
+     'v3_eta': 85.83440673704222,
+     'v3_zeta_dec': 40.186767906504166,
+     'v3_zeta_inc': 34.642182695768,
+     'v3_eta_dec': 166.24042846510952,
+     'v3_eta_inc': 40.4243181226488}
     """
 #
     Tau1s, Tau2s, Tau3s = [], [], []
@@ -8830,7 +8877,7 @@ def sbootpars(Taus, Vs):
 
 def s_boot(Ss, ipar=0, nb=1000):
     """
-    Returns bootstrap parameters for S data
+    Returns bootstrap parameters for S data.
 
     Parameters
     ----------
@@ -8844,7 +8891,21 @@ def s_boot(Ss, ipar=0, nb=1000):
     Vmean : average eigvectors
     Taus : bootstrapped eigenvalues
     Vs :  bootstrapped eigenvectors
-
+    
+    Examples
+    --------
+    >>> pmag.s_boot([2,2,1,6,1,1],0,2)
+    ([1.6549834, 0.14501654, -0.79999995],
+     [[45.00000125223908, 11.0008571704294],
+      [224.99999965837733, 78.99914313577845],
+      [314.9999987477609, 1.4028028860719212e-16]],
+     [[1.6666666, 0.0, -0.33333334], [0.8953802, 0.16666666, -0.06204688]],
+     [[[45.00000125223908, 35.264389682754654],
+       [45.00000125223908, 35.264389682754654],
+       [153.43495411905388, 24.094842552110702]],
+      [[40.133245581794874, 32.804506421789604],
+       [269.9999974955218, 44.99999999999999],
+       [149.3290815221491, 27.026422912565163]]])
     """
     #npts = len(Ss)
     Ss = np.array(Ss)
@@ -8873,7 +8934,18 @@ def s_boot(Ss, ipar=0, nb=1000):
 def designAARM(npos):
     #
     """
-    calculates B matrix for AARM calculations.
+    Calculates B matrix for AARM calculations.
+    
+    Parameters
+    ----------
+    npos : number of positions
+        9 is the only number of positions valid.
+        
+    Returns
+    -------
+    B : B matrix as an array
+    H : Field directions
+    tmpH : tmpH matrix
     """
     if npos != 9:
         print('Sorry - only 9 positions available')
@@ -8923,7 +8995,7 @@ def designAARM(npos):
 def designATRM(npos):
     #
     """
-    calculates B matrix for ATRM calculations.
+    Calculates B matrix for ATRM calculations.
     """
     # if npos!=6:
     #    print 'Sorry - only 6 positions available'
