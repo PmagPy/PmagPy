@@ -8996,6 +8996,17 @@ def designATRM(npos):
     #
     """
     Calculates B matrix for ATRM calculations.
+    
+    Parameters
+    ----------
+    npos : number of positions
+        6 and greater number of positions valid.
+        
+    Returns
+    -------
+    B : B matrix as an array
+    H : Field directions
+    tmpH : tmpH matrix
     """
     # if npos!=6:
     #    print 'Sorry - only 6 positions available'
@@ -9042,7 +9053,7 @@ def designATRM(npos):
 
 def domagicmag(file, Recs):
     """
-    converts a magic record back into the SIO mag format
+    Converts a magic record back into the SIO mag format.
     """
     for rec in Recs:
         type = ".0"
@@ -9485,11 +9496,12 @@ def docustom(lon, lat, alt, gh):
     Passes the coefficients to the Malin and Barraclough
     routine (function pmag.magsyn) to calculate the field from the coefficients.
 
-    Parameters:
-    -----------
-    lon  = east longitude in degrees (0 to 360 or -180 to 180)
-    lat   = latitude in degrees (-90 to 90)
-    alt   = height above mean sea level in km (itype = 1 assumed)
+    Parameters
+    ----------
+    lon : east longitude in degrees (0 to 360 or -180 to 180)
+    lat : latitude in degrees (-90 to 90)
+    alt : height above mean sea level in km (itype = 1 assumed)
+    gh : list of gauss coefficients
     """
     model, date, itype = 0, 0, 1
     sv = np.zeros(4*len(gh))
@@ -9677,31 +9689,32 @@ def unpack(gh):
 
 def magsyn(gh, sv, b, date, itype, alt, colat, elong):
     """
-  Computes x, y, z, and f for a given date and position, from the
-  spherical harmonic coefficients of the International Geomagnetic
-  Reference Field (IGRF).
-  From Malin and Barraclough (1981), Computers and Geosciences, V.7, 401-405.
+    Computes x, y, z, and f for a given date and position, from the
+    spherical harmonic coefficients of the International Geomagnetic
+    Reference Field (IGRF).
+    From Malin and Barraclough (1981), Computers and Geosciences, V.7, 401-405.
  
-  Input:
-        date  = Required date in years and decimals of a year (A.D.)
-        itype = 1, if geodetic coordinates are used, 2 if geocentric
-        alt   = height above mean sea level in km (if itype = 1)
-        alt   = radial distance from the center of the earth (itype = 2)
-        colat = colatitude in degrees (0 to 180)
-        elong = east longitude in degrees (0 to 360)
-                gh        = main field values for date (calc. in igrf subroutine)
-                sv        = secular variation coefficients (calc. in igrf subroutine)
-                begin = date of dgrf (or igrf) field prior to required date
+    Parameters
+    ----------
+    gh : main field values for date (calc. in igrf subroutine)
+    sv : secular variation coefficients (calc. in igrf subroutine)
+    b : date of dgrf (or igrf) field prior to required date
+    date : Required date in years and decimals of a year (A.D.)
+    itype : 1, if geodetic coordinates are used, 2 if geocentric
+    alt : itype = 1 : height above mean sea level in km 
+          itype = 2 : radial distance from the center of the earth 
+    colat : colatitude in degrees (0 to 180)
+    elong : east longitude in degrees (0 to 360)
  
-  Output:
-        x     - north component of the magnetic force in nT
-        y     - east component of the magnetic force in nT
-        z     - downward component of the magnetic force in nT
-        f     - total magnetic force in nT
- 
-        NB: the coordinate system for x,y, and z is the same as that specified
-        by itype.
- 
+    Returns
+    -------
+    x : north component of the magnetic force in nT
+    y : east component of the magnetic force in nT
+    z : downward component of the magnetic force in nT
+    f : total magnetic force in nT
+        
+    note: the coordinate system for x,y, and z is the same as that specified by itype
+    """
 # Modified 4/9/97 to use DGRFs from 1945 to 1990 IGRF
 # Modified 10/13/06 to use  1995 DGRF, 2005 IGRF and sv coefficient
 # for extrapolation beyond 2005. Coefficients from Barton et al. PEPI, 97: 23-26
@@ -9712,7 +9725,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 # igrf subroutine calculates
 # the proper main field and secular variation coefficients (interpolated between
 # dgrf values or extrapolated from 1995 sv values as appropriate).
-    """
+
 #
 #       real gh(120),sv(120),p(66),q(66),cl(10),sl(10)
 #               real begin,dateq
@@ -9819,7 +9832,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 
 def measurements_methods(meas_data, noave):
     """
-    get list of unique specs
+    Get list of unique specs
     """
 #
     version_num = get_version()
@@ -10331,7 +10344,7 @@ def measurements_methods(meas_data, noave):
 
 def measurements_methods3(meas_data, noave,savelast=False):
     """
-    add necessary method codes, experiment names, sequence, etc.
+    Add necessary method codes, experiment names, sequence, etc.
     """
 #
     if noave:
@@ -11014,7 +11027,7 @@ def mw_measurements_methods(MagRecs):
 
 def parse_site(sample, convention, Z):
     """
-    parse the site name from the sample name using the specified convention
+    Parse the site name from the sample name using the specified convention
     """
     convention = str(convention)
     site = sample  # default is that site = sample
@@ -11067,7 +11080,7 @@ def parse_site(sample, convention, Z):
 
 def get_samp_con():
     """
-     get sample naming  convention
+    Get sample naming convention.
     """
 #
     samp_con, Z = "", ""
@@ -11114,7 +11127,7 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     """
     Function to return the dip direction and dip that would yield the tilt
     corrected direction if applied to the uncorrected direction (geographic
-    coordinates)
+    coordinates).
 
     Parameters
     ----------
@@ -11156,7 +11169,7 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
 
 def get_azpl(cdec, cinc, gdec, ginc):
     """
-     gets azimuth and pl from specimen dec inc (cdec,cinc) and gdec,ginc (geographic)  coordinates
+    Gets azimuth and pl from specimen dec inc (cdec,cinc) and gdec,ginc (geographic) coordinates
     """
     TOL = 1e-4
     Xp = dir2cart([gdec, ginc, 1.])
@@ -11177,7 +11190,7 @@ def get_azpl(cdec, cinc, gdec, ginc):
 
 def set_priorities(SO_methods, ask):
     """
-     figure out which sample_azimuth to use, if multiple orientation methods
+    Figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
     SO_methods = [meth.strip() for meth in SO_methods]
@@ -11217,7 +11230,7 @@ def set_priorities(SO_methods, ask):
 
 def get_EOL(file):
     """
-     find EOL of input file (whether mac,PC or unix format)
+    Find EOL of input file (whether mac,PC or unix format)
     """
     f = open(file, 'r')
     firstline = f.read(350)
@@ -11242,8 +11255,8 @@ def get_EOL(file):
 
 def sortshaw(s, datablock):
     """
-     sorts data block in to ARM1,ARM2 NRM,TRM,ARM1,ARM2=[],[],[],[]
-     stick  first zero field stuff into first_Z
+    Sorts data block in to ARM1,ARM2 NRM,TRM,ARM1,ARM2=[],[],[],[]
+    stick first zero field stuff into first_Z
     """
     for rec in datablock:
         methcodes = rec["magic_method_codes"].split(":")
@@ -11305,7 +11318,7 @@ def sortshaw(s, datablock):
 
 def makelist(List):
     """
-     makes a colon delimited list from List
+    Makes a colon delimited list from List
     """
     clist = ""
     for element in List:
@@ -11316,7 +11329,7 @@ def makelist(List):
 def getvec(gh, lat, lon):
     """
     Evaluates the vector at a given latitude and longitude for a specified
-    set of coefficients
+    set of coefficients.
 
     Parameters
     ----------
@@ -11514,11 +11527,11 @@ def di_boot(DIs, nb=5000):
     Parameters
     ----------
     DIs : nested list of Dec,Inc pairs
-    nb : number of bootstrap pseudosamples
+    nb : number of bootstrap pseudosamples, default is 5000
 
     Returns
     -------
-    BDIs:   nested list of bootstrapped mean Dec,Inc pairs
+    BDIs : nested list of bootstrapped mean Dec,Inc pairs
     """
 #
 # now do bootstrap to collect BDIs  bootstrap means
@@ -11551,7 +11564,7 @@ def dir_df_boot(dir_df, nb=5000, par=False):
 
     Returns
     -------
-    BDIs:   nested list of bootstrapped mean Dec,Inc pairs
+    BDIs : nested list of bootstrapped mean Dec,Inc pairs
     """
     N = dir_df.dir_dec.values.shape[0]  # number of data points
     BDIs = []
@@ -11636,7 +11649,7 @@ def dir_df_fisher_mean(dir_df):
 
 def pseudosample(x):
     """
-     draw a bootstrap sample of x
+    Draw a bootstrap sample of x
     """
 #
     BXs = []
@@ -11648,14 +11661,14 @@ def pseudosample(x):
 
 def get_plate_data(plate):
     """
-    returns the pole list for a given plate
+    Returns the pole list for a given plate
 
     Parameters
     ----------
     plate : string (options: AF, ANT, AU, EU, GL, IN, NA, SA)
 
     Returns
-    ---------
+    -------
     apwp : string with format
         0.0        90.00    0.00
         1.0        88.38  182.20
@@ -11671,7 +11684,7 @@ def get_plate_data(plate):
 
 def bc02(data):
     """
-    get APWP from Besse and Courtillot 2002 paper
+    Get APWP from Besse and Courtillot 2002 paper
 
     Parameters
     ----------
@@ -11682,8 +11695,9 @@ def bc02(data):
     age : float in Myr
 
     Returns
-    ----------
-
+    -------
+    pole_lat : pole latitude
+    pole_lon : pole longitude
     """
 
     plate, site_lat, site_lon, age = data[0], data[1], data[2], data[3]
@@ -11715,7 +11729,7 @@ def bc02(data):
 
 def linreg(x, y):
     """
-    does a linear regression
+    Does a linear regression
     """
     if len(x) != len(y):
         print('x and y must be same length')
@@ -11763,7 +11777,7 @@ def interval_overlap(interval_a, interval_b):
 
 def squish(incs, f):
     """
-    returns 'flattened' inclination, assuming factor, f and King (1955) formula:
+    Returns 'flattened' inclination, assuming factor, f and King (1955) formula:
     tan (I_o) = f tan (I_f)
 
     Parameters
@@ -11865,7 +11879,7 @@ def execute(st, **kwargs):
 
 
 def initialize_acceptance_criteria(**kwargs):
-    '''
+    """
     initialize acceptance criteria with NULL values for thellier_gui and demag_gui
 
     acceptance criteria format is doctionaries:
@@ -11897,7 +11911,7 @@ def initialize_acceptance_criteria(**kwargs):
        number of decimal points in rounding
        (this is used in displaying criteria in the dialog box)
        -999 means Exponent with 3 descimal points for floats and string for string
-    '''
+    """
 
     acceptance_criteria = {}
     # --------------------------------
@@ -12343,7 +12357,7 @@ def initialize_acceptance_criteria(**kwargs):
 
 
 def read_criteria_from_file(path, acceptance_criteria, **kwargs):
-    '''
+    """
     Read accceptance criteria from magic criteria file
     # old format:
     multiple lines.  pmag_criteria_code defines the type of criteria
@@ -12376,7 +12390,7 @@ def read_criteria_from_file(path, acceptance_criteria, **kwargs):
     acceptance_criteria[MagIC Variable Names]['decimal_points']:number of decimal points in rounding
             (this is used in displaying criteria in the dialog box)
 
-    '''
+    """
     warnings = []
     acceptance_criteria_list = list(acceptance_criteria.keys())
     if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
@@ -12565,7 +12579,7 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
 
 def add_flag(var, flag):
     """
-    for use when calling command-line scripts from within a program.
+    For use when calling command-line scripts from within a program.
     if a variable is present, add its proper command_line flag.
     return a string.
     """
@@ -12595,7 +12609,7 @@ def get_named_arg(name, default_val=None, reqd=False):
         default is False.
 
     Returns
-    ---------
+    -------
     Desired value from sys.argv if available, otherwise default_val.
     """
     if name in sys.argv:  # if the command line flag is found in sys.argv
@@ -12616,10 +12630,10 @@ def get_flag_arg_from_sys(name, true=True, false=False):
 # Miscellaneous helpers
 
 def merge_recs_headers(recs):
-    '''
-    take a list of recs [rec1,rec2,rec3....], each rec is a dictionary.
+    """
+    Take a list of recs [rec1,rec2,rec3....], each rec is a dictionary.
     make sure that all recs have the same headers.
-    '''
+    """
     headers = []
     for rec in recs:
         keys = list(rec.keys())
@@ -12651,7 +12665,7 @@ def resolve_file_name(fname, dir_path='.'):
         directory, optional
 
     Returns
-    ----------
+    -------
     full_file : str
         full path/to/file.txt
     """
@@ -12754,7 +12768,7 @@ class MissingCommandLineArgException(Exception):
 
 def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
     """
-    returns lists of declination, inclination and intensities for lat/lon grid for
+    Returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.
 
     Parameters
@@ -12842,15 +12856,18 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
 def doeqdi(x, y, UP=False):
     """
     Takes digitized x,y, data and returns the dec,inc, assuming an
-    equal area projection
+    equal area projection.
+   
     Parameters
     ----------
-        x : array of digitized x from point on equal area projection
-        y : array of  igitized y from point on equal area projection
-        UP : if True, is an upper hemisphere projection
-    Output :
-        dec : declination
-        inc : inclination
+    x : array of digitized x from point on equal area projection
+    y : array of  igitized y from point on equal area projection
+    UP : if True, is an upper hemisphere projection
+    
+    Returns
+    -------
+    dec : declination
+    inc : inclination
     """
     xp, yp = y, x  # need to switch into geographic convention
     r = np.sqrt(xp**2+yp**2)
@@ -12955,15 +12972,14 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         number of bootstrapped pseudosamples for confidence estimate
     verbose : Boolean
         if True, print messages
-         
 
     Returns
     -------
-        N : number of VGPs used in calculation
-        S : S
-        low : 95% confidence lower bound [0 if boot=0]
-        high  95% confidence upper bound [0 if boot=0]
-        cutoff : cutoff used in calculation of  S
+    N : number of VGPs used in calculation
+    S_B : S value
+    low : 95% confidence lower bound [0 if boot=0]
+    high : 95% confidence upper bound [0 if boot=0]
+    cutoff : cutoff used in calculation of  S
     """
     vgp_df['delta'] = 90.-vgp_df.vgp_lat.values
     # filter by cutoff, kappa, and n if desired
@@ -13048,23 +13064,23 @@ def apwp(data, print_results=False):
     
     Parameters
     ----------
-        data : [plate,lat,lon,age]
-            plate : [NA, SA, AF, IN, EU, AU, ANT, GL]
-                NA : North America
-                SA : South America
-                AF : Africa
-                IN : India
-                EU : Eurasia
-                AU : Australia
-                ANT: Antarctica
-                GL : Greenland
-             lat/lon : latitude/longitude in degrees N/E
-             age : age in millions of years
-        print_results : if True will print out nicely formatted results
+    data : [plate,lat,lon,age]
+        plate : [NA, SA, AF, IN, EU, AU, ANT, GL]
+            NA : North America
+            SA : South America
+            AF : Africa
+            IN : India
+            EU : Eurasia
+            AU : Australia
+            ANT: Antarctica
+            GL : Greenland
+            lat/lon : latitude/longitude in degrees N/E
+            age : age in millions of years
+    print_results : if True will print out nicely formatted results
     
     Returns
     -------
-        if print_results is False, [Age,Paleolat, Dec, Inc, Pole_lat, Pole_lon]
+    if print_results is False, [Age,Paleolat, Dec, Inc, Pole_lat, Pole_lon]
     """
     pole_lat, pole_lon = bc02(data)  # get the pole for these parameters
     # get the declination and inclination for that pole
@@ -13098,8 +13114,8 @@ def chart_maker(Int, Top, start=100, outfile='chart.txt'):
     start : first temperature step, default is 100
     outfile : name of output file, default is 'chart.txt'
 
-    Output
-    ------
+    Returns
+    -------
     creates a file with:
          file:  write down the name of the measurement file
          field:  write down the lab field for the infield steps (in uT)
@@ -13252,11 +13268,17 @@ def import_cartopy():
 
 def age_to_BP(age, age_unit):
     """
-    Convert an age value into the equivalent in time Before Present(BP) where Present is 1950
+    Convert an age value into the equivalent in time Before Present(BP) where Present is 1950.
 
+    Parameters
+    ----------
+    age : age as a float
+    age_unit : age unit as a str, valid strings:
+        (Years AD (+/-), Years Cal AD (+/-), Years BP, ka, Ma, or Ga)
+    
     Returns
     -------
-    ageBP : number
+    ageBP : age before present
     """
     ageBP = -1e9
     if age_unit == "Years AD (+/-)" or age_unit == "Years Cal AD (+/-)":
@@ -13289,8 +13311,8 @@ def vocab_convert(vocab, standard, key=''):
     -------
     value of the MagIC vocab in the standard requested
 
-    Example
-    -------
+    Examples
+    --------
     >>> pmag.vocab_convert('Egypt','GEOMAGIA') 
     '1'
     """
