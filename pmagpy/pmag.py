@@ -9502,6 +9502,19 @@ def docustom(lon, lat, alt, gh):
     lat : latitude in degrees (-90 to 90)
     alt : height above mean sea level in km (itype = 1 assumed)
     gh : list of gauss coefficients
+    
+    Returns
+    -------
+    x : north component of the magnetic field in nT
+    y : east component of the magnetic field in nT
+    z : downward component of the magnetic field in nT
+    f : total magnetic field in nT
+    
+    Examples
+    --------
+    >>> gh = pmag.doigrf(30,70,10,2022,coeffs=True)
+    >>> pmag.docustom(30,70,10,gh)
+    (10033.695088989529, 2822.610862622648, 53170.834174096184, 54182.8365443324)
     """
     model, date, itype = 0, 0, 1
     sv = np.zeros(4*len(gh))
@@ -9516,15 +9529,15 @@ def doigrf(lon, lat, alt, date, **kwargs):
     secular variation coefficients and passes them to the Malin and Barraclough
     routine (function pmag.magsyn) to calculate the field from the coefficients.
 
-    Parameters:
-    -----------
-    lon  : east longitude in degrees (0 to 360 or -180 to 180)
-    lat   : latitude in degrees (-90 to 90)
-    alt   : height above mean sea level in km (itype = 1 assumed)
-    date  : Required date in years and decimals of a year (A.D.)
+    Parameters
+    ----------
+    lon : east longitude in degrees (0 to 360 or -180 to 180)
+    lat : latitude in degrees (-90 to 90)
+    alt : height above mean sea level in km (itype = 1 assumed)
+    date : Required date in years and decimals of a year (A.D.)
 
-    Optional Parameters:
-    -----------
+    Optional Parameters
+    -------------------
     coeffs : if True, then return the gh coefficients
     mod  : model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14k','shawq2k','shawqIA')
         arch3k (Korte et al., 2009)
@@ -9539,12 +9552,14 @@ def doigrf(lon, lat, alt, date, **kwargs):
         ggf100k (Panofska et al., 2018) [in 200 year increments from -99950 to 1850 only]
           NB : the first four of these models, are constrained to agree
                with gufm1 (Jackson et al., 2000) for the past four centuries
-    Return
-    -----------
+    Returns
+    -------
     x : north component of the magnetic field in nT
     y : east component of the magnetic field in nT
     z : downward component of the magnetic field in nT
     f : total magnetic field in nT
+    gh : list of gauss coefficients
+        only if coeffs=True
 
     By default, igrf13 coefficients are used between 1900 and 2020
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
@@ -9552,6 +9567,19 @@ def doigrf(lon, lat, alt, date, **kwargs):
 
     To check the results you can run the interactive program at the NGDC
     www.ngdc.noaa.gov/geomag-web
+    
+    Examples
+    --------
+    >>> pmag.doigrf(30,70,10,2022)
+    (10030.985358058582, 2797.0490284010084, 53258.99275624336, 54267.52675339505)
+    
+    >>> pmag.doigrf(30,70,10,2022,coeffs=True)
+    array([-2.94048e+04, -1.45090e+03,  4.65250e+03, -2.49960e+03,
+        2.98200e+03, -2.99160e+03,  1.67700e+03, -7.34600e+02,
+        1.36320e+03, -2.38120e+03, -8.21000e+01,  1.23620e+03,
+        2.41900e+02,  5.25700e+02, -5.43400e+02,  9.03000e+02,
+        8.09500e+02,  2.81900e+02,  8.63000e+01, -1.58400e+02,
+       -3.09400e+02,  1.99700e+02,  4.80000e+01, -3.49700e+02, ...
     """
     from . import coefficients as cf
     gh, sv = [], []
@@ -9671,7 +9699,20 @@ def unpack(gh):
     Returns
     -------
     data : nested list of [[l,m,g,h],...]
-
+    
+    Examples
+    --------
+    >>> gh = pmag.doigrf(30,70,10,2022,coeffs=True)
+    >>> pmag.unpack(gh)
+    [[1, 0, -29404.8, 0],
+     [1, 1, -1450.9, 4652.5],
+     [2, 0, -2499.6, 0],
+     [2, 1, 2982.0, -2991.6],
+     [2, 2, 1677.0, -734.6],
+     [3, 0, 1363.2, 0],
+     [3, 1, -2381.2, -82.1],
+     [3, 2, 1236.2, 241.9],
+     [3, 3, 525.7, -543.4], ...
     """
     data = []
     k, l = 0, 1
@@ -11139,6 +11180,11 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     Returns
     -------
     DipDir, Dip : tuple of dip direction and dip
+    
+    Examples
+    --------
+    >>> pmag.get_tilt(85,110,80.2,112.3)
+    (223.67057238530975, 2.95374920443805)
     """
 # strike is horizontal line equidistant from two input directions
     SCart = [0, 0, 0]  # cartesian coordites of Strike
@@ -11169,7 +11215,23 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
 
 def get_azpl(cdec, cinc, gdec, ginc):
     """
-    Gets azimuth and pl from specimen dec inc (cdec,cinc) and gdec,ginc (geographic) coordinates
+    Gets azimuth and plunge from specimen declination, inclination, and (geographic) coordinates.
+    
+    Parameters
+    ----------
+    cdec : specimen declination
+    cinc : specimen inclination
+    gdec : geographic declination
+    ginc : geographic inclination
+    
+    Returns
+    -------
+    list of the two values for the azmiuth and plunge 
+    
+    Examples
+    --------
+    >>> pmag.get_azpl(85,110,80.2,112.3)
+    (323.77999999985053, -12.079999999990653)
     """
     TOL = 1e-4
     Xp = dir2cart([gdec, ginc, 1.])
