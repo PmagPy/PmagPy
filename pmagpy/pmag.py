@@ -11380,7 +11380,20 @@ def sortshaw(s, datablock):
 
 def makelist(List):
     """
-    Makes a colon delimited list from List
+    Makes a colon delimited list from List.
+    
+    Parameters
+    ----------
+    List : any list of strings or numbers
+    
+    Returns
+    -------
+    colon delimited list
+    
+    Examples 
+    --------
+    >>> pmag.makelist(["mT","T","Am"])
+    'mT:T:Am'
     """
     clist = ""
     for element in List:
@@ -11401,7 +11414,14 @@ def getvec(gh, lat, lon):
 
     Returns
     -------
-    vec : direction in [dec, inc, intensity]
+    vec : direction as an array [dec, inc, intensity]
+    
+    Examples 
+    --------
+    >>> gh = pmag.doigrf(30,70,10,2022,coeffs=True)
+    >>> pmag.getvec(gh, 30,70)
+    array([2.007319473143944e+00, 4.740186709049829e+01,
+       4.831229434010185e+04])
     """
     sv = []
     pad = 120 - len(gh)
@@ -11459,8 +11479,9 @@ def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
          ratio of axial quadrupole term to dipole term
     G3 : int
          ratio of axial octupole term to dipole term
-    G1 : flost
+    G1 : float
          value of the axial dipole, default is -18e3 (in nT)
+    verbose : default is False
     
     Returns
     -------
@@ -11563,7 +11584,7 @@ def plat(inc):
 def pseudo(DIs, random_seed=None):
     """
     Draw a bootstrap sample of directions returning as many bootstrapped samples
-    as in the input directions
+    as in the input directions.
 
     Parameters
     ----------
@@ -11574,6 +11595,16 @@ def pseudo(DIs, random_seed=None):
     -------
     Bootstrap_directions : nested list of dec, inc lists that have been
     bootstrapped resampled
+    
+    Examples
+    --------
+    >>> di_block = ([[-45,150],
+     [-40,150],
+     [-38,145]])
+    >>> pmag.pseudo(di_block,10)
+    array([[-40, 150],
+       [-40, 150],
+       [-45, 150]])
     """
     if random_seed != None:
         np.random.seed(random_seed)
@@ -11584,7 +11615,7 @@ def pseudo(DIs, random_seed=None):
 
 def di_boot(DIs, nb=5000):
     """
-    Returns bootstrap means for Directional data
+    Returns bootstrap means for Directional data.
      
     Parameters
     ----------
@@ -11594,6 +11625,18 @@ def di_boot(DIs, nb=5000):
     Returns
     -------
     BDIs : nested list of bootstrapped mean Dec,Inc pairs
+    
+    Examples
+    --------
+    >>> di_block = ([[-45,150],
+     [-40,150],
+     [-38,145]])
+    >>> pmag.di_boot(di_block,5)
+    [[136.66619627955163, 30.021001931432338],
+     [138.33380372044837, 30.02100193143235],
+     [140.64213759144877, 31.669596401508702],
+     [136.66619627955163, 30.021001931432338],
+     [139.58053739971953, 33.378250658618654]]
     """
 #
 # now do bootstrap to collect BDIs  bootstrap means
@@ -11627,6 +11670,24 @@ def dir_df_boot(dir_df, nb=5000, par=False):
     Returns
     -------
     BDIs : nested list of bootstrapped mean Dec,Inc pairs
+    
+    Examples
+    --------
+    >>> dir_df = pd.DataFrame()
+    >>> dir_df['dir_inc'] = [30,75,-113,-127,104]
+    >>> dir_df['dir_dec'] = [50,100,78,48,87]
+    >>> pmag.dir_df_boot(dir_df,4)
+    [[249.0092732274716, 47.78774025782868],
+     [52.15562660104691, 14.523345688004293],
+     [214.5976992675414, 49.79280429500907],
+     [119.6384153360684, 86.17066958304461]]
+     
+    >>> dir_df['dir_n'] = [4,15,2,36,55]
+    >>> dir_df['dir_k'] = [1.2,3.0,0.4,0.4,0.8]
+    >>> pmag.dir_df_boot(dir_df,3,par=True)
+    [[43.54318517848151, 53.40671924110994],
+     [278.5836582875345, 25.159165079114043],
+     [276.59474232833645, -22.88695795286902]]
     """
     N = dir_df.dir_dec.values.shape[0]  # number of data points
     BDIs = []
@@ -11675,6 +11736,7 @@ def dir_df_fisher_mean(dir_df):
         k : Fisher k value
         csd : Fisher circular standard deviation
         alpha95 : Fisher circle of 95% confidence
+    
     """
     N = dir_df.dir_dec.values.shape[0]  # number of data points
     fpars = {}
