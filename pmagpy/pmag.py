@@ -8362,7 +8362,7 @@ def sbar(Ss):
     
     Parameters
     ----------
-    Ss : six element tensor list
+    Ss : list of six element tensors
     
     Returns
     -------
@@ -8735,12 +8735,14 @@ def dostilt(s, bed_az, bed_dip):
 
 def apseudo(Ss, ipar, sigma):
     """
+    Depreciated: 9/14/2022
+    
     Draw a bootstrap sample of Ss.
     
     Parameters
     ----------
     Ss : six element tensor as a list
-    ipar : zero value
+    ipar : boolean (True, False, or zero value)
     sigma : sigma of Ss
     
     Returns
@@ -11676,7 +11678,7 @@ def dir_df_boot(dir_df, nb=5000, par=False):
     >>> dir_df = pd.DataFrame()
     >>> dir_df['dir_inc'] = [30,75,-113,-127,104]
     >>> dir_df['dir_dec'] = [50,100,78,48,87]
-    >>> pmag.dir_df_boot(dir_df,4)
+    >>> pmag.dir_df_boot(dir_df,nb=4)
     [[249.0092732274716, 47.78774025782868],
      [52.15562660104691, 14.523345688004293],
      [214.5976992675414, 49.79280429500907],
