@@ -4398,13 +4398,13 @@ def fisher_mean(data):
      'alpha95': 6.414731246264079,
      'csd': 4.20876891770567}    
     """
-    N, fpars = len(di_block), {}
+    N, fpars = len(data), {}
     
     if N < 2: 
-        return {'dec': di_block[0][0], 
-                'inc': di_block[0][1]}
+        return {'dec': data[0][0], 
+                'inc': data[0][1]}
     
-    X = np.array(dir2cart(di_block))
+    X = np.array(dir2cart(data))
     Xbar = X.sum(axis=0)
     R = np.linalg.norm(Xbar)
     Xbar = Xbar/R
