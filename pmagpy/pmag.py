@@ -4367,13 +4367,13 @@ def fillkeys(Recs):
     return OutRecs, keylist
 
 
-def fisher_mean(di_block):
+def fisher_mean(data):
     """
     Calculates the Fisher mean and associated parameter from a di_block.
 
     Parameters
     ----------
-    di_block : nested list of [dec,inc] or [dec,inc,intensity]
+    data : nested list of [dec,inc] or [dec,inc,intensity]
 
     Returns
     -------
@@ -4407,7 +4407,7 @@ def fisher_mean(di_block):
     X = np.array(dir2cart(di_block))
     Xbar = X.sum(axis=0)
     R = np.linalg.norm(Xbar)
-    Xbar /= R
+    Xbar = Xbar/R
     dir = cart2dir(Xbar)
 
     fpars["dec"] = dir[0]
