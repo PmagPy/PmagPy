@@ -2210,7 +2210,7 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
-              mean_alpha = 1.0, A95_alpha=1.0):
+              mean_alpha = 1.0, A95_alpha=1.0, zorder=100):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on a cartopy map axis.
 
@@ -2242,6 +2242,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+    zorder: the layer order for the pole rendering 
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole')
@@ -2249,7 +2250,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     A95_km = A95 * 111.32
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=1, transform=ccrs.PlateCarree(), alpha = mean_alpha)
+                     label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha = mean_alpha)
     if filled_pole==False:
         equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
     elif filled_pole==True:
@@ -2260,7 +2261,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
 def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
                marker='o', markersize=20, legend='no',outline=True,
-               filled_pole=False, fill_color='k', fill_alpha=1.0):
+               filled_pole=False, fill_color='k', fill_alpha=1.0, zorder=101):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -2301,11 +2302,12 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+    zorder: the layer order for the pole rendering 
     """
 
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.PlateCarree())
+                     label=label, zorder=zorder, transform=ccrs.PlateCarree())
     if filled_pole==False:
         if isinstance(color,str)==True:
             for n in range(0,len(A95)):
@@ -2578,7 +2580,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
 
 
 def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
-             edge='black', markersize=20, alpha=1, legend=False):
+             edge='black', markersize=20, alpha=1, legend=False, zorder=100):
     """
     This function plots a paleomagnetic pole position on a cartopy map axis.
 
@@ -2619,11 +2621,11 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
             vgp_lon, vgp_lat = di_lists
     if edge==None:
         map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=None,
-                    s=markersize, color=color, label=label, zorder=100, 
+                    s=markersize, color=color, label=label, zorder=zorder, 
                     alpha=alpha, transform=ccrs.PlateCarree())
     else:
         map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=[edge],
-                        s=markersize, color=color, label=label, zorder=100, 
+                        s=markersize, color=color, label=label, zorder=zorder, 
                         alpha=alpha, transform=ccrs.PlateCarree())
     map_axis.set_global()
     if legend == True:
