@@ -2223,7 +2223,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     >>> plat = 60
     >>> A95 = 6
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> ipmag.plot_pole(map_axis, plon, plat, A95 ,color='red',markersize=40)
+    >>> ipmag.plot_pole(map_axis, plon, plat, A95 ,color='red',markersize=40, zorder=20)
 
     Required Parameters
     -----------
