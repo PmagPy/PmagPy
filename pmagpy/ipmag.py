@@ -2609,6 +2609,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     alpha : the transparency of the points (defaul is 1 which is opaque, 0 is fully transparent)
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend (False). Putting True will plot a legend.
+    zorder : plotting order (default is 100; higher will move to top of plot)
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_vgp')
