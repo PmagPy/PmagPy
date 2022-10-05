@@ -2242,7 +2242,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
-    zorder: the layer order for the pole rendering 
+    zorder : plotting order (default is 100; higher will move to top of plot)
     """
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole')
@@ -2302,7 +2302,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
-    zorder: the layer order for the pole rendering 
+    zorder : plotting order (default is 100; higher will move to top of plot) 
     """
 
     map_axis.scatter(plon, plat, marker=marker,
@@ -2592,7 +2592,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     >>> vgps = ipmag.fishrot(dec=200,inc=30)
     >>> vgp_lon_list,vgp_lat_list,intensities= ipmag.unpack_di_block(vgps)
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=30)
-    >>> ipmag.plot_vgp(map_axis,vgp_lon=vgp_lon_list,vgp_lat=vgp_lat_list,color='red',markersize=40)
+    >>> ipmag.plot_vgp(map_axis,vgp_lon=vgp_lon_list,vgp_lat=vgp_lat_list,color='red',markersize=40,zorder=20))
 
     Required Parameters
     -----------
