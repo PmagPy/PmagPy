@@ -2729,7 +2729,7 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
     if 'd' in to_plot:
         lon_grid, lat_grid, density = density_distribution(
             lon_samples, lat_samples, resolution)
-        density = ma.masked_where(density <= 0.05*density.max(), density)
+        density = np.ma.masked_where(density <= 0.05*density.max(), density)
         a = ax.pcolormesh(lon_grid, lat_grid, density, cmap=cmap,
                           transform=ccrs.PlateCarree())
         artists.append(a)
