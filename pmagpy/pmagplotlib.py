@@ -1805,7 +1805,7 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     """ Makes a plot of the cumulative distribution function.
     Parameters
     __________
-    fignum : matplotlib figure number
+    fignum : matplotlib figure number, if None, then plots on default figure
     data : list of data to be plotted - doesn't need to be sorted
     sym : matplotlib symbol for plotting, e.g., 'r--' for a red dashed line
     **kwargs :  optional dictionary with {'color': color, 'linewidth':linewidth, 'fontsize':fontsize for axes labels}
@@ -1817,12 +1817,16 @@ def plot_cdf(fignum, data, xlab, sym, title, **kwargs):
     """
 #
     #if len(sym)==1:sym=sym+'-'
-    fig = plt.figure(num=fignum)
+    if fignum != None:
+        plt.figure(num=fignum,)
+        plt.clf()
+
+    #fig = plt.figure(num=fignum)
     # sdata=np.array(data).sort()
     sdata = []
     for d in data:
         sdata.append(d)  # have to copy the data to avoid overwriting it!
-    sdata.sort()
+    #sdata.sort()
     X, Y = [], []
     color = ""
     for j in range(len(sdata)):
