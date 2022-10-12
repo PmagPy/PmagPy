@@ -751,7 +751,7 @@ def getsampVGP(SampRec, SiteNFO, data_model=2.5):
         else:
             lat = float(site[0]['lat'])
             lon = float(site[0]['lon'])
-        dec = float1(SampRec['dir_dec'])
+        dec = float(SampRec['dir_dec'])
         inc = float(SampRec['dir_inc'])
         if SampRec['dir_alpha95'] != "":
             a95 = float(SampRec['dir_alpha95'])
