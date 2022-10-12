@@ -52,17 +52,20 @@ if has_cartopy == True:
 
 def igrf(input_list, mod='', ghfile=""):
     """
-    Determine Declination, Inclination and Intensity from the IGRF model.
-    (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
-
+    Determine declination, inclination and intensity from a geomagnetic
+    field model. The default model used is the IGRF model 
+    (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) with other
+    models available for selection with the available options detailed
+    in the mod parameter below.
+    
     Parameters
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
         date must be in decimal year format XXXX.XXXX (Common Era)
         altitude is in kilometers
     mod :  desired model
-        "" : Use the IGRF13 model
-        custom : use values supplied in ghfile
+        "" : Use the IGRF13 model by default
+        'custom' : use values supplied in ghfile
         or choose from this list
         ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
         where:
@@ -78,23 +81,21 @@ def igrf(input_list, mod='', ghfile=""):
             ggk100k (Panovska et al., 2018)[only models from -99950 in 200 year increments allowed)
             the first four of these models, are constrained to agree
             with gufm1 (Jackson et al., 2000) for the past four centuries
-
-
     gh : path to file with l m g h data
 
     Returns
     -------
-    igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity (in nT))
+    igrf_array : array of magnetic field values (0: dec; 1: inc; 2: intensity (in nT))
 
     Examples
     --------
     >>> local_field = ipmag.igrf([2013.6544, .052, 37.87, -122.27])
     >>> local_field
-    array([  1.39489916e+01,   6.13532008e+01,   4.87452644e+04])
+    array([1.431355648576314e+01, 6.148304376287219e+01, 4.899264739340517e+04])
     >>> ipmag.igrf_print(local_field)
-    Declination: 13.949
-    Inclination: 61.353
-    Intensity: 48745.264 nT
+    Declination: 14.314
+    Inclination: 61.483
+    Intensity: 48992.647 nT
     """
     if ghfile != "":
         lmgh = np.loadtxt(ghfile)
