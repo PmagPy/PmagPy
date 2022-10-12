@@ -184,6 +184,9 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     ----------
     dec : list of declinations or longitudes
     inc : list of inclinations or latitudes
+
+    or
+
     di_block : a nested list of [dec,inc,1.0]
         A di_block can be provided instead of dec, inc lists in which case it
         will be used. Either dec, inc lists or a di_block need to be provided.
@@ -232,6 +235,9 @@ def fisher_angular_deviation(dec=None, inc=None, di_block=None, confidence=95):
     ----------
     dec : list of declinations or longitudes
     inc : list of inclinations or latitudes
+
+    or
+
     di_block : a nested list of [dec,inc,1.0]
         A di_block can be provided instead of dec, inc lists in which case it
         will be used. Either dec, inc lists or a di_block need to be provided.
@@ -271,9 +277,8 @@ def bingham_mean(dec=None, inc=None, di_block=None):
     or
 
     di_block: a nested list of [dec,inc,1.0]
-
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
+        A di_block can be provided instead of dec, inc lists in which case it will
+        be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns
     ---------
@@ -321,9 +326,8 @@ def kent_mean(dec=None, inc=None, di_block=None):
     or
 
     di_block: a nested list of [dec,inc,1.0]
-
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
+        A di_block can be provided instead of dec, inc lists in which case it will
+        be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns
     ----------
@@ -372,9 +376,8 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
     or
 
     di_block: a nested list of [dec,inc,1.0]
-
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
+        A di_block can be provided instead of dec, inc lists in which case it will
+        be used. Either dec, inc lists or a di_block need to passed to the function.
 
     Returns
     ----------
@@ -465,6 +468,7 @@ def print_pole_mean(mean_dictionary):
     print('Precision parameter (k) estimate: ' +
           str(round(mean_dictionary['k'], 1)))
 
+
 def print_kent_mean(mean_dictionary):
     """
     Does a pretty job printing a Kent mean and associated statistics.
@@ -475,9 +479,21 @@ def print_kent_mean(mean_dictionary):
 
     Examples
     --------
-    Generate a Kent mean using ``ipmag.kent_mean`` and then print it nicely
-    using ``ipmag.print_kent_mean``
-
+    Generate a Kent mean using ``ipmag.kent_mean()`` and then print it nicely
+    using ``ipmag.print_kent_mean()``
+    >>> my_di_block = [[183.2931831390693, 80.70169305002725, 1.0],
+                       [75.50744693411644, 79.57922789535208, 1.0],
+                       [162.32513875820177, 76.51741087479394, 1.0],
+                       [143.8749848879392, 85.79156599168213, 1.0],
+                       [177.12011881027854, 84.02007456929348, 1.0]]
+    >>> my_kent_mean = ipmag.kent_mean(di_block = my_di_block)
+    >>> ipmag.print_kent_mean(my_kent_mean)
+    Plon: 150.4  Plat: 83.3
+    Major axis lon: 31.4  Major axis lat: 3.2
+    Minor axis lon: 301.0  Minor axis lat: 5.8
+    Major axis angle of 95% ellipse (Zeta): 6.5
+    Minor axis angle of 95% ellipse (Eta): 2.8
+    Number of directions in mean (n): 5
     """
     print('Plon: ' + str(round(mean_dictionary['dec'], 1)) +
           '  Plat: ' + str(round(mean_dictionary['inc'], 1)))
