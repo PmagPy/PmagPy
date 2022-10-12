@@ -177,8 +177,8 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     """
     Calculates the Fisher mean and associated parameters from either a list of
     declination values and a separate list of inclination values or from a
-    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
-    dictionary with the Fisher mean and statistical parameters.
+    di_block (a nested list of [dec,inc,1.0]). Returns a dictionary with the 
+    Fisher mean and statistical parameters.
 
     Parameters
     ----------
@@ -191,6 +191,9 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     Returns
     -------
     fisher_mean : dictionary containing the Fisher mean parameters
+        This dictionary can be printed in a more readable fashion using the
+        ipmag.print_direction_mean() if it is a directional mean or 
+        ipmag.print_pole_mean() if it is a pole mean.
 
     Examples
     --------
