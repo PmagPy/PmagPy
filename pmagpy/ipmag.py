@@ -235,7 +235,7 @@ def fisher_angular_deviation(dec=None, inc=None, di_block=None, confidence=95):
     di_block : a nested list of [dec,inc,1.0]
         A di_block can be provided instead of dec, inc lists in which case it
         will be used. Either dec, inc lists or a di_block need to be provided.
-    confidence : 50 percent, 63 percent or 95 percent
+    confidence : 50 percent, 63 percent or 95 percent (default is 95 percent)
 
     Returns
     -------
