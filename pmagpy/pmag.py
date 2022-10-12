@@ -173,7 +173,6 @@ def get_dictkey(In, k, dtype):
     >>> get_dictkey(In,k,dtype)
     ['abc01b01', 'abc01b02']
     """
-
     Out = []
     for d in In:
         if dtype == '':
@@ -4930,7 +4929,6 @@ def dolnp(data, direction_type_key):
     -------
     prints to screen in case of no data
     """
-
     if 'dir_dec' in data[0].keys():
         tilt_key = 'dir_tilt_correction'  # this is data model 3.0
     else:
@@ -5033,7 +5031,6 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
     -------
     XV : nested list of n_plane by 3 dimension where the 3 are the cartisian dimension of the best fit vector
     """
-
     U, XV = E[:], []  # make a copy of E to prevent mutation
     for pole in L:
         XV.append(vclose(pole, V))  # get some points on the great circle
@@ -8483,8 +8480,6 @@ def dohext(nf, sigma, s):
      'e23': 1.5264872237415046,
      'e13': 1.2179522275647792}
     """
-
-#
     hpars = {}
     hpars['F_crit'] = '0'
     hpars['F12_crit'] = '0'
@@ -11831,7 +11826,6 @@ def get_plate_data(plate):
     from . import poles
     apwp = poles.get_apwp(plate)
     return apwp
-#
 
 
 def bc02(data):
@@ -11851,7 +11845,6 @@ def bc02(data):
     pole_lat : pole latitude
     pole_lon : pole longitude
     """
-
     plate, site_lat, site_lon, age = data[0], data[1], data[2], data[3]
     apwp = get_plate_data(plate)
     recs = apwp.split()
@@ -12064,7 +12057,6 @@ def initialize_acceptance_criteria(**kwargs):
        (this is used in displaying criteria in the dialog box)
        -999 means Exponent with 3 descimal points for floats and string for string
     """
-
     acceptance_criteria = {}
     # --------------------------------
     # 'DE-SPEC'
@@ -13346,7 +13338,6 @@ def import_basemap():
     has_basemap : bool
     Basemap : Basemap package if possible else None
     """
-
     Basemap = None
     has_basemap = True
     has_cartopy = import_cartopy()[0]
@@ -13468,7 +13459,6 @@ def vocab_convert(vocab, standard, key=''):
     >>> pmag.vocab_convert('Egypt','GEOMAGIA') 
     '1'
     """
-
     places_to_geomagia = {
         'Egypt':                 "1",
         'Japan':                 "2",
