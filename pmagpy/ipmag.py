@@ -142,7 +142,6 @@ def igrf_print(igrf_array):
     Inclination: 61.483
     Intensity: 48992.647 nT
     """
-
     print("Declination: %0.3f" % (igrf_array[0]))
     print("Inclination: %0.3f" % (igrf_array[1]))
     print("Intensity: %0.3f nT" % (igrf_array[2]))
@@ -507,10 +506,11 @@ def print_kent_mean(mean_dictionary):
           str(round(mean_dictionary['Eta'], 1)))
     print('Number of directions in mean (n): ' + str(mean_dictionary['n']))
 
+
 def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
-    using the pmag.py function fshdev() and dodirot() functions.
+    using the pmag.py function pmag.fshdev() and pmag.dodirot() functions.
 
     Parameters
     ----------
@@ -565,7 +565,7 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
     dec : mean declination of distribution (default is 0)
     inc : mean inclination of distribution (default is 90)
     di_block : this function returns a nested list of [dec,inc,1.0] as the default
-    if di_block = False it will return a list of dec and a list of inc
+        if di_block = False it will return a list of dec and a list of inc
 
     Returns
     ---------
@@ -599,10 +599,11 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
             inclinations.append(irot)
         return declinations, inclinations
 
+
 def kentrot(kent_dict, n=100, di_block=True):
     '''
     Generates Kent distributed unit vectors from a specified distribution
-    using the pmag.py function kentdev().
+    using the pmag.py function pmag.kentdev().
 
     Parameters
     ----------
@@ -664,11 +665,12 @@ def kentrot(kent_dict, n=100, di_block=True):
     else:
         return rotated_decs, rotated_incs
 
-def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3,G2=0, G3=0,B_threshold=0):
+
+def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
-    about a vertical axis by the given declination. Return a nested list of
+    about a vertical axis by the given declination. Returns a nested list of
     of [dec,inc,intensity].
 
     Parameters
@@ -680,7 +682,8 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3,G2=0, G3=0,B_threshold=0):
     G1 : specify average g_1^0 fraction (default is -18e3 in nT, minimum = 1)
     G2 : specify average g_2^0 fraction (default is 0)
     G3 : specify average g_3^0 fraction (default is 0)
-    B_threshold : return vectors with B>B_threshold (in nT)
+    B_threshold : return vectors with B>B_threshold (in nT) (default is 0 which
+        returns all vectors)
 
     Returns
     ----------
@@ -698,7 +701,7 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3,G2=0, G3=0,B_threshold=0):
     tk_03_output = []
     k=0
     while k < n: 
-        gh = pmag.mktk03(8, k, G2, G3,G1=G1)  # terms and random seed
+        gh = pmag.mktk03(8, k, G2, G3, G1=G1)  # terms and random seed
         # get a random longitude, between 0 and 359
         lon = random.randint(0, 360)
         vec = pmag.getvec(gh, lat, lon)  # send field model and lat to getvec
@@ -718,13 +721,16 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3,G2=0, G3=0,B_threshold=0):
 
 def unsquish(incs, f):
     """
-    This function applies uses a flattening factor (f) to unflatten inclination
+    This function applies a flattening factor (f) to unflatten inclination
     data (incs) and returns 'unsquished' values.
 
     Parameters
     ----------
     incs : list of inclination values or a single value
-    f : unflattening factor (between 0.0 and 1.0)
+    f : flattening factor
+        A value greater than 0.0 and less than or equal to 1.0 that is used 
+        to unflatten inclination values. 1.0 implies no flatting and will 
+        result in no change.
 
     Returns
     ----------
@@ -766,7 +772,9 @@ def squish(incs, f):
     Parameters
     ----------
     incs : list of inclination values or a single value
-    f : flattening factor (between 0.0 and 1.0)
+    f : flattening factor
+        A value between 0.0 and 1.0 where 1.0 is no flattening and 0.0 is
+        complete flattening.
 
     Returns
     ---------
@@ -774,7 +782,7 @@ def squish(incs, f):
 
     Examples
     --------
-    Take a list of inclinations, flatten (i.e. "squish") them:
+    Take a list of inclinations and flatten (i.e. "squish") them:
 
     >>> inclinations = [43,47,41]
     >>> ipmag.squish(inclinations,0.4)
@@ -844,10 +852,10 @@ def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
     or
 
     di_block : a nested list of [dec, inc, 1.0]
+        A di_block can be provided instead of dec, inc lists in which case it will
+        be used. Either dec, inc lists or a di_block need to passed to the function.
     unit_vector : if True will return [dec,inc,1.]; if False will return [dec,inc]
-
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
+        (default is True)
 
     Returns
     ----------
@@ -903,6 +911,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     Parameters
     ----------
     Data : a numpy array of directional data [dec, inc, dip_direction, dip]
+        dec, inc are the declination and inclination of the paleomagnetic directions
+        dip_direction, dip are the orientation of the bedding
     num_sims : number of bootstrap samples (default is 1000)
     min_untilt : minimum percent untilting applied to the data (default is -10%)
     max_untilt : maximum percent untilting applied to the data (default is 120%)
@@ -938,7 +948,6 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
     >>> ipmag.bootstrap_fold_test(data_array)
     """
-
     if bedding_error != 0:
         kappa = (81.0/bedding_error)**2
     else:
@@ -1020,7 +1029,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     inclination data sets. Plots are generated of the cumulative distributions
     of the Cartesian coordinates of the means of the pseudo-samples (one for x,
     one for y and one for z). If the 95 percent confidence bounds for each
-    component overlap, the two directions are not significantly different.
+    component overlap, the two set of directions "pass" the test and are
+    consistent with sharing a common mean.
 
     Parameters
     ----------
@@ -1155,7 +1165,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
-    This function calculates Watson's V statistic from input files through
+    This function calculates Watson's V statistic from input lists through
     Monte Carlo simulation in order to test whether two populations of
     directional data could have been drawn from a common mean. The critical
     angle between the two sample mean directions and the corresponding
@@ -1342,7 +1352,6 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     P : posterior probability of the hypothesis
     support : category of support based on classification of P
     '''    
-    
     X1=pmag.dir2cart(Data1)
     X2=pmag.dir2cart(Data2) 
     
@@ -1477,9 +1486,12 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     """
     Calculates Watson's V statistic from input files through Monte Carlo
     simulation in order to test whether normal and reversed populations could
-    have been drawn from a common mean (equivalent to watsonV.py). Also provides
-    the critical angle between the two sample mean directions and the
-    corresponding McFadden and McElhinny (1990) classification.
+    have been drawn from a common mean. Also provides the critical angle between 
+    the two sample mean directions and the corresponding McFadden and McElhinny 
+    (1990) classification. This function is a wrapper around the 
+    ipmag.common_mean_watson() function with the first step of splitting
+    the data into two polarities using the pmag.flip() function and flipping
+    the reverse direction to their antipode.
 
     Parameters
     ----------
@@ -1551,9 +1563,10 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
 
 def conglomerate_test_Watson(R, n):
     """
-    The Watson (1956) test of a directional data set for randomness compares the resultant vector (R)
-    of a group of directions to values of Ro. If R exceeds Ro, the null-hypothesis of randomness is
-    rejected. If R is less than Ro, the null-hypothesis is considered to not be disproved.
+    The Watson (1956) test of a directional data set for randomness compares
+    the resultant vector (R) of a group of directions to values of Ro. If R 
+    exceeds Ro, the null hypothesis of randomness is rejected. If R is less
+    than Ro, the null hypothesis of randomness is considered to not be rejected.
 
     Parameters
     ----------
@@ -1565,7 +1578,6 @@ def conglomerate_test_Watson(R, n):
     printed text : text describing test result
     result : a dictionary with the Watson (1956) R values
     """
-
     Ro_values = {5: {95: 3.50, 99: 4.02}, 6: {95: 3.85, 99: 4.48},
                  7: {95: 4.18, 99: 4.89}, 8: {95: 4.48, 99: 5.26},
                  9: {95: 4.76, 99: 5.61}, 10: {95: 5.03, 99: 5.94},
@@ -1617,7 +1629,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
     (uniform) and Me (exponential) are calculated and compared against the
     critical test values. If Mu or Me are too large in comparison to the test
     statistics, the hypothesis that the distribution is Fisherian is rejected
-    (see Fisher et al., 1987).
+    (see Fisher et al., 1987). These test statistics are returned in a dictionary.
 
     Parameters:
     -----------
@@ -1780,7 +1792,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
 
 def lat_from_inc(inc, a95=None):
     """
-    Calculate paleolatitude from inclination using the dipole equation
+    Calculate paleolatitude from inclination using the dipole equation.
 
     Required Parameter
     ----------
@@ -1819,20 +1831,19 @@ def lat_from_inc(inc, a95=None):
 
 def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
     """
-    Calculate paleolatitude for a reference location based on a paleomagnetic pole
+    Calculate paleolatitude for a reference location based on a paleomagnetic pole.
 
     Required Parameters
     ----------
-    ref_loc_lon: longitude of reference location in degrees
-    ref_loc_lat: latitude of reference location
-    pole_plon: paleopole longitude in degrees
-    pole_plat: paleopole latitude in degrees
+    ref_loc_lon: longitude of reference location in degrees E
+    ref_loc_lat: latitude of reference location in degrees N
+    pole_plon: paleopole longitude in degrees in degrees E
+    pole_plat: paleopole latitude in degrees in degrees N
     
     Returns
     -------
-    paleo_lat : paleolatitude based on pole
+    paleo_lat : paleolatitude for location based on pole
     """
-
     ref_loc = (ref_loc_lon, ref_loc_lat)
     pole = (pole_plon, pole_plat)
     paleo_lat = 90 - pmag.angle(pole, ref_loc)
@@ -1841,7 +1852,7 @@ def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
 
 def inc_from_lat(lat):
     """
-    Calculate inclination predicted from latitude using the dipole equation
+    Calculate inclination predicted from latitude using the dipole equation.
 
     Parameter
     ----------
@@ -1849,7 +1860,7 @@ def inc_from_lat(lat):
 
     Returns
     -------
-    inc : inclination calculated using the dipole equation
+    inc : inclination calculated from latitude using the dipole equation
 
     Examples
     --------
@@ -1866,7 +1877,6 @@ def plot_net(fignum=None):
     """
     Draws circle and tick marks for equal area projection.
     """
-
     if fignum != None:
         plt.figure(num=fignum,)
         plt.clf()
@@ -2578,7 +2588,6 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     colorbar : the default is to include a colorbar (True). Putting False will make it so no legend is plotted.
     colorbar_label : label for the colorbar
     """
-
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_poles_colorbar')
         return
@@ -2806,7 +2815,6 @@ def sb_vgp_calc(dataframe, site_correction='yes', dec_tc='dec_tc', inc_tc='inc_t
 
     plot : default is 'no', will make a plot of poles if 'yes'
     """
-
     # calculate the mean from the directional data
     dataframe_dirs = []
     for n in range(0, len(dataframe)):
@@ -4951,7 +4959,6 @@ def download_magic_from_id(con_id):
     message : str
         Error message if download didn't succeed
     """
-
     try:
         magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
         res = wget.download(magic_url)
@@ -5288,7 +5295,6 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     if there was a problem creating/validating the upload file
     or: (filename, '', None) if the file creation was fully successful.
     """
-
     api = 'https://api.earthref.org/v1/MagIC/{}'
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
     locations = []
@@ -7759,7 +7765,6 @@ def smooth(x, window_len, window='bartlett'):
             but always ends with zeros at points 1 and n.
         -hanning,hamming,blackman are used for smoothing the Fourier transform
     """
-
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
 
@@ -11849,7 +11854,6 @@ def calculate_aniso_parameters(K,n_pos=6):
             calculate anisotropy parameters from n_pos positions plus optional baseline measurements
             ADD DOC STUFF HERE
     """
-
     aniso_parameters = {}
     Matrices=get_matrix(n_pos)
     tmpH=Matrices['tmpH']
@@ -12124,7 +12128,6 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     if image_records == True:
        Tuple : (True or False indicating if conversion was successful, output file name written, list of image recs)
     """
-
     def plot_interpretations(ZED, spec_container, this_specimen, this_specimen_measurements, datablock, coord='s'):
         interpretations = False
         if cb.is_null(spec_container) or cb.is_null(this_specimen_measurements) or cb.is_null(datablock):
@@ -12487,7 +12490,6 @@ def transform_to_geographic(this_spec_meas_df, samp_df, samp, coord="0"):
     return this_spec_meas_df
 
 
-
 def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path="",
                    spec="", n_specs=5, save_plots=True,  fmt="svg", interactive=False,
                    contribution=None, image_records=False):
@@ -12532,7 +12534,6 @@ def thellier_magic(meas_file="measurements.txt", dir_path=".", input_dir_path=""
     if image_records == True:
         image_recs : list of image records
     """
-
     def make_plots(this_specimen, thel_data, cnt=1):
         """
         Take specimen name and measurement data
