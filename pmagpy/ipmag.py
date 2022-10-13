@@ -1926,10 +1926,6 @@ def plot_net(fignum=None):
     plt.axis((-1.05, 1.05, -1.05, 1.05))
 
 
-def plot_XY(X=None, Y=None, sym='ro'):
-    plt.plot(X, Y, sym)
-
-
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1):
     """
     Plot declination, inclination data on an equal area plot.
