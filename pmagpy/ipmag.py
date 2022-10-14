@@ -2298,13 +2298,13 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     -------
     >>> plons = [200, 180, 210]
     >>> plats = [60, 40, 35]
-    >>> A95 = [6, 3, 10]
+    >>> A95s = [6, 3, 10]
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
     >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color='red', markersize=40)
 
     >>> plons = [200, 180, 210]
     >>> plats = [60, 40, 35]
-    >>> A95 = [6, 3, 10]
+    >>> A95s = [6, 3, 10]
     >>> colors = ['red','green','blue']
     >>> map_axis = ipmag.make_orthographic_map(central_longitude=200, central_latitude=30)
     >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color=colors, markersize=40)
