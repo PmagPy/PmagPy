@@ -2415,6 +2415,22 @@ def plot_pole_ellipse(map_axis, dictionary,
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+
+    Examples
+    -----------
+    >>> kent_dict = {'dec': 287.53798364307437,
+                'inc': 88.56067392991959,
+                'n': 5,
+                'Zdec': 54.83073632264832,
+                'Zinc': 0.8721861867684042,
+                'Edec': 144.84816793561657,
+                'Einc': 1.1448791390804505,
+                'Zeta': 4.640345964184263,
+                'Eta': 6.8378968512569465,
+                'R1': 0.9914595207919079,
+                'R2': 0.006259515780690272}
+    >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=90)
+    >>> ipmag.plot_pole_ellipse(map_axis,kent_dict, color='red',markersize=40)
     """
     pars = []
     pars.append(dictionary['dec'])
@@ -2428,8 +2444,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 
     map_axis.scatter(dictionary['dec'], dictionary['inc'], marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.PlateCarree(), 
-                     zorder=zorder)
+                     label=label, transform=ccrs.PlateCarree(), zorder=zorder)
 
     fignum=1
     ellipse_points = np.array(pmagplotlib.plot_ell(fignum, pars, plot=False)).T
