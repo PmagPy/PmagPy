@@ -2396,7 +2396,7 @@ def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k', edgecolor='
         
 def plot_pole_ellipse(map_axis, dictionary, 
                       color='k', edgecolor='k', marker='s', 
-                      markersize=20, label='', alpha=1.0, lw=1):
+                      markersize=20, label='', alpha=1.0, lw=1, zorder=100):
     """
     Plot a mean pole confidence ellipse associated with a Kent distribution
 
@@ -2428,12 +2428,14 @@ def plot_pole_ellipse(map_axis, dictionary,
 
     map_axis.scatter(dictionary['dec'], dictionary['inc'], marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=101, transform=ccrs.PlateCarree())
+                     label=label, zorder=101, transform=ccrs.PlateCarree(), 
+                     zorder=zorder)
 
     fignum=1
     ellipse_points = np.array(pmagplotlib.plot_ell(fignum, pars, plot=False)).T
     map_axis.plot(ellipse_points[0], ellipse_points[1], color=color,
-                 transform=ccrs.Geodetic(), alpha=alpha, lw=lw)
+                 transform=ccrs.Geodetic(), alpha=alpha, lw=lw, 
+                     zorder=zorder)
     
     return map_axis
 
