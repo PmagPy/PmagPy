@@ -1023,7 +1023,10 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     plt.show()
 
 
-def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.', fmt='svg', figsize=(7, 2.3), x_tick_bins=4):
+def common_mean_bootstrap(Data1, Data2, NumSims=1000, 
+                          color1='r', color2='b',
+                          save=False, save_folder='.', fmt='svg', 
+                          figsize=(7, 2.3), x_tick_bins=4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets. Plots are generated of the cumulative distributions
@@ -1079,13 +1082,13 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     fig = plt.figure(figsize=figsize)
 
     plt.subplot(1, 3, 1)
-    X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", 'r', "")
+    X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", color1, "")
     bounds1 = [X1[minimum], X1[maximum]]
-    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
     if np.array(Data2).shape[0] > 2:
-        X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", 'b', "")
+        X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", color2, "")
         bounds2 = [X2[minimum], X2[maximum]]
-        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
     else:
         pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
     plt.ylim(0, 1)
@@ -1093,27 +1096,27 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder='.
     x_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.subplot(1, 3, 2)
-    Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", 'r', "")
+    Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", color1, "")
     bounds1 = [Y1[minimum], Y1[maximum]]
-    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
     if np.array(Data2).shape[0] > 2:
-        Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", 'b', "")
+        Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", color2, "")
         bounds2 = [Y2[minimum], Y2[maximum]]
-        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
     else:
         pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
     plt.ylim(0, 1)
     y_overlap = pmag.interval_overlap(bounds1,bounds2)
     
     plt.subplot(1, 3, 3)
-    Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", 'r', "")
+    Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", color1, "")
     bounds1 = [Z1[minimum], Z1[maximum]]
-    pmagplotlib.plot_vs(fignum, bounds1, 'r', '-')
+    pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
 
     if np.array(Data2).shape[0] > 2:
-        Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", 'b', "")
+        Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", color2, "")
         bounds2 = [Z2[minimum], Z2[maximum]]
-        pmagplotlib.plot_vs(fignum, bounds2, 'b', '--')
+        pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
     else:
         pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
     plt.ylim(0, 1)
@@ -1416,7 +1419,9 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     return BF0, P, support
 
 
-def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False,
+                            color1='blue', color2='red',
+                            save=False, save_folder='.', fmt='svg'):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
     determine whether two populations of directions could be from an antipodal
@@ -1473,10 +1478,11 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
         # plot equal area with two modes
         plt.figure(num=0, figsize=(4, 4))
         plot_net(0)
-        plot_di(di_block=directions1, color='b'),
-        plot_di(di_block=do_flip(di_block=directions2), color='r')
+        plot_di(di_block=directions1, color=color1),
+        plot_di(di_block=do_flip(di_block=directions2), color=color2)
 
     result = common_mean_bootstrap(directions1, directions2,
+                                   color1=color1, color2=color2,
                                    save=save, save_folder=save_folder, fmt=fmt)
     
     return result
