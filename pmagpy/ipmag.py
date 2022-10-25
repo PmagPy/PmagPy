@@ -2402,7 +2402,7 @@ def plot_pole_basemap(mapname, plon, plat, A95, label='', color='k', edgecolor='
         
 def plot_pole_ellipse(map_axis, dictionary, 
                       color='k', edgecolor='k', marker='s', 
-                      markersize=20, label='', alpha=1.0, lw=1, zorder=100):
+                      markersize=20, label='', alpha=1.0, lw=1, lower=True, zorder=100):
     """
     Plot a mean pole confidence ellipse associated with a Kent distribution
 
@@ -2421,6 +2421,8 @@ def plot_pole_ellipse(map_axis, dictionary,
     filled_pole : if True, the A95 ellipse will be filled with color
     fill_color : color of fill; the default is black.
     fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+    lower : hemisphere to plot the ellipse when calling function pmagplotlib.plot_ell (default is True)
+    zorder : plotting order (default is 100; higher will move to top of plot) 
 
     Examples
     -----------
@@ -2453,7 +2455,7 @@ def plot_pole_ellipse(map_axis, dictionary,
                      label=label, transform=ccrs.PlateCarree(), zorder=zorder)
 
     fignum=1
-    ellipse_points = np.array(pmagplotlib.plot_ell(fignum, pars, plot=False)).T
+    ellipse_points = np.array(pmagplotlib.plot_ell(fignum, pars, lower=lower, plot=False)).T
     map_axis.plot(ellipse_points[0], ellipse_points[1], color=color,
                  transform=ccrs.Geodetic(), alpha=alpha, lw=lw, 
                      zorder=zorder)
