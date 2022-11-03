@@ -6487,12 +6487,24 @@ def dokent(data, NN, distribution_95=False):
     kpars["dec"] = fpars["dec"]
     kpars["inc"] = fpars["inc"]
     kpars["n"] = NN
-    ZDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
-    EDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
+
+    if zeta < eta:
+        switch = zeta
+        zeta = eta
+        eta = switch
+
+        ZDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
+        EDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
+
+    else:
+        ZDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
+        EDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
+
     kpars["Zdec"] = ZDir[0]
     kpars["Zinc"] = ZDir[1]
     kpars["Edec"] = EDir[0]
     kpars["Einc"] = EDir[1]
+
     if kpars["Zinc"] < 0:
         kpars["Zinc"] = -kpars["Zinc"]
         kpars["Zdec"] = (kpars["Zdec"] + 180.) % 360.
