@@ -2916,45 +2916,26 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
         fig = plt.figure(Figs[key])
         plot_title = split_title(titles[key]).strip().strip('\n')
         fig.set_figheight(5.5)
-        #get returns Bbox with x0, y0, x1, y1
-        pos = fig.gca().get_position()
-        # tweak some of the default values
-        w = pos.x1 - pos.x0
-        h = (pos.y1 - pos.y0) / 1.1
-        x = pos.x0
-        y = pos.y0 * 1.3
-        # set takes: left, bottom, width, height
-        fig.gca().set_position([x, y, w, h])
+        fig.set_figwidth(5.5)
+
+        # make space for the title and borders
+        # centered with at least 10% on the sides and 20% on the top and bottom
+        for ax in fig.axes:
+            pos = ax.get_position() # get returns: Bbox with x0, y0, x1, y1
+            w = min((pos.x1 - pos.x0), 0.8)
+            h = min((pos.y1 - pos.y0), 0.6)
+            x = (1 - w)/2
+            y = (1 - h)/2
+            ax.set_position([x, y, w, h]) # set takes: left, bottom, width, height
 
         # add an axis covering the entire figure
         border_ax = fig.add_axes([0, 0, 1, 1])
         border_ax.set_frame_on(False)
         border_ax.set_xticks([])
         border_ax.set_yticks([])
-        # add a border
-        if "\n" in plot_title:
-            y_val = 1.0  # lower border
-            #fig.set_figheight(6.25)
-        else:
-            y_val = 1.04  # higher border
-        #border_ax.text(-0.02, y_val, "                                                                                                   #                                                                                      |",
-        #               horizontalalignment='left',
-        #               verticalalignment='top',
-        #               color=text_color,
-        #               bbox=dict(edgecolor=border_color,
-        #                         facecolor='#FFFFFF', linewidth=0.25),
-        #               size=50)
-        #border_ax.text(-0.02, 0, "|                                                                                                      #                                                                                   |",
-        #               horizontalalignment='left',
-        #               verticalalignment='bottom',
-        #               color=text_color,
-        #               bbox=dict(edgecolor=border_color,
-        #                         facecolor='#FFFFFF', linewidth=0.25),
-        #               size=20)#18)
 
         # add text
-
-        border_ax.text((4. / fig.get_figwidth()) * 0.015, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
+        border_ax.text(0.03, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
                        horizontalalignment='left',
                        verticalalignment='top',
                        color=text_color,
@@ -2964,7 +2945,7 @@ def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_
                        verticalalignment='top',
                        color=text_color,
                        size=20)
-        border_ax.text(1 - (4. / fig.get_figwidth()) * 0.015, 0.03, 'earthref.org/MagIC{}'.format(con_id),
+        border_ax.text(0.97, 0.03, 'earthref.org/MagIC{}'.format(con_id),
                        horizontalalignment='right',
                        verticalalignment='top',
                        color=text_color,
