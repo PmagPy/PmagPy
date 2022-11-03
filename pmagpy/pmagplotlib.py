@@ -136,7 +136,7 @@ def plot_init(fignum, w, h):
         dpi = 240
     # plt.ion()
     plt_num += 1
-    fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
+    fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi, clear=True)
     if (not isServer) and (not set_env.IS_NOTEBOOK):
         plt.get_current_fig_manager().show()
         # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
@@ -1770,7 +1770,7 @@ def vertical_plot_init(fignum, w, h):
     global fig_y_pos
     dpi = 80
     # plt.ion()
-    plt.figure(num=fignum, figsize=(w, h), dpi=dpi)
+    plt.figure(num=fignum, figsize=(w, h), dpi=dpi, clear=True)
 #    if not isServer:
 #        plt.get_current_fig_manager().window.wm_geometry('+%d+%d' % (25,fig_y_pos))
 #        fig_y_pos = fig_y_pos + dpi*(h) + 25
