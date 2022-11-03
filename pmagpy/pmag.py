@@ -6380,12 +6380,12 @@ def dokent(data, NN, distribution_95=False):
         dec : mean declination
         inc : mean inclination
         n : number of datapoints
-        Eta : major ellipse
-        Edec : declination of major ellipse axis
-        Einc : inclination of major ellipse axis
-        Zeta : minor ellipse
-        Zdec : declination of minor ellipse axis
-        Zinc : inclination of minor ellipse axis
+        Zeta : major ellipse
+        Zdec : declination of major ellipse axis
+        Zinc : inclination of major ellipse axis
+        Eta : minor ellipse
+        Edec : declination of minor ellipse axis
+        Einc : inclination of minor ellipse axis
     """
     X, kpars = [], {}
     N = len(data)
@@ -6487,8 +6487,13 @@ def dokent(data, NN, distribution_95=False):
     kpars["dec"] = fpars["dec"]
     kpars["inc"] = fpars["inc"]
     kpars["n"] = NN
-    ZDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
-    EDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
+    if eta > zeta:
+        eta, zeta = zeta, eta
+        EDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
+        ZDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
+    else:
+        ZDir = cart2dir([gam[0][1], gam[1][1], gam[2][1]])
+        EDir = cart2dir([gam[0][0], gam[1][0], gam[2][0]])
     kpars["Zdec"] = ZDir[0]
     kpars["Zinc"] = ZDir[1]
     kpars["Edec"] = EDir[0]
