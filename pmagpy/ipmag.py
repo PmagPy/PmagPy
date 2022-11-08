@@ -9054,8 +9054,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     plt.figure(num=2, figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
-    plt.xlabel("Inclination", fontsize=12)
-    plt.ylabel("Elongation", fontsize=12)
+    plt.xlabel("inclination ($^\circ$)", fontsize=12)
+    plt.ylabel("elongation", fontsize=12)
     plt.ylim(.9,5)
     plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
 #     plt.text(Is[0] - 2, Es[0], ' %s' % ('f=1'), fontsize=12)
@@ -9096,7 +9096,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
-    pmagplotlib.plot_cdf(cdf_fig_num, I, 'Inclinations', 'r', title)
+    pmagplotlib.plot_cdf(cdf_fig_num, I, 'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
@@ -9234,8 +9234,8 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     # plot E/I figure
     plt.figure(num=1, figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
-    plt.xlabel("Inclination", fontsize=12)
-    plt.ylabel("Elongation", fontsize=12)
+    plt.xlabel("inclination ($^\circ$)", fontsize=12)
+    plt.ylabel("elongation", fontsize=12)
     plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
 
     b = 0
@@ -9269,7 +9269,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     plt.figure(figsize=(4, 4))
-    pmagplotlib.plot_cdf(2, I, 'Inclinations', 'r', title)
+    pmagplotlib.plot_cdf(2, I, 'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(2, [Inc], 'g', '-')
     pmagplotlib.plot_vs(2, [Io], 'k', '-')
@@ -9332,7 +9332,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     plt.title('%7.1f [%7.1f, %7.1f]' % (plat_mode, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
-    plt.xlabel('paleolatitudes ($^\circ$)', fontsize=16)
+    plt.xlabel('paleolatitude ($^\circ$)', fontsize=16)
     plt.ylabel('density', fontsize=16)
     
     if save:
