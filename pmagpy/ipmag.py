@@ -15258,10 +15258,10 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
 
     return magic_dir,upload_file
 
-def prob_simul(alpha,k1,k2,wordy=False):
+def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     """
-    the function ipmag.prob_simul runs the Bogue + Coe (1981) algorithm for probabilistic correlation. k1 and k2 can be naively estimated from kappa
-    or one can use the function ipmag.full_kappa to get a better estimate as in the original publication
+    the function ipmag.simul_correlation_prob runs the Bogue + Coe (1981) algorithm for probabilistic correlation. k1 and k2 can be estimated from typical kappa
+    or one can use the function ipmag.full_kappa [to come] to get a better estimate as in the original publication
     
     Parameters
     ----------
@@ -15269,30 +15269,32 @@ def prob_simul(alpha,k1,k2,wordy=False):
     alpha: angle between paleomagnetic directions (site means)
     k1: kappa estimate for first direction
     k2: kappa estimate for second direction
+    trials: the number of simulations, default=10,000
+    print_result: the probability value returned in a sentence, default=False
     
     Returns
     --------------------------
     
     simul_prob
     """
-    trials=10000
+    num_trials=trials
 
     hit=0
     miss=0
 
-    for i in range(trials):
+    for i in range(num_trials):
         #FakeFish returns a list of [dec,inc]s, in this case just 1.
-        lontp1,lattp1 = ipmag.fishrot(k1,1,0,90,di_block=False)
-        lontp2,lattp2 = ipmag.fishrot(k2,1,0,90,di_block=False)
-        angle=pmag.angle([lontp1[0],lattp1[0]],[lontp2[0],lattp2[0]])
+        lontp1,lattp1 = ipmag.fishrot(k1, 1, 0, 90, di_block=False)
+        lontp2,lattp2 = ipmag.fishrot(k2, 1, 0, 90, di_block=False)
+        angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
         if (angle>=alpha):
             hit=hit+1
         else:
             miss=miss+1
 
-    p1=1.0*hit/trials
+    p1=1.0*hit/num_trials
     simul_prob=p1;
     
-    if wordy == True:
+    if print_result == True:
         print ('Probability of simultaneous directions is: {0:5.3f}'.format(p1))
     return p1
