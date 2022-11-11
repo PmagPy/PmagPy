@@ -926,7 +926,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     Returns
     -------
     three plots : uncorrected data equal area plot, tilt-corrected data equal
-    area plot, bootstrap results and CDF of the eigenvalue maximum
+        area plot, bootstrap results and CDF of the eigenvalue maximum
 
     Examples
     --------
@@ -1057,9 +1057,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
 
     Examples
     --------
-    Develop two populations of directions using ``ipmag.fishrot``. Use the
-    function to determine if they share a common mean (through visual inspection
-    of resulting plots).
+    Develop two populations of directions using ``ipmag.fishrot()``. Use the
+    function to determine if they share a common mean.
 
     >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
     >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
@@ -1181,8 +1180,8 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     Data2 : a nested list of directional data [dec,inc] (a di_block)
     NumSims : number of Monte Carlo simulations (default is 5000)
     print_result : default is to print the test result (True)
-    plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF
-        from the Monte Carlo simulations.
+    plot : the default is no plot ('no'). 
+        Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
     save : optional save of plots (default is False)
     save_folder : path to where plots will be saved (default is current)
     fmt : format of figures to be saved (default is 'svg')
@@ -15259,31 +15258,28 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
 
     return magic_dir,upload_file
 
+
 def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     """
-    The function ipmag.simul_correlation_prob runs an algorithm from Bogue and Coe (1981) for probabilistic correlation, evaluating
-    the probability that the similarity between two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic field. 
-    This can be compared with the probability that the two directions were sampled at random times with the companion function
-    (ipmag.random_correlation_prob; to come). k1 and k2 can be estimated the kappa of the directions, or one can use the companion function 
-    (ipmag.full_kappa; to come) as in the original publication. A version of this function was written in Python by S. Bogue, translated
-    to PmagPy functionality by A. Pivarunas
-    
-    Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia River basalt flows using secular variation. Journal of Geophysical
-    Research, v. 86, p. 11883–11897.
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
+    for probabilistic correlation, evaluating the probability that the similarity between 
+    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
+    field. This can be compared with the probability that the two directions were sampled 
+    at random times with the companion function (ipmag.random_correlation_prob; to come). 
+    k1 and k2 can be estimated the kappa of the  directions, or one can use the companion 
+    function (ipmag.full_kappa; to come) as in the original publication. 
     
     Parameters
     ----------
-    
-    alpha: angle between paleomagnetic directions (site means)
-    k1: kappa estimate for first direction
-    k2: kappa estimate for second direction
-    trials: the number of simulations, default=10,000
-    print_result: the probability value returned in a sentence, default=False
+    alpha : angle between paleomagnetic directions (site means)
+    k1 : kappa estimate for first direction
+    k2 : kappa estimate for second direction
+    trials : the number of simulations [default = 10,000]
+    print_result : the probability value returned in a sentence [default = False]
     
     Returns
     --------------------------
-    
-    simul_prob
+    simul_prob : probability value
     """
     #sets initial value for counters
     hit = 0
