@@ -1399,45 +1399,40 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     determine whether two populations of directions could be from an antipodal
     common mean.
 
-    Parameters
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
-        or
-    di_block: a nested list of [dec,inc]
-        A di_block can be provided in which case it will be used instead of
-        dec, inc lists.
+    Parameters:
+        dec: list of declinations
+        inc: list of inclinations
+        di_block: a nested list of [dec,inc]
+            A di_block can be provided in which case it will be used instead of
+            dec, inc lists.
+        plot_stereo : before plotting the CDFs, plot stereonet with the
+            bidirectionally separated data (default is False)
+        save : boolean argument to save plots (default is False)
+        save_folder : directory where plots will be saved (default is current directory, '.')
+        fmt : format of saved figures (default is 'svg')
 
-    plot_stereo : before plotting the CDFs, plot stereonet with the
-        bidirectionally separated data (default is False)
-    save : boolean argument to save plots (default is False)
-    save_folder : directory where plots will be saved (default is current directory, '.')
-    fmt : format of saved figures (default is 'svg')
+    Returns:
+        A boolean where 0 is fail and 1 is pass is returned. 
+        Plots of the cumulative distribution of Cartesian components are shown
+        an equal area plot if `plot_stereo = True`. 
 
-    Returns
-    -------
-    plots : Plots of the cumulative distribution of Cartesian components are shown
-        an equal area plot is plotted if plot_stereo = True
-    result : a boolean where 0 is fail and 1 is pass
+    Examples:
+        Populations of roughly antipodal directions are developed here using
+        ``ipmag.fishrot``. These directions are combined into a single di_block
+        given that the function determines the principal component and splits the
+        data accordingly by polarity.
 
-    Examples
-    --------
-    Populations of roughly antipodal directions are developed here using
-    ``ipmag.fishrot``. These directions are combined into a single di_block
-    given that the function determines the principal component and splits the
-    data accordingly by polarity.
+        >>> directions_n = ipmag.fishrot(k=20, n=30, dec=5, inc=-60)
+        >>> directions_r = ipmag.fishrot(k=35, n=25, dec=182, inc=57)
+        >>> directions = directions_n + directions_r
+        >>> ipmag.reversal_test_bootstrap(di_block=directions, plot_stereo = True)
 
-    >>> directions_n = ipmag.fishrot(k=20, n=30, dec=5, inc=-60)
-    >>> directions_r = ipmag.fishrot(k=35, n=25, dec=182, inc=57)
-    >>> directions = directions_n + directions_r
-    >>> ipmag.reversal_test_bootstrap(di_block=directions, plot_stereo = True)
+        Data can also be input to the function as separate lists of dec and inc.
+        In this example, the di_block from above is split into lists of dec and inc
+        which are then used in the function:
 
-    Data can also be input to the function as separate lists of dec and inc.
-    In this example, the di_block from above is split into lists of dec and inc
-    which are then used in the function:
-
-    >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
-    >>> ipmag.reversal_test_bootstrap(dec=direction_dec,inc=direction_inc, plot_stereo = True)
+        >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
+        >>> ipmag.reversal_test_bootstrap(dec=direction_dec,inc=direction_inc, plot_stereo = True)
     """
     if di_block is None:
         all_dirs = make_di_block(dec, inc)
@@ -1460,7 +1455,8 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     return result
 
 
-def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo=False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, 
+                         plot_stereo=False, save=False, save_folder='.', fmt='svg'):
     """
     Calculates Watson's V statistic from input files through Monte Carlo
     simulation in order to test whether normal and reversed populations could
@@ -1471,49 +1467,47 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     the data into two polarities using the pmag.flip() function and flipping
     the reverse direction to their antipode.
 
-    Parameters
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
-        or
-    di_block: a nested list of [dec,inc]
-        A di_block can be provided in which case it will be used instead of
-        dec, inc lists.
+    Parameters:
+        dec: list of declinations
+        inc: list of inclinations
+            or
+        di_block: a nested list of [dec,inc]
+            *A di_block can be provided in which case it will be used instead of
+            dec, inc lists.*
 
-    plot_CDF : plot the CDF accompanying the printed results (default is False)
-    plot_stereo : plot stereonet with the bidirectionally separated data
-        (default is False)
-    save : boolean argument to save plots (default is False)
-    save_folder : relative directory where plots will be saved
-        (default is current directory, '.')
-    fmt : format of saved figures (default is 'svg')
+        plot_CDF : plot the CDF accompanying the printed results (default is False)
+        plot_stereo : plot stereonet with the bidirectionally separated data
+            (default is False)
+        save : boolean argument to save plots (default is False)
+        save_folder : relative directory where plots will be saved
+            (default is current directory, '.')
+        fmt : format of saved figures (default is 'svg')
     
-    Returns
-    -------
-    printed text : text describing the test result is printed
-    result : a boolean where 0 is fail and 1 is pass
-    angle : angle between the Fisher means of the two data sets
-    critical_angle : critical angle for the test to pass
-    classification : MM1990 classification for a positive test
+    Returns:
+        **printed text** (text describing the test result is printed), 
+        **result** (a boolean where 0 is fail and 1 is pass),
+        **angle** (angle between the Fisher means of the two data sets),
+        **critical_angle** (critical angle for the test to pass),
+        **classification** (MM1990 classification for a positive test).
+        Plots are shown if plot parameters are set to True.
 
-    Examples
-    --------
-    Populations of roughly antipodal directions are developed here using
-    ``ipmag.fishrot``. These directions are combined into a single di_block
-    given that the function determines the principal component and splits the
-    data accordingly by polarity.
+    Examples:
+        Populations of roughly antipodal directions are developed here using
+        ``ipmag.fishrot``. These directions are combined into a single di_block
+        given that the function determines the principal component and splits the
+        data accordingly by polarity.
 
-    >>> directions_n = ipmag.fishrot(k=20, n=30, dec=5, inc=-60)
-    >>> directions_r = ipmag.fishrot(k=35, n=25, dec=182, inc=57)
-    >>> directions = directions_n + directions_r
-    >>> ipmag.reversal_test_MM1990(di_block=directions, plot_stereo = True)
+        >>> directions_n = ipmag.fishrot(k=20, n=30, dec=5, inc=-60)
+        >>> directions_r = ipmag.fishrot(k=35, n=25, dec=182, inc=57)
+        >>> directions = directions_n + directions_r
+        >>> ipmag.reversal_test_MM1990(di_block=directions, plot_stereo = True)
 
-    Data can also be input to the function as separate lists of dec and inc.
-    In this example, the di_block from above is split into lists of dec and inc
-    which are then used in the function:
+        Data can also be input to the function as separate lists of dec and inc.
+        In this example, the di_block from above is split into lists of dec and inc
+        which are then used in the function:
 
-    >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
-    >>> ipmag.reversal_test_MM1990(dec=direction_dec,inc=direction_inc, plot_stereo = True)
+        >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
+        >>> ipmag.reversal_test_MM1990(dec=direction_dec,inc=direction_inc, plot_stereo = True)
     """
     if di_block is None:
         all_dirs = make_di_block(dec, inc)
