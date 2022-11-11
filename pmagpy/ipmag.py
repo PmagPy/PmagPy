@@ -152,15 +152,14 @@ def dms2dd(degrees, minutes, seconds):
     """
     Convert latitude/longitude of a location that is in degrees, minutes, seconds to decimal degrees
 
-    Parameters
-    ----------
-    degrees : degrees of latitude/longitude
-    minutes : minutes of latitude/longitude
-    seconds : seconds of latitude/longitude
+    Parameters:
+        degrees : degrees of latitude/longitude
+        minutes : minutes of latitude/longitude
+        seconds : seconds of latitude/longitude
 
-    Returns
-    -------
-    degrees : decimal degrees of location
+    Returns:
+        float
+            decimal degrees of location
 
     Examples
     --------
@@ -180,41 +179,37 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     di_block (a nested list of [dec,inc,1.0]). Returns a dictionary with the 
     Fisher mean and statistical parameters.
 
-    Parameters
-    ----------
-    dec : list of declinations or longitudes
-    inc : list of inclinations or latitudes
+    Parameters:
+        dec : list of declinations or longitudes
+        inc : list of inclinations or latitudes
+            or
+        di_block : a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it
+            will be used. Either dec, inc lists or a di_block need to be provided.
 
-    or
+    Returns:
+        dictionary 
+            Dictionary containing the Fisher mean parameters.
+            This dictionary can be printed in a more readable fashion using the
+            ``ipmag.print_direction_mean()`` function if it is a directional mean or 
+            ``ipmag.print_pole_mean()`` function if it is a pole mean.
 
-    di_block : a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it
-        will be used. Either dec, inc lists or a di_block need to be provided.
+    Examples:
+        Use lists of declination and inclination to calculate a Fisher mean:
 
-    Returns
-    -------
-    fisher_mean : dictionary containing the Fisher mean parameters
-        This dictionary can be printed in a more readable fashion using the
-        ipmag.print_direction_mean() if it is a directional mean or 
-        ipmag.print_pole_mean() if it is a pole mean.
+        >>> ipmag.fisher_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+        {'alpha95': 7.292891411309177,
+        'csd': 6.4097743211340896,
+        'dec': 136.30838974272072,
+        'inc': 21.347784026899987,
+        'k': 159.69251473636305,
+        'n': 4,
+        'r': 3.9812138971889026}
 
-    Examples
-    --------
-    Use lists of declination and inclination to calculate a Fisher mean:
+        Use a di_block to calculate a Fisher mean (will give the same output as the
+        example with the lists):
 
-    >>> ipmag.fisher_mean(dec=[140,127,142,136],inc=[21,23,19,22])
-    {'alpha95': 7.292891411309177,
-    'csd': 6.4097743211340896,
-    'dec': 136.30838974272072,
-    'inc': 21.347784026899987,
-    'k': 159.69251473636305,
-    'n': 4,
-    'r': 3.9812138971889026}
-
-    Use a di_block to calculate a Fisher mean (will give the same output as the
-    example with the lists):
-
-    >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+        >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec, inc)
@@ -231,22 +226,19 @@ def fisher_angular_deviation(dec=None, inc=None, di_block=None, confidence=95):
     directional data. The 63 percent confidence interval is often called the
     angular standard deviation.
 
-    Parameters
-    ----------
-    dec : list of declinations or longitudes
-    inc : list of inclinations or latitudes
+    Parameters:
+        dec : list of declinations or longitudes
+        inc : list of inclinations or latitudes
+                or
+        di_block : a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it
+            will be used. Either dec, inc lists or a di_block need to be provided.
+        confidence : 50 percent, 63 percent or 95 percent (default is 95 percent)
 
-    or
-
-    di_block : a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it
-        will be used. Either dec, inc lists or a di_block need to be provided.
-    confidence : 50 percent, 63 percent or 95 percent (default is 95 percent)
-
-    Returns
-    -------
-    theta : critical angle of interest from the mean which contains the
-        percentage of directions specified by the confidence parameter
+    Returns:
+        float
+            theta is returned which is the critical angle of interest from the mean which contains the
+            percentage of directions specified by the confidence parameter
     '''
     if di_block is None:
         di_block = make_di_block(dec, inc)
@@ -9164,57 +9156,42 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     Finds the Kent distribution statistics: mean, major and minor axes and their associated angles of dispersion. 
     
     
-    Required Parameter
-    -----------
-    data: a nested list of dec/inc pairs
-    site_latitude, site_longitude: location of the paleomagentic site
-    
+    Parameters:
+        data: a nested list of dec/inc pairs
+        site_latitude, site_longitude: location of the paleomagnetic site
+        kent_color : color of the Kent ellipse to plot (default is black)
+        nb : number of bootstrapped pseudo-samples (default is 1000)
+        save : Boolean argument to save plots (default is False)
+        save_folder : path to folder in which plots should be saved (default is current directory)
+        fmt : specify format of saved plots (default is 'svg')
+        return_new_dirs : optional return of newly "unflattened" directions as di_block (default is False)
+        return_values : optional return of all bootstrap result inclinations, elongations, and 
+            f factors (default is False)
+                if both return_new_dirs=True and return_values=True, the function will return
+                di_block of new directions, inclinations, elongations,and f factors
+        figprefix : prefix string for the name of the figures to be saved
+        EI_color : color of the most elongation/inclination curve corresponding to the most frequent f value
+        resample_EI_color : color of all other elongation/inclination curves
+        vgp_nb : number of virtual geomagnetic poles to resample for each iteration, the total VGPs resampled will be vgp_nb*nb
+        cmap : matplotlib color map used for plotting corrected paleomagnetic directions
+        central_longitude, central_latitude: central point of pole projection (defaults are 0)
+        num_resample_to_plot : number of bootstrap resample elongation/inclination curves to plot (default to to plot all)
+        vgp_nb : number of vgp to resample using a Monte Carlo approach with each f factor
+        cmap : matplotlib color map for color-coding the directions and mean poles based on the f factor
+        EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
+        resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
+        resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
 
-    Optional Parameters (defaults are used unless specified)
-    -----------
-    kent_color: color of the Kent ellipse to plot
-    nb: number of bootstrapped pseudo-samples (default is 1000)
-    save: Boolean argument to save plots (default is False)
-    save_folder: path to folder in which plots should be saved (default is current directory)
-    fmt: specify format of saved plots (default is 'svg')
-    return_new_dirs: optional return of newly "unflattened" directions as di_block (default is False)
-    return_values: optional return of all bootstrap result inclinations, elongations, and 
-        f factors (default is False)
-    if both return_new_dirs=True and return_values=True, the function will return:
-        di_block of new directions, inclinations, elongations,and f factors
-    figprefix: prefix string for the name of the figures to be saved
-    num_resample_to_plot: number of bootstrap resamples to plot in the elongation/inclination figure
-    EI_color: color of the most elongation/inclination curve corresponding to the most frequent f value
-    resample_EI_color: color of all other elongation/inclination curves
-    vgp_nb: number of virtual geomagnetic poles to resample for each iteration, the total VGPs resampled will be vgp_nb*nb
-    cmap: matplotlib color map used for plotting corrected paleomagnetic directions
-    central_longitude, central_latitude: central point of pole projection (defaults are 0)
-    
-    Note that many directions (~ 100) are needed for this correction to be reliable.
-    return_new_dirs: optional return of newly "unflattened" directions as di_block (default is False)
-    return_values: optional return of all bootstrap result inclinations, elongations, and 
-        f factors (default is False)
-    if both return_new_dirs=True and return_values=True, the function will return:
-        di_block of new directions, inclinations, elongations,and f factors
-    num_resample_to_plot: number of bootstrap resample elongation/inclination curves to plot (default to to plot all)
-    vgp_nb: number of vgp to resample using a Monte Carlo approach with each f factor
-    cmap: matplotlib color map for color-coding the directions and mean poles based on the f factor
-    
-    
-    EI_color: the color of the EI curve associated with the most frequent f value (rounded to 2 decimal points, default is red)
-    resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
-    resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
-
-    Returns
-    -----------
-    four plots:   1) equal area plot of original directions
-                  2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
-                  3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
-                     Estimate from original data set plotted as solid line
-                  4) Orientation of principle direction through unflattening
+    Returns:
+        four plots :  
+            1) equal area plot of original directions
+            2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+            3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties. Estimate from original data set plotted as solid line
+            4) Orientation of principle direction through unflattening
      
-    NOTE: If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
-       valid solutions and those are plotted in the CDFs and E/I plot.
+    NOTE: 
+        If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
+        valid solutions and those are plotted in the CDFs and E/I plot.
     """
     
     print("Bootstrapping.... be patient")
@@ -15269,17 +15246,16 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     k1 and k2 can be estimated the kappa of the  directions, or one can use the companion 
     function (ipmag.full_kappa; to come) as in the original publication. 
     
-    Parameters
-    ----------
-    alpha : angle between paleomagnetic directions (site means)
-    k1 : kappa estimate for first direction
-    k2 : kappa estimate for second direction
-    trials : the number of simulations [default = 10,000]
-    print_result : the probability value returned in a sentence [default = False]
+    Parameters:
+        alpha : angle between paleomagnetic directions (site means)
+        k1 (float): kappa estimate for first direction
+        k2 (float): kappa estimate for second direction
+        trials (int): the number of simulations [default = 10,000]
+        print_result (boolean): the probability value returned in a sentence [default = False]
     
-    Returns
-    --------------------------
-    simul_prob : probability value
+    Returns:
+        float 
+            number indicating probability value
     """
     #sets initial value for counters
     hit = 0
