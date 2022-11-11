@@ -7776,30 +7776,6 @@ def smooth(x, window_len, window='bartlett'):
     return np.array(y[window_len:-window_len])
 
 
-def deriv1(x, y, i, n):
-    """
-    Alternative way to smooth the derivative of a noisy signal
-    using least square fit. In this method the slope in position
-    'i' is calculated by least square fit of 'n' points before
-    and after position.
-
-    Required Parameters
-    ----------
-    x : array of x axis
-    y : array of y axis
-    n : smoothing factor
-    i : position
-    """
-    m_, x_, y_, xy_, x_2 = 0., 0., 0., 0., 0.
-    for ix in range(i, i + n, 1):
-        x_ = x_ + x[ix]
-        y_ = y_ + y[ix]
-        xy_ = xy_ + x[ix] * y[ix]
-        x_2 = x_2 + x[ix]**2
-    m = ((n * xy_) - (x_ * y_))/(n * x_2 - (x_)**2)
-    return(m)
-
-
 def curie(path_to_file='.', file_name='', magic=False,
           window_length=3, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
     """
