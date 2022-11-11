@@ -1,4 +1,5 @@
 #!/usr/bin/env/pythonw
+# -*- coding: cp1252 -*-
 
 import codecs
 import copy
@@ -15257,3 +15258,53 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
 
 
     return magic_dir,upload_file
+
+def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
+    """
+    The function ipmag.simul_correlation_prob runs an algorithm from Bogue and Coe (1981) for probabilistic correlation, evaluating
+    the probability that the similarity between two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic field. 
+    This can be compared with the probability that the two directions were sampled at random times with the companion function
+    (ipmag.random_correlation_prob; to come). k1 and k2 can be estimated the kappa of the directions, or one can use the companion function 
+    (ipmag.full_kappa; to come) as in the original publication. A version of this function was written in Python by S. Bogue, translated
+    to PmagPy functionality by A. Pivarunas
+    
+    Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia River basalt flows using secular variation. Journal of Geophysical
+    Research, v. 86, p. 11883–11897.
+    
+    Parameters
+    ----------
+    
+    alpha: angle between paleomagnetic directions (site means)
+    k1: kappa estimate for first direction
+    k2: kappa estimate for second direction
+    trials: the number of simulations, default=10,000
+    print_result: the probability value returned in a sentence, default=False
+    
+    Returns
+    --------------------------
+    
+    simul_prob
+    """
+    #sets initial value for counters
+    hit = 0
+    miss = 0
+    
+    #trial loop
+    for i in range(trials):
+        #generates two synthetic directions, using the estimated kappas
+        lontp1,lattp1 = ipmag.fishrot(k1, 1, 0, 90, di_block=False)
+        lontp2,lattp2 = ipmag.fishrot(k2, 1, 0, 90, di_block=False)
+        #determines the angle between the generated directions 
+        angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
+        #checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
+        if (angle >= alpha):
+            hit = hit + 1
+        else:
+            miss = miss + 1
+    #calculates probability based on how often the angle between the 'real' datasets is met or exceeded
+    simul_prob = 1.0 * hit / trials
+    
+    if print_result == True:
+        print ('The probability that directions represent simultaneous samples of the geomagnetic field is: {0:5.3f}'.format(simul_prob))
+    else:
+        return simul_prob
