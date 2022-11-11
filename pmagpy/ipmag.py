@@ -261,40 +261,35 @@ def bingham_mean(dec=None, inc=None, di_block=None):
     values or from a di_block (a nested list of [dec, inc, 1.0]).
     Returns a dictionary with the Bingham mean and statistical parameters.
 
-    Parameters
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
+    Parameters:
+        dec: list of declinations
+        inc: list of inclinations
+                or
+        di_block: a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it will
+            be used. Either dec, inc lists or a di_block need to passed to the function.
 
-    or
+    Returns:
+        dictionary containing the Bingham mean and associated statistics.
 
-    di_block: a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it will
-        be used. Either dec, inc lists or a di_block need to passed to the function.
+    Examples:
+        Use lists of declination and inclination to calculate a Bingham mean:
 
-    Returns
-    ---------
-    bpars : dictionary containing the Bingham mean and associated statistics.
+        >>> ipmag.bingham_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+        {'Edec': 220.84075754194598,
+        'Einc': -13.745780972597291,
+        'Eta': 9.9111522306938742,
+        'Zdec': 280.38894136954474,
+        'Zeta': 9.8653370276451113,
+        'Zinc': 64.23509410796224,
+        'dec': 136.32637167111312,
+        'inc': 21.34518678073179,
+        'n': 4}
 
-    Examples
-    --------
-    Use lists of declination and inclination to calculate a Bingham mean:
+        Use a di_block to calculate a Bingham mean (will give the same output as the
+        example with the lists):
 
-    >>> ipmag.bingham_mean(dec=[140,127,142,136],inc=[21,23,19,22])
-    {'Edec': 220.84075754194598,
-     'Einc': -13.745780972597291,
-     'Eta': 9.9111522306938742,
-     'Zdec': 280.38894136954474,
-     'Zeta': 9.8653370276451113,
-     'Zinc': 64.23509410796224,
-     'dec': 136.32637167111312,
-     'inc': 21.34518678073179,
-     'n': 4}
-
-    Use a di_block to calculate a Bingham mean (will give the same output as the
-    example with the lists):
-
-    >>> ipmag.bingham_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+        >>> ipmag.bingham_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec, inc)
@@ -310,40 +305,35 @@ def kent_mean(dec=None, inc=None, di_block=None):
     from a di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
     dictionary with the Kent mean and statistical parameters.
 
-    Parameters
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
+    Parameters:
+        dec: list of declinations
+        inc: list of inclinations
+                or
+        di_block: a nested list of [dec,inc,1.0]
+            A di_block can be provided instead of dec, inc lists in which case it will
+            be used. Either dec, inc lists or a di_block need to passed to the function.
 
-    or
+    Returns:
+        kpars : dictionary containing Kent mean and associated statistics.
 
-    di_block: a nested list of [dec,inc,1.0]
-        A di_block can be provided instead of dec, inc lists in which case it will
-        be used. Either dec, inc lists or a di_block need to passed to the function.
+    Examples:
+        Use lists of declination and inclination to calculate a Kent mean:
 
-    Returns
-    ----------
-    kpars : dictionary containing Kent mean and associated statistics.
+        >>> ipmag.kent_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+        {'Edec': 280.38683553668795,
+        'Einc': 64.236598921744289,
+        'Eta': 0.72982112760919715,
+        'Zdec': 40.824690028412761,
+        'Zeta': 6.7896823241008795,
+        'Zinc': 13.739412321974067,
+        'dec': 136.30838974272072,
+        'inc': 21.347784026899987,
+        'n': 4}
 
-    Examples
-    --------
-    Use lists of declination and inclination to calculate a Kent mean:
+        Use a di_block to calculate a Kent mean (will give the same output as the
+        example with the lists):
 
-    >>> ipmag.kent_mean(dec=[140,127,142,136],inc=[21,23,19,22])
-    {'Edec': 280.38683553668795,
-     'Einc': 64.236598921744289,
-     'Eta': 0.72982112760919715,
-     'Zdec': 40.824690028412761,
-     'Zeta': 6.7896823241008795,
-     'Zinc': 13.739412321974067,
-     'dec': 136.30838974272072,
-     'inc': 21.347784026899987,
-     'n': 4}
-
-    Use a di_block to calculate a Kent mean (will give the same output as the
-    example with the lists):
-
-    >>> ipmag.kent_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+        >>> ipmag.kent_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec, inc)
@@ -901,45 +891,43 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     maxima. If the confidence bounds enclose 100% unfolding, the data "pass"
     the fold test.
 
-    Parameters
-    ----------
-    Data : a numpy array of directional data [dec, inc, dip_direction, dip]
-        dec, inc are the declination and inclination of the paleomagnetic directions
-        dip_direction, dip are the orientation of the bedding
-    num_sims : number of bootstrap samples (default is 1000)
-    min_untilt : minimum percent untilting applied to the data (default is -10%)
-    max_untilt : maximum percent untilting applied to the data (default is 120%)
-    bedding_error : (circular standard deviation) for uncertainty on bedding poles
-    save : optional save of plots (default is False)
-    save_folder : path to directory where plots should be saved
-    fmt : format of figures to be saved (default is 'svg')
-    ninety_nine : changes confidence bounds from 95 percent to 99 if True
+    Parameters:
+        Data : a numpy array of directional data [dec, inc, dip_direction, dip]
+            dec, inc are the declination and inclination of the paleomagnetic directions
+            dip_direction, dip are the orientation of the bedding
+        num_sims : number of bootstrap samples (default is 1000)
+        min_untilt : minimum percent untilting applied to the data (default is -10%)
+        max_untilt : maximum percent untilting applied to the data (default is 120%)
+        bedding_error : (circular standard deviation) for uncertainty on bedding poles
+        save : optional save of plots (default is False)
+        save_folder : path to directory where plots should be saved
+        fmt : format of figures to be saved (default is 'svg')
+        ninety_nine : changes confidence bounds from 95 percent to 99 if True
 
-    Returns
-    -------
-    three plots : uncorrected data equal area plot, tilt-corrected data equal
-        area plot, bootstrap results and CDF of the eigenvalue maximum
+    Returns:
+        - uncorrected data equal area plot
+        - tilt-corrected data equal area plot
+        - bootstrap results and CDF of the eigenvalue maximum
 
-    Examples
-    --------
-    Data in separate lists of dec, inc, dip_direction, dip data can be made into
-    the needed array using the ``ipmag.make_diddd_array`` function.
+    Examples:
+        Data in separate lists of dec, inc, dip_direction, dip data can be made into
+        the needed array using the ``ipmag.make_diddd_array`` function.
 
-    >>> dec = [132.5,124.3,142.7,130.3,163.2]
-    >>> inc = [12.1,23.2,34.2,37.7,32.6]
-    >>> dip_direction = [265.0,265.0,265.0,164.0,164.0]
-    >>> dip = [20.0,20.0,20.0,72.0,72.0]
-    >>> data_array = ipmag.make_diddd_array(dec,inc,dip_direction,dip)
-    >>> data_array
-    array([[ 132.5,   12.1,  265. ,   20. ],
-       [ 124.3,   23.2,  265. ,   20. ],
-       [ 142.7,   34.2,  265. ,   20. ],
-       [ 130.3,   37.7,  164. ,   72. ],
-       [ 163.2,   32.6,  164. ,   72. ]])
+        >>> dec = [132.5,124.3,142.7,130.3,163.2]
+        >>> inc = [12.1,23.2,34.2,37.7,32.6]
+        >>> dip_direction = [265.0,265.0,265.0,164.0,164.0]
+        >>> dip = [20.0,20.0,20.0,72.0,72.0]
+        >>> data_array = ipmag.make_diddd_array(dec,inc,dip_direction,dip)
+        >>> data_array
+        array([[ 132.5,   12.1,  265. ,   20. ],
+        [ 124.3,   23.2,  265. ,   20. ],
+        [ 142.7,   34.2,  265. ,   20. ],
+        [ 130.3,   37.7,  164. ,   72. ],
+        [ 163.2,   32.6,  164. ,   72. ]])
 
-    This array can then be passed to the function:
+        This array can then be passed to the function:
 
-    >>> ipmag.bootstrap_fold_test(data_array)
+        >>> ipmag.bootstrap_fold_test(data_array)
     """
     if bedding_error != 0:
         kappa = (81.0/bedding_error)**2
@@ -1028,33 +1016,30 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     component overlap, the two set of directions "pass" the test and are
     consistent with sharing a common mean.
 
-    Parameters
-    ----------
-    Data1 : a nested list of directional data [dec,inc] (a di_block)
-    Data2 : a nested list of directional data [dec,inc] (a di_block)
-            if Data2 is length of 1, treat as single direction
-    NumSims : number of bootstrap samples (default is 1000)
-    save : optional save of plots (default is False)
-    save_folder : path to directory where plots should be saved
-    fmt : format of figures to be saved (default is 'svg')
-    figsize : optionally adjust figure size (default is (7, 2.3))
-    x_tick_bins : because they occasionally overlap depending on the data, this
-        argument allows you adjust number of tick marks on the x axis of graphs
-        (default is 4)
+    Parameters:
+        Data1 : a nested list of directional data [dec,inc] (a di_block)
+        Data2 : a nested list of directional data [dec,inc] (a di_block)
+                if Data2 is length of 1, treat as single direction
+        NumSims : number of bootstrap samples (default is 1000)
+        save : optional save of plots (default is False)
+        save_folder : path to directory where plots should be saved
+        fmt : format of figures to be saved (default is 'svg')
+        figsize : optionally adjust figure size (default is (7, 2.3))
+        x_tick_bins : because they occasionally overlap depending on the data, this
+            argument allows you adjust number of tick marks on the x axis of graphs
+            (default is 4)
 
-    Returns
-    -------
-    three plots : cumulative distributions of the X, Y, Z of bootstrapped means
-    result : a boolean where 0 is fail and 1 is pass
+    Returns:
+        three plots : cumulative distributions of the X, Y, Z of bootstrapped means
+        result : a boolean where 0 is fail and 1 is pass
 
-    Examples
-    --------
-    Develop two populations of directions using ``ipmag.fishrot()``. Use the
-    function to determine if they share a common mean.
+    Examples:
+        Develop two populations of directions using ``ipmag.fishrot()``. Use the
+        function to determine if they share a common mean.
 
-    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
-    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
-    >>> ipmag.common_mean_bootstrap(directions_A, directions_B)
+        >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+        >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+        >>> ipmag.common_mean_bootstrap(directions_A, directions_B)
     """
     counter = 0
     BDI1 = pmag.di_boot(Data1)
@@ -1166,34 +1151,31 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     angle between the two sample mean directions and the corresponding
     McFadden and McElhinny (1990) classification is printed.
 
-    Parameters
-    ----------
-    Data1 : a nested list of directional data [dec,inc] (a di_block)
-    Data2 : a nested list of directional data [dec,inc] (a di_block)
-    NumSims : number of Monte Carlo simulations (default is 5000)
-    print_result : default is to print the test result (True)
-    plot : the default is no plot ('no'). 
-        Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
-    save : optional save of plots (default is False)
-    save_folder : path to where plots will be saved (default is current)
-    fmt : format of figures to be saved (default is 'svg')
+    Parameters:
+        Data1 : a nested list of directional data [dec,inc] (a di_block)
+        Data2 : a nested list of directional data [dec,inc] (a di_block)
+        NumSims : number of Monte Carlo simulations (default is 5000)
+        print_result : default is to print the test result (True)
+        plot : the default is no plot ('no'). 
+            Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
+        save : optional save of plots (default is False)
+        save_folder : path to where plots will be saved (default is current)
+        fmt : format of figures to be saved (default is 'svg')
 
-    Returns
-    -------
-    printed text : text describing the test result is printed
-    result : a boolean where 0 is fail and 1 is pass
-    angle : angle between the Fisher means of the two data sets
-    critical_angle : critical angle for the test to pass
-    classification : MM1990 classification for a positive test
+    Returns:
+        printed text : text describing the test result is printed
+        result : a boolean where 0 is fail and 1 is pass
+        angle : angle between the Fisher means of the two data sets
+        critical_angle : critical angle for the test to pass
+        classification : MM1990 classification for a positive test
 
-    Examples
-    --------
-    Develop two populations of directions using ``ipmag.fishrot``. Use the
-    function to determine if they share a common mean.
+    Examples:
+        Develop two populations of directions using ``ipmag.fishrot``. Use the
+        function to determine if they share a common mean.
 
-    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
-    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
-    >>> ipmag.common_mean_watson(directions_A, directions_B)
+        >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+        >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+        >>> ipmag.common_mean_watson(directions_A, directions_B)
     """
     pars_1 = pmag.fisher_mean(Data1)
     pars_2 = pmag.fisher_mean(Data2)
@@ -1334,18 +1316,16 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     the Bayesian framework of Heslop and Roberts (2018). This version
     of the test is the one involving distributions with common precision.
     
-    Parameters
-    ----------
-    Data1 : a nested list of directional data [dec,inc] (a di_block)
-    Data2 : a nested list of directional data [dec,inc] (a di_block)
-    reversal_test : whether to flip one populations to its antipode
-        (default is False)
+    Parameters:
+        Data1 : a nested list of directional data [dec,inc] (a di_block)
+        Data2 : a nested list of directional data [dec,inc] (a di_block)
+        reversal_test : whether to flip one populations to its antipode
+            (default is False)
     
-    Returns
-    -------
-    BF0 : Bayes factor
-    P : posterior probability of the hypothesis
-    support : category of support based on classification of P
+    Returns:
+        **BF0** (Bayes factor),  
+        **P** (posterior probability of the hypothesis), 
+        **support** (category of support based on classification of P)
     '''    
     X1=pmag.dir2cart(Data1)
     X2=pmag.dir2cart(Data2) 
@@ -2898,13 +2878,12 @@ def bin_trace(lon_samples, lat_samples, resolution):
     The resolution keyword gives the number of divisions in latitude.
     The divisions in longitude is twice that.
 
-    Parameters
-    -----------
-    lon_samples: a list of longitudes
-    lat_samples: a list of latitudes
+    Parameters:
+        lon_samples: a list of longitudes
+        lat_samples: a list of latitudes
 
-    resolution: The resolution keyword gives the number of divisions in latitude.
-        The divisions in longitude is twice that.
+        resolution: The resolution keyword gives the number of divisions in latitude.
+            The divisions in longitude is twice that.
 
     """
     lats = np.linspace(-90., 90., resolution, endpoint=True)
@@ -3334,21 +3313,18 @@ def combine_magic(filenames, outfile='measurements.txt', data_model=3, magic_tab
     Takes a list of magic-formatted files, concatenates them, and creates a
     single file. Returns output filename if the operation was successful.
 
-    Parameters
-    -----------
-    filenames : list of MagIC formatted files
-    outfile : name of output file [e.g., measurements.txt]
-    data_model : data model number (2.5 or 3), default 3
-    magic_table : name of magic table, default 'measurements'
-    dir_path : str
-        output directory, default "."
-    input_dir_path : str
-        input file directory (if different from dir_path), default ""
+    Parameters:
+        filenames : list of MagIC formatted files
+        outfile : name of output file [e.g., measurements.txt]
+        data_model : data model number (2.5 or 3), default 3
+        magic_table : name of magic table, default 'measurements'
+        dir_path : str
+            output directory, default "."
+        input_dir_path : str
+            input file directory (if different from dir_path), default ""
 
-
-    Returns
-    ----------
-    outfile name if success, False if failure
+    Returns:
+        outfile name if success, False if failure
     """
     input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
     if float(data_model) == 3.0:
@@ -3675,33 +3651,33 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
     You must provide valid specimens and sites files, and either a samples or an ages file.
     You may additionally provide measurements and a summary file (csv).
 
-    Parameters
-    ----------
-    spec_file : str, default "specimens.txt"
-    samp_file : str, default "samples.txt"
-    meas_file : str, default "measurements.txt"
-    site_file : str, default "sites.txt"
-    age_file : str, default ""
-    sum_file : str, default ""
-    fmt : str, default "svg"
-        format for figures, ["svg", "jpg", "pdf", "png"]
-    dmin : number, default -1
-        minimum depth to plot (if -1, default to plotting all)
-    dmax : number, default -1
-        maximum depth to plot (if -1, default to plotting all)
-    depth_scale : str, default "core_depth"
-        scale to plot, ['composite_depth', 'core_depth', 'age'].
-        if 'age' is selected, you must provide an ages file.
-    dir_path : str, default "."
-        directory for input files
-    contribution : cb.Contribution, default None
-        if provided, use Contribution object instead of reading in
-        data from files
+    Parameters:
+        spec_file (str): default "specimens.txt"
+        samp_file (str): default "samples.txt"
+        meas_file (str): default "measurements.txt"
+        site_file (str): default "sites.txt"
+        age_file (str): default ""
+        sum_file (str): default ""
+        fmt (str): str, default "svg"
+            format for figures, ["svg", "jpg", "pdf", "png"]
+        dmin (number): default -1
+            minimum depth to plot (if -1, default to plotting all)
+        dmax (number): default -1
+            maximum depth to plot (if -1, default to plotting all)
+        depth_scale (str): default "core_depth"
+            scale to plot, ['composite_depth', 'core_depth', 'age'].
+            if 'age' is selected, you must provide an ages file.
+        dir_path (str): default "."
+            directory for input files
+        contribution : cb.Contribution, default None
+            if provided, use Contribution object instead of reading in
+            data from files
 
-    Returns
-    ---------
-    plot : matplotlib plot, or False if no plot could be created
-    name : figure name, or error message if no plot could be created
+    Returns:
+        plot 
+            matplotlib plot, or False if no plot could be created
+        name 
+            figure name, or error message if no plot could be created
     """
     if depth_scale == 'sample_core_depth':
         depth_scale = 'core_depth'
@@ -7174,29 +7150,28 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
     """
     takes space delimited AzDip file and converts to MagIC formatted tables
 
-    Parameters
-    __________
+    Parameters:
         orient_file : name of azdip formatted input file
         samp_file : name of samples.txt formatted output file
-        samp_con :  integer of sample orientation convention
-            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
-                is the single character sample designation.  e.g., TG001a is the
-                first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
-            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
-            [5] site name same as sample
-            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
-            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+        samp_con : integer of sample orientation convention
 
-        method_codes :  colon delimited string with the following as desired
-             FS-FD field sampling done with a drill
-             FS-H field sampling done with hand samples
-             FS-LOC-GPS  field location done with GPS
-             FS-LOC-MAP  field location done with map
-             SO-POM   a Pomeroy orientation device was used
-             SO-ASC   an ASC orientation device was used
-             SO-MAG   orientation with magnetic compass
+            - [1] XXXXY: where XXXX is an arbitrary length site designation and Y is the single character sample designation. e.g., TG001a is the first sample from site TG001.    [default]
+            - [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            - [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+            - [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            - [5] site name same as sample
+            - [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+            - [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+
+        method_codes : colon delimited string with the following as desired
+
+            - FS-FD field sampling done with a drill
+            - FS-H field sampling done with hand samples
+            - FS-LOC-GPS  field location done with GPS
+            - FS-LOC-MAP  field location done with map
+            - SO-POM   a Pomeroy orientation device was used
+            - SO-ASC   an ASC orientation device was used
+            - SO-MAG   orientation with magnetic compass
         location_name : location of samples
         append : boolean.  if True, append to the output file
         output_dir : path to output file directory
@@ -7209,7 +7184,7 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         Orientation convention:
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
                 e.g. field_dip is degrees from horizontal of drill direction
-         Magnetic declination convention:
+        Magnetic declination convention:
              Az is already corrected in file
 
     """
@@ -8018,12 +7993,12 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
     Generates plots that compare susceptibility to temperature at different
     frequencies.
 
-    Optional Parameters (defaults are used if not specified)
-    ----------
-    path_to_file : path to directory that contains file (default is current directory, '.')
-    file_name : name of file to be opened (default is 'magic_measurements.txt')
-    save : boolean argument to save plots (default is False)
-    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    Parameters:
+        (defaults are used if not specified)
+        path_to_file : path to directory that contains file (default is current directory, '.')
+        file_name : name of file to be opened (default is 'magic_measurements.txt')
+        save : boolean argument to save plots (default is False)
+        save_folder : relative directory where plots will be saved (default is current directory, '.')
     """
     cont, FTinit, BTinit, k = "", 0, 0, 0
     complete_path = os.path.join(path_to_file, file_name)
@@ -10373,26 +10348,23 @@ def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='s
 
 
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
-                ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
+                ipar=False, ihext=True, ivec=False, isite=False, iboot=False, vec=0,
                 Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
                 save_plots=True, interactive=False, fmt="png", contribution=None, image_records=False):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
 
-    Parameters
-    __________
+    Parameters:
         infile : specimens formatted file with aniso_s data
         samp_file : samples formatted file with sample => site relationship
         site_file : sites formatted file with site => location relationship
         verbose : if True, print messages to output
-        confidence bounds options:
-            ipar : if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
-            ihext : if True - Hext ellipses
-            ivec : if True - plot bootstrapped eigenvectors instead of ellipses
-            isite : if True plot by site, requires non-blank samp_file
-            #iloc : if True plot by location, requires non-blank samp_file, and site_file  NOT IMPLEMENTED
-            iboot : if True - bootstrap ellipses
+        ipar (confidence bound parameter): if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
+        ihext (confidence bound parameter): if True - Hext ellipses
+        ivec (confidence bound parameter): if True - plot bootstrapped eigenvectors instead of ellipses
+        isite (confidence bound parameter): if True plot by site, requires non-blank samp_file
+        iboot (confidence bound parameter): if True - bootstrap ellipses
         vec : eigenvector for comparison with Dir
         Dir : [Dec,Inc] list for comparison direction
         PDir : [Pole_dec, Pole_Inc] for pole to plane for comparison
@@ -10801,39 +10773,37 @@ def aarm_magic_dm2(infile, dir_path=".", input_dir_path="",
     """
     Converts AARM  data to best-fit tensor (6 elements plus sigma)
 
-    Parameters
-    ----------
-    infile : str
-        input measurement file
-    dir_path : str
-        output directory, default "."
-    input_dir_path : str
-        input file directory IF different from dir_path, default ""
-    spec_file : str
-        input/output specimen file name, default "specimens.txt"
-    samp_file : str
-        input sample file name, default "samples.txt"
-    data_model_num : number
-        MagIC data model [2, 3], default 3
-    coord : str
-        coordinate system specimen/geographic/tilt-corrected,
-        ['s', 'g', 't'], default 's'
+    Parameters:
+        infile (str): 
+            input measurement file
+        dir_path (str): 
+            output directory, default "."
+        input_dir_path (str): 
+            input file directory IF different from dir_path, default ""
+        spec_file (str): 
+            input/output specimen file name, default "specimens.txt"
+        samp_file (str): 
+            input sample file name, default "samples.txt"
+        data_model_num (int): 
+            MagIC data model [2, 3], default 3
+        coord (str): 
+            coordinate system specimen/geographic/tilt-corrected,
+            ['s', 'g', 't'], default 's'
 
-    Returns
-    ---------
-    Tuple : (True or False indicating if conversion was successful, output file name written)
+    Returns:
+        Tuple 
+            True or False indicating if conversion was successful, output file name written
 
-    Info
-    ---------
+    Info:
         Input for is a series of baseline, ARM pairs.
-      The baseline should be the AF demagnetized state (3 axis demag is
-      preferable) for the following ARM acquisition. The order of the
-      measurements is:
-
+        The baseline should be the AF demagnetized state (3 axis demag is
+        preferable) for the following ARM acquisition. The order of the
+        measurements is:
            positions 1,2,3, 6,7,8, 11,12,13 (for 9 positions)
-           positions 1,2,3,4, 6,7,8,9, 11,12,13,14 (for 12 positions)
-           positions 1-15 (for 15 positions)
 
+           positions 1,2,3,4, 6,7,8,9, 11,12,13,14 (for 12 positions)
+
+           positions 1-15 (for 15 positions)
     """
     data_model_num = int(float(data_model_num))
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -11325,42 +11295,37 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     """
     Converts AARM  data to best-fit tensor (6 elements plus sigma)
 
-    Parameters
-    ----------
-    meas_file : str
-        input measurement file
-    dir_path : str
-        output directory, default "."
-    input_dir_path : str
-        input file directory IF different from dir_path, default ""
-    input_spec_file : str
-        input specimen file name, default "specimens.txt"
-    output_spec_file : str
-        output specimen file name, default "specimens.txt"
+    Parameters:
+        meas_file (str): 
+            input measurement file
+        dir_path (str): 
+            output directory, default "."
+        input_dir_path (str): 
+            input file directory IF different from dir_path, default ""
+        input_spec_file (str): 
+            input specimen file name, default "specimens.txt"
+        output_spec_file (str): 
+            output specimen file name, default "specimens.txt"
 
+    Returns:
+            True or False indicating if conversion was successful and output file name written
 
-    Returns
-    ---------
-    Tuple : (True or False indicating if conversion was successful, output file name written)
-
-    Info
-    ---------
+    Info:
         Input for is a series of baseline, ARM pairs.
-      The baseline should be the AF demagnetized state (3 axis demag is
-      preferable) for the following ARM acquisition. The order of the
-      measurements is:
-           for 6 positions (AF demag before each step):
-               1) labfield parallel to X
-               2) labfield parallel to Y
-               3) labfield parallel to Z
-               4) labfield anti-parallel to X
-               5) labfield anti-parallel to Y
-               6) labfield anti-parallel to Z
+        The baseline should be the AF demagnetized state (3 axis demag is
+        preferable) for the following ARM acquisition. The order of the
+        measurements is:
+            for 6 positions (AF demag before each step):
+                1) labfield parallel to X
+                2) labfield parallel to Y
+                3) labfield parallel to Z
+                4) labfield anti-parallel to X
+                5) labfield anti-parallel to Y
+                6) labfield anti-parallel to Z
             for 9 positions (AF demag before each step):
-                positions 1,2,3, 6,7,8, 11,12,13 (from Figure D.2 in Essentials, earthref.org/MagIC/books/Tauxe/Essentials, Appendix D)
+                positions 1,2,3,6,7,8,11,12,13 (from Figure D.2 in Essentials, earthref.org/MagIC/books/Tauxe/Essentials, Appendix D)
             for 15  positions (AF demag before each step):
                 positions 1-15 (for 15 positions)
-
     """
     # fix up file names
     input_dir_path, dir_path = pmag.fix_directories(input_dir_path, dir_path)
@@ -11849,8 +11814,7 @@ def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
 
 def calculate_aniso_parameters(K,n_pos=6):
     """
-            calculate anisotropy parameters from n_pos positions plus optional baseline measurements
-            ADD DOC STUFF HERE
+        calculate anisotropy parameters from n_pos positions plus optional baseline measurements
     """
     aniso_parameters = {}
     Matrices=get_matrix(n_pos)
@@ -11928,37 +11892,34 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     """
     Converts ATRM  data to best-fit tensor (6 elements plus sigma)
 
-    Parameters
-    ----------
-    meas_file : str
-        input measurement file
-    dir_path : str
-        output directory, default "."
-    input_dir_path : str
-        input file directory IF different from dir_path, default ""
-    input_spec_file : str
-        input specimen file name, default "specimens.txt"
-    output_spec_file : str
-        output specimen file name, default "specimens.txt"
+    Parameters:
+        meas_file (str): 
+            input measurement file
+        dir_path (str): 
+            output directory, default "."
+        input_dir_path (str): 
+            input file directory IF different from dir_path, default ""
+        input_spec_file (str): 
+            input specimen file name, default "specimens.txt"
+        output_spec_file (str): 
+            output specimen file name, default "specimens.txt"
 
 
-    Returns
-    ---------
-    Tuple : (True or False indicating if conversion was successful, output file name written)
+    Returns:
+        Tuple : (True or False indicating if conversion was successful, output file name written)
 
-    Info
-    ---------
+    Info:
         Input for is a series of ATRM measurements with optional alteration check
-       The order of the measurements is:
+        The order of the measurements is:
 
            positions:
-               labfield parallel to X
-               labfield parallel to Y
-               labfield parallel to Z
-               labfield anti-parallel to X
-               labfield anti-parallel to Y
-               labfield anti-parallel to Z
-               optional: labfield parallel to X
+               - labfield parallel to X
+               - labfield parallel to Y
+               - labfield parallel to Z
+               - labfield anti-parallel to X
+               - labfield anti-parallel to Y
+               - labfield anti-parallel to Z
+               - optional: labfield parallel to X
 
     """
     # fix up file names
@@ -14205,28 +14166,27 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
 def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
               fmt="svg", save_plots=True, interactive=False, contribution=None):
     """
-    Parameters
-    ----------
-    infile : str, default "measurements.txt"
-        measurement infile
-    dir_path : str, default "."
-        input directory
-    experiments : str, default ""
-        experiment name to plot
-    fmt : str, default "svg"
-        format for figures, ["svg", "jpg", "pdf", "png"]
-    save_plots : bool, default True
-        save figures
-    interactive : bool, default False
-        if True, interactively plot and display
-        (this is best used on the command line only)
-    contribution : cb.Contribution, default None
-        if provided, use Contribution object instead of reading in
-        data from files
+    Parameters:
+        infile : str, default "measurements.txt"
+            measurement infile
+        dir_path : str, default "."
+            input directory
+        experiments : str, default ""
+            experiment name to plot
+        fmt : str, default "svg"
+            format for figures, ["svg", "jpg", "pdf", "png"]
+        save_plots : bool, default True
+            save figures
+        interactive : bool, default False
+            if True, interactively plot and display
+            (this is best used on the command line only)
+        contribution : cb.Contribution, default None
+            if provided, use Contribution object instead of reading in
+            data from files
 
-    Returns
-    ---------
-    (status, output_files) - Tuple : (True or False indicating if conversion was successful, file name(s) written)
+    Returns:
+        (status, output_files) - Tuple: 
+            True or False indicating if conversion was successful, file name(s) written
     """
     saved = []
     if contribution:
