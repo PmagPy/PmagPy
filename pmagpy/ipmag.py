@@ -7675,42 +7675,15 @@ def smooth(x, window_len, window='bartlett'):
     return np.array(y[window_len:-window_len])
 
 
-def deriv1(x, y, i, n):
-    """
-    Alternative way to smooth the derivative of a noisy signal
-    using least square fit. In this method the slope in position
-    'i' is calculated by least square fit of 'n' points before
-    and after position.
-
-    Parameters:
-        x : array of x axis
-        y : array of y axis
-        n : smoothing factor
-        i : position
-
-    """
-    m_, x_, y_, xy_, x_2 = 0., 0., 0., 0., 0.
-    for ix in range(i, i + n, 1):
-        x_ = x_ + x[ix]
-        y_ = y_ + y[ix]
-        xy_ = xy_ + x[ix] * y[ix]
-        x_2 = x_2 + x[ix]**2
-    m = ((n * xy_) - (x_ * y_))/(n * x_2 - (x_)**2)
-    return(m)
-
-
 def curie(path_to_file='.', file_name='', magic=False,
           window_length=3, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
     """
     Plots and interprets curie temperature data.
-    ***
     The 1st derivative is calculated from smoothed M-T curve (convolution
-    with trianfular window with width= <-w> degrees)
-    ***
+    with triangular window with width= <-w> degrees)
     The 2nd derivative is calculated from smoothed 1st derivative curve
     (using the same sliding window width)
-    ***
-    The estimated curie temp. is the maximum of the 2nd derivative.
+    The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
     Parameters:
@@ -7719,10 +7692,13 @@ def curie(path_to_file='.', file_name='', magic=False,
         window_length : dimension of smoothing window (input to smooth() function)
         save : boolean argument to save plots (default is False)
         save_folder : relative directory where plots will be saved (default is current directory, '.')
-        fmt : format of saved figures (default is 'svg')
-        t_begin: start of truncated window for search
-        t_end: end of truncated window for search
+        fmt : format of saved figures (default is svg)
+        t_begin: start of truncated window for search (default is beginning of data)
+        t_end: end of truncated window for search (default is end of data)
         magic : True if MagIC formatted measurements.txt file
+        
+    Returns:
+        A plot is shown and saved if save=True.
     """
     plot = 0
     window_len = window_length
