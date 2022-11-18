@@ -2915,10 +2915,9 @@ def dir2cart(d):
        [25707.154931463603 , -3384.411152593326 , 21911.687763162565 ],
        [13852.355235322588 , -1407.0709331498472, 13972.322052043308 ]])
     """
-    ints = np.ones(len(d)).transpose(
-    )  # get an array of ones to plug into dec,inc pairs
-    d = np.array(d).astype('float')
     rad = np.pi/180.
+    ints = np.ones(len(d)).transpose()  # get an array of ones to plug into dec,inc pairs
+    d = np.array(d).astype('float')
     if len(d.shape) > 1:  # array of vectors
         decs, incs = d[:, 0] * rad, d[:, 1] * rad
         if d.shape[1] == 3:
@@ -5206,16 +5205,14 @@ def scoreit(pars, PmagSpecRec, accept, text, verbose):
 
 def b_vdm(B, lat):
     """
-    Converts a magnetic field value to a virtual dipole moment (VDM)
+    Converts a magnetic field value of list of values to  virtual dipole moment (VDM)
     or a virtual axial dipole moment (VADM).
     
     Parameters
-    ----------
-    B: local magnetic field strength in tesla
+    B: local magnetic field strength in tesla, as a value or list of values
     lat: latitude of site in degrees
 
     Returns
-    -------
     VDM or V(A)DM in units of Am^2
 
     Examples
@@ -5226,7 +5223,9 @@ def b_vdm(B, lat):
     # changed radius of the earth from 3.367e6 3/12/2010
     fact = ((6.371e6)**3) * 1e7
     colat = np.radians(90. - lat)
-    return fact * B / (np.sqrt(1 + 3 * (np.cos(colat)**2)))
+    B = np.array(B).astype('float')
+    Vs= fact * B / (np.sqrt(1 + 3 * (np.cos(colat)**2)))
+    return Vs
 
 
 def vdm_b(vdm, lat):
