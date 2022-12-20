@@ -4529,7 +4529,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     cond2 = self.site_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
                     loc = None
-                    print (self.site_data[cond1].keys())#DEBUG
                     locs = self.site_data[cond1]['location']
                     if any(locs):
                         loc = locs.values[0]
