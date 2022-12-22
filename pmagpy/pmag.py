@@ -6525,7 +6525,6 @@ def doprinc(data):
         tau2 : intermediate eigenvalue
         tau3 : minor eigenvalue
         N  : number of points
-        Edir : elongation direction [dec, inc, length]
     """
     ppars = {}
     rad = np.pi/180.
@@ -6543,7 +6542,7 @@ def doprinc(data):
 #
     t, V = tauV(T)
     Pdir = cart2dir(V[0])
-    ppars['Edir'] = cart2dir(V[1])  # elongation direction
+    #ppars['Edir'] = cart2dir(V[1])  # elongation direction - this is V2dec!
     dec, inc = doflip(Pdir[0], Pdir[1])
     ppars['dec'] = dec
     ppars['inc'] = inc
