@@ -2038,16 +2038,16 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
 
     '''
     # wrapper class to change the default resolution of the orthographic projection
-    class LowerThresholdOrthographic(ccrs.Orthographic):
-        @property
-        def threshold(self):
-            return 1e3
+    # class LowerThresholdOrthographic(ccrs.Orthographic):
+    #     @property
+    #     def threshold(self):
+    #         return 1e3
 
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.make_orthographic_map')
         return
     fig = plt.figure(figsize=figsize)
-    map_projection = LowerThresholdOrthographic(
+    map_projection = ccrs.Orthographic(
         central_longitude=central_longitude, central_latitude=central_latitude)
     ax = plt.axes(projection=map_projection)
     ax.set_global()
