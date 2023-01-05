@@ -3158,7 +3158,8 @@ def equi_basemap(m, centerlon, centerlat, radius, color):
     plt.plot(X, Y, color)
 
 
-def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, transform=ccrs.PlateCarree(), **kwargs):
+def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False,
+            transform=None, **kwargs):
     """
     This function enables general error ellipses to be drawn on the cartopy projection of the input map axis
     using a center and a set of major and minor axes and a rotation angle east of north.
@@ -3181,6 +3182,8 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         The map object with the ellipse plotted on it
 
     """
+    if transform == None:
+        transform=ccrs.PlateCarree()
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.ellipse')
         return False
