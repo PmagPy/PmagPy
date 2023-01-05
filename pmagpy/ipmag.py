@@ -2700,7 +2700,7 @@ def equi_basemap(m, centerlon, centerlat, radius, color):
     plt.plot(X, Y, color)
 
 
-def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
+def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, transform=ccrs.PlateCarree(), **kwargs):
     """
     This function enables general error ellipses to be drawn on the cartopy projection of the input map axis
     using a center and a set of major and minor axes and a rotation angle east of north.
@@ -2711,8 +2711,8 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     map_axis : cartopy axis
     centerlon : longitude of the center of the ellipse
     centerlat : latitude of the center of the ellipse
-    major_axis : Major axis of ellipse
-    minor_axis : Minor axis of ellipse
+    major_axis : Major axis of ellipse in km
+    minor_axis : Minor axis of ellipse in km
     angle : angle of major axis in degrees east of north
     n : number of points with which to apporximate the ellipse
     filled : boolean specifying if the ellipse should be plotted as a filled polygon or
@@ -2745,12 +2745,14 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
     if filled:
         ellip = np.array((X, Y)).T
         ellip = map_axis.projection.transform_points(
-            ccrs.PlateCarree(), ellip[:, 0], ellip[:, 1])
-        poly = Polygon(ellip[:, :2], **kwargs)
+            transform, ellip[:, 0], ellip[:, 1])
+        poly = Polygon(ellip[:, :2],**kwargs)
         map_axis.add_patch(poly)
     else:
         try:
-            map_axis.plot(X, Y, transform=ccrs.Geodetic(), **kwargs)
+            if "facecolor" in kwargs: kwargs["color"] = kwargs.pop("facecolor")
+            if "edgecolor" in kwargs: kwargs["color"] = kwargs.pop("edgecolor")
+            map_axis.plot(X, Y, transform=transform, **kwargs)
             return True
         except ValueError:
             return False
