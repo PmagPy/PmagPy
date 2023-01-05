@@ -5025,15 +5025,15 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                 inc_key = "Inclination background & tray corrected (deg)"
             elif "Inclination background & drift corrected (deg)" in keys:
                 inc_key = "Inclination background & drift corrected (deg)"
-            elif "Inclination background + tray corrected  (\N{DEGREE SIGN})" in keys:
-                inc_key = "Inclination background + tray corrected  (\N{DEGREE SIGN})"
+            elif "Inclination background + tray corrected  (\n{DEGREE SIGN})" in keys:
+                inc_key = "Inclination background + tray corrected  (\n{DEGREE SIGN})"
             else:
                 print("couldn't find inclination")
             # get declination key
             if "Declination (Tray- and Bkgrd-Corrected) (deg)" in keys:
                 dec_key = "Declination (Tray- and Bkgrd-Corrected) (deg)"
-            elif "Declination background + tray corrected (\N{DEGREE SIGN})" in keys:
-                dec_key = "Declination background + tray corrected (\N{DEGREE SIGN})"
+            elif "Declination background + tray corrected (\n{DEGREE SIGN})" in keys:
+                dec_key = "Declination background + tray corrected (\n{DEGREE SIGN})"
             elif "Declination background + tray corrected (deg)" in keys:
                 dec_key = "Declination background + tray corrected (deg)"
             elif "Declination background + tray corrected (\xc2\xb0)" in keys:
@@ -5249,7 +5249,7 @@ def iodp_srm(csv_file="", dir_path=".", input_dir_path="",
                         except KeyError:
                             try:
                                 treatment_value = float(
-                                    InRec["Treatment value<br> (mT or \N{DEGREE SIGN}C)"]) + 273
+                                    InRec["Treatment value<br> (mT or \n{DEGREE SIGN}C)"]) + 273
                             except KeyError:
                                 print([k for k in InRec.keys() if 'treat' in k.lower()])
                                 print("-W- Couldn't find column for Treatment Value")
