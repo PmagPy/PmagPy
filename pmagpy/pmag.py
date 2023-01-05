@@ -5704,7 +5704,6 @@ def doincfish(inc):
         'alpha95' : estimated fisher alpha_95
         'csd' : estimated circular standard deviation
     """
-    rad, SCOi, SSOi = old_div(np.pi, 180.), 0., 0.  # some definitions
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -5721,35 +5720,30 @@ def doincfish(inc):
         fpars['r'] = 0
         print('WARNING: mean inc < 30, returning gaussian mean')
         return fpars
-    for i in inc:  # sum over all incs (but take only positive inc)
-        coinc = (90. - abs(i)) * rad
-        SCOi += np.cos(coinc)
-        SSOi += np.sin(coinc)
-    Oo = (90.0 - MI) * rad  # first guess at mean
-    SCFlag = -1  # sign change flag
-    epsilon = float(N) * np.cos(Oo)  # RHS of zero equations
-    epsilon += (np.sin(Oo)**2 - np.cos(Oo)**2) * SCOi
-    epsilon -= 2. * np.sin(Oo) * np.cos(Oo) * SSOi
-    while SCFlag < 0:  # loop until cross zero
-        if MI > 0:
-            Oo -= (.01 * rad)  # get steeper
-        if MI < 0:
-            Oo += (.01 * rad)  # get shallower
-        prev = epsilon
-        epsilon = float(N) * np.cos(Oo)  # RHS of zero equations
-        epsilon += (np.sin(Oo)**2. - np.cos(Oo)**2.) * SCOi
-        epsilon -= 2. * np.sin(Oo) * np.cos(Oo) * SSOi
-        if abs(epsilon) > abs(prev):
-            MI = -1 * MI  # reverse direction
-        if epsilon * prev < 0:
-            SCFlag = 1  # changed sign
-    S, C = 0., 0.  # initialize for summation
-    for i in inc:
-        coinc = (90. - abs(i)) * rad
-        S += np.sin(Oo - coinc)
-        C += np.cos(Oo - coinc)
+    inc = np.array(inc)
+    coinc = np.deg2rad(90. - np.abs(inc)) # sum over all incs (but take only positive inc)
+    SCOi = np.cos(coinc).sum()
+    SSOi = np.sin(coinc).sum()
+    min_misfit,min_curvature = np.inf,0.
+    Oo = np.deg2rad(np.arange(0,90,0.01))
+    t1 = N*np.cos(Oo)
+    t2 = (np.sin(Oo)**2. - np.cos(Oo)**2.) * SCOi
+    t3 = 2. * np.sin(Oo) * np.cos(Oo) * SSOi
+    misfit = t1+t2-t3
+    idx_zeros = np.argwhere(np.diff(np.sign(misfit)))
+    if len(idx_zeros)==0:
+        idx_zeros = np.argmin(abs(misfit))
+        print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method you may wish to consider an alternate technique."%misfit[idx_zeros])
+    ML_zeros = np.array(Oo[[idx_zeros]])
+    ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
+#    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
+    U = 0.5*N*((1/(np.cos(ML_zeros)**2))-(np.cos(ML_matrix-coinc).sum(axis=1)/(N-np.cos(ML_matrix-coinc).sum(axis=1))))
+#    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
+    Oo = ML_zeros[np.argmin(U)]
+    C = np.cos(Oo-coinc).sum()
+    S = np.sin(Oo-coinc).sum()
     k = old_div((N - 1.), (2. * (N - C)))
-    Imle = 90. - (old_div(Oo, rad))
+    Imle = 90. - np.rad2deg(Oo)
     fpars["inc"] = Imle
     fpars["r"], R = 2. * C - N, 2 * C - N
     fpars["k"] = k
@@ -5757,7 +5751,7 @@ def doincfish(inc):
     a95 = 1. - (0.5) * (old_div(S, C))**2 - (old_div(f, (2. * C * k)))
 #    b=20.**(1./(N-1.)) -1.
 #    a=1.-b*(N-R)/R
-    a95=np.arccos(a95)*180./np.pi
+    a95=np.rad2deg(np.arccos(a95))
     csd = old_div(81., np.sqrt(k))
     fpars["alpha95"] = a95
     fpars["csd"] = csd
