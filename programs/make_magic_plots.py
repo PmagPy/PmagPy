@@ -80,6 +80,7 @@ def main():
         filelist = os.listdir(dir_path)
     ## initialize some variables
     samp_file = 'samples.txt'
+    spec_file = 'specimens.txt'
     meas_file = 'measurements.txt'
     #loc_key = 'location'
     loc_file = 'locations.txt'
@@ -93,6 +94,7 @@ def main():
     hyst_ms_key = "hyst_ms_moment"
     hyst_bc_key = "hyst_bc"
     Mkeys = ['magnitude', 'magn_moment', 'magn_volume', 'magn_mass']
+    Hkeys = ['height', 'core_depth', 'composite_depth']
     results_file = 'sites.txt'
     hyst_file = 'specimens.txt'
     aniso_file = 'specimens.txt'
@@ -197,7 +199,6 @@ def main():
         samp_data, samp_df = get_data('samples', loc)
         site_data, site_df = get_data('sites', loc)
         loc_data, loc_df = get_data('locations', loc)
-
         con = cb.Contribution(read_tables=[])
         con.tables['measurements'] = cb.MagicDataFrame(df=meas_df, dtype="measurements")
         con.tables['specimens'] = cb.MagicDataFrame(df=spec_df, dtype="specimens")
@@ -385,8 +386,9 @@ def main():
                 print('-I- No vgps found')
 
             print('-I- Look for intensities')
-            # is there any intensity data?
+                         
             if site_data:
+            # are there any intensity data?
                 if int_key in site_data[0].keys():
                     # old way, wasn't working right:
                     #CMD = 'magic_select.py  -key ' + int_key + ' 0. has -F tmp1.txt -f tmp_sites.txt'
@@ -478,6 +480,31 @@ def main():
                                                                contribution=con, image_records=True)
                     image_recs.extend(aniso_recs)
 
+        # are there any depth/height data?
+        h_key=False
+        if len(site_df)>0:
+                for key in Hkeys:
+                    if key in site_df.columns:
+                        h_key=key
+                if h_key: h_df=site_df[['site',h_key]]
+                #if h_key and len(meas_df)>0: 
+                #    meas_df=meas_df.merge(h_df,on='site',how='inner')
+                #    pmag.magic_write('tmp_measurements.txt',meas_df,'measurements',dataframe=True)
+                #    print ('adding ',h_key,' to measurements table')
+                locations=site_df['location'].unique()
+                if h_key and len(spec_df)>0: 
+                    spec_df=spec_df.merge(h_df,on='site',how='inner')
+                    #pmag.magic_write('tmp_specimens.txt',spec_df,'specimens',dataframe=True)
+                    print ('adding ',h_key,' to specimens table')
+                    for location in locations:
+                        loc_df=spec_df[spec_df['location']==location]
+                        ipmag.df_depthplot(spec_df,h_key,save=True,location=location)
+                if h_key and len(samp_df)>0: 
+                    samp_df=samp_df.merge(h_df,on='site',how='inner')
+                    #pmag.magic_write('tmp_samples.txt',samp_df,'samples',dataframe=True)
+                    print ('adding ',h_key,' to samples table')
+       
+ 
         # remove temporary files
         for fname in glob.glob('tmp*.txt'):
             os.remove(fname)

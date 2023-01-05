@@ -29,7 +29,7 @@ import wx
 import sys
 import os
 from dialogs import pmag_widgets as pw
-from pmagpy import convert_2_magic as convert
+#from pmagpy import convert_2_magic as convert
 import pmagpy.contribution_builder as cb
 import pmagpy.pmag as pmag
 from pmagpy import ipmag
@@ -428,12 +428,12 @@ class convert_tdt_files_to_MagIC(wx.Frame):
             samp_file = os.path.join(self.WD, 'samples_{}.txt'.format(i))
             site_file = os.path.join(self.WD, 'sites_{}.txt'.format(i))
             loc_file = os.path.join(self.WD, 'locations_{}.txt'.format(i))
-
+            spec_name_con=1
             if dir_path:
                 res, fname = convert_2_magic.tdt(dir_path, experiment, meas_file,
                                                  spec_file, samp_file,
                                                  site_file, loc_file,
-                                                 user_name, location_name, lab_dec, lab_inc, moment_units,
+                                                 user_name, location_name, lab_dec, lab_inc, moment_units,spec_name_con,
                                                  samp_name_con, samp_name_chars,
                                                  site_name_con, site_name_chars, volume,
                                                  output_dir_path=self.WD)

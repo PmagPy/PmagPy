@@ -12,7 +12,7 @@ from . import maps
 
 def mapping(dictionary, mapping):
     """
-    takes in a dictionary and a mapping which contains new key names,
+    The function takes in a dictionary and a mapping which contains new key names,
     and returns a new dictionary with the updated key names, i.e.:
     dictionary = {'a': 1, 'b': 2, 'c': 3}
     mapping = {'a': 'aa', 'c': 'cc'}

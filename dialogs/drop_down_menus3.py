@@ -434,7 +434,8 @@ class Menus(object):
 
         item_id = event.GetId()
         item = event.EventObject.FindItemById(item_id)
-        label = item.Label
+        label = item.ItemLabelText #DEBUG
+        #label = item.Label
         cell_value = grid.GetCellValue(row, col)
         if str(label) == "CLEAR cell of all values":
             label = ""

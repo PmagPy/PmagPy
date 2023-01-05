@@ -6,4 +6,5 @@ prog_env = {'core_depthplot': 'WXAgg',
             'magic_gui': 'WXAgg',
             'magic_gui2': 'WXAgg',
             'pmag_gui': 'WXAgg',
-            'thellier_gui': 'WXAgg'}
+            'thellier_gui': 'WXAgg',
+            'make_magic_plots': 'Agg'}

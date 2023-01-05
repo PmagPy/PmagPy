@@ -833,8 +833,11 @@ class Demag_GUI(wx.Frame):
         initial_coordinate = 'specimen'
         for specimen in self.specimens:
             if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
-                coordinate_list.append('geographic')
-                initial_coordinate = 'geographic'
+                coordinate_list.append('geographic')               
+#                initial_coordinate = 'geographic'
+# Commented this initial_coordinate change out so that heterogenous data sets that have 
+# specimen only data in addition to geographic data can be opened without seg fault
+# (would be nice to have a more involved  solution given that geographic coordinates is a nice default) 
             if 'tilt-corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
                 coordinate_list.append('tilt-corrected')
         return initial_coordinate, coordinate_list
@@ -2470,9 +2473,11 @@ class Demag_GUI(wx.Frame):
         if color == None:
             color = self.colors[(int(next_fit)-1) % len(self.colors)]
         new_fit = Fit(name, fmax, fmin, color, self, PCA_type, saved)
+        #if new_fit==None: fmin,fmax=None,None
         if fmin != None and fmax != None:
             new_fit.put(specimen, self.COORDINATE_SYSTEM, self.get_PCA_parameters(
                 specimen, new_fit, fmin, fmax, self.COORDINATE_SYSTEM, PCA_type))
+            print ('new_fit: ',new_fit,fmin,fmax)#DEBUG
             if ('specimen_dec' not in list(new_fit.get(self.COORDINATE_SYSTEM).keys())
                     or 'specimen_inc' not in list(new_fit.get(self.COORDINATE_SYSTEM).keys()))\
                     and not suppress_warnings:
@@ -4487,8 +4492,8 @@ class Demag_GUI(wx.Frame):
                 PCA_type = PCA_type_list[0].strip()
             else:
                 PCA_type = "DE-BFL"
-
-            fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
+            if "DE-BLANKET" not in str(fdict[i]['method_codes']):
+                fit = self.add_fit(spec, fname, fmin, fmax, PCA_type)
 
             if fdict[i]['result_quality'] == 'b':
                 self.bad_fits.append(fit)

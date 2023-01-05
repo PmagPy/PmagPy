@@ -430,8 +430,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             elif labfield:
                 this_treat_df['method_codes']=['LT-AF-I']
                 this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                this_treat_df['treat_dc_field_phi']=lab_field_phi
-                this_treat_df['treat_dc_field_theta']=lab_field_theta
+                this_treat_df['treat_dc_field_phi']=labfield_phi
+                this_treat_df['treat_dc_field_theta']=labfield_theta
 
 
 
@@ -449,15 +449,15 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
                 elif int(treat_code[1])==1: 
                     this_treat_df['method_codes']=['LT-T-I']
                     this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=lab_field_phi
-                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+                    this_treat_df['treat_dc_field_phi']=labfield_phi
+                    this_treat_df['treat_dc_field_theta']=labfield_theta
 
 
                 elif int(treat_code[1])==2: 
                     this_treat_df['method_codes']=['LT-T-I:LT-PTRM-I']
                     this_treat_df['treat_dc_field']=labfield*1e-3 # convert to tesla
-                    this_treat_df['treat_dc_field_phi']=lab_field_phi
-                    this_treat_df['treat_dc_field_theta']=lab_field_theta
+                    this_treat_df['treat_dc_field_phi']=labfield_phi
+                    this_treat_df['treat_dc_field_theta']=labfield_theta
             else:
                 LPcode='LP-DIR-T'
 
@@ -1994,13 +1994,13 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         X determines which kind of convention (initial characters, terminal characters, or delimiter
         Y determines how many characters to remove to go from specimen --> sample OR which delimiter to use
         X=0 Y=n: specimen is distinguished from sample by n initial characters.
-                 (example: generic(samp_nc=[0, 4], ...)
+                 (example: generic(sample_nc=[0, 4], ...)
                   if n=4 then and specimen = mgf13a then sample = mgf13)
         X=1 Y=n: specimen is distiguished from sample by n terminate characters.
-                 (example: generic(samp_nc=[1, 1], ...))
+                 (example: generic(sample_nc=[1, 1], ...))
                   if n=1 then and specimen = mgf13a then sample = mgf13)
         X=2 Y=c: specimen is distinguishing from sample by a delimiter.
-                 (example: generic([2, "-"]))
+                 (example: generic(sample_nc=[2, "-"]))
                   if c=- then and specimen = mgf13-a then sample = mgf13)
         default: sample is the same as specimen name
 
@@ -4827,7 +4827,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
     # assume only one hole
     # set up defaults
     measurements_df['specimen']=srm_specimens
-    measurements_df['comment']=in_df['Comments'] # temporary column
+    if 'Comments' in in_df.columns: measurements_df['comment']=in_df['Comments'] # temporary column
     measurements_df['quality']='g'
     measurements_df['citations']='This study'
     measurements_df['meas_temp']=273
@@ -10043,7 +10043,13 @@ def sio(mag_file, dir_path=".", input_dir_path="",
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
+    #for rec in MeasRecs: 
+    #    print (float(rec['treat_temp'])-273,rec['method_codes'])
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    #for rec in MeasOuts:
+    #    print (float(rec['treat_temp'])-273,rec['method_codes'])
+
+#    MeasOuts = pmag.measurements_methods3(MeasRecs, noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     # write MagIC tables to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file,dir_path=dir_path)
@@ -11213,7 +11219,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     #
     #   ATRM in six positions
     #
-    # Tretment: XXX.0 zerofield
+    # Treatment: XXX.0 zerofield
     #           XXX.1 +x
     #           XXX.2 +y
     #           XXX.3 +z
@@ -11289,7 +11295,6 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     if site_name_con == 'no. of terminate characters' and not site_name_chars:
         print("-W- You have selected the site naming convention: 'no. of terminate characters',\n    but have provided the number of characters as 0.\n    Defaulting to use 'site=sample' instead.")
         site_name_con = 'site=sample'
-
 
     Data = {}
 
@@ -11598,6 +11603,9 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                     # Tail check step
                     elif float(treatments[1]) == 3 or float(treatments[1]) == 30 or float(treatments[1]) == 13:
                         MeasRec["method_codes"] = "LT-PTRM-MD"
+                        MeasRec["treat_dc_field"] = "0"
+                        MeasRec["treat_dc_field_phi"] = "0"
+                        MeasRec["treat_dc_field_theta"] = "0"
                         MeasRec["treat_temp"] = '%8.3e' % (
                             float(treatments[0])+273.)  # temp in kelvin
                         if "LP-PI-BT-MD" not in methcodes:
@@ -11838,7 +11846,8 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    #MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
+    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=True)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', spec_file_name)
     con.write_table_to_file('samples', samp_file_name)
