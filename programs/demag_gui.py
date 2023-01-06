@@ -760,8 +760,8 @@ class Demag_GUI(wx.Frame):
         spec_buttons_sizer = wx.GridSizer(1, 2, 0, spec_button_space)
         spec_buttons_sizer.AddMany([(self.prevbutton, 1,  wx.EXPAND),
                                     (self.nextbutton, 1, wx.EXPAND)])
-        spec_sizer.AddMany([(self.specimens_box, 1,  wx.EXPAND | wx.BOTTOM, side_bar_v_space/2),
-                            (spec_buttons_sizer, 1,  wx.EXPAND | wx.TOP, side_bar_v_space/2)])
+        spec_sizer.AddMany([(self.specimens_box, 1,  wx.EXPAND | wx.BOTTOM, int(side_bar_v_space/2)),
+                            (spec_buttons_sizer, 1,  wx.EXPAND | wx.TOP, int(side_bar_v_space/2))])
         side_bar_sizer.Add(spec_sizer, .5,  wx.EXPAND)
         side_bar_sizer.Add(wx.StaticLine(self.side_panel), .5,
                            wx.ALL | wx.EXPAND, side_bar_v_space)
