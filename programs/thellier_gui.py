@@ -3538,6 +3538,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # need to add in method codes for LP-AN...
                     old_meths = self.spec_data[condition]['method_codes'].values.tolist(
                     )
+                    new_meths = meths
                     if len(old_meths) > 0:
                         try:
                             if ":" in old_meths[0]:  # breaks if old_meths is NoneType
@@ -3553,8 +3554,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                                 new_meths = me + ':' + meths
                         except:
                             new_meths = meths
-                    else:
-                        new_meths = meths
                     new_data['method_codes'] = new_meths
                     # try to get the sample name for the updated record
                     try:
