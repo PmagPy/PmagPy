@@ -3955,9 +3955,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key] = "%.2f" % (
                             self.Data[specimen]['pars'][key])
+                #print(self.Data[specimen]['pars'])#DEBUG
 
                 MagIC_results_data['pmag_specimens'][specimen]['specimen_int'] = "%.2e" % (
-                    self.Data[specimen]['pars']['specimen_int'])
+                    self.Data[specimen]['pars']['specimen_int_uT']*1e-6) # fix for saving corrected data
                 MagIC_results_data['pmag_specimens'][specimen]['measurement_step_min'] = "%i" % (
                     self.Data[specimen]['pars']['measurement_step_min'])
                 MagIC_results_data['pmag_specimens'][specimen]['measurement_step_max'] = "%i" % (
