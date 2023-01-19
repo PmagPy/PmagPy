@@ -92,7 +92,6 @@ class MagMainFrame(wx.Frame):
         menubar = pmag_gui_menu.MagICMenu(self)
         self.SetMenuBar(menubar)
         self.menubar = menubar
-        self.refresh_btns()
 
 
     def get_wd_data(self):
@@ -316,19 +315,6 @@ class MagMainFrame(wx.Frame):
 
         self.panel.SetSizerAndFit(hbox)
         hbox.Fit(self)
-
-    #----------------------------------------------------------------------
-
-    def refresh_btns(self):
-        self.change_dir_button.OnPaint(-1)
-        self.btn1.OnPaint(-1)
-        self.btn2.OnPaint(-1)
-        self.btn3.OnPaint(-1)
-        self.btn4.OnPaint(-1)
-        self.btn1a.OnPaint(-1)
-        self.btn_demag_gui.OnPaint(-1)
-        self.btn_thellier_gui.OnPaint(-1)
-        self.btn_upload.OnPaint(-1)
 
     #----------------------------------------------------------------------
 
