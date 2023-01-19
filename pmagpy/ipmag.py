@@ -2447,8 +2447,8 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         elif plon <= slon and plat <= slat:
             C_deg = np.abs(np.rad2deg(C_rad))
 
-    print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg)
+    # print(C_deg)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color)
 
     if legend == True:
         plt.legend(loc=2)
