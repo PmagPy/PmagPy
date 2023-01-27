@@ -133,9 +133,8 @@ class MagMainFrame(wx.Frame):
         in_bSizer0 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(700,35), style=wx.TE_READONLY)
-        self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="Change directory",size=(130, 35))
+        self.change_dir_button = wx.Button(self.panel, wx.ID_ANY, label="Change directory",size=(130, 35), style=wx.BORDER_NONE)
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
-        self.change_dir_button.InitColours()
         self.change_dir_button.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
 
@@ -176,33 +175,33 @@ class MagMainFrame(wx.Frame):
         sb.SetFont(sizer_font)
 
         text = "1. Convert magnetometer files to MagIC format"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(450, 50), name='step 1')
+        self.btn1 = wx.Button(self.panel, id=-1, label=text,
+                                      size=(450, 50), name='step 1', style=wx.BORDER_NONE)
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
 
         text = "2. (optional) Calculate geographic/tilt-corrected directions"
-        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
+        self.btn2 = wx.Button(self.panel, id=-1, label=text, size=(450, 50), name='step 2', style=wx.BORDER_NONE)
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_orientation, self.btn2)
         text = "3. (optional) Add MagIC metadata for uploading data to MagIC "
-        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
+        self.btn3 = wx.Button(self.panel, id=-1, label=text, size=(450, 50), name='step 3', style=wx.BORDER_NONE)
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_metadata, self.btn3)
 
         text = "Download or unpack MagIC text file"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(330, 50))
+        self.btn4 = wx.Button(self.panel, id=-1, label=text, size=(330, 50), style=wx.BORDER_NONE)
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_unpack, self.btn4)
 
 
         text = "Convert directory to 3.0. format (legacy data only)"
-        self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
-                                       size=(330, 50), name='step 1a')
+        self.btn1a = wx.Button(self.panel, id=-1, label=text,
+                                       size=(330, 50), name='step 1a', style=wx.BORDER_NONE)
         self.btn1a.SetBackgroundColour("#FDC68A")
         self.btn1a.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_convert_3, self.btn1a)
@@ -250,13 +249,13 @@ class MagMainFrame(wx.Frame):
         sb.SetFont(sizer_font)
 
         text = "Demag GUI"
-        self.btn_demag_gui = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='demag gui')
+        self.btn_demag_gui = wx.Button(self.panel, id=-1, label=text, size=(300, 50), name='demag gui', style=wx.BORDER_NONE)
         self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
         self.btn_demag_gui.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_demag_gui, self.btn_demag_gui)
 
         text = "Thellier GUI"
-        self.btn_thellier_gui = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='thellier gui')
+        self.btn_thellier_gui = wx.Button(self.panel, id=-1, label=text, size=(300, 50), name='thellier gui', style=wx.BORDER_NONE)
         self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
         self.btn_thellier_gui.SetForegroundColour("#000000")
         self.Bind(wx.EVT_BUTTON, self.on_btn_thellier_gui, self.btn_thellier_gui)
@@ -278,7 +277,7 @@ class MagMainFrame(wx.Frame):
         sb.SetFont(sizer_font)
 
         text = "Create MagIC txt file for upload"
-        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn_upload = wx.Button(self.panel, id=-1, label=text, size=(300, 50), style=wx.BORDER_NONE)
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.SetForegroundColour("#000000")
 
@@ -855,9 +854,9 @@ INFORMATION
     print('-I- Starting Pmag GUI - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     if 'darwin' in sys.platform and (not set_env.IS_FROZEN):
-        app = wx.App(redirect=False)
+        app = wx.App(redirect=True)
     else:
-        app = wx.App(redirect=False) #SET TO TRUE BEFORE COMMIT
+        app = wx.App(redirect=True) #SET TO TRUE BEFORE COMMIT
     dir_path = pmag.get_named_arg("-WD", None)
     app.frame = MagMainFrame(WD=dir_path)
     app.frame.Show()
