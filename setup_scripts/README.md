@@ -246,3 +246,34 @@ Installed packages:
 Compiled the program:
 
 ```pyinstaller pmag_gui.spec```
+
+## A workflow that worked on 1/30/2023 for Yiming Zhang for OSX
+
+Made a new conda enviroment 
+
+```conda create -n pmag_gui_compile python=3.9.13```
+
+Activated that conda environment:
+
+```conda activate pmag_gui_compile```
+
+If numpy was installed by default in the new environment, remove mkl:
+
+```conda remove mkl```
+
+Install the nomkl package for numpy otherwise pyinstaller throws error:
+
+```conda install nomkl```
+
+```conda install future matplotlib numpy scipy pandas```
+
+- Use pip to install wxPython
+  - `pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
+  
+- Use pip to install Pyinstaller
+  - `pip install git+https://github.com/pyinstaller/pyinstaller.git`
+
+Compiled the program:
+
+```pyinstaller pmag_gui.spec```
+
