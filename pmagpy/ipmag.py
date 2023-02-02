@@ -13884,7 +13884,9 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
             lat = lats[ind]
             lon = lons[ind]
             polarity = ""
-            if 'polarities' in locals():
+            if 'polarities' in locals() and polarities: # second term is true if not empty
+                print("polarities=",polarities)
+                print("ind=",ind)
                 polarity = polarities[ind]
             polarity = "_" + polarity if polarity else ""
             location = loc_list[ind]
