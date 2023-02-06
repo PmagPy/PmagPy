@@ -15269,7 +15269,7 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     to PmagPy functionality by A. Pivarunas
     
     Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia River basalt flows using secular variation. Journal of Geophysical
-    Research, v. 86, p. 11883–11897.
+    Research, v. 86, p. 11883ï¿½11897.
     
     Parameters
     ----------
@@ -15320,7 +15320,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     to PmagPy functionality by A. Pivarunas
     
     Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia River basalt flows using secular variation. Journal of Geophysical
-    Research, v. 86, p. 11883–11897.
+    Research, v. 86, p. 11883ï¿½11897.
     
     Parameters
     ----------
@@ -15372,5 +15372,5 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
    
     if print_result == True:
         print ('The probability (average of P1 and P2) that directions represent random samples of the geomagnetic field is: {0:5.3f}'.format((prand1+prand2)/2))
-    else:
-        return rand_prob
+    
+    return rand_prob
