@@ -15261,32 +15261,24 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
 
 def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     """
-    The function ipmag.simul_correlation_prob runs an algorithm from Bogue and
-    Coe (1981) for probabilistic correlation, evaluating the probability that
-    the similarity between two paleomagnetic directions is due to simultaneous 
-    sampling of the ancient magnetic field. This can be compared with the 
-    probability that the two directions were sampled at random times with the 
-    companion function (ipmag.random_correlation_prob). k1 and k2 can be 
-    estimated the kappa of the directions, or one can use the companion 
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
+    for probabilistic correlation, evaluating the probability that the similarity between 
+    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
+    field. This can be compared with the probability that the two directions were sampled 
+    at random times with the companion function (ipmag.random_correlation_prob). 
+    k1 and k2 can be estimated the kappa of the  directions, or one can use the companion 
     function (ipmag.full_kappa; to come) as in the original publication. 
-    A version of this function was written in Python by S. Bogue, translated
-    to PmagPy functionality by A. Pivarunas
     
-    Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia 
-    River basalt flows using secular variation. Journal of Geophysical
-    Research, v. 86, p. 11883-11897.
+    Parameters:
+        alpha : angle between paleomagnetic directions (site means)
+        k1 (float): kappa estimate for first direction
+        k2 (float): kappa estimate for second direction
+        trials (int): the number of simulations [default = 10,000]
+        print_result (boolean): the probability value returned in a sentence [default = False]
     
-    Parameters
-    ----------
-    alpha: angle between paleomagnetic directions (site means)
-    k1: kappa estimate for first direction
-    k2: kappa estimate for second direction
-    trials: the number of simulations, default=10,000
-    print_result: the probability value returned in a sentence, default=False
-    
-    Returns
-    --------------------------
-    simul_prob
+    Returns:
+        float 
+            number indicating probability value
     """
     #sets initial value for counters
     hit = 0
