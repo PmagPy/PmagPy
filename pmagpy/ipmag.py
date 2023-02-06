@@ -15265,7 +15265,7 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     for probabilistic correlation, evaluating the probability that the similarity between 
     two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
     field. This can be compared with the probability that the two directions were sampled 
-    at random times with the companion function (ipmag.random_correlation_prob). 
+    at random times with the companion function (ipmag.random_correlation_prob; to come). 
     k1 and k2 can be estimated the kappa of the  directions, or one can use the companion 
     function (ipmag.full_kappa; to come) as in the original publication. 
     
