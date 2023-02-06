@@ -15308,3 +15308,69 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
         print ('The probability that directions represent simultaneous samples of the geomagnetic field is: {0:5.3f}'.format(simul_prob))
     else:
         return simul_prob
+
+def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False):
+
+    """
+    This function does a brute force numerical simulation of the 'random' hypothesis of Bogue + Coe (1981). Basically asks and answers
+    the question: if we randomly sampled the ancient field, how frequently would we get two VGPs that are both this far from the time-averaged pole and this
+    close together?  Approach is, assume VGP1 observed first, pull a random direction from Fisher distribution about mean pole with k. If it is within alpha
+    of VGP1, hit. If not, miss. Repeat many (10,000?) times. P(Hr)1 = hit/(trials). Then, repeat this process with VGP2, getting
+    P(Hr)2. The returned probability is the average of the two. A version of this function was written in Python by S. Bogue, translated
+    to PmagPy functionality by A. Pivarunas
+    
+    Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia River basalt flows using secular variation. Journal of Geophysical
+    Research, v. 86, p. 11883–11897.
+    
+    Parameters
+    ----------
+    
+    sec_var: kappa estimate of regional secular variation (probably 30 or 40)
+    alpha: angle between paleomagnetic directions (or poles)
+    delta1: distance of direction 1 from mean direction
+    delta2: distance of direction 2 from mean direction
+    trials: the number of simulations, default=10,000
+    print_result: the probability value returned in a sentence, default=False 
+    
+    Returns
+    --------------------------
+    
+    rand_prob
+    
+    """
+
+    #calc probability of getting vgp within alpha of vgp1
+    i = 0
+    miss = 0
+    hit = 0
+    for i in range(trials):
+        dec,inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        angle = pmag.angle([dec[0], inc[0]], [0, delta1])
+        if (angle <= alpha):
+            hit = hit + 1
+        else:
+            miss = miss + 1 
+
+    prand1=(1.0 * hit) / trials
+    #print ('P1(Hr): ',prand1);
+
+    #calc probability of getting vgp within alpha of vgp2
+    i = 0
+    hit = 0
+    miss = 0
+    for i in range(trials):
+        dec, inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        angle = pmag.angle([dec[0], inc[0]], [0,delta2])
+        if (angle <= alpha):
+            hit = hit + 1
+        else:
+            miss = miss + 1
+
+    prand2=(1.0 * hit) / trials
+    #the average of the two trials is the probability of the "random" hypothesis
+    rand_prob = np.round((prand1 + prand2) / 2, 4)
+   
+    if print_result == True:
+        print ('The probability (average of P1 and P2) that directions represent random samples of the geomagnetic field is: {0:5.3f}'.format((prand1+prand2)/2))
+    else:
+        return rand_prob
