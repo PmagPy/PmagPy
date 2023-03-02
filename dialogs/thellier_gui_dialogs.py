@@ -206,7 +206,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.AddSpacer(10)
         for num in sorted(self.bSizers):
-            hbox.Add(self.bSizers[num], flag=wx.ALIGN_CENTER_HORIZONTAL)
+            hbox.Add(self.bSizers[num], flag=wx.ALIGN_CENTER_VERTICAL)
             hbox.AddSpacer(10)
         #hbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
         #hbox.AddSpacer(10)
