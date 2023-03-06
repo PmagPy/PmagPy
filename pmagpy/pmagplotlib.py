@@ -2715,7 +2715,7 @@ def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
         plt.plot([NLpars['banc'] * 1e6], [NLpars['banc_npred'] / Mp[-1]], 'rs')
     else:
         plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'b--')
-        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1])], 'bd')
+        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'bd')
 
 ###
 
