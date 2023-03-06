@@ -22,16 +22,17 @@ OPTIONS
     -ID DIRECTORY: directory for input files, default = current directory
     -WD DIRECTORY: directory for output files, default = current directory
     -f FILE: the IRM Excel data file name, required 
-       (the file name flag may be ommited and just the file name used, if no other flags are present)
+       (the file name flag may be omitted and just the file name used, if no other flags are present)
     -cite CITATION: specify the citation, default = This study (use "This study" unless you already 
                     have the DOI for the paper the dataset is associated with.
     -M flag: the MPMSdc file type (default:0) 
              use 0 for IRM file type as of July 7th, 2021. Data has header with the specimen name on 4 columns
              use 1 for earlier type where the first two header columns are "specimen" and the specimen name
-             example IRM data file Sprain is of this type
+             example IRM data file Sprain et al. 2021 (earthref.org/MagIC/19216) is of this type.
 EXAMPLE
     Command line for the example dataset:
     irm_magic.py example.xlsx -   (example dataset yet to be choosen)
+
 
 
 """
