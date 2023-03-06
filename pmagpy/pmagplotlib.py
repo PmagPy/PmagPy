@@ -2205,10 +2205,8 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     # Mr/Ms ratios for USD,MD and Jax shaped
     sdrat, mdrat, cbrat = 0.498, 0.048, 0.6
     Mrat = f_sd * sdrat + f_md * mdrat  # linear mixing - eq. 9 in Dunlop 2002
-    Bc = (f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md) /
-                 (f_sd * chi_sd + f_md * chi_md))  # eq. 10 in Dunlop 2002
-    Bcr = (f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md) /
-                  (f_sd * chi_r_sd + f_md * chi_r_md))  # eq. 11 in Dunlop 2002
+    Bc = (f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md) / (f_sd * chi_sd + f_md * chi_md)  # eq. 10 in Dunlop 2002
+    Bcr = (f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md) / (f_sd * chi_r_sd + f_md * chi_r_md)  # eq. 11 in Dunlop 2002
     chi_sps = np.arange(1, 5) * chi_sd
     plt.plot(Bcr / Bc, Mrat, 'r-')
     if 'names' in list(kwargs.keys()):
