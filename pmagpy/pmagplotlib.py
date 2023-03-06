@@ -1697,7 +1697,7 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
     beta, gamma = beta * rad, gamma * rad  # convert to radians
     X_ell, Y_ell, X_up, Y_up, PTS = [], [], [], [], []
     nums = 201
-    xnum = float(nums - 1.) / 2.
+    xnum = float(nums - 1.0) / 2.0
 # set up t matrix
     t = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
     X = pmag.dir2cart((Pdec, Pinc, 1.0))  # convert to cartesian coordintes
@@ -2068,7 +2068,7 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
     plt.xlabel('B (T)')
     plt.ylabel('Delta M')
     linex = [0, Bcr, Bcr]
-    liney = [DM[0] / 2., DM[0] / 2., 0]
+    liney = [DM[0] / 2.0, DM[0] / 2.0, 0]
     plt.plot(linex, liney, 'r')
     plt.title(s)
 #
@@ -2198,7 +2198,7 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     Bcr_sd, Bcr_md = 52.5e-3, 26.1e-3  # (MV1H and 041183 in DC06 in tesla)
     Ms = 480e3  # A/m
     p = .1  # from Dunlop 2002
-    N = 1. / 3.  # demagnetizing factor
+    N = 1.0 / 3.0  # demagnetizing factor
     f_sd = np.arange(1., 0., -.01)  # fraction of sd
     f_md = 1. - f_sd  # fraction of md
     f_sp = 1. - f_sd  # fraction of sp
@@ -3064,10 +3064,10 @@ def plot_map_basemap(fignum, lats, lons, Opts):
             g = Opts['gridspace']
             latmin, lonmin = g * \
                 int(Opts['latmin'] / g), g * \
-                int(Opts['lonmin'] / g))
+                int(Opts['lonmin'] / g)
             latmax, lonmax = g * \
-                int(Opts['latmax'] / g)), g * \
-                int(Opts['lonmax'] / g))
+                int(Opts['latmax'] / g), g * \
+                int(Opts['lonmax'] / g)
             # circles=np.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
             # meridians=np.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
             meridians = np.arange(0, 360, 30)
@@ -3589,7 +3589,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
         counter = counter + 1
         X = pmag.dir2cart([rec[0], rec[1], 1.])
         # from Collinson 1983
-        R = np.sqrt(1. - X[2]) / (np.sqrt(X[0]**2 + X[1]**2)))
+        R = np.sqrt(1. - X[2]) / (np.sqrt(X[0]**2 + X[1]**2))
         XY.append([X[0] * R, X[1] * R])
     # radius of the circle
     radius = (3. / (np.sqrt(np.pi * (9. + float(counter))))) + 0.01
