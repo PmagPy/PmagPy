@@ -2068,7 +2068,7 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
     plt.xlabel('B (T)')
     plt.ylabel('Delta M')
     linex = [0, Bcr, Bcr]
-    liney = [DM[0] / 2.), DM[0] / 2.), 0]
+    liney = [DM[0] / 2., DM[0] / 2., 0]
     plt.plot(linex, liney, 'r')
     plt.title(s)
 #
