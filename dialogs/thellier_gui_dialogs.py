@@ -76,7 +76,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.stat_by_category['Additivity Checks'] = [
             'specimen_ac_n', 'specimen_dac']
         self.DESC = {}
-        self.DESC['specimen_frac'] = 'The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment'
+        self.DESC['specimen_frac'] = 'NRM fraction used for the best-fit on an Arai diagram determined entirely by vector difference sum calculation (Shaar and Tauxe, 2013).'
         self.DESC['specimen_int_n'] = 'Number of measurements included in field strength calculations'
         self.DESC['specimen_alpha_prime'] = 'Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction. NOT CURRENTLY AVAILABLE'
         self.DESC['specimen_alpha'] = 'Angular difference between the anchored and free-floating best-fit directions on a vector component diagram'
