@@ -20,12 +20,19 @@ a = Analysis(['programs/pmag_gui.py'],
              pathex=[current_dir],
              binaries=[],
              datas=files,
-             hiddenimports=['scipy.optimize', 'scipy.interpolate',
-                            'scipy._lib.messagestream',
-                            # timdeltas appears necessary for Windows with
-                            # conda-installed pyinstaller
-                            'pandas._libs.tslibs.timedeltas',
-                            'pandas.concat', 'wget', 'pkg_resources.py2_warn'],
+             hiddenimports=[    'scipy.misc', 
+                                'scipy.datasets', 
+                                'scipy.odr', 
+                                'scipy.io', 'scipy.fftpack', 
+                                'scipy.cluster','scipy.optimize', 'scipy.interpolate',
+                                'scipy._lib.messagestream',
+                                'pandas._libs.tslibs.timedeltas',
+                                'pandas.concat', 'wget', 'pkg_resources.py2_warn'],
+             hooksconfig={
+                        "matplotlib": {
+                        "backends": "all",  # collect all backends
+                        },
+                },
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -46,7 +53,6 @@ exe = EXE(pyz,
           upx=True,
           console=False, icon='./programs/images/PmagPy.ico')
 app = BUNDLE(exe,
-             #name='pmag_gui.app',
              name=app_name + ".app",
              icon='./programs/images/PmagPy.ico',
              bundle_identifier=None)
