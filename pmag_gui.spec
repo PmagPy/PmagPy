@@ -51,8 +51,8 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False, icon='./programs/images/PmagPy.ico')
+          console=False, icon='./programs/images/pmagpy_logo.ico')
 app = BUNDLE(exe,
              name=app_name + ".app",
-             icon='./programs/images/PmagPy.ico',
+             icon='./programs/images/pmagpy_logo.ico',
              bundle_identifier=None)
