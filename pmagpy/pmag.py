@@ -3086,7 +3086,7 @@ def domean(data, start, end, calculation_type):
 #
     for cart in X:
         for l in range(3):
-            cm[l] += old_div(cart[l], Nrec)
+            cm[l] += cart[l] / Nrec
     mpars["center_of_mass"] = cm
 
 #
@@ -3126,7 +3126,7 @@ def domean(data, start, end, calculation_type):
         mpars["measurement_step_max"] = indata[end0][0]
         mpars["center_of_mass"] = cm
         s1 = np.sqrt(t[0])
-        MAD = old_div(np.arctan(old_div(np.sqrt(t[1] + t[2]), s1)), rad)
+        MAD = np.arctan(np.sqrt(t[1] + t[2]) / s1) / rad
         if np.iscomplexobj(MAD):
             MAD = MAD.real
         # I think this is how it is done - i never anchor the "PCA" - check
@@ -3360,7 +3360,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     for k in range(len(first_Z) - 1):
         for l in range(k):
             # only go down to 10% of NRM.....
-            if old_div(first_Z[k][3], vds) > 0.1:
+            if (first_Z[k][3] / vds) > 0.1:
                 irec = first_I[l]
                 if irec[4] == 1 and first_I[l + 1][4] == 0:  # a ZI step
                     xzi = irec[3]
@@ -3397,7 +3397,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
                  )  # Watson test for common mean
             nf = 2. * (dup['n'] - 2.)  # number of degees of freedom
             ftest = fcalc(2, nf)
-            Frat = old_div(F, ftest)
+            Frat = F / ftest
             if Frat > 1.:
                 ZigZag = Frat  # fails zigzag on directions
                 methcode = "SM-FTEST"
@@ -3576,8 +3576,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
     for k in range(len(NRMs)):
         index_pTRMs = PTRMs_temperatures.index(NRMs[k][0])
-        x_Arai.append(old_div(PTRMs[index_pTRMs][3], NRM))
-        y_Arai.append(old_div(NRMs[k][3], NRM))
+        x_Arai.append(PTRMs[index_pTRMs][3] / NRM)
+        y_Arai.append(NRMs[k][3] / NRM)
         t_Arai.append(NRMs[k][0])
         if NRMs[k][4] == 1:
             steps_Arai.append('ZI')
@@ -3608,9 +3608,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
                         index_zerofield = zerofield_temperatures.index(
                             ptrm_checks[k][0])
-                        x_ptrm_check.append(old_div(ptrm_checks[k][3], NRM))
-                        y_ptrm_check.append(
-                            old_div(zerofields[index_zerofield][3], NRM))
+                        x_ptrm_check.append(ptrm_checks[k][3] / NRM)
+                        y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
 
                         break
@@ -3649,10 +3648,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
                         index_infield = infield_temperatures.index(
                             ptrm_tail[k][0])
-                        x_tail_check.append(
-                            old_div(infields[index_infield][3], NRM))
-                        y_tail_check.append(
-                            old_div(ptrm_tail[k][3], NRM) + old_div(zerofields[index_infield][3], NRM))
+                        x_tail_check.append(infields[index_infield][3] / NRM)
+                        y_tail_check.append((ptrm_tail[k][3] / NRM) + (zerofields[index_infield][3] / NRM))
                         tail_check_temperatures.append(ptrm_tail[k][0])
 
                         break
@@ -3732,13 +3729,13 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
         # lower bounding line of the 'beta box'
         # y=intercept1+slop1x
-        slop1 = old_div(a1, ((old_div(a2, b2))))
+        slop1 = a1 / (a2 / b2)
         intercept1 = a1
 
         # higher bounding line of the 'beta box'
         # y=intercept2+slop2x
 
-        slop2 = old_div(a2, ((old_div(a1, b1))))
+        slop2 = a2 / (a1 / b1)
         intercept2 = a2
 
         pars['specimen_scat_bounding_line_high'] = [intercept2, slop2]
@@ -4343,7 +4340,7 @@ def dosundec(sundata):
         day = day - 1
         hrs = hrs + 24
     julian_day = julian(mon, day, year)
-    utd = old_div((hrs + old_div(min, 60.)), 24.)
+    utd = (hrs + (min / 60)) / 24
     greenwich_hour_angle, delta = gha(julian_day, utd)
     H = greenwich_hour_angle + float(sundata["lon"])
     if H > 360:
