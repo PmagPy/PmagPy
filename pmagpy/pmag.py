@@ -1105,8 +1105,8 @@ def get_Sb(data):
             k = rec['average_k']
             L = rec['average_lat'] * np.pi / 180.  # latitude in radians
             Nsi = rec['average_nn']
-            K = old_div(k, (2. * (1. + 3. * np.sin(L)**2) /
-                            (5. - 3. * np.sin(L)**2)))
+            K = k / (2. * (1. + 3. * np.sin(L)**2) /
+                            (5. - 3. * np.sin(L)**2))
             Sw = 81. / np.sqrt(K)
         else:
             Sw, Nsi = 0, 1.
@@ -1397,7 +1397,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
         if boolmask:
             plong = plong - 2 * np.pi
 
-    dm = np.rad2deg(a95 * (old_div(np.sin(p), np.cos(dip))))
+    dm = np.rad2deg(a95 * (np.sin(p) / np.cos(dip)))
     dp = np.rad2deg(a95 * (old_div((1 + 3 * (np.cos(p)**2)), 2)))
     plat = np.rad2deg(plat)
     plong = np.rad2deg(plong)
@@ -1446,26 +1446,26 @@ def int_pars(x, y, vds, **kwargs):
         xy += x[i] * y[i]
         xsum += x[i]
         ysum += y[i]
-    xsig = np.sqrt(old_div((xx - (old_div(xsum**2., n))), (n - 1.)))
-    ysig = np.sqrt(old_div((yy - (old_div(ysum**2., n))), (n - 1.)))
+    xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
+    ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
     sum = 0
     for i in range(int(n)):
-        yer += (y[i] - old_div(ysum, n))**2.
-        xer += (x[i] - old_div(xsum, n))**2.
-        xyer += (y[i] - old_div(ysum, n)) * (x[i] - old_div(xsum, n))
-    slop = -np.sqrt(old_div(yer, xer))
+        yer += (y[i] - (ysum / n))**2.
+        xer += (x[i] - (xsum / n))**2.
+        xyer += (y[i] - (ysum / n)) * (x[i] - (xsum / n))
+    slop = -np.sqrt(yer / xer)
     pars[b_key] = slop
     s1 = 2. * yer - 2. * slop * xyer
     s2 = (n - 2.) * xer
-    sigma = np.sqrt(old_div(s1, s2))
+    sigma = np.sqrt(s1 / s2)
     pars[sigma_key] = sigma
-    s = old_div((xy - (xsum * ysum / n)), (xx - old_div((xsum**2.), n)))
-    r = old_div((s * xsig), ysig)
+    s = (xy - (xsum * ysum / n)) / (xx - (xsum**2 / n))
+    r = (s * xsig) / ysig
     pars["specimen_rsc"] = r**2.
     ytot = abs(ysum / n - slop * xsum / n)
     for i in range(int(n)):
-        xprime.append(old_div((slop * x[i] + y[i] - ytot), (2. * slop)))
-        yprime.append((old_div((slop * x[i] + y[i] - ytot), 2.)) + ytot)
+        xprime.append(((slop * x[i] + y[i] - ytot) / (2. * slop)))
+        yprime.append(((slop * x[i] + y[i] - ytot) / 2.) + ytot)
     sumdy, dy = 0, []
     dyt = abs(yprime[0] - yprime[int(n) - 1])
     for i in range((int(n) - 1)):
@@ -1591,8 +1591,7 @@ def vspec_magic(data):
                 vrec = data[i - 1]
                 vrec['measurement_dec'] = '%7.1f' % (dir[0])
                 vrec['measurement_inc'] = '%7.1f' % (dir[1])
-                vrec['measurement_magn_moment'] = '%8.3e' % (
-                    old_div(R, (i - k + 1)))
+                vrec['measurement_magn_moment'] = '%8.3e' % (R / (i - k + 1))
                 vrec['measurement_csd'] = '%7.1f' % (Fpars['csd'])
                 vrec['measurement_positions'] = '%7.1f' % (Fpars['n'])
                 vrec['measurement_description'] = 'average of multiple measurements'
@@ -1669,7 +1668,7 @@ def vspec_magic3(data):
                 vrec = data[i - 1]
                 vrec['dir_dec'] = '%7.1f' % (dir[0])
                 vrec['dir_inc'] = '%7.1f' % (dir[1])
-                vrec['magn_moment'] = '%8.3e' % (old_div(R, (i - k + 1)))
+                vrec['magn_moment'] = '%8.3e' % (R / (i - k + 1))
                 vrec['dir_csd'] = '%7.1f' % (Fpars['csd'])
                 vrec['meas_n_orient'] = '%7.1f' % (Fpars['n'])
                 descr=vrec['description']+': average of multiple measurements'
@@ -2668,8 +2667,7 @@ def vspec(data):
                 for l in range(k - 1, i):
                     Dirdata.append([data[l][1], data[l][2], data[l][3]])
                 dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1],
-                              old_div(R, (i - k + 1)), '1', 'g'])
+                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
                 step_meth.append("DE-VM")
             tr0 = data[i][0]
             k = i + 1
@@ -2781,10 +2779,10 @@ def cart2dir(cart):
     Rs = np.sqrt(Xs**2 + Ys**2 + Zs**2)  # calculate resultant vector length
     # calculate declination taking care of correct quadrants (arctan2) and
     # making modulo 360.
-    Decs = (old_div(np.arctan2(Ys, Xs), rad)) % 360.
+    Decs = (np.arctan2(Ys, Xs) / rad) % 360.
     try:
         # calculate inclination (converting to degrees) #
-        Incs = old_div(np.arcsin(old_div(Zs, Rs)), rad)
+        Incs = np.arcsin(Zs / Rs) / rad
     except:
         print('trouble in cart2dir')  # most likely division by zero somewhere
         return np.zeros(3)
@@ -2834,7 +2832,7 @@ def tauV(T):
         tr += tau
     if tr != 0:
         for i in range(3):
-            evalues[i] = old_div(evalues[i], tr)
+            evalues[i] = evalues[i] / tr
     else:
         return t, V
 # sort evalues,evectors
@@ -2974,7 +2972,7 @@ array([ 16.72583333333333 ,  31.409444444444446,   7.455555555555557,
     else:  # single vector
         degs, mins, secs = np.array(d[0]), np.array(d[1]), np.array(d[2])
         #print(degs, mins, secs)
-    dd = np.array(degs + old_div(mins, 60.) + old_div(secs, 3600.)).transpose()
+    dd = np.array(degs + (mins / 60.0) + (secs / 3600.0)).transpose()
     return dd
 
 
