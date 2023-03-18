@@ -8984,7 +8984,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     elif return_new_dirs:
         return make_di_block(decs, unsquished_incs)
     elif return_values:
-        return I, E, F
+        return flat_f, I, E, F
     else:
         return
 
