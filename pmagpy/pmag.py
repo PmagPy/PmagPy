@@ -4401,22 +4401,23 @@ def gha(julian_day, f):
 # obliquity of ecliptic
     epsilon = 23.439 - 0.0000004 * d
 # right ascension (in same quadrant as lambda)
-    t = (np.tan(old_div((epsilon * rad), 2)))**2
-    r = old_div(1, rad)
+    t = (np.tan((epsilon * rad) / 2))**2
+    r = 1 / rad
     rl = lamb * rad
     alpha = lamb - r * t * np.sin(2 * rl) + \
-        (old_div(r, 2)) * t * t * np.sin(4 * rl)
+        (r / 2) * t * t * np.sin(4 * rl)
 #       alpha=mod(alpha,360.0)
 # declination
     delta = np.sin(epsilon * rad) * np.sin(lamb * rad)
-    delta = old_div(np.arcsin(delta), rad)
+    delta = np.arcsin(delta) / rad
 # equation of time
     eqt = (L - alpha)
 #
     utm = f * 24 * 60
-    H = old_div(utm, 4) + eqt + 180
+    H = (utm / 4) + eqt + 180
     H = H % 360.0
     return H, delta
+
 
 
 def julian(mon, day, year):
@@ -4589,7 +4590,7 @@ def gausspars(data):
     if N == 1:
         return data[0], 0
     for j in range(N):
-        mean += old_div(data[j], float(N))
+        mean += data[j] / float(N)
     for j in range(N):
         d += (data[j] - mean)**2
     stdev = np.sqrt(d * (1./(float(N - 1))))
@@ -4681,11 +4682,12 @@ def weighted_mean(data):
     for x in data:
         W += x[1]  # sum of the weights
     for x in data:
-        mean += old_div((float(x[1]) * float(x[0])), float(W))
+        mean += (float(x[1]) * float(x[0])) / float(W)
     for x in data:
-        d += (old_div(float(x[1]), float(W))) * (float(x[0]) - mean)**2
-    stdev = np.sqrt(d * (old_div(1., (float(N - 1)))))
+        d += (float(x[1]) / float(W)) * (float(x[0]) - mean)**2
+    stdev = np.sqrt(d * (1 / float(N - 1)))
     return mean, stdev
+
 
 
 def lnpbykey(data, key0, key1):  # calculate a fisher mean of key1 data for a group of key0
