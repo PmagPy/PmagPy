@@ -2030,6 +2030,10 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 7 ---
         self.bSizer7 = pw.site_lat_lon(pnl)
 
+        #---sizer 8 ----
+        TEXT="Demagnetization Method (optional):"
+        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -2044,6 +2048,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
@@ -2068,7 +2073,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         directory = self.bSizer0.return_value() or '.'
         options['input_dir_path'] = directory
         files = os.listdir(directory)
-        files = [str(f) for f in files if str(f).toUpperCase().endswith('.PMD')]
+        files = [str(f) for f in files if str(f).upper().endswith('.PMD')]
         if files:
             samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_samples.txt"
             options['samp_file'] = samp_outfile
@@ -2082,6 +2087,11 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         options['specnum'] = spc
         loc_name = self.bSizer4.return_value()
         options['location'] = loc_name
+        dmg = self.bSizer8.return_value().lower() #Make lower case because the dmg options are t or af
+        options['dmg'] = dmg
+        if dmg != "" and dmg != "t" and dmg != "af":
+            pw.simple_warning("The only valid demagnetization methods t and af, but program recieved: %s"%dmg)
+            return
         if loc_name:
             location = loc_name
             loc_name = "-loc " + loc_name
@@ -2113,7 +2123,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             options['site_file'] = site_outfile
             loc_outfile = f[:f.find('.')] + "_locations.txt"
             options['loc_file'] = loc_outfile
-            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, particulars, spc, replicate, ID, loc_name, lat, lon)
+            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -dmg {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, dmg, ncn, particulars, spc, replicate, ID, loc_name, lat, lon)
 
             program_ran, error_message = convert.pmd(**options)
             if not program_ran:

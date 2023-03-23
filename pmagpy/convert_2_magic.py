@@ -9301,10 +9301,10 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     vol = rec[v_ind][:-3]
     date = rec[-2]
     time = rec[-1]
-    SampRec['method_codes'] = meth_code
     SampRec['site'] = site
     SampRec['citations'] = 'This study'
-    SampRec['method_codes'] = 'SO-NO'
+    if meth_code: SampRec['method_codes'] = meth_code
+    else: SampRec['method_codes'] = 'SO-NO'
 
     SpecRec['specimen'] = specimen
     SpecRec['sample'] = sample
