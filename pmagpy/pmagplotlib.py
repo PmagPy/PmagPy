@@ -8,10 +8,9 @@ import os
 import sys
 import warnings
 
-from past.utils import old_div
 import numpy as np
 import pandas as pd
-warnings.filterwarnings("ignore")  # what you don't know won't hurt you
+warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
 from distutils.version import LooseVersion
 
 # no longer setting backend here
@@ -1216,7 +1215,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0])
         if (units == "J") or (not units) or (units == "T"):
             X.append(rec[0])
-        Y.append(old_div(rec[3], first_Z[0][3]))
+        Y.append(rec[3] / first_Z[0][3])
         delta = .02 * Y[0]
         if recnum % 2 == 0:
             plt.text(X[-1] - delta, Y[-1] + delta,
@@ -1233,7 +1232,7 @@ def plot_np(fignum, indata, s, units):
                 X.append(rec[0])
         if (units == "J") or (not units) or (units == "T"):
             X.append(rec[0])
-        Y.append(old_div(rec[3], first_Z[0][3]))
+        Y.append(rec[3] / first_Z[0][3])
     if globals != 0:
         globals.DIlist = X
         globals.DIlisty = Y
@@ -1303,10 +1302,10 @@ def plot_b(Figs, araiblock, zijdblock, pars):
     for rec in zijdblock:
         if rec[0] == pars["measurement_step_min"]:
             Dir.append((rec[1] - angle, rec[2],
-                        old_div(rec[3], zijdblock[0][3])))
+                        rec[3] / zijdblock[0][3]))
         if rec[0] == pars["measurement_step_max"]:
             Dir.append((rec[1] - angle, rec[2],
-                        old_div(rec[3], zijdblock[0][3])))
+                        rec[3] / zijdblock[0][3]))
     for drec in Dir:
         cart = pmag.dir2cart(drec)
         zx.append(cart[0])
@@ -1319,19 +1318,19 @@ def plot_b(Figs, araiblock, zijdblock, pars):
         plt.scatter(zx, zy, marker='d', s=100, c='y')
         plt.scatter(zx, zz, marker='d', s=100, c='y')
         plt.axis("equal")
-    ax.append(old_div(first_I[0][3], first_Z[0][3]))
-    ax.append(old_div(first_I[-1][3], first_Z[0][3]))
-    ay.append(old_div(first_Z[0][3], first_Z[0][3]))
-    ay.append(old_div(first_Z[-1][3], first_Z[0][3]))
+    ax.append(first_I[0][3] / first_Z[0][3])
+    ax.append(first_I[-1][3] / first_Z[0][3])
+    ay.append(first_Z[0][3] / first_Z[0][3])
+    ay.append(first_Z[-1][3] / first_Z[0][3])
     for k in range(len(first_Z)):
         if first_Z[k][0] == pars["measurement_step_min"]:
-            ay[0] = (old_div(first_Z[k][3], first_Z[0][3]))
+            ay[0] = (first_Z[k][3] / first_Z[0][3])
         if first_Z[k][0] == pars["measurement_step_max"]:
-            ay[1] = (old_div(first_Z[k][3], first_Z[0][3]))
+            ay[1] = (first_Z[k][3] / first_Z[0][3])
         if first_I[k][0] == pars["measurement_step_min"]:
-            ax[0] = (old_div(first_I[k][3], first_Z[0][3]))
+            ax[0] = (first_I[k][3] / first_Z[0][3])
         if first_I[k][0] == pars["measurement_step_max"]:
-            ax[1] = (old_div(first_I[k][3], first_Z[0][3]))
+            ax[1] = (first_I[k][3] / first_Z[0][3])
     new_Z, new_I = [], []
     for zrec in first_Z:
         if zrec[0] >= pars['measurement_step_min'] and zrec[0] <= pars['measurement_step_max']:
@@ -1348,9 +1347,9 @@ def plot_b(Figs, araiblock, zijdblock, pars):
 #
     sy = []
     sy.append((pars["specimen_b"] * ax[0] +
-               old_div(pars["specimen_ytot"], first_Z[0][3])))
+               pars["specimen_ytot"] / first_Z[0][3]))
     sy.append((pars["specimen_b"] * ax[1] +
-               old_div(pars["specimen_ytot"], first_Z[0][3])))
+               pars["specimen_ytot"] / first_Z[0][3]))
     plt.plot(ax, sy, 'g', linewidth=2)
     bounds = plt.axis()
     if pars['specimen_grade'] != '':
@@ -1698,7 +1697,7 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
     beta, gamma = beta * rad, gamma * rad  # convert to radians
     X_ell, Y_ell, X_up, Y_up, PTS = [], [], [], [], []
     nums = 201
-    xnum = old_div(float(nums - 1.), 2.)
+    xnum = float(nums - 1.0) / 2.0
 # set up t matrix
     t = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
     X = pmag.dir2cart((Pdec, Pinc, 1.0))  # convert to cartesian coordintes
@@ -1739,8 +1738,7 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
         pts = pmag.cart2dir(elli)
         PTS.append([pts[0], pts[1]])
         # put on an equal area projection
-        R = old_div(np.sqrt(
-            1. - abs(elli[2])), (np.sqrt(elli[0]**2 + elli[1]**2)))
+        R = np.sqrt(1. - abs(elli[2])) / (np.sqrt(elli[0]**2 + elli[1]**2))
         if elli[2] <= 0:
             #            for i in range(3): elli[i]=-elli[i]
             X_up.append(elli[1] * R)
@@ -1968,7 +1966,7 @@ def plot_hys(fignum, B, M, s):
     diff = m_fin - m_init
     Bmin = 0.
     for k in range(Npts):
-        frac = old_div(float(k), float(Npts - 1))
+        frac = float(k) / float(Npts - 1)
         Mfix.append((M[k] - diff * frac))
         if Bzero == "" and B[k] < 0:
             Bzero = k
@@ -2004,10 +2002,10 @@ def plot_hys(fignum, B, M, s):
     Mupper, Bupper, Mlower, Blower = [], [], [], []
     deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
     for k in range(kmin - 2, 0, -1):
-        Mupper.append(old_div(Moff[k], Msat))
+        Mupper.append(Moff[k] / Msat)
         Bupper.append(B[k])
     for k in range(kmin + 2, len(B)):
-        Mlower.append(old_div(Moff[k], Msat))
+        Mlower.append(Moff[k] / Msat)
         Blower.append(B[k])
     Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
     Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
@@ -2018,8 +2016,8 @@ def plot_hys(fignum, B, M, s):
         Bdm.append(b)
         deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
     for k in range(Npts):
-        MadjN.append(old_div(Moff[k], Msat))
-        Mnorm.append(old_div(M[k], Msat))
+        MadjN.append(Moff[k] / Msat)
+        Mnorm.append(M[k] / Msat)
     if fignum != 0:
         plt.plot(B, Mnorm, 'r')
         plt.plot(B, MadjN, 'b')
@@ -2039,10 +2037,10 @@ def plot_hys(fignum, B, M, s):
     try:
         # best fit line through two bounding points
         poly = np.polyfit(Bz, Mz, 1)
-        Bc = old_div(-poly[1], poly[0])  # x intercept
+        Bc = -poly[1] / poly[0]  # x intercept
         # best fit line through two bounding points
         poly = np.polyfit(Baz, Maz, 1)
-        Bac = old_div(-poly[1], poly[0])  # x intercept
+        Bac = -poly[1] / poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
     except:
         hpars['hysteresis_bc'] = '0'
@@ -2070,7 +2068,7 @@ def plot_delta_m(fignum, B, DM, Bcr, s):
     plt.xlabel('B (T)')
     plt.ylabel('Delta M')
     linex = [0, Bcr, Bcr]
-    liney = [old_div(DM[0], 2.), old_div(DM[0], 2.), 0]
+    liney = [DM[0] / 2.0, DM[0] / 2.0, 0]
     plt.plot(linex, liney, 'r')
     plt.title(s)
 #
@@ -2140,9 +2138,9 @@ def plot_hdd(HDD, B, M, s):
     for k in range(2, len(Bdm)):
         # differnential
         DdeltaM.append(
-            old_div(abs(deltaM[k] - deltaM[k - 2]), (Bdm[k] - Bdm[k - 2])))
+            abs(deltaM[k] - deltaM[k - 2]) / (Bdm[k] - Bdm[k - 2]))
     for k in range(len(deltaM)):
-        if old_div(deltaM[k], deltaM[0]) < 0.5:
+        if deltaM[k] / deltaM[0] < 0.5:
             Mhalf = k
             break
     try:
@@ -2150,7 +2148,7 @@ def plot_hdd(HDD, B, M, s):
         Mhf = deltaM[Mhalf - 1:Mhalf + 1]
         # best fit line through two bounding points
         poly = np.polyfit(Bhf, Mhf, 1)
-        Bcr = old_div((.5 * deltaM[0] - poly[1]), poly[0])
+        Bcr = (.5 * deltaM[0] - poly[1]) / poly[0]
         hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
         hpars['magic_method_codes'] = "LP-BCR-HDM"
         if HDD['deltaM'] != 0:
@@ -2200,19 +2198,17 @@ def plot_day(fignum, BcrBc, S, sym, **kwargs):
     Bcr_sd, Bcr_md = 52.5e-3, 26.1e-3  # (MV1H and 041183 in DC06 in tesla)
     Ms = 480e3  # A/m
     p = .1  # from Dunlop 2002
-    N = old_div(1., 3.)  # demagnetizing factor
+    N = 1.0 / 3.0  # demagnetizing factor
     f_sd = np.arange(1., 0., -.01)  # fraction of sd
     f_md = 1. - f_sd  # fraction of md
     f_sp = 1. - f_sd  # fraction of sp
     # Mr/Ms ratios for USD,MD and Jax shaped
     sdrat, mdrat, cbrat = 0.498, 0.048, 0.6
     Mrat = f_sd * sdrat + f_md * mdrat  # linear mixing - eq. 9 in Dunlop 2002
-    Bc = old_div((f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md),
-                 (f_sd * chi_sd + f_md * chi_md))  # eq. 10 in Dunlop 2002
-    Bcr = old_div((f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md),
-                  (f_sd * chi_r_sd + f_md * chi_r_md))  # eq. 11 in Dunlop 2002
+    Bc = (f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md) / (f_sd * chi_sd + f_md * chi_md)  # eq. 10 in Dunlop 2002
+    Bcr = (f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md) / (f_sd * chi_r_sd + f_md * chi_r_md)  # eq. 11 in Dunlop 2002
     chi_sps = np.arange(1, 5) * chi_sd
-    plt.plot(old_div(Bcr, Bc), Mrat, 'r-')
+    plt.plot(Bcr / Bc, Mrat, 'r-')
     if 'names' in list(kwargs.keys()):
         names = kwargs['names']
         for k in range(len(names)):
@@ -2281,8 +2277,8 @@ def plot_hpars(HDD, hpars, sym):
     plt.figure(num=HDD['hyst'])
     X, Y = [], []
     X.append(0)
-    Y.append(old_div(float(hpars['hysteresis_mr_moment']), float(
-        hpars['hysteresis_ms_moment'])))
+    Y.append(float(hpars['hysteresis_mr_moment']) / float(
+        hpars['hysteresis_ms_moment']))
     X.append(float(hpars['hysteresis_bc']))
     Y.append(0)
     plt.plot(X, Y, sym)
@@ -2340,7 +2336,7 @@ def plot_irm(fignum, B, M, title):
     if backfield == 1:
         poly = np.polyfit(X, Y, 1)
         if poly[0] != 0:
-            bcr = (old_div(-poly[1], poly[0]))
+            bcr = (-poly[1] / poly[0])
         else:
             bcr = 0
         rpars['remanence_mr_moment'] = '%8.3e' % (M[0])
@@ -2348,12 +2344,12 @@ def plot_irm(fignum, B, M, title):
         rpars['magic_method_codes'] = 'LP-BCR-BF'
         if M[0] != 0:
             for m in M:
-                Mnorm.append(old_div(m, M[0]))  # normalize to unity Msat
+                Mnorm.append(m / M[0])  # normalize to unity Msat
             title = title + ':' + '%8.3e' % (M[0])
     else:
         if M[-1] != 0:
             for m in M:
-                Mnorm.append(old_div(m, M[-1]))  # normalize to unity Msat
+                Mnorm.append(m / M[-1])  # normalize to unity Msat
             title = title + ':' + '%8.3e' % (M[-1])
 # do plots if desired
     if fignum != 0 and M[0] != 0:  # skip plot for fignum = 0
@@ -2707,25 +2703,19 @@ def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
     for b in Bp:
         Bpnorm.append(b * 1e6)
     for t in TRM:
-        Tnorm.append(old_div(t, Mp[-1]))
+        Tnorm.append(t / Mp[-1])
     for t in Mp:
-        Mnorm.append(old_div(t, Mp[-1]))
+        Mnorm.append(t / Mp[-1])
     plt.plot(Bnorm, Tnorm, 'go')
     plt.plot(Bpnorm, Mnorm, 'g-')
     if NLpars['banc'] > 0:
-        plt.plot([0, NLpars['best'] * 1e6],
-                 [0, old_div(NLpars['banc_npred'], Mp[-1])], 'b--')
-        plt.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [old_div(
-            NLpars['banc_npred'], Mp[-1]), old_div(NLpars['banc_npred'], Mp[-1])], 'r--')
-        plt.plot([NLpars['best'] * 1e6],
-                 [old_div(NLpars['banc_npred'], Mp[-1])], 'bd')
-        plt.plot([NLpars['banc'] * 1e6],
-                 [old_div(NLpars['banc_npred'], Mp[-1])], 'rs')
+        plt.plot([0, NLpars['best'] * 1e6],[0, NLpars['banc_npred'] / Mp[-1]], 'b--')
+        plt.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [NLpars['banc_npred'] / Mp[-1], NLpars['banc_npred'] / Mp[-1]], 'r--')
+        plt.plot([NLpars['best'] * 1e6], [NLpars['banc_npred'] / Mp[-1]], 'bd')
+        plt.plot([NLpars['banc'] * 1e6], [NLpars['banc_npred'] / Mp[-1]], 'rs')
     else:
-        plt.plot([0, NLpars['best'] * 1e6],
-                 [0, old_div(NLpars['best_npred'], Mp[-1])], 'b--')
-        plt.plot([0, NLpars['best'] * 1e6],
-                 [0, old_div(NLpars['best_npred'], Mp[-1])], 'bd')
+        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'b--')
+        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'bd')
 
 ###
 
@@ -3071,11 +3061,11 @@ def plot_map_basemap(fignum, lats, lons, Opts):
         else:
             g = Opts['gridspace']
             latmin, lonmin = g * \
-                int(old_div(Opts['latmin'], g)), g * \
-                int(old_div(Opts['lonmin'], g))
+                int(Opts['latmin'] / g), g * \
+                int(Opts['lonmin'] / g)
             latmax, lonmax = g * \
-                int(old_div(Opts['latmax'], g)), g * \
-                int(old_div(Opts['lonmax'], g))
+                int(Opts['latmax'] / g), g * \
+                int(Opts['lonmax'] / g)
             # circles=np.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
             # meridians=np.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
             meridians = np.arange(0, 360, 30)
@@ -3597,11 +3587,11 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
         counter = counter + 1
         X = pmag.dir2cart([rec[0], rec[1], 1.])
         # from Collinson 1983
-        R = old_div(np.sqrt(1. - X[2]), (np.sqrt(X[0]**2 + X[1]**2)))
+        R = np.sqrt(1. - X[2]) / (np.sqrt(X[0]**2 + X[1]**2))
         XY.append([X[0] * R, X[1] * R])
     # radius of the circle
-    radius = (old_div(3., (np.sqrt(np.pi * (9. + float(counter)))))) + 0.01
-    num = 2. * (old_div(1., radius))  # number of circles
+    radius = (3. / (np.sqrt(np.pi * (9. + float(counter))))) + 0.01
+    num = 2. * (1. / radius)  # number of circles
     # a,b are the extent of the grids over which the circles are equispaced
     a1, a2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
     b1, b2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
@@ -3636,7 +3626,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
                         beta = beta + 1.
                     else:
                         alpha = alpha + 1.
-            fraction.append(old_div(alpha, beta))
+            fraction.append(alpha / beta)
             alpha, beta = 0.001, 0.001
         else:
             fraction.append(1.)  # if the whole circle lies in the net
@@ -3667,9 +3657,9 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     for j in range(1, 4):
         for i in range(0, 360):
             x.append(np.sin((np.pi/180.) * float(i))
-                     * (1. + (old_div(float(j), 10.))))
+                     * (1. + (float(j) / 10.)))
             y.append(np.cos((np.pi/180.) * float(i))
-                     * (1. + (old_div(float(j), 10.))))
+                     * (1. + (float(j) / 10.)))
         plt.plot(x, y, 'w-', linewidth=26)
         x, y = [], []
     # the axes

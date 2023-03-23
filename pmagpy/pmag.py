@@ -1105,8 +1105,8 @@ def get_Sb(data):
             k = rec['average_k']
             L = rec['average_lat'] * np.pi / 180.  # latitude in radians
             Nsi = rec['average_nn']
-            K = old_div(k, (2. * (1. + 3. * np.sin(L)**2) /
-                            (5. - 3. * np.sin(L)**2)))
+            K = k / (2. * (1. + 3. * np.sin(L)**2) /
+                            (5. - 3. * np.sin(L)**2))
             Sw = 81. / np.sqrt(K)
         else:
             Sw, Nsi = 0, 1.
@@ -1397,7 +1397,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
         if boolmask:
             plong = plong - 2 * np.pi
 
-    dm = np.rad2deg(a95 * (old_div(np.sin(p), np.cos(dip))))
+    dm = np.rad2deg(a95 * (np.sin(p) / np.cos(dip)))
     dp = np.rad2deg(a95 * (old_div((1 + 3 * (np.cos(p)**2)), 2)))
     plat = np.rad2deg(plat)
     plong = np.rad2deg(plong)
@@ -1446,26 +1446,26 @@ def int_pars(x, y, vds, **kwargs):
         xy += x[i] * y[i]
         xsum += x[i]
         ysum += y[i]
-    xsig = np.sqrt(old_div((xx - (old_div(xsum**2., n))), (n - 1.)))
-    ysig = np.sqrt(old_div((yy - (old_div(ysum**2., n))), (n - 1.)))
+    xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
+    ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
     sum = 0
     for i in range(int(n)):
-        yer += (y[i] - old_div(ysum, n))**2.
-        xer += (x[i] - old_div(xsum, n))**2.
-        xyer += (y[i] - old_div(ysum, n)) * (x[i] - old_div(xsum, n))
-    slop = -np.sqrt(old_div(yer, xer))
+        yer += (y[i] - (ysum / n))**2.
+        xer += (x[i] - (xsum / n))**2.
+        xyer += (y[i] - (ysum / n)) * (x[i] - (xsum / n))
+    slop = -np.sqrt(yer / xer)
     pars[b_key] = slop
     s1 = 2. * yer - 2. * slop * xyer
     s2 = (n - 2.) * xer
-    sigma = np.sqrt(old_div(s1, s2))
+    sigma = np.sqrt(s1 / s2)
     pars[sigma_key] = sigma
-    s = old_div((xy - (xsum * ysum / n)), (xx - old_div((xsum**2.), n)))
-    r = old_div((s * xsig), ysig)
+    s = (xy - (xsum * ysum / n)) / (xx - (xsum**2 / n))
+    r = (s * xsig) / ysig
     pars["specimen_rsc"] = r**2.
     ytot = abs(ysum / n - slop * xsum / n)
     for i in range(int(n)):
-        xprime.append(old_div((slop * x[i] + y[i] - ytot), (2. * slop)))
-        yprime.append((old_div((slop * x[i] + y[i] - ytot), 2.)) + ytot)
+        xprime.append(((slop * x[i] + y[i] - ytot) / (2. * slop)))
+        yprime.append(((slop * x[i] + y[i] - ytot) / 2.) + ytot)
     sumdy, dy = 0, []
     dyt = abs(yprime[0] - yprime[int(n) - 1])
     for i in range((int(n) - 1)):
@@ -1591,8 +1591,7 @@ def vspec_magic(data):
                 vrec = data[i - 1]
                 vrec['measurement_dec'] = '%7.1f' % (dir[0])
                 vrec['measurement_inc'] = '%7.1f' % (dir[1])
-                vrec['measurement_magn_moment'] = '%8.3e' % (
-                    old_div(R, (i - k + 1)))
+                vrec['measurement_magn_moment'] = '%8.3e' % (R / (i - k + 1))
                 vrec['measurement_csd'] = '%7.1f' % (Fpars['csd'])
                 vrec['measurement_positions'] = '%7.1f' % (Fpars['n'])
                 vrec['measurement_description'] = 'average of multiple measurements'
@@ -1669,7 +1668,7 @@ def vspec_magic3(data):
                 vrec = data[i - 1]
                 vrec['dir_dec'] = '%7.1f' % (dir[0])
                 vrec['dir_inc'] = '%7.1f' % (dir[1])
-                vrec['magn_moment'] = '%8.3e' % (old_div(R, (i - k + 1)))
+                vrec['magn_moment'] = '%8.3e' % (R / (i - k + 1))
                 vrec['dir_csd'] = '%7.1f' % (Fpars['csd'])
                 vrec['meas_n_orient'] = '%7.1f' % (Fpars['n'])
                 descr=vrec['description']+': average of multiple measurements'
@@ -2668,8 +2667,7 @@ def vspec(data):
                 for l in range(k - 1, i):
                     Dirdata.append([data[l][1], data[l][2], data[l][3]])
                 dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1],
-                              old_div(R, (i - k + 1)), '1', 'g'])
+                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
                 step_meth.append("DE-VM")
             tr0 = data[i][0]
             k = i + 1
@@ -2781,10 +2779,10 @@ def cart2dir(cart):
     Rs = np.sqrt(Xs**2 + Ys**2 + Zs**2)  # calculate resultant vector length
     # calculate declination taking care of correct quadrants (arctan2) and
     # making modulo 360.
-    Decs = (old_div(np.arctan2(Ys, Xs), rad)) % 360.
+    Decs = (np.arctan2(Ys, Xs) / rad) % 360.
     try:
         # calculate inclination (converting to degrees) #
-        Incs = old_div(np.arcsin(old_div(Zs, Rs)), rad)
+        Incs = np.arcsin(Zs / Rs) / rad
     except:
         print('trouble in cart2dir')  # most likely division by zero somewhere
         return np.zeros(3)
@@ -2834,7 +2832,7 @@ def tauV(T):
         tr += tau
     if tr != 0:
         for i in range(3):
-            evalues[i] = old_div(evalues[i], tr)
+            evalues[i] = evalues[i] / tr
     else:
         return t, V
 # sort evalues,evectors
@@ -2974,7 +2972,7 @@ array([ 16.72583333333333 ,  31.409444444444446,   7.455555555555557,
     else:  # single vector
         degs, mins, secs = np.array(d[0]), np.array(d[1]), np.array(d[2])
         #print(degs, mins, secs)
-    dd = np.array(degs + old_div(mins, 60.) + old_div(secs, 3600.)).transpose()
+    dd = np.array(degs + (mins / 60.0) + (secs / 3600.0)).transpose()
     return dd
 
 
@@ -3088,7 +3086,7 @@ def domean(data, start, end, calculation_type):
 #
     for cart in X:
         for l in range(3):
-            cm[l] += old_div(cart[l], Nrec)
+            cm[l] += cart[l] / Nrec
     mpars["center_of_mass"] = cm
 
 #
@@ -3128,7 +3126,7 @@ def domean(data, start, end, calculation_type):
         mpars["measurement_step_max"] = indata[end0][0]
         mpars["center_of_mass"] = cm
         s1 = np.sqrt(t[0])
-        MAD = old_div(np.arctan(old_div(np.sqrt(t[1] + t[2]), s1)), rad)
+        MAD = np.arctan(np.sqrt(t[1] + t[2]) / s1) / rad
         if np.iscomplexobj(MAD):
             MAD = MAD.real
         # I think this is how it is done - i never anchor the "PCA" - check
@@ -3362,7 +3360,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     for k in range(len(first_Z) - 1):
         for l in range(k):
             # only go down to 10% of NRM.....
-            if old_div(first_Z[k][3], vds) > 0.1:
+            if (first_Z[k][3] / vds) > 0.1:
                 irec = first_I[l]
                 if irec[4] == 1 and first_I[l + 1][4] == 0:  # a ZI step
                     xzi = irec[3]
@@ -3399,7 +3397,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
                  )  # Watson test for common mean
             nf = 2. * (dup['n'] - 2.)  # number of degees of freedom
             ftest = fcalc(2, nf)
-            Frat = old_div(F, ftest)
+            Frat = F / ftest
             if Frat > 1.:
                 ZigZag = Frat  # fails zigzag on directions
                 methcode = "SM-FTEST"
@@ -3578,8 +3576,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
     for k in range(len(NRMs)):
         index_pTRMs = PTRMs_temperatures.index(NRMs[k][0])
-        x_Arai.append(old_div(PTRMs[index_pTRMs][3], NRM))
-        y_Arai.append(old_div(NRMs[k][3], NRM))
+        x_Arai.append(PTRMs[index_pTRMs][3] / NRM)
+        y_Arai.append(NRMs[k][3] / NRM)
         t_Arai.append(NRMs[k][0])
         if NRMs[k][4] == 1:
             steps_Arai.append('ZI')
@@ -3610,9 +3608,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
                         index_zerofield = zerofield_temperatures.index(
                             ptrm_checks[k][0])
-                        x_ptrm_check.append(old_div(ptrm_checks[k][3], NRM))
-                        y_ptrm_check.append(
-                            old_div(zerofields[index_zerofield][3], NRM))
+                        x_ptrm_check.append(ptrm_checks[k][3] / NRM)
+                        y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
 
                         break
@@ -3651,10 +3648,8 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
                         index_infield = infield_temperatures.index(
                             ptrm_tail[k][0])
-                        x_tail_check.append(
-                            old_div(infields[index_infield][3], NRM))
-                        y_tail_check.append(
-                            old_div(ptrm_tail[k][3], NRM) + old_div(zerofields[index_infield][3], NRM))
+                        x_tail_check.append(infields[index_infield][3] / NRM)
+                        y_tail_check.append((ptrm_tail[k][3] / NRM) + (zerofields[index_infield][3] / NRM))
                         tail_check_temperatures.append(ptrm_tail[k][0])
 
                         break
@@ -3734,13 +3729,13 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 
         # lower bounding line of the 'beta box'
         # y=intercept1+slop1x
-        slop1 = old_div(a1, ((old_div(a2, b2))))
+        slop1 = a1 / (a2 / b2)
         intercept1 = a1
 
         # higher bounding line of the 'beta box'
         # y=intercept2+slop2x
 
-        slop2 = old_div(a2, ((old_div(a1, b1))))
+        slop2 = a2 / (a1 / b1)
         intercept2 = a2
 
         pars['specimen_scat_bounding_line_high'] = [intercept2, slop2]
@@ -4345,7 +4340,7 @@ def dosundec(sundata):
         day = day - 1
         hrs = hrs + 24
     julian_day = julian(mon, day, year)
-    utd = old_div((hrs + old_div(min, 60.)), 24.)
+    utd = (hrs + (min / 60)) / 24
     greenwich_hour_angle, delta = gha(julian_day, utd)
     H = greenwich_hour_angle + float(sundata["lon"])
     if H > 360:
@@ -4406,22 +4401,23 @@ def gha(julian_day, f):
 # obliquity of ecliptic
     epsilon = 23.439 - 0.0000004 * d
 # right ascension (in same quadrant as lambda)
-    t = (np.tan(old_div((epsilon * rad), 2)))**2
-    r = old_div(1, rad)
+    t = (np.tan((epsilon * rad) / 2))**2
+    r = 1 / rad
     rl = lamb * rad
     alpha = lamb - r * t * np.sin(2 * rl) + \
-        (old_div(r, 2)) * t * t * np.sin(4 * rl)
+        (r / 2) * t * t * np.sin(4 * rl)
 #       alpha=mod(alpha,360.0)
 # declination
     delta = np.sin(epsilon * rad) * np.sin(lamb * rad)
-    delta = old_div(np.arcsin(delta), rad)
+    delta = np.arcsin(delta) / rad
 # equation of time
     eqt = (L - alpha)
 #
     utm = f * 24 * 60
-    H = old_div(utm, 4) + eqt + 180
+    H = (utm / 4) + eqt + 180
     H = H % 360.0
     return H, delta
+
 
 
 def julian(mon, day, year):
@@ -4594,7 +4590,7 @@ def gausspars(data):
     if N == 1:
         return data[0], 0
     for j in range(N):
-        mean += old_div(data[j], float(N))
+        mean += data[j] / float(N)
     for j in range(N):
         d += (data[j] - mean)**2
     stdev = np.sqrt(d * (1./(float(N - 1))))
@@ -4686,11 +4682,12 @@ def weighted_mean(data):
     for x in data:
         W += x[1]  # sum of the weights
     for x in data:
-        mean += old_div((float(x[1]) * float(x[0])), float(W))
+        mean += (float(x[1]) * float(x[0])) / float(W)
     for x in data:
-        d += (old_div(float(x[1]), float(W))) * (float(x[0]) - mean)**2
-    stdev = np.sqrt(d * (old_div(1., (float(N - 1)))))
+        d += (float(x[1]) / float(W)) * (float(x[0]) - mean)**2
+    stdev = np.sqrt(d * (1 / float(N - 1)))
     return mean, stdev
+
 
 
 def lnpbykey(data, key0, key1):  # calculate a fisher mean of key1 data for a group of key0

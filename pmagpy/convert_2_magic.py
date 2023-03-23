@@ -6138,13 +6138,17 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
             SampRec["citations"] = "This study"
             SampRec["analysts"] = user
             if row['param3']==3:
-                row['azimuth']=(row['azimuth']+90)%360
-            if row['param3']==9:
                 row['azimuth']=(row['azimuth']-90)%360
+            if row['param3']==6:
+                row['azimuth']=(row['azimuth']+180)%360
+            if row['param3']==9:
+                row['azimuth']=(row['azimuth']+90)%360
             if row['param3']==12:
-                row['azimuth']=(row['azimuth']-180)%360
+                row['azimuth']=row['azimuth']
             if row['param2']==90:
-                row['dip']=90-row['dip']
+                row['dip']=row['dip']-90
+            if row['param2']==0:
+                row['dip']=-row['dip']
             SampRec['azimuth'] = row['azimuth']
             SampRec['dip'] = row['dip']
             SampRec['bed_dip_direction'] = row['bed_dip_direction']
@@ -6214,11 +6218,13 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
         MeasRec["magn_moment"] = str(row['magn_moment'])
         MeasRec["magn_volume"] = str(row['magn_volume'])
         if row['param1']==3: 
-            row['dir_dec']=(row['dir_dec']-90)%360
-        if row['param1']==6: 
-            row['dir_dec']=(row['dir_dec']-180)%360
-        if row['param1']==9: 
             row['dir_dec']=(row['dir_dec']+90)%360
+        if row['param1']==6: 
+            row['dir_dec']=(row['dir_dec']+180)%360
+        if row['param1']==9: 
+            row['dir_dec']=(row['dir_dec']+270)%360
+        if row['param1']==12: 
+            row['dir_dec']=row['dir_dec']
         MeasRec["dir_dec"] = str(row['dir_dec'])
         MeasRec["dir_inc"] = str(row['dir_inc'])
         MeasRec['method_codes'] = meas_type

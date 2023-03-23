@@ -1993,7 +1993,7 @@ class Demag_GUI(wx.Frame):
         means_to_plot = []
         for tm in toggleable_means:
             if not tm.IsChecked():
-                means_to_plot.append(tm.GetLabel())
+                means_to_plot.append(tm.GetItemLabel())
         return means_to_plot
 
     def calc_and_plot_sample_orient_check(self):
