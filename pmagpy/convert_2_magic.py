@@ -9172,7 +9172,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         meas_file="measurements.txt", spec_file='specimens.txt',
         samp_file='samples.txt', site_file="sites.txt", loc_file="locations.txt",
         lat="", lon="", specnum=0, samp_con='1', location="unknown",
-        noave=0, meth_code="LP-NO"):
+        noave=0, meth_code="LP-NO", dmg=""):
     """
     converts PMD (Enkin)  format files to MagIC format files
 
@@ -9207,6 +9207,8 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     meth_code : str
         default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
+    dmg : str
+       specify the type of demagnetization if not specified in the pmd file ('t' or 'af'), defaut ""
 
     Returns
     ---------
@@ -9340,9 +9342,15 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             MeasRec["specimen"] = specimen
             if rec[0] == 'NRM':
                 meas_type = "LT-NO"
+            elif rec[0] == '0':
+                meas_type = "LT-NO"
             elif rec[0][0] == 'M' or rec[0][0] == 'H':
                 meas_type = "LT-AF-Z"
             elif rec[0][0] == 'T':
+                meas_type = "LT-T-Z"
+            elif dmg == "af":
+                meas_type = "LT-AF-Z"
+            elif dmg == "t":
                 meas_type = "LT-T-Z"
             else:
                 print("measurement type unknown")

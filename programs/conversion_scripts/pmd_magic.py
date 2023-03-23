@@ -23,6 +23,7 @@ OPTIONS
     -loc LOCNAME : specify location/study name
     -A: don't average replicate measurements
     -ncn NCON: specify naming convention
+    -dmg TYPE: set default demag type ('t' for thermal, 'af' for AF demag
    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
@@ -71,6 +72,7 @@ def main():
     specnum = pmag.get_named_arg('-spc', 0)
     samp_con = pmag.get_named_arg('-ncn', '1')
     location = pmag.get_named_arg('-loc', 'unknown')
+    dmg = pmag.get_named_arg('-dmg', '')
     noave = 0
     if "-A" in sys.argv:
         noave = 1
@@ -78,7 +80,7 @@ def main():
     convert.pmd(mag_file, dir_path, input_dir_path, meas_file,
                 spec_file, samp_file, site_file, loc_file,
                 lat, lon, specnum, samp_con, location, noave,
-                meth_code)
+                meth_code,dmg)
 
 
 if __name__ == "__main__":

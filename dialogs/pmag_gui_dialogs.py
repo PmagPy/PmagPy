@@ -2068,7 +2068,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         directory = self.bSizer0.return_value() or '.'
         options['input_dir_path'] = directory
         files = os.listdir(directory)
-        files = [str(f) for f in files if str(f).endswith('.pmd')]
+        files = [str(f) for f in files if str(f).toUpperCase().endswith('.PMD')]
         if files:
             samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_samples.txt"
             options['samp_file'] = samp_outfile
