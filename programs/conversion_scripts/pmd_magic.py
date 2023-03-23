@@ -22,9 +22,9 @@ OPTIONS
     -spc NUM : specify number of characters to designate a  specimen, default = 1
     -loc LOCNAME : specify location/study name
     -A: don't average replicate measurements
-    -ncn NCON: specify naming convention
     -dmg TYPE: set default demag type ('t' for thermal, 'af' for AF demag
-   Sample naming convention:
+    -ncn NCON: specify naming convention
+    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]

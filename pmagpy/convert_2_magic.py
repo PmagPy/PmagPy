@@ -9204,6 +9204,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
         location name, default "unknown"
     noave : bool
        do not average duplicate measurements, default False (so by default, DO average)
+    -ncn NCON: specify naming convention
     meth_code : str
         default "LP-NO"
         e.g. [SO-MAG, SO-SUN, SO-SIGHT, ...]
@@ -9326,9 +9327,19 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
     SampRecs.append(SampRec)
     SiteRecs.append(SiteRec)
     LocRecs.append(LocRec)
+
+    head=data[2]
+    file_type=head[0:5]  
+    if file_type==" PAL ":
+        file_type="PAL"
+        dmg="t"
+    print("file_type=",file_type)
+    print("dmg=",dmg)
+
     for k in range(3, len(data)):  # read in data
         line = data[k]
         rec = line.split()
+        print("rec=",rec)
         if len(rec) > 1:  # skip blank lines at bottom
             MeasRec = {}
             MeasRec['description'] = 'Date: '+date+' '+time
@@ -9340,6 +9351,7 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             MeasRec["standard"] = 'u'
             MeasRec["treat_step_num"] = 0
             MeasRec["specimen"] = specimen
+            print("rec[0]=",rec[0])
             if rec[0] == 'NRM':
                 meas_type = "LT-NO"
             elif rec[0] == '0':
@@ -9363,7 +9375,10 @@ def pmd(mag_file, dir_path=".", input_dir_path="",
             MeasRec["dir_inc"] = '%7.1f' % (Vec[1])
             MeasRec["treat_ac_field"] = '0'
             if meas_type != 'LT-NO':
-                treat = float(rec[0][1:])
+                if file_type == "PAL":
+                    treat = float(rec[0][0:])
+                else:
+                    treat = float(rec[0][1:])
             else:
                 treat = 0
             if meas_type == "LT-AF-Z":
