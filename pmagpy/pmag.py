@@ -2395,16 +2395,16 @@ def dotilt(dec, inc, bed_az, bed_dip):
     """
     rad = np.pi / 180.  # converts from degrees to radians
     X = dir2cart([dec, inc, 1.])  # get cartesian coordinates of dec,inc
-# get some sines and cosines of new coordinate system
+    # get some sines and cosines of new coordinate system
     sa, ca = -np.sin(bed_az * rad), np.cos(bed_az * rad)
     cdp, sdp = np.cos(bed_dip * rad), np.sin(bed_dip * rad)
-# do the rotation
+    # do the rotation
     xc = X[0] * (sa * sa + ca * ca * cdp) + X[1] * \
         (ca * sa * (1. - cdp)) + X[2] * sdp * ca
     yc = X[0] * ca * sa * (1. - cdp) + X[1] * \
         (ca * ca + sa * sa * cdp) - X[2] * sa * sdp
     zc = X[0] * ca * sdp - X[1] * sdp * sa - X[2] * cdp
-# convert back to direction:
+    # convert back to direction:
     Dir = cart2dir([xc, yc, -zc])
     # return declination, inclination of rotated direction
     return Dir[0], Dir[1]
@@ -2412,7 +2412,7 @@ def dotilt(dec, inc, bed_az, bed_dip):
 
 def dotilt_V(indat):
     """
-    Does a tilt correction on an array with rows of dec,inc bedding dip direction and dip.
+    Does a tilt correction on an array with rows of [dec, inc, bedding dip direction, bedding dip].
 
     Parameters
     ----------
@@ -2437,16 +2437,16 @@ def dotilt_V(indat):
     X = dir2cart(Dir).transpose()  # get cartesian coordinates
     N = np.size(dec)
 
-# get some sines and cosines of new coordinate system
+    # get some sines and cosines of new coordinate system
     sa, ca = -np.sin(bed_az * rad), np.cos(bed_az * rad)
     cdp, sdp = np.cos(bed_dip * rad), np.sin(bed_dip * rad)
-# do the rotation
+    # do the rotation
     xc = X[0] * (sa * sa + ca * ca * cdp) + X[1] * \
         (ca * sa * (1. - cdp)) + X[2] * sdp * ca
     yc = X[0] * ca * sa * (1. - cdp) + X[1] * \
         (ca * ca + sa * sa * cdp) - X[2] * sa * sdp
     zc = X[0] * ca * sdp - X[1] * sdp * sa - X[2] * cdp
-# convert back to direction:
+    # convert back to direction:
     cart = np.array([xc, yc, -zc]).transpose()
     Dir = cart2dir(cart).transpose()
     # return declination, inclination arrays of rotated direction
@@ -2476,21 +2476,21 @@ def dogeo(dec, inc, az, pl):
     # put dec inc in direction list and set  length to unity
     Dir = [dec, inc, 1.]
     X = dir2cart(Dir)  # get cartesian coordinates
-#
-#   set up rotation matrix
-#
+    #
+    #   set up rotation matrix
+    #
     A1 = dir2cart([az, pl, 1.])
     A2 = dir2cart([az + 90., 0, 1.])
     A3 = dir2cart([az - 180., 90. - pl, 1.])
-#
-# do rotation
-#
+    #
+    # do rotation
+    #
     xp = A1[0] * X[0] + A2[0] * X[1] + A3[0] * X[2]
     yp = A1[1] * X[0] + A2[1] * X[1] + A3[1] * X[2]
     zp = A1[2] * X[0] + A2[2] * X[1] + A3[2] * X[2]
-#
-# transform back to dec,inc
-#
+    #
+    # transform back to dec,inc
+    #
     Dir_geo = cart2dir([xp, yp, zp])
     return Dir_geo[0], Dir_geo[1]    # send back declination and inclination
 
@@ -2563,24 +2563,21 @@ def dodirot(D, I, Dbar, Ibar):
     >>> pmag.dodirot(0,90,5,85)
     (5.0, 85.0)
     """
-    d, irot = dogeo(D, I, Dbar, 90. - Ibar)
-    drot = d - 180.
-    if drot < 360.:
-        drot = drot + 360.
-    if drot > 360.:
-        drot = drot - 360.
+    drot, irot = dogeo(D, I, Dbar, 90. - Ibar)
+    drot = (drot-180.) % 360. 
     return drot, irot
 
 
-def dodirot_V(di_block, Dbar, Ibar):
+def dodirot_V(di_array, Dbar, Ibar):
     """
-    Rotate an array of dec/inc pairs to coordinate system with Dec, Inc as 0, 90.
+    Rotate an array of declination, inclination pairs by the difference between
+    dec = 0 and inc = 90 and the provided desired mean direction
 
     Parameters
     ----------
-    di_block : array of [[Dec1,Inc1],[Dec2,Inc2],....]
-    Dbar : Declination of desired center
-    Ibar : Inclination of desired center
+    di_array : numpy array of [[Dec1,Inc1],[Dec2,Inc2],....]
+    Dbar : declination of desired mean
+    Ibar : declination of desired mean
 
     Returns
     -------
@@ -2589,19 +2586,19 @@ def dodirot_V(di_block, Dbar, Ibar):
     
     Examples
     --------
-    >>> di_block = np.array([[0,90],[0,92],[0,92]])
-    >>> pmag.dodirot_V(di_block,5,93)
-    array([[185.              ,  87.00000000000009],
-       [194.81338201697608,  88.97743662195866],
-       [194.81338201697608,  88.97743662195866]])
+    >>> di_array = np.array([[0,90],[0,90],[0,90]])
+    >>> pmag.dodirot_V(di_array,5,15)
+    array([[ 5.               , 15.000000000000002],
+        [ 5.               , 15.000000000000002],
+        [ 5.               , 15.000000000000002]])
     """
-    N = di_block.shape[0]
+    N = di_array.shape[0]
     DipDir, Dip = np.ones(N, dtype=np.float).transpose(
     )*(Dbar-180.), np.ones(N, dtype=np.float).transpose()*(90.-Ibar)
-    di_block = di_block.transpose()
-    data = np.array([di_block[0], di_block[1], DipDir, Dip]).transpose()
+    di_array = di_array.transpose()
+    data = np.array([di_array[0], di_array[1], DipDir, Dip]).transpose()
     drot, irot = dotilt_V(data)
-    #drot = (drot-180.) % 360.  #
+    drot = (drot-180.) % 360. 
     return np.column_stack((drot, irot))
 
 
