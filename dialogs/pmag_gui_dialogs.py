@@ -2031,7 +2031,8 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer7 = pw.site_lat_lon(pnl)
 
         #---sizer 8 ----
-        TEXT="Demagnetization Method (optional):"
+        TEXT="Demagnetization Method: t for thermal, af for AF demag (optional):\nDemag type is automatically detected for files using the H or M labels\nfor AF demag or the T label for thermal demag in step names."
+        
         self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
 
         #---buttons ---
