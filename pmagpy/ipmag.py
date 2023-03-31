@@ -488,7 +488,7 @@ def print_kent_mean(mean_dictionary):
 def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
-    using the pmag.py function pmag.fshdev() and pmag.dodirot() functions.
+    using the pmag.py function pmag.fshdev() and pmag.dodirot_V() functions.
 
     Parameters:
         k : kappa precision parameter (default is 20)
@@ -504,28 +504,24 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
 
     Examples:
         >>> ipmag.fishrot(k=20, n=5, dec=40, inc=60)
-        [[44.766285502555775, 37.440866867657235, 1.0],
-        [33.866315796883725, 64.732532250463436, 1.0],
-        [47.002912770597163, 54.317853800896977, 1.0],
-        [36.762165614432547, 56.857240672884252, 1.0],
-        [71.43950604474395, 59.825830945715431, 1.0]]
+        array([[55.30451720381376 , 56.186057037482435,  1.               ],
+               [25.593998008087908, 63.544360587984784,  1.               ],
+               [29.263675539971246, 54.58964868129066 ,  1.               ],
+               [61.28572459596148 , 51.5004074156194  ,  1.               ],
+               [55.20784339888985 , 54.186746152272484,  1.               ]])
     """
-    directions = []
-    declinations = []
-    inclinations = []
-    if di_block == True:
-        for data in range(n):
-            d, i = pmag.fshdev(k)
-            drot, irot = pmag.dodirot(d, i, dec, inc)
-            directions.append([drot, irot, 1.])
-        return directions
+    
+    # Generation of samples
+    declinations, inclinations = pmag.fshdev(np.repeat(k, n))
+
+    # Rotation to have desired mean direction
+    resampled_di = np.array([declinations, inclinations, np.repeat(1, n)]).T
+    resampled_di_rotated = pmag.dodirot_V(resampled_di, np.repeat(dec, n), np.repeat(inc, n))    
+
+    if di_block: 
+        return np.insert(resampled_di_rotated, 2, np.ones(n), axis=1) 
     else:
-        for data in range(n):
-            d, i = pmag.fshdev(k)
-            drot, irot = pmag.dodirot(d, i, dec, inc)
-            declinations.append(drot)
-            inclinations.append(irot)
-        return declinations, inclinations
+        return resampled_di_rotated[:,0], resampled_di_rotated[:,1]
     
     
 def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
