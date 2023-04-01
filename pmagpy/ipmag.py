@@ -515,7 +515,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     declinations, inclinations = pmag.fshdev(np.repeat(k, n))
 
     # Rotation to have desired mean direction
-    resampled_di = np.array([declinations, inclinations, np.repeat(1, n)]).T
+    resampled_di = np.vstack([declinations, inclinations]).T
     resampled_di_rotated = pmag.dodirot_V(resampled_di, np.repeat(dec, n), np.repeat(inc, n))    
 
     if di_block: 
