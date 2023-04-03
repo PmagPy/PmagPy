@@ -56,7 +56,7 @@ def main():
         ZirconRun3 -- (file hierarchy)
 
     SYNTAX
-        mit_squid_magic.py [command line options]
+        squid_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
