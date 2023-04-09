@@ -6386,6 +6386,14 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
 
         precisionPer = float(precisionStr)
         precision = intensityVol * precisionPer/100
+        
+        while not data[n].startswith('O.P:'):
+            n += 1
+        orient_params = data[n].split()
+        orient_param1 = orient_params[1]
+        orient_param2 = orient_params[2]
+        orient_param3 = orient_params[3]
+        orient_param4 = orient_params[4]
 
         while not data[n].startswith('SPEC.'):
             n += 1
@@ -6423,10 +6431,21 @@ def jr6_txt(mag_file, dir_path=".", input_dir_path="",
             SampRec['site'] = site
             SampRec["citations"] = "This study"
             SampRec["analysts"] = user
-            SampRec['azimuth'] = specimenAngleDec
             # convert to magic orientation
-            sample_dip = str(float(specimenAngleInc)-90.0)
-            SampRec['dip'] = sample_dip
+            if orient_param3 == '12':
+                specimenAngleDec = str(float(specimenAngleDec))
+            if orient_param3 == '3':
+                specimenAngleDec = str((float(specimenAngleDec)-90.0)%360)
+            if orient_param3 == '6':
+                specimenAngleDec = str((float(specimenAngleDec)+180.0)%360)
+            if orient_param3 == '9':
+                specimenAngleDec = str((float(specimenAngleDec)+90.0)%360)                
+            SampRec['azimuth'] = specimenAngleDec
+            if orient_param2 == '90':
+                specimenAngleInc = str(float(specimenAngleInc)-90.0)
+            if orient_param2 == '0':
+                specimenAngleInc = str(float(specimenAngleInc)*-1)
+            SampRec['dip'] = specimenAngleInc
             SampRec['method_codes'] = meth_code
             SampRecs.append(SampRec)
         if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
