@@ -1858,7 +1858,7 @@ def plot_net(fignum=None):
     plt.axis((-1.05, 1.05, -1.05, 1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1, zorder=1):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1, zorder=2):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -1937,7 +1937,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         plt.title(title)
 
 
-def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no', zorder=1):
+def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no', zorder=2):
     """
     Plot a mean direction (declination, inclination) with alpha_95 ellipse on
     an equal area plot.
