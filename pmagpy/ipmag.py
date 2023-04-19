@@ -1858,7 +1858,7 @@ def plot_net(fignum=None):
     plt.axis((-1.05, 1.05, -1.05, 1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', title=None, edge=None,alpha=1, zorder=2):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -1879,6 +1879,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
         edge : marker edge color - if blank, is color of marker
         alpha : opacity
+        zorder : zorder of marker
     """
     X_down = []
     X_up = []
@@ -1924,11 +1925,11 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
 
     if len(X_up) > 0:
         plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
-                    s=markersize, marker=marker, label=label,alpha=alpha)
+                    s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
 
     if len(X_down) > 0:
         plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
-                    s=markersize, marker=marker, label=label,alpha=alpha)
+                    s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if legend == 'yes':
         plt.legend(loc=2)
     plt.tight_layout()
@@ -1936,7 +1937,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         plt.title(title)
 
 
-def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no'):
+def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', legend='no', zorder=2):
     """
     Plot a mean direction (declination, inclination) with alpha_95 ellipse on
     an equal area plot.
@@ -1956,16 +1957,17 @@ def plot_di_mean(dec, inc, a95, color='k', marker='o', markersize=20, label='', 
         markersize : the default is 20. Other sizes can be chosen.
         label : the default is no label. Labels can be assigned.
         legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+        zorder : zorder of marker
     """
     DI_dimap = pmag.dimap(dec, inc)
     if inc < 0:
         plt.scatter(DI_dimap[0], DI_dimap[1],
                     edgecolors=color, facecolors='white',
-                    marker=marker, s=markersize, label=label)
+                    marker=marker, s=markersize, label=label, zorder=zorder)
     if inc >= 0:
         plt.scatter(DI_dimap[0], DI_dimap[1],
                     edgecolors=color, facecolors=color,
-                    marker=marker, s=markersize, label=label)
+                    marker=marker, s=markersize, label=label, zorder=zorder)
     Xcirc, Ycirc = [], []
     Da95, Ia95 = pmag.circ(dec, inc, a95)
     if legend == 'yes':
