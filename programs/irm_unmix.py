@@ -8,7 +8,6 @@ this is for IRM decompose, based on log gaussian,
 this is based on python3.6 and PyQt5
 
 author: Jiabo Liu
-GFZ Potsdam
 #====================================================================
 '''
 
@@ -92,22 +91,32 @@ def loadData(filePath=None):
     log10 interploted data
     #====================================================================
     '''
-    skip_from = '    Field       Remanence  '
+    skip_3900_form = '    Field       Remanence  '
+    skip_8600_form = '##DATA TABLE Moment (m)'
     with open(filePath,'rb') as fr:
         #f = fr.read()
         for i,line in enumerate(fr,1):
             #print(line)
-            if skip_from in str(line):
+            if skip_8600_form in str(line):
+                skiprows=i+1
+                coding='ISO-8859-15'
+                names=['Step','Iteration','Segment','field','remanance',
+                       'Time Stamp [s]','Field Status','Moment (m) Status']
+                break
+            elif skip_3900_form in str(line):
                 skiprows=i+2
+                coding='ISO-8859-15'
+                names=['field','remanance']
                 break
             else:
                 skiprows=None
+                coding='UTF-8'
+                names=['field','remanance']
+    #print('skiprows= ',skiprows)
     skiprows = skiprows if isinstance(skiprows,int) else 1
-    #rawDf = pd.read_csv(filePath, sep='\s+', delimiter=',', names=['field','remanance'],
-    #                    dtype=np.float64, skiprows=skiprows, skipfooter=1,engine='python')
-    rawDf = pd.read_csv(filePath, delimiter=',', names=['field','remanance'],
-                        dtype=np.float64, skiprows=skiprows, 
-                        skipfooter=1,engine='python', encoding='cp1252')
+    rawDf = pd.read_csv(filePath, delimiter=',', names=names,
+                        skiprows=skiprows, skipfooter=1,engine='python',
+                        encoding=coding)
     rawDf = rawDf[(rawDf['field']>0)]
     rawDf = rawDf.sort_values(by=['field'])
     rawDf['field'] = rawDf['field']*10**3 # mT to # T
