@@ -2593,8 +2593,8 @@ def dodirot_V(di_array, Dbar, Ibar):
         [ 5.               , 15.000000000000002]])
     """
     N = di_array.shape[0]
-    DipDir, Dip = np.ones(N, dtype=np.float).transpose(
-    )*(Dbar-180.), np.ones(N, dtype=np.float).transpose()*(90.-Ibar)
+    DipDir, Dip = np.ones(N, dtype=np.float64).transpose(
+    )*(Dbar-180.), np.ones(N, dtype=np.float64).transpose()*(90.-Ibar)
     di_array = di_array.transpose()
     data = np.array([di_array[0], di_array[1], DipDir, Dip]).transpose()
     drot, irot = dotilt_V(data)
