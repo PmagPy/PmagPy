@@ -2362,7 +2362,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k', pole_edgecolor='k', pole_marker='o',
                     site_color='r', site_edgecolor='r', site_marker='s',
-                    markersize=20, legend=True):
+                    markersize=20, legend=True, transform=ccrs.PlateCarree()):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
 
@@ -2385,6 +2385,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         pole_label : string that labels the pole.
         site_label : string that labels the site
         legend : the default is a legend (True). Putting False will suppress legend plotting.
+        transform : the default is PlateCarree in Cartopy. Other transforms can be chosen (e.g. Geodetic)
 
     Examples:
         >>> dec = 280
@@ -2454,7 +2455,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             C_deg = np.abs(np.rad2deg(C_rad))
 
     # print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform)
 
     if legend == True:
         plt.legend(loc=2)
