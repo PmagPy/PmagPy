@@ -2386,6 +2386,8 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         site_label : string that labels the site
         legend : the default is a legend (True). Putting False will suppress legend plotting.
         transform : the default is PlateCarree in Cartopy. Other transforms can be chosen (e.g. Geodetic)
+                    usually this parameter rarely needs to be changed by the user.
+                    when PlateCarree transformation does not work, usually Geodetic will work.
 
     Examples:
         >>> dec = 280
