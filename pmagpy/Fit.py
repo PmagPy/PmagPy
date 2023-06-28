@@ -111,31 +111,42 @@ class Fit(object):
             self.tmax = new_pars['measurement_step_max']
             self.PCA_type = new_pars['calculation_type']
 
-            if self.GUI!=None:
-                steps = self.GUI.Data[specimen]['zijdblock_steps']
-                tl = [self.tmin,self.tmax]
-                for i,t in enumerate(tl):
-                    if str(t) in steps: tl[i] = str(t)
-                    elif str(int(t)) in steps: tl[i] = str(int(t))
-                    elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
-                    elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
-                    else:
-                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
-                        tl[i] = str(t)
-                self.tmin,self.tmax = tl
-            elif meas_data != None:
-                steps = meas_data[specimen]['zijdblock_steps']
-                tl = [self.tmin,self.tmax]
-                for i,t in enumerate(tl):
-                    if str(t) in steps: tl[i] = str(t)
-                    elif str(int(t)) in steps: tl[i] = str(int(t))
-                    elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
-                    elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
-                    else:
-                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
-                        tl[i] = str(t)
-                self.tmin,self.tmax = tl
-            else: self.tmin,self.tmax = list(map(str, tl))
+            if new_pars["measurement_step_min_unit"]=="C": self.tmin = "%.0fC"%self.tmin
+            elif new_pars["measurement_step_min_unit"]=="mT": self.tmin = "%.1fmT"%self.tmin
+            elif new_pars["measurement_step_min_unit"]=="": self.tmin = str(self.tmin)
+            else: print("-E- Step " + str(self.tmin) + " does not exist (func: Fit.put)")
+
+            if new_pars["measurement_step_max_unit"]=="C": self.tmax = "%.0fC"%self.tmax
+            elif new_pars["measurement_step_max_unit"]=="mT": self.tmax = "%.1fmT"%self.tmax
+            elif new_pars["measurement_step_max_unit"]=="": self.tmax = str(self.tmax)
+            else: print("-E- Step " + str(self.tmax) + " does not exist (func: Fit.put)")
+
+###############Old method of guessing measurement type
+#            if self.GUI!=None:
+#                steps = self.GUI.Data[specimen]['zijdblock_steps']
+#                tl = [self.tmin,self.tmax]
+#                for i,t in enumerate(tl):
+#                    if str(t) in steps: tl[i] = str(t)
+#                    elif str(int(t)) in steps: tl[i] = str(int(t))
+#                    elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
+#                    elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
+#                    else:
+#                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
+#                        tl[i] = str(t)
+#                self.tmin,self.tmax = tl
+#            elif meas_data != None:
+#                steps = meas_data[specimen]['zijdblock_steps']
+#                tl = [self.tmin,self.tmax]
+#                for i,t in enumerate(tl):
+#                    if str(t) in steps: tl[i] = str(t)
+#                    elif str(int(t)) in steps: tl[i] = str(int(t))
+#                    elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
+#                    elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
+#                    else:
+#                        print("-E- Step " + str(tl[i]) + " does not exist (func: Fit.put)")
+#                        tl[i] = str(t)
+#                self.tmin,self.tmax = tl
+#            else: self.tmin,self.tmax = list(map(str, tl))
 
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
             self.pars = new_pars

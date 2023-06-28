@@ -2924,7 +2924,6 @@ class Demag_GUI(wx.Frame):
         -------
         nested dictionary 2.5 formated criteria data
         """
-#        import pdb; pdb.set_trace()
         acceptance_criteria = pmag.initialize_acceptance_criteria()
         if self.data_model == 3:
             if criteria_file_name == None:
@@ -3007,7 +3006,10 @@ class Demag_GUI(wx.Frame):
             try:
                 # preformes regression
                 mpars = pmag.domean(block, beg_pca, end_pca, calculation_type)
+                mpars["measurement_step_min_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in tmin])
+                mpars["measurement_step_max_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in tmax])
             except:
+                print("Error: Could not do PCA recieved the following fit information")
                 print((block, beg_pca, end_pca, calculation_type,
                        specimen, fit.name, tmin, tmax, coordinate_system))
                 return
@@ -3088,6 +3090,8 @@ class Demag_GUI(wx.Frame):
                 return
             try:
                 mpars = pmag.domean(block, i, i+step_size, calculation_type)
+                mpars["measurement_step_min_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in self.T_list[i]])
+                mpars["measurement_step_max_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in self.T_list[i+step_size]])
             except (IndexError, TypeError) as e:
                 return
             if 'specimen_mad' in list(mpars.keys()):
