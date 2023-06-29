@@ -3006,8 +3006,8 @@ class Demag_GUI(wx.Frame):
             try:
                 # preformes regression
                 mpars = pmag.domean(block, beg_pca, end_pca, calculation_type)
-                mpars["measurement_step_min_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in tmin])
-                mpars["measurement_step_max_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." else "" for c in tmax])
+                mpars["measurement_step_min_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." and c!="-" else "" for c in tmin])
+                mpars["measurement_step_max_unit"] = reduce(lambda x,y="": x+y, [c if not c.isnumeric() and c!="." and c!="-" else "" for c in tmax])
             except:
                 print("Error: Could not do PCA recieved the following fit information")
                 print((block, beg_pca, end_pca, calculation_type,
