@@ -13842,5 +13842,81 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
         mCI *= -1
         
     return mCI
+
+def find_T(m,n,Mhat,Ghat):
+
+    """
+    Calculates the T value estimated from Equation 6.
+
+    Parameters:
+        m: numpy matrix representing the direction under consideration.
+        n: int, number of observations.
+        Mhat: numpy matrix representing the Mhat matrix for mean direction.
+        Ghat: numpy matrix representing the covariance matrix.
+
+    Returns:
+        numpy array: T value estimated from Equation 6 of Heslop et al., 2023
+
+    Raises:
+        None
+    """
+    
+    #input - m, direction under consideration
+    #input - n, number of observations
+    #input - Mhat, Mhat matrix for mean direction
+    #input - Ghat matrix representing covariance
+    #output - T value estimated from Equation 6
+    
+    m = np.matrix(m[:,np.newaxis])
+    
+    return np.array(n*m.getT()*Mhat.getT()*np.linalg.inv(Ghat)*Mhat*m)    
+
+def find_CR(mhat,Mhat,Ghat,n,Tc):
+    """
+    Calculates the closed confidence region boundary, mCI.
+
+    Parameters:
+        mhat: numpy array representing the mean direction of the original data set.
+        Mhat: numpy matrix representing the Mhat matrix for mean direction.
+        Ghat: numpy matrix representing the covariance matrix.
+        n: int, number of observations.
+        Tc: float, critical T value on the confidence region boundary.
+
+    Returns:
+        numpy array: closed confidence region boundary, mCI.
+
+    Raises:
+        None
+    """
+    
+    #input - mhat, mean direction of original data set
+    #input - Mhat, Mhat matrix for mean direction
+    #input - Ghat, matrix representing covariance
+    #input - n, number of observations
+    #input - Tc, critical T value on confidence region boundary
+    #output - mCI, closed confidence region boundary
+    
+    C = n*Mhat.getT()*np.linalg.inv(Ghat)*Mhat
+    [D,V] = np.linalg.eig(C)
+    
+    idx=np.flip(np.argsort(D))
+    D = D[idx]
+    V = V[:,idx]
+    
+    mCI = np.zeros((3,201))
+    y = np.matrix(np.zeros((3,1)))
+    for i in range(201):
+            theta = i*np.pi/100
+            y[0] = np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
+            y[1] = np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
+            y[2] = np.sqrt(1-y[0]**2-y[1]**2)
+            mCI[:,i] = np.ndarray.flatten(V*y)
+    
+    mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
+    if np.arctan2(np.linalg.norm(np.cross(mhat,mCIbar)),np.dot(mhat,mCIbar))>np.pi/2:
+        mCI *= -1
+        
+    return mCI
+
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
