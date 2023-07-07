@@ -13686,5 +13686,161 @@ def fix_directories(input_dir_path, output_dir_path):
     output_dir_path = os.path.realpath(output_dir_path)
     return input_dir_path, output_dir_path
 
+
+
+def form_Mhat(X):
+    """
+    Calculate the Mhat matrix based on data set 
+    according to Equation 4 of Heslop et al., 2023.
+
+    Parameters:
+        X (ndarray): Cartesian coordinates of directions
+
+    Returns:
+        ndarray: Mhat matrix according to the equation 4 of Heslop et al., 2023.
+
+    Raises:
+        ValueError: If the data sets have incompatible shapes.
+
+    """
+    n = np.shape(X)[1] #number of observations in first data set
+
+
+    mhat = np.mean(X,axis=1)
+    mhat /= np.linalg.norm(mhat) #mean of data set
+
+
+    b = np.matrix(mhat[0:2][:,np.newaxis])
+    c = mhat[2]
+    
+    if c==0:
+        A1 = np.eye(2)-(b*b.getH())
+    else:
+        A1 = c/np.abs(c)*np.eye(2)-c/(np.abs(c)+np.abs(c)**2)*(b*b.getH())
+        
+    A2 = -b
+    Mhat = np.hstack((A1,A2))
+    return Mhat
+
+def form_Ghat(X,Mhat):
+    """
+    Form the Ghat matrix based on a collection of directions X and the Mhat matrix 
+    according to Equation 5 of Heslop et al., 2023
+
+    Parameters:
+        X (ndarray): Cartesian coordinates of directions
+        Mhat (ndarray): Mhat matrix for mean direction.
+
+    Returns:
+        ndarray: Ghat matrix according to equation 5 of Heslop et al., 2023.
+
+    """
+    
+    #input - X, collection of directions (one per column)
+    #input - Mhat, Mhat matrix for mean direction
+    #output - Ghat matrix according to equation 5
+
+    n = np.shape(X)[1]
+    term1 = np.power(np.linalg.norm(np.sum(X,axis=1)/n),-2)/n
+    X = np.matrix(X)
+    Mhat_T = Mhat.getT()
+    Ghat = np.matrix(np.zeros((2,2)))
+    
+    for u in range(2):
+        for v in range(2):
+            for i in range(n):
+                Ghat[u,v] += Mhat_T[:,u].getT()*X[:,i]*X[:,i].getT()*Mhat_T[:,v]
+            Ghat[u,v] *= term1
+    
+    return Ghat
+
+def form_Q(a,b):
+    """
+    Creates the rotation matrix Q so that Qb = a 
+    (according to equations (9) and (10)Heslop et al., 2023)
+
+    Parameters:
+        a (ndarray): Destination direction (unit vector).
+        b (ndarray): Starting direction (unit vector).
+
+    Returns:
+        ndarray: Rotation matrix Q.
+
+    """
+
+    
+    #input - a, destination direction (unit vector)
+    #input - b, starting direction (unit vector)
+    #output - Q, rotation matrix so Qb = a
+    
+    a = np.matrix(a)
+    a = np.reshape(a,(3,1))
+    b = np.matrix(b)
+    b = np.reshape(b,(3,1))
+
+    c = b-a*(a.getT()*b)
+    c /= np.linalg.norm(c)
+
+    alpha = np.arccos(a.getT()*b)
+    A = a*c.getT()-c*a.getT()
+
+    Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1,a*a.getT()+c*c.getT())
+    
+    return Q
+
+def find_CMDT_CR(Ahat,Tc,mhat12):
+    """
+    Find the sequence of points along the confidence region of the Common Mean Direction Test (CMDT-CR)
+    of Heslop et al., 2023. Provides a collection of points on the boundary of the 1- 𝛼
+    confidence region for the common mean direction according to the procedure in Appendix B.
+     N.B: find_CMDT_CR should only be used if null hypothesis of common mean direction cannot be rejected
+
+    Parameters:
+        Ahat (ndarray): Combined covariance matrix.
+        Tc (float): T value on the boundary of the confidence region.
+        mhat12 (ndarray): Estimated common mean direction.
+
+    Returns:
+        ndarray: Sequence of points along the confidence region.
+
+    """ 
+    #Ahat - combined covariance matrix
+    #input - Tc, T value on the boundary of the confidence region
+    #input - mhat12, estimated common mean direction
+    #output - mCI, sequence of points along confidence region
+    
+    [D,V] = np.linalg.eig(Ahat)
+    
+    idx=np.flip(np.argsort(D))
+    D = D[idx]
+    V = V[:,idx]
+        
+    mCI = np.zeros((3,201))
+    y = np.matrix(np.zeros((3,1)))
+    for i in range(201):
+            theta = i*np.pi/100
+            
+            ylen = np.zeros(201);
+            phi = np.linspace(0,np.pi/2,201)
+            for j in range(201):
+                y[0] = np.sin(phi[j])*np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
+                y[1] = np.sin(phi[j])*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
+                y[2] = np.cos(phi[j])*np.sqrt(Tc)/np.sqrt(D[2])
+                ylen[j] = np.linalg.norm(y)
+                
+            idx = np.argsort(ylen)
+            phi0 = np.interp(1.0,ylen[idx],phi[idx]);
+            y[0] = np.sin(phi0)*np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
+            y[1] = np.sin(phi0)*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
+            y[2] = np.cos(phi0)*np.sqrt(Tc)/np.sqrt(D[2])
+                
+            mCI[:,i] = np.ndarray.flatten(V*y)
+    
+    #Check if points are in the correct hemisphere
+    mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
+    if np.arctan2(np.linalg.norm(np.cross(mhat12.T,mCIbar)),np.dot(mhat12.T,mCIbar))>np.pi/2:
+        mCI *= -1
+        
+    return mCI
 def main():
     print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
