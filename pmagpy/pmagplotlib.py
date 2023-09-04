@@ -1,5 +1,4 @@
 # /usr/bin/env pythonw
-    
 
 # pylint: skip-file
 # pylint: disable-all
@@ -1880,6 +1879,1791 @@ def plot_vs(fignum, Xs, c, ls):
         plt.axvline(
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
+
+def plot_ts(fignum, dates, ts):
+    """
+    plot the geomagnetic polarity time scale
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    dates : bounding dates for plot
+    ts : time scale ck95, gts04, or gts12
+    """
+    vertical_plot_init(fignum, 10, 3)
+    TS, Chrons = pmag.get_ts(ts)
+    p = 1
+    X, Y = [], []
+    for d in TS:
+        if d <= dates[1]:
+            if d >= dates[0]:
+                if len(X) == 0:
+                    ind = TS.index(d)
+                    X.append(TS[ind - 1])
+                    Y.append(p % 2)
+                X.append(d)
+                Y.append(p % 2)
+                p += 1
+                X.append(d)
+                Y.append(p % 2)
+        else:
+            X.append(dates[1])
+            Y.append(p % 2)
+            plt.plot(X, Y, 'k')
+            plot_vs(fignum, dates, 'w', '-')
+            plot_hs(fignum, [1.1, -.1], 'w', '-')
+            plt.xlabel("Age (Ma): " + ts)
+            isign = -1
+            for c in Chrons:
+                off = -.1
+                isign = -1 * isign
+                if isign > 0:
+                    off = 1.05
+                if c[1] >= X[0] and c[1] < X[-1]:
+                    plt.text(c[1] - .2, off, c[0])
+            return
+
+
+def plot_hys(fignum, B, M, s):
+    """
+   function to plot hysteresis data
+   Parameters:
+   _____________________
+   Input :
+       fignum : matplotlib figure number
+       B : list of field values (in tesla)
+       M : list of magnetizations
+   Output :
+       hpars : dictionary of hysteresis parameters
+           keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
+       deltaM : list of differences between down and upgoing loops
+       Bdm : field values
+
+    """
+    B = list(B)
+    from . import spline
+    if fignum != 0:
+        plt.figure(num=fignum)
+        plt.clf()
+        if not isServer:
+            plt.figtext(.02, .01, version_num)
+    hpars = {}
+# close up loop
+    Npts = len(M)
+    B70 = 0.7 * B[0]  # 70 percent of maximum field
+    for b in B:
+        if b < B70:
+            break
+    Nint = B.index(b) - 1
+    if Nint > 30:
+        Nint = 30
+    if Nint < 10:
+        Nint = 10
+    Bzero, Mzero, Mfix, Mnorm, Madj, MadjN = "", "", [], [], [], []
+    Mazero = ""
+    m_init = 0.5 * (M[0] + M[1])
+    m_fin = 0.5 * (M[-1] + M[-2])
+    diff = m_fin - m_init
+    Bmin = 0.
+    for k in range(Npts):
+        frac = float(k) / float(Npts - 1)
+        Mfix.append((M[k] - diff * frac))
+        if Bzero == "" and B[k] < 0:
+            Bzero = k
+        if B[k] < Bmin:
+            Bmin = B[k]
+            kmin = k
+    # adjust slope with first 30 data points (throwing out first 3)
+    Bslop = B[2:Nint + 2]
+    Mslop = Mfix[2:Nint + 2]
+    # best fit line to high field points
+    polyU = np.polyfit(Bslop, Mslop, 1)
+    # adjust slope with first 30 points of ascending branch
+    Bslop = B[kmin:kmin + (Nint + 1)]
+    Mslop = Mfix[kmin:kmin + (Nint + 1)]
+    # best fit line to high field points
+    polyL = np.polyfit(Bslop, Mslop, 1)
+    xhf = 0.5 * (polyU[0] + polyL[0])  # mean of two slopes
+    # convert B to A/m, high field slope in m^3
+    hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * np.pi * 1e-7)
+    meanint = 0.5 * (polyU[1] + polyL[1])  # mean of two intercepts
+    Msat = 0.5 * (polyU[1] - polyL[1])  # mean of saturation remanence
+    Moff = []
+    for k in range(Npts):
+        # take out linear slope and offset (makes symmetric about origin)
+        Moff.append((Mfix[k] - xhf * B[k] - meanint))
+        if Mzero == "" and Moff[k] < 0:
+            Mzero = k
+        if Mzero != "" and Mazero == "" and Moff[k] > 0:
+            Mazero = k
+    hpars['hysteresis_ms_moment'] = '%8.3e' % (Msat)  # Ms in Am^2
+#
+# split into upper and lower loops for splining
+    Mupper, Bupper, Mlower, Blower = [], [], [], []
+    deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
+    for k in range(kmin - 2, 0, -1):
+        Mupper.append(Moff[k] / Msat)
+        Bupper.append(B[k])
+    for k in range(kmin + 2, len(B)):
+        Mlower.append(Moff[k] / Msat)
+        Blower.append(B[k])
+    Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
+    Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
+    incr = B[0] * .01
+    for b in np.arange(B[0], step=incr):  # get range of field values
+        Mpos = ((Iupper(b) - Ilower(b)))  # evaluate on both sides of B
+        Mneg = ((Iupper(-b) - Ilower(-b)))
+        Bdm.append(b)
+        deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
+    for k in range(Npts):
+        MadjN.append(Moff[k] / Msat)
+        Mnorm.append(M[k] / Msat)
+    if fignum != 0:
+        plt.plot(B, Mnorm, 'r')
+        plt.plot(B, MadjN, 'b')
+        plt.xlabel('B (T)')
+        plt.ylabel("M/Msat")
+        plt.axhline(0, color='k')
+        plt.axvline(0, color='k')
+        plt.title(s)
+# find Mr : average of two spline fits evaluated at B=0 (times Msat)
+    Mr = Msat * 0.5 * (Iupper(0.) - Ilower(0.))
+    hpars['hysteresis_mr_moment'] = '%8.3e' % (Mr)
+# find Bc (x intercept), interpolate between two bounding points
+    Bz = B[Mzero - 1:Mzero + 1]
+    Mz = Moff[Mzero - 1:Mzero + 1]
+    Baz = B[Mazero - 1:Mazero + 1]
+    Maz = Moff[Mazero - 1:Mazero + 1]
+    try:
+        # best fit line through two bounding points
+        poly = np.polyfit(Bz, Mz, 1)
+        Bc = -poly[1] / poly[0]  # x intercept
+        # best fit line through two bounding points
+        poly = np.polyfit(Baz, Maz, 1)
+        Bac = -poly[1] / poly[0]  # x intercept
+        hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
+    except:
+        hpars['hysteresis_bc'] = '0'
+    return hpars, deltaM, Bdm
+#
+
+
+def plot_delta_m(fignum, B, DM, Bcr, s):
+    """
+    function to plot Delta M curves
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    B : array of field values
+    DM : array of difference between top and bottom curves in hysteresis loop
+    Bcr : coercivity of remanence
+    s : specimen name
+    """
+    plt.figure(num=fignum)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.plot(B, DM, 'b')
+    plt.xlabel('B (T)')
+    plt.ylabel('Delta M')
+    linex = [0, Bcr, Bcr]
+    liney = [DM[0] / 2.0, DM[0] / 2.0, 0]
+    plt.plot(linex, liney, 'r')
+    plt.title(s)
+#
+
+
+def plot_d_delta_m(fignum, Bdm, DdeltaM, s):
+    """
+    function to plot d (Delta M)/dB  curves
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    Bdm : change in field
+    Ddelta M : change in delta M
+    s : specimen name
+    """
+    plt.figure(num=fignum)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    start = len(Bdm) - len(DdeltaM)
+    plt.plot(Bdm[start:], DdeltaM, 'b')
+    plt.xlabel('B (T)')
+    plt.ylabel('d (Delta M)/dB')
+    plt.title(s)
+#
+
+
+def plot_imag(fignum, Bimag, Mimag, s):
+    """
+    function to plot d (Delta M)/dB  curves
+    """
+    plt.figure(num=fignum)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.plot(Bimag, Mimag, 'r')
+    plt.xlabel('B (T)')
+    plt.ylabel('M/Ms')
+    plt.axvline(0, color='k')
+    plt.title(s)
+#
+
+
+def plot_hdd(HDD, B, M, s):
+    """
+    Function to make hysteresis, deltaM and DdeltaM plots
+    Parameters:
+    _______________
+    Input
+        HDD :  dictionary with figure numbers for the keys:
+            'hyst' : hysteresis plot  normalized to maximum value
+            'deltaM' : Delta M plot
+            'DdeltaM' : differential of Delta M plot
+        B : list of field values in tesla
+        M : list of magnetizations in arbitrary units
+        s : specimen name string
+    Ouput
+      hpars : dictionary of hysteresis parameters with keys:
+        'hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc'
+
+    """
+    hpars, deltaM, Bdm = plot_hys(
+        HDD['hyst'], B, M, s)  # Moff is the "fixed" loop data
+    DdeltaM = []
+    Mhalf = ""
+    for k in range(2, len(Bdm)):
+        # differnential
+        DdeltaM.append(
+            abs(deltaM[k] - deltaM[k - 2]) / (Bdm[k] - Bdm[k - 2]))
+    for k in range(len(deltaM)):
+        if deltaM[k] / deltaM[0] < 0.5:
+            Mhalf = k
+            break
+    try:
+        Bhf = Bdm[Mhalf - 1:Mhalf + 1]
+        Mhf = deltaM[Mhalf - 1:Mhalf + 1]
+        # best fit line through two bounding points
+        poly = np.polyfit(Bhf, Mhf, 1)
+        Bcr = (.5 * deltaM[0] - poly[1]) / poly[0]
+        hpars['hysteresis_bcr'] = '%8.3e' % (Bcr)
+        hpars['magic_method_codes'] = "LP-BCR-HDM"
+        if HDD['deltaM'] != 0:
+            plot_delta_m(HDD['deltaM'], Bdm, deltaM, Bcr, s)
+            plt.axhline(0, color='k')
+            plt.axvline(0, color='k')
+            plot_d_delta_m(HDD['DdeltaM'], Bdm, DdeltaM, s)
+    except:
+        hpars['hysteresis_bcr'] = '0'
+        hpars['magic_method_codes'] = ""
+    return hpars
+#
+
+
+def plot_day(fignum, BcrBc, S, sym, **kwargs):
+    """
+    function to plot Day plots
+
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    BcrBc : list or array ratio of coercivity of remenance to coercivity
+    S : list or array ratio of saturation remanence to saturation magnetization (squareness)
+    sym : matplotlib symbol (e.g., 'rs' for red squares)
+    **kwargs :  dictionary with {'names':[list of names for symbols]}
+    """
+    plt.figure(num=fignum)
+    plt.plot(BcrBc, S, sym)
+    plt.axhline(0, color='k')
+    plt.axhline(.05, color='k')
+    plt.axhline(.5, color='k')
+    plt.axvline(1, color='k')
+    plt.axvline(4, color='k')
+    plt.xlabel('Bcr/Bc')
+    plt.ylabel('Mr/Ms')
+    plt.title('Day Plot')
+    plt.xlim(0, 6)
+    #bounds= plt.axis()
+    #plt.axis([0, bounds[1],0, 1])
+    mu_o = 4. * np.pi * 1e-7
+    Bc_sd = 46e-3  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
+    Bc_md = 5.56e-3  # (041183) dunlop and carter-stiglitz 2006 (in T)
+    chi_sd = 5.20e6 * mu_o  # now in T
+    chi_md = 4.14e6 * mu_o  # now in T
+    chi_r_sd = 4.55e6 * mu_o  # now in T
+    chi_r_md = 0.88e6 * mu_o  # now in T
+    Bcr_sd, Bcr_md = 52.5e-3, 26.1e-3  # (MV1H and 041183 in DC06 in tesla)
+    Ms = 480e3  # A/m
+    p = .1  # from Dunlop 2002
+    N = 1.0 / 3.0  # demagnetizing factor
+    f_sd = np.arange(1., 0., -.01)  # fraction of sd
+    f_md = 1. - f_sd  # fraction of md
+    f_sp = 1. - f_sd  # fraction of sp
+    # Mr/Ms ratios for USD,MD and Jax shaped
+    sdrat, mdrat, cbrat = 0.498, 0.048, 0.6
+    Mrat = f_sd * sdrat + f_md * mdrat  # linear mixing - eq. 9 in Dunlop 2002
+    Bc = (f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md) / (f_sd * chi_sd + f_md * chi_md)  # eq. 10 in Dunlop 2002
+    Bcr = (f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md) / (f_sd * chi_r_sd + f_md * chi_r_md)  # eq. 11 in Dunlop 2002
+    chi_sps = np.arange(1, 5) * chi_sd
+    plt.plot(Bcr / Bc, Mrat, 'r-')
+    if 'names' in list(kwargs.keys()):
+        names = kwargs['names']
+        for k in range(len(names)):
+            plt.text(BcrBc[k], S[k], names[k])  # ,'ha'='left'
+
+
+#
+def plot_s_bc(fignum, Bc, S, sym):
+    """
+    function to plot Squareness,Coercivity
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    Bc : list or array coercivity values
+    S : list or array of ratio of saturation remanence to saturation
+    sym : matplotlib symbol (e.g., 'g^' for green triangles)
+    """
+    plt.figure(num=fignum)
+    plt.plot(Bc, S, sym)
+    plt.xlabel('Bc')
+    plt.ylabel('Mr/Ms')
+    plt.title('Squareness-Coercivity Plot')
+    bounds = plt.axis()
+    plt.axis([0, bounds[1], 0, 1])
+#
+
+
+def plot_s_bcr(fignum, Bcr, S, sym):
+    """
+    function to plot Squareness,Coercivity of remanence
+
+    Parameters
+    __________
+    fignum : matplotlib figure number
+    Bcr : list or array coercivity of remenence values
+    S : list or array of ratio of saturation remanence to saturation
+    sym : matplotlib symbol (e.g., 'g^' for green triangles)
+    """
+    plt.figure(num=fignum)
+    plt.plot(Bcr, S, sym)
+    plt.xlabel('Bcr')
+    plt.ylabel('Mr/Ms')
+    plt.title('Squareness-Bcr Plot')
+    bounds = plt.axis()
+    plt.axis([0, bounds[1], 0, 1])
+#
+
+
+def plot_bcr(fignum, Bcr1, Bcr2):
+    """
+    function to plot two estimates of Bcr against each other
+    """
+    plt.figure(num=fignum)
+    plt.plot(Bcr1, Bcr2, 'ro')
+    plt.xlabel('Bcr1')
+    plt.ylabel('Bcr2')
+    plt.title('Compare coercivity of remanence')
+
+
+def plot_hpars(HDD, hpars, sym):
+    """
+    function to plot hysteresis parameters
+    deprecated (used in hysteresis_magic)
+    """
+    plt.figure(num=HDD['hyst'])
+    X, Y = [], []
+    X.append(0)
+    Y.append(float(hpars['hysteresis_mr_moment']) / float(
+        hpars['hysteresis_ms_moment']))
+    X.append(float(hpars['hysteresis_bc']))
+    Y.append(0)
+    plt.plot(X, Y, sym)
+    bounds = plt.axis()
+    n4 = 'Ms: ' + '%8.2e' % (float(hpars['hysteresis_ms_moment'])) + ' Am^2'
+    plt.text(bounds[1] - .9 * bounds[1], -.9, n4)
+    n1 = 'Mr: ' + '%8.2e' % (float(hpars['hysteresis_mr_moment'])) + ' Am^2'
+    plt.text(bounds[1] - .9 * bounds[1], -.7, n1)
+    n2 = 'Bc: ' + '%8.2e' % (float(hpars['hysteresis_bc'])) + ' T'
+    plt.text(bounds[1] - .9 * bounds[1], -.5, n2)
+    if 'hysteresis_xhf' in list(hpars.keys()):
+        n3 = r'Xhf: ' + '%8.2e' % (float(hpars['hysteresis_xhf'])) + ' m^3'
+        plt.text(bounds[1] - .9 * bounds[1], -.3, n3)
+    plt.figure(num=HDD['deltaM'])
+    X, Y, Bcr = [], [], ""
+    if 'hysteresis_bcr' in list(hpars.keys()):
+        X.append(float(hpars['hysteresis_bcr']))
+        Y.append(0)
+        Bcr = float(hpars['hysteresis_bcr'])
+    plt.plot(X, Y, sym)
+    bounds = plt.axis()
+    if Bcr != "":
+        n1 = 'Bcr: ' + '%8.2e' % (Bcr) + ' T'
+        plt.text(bounds[1] - .5 * bounds[1], .9 * bounds[3], n1)
+#
+
+
+def plot_irm(fignum, B, M, title):
+    """
+    function to plot IRM backfield curves
+
+    Parameters
+    _________
+    fignum : matplotlib figure number
+    B : list or array of field values
+    M : list or array of magnetizations
+    title : string title for plot
+    """
+    rpars = {}
+    Mnorm = []
+    backfield = 0
+    X, Y = [], []
+    for k in range(len(B)):
+        if M[k] < 0:
+            break
+    if k <= 5:
+        kmin = 0
+    else:
+        kmin = k - 5
+    for k in range(kmin, k + 1):
+        X.append(B[k])
+        if B[k] < 0:
+            backfield = 1
+        Y.append(M[k])
+    if backfield == 1:
+        poly = np.polyfit(X, Y, 1)
+        if poly[0] != 0:
+            bcr = (-poly[1] / poly[0])
+        else:
+            bcr = 0
+        rpars['remanence_mr_moment'] = '%8.3e' % (M[0])
+        rpars['remanence_bcr'] = '%8.3e' % (-bcr)
+        rpars['magic_method_codes'] = 'LP-BCR-BF'
+        if M[0] != 0:
+            for m in M:
+                Mnorm.append(m / M[0])  # normalize to unity Msat
+            title = title + ':' + '%8.3e' % (M[0])
+    else:
+        if M[-1] != 0:
+            for m in M:
+                Mnorm.append(m / M[-1])  # normalize to unity Msat
+            title = title + ':' + '%8.3e' % (M[-1])
+# do plots if desired
+    if fignum != 0 and M[0] != 0:  # skip plot for fignum = 0
+        plt.figure(num=fignum)
+        plt.clf()
+        if not isServer:
+            plt.figtext(.02, .01, version_num)
+        plt.plot(B, Mnorm)
+        plt.axhline(0, color='k')
+        plt.axvline(0, color='k')
+        plt.xlabel('B (T)')
+        plt.ylabel('M/Mr')
+        plt.title(title)
+        if backfield == 1:
+            plt.scatter([bcr], [0], marker='s', c='b')
+            bounds = plt.axis()
+            n1 = 'Bcr: ' + '%8.2e' % (-bcr) + ' T'
+            plt.figtext(.2, .5, n1)
+            n2 = 'Mr: ' + '%8.2e' % (M[0]) + ' Am^2'
+            plt.figtext(.2, .45, n2)
+    elif fignum != 0:
+        plt.figure(num=fignum)
+        # plt.clf()
+        if not isServer:
+            plt.figtext(.02, .01, version_num)
+        print('M[0]=0,  skipping specimen')
+    return rpars
+
+
+def plot_xtf(fignum, XTF, Fs, e, b):
+    """
+    function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
+    """
+    plt.figure(num=fignum)
+    plt.xlabel('Temperature (K)')
+    plt.ylabel('Susceptibility (m^3/kg)')
+    k = 0
+    Flab = []
+    for freq in XTF:
+        T, X = [], []
+        for xt in freq:
+            X.append(xt[0])
+            T.append(xt[1])
+        plt.plot(T, X)
+        plt.text(T[-1], X[-1], str(int(Fs[k])) + ' Hz')
+#        Flab.append(str(int(Fs[k]))+' Hz')
+        k += 1
+    plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
+#    plt.legend(Flab,'upper left')
+#
+
+
+def plot_xtb(fignum, XTB, Bs, e, f):
+    """ function to plot series of chi measurements as a function of temperature, holding frequency constant and varying B
+    """
+    plt.figure(num=fignum)
+    plt.xlabel('Temperature (K)')
+    plt.ylabel('Susceptibility (m^3/kg)')
+    k = 0
+    Blab = []
+    for field in XTB:
+        T, X = [], []
+        for xt in field:
+            X.append(xt[0])
+            T.append(xt[1])
+        plt.plot(T, X)
+        plt.text(T[-1], X[-1], '%8.2e' % (Bs[k]) + ' T')
+#        Blab.append('%8.1e'%(Bs[k])+' T')
+        k += 1
+    plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
+#    plt.legend(Blab,'upper left')
+#
+
+
+def plot_xft(fignum, XF, T, e, b):
+    """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
+    """
+    plt.figure(num=fignum)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Susceptibility (m^3/kg)')
+    k = 0
+    F, X = [], []
+    for xf in XF:
+        X.append(xf[0])
+        F.append(xf[1])
+    plt.plot(F, X)
+    plt.semilogx()
+    plt.title(e + ': B = ' + '%8.1e' % (b) + ' T')
+
+    plt.legend(['%i' % (int(T)) + ' K'])
+#
+
+
+def plot_xbt(fignum, XB, T, e, b):
+    """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
+    """
+    plt.figure(num=fignum)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.xlabel('Field (T)')
+    plt.ylabel('Susceptibility (m^3/kg)')
+    k = 0
+    B, X = [], []
+    for xb in XB:
+        X.append(xb[0])
+        B.append(xb[1])
+    plt.plot(B, X)
+    plt.legend(['%i' % (int(T)) + ' K'])
+    plt.title(e + ': f = ' + '%i' % (int(f)) + ' Hz')
+#
+
+
+def plot_ltc(LTC_CM, LTC_CT, LTC_WM, LTC_WT, e):
+    """
+    function to plot low temperature cycling experiments
+    """
+    leglist, init = [], 0
+    if len(LTC_CM) > 2:
+        if init == 0:
+            plot_init(1, 5, 5)
+        plt.plot(LTC_CT, LTC_CM, 'b')
+        leglist.append('RT SIRM, measured while cooling')
+        init = 1
+    if len(LTC_WM) > 2:
+        if init == 0:
+            plot_init(1, 5, 5)
+        plt.plot(LTC_WT, LTC_WM, 'r')
+        leglist.append('RT SIRM, measured while warming')
+    if init != 0:
+        plt.legend(leglist, 'lower left')
+        plt.xlabel('Temperature (K)')
+        plt.ylabel('Magnetization (Am^2/kg)')
+        if len(LTC_CM) > 2:
+            plt.plot(LTC_CT, LTC_CM, 'bo')
+        if len(LTC_WM) > 2:
+            plt.plot(LTC_WT, LTC_WM, 'ro')
+        plt.title(e)
+
+
+def plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar, title, plot, comp, vec, Dir, nb):
+    imeas, bpars, hpars = 1, [], []
+    npts = len(Ss)  # number of data points
+    plots = {}
+#
+# plot eigenvectors:
+#
+    Vs = []
+    for s in Ss:
+        tau, V = pmag.doseigs(s)
+        Vs.append(V)
+    nf, sigma, avs = pmag.sbar(Ss)
+    if plot == 1:
+        for key in list(ANIS.keys()):
+            plt.figure(num=ANIS[key])
+            plt.clf()
+            if not isServer:
+                plt.figtext(.02, .01, version_num)
+        plot_net(ANIS['data'])  # draw the net
+        plot_evec(ANIS['data'], Vs, 40, title)  # put on the data eigenvectors
+#
+# plot mean eigenvectors
+#
+    Vs = []
+    mtau, mV = pmag.doseigs(avs)
+    Vs.append(mV)
+    hpars = pmag.dohext(nf, sigma, avs)
+    if plot == 1:
+        title = ''
+        if ihext == 1:
+            title = title + "Hext"
+        if iboot == 1:
+            title = title + ":Bootstrap"
+        if ipar == 1:
+            title = title + ":Parametric"
+        if title[0] == ":":
+            title = title[1:]
+        plot_net(ANIS['conf'])  # draw the net
+        plot_evec(ANIS['conf'], Vs, 36, title)  # put on the mean eigenvectors
+#
+# plot mean confidence
+#
+    if iboot == 1:
+        print('Doing bootstrap - be patient')
+        Tmean, Vmean, Taus, BVs = pmag.s_boot(
+            Ss, ipar, nb)  # get eigenvectors of mean tensor
+        bpars = pmag.sbootpars(Taus, BVs)
+        bpars['t1'] = hpars['t1']
+        bpars['t2'] = hpars['t2']
+        bpars['t3'] = hpars['t3']
+        if plot == 1:
+            if ivec == 1:
+                # put on the data eigenvectors
+                plot_evec(ANIS['conf'], BVs, 5, '')
+            else:
+                ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
+                           bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
+                plot_ell(ANIS['conf'], ellpars, 'r-,', 1, 1)
+                ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
+                           bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
+                plot_ell(ANIS['conf'], ellpars, 'b-,', 1, 1)
+                ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
+                           bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
+                plot_ell(ANIS['conf'], ellpars, 'k-,', 1, 1)
+            plt.figure(num=ANIS['tcdf'])
+            plt.clf()
+            if not isServer:
+                plt.figtext(.02, .01, version_num)
+            ts = []
+            for t in Taus:
+                ts.append(t[0])
+            plot_cdf(ANIS['tcdf'], ts, "", 'r', "")
+            ts.sort()
+            tminind = int(0.025 * len(ts))
+            tmaxind = int(0.975 * len(ts))
+            tbounds = []
+            tbounds.append(ts[tminind])
+            tbounds.append(ts[tmaxind])
+            plt.axvline(x=tbounds[0], linewidth=1, color='r', linestyle='--')
+            plt.axvline(x=tbounds[1], linewidth=1, color='r', linestyle='--')
+            # plot_vs(ANIS['tcdf'],tbounds,'r','-') # there is some bug in here
+            # - can't figure it out
+            ts = []
+            for t in Taus:
+                ts.append(t[1])
+            plot_cdf(ANIS['tcdf'], ts, "", 'b', "")
+            ts.sort()
+            tminind = int(0.025 * len(ts))
+            tmaxind = int(0.975 * len(ts))
+            tbounds = []
+            tbounds.append(ts[tminind])
+            tbounds.append(ts[tmaxind])
+            # plot_vs(ANIS['tcdf'],tbounds,'b','-')
+            plt.axvline(x=tbounds[0], linewidth=1, color='b', linestyle='-.')
+            plt.axvline(x=tbounds[1], linewidth=1, color='b', linestyle='-.')
+            ts = []
+            for t in Taus:
+                ts.append(t[2])
+            plot_cdf(ANIS['tcdf'], ts, "Eigenvalues", 'k', "")
+            ts.sort()
+            tminind = int(0.025 * len(ts))
+            tmaxind = int(0.975 * len(ts))
+            tbounds = []
+            tbounds.append(ts[tminind])
+            tbounds.append(ts[tmaxind])
+            plot_vs(ANIS['tcdf'], tbounds, 'k', '-')
+            plt.axvline(x=tbounds[0], linewidth=1, color='k', linestyle='-')
+            plt.axvline(x=tbounds[1], linewidth=1, color='k', linestyle='-')
+            if comp == 1:  # do eigenvector of choice
+                plt.figure(num=ANIS['conf'])
+                XY = pmag.dimap(Dir[0], Dir[1])
+                plt.scatter([XY[0]], [XY[1]], marker='p', c='m', s=100)
+                Ccart = pmag.dir2cart(Dir)
+                Vxs, Vys, Vzs = [], [], []
+                for v in BVs:
+                    cart = pmag.dir2cart([v[vec][0], v[vec][1], 1.])
+                    Vxs.append(cart[0])
+                    Vys.append(cart[1])
+                    Vzs.append(cart[2])
+                plt.figure(num=ANIS['vxcdf'])
+                plt.clf()
+                if not isServer:
+                    plt.figtext(.02, .01, version_num)
+                plot_cdf(ANIS['vxcdf'], Vxs, "V_" +
+                         str(vec + 1) + "1", 'r', "")
+                Vxs.sort()
+                vminind = int(0.025 * len(Vxs))
+                vmaxind = int(0.975 * len(Vxs))
+                vbounds = []
+                vbounds.append(Vxs[vminind])
+                vbounds.append(Vxs[vmaxind])
+                plt.axvline(x=vbounds[0], linewidth=1,
+                            color='r', linestyle='--')
+                plt.axvline(x=vbounds[1], linewidth=1,
+                            color='r', linestyle='--')
+                # plot_vs(ANIS['vxcdf'],vbounds,'r','--')
+                # plot_vs(ANIS['vxcdf'],[Ccart[0]],'r','-')
+                plt.axvline(x=Ccart[0][0], linewidth=1,
+                            color='r', linestyle='-')
+                plot_cdf(ANIS['vycdf'], Vys, "V_" +
+                         str(vec + 1) + "2", 'b', "")
+                Vys.sort()
+                vminind = int(0.025 * len(Vys))
+                vmaxind = int(0.975 * len(Vys))
+                vbounds = []
+                vbounds.append(Vys[vminind])
+                vbounds.append(Vys[vmaxind])
+                plt.axvline(x=vbounds[0], linewidth=1,
+                            color='b', linestyle='--')
+                plt.axvline(x=vbounds[1], linewidth=1,
+                            color='b', linestyle='--')
+                plt.axvline(x=Ccart[0][1], linewidth=1,
+                            color='b', linestyle='-')
+                # plot_vs(ANIS['vycdf'],vbounds,'b','--')
+                # plot_vs(ANIS['vycdf'],[Ccart[1]],'b','-')
+                plot_cdf(ANIS['vzcdf'], Vzs, "V_" +
+                         str(vec + 1) + "3", 'k', "")
+                Vzs.sort()
+                vminind = int(0.025 * len(Vzs))
+                vmaxind = int(0.975 * len(Vzs))
+                vbounds = []
+                vbounds.append(Vzs[vminind])
+                vbounds.append(Vzs[vmaxind])
+                plt.axvline(x=vbounds[0], linewidth=1,
+                            color='k', linestyle='--')
+                plt.axvline(x=vbounds[1], linewidth=1,
+                            color='k', linestyle='--')
+                plt.axvline(x=Ccart[0][2], linewidth=1,
+                            color='k', linestyle='-')
+                # plot_vs(ANIS['vzcdf'],vbounds,'k','--')
+                # plot_vs(ANIS['vzcdf'],[Ccart[2]],'k','-')
+        bpars['v1_dec'] = hpars['v1_dec']
+        bpars['v2_dec'] = hpars['v2_dec']
+        bpars['v3_dec'] = hpars['v3_dec']
+        bpars['v1_inc'] = hpars['v1_inc']
+        bpars['v2_inc'] = hpars['v2_inc']
+        bpars['v3_inc'] = hpars['v3_inc']
+    if ihext == 1 and plot == 1:
+        ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
+                   hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
+        plot_ell(ANIS['conf'], ellpars, 'r-,', 1, 1)
+        ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
+                   hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
+        plot_ell(ANIS['conf'], ellpars, 'b-,', 1, 1)
+        ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
+                   hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
+        plot_ell(ANIS['conf'], ellpars, 'k-,', 1, 1)
+    return bpars, hpars
+####
+
+
+def plot_trm(fig, B, TRM, Bp, Mp, NLpars, title):
+    #
+    # plots TRM acquisition data and correction to B_estimated to B_ancient
+    plt.figure(num=fig)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.xlabel('B (uT)')
+    plt.ylabel('Fractional TRM ')
+    plt.title(title + ':TRM=' + '%8.2e' % (Mp[-1]))
+#
+# scale data
+    Bnorm, Bpnorm = [], []
+    Tnorm, Mnorm = [], []
+    for b in B:
+        Bnorm.append(b * 1e6)
+    for b in Bp:
+        Bpnorm.append(b * 1e6)
+    for t in TRM:
+        Tnorm.append(t / Mp[-1])
+    for t in Mp:
+        Mnorm.append(t / Mp[-1])
+    plt.plot(Bnorm, Tnorm, 'go')
+    plt.plot(Bpnorm, Mnorm, 'g-')
+    if NLpars['banc'] > 0:
+        plt.plot([0, NLpars['best'] * 1e6],[0, NLpars['banc_npred'] / Mp[-1]], 'b--')
+        plt.plot([NLpars['best'] * 1e6, NLpars['banc'] * 1e6], [NLpars['banc_npred'] / Mp[-1], NLpars['banc_npred'] / Mp[-1]], 'r--')
+        plt.plot([NLpars['best'] * 1e6], [NLpars['banc_npred'] / Mp[-1]], 'bd')
+        plt.plot([NLpars['banc'] * 1e6], [NLpars['banc_npred'] / Mp[-1]], 'rs')
+    else:
+        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'b--')
+        plt.plot([0, NLpars['best'] * 1e6], [0, NLpars['best_npred'] / Mp[-1]], 'bd')
+
+###
+
+
+def plot_tds(fig, tdsblock, title):
+    plt.figure(num=fig)
+    plt.clf()
+    if not isServer:
+        plt.figtext(.02, .01, version_num)
+    plt.xlabel('Fraction TRM remaining')
+    plt.ylabel('Fraction NRM remaining')
+    plt.title(title)
+    X, Y = [], []
+    for rec in tdsblock:
+        X.append(rec[2])  # TRM on X
+        Y.append(rec[1])  # NRM on Y
+        plt.text(X[-1], Y[-1], ' %3.1f' % (float(rec[0]) - 273))
+    plt.plot(X, Y, 'ro')
+    plt.plot(X, Y)
+
+
+def plot_conf(fignum, s, datablock, pars, new):
+    """
+    plots directions and confidence ellipses
+    """
+# make the stereonet
+    if new == 1:
+        plot_net(fignum)
+#
+#   plot the data
+#
+    DIblock = []
+    for plotrec in datablock:
+        DIblock.append((float(plotrec["dec"]), float(plotrec["inc"])))
+    if len(DIblock) > 0:
+        plot_di(fignum, DIblock)  # plot directed lines
+#
+# put on the mean direction
+#
+    x, y = [], []
+    XY = pmag.dimap(float(pars[0]), float(pars[1]))
+    x.append(XY[0])
+    y.append(XY[1])
+    plt.figure(num=fignum)
+    if new == 1:
+        plt.scatter(x, y, marker='d', s=80, c='r')
+    else:
+        if float(pars[1] > 0):
+            plt.scatter(x, y, marker='^', s=100, c='r')
+        else:
+            plt.scatter(x, y, marker='^', s=100, c='y')
+    plt.title(s)
+#
+# plot the ellipse
+#
+    plot_ell(fignum, pars, 'r-,', 0, 1)
+
+
+EI_plot_num = 0
+maxE, minE, maxI, minI = 0, 10, 0, 90
+
+
+def plot_ei(fignum, E, I, f):
+    global EI_plot_num, maxE, minE, minI, maxI
+    plt.figure(num=fignum)
+    if EI_plot_num == 0:
+        plt.plot(I, E, 'r')
+        plt.xlabel("Inclination")
+        plt.ylabel("Elongation")
+        EI_plot_num += 1
+        plt.text(I[-1], E[-1], ' %4.2f' % (f))
+        plt.text(I[0] - 2, E[0], ' %s' % ('f=1'))
+    elif f == 1:
+        plt.plot(I, E, 'g-')
+    else:
+        plt.plot(I, E, 'y')
+
+
+def plot_v2s(fignum, V2s, I, f):
+    plt.figure(num=fignum)
+    plt.plot(I, V2s, 'r')
+    plt.xlabel("Inclination")
+    plt.ylabel("Elongation direction")
+
+
+def plot_com(CDF, BDI1, BDI2, d):
+    #
+    #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
+    #
+    cart = pmag.dir2cart(BDI1).transpose()
+    X1, Y1, Z1 = cart[0], cart[1], cart[2]
+    min = int(0.025 * len(X1))
+    max = int(0.975 * len(X1))
+    X1, y = plot_cdf(CDF['X'], X1, "X component", 'r', "")
+    bounds1 = [X1[min], X1[max]]
+    plot_vs(CDF['X'], bounds1, 'r', '-')
+    Y1, y = plot_cdf(CDF['Y'], Y1, "Y component", 'r', "")
+    bounds1 = [Y1[min], Y1[max]]
+    plot_vs(CDF['Y'], bounds1, 'r', '-')
+    Z1, y = plot_cdf(CDF['Z'], Z1, "Z component", 'r', "")
+    bounds1 = [Z1[min], Z1[max]]
+    plot_vs(CDF['Z'], bounds1, 'r', '-')
+    # draw_figs(CDF)
+    if d[0] == "":  # repeat for second data set
+        bounds2 = []
+        cart = pmag.dir2cart(BDI2).transpose()
+        X2, Y2, Z2 = cart[0], cart[1], cart[2]
+        X2, y = plot_cdf(CDF['X'], X2, "X component", 'b', "")
+        bounds2 = [X2[min], X2[max]]
+        plot_vs(CDF['X'], bounds2, 'b', '--')
+        Y2, y = plot_cdf(CDF['Y'], Y2, "Y component", 'b', "")
+        bounds2 = [Y2[min], Y2[max]]
+        plot_vs(CDF['Y'], bounds2, 'b', '--')
+        Z2, y = plot_cdf(CDF['Z'], Z2, "Z component", 'b', "")
+        bounds2 = [Z2[min], Z2[max]]
+        plot_vs(CDF['Z'], bounds2, 'b', '--')
+    else:
+        cart = pmag.dir2cart([d[0], d[1], 1.0])
+        plot_vs(CDF['X'], [cart[0]], 'k', '--')
+        plot_vs(CDF['Y'], [cart[1]], 'k', '--')
+        plot_vs(CDF['Z'], [cart[2]], 'k', '--')
+    return
+
+# functions for images - requires additional modules
+#
+#import Image,os
+# def combineFigs(Name,filenames,Ncols):
+#    Nfigs=len(filenames.keys())
+#    Nrows=Nfigs/Ncols+Nfigs%Ncols
+#    print Nrows,Ncols
+#    S=500 # fig size
+#    size=(S,S)
+#    image=Image.new('RGBA',(Ncols*S,Nrows*S))
+#    Nrow,row,col,pic=1,1,1,0
+#    for key in filenames.keys():
+#        pic+=1
+#        print  filenames[key]
+#        im=Image.open(filenames[key])
+#        im.thumbnail(size)
+#        image.paste(im,(col,row))
+#        print col,row
+#        col+=S
+#        if pic ==Ncols:
+#            col=1
+#            Nrow+=1
+#            row=Nrow*size
+#    image.save(Name+'.png')
+#    for key in filenames.keys():
+#        os.remove(filenames[key])
+
+
+def add_borders(Figs, titles, border_color='#000000', text_color='#800080', con_id=""):
+
+    """
+    Formatting for generating plots on the server
+    Default border color: black
+    Default text color: purple
+    """
+    def split_title(s):
+        """
+        Add '\n's to split of overly long titles
+        """
+        s_list = s.split(",")
+        lines = []
+        tot = 0
+        line = []
+        for i in s_list:
+            tot += len(i)
+            if tot < 30:
+                line.append(i + ",")
+            else:
+                lines.append(" ".join(line))
+                line = [i]
+                tot = 0
+        lines.append(" ".join(line))
+        return "\n".join(lines).strip(',')
+
+    # format contribution id if available
+    if con_id:
+        if not str(con_id).startswith("/"):
+            con_id = "/" + str(con_id)
+
+    import datetime
+    now = datetime.datetime.utcnow()
+
+    for key in list(Figs.keys()):
+
+        fig = plt.figure(Figs[key])
+        plot_title = split_title(titles[key]).strip().strip('\n')
+        fig.set_figheight(5.5)
+        fig.set_figwidth(5.5)
+
+        # make space for the title and borders
+        # centered with at least 10% on the sides and 20% on the top and bottom
+        for ax in fig.axes:
+            pos = ax.get_position() # get returns: Bbox with x0, y0, x1, y1
+            w = min((pos.x1 - pos.x0), 0.8)
+            h = min((pos.y1 - pos.y0), 0.6)
+            x = (1 - w)/2
+            y = (1 - h)/2
+            ax.set_position([x, y, w, h]) # set takes: left, bottom, width, height
+
+        # add an axis covering the entire figure
+        border_ax = fig.add_axes([0, 0, 1, 1])
+        border_ax.set_frame_on(False)
+        border_ax.set_xticks([])
+        border_ax.set_yticks([])
+
+        # add text
+        border_ax.text(0.03, 0.03, now.strftime("%Y-%m-%d, %I:%M:%S {}".format('UT')),
+                       horizontalalignment='left',
+                       verticalalignment='top',
+                       color=text_color,
+                       size=10)
+        border_ax.text(0.5, 0.98, plot_title,
+                       horizontalalignment='center',
+                       verticalalignment='top',
+                       color=text_color,
+                       size=20)
+        border_ax.text(0.97, 0.03, 'earthref.org/MagIC{}'.format(con_id),
+                       horizontalalignment='right',
+                       verticalalignment='top',
+                       color=text_color,
+                       size=10)
+    return Figs
+
+
+def plot_map_basemap(fignum, lats, lons, Opts):
+    """
+    plot_map_basemap(fignum, lats,lons,Opts)
+    makes a basemap with lats/lons
+        requires working installation of Basemap
+    Parameters:
+    _______________
+    fignum : matplotlib figure number
+    lats : array or list of latitudes
+    lons : array or list of longitudes
+    Opts : dictionary of plotting options:
+        Opts.keys=
+            latmin : minimum latitude for plot
+            latmax : maximum latitude for plot
+            lonmin : minimum longitude for plot
+            lonmax : maximum longitude
+            lat_0 : central latitude
+            lon_0 : central longitude
+            proj : projection [basemap projections, e.g., moll=Mollweide, merc=Mercator, ortho=orthorhombic,
+                lcc=Lambert Conformal]
+            sym : matplotlib symbol
+            symsize : symbol size in pts
+            edge : markeredgecolor
+            pltgrid : plot the grid [1,0]
+            res :  resolution [c,l,i,h] for crude, low, intermediate, high
+            boundinglat : bounding latitude
+            sym : matplotlib symbol for plotting
+            symsize : matplotlib symbol size for plotting
+            names : list of names for lats/lons (if empty, none will be plotted)
+            pltgrd : if True, put on grid lines
+            padlat : padding of latitudes
+            padlon : padding of longitudes
+            gridspace : grid line spacing
+            details : dictionary with keys:
+                coasts : if True, plot coastlines
+                rivers : if True, plot rivers
+                states : if True, plot states
+                countries : if True, plot countries
+                ocean : if True, plot ocean
+                fancy : if True, plot etopo 20 grid
+                    NB:  etopo must be installed
+        if Opts keys not set :these are the defaults:
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None}
+
+    """
+    if not has_basemap:
+        print('-W- Basemap must be installed to run plot_map_basemap')
+        return
+    fig = plt.figure(num=fignum)
+    rgba_land = (255, 255, 150, 255)
+    rgba_ocean = (200, 250, 255, 255)
+    ExMer = ['sinus', 'moll', 'lcc']
+    # draw meridian labels on the bottom [left,right,top,bottom]
+    mlabels = [0, 0, 0, 1]
+    plabels = [1, 0, 0, 0]  # draw parallel labels on the left
+    # set default Options
+    Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
+                     'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
+                     'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
+                     'padlon': 0, 'padlat': 0, 'gridspace': 30,
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0}}
+    for key in Opts_defaults.keys():
+        if key not in Opts.keys() and key != 'details':
+            Opts[key] = Opts_defaults[key]
+        if key == 'details':
+            if key not in Opts.keys():
+                Opts[key] = Opts_defaults[key]
+            for detail_key in Opts_defaults[key].keys():
+                if detail_key not in Opts[key].keys():
+                    Opts[key][detail_key] = Opts_defaults[key][detail_key]
+
+    if Opts['proj'] in ExMer:
+        mlabels = [0, 0, 0, 0]
+    if Opts['proj'] not in ExMer:
+        m = Basemap(projection=Opts['proj'], lat_0=Opts['lat_0'],
+                    lon_0=Opts['lon_0'], resolution=Opts['res'])
+        plabels = [0, 0, 0, 0]
+    else:
+        m = Basemap(llcrnrlon=Opts['lonmin'], llcrnrlat=Opts['latmin'], urcrnrlat=Opts['latmax'], urcrnrlon=Opts['lonmax'],
+                    projection=Opts['proj'], lat_0=Opts['lat_0'], lon_0=Opts['lon_0'], lat_ts=0., resolution=Opts['res'], boundinglat=Opts['boundinglat'])
+    if 'details' in list(Opts.keys()):
+        if Opts['details']['fancy'] == 1:
+            from mpl_toolkits.basemap import basemap_datadir
+            EDIR = basemap_datadir + "/"
+            etopo = np.loadtxt(EDIR + 'etopo20data.gz')
+            elons = np.loadtxt(EDIR + 'etopo20lons.gz')
+            elats = np.loadtxt(EDIR + 'etopo20lats.gz')
+            x, y = m(*np.meshgrid(elons, elats))
+            cs = m.contourf(x, y, etopo, 30, cmap=color_map.jet)
+        if Opts['details']['coasts'] == 1:
+            m.drawcoastlines(color='k')
+        if Opts['details']['rivers'] == 1:
+            m.drawrivers(color='b')
+        if Opts['details']['states'] == 1:
+            m.drawstates(color='r')
+        if Opts['details']['countries'] == 1:
+            m.drawcountries(color='g')
+        if Opts['details']['ocean'] == 1:
+            try:
+                m.drawlsmask(land_color=rgba_land,
+                             ocean_color=rgba_ocean, lsmask_lats=None)
+            except TypeError:
+                # this is caused by basemap function: _readlsmask
+                # interacting with numpy
+                # (a float is provided, numpy wants an int).
+                # hopefully will be fixed eventually.
+                pass
+    if Opts['pltgrid'] == 0.:
+        circles = np.arange(Opts['latmin'], Opts['latmax'] + 15., 15.)
+        meridians = np.arange(Opts['lonmin'], Opts['lonmax'] + 30., 30.)
+    elif Opts['pltgrid'] > 0:
+        if Opts['proj'] in ExMer or Opts['proj'] == 'lcc':
+            circles = np.arange(-90, 180. +
+                                Opts['gridspace'], Opts['gridspace'])
+            meridians = np.arange(0, 360., Opts['gridspace'])
+        else:
+            g = Opts['gridspace']
+            latmin, lonmin = g * \
+                int(Opts['latmin'] / g), g * \
+                int(Opts['lonmin'] / g)
+            latmax, lonmax = g * \
+                int(Opts['latmax'] / g), g * \
+                int(Opts['lonmax'] / g)
+            # circles=np.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
+            # meridians=np.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
+            meridians = np.arange(0, 360, 30)
+            circles = np.arange(-90, 90, 30)
+    if Opts['pltgrid'] >= 0:
+        # m.drawparallels(circles,color='black',labels=plabels)
+        # m.drawmeridians(meridians,color='black',labels=mlabels)
+        # skip the labels - they are ugly
+        m.drawparallels(circles, color='black')
+        # skip the labels - they are ugly
+        m.drawmeridians(meridians, color='black')
+        m.drawmapboundary()
+    prn_name, symsize = 0, 5
+    if 'names' in Opts.keys() and len(Opts['names']) > 0:
+        names = Opts['names']
+        if len(names) > 0:
+            prn_name = 1
+#
+    X, Y, T, k = [], [], [], 0
+    if 'symsize' in list(Opts.keys()):
+        symsize = Opts['symsize']
+    if Opts['sym'][-1] != '-':  # just plot points
+        X, Y = m(lons, lats)
+        if prn_name == 1:
+            for pt in range(len(lats)):
+                T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
+        m.plot(X, Y, Opts['sym'], markersize=symsize,
+               markeredgecolor=Opts['edge'])
+    else:  # for lines,  need to separate chunks using lat==100.
+        chunk = 1
+        while k < len(lats) - 1:
+            if lats[k] <= 90:  # part of string
+                x, y = m(lons[k], lats[k])
+                if x < 1e20:
+                    X.append(x)
+                if y < 1e20:
+                    Y.append(y)  # exclude off the map points
+                if prn_name == 1:
+                    T.append(plt.text(x + 5000, y - 5000, names[k]))
+                k += 1
+            else:  # need to skip 100.0s and move to next chunk
+                # plot previous chunk
+                m.plot(X, Y, Opts['sym'], markersize=symsize,
+                       markeredgecolor=Opts['edge'])
+                chunk += 1
+                while lats[k] > 90. and k < len(lats) - 1:
+                    k += 1  # skip bad points
+                X, Y, T = [], [], []
+        if len(X) > 0:
+            m.plot(X, Y, Opts['sym'], markersize=symsize,
+                   markeredgecolor=Opts['edge'])  # plot last chunk
+
+
+def plot_map(fignum, lats, lons, Opts):
+    """
+    makes a cartopy map  with lats/lons
+    Requires installation of cartopy
+
+    Parameters:
+    _______________
+    fignum : matplotlib figure number
+    lats : array or list of latitudes
+    lons : array or list of longitudes
+    Opts : dictionary of plotting options:
+        Opts.keys=
+            proj : projection [supported cartopy projections:
+                pc = Plate Carree
+                aea = Albers Equal Area
+                aeqd = Azimuthal Equidistant
+                lcc = Lambert Conformal
+                lcyl = Lambert Cylindrical
+                merc = Mercator
+                mill = Miller Cylindrical
+                moll = Mollweide [default]
+                ortho = Orthographic
+                robin = Robinson
+                sinu = Sinusoidal
+                stere = Stereographic
+                tmerc = Transverse Mercator
+                utm = UTM [set zone and south keys in Opts]
+                laea = Lambert Azimuthal Equal Area
+                geos = Geostationary
+                npstere = North-Polar Stereographic
+                spstere = South-Polar Stereographic
+            latmin : minimum latitude for plot
+            latmax : maximum latitude for plot
+            lonmin : minimum longitude for plot
+            lonmax : maximum longitude
+            lat_0 : central latitude
+            lon_0 : central longitude
+            sym : matplotlib symbol
+            symsize : symbol size in pts
+            edge : markeredgecolor
+            cmap : matplotlib color map
+            res :  resolution [c,l,i,h] for low/crude, intermediate, high
+            boundinglat : bounding latitude
+            sym : matplotlib symbol for plotting
+            symsize : matplotlib symbol size for plotting
+            names : list of names for lats/lons (if empty, none will be plotted)
+            pltgrd : if True, put on grid lines
+            padlat : padding of latitudes
+            padlon : padding of longitudes
+            gridspace : grid line spacing
+            global : global projection [default is True]
+            oceancolor : 'azure'
+            landcolor : 'bisque' [choose any of the valid color names for matplotlib
+              see https://matplotlib.org/examples/color/named_colors.html
+            details : dictionary with keys:
+                coasts : if True, plot coastlines
+                rivers : if True, plot rivers
+                states : if True, plot states
+                countries : if True, plot countries
+                ocean : if True, plot ocean
+                lakes : if True, plot lakes
+                fancy : if True, plot etopo 20 grid
+                    NB:  etopo must be installed
+        if Opts keys not set :these are the defaults:
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'','south':False,'oceancolor':'azure','landcolor':'bisque'}
+
+    """
+    if not has_cartopy:
+        print('This function requires installation of cartopy')
+        return
+    from matplotlib import cm
+    # draw meridian labels on the bottom [left,right,top,bottom]
+    mlabels = [0, 0, 0, 1]
+    plabels = [1, 0, 0, 0]  # draw parallel labels on the left
+    Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
+                     'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
+                     'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
+                     'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet','oceancolor':'azure','landcolor':'bisque',
+                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0, 'lakes': 0},
+                     'edgecolor': 'face'}
+    for key in Opts_defaults.keys():
+        if key not in Opts.keys() and key != 'details':
+            Opts[key] = Opts_defaults[key]
+        if key == 'details':
+            if key not in Opts.keys():
+                Opts[key] = Opts_defaults[key]
+            for detail_key in Opts_defaults[key].keys():
+                if detail_key not in Opts[key].keys():
+                    Opts[key][detail_key] = Opts_defaults[key][detail_key]
+    if Opts['proj'] == 'pc':
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
+                      crs=ccrs.PlateCarree())
+    if Opts['proj'] == 'aea':
+        ax = plt.axes(projection=ccrs.AlbersEqualArea(
+            central_longitude=Opts['lon_0'],
+            central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
+            globe=None))
+    if Opts['proj'] == 'lcc':
+        proj = ccrs.LambertConformal(central_longitude=Opts['lon_0'],  central_latitude=Opts['lat_0'],\
+               false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
+               globe=None)
+        fig=plt.figure(fignum,figsize=(6,6),frameon=True)
+        ax = plt.axes(projection=proj)
+        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
+                      crs=ccrs.PlateCarree())
+    if Opts['proj'] == 'lcyl':
+        ax = plt.axes(projection=ccrs.LambertCylindrical(
+            central_longitude=Opts['lon_0']))
+
+    if Opts['proj'] == 'merc':
+        ax = plt.axes(projection=ccrs.Mercator(
+            central_longitude=Opts['lon_0'], min_latitude=Opts['latmin'],
+            max_latitude=Opts['latmax'], latitude_true_scale=0.0, globe=None))
+        ax.set_extent([Opts['lonmin'],Opts['lonmax'],\
+                     Opts['latmin'],Opts['latmax']])
+    if Opts['proj'] == 'mill':
+        ax = plt.axes(projection=ccrs.Miller(
+            central_longitude=Opts['lon_0']))
+    if Opts['proj'] == 'moll':
+        ax = plt.axes(projection=ccrs.Mollweide(
+            central_longitude=Opts['lat_0'], globe=None))
+    if Opts['proj'] == 'ortho':
+        ax = plt.axes(projection=ccrs.Orthographic(
+            central_longitude=Opts['lon_0'],
+            central_latitude=Opts['lat_0']))
+    if Opts['proj'] == 'robin':
+        ax = plt.axes(projection=ccrs.Robinson(
+            central_longitude=Opts['lon_0'],
+            globe=None))
+
+    if Opts['proj'] == 'sinu':
+        ax = plt.axes(projection=ccrs.Sinusoidal(
+            central_longitude=Opts['lon_0'],
+            false_easting=0.0, false_northing=0.0,
+            globe=None))
+
+    if Opts['proj'] == 'stere':
+        ax = plt.axes(projection=ccrs.Stereographic(
+            central_longitude=Opts['lon_0'],
+            false_easting=0.0, false_northing=0.0,
+            true_scale_latitude=None,
+            scale_factor=None,
+            globe=None))
+    if Opts['proj'] == 'tmerc':
+        ax = plt.axes(projection=ccrs.TransverseMercator(
+            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0,
+            scale_factor=None,
+            globe=None))
+    if Opts['proj'] == 'utm':
+        ax = plt.axes(projection=ccrs.UTM(
+            zone=Opts['zone'],
+            southern_hemisphere=Opts['south'],
+            globe=None))
+    if Opts['proj'] == 'geos':
+        ax = plt.axes(projection=ccrs.Geostationary(
+            central_longitude=Opts['lon_0'],
+            false_easting=0.0, false_northing=0.0,
+            satellite_height=35785831,
+            sweep_axis='y',
+            globe=None))
+    if Opts['proj'] == 'laea':
+        ax = plt.axes(projection=ccrs.LambertAzimuthalEqualArea(
+            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
+            false_easting=0.0, false_northing=0.0,
+            globe=None))
+    if Opts['proj'] == 'npstere':
+        ax = plt.axes(projection=ccrs.NorthPolarStereo(
+            central_longitude=Opts['lon_0'],
+            true_scale_latitude=None,
+            globe=None))
+    if Opts['proj'] == 'spstere':
+        ax = plt.axes(projection=ccrs.SouthPolarStereo(
+            central_longitude=Opts['lon_0'],
+            true_scale_latitude=None,
+            globe=None))
+
+    if 'details' in list(Opts.keys()):
+        if Opts['details']['fancy'] == 1:
+            pmag_data_dir = find_pmag_dir.get_data_files_dir()
+            EDIR = os.path.join(pmag_data_dir, "etopo20")
+            etopo_path = os.path.join(EDIR, 'etopo20data.gz')
+            etopo = np.loadtxt(os.path.join(EDIR, 'etopo20data.gz'))
+            elons = np.loadtxt(os.path.join(EDIR, 'etopo20lons.gz'))
+            elats = np.loadtxt(os.path.join(EDIR, 'etopo20lats.gz'))
+            xx, yy = np.meshgrid(elons, elats)
+            levels = np.arange(-10000, 8000, 500)  # define contour intervals
+            m = ax.contourf(xx, yy, etopo, levels,
+                            transform=ccrs.PlateCarree(),
+                            cmap=Opts['cmap'])
+            cbar=plt.colorbar(m)
+        if Opts['res']=='c' or Opts['res']=='l':
+            resolution='110m'
+        elif Opts['res']=='i':
+            resolution='50m'
+        elif Opts['res']=='h':
+            resolution='10m'
+        if Opts['details']['coasts'] == 1:
+            ax.coastlines(resolution=resolution)
+        if Opts['details']['rivers'] == 1:
+            ax.add_feature(cfeature.RIVERS)
+        if Opts['details']['states'] == 1:
+            states_provinces = cfeature.NaturalEarthFeature(
+                category='cultural',
+                name='admin_1_states_provinces_lines',
+                scale=resolution,
+                edgecolor='black',
+                facecolor='none',
+                linestyle='dotted')
+            ax.add_feature(states_provinces)
+        if Opts['details']['countries'] == 1:
+            ax.add_feature(BORDERS.with_scale(resolution), linestyle='-', linewidth=2)
+        if Opts['details']['ocean'] == 1:
+            ax.add_feature(OCEAN.with_scale(resolution), color=Opts['oceancolor'])
+            ax.add_feature(LAND.with_scale(resolution), color=Opts['landcolor'])
+            ax.add_feature(LAKES.with_scale(resolution), color=Opts['oceancolor'])
+    if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
+        if Opts['pltgrid']:
+            if Opts['proj']=='lcc':
+                fig.canvas.draw()
+                #xticks=list(np.arange(Opts['lonmin'],Opts['lonmax']+Opts['gridspace'],Opts['gridspace']))
+                #yticks=list(np.arange(Opts['latmin'],Opts['latmax']+Opts['gridspace'],Opts['gridspace']))
+                xticks=list(np.arange(-180,180,Opts['gridspace']))
+                yticks=list(np.arange(-90,90,Opts['gridspace']))
+                ax.gridlines(ylocs=yticks,xlocs=xticks,linewidth=2,
+                              linestyle='dotted')
+                ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER) # you need this here
+                ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)# you need this here, too
+
+                try:
+                    import pmagpy.lcc_ticks as lcc_ticks
+                    lcc_ticks.lambert_xticks(ax, xticks)
+                    lcc_ticks.lambert_yticks(ax, yticks)
+
+                except:
+                    print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
+            else:
+                if Opts['proj']=='ortho':
+                    draw_labels=False
+                else:
+                    draw_labels=True
+                gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
+                              linestyle='dotted', draw_labels=draw_labels)
+                gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
+                gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
+                gl.xformatter = LONGITUDE_FORMATTER
+                gl.yformatter = LATITUDE_FORMATTER
+                gl.xlabels_top = False
+        #else:
+        #    gl = ax.gridlines(crs=ccrs.PlateCarree(),
+        #                      linewidth=2, linestyle='dotted')
+    elif Opts['pltgrid']:
+        print('gridlines only supported for PlateCarree, Orthorhombic, Lambert Conformal, and Mercator plots currently')
+    prn_name, symsize = 0, 5
+    # if 'names' in list(Opts.keys()) > 0:
+    #    names = Opts['names']
+    #    if len(names) > 0:
+    #        prn_name = 1
+##
+    X, Y, T, k = [], [], [], 0
+    if 'symsize' in list(Opts.keys()):
+        symsize = Opts['symsize']
+    if Opts['sym'][-1] != '-':  # just plot points
+        color, symbol = Opts['sym'][0], Opts['sym'][1]
+        ax.scatter(lons, lats, s=Opts['symsize'], c=color, marker=symbol,
+                   transform=ccrs.PlateCarree(), edgecolors=Opts['edgecolor'])
+        if prn_name == 1:
+            print('labels not yet implemented in plot_map')
+            # for pt in range(len(lats)):
+            #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
+    else:  # for lines,  need to separate chunks using lat==100.
+        ax.plot(lons, lats, Opts['sym'], transform=ccrs.PlateCarree())
+    if Opts['global']:
+        ax.set_global()
+
+
+def plot_mag_map_basemap(fignum, element, lons, lats, element_type, cmap='RdYlBu', lon_0=0, date=""):
+    """
+    makes a color contour map of geomagnetic field element
+
+    Parameters
+    ____________
+    fignum : matplotlib figure number
+    element : field element array from pmag.do_mag_map for plotting
+    lons : longitude array from pmag.do_mag_map for plotting
+    lats : latitude array from pmag.do_mag_map for plotting
+    element_type : [B,Br,I,D] geomagnetic element type
+        B : field intensity
+        Br : radial field intensity
+        I : inclinations
+        D : declinations
+    Optional
+    _________
+        cmap : matplotlib color map
+        lon_0 : central longitude of the Hammer projection
+        date : date used for field evaluation,
+               if custom ghfile was used, supply filename
+
+
+    Effects
+    ______________
+    plots a Hammer projection color contour with  the desired field element
+    """
+    if not has_basemap:
+        print('-W- Basemap must be installed to run plot_mag_map_basemap')
+        return
+    from matplotlib import cm  # matplotlib's color map module
+    lincr = 1
+    if type(date) != str:
+        date = str(date)
+    fig = plt.figure(fignum)
+    m = Basemap(projection='hammer', lon_0=lon_0)
+    x, y = m(*meshgrid(lons, lats))
+    m.drawcoastlines()
+    if element_type == 'B':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        levels = np.arange(levmin, levmax, lincr)
+        cs = m.contourf(x, y, element, levels=levels, cmap=cmap)
+        plt.title('Field strength ($\mu$T): '+date)
+    if element_type == 'Br':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        cs = m.contourf(x, y, element, levels=np.arange(
+            levmin, levmax, lincr), cmap=cmap)
+        plt.title('Radial field strength ($\mu$T): '+date)
+    if element_type == 'I':
+        levmax = element.max()+lincr
+        levmin = round(element.min()-lincr)
+        cs = m.contourf(
+            x, y, element, levels=np.arange(-90, 100, 20), cmap=cmap)
+        m.contour(x, y, element, levels=np.arange(-80, 90, 10), colors='black')
+        plt.title('Field inclination: '+date)
+    if element_type == 'D':
+        # cs=m.contourf(x,y,element,levels=np.arange(-180,180,10),cmap=cmap)
+        cs = m.contourf(
+            x, y, element, levels=np.arange(-180, 180, 10), cmap=cmap)
+        m.contour(x, y, element, levels=np.arange(-180, 180, 10), colors='black')
+        plt.title('Field declination: '+date)
+    cbar = m.colorbar(cs, location='bottom')
+
+
+def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon_0=0, date="", contours=False, proj='PlateCarree', min=False,max=False):
+    """
+    makes a color contour map of geomagnetic field element
+
+    Parameters
+    ____________
+    fignum : matplotlib figure number
+    element : field element array from pmag.do_mag_map for plotting
+    lons : longitude array from pmag.do_mag_map for plotting
+    lats : latitude array from pmag.do_mag_map for plotting
+    element_type : [B,Br,I,D] geomagnetic element type
+        B : field intensity
+        Br : radial field intensity
+        I : inclinations
+        D : declinations
+    Optional
+    _________
+    contours : plot the contour lines on top of the heat map if True
+    proj : cartopy projection ['PlateCarree','Mollweide']
+           NB: The Mollweide projection can only be reliably with cartopy=0.17.0; otherwise use lon_0=0.  Also, for declinations, PlateCarree is recommended.
+    cmap : matplotlib color map - see https://matplotlib.org/examples/color/colormaps_reference.html for options
+    lon_0 : central longitude of the Mollweide projection
+    date : date used for field evaluation,
+           if custom ghfile was used, supply filename
+    min : int
+        minimum value for color contour on intensity map : default is minimum value  - useful for making many maps with same scale
+    max : int
+        maximum value for color contour on intensity map : default is maximum value - useful for making many maps with same scale
+
+    Effects
+    ______________
+    plots a color contour map with  the desired field element
+    """
+
+    if not has_cartopy:
+        print('This function requires installation of cartopy')
+        return
+    from matplotlib import cm
+    if lon_0 == 180:
+        lon_0 = 179.99
+    if lon_0 > 180:
+        lon_0 = lon_0-360.
+    lincr = 1
+    if type(date) != str:
+        date = str(date)
+    if proj == 'PlateCarree':
+        fig = plt.figure(fignum)
+        ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=lon_0))
+    if proj == 'Mollweide':
+        fig = plt.figure(fignum)
+        # this issue is fixed in >=0.17
+        if not LooseVersion(Cartopy.__version__) > LooseVersion('0.16.0'):
+            if lon_0 != 0:
+                print('This projection requires lon_0=0')
+                return
+
+        ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
+    xx, yy = np.meshgrid(lons, lats)
+    levmax = 5*round(element.max()/5)+5
+    levmin = 5*round(element.min()/5)-5
+    if element_type == 'Br' or element_type == 'B':
+        v=np.arange(min,max+5,5)
+        if min and max:
+            plt.contourf(xx, yy, element,v,
+                     vmin=min,vmax=max,
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        else:
+            plt.contourf(xx, yy, element,v,
+                     levels=np.arange(levmin, levmax, 1),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar = plt.colorbar(orientation='horizontal')
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(levmin, levmax, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+
+        if element_type == 'Br':
+            plt.title('Radial field strength ($\mu$T): '+date)
+        else:
+            plt.title('Total field strength ($\mu$T): '+date)
+    if element_type == 'I':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(-90, 90, lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar = plt.colorbar(orientation='horizontal')
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(-80, 90, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field inclination: '+date)
+    if element_type == 'D':
+        plt.contourf(xx, yy, element,
+                     levels=np.arange(-180, 180, 10),
+                     cmap=cmap, transform=ccrs.PlateCarree())
+        cbar = plt.colorbar(orientation='horizontal')
+        if contours:
+            plt.contour(xx, yy, element, levels=np.arange(-180, 180, 10),
+                        colors='black', transform=ccrs.PlateCarree())
+        plt.title('Field declination: '+date)
+    ax.coastlines()
+    ax.set_global()
+    return ax
+
+
+def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
+    """
+    plots dec inc block as a color contour
+    Parameters
+    __________________
+    Input:
+        fignum :  figure number
+        DIblock : nested pairs of [Declination, Inclination]
+        color_map : matplotlib color map [default is coolwarm]
+    Output:
+        figure
+    """
+    import random
+    plt.figure(num=fignum)
+    plt.axis("off")
+    XY = []
+    centres = []
+    counter = 0
+    for rec in DIblock:
+        counter = counter + 1
+        X = pmag.dir2cart([rec[0], rec[1], 1.])
+        # from Collinson 1983
+        R = np.sqrt(1. - X[2]) / (np.sqrt(X[0]**2 + X[1]**2))
+        XY.append([X[0] * R, X[1] * R])
+    # radius of the circle
+    radius = (3. / (np.sqrt(np.pi * (9. + float(counter))))) + 0.01
+    num = 2. * (1. / radius)  # number of circles
+    # a,b are the extent of the grids over which the circles are equispaced
+    a1, a2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
+    b1, b2 = (0. - (radius * num / 2.)), (0. + (radius * num / 2.))
+    # this is to get an array (a list of list wont do) of x,y values
+    xlist = np.linspace(a1, a2, int(np.ceil(num)))
+    ylist = np.linspace(b1, b2, int(np.ceil(num)))
+    X, Y = np.meshgrid(xlist, ylist)
+    # to put z in the array I just multiply both x,y with zero.  I will add to
+    # the zero values later
+    Z = X * Y * 0.
+    # keeping the centres of the circles as a separate list instead of in
+    # array helps later
+    for j in range(len(ylist)):
+        for i in range(len(xlist)):
+            centres.append([xlist[i], ylist[j]])
+    # the following lines are to figure out what happens at the edges where part of a circle might lie outside
+    # a thousand random numbers are generated within the x,y limit of the circles and tested whether it is contained in
+    # the eq area net space....their ratio gives the fraction of circle
+    # contained in the net
+    fraction = []
+    beta, alpha = 0.001, 0.001  # to avoid those 'division by float' thingy
+    for i in range(0, int(np.ceil(num))**2):
+        if np.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) - 1. < radius:
+            for j in range(1, 1000):
+                rnd1 = random.uniform(
+                    centres[i][0] - radius, centres[i][0] + radius)
+                rnd2 = random.uniform(
+                    centres[i][1] - radius, centres[i][1] + radius)
+                if ((centres[i][0] - rnd1)**2 + (centres[i][1] - rnd2)**2) <= radius**2:
+                    if (rnd1**2) + (rnd2**2) < 1.:
+                        alpha = alpha + 1.
+                        beta = beta + 1.
+                    else:
+                        alpha = alpha + 1.
+            fraction.append(alpha / beta)
+            alpha, beta = 0.001, 0.001
+        else:
+            fraction.append(1.)  # if the whole circle lies in the net
+
+    # for every circle count the number of points lying in it
+    count = 0
+    dotspercircle = 0.
+    for j in range(0, int(np.ceil(num))):
+        for i in range(0, int(np.ceil(num))):
+            for k in range(0, counter):
+                if (XY[k][0] - centres[count][0])**2 + (XY[k][1] - centres[count][1])**2 <= radius**2:
+                    dotspercircle += 1.
+            Z[i][j] = Z[i][j] + (dotspercircle * fraction[count])
+            count += 1
+            dotspercircle = 0.
+    im = plt.imshow(Z, interpolation='bilinear', origin='lower',
+                    # cmap=plt.color_map.hot, extent=(-1., 1., -1., 1.))
+                    cmap=color_map, extent=(-1., 1., -1., 1.))
+    plt.colorbar(shrink=0.5)
+    x, y = [], []
+    # Draws the border
+    for i in range(0, 360):
+        x.append(np.sin((np.pi/180.) * float(i)))
+        y.append(np.cos((np.pi/180.) * float(i)))
+    plt.plot(x, y, 'w-')
+    x, y = [], []
+    # the map will be a square of 1X1..this is how I erase the redundant area
+    for j in range(1, 4):
+        for i in range(0, 360):
+            x.append(np.sin((np.pi/180.) * float(i))
+                     * (1. + (float(j) / 10.)))
+            y.append(np.cos((np.pi/180.) * float(i))
+                     * (1. + (float(j) / 10.)))
+        plt.plot(x, y, 'w-', linewidth=26)
+        x, y = [], []
+    # the axes
+    plt.axis("equal")
 
 
 def plot_ts(ax, agemin, agemax, timescale='gts12', ylabel="Age (Ma)"):
