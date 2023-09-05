@@ -2603,11 +2603,11 @@ class Demag_GUI(wx.Frame):
             # check that lat/lon columns are present and non-null
             if 'site_lat' not in val:
                 not_found.append('latitude')
-            elif not val['site_lat'] and val['site_lat'] is not 0:
+            elif not val['site_lat'] and val['site_lat'] != 0:
                 not_found.append('latitude')
             if 'site_lon' not in val:
                 not_found.append('longitude')
-            elif not val['site_lon'] and val['site_lon'] is not 0:
+            elif not val['site_lon'] and val['site_lon'] != 0:
                 not_found.append('longitude')
             if not_found == []:
                 continue

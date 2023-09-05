@@ -9646,7 +9646,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         return
     if 'mod' in list(kwargs.keys()) and kwargs['mod'] == 'ggf100k':
         incr = 200
-        #model = date - date % incr
+        model = date - date % incr
         model = date
         gh = psvcoeffs[psvmodels.index(int(model))]
         sv = (psvcoeffs[psvmodels.index(int(model + incr))] - gh)/ float(incr)
@@ -9671,12 +9671,15 @@ def doigrf(lon, lat, alt, date, **kwargs):
             incr = 50
         elif kwargs['mod'] == 'shawq2k' or kwargs['mod']=='shawqIA':
             incr = 25
+        elif kwargs['mod']=='ggk100k':
+            incr = 200
         else:
             incr = 10
         model = int(date - date % incr)
         gh = psvcoeffs[psvmodels.index(model)]
         if model + incr < 1900:
             sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
+         
         else:
             field2 = igrf13coeffs[models.index(1940)][0:120]
             sv = (field2 - gh)/float(1940 - model)
