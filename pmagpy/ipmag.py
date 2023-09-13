@@ -10206,14 +10206,14 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
 
 
 def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
-                   ipar=False, ihext=True, ivec=False, isite=False, iloc=False, iboot=False, vec=0,
+                   ipar=False, ihext=True, ivec=False, isite=False, iboot=False, vec=0,
                    Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
                    save_plots=True, interactive=False, fmt="png", contribution=None):
     """
     Wrapper for aniso_magic
     """
     return aniso_magic(infile, samp_file, site_file, verbose, ipar, ihext, ivec,
-                       isite, iloc, iboot, vec, Dir, PDir, crd, num_bootstraps,
+                       isite, iboot, vec, Dir, PDir, crd, num_bootstraps,
                        dir_path, fignum, save_plots, interactive, fmt, contribution)
 
 

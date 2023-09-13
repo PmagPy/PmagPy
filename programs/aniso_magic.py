@@ -177,7 +177,7 @@ def main():
         vec = int(args[ind+1])-1
         Dir = [float(args[ind+2]), float(args[ind+3])]
     ipmag.aniso_magic_nb(infile, samp_file, site_file, verbose,
-                         ipar, ihext, ivec, isite, False, iboot,
+                         ipar, ihext, ivec, isite, iboot,
                          vec, Dir, PDir, crd, num_bootstraps,
                          dir_path, save_plots=save_plots, interactive=interactive,
                          fmt=fmt)
