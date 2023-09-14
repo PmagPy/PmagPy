@@ -4646,6 +4646,14 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     plt.title(location)
     return main_plot, figname
 
+def unpack_magic(infile=None, dir_path='.', input_dir_path='',
+                    overwrite=False, print_progress=True,
+                    data_model=3., separate_locs=False, txt="",excel=False):
+
+     return download_magic(infile, dir_path, input_dir_path,
+                    overwrite, print_progress,
+                    data_model, separate_locs, txt, excel)
+
 
 def download_magic(infile=None, dir_path='.', input_dir_path='',
                    overwrite=False, print_progress=True,
