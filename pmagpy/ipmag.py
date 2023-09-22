@@ -4659,8 +4659,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                    overwrite=False, print_progress=True,
                    data_model=3., separate_locs=False, txt="",excel=False):
     """
-    takes the name of a text file downloaded from the MagIC database and
-    unpacks it into magic-formatted files. by default, download_magic assumes
+    Takes the name of a text file downloaded from the MagIC database and
+    unpacks it into MagIC-formatted files. by default, download_magic assumes
     that you are doing everything in your current directory. if not, you may
     provide optional arguments dir_path (where you want the results to go) and
     input_dir_path (where the downloaded file is IF that location is different from
@@ -4863,23 +4863,30 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
     return True
 
 
-def download_magic_from_id(con_id):
+def download_magic_from_id(con_id, directory='.'):
     """
-    Download a public contribution matching the provided
-    contribution ID from earthref.org/MagIC.
+    Downloads a public contribution from earthref.org/MagIC using the provided ID.
+    and saves it to the directory. If the directory does not exist, it's created.
 
-    Parameters:
-        doi : str
-            DOI for a MagIC
+    Args:
+        con_id (str): Unique ID for a MagIC contribution.
+        directory (str, optional): Path to save the file. Defaults to current directory.
 
     Returns:
-        result : bool
-        message : str
-            Error message if download didn't succeed
+        bool: True if successful, False otherwise.
+        str: Local file path if successful or error message if failed.
     """
     try:
         magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
-        res = wget.download(magic_url)
+        
+        # Ensure the directory exists
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        # Modify the path where the file will be saved
+        out_path = os.path.join(directory, 'magic_contribution_{}.txt'.format(con_id))
+        
+        res = wget.download(magic_url, out=out_path)
     except NameError:
         return False, "wget module is not available, cannot download from MagIC"
     except urllib.error.HTTPError:
