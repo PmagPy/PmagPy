@@ -1441,29 +1441,22 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
     the data into two polarities using the pmag.flip() function and flipping
     the reverse direction to their antipode.
 
-    Parameters:
-        dec: list of declinations
-        inc: list of inclinations
-            or
-        di_block: a nested list of [dec,inc]
-            *A di_block can be provided in which case it will be used instead of
-            dec, inc lists.*
+     Parameters:
+        dec (list, optional): List of declinations.
+        inc (list, optional): List of inclinations.
+        di_block (list of lists, optional): Nested list of [dec,inc]. If provided, it 
+            takes precedence over separate dec and inc lists.
+        plot_CDF (bool, optional): If True, plot the CDF accompanying the results. Defaults to False.
+        plot_stereo (bool, optional): If True, plot stereonet with bidirectionally separated data. Defaults to False.
+        save (bool, optional): If True, save the plots. Defaults to False.
+        save_folder (str, optional): Directory path for saving plots. Defaults to current directory.
+        fmt (str, optional): Format of saved figures. Defaults to 'svg'.
 
-        plot_CDF : plot the CDF accompanying the printed results (default is False)
-        plot_stereo : plot stereonet with the bidirectionally separated data
-            (default is False)
-        save : boolean argument to save plots (default is False)
-        save_folder : relative directory where plots will be saved
-            (default is current directory, '.')
-        fmt : format of saved figures (default is 'svg')
-    
     Returns:
-        **printed text** (text describing the test result is printed), 
-        **result** (a boolean where 0 is fail and 1 is pass),
-        **angle** (angle between the Fisher means of the two data sets),
-        **critical_angle** (critical angle for the test to pass),
-        **classification** (MM1990 classification for a positive test).
-        Plots are shown if plot parameters are set to True.
+        result (bool): 0 indicates fail, 1 indicates pass.
+        angle (float): Angle between the Fisher means of the two data sets.
+        critical_angle (float): Critical angle for the test to pass.
+        classification (str): MM1990 classification for a positive test.
 
     Examples:
         Populations of roughly antipodal directions are developed here using
