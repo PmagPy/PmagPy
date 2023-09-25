@@ -1365,6 +1365,46 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     return BF0, P, support
 
 
+def separate_directions(dec=None, inc=None, di_block=None):
+    """
+    Separates directional data into two modes based on the principal direction.
+
+    Parameters:
+        dec (list, optional): List of declinations. Defaults to None.
+        inc (list, optional): List of inclinations. Defaults to None.
+        di_block (list of lists, optional): Nested list of [dec,inc]. Can be provided 
+            instead of separate dec, inc lists. If provided, it takes precedence.
+
+    Returns:
+        tuple: Depending on input, either:
+            - dec1, inc1, dec2, inc2: Lists of declinations and inclinations for the 
+              two modes (if separate dec, inc lists are provided)
+            - polarity1, polarity2: Nested lists of [dec,inc] for the two modes (if 
+              di_block is provided)
+    """
+    if di_block is None:
+        di_block = make_di_block(dec, inc, unit_vector=False)
+    
+    polarity1, polarity2 = pmag.separate_directions(di_block)
+    
+    if dec is not None and inc is not None:
+        if len(polarity1) > 0 :
+            dec1 = polarity1[:, 0].tolist()
+            inc1 = polarity1[:, 1].tolist()
+        else:
+            dec1 = None
+            inc1 = None
+        if len(polarity2) > 0 :
+            dec2 = polarity2[:, 0].tolist()
+            inc2 = polarity2[:, 1].tolist()
+        else:
+            dec2 = None
+            inc2 = None
+        return dec1, inc1, dec2, inc2
+    else:
+        return make_di_block(dec1, inc1), make_di_block(dec2, inc2)
+    
+
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False,
                             color1='blue', color2='red',
                             save=False, save_folder='.', fmt='svg'):
@@ -4642,8 +4682,40 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
 def unpack_magic(infile=None, dir_path='.', input_dir_path='',
                     overwrite=False, print_progress=True,
                     data_model=3., separate_locs=False, txt="",excel=False):
+    """
+    Wrapper function for ipmag.download_magic, to handle the unpacking of a MagIC contribution.
+    
+    This function takes in a text file, typically downloaded from the MagIC database, 
+    and then unpacks it into MagIC-formatted files. The name emphasizes the "unpacking" 
+    nature of the operation over the "downloading" aspect.
 
-     return download_magic(infile, dir_path, input_dir_path,
+    Parameters:
+        infile : str, optional
+            Name of the MagIC-format file to unpack.
+        dir_path : str, optional
+            Directory path for output. Default is the current directory.
+        input_dir_path : str, optional
+            Path to the input file if different from dir_path. Default is dir_path.
+        overwrite : bool, optional
+            Whether to overwrite files in the current directory. Default is False.
+        print_progress : bool, optional
+            Whether to print progress messages. Default is True.
+        data_model : float, optional
+            Specifies the MagIC data model version, either 2.5 or 3. Default is 3.
+        separate_locs : bool, optional
+            If True, create separate directories for each location. Default is False.
+        txt : str, optional
+            Alternative to providing an infile, you can provide the file contents as a string.
+            Useful for directly downloading a MagIC file from EarthRef. Default is an empty string.
+        excel : bool, optional
+            If True, the input file is treated as an Excel spreadsheet. Default is False.
+
+    Returns:
+        bool
+            True if the unpacking operation is successful. False otherwise.
+    """
+
+    return download_magic(infile, dir_path, input_dir_path,
                     overwrite, print_progress,
                     data_model, separate_locs, txt, excel)
 
@@ -4680,6 +4752,10 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
             (useful for downloading MagIC file directly from earthref)
         excel : bool
             input file is an excel spreadsheet (as downloaded from MagIC)
+
+    Returns:
+        bool
+            True if the unpacking operation is successful. False otherwise.
 
     """
     if data_model == 2.5:
