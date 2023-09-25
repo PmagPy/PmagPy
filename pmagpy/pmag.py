@@ -13713,29 +13713,20 @@ def fix_directories(input_dir_path, output_dir_path):
     return input_dir_path, output_dir_path
 
 
-
-def form_Mhat(X):
+def form_Mhat(mhat):
     """
     Calculate the Mhat matrix based on data set 
     according to Equation 4 of Heslop et al., 2023.
 
     Parameters:
-        X (ndarray): Cartesian coordinates of directions
+        mhat (ndarray): Cartesian coordinates of estimated sample mean direction
 
     Returns:
         ndarray: Mhat matrix according to the equation 4 of Heslop et al., 2023.
 
     Raises:
         ValueError: If the data sets have incompatible shapes.
-
     """
-    n = np.shape(X)[1] #number of observations in first data set
-
-
-    mhat = np.mean(X,axis=1)
-    mhat /= np.linalg.norm(mhat) #mean of data set
-
-
     b = np.matrix(mhat[0:2][:,np.newaxis])
     c = mhat[2]
     
@@ -13747,6 +13738,7 @@ def form_Mhat(X):
     A2 = -b
     Mhat = np.hstack((A1,A2))
     return Mhat
+
 
 def form_Ghat(X,Mhat):
     """
