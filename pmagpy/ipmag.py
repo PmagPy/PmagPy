@@ -381,6 +381,69 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         return pmag.dokent(di_block, len(di_block), distribution_95=True)
     else:
         return pmag.dokent(di_block, len(di_block), distribution_95=True)
+    
+    
+def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alpha=0.05):
+    """
+    Estimates the bootstrap confidence region for the mean of a collection of paleomagnetic 
+    directions based on the approach of Heslop et al. (2023). This approach involves the projection
+    onto a tangent plane for a tractable statistical analysis in two dimensions.
+    
+    Parameters:
+        dec (list or None): List of declination values. Default is None.
+        inc (list or None): List of inclination values. Default is None.
+        di_block (list or None): List of [dec, inc] pairs. Default is None.
+            A di_block can be provided instead of dec, inc lists in which case it
+            will be used. Either dec, inc lists or a di_block needs to be provided.
+        num_sims (int): Number of bootstrap iterations. Default is 10,000.
+        alpha (float): Confidence region. Default is 0.05 corresponding to 95% region.
+    
+    Returns:
+        tuple: A tuple containing:
+                (1) a dictionary of parameters the includes the estimated mean 
+                direction and the T statistic which is the basis of the bootstrap confidence region, 
+                (2) list of [dec, inc] pairs that represent the boundary of the confidence region.
+                The bootstrap confidence region cannot be reported readily in a compact form so is
+                instead a long list of points along the boundary of the confidence region.
+               
+    References:
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
+    """
+    
+    if di_block is None:
+        di_block = make_di_block(dec, inc)
+        
+    pars = {}
+    X = np.transpose(pmag.dir2cart(di_block))
+    n = np.shape(X)[1] #number of directions
+    mhat = np.mean(X,axis=1)
+    mhat /= np.linalg.norm(mhat) #estimate mean direction
+
+    mean_direction = pmag.cart2dir(mhat)
+    pars["dec"] = mean_direction[0]
+    pars["inc"] = mean_direction[1]
+
+    T_b = np.zeros(num_sims) #predefine output array for bootstrapped T values
+
+    for i in range(num_sims): #loop through bootstrap iterations
+        idx = np.random.randint(0,n,n) #select observation indicies with replacement
+        X_b = X[:,idx] #form bootstrap sample
+        mhat_b = np.mean(X_b,axis=1) #mean direction of bootstrap sample
+        mhat_b /= np.linalg.norm(mhat_b)
+        Mhat_b = pmag.form_Mhat(mhat_b) #\hat{M} for bootstrap sample
+        Ghat_b = pmag.form_Ghat(X_b,Mhat_b) #\hat{G} for bootstrap sample
+        T_b[i] = pmag.find_T(mhat,n,Mhat_b,Ghat_b) #T for bootstrap sample
+        
+    Tc = np.quantile(T_b,1-alpha) #find 1-alpha quantile of T
+    pars["T_critical"] = Tc
+
+    Mhat = pmag.form_Mhat(mhat)
+    Ghat = pmag.form_Ghat(X,Mhat)
+    Xc = pmag.find_CR(mhat,Mhat,Ghat,n,Tc) #calculate points along boundary of 95% confidence region
+    confidence_DI = pmag.cart2dir(np.transpose(Xc)) #convert to dec and inc for plotting 
+    
+    return pars, confidence_DI
 
 
 def print_direction_mean(mean_dictionary):
@@ -2049,6 +2112,38 @@ def plot_di_mean_ellipse(dictionary, fignum=1, color='k', marker='o', markersize
                     edgecolors=color, facecolors=color,
                     marker=marker, s=markersize, label=label)
     pmagplotlib.plot_ell(fignum, pars, color, 0, 1)
+
+
+def plot_bootstrap_confidence(mean_dec, mean_inc, confidence_DI, 
+                              mean_color='k', confidence_color='k', 
+                              mean_marker='o', confidence_marker='.', 
+                              mean_markersize=20, confidence_markersize=1):
+    """
+    Plot mean and bootstrap confidence outline on an equal area plot. The input confidence_DI
+    is the output from the mean_bootstrap_confidence() function.
+
+    Before this function is called a plot needs to be initialized with code that looks
+    something like:
+    >fignum = 1
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
+    >ipmag.plot_net(fignum)
+
+    Parameters:
+        mean_dec: Declination of the mean point.
+        mean_inc: Inclination of the mean point.
+        confidence_DI: A nested list of [dec, inc, 1.0] representing the bootstrap confidence.
+        mean_color: Color of the mean point. Default is black.
+        confidence_color: Color of the confidence points. Default is black.
+        mean_marker: Marker style for the mean point. Default is 'o' (circle).
+        confidence_marker: Marker style for the confidence points. Default is 'o' (circle).
+        mean_markersize: Marker size for the mean point. Default is 20.
+        confidence_markersize: Marker size for the confidence points. Default is 1.
+    """
+    plot_di(dec=mean_dec, inc=mean_inc, color=mean_color, marker=mean_marker, 
+            markersize=mean_markersize)
+    plot_di(di_block=confidence_DI, color=confidence_color, marker=confidence_marker, 
+            markersize=confidence_markersize)
+
 
 
 def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8),
