@@ -1179,6 +1179,150 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         return result
         
 
+def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
+                              save=False, save_folder='.', fmt='svg'):
+    """
+    Perform a bootstrap common mean direction test following Heslop et al. (2023).
+
+    This function uses a nonparametric bootstrap approach to test the null hypothesis of common 
+    mean directions between two datasets. It extends the bootstrap common mean direction test of 
+    Tauxe et al. 1991 by incorporating a null hypothesis significance testing framework.
+
+    Parameters:
+        Data1 (array): Directional data of the first set; each row is [declination, inclination].
+        Data2 (array): Directional data of the second set; each row is [declination, inclination].
+        num_sims (int, optional): Number of bootstrap simulations to run. Default is 10000.
+        alpha (float, optional): Significance level for hypothesis testing. Default is 0.05.
+        plot (bool, optional): If True, produces a histogram plot of the test statistic. Default is True.
+        reversal (bool, optional): If True, considers antipodal directions for the second dataset. Default is False.
+        save (bool, optional): If True, saves the histogram plot. Default is False.
+        save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
+        fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+
+    Returns:
+        tuple: Contains the following elements:
+            - result (int): 0 if null hypothesis is rejected, 1 otherwise.
+            - Lmin (float): The test statistic value.
+            - Lmin_c (float): The critical test statistic value.
+            - p (float): The p-value of the test.
+
+    References:
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
+        https://doi.org/10.1029/2023JB026983
+    """
+    
+    X1 = np.transpose(pmag.dir2cart(Data1)) # normal directions in Cartesian coordinates (one direction per column)
+    
+    if reversal == True:
+        X2 = -np.transpose(pmag.dir2cart(Data2)) # inverted reversed directions in Cartesian coordinates
+    else:
+        X2 = np.transpose(pmag.dir2cart(Data2))
+
+    n1 = np.shape(X1)[1] #number of observations in first data set
+    n2 = np.shape(X2)[1] #number of observations in second data set
+    n = n1 + n2 #total number of observations
+
+    X12 = np.hstack((X1,X2)) #form pooled data set
+
+    mhat1 = np.mean(X1,axis=1)
+    mhat1 /= np.linalg.norm(mhat1) #mean of first data set
+
+    mhat2 = np.mean(X2,axis=1)
+    mhat2 /= np.linalg.norm(mhat2) #mean of second data set
+
+    mhat12 = np.mean(X12,axis=1)
+    mhat12 /= np.linalg.norm(mhat12) #mean of pooled data set
+
+    Mhat1 = pmag.form_Mhat(mhat1) #Mhat of first data set
+    Ghat1 = pmag.form_Ghat(X1,Mhat1) #Ghat of first data set
+
+    Mhat2 = pmag.form_Mhat(mhat2) #Mhat of second data set
+    Ghat2 = pmag.form_Ghat(X2,Mhat2) #Ghat of second data set
+
+    Ahat = Mhat1.getH()*np.linalg.inv(Ghat1)*Mhat1
+    Ahat += Mhat2.getH()*np.linalg.inv(Ghat2)*Mhat2
+    Ahat *= n
+
+    D,V = np.linalg.eig(Ahat)
+    idx = np.argmin(D)
+    Lmin = D[idx] #minimum eigenvalue
+    mhat0 = V[:,idx] #eigenvector corresponding to pooled sample mean
+
+    Q1 = pmag.form_Q(mhat0,mhat1) #rotation matrix for first data set
+    X10 = np.matmul(Q1,X1) #rotated version of first data set
+
+    Q2 = pmag.form_Q(mhat0,mhat2) #rotation matrix for second data set
+    X20 = np.matmul(Q2,X2) #rotated version of second data set
+
+    Lmin_b = np.zeros(num_sims) #predefine output array for minimum eigenvalues
+    T_b = np.zeros(num_sims) ##predefine output array for Tb (equation 11)
+
+    for i in range(num_sims): #loop through bootstrap iterations
+        idx1 = np.random.randint(0,n1,n1) #select observation indicies with replacement
+        X10_b = np.asarray(X10[:,idx1]) #form bootstrap sample from rotated version of first data set
+        
+        mhat10_b = np.mean(X10_b,axis=1) #mean direction of bootstrap sample
+        mhat10_b /= np.linalg.norm(mhat10_b)
+        mhat10_b = (np.asarray(mhat10_b)).flatten()
+        Mhat10_b = pmag.form_Mhat(mhat10_b) #\hat{M} for bootstrap sample
+        Ghat10_b = pmag.form_Ghat(X10_b,Mhat10_b) #\hat{G} for bootstrap sample
+        
+        idx2 = np.random.randint(0,n2,n2) #select observation indicies with replacement
+        X20_b = np.asarray(X20[:,idx2]) #form bootstrap sample from rotated version of second data set
+        
+        mhat20_b = np.mean(X20_b,axis=1) #mean direction of bootstrap sample
+        mhat20_b /= np.linalg.norm(mhat20_b)
+        mhat20_b = (np.asarray(mhat20_b)).flatten()
+        Mhat20_b = pmag.form_Mhat(mhat20_b) #\hat{M} for bootstrap sample
+        Ghat20_b = pmag.form_Ghat(X20_b,Mhat20_b) #\hat{G} for bootstrap sample
+        
+        Ahat_b = Mhat10_b.getH()*np.linalg.inv(Ghat10_b)*Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
+        Ahat_b += Mhat20_b.getH()*np.linalg.inv(Ghat20_b)*Mhat20_b
+        Ahat_b *= n
+        
+        D_b,V_b = np.linalg.eig(Ahat_b) #Eigenvalues and eigenvectors
+        Lmin_b[i] = np.min(D_b) #minimum eigenvalue for boostrap sample
+        T_b[i] = np.matmul(np.matmul(np.transpose(mhat0),Ahat_b),mhat0) #Bootstrap T for pooled data (equation 11)
+        
+    p = (1+np.sum(Lmin_b>=Lmin))/(num_sims+1) # p-value (step 8 of CMDT, Section 3)
+    # (n.b., if p > 0.05 cannot reject null of common means at alpha = 0.05)
+
+    Lmin_c = np.quantile(Lmin_b,1-alpha) #test critical value
+    # (n.b., if Lmin > Lmin_c reject null of common means at alpha significance level)
+
+    print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
+    print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
+    print("Estimated p-value = {:.2f}".format(p))
+    if p < alpha:
+        print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        result = 0
+    else:
+        print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        result = 1
+        
+    if plot==True:
+        plt.figure()
+        plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6");
+        axes = plt.gca()
+        y_min, y_max = axes.get_ylim()
+        plt.plot([Lmin,Lmin],[y_min,y_max],'--k',label='Test statistic')
+        plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
+        plt.ylim([y_min,y_max])
+        plt.xlim(np.min(Lmin_b),np.max(Lmin_b))
+        plt.xlabel(r'$\lambda_{\rm{min}}^{(b)}$')
+        plt.ylabel('Frequency')
+        plt.minorticks_on()
+        plt.rcParams.update({'font.size': 12})
+        plt.legend()
+        if save == True:
+            plt.savefig(os.path.join(
+                save_folder, 'bootstrap_test_histogram') + '.' + fmt)
+        plt.show()
+        
+    return result, Lmin, Lmin_c, p
+
+
 def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no', save=False, save_folder='.', fmt='svg'):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
@@ -1531,6 +1675,45 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
                                    save=save, save_folder=save_folder, fmt=fmt)
     
     return result
+
+
+def reversal_test_bootstrap_H23(dec, inc, di_block=None, num_sims=10000, alpha=0.05, plot=True,
+                          save=False, save_folder='.', fmt='svg'):
+    """
+    Bootstrap reversal test following Heslop et al. (2023).
+
+    This function calls common_mean_bootstrap_H23 with directional data that have been flipped, 
+    for a reversal test. The directional data can be provided either as separate 
+    declination and inclination arrays or as a di_block array.
+
+    Parameters:
+        dec (array): Array of declinations, only considered if di_block is None.
+        inc (array): Array of inclinations, only considered if di_block is None.
+        di_block (array, optional): Directional data as [dec, inc] for each sample. If provided, 
+                                    dec and inc are ignored.
+        num_sims (int, optional): Number of bootstrap simulations. Default is 1000.
+        alpha (float, optional): Significance level for hypothesis testing. Default is 0.05.
+        plot (bool, optional): If True, produce a histogram plot of the test statistic. Default is True.
+        save (bool, optional): If True, save the histogram plot. Default is False.
+        save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
+        fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+
+    Returns:
+        tuple: Contains the following elements:
+            - result (int): 0 if null hypothesis is rejected, 1 otherwise.
+            - Lmin (float): The test statistic value.
+            - Lmin_c (float): The critical test statistic value.
+            - p (float): The p-value of the test.
+    """
+    if di_block is None:
+        all_dirs = make_di_block(dec, inc)
+    else:
+        all_dirs = di_block
+
+    F1, F2 = pmag.flip(all_dirs)
+    
+    return common_mean_bootstrap_H23(F1, F2, num_sims=num_sims, alpha=alpha, plot=plot,
+                                     save=save, save_folder=save_folder, fmt=fmt)
 
 
 def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, 
