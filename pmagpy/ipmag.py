@@ -409,6 +409,7 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
     References:
         Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
         A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
+        https://doi.org/10.1029/2023JB026983
     """
     
     if di_block is None:
