@@ -1677,7 +1677,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     return result
 
 
-def reversal_test_bootstrap_H23(dec, inc, di_block=None, num_sims=10000, alpha=0.05, plot=True,
+def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=10000, alpha=0.05, plot=True,
                           save=False, save_folder='.', fmt='svg'):
     """
     Bootstrap reversal test following Heslop et al. (2023).
