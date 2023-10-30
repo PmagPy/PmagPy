@@ -1017,6 +1017,9 @@ def agm(agm_file, dir_path=".", input_dir_path="",
             if ("Field" in rec) and ("Moment" in rec) and (not start):
                 start = skip + 2
                 break
+            if ("Field" in rec) and ("Remanence" in rec) and (not start):
+                start = skip + 2
+                break
     elif fmt == 'old':
         start = 2
         end = 1
@@ -12413,3 +12416,288 @@ def xpeem(output_dir_path="", input_dir_path="", spec_name="", spec_id="", spec_
             mf.close()
 
     return True
+
+def vftb(vftb_file, dir_path=".", input_dir_path="",
+        meas_outfile="", spec_outfile="", samp_outfile="",
+        site_outfile="", loc_outfile="", spec_infile="",
+        samp_infile="", site_infile="",
+        specimen="", specnum=0, samp_con="5", location="",
+        instrument="", syn=False, syntype="",
+        units="cgs", user='',lat="",lon="",age="",age_unit="",
+        lith="",classes="",types=""):
+    """
+    Convert VFTB format file to MagIC file(s)
+
+    Parameters
+    ----------
+    vftb_file : str
+        input file name
+    dir_path : str
+        working directory, default "."
+    input_dir_path : str
+        input file directory IF different from dir_path, default ""
+    meas_outfile : str
+        output measurement file name, default ""
+        (default output is SPECNAME.magic)
+    spec_outfile : str
+        output specimen file name, default ""
+        (default output is SPEC_specimens.txt)
+    samp_outfile: str
+        output sample file name, default ""
+        (default output is SPEC_samples.txt)
+    site_outfile : str
+        output site file name, default ""
+        (default output is SPEC_sites.txt)
+    loc_outfile : str
+        output location file name, default ""
+        (default output is SPEC_locations.txt)
+    samp_infile : str
+        existing sample infile (not required), default ""
+    site_infile : str
+        existing site infile (not required), default ""
+    specimen : str
+        specimen name, default ""
+        (default is to take base of input file name, e.g. SPEC.agm)
+    specnum : int
+        number of characters to designate a specimen, default 0
+    samp_con : str
+        sample/site naming convention, default '5', see info below
+    location : str
+        location name, default "unknown"
+    instrument : str
+        instrument name, default ""
+    syn : bool
+       synthetic, default False
+    syntype : str
+       synthetic type, default ""
+    units : str
+       units, ['cgs','SI']  default "cgs"
+    user : user name
+    required metadata for MagIC contributions:
+        age, age_unit, lat,lon,lithologies,geologic_classes,geologic_types 
+        see https://www2.earthref.org/MagIC/data-models/3.0 
+           and
+        https://www2.earthref.org/vocabularies/controlled  
+           for specifics
+
+    Returns
+    ---------
+    Tuple : (True or False indicating if conversion was successful, meas_file name written)
+
+    Info
+    --------
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitrary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+
+
+    """
+    # initialize some stuff
+    citations = 'This study'
+    version_num = pmag.get_version()
+    Samps, Sites = [], []
+    #noave = 1
+
+    # get args
+    input_dir_path, output_dir_path = pmag.fix_directories(input_dir_path, dir_path)
+    specnum = - int(specnum)
+    if not specimen:
+        # grab the specimen name from the input file name
+        specimen = vftb_file.split('.')[0]
+    if meas_outfile=="":
+        meas_outfile = specimen + '.magic'
+    if spec_outfile=="":
+        spec_outfile = specimen + '_specimens.txt'
+    if samp_outfile=="":
+        samp_outfile = specimen + '_samples.txt'
+    if site_outfile=="":
+        site_outfile = specimen + '_sites.txt'
+    if loc_outfile=="":
+        loc_outfile = specimen + '_locations.txt'
+    if "4" == samp_con[0]:
+        if "-" not in samp_con:
+            print(
+                "naming convention option [4] must be in form 4-Z where Z is an integer")
+            print('---------------')
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "4"
+    if "7" == samp_con[0]:
+        if "-" not in samp_con:
+            print("option [7] must be in form 7-Z where Z is an integer")
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z = samp_con.split("-")[1]
+            samp_con = "7"
+    else:
+        Z = 0
+
+    # read stuff in
+    version_num = pmag.get_version()
+    if site_infile:
+        Sites, file_type = pmag.magic_read(site_infile)
+    if samp_infile:
+        Samps, file_type = pmag.magic_read(samp_infile)
+    if spec_infile:
+        Specs, file_type = pmag.magic_read(spec_infile)
+    if vftb_file:
+        vftb = pmag.resolve_file_name(vftb_file, input_dir_path)
+        Data = pmag.open_file(vftb_file)
+        if not Data:
+            print("you must provide a valid vftb_file")
+            return False, "you must provide a valid vftb_file"
+    if not vftb_file:
+        print(__doc__)
+        print("vftb_file field is required option")
+        return False, "vftb_file field is required option"
+# read in file:
+    df=pd.read_csv(vftb,header=None)
+    mass=0
+    info=df.iloc[0].astype('str').str.split(':',expand=True)
+    if 'mg' in info.values[0][-1]:
+        mass=float(info.values[0][-1].split()[0])
+    df=df[df[0].str.contains('name')==False]    
+    df=df[df[0].str.contains('Set')==False]
+    df=df[df[0].str.contains('field')==False]
+    df.dropna(subset=[0],inplace=True)
+# write out cleaned file:
+    df.to_csv(vftb_file+'.tmp',index=None,header=None)
+    df=pd.read_csv(vftb_file+'.tmp',sep='\t',header=None)
+    os.remove(vftb_file+'.tmp')
+    df.columns=['B','M','T','t','std','slope']
+    meas_df=pd.DataFrame(columns=['specimen','quality','method_codes','citations'])
+    if not specimen:
+        specimen=vftb_file.split('.')[0]
+    meas_df['magn_mass']=df['M'].values # convert field to tesla
+    if units=='SI':
+        meas_df['treat_dc_field']=df['B'] # convert field to tesla
+        meas_df['treat_temp']=df['T'].values # convert temps to Kelvin
+    else:
+        meas_df['treat_dc_field']=df['B'].values*1e-4 # convert field from Oe to tesla
+        meas_df['treat_temp']=df['T'].values+273 # convert temps to Kelvin
+    #if mass:
+    #    meas_df['magn_moment']=meas_df['magn_mass']*mass
+    if user:
+        meas_df['analysts']=user
+    if instrument:
+        meas_df['instrument_codes']=instrument
+    meas_df['citations']='This study'
+    meas_df['method_codes']='LP-IMT'# induced magnetization as a function of temperature
+    meas_df['experiment'] = specimen + '_LP-IMT'
+    meas_df['specimen']=specimen
+    Ts=meas_df['treat_temp'].values
+    maxT=Ts.max()
+    Tmax_indices=np.where(Ts==maxT)
+    meas_df.at[0:Tmax_indices[0][0],'method_codes']='LP-IMT:LP-MW'
+    meas_df.at[Tmax_indices[0][-1]:len(meas_df),'method_codes']='LP-IMT:LP-MC'
+    meas_df['standard'] = 'u'
+    meas_df['treat_step_num'] = np.round(range(1,len(meas_df)+1),0)
+    #meas_df['measurement'] = range(1,len(meas_df)+1) 
+    meas_df['software_packages'] = version_num
+    meas_df['description'] = "Variable field temperature measurements"
+    meas_df['quality']='g'
+    MeasRecs=meas_df.to_dict('records')
+    SpecRecs, SampRecs, SiteRecs, LocRecs = [], [], [], []
+    ##################################
+    if True:
+       MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
+       if not syn:
+            if specnum != 0:
+                sample = specimen[:specnum]
+            else:
+                sample = specimen
+            if samp_infile and Samps:  # if samp_infile was provided AND yielded sample data
+                samp = pmag.get_dictitem(Samps, 'sample', sample, 'T')
+                if len(samp) > 0:
+                    site = samp[0]["site"]
+                else:
+                    site = ''
+            if site_infile and Sites:  # if samp_infile was provided AND yielded sample data
+                sites = pmag.get_dictitem(Sites, 'sample', sample, 'T')
+                if len(sites) > 0:
+                    site = sites[0]["site"]
+                else:
+                    site = ''
+            else:
+                site = pmag.parse_site(sample, samp_con, Z)
+            if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                LocRec['location'] = location
+                LocRecs.append(LocRec)
+            if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                SiteRec['location'] = location
+                SiteRec['site'] = site
+                SiteRec['method_codes']='LP-IMT'
+                SiteRec['citations']='This Study'
+                SiteRec['lat']=lat
+                SiteRec['lon']=lon
+                SiteRec['location']=location
+                SiteRec['age']=age
+                SiteRec['age_unit']=age_unit
+                SiteRec['geologic_classes']=classes
+                SiteRec['geologic_types']=types
+                SiteRec['lithologies']=lith
+                
+                SiteRecs.append(SiteRec)
+            if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                SampRec['site'] = site
+                SampRec['sample'] = sample
+                SampRec['method_codes'] = 'LP-IMT'
+                SampRec['citations'] = 'This study'
+                SampRecs.append(SampRec)
+            if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                SpecRec["specimen"] = specimen
+                SpecRec['sample'] = sample
+                SpecRec['method_codes'] = 'LP-IMT'
+                SpecRec['citations'] = 'This study'
+                SpecRecs.append(SpecRec)
+       if syn:
+            SampRec["material_type"] = syntype
+            if specnum != 0:
+                sample = specimen[:specnum]
+            else:
+                sample = specimen
+            site = pmag.parse_site(sample, samp_con, Z)
+            if location != '' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
+                LocRec['location'] = location
+                LocRecs.append(LocRec)
+            if site != '' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
+                SiteRec['location'] = location
+                SiteRec['site'] = site
+                SiteRec['method_codes'] = 'LP-IMT'
+                SiteRec['citations'] = 'This Study'
+                SiteRecs.append(SiteRec)
+            if sample != '' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
+                SampRec['site'] = site
+                SampRec['sample'] = sample
+                SampRec['method_codes'] = 'LP-IMT'
+                SampRec['citations'] = 'This Study'
+                SampRecs.append(SampRec)
+            if specimen != '' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
+                SpecRec["specimen"] = specimen
+                SpecRec['sample'] = sample
+            MeasRecs.append(MeasRec)
+#
+    pmag.magic_write(meas_outfile,meas_df,file_type='measurements',dataframe=True)
+    con = cb.Contribution(output_dir_path, read_tables=[])
+    # create MagIC tables
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    #con.add_magic_table_from_data(dtype='measurements', data=MeasRecs)
+    # write MagIC tables to file
+    con.write_table_to_file('specimens', custom_name=spec_outfile)
+    con.write_table_to_file('samples', custom_name=samp_outfile)
+    con.write_table_to_file('sites', custom_name=site_outfile)
+    con.write_table_to_file('locations', custom_name=loc_outfile)
+    #con.write_table_to_file('measurements', custom_name=meas_outfile)
+    
+    return True, meas_outfile
