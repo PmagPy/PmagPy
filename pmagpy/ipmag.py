@@ -5098,12 +5098,26 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
         if line == ">>>>>>>>>>":
             LN += 1
             continue
-        keys = line.replace('\n', '').split('\t')
+
+        # detect MagIC compact format
+        magic_compact_title_lines = {}
+
+        while File[LN][0] == "*": # this means there are measurements made in MagIC compact format
+            this_title_line = File[LN].replace('\n', '').replace('*', '').split('\t')
+            magic_compact_title_lines[this_title_line[0]] = this_title_line[1]
+            LN += 1
+
+        # make key line detection specific
+        key_line = File[LN]
+        keys = key_line.replace('\n', '').split('\t')
+
         if keys[0][0] == '.':
             keys = line.replace('\n', '').replace('.', '').split('\t')
             keys.append('RecNo')  # cludge for new MagIC download format
-        LN += 1
+        
         Recs = []
+        LN += 1
+        
         while LN < len(File):
             line = File[LN]
             # finish up one file type and then break
@@ -5132,6 +5146,9 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
             else:
                 rec = line.split('\t')
                 Rec = {}
+                if len(magic_compact_title_lines)>0:
+                        for title in list(magic_compact_title_lines.keys()):
+                            Rec[title] = magic_compact_title_lines[title]
                 if len(rec) == len(keys):
                     for k in range(len(rec)):
                         Rec[keys[k]] = rec[k]
