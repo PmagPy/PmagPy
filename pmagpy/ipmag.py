@@ -1045,7 +1045,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 def common_mean_bootstrap(Data1, Data2, NumSims=1000, 
                           color1='r', color2='b',
                           save=False, save_folder='.', fmt='svg', 
-                          figsize=(7, 2.3), x_tick_bins=4):
+                          figsize=(7, 2.3), x_tick_bins=4,verbose=True):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets. Plots are generated of the cumulative distributions
@@ -1146,35 +1146,35 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     plt.show()
     
     if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
-        print('Pass')
+        if verbose:print('Pass')
         result = 1
         return result
     elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
-        print('Fail, distinct in x')
+        if verbose:print('Fail, distinct in x')
         result = 0
         return result
     elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
-        print('Fail, distinct in y')
+        if verbose:print('Fail, distinct in y')
         result = 0
         return result
     elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
-        print('Fail, distinct in z')
+        if verbose:print('Fail, distinct in z')
         result = 0
         return result
     elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
-        print('Fail, distinct in x and y')
+        if verbose:print('Fail, distinct in x and y')
         result = 0
         return result
     elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
-        print('Fail, distinct in x and z')
+        if verbose:print('Fail, distinct in x and z')
         result = 0
         return result
     elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
-        print('Fail, distinct in y and z')
+        if verbose:print('Fail, distinct in y and z')
         result = 0
         return result
     elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
-        print('Fail, distinct in x, y and z')
+        if verbose:print('Fail, distinct in x, y and z')
         result = 0
         return result
         
@@ -1615,7 +1615,7 @@ def separate_directions(dec=None, inc=None, di_block=None):
 
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False,
                             color1='blue', color2='red',
-                            save=False, save_folder='.', fmt='svg'):
+                            save=False, save_folder='.', fmt='svg',verbose=True):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
     determine whether two populations of directions could be from an antipodal
@@ -1672,7 +1672,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
     result = common_mean_bootstrap(directions1, directions2,
                                    color1=color1, color2=color2,
-                                   save=save, save_folder=save_folder, fmt=fmt)
+                                   save=save, save_folder=save_folder, fmt=fmt,verbose=True)
     
     return result
 
@@ -9256,7 +9256,6 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
-
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
     plot_di(di_block=data, color=data_color)
@@ -9296,7 +9295,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             else:
                 I.append(abs(Isb[-1]))
                 E.append(Esb[-1])
-            b += 1
+        b += 1
 
     I.sort()
     E.sort()
