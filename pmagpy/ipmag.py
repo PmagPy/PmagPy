@@ -1180,7 +1180,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         
 
 def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
-                              save=False, save_folder='.', fmt='svg'):
+                              save=False, save_folder='.', fmt='svg',verbose=False):
     """
     Perform a bootstrap common mean direction test following Heslop et al. (2023).
 
@@ -1291,14 +1291,14 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Lmin_c = np.quantile(Lmin_b,1-alpha) #test critical value
     # (n.b., if Lmin > Lmin_c reject null of common means at alpha significance level)
 
-    print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
-    print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
-    print("Estimated p-value = {:.2f}".format(p))
+    if verbose: print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
+    if verbose: print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
+    if verbose: print("Estimated p-value = {:.2f}".format(p))
     if p < alpha:
-        print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 0
     else:
-        print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 1
         
     if plot==True:
@@ -1678,7 +1678,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
 
 def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=10000, alpha=0.05, plot=True,
-                          save=False, save_folder='.', fmt='svg'):
+                          save=False, save_folder='.', fmt='svg',verbose=True):
     """
     Bootstrap reversal test following Heslop et al. (2023).
 
@@ -1713,7 +1713,7 @@ def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=1000
     F1, F2 = pmag.flip(all_dirs)
     
     return common_mean_bootstrap_H23(F1, F2, num_sims=num_sims, alpha=alpha, plot=plot,
-                                     save=save, save_folder=save_folder, fmt=fmt)
+                                     save=save, save_folder=save_folder, fmt=fmt,verbose=verbose)
 
 
 def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, 
@@ -9296,7 +9296,6 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
                 I.append(abs(Isb[-1]))
                 E.append(Esb[-1])
         b += 1
-
     I.sort()
     E.sort()
     if tight_axes:
@@ -9306,9 +9305,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    #print (lower,upper)#DEBUG
+    #print (len(I))#DEBUG
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
             '[%7.1f, %7.1f]' % (I[lower], I[upper])
+        title = 'Pathological Distribution: ' 
     else:
         title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
     if save:
