@@ -1306,10 +1306,10 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6");
         axes = plt.gca()
         y_min, y_max = axes.get_ylim()
-        plt.plot([Lmin,Lmin],[y_min,y_max],'--k',label='Test statistic')
+        plt.plot([Lmin,Lmin],[y_min,y_max],'--r',label='Test statistic:')
         plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
         plt.ylim([y_min,y_max])
-        plt.xlim(np.min(Lmin_b),np.max(Lmin_b))
+        plt.xlim(np.min(Lmin_b),np.max(Lmin_b)+10)
         plt.xlabel(r'$\lambda_{\rm{min}}^{(b)}$')
         plt.ylabel('Frequency')
         plt.minorticks_on()
