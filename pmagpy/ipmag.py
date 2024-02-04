@@ -1302,10 +1302,11 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         result = 1
         
     if plot==True:
-        plt.figure()
+        fig=plt.figure()
+        ax1=fig.add_subplot(111)
         plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6");
-        axes = plt.gca()
-        y_min, y_max = axes.get_ylim()
+        #axes = plt.gca()
+        y_min, y_max = ax1.get_ylim()
         plt.plot([Lmin,Lmin],[y_min,y_max],'--r',label='Test statistic:')
         plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
         plt.ylim([y_min,y_max])
@@ -1315,6 +1316,11 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         plt.minorticks_on()
         plt.rcParams.update({'font.size': 12})
         plt.legend()
+        if result==0:
+            plt.text(.8,.7,'Fail',color='red',transform=ax1.transAxes)
+        else:
+            plt.text(.8,.7,'Pass',color='blue',transform=ax1.transAxes)
+
         if save == True:
             plt.savefig(os.path.join(
                 save_folder, 'bootstrap_test_histogram') + '.' + fmt)
