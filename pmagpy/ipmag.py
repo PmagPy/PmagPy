@@ -1309,13 +1309,14 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         y_min, y_max = ax1.get_ylim()
         plt.plot([Lmin,Lmin],[y_min,y_max],'--r',label='Test statistic:')
         plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
+        if y_max<Lmin:y_max=Lmin+5
         plt.ylim([y_min,y_max])
         plt.xlim(np.min(Lmin_b),np.max(Lmin_b)+10)
         plt.xlabel(r'$\lambda_{\rm{min}}^{(b)}$')
         plt.ylabel('Frequency')
         plt.minorticks_on()
         plt.rcParams.update({'font.size': 12})
-        plt.legend()
+        plt.legend(loc='upper right')
         if result==0:
             plt.text(.8,.7,'Fail',color='red',transform=ax1.transAxes)
         else:
