@@ -2069,7 +2069,7 @@ def svei_di(di_block,model='TK03_GAD',kappa=-1,lat=False, polarity=False,plot=Tr
             H,A2I,A2D,pID,lat = svei_test(Ds,Is,GGPmodel,lat=lat,kappa=kappa,plot=plot)
         return H,A2I,A2D,pID,lat,di_block
 
-def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50,saveto='find_flat.pdf',model_name='THG24',
+def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50,saveto='',model_name='THG24',
                    quick=False,verbose=False,num_sims=1000):
     """
     Finds the best unflattening factor for a given di_block and performs analysis.
@@ -2140,7 +2140,11 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
     Is=flipped[1]
     rot_block=np.column_stack((Ds,Is))
     if verbose: print ('Testing distribution against model ',model_name)
-    res_dict=svei_test(rot_block,kappa=kappa,num_sims=num_sims,plot=plot,model_name=model_name,saveto=saveto)
+    if saveto:
+       save_svei=saveto.rstrip('.pdf')+'_svei_test.pdf'
+    else:
+       save_svei=False
+    res_dict=svei_test(rot_block,kappa=kappa,num_sims=num_sims,plot=plot,model_name=model_name,saveto=save_svei)
     if (res_dict['H']==0)&(res_dict['V2_result']==1)&(res_dict['E_result']==1):
         res_dict['flat']=1
         res_dict['study']=study
@@ -2553,9 +2557,9 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ax4.axvline(V2dec,label='V2dec of data')
         ax4.axvline(V2sim_min,linestyle='dotted',color='black',label='V2dec bounds of model')
         ax4.axvline(V2sim_max,linestyle='dotted',color='black')
-        plt.xlabel('Simulated $V2_{decs}$s',fontsize=14)
+        plt.xlabel('Simulated $V2_{decs}$',fontsize=14)
         plt.ylabel('Cumulative Distribution Function',fontsize=14)
-        plt.legend(loc='lower right')
+        #plt.legend(loc='lower right')
         if V2_result==1:   
             ax4.text(0,1.05,'c) V2: Pass',transform=ax4.transAxes,fontsize=14)
             #plt.text(.2,.9,'V2: Pass', transform=ax4.transAxes,fontsize=14,color='red')
@@ -2571,14 +2575,14 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ax5.axvline(E,label='E of data')
         ax5.axvline(Esim_min,linestyle='dotted',color='black',label='E bounds of model')
         ax5.axvline(Esim_max,linestyle='dotted',color='black')
-        plt.xlabel('Simulated Elongations',fontsize=14)
+        plt.xlabel('Simulated $E$',fontsize=14)
         if E_result==1:   
             ax5.text(0,1.05,'d) E: Pass',transform=ax5.transAxes,fontsize=14)
             #plt.text(.2,.9,'E: Pass', transform=ax5.transAxes,fontsize=14,color='blue')
         else:   
             ax5.text(0,1.05,'d) E: Fail',transform=ax5.transAxes,fontsize=14)
             #plt.text(.2,.9,'E: Fail', transform=ax5.transAxes,fontsize=14,color='blue')
-        plt.legend(loc='lower right')
+        #plt.legend(loc='lower right')
         plt.tight_layout()
         if saveto:
             plt.savefig(saveto)
