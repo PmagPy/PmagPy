@@ -5281,6 +5281,7 @@ def download_magic_from_id(magic_id, directory='.',share_key=""):
         try:
             magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
             res = wget.download(magic_url, out=out_path)
+            return True, res
         except NameError:
             return False, "wget module is not available, cannot download from MagIC"
         except urllib.error.HTTPError:
@@ -5290,7 +5291,6 @@ def download_magic_from_id(magic_id, directory='.',share_key=""):
         except Exception as ex:
             print('Unexpected problem downloading from MagIC:', str(ex), type(ex))
         return False, str(ex)
-        return True, res
 
 
 def download_magic_from_doi(doi):
