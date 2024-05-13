@@ -5270,13 +5270,14 @@ def download_magic_from_id(magic_id, directory='.',share_key=""):
     if not os.path.exists(directory): os.makedirs(directory)
     magic_contribution='magic_contribution_'+magic_id+'.txt'
     out_path = os.path.join(directory, 'magic_contribution_{}.txt'.format(magic_id))
+    if not os.path.exists(out_path): 
+        f=open(directory+magic_contribution,'x')
     if share_key!="":
-        if not os.path.exists(out_path): 
-            f=open(directory+magic_contribution,'x')
         contribution = requests.get(api.format('data'), params={'id': magic_id,'key':share_key})
         f=open(directory+magic_contribution,'w')
         f.write(contribution.text) 
         f.close()
+        return True, magic_contribution
     else:
         try:
             magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
