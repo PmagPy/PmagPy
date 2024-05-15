@@ -2,7 +2,6 @@
 # -*- coding: cp1252 -*-
 
 import codecs
-import copy
 from datetime import date
 import os
 import random
