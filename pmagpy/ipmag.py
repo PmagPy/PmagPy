@@ -10,10 +10,6 @@ import re
 import sys
 import time
 import urllib
-try:
-    import wget
-except ModuleNotFoundError:
-    pass
 import zipfile
 import io
 
