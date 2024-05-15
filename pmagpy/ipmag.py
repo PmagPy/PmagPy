@@ -5290,7 +5290,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
         with open(out_path, 'w') as file:
             file.write(response.text)
         print("Download successful. File saved to:", out_path)
-        return True, out_path
+        return True, file_name
     else:
         # Handle different cases of failure
         error_message = "Failed to download: " + (response.reason if response.status_code != 200 else "The file is empty.")
