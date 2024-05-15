@@ -5249,49 +5249,53 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
     return True
 
 
-def download_magic_from_id(magic_id, directory='.',share_key=""):
+def download_magic_from_id(magic_id, directory='.', share_key=""):
     """
-    Downloads a contribution from earthref.org/MagIC using the provided ID.
-    and saves it to the directory. If the directory does not exist, it's created.
-    
-    If a share_key is provided, downloads a private contribution
+    Downloads a contribution from earthref.org/MagIC using the provided ID
+    and saves it to the specified directory. If the directory does not exist, it is created.
+    If a share_key is provided, it downloads a private contribution.
 
-    Args:
+    Parameters:
         magic_id (str): Unique ID for a MagIC contribution.
-        directory (str, optional): Path to save the file. Defaults to current directory.
-        share_key (str): share key for downloading from Private Contribution, Default is "" for public contribution
+        directory (str): Path to save the file. Defaults to current directory.
+        share_key (str): Share key for downloading from Private Contribution; default is "" for public contribution.
 
     Returns:
         bool: True if successful, False otherwise.
-        str: Local file path if successful or error message if failed.
+        str: Relative file path if successful or error message if failed.
     """
-    api = 'https://api.earthref.org/v1/MagIC/{}'
+    magic_id = str(magic_id)  # Ensure magic_id is a string to avoid errors in API request
+
+    # Normalize the directory path to ensure consistent directory formatting
+    if not directory.endswith('/'):
+        directory += '/'
+    
     # Ensure the directory exists
-    if not os.path.exists(directory): os.makedirs(directory)
-    magic_contribution='magic_contribution_'+magic_id+'.txt'
-    out_path = os.path.join(directory, 'magic_contribution_{}.txt'.format(magic_id))
-    if not os.path.exists(out_path): 
-        f=open(directory+magic_contribution,'x')
-    if share_key!="":
-        contribution = requests.get(api.format('data'), params={'id': magic_id,'key':share_key})
-        f=open(directory+magic_contribution,'w')
-        f.write(contribution.text) 
-        f.close()
-        return True, magic_contribution
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Format file path
+    file_name = f'magic_contribution_{magic_id}.txt'
+    out_path = os.path.join(directory, file_name)
+    
+    # Define API endpoint
+    api = f'https://api.earthref.org/v1/MagIC/data'
+    params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
+
+    # Perform the request
+    response = requests.get(api, params=params)
+
+    if response.status_code == 200 and response.text:
+        # Write the content to the file only if the request was successful and the content is not empty
+        with open(out_path, 'w') as file:
+            file.write(response.text)
+        print("Download successful. File saved to:", out_path)
+        return True, out_path
     else:
-        try:
-            magic_url = 'https://earthref.org/MagIC/download/{}/magic_contribution_{}.txt'.format(con_id, con_id)
-            res = wget.download(magic_url, out=out_path)
-            return True, res
-        except NameError:
-            return False, "wget module is not available, cannot download from MagIC"
-        except urllib.error.HTTPError:
-            return False, "Looks like you didn't provide a valid contribution id, please try again..."
-        except urllib.error.URLError:
-            return False, "Couldn't connect to MagIC site, please check your internet connection"
-        except Exception as ex:
-            print('Unexpected problem downloading from MagIC:', str(ex), type(ex))
-        return False, str(ex)
+        # Handle different cases of failure
+        error_message = "Failed to download: " + (response.reason if response.status_code != 200 else "The file is empty.")
+        print("Download failed with error:", error_message)
+        return False, error_message
 
 
 def download_magic_from_doi(doi):
