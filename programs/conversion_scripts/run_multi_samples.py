@@ -12,7 +12,7 @@ def main():
         squidm_magic.py program using the command found in files named "commandSample_Name"
         placed in the top file directory. Then it combines the MagIC files into one MagIC 
         text file for uploading. One should run the program in the directory that has the 
-        command files and the sample directories. This program may be for other file formats in the future.
+        command files and the sample directories. This program may be used for other file formats in the future.
 
         The top directory should have the sample directories and the command files. For example:
 
