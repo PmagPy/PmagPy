@@ -36,9 +36,16 @@ def main():
         image files that will be uploaded to MagIC along with the data. .jpg, .png,
         .gif, .pdf, etc. type files.
 
-        The .fits file format is: moment in emu, declination, inclination, height, residuals
-        An example of the text in a .fits file:
+        The .fits file format for the "Lima and Weiss 2016" model (use the quoted text as the model name) 
+        is: moment in emu, declination, inclination, height, residuals.
+        An example:
         1.51e-10,54.36,220.92,0.000429,0.4214
+
+        The .fits file format for the "Lima et al. 2023" model (use the quoted text as the model name) 
+        is: moment in emu, declination, inclination, height in meters, residuals, regularization parameter 
+        value (lreg), model order (order), height of the model upward continuation height in meters(upcont). 
+        An example:
+        3.21e-09,-49.92,144.79,0.0020135,0.482282,5,9,0.0002
 
         Example file directory tree:
         ZirconRun1 -- (file hierarchy) 
@@ -126,15 +133,12 @@ def main():
                            Exact instrument name prefered, not type. 
                            (":" between multiple entries)
     
-        -model_height_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
-                            to calculate the model height.
-                            Should correspond to the model_residuals_name
+        -model_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
+                            to calculate the model parameters (eg. height, residuals, regulariztion parameter,
+                            model order, upward continuation). 
 
-        -model_residuals_name: name from the MagIC "Derived Values" controtrolled vocabulary for the model used
-                            to calculate the model residuals.
-                            Should correspond to the model_height_name
 
-        -model_doi: doi reference for the model used to calculate the model height, and residuals
+        -model_doi: doi reference for the model used to calculate the model height, residuals, lreg, etc.
 
         -A: don't average replicant measurements 
 
@@ -167,8 +171,16 @@ def main():
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
         NB: all others you will have to either customize your self or e-mail webmaster@earthref.org for help.
 
-      Example command for the example data file. Data from Weiss et al., 2018 (doi:10.1130/G39938.1):
-    squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_height_name "SQUID Microscopy Model Height Lima And Weiss 2016" -model_residuals_name "SQUID Microscopy Residuals Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -labfield 50.0 -phi 0.0 -theta 90 -A
+      Example command for MagIC data file (earthref.org/MagIC/17000).  Data from Weiss et al., 2018 
+        (doi:10.1130/G39938.1). Uses the Lima and Weiss, 2016 modeling technique. 
+
+      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -labfield 50.0 -phi 0.0 -theta 90 -A
+      
+      Example command for MagIC data file ().  Data from (doi:). 
+      Uses the Lima et al, 2023 modeling technique. 
+
+      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima et al. 2023" -model_doi "10.1029/2022GC010724" -labfield 50.0 -phi 0.0 -theta 90 -A
+
     """
 
     if '-h' in sys.argv: # check if help is needed
@@ -251,7 +263,7 @@ def main():
         ind=sys.argv.index('-age_unit')
         age_unit=sys.argv[ind+1]
     else:
-        print("The age unit must be set with the -ageunit flag")
+        print("The age unit must be set with the -age_unit flag")
         exit()
 
     if '-citations' in sys.argv:
@@ -301,20 +313,13 @@ def main():
     else:
         instrument_codes=""
         
-    if '-model_height_name' in sys.argv:
-        ind=sys.argv.index('-model_height_name')
-        model_height_name=sys.argv[ind+1]
+    if '-model_name' in sys.argv:
+        ind=sys.argv.index('-model_name')
+        model_name=sys.argv[ind+1]
     else:
-        print("The model height name must be set with the -model_height_name flag")
+        print("The model name must be set with the -model_name flag")
         exit()
-   
-    if '-model_residuals_name' in sys.argv:
-        ind=sys.argv.index('-model_residuals_name')
-        model_residuals_name=sys.argv[ind+1]
-    else:
-        print("The model residuals name must be set with the -model_residuals_name flag")
-        exit()
-   
+        
     if '-model_doi' in sys.argv:
         ind=sys.argv.index('-model_doi')
         model_doi=sys.argv[ind+1]
@@ -477,7 +482,15 @@ def main():
         
         # create MagIC files from cit files
         os.chdir(dir+'/demag')     
-        command='cit_magic.py -ncn ' + ncn + ' -f ' + dir + '.sam -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
+        # find .sam file name
+        sam_file=""
+        sam_list=os.listdir()
+        for file in sam_list:
+            if ".sam" in file:
+                sam_file=file
+                break
+                
+        command='cit_magic.py -ncn ' + ncn + ' -f ' + sam_file + ' -loc "' + location + '" -sn "' + site + '" -sampname "' + sample + '" -dc ' + labfield + ' '  + phi + ' ' + theta + ' ' + average
         if spec_method_codes != "":
             command+=' -mcd ' + spec_method_codes
         print(command)
@@ -504,7 +517,7 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_num,meas_name_num=convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi)
+        meas_num,meas_name_num=convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
@@ -587,7 +600,7 @@ def main():
     print("end")   
     return()
 
-def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_height_name,model_residuals_name,model_doi):
+def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -697,9 +710,15 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         line=f.readline()
         line_split=line.split(",")
         # fit file values are moment (emu), inc, dec, height and residuals
+        # or
+        # moment (emu), inc, dec, height, residuals, lreg, order, upcont
         height=line_split[3]
         residuals=line_split[4]
         residuals=residuals.strip()
+        if len(line_split) > 5:
+            lreg=line_split[5]
+            order=line_split[6]
+            upcont=line_split[7]
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_num)+'.txt','w')
@@ -711,7 +730,13 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         mf.write('* method_codes\t'+meas_method_codes+'\n')
         mf.write('* citations\t'+citations+'\n')
         mf.write('* description\t'+comment+'\n')
-        mf.write('* derived_value\t'+model_height_name+','+height+','+model_doi+';'+model_residuals_name+','+residuals+','+model_doi+'\n')
+        mf.write('* derived_value\t'+"SQUID Microscopy Model Height "+model_name+','+height+','+model_doi+';'+
+                 "SQUID Microscopy Model Residuals "+model_name+','+residuals+','+model_doi+';')
+        if model_name is "Lima et al. 2023":
+            mf.write("SQUID Microscopy Model Regularization Parameter "+model_name+','+lreg+','+model_doi+';'+
+                     "SQUID Microscopy Model Order "+model_name+','+order+','+model_doi+';'+
+                     "SQUID Microscopy Model Upward Continuation Height "+model_name+','+upcont+','+model_doi+';')
+        mf.write('\n')
 
         mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
         print('meas_num=', meas_num)
