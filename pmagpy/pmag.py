@@ -6278,20 +6278,23 @@ def doincfish(inc):
         'inc' : estimated Fisher mean
         'r' : estimated Fisher R value
         'k' : estimated Fisher kappa
-        'alpha95' : estimated fisher alpha_95
+        'upper_confidence_limit' : estimated upper confidence limit (these are NOT symmetric)
+        'lower_confidence_limit' : estimated lower confidence limit (these are NOT symmetric)
         'csd' : estimated circular standard deviation
 
     Examples
     --------
-    >>> pmag.doincfish([60,62,0,10])
+    >>> pmag.doincfish([60, 62, 0, 10])
     {'n': 4,
      'ginc': 33.0,
-     'inc': 39.85999999999957,
-     'r': 2.9999543668915347,
-     'k': 2.999863106921461,
-     'alpha95': 57.453002724988956,
-     'csd': 46.76643881682904}
+     'inc': 39.86,
+     'r': 2.99995,
+     'k': 2.99986,
+     'upper_confidence_limit': 50.61659,
+     'lower_confidence_limit': 64.28942,
+     'csd': 46.76644}
     """
+
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -6303,13 +6306,14 @@ def doincfish(inc):
     if MI < 30:
         fpars['inc'] = MI
         fpars['k'] = 0
-        fpars['alpha95'] = 0
+        fpars['upper_confidence_limit'] = 0
+        fpars['lower_confidence_limit'] = 0
         fpars['csd'] = 0
         fpars['r'] = 0
         print('WARNING: mean inc < 30, returning gaussian mean')
         return fpars
     inc = np.array(inc)
-    coinc = np.deg2rad(90. - np.abs(inc)) # sum over all incs (but take only positive inc)
+    coinc = np.deg2rad(90. - np.abs(inc))  # sum over all incs (but take only positive inc)
     SCOi = np.cos(coinc).sum()
     SSOi = np.sin(coinc).sum()
     min_misfit,min_curvature = np.inf,0.
@@ -6322,27 +6326,31 @@ def doincfish(inc):
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
         print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method you may wish to consider an alternate technique."%misfit[idx_zeros])
-    ML_zeros = np.array(Oo[[idx_zeros]])
+    ML_zeros = np.array(Oo[idx_zeros])
     ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
-#    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
-    U = 0.5*N*((1/(np.cos(ML_zeros)**2))-(np.cos(ML_matrix-coinc).sum(axis=1)/(N-np.cos(ML_matrix-coinc).sum(axis=1))))
-#    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
+    #    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
+    U = 0.5 * N * ((1 / (np.cos(ML_zeros) ** 2)) - (
+                np.cos(ML_matrix - coinc).sum(axis=1) / (N - np.cos(ML_matrix - coinc).sum(axis=1))))
+    #    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
     Oo = ML_zeros[np.argmin(U)]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
-    k = old_div((N - 1.), (2. * (N - C)))
+    k = (N - 1.) / (2. * (N - C))  # removed old_div
     Imle = 90. - np.rad2deg(Oo)
-    fpars["inc"] = Imle
-    fpars["r"], R = 2. * C - N, 2 * C - N
-    fpars["k"] = k
-    f = fcalc(2, N - 1)
-    a95 = 1. - (0.5) * (old_div(S, C))**2 - (old_div(f, (2. * C * k)))
-#    b=20.**(1./(N-1.)) -1.
-#    a=1.-b*(N-R)/R
-    a95=np.rad2deg(np.arccos(a95))
-    csd = old_div(81., np.sqrt(k))
-    fpars["alpha95"] = a95
-    fpars["csd"] = csd
+    fpars["inc"] = np.round(Imle[0], 5)
+    fpars["r"], R = np.round(2. * C - N, 5), np.round(2 * C - N, 5)
+    fpars["k"] = np.round(k, 5)
+    f = fcalc(2, N - 1)  # the 'g' of MM2000
+    a95 = 1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))  # removed old_div
+    # calculating the upper and lower confidence intervals
+    a95_down = (180 * S) / (np.pi * C) - np.rad2deg(np.arccos(a95))
+    a95_up = (180 * S) / (np.pi * C) + np.rad2deg(np.arccos(a95))
+    csd = 81. / np.sqrt(k)
+
+    # the upper and lower confidence intervals as values
+    fpars["upper_confidence_limit"] = np.round(a95_up, 5)
+    fpars["lower_confidence_limit"] = np.abs(np.round(a95_down, 5))
+    fpars["csd"] = np.round(csd, 5)
     return fpars
 
 
