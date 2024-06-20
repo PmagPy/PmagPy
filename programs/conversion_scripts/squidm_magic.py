@@ -41,7 +41,7 @@ def main():
         An example:
         1.51e-10,54.36,220.92,0.000429,0.4214
 
-        The .fits file format for the "Lima et al. 2023" model (use the quoted text as the model name) 
+        The .fits file format for the "Lima et al. 2024" model (use the quoted text as the model name) 
         is: moment in emu, declination, inclination, height in meters, residuals, regularization parameter 
         value (lreg), model order (order), height of the model upward continuation height in meters(upcont). 
         An example:
@@ -177,9 +177,9 @@ def main():
       squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima And Weiss 2016" -model_doi "10.1002/2016GC006487" -labfield 50.0 -phi 0.0 -theta 90 -A
       
       Example command for MagIC data file ().  Data from (doi:). 
-      Uses the Lima et al, 2023 modeling technique. 
+      Uses the Lima et al. 2024 modeling technique. 
 
-      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima et al. 2023" -model_doi "10.1029/2022GC010724" -labfield 50.0 -phi 0.0 -theta 90 -A
+      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima et al. 2024" -model_doi "10.1029/2022GC010724" -labfield 50.0 -phi 0.0 -theta 90 -A
 
     """
 
@@ -718,7 +718,7 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         if len(line_split) > 5:
             lreg=line_split[5]
             order=line_split[6]
-            upcont=line_split[7]
+            upcont=str.strip(line_split[7])
 
 # open the measurement file for writing and put the compressed headers in
         mf=open('measurements'+str(meas_num)+'.txt','w')
@@ -731,11 +731,11 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
         mf.write('* citations\t'+citations+'\n')
         mf.write('* description\t'+comment+'\n')
         mf.write('* derived_value\t'+"SQUID Microscopy Model Height "+model_name+','+height+','+model_doi+';'+
-                 "SQUID Microscopy Model Residuals "+model_name+','+residuals+','+model_doi+';')
-        if model_name is "Lima et al. 2023":
-            mf.write("SQUID Microscopy Model Regularization Parameter "+model_name+','+lreg+','+model_doi+';'+
-                     "SQUID Microscopy Model Order "+model_name+','+order+','+model_doi+';'+
-                     "SQUID Microscopy Model Upward Continuation Height "+model_name+','+upcont+','+model_doi+';')
+                 'SQUID Microscopy Model Residuals '+model_name+','+residuals+','+model_doi+';')
+        if model_name == "Lima et al. 2024":
+            mf.write('SQUID Microscopy Model Regularization Parameter '+model_name+','+lreg+','+model_doi+';'+
+                     'SQUID Microscopy Model Order '+model_name+','+order+','+model_doi+';'+
+                     'SQUID Microscopy Model Upward Continuation Height '+model_name+','+upcont+','+model_doi)
         mf.write('\n')
 
         mf.write('measurement\tmagn_z\tmeas_pos_x\tmeas_pos_y\n')
