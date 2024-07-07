@@ -2087,9 +2087,10 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum=None):
+def plot_net(fignum=None,tick_spacing=10):
     """
     Draws circle and tick marks for equal area projection.
+    tick_spacing: interval for declination tick marks, default is 10
     """
     if fignum != None:
         plt.figure(num=fignum,)
@@ -2106,30 +2107,31 @@ def plot_net(fignum=None):
 
 # put on the tick marks
     Xsym, Ysym = [], []
-    for I in range(10, 100, 10):
+    for I in range(tick_spacing, 100, tick_spacing):
         XY = pmag.dimap(0., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
     Xsym, Ysym = [], []
-    for I in range(10, 90, 10):
+    for I in range(tick_spacing, 100, tick_spacing):
         XY = pmag.dimap(90., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
     Xsym, Ysym = [], []
-    for I in range(10, 90, 10):
+    for I in range(tick_spacing, 90, tick_spacing):
         XY = pmag.dimap(180., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
+    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
     Xsym, Ysym = [], []
-    for I in range(10, 90, 10):
+    for I in range(tick_spacing, 90, tick_spacing):
         XY = pmag.dimap(270., I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.plot(Xsym, Ysym, 'k+')
-    for D in range(0, 360, 10):
+    #plt.plot(Xsym, Ysym, 'k|')
+    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
+    for D in range(0, 360, tick_spacing):
         Xtick, Ytick = [], []
         for I in range(4):
             XY = pmag.dimap(D, I)
@@ -9334,8 +9336,6 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
-    #print (lower,upper)#DEBUG
-    #print (len(I))#DEBUG
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
             '[%7.1f, %7.1f]' % (I[lower], I[upper])
