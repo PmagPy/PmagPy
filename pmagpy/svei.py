@@ -2271,7 +2271,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
     
         ax5=fig.add_subplot(325) # eqarea of original
 
-        ipmag.plot_net()
+        ipmag.plot_net(tick_spacing=30)#modified per Enkin request
         ipmag.plot_di(di_block=di_block,color='k')
         ipmag.plot_di(di_block=rot_block,color='b')
         ax5.set_title('Original/Rotated')
@@ -2281,9 +2281,9 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             decs=rot_block.transpose()[0]
             incs=rot_block.transpose()[1]
             incs_unflat=pmag.unsquish(incs,best_flat)
-            ipmag.plot_net()
+            ipmag.plot_net(tick_spacing=30)
 
-            ipmag.plot_di(dec=decs,inc=incs_unflat)  
+            ipmag.plot_di(dec=decs,inc=incs_unflat,color='b')  #modified per Enkin request
             #ax6.set_title('fs= '+str(np.round(goodflats[0],2))+'-'+str(np.round(goodflats[-1],2))+
             #      '; incs= '+str(np.round(goodincs[0],1))+'-'+str(np.round(goodincs[-1],1)),fontsize=14)
             ax6.set_title('fs= '+str(best_flat)+'$_{'+str(np.round(goodflats[0],2))+'}^{'+str(np.round(goodflats[-1],2))+'}$;'
@@ -2504,10 +2504,11 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         txtstring='a) Lat.: '+str(np.round(lat,1))+'; $\kappa$: '+kap 
         ax1.text(-1,1.1,txtstring,fontsize=14)
         ax1.text(-.7,-1.2,'model:'+model_name,fontsize=14)
-        ipmag.plot_net() #create net
+        ipmag.plot_net(tick_spacing=30) #create net
         
-        levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
-        ipmag.plot_di(dec=Ds,inc=Is,color='green') #plot data
+        ipmag.plot_di(dec=Ds,inc=Is,color='green',markersize=10) #plot data
+        #levels = np.linspace(np.min(sp),np.max(sp),24)[1::4] #produce contour levels
+        levels = np.linspace(np.min(sp),np.max(sp),12)[1::4] #produce contour levels
         plt.contour(XX,YY,sp,levels=levels,colors='grey',linestyle='dotted',linewidth=.1) #plot contours
         #plt.title('lat='+str(np.round(lat,1))+'; $\kappa$: '+kap+'; model:'+model_name ) # replace -1 with inf
         I0 = np.linspace(-90,90,180)
@@ -2521,7 +2522,7 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         for i in range(np.size(D0)):
             Decdf[i] = np.mean(Ds<=D0[i])
         ax2=fig.add_subplot(142)
-         
+        ax2.tick_params(axis='x', labelrotation=90)
         ax2.plot(D0,Dcdf(np.deg2rad(D0)),'r-',linewidth=2)
         ax2.plot(D0,Decdf,'k',linestyle='dotted')
         #ax1.plot(Ds,np.zeros(np.size(Ds))+0.025,'+k')
