@@ -1031,6 +1031,8 @@ def agm(agm_file, dir_path=".", input_dir_path="",
     # parse data
     stop = len(Data) - end
     for line in Data[start:stop]:  # skip header stuff
+        if 'T' in line: #some file formats end up with the first line is off by one. This skips the line
+            continue   
         MeasRec, SpecRec, SampRec, SiteRec, LocRec = {}, {}, {}, {}, {}
         # take care of some paper work
         if not syn:
