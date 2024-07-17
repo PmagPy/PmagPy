@@ -70,6 +70,8 @@ def main():
 
         -meas_name_num: set the starting number for the measurement name. Default:1
 
+        -con_id: MagIC contribution id for the dataset
+
         -location: specify location/study name
 
         -location_type: specify location_type 
@@ -193,47 +195,54 @@ def main():
     else:
         meas_name_num=1
 
+    if '-con_id' in sys.argv:
+        ind=sys.argv.index('-con_id')
+        con_id=sys.argv[ind+1]
+    else:
+        print("The MagIC contribution id must be set with the -con_id flag")
+        sys.exit()
+   
     if '-location' in sys.argv:
         ind=sys.argv.index('-location')
         location=sys.argv[ind+1]
     else:
         print("The location/study name must be set with the -location flag")
-        exit()
+        sys.exit()
    
     if '-location_type' in sys.argv:
         ind=sys.argv.index('-location_type')
         location_type=sys.argv[ind+1]
     else:
         print("The location_type name must be set with the -location_type flag")
-        exit()
+        sys.exit()
    
     if '-geologic_classes' in sys.argv:
         ind=sys.argv.index('-geologic_classes')
         geologic_classes=sys.argv[ind+1]
     else:
         print("The geologic classes must be set with the -geologic_classes flag")
-        exit()
+        sys.exit()
    
     if '-lithologies' in sys.argv:
         ind=sys.argv.index('-lithologies')
         lithologies=sys.argv[ind+1]
     else:
         print("The litothologies must be set with the -lithologies flag")
-        exit()
+        sys.exit()
    
     if '-lat' in sys.argv:
         ind=sys.argv.index('-lat')
         lat=sys.argv[ind+1]
     else:
         print("The latitude must be set with the -lat flag")
-        exit()
+        sys.exit()
    
     if '-lon' in sys.argv:
         ind=sys.argv.index('-lon')
         lon=sys.argv[ind+1]
     else:
         print("The longitude must be set with the -lon flag")
-        exit()
+        sys.exit()
    
     if '-age' in sys.argv:
         ind=sys.argv.index('-age')
@@ -264,7 +273,7 @@ def main():
         age_unit=sys.argv[ind+1]
     else:
         print("The age unit must be set with the -age_unit flag")
-        exit()
+        sys.exit()
 
     if '-citations' in sys.argv:
         ind=sys.argv.index('-citations')
@@ -283,21 +292,21 @@ def main():
         site_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the site must be set with the -site_method_code flag")
-        exit()
+        sys.exit()
    
     if '-samp_method_codes' in sys.argv:
         ind=sys.argv.index('-samp_method_codes')
         samp_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the sample must be set with the -samp_method_code flag")
-        exit()
+        sys.exit()
    
     if '-spec_method_codes' in sys.argv:
         ind=sys.argv.index('-spec_method_codes')
         spec_method_codes=sys.argv[ind+1]
     else:
         print("method code(s) for the specimen must be set with the -specimen_method_code flag")
-        exit()
+        sys.exit()
    
     if '-meas_method_codes' in sys.argv:
         ind=sys.argv.index('-meas_method_codes')
@@ -318,35 +327,35 @@ def main():
         model_name=sys.argv[ind+1]
     else:
         print("The model name must be set with the -model_name flag")
-        exit()
+        sys.exit()
         
     if '-model_doi' in sys.argv:
         ind=sys.argv.index('-model_doi')
         model_doi=sys.argv[ind+1]
     else:
         print("The model doi must be set with the -model_doi flag")
-        exit()
+        sys.exit()
    
     if '-site' in sys.argv:
         ind=sys.argv.index('-site')
         site=sys.argv[ind+1]
     else:
         print("The site name must be set with the -site flag")
-        exit()
+        sys.exit()
    
     if '-geologic_types' in sys.argv:
         ind=sys.argv.index('-geologic_types')
         geologic_types=sys.argv[ind+1]
     else:
         print("The  geologic types must be set with the -geologic_types flag")
-        exit()
+        sys.exit()
    
     if '-sample' in sys.argv:
         ind=sys.argv.index('-sample')
         sample=sys.argv[ind+1]
     else:
         print("The site name must be set with the -sample flag")
-        exit()
+        sys.exit()
 
     if '-oe' in sys.argv:
         oe=' -oe '
@@ -400,7 +409,7 @@ def main():
         ncn=sys.argv[ind+1]
     else:
         print("Setting the sample name convention with the -ncn flag is required")
-        exit()
+        sys.exit()
 
 
 #   Run cit_magic.py on all slides to process the psudo-Thellier data
@@ -408,6 +417,8 @@ def main():
 #   Create measurementXX.txt files for each slide scan by translating the data into the MagIC format
 
     print("start")
+
+    print("con_id=",con_id)
 
     os.system("rm locations.txt sites.txt samples.txt specimens.txt measurements.txt")
     os.system("rm *.txt ") # for debugging
@@ -517,14 +528,14 @@ def main():
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
         os.system('rm measurements*.txt')
-        meas_num,meas_name_num=convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi)
+        meas_num,meas_name_num=convert_squid_data(con_id,specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi)
         os.system('mv measurements*.txt ../../') 
 
         os.chdir('../../')
 
 #   move all the measurement files to one folder
     os.system("mkdir measurements")
-    os.system("mv measurements[0-9]*.txt measurements")
+    os.system("mv measurements_"+con_id+"\.[0-9]*.txt measurements")
 
 #   Combine the images tables and put the images in one folder
     image_files=""
@@ -600,7 +611,7 @@ def main():
     print("end")   
     return()
 
-def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi):
+def convert_squid_data(con_id,specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi):
 #   Take the SQUID magnetometer files and make a MagIC measurement file. This data will not be uploaded 
 #   in the contribution MagIC data file due is large size, but will be available for download. 
 #   These have to be uploaded by hand for now.
@@ -721,7 +732,7 @@ def convert_squid_data(specimen,citations,meas_num,meas_method_codes,meas_name_n
             upcont=str.strip(line_split[7])
 
 # open the measurement file for writing and put the compressed headers in
-        mf=open('measurements'+str(meas_num)+'.txt','w')
+        mf=open('measurements_'+con_id+'.'+str(meas_num)+'.txt','w')
         mf.write("tab\tmeasurements\n")
         mf.write('* experiment\t'+experiment_name+'\n')
         mf.write('* specimen\t'+specimen+'\n')

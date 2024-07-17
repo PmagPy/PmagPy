@@ -30,7 +30,7 @@ def main():
                                                                150107_h18.sam (CIT sample list)
                                                      images --> F1_115C_Z_150107_h18_map1.pdf (human viewable image)
                            
-        Run the program in the directory with the commands and sample directories (in the BorlinaEtAl2020 in this example).
+        Run the program in the directory with the commands and sample directories (in BorlinaEtAl2020 for this example).
 
 
     SYNTAX
