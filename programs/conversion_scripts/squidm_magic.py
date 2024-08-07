@@ -181,8 +181,7 @@ def main():
       Example command for MagIC data file ().  Data from (doi:). 
       Uses the Lima et al. 2023 modeling technique. 
 
-      squidm_magic.py -location "Jack Hills" -location_type "Outcrop" -geologic_classes "Metamorphic" -lithologies "Metaconglomerate" -geologic_types "Single Crystal" -lat "-26" -lon 117 -age_low 0.8 -age_high 2.6 -age_unit Ga -citations "10.1130/G39938.1" -site "Erawandoo Hill" -loc_method_codes "GM-UPB" -site_method_codes "GM-UPB" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -geologic_types "Single Crystal" -sample RSES-57 -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima et al. 2023" -model_doi "10.1029/2022GC010724" -labfield 50.0 -phi 0.0 -theta 90 -A
-
+squidm_magic.py -con_id 20187 -location "Crevice Cave" -location_type "Region" -geologic_classes "Sedimentary" -lithologies "Carbonate" -geologic_types "Sediment Layer" -lat "37.8" -lon "-89.8" -age_low 24 -age_high 28 -age_unit ka -citations "10.1130/G39938.1" -site "Cave" -loc_method_codes "GM-UTH" -site_method_codes "GM-UTH" -samp_method_codes "SC-SQUIDM" -spec_method_codes "SC-SQUIDM" -sample CC -ncn 5 -instrument_codes "MIT SQUID microscope" -model_name "Lima et al. 2024" -model_doi "10.1029/2022GC010724" -labfield 200.0 -phi 0.0 -theta 0 -A -multi_samples
     """
 
     if '-h' in sys.argv: # check if help is needed
@@ -527,15 +526,15 @@ def main():
 
         # Create the large MagIC measurement files for the raw QDM data scans
         os.chdir('../data')     
-        os.system('rm measurements*.txt')
+        os.system('rm magic_measurements*.txt')
         meas_num,meas_name_num=convert_squid_data(con_id,specimen,citations,meas_num,meas_method_codes,meas_name_num,model_name,model_doi)
-        os.system('mv measurements*.txt ../../') 
+        os.system('mv magic_measurements*.txt ../../') 
 
         os.chdir('../../')
 
 #   move all the measurement files to one folder
     os.system("mkdir measurements")
-    os.system("mv measurements_"+con_id+"\.[0-9]*.txt measurements")
+    os.system("mv magic_measurements_"+con_id+"\.[0-9]*.txt measurements")
 
 #   Combine the images tables and put the images in one folder
     image_files=""
@@ -591,7 +590,7 @@ def main():
     os.system("combine_magic.py -F specimens.txt -f " + spec_files)
     os.system("combine_magic.py -F measurements.txt -f " + meas_files)
 
-    os.system("upload_magic.py")
+    os.system("upload_magic.py -all")
 
 #   Remove MagIC files
     for dir in slide_dir_list:
@@ -732,7 +731,7 @@ def convert_squid_data(con_id,specimen,citations,meas_num,meas_method_codes,meas
             upcont=str.strip(line_split[7])
 
 # open the measurement file for writing and put the compressed headers in
-        mf=open('measurements_'+con_id+'.'+str(meas_num)+'.txt','w')
+        mf=open('magic_measurements_'+con_id+'.'+str(meas_num)+'.txt','w')
         mf.write("tab\tmeasurements\n")
         mf.write('* experiment\t'+experiment_name+'\n')
         mf.write('* specimen\t'+specimen+'\n')
