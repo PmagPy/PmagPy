@@ -86,4 +86,4 @@ This code and the PmagPy cookbook (http://earthref.org/PmagPy/cookbook) are comp
 
 ## Licensing
 
-This code can be freely used, modified, and shared. It is licensed under a 3-clause BSD license. See [license.txt](https://github.com/ltauxe/PmagPy/blob/master/license.txt) for details.
+This code can be freely used, modified, and shared. It is licensed under a 3-clause BSD license. See [license.txt](https://github.com/PmagPy/PmagPy/blob/master/license.txt) for details.
