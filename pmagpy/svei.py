@@ -2526,7 +2526,7 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ax2.plot(D0,Dcdf(np.deg2rad(D0)),'r-',linewidth=2)
         ax2.plot(D0,Decdf,'k',linestyle='dotted')
         #ax1.plot(Ds,np.zeros(np.size(Ds))+0.025,'+k')
-        ax2.text(-170,1.1,'b)',fontsize=14)
+        ax2.text(-170,1.14,'b)',fontsize=14)
         if A2D<3.07:
             ax2.text(-170,.8,'Decs: Pass',color='red',fontsize=14)
         else:
@@ -2561,11 +2561,18 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         plt.xlabel('Simulated $V2_{decs}$',fontsize=14)
         plt.ylabel('Cumulative Distribution Function',fontsize=14)
         #plt.legend(loc='lower right')
+        v2_pass='['+str(np.round(V2sim_max,1))+'<='+str(np.round(V2dec,1))+'>='+str(np.round(V2sim_min,1))+']'
+        if V2sim_max<V2dec:
+            v2_fail='['+str(np.round(V2sim_max,1))+'<'+str(np.round(V2dec,1))+']'
+        elif V2sim_min>V2dec:
+            v2_fail='['+str(np.round(V2dec,1))+'>'+str(np.round(V2sim_min,1))+']'
         if V2_result==1:   
-            ax4.text(0,1.05,'c) V2: Pass',transform=ax4.transAxes,fontsize=14)
+            ax4.text(0,1.14,'c) V2: Pass',transform=ax4.transAxes,fontsize=14)
+            ax4.text(0,1.05,v2_pass,transform=ax4.transAxes,fontsize=12)
             #plt.text(.2,.9,'V2: Pass', transform=ax4.transAxes,fontsize=14,color='red')
         else:   
-            ax4.text(0,1.05,'c) V2: Fail',transform=ax4.transAxes,fontsize=14)
+            ax4.text(0,1.14,'c) V2: Fail',transform=ax4.transAxes,fontsize=14)
+            ax4.text(0,1.05,v2_fail,transform=ax4.transAxes,fontsize=12)
             #plt.text(.2,.9,'V2: Fail', transform=ax4.transAxes,fontsize=14,color='red')
 
         ax5=fig.add_subplot(144)
@@ -2577,11 +2584,18 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         ax5.axvline(Esim_min,linestyle='dotted',color='black',label='E bounds of model')
         ax5.axvline(Esim_max,linestyle='dotted',color='black')
         plt.xlabel('Simulated $E$',fontsize=14)
-        if E_result==1:   
-            ax5.text(0,1.05,'d) E: Pass',transform=ax5.transAxes,fontsize=14)
+        e_pass='['+str(np.round(Esim_max,2))+'<='+str(np.round(E,2))+'>='+str(np.round(Esim_min,2))+']'
+        if Esim_max<E:
+            e_fail='['+str(np.round(Esim_max,2))+'<'+str(np.round(E,2))+']'
+        elif Esim_min>E:
+            e_fail='['+str(np.round(E,2))+'>'+np.round(Esim_min,2)+']'
+        if E_result==1: 
+            ax5.text(0,1.14,'d) E: Pass',transform=ax5.transAxes,fontsize=14)
+            ax5.text(0,1.05,e_pass,transform=ax5.transAxes,fontsize=12)
             #plt.text(.2,.9,'E: Pass', transform=ax5.transAxes,fontsize=14,color='blue')
         else:   
-            ax5.text(0,1.05,'d) E: Fail',transform=ax5.transAxes,fontsize=14)
+            ax5.text(0,1.14,'d) E: Fail',transform=ax5.transAxes,fontsize=14)
+            ax5.text(0,1.05,e_fail,transform=ax5.transAxes,fontsize=12)
             #plt.text(.2,.9,'E: Fail', transform=ax5.transAxes,fontsize=14,color='blue')
         #plt.legend(loc='lower right')
         plt.tight_layout()
