@@ -22,7 +22,8 @@ OPTIONS
     -spc NUM : specify number of characters to designate a  specimen, default = 1
     -loc LOCNAME : specify location/study name
     -A: don't average replicate measurements
-    -dmg TYPE: set default demag type ('t' for thermal, 'af' for AF demag
+    -dmg TYPE: set default demag type ('t' for thermal, 'af' for AF demag) if not 
+               specified in pmd file
     -ncn NCON: specify naming convention
     Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
