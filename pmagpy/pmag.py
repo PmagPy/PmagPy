@@ -6287,12 +6287,12 @@ def doincfish(inc):
     >>> pmag.doincfish([60, 62, 0, 10])
     {'n': 4,
      'ginc': 33.0,
-     'inc': 39.86,
-     'r': 2.99995,
-     'k': 2.99986,
-     'upper_confidence_limit': 50.61659,
-     'lower_confidence_limit': 64.28942,
-     'csd': 46.76644}
+     'inc': 39.85999999999999,
+     'r': 2.9999543668915285,
+     'k': 2.9998631069214423,
+     'upper_confidence_limit': 50.61658829424055,
+     'lower_confidence_limit': 64.28941715573792,
+     'csd': 46.76643881682918}
     """
 
     abinc = []
