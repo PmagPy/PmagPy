@@ -6335,22 +6335,22 @@ def doincfish(inc):
     Oo = ML_zeros[np.argmin(U)]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
-    k = (N - 1.) / (2. * (N - C))  # removed old_div
+    k = (N - 1.) / (2. * (N - C))
     Imle = 90. - np.rad2deg(Oo)
-    fpars["inc"] = np.round(Imle[0], 5)
-    fpars["r"], R = np.round(2. * C - N, 5), np.round(2 * C - N, 5)
-    fpars["k"] = np.round(k, 5)
+    fpars["inc"] = Imle[0]
+    fpars["r"], R = (2. * C - N), (2 * C - N)
+    fpars["k"] = k
     f = fcalc(2, N - 1)  # the 'g' of MM2000
-    a95 = 1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))  # removed old_div
+    a95 = 1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))
     # calculating the upper and lower confidence intervals
     a95_down = (180 * S) / (np.pi * C) - np.rad2deg(np.arccos(a95))
     a95_up = (180 * S) / (np.pi * C) + np.rad2deg(np.arccos(a95))
     csd = 81. / np.sqrt(k)
 
     # the upper and lower confidence intervals as values
-    fpars["upper_confidence_limit"] = np.round(a95_up, 5)
-    fpars["lower_confidence_limit"] = np.abs(np.round(a95_down, 5))
-    fpars["csd"] = np.round(csd, 5)
+    fpars["upper_confidence_limit"] = a95_up
+    fpars["lower_confidence_limit"] = np.abs(a95_down)
+    fpars["csd"] = csd
     return fpars
 
 
