@@ -5,7 +5,6 @@ import string
 import sys
 import time
 
-from past.utils import old_div
 import numpy as np
 from numpy import random
 from numpy import linalg
@@ -1398,7 +1397,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
             plong = plong - 2 * np.pi
 
     dm = np.rad2deg(a95 * (np.sin(p) / np.cos(dip)))
-    dp = np.rad2deg(a95 * (old_div((1 + 3 * (np.cos(p)**2)), 2)))
+    dp = np.rad2deg(a95 * ((1 + 3 * (np.cos(p)**2) / 2)))
     plat = np.rad2deg(plat)
     plong = np.rad2deg(plong)
     return plong.tolist(), plat.tolist(), dp.tolist(), dm.tolist()
@@ -3153,20 +3152,19 @@ def domean(data, start, end, calculation_type):
             dot = -1
         if dot > 1:
             dot = 1
-        if np.arccos(dot) > old_div(np.pi, 2.):
+        if np.arccos(dot) > (np.pi / 2.):
             for k in range(3):
                 v1[k] = -v1[k]
 #   get right direction along principal component
 #
         s1 = np.sqrt(t[0])
         Dir = cart2dir(v1)
-        MAD = old_div(np.arctan(old_div(np.sqrt(t[1] + t[2]), s1)), rad)
+        MAD = np.arctan(np.sqrt(t[1] + t[2]) / s1) / rad
         if np.iscomplexobj(MAD):
             MAD = MAD.real
     if calculation_type == "DE-BFP":
         Dir = cart2dir(v3)
-        MAD = old_div(
-            np.arctan(np.sqrt(old_div(t[2], t[1]) + old_div(t[2], t[0]))), rad)
+        MAD = (np.arctan(np.sqrt((t[2] / t[1]) + (t[2] / t[0]))) / rad)
         if np.iscomplexobj(MAD):
             MAD = MAD.real
 #
@@ -3409,12 +3407,12 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
 # avoid false positives - set 3 degree slope difference here too
         if b_diff > 3 * np.pi / 180.:
             nf = n_zi + n_iz - 2.  # degrees of freedom
-            svar = old_div(((n_zi - 1.) * bzi_sig**2 +
-                            (n_iz - 1.) * biz_sig**2), nf)
-            T = old_div((b_diff), np.sqrt(
-                svar * (old_div(1.0, n_zi) + old_div(1.0, n_iz))))  # student's t
+            svar = ((n_zi - 1.) * bzi_sig**2 +
+                            (n_iz - 1.) * biz_sig**2) / nf
+            T = (b_diff) / np.sqrt(
+                svar * ((1.0 / n_zi) + (1.0 / n_iz)))  # student's t
             ttest = tcalc(nf, .05)  # t-test at 95% conf.
-            Trat = old_div(T, ttest)
+            Trat = T / ttest
             if Trat > 1 and Trat > Frat:
                 ZigZag = Trat  # fails zigzag on directions
                 methcode = "SM-TTEST"
@@ -3523,7 +3521,7 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     NRM = zijdblock[0][3]     # NRM
 
     for k in range(len(zijdblock)):
-        DIR = [zijdblock[k][1], zijdblock[k][2], old_div(zijdblock[k][3], NRM)]
+        DIR = [zijdblock[k][1], zijdblock[k][2], (zijdblock[k][3] / NRM)]
         cart = dir2cart(DIR)
         zdata.append(np.array([cart[0], cart[1], cart[2]]))
         if k > 0:
@@ -3538,12 +3536,11 @@ def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     # calculate the vds within the chosen segment
     vector_diffs_segment = vector_diffs[zstart:zend]
     # FRAC calculation
-    FRAC = old_div(sum(vector_diffs_segment), vds)
+    FRAC = sum(vector_diffs_segment) / vds
     pars[frac_key] = FRAC
 
     # gap_max calculation
-    max_FRAC_gap = max(
-        old_div(vector_diffs_segment, sum(vector_diffs_segment)))
+    max_FRAC_gap = max(vector_diffs_segment / sum(vector_diffs_segment))
     pars[gmax_key] = max_FRAC_gap
 
     # ---------------------------------------------------------------------
@@ -4946,7 +4943,7 @@ def dolnp(data, direction_type_key):
             R = np.sqrt(E[0]**2 + E[1]**2 + E[2]**2)
             for c in E:
                 # set initial direction as mean of lines
-                V.append(old_div(c, R))
+                V.append(c / R)
         XV = calculate_best_fit_vectors(L, E, V, n_planes)
 # calculating overall mean direction and R
         U = E[:]
@@ -4955,7 +4952,7 @@ def dolnp(data, direction_type_key):
                 U[c] = U[c] + dir[c]
         R = np.sqrt(U[0]**2 + U[1]**2 + U[2]**2)
         for c in range(3):
-            U[c] = old_div(U[c], R)
+            U[c] = U[c] / R
 # get dec and inc of solution points on gt circles
         dirV = cart2dir(U)
 # calculate modified Fisher stats fo fit
@@ -4964,10 +4961,10 @@ def dolnp(data, direction_type_key):
         if NP < 1.1:
             NP = 1.1
         if n_total - R != 0:
-            K = old_div((NP - 1.), (n_total - R))
-            fac = (20.**(old_div(1., (NP - 1.))) - 1.)
+            K = (NP - 1.) / (n_total - R)
+            fac = (20.**(1. / (NP - 1.)) - 1.)
             fac = fac * (NP - 1.) / K
-            a = 1. - old_div(fac, R)
+            a = 1. - (fac / R)
             a95 = a
             if abs(a) > 1.0:
                 a95 = 1.
@@ -5005,7 +5002,7 @@ def vclose(L, V):
         lam = lam + V[k] * L[k]
     beta = np.sqrt(1. - lam**2)
     for k in range(3):
-        X.append((old_div((V[k] - lam * L[k]), beta)))
+        X.append(((V[k] - lam * L[k]) / beta))
     return X
 
 
@@ -5038,7 +5035,7 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
                 U[c] = U[c] - XV[k][c]
             R = np.sqrt(U[0]**2 + U[1]**2 + U[2]**2)
             for c in range(3):
-                V[c] = old_div(U[c], R)
+                V[c] = U[c] / R
             XX = vclose(L[k], V)
             ang = XX[0] * XV[k][0] + XX[1] * XV[k][1] + XX[2] * XV[k][2]
             angles.append(np.arccos(ang) * 180. / np.pi)
@@ -6092,13 +6089,13 @@ def binglookup_old(w1i, w2i):
     if w1i < wstart:
         w1 = '%4.2f' % (wstart + incr/2.)
     if w2i < wstart:
-        w2 = '%4.2f' % (wstart + old_div(incr, 2.))
+        w2 = '%4.2f' % (wstart + (incr / 2.))
     wnext = wstart + incr
     while wstart < 0.5:
         if w1i >= wstart and w1i < wnext:
-            w1 = '%4.2f' % (wstart + old_div(incr, 2.))
+            w1 = '%4.2f' % (wstart + (incr / 2.))
         if w2i >= wstart and w2i < wnext:
-            w2 = '%4.2f' % (wstart + old_div(incr, 2.))
+            w2 = '%4.2f' % (wstart + (incr / 2.))
         wstart += incr
         wnext += incr
     wnext = wstart + incr
@@ -6113,7 +6110,7 @@ def cdfout(data, file):
     f = open(file, "w")
     data.sort()
     for j in range(len(data)):
-        y = old_div(float(j), float(len(data)))
+        y = float(j) / float(len(data))
         out = str(data[j]) + ' ' + str(y) + '\n'
         f.write(out)
     f.close()
@@ -6177,7 +6174,7 @@ def dobingham(di_block):
 #  now for Bingham ellipses.
 #
     fac1, fac2 = -2 * N * (k1) * (w3 - w1), -2 * N * (k2) * (w3 - w2)
-    sig31, sig32 = np.sqrt(old_div(1., fac1)), np.sqrt(old_div(1., fac2))
+    sig31, sig32 = np.sqrt(1. / fac1), np.sqrt(1. / fac2)
     bpars["Zeta"], bpars["Eta"] = 2.45 * sig31 * \
         180. / np.pi, 2.45 * sig32 * 180. / np.pi
     return bpars
@@ -6421,7 +6418,7 @@ def dokent(data, NN, distribution_95=False):
     T = Tmatrix(X)
     for i in range(3):
         for j in range(3):
-            T[i][j] = old_div(T[i][j], float(NN))
+            T[i][j] = T[i][j] / float(NN)
 #
 # compute B=H'TH
 #
@@ -6464,7 +6461,7 @@ def dokent(data, NN, distribution_95=False):
         xmu += xg[i][2]
         sigma1 = sigma1 + xg[i][0]**2
         sigma2 = sigma2 + xg[i][1]**2
-    xmu = old_div(xmu, float(N))
+    xmu = xmu / float(N)
     sigma1 = sigma1/float(N)
     sigma2 = sigma2/float(N)
     
@@ -6835,7 +6832,7 @@ def check_F(AniSpec):
     s[3] = float(AniSpec["anisotropy_s4"])
     s[4] = float(AniSpec["anisotropy_s5"])
     s[5] = float(AniSpec["anisotropy_s6"])
-    chibar = old_div((s[0] + s[1] + s[2]), 3.)
+    chibar = (s[0] + s[1] + s[2]) / 3.
     tau, Vdir = doseigs(s)
     t2sum = 0
     for i in range(3):
@@ -6910,8 +6907,7 @@ def doaniscorr(PmagSpecRec, AniSpec):
         M = np.array(X)
         H = np.dot(M, chi_inv)
         cDir = cart2dir(H)
-        Hunit = [old_div(H[0], cDir[2]), old_div(H[1], cDir[2]), old_div(
-            H[2], cDir[2])]  # unit vector parallel to Banc
+        Hunit = [(H[0] / cDir[2]), (H[1] / cDir[2]), (H[2] / cDir[2])]  # unit vector parallel to Banc
         Zunit = [0, 0, -1.]  # unit vector parallel to lab field
         Hpar = np.dot(chi, Hunit)  # unit vector applied along ancient field
         Zpar = np.dot(chi, Zunit)  # unit vector applied along lab field
@@ -6996,8 +6992,8 @@ def vgp_di(plat, plong, slat, slong):
     cosp = np.cos(thetaS) * np.cos(thetaP) + np.sin(thetaS) * \
         np.sin(thetaP) * np.cos(delphi)
     thetaM = np.arccos(cosp)
-    cosd = old_div((np.cos(thetaP) - np.cos(thetaM) *
-                    np.cos(thetaS)), (np.sin(thetaM) * np.sin(thetaS)))
+    cosd = (np.cos(thetaP) - np.cos(thetaM) *
+                    np.cos(thetaS)) / (np.sin(thetaM) * np.sin(thetaS))
     C = abs(1. - cosd**2)
     if C != 0:
         dec = -np.arctan(cosd/np.sqrt(abs(C))) + (np.pi/2.)
@@ -7093,7 +7089,7 @@ def dimap(D, I):
 
 # CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
     # from Collinson 1983
-    R = old_div(np.sqrt(1. - X[2]), (np.sqrt(X[0]**2 + X[1]**2)))
+    R = np.sqrt(1. - X[2]) / (np.sqrt(X[0]**2 + X[1]**2))
     XY[1], XY[0] = X[0] * R, X[1] * R
 
 # RETURN XY[X,Y]
@@ -7280,14 +7276,14 @@ def adjust_ages(AgesIn):
                 AgesOut.append(agerec[0] * 1e3 / factor)
             if "Years" in agerec[1].split():
                 if agerec[1] == "Years BP":
-                    AgesOut.append(old_div(agerec[0], factor))
+                    AgesOut.append(agerec[0] / factor)
                 if agerec[1] == "Years Cal BP":
-                    AgesOut.append(old_div(agerec[0], factor))
+                    AgesOut.append(agerec[0] / factor)
                 if agerec[1] == "Years AD (+/-)":
                     # convert to years BP first
-                    AgesOut.append(old_div((1950 - agerec[0]), factor))
+                    AgesOut.append((1950 - agerec[0]) / factor)
                 if agerec[1] == "Years Cal AD (+/-)":
-                    AgesOut.append(old_div((1950 - agerec[0]), factor))
+                    AgesOut.append((1950 - agerec[0]) / factor)
     return AgesOut, age_unit
 #
 
@@ -8509,12 +8505,12 @@ def dohext(nf, sigma, s):
     tau, Vdir = doseigs(s)
     for i in range(3):
         t2sum += tau[i]**2
-    chibar = old_div((s[0] + s[1] + s[2]), 3.)
+    chibar = (s[0] + s[1] + s[2]) / 3.
     hpars['F_crit'] = '%s' % (fcalc(5, nf))
     hpars['F12_crit'] = '%s' % (fcalc(2, nf))
     hpars["F"] = 0.4 * (t2sum - 3 * chibar**2) / (sigma**2)
-    hpars["F12"] = 0.5 * (old_div((tau[0] - tau[1]), sigma))**2
-    hpars["F23"] = 0.5 * (old_div((tau[1] - tau[2]), sigma))**2
+    hpars["F12"] = 0.5 * ((tau[0] - tau[1]) / sigma)**2
+    hpars["F23"] = 0.5 * ((tau[1] - tau[2]) / sigma)**2
     hpars["v1_dec"] = Vdir[0][0]
     hpars["v1_inc"] = Vdir[0][1]
     hpars["v2_dec"] = Vdir[1][0]
@@ -8525,11 +8521,11 @@ def dohext(nf, sigma, s):
     hpars["t2"] = tau[1]
     hpars["t3"] = tau[2]
     hpars["e12"] = np.arctan(
-        old_div((f * sigma), (2 * abs(tau[0] - tau[1])))) * 180. / np.pi
+        (f * sigma) / (2 * abs(tau[0] - tau[1]))) * 180. / np.pi
     hpars["e23"] = np.arctan(
-        old_div((f * sigma), (2 * abs(tau[1] - tau[2])))) * 180. / np.pi
+        (f * sigma) / (2 * abs(tau[1] - tau[2]))) * 180. / np.pi
     hpars["e13"] = np.arctan(
-        old_div((f * sigma), (2 * abs(tau[0] - tau[2])))) * 180. / np.pi
+        (f * sigma) / (2 * abs(tau[0] - tau[2]))) * 180. / np.pi
     return hpars
 #
 #
@@ -8648,12 +8644,12 @@ def dok15_s(k15):
     A, B = design(15)  # get design matrix for 15 measurements
     sbar = np.dot(B, k15)  # get mean s
     t = (sbar[0] + sbar[1] + sbar[2])  # trace
-    bulk = old_div(t, 3.)  # bulk susceptibility
+    bulk = t / 3.  # bulk susceptibility
     Kbar = np.dot(A, sbar)  # get best fit values for K
     dels = k15 - Kbar  # get deltas
-    dels, sbar = old_div(dels, t), old_div(sbar, t)  # normalize by trace
+    dels, sbar = dels / t, sbar / t  # normalize by trace
     So = sum(dels**2)
-    sigma = np.sqrt(old_div(So, 9.))  # standard deviation
+    sigma = np.sqrt(So / 9.)  # standard deviation
     return sbar, sigma, bulk
 #
 
@@ -9825,14 +9821,13 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
         two = b2 * ct * ct
         three = one + two
         rho = np.sqrt(three)
-        r = np.sqrt(alt * (alt + 2.0 * rho) +
-                    old_div((a2 * one + b2 * two), three))
-        cd = old_div((alt + rho), r)
+        r = np.sqrt(alt * (alt + 2.0 * rho) + (a2 * one + b2 * two) / three)
+        cd = (alt + rho) / r
         sd = (a2 - b2) / rho * ct * st / r
         one = ct
         ct = ct * cd - st * sd
         st = st * cd + one * sd
-    ratio = old_div(6371.2, r)
+    ratio = 6371.2 / r
     rr = ratio * ratio
 #
 # compute Schmidt quasi-normal coefficients p and x(=q)
@@ -9851,7 +9846,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
         fm = m
         if k != 2:  # else go to 4
             if m == n:   # else go to 3
-                one = np.sqrt(1.0 - old_div(0.5, fm))
+                one = np.sqrt(1.0 - (0.5 / fm))
                 j = k - n - 1
                 p[k] = one * st * p[j]
                 q[k] = one * (st * q[j] + ct * p[j])
@@ -9861,8 +9856,8 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
                 # 3
                 gm = m * m
                 one = np.sqrt(fn * fn - gm)
-                two = old_div(np.sqrt(gn * gn - gm), one)
-                three = old_div((fn + gn), one)
+                two = np.sqrt(gn * gn - gm) / one
+                three = (fn + gn) / one
                 i = k - n
                 j = i - n + 1
                 p[k] = three * ct * p[i] - two * p[j]
@@ -11222,8 +11217,8 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     # cartesian coordites of Geographic D
     GCart = dir2cart([dec_geo, inc_geo, 1.])
     TCart = dir2cart([dec_tilt, inc_tilt, 1.])  # cartesian coordites of Tilt D
-    X = old_div((TCart[1] - GCart[1]), (GCart[0] - TCart[0]))
-    SCart[1] = np.sqrt(old_div(1, (X**2 + 1.)))
+    X = (TCart[1] - GCart[1]) / (GCart[0] - TCart[0])
+    SCart[1] = np.sqrt(1 / (X**2 + 1.))
     SCart[0] = SCart[1] * X
     SDir = cart2dir(SCart)
     DipDir = (SDir[0] - 90.) % 360.
@@ -11235,8 +11230,7 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
         SCart[1]  # cosine of angle between two
     d = np.arccos(cosd)
     cosTheta = GCart[0] * TCart[0] + GCart[1] * TCart[1] + GCart[2] * TCart[2]
-    Dip = (old_div(180., np.pi)) * \
-        np.arccos(-(old_div((cosd**2 - cosTheta), np.sin(d)**2)))
+    Dip = (180. / np.pi) * np.arccos(-((cosd**2 - cosTheta) / np.sin(d)**2))
     if Dip > 90:
         Dip = -Dip
     return DipDir, Dip
@@ -11894,16 +11888,15 @@ def linreg(x, y):
         xy += x[i] * y[i]
         xsum += x[i]
         ysum += y[i]
-        xsig = np.sqrt(old_div((xx - old_div(xsum**2, n)), (n - 1.)))
-        ysig = np.sqrt(old_div((yy - old_div(ysum**2, n)), (n - 1.)))
-    linpars['slope'] = old_div(
-        (xy - (xsum * ysum / n)), (xx - old_div((xsum**2), n)))
-    linpars['b'] = old_div((ysum - linpars['slope'] * xsum), n)
-    linpars['r'] = old_div((linpars['slope'] * xsig), ysig)
+        xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
+        ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
+    linpars['slope'] = (xy - (xsum * ysum / n)) / (xx - (xsum**2) / n)
+    linpars['b'] = (ysum - linpars['slope'] * xsum) / n
+    linpars['r'] = (linpars['slope'] * xsig) / ysig
     for i in range(n):
         a = y[i] - linpars['b'] - linpars['slope'] * x[i]
         sum += a
-    linpars['sigma'] = old_div(sum, (n - 2.))
+    linpars['sigma'] = sum /(n - 2.)
     linpars['n'] = n
     return linpars
 
