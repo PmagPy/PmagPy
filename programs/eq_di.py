@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
-from past.utils import old_div
 import sys
 import math
 import pmagpy.pmag as pmag
@@ -55,7 +54,7 @@ def main():
             if y<0:
                 p=3.*math.pi/2.
             else:
-                p=old_div(math.pi,2.)
+                p = math.pi / 2.
         else:
             p=math.atan2(y,x)
         d,i=p*180./math.pi,t*180./math.pi

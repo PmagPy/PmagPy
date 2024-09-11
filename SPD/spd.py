@@ -19,7 +19,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 from builtins import object
-from past.utils import old_div
 import sys
 import numpy
 import os
@@ -443,7 +442,7 @@ class PintPars(object):
     def get_gamma(self):
         B_lab_dir = [self.B_lab_dir[0], self.B_lab_dir[1], 1.]
         ind = self.t_Arai.index(self.tmax)
-        ptrm_dir = [self.PTRMS[ind][1], self.PTRMS[ind][2], old_div(self.PTRMS[ind][3], self.specimen_Data['NRM'])]
+        ptrm_dir = [self.PTRMS[ind][1], self.PTRMS[ind][2], self.PTRMS[ind][3] / self.specimen_Data['NRM']]
         ptrm_cart = lib_direct.dir2cart(ptrm_dir)
         gamma = lib_direct.get_gamma(B_lab_dir, ptrm_dir)
         self.pars['ptrm_dir'] = ptrm_dir
