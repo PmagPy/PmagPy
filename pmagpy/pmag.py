@@ -6264,7 +6264,9 @@ def doreverse_list(decs, incs):
 
 def doincfish(inc):
     """
-    Calculates Fisher mean inclination from inclination-only data.
+    Calculates Fisher mean inclination from inclination-only data. This function uses
+    the method of McFadden and Reid (1982), and incorporates asymmetric confidence limits
+    after McElhinny and McFadden (2000).
 
     Parameters
     ----------
@@ -6278,21 +6280,23 @@ def doincfish(inc):
         'inc' : estimated Fisher mean
         'r' : estimated Fisher R value
         'k' : estimated Fisher kappa
-        'upper_confidence_limit' : estimated upper confidence limit (these are NOT symmetric)
-        'lower_confidence_limit' : estimated lower confidence limit (these are NOT symmetric)
+        'alpha95': estimated confidence limit
+        'upper_confidence_limit' : estimated upper confidence limit of inclination
+        'lower_confidence_limit' : estimated lower confidence limit of inclination
         'csd' : estimated circular standard deviation
 
     Examples
     --------
-    >>> pmag.doincfish([60, 62, 0, 10])
-    {'n': 4,
-     'ginc': 33.0,
-     'inc': 39.85999999999999,
-     'r': 2.9999543668915285,
-     'k': 2.9998631069214423,
-     'upper_confidence_limit': 50.61658829424055,
-     'lower_confidence_limit': 64.28941715573792,
-     'csd': 46.76643881682918}
+    >>> pmag.doincfish([62.4, 61.6, 50.2, 65.2, 53.2, 61.4, 74.0, 60.0, 52.6 and 71.8])
+    {'n': 9,
+     'ginc': 62.2,
+     'inc': 63.129999999999995,
+     'r': 8.854512089022755,
+     'k': 54.98738655510178,
+     'upper_confidence_limit': 67.74104133254815,
+     'lower_confidence_limit': 56.65781291064237,
+     'alpha95': 5.541614210952887,
+     'csd': 10.923290392103148}
     """
 
     abinc = []
@@ -6341,15 +6345,16 @@ def doincfish(inc):
     fpars["r"], R = (2. * C - N), (2 * C - N)
     fpars["k"] = k
     f = fcalc(2, N - 1)  # the 'g' of MM2000
-    a95 = 1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))
+    a95 = np.rad2deg(np.arccos(1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))))
     # calculating the upper and lower confidence intervals
-    a95_down = (180 * S) / (np.pi * C) - np.rad2deg(np.arccos(a95))
-    a95_up = (180 * S) / (np.pi * C) + np.rad2deg(np.arccos(a95))
+    lower_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) - a95
+    upper_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) + a95
     csd = 81. / np.sqrt(k)
 
     # the upper and lower confidence intervals as values
-    fpars["upper_confidence_limit"] = a95_up
-    fpars["lower_confidence_limit"] = np.abs(a95_down)
+    fpars["upper_confidence_limit"] = upper_confidence_limit
+    fpars["lower_confidence_limit"] = lower_confidence_limit
+    fpars["alpha95"] = a95
     fpars["csd"] = csd
     return fpars
 
