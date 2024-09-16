@@ -6264,7 +6264,9 @@ def doreverse_list(decs, incs):
 
 def doincfish(inc):
     """
-    Calculates Fisher mean inclination from inclination-only data.
+    Calculates Fisher mean inclination from inclination-only data. This function uses
+    the method of McFadden and Reid (1982), and incorporates asymmetric confidence limits
+    after McElhinny and McFadden (2000).
 
     Parameters
     ----------
@@ -6278,20 +6280,25 @@ def doincfish(inc):
         'inc' : estimated Fisher mean
         'r' : estimated Fisher R value
         'k' : estimated Fisher kappa
-        'alpha95' : estimated fisher alpha_95
+        'alpha95': estimated confidence limit
+        'upper_confidence_limit' : estimated upper confidence limit of inclination
+        'lower_confidence_limit' : estimated lower confidence limit of inclination
         'csd' : estimated circular standard deviation
 
     Examples
     --------
-    >>> pmag.doincfish([60,62,0,10])
-    {'n': 4,
-     'ginc': 33.0,
-     'inc': 39.85999999999957,
-     'r': 2.9999543668915347,
-     'k': 2.999863106921461,
-     'alpha95': 57.453002724988956,
-     'csd': 46.76643881682904}
+    >>> pmag.doincfish([62.4, 61.6, 50.2, 65.2, 53.2, 61.4, 74.0, 60.0, 52.6, 71.8])
+    {'n': 10,
+     'ginc': 61.239999999999995,
+     'inc': 62.18,
+     'r': 9.828974184785405,
+     'k': 52.623634558953846,
+     'upper_confidence_limit': 66.49823541535572,
+     'lower_confidence_limit': 55.9733682324565,
+     'alpha95': 5.2624335914496125,
+     'csd': 11.165922232016465}
     """
+
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -6303,13 +6310,14 @@ def doincfish(inc):
     if MI < 30:
         fpars['inc'] = MI
         fpars['k'] = 0
-        fpars['alpha95'] = 0
+        fpars['upper_confidence_limit'] = 0
+        fpars['lower_confidence_limit'] = 0
         fpars['csd'] = 0
         fpars['r'] = 0
         print('WARNING: mean inc < 30, returning gaussian mean')
         return fpars
     inc = np.array(inc)
-    coinc = np.deg2rad(90. - np.abs(inc)) # sum over all incs (but take only positive inc)
+    coinc = np.deg2rad(90. - np.abs(inc))  # sum over all incs (but take only positive inc)
     SCOi = np.cos(coinc).sum()
     SSOi = np.sin(coinc).sum()
     min_misfit,min_curvature = np.inf,0.
@@ -6322,25 +6330,30 @@ def doincfish(inc):
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
         print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method you may wish to consider an alternate technique."%misfit[idx_zeros])
-    ML_zeros = np.array(Oo[[idx_zeros]])
+    ML_zeros = np.array(Oo[idx_zeros])
     ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
-#    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
-    U = 0.5*N*((1/(np.cos(ML_zeros)**2))-(np.cos(ML_matrix-coinc).sum(axis=1)/(N-np.cos(ML_matrix-coinc).sum(axis=1))))
-#    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
+    #    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
+    U = 0.5 * N * ((1 / (np.cos(ML_zeros) ** 2)) - (
+                np.cos(ML_matrix - coinc).sum(axis=1) / (N - np.cos(ML_matrix - coinc).sum(axis=1))))
+    #    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
     Oo = ML_zeros[np.argmin(U)]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
-    k = old_div((N - 1.), (2. * (N - C)))
+    k = (N - 1.) / (2. * (N - C))
     Imle = 90. - np.rad2deg(Oo)
-    fpars["inc"] = Imle
-    fpars["r"], R = 2. * C - N, 2 * C - N
+    fpars["inc"] = Imle[0]
+    fpars["r"], R = (2. * C - N), (2 * C - N)
     fpars["k"] = k
-    f = fcalc(2, N - 1)
-    a95 = 1. - (0.5) * (old_div(S, C))**2 - (old_div(f, (2. * C * k)))
-#    b=20.**(1./(N-1.)) -1.
-#    a=1.-b*(N-R)/R
-    a95=np.rad2deg(np.arccos(a95))
-    csd = old_div(81., np.sqrt(k))
+    f = fcalc(2, N - 1)  # the 'g' of MM2000
+    a95 = np.rad2deg(np.arccos(1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))))
+    # calculating the upper and lower confidence intervals
+    lower_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) - a95
+    upper_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) + a95
+    csd = 81. / np.sqrt(k)
+
+    # the upper and lower confidence intervals as values
+    fpars["upper_confidence_limit"] = upper_confidence_limit
+    fpars["lower_confidence_limit"] = lower_confidence_limit
     fpars["alpha95"] = a95
     fpars["csd"] = csd
     return fpars
