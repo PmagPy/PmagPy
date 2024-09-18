@@ -4521,6 +4521,11 @@ def fisher_mean(data):
         return {'dec': data[0][0], 
                 'inc': data[0][1]}
     
+    # make sure to only use the dec, inc values even if intensity values are provided
+    # so that we only work with unit vectors in this function
+    for i in range(N):
+        data[i] = data[i][:2]
+
     X = np.array(dir2cart(data))
     Xbar = X.sum(axis=0)
     R = np.linalg.norm(Xbar)
