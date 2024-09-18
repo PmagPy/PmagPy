@@ -4521,8 +4521,8 @@ def fisher_mean(data):
         return {'dec': data[0][0], 
                 'inc': data[0][1]}
     
-    # make sure to only use the dec, inc values even if intensity values are provided
-    # so that we only work with unit vectors in this function
+    # use only dec, inc values even if intensity values are provided
+    # so that calculations are on unit vectors
     for i in range(N):
         data[i] = data[i][:2]
 
