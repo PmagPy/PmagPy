@@ -257,9 +257,9 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
             if dec_corr: # ADDED 3/3/21
                 if rec[el].isdigit(): 
                     deccorr=float(rec[el])
+                el+=1
             else:
                 deccorr=0
-            el+=1
             while rec[el] == "":
                 el += 1
             az = float(rec[el])
