@@ -4,7 +4,6 @@ from __future__ import print_function
 from builtins import input
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import sys
 import numpy
 import matplotlib
@@ -65,7 +64,7 @@ def smooth(x,window_len,window='bartlett'):
         w=ones(window_len,'d')
     else:
         w=eval('numpy.'+window+'(window_len)')
-    y=numpy.convolve(old_div(w,w.sum()),s,mode='same')
+    y=numpy.convolve(w / w.sum(),s,mode='same')
     return array(y[window_len:-window_len])
 
 
@@ -88,7 +87,7 @@ def deriv1(x,y,i,n):
         y_=y_+y[ix]
         xy_=xy_+x[ix]*y[ix]
         x_2=x_2+x[ix]**2
-    m= old_div(( (n*xy_) - (x_*y_) ), ( n*x_2-(x_)**2))
+    m = ( (n*xy_) - (x_*y_) ) / ( n*x_2-(x_)**2)
     return(m)
 
 
@@ -211,7 +210,7 @@ def main():
     for i in range(len(M_smooth)-1):
         Dy=M_smooth[i-1]-M_smooth[i+1]
         Dx=T[i-1]-T[i+1]
-        d1.append(old_div(Dy,Dx))
+        d1.append(Dy / Dx)
     T_d1=T[1:len(T-1)]
     d1=array(d1,'f')
     d1_smooth=smooth(d1,window_len)
@@ -228,7 +227,7 @@ def main():
         Dy=d1_smooth[i-1]-d1_smooth[i+1]
         Dx=T[i-1]-T[i+1]
         #print Dy/Dx
-        d2.append(old_div(Dy,Dx))
+        d2.append(Dy / Dx)
     T_d2=T[2:len(T-2)]
     d2=array(d2,'f')
     d2_smooth=smooth(d2,window_len)
@@ -252,7 +251,7 @@ def main():
         for i in range(len(M_smooth)-1):
             Dy=M_smooth[i-1]-M_smooth[i+1]
             Dx=T[i-1]-T[i+1]
-            d1.append(old_div(Dy,Dx))
+            d1.append(Dy / Dx)
         T_d1=T[1:len(T-1)]
         d1=array(d1,'f')
         d1_smooth=smooth(d1,win)
@@ -261,7 +260,7 @@ def main():
         for i in range(len(d1_smooth)-1):
             Dy=d1_smooth[i-1]-d1_smooth[i+1]
             Dx=T[i-1]-T[i+1]
-            d2.append(old_div(Dy,Dx))
+            d2.append(Dy / Dx)
         T_d2=T[2:len(T-2)]
         d2=array(d2,'f')
         d2_smooth=smooth(d2,win)

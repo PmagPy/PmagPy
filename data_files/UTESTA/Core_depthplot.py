@@ -4,7 +4,6 @@ from __future__ import print_function
 from builtins import input
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import pmagplotlib
 import pmag,sys,exceptions,pylab
 pylab.ion()
@@ -297,7 +296,7 @@ def main():
                    if pltD==1:Decs.append(float(rec['measurement_dec']))
                    if pltI==1:Incs.append(float(rec['measurement_inc']))
                    if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
-                   if norm==1 and pltM==1:Ints.append(old_div(float(rec[meas_key]),float(rec['specimen_weight'])))
+                   if norm==1 and pltM==1:Ints.append(float(rec[meas_key]) / float(rec['specimen_weight']))
             if len(SSucs)>0:
                 maxSuc=max(SSucs)
                 minSuc=min(SSucs)
@@ -334,7 +333,7 @@ def main():
                 FDepths.append(float(samp[0][depth_scale]))# fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
-            else:
+              else:
                 print('no core_depth found for: ',spec['er_specimen_name'])
     ResDepths,ResDecs,ResIncs=[],[],[]
     if 'age' in depth_scale: # set y-key
@@ -538,7 +537,7 @@ def main():
             for k in range(len(Chrons)-1):
                 c=Chrons[k]
                 cnext=Chrons[k+1]
-                d=cnext[1]-old_div((cnext[1]-c[1]),3.)
+                d=cnext[1]-(cnext[1]-c[1]) / 3.
                 if d>=amin and d<amax:
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) #

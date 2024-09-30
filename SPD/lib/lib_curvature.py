@@ -4,7 +4,6 @@ from __future__ import division
 from builtins import zip
 from builtins import map
 from builtins import range
-from past.utils import old_div
 import numpy
 from numpy import *
 
@@ -29,9 +28,9 @@ def AraiCurvature(x=x,y=y):
     """
     # makes sure all values are floats, then norms them by largest value
     X = numpy.array(list(map(float, x)))
-    X = old_div(X, max(X))
+    X = X / max(X)
     Y = numpy.array(list(map(float, y)))
-    Y = old_div(Y, max(Y))
+    Y = Y / max(Y)
     XY = numpy.array(list(zip(X, Y)))
                   
     #Provide the intitial estimate
@@ -47,9 +46,9 @@ def AraiCurvature(x=x,y=y):
     best_r = E2[2]
 
     if best_a <= numpy.mean(X) and best_b <= numpy.mean(Y):
-        k = old_div(-1.,best_r)
+        k = -1. / best_r
     else:
-        k = old_div(1.,best_r)
+        k = 1. / best_r
 
     SSE = get_SSE(best_a, best_b, best_r, X, Y)
     return k, best_a, best_b, SSE
@@ -73,12 +72,12 @@ def TaubinSVD(XY):
     centroid = [numpy.mean(XY[:,0]), numpy.mean(XY[:,1])]
     Z = X * X + Y * Y  
     Zmean = numpy.mean(Z)
-    Z0 = old_div((Z - Zmean), (2. * numpy.sqrt(Zmean)))
+    Z0 = (Z - Zmean) / (2. * numpy.sqrt(Zmean))
     ZXY = numpy.array([Z0, X, Y]).T
     U, S, V = numpy.linalg.svd(ZXY, full_matrices=False) # 
     V = V.transpose()
     A = V[:,2]
-    A[0] = old_div(A[0], (2. * numpy.sqrt(Zmean)))
+    A[0] = A[0] / (2. * numpy.sqrt(Zmean))
     A = numpy.concatenate([A, [(-1. * Zmean * A[0])]], axis=0)
     a, b = (-1 * A[1:3]) / A[0] / 2 + centroid 
     r = numpy.sqrt(A[1]*A[1]+A[2]*A[2]-4*A[0]*A[3])/abs(A[0])/2;
@@ -97,7 +96,7 @@ def VarCircle(XY, Par):  # must have at least 4 sets of xy points or else divisi
     Dx = XY[:,0] - Par[0]
     Dy = XY[:,1] - Par[1]
     D = numpy.sqrt(Dx * Dx + Dy * Dy) - Par[2]
-    result = old_div(numpy.dot(D, D),(n-3))
+    result = numpy.dot(D, D) / (n-3)
     return result
 
 
@@ -126,10 +125,10 @@ def LMA(XY,ParIni):
 
     anew = ParIni[0] + Xshift
     bnew = ParIni[1] + Yshift
-    Anew = old_div(1.,(2.*ParIni[2]))                                                                              
+    Anew = 1. / (2.*ParIni[2])
     aabb = anew*anew + bnew*bnew    
     Fnew = (aabb - ParIni[2]*ParIni[2])*Anew 
-    Tnew = numpy.arccos(old_div(-anew,numpy.sqrt(aabb))) 
+    Tnew = numpy.arccos(-anew / numpy.sqrt(aabb))
     if bnew > 0:
         Tnew = 2*numpy.pi - Tnew
     VarNew = VarCircle(XY,ParIni) 
@@ -147,7 +146,7 @@ def LMA(XY,ParIni):
         H = numpy.sqrt(1+4*Aold*Fold);                                                                 
         aold = -H*numpy.cos(Told)/(Aold+Aold) - Xshift;
         bold = -H*numpy.sin(Told)/(Aold+Aold) - Yshift;
-        Rold = old_div(1,abs(Aold+Aold)); 
+        Rold = 1 / abs(Aold+Aold);
 
         DD = 1 + 4*Aold*Fold; 
         D = numpy.sqrt(DD);  
@@ -195,20 +194,20 @@ def LMA(XY,ParIni):
                                               
 #             Cholesly decomposition                                     
                                                                        
-            G11 = numpy.sqrt(H11 + VarLambda);
-            G12 = old_div(H12,G11)                                                                              
-            G13 = old_div(H13,G11)
+            G11 = numpy.sqrt(H11 + VarLambda)
+            G12 = H12 / G11
+            G13 = H13 / G11
             G22 = numpy.sqrt(H22 + VarLambda - G12*G12);                                                              
-            G23 = old_div((H23 - G12*G13),G22);                                             
+            G23 = (H23 - G12*G13) / G22;
             G33 = numpy.sqrt(H33 + VarLambda - G13*G13 - G23*G23);                
                                                                                    
-            D1 = old_div(F1,G11);                                            
-            D2 = old_div((F2 - G12*D1),G22);                                                              
-            D3 = old_div((F3 - G13*D1 - G23*D2),G33);                
+            D1 = F1 / G11
+            D2 = (F2 - G12*D1) / G22
+            D3 = (F3 - G13*D1 - G23*D2) / G33
 
-            dT = old_div(D3,G33);  
-            dF = old_div((D2 - G23*dT),G22) 
-            dA = old_div((D1 - G12*dF - G13*dT),G11) 
+            dT = D3 / G33
+            dF = (D2 - G23*dT) / G22
+            dA = (D1 - G12*dF - G13*dT) / G11
                                                                                    
 #            updating the parameters
                                                                                             
@@ -223,12 +222,12 @@ def LMA(XY,ParIni):
                 H = numpy.sqrt(1+4*Aold*Fold);                               
                 aTemp = -H*numpy.cos(Told)/(Aold+Aold) + dX;                                     
                 bTemp = -H*numpy.sin(Told)/(Aold+Aold) + dY;                                      
-                rTemp = old_div(1,abs(Aold+Aold));                                       
+                rTemp = 1 / abs(Aold+Aold)
                                                                              
-                Anew = old_div(1,(rTemp + rTemp));                         
+                Anew = 1 / (rTemp + rTemp)
                 aabb = aTemp*aTemp + bTemp*bTemp;                          
                 Fnew = (aabb - rTemp*rTemp)*Anew;                             
-                Tnew = numpy.arccos(old_div(-aTemp,numpy.sqrt(aabb)));                                       
+                Tnew = numpy.arccos(-aTemp / numpy.sqrt(aabb))
                 if bTemp > 0:
                     Tnew = 2*numpy.pi - Tnew;           
                 VarNew = VarOld;                                         
@@ -259,15 +258,15 @@ def LMA(XY,ParIni):
                 Gi = 2*ADF/DEN; 
                 GG = GG + Gi*Gi;
                                    
-            VarNew = old_div(GG,(n-3));    
+            VarNew = GG / (n-3)
          
             H = numpy.sqrt(1+4*Anew*Fnew);               
             anew = -H*numpy.cos(Tnew)/(Anew+Anew) - Xshift;  
             bnew = -H*numpy.sin(Tnew)/(Anew+Anew) - Yshift;  
-            Rnew = old_div(1,abs(Anew+Anew)); 
+            Rnew = 1 / abs(Anew+Anew)
 
             if VarNew <= VarOld: 
-                progress = old_div((abs(anew-aold) + abs(bnew-bold) + abs(Rnew-Rold)),(Rnew+Rold));      
+                progress = (abs(anew-aold) + abs(bnew-bold) + abs(Rnew-Rold)) / (Rnew+Rold)
                 if progress < epsilon: 
                     Aold = Anew;          
                     Fold = Fnew;      
@@ -288,7 +287,7 @@ def LMA(XY,ParIni):
     H = numpy.sqrt(1+4*Aold*Fold);                                                                                        
     result_a = -H*numpy.cos(Told)/(Aold+Aold) - Xshift;                                                      
     result_b = -H*numpy.sin(Told)/(Aold+Aold) - Yshift;                                                 
-    result_r = old_div(1,abs(Aold+Aold));       
+    result_r = 1 / abs(Aold+Aold)
 
     return result_a, result_b, result_r
 
