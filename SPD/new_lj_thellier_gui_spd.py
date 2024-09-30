@@ -457,7 +457,7 @@ class Arai_GUI(object):
 
                   # Now  fit tanh function to the normalized curve
                   M_NLT_norm = M_NLT / M_lab
-                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm, (popt[0] / M_lab), popt[1])
+                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm, p0 = ((popt[0] / M_lab), popt[1]))
                   Data[s]['NLT_parameters']={}
                   Data[s]['NLT_parameters']['tanh_parameters']=(popt, pcov)
                   Data[s]['NLT_parameters']['B_NLT']=B_NLT
