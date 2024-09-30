@@ -54,7 +54,7 @@ class Spline(func.FuncOps):
         u        = numpy.zeros(n-1, 'f')
 
         if self.use_low_slope:
-            u[0] = (3.0 / (x_vals[1]-x_vals[0])) * (((y_vals[1]-y_vals[0]) /
+            u[0] = (3.0 / (x_vals[1]-x_vals[0])) * (((y_vals[1]-y_vals[0])
                 (x_vals[1]-x_vals[0]))-self.low_slope)
             y2_vals[0] = -0.5
         else:

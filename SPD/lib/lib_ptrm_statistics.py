@@ -143,11 +143,9 @@ def get_delta_pal_vectors(PTRMS, PTRM_Checks, NRM):
     PTRMS_cart = []
     Checks_cart = []
     for num, ptrm in enumerate(PTRMS):
-        #ptrm_cart = lib_direct.dir2cart([PTRMS[num][1], PTRMS[num][2], PTRMS[num][3] / NRM)]
         ptrm_cart = lib_direct.dir2cart([PTRMS[num][1], PTRMS[num][2], PTRMS[num][3]/NRM])
         PTRMS_cart.append(ptrm_cart)
     for num, check in enumerate(PTRM_Checks):
-        #check_cart = lib_direct.dir2cart([PTRM_Checks[num][1], PTRM_Checks[num][2], PTRM_Checks[num][3] / NRM)]
         check_cart = lib_direct.dir2cart([float(PTRM_Checks[num][1]), float(PTRM_Checks[num][2]), float(PTRM_Checks[num][3]) / NRM])
         Checks_cart.append(check_cart)
     return PTRMS_cart, Checks_cart, TRM_1

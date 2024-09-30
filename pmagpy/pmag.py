@@ -1397,7 +1397,7 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
             plong = plong - 2 * np.pi
 
     dm = np.rad2deg(a95 * (np.sin(p) / np.cos(dip)))
-    dp = np.rad2deg(a95 * ((1 + 3 * (np.cos(p)**2) / 2)))
+    dp = np.rad2deg(a95 * ((1 + 3 * (np.cos(p)**2)) / 2))
     plat = np.rad2deg(plat)
     plong = np.rad2deg(plong)
     return plong.tolist(), plat.tolist(), dp.tolist(), dm.tolist()
