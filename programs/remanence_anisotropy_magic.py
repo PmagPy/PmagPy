@@ -5,7 +5,6 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-from past.utils import old_div
 import sys
 import pylab
 from pylab import *
@@ -149,7 +148,7 @@ def main():
         
         # normalize by trace
         trace=S_bs[0]+S_bs[1]+S_bs[2]
-        S_bs=old_div(S_bs,trace)
+        S_bs=S_bs / trace
         s1,s2,s3,s4,s5,s6=S_bs[0],S_bs[1],S_bs[2],S_bs[3],S_bs[4],S_bs[5]
         s_matrix=[[s1,s4,s6],[s4,s2,s5],[s6,s5,s3]]
         
@@ -182,7 +181,7 @@ def main():
         aniso_parameters['anisotropy_s4']="%f"%s4
         aniso_parameters['anisotropy_s5']="%f"%s5
         aniso_parameters['anisotropy_s6']="%f"%s6
-        aniso_parameters['anisotropy_degree']="%f"%(old_div(t1,t3))
+        aniso_parameters['anisotropy_degree']="%f"%(t1 / t3)
         aniso_parameters['anisotropy_t1']="%f"%t1
         aniso_parameters['anisotropy_t2']="%f"%t2
         aniso_parameters['anisotropy_t3']="%f"%t3
@@ -194,8 +193,8 @@ def main():
         aniso_parameters['anisotropy_v3_inc']="%.1f"%DIR_v3[1]
     
         # modified from pmagpy:
-        if old_div(len(K),3)==9 or old_div(len(K),3)==6 or old_div(len(K),3)==15:
-            n_pos=old_div(len(K),3)
+        if len(K) / 3 == 9 or len(K) / 3 == 6 or len(K) / 3 == 15:
+            n_pos = len(K) / 3
             tmpH = Matrices[n_pos]['tmpH']
             a=s_matrix
             S=0.
@@ -206,11 +205,11 @@ def main():
                     compare=a[j][0]*tmpH[i][0]+a[j][1]*tmpH[i][1]+a[j][2]*tmpH[i][2]
                     comp[index]=compare
             for i in range(n_pos*3):
-                d=old_div(K[i],trace) - comp[i] # del values
+                d = K[i] / trace - comp[i] # del values
                 S+=d*d
             nf=float(n_pos*3-6) # number of degrees of freedom
             if S >0: 
-                sigma=math.sqrt(old_div(S,nf))
+                sigma=math.sqrt(S / nf)
             hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
             
             aniso_parameters['anisotropy_sigma']="%f"%sigma
@@ -475,7 +474,7 @@ def main():
                         M_1=sqrt(sum((array(M[i])**2)))
                         M_2=sqrt(sum(Alteration_check**2))
                         diff=abs(M_1-M_2)
-                        diff_ratio=old_div(diff,mean([M_1,M_2]))
+                        diff_ratio = diff / mean([M_1,M_2])
                         diff_ratio_perc=100*diff_ratio
                         if diff_ratio_perc > anisotropy_alt:
                             anisotropy_alt=diff_ratio_perc
@@ -493,7 +492,7 @@ def main():
                 M_2=sqrt(sum(array(M[i+3])**2))
                 
                 diff=abs(M_1-M_2)
-                diff_ratio=old_div(diff,max(M_1,M_2))
+                diff_ratio = diff / max(M_1,M_2)
                 diff_ratio_perc=100*diff_ratio
                 
                 if diff_ratio_perc>anisotropy_alt:

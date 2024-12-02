@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from __future__ import division
-from past.utils import old_div
 import unittest
 #import sys
 #sys.path.append('/Users/nebula/Python')
@@ -36,7 +35,7 @@ class CheckAdditivity(unittest.TestCase):
 
     add_checks = [0, .2, .1, .6]
     x_int = 2.
-    ref_delta_AC = (old_div(.2, 2)) * 100.
+    ref_delta_AC = (.2 / 2) * 100.
 
     # think I additionally need the check diffs.  what I have is just x check values.
     # I believe it will be: pTRM of start temperature - pTRM of additivity check step.  then I can compare those values.  
