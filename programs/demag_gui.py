@@ -762,21 +762,21 @@ class Demag_GUI(wx.Frame):
                                     (self.nextbutton, 1, wx.EXPAND)])
         spec_sizer.AddMany([(self.specimens_box, 1,  wx.EXPAND | wx.BOTTOM, int(side_bar_v_space/2)),
                             (spec_buttons_sizer, 1,  wx.EXPAND | wx.TOP, int(side_bar_v_space/2))])
-        side_bar_sizer.Add(spec_sizer, .5,  wx.EXPAND)
-        side_bar_sizer.Add(wx.StaticLine(self.side_panel), .5,
+        side_bar_sizer.Add(spec_sizer, 0,  wx.EXPAND)
+        side_bar_sizer.Add(wx.StaticLine(self.side_panel), 0,
                            wx.ALL | wx.EXPAND, side_bar_v_space)
 
         coordinate_sizer = wx.StaticBoxSizer(wx.StaticBox(
             self.side_panel, wx.ID_ANY, "Coordinate System"), wx.VERTICAL)
-        coordinate_sizer.Add(self.coordinates_box, .5, wx.EXPAND)
-        side_bar_sizer.Add(coordinate_sizer, .5,  wx.EXPAND)
-        side_bar_sizer.Add(wx.StaticLine(self.side_panel), .5,
+        coordinate_sizer.Add(self.coordinates_box, 0, wx.EXPAND)
+        side_bar_sizer.Add(coordinate_sizer, 0,  wx.EXPAND)
+        side_bar_sizer.Add(wx.StaticLine(self.side_panel), 0,
                            wx.ALL | wx.EXPAND, side_bar_v_space)
 
         zijderveld_option_sizer = wx.StaticBoxSizer(wx.StaticBox(
             self.side_panel, wx.ID_ANY, "Zijderveld Plot Options"), wx.VERTICAL)
         zijderveld_option_sizer.Add(self.orthogonal_box, 1, wx.EXPAND)
-        side_bar_sizer.Add(zijderveld_option_sizer, .5,
+        side_bar_sizer.Add(zijderveld_option_sizer, 0,
                             wx.EXPAND)
 
         side_bar_sizer.Add(self.logger, proportion=1,
@@ -785,7 +785,7 @@ class Demag_GUI(wx.Frame):
         # Mean Stats and button Sizer-----------------------------------------
         stats_and_button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         stats_and_button_sizer.AddMany([(self.stats_sizer, 1,  wx.EXPAND),
-                                        (self.switch_stats_button, .3,  wx.EXPAND)])
+                                        (self.switch_stats_button, 0,  wx.EXPAND)])
 
         # EQ area MM0 and stats sizer-----------------------------------------
         eqarea_MM0_stats_sizer = wx.GridSizer(2, 2, 0, 0)
@@ -797,7 +797,7 @@ class Demag_GUI(wx.Frame):
         # Plots and Stats Sizer-----------------------------------------------
         full_plots_sizer = wx.BoxSizer(wx.HORIZONTAL)
         full_plots_sizer.Add(self.canvas1, 1,  wx.EXPAND)
-        full_plots_sizer.Add(eqarea_MM0_stats_sizer, 1.5,
+        full_plots_sizer.Add(eqarea_MM0_stats_sizer, 1,
                               wx.EXPAND)
 
         self.panel.SetSizerAndFit(top_bar_sizer)
@@ -811,7 +811,7 @@ class Demag_GUI(wx.Frame):
                                 wx.EXPAND)
 
         outersizer = wx.BoxSizer(wx.VERTICAL)
-        outersizer.Add(self.panel, .2,  wx.EXPAND)
+        outersizer.Add(self.panel, 0,  wx.EXPAND)
         outersizer.Add(add_side_bar_sizer, 1,  wx.EXPAND)
 
         self.SetSizer(outersizer)
@@ -1593,10 +1593,10 @@ class Demag_GUI(wx.Frame):
 
             for line in fit.lines:
                 if line in self.zijplot.lines:
-                    self.zijplot.lines.remove(line)
+                    line.remove()
             for point in fit.points:
                 if point in self.zijplot.collections:
-                    self.zijplot.collections.remove(point)
+                    point.remove()
 
             PCA_type = fit.PCA_type
 
@@ -1697,9 +1697,9 @@ class Demag_GUI(wx.Frame):
             # delete old interpretation data
             for d in fit.eqarea_data:
                 if d in self.specimen_eqarea.lines:
-                    self.specimen_eqarea.lines.remove(d)
+                    d.remove()
                 if d in self.specimen_eqarea.collections:
-                    self.specimen_eqarea.collections.remove(d)
+                    d.remove()
 
             if pars['calculation_type'] == 'DE-BFP' and \
                self.plane_display_box.GetValue() != "poles":
@@ -1777,9 +1777,9 @@ class Demag_GUI(wx.Frame):
             # M/M0 plot (only if C or mT - not both)
             for d in fit.mm0_data:
                 if d in self.mplot.collections:
-                    self.mplot.collections.remove(d)
+                    d.remove()
                 elif d in self.mplot_af.collections:
-                    self.mplot_af.collections.remove(d)
+                    d.remove()
             temp_data_exists = any(
                 ['C' in step for step in self.Data[self.s]['zijdblock_steps']])
             af_data_exists = any(
@@ -1949,13 +1949,13 @@ class Demag_GUI(wx.Frame):
                 dm = [dm]
             for d in dm:
                 if d in self.high_level_eqarea.lines:
-                    self.high_level_eqarea.lines.remove(d)
+                    d.remove()
                 elif self.ie_open and d in self.ie.eqarea.lines:
-                    self.ie.eqarea.lines.remove(d)
+                    d.remove()
                 elif d in self.high_level_eqarea.collections:
-                    self.high_level_eqarea.collections.remove(d)
+                    d.remove()
                 elif self.ie_open and d in self.ie.eqarea.collections:
-                    self.ie.eqarea.collections.remove(d)
+                    d.remove()
         self.displayed_means = []
 
     def plot_high_level_means(self):
