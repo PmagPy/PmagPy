@@ -29,7 +29,7 @@ import wx.lib.scrolledpanel
 import copy
 import os
 import scipy
-from scipy import arange
+from numpy import arange
 # only this one is nessesary.
 import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
