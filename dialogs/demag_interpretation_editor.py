@@ -211,8 +211,8 @@ class InterpretationEditorFrame(wx.Frame):
         self.display_sizer.Add(display_window_0, 1, wx.TOP | wx.EXPAND, 8)
         self.display_sizer.Add(display_window_1, 1, wx.TOP | wx.LEFT| wx.EXPAND, 8)
         self.display_sizer.Add(display_window_2, 1, wx.TOP | wx.LEFT| wx.EXPAND, 8)
-        self.name_sizer.Add(name_window, 1, wx.TOP, 5.5)
-        self.bounds_sizer.Add(bounds_window, 1, wx.TOP, 5.5)
+        self.name_sizer.Add(name_window, 1, wx.TOP, 5)
+        self.bounds_sizer.Add(bounds_window, 1, wx.TOP, 5)
         self.buttons_sizer.Add(buttons1_window, 1, wx.TOP, 0)
 
         #duplicate high levels plot
@@ -274,7 +274,7 @@ class InterpretationEditorFrame(wx.Frame):
         vbox1.Add(self.canvas,proportion=1,flag= wx.EXPAND,border=8)
 
         vbox2 = wx.BoxSizer(wx.VERTICAL)
-        vbox2.Add(self.search_bar,proportion=.5,flag= wx.EXPAND, border=8)
+        vbox2.Add(self.search_bar,proportion=0,flag= wx.EXPAND, border=8)
         vbox2.Add(self.logger,proportion=1,flag=wx.EXPAND,border=8)
 
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
