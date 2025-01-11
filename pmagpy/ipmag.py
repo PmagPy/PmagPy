@@ -2211,12 +2211,12 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
 
     if len(X_up) > 0:
         if connect_points == True:
-            plt.plot(X_up, Y_up, ls = '-', linewidth=0.5, color ='k', alpha = alpha, zorder=1)
+            plt.plot(X_up, Y_up, ls = '-', linewidth=0.25, color ='k', alpha = alpha, zorder=1)
         plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if len(X_down) > 0:
         if connect_points == True:
-            plt.plot(X_down, Y_down, ls = '-', linewidth=0.5, color ='k', alpha = alpha, zorder=1)
+            plt.plot(X_down, Y_down, ls = '-', linewidth=0.25, color ='k', alpha = alpha, zorder=1)
         plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if legend == 'yes':
