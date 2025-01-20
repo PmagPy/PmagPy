@@ -2472,7 +2472,6 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
-
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
@@ -2496,6 +2495,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         filled_pole : if True, the A95 ellipse will be filled with color
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+        mean_alpha : transparency of pole mean (the default is 1.0; no transparency).
         zorder : plotting order (default is 100; higher will move to top of plot)
 
     Examples:
@@ -2522,7 +2522,7 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
 def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
                marker='o', markersize=20, legend='no',outline=True,
-               filled_pole=False, fill_color='k', fill_alpha=1.0, zorder=101):
+               filled_pole=False, fill_color='k', fill_alpha=1.0, alpha=1.0, zorder=101, lw=1):
     """
     This function plots paleomagnetic poles and A95 error ellipses on a cartopy map axis.
 
@@ -2544,6 +2544,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         filled_pole : if True, the A95 ellipse will be filled with color
         fill_color : color of fill; the default is black.
         fill_alpha : transparency of filled ellipse (the default is 1.0; no transparency).
+        alpha : transparency of pole mean (the default is 1.0; no transparency).
         zorder : plotting order (default is 100; higher will move to top of plot) 
 
     Examples:
@@ -2564,25 +2565,25 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
-                     label=label, zorder=zorder, transform=ccrs.PlateCarree())
+                     label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
     if filled_pole==False:
         if isinstance(color,str)==True:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color)
+                equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, color[n])
+                equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw)
     elif filled_pole==True:
         if isinstance(fill_color,str)==True:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw)
         else:
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
-                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True)
+                equi(map_axis, plon[n], plat[n], A95_km, fill_color[n], alpha=fill_alpha, outline=outline, fill=True, lw=lw)
 
     if legend == 'yes':
         plt.legend(loc=2)
@@ -2792,7 +2793,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
 def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
                         colormap='viridis', edgecolor='k', marker='o', markersize=20,
                         alpha=1.0, colorbar=True, colorbar_label='pole age (Ma)',
-                        outline='True',filled_pole=False, fill_alpha=1.0):
+                        outline='True',filled_pole=False, fill_alpha=1.0, lw=1):
     """
     This function plots multiple paleomagnetic pole and A95 error ellipse on a cartopy map axis.
     The poles are colored by the defined colormap.
@@ -2835,7 +2836,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
     plot_poles(map_axis, plons, plats, A95s,
                label='', color=colors, edgecolor=edgecolor, marker=marker,
                markersize=markersize,filled_pole=filled_pole,outline=outline,
-               fill_color=colors, fill_alpha=fill_alpha)
+               fill_color=colors, fill_alpha=fill_alpha, alpha=alpha, lw=lw)
 
     if colorbar == True:
         sm = plt.cm.ScalarMappable(
