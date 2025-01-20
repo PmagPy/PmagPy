@@ -2142,7 +2142,7 @@ def plot_net(fignum=None,tick_spacing=10):
     plt.axis((-1.05, 1.05, -1.05, 1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, title=None, edge=None, alpha=1, zorder=2):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -2162,6 +2162,9 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
         label : the default label is blank ('')
         connect_points : option to connect points in order of plotting, default is False
+        lw : linewidth of connecting lines
+        lc : color of connecting lines
+        la : alpha of connecting lines
         title : the default title is False
         edge : marker edge color - if blank, is color of marker
         alpha : opacity
@@ -2211,12 +2214,12 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
 
     if len(X_up) > 0:
         if connect_points == True:
-            plt.plot(X_up, Y_up, ls = '-', linewidth=0.25, color ='k', alpha = alpha, zorder=1)
+            plt.plot(X_up, Y_up, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
         plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if len(X_down) > 0:
         if connect_points == True:
-            plt.plot(X_down, Y_down, ls = '-', linewidth=0.25, color ='k', alpha = alpha, zorder=1)
+            plt.plot(X_down, Y_down, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
         plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if legend == 'yes':
