@@ -2,7 +2,6 @@
 
 from __future__ import division
 from __future__ import absolute_import
-from past.utils import old_div
 import unittest
 import numpy
 import copy
@@ -277,8 +276,8 @@ class CheckR_corr2(unittest.TestCase):
     obj = copy.deepcopy(example)
     R_corr2 = obj.get_R_corr2()
     x_segment, y_segment = numpy.array([1., 5., 9.]), numpy.array([0., 2., 7.])
-    x_avg = old_div(sum(x_segment), len(x_segment))
-    y_avg = old_div(sum(y_segment), len(y_segment))
+    x_avg = sum(x_segment) / len(x_segment)
+    y_avg = sum(y_segment) / len(y_segment)
     ref_numerator = 28.**2
     ref_denominator = 32. * 26.
 
@@ -289,7 +288,7 @@ class CheckR_corr2(unittest.TestCase):
     def testSimpleInput(self):
         """should produce expected output with simple input"""
         r = lib_arai.get_R_corr2(self.x_avg, self.y_avg, self.x_segment, self.y_segment)
-        self.assertEqual((old_div(self.ref_numerator,self.ref_denominator)), r)
+        self.assertEqual((self.ref_numerator,self.ref_denominator)) / r
 
 #    def testDivideByZero(self):
 #        """should raise ValueError when attempting to divide by zero"""
@@ -303,7 +302,7 @@ class CheckR_det2(unittest.TestCase): # acceptable working test
 
     def test_simple_input(self):
         result = lib_arai.get_R_det2(self.y_segment, self.y_avg, self.y_prime)
-        self.assertEqual((1 - old_div(.25,2.25)), result)
+        self.assertEqual((1 - .25 / 2.25), result)
 
 
 class CheckZigzag(unittest.TestCase):
@@ -312,7 +311,7 @@ class CheckZigzag(unittest.TestCase):
     y_int = 3.
     x_int = 5.
     n = len(x)
-    reference_b_wiggle = [0, .25, old_div(3.,5.)]
+    reference_b_wiggle = [0, .25, 3. / 5.]
 
     slope = 1.2
     Z = 1.3599999999999999

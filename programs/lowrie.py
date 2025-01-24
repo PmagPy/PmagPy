@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from builtins import input
 from builtins import range
-from past.utils import old_div
 import sys
 import codecs
 import matplotlib
@@ -97,18 +96,12 @@ def main():
             nrm = 1.  # don't normalize
             ylab = "Magnetic moment (Am^2)"
         xlab = "Temperature (C)"
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[0]), nrm), sym='r-')
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[0]), nrm), sym='ro')  # X direction
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[1]), nrm), sym='c-')
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[1]), nrm), sym='cs')  # Y direction
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[2]), nrm), sym='k-')
-        pmagplotlib.plot_xy(FIG['lowrie'], Temps, old_div(
-            abs(carts[2]), nrm), sym='k^', title=spc, xlab=xlab, ylab=ylab)  # Z direction
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[0]) / nrm), sym='r-')
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[0]) / nrm), sym='ro')  # X direction
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[1]) / nrm), sym='c-')
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[1]) / nrm), sym='cs')  # Y direction
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[2]) / nrm), sym='k-')
+        pmagplotlib.plot_xy(FIG['lowrie'], Temps, (abs(carts[2]) / nrm), sym='k^', title=spc, xlab=xlab, ylab=ylab)  # Z direction
         files = {'lowrie': 'lowrie:_' + spc + '_.' + fmt}
         if plot == 0:
             pmagplotlib.draw_figs(FIG)

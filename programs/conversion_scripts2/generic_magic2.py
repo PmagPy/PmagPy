@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import sys
 import scipy
 import copy
@@ -762,7 +761,7 @@ def main(command_line=True, **kwargs):
                     if treatment[1] < 10:
                         ipos_code=int(treatment[1])-1
                     else:
-                        ipos_code=int(old_div(treatment[1],10))-1
+                        ipos_code=int(treatment[1] / 10.)-1
 
                     # (2) using the magnetization
                     if meas_line["dec_s"]!="":
