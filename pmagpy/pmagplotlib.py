@@ -31,7 +31,7 @@ if has_cartopy:
     from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
 has_basemap, Basemap = pmag.import_basemap()
 
-
+import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
@@ -1597,7 +1597,7 @@ def plot_teq(fignum, araiblock, s, pars):
     plt.text(-1.1, 1.15, s)
 
 
-def save_plots(Figs, filenames, **kwargs):
+def save_plots(Figs, filenames, dir_path=None, **kwargs):
     """
     Parameters
     ----------
@@ -1606,6 +1606,9 @@ def save_plots(Figs, filenames, **kwargs):
     filenames : dict
         dictionary of filenames, e.g. {'eqarea': 'mc01a_eqarea.svg', ...}
         dict keys should correspond with Figs
+    dir_path : str
+        string of directory name where plots will be saved to
+    kwargs: other keyword arguments
     """
     saved = []
     for key in list(Figs.keys()):
@@ -1628,7 +1631,7 @@ def save_plots(Figs, filenames, **kwargs):
             elif isServer:
                 plt.savefig(fname, dpi=240)
             else:
-                plt.savefig(fname)
+                plt.savefig(os.path.join(dir_path, fname))
             if verbose:
                 print(Figs[key], " saved in ", fname)
             saved.append(fname)

@@ -12327,7 +12327,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
 
 
 
-def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path='.', angle=0,
+def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = ".", input_dir_path="", angle=0,
               n_plots=5, save_plots=True, fmt="svg", interactive=False, specimen="",
               samp_file='samples.txt', contribution=None,fignum=1, image_records=False):
     """
@@ -12343,8 +12343,10 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
     crd : str
         coordinate system [s,g,t] for specimen, geographic, tilt corrected
         g,t options require a sample file with specimen and bedding orientation
+    dir_path : str
+        output directory for plots, default "."
     input_dir_path : str
-        input directory of meas_file, default "."
+        input directory, if different from dir_path, default "."
     angle : float
         angle of X direction with respect to specimen X
     n_plots : int, default 5
@@ -12682,7 +12684,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s',input_dir_path=
                               'software_packages': version.version}
                 image_recs.append(image_rec)
         if save_plots:
-            saved.extend(pmagplotlib.save_plots(ZED, titles))
+            saved.extend(pmagplotlib.save_plots(ZED, titles, dir_path=dir_path))
         elif interactive:
             pmagplotlib.draw_figs(ZED)
             ans = pmagplotlib.save_or_quit()
@@ -14065,7 +14067,7 @@ def eqarea_magic(in_file='sites.txt', dir_path=".", input_dir_path="",
             FIG = pmagplotlib.add_borders(FIG, titles, con_id=con_id)
             saved_figs = pmagplotlib.save_plots(FIG, files)
         elif save_plots:
-            saved_figs = pmagplotlib.save_plots(FIG, files, incl_directory=True)
+            saved_figs = pmagplotlib.save_plots(FIG, files, dir_path = dir_path, incl_directory=True)
             #continue
         elif interactive:
             pmagplotlib.draw_figs(FIG)
