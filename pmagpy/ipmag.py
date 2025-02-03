@@ -12346,7 +12346,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
     dir_path : str
         output directory for plots, default "."
     input_dir_path : str
-        input directory, if different from dir_path, default "."
+        input directory, if different from dir_path, default ""
     angle : float
         angle of X direction with respect to specimen X
     n_plots : int, default 5
