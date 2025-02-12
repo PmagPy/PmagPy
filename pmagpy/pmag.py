@@ -6065,24 +6065,21 @@ def binglookup(w1i,w2i):
     w1, w2 = 0., 0.
     wstart, incr = 0.01, 0.02
     if w1i < wstart:
-        w1 = '%4.2f' % (wstart + incr/2.)
         w1 = round((wstart + incr/2.),2)
     if w2i < wstart:
-        w2 = '%4.2f' % (wstart + incr/2.)
         w2 = round((wstart + incr/2.),2)
     wnext = wstart + incr
     while wstart < 0.5:
         if w1i >= wstart and w1i < wnext:
-            w1 = '%4.2f' % (wstart + incr/2.)
             w1 = round((wstart + incr/2.),2)
         if w2i >= wstart and w2i < wnext:
-            w2 = '%4.2f' % (wstart + incr/2.)
             w2 = round((wstart + incr/2.),2)
         wstart += incr
         wnext += incr
     wnext = wstart + incr
-    k1=k1_df.loc[k1_df['w2']==w2][str(w1)].values[0]
-    k2=k2_df.loc[k2_df['w2']==w2][str(w1)].values[0]
+    w1 = '%4.2f' % w1
+    k1=k1_df.loc[k1_df['w2']==w2][w1].values[0]
+    k2=k2_df.loc[k2_df['w2']==w2][w1].values[0]
     return k1,k2
 
 def binglookup_old(w1i, w2i):
