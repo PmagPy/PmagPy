@@ -1627,7 +1627,7 @@ def save_plots(Figs, filenames, dir_path=None, **kwargs):
             else:
                 fname = fname.replace('/', '-') # flatten file name
             if 'dpi' in list(kwargs.keys()):
-                plt.savefig(fname, dpi=kwargs['dpi'])
+                plt.savefig(os.path.join(dir_path, fname), dpi=kwargs['dpi'])
             elif isServer:
                 plt.savefig(fname, dpi=240)
             else:
@@ -1641,7 +1641,6 @@ def save_plots(Figs, filenames, dir_path=None, **kwargs):
             print('could not save: ', Figs[key], filenames[key])
             print("output file format not supported ")
     return saved
-#
 
 
 def plot_evec(fignum, Vs, symsize, title):
