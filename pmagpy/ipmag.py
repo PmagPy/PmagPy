@@ -8105,7 +8105,7 @@ def smooth(x, window_len, window='bartlett'):
 
     # s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat':  # moving average
-        w = ones(window_len, 'd')
+        w = np.ones(window_len, 'd')
     else:
         w = eval('np.' + window + '(window_len)')
     y = np.convolve(w/w.sum(), s, mode='same')
@@ -8113,7 +8113,7 @@ def smooth(x, window_len, window='bartlett'):
 
 
 def curie(path_to_file='.', file_name='', magic=False,
-          window_length=3, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
+          window_length=10, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
     """
     Plots and interprets curie temperature data.
     The 1st derivative is calculated from smoothed M-T curve (convolution
@@ -8124,9 +8124,9 @@ def curie(path_to_file='.', file_name='', magic=False,
     Temperature steps should be in multiples of 1.0 degrees.
 
     Parameters:
-        file_name : name of file to be opened
         path_to_file : path to directory that contains file (default is current directory, '.')
-        window_length : dimension of smoothing window (input to smooth() function)
+        file_name : name of file to be opened
+        window_length : dimension of smoothing window (input to smooth() function, default=10)
         save : boolean argument to save plots (default is False)
         save_folder : relative directory where plots will be saved (default is current directory, '.')
         fmt : format of saved figures (default is svg)
@@ -8148,7 +8148,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         magn_key = cb.get_intensity_col(data_df)
         M = data_df[magn_key].values
     else:
-        Data = np.loadtxt(complete_path, dtype=np.float)
+        Data = np.loadtxt(complete_path, dtype=np.float64)
         T = Data.transpose()[0]
         M = Data.transpose()[1]
     T = list(T)
@@ -8170,10 +8170,6 @@ def curie(path_to_file='.', file_name='', magic=False,
     # exit if deltaT is not integer
     i = 0
     while i < (len(T) - 1):
-        if (T[i + 1] - T[i]) % 1 > 0.001:
-            print("delta T should be integer, this program will not work!")
-            print("temperature range:", T[i], T[i + 1])
-            sys.exit()
         if (T[i + 1] - T[i]) == 0.:
             M[i] = np.average([M[i], M[i + 1]])
             M.pop(i + 1)
@@ -8188,6 +8184,10 @@ def curie(path_to_file='.', file_name='', magic=False,
                 M.insert(i + 1, slope * (T[i] + 1.) + b)
                 T.insert(i + 1, (T[i] + 1.))
                 i = i + 1
+        elif (T[i + 1] - T[i]) % 1 > 0.001:
+            print("delta T should be integer, be careful!")
+            print("temperature range:", T[i], T[i + 1])
+            #sys.exit()
         i = i + 1
 
     # calculate the smoothed signal
@@ -8204,13 +8204,10 @@ def curie(path_to_file='.', file_name='', magic=False,
     pmagplotlib.plot_xy(PLT['M_T'], T, M, sym='--',
                         xlab='Temperature C', ylab='Magnetization', title=string)
 
-    # calculate first derivative
-    d1, T_d1 = [], []
-    for i in range(len(M_smooth) - 1):
-        Dy = M_smooth[i - 1] - M_smooth[i + 1]
-        Dx = T[i - 1] - T[i + 1]
-        d1.append(Dy/Dx)
-    T_d1 = T[1:len(T - 1)]
+    # calculate first derivative using gradient function
+    for i in range(len(M_smooth)):
+        d1 = np.gradient(M_smooth, T)
+    T_d1 = T[0:len(T)]
     d1 = np.array(d1, 'f')
     d1_smooth = smooth(d1, window_len)
 
@@ -8221,14 +8218,10 @@ def curie(path_to_file='.', file_name='', magic=False,
                         sym='-', xlab='Temperature C', title=string)
     pmagplotlib.plot_xy(PLT['der1'], T_d1, d1, sym='b--')
 
-    # calculate second derivative
-    d2, T_d2 = [], []
-    for i in range(len(d1_smooth) - 1):
-        Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
-        Dx = T[i - 1] - T[i + 1]
-        # print Dy/Dx
-        d2.append(Dy/Dx)
-    T_d2 = T[2:len(T - 2)]
+    # calculate second derivative using gradient function
+    for i in range(len(d1_smooth)):
+        d2 = np.gradient(d1_smooth, T_d1)
+    T_d2 = T[0:len(T)]
     d2 = np.array(d2, 'f')
     d2_smooth = smooth(d2, window_len)
 
@@ -8241,29 +8234,24 @@ def curie(path_to_file='.', file_name='', magic=False,
     print('second derivative maximum is at T=%i' %
           int(T_d2[d2.index(max(d2))]))
 
-    # calculate Curie temperature for different width of sliding windows
+    # calculate Curie temperature for different width of sliding windows, starting at 3
     curie, curie_1 = [], []
-    wn = list(range(5, 50, 1))
+    wn = list(range(3, 50, 1))
     for win in wn:
         # calculate the smoothed signal
         M_smooth = []
         M_smooth = smooth(M, win)
         # calculate first derivative
-        d1, T_d1 = [], []
-        for i in range(len(M_smooth) - 1):
-            Dy = M_smooth[i - 1] - M_smooth[i + 1]
-            Dx = T[i - 1] - T[i + 1]
-            d1.append(Dy/Dx)
-        T_d1 = T[1:len(T - 1)]
+        for i in range(len(M_smooth)):
+            d1 = np.gradient(M_smooth, T)
+        T_d1 = T[0:len(T)]
         d1 = np.array(d1, 'f')
         d1_smooth = smooth(d1, win)
         # calculate second derivative
         d2, T_d2 = [], []
-        for i in range(len(d1_smooth) - 1):
-            Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
-            Dx = T[i - 1] - T[i + 1]
-            d2.append(Dy/Dx)
-        T_d2 = T[2:len(T - 2)]
+        for i in range(len(d1_smooth)):
+            d2 = np.gradient(d1_smooth, T)
+        T_d2 = T[0:len(T)]
         d2 = np.array(d2, 'f')
         d2_smooth = smooth(d2, win)
         d2 = list(d2)
