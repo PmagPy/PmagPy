@@ -620,6 +620,99 @@ def interactive_verwey_specimen_method_selection(measurements):
     return specimen_dropdown, method_dropdown
 
 
+def verwey_estimate_multiple_specimens(specimens_with_params, measurements):
+    """
+    Analyze Verwey transitions for a list of specimens with unique parameters.
+    
+    This function uses either field-cooled (FC) or zero-field cooled (ZFC) data depending on the 
+    method_codes provided in each specimen's parameters. If "LP-FC" is found in the colon-delimited 
+    method_codes, FC data is used; if "LP-ZFC" is found, ZFC data is used.
+    
+    Parameters
+    ----------
+    specimens_with_params : list of dict
+        List of specimen dictionaries. Each dictionary should contain:
+            - 'specimen_name' : str
+              The name of the specimen.
+            - 'params' : dict
+              Dictionary containing:
+                - 't_range_background_min' : int or float
+                - 't_range_background_max' : int or float
+                - 'excluded_t_min' : int or float
+                - 'excluded_t_max' : int or float
+                - 'poly_deg' : int
+                - 'method_codes' : str
+                  Colon-delimited string that must include either "LP-FC" or "LP-ZFC".
+    
+    measurements : object
+        Measurements dataframe in MagIC format.
+    
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the Verwey transition estimates and the input parameters for each specimen.
+        Columns include:
+            - 'specimen'
+            - 'critical_temp'
+            - 'critical_temp_type'
+            - 'remanence_loss'
+        plus the additional parameters from the input.
+    
+    Raises
+    ------
+    ValueError
+        If neither "LP-FC" nor "LP-ZFC" is found in the method_codes for a specimen.
+    Exception
+        Propagates exceptions raised during data extraction or analysis.
+    """
+    verwey_estimates_and_params = []
+
+    # Process each specimen with its unique parameters
+    for specimen in specimens_with_params:
+        specimen_name = specimen['specimen_name']
+        params = specimen['params']
+        
+        # Extract method codes and determine whether to use FC or ZFC data
+        method_codes = params.get('method_codes', '')
+        codes = method_codes.split(':')
+        
+        # Extract the measurement data for the specimen
+        fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data(measurements, specimen_name)
+        
+        if "LP-FC" in codes:
+            data = fc_data
+        elif "LP-ZFC" in codes:
+            data = zfc_data
+        else:
+            raise ValueError(f"Specimen {specimen_name} does not have a valid method code ('LP-FC' or 'LP-ZFC').")
+        
+        temps = data['meas_temp']
+        mags = data['magn_mass']
+        
+        # Estimate Verwey transition using selected data
+        vt_estimate, rem_loss = verwey_estimate(
+            temps,
+            mags,
+            t_range_background_min=params['t_range_background_min'],
+            t_range_background_max=params['t_range_background_max'],
+            excluded_t_min=params['excluded_t_min'],
+            excluded_t_max=params['excluded_t_max'],
+            poly_deg=params['poly_deg'],
+            plot_title=specimen_name
+        )
+        
+        record = {
+            'specimen': specimen_name,
+            'critical_temp': vt_estimate,
+            'critical_temp_type': 'Verwey',
+            'remanence_loss': rem_loss
+        }
+        record.update(params)
+        verwey_estimates_and_params.append(record)
+    
+    return pd.DataFrame(verwey_estimates_and_params)
+
+
 def thermomag_derivative(temps, mags, drop_first=False, drop_last=False):
     """
     Calculates the derivative of magnetization with respect to temperature and optionally
