@@ -2147,6 +2147,10 @@ class MagicDataFrame(object):
         name = self.get_singular_and_plural_dtype(self.dtype)[0]
         if name in self.df.columns:
             self.df[name] = self.df[name].astype(str)
+            
+        extra_name_col = name + "_name"
+        if extra_name_col in self.df.columns:
+            self.df = self.df.drop(extra_name_col, axis=1)
         #
         if df is None:
             df = self.df
