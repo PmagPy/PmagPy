@@ -4201,7 +4201,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             ax6 = plt.subplot(1, pcol, 5)
             Axs.append(ax6)
             ax6.plot(Bulks, BulkDepths, 'bo')
-            ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
+            ax6.set_ylim(dmax, dmin)
             ax6.set_xlabel('Bulk Susc. (uSI)')
             ax6.yaxis.set_major_locator(plt.NullLocator())
             if sum_file:
