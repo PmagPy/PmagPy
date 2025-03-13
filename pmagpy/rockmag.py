@@ -364,17 +364,70 @@ def make_mpms_plots(measurements):
 
 
 def verwey_estimate(temps, mags, 
-                    t_range_background_min = 50,
-                    t_range_background_max = 250,
-                    excluded_t_min = 75,
-                    excluded_t_max = 150,
-                    poly_deg = 3,
-                    plot_zero_crossing = False,
-                    plot_title = None):
+                    t_range_background_min=50,
+                    t_range_background_max=250,
+                    excluded_t_min=75,
+                    excluded_t_max=150,
+                    poly_deg=3,
+                    plot_zero_crossing=False,
+                    plot_title=None,
+                    measurement_marker='o', measurement_color='FireBrick',
+                    background_fit_marker='s', background_fit_color='Teal',
+                    magnetite_marker='d', magnetite_color='RoyalBlue',
+                    markersize=3.5):
     """
-    This function estimates the Verwey transition temperature and remanence loss of magnetite from MPMS data.
-    
-    Parameters:
+    Estimate the Verwey transition temperature and remanence loss of magnetite from MPMS data.
+    Plots the magnetization data, background fit, and resulting magnetite curve, and 
+    optionally the zero-crossing.
+
+    Parameters
+    ----------
+    temps : pd.Series
+        Series representing the temperatures at which magnetization measurements were taken.
+    mags : pd.Series
+        Series representing the magnetization measurements.
+    t_range_background_min : int or float, optional
+        Minimum temperature for the background fitting range. Default is 50.
+    t_range_background_max : int or float, optional
+        Maximum temperature for the background fitting range. Default is 250.
+    excluded_t_min : int or float, optional
+        Minimum temperature to exclude from the background fitting range. Default is 75.
+    excluded_t_max : int or float, optional
+        Maximum temperature to exclude from the background fitting range. Default is 150.
+    poly_deg : int, optional
+        Degree of the polynomial for background fitting. Default is 3.
+    plot_zero_crossing : bool, optional
+        If True, plots the zero-crossing of the second derivative. Default is False.
+    plot_title : str, optional
+        Title for the plot. Default is None.
+    measurement_marker : str, optional
+        Marker symbol for measurement data. Default is 'o'.
+    measurement_color : str, optional
+        Color for measurement data. Default is 'black'.
+    background_fit_marker : str, optional
+        Marker symbol for background fit data. Default is 's'.
+    background_fit_color : str, optional
+        Color for background fit data. Default is 'C1'.
+    magnetite_marker : str, optional
+        Marker symbol for magnetite data. Default is 'd'.
+    magnetite_color : str, optional
+        Color for magnetite data. Default is 'C0'.
+    markersize : float, optional
+        Size of the markers. Default is 3.5.
+
+    Returns
+    -------
+    verwey_estimate : float
+        Estimated Verwey transition temperature.
+    remanence_loss : float
+        Estimated remanence loss.
+
+    Examples
+    --------
+    >>> temps = pd.Series([10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    >>> mags = pd.Series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> verwey_estimate(temps, mags)
+    (75.0, 0.5)
     """
     
     temps.reset_index(drop=True, inplace=True)
@@ -426,9 +479,12 @@ def verwey_estimate(temps, mags,
     
     fig = plt.figure(figsize=(12,5))
     ax0 = fig.add_subplot(1,2,1)
-    ax0.plot(temps, mags, '.-', color='red', label='measurement')
-    ax0.plot(temps_background, background_curve_adjusted, '.-', color='green', label='background fit')
-    ax0.plot(temps_background, mgt_curve, '.-', color='blue', label='magnetite (meas. minus background)')
+    ax0.plot(temps, mags, marker=measurement_marker, markersize=markersize, color=measurement_color, 
+             label='measurement')
+    ax0.plot(temps_background, background_curve_adjusted, marker=background_fit_marker, markersize=markersize, color=background_fit_color, 
+             label='background fit')
+    ax0.plot(temps_background, mgt_curve, marker=magnetite_marker, markersize=markersize, color=magnetite_color, 
+             label='magnetite (meas. minus background)')
     verwey_y_value = np.interp(verwey_estimate, temps_background, mgt_curve)
     ax0.plot(verwey_estimate, verwey_y_value, '*', color='pink', markersize=10,
          markeredgecolor='black', markeredgewidth=1,
@@ -442,9 +498,12 @@ def verwey_estimate(temps, mags,
         ax0.set_title(plot_title)
 
     ax1 = fig.add_subplot(1,2,2)
-    ax1.plot(dM_dT_df['T'], dM_dT_df['dM_dT'], '.-', color='red', label='measurement')
-    ax1.plot(temps_dM_dT_background, dM_dT_polyfit, '.-', color='green', label='background fit'+ ' (r$^2$ = ' + str(round(r_squared,3)) + ')' )
-    ax1.plot(temps_dM_dT_background, mgt_dM_dT, '.-', color='blue', label='magnetite (background fit minus measurement)')
+    ax1.plot(dM_dT_df['T'], dM_dT_df['dM_dT'], marker=measurement_marker, markersize=markersize, color=measurement_color, 
+             label='measurement')
+    ax1.plot(temps_dM_dT_background, dM_dT_polyfit, marker=background_fit_marker, markersize=markersize, color=background_fit_color, 
+             label='background fit'+ ' (r$^2$ = ' + str(round(r_squared,3)) + ')' )
+    ax1.plot(temps_dM_dT_background, mgt_dM_dT, marker=magnetite_marker, markersize=markersize, color=magnetite_color, 
+             label='magnetite (background fit minus measurement)')
     verwey_y_value = np.interp(verwey_estimate, temps_dM_dT_background, mgt_dM_dT)
     ax1.plot(verwey_estimate, verwey_y_value, '*', color='pink', markersize=10,
          markeredgecolor='black', markeredgewidth=1,
