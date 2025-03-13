@@ -17,6 +17,8 @@ import pandas as pd
 from scipy import stats
 from scipy.optimize import fminbound
 from scipy.integrate import quad
+from scipy.interpolate import interp1d
+from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
@@ -8095,7 +8097,7 @@ def smooth(x, window_len, window='bartlett'):
     # numpy available windows
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError(
-            "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+            "Window must be one of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
     # padding the beginning and the end of the signal with an average value to
     # evoid edge effect
@@ -8105,50 +8107,60 @@ def smooth(x, window_len, window='bartlett'):
 
     # s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat':  # moving average
-        w = ones(window_len, 'd')
+        w = np.ones(window_len, 'd')
     else:
         w = eval('np.' + window + '(window_len)')
     y = np.convolve(w/w.sum(), s, mode='same')
     return np.array(y[window_len:-window_len])
 
 
-def curie(path_to_file='.', file_name='', magic=False,
-          window_length=3, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
+def ez_line(slope, intercept):
     """
-    Plots and interprets curie temperature data.
-    The 1st derivative is calculated from smoothed M-T curve (convolution
-    with triangular window with width= <-w> degrees)
-    The 2nd derivative is calculated from smoothed 1st derivative curve
-    (using the same sliding window width)
-    The estimated curie temperation is the maximum of the 2nd derivative.
-    Temperature steps should be in multiples of 1.0 degrees.
+    Plots a simple line from slope and intercept. For usage in ipmag.curie.
+
+    """
+    axes = plt.gca()
+    x_values = np.array(axes.get_xlim())
+    y_values = intercept + slope * x_values
+    plt.plot(x_values, y_values, '-')
+
+
+def curie(path_to_file='.', file_name='', magic=False,
+          window_len=20, save=False, save_folder='.', inverse_sus=False, fmt='svg', t_begin="", t_end=""):
+    """
+    Plots susceptibility temperature data and interprets Curie point.
+    The 1st derivative is calculated from np.gradient() of smoothed M-T curve (convolution with triangular window with width= <-w> degrees).
+    The 2nd derivative is calculated the same way from the smoothed 1st derivative curve using the same sliding window width.
+    Two estimates of the Curie point are provided: min of 1st derivative and zero-crossing of 2nd derivative.
+    Temperature steps should be in multiples of 1.0 degrees; irregular steps are handled by the function. The function
+    also can provide a third estimate of the Curie point via the inverse susceptility curve.
 
     Parameters:
-        file_name : name of file to be opened
         path_to_file : path to directory that contains file (default is current directory, '.')
-        window_length : dimension of smoothing window (input to smooth() function)
+        file_name : name of file to be opened
+        magic : True if MagIC formatted measurements.txt file
+        window_len : dimension of smoothing window (input to ipmag.smooth() function), default=20
         save : boolean argument to save plots (default is False)
         save_folder : relative directory where plots will be saved (default is current directory, '.')
+        inverse_sus : True if user wants to use inverse susceptility to calculate Curie temperature
         fmt : format of saved figures (default is svg)
         t_begin: start of truncated window for search (default is beginning of data)
         t_end: end of truncated window for search (default is end of data)
-        magic : True if MagIC formatted measurements.txt file
-        
+
     Returns:
-        A plot is shown and saved if save=True.
+        Strings reporting Curie temperature estimates and plots of kT curve, derivatives, and Curie point estimate for different
+        window widths. Plots are saved if save=True.
     """
-    plot = 0
-    window_len = window_length
 
     # read data from file
     complete_path = os.path.join(path_to_file, file_name)
-    if magic:
+    if magic == True:
         data_df = pd.read_csv(complete_path, sep='\t', header=1)
-        T = data_df['meas_temp'].values-273
+        T = data_df['meas_temp'].values - 273
         magn_key = cb.get_intensity_col(data_df)
         M = data_df[magn_key].values
     else:
-        Data = np.loadtxt(complete_path, dtype=np.float)
+        Data = np.loadtxt(complete_path, dtype=np.float64)
         T = Data.transpose()[0]
         M = Data.transpose()[1]
     T = list(T)
@@ -8162,131 +8174,197 @@ def curie(path_to_file='.', file_name='', magic=False,
             M.pop(-1)
             T.pop(-1)
 
-    # prepare the signal:
-    # from M(T) array with unequal deltaT
-    # to M(T) array with deltaT=(1 degree).
-    # if delataT is larger, then points are added using linear fit between
-    # consecutive data points.
-    # exit if deltaT is not integer
-    i = 0
-    while i < (len(T) - 1):
-        if (T[i + 1] - T[i]) % 1 > 0.001:
+    # prepare the signal, from M(T) array with unequal deltaT to M(T) array with deltaT=(1 degree).
+    # if deltaT is larger, then points are added using linear fit between consecutive data points.
+    # warn if any deltaT is not integer
+    for i in range((len(T) - 1)):
+        if (T[i + 1] - T[i]) == 1.:
+            pass
+        elif (T[i + 1] - T[i]) != 1.:
+            # Define the new time steps with equal spacing of 1
+            T_equal = np.arange(T[0], T[-1] + 1)
+            # create a function to interpolate datapoints linearly
+            interpolation = interp1d(T, M, kind='linear', fill_value="extrapolate")
+            M_equal = interpolation(T_equal)
+        elif (T[i + 1] - T[i]) % 1 > 0.001:
             print("delta T should be integer, this program will not work!")
             print("temperature range:", T[i], T[i + 1])
-            sys.exit()
-        if (T[i + 1] - T[i]) == 0.:
-            M[i] = np.average([M[i], M[i + 1]])
-            M.pop(i + 1)
-            T.pop(i + 1)
-        elif (T[i + 1] - T[i]) < 0.:
-            M.pop(i + 1)
-            T.pop(i + 1)
-            print("check data in T=%.0f ,M[T] is ignored" % (T[i]))
-        elif (T[i + 1] - T[i]) > 1.:
-            slope, b = np.polyfit([T[i], T[i + 1]], [M[i], M[i + 1]], 1)
-            for j in range(int(T[i + 1]) - int(T[i]) - 1):
-                M.insert(i + 1, slope * (T[i] + 1.) + b)
-                T.insert(i + 1, (T[i] + 1.))
-                i = i + 1
-        i = i + 1
+            # sys.exit()
 
-    # calculate the smoothed signal
-    M = np.array(M, 'f')
-    T = np.array(T, 'f')
+    # rename signal, now with equal time steps
+    M = np.array(M_equal, 'f')
+    T = np.array(T_equal, 'f')
+
+    # initial smoothing of kT data
     M_smooth = []
     M_smooth = smooth(M, window_len)
 
-    # plot the original data and the smooth data
-    PLT = {'M_T': 1, 'der1': 2, 'der2': 3, 'Curie': 4}
-    plt.figure(num=PLT['M_T'], figsize=(5, 5))
-    string = 'M-T (sliding window=%i)' % int(window_len)
-    pmagplotlib.plot_xy(PLT['M_T'], T, M_smooth, sym='-')
-    pmagplotlib.plot_xy(PLT['M_T'], T, M, sym='--',
-                        xlab='Temperature C', ylab='Magnetization', title=string)
+    # calculate first derivative using gradient function
+    for i in range(len(M_smooth)):
+        d1 = np.gradient(M_smooth, T)
+        d1_og = np.gradient(M, T)
+        T_d1 = T[0:len(T)]
+        d1 = np.array(d1, 'f')
+        T_d1 = np.array(T_d1, 'f')
+        d1_og = np.array(d1_og, 'f')
+        d1_smooth = smooth(d1, window_len)
 
-    # calculate first derivative
-    d1, T_d1 = [], []
-    for i in range(len(M_smooth) - 1):
-        Dy = M_smooth[i - 1] - M_smooth[i + 1]
-        Dx = T[i - 1] - T[i + 1]
-        d1.append(Dy/Dx)
-    T_d1 = T[1:len(T - 1)]
-    d1 = np.array(d1, 'f')
-    d1_smooth = smooth(d1, window_len)
-
-    # plot the first derivative
-    plt.figure(num=PLT['der1'], figsize=(5, 5))
-    string = '1st derivative (sliding window=%i)' % int(window_len)
-    pmagplotlib.plot_xy(PLT['der1'], T_d1, d1_smooth,
-                        sym='-', xlab='Temperature C', title=string)
-    pmagplotlib.plot_xy(PLT['der1'], T_d1, d1, sym='b--')
-
-    # calculate second derivative
-    d2, T_d2 = [], []
-    for i in range(len(d1_smooth) - 1):
-        Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
-        Dx = T[i - 1] - T[i + 1]
-        # print Dy/Dx
-        d2.append(Dy/Dx)
-    T_d2 = T[2:len(T - 2)]
+    # calculate second derivative using gradient function
+    for i in range(len(d1_smooth)):
+        d2 = np.gradient(d1_smooth, T_d1)
+    T_d2 = T[0:len(T)]
     d2 = np.array(d2, 'f')
     d2_smooth = smooth(d2, window_len)
 
-    # plot the second derivative
-    plt.figure(num=PLT['der2'], figsize=(5, 5))
-    string = '2nd derivative (sliding window=%i)' % int(window_len)
-    pmagplotlib.plot_xy(PLT['der2'], T_d2, d2, sym='-',
-                        xlab='Temperature C', title=string)
-    d2 = list(d2)
-    print('second derivative maximum is at T=%i' %
-          int(T_d2[d2.index(max(d2))]))
+    # minimum 1st derivative estimate of Curie temperature
+    d1_smooth_list = list(d1_smooth)
+    temp_of_d1_smooth_min = int(T_d1[d1_smooth_list.index(min(d1_smooth_list))])
+    print('First derivative min (estimate of Curie point) is at T=%i' % temp_of_d1_smooth_min)
+
+    #
+    d2_list = list(d2)
+    d2_smooth_list = list(d2_smooth)
+    # find the temperature corresponding to the 2nd derivative minimum and maximum
+    # print('second derivative min is at T=%i' % int(T_d2[d2_smooth_list.index(min(d2_smooth_list))]))
+    # print('second derivative max is at T=%i' % int(T_d2[d2_smooth_list.index(max(d2_smooth_list))]))
+
+    # the "important" zero crossing is the one between the max and min of the 2nd derivative, so slice there
+    zero_crossing_array = d2_smooth[
+                          int(d2_smooth_list.index(min(d2_smooth_list))):int(d2_smooth_list.index(max(d2_smooth_list)))]
+    sliced_T = T_d2[int(d2_smooth_list.index(min(d2_smooth_list))):int(d2_smooth_list.index(max(d2_smooth_list)))]
+
+    zero_crossings = np.where(np.diff(np.sign(zero_crossing_array)))[0]
+    temp_of_zero_crossing = [sliced_T[indice] for indice in zero_crossings]
+    if len(temp_of_zero_crossing) == 1:
+        print('The second derivative crosses zero at T = %i (estimate of Curie point)' % temp_of_zero_crossing[0])
+    else:
+        print('The second derivative is probably too noisy, adjust window (see 3rd and 4th plots)')
+
+    fig = plt.figure(figsize=(5, 16))
+
+    # first subplot = kT data, original + smoothed
+    ax1 = fig.add_subplot(411)  # 4 row, 1 columns, first subplot
+    ax1.plot(T, M, c='k', alpha=0.25, label='kT data')
+    ax1.plot(T, M_smooth, c='orange', label='kt data smoothed')
+    ax1.set_title('kT data')
+
+    # second subplot, first derivative + smoothed
+    ax2 = fig.add_subplot(412)  # 4 row, 1 column, first subplot
+    ax2.plot(T_d1, d1, c='k', alpha=0.25, label='first derivative')
+    ax2.plot(T_d1, d1_smooth, c='orange', label='first derivative smoothed')
+    ax2.axvline(temp_of_d1_smooth_min)
+    ax2.set_title('1st derivative data')
+    ax2.set_xlim(min(T_d2), max(T_d2))
+    ax2.legend()
+
+    # third subplot, second derivative + smoothed, and
+    ax3 = fig.add_subplot(413)  # 2 row, 1 column, first subplot
+    ax3.plot(T_d2, d2, c='k', alpha=0.25, label='second derivative')
+    ax3.plot(T_d2, d2_smooth, c='orange', label='smoothed second derivative')
+    if len(temp_of_zero_crossing) == 1:
+        ax3.axvline(temp_of_zero_crossing[0])
+    ax3.set_title('second derivative data')
+    ax3.set_xlim(min(T_d2), max(T_d2))
+    ax3.legend()
 
     # calculate Curie temperature for different width of sliding windows
     curie, curie_1 = [], []
+    # calculating from window with of 5
     wn = list(range(5, 50, 1))
     for win in wn:
         # calculate the smoothed signal
         M_smooth = []
         M_smooth = smooth(M, win)
         # calculate first derivative
-        d1, T_d1 = [], []
-        for i in range(len(M_smooth) - 1):
-            Dy = M_smooth[i - 1] - M_smooth[i + 1]
-            Dx = T[i - 1] - T[i + 1]
-            d1.append(Dy/Dx)
-        T_d1 = T[1:len(T - 1)]
+        for i in range(len(M_smooth)):
+            d1 = np.gradient(M_smooth, T)
+        T_d1 = T[0:len(T)]
         d1 = np.array(d1, 'f')
         d1_smooth = smooth(d1, win)
         # calculate second derivative
-        d2, T_d2 = [], []
-        for i in range(len(d1_smooth) - 1):
-            Dy = d1_smooth[i - 1] - d1_smooth[i + 1]
-            Dx = T[i - 1] - T[i + 1]
-            d2.append(Dy/Dx)
-        T_d2 = T[2:len(T - 2)]
+        for i in range(len(d1_smooth)):
+            d2 = np.gradient(d1_smooth, T)
+        T_d2 = T[0:len(T)]
         d2 = np.array(d2, 'f')
         d2_smooth = smooth(d2, win)
-        d2 = list(d2)
-        d2_smooth = list(d2_smooth)
-        curie.append(T_d2[d2.index(max(d2))])
-        curie_1.append(T_d2[d2_smooth.index(max(d2_smooth))])
 
-    # plot Curie temp for different sliding window length
-    plt.figure(num=PLT['Curie'], figsize=(5, 5))
-    pmagplotlib.plot_xy(PLT['Curie'], wn, curie, sym='.',
-                        xlab='Sliding Window Width (degrees)', ylab='Curie Temp', title='Curie Statistics')
-    files = {}
-    for key in list(PLT.keys()):
-        files[key] = str(key) + '.' + fmt
+        # calculating Curie temperature as either 1st derivative min
+        d1_smooth_list = list(d1_smooth)
+        curie.append(T_d1[d1_smooth_list.index(min(d1_smooth_list))])
+
+        # calculating Curie temperature as 2nd derivative zero crossing for different window lengths
+        d2_smooth_list = list(d2_smooth)
+        zero_crossing_array = d2_smooth_list[int(d2_smooth_list.index(min(d2_smooth_list))):int(
+            d2_smooth_list.index(max(d2_smooth_list)))]
+        sliced_T = T_d2[int(d2_smooth_list.index(min(d2_smooth_list))):int(d2_smooth_list.index(max(d2_smooth_list)))]
+        zero_crossings = np.where(np.diff(np.sign(zero_crossing_array)))[0]
+        temp_of_zero_crossing_var = [sliced_T[indice] for indice in zero_crossings]
+        diff = np.diff(temp_of_zero_crossing_var)
+        # catching exceptions
+        if len(temp_of_zero_crossing_var) > 1:
+            curie_1.append(0)
+        elif len(temp_of_zero_crossing_var) == 1:
+            curie_1.append(temp_of_zero_crossing_var[0])
+        elif len(temp_of_zero_crossing_var) == 0:
+            curie_1.append(0)
+
+    # 4th subplot = plot Curie temp for different sliding window length
+    ax4 = fig.add_subplot(414)  # 4 row, 1 column, fourth subplot
+    ax4.plot(wn, curie, marker='.', color='k')
+    ax4.plot(wn, curie_1, marker='.', color='orange')
+    ax4.set_title('Curie temperature by window width')
+    ax4.set_ylim(min(T_d2), max(T_d2))
+
+    if inverse_sus == True:
+        # plotting inverse susceptibility
+        fig = plt.figure(figsize=(4, 4))
+        # Create a plot of inverse susceptility
+        plt.scatter(T, 1./M_smooth, s=10, c='orange',  marker='.', alpha=1)
+        plt.show()
+        # initial examination of high-T portion of 1/kT curve
+        upper_temp_window = float(input("Enter upper end of high-T segment to examine:"))
+        lower_temp_window = float(input("Enter lower end of high-T segment to examine:"))
+        T_window = list(T)
+        M_inverse_window = list(M_smooth)
+        # cut the data if -t is one of the flags
+        if inverse_sus == True:
+            while T_window[0] < lower_temp_window:
+                M_inverse_window.pop(0)
+                T_window.pop(0)
+            while T_window[-1] > upper_temp_window:
+                M_inverse_window.pop(-1)
+                T_window.pop(-1)
+        M_inverse_window = np.array(M_inverse_window, 'f')
+        T_inverse_window = np.array(T_window, 'f')
+        # zooming into window of interest
+        plt.scatter(T_inverse_window, 1./M_inverse_window, s=10, c='orange',  marker='.', alpha=1)
+        plt.show()
+        # user chooses linear segment
+        upper_temp_segment = float(input("Enter upper end of linear segment:"))
+        lower_temp_segment = float(input("Enter lower end of linear segment:"))
+        T_segment = list(T)
+        M_inverse_segment = list(M_smooth)
+        # cut the data if -t is one of the flags
+        if inverse_sus == True:
+            while T_segment[0] < lower_temp_segment:
+                M_inverse_segment.pop(0)
+                T_segment.pop(0)
+            while T_segment[-1] > upper_temp_segment:
+                M_inverse_segment.pop(-1)
+                T_segment.pop(-1)
+        M_inverse_segment = np.array(M_inverse_segment, 'f')
+        T_inverse_segment = np.array(T_segment, 'f')
+        slope_curie_est, int_curie_est, r_value_curie, p_value_reg, std_err_reg = linregress(T_inverse_segment, 1./M_inverse_segment)
+        x_intercept = -int_curie_est/slope_curie_est
+        print('The x-intercept of the high-temperature linear array is  T = %i (estimate of Curie point)' % x_intercept)
+        print(f"R-squared value of segment is {r_value_curie}")
+        plt.scatter(T_inverse_window, 1./M_inverse_window, s=10, c='orange',  marker='.', alpha=0.5)
+        plt.scatter(T_inverse_segment, 1./M_inverse_segment, s=10, c='red', marker ='.', alpha=1)
+        ez_line(slope_curie_est, int_curie_est)
+        plt.show()
+
     if save == True:
-        for key in list(PLT.keys()):
-            try:
-                plt.figure(num=PLT[key])
-                plt.savefig(save_folder + '/' + files[key].replace('/', '-'))
-            except:
-                print('could not save: ', PLT[key], files[key])
-                print("output file format not supported ")
-    plt.show()
+        plt.savefig('curie_figs' + '.' + fmt, format=None)
 
 
 def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
