@@ -8,7 +8,7 @@
 #print "initialized in SPD_project directory"
 #import os
 #print 'cwd', os.getcwd()
-import SPD.spd
 import SPD.lib
+import SPD.spd
 SPD.magic_file = 'SPD/magic_measurements.txt'
 
