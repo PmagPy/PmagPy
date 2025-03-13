@@ -374,6 +374,8 @@ def verwey_estimate(temps, mags,
                     measurement_marker='o', measurement_color='FireBrick',
                     background_fit_marker='s', background_fit_color='Teal',
                     magnetite_marker='d', magnetite_color='RoyalBlue',
+                    verwey_marker='*', verwey_color='Pink',
+                    verwey_size=10,
                     markersize=3.5):
     """
     Estimate the Verwey transition temperature and remanence loss of magnetite from MPMS data.
@@ -412,6 +414,12 @@ def verwey_estimate(temps, mags,
         Marker symbol for magnetite data. Default is 'd'.
     magnetite_color : str, optional
         Color for magnetite data. Default is 'C0'.
+    verwey_marker : str, optional
+        Marker symbol used to denote the Verwey transition estimate on the plot. Default is '*'.
+    verwey_color : str, optional
+        Color of the marker representing the Verwey transition estimate. Default is 'Pink'.
+    verwey_size : int, optional
+        Size of the marker used for the Verwey transition estimate. Default is 10.
     markersize : float, optional
         Size of the markers. Default is 3.5.
 
@@ -473,7 +481,10 @@ def verwey_estimate(temps, mags,
     mgt_curve = mags_background - background_curve_adjusted
     
     verwey_estimate = zero_crossing(temps_dM_dT_background, mgt_dM_dT, 
-                                    make_plot=plot_zero_crossing, xlim=(excluded_t_min, excluded_t_max))
+                                    make_plot=plot_zero_crossing, 
+                                    xlim=(excluded_t_min, excluded_t_max),
+                                    verwey_marker=verwey_marker, verwey_color=verwey_color,
+                                    verwey_size=verwey_size)
     
     remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
     
@@ -486,7 +497,7 @@ def verwey_estimate(temps, mags,
     ax0.plot(temps_background, mgt_curve, marker=magnetite_marker, markersize=markersize, color=magnetite_color, 
              label='magnetite (meas. minus background)')
     verwey_y_value = np.interp(verwey_estimate, temps_background, mgt_curve)
-    ax0.plot(verwey_estimate, verwey_y_value, '*', color='pink', markersize=10,
+    ax0.plot(verwey_estimate, verwey_y_value, verwey_marker, color=verwey_color, markersize=verwey_size,
          markeredgecolor='black', markeredgewidth=1,
          label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
     ax0.set_ylabel('M (Am$^2$/kg)')
@@ -505,7 +516,7 @@ def verwey_estimate(temps, mags,
     ax1.plot(temps_dM_dT_background, mgt_dM_dT, marker=magnetite_marker, markersize=markersize, color=magnetite_color, 
              label='magnetite (background fit minus measurement)')
     verwey_y_value = np.interp(verwey_estimate, temps_dM_dT_background, mgt_dM_dT)
-    ax1.plot(verwey_estimate, verwey_y_value, '*', color='pink', markersize=10,
+    ax1.plot(verwey_estimate, verwey_y_value, verwey_marker, color=verwey_color, markersize=verwey_size,
          markeredgecolor='black', markeredgewidth=1,
          label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
     rectangle = patches.Rectangle((excluded_t_min, ax1.get_ylim()[0]), excluded_t_max - excluded_t_min, 
@@ -820,7 +831,9 @@ def thermomag_derivative(temps, mags, drop_first=False, drop_last=False):
     return dM_dT_df
 
 
-def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None):
+def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
+                  verwey_marker='*', verwey_color='Pink',
+                  verwey_size=10,):
     """
     Calculate the temperature at which the second derivative of magnetization with respect to 
     temperature crosses zero. This value provides an estimate of the peak of the derivative 
@@ -838,6 +851,12 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None):
                            magnetization with respect to temperature.
         make_plot (bool, optional): If True, a plot will be generated. Defaults to False.
         xlim (tuple, optional): A tuple specifying the x-axis limits for the plot. Defaults to None.
+        verwey_marker : str, optional
+            Marker symbol used to denote the Verwey transition estimate on the plot. Default is '*'.
+        verwey_color : str, optional
+            Color of the marker representing the Verwey transition estimate. Default is 'Pink'.
+        verwey_size : int, optional
+            Size of the marker used for the Verwey transition estimate. Default is 10.
 
     Returns:
         float: The estimated temperature at which the second derivative of magnetization 
@@ -865,11 +884,11 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None):
         fig = plt.figure(figsize=(12,4))
         ax0 = fig.add_subplot(1,1,1)
         ax0.plot(d2M_dT2['T'], d2M_dT2['dM_dT'], '.-', color='purple', label='magnetite (background fit minus measurement)')
-        ax0.plot(d2M_dT2_T_before, d2M_dT2_before, '*', color='red')
-        ax0.plot(d2M_dT2_T_after, d2M_dT2_after, '*', color='red')
-        ax0.plot(zero_cross_temp, 0, 's', color='blue')
+        ax0.plot(d2M_dT2_T_before, d2M_dT2_before, marker='o', markerfacecolor='none', markeredgecolor='red')
+        ax0.plot(d2M_dT2_T_after, d2M_dT2_after, marker='o', markerfacecolor='none', markeredgecolor='red')
+        ax0.plot(zero_cross_temp, 0, verwey_marker, color=verwey_color, markersize=verwey_size, markeredgecolor='black')
         label = f'{zero_cross_temp:.1f} K'
-        ax0.text(zero_cross_temp+2, 0, label, color='blue', 
+        ax0.text(zero_cross_temp+2, 0, label, color='black', 
                 verticalalignment='center', horizontalalignment='left',
                 bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
         ax0.set_ylabel('d$^2$M/dT$^2$')
