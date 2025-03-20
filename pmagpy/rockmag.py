@@ -76,7 +76,25 @@ def interactive_specimen_selection(measurements):
 
 
 def interactive_specimen_experiment_selection(measurements):
-    # make two drop down ipywidgets for the user to select the sample and the associated experiment
+    """
+    Creates interactive dropdown widgets for selecting a specimen and its associated
+    experiment from a measurements DataFrame.
+
+    Parameters
+    ----------
+    measurements : pd.DataFrame
+        DataFrame containing measurement data with at least two columns: 'specimen' and
+        'experiment'. The 'specimen' column holds the specimen names while the 'experiment'
+        column holds the experiment identifiers associated with each specimen.
+
+    Returns
+    -------
+    tuple of ipywidgets.Dropdown
+        A tuple containing two dropdown widgets. The first widget allows for selecting a
+        specimen, and the second widget allows for selecting an experiment associated with
+        the chosen specimen. The experiment dropdown is dynamically updated based on the
+        specimen selection.
+    """
     specimen_dropdown = widgets.Dropdown(
         options = measurements['specimen'].unique(),
         description = 'specimen:',
@@ -108,38 +126,65 @@ def interactive_specimen_experiment_selection(measurements):
 
 def extract_mpms_data(df, specimen_name):
     """
-    Extracts and separates MPMS (Magnetic Property Measurement System) data 
-    for a specific specimen from a dataframe.
+    Extracts and separates MPMS data for a specified specimen from a DataFrame.
 
-    This function filters data for a given specimen and separates it based on 
-    different MagIC measurement method codes. It specifically looks for data 
-    corresponding to 'LP-FC' (Field Cooled), 'LP-ZFC' (Zero Field Cooled),
-    'LP-CW-SIRM:LP-MC' (Room Temperature SIRM measured upon cooling), and 
-    'LP-CW-SIRM:LP-MW' (Room Temperature SIRM measured upon Warming).
+    This function filters data for the given specimen and separates it based on
+    MagIC measurement method codes. It specifically extracts data corresponding to
+    'LP-FC' (Field Cooled), 'LP-ZFC' (Zero Field Cooled), 'LP-CW-SIRM:LP-MC' (Room
+    Temperature SIRM measured upon cooling), and 'LP-CW-SIRM:LP-MW' (Room Temperature
+    SIRM measured upon Warming). For each method code, if the data is not available,
+    an empty DataFrame with the same columns as the specimen data is returned.
 
     Parameters:
-        df (pandas.DataFrame): The dataframe containing MPMS measurement data.
-        specimen_name (str): The name of the specimen to filter data for.
+        df (pd.DataFrame): DataFrame containing MPMS measurement data.
+        specimen_name (str): Name of the specimen to filter data for.
 
     Returns:
-        tuple: A tuple containing four pandas.DataFrames:
-            - fc_data: Data filtered for 'LP-FC' method if available, otherwise an empty DataFrame.
-            - zfc_data: Data filtered for 'LP-ZFC' method if available, otherwise an empty DataFrame.
-            - rtsirm_cool_data: Data filtered for 'LP-CW-SIRM:LP-MC' method if available, otherwise an empty DataFrame.
-            - rtsirm_warm_data: Data filtered for 'LP-CW-SIRM:LP-MW' method if available, otherwise an empty DataFrame.
-
-    Example:
-        >>> fc, zfc, rtsirm_cool, rtsirm_warm = extract_mpms_data(measurements_df, 'Specimen_1')
+        tuple: A tuple containing four DataFrames:
+            - fc_data: Data filtered for 'LP-FC' method if available, otherwise an empty
+              DataFrame.
+            - zfc_data: Data filtered for 'LP-ZFC' method if available, otherwise an empty
+              DataFrame.
+            - rtsirm_cool_data: Data filtered for 'LP-CW-SIRM:LP-MC' method if available,
+              otherwise an empty DataFrame.
+            - rtsirm_warm_data: Data filtered for 'LP-CW-SIRM:LP-MW' method if available,
+              otherwise an empty DataFrame.
     """
+    specimen_df = df[df["specimen"] == specimen_name]
+    empty_df = pd.DataFrame(columns=specimen_df.columns)
 
-    specimen_df = df[df['specimen'] == specimen_name]
+    # If the 'method_codes' column is missing, return empty DataFrames.
+    if "method_codes" not in specimen_df.columns:
+        return empty_df, empty_df, empty_df, empty_df
 
-    fc_data = specimen_df[specimen_df['method_codes'].str.contains('LP-FC', na=False)]
-    zfc_data = specimen_df[specimen_df['method_codes'].str.contains('LP-ZFC', na=False)]
-    rtsirm_cool_data = specimen_df[specimen_df['method_codes'].str.contains('LP-CW-SIRM:LP-MC', na=False)]
-    rtsirm_warm_data = specimen_df[specimen_df['method_codes'].str.contains('LP-CW-SIRM:LP-MW', na=False)]
+    # Filter for each method code if available, otherwise use empty DataFrame.
+    fc_data = (
+        specimen_df[specimen_df["method_codes"].str.contains("LP-FC", na=False)]
+        if specimen_df["method_codes"].str.contains("LP-FC", na=False).any()
+        else empty_df
+    )
+    zfc_data = (
+        specimen_df[specimen_df["method_codes"].str.contains("LP-ZFC", na=False)]
+        if specimen_df["method_codes"].str.contains("LP-ZFC", na=False).any()
+        else empty_df
+    )
+    rtsirm_cool_data = (
+        specimen_df[
+            specimen_df["method_codes"].str.contains("LP-CW-SIRM:LP-MC", na=False)
+        ]
+        if specimen_df["method_codes"].str.contains("LP-CW-SIRM:LP-MC", na=False).any()
+        else empty_df
+    )
+    rtsirm_warm_data = (
+        specimen_df[
+            specimen_df["method_codes"].str.contains("LP-CW-SIRM:LP-MW", na=False)
+        ]
+        if specimen_df["method_codes"].str.contains("LP-CW-SIRM:LP-MW", na=False).any()
+        else empty_df
+    )
 
     return fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data
+
 
 def get_plotly_marker(matplotlib_marker):
     """
