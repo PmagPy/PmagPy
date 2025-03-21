@@ -8126,14 +8126,13 @@ def ez_line(slope, intercept):
 
 
 def curie(path_to_file='.', file_name='', magic=False,
-          window_len=20, save=False, save_folder='.', inverse_sus=False, fmt='svg', t_begin="", t_end=""):
+          window_len=20, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
     """
     Plots susceptibility temperature data and interprets Curie point.
     The 1st derivative is calculated from np.gradient() of smoothed M-T curve (convolution with triangular window with width= <-w> degrees).
     The 2nd derivative is calculated the same way from the smoothed 1st derivative curve using the same sliding window width.
     Two estimates of the Curie point are provided: min of 1st derivative and zero-crossing of 2nd derivative.
-    Temperature steps should be in multiples of 1.0 degrees; irregular steps are handled by the function. The function
-    also can provide a third estimate of the Curie point via the inverse susceptility curve.
+    Temperature steps should be in multiples of 1.0 degrees; irregular steps are handled by the function.
 
     Parameters:
         path_to_file : path to directory that contains file (default is current directory, '.')
@@ -8142,7 +8141,6 @@ def curie(path_to_file='.', file_name='', magic=False,
         window_len : dimension of smoothing window (input to ipmag.smooth() function), default=20
         save : boolean argument to save plots (default is False)
         save_folder : relative directory where plots will be saved (default is current directory, '.')
-        inverse_sus : True if user wants to use inverse susceptility to calculate Curie temperature
         fmt : format of saved figures (default is svg)
         t_begin: start of truncated window for search (default is beginning of data)
         t_end: end of truncated window for search (default is end of data)
@@ -8315,57 +8313,139 @@ def curie(path_to_file='.', file_name='', magic=False,
     ax4.set_title('Curie temperature by window width')
     ax4.set_ylim(min(T_d2), max(T_d2))
 
-    if inverse_sus == True:
-        # plotting inverse susceptibility
-        fig = plt.figure(figsize=(4, 4))
-        # Create a plot of inverse susceptility
-        plt.scatter(T, 1./M_smooth, s=10, c='orange',  marker='.', alpha=1)
-        plt.show()
-        # initial examination of high-T portion of 1/kT curve
-        upper_temp_window = float(input("Enter upper end of high-T segment to examine:"))
-        lower_temp_window = float(input("Enter lower end of high-T segment to examine:"))
-        T_window = list(T)
-        M_inverse_window = list(M_smooth)
-        # cut the data if -t is one of the flags
-        if inverse_sus == True:
-            while T_window[0] < lower_temp_window:
-                M_inverse_window.pop(0)
-                T_window.pop(0)
-            while T_window[-1] > upper_temp_window:
-                M_inverse_window.pop(-1)
-                T_window.pop(-1)
-        M_inverse_window = np.array(M_inverse_window, 'f')
-        T_inverse_window = np.array(T_window, 'f')
-        # zooming into window of interest
-        plt.scatter(T_inverse_window, 1./M_inverse_window, s=10, c='orange',  marker='.', alpha=1)
-        plt.show()
-        # user chooses linear segment
-        upper_temp_segment = float(input("Enter upper end of linear segment:"))
-        lower_temp_segment = float(input("Enter lower end of linear segment:"))
-        T_segment = list(T)
-        M_inverse_segment = list(M_smooth)
-        # cut the data if -t is one of the flags
-        if inverse_sus == True:
-            while T_segment[0] < lower_temp_segment:
-                M_inverse_segment.pop(0)
-                T_segment.pop(0)
-            while T_segment[-1] > upper_temp_segment:
-                M_inverse_segment.pop(-1)
-                T_segment.pop(-1)
-        M_inverse_segment = np.array(M_inverse_segment, 'f')
-        T_inverse_segment = np.array(T_segment, 'f')
-        slope_curie_est, int_curie_est, r_value_curie, p_value_reg, std_err_reg = linregress(T_inverse_segment, 1./M_inverse_segment)
-        x_intercept = -int_curie_est/slope_curie_est
-        print('The x-intercept of the high-temperature linear array is  T = %i (estimate of Curie point)' % x_intercept)
-        print(f"R-squared value of segment is {r_value_curie}")
-        plt.scatter(T_inverse_window, 1./M_inverse_window, s=10, c='orange',  marker='.', alpha=0.5)
-        plt.scatter(T_inverse_segment, 1./M_inverse_segment, s=10, c='red', marker ='.', alpha=1)
-        ez_line(slope_curie_est, int_curie_est)
-        plt.show()
-
     if save == True:
         plt.savefig('curie_figs' + '.' + fmt, format=None)
 
+
+def inverse_curie(path_to_file='.', file_name='', magic=False,
+                  window_len=20, save=False, save_folder='.', fmt='svg', t_begin="", t_end=""):
+    """
+    Plots susceptibility temperature data and lets the user interpret the Curie point from a plot of
+    inverse susceptibility data. Temperature steps should be in multiples of 1.0 degrees; irregular steps
+    are handled by the function. This function uses a similar front-end to ipmag.curie; broken out to
+    clean up that function.
+
+    Parameters:
+        path_to_file : path to directory that contains file (default is current directory, '.')
+        file_name : name of file to be opened
+        magic : True if MagIC formatted measurements.txt file
+        window_len : dimension of smoothing window (input to ipmag.smooth() function), default=20
+        save : boolean argument to save plots (default is False)
+        save_folder : relative directory where plots will be saved (default is current directory, '.')
+        fmt : format of saved figures (default is svg)
+        t_begin: start of truncated window for search (default is beginning of data)
+        t_end: end of truncated window for search (default is end of data)
+
+    Returns:
+        Strings reporting Curie temperature estimates and plots of kT curve, derivatives, and Curie point estimate for different
+        window widths. Plots are saved if save=True.
+    """
+    # read data from file
+    complete_path = os.path.join(path_to_file, file_name)
+    if magic == True:
+        data_df = pd.read_csv(complete_path, sep='\t', header=1)
+        T = data_df['meas_temp'].values - 273
+        magn_key = cb.get_intensity_col(data_df)
+        M = data_df[magn_key].values
+    else:
+        Data = np.loadtxt(complete_path, dtype=np.float64)
+        T = Data.transpose()[0]
+        M = Data.transpose()[1]
+    T = list(T)
+    M = list(M)
+    # cut the data if -t is one of the flags
+    if t_begin != "":
+        while T[0] < t_begin:
+            M.pop(0)
+            T.pop(0)
+        while T[-1] > t_end:
+            M.pop(-1)
+            T.pop(-1)
+
+    # prepare the signal, from M(T) array with unequal deltaT to M(T) array with deltaT=(1 degree).
+    # if deltaT is larger, then points are added using linear fit between consecutive data points.
+    # warn if any deltaT is not integer
+    for i in range((len(T) - 1)):
+        if (T[i + 1] - T[i]) == 1.:
+            pass
+        elif (T[i + 1] - T[i]) != 1.:
+            # Define the new time steps with equal spacing of 1
+            T_equal = np.arange(T[0], T[-1] + 1)
+            # create a function to interpolate datapoints linearly
+            interpolation = interp1d(T, M, kind='linear', fill_value="extrapolate")
+            M_equal = interpolation(T_equal)
+        elif (T[i + 1] - T[i]) % 1 > 0.001:
+            print("delta T should be integer, this program will not work!")
+            print("temperature range:", T[i], T[i + 1])
+            # sys.exit()
+
+    # rename signal, now with equal time steps
+    M = np.array(M_equal, 'f')
+    T = np.array(T_equal, 'f')
+
+    # initial smoothing of kT data
+    M_smooth = []
+    M_smooth = smooth(M, window_len)
+
+    fig = plt.figure(figsize=(5, 16))
+
+    # first subplot = kT data, original + smoothed
+    ax1 = fig.add_subplot(411)  # 4 row, 1 columns, first subplot
+    ax1.plot(T, M, c='k', alpha=0.25, label='kT data')
+    ax1.plot(T, M_smooth, c='orange', label='kt data smoothed')
+    ax1.set_title('kT data')
+    if save == True:
+        plt.savefig('kt' + '.' + fmt, format=None)
+    plt.show()
+    # inverse susceptility methodology
+    # plotting inverse susceptibility
+    fig = plt.figure(figsize=(5, 4))
+    # Create a plot of inverse susceptility
+    plt.scatter(T, 1. / M_smooth, s=10, c='orange', marker='.', alpha=1)
+    if save == True:
+        plt.savefig('inverse_kT' + '.' + fmt, format=None)
+    plt.show()
+    # initial examination of high-T portion of 1/kT curve
+    upper_temp_window = float(input("Enter upper end of high-T segment to examine:"))
+    lower_temp_window = float(input("Enter lower end of high-T segment to examine:"))
+    T_window = list(T)
+    M_inverse_window = list(M_smooth)
+    # cut the data if -t is one of the flags
+    while T_window[0] < lower_temp_window:
+        M_inverse_window.pop(0)
+        T_window.pop(0)
+    while T_window[-1] > upper_temp_window:
+        M_inverse_window.pop(-1)
+        T_window.pop(-1)
+    M_inverse_window = np.array(M_inverse_window, 'f')
+    T_inverse_window = np.array(T_window, 'f')
+    # zooming into window of interest
+    plt.scatter(T_inverse_window, 1. / M_inverse_window, s=10, c='orange', marker='.', alpha=1)
+    plt.show()
+    # user chooses linear segment
+    upper_temp_segment = float(input("Enter upper end of linear segment:"))
+    lower_temp_segment = float(input("Enter lower end of linear segment:"))
+    T_segment = list(T)
+    M_inverse_segment = list(M_smooth)
+    # cut the data if -t is one of the flags
+    while T_segment[0] < lower_temp_segment:
+        M_inverse_segment.pop(0)
+        T_segment.pop(0)
+    while T_segment[-1] > upper_temp_segment:
+        M_inverse_segment.pop(-1)
+        T_segment.pop(-1)
+    M_inverse_segment = np.array(M_inverse_segment, 'f')
+    T_inverse_segment = np.array(T_segment, 'f')
+    slope_curie_est, int_curie_est, r_value_curie, p_value_reg, std_err_reg = linregress(T_segment,
+                                                                                         1. / M_inverse_segment)
+    x_intercept = -int_curie_est / slope_curie_est
+    print('The x-intercept of the high-temperature linear array is  T = %i (estimate of Curie point)' % x_intercept)
+    print(f"R-squared value of segment is {r_value_curie}")
+    plt.scatter(T_inverse_window, 1. / M_inverse_window, s=20, c='orange', marker='.', alpha=0.5)
+    plt.scatter(T_segment, 1. / M_inverse_segment, s=20, c='red', marker='.', alpha=1)
+    ez_line(slope_curie_est, int_curie_est)
+    if save == True:
+        plt.savefig('inverse_curie_fit' + '.' + fmt, format=None)
 
 def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
               save=False, save_folder='.', fmt='svg'):
