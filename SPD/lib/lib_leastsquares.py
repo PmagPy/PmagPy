@@ -3,7 +3,6 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import map
-from past.utils import old_div
 from numpy import *
 from scipy      import optimize
 
@@ -26,9 +25,9 @@ def do_circlefit(x=x, y=y):
 
     # ensure all values are floats, then norm them by largest value
     x = array(list(map(float, x)))
-    x = old_div(x, max(x))
+    x = x / max(x)
     y = array(list(map(float, y)))
-    y = old_div(y, max(y))
+    y = y / max(y)
     
 
     # coordinates of the barycenter
@@ -52,7 +51,7 @@ def do_circlefit(x=x, y=y):
 
     # Solving the linear system
     A = array([ [ Suu, Suv ], [Suv, Svv]])
-    B = old_div(array([ Suuu + Suvv, Svvv + Suuv ]),2.0)
+    B = array([ Suuu + Suvv, Svvv + Suuv ]) / 2.0
     uc, vc = linalg.solve(A, B)
 
     xc_1 = x_m + uc
