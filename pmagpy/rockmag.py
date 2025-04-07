@@ -124,7 +124,7 @@ def interactive_specimen_experiment_selection(measurements):
 # MPMS functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def extract_mpms_data(df, specimen_name):
+def extract_mpms_data_dc(df, specimen_name):
     """
     Extracts and separates MPMS data for a specified specimen from a DataFrame.
 
@@ -394,7 +394,7 @@ def plot_mpms_dc(fc_data=None, zfc_data=None, rtsirm_cool_data=None, rtsirm_warm
             return fig
 
 
-def make_mpms_plots(measurements):
+def make_mpms_plots_dc(measurements):
     """
     Create a UI for specimen selection and dynamically update MPMS plots based on the selected
     specimen and plot library choice. This version adds event handlers to ensure updates occur
@@ -428,26 +428,26 @@ def make_mpms_plots(measurements):
     # Interactive output container
     out = widgets.Output()
 
-    def update_mpms_plots(specimen_name, use_plotly):
+    def update_mpms_plots_dc(specimen_name, use_plotly):
         """
         Update MPMS plots based on the selected specimen and plotting library choice.
         """
         with out:
             out.clear_output(wait=True)
-            fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data(measurements, specimen_name)
+            fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, specimen_name)
             plot_mpms_dc(fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data, use_plotly=use_plotly, plot_derivative=True)
 
     def on_specimen_change(change):
-        update_mpms_plots(change['new'], plot_choice.value)
+        update_mpms_plots_dc(change['new'], plot_choice.value)
 
     def on_plot_choice_change(change):
-        update_mpms_plots(specimen_dropdown.value, change['new'])
+        update_mpms_plots_dc(specimen_dropdown.value, change['new'])
 
     specimen_dropdown.observe(on_specimen_change, names='value')
     plot_choice.observe(on_plot_choice_change, names='value')
 
     # Initial plot to ensure something is displayed right away
-    update_mpms_plots(specimen_dropdown.value, plot_choice.value)
+    update_mpms_plots_dc(specimen_dropdown.value, plot_choice.value)
 
     # Display UI components
     display(specimen_dropdown, plot_choice, out)
@@ -634,7 +634,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
 
-    fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data(measurements, selected_specimen_name)
+    fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
     if selected_method == 'LP-FC':
         temps = fc_data['meas_temp']
         mags = fc_data['magn_mass']
@@ -837,7 +837,7 @@ def verwey_estimate_multiple_specimens(specimens_with_params, measurements):
         codes = method_codes.split(':')
         
         # Extract the measurement data for the specimen
-        fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data(measurements, specimen_name)
+        fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, specimen_name)
         
         if "LP-FC" in codes:
             data = fc_data
@@ -1114,7 +1114,7 @@ def interactive_goethite_removal(measurements, specimen_dropdown):
     
     selected_specimen_name = specimen_dropdown.value
 
-    fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data(measurements, selected_specimen_name)
+    fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
 
     # Determine a fixed width for the descriptions to align the sliders
     description_width = '250px'  # Adjust this based on the longest description
@@ -1195,7 +1195,7 @@ def extract_hysteresis_data(df, specimen_name):
             - rtsirm_warm_data: Data filtered for 'LP-CW-SIRM:LP-MW' method if available, otherwise an empty DataFrame.
 
     Example:
-        >>> fc, zfc, rtsirm_cool, rtsirm_warm = extract_mpms_data(measurements_df, 'Specimen_1')
+        >>> fc, zfc, rtsirm_cool, rtsirm_warm = extract_mpms_data_dc(measurements_df, 'Specimen_1')
     """
 
     specimen_df = df[df['specimen'] == specimen_name]
