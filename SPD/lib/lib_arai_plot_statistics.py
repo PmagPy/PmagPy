@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 #from scipy import *
-from __future__ import division
 from builtins import range
 import numpy
 

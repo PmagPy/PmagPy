@@ -16,7 +16,6 @@ OPTIONS
     -usr : colon delimited list of analysts (default : "")
     -f : magnetometer file path
 """
-from __future__ import print_function
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.contribution_builder as cb

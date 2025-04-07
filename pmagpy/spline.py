@@ -19,8 +19,6 @@ Uses "searchsorted" from the Numeric module, aka "binarysearch" in older
 versions.
 
 """
-from __future__ import division
-from __future__ import absolute_import
 
 from builtins import range
 
