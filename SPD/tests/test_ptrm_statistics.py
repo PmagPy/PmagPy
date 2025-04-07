@@ -4,7 +4,6 @@
 
 from __future__ import division
 from __future__ import print_function
-from past.utils import old_div
 import numpy
 import unittest
 #import sys
@@ -36,7 +35,7 @@ class CheckpTRMparams(unittest.TestCase):
     #    0., -.5,  -2.5, 2.
     ref_max_ptrm_check = 2.5
     ref_sum_ptrm_check = abs(-1.)
-    ref_check_percent = (old_div(2.5, 5.5)) * 100.
+    ref_check_percent = (2.5 / 5.5) * 100.
     ref_sum_abs_ptrm_check = 5.
 
     x_int = 8.5
@@ -71,26 +70,26 @@ class CheckpTRMparams(unittest.TestCase):
 
         
     def test_DRAT(self):
-        ref_DRAT = (old_div(self.ref_max_ptrm_check, self.ref_L)) * 100.
+        ref_DRAT = (self.ref_max_ptrm_check / self.ref_L) * 100.
         DRAT, L = lib_ptrm.get_DRAT(self.delta_y_prime, self.delta_x_prime, self.ref_max_ptrm_check)
         self.assertAlmostEqual(ref_DRAT, DRAT)
         self.assertAlmostEqual(self.ref_L, L)
 
     def test_max_DEV(self):
         result = lib_ptrm.get_max_DEV(self.delta_x_prime, self.ref_max_ptrm_check)
-        ref_max_DEV = (old_div(2.5, 8.)) * 100
+        ref_max_DEV = (2.5 / 8.) * 100
         self.assertAlmostEqual(ref_max_DEV, result)
         
     def test_CDRAT(self):
         CDRAT, CDRAT_prime = lib_ptrm.get_CDRAT(self.ref_L, self.ref_sum_ptrm_check, self.ref_sum_abs_ptrm_check)
-        ref_CDRAT, ref_CDRAT_prime = (old_div(1., self.ref_L)) * 100., (old_div(5., self.ref_L)) * 100
+        ref_CDRAT, ref_CDRAT_prime = (1. / self.ref_L) * 100., (5. / self.ref_L) * 100
         self.assertAlmostEqual(ref_CDRAT, CDRAT)
         self.assertAlmostEqual(ref_CDRAT_prime, CDRAT_prime)
         
     def test_DRATS(self):
         #ref_DRATS = .9
-        ref_DRATS = (old_div(1., 7.)) * 100.
-        ref_DRATS_prime = (old_div(5., 7.)) * 100.
+        ref_DRATS = (1. / 7.) * 100.
+        ref_DRATS_prime = (5. / 7.) * 100.
         end = 4
         DRATS, DRATS_prime = lib_ptrm.get_DRATS(self.ref_sum_ptrm_check, self.ref_sum_abs_ptrm_check, self.x_Arai, end)
         self.assertAlmostEqual(ref_DRATS, DRATS)
@@ -115,8 +114,8 @@ class CheckpTRMparams(unittest.TestCase):
         self.assertAlmostEqual(ref_mean_DRAT_prime, mean_DRAT_prime)
 
     def test_mean_DEV(self):
-        ref_mean_DEV = (old_div(1., 4.)) * ( old_div(1., 8.))  * 100
-        ref_mean_DEV_prime = (old_div(1., 4.)) * (old_div(5., 8.))  * 100
+        ref_mean_DEV = (1. / 4.) * (1. / 8.)  * 100
+        ref_mean_DEV_prime = (1. / 4.) * (5. / 8.)  * 100
         mean_DEV, mean_DEV_prime = lib_ptrm.get_mean_DEV(self.ref_sum_ptrm_check, self.ref_sum_abs_ptrm_check, self.ref_n, self.delta_x_prime)
         self.assertAlmostEqual(ref_mean_DEV, mean_DEV)
         self.assertAlmostEqual(ref_mean_DEV_prime, mean_DEV_prime)

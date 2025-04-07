@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from builtins import input
 from builtins import range
 from builtins import object
-from past.utils import old_div
 global CURRENT_VRSION
 CURRENT_VRSION = "v.2.03"
 #import matplotlib
@@ -428,17 +427,17 @@ class Arai_GUI(object):
           # > 5% : WARNING
           # > 10%: ERROR
 
-          slopes=old_div(M_NLT,B_NLT) #  B = B_anc / B_lab ??
+          slopes = M_NLT / B_NLT #  B = B_anc / B_lab ??
 
           if len(trmblock)==2:
-              if old_div(max(slopes),min(slopes))<1.05:
+              if max(slopes) / min(slopes) < 1.05:
                   print("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
-              elif old_div(max(slopes),min(slopes))<1.1:
-                  print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,old_div(max(slopes),min(slopes))))
-                  #print("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
+              elif max(slopes) / min(slopes) < 1.1:
+                  print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT measurements may be required.\n" %(s, (max(slopes) / min(slopes))))
+                  #print("-I- NLT measurements specimen %s: B,M="%s,B_NLT,M_NLT)
               else:
-                  print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,old_div(max(slopes),min(slopes))))
-                  #print("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
+                  print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT measurements may be required  !\n" %(s, (max(slopes) / min(slopes))))
+                  #print("-I- NLT measurements specimen %s: B,M="%s,B_NLT,M_NLT)
 
           # NLT procedure following Shaar et al (2010)
 
@@ -457,8 +456,8 @@ class Arai_GUI(object):
                   M_lab=popt[0]*math.tanh(labfield*popt[1])
 
                   # Now  fit tanh function to the normalized curve
-                  M_NLT_norm=old_div(M_NLT,M_lab)
-                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(old_div(popt[0],M_lab),popt[1]))
+                  M_NLT_norm = M_NLT / M_lab
+                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm, p0 = ((popt[0] / M_lab), popt[1]))
                   Data[s]['NLT_parameters']={}
                   Data[s]['NLT_parameters']['tanh_parameters']=(popt, pcov)
                   Data[s]['NLT_parameters']['B_NLT']=B_NLT
@@ -474,13 +473,13 @@ class Arai_GUI(object):
                   # The maximum difference allowd is 5%
                   # if difference is larger than 5%: WARNING
 
-                  if old_div(max(slopes),min(slopes))<1.05:
+                  if max(slopes) / min(slopes) < 1.05:
                       print("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
-                  elif old_div(max(slopes),min(slopes))<1.1:
-                      print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,old_div(max(slopes),min(slopes))))
+                  elif max(slopes) / min(slopes) < 1.1:
+                      print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s, max(slopes) / min(slopes)))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
                   else:
-                      print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,old_div(max(slopes),min(slopes))))
+                      print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s, max(slopes) / min(slopes)))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
 
       #print "done searching NLT data"
@@ -515,7 +514,7 @@ class Arai_GUI(object):
 ##                  continue
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-                  ancient_cooling_rate=old_div(ancient_cooling_rate,(1e6*365*24*60)) # change to K/minute
+                  ancient_cooling_rate = ancient_cooling_rate / (1e6*365*24*60) # change to K/minute
               except:
                   print("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
                   continue
@@ -550,20 +549,20 @@ class Arai_GUI(object):
               lab_fast_cr_moments=[]
               lan_cooling_rates=[]
               for pair in cooling_rate_data['pairs']:
-                    lan_cooling_rates.append(math.log(old_div(cooling_rate_data['lab_cooling_rate'],pair[0])))
+                    lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate'] / pair[0]))
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
               #print s, cooling_rate_data['alteration_check']
-              lan_cooling_rates.append(math.log(old_div(cooling_rate_data['lab_cooling_rate'],cooling_rate_data['alteration_check'][0])))
+              lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate'] / cooling_rate_data['alteration_check'][0]))
               lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
               moments.append(cooling_rate_data['alteration_check'][1])
 
               lab_fast_cr_moment=numpy.mean(lab_fast_cr_moments)
-              moment_norm=old_div(numpy.array(moments),lab_fast_cr_moment)
+              moment_norm = numpy.array(moments) / lab_fast_cr_moment
               (a,b)=numpy.polyfit(lan_cooling_rates, moment_norm, 1)
               #ancient_cooling_rate=0.41
-              x0=math.log(old_div(lab_cooling_rate,ancient_cooling_rate))
+              x0=math.log(lab_cooling_rate / ancient_cooling_rate)
               y0=a*x0+b
               MAX=max(lab_fast_cr_moments)
               MIN=min(lab_fast_cr_moments)
@@ -580,7 +579,7 @@ class Arai_GUI(object):
               #print(MAX-MIN)
               #print(numpy.mean(MAX, MIN))
               try:
-                  alteration_check_perc=100*abs(old_div((MAX-MIN),numpy.mean(MAX,MIN)))
+                  alteration_check_perc=100*abs((MAX-MIN) / numpy.mean(MAX,MIN))
               except TypeError:
                   alteration_check_perc = 0
               #print s,alteration_check_perc
@@ -600,7 +599,7 @@ class Arai_GUI(object):
                   cooling_rate_data['CR_correction_factor']=-999
               if y0>1 and alteration_check_perc<=5:
                   cooling_rate_data['CR_correction_factor_flag']="calculated"
-                  cooling_rate_data['CR_correction_factor']=old_div(1,(y0))
+                  cooling_rate_data['CR_correction_factor'] = 1 / (y0)
 
               Data[s]['cooling_rate_data']= cooling_rate_data
               # at present not generated for my particular specimens
@@ -691,7 +690,7 @@ class Arai_GUI(object):
         NRM=zijdblock[0][3]  ## NRM before anything has been done to the sample
 
         for k in range(len(zijdblock)):
-            DIR=[zijdblock[k][1],zijdblock[k][2],old_div(zijdblock[k][3],NRM)]
+            DIR=[zijdblock[k][1],zijdblock[k][2], zijdblock[k][3] / NRM]
             cart=self.dir2cart(DIR)
             zdata.append(numpy.array([cart[0],cart[1],cart[2]]))
             if k>0:
@@ -747,8 +746,8 @@ class Arai_GUI(object):
 
         for k in range(len(zerofields)):
           index_infield=infield_temperatures.index(zerofields[k][0])
-          x_Arai.append(old_div(infields[index_infield][3],NRM))   #  from infields point: x = magnetic strength / NRM
-          y_Arai.append(old_div(zerofields[k][3],NRM))  # from corresponding zerofield point: y = magnetic strength / NRM
+          x_Arai.append(infields[index_infield][3] / NRM)   #  from infields point: x = magnetic strength / NRM
+          y_Arai.append(zerofields[k][3] / NRM)  # from corresponding zerofield point: y = magnetic strength / NRM
           t_Arai.append(zerofields[k][0])  # temperature.  .
           if zerofields[k][4]==1:
             steps_Arai.append('ZI')
@@ -788,8 +787,8 @@ class Arai_GUI(object):
                         ptrm_checks_starting_temperatures.append(starting_temperature)
 
                         index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                        x_ptrm_check.append(old_div(ptrm_checks[k][3],NRM))
-                        y_ptrm_check.append(old_div(zerofields[index_zerofield][3],NRM))
+                        x_ptrm_check.append(ptrm_checks[k][3] / NRM)
+                        y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
                     except:
                         pass
@@ -805,8 +804,8 @@ class Arai_GUI(object):
                         ptrm_checks_starting_temperatures.append(starting_temperature)
 
                         index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                        x_ptrm_check.append(old_div(ptrm_checks[k][3],NRM))
-                        y_ptrm_check.append(old_div(zerofields[index_zerofield][3],NRM))
+                        x_ptrm_check.append(ptrm_checks[k][3] / NRM)
+                        y_ptrm_check.append(zerofields[index_zerofield][3] / NRM)
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
                     except:
                         pass
@@ -854,8 +853,8 @@ class Arai_GUI(object):
                         tail_checks_starting_temperatures.append(starting_temperature)
 
                         index_infield=infield_temperatures.index(ptrm_tail[k][0])
-                        x_tail_check.append(old_div(infields[index_infield][3],NRM))
-                        y_tail_check.append(old_div(ptrm_tail[k][3],NRM) + old_div(zerofields[index_infield][3],NRM))
+                        x_tail_check.append(infields[index_infield][3] / NRM)
+                        y_tail_check.append((ptrm_tail[k][3] / NRM) + (zerofields[index_infield][3] / NRM))
                         tail_check_temperatures.append(ptrm_tail[k][0])
 
                         break
@@ -925,11 +924,11 @@ class Arai_GUI(object):
                     AC_starting_temperatures.append(starting_temperature)
 
                     index_zerofield=zerofield_temperatures.index(additivity_checks[k][0])
-                    x_AC.append(old_div(additivity_checks[k][3],NRM))
-                    y_AC.append(old_div(zerofields[index_zerofield][3],NRM))
+                    x_AC.append(additivity_checks[k][3] / NRM)
+                    y_AC.append(zerofields[index_zerofield][3] / NRM)
                     AC_temperatures.append(additivity_checks[k][0])
                     index_pTRMs=t_Arai.index(additivity_checks[k][0])
-                    AC.append(old_div(additivity_checks[k][3],NRM) - x_Arai[index_pTRMs])
+                    AC.append((additivity_checks[k][3] / NRM) - x_Arai[index_pTRMs])
                     # above is not using pTRM_star, but x_add_check -  pTRM(Ti)
                     #lj
                     # this is the intensity from the additivity checks araiblock normed by the initial nrm, - the equivalent ptrm value from the previous infield step (I think).  x_Arai is also taken directly from direction (intensity)
@@ -1063,15 +1062,15 @@ class Arai_GUI(object):
         """
 #        print "calling cart2dir(), not in anything"
         cart=numpy.array(cart)
-        rad=old_div(numpy.pi,180.) # constant to convert degrees to radians
+        rad = numpy.pi / 180. # constant to convert degrees to radians
         if len(cart.shape)>1:
             Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
         else: #single vector
             Xs,Ys,Zs=cart[0],cart[1],cart[2]
         Rs=numpy.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-        Decs=(old_div(numpy.arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+        Decs = (numpy.arctan2(Ys,Xs) / rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         try:
-            Incs=old_div(numpy.arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) #
+            Incs = numpy.arcsin(Zs / Rs) / rad # calculate inclination (converting to degrees) #
         except:
             print('trouble in cart2dir') # most likely division by zero somewhere
             return numpy.zeros(3)
@@ -1084,7 +1083,7 @@ class Arai_GUI(object):
        # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
         ints=numpy.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
         d = numpy.array(d)
-        rad=old_div(numpy.pi,180.)
+        rad = numpy.pi / 180.
         if len(d.shape)>1: # array of vectors
             decs,incs=d[:,0]*rad,d[:,1]*rad
             if d.shape[1]==3: ints=d[:,2] # take the given lengths
@@ -1346,8 +1345,8 @@ class Arai_GUI(object):
                     if Treat_I[i] == Treat_I[i-2] and dec2!=dec_initial and inc2!=inc_initial:
                         continue
                     if dec1!=dec2 and inc1!=inc2:
-                        zerofield=old_div((cart2+cart1),2)
-                        infield=old_div((cart2-cart1),2)
+                        zerofield = (cart2+cart1) / 2
+                        infield = (cart2-cart1) / 2
 
                         DIR_zerofield=self.cart2dir(zerofield)
                         DIR_infield=self.cart2dir(infield)

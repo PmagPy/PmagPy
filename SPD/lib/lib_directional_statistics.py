@@ -3,7 +3,6 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import range
-from past.utils import old_div
 import numpy
 import math
 
@@ -57,7 +56,7 @@ def tauV(T):
         tr += tau  # tr totals tau values
     if tr != 0:
         for i in range(3):
-            evalues[i]=old_div(evalues[i], tr)  # convention is norming eigenvalues so they sum to 1.
+            evalues[i] = evalues[i] / tr  # convention is norming eigenvalues so they sum to 1.
     else:
         return t,V  # if eigenvalues add up to zero, no sorting is needed
 # sort evalues,evectors      
@@ -93,7 +92,7 @@ def get_PD_direction(X1_prime, X2_prime, X3_prime, PD):
         dot = -1
     elif dot > 1:
         dot = 1
-    if numpy.arccos(dot) > old_div(numpy.pi, 2.):
+    if numpy.arccos(dot) > numpy.pi / 2.:
         #print 'numpy.arccos(dot) {} > numpy.pi / 2. {}'.format(numpy.arccos(dot), numpy.pi / 2)
         #print 'correcting PD direction'
         PD = -1. * numpy.array(PD)
@@ -105,15 +104,15 @@ def cart2dir(cart):
     converts a direction to cartesian coordinates
     """
     cart=numpy.array(cart)
-    rad=old_div(numpy.pi,180.) # constant to convert degrees to radians
+    rad = numpy.pi / 180. # constant to convert degrees to radians
     if len(cart.shape)>1:
         Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
     else: #single vector
         Xs,Ys,Zs=cart[0],cart[1],cart[2]
     Rs=numpy.sqrt(Xs**2 + Ys**2 + Zs**2) # calculate resultant vector length                 
     try:
-        Decs=(old_div(numpy.arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
-        Incs=old_div(numpy.arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) #                             
+        Decs=(numpy.arctan2(Ys,Xs) / rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+        Incs = numpy.arcsin(Zs / Rs) / rad # calculate inclination (converting to degrees) #
     except:
         print('trouble in cart2dir') # most likely division by zero somewhere
         return numpy.zeros(3)
@@ -146,14 +145,14 @@ def get_MAD(tau):
     for t in tau:
         if isinstance(t, complex):
             return -999
-    MAD = math.degrees(numpy.arctan(numpy.sqrt(old_div((tau[1] + tau[2]), tau[0]))) )
+    MAD = math.degrees(numpy.arctan(numpy.sqrt((tau[1] + tau[2]) / tau[0])))
     return MAD
 
 def dir2cart(d): # from pmag.py
     """converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z form """
     ints = numpy.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs             
     d = numpy.array(d)
-    rad = old_div(numpy.pi, 180.)
+    rad = numpy.pi / 180.
     if len(d.shape) > 1: # array of vectors                                                         
         decs, incs = d[:,0] * rad, d[:,1] * rad
         if d.shape[1] == 3: ints = d[:,2] # take the given lengths                  
@@ -202,7 +201,7 @@ def get_angle_difference(v1, v2):
     """returns angular difference in degrees between two vectors.  takes in cartesian coordinates."""
     v1 = numpy.array(v1)
     v2 = numpy.array(v2)
-    angle=numpy.arccos(old_div((numpy.dot(v1, v2) ), (numpy.sqrt(math.fsum(v1**2)) * numpy.sqrt(math.fsum(v2**2)))))    
+    angle=numpy.arccos((numpy.dot(v1, v2)) / (numpy.sqrt(math.fsum(v1**2)) * numpy.sqrt(math.fsum(v2**2))))
     return math.degrees(angle)
 
 def get_alpha(anc_fit, free_fit): 
@@ -215,7 +214,7 @@ def get_DANG(mass_center, free_best_fit_vector):
     return DANG
 
 def get_NRM_dev(dang, x_avg, y_int):
-    NRM_dev = old_div((numpy.sin(numpy.deg2rad(dang)) * numpy.linalg.norm(x_avg)), abs(y_int))
+    NRM_dev = (numpy.sin(numpy.deg2rad(dang)) * numpy.linalg.norm(x_avg)) / abs(y_int)
     NRM_dev *= 100.
     return NRM_dev
 
@@ -237,5 +236,5 @@ def get_ptrms_angle(ptrms_best_fit_vector, B_lab_vector):
     """
     gives angle between principal direction of the ptrm data and the b_lab vector.  this is NOT in SPD, but taken from Ron Shaar's old thellier_gui.py code.  see PmagPy on github
     """
-    ptrms_angle = math.degrees(math.acos(old_div(numpy.dot(ptrms_best_fit_vector,B_lab_vector),(numpy.sqrt(sum(ptrms_best_fit_vector**2)) * numpy.sqrt(sum(B_lab_vector**2))))))  # from old thellier_gui.py code  
+    ptrms_angle = math.degrees(math.acos(numpy.dot(ptrms_best_fit_vector,B_lab_vector) / (numpy.sqrt(sum(ptrms_best_fit_vector**2)) * numpy.sqrt(sum(B_lab_vector**2)))))  # from old thellier_gui.py code
     return ptrms_angle

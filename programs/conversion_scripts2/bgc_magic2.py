@@ -2,7 +2,6 @@
 from __future__ import division
 from __future__ import print_function
 from builtins import str
-from past.utils import old_div
 import pandas as pd
 import sys
 import os
@@ -163,8 +162,8 @@ def main(command_line=True, **kwargs):
 
     data['measurement_dec'] = direction[0]
     data['measurement_inc'] = direction[1]
-    data['measurement_magn_moment'] = old_div(direction[2], 1000)  # the data are in EMU - this converts to Am^2 
-    data['measurement_magn_volume'] = old_div((old_div(direction[2], 1000)), volume) # EMU  - data converted to A/m
+    data['measurement_magn_moment'] = direction[2] / 1000  # the data are in EMU - this converts to Am^2
+    data['measurement_magn_volume'] = (direction[2] / 1000) / volume # EMU  - data converted to A/m
     
     # Configure the er_sample table
 

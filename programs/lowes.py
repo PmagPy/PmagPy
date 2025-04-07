@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from builtins import input
 from builtins import str
-from past.utils import old_div
 import numpy as np
 import sys
 
@@ -58,7 +57,7 @@ def main():
             labels.append(str(date))
         print(date,Rs[0])
         if norm==1: 
-            Rs=old_div(np.array(Rs),Rs[0])
+            Rs = np.array(Rs) / Rs[0]
         #plt.plot(Ls,Rs,'ro')
         plt.plot(Ls,Rs,linewidth=2)
         plt.legend(labels,'upper right')

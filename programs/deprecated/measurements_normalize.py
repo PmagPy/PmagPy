@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import division
 from __future__ import print_function
-from past.utils import old_div
 import sys
 import pmagpy.pmag as pmag
 #
@@ -55,9 +54,9 @@ def main():
             for spec in Specs:
                 if spec['er_specimen_name']==rec['er_specimen_name']:
                     if 'specimen_weight' in list(spec.keys()) and spec['specimen_weight']!="":
-                        rec['measurement_magn_mass']='%e'%(old_div(float(rec['measurement_magn_moment']),float(spec['specimen_weight'])))
+                        rec['measurement_magn_mass']='%e'%(float(rec['measurement_magn_moment']) / float(spec['specimen_weight']))
                     if 'specimen_volume' in list(spec.keys()) and spec['specimen_volume']!="":
-                        rec['measurement_magn_volume']='%e'%(old_div(float(rec['measurement_magn_moment']),float(spec['specimen_volume'])))
+                        rec['measurement_magn_volume']='%e'%(float(rec['measurement_magn_moment']) / float(spec['specimen_volume']))
                     break
         if 'measurement_magn_volume' not in list(rec.keys()): rec['measurement_magn_volume']=''
         if 'measurement_magn_mass' not in list(rec.keys()): rec['measurement_magn_mass']=''
