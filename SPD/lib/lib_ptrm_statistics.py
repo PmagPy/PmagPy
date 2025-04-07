@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import division
-from __future__ import absolute_import
 import numpy
 from . import lib_directional_statistics as lib_direct
 

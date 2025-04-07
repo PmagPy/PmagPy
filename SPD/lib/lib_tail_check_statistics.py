@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
 import numpy
 
 # int_ptrm_tail_n

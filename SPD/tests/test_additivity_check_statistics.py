@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import division
 import unittest
 #import sys
 #sys.path.append('/Users/nebula/Python')
