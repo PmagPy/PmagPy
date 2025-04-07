@@ -54,7 +54,7 @@ def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x
         if ptrm_orig == 0:
             check_percents.append(0)
         else:
-            check_percents.append((abs(diff) / ptrm_orig)) * 100
+            check_percents.append((abs(diff) / ptrm_orig) * 100)
     max_diff = max(abs_diffs)
     check_percent = max(check_percents)
     sum_diffs = abs(sum(diffs))
