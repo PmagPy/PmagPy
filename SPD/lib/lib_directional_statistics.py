@@ -236,5 +236,5 @@ def get_ptrms_angle(ptrms_best_fit_vector, B_lab_vector):
     """
     gives angle between principal direction of the ptrm data and the b_lab vector.  this is NOT in SPD, but taken from Ron Shaar's old thellier_gui.py code.  see PmagPy on github
     """
-    ptrms_angle = math.degrees(math.acos(numpy.dot(ptrms_best_fit_vector,B_lab_vector) / (numpy.sqrt(sum(ptrms_best_fit_vector**2) * numpy.sqrt(sum(B_lab_vector**2))))))  # from old thellier_gui.py code
+    ptrms_angle = math.degrees(math.acos(numpy.dot(ptrms_best_fit_vector,B_lab_vector) / (numpy.sqrt(sum(ptrms_best_fit_vector**2)) * numpy.sqrt(sum(B_lab_vector**2)))))  # from old thellier_gui.py code
     return ptrms_angle
