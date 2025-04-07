@@ -288,7 +288,7 @@ class CheckR_corr2(unittest.TestCase):
     def testSimpleInput(self):
         """should produce expected output with simple input"""
         r = lib_arai.get_R_corr2(self.x_avg, self.y_avg, self.x_segment, self.y_segment)
-        self.assertEqual((self.ref_numerator,self.ref_denominator)) / r
+        self.assertEqual((self.ref_numerator / self.ref_denominator), r)
 
 #    def testDivideByZero(self):
 #        """should raise ValueError when attempting to divide by zero"""
