@@ -15636,19 +15636,19 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     hit = 0
     miss = 0
     
-    #trial loop
+    # trial loop
     for i in range(trials):
-        #generates two synthetic directions, using the estimated kappas
-        lontp1,lattp1 = ipmag.fishrot(k1, 1, 0, 90, di_block=False)
-        lontp2,lattp2 = ipmag.fishrot(k2, 1, 0, 90, di_block=False)
-        #determines the angle between the generated directions 
+        # generates two synthetic directions, using the estimated kappas
+        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False)
+        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False)
+        # determines the angle between the generated directions
         angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
-        #checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
-        if (angle >= alpha):
+        # checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
+        if angle >= alpha:
             hit = hit + 1
         else:
             miss = miss + 1
-    #calculates probability based on how often the angle between the 'real' datasets is met or exceeded
+    # calculates probability based on how often the angle between the 'real' datasets is met or exceeded
     simul_prob = 1.0 * hit / trials
     
     if print_result == True:
@@ -15691,12 +15691,12 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     
     """
 
-    #calc probability of getting vgp within alpha of vgp1
+    # calc probability of getting vgp within alpha of vgp1
     i = 0
     miss = 0
     hit = 0
     for i in range(trials):
-        dec,inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False)
         angle = pmag.angle([dec[0], inc[0]], [0, delta1])
         if (angle <= alpha):
             hit = hit + 1
@@ -15711,7 +15711,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     hit = 0
     miss = 0
     for i in range(trials):
-        dec, inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False)
         angle = pmag.angle([dec[0], inc[0]], [0,delta2])
         if (angle <= alpha):
             hit = hit + 1
