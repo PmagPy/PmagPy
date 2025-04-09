@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # define some variables
-from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":

@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from past.utils import old_div
 import sys
 import pmagpy.pmag as pmag
 
@@ -222,15 +219,15 @@ def main():
         if "susceptibilities" in words:  # first part of specimen data
             line=Data[k+2]
             rec=line.split()
-            AniRec['anisotropy_s1']='%7.4f'%(old_div(float(rec[1]),3.)) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s2']='%7.4f'%(old_div(float(rec[2]),3.))
-            AniRec['anisotropy_s3']='%7.4f'%(old_div(float(rec[3]),3.))
+            AniRec['anisotropy_s1']='%7.4f'%(float(rec[1]) / 3.) # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s2']='%7.4f'%(float(rec[2]) / 3.)
+            AniRec['anisotropy_s3']='%7.4f'%(float(rec[3]) / 3.)
             k+=2
             line=Data[k]
             rec=line.split()
-            AniRec['anisotropy_s4']='%7.4f'%(old_div(float(rec[0]),3.)) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s5']='%7.4f'%(old_div(float(rec[1]),3.))
-            AniRec['anisotropy_s6']='%7.4f'%(old_div(float(rec[2]),3.))
+            AniRec['anisotropy_s4']='%7.4f'%(float(rec[0]) / 3.) # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s5']='%7.4f'%(float(rec[1]) / 3.)
+            AniRec['anisotropy_s6']='%7.4f'%(float(rec[2]) / 3.)
             AniRec['anisotropy_tilt_correction']='-1'
             AniRecs.append(AniRec)
             MeasRecs.append(MeasRec)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python                                                                                            
 
-from __future__ import division
-from past.utils import old_div
 import numpy
 import unittest
 import copy
@@ -51,19 +49,19 @@ class CheckTailSelection(unittest.TestCase):
         self.assertAlmostEqual(self.ref_tail_check_max, tail_check_max)
 
     def test_DRAT_tail(self):
-        ref_DRAT_tail = (old_div(.7, 3.)) * 100
+        ref_DRAT_tail = (.7 / 3.) * 100
         DRAT_tail = lib_tail.get_DRAT_tail(self.ref_tail_check_max, self.ref_L)
         self.assertAlmostEqual(ref_DRAT_tail, DRAT_tail)
         # max_tail_check / best_fit line  * 100
         
     def test_delta_TR(self):
-        ref_delta_TR = (old_div(.7, 4.5)) * 100.
+        ref_delta_TR = (.7 / 4.5) * 100.
         delta_TR = lib_tail.get_delta_TR(self.ref_tail_check_max, self.y_int)
         self.assertAlmostEqual(ref_delta_TR, delta_TR)
         
 
     def test_MD_VDS(self):
-        ref_MD_VDS = (old_div(self.ref_tail_check_max, self.vds)) * 100.
+        ref_MD_VDS = (self.ref_tail_check_max / self.vds) * 100.
         MD_VDS = lib_tail.get_MD_VDS(self.ref_tail_check_max, self.vds)
         self.assertAlmostEqual(ref_MD_VDS, MD_VDS)
         

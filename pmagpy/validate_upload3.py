@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 from builtins import zip
 from builtins import str
 from builtins import range
@@ -37,7 +35,6 @@ def requiredUnless(col_name, arg, dm, df, *args):
         return msg
     else:
         return None
-    return None
 
 
 def requiredUnlessTable(col_name, arg, dm, df, con=None):

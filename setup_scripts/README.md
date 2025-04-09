@@ -72,7 +72,7 @@ You can create an executable that is over 100MB smaller by installing a more min
 - Link python3 --> python (not sure this is necessary)
    - `ln -s /usr/local/bin/python3 /usr/local/bin/python`
 - Use pip to install required packages
-  - `pip install future matplotlib numpy scipy pandas`
+  - `pip install matplotlib numpy scipy pandas`
 - Use pip to install wxPython
   - `pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Use pip to install Pyinstaller
@@ -94,7 +94,7 @@ Same idea but with miniconda, (a stripped down version of Anaconda Python):
 - Install Python 3.5.1 # see: https://github.com/pyinstaller/pyinstaller/issues/3192
    - `conda install python=3.5.1`
 - Use conda to install required packages
-  - `conda install future matplotlib numpy scipy pandas`
+  - `conda install matplotlib numpy scipy pandas`
 - Use pip to install wxPython
   - `pip install --upgrade --pre -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`
 - Use pip to install Pyinstaller
@@ -129,7 +129,7 @@ Environment (other configurations may work, but I can confirm that this way does
 You need to activate a conda environment to this work -- you cannot just use your base environment.  Here are the steps to create and activate the environment, install pyinstaller, and then make the executable.
 
     # create an environment with the required packages
-    conda create --name pmagpy-standalone python=3.8 future pandas matplotlib
+    conda create --name pmagpy-standalone python=3.8 pandas matplotlib
     # activate that environment
     conda activate pmagpy-standalone
     # install wxpython for Python 3.8 (wxpython cannot be installed with conda)
@@ -237,7 +237,7 @@ Activated that conda environment:
 
 Installed packages:
 
-```conda install future matplotlib numpy scipy pandas```
+```conda install matplotlib numpy scipy pandas```
 
 ```conda install wxpython```
 
@@ -265,7 +265,7 @@ Install the nomkl package for numpy otherwise pyinstaller throws error:
 
 ```conda install nomkl```
 
-```conda install future matplotlib numpy scipy pandas```
+```conda install matplotlib numpy scipy pandas```
 
 - Use pip to install wxPython
   - `pip install --upgrade -f https://wxpython.org/Phoenix/snapshot-builds/ wxPython`

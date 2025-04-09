@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # define some variables
-from __future__ import print_function
 from builtins import input
 import sys
 import numpy

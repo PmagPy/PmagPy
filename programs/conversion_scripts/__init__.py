@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from . import _2g_bin_magic
 from . import bgc_magic
 from . import cit_magic

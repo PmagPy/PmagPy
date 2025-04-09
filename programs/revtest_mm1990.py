@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
 from builtins import input
 from builtins import range
-from past.utils import old_div
 import sys
 import numpy
 
@@ -120,7 +117,7 @@ def main():
 #
 # equation 18 of McFadden and McElhinny, 1990 calculates the critical value of R (Rwc)
 #
-    Rwc=Sr-(old_div(Vcrit,2))
+    Rwc=Sr-(Vcrit / 2.)
 #
 #following equation 19 of McFadden and McElhinny (1990) the critical angle is calculated.
 #
@@ -128,7 +125,7 @@ def main():
     k2=pars_2['k']
     R1=pars_1['r']
     R2=pars_2['r']
-    critical_angle=numpy.degrees(numpy.arccos(old_div(((Rwc**2)-((k1*R1)**2)-((k2*R2)**2)),(2*k1*R1*k2*R2))))
+    critical_angle=numpy.degrees(numpy.arccos(((Rwc**2)-((k1*R1)**2)-((k2*R2)**2)) / (2*k1*R1*k2*R2)))
     D1_mean=(pars_1['dec'],pars_1['inc'])
     D2_mean=(pars_2['dec'],pars_2['inc'])
     angle=pmag.angle(D1_mean,D2_mean)

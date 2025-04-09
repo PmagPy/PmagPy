@@ -6,7 +6,6 @@
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
 
 
-from __future__ import absolute_import
 __all__ = ['lib_additivity_check_statistics', 'lib_curvature', 'lib_ptrm_statistics', 'lib_directional_statistics', 'lib_IZZI_MD', 'lib_arai_plot_statistics', 'lib_tail_check_statistics']
 
 #print "initializing in /lib"

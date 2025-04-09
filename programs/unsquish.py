@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import print_function
-from past.utils import old_div
 import sys,numpy
 #
 def main():
@@ -52,7 +49,7 @@ def main():
     for line in input: 
         dec=float(line[0])
         inc=float(line[1])*numpy.pi/180.
-        tincnew=(old_div(1,flt))*numpy.tan(inc)
+        tincnew = (1 / flt) * numpy.tan(inc)
         incnew=numpy.arctan(tincnew)*180./numpy.pi
         if ofile=="":
             print('%7.1f %7.1f'% (dec,incnew))

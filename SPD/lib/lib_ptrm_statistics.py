@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import division
-from __future__ import absolute_import
-from past.utils import old_div
 import numpy
 from . import lib_directional_statistics as lib_direct
 
@@ -55,7 +52,7 @@ def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x
         if ptrm_orig == 0:
             check_percents.append(0)
         else:
-            check_percents.append((old_div(abs(diff), ptrm_orig)) * 100)
+            check_percents.append((abs(diff) / ptrm_orig) * 100)
     max_diff = max(abs_diffs)
     check_percent = max(check_percents)
     sum_diffs = abs(sum(diffs))
@@ -68,7 +65,7 @@ def get_delta_CK(max_ptrm_check, x_int):
     Input: max_ptrm_check, x intercept.
     Output: delta_CK (max ptrm check normed by x intercept)
     """
-    return abs(old_div(max_ptrm_check, x_int)) * 100.
+    return abs(max_ptrm_check / x_int) * 100.
 
 def get_DRAT(delta_x_prime, delta_y_prime, max_ptrm_check):
     """
@@ -79,7 +76,7 @@ def get_DRAT(delta_x_prime, delta_y_prime, max_ptrm_check):
         length best fit line
     """
     L = numpy.sqrt(delta_x_prime**2 + delta_y_prime**2)
-    DRAT = (old_div(max_ptrm_check, L)) * 100
+    DRAT = (max_ptrm_check / L) * 100
     return DRAT, L
 
 def get_length_best_fit_line(delta_x_prime, delta_y_prime):
@@ -91,7 +88,7 @@ def get_max_DEV(delta_x_prime, max_ptrm_check):
     input: delta_x_prime, max_ptrm_check
     output: max_DEV (maximum ptrm check diff normed by TRM line
     """
-    return (old_div(max_ptrm_check, delta_x_prime)) * 100.
+    return (max_ptrm_check / delta_x_prime) * 100.
 
 def get_CDRAT(L, sum_ptrm_checks, sum_abs_ptrm_checks):
     """
@@ -99,8 +96,8 @@ def get_CDRAT(L, sum_ptrm_checks, sum_abs_ptrm_checks):
         sum of absolute value of ptrm check diffs
     output: CDRAT (uses sum of diffs), CDRAT_prime (uses sum of absolute diffs)
     """
-    CDRAT = (old_div(sum_ptrm_checks, L)) * 100.
-    CDRAT_prime = (old_div(sum_abs_ptrm_checks, L)) * 100.
+    CDRAT = (sum_ptrm_checks / L) * 100.
+    CDRAT_prime = (sum_abs_ptrm_checks / L) * 100.
     return CDRAT, CDRAT_prime
 
 def get_DRATS(sum_ptrm_checks, sum_abs_ptrm_checks, x_Arai, end):
@@ -109,8 +106,8 @@ def get_DRATS(sum_ptrm_checks, sum_abs_ptrm_checks, x_Arai, end):
         x_Arai set of points, end.
     output: DRATS (uses sum of diffs), DRATS_prime (uses sum of absolute diffs)
     """
-    DRATS = (old_div(sum_ptrm_checks, x_Arai[end])) * 100.
-    DRATS_prime = (old_div(sum_abs_ptrm_checks, x_Arai[end])) * 100.
+    DRATS = (sum_ptrm_checks / x_Arai[end]) * 100.
+    DRATS_prime = (sum_abs_ptrm_checks / x_Arai[end]) * 100.
     return DRATS, DRATS_prime
 
 def get_mean_DRAT(sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, L):
@@ -121,8 +118,8 @@ def get_mean_DRAT(sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, L):
     """
     if not n_pTRM:
         return float('nan'), float('nan')
-    mean_DRAT = ((old_div(1., n_pTRM)) * (old_div(sum_ptrm_checks, L))) * 100
-    mean_DRAT_prime = ((old_div(1., n_pTRM)) * (old_div(sum_abs_ptrm_checks, L))) * 100
+    mean_DRAT = ((1. / n_pTRM) * (sum_ptrm_checks / L)) * 100
+    mean_DRAT_prime = ((1. / n_pTRM) * (sum_abs_ptrm_checks / L)) * 100
     return mean_DRAT, mean_DRAT_prime
 
 def get_mean_DEV(sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, delta_x_prime):
@@ -132,8 +129,8 @@ def get_mean_DEV(sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, delta_x_prime):
     """
     if not n_pTRM:
         return float('nan'), float('nan')
-    mean_DEV = ((old_div(1., n_pTRM)) * (old_div(sum_ptrm_checks, delta_x_prime))) * 100
-    mean_DEV_prime= ((old_div(1., n_pTRM)) * (old_div(sum_abs_ptrm_checks, delta_x_prime))) * 100
+    mean_DEV = ((1. / n_pTRM) * (sum_ptrm_checks / delta_x_prime)) * 100
+    mean_DEV_prime= ((1. / n_pTRM) * (sum_abs_ptrm_checks / delta_x_prime)) * 100
     return mean_DEV, mean_DEV_prime
 
 def get_delta_pal_vectors(PTRMS, PTRM_Checks, NRM):
@@ -144,12 +141,10 @@ def get_delta_pal_vectors(PTRMS, PTRM_Checks, NRM):
     PTRMS_cart = []
     Checks_cart = []
     for num, ptrm in enumerate(PTRMS):
-        #ptrm_cart = lib_direct.dir2cart([PTRMS[num][1], PTRMS[num][2], old_div(PTRMS[num][3], NRM)])
         ptrm_cart = lib_direct.dir2cart([PTRMS[num][1], PTRMS[num][2], PTRMS[num][3]/NRM])
         PTRMS_cart.append(ptrm_cart)
     for num, check in enumerate(PTRM_Checks):
-        #check_cart = lib_direct.dir2cart([PTRM_Checks[num][1], PTRM_Checks[num][2], old_div(PTRM_Checks[num][3], NRM)])
-        check_cart = lib_direct.dir2cart([float(PTRM_Checks[num][1]), float(PTRM_Checks[num][2]), float(PTRM_Checks[num][3])/ NRM])
+        check_cart = lib_direct.dir2cart([float(PTRM_Checks[num][1]), float(PTRM_Checks[num][2]), float(PTRM_Checks[num][3]) / NRM])
         Checks_cart.append(check_cart)
     return PTRMS_cart, Checks_cart, TRM_1
 
@@ -206,7 +201,7 @@ def get_b_star(x_star, y_err, y_mean, y_segment):
     #print x_star
     x_star_mean = numpy.mean(x_star)
     x_err = x_star - x_star_mean
-    b_star = -1* numpy.sqrt( old_div(sum(numpy.array(y_err)**2), sum(numpy.array(x_err)**2)) )  # averaged slope
+    b_star = -1* numpy.sqrt(sum(numpy.array(y_err)**2) / sum(numpy.array(x_err)**2))  # averaged slope
     #print "y_segment", y_segment
     b_star = numpy.sign(sum(x_err * y_err)) * numpy.std(y_segment, ddof=1) / numpy.std(x_star, ddof=1)
     #print "b_star (should be same as corr_slope)"
@@ -219,7 +214,7 @@ def get_delta_pal(b, b_star):
     input: b, b_star (actual and corrected slope)
     output: delta_pal
     """
-    delta_pal = numpy.abs(old_div((b - b_star), b)) * 100
+    delta_pal = numpy.abs((b - b_star) / b) * 100
     return delta_pal
 
 # check delta pal

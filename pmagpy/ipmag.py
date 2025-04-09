@@ -4099,7 +4099,7 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             ax6 = plt.subplot(1, pcol, 5)
             Axs.append(ax6)
             ax6.plot(Bulks, BulkDepths, 'bo')
-            ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
+            ax6.set_ylim(dmax, dmin)
             ax6.set_xlabel('Bulk Susc. (uSI)')
             ax6.yaxis.set_major_locator(plt.NullLocator())
             if sum_file:
@@ -9519,6 +9519,138 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         return kent_stats, I, E, F
     else:
         return kent_stats
+
+
+def find_compilation_kent(plon, plat, A95, slon, slat,
+                          f_from_compilation=None, n=10000, n_fish=100,
+                          return_poles=False, return_kent_stats=True,
+                          return_paleolats=False, map_central_longitude=0,
+                          map_central_latitude=0):
+    
+    """
+    Applies flattening factors from the compilation to sedimentary paleomagnetic pole where only
+    pole longitude, pole latitude, A95, site longitude, and site latitude are available.
+
+    First, calculate the paleomagnetic direction at the site of the mean pole using plon, plat via
+    pmag.vgp_di. Then draw n resamples from the compiled f values in the compilation. The default
+    compilation of Pierce et al., 2022 can be used or the user can provide their own compilation.
+
+    Unsquish the directions with the resampled f factors, then convert the mean directions back to pole
+    space. Making the simplifying assumption that A95 is the same as the directions are unflattened.
+    Resample n_fish mean poles from the Fisher distribution given the unsquished plon, plat, and A95.
+    This will result in a total of n*n_fish number of resampled mean poles. Summarize the distribution
+    of the mean poles using a Kent distribution.
+
+    Parameters:
+        plon: legacy mean pole longitude
+        plat: legacy mean pole latitude
+        A95: legacy mean pole A95
+        slon: site longitude
+        slat: site latitude
+        f_from_compilation: list of f factors (default is None in which case the compilation of
+            Pierce et al., 2022 Table S1 will be used)
+        n: number of resamples from compilation (default is 10000)
+        n_fish: number of resamples from each Fisher mean pole position (default is 100)
+        return_poles: whether or not to return the resampled mean pole positions (default is False)
+        return_kent_stats: whether or not to return the calculated Kent distribution statistics of
+            the resampled mean poles (default is True)
+        return_paleolats: whether or not to return the computed compilation paleolatitudes (default is
+            False)
+        map_central_longitude: central longitude for the orthographic map (default is 0)
+        map_central_latitude: central latitude for the orthographic map (default is 0)
+
+    Returns:
+        Depending on the combination of boolean flags provided, returns one or more of:
+        - compilation_mean_lons, compilation_mean_lats: resampled mean pole positions
+        - f_compilation_kent_distribution_95: Kent distribution statistics
+        - compilation_paleolats: computed compilation paleolatitudes
+    """
+    # get the uncorrected declination and inclination from a given paleomagnetic pole
+    original_dec, original_inc = pmag.vgp_di(plat, plon, slat, slon)
+
+    if f_from_compilation is None:
+        # compilation f value list
+        f_from_compilation = pd.Series(
+            [
+                0.49, 0.77, 0.63, 0.59, 0.57, 0.4, 0.63, 0.66, 0.63, 0.49, 0.49,
+                0.58, 0.54, 0.73, 0.97, 0.59, 0.84, 0.9, 0.78, 0.83, 0.58, 0.94,
+                0.78, 0.9, 0.68, 0.48, 0.67, 0.66, 0.7, 0.43, 0.45, 0.58, 0.58,
+                0.53, 0.42, 0.51, 0.61, 0.52, 0.62, 0.73, 0.66, 0.55, 0.47, 0.77,
+                0.62, 0.54, 0.46, 0.56, 0.64, 0.47, 0.48, 0.44, 0.52, 0.65, 0.81,
+                0.64, 0.71, 0.79, 0.65, 0.56, 0.69, 0.43, 0.7, 0.67, 0.65, 0.49,
+                0.54, 0.64, 0.83, 0.68
+            ]
+        )
+    else:
+        f_from_compilation = pd.Series(f_from_compilation)
+
+    f_resample = f_from_compilation.sample(n=n, replace=True).tolist()
+
+    plt.figure(figsize=(6, 6))
+    plt.hist(f_resample, alpha=0.6, density=1)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel("resample of compilation f factors", fontsize=16)
+    plt.ylabel("density", fontsize=16)
+
+    # calculate corrected inclinations
+    compilation_incs = [pmag.unsquish(original_inc, f) for f in f_resample]
+    # calculate corrected paleolatitudes
+    compilation_paleolats = np.degrees(np.arctan(np.tan(np.radians(compilation_incs)) / 2))
+
+    plt.figure(figsize=(6, 6))
+    plt.hist(compilation_paleolats, alpha=0.6, density=1)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel("compilation paleolatitudes ($^\circ$)", fontsize=16)
+    plt.ylabel("density", fontsize=16)
+
+    compilation_mean_lons = []
+    compilation_mean_lats = []
+
+    for i in range(len(f_from_compilation)):
+        unsquish_plon, unsquish_plats, _, _ = pmag.dia_vgp(
+            original_dec, compilation_incs[i], A95, slat, slon)
+        resampled_lons, resampled_lats = fisher_mean_resample(
+            alpha95=A95,
+            n=n_fish,
+            dec=unsquish_plon,
+            inc=unsquish_plats,
+            di_block=0)
+        compilation_mean_lons.extend(resampled_lons)
+        compilation_mean_lats.extend(resampled_lats)
+
+    m = make_orthographic_map(map_central_longitude, map_central_latitude)
+    plot_vgp(
+        m,
+        compilation_mean_lons,
+        compilation_mean_lats,
+        color="lightgrey",
+        edge="none",
+        markersize=5,
+        alpha=0.002)
+
+    f_compilation_kent_distribution_95 = kent_distribution_95(
+        dec=compilation_mean_lons, inc=compilation_mean_lats)
+    print_kent_mean(f_compilation_kent_distribution_95)
+    plot_pole_ellipse(
+        m, f_compilation_kent_distribution_95, color="darkred", label="Kent mean pole")
+    plot_pole(
+        m, plon, plat, A95, label="uncorrected pole position", color="C0")
+    plt.legend(loc=8, fontsize=14)
+
+    results = []
+    if return_poles:
+        results.extend([compilation_mean_lons, compilation_mean_lats])
+    if return_kent_stats:
+        results.append(f_compilation_kent_distribution_95)
+    if return_paleolats:
+        results.append(compilation_paleolats)
+
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
+
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
     '''
@@ -15402,19 +15534,19 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     hit = 0
     miss = 0
     
-    #trial loop
+    # trial loop
     for i in range(trials):
-        #generates two synthetic directions, using the estimated kappas
-        lontp1,lattp1 = ipmag.fishrot(k1, 1, 0, 90, di_block=False)
-        lontp2,lattp2 = ipmag.fishrot(k2, 1, 0, 90, di_block=False)
-        #determines the angle between the generated directions 
+        # generates two synthetic directions, using the estimated kappas
+        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False)
+        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False)
+        # determines the angle between the generated directions
         angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
-        #checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
-        if (angle >= alpha):
+        # checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
+        if angle >= alpha:
             hit = hit + 1
         else:
             miss = miss + 1
-    #calculates probability based on how often the angle between the 'real' datasets is met or exceeded
+    # calculates probability based on how often the angle between the 'real' datasets is met or exceeded
     simul_prob = 1.0 * hit / trials
     
     if print_result == True:
@@ -15457,12 +15589,12 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     
     """
 
-    #calc probability of getting vgp within alpha of vgp1
+    # calc probability of getting vgp within alpha of vgp1
     i = 0
     miss = 0
     hit = 0
     for i in range(trials):
-        dec,inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False)
         angle = pmag.angle([dec[0], inc[0]], [0, delta1])
         if (angle <= alpha):
             hit = hit + 1
@@ -15477,7 +15609,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     hit = 0
     miss = 0
     for i in range(trials):
-        dec, inc = ipmag.fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False)
         angle = pmag.angle([dec[0], inc[0]], [0,delta2])
         if (angle <= alpha):
             hit = hit + 1
