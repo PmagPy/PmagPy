@@ -16,7 +16,7 @@ from pmag_env import set_env
 import pandas as pd
 import SPD.lib.leastsq_jacobian as lib_k
 
-WARNINGS = {'basemap': False, 'cartopy': False}
+WARNINGS = {'cartopy': False}
 
 
 def get_version():
@@ -13355,61 +13355,6 @@ def chart_maker(Int, Top, start=100, outfile='chart.txt'):
         except:
             f.close()
     print("output stored in: chart.txt")
-
-
-def import_basemap():
-    """
-    Try to import Basemap and print out a useful help message
-    if Basemap is either not installed or is missing required
-    environment variables.
-
-    Returns
-    -------
-    has_basemap : bool
-    Basemap : Basemap package if possible else None
-    """
-    Basemap = None
-    has_basemap = True
-    has_cartopy = import_cartopy()[0]
-    try:
-        from mpl_toolkits.basemap import Basemap
-        WARNINGS['has_basemap'] = True
-    except ImportError:
-        has_basemap = False
-        # if they have installed cartopy, no warning is needed
-        if has_cartopy:
-            return has_basemap, False
-        # if they haven't installed Basemap or cartopy, they need to be warned
-        if not WARNINGS['basemap']:
-            print(
-                "-W- You haven't installed a module for plotting maps (cartopy or Basemap)")
-            print("    Recommended: install cartopy.  With conda:")
-            print("    conda install cartopy")
-            print(
-                "    For more information, see http://earthref.org/PmagPy/Cookbook#getting_python")
-    except (KeyError, FileNotFoundError):
-        has_basemap = False
-        # if cartopy is installed, no warning is needed
-        if has_cartopy:
-            return has_basemap, False
-        if not WARNINGS['basemap']:
-            print('-W- Basemap is installed but could not be imported.')
-            print('    You are probably missing a required environment variable')
-            print(
-                '    If you need to use Basemap, you will need to run this program or notebook in a conda env.')
-            print('    For more on how to create a conda env, see: https://conda.io/docs/user-guide/tasks/manage-environments.html')
-            print(
-                '    Recommended alternative: install cartopy for plotting maps.  With conda:')
-            print('    conda install cartopy')
-    if has_basemap and not has_cartopy:
-        print("-W- You have installed Basemap but not cartopy.")
-        print("    In the future, Basemap will no longer be supported.")
-        print("    To continue to make maps, install using conda:")
-        print('    conda install cartopy')
-
-    WARNINGS['basemap'] = True
-    return has_basemap, Basemap
-
 
 def import_cartopy():
     """
