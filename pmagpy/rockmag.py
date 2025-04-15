@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.optimize import minimize, brent
+from scipy.optimize import minimize, brent, least_squares
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -19,6 +19,11 @@ try:
 except ImportError:
     go = None
     make_subplots = None
+try:
+
+    from bokeh.plotting import figure, show
+except ImportError:
+    raise ImportError("Bokeh is not installed. Please install it to enable hysteresis data processing.")
 
 try:
     from lmfit import Parameters, Model  # for fitting
@@ -1318,35 +1323,40 @@ def make_hyst_plots(measurements):
     # Display UI components
     display(specimen_dropdown, plot_choice, out)
 
-
-def plot_hysteresis_loop(ax, field, magnetization, **kwargs):
+def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color='grey', line_width=1, label='', legend_location='top_left'):
     '''
     function to plot a hysteresis loop
 
     Parameters
     ----------
-    ax : matplotlib axis object
-        axis object to plot the data
     field : numpy array or list
         hysteresis loop field values
     magnetization : numpy array or list
         hysteresis loop magnetization values
-    **kwargs : keyword arguments
-        additional keyword arguments to pass to the plot function
 
     Returns
     -------
-    ax : matplotlib axis object
-        axis object with the hysteresis loop plotted
+    p : bokeh.plotting.figure
     '''
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
-
-    ax.plot(field, magnetization, '-', **kwargs)
-    ax.set_xlabel('Field (T)', fontsize=12)
-    ax.set_ylabel('Magnetization (Am$^2$/kg)', fontsize=12)
-    ax.set_title('Hysteresis Loop', fontsize=12)
-    ax.grid(True)
-    return ax
+    if p is None:
+        p = figure(title=f'{specimen_name} hysteresis loop',
+                  x_axis_label='Field (T)',
+                  y_axis_label='Magnetization (Am\u00B2/kg)',
+                  width=600,
+                  height=600)
+        p.axis.axis_label_text_font_size = '12pt'
+        p.axis.axis_label_text_font_style = 'normal'
+        p.title.text_font_size = '14pt'
+        p.title.text_font_style = 'bold'
+        p.title.align = 'center'
+        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+        p.legend.location = legend_location
+    else:
+        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+        p.legend.location = legend_location
+    show(p)
+    return p
 
 def split_hysteresis_loop(field, magnetization):
     '''
@@ -1407,7 +1417,6 @@ def grid_hysteresis_loop(field, magnetization):
 
     # calculate the average field step size
     field_step = np.mean(np.abs(np.diff(field)))
-
     # grid the hysteresis loop
     upper_field = np.arange(np.max(field), 0, -field_step)
     upper_field = np.concatenate([upper_field, -upper_field[::-1]])
@@ -1618,7 +1627,11 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     # signal to noise ratio
     M_sn = 1/(np.sqrt(1-R_squared))
     Q = np.log10(M_sn)
-    results = {'opt_H_offset':opt_H_offset/2, 'opt_M_offset':opt_M_offset, 'R_squared':R_squared, 'M_sn':M_sn, 'Q':Q}
+    results = {'centered_H':grid_field-opt_H_offset/2, 
+                'centered_M': grid_magnetization-opt_M_offset, 
+                'opt_H_offset':opt_H_offset/2, 
+                'opt_M_offset':opt_M_offset, 
+                'R_squared':R_squared, 'M_sn':M_sn, 'Q':Q}
     return results
 
 def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
@@ -1713,6 +1726,8 @@ def calc_Mrh_Mih(grid_field, grid_magnetization):
         induced magnetization value
     Me : numpy array
         error on M(H), calculated as the subtraction of the inverted lower branch from the upper branch
+    Brh : float
+        median field of Mrh
 
     '''
     # calculate Mrh bu subtracting the upper and lower branches of a hysterisis loop
@@ -1725,13 +1740,24 @@ def calc_Mrh_Mih(grid_field, grid_magnetization):
     upper_branch, lower_branch = split_hysteresis_loop(grid_field, grid_magnetization)
     # make sure the x values for the branches are exactly the same
     assert np.all(upper_branch[0] == lower_branch[0]), 'Field values for the upper and lower branches are not the same'
-
+    
     Mrh = (upper_branch[1] - lower_branch[1])/2
     Mih = (upper_branch[1] + lower_branch[1])/2
     Me = upper_branch[1] + lower_branch[1][::-1]
 
     H = upper_branch[0]
-    return H, Mrh, Mih, Me
+    
+    Mr = np.interp(0, H, Mrh)
+    # Brh is the median field of Mrh
+    pos_H = H[np.where(H >= 0)]
+    pos_Mrh = Mrh[np.where(H >= 0)]
+    neg_H = H[np.where(H < 0)]
+    neg_Mrh = Mrh[np.where(H < 0)]
+    Brh_pos = np.interp(Mr/2, pos_Mrh[::-1], pos_H[::-1])
+    Brh_neg = np.interp(Mr/2, neg_Mrh, neg_H)
+    Brh = (np.abs(Brh_pos) + np.abs(Brh_neg))/2
+
+    return H, Mrh, Mih, Me, Brh
 
 def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=0.97):
     '''
@@ -1828,7 +1854,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
             saturation_cutoff = 0.7
         if FNL60 < 2.5:  #saturated at 60%
             saturation_cutoff = 0.6
-    results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff}
+    results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop is saturated':(saturation_cutoff != 0.92)}
 
     return results
 
@@ -1853,38 +1879,40 @@ def loop_open_test(H, Mrh, HF_cutoff=0.8):
         high field area ratio
     '''
     assert len(H) == len(Mrh), 'H, Mrh must have the same length'
-    # force all Mrh values to be positive, we replace negative Mrh values with 0
-    Mrh = np.where(Mrh < 0, 0, Mrh)
-    # calculate the RMS of the average of the positive and negative Mrh values
-    total_Mrh_RMS = np.sqrt(np.sum((Mrh)**2)/len(Mrh))
-    # calculate the RMS of the high field component
-    HF_index = np.where(np.abs(H) > HF_cutoff*np.max(H))
-    HF_Mrh = Mrh[HF_index]
-    HF_Mrh_RMS = np.sqrt(np.sum((HF_Mrh)**2)/len(HF_Mrh))
-
-    SNR = 20*np.log10(total_Mrh_RMS/HF_Mrh_RMS)
-    print('SNR = {} dB'.format(np.round(SNR,2)))
-
-    pos_HF_index = np.where(H >= HF_cutoff*np.max(H))
-    neg_HF_index = np.where(H < -HF_cutoff*np.max(H))
-    pos_HF = H[pos_HF_index]
-    neg_HF = H[neg_HF_index]
-    pos_HF_Mrh = Mrh[pos_HF_index]
-    neg_HF_Mrh = Mrh[neg_HF_index]
-
-    pos_H_index = np.where(H >= 0)
+    pos_H_index = np.where(H > 0)
     neg_H_index = np.where(H < 0)
     pos_H = H[pos_H_index]
     neg_H = H[neg_H_index]
     pos_Mrh = Mrh[pos_H_index]
     neg_Mrh = Mrh[neg_H_index]
 
+    pos_HF_index = np.where(H > HF_cutoff*np.max(H))
+    neg_HF_index = np.where(H < -HF_cutoff*np.max(H))
+    pos_HF = H[pos_HF_index]
+    neg_HF = H[neg_HF_index]
+    pos_HF_Mrh = Mrh[pos_HF_index]
+    neg_HF_Mrh = Mrh[neg_HF_index]
+    
+    average_HF_Mrh = (pos_HF_Mrh + neg_HF_Mrh[::-1])/2
+    # replace all negative values with 0
+    average_HF_Mrh[average_HF_Mrh < 0] = 0
+    HF_Mrh_noise = pos_HF_Mrh - neg_HF_Mrh[::-1]
+    # replace all negative values with 0
+    HF_Mrh_noise[HF_Mrh_noise < 0] = 0
+
+    HF_Mrh_signal_RMS = np.sqrt(np.mean(average_HF_Mrh**2))
+    HF_Mrh_noise_RMS = np.sqrt(np.mean(HF_Mrh_noise**2))
+    SNR = 20*np.log10(HF_Mrh_signal_RMS/HF_Mrh_noise_RMS)
+    # print('SNR = {} dB'.format(np.round(SNR,2)))
+
     total_Mrh_area = np.trapz(pos_Mrh, pos_H) + np.trapz(neg_Mrh[::-1], -neg_H[::-1])
     total_HF_Mrh_area = np.trapz(pos_HF_Mrh, pos_HF) + np.trapz(neg_HF_Mrh[::-1], -neg_HF[::-1])
 
     HAR = 20*np.log10(total_HF_Mrh_area/total_Mrh_area)
-    print('HAR = {} dB'.format(np.round(HAR, 2)))
-    return SNR, HAR
+    loop_is_open = (SNR >=8) or (HAR >= -48)
+
+    results = {'SNR':SNR, 'HAR':HAR, 'loop_is_open':loop_is_open}
+    return results
 
 
 def process_hyst_loop(field,magnetization, drift_correction=False):
@@ -1939,16 +1967,7 @@ def process_hyst_loop(field,magnetization, drift_correction=False):
     Bc = (np.abs(upper_Bc) + np.abs(lower_Bc))/2
 
     # calculate the Mrh (remanence component), Mih (induced component), Me (error) arrays
-    H, Mrh, Mih, Me = calc_Mrh_Mih(grid_fields_centered, grid_magnetizations_centered_HF_corrected)
-    Mr = np.interp(0, H, Mrh)
-    # Brh is the median field of Mrh
-    pos_H = H[np.where(H >= 0)]
-    pos_Mrh = Mrh[np.where(H >= 0)]
-    neg_H = H[np.where(H < 0)]
-    neg_Mrh = Mrh[np.where(H < 0)]
-    Brh_pos = np.interp(Mr/2, pos_Mrh[::-1], pos_H[::-1])
-    Brh_neg = np.interp(Mr/2, neg_Mrh, neg_H)
-    Brh = (np.abs(Brh_pos) + np.abs(Brh_neg))/2
+    H, Mrh, Mih, Me, Brh = calc_Mrh_Mih(grid_fields_centered, grid_magnetizations_centered_HF_corrected)
 
     # check if the loop is closed
     # check_loop_closure = calc_Mrh_Mih(grid_fields, grid_magnetizations)
@@ -2027,7 +2046,7 @@ def prorated_drift_correction(field, magnetization):
     function to correct for the linear drift of a hysteresis loop
         take the difference between the magnetization measured at the maximum field on the upper and lower branches
         apply linearly prorated correction of M(H)
-        this can be applied either to the raw data or the gridded raw data
+        this should be applied to the gridded data
 
     Parameters
     ----------
@@ -2058,11 +2077,11 @@ def prorated_drift_correction(field, magnetization):
 
     return np.array(corrected_magnetization)
 
-def upper_brach_drift_correction(field, magnetization, poly_degree=1):
+def upper_branch_drift_correction(field, magnetization, poly_degree=1):
     '''
     function to correct for the linear drift of the upper branch of a hysteresis loop
         apply linearly prorated correction of M(H)
-        this can be applied either to the raw data or the gridded raw data
+        this should be applied to the gridded data
 
     Parameters
     ----------
@@ -2226,28 +2245,35 @@ def Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs, beta=-2):
     return M_obs - prediction
 
 
-def hyst_HF_nonlinear_optimization(fit_type, initial_guess, bounds, HF_field, HF_magnetization):
+def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 1, -0.1, -0.1], bounds=([0, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0])):
     '''
     function for optimizing the high field non-linear fit
 
     Parameters
     ----------
+    H : numpy array
+        field values
+    M : numpy array
+        magnetization values
+    HF_cutoff : float
+        high field cutoff percentage value
     fit_type : type of nonlinear fit
         can be 'IRM' or 'Fabian' or 'Fabian_fixed_beta'
     initial_guess : numpy array
         initial guess for the optimization
     bounds : tuple
         bounds for the optimization
-    HF_field : numpy array
-        high field field values
-    HF_magnetization : numpy array
-        high field magnetization values
 
     Returns
     -------
     results : scipy.optimize.OptimizeResult
         results of the optimization
     '''
+    HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
+
+    HF_field = np.abs(H[HF_index])
+    HF_magnetization = np.abs(M[HF_index])
+
     if fit_type == 'IRM':
         cost_function = IRM_nonlinear_fit_cost_function
     elif fit_type == 'Fabian':
