@@ -2349,27 +2349,36 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
 
-# define function for splitting the curves into warm and cool cycles
-def split_warm_cool(experiment):
-    '''
-    splits the X-T curve into warm and cool cycles
+
+def split_warm_cool(experiment,temperature_column='meas_temp',magnetic_column='susc_chi_mass'):
+    """
+    Split a thermomagnetic curve into heating and cooling portions. Default
+    columns are 'meas_temp' and 'susc_chi_mass' for susceptibility measurements.
+    Funcation can also be used for other warming then cooling data.
 
     Parameters
     ----------
-    experiment : pandas DataFrame
-        the IRM experiment data exported into MagIC format
+    experiment : pandas.DataFrame
+        the experiment data
+    temperature_column : str, optional
+        name of the temperature column (default 'meas_temp')
+    magnetic_column : str, optional
+        name of the magnetization/susceptibility column
+        (default 'susc_chi_mass')
 
     Returns
     -------
-    warm_T : list
-        list of temperatures for the warm cycle
-    warm_X : list
-        list of susceptibilities for the warm cycle
-    cool_T : list
-        list of temperatures for the cool cycle
-    '''
-    Tlist = experiment['meas_temp'] # temperature list
-    Xlist = experiment['susc_chi_mass'] # Chi list
+    warm_T : list[float]
+        temperatures for the heating cycle
+    warm_X : list[float]
+        magnetization/susceptibility for the heating cycle
+    cool_T : list[float]
+        temperatures for the cooling cycle
+    cool_X : list[float]
+        magnetization/susceptibility for the cooling cycle
+    """
+    Tlist = experiment[temperature_column] # temperature list
+    Xlist = experiment[magnetic_column] # Chi list
     
     warmorcool = np.array(np.insert((np.diff(Tlist) > 0 )* 1, 0, 1))
 #     print(warmorcool)
@@ -2380,7 +2389,7 @@ def split_warm_cool(experiment):
 
     return warm_T, warm_X, cool_T, cool_X
 
-# define function for plotting the X-T curve
+
 def plot_X_T(experiment, 
              temp_unit='C', 
              smooth_window=0,
@@ -2718,6 +2727,7 @@ def X_T_running_average(temp_list, chi_list, temp_window):
         chi_vars.append(chi_var)
     
     return avg_temps, avg_chis, temp_vars, chi_vars
+
 
 def optimize_X_T_running_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
