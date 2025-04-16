@@ -2411,7 +2411,9 @@ def plot_X_T(experiment,
         temp_unit (str, optional):
             Unit of temperature, either 'K' or 'C'. Defaults to 'C'.
         smooth_window (int, optional):
-            Window size for running‑average smoothing. Defaults to 0.
+            Window size for running‑average smoothing that represents
+            the temperature range over which the average is calculated. 
+            Defaults to 0 (no smoothing).
         remove_holder (bool, optional):
             If True, subtract the minimum holder signal from the data.
             Defaults to True.
@@ -2701,6 +2703,31 @@ def plot_X_T(experiment,
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
+    """
+    Compute running averages and variances of susceptibility over a sliding
+    temperature window.
+
+    Parameters
+    ----------
+    temp_list : Sequence[float]
+        Ordered list of temperatures (must be same length as chi_list).
+    chi_list : Sequence[float]
+        List of susceptibility values corresponding to each temperature.
+    temp_window : float
+        Total width of the temperature window. Each point averages data in
+        [T_i - temp_window/2, T_i + temp_window/2].
+
+    Returns
+    -------
+    avg_temps : List[float]
+        The mean temperature in each window (one per input point).
+    avg_chis : List[float]
+        The mean susceptibility in each window.
+    temp_vars : List[float]
+        The variance of temperatures in each window.
+    chi_vars : List[float]
+        The variance of susceptibility values in each window.
+    """
     if not temp_list or not chi_list or temp_window <= 0:
         return temp_list, chi_list, [], []
     
