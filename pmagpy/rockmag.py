@@ -2350,7 +2350,8 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 # ------------------------------------------------------------------------------------------------------------------
 
 
-def split_warm_cool(experiment,temperature_column='meas_temp',magnetic_column='susc_chi_mass'):
+def split_warm_cool(experiment,temperature_column='meas_temp',
+                    magnetic_column='susc_chi_mass'):
     """
     Split a thermomagnetic curve into heating and cooling portions. Default
     columns are 'meas_temp' and 'susc_chi_mass' for susceptibility measurements.
@@ -2390,7 +2391,9 @@ def split_warm_cool(experiment,temperature_column='meas_temp',magnetic_column='s
     return warm_T, warm_X, cool_T, cool_X
 
 
-def plot_X_T(experiment, 
+def plot_X_T(experiment,
+             temperature_column='meas_temp',
+             magnetic_column='susc_chi_mass'
              temp_unit='C', 
              smooth_window=0,
              remove_holder=True):
@@ -2413,7 +2416,9 @@ def plot_X_T(experiment,
     fig : plotly.graph_objs.Figure
         the plotly figure object
     '''
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
+    warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment,
+                                                     temperature_column=temperature_column,
+                                                     magnetic_column=magnetic_column)
 
     # Create a plot for the 'heat' dataset with red points and a line
     fig_heat = go.Figure()
