@@ -121,6 +121,35 @@ def interactive_specimen_experiment_selection(measurements):
     return specimen_dropdown, experiment_dropdown
 
 
+def make_experiment_df(measurements):
+    """
+    Creates a DataFrame of unique experiments from the measurements DataFrame.
+
+    Args:
+        measurements (pd.DataFrame): The DataFrame containing measurement data with columns 
+            'specimen', 'method_codes', and 'experiment'.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing unique combinations of 'specimen', 'method_codes', 
+            and 'experiment'.
+    """
+    experiments = measurements.groupby(['specimen', 'method_codes', 'experiment']).size().reset_index().iloc[:, :3]
+    return experiments
+
+
+def clean_out_na(dataframe):
+    """
+    Cleans a DataFrame by removing columns and rows that contain only NaN values.
+    
+    Args:
+        dataframe (pd.DataFrame): The DataFrame to be cleaned.
+    Returns:
+        pd.DataFrame: A cleaned DataFrame with all-NaN columns and rows removed.   
+    """
+    cleaned_df = dataframe.dropna(axis=1, how='all')
+    return cleaned_df
+
+
 # MPMS functions
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -215,7 +244,7 @@ def plot_mpms_dc(fc_data=None, zfc_data=None, rtsirm_cool_data=None, rtsirm_warm
                    fc_color='#1f77b4', zfc_color='#ff7f0e', rtsirm_cool_color='#17becf', rtsirm_warm_color='#d62728',
                    fc_marker='d', zfc_marker='p', rtsirm_cool_marker='s', rtsirm_warm_marker='o',
                    symbol_size=4, use_plotly=False, plot_derivative=False, return_figure=False,
-                   drop_first=False, drop_last=False):
+                   show_plot=True, drop_first=False, drop_last=False):
     """
     Plots MPMS data and optionally its derivatives for Field Cooled, Zero Field Cooled,
     RTSIRM Cooling, and RTSIRM Warming using either Matplotlib or Plotly.
@@ -322,9 +351,9 @@ def plot_mpms_dc(fc_data=None, zfc_data=None, rtsirm_cool_data=None, rtsirm_warm
     else:
         # Matplotlib plotting
         if plot_derivative:
-            fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8))
+            fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(9, 6))
         else:
-            fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(12, 4))
+            fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(9, 3))
             
         # Plot original data conditionally
         if not plot_derivative:
@@ -388,7 +417,9 @@ def plot_mpms_dc(fc_data=None, zfc_data=None, rtsirm_cool_data=None, rtsirm_warm
                     ax.set_xlim(0,300)
 
         fig.tight_layout()
-        plt.show()
+        
+        if show_plot:
+            plt.show()
         
         if return_figure:
             return fig

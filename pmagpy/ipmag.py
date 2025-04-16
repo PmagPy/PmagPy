@@ -2087,59 +2087,71 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum=None,tick_spacing=10):
+def plot_net(fignum=None, tick_spacing=10, ax=None):
     """
     Draws circle and tick marks for equal area projection.
-    tick_spacing: interval for declination tick marks, default is 10
+
+    Parameters:
+        fignum: int or None
+            Figure number to use for creating a new figure if no axis is provided.
+        tick_spacing: int
+            Interval for declination tick marks, default is 10.
+        ax: matplotlib.axes.Axes or None
+            Axis to plot on. If None, the current axis will be used (or created if fignum is given).
     """
-    if fignum != None:
-        plt.figure(num=fignum,)
-        plt.clf()
-    plt.axis("off")
-    Dcirc = np.arange(0, 361.)
-    Icirc = np.zeros(361, 'f')
+    if ax is None:
+        if fignum is not None:
+            plt.figure(num=fignum)
+            plt.clf()
+        ax = plt.gca()
+    ax.axis("off")
+    Dcirc = np.arange(0, 361.0)
+    Icirc = np.zeros(361, dtype=float)
     Xcirc, Ycirc = [], []
     for k in range(361):
         XY = pmag.dimap(Dcirc[k], Icirc[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'k')
+    ax.plot(Xcirc, Ycirc, "k")
 
-# put on the tick marks
+    # Put on the tick marks
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 100, tick_spacing):
-        XY = pmag.dimap(0., I)
+        XY = pmag.dimap(0.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="_", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 100, tick_spacing):
-        XY = pmag.dimap(90., I)
+        XY = pmag.dimap(90.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="|", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 90, tick_spacing):
-        XY = pmag.dimap(180., I)
+        XY = pmag.dimap(180.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="_", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 90, tick_spacing):
-        XY = pmag.dimap(270., I)
+        XY = pmag.dimap(270.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    #plt.plot(Xsym, Ysym, 'k|')
-    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="|", s=10)
+
     for D in range(0, 360, tick_spacing):
         Xtick, Ytick = [], []
         for I in range(4):
             XY = pmag.dimap(D, I)
             Xtick.append(XY[0])
             Ytick.append(XY[1])
-        plt.plot(Xtick, Ytick, 'k')
-    plt.axis("equal")
-    plt.axis((-1.05, 1.05, -1.05, 1.05))
+        ax.plot(Xtick, Ytick, "k")
+    ax.axis("equal")
+    ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
