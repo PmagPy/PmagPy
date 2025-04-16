@@ -2397,25 +2397,32 @@ def plot_X_T(experiment,
              temp_unit='C', 
              smooth_window=0,
              remove_holder=True):
-    '''
-    plot the high temperature X-T curve
+    """
+    Plot the high‑temperature X–T curve, its derivative, and reciprocal.
 
-    Parameters
-    ----------
-    experiment : pandas DataFrame
-        the IRM experiment data exported into MagIC format
-    temp_unit : str
-        the unit of temperature, either 'K' or 'C'
-    smooth_window : int
-        the window size for smoothing the data
-    remove_holder : bool
-        whether to remove the holder signal
+    Parameters:
+        experiment (pandas.DataFrame):
+            The IRM experiment data exported into MagIC format.
+        temperature_column (str, optional):
+            Name of the temperature column. Defaults to 'meas_temp'.
+        magnetic_column (str, optional):
+            Name of the susceptibility column.
+            Defaults to 'susc_chi_mass'.
+        temp_unit (str, optional):
+            Unit of temperature, either 'K' or 'C'. Defaults to 'C'.
+        smooth_window (int, optional):
+            Window size for running‑average smoothing. Defaults to 0.
+        remove_holder (bool, optional):
+            If True, subtract the minimum holder signal from the data.
+            Defaults to True.
 
-    Returns
-    -------
-    fig : plotly.graph_objs.Figure
-        the plotly figure object
-    '''
+    Returns:
+        tuple[plotly.graph_objs.Figure, plotly.graph_objs.Figure, plotly.graph_objs.Figure]:
+            A 3‑tuple containing:
+            - fig: Combined heating and cooling X–T plot.
+            - fig_dxdt: dX/dT vs. temperature plot.
+            - fig_inv: 1/X vs. temperature plot.
+    """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment,
                                                      temperature_column=temperature_column,
                                                      magnetic_column=magnetic_column)
