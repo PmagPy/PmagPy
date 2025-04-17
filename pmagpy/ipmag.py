@@ -15526,6 +15526,14 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     Returns:
         float 
             number indicating probability value
+
+    Example:
+        Provide an angle and two precision parameter estimates to get the probability of
+        simultaneity, compare to RC / 11 comparison from Table 2 of the original publication
+        (exact value may differ due to RNG):
+
+        >>> ipmag.simul_correlation_prob(3.6, 391, 146)
+        0.8127
     """
     #sets initial value for counters
     hit = 0
@@ -15559,8 +15567,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     two paleomagnetic directions is due to random sampling of the ancient magnetic 
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
     
-    Parameters
-    ----------
+    Parameters:
     sec_var: kappa estimate of regional secular variation (probably 30 or 40)
     alpha: angle between paleomagnetic directions (or poles)
     delta1: distance of direction 1 from mean direction
@@ -15568,10 +15575,18 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     trials: the number of simulations, default=10,000
     print_result: the probability value printed as a sentence, default=False 
     
-    Returns
-    --------------------------
-    rand_prob 
+    Returns:
+        float 
+            number indicating probability value
     
+    Example:
+        Provide estimate of regional secular variation, angle between directions, 
+        distance of each direction from a mean direction (like GAD) to return probability
+        of random field sampling, compare to RC / 11 comparison from Table 2 of the original
+        publication (exact value may differ due to RNG):
+
+        >>> ipmag.rand_correlation_prob(40, 17.2, 20, 3.6)
+        np.float64(0.0103)
     """
 
     # calc probability of getting vgp within alpha of vgp1
