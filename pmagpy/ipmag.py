@@ -15514,10 +15514,7 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
     for probabilistic correlation, evaluating the probability that the similarity between 
     two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
-    field. This can be compared with the probability that the two directions were sampled 
-    at random times with the companion function (ipmag.random_correlation_prob; to come). 
-    k1 and k2 can be estimated the kappa of the  directions, or one can use the companion 
-    function (ipmag.full_kappa; to come) as in the original publication. 
+    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP. 
     
     Parameters:
         alpha : angle between paleomagnetic directions (site means)
@@ -15529,6 +15526,14 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     Returns:
         float 
             number indicating probability value
+
+    Example:
+        Provide an angle and two precision parameter estimates to get the probability of
+        simultaneity, compare to RC / 11 comparison from Table 2 of the original publication
+        (exact value may differ due to RNG):
+
+        >>> ipmag.simul_correlation_prob(3.6, 391, 146)
+        0.8127
     """
     #sets initial value for counters
     hit = 0
@@ -15557,25 +15562,12 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
 def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False):
 
     """
-    This function does a brute force numerical simulation of the 'random' 
-    hypothesis of Bogue + Coe (1981). Basically asks and answers the question:
-    if we randomly sampled the ancient field, how frequently would we get two
-    VGPs that are both this far from the time-averaged pole and this close 
-    together?  Approach is, assume VGP1 observed first, pull a random 
-    direction from Fisher distribution about mean pole with k. If it is within
-    alpha of VGP1, hit. If not, miss. Repeat many (10,000?) times. 
-    P(Hr)1 = hit/(trials). Then, repeat this process with VGP2, getting
-    P(Hr)2. The returned probability is the average of the two.
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
+    for probabilistic correlation, evaluating the probability that the similarity between 
+    two paleomagnetic directions is due to random sampling of the ancient magnetic 
+    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
     
-    A version of this function was written in Python by S. Bogue, translated
-    to PmagPy functionality by A. Pivarunas
-    
-    Bogue, S.W., and Coe, R.S., 1981, Paleomagnetic correlation of Columbia 
-    River basalt flows using secular variation. Journal of Geophysical
-    Research, v. 86, p. 11883-11897.
-    
-    Parameters
-    ----------
+    Parameters:
     sec_var: kappa estimate of regional secular variation (probably 30 or 40)
     alpha: angle between paleomagnetic directions (or poles)
     delta1: distance of direction 1 from mean direction
@@ -15583,10 +15575,18 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     trials: the number of simulations, default=10,000
     print_result: the probability value printed as a sentence, default=False 
     
-    Returns
-    --------------------------
-    rand_prob 
+    Returns:
+        float 
+            number indicating probability value
     
+    Example:
+        Provide estimate of regional secular variation, angle between directions, 
+        distance of each direction from a mean direction (like GAD) to return probability
+        of random field sampling, compare to RC / 11 comparison from Table 2 of the original
+        publication (exact value may differ due to RNG):
+
+        >>> ipmag.rand_correlation_prob(40, 17.2, 20, 3.6)
+        np.float64(0.0103)
     """
 
     # calc probability of getting vgp within alpha of vgp1
