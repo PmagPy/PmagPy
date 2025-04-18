@@ -327,7 +327,7 @@ def plot_qq_norm(fignum, Y, title):
     Returns
     ___________
     d,dc : the values for D and Dc (the critical value)
-       if d>dc, likely to be normally distributed (95\% confidence)
+       if d>dc, likely to be normally distributed (95% confidence)
     """
     plt.figure(num=fignum)
     if type(Y) == list:
@@ -864,9 +864,6 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     tstring = s
     plt.title(tstring)
     plt.draw()
-
-#
-#
 
 
 def plot_zed(ZED, datablock, angle, s, units):
@@ -3296,9 +3293,9 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
                         colors='black', transform=ccrs.PlateCarree())
 
         if element_type == 'Br':
-            plt.title('Radial field strength ($\mu$T): '+date)
+            plt.title(r'Radial field strength ($\mu$T): '+date)
         else:
-            plt.title('Total field strength ($\mu$T): '+date)
+            plt.title(r'Total field strength ($\mu$T): '+date)
     if element_type == 'I':
         plt.contourf(xx, yy, element,
                      levels=np.arange(-90, 90, lincr),
@@ -3634,8 +3631,7 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
      #        transform=axb.transAxes,fontsize=fontsize)
     res=stats.linregress(Q_DSC,Bs_uT)
     ts=tinv(0.05,len(Q_DSC)-2)
-    axb.text(.1,.9,f'Bmsp =: {res.intercept:.1f} $\pm$  {.5*ts*res.intercept_stderr:.1f} $\mu$T',
-    #axb.text(.1,.9,f'Bmsp =: {res.intercept:.1f} $\pm$  {res.intercept_stderr:.1f} $\mu$T',
+    axb.text(.1,.9,rf'Bmsp =: {res.intercept:.1f} $\pm$  {.5*ts*res.intercept_stderr:.1f} $\mu$T',
             transform=axb.transAxes,fontsize=fontsize)
     
     print(f"intercept (1 sigma): {res.intercept:.1f} +/- {res.intercept_stderr:.1f}")
