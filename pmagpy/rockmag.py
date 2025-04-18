@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import copy
 
-from scipy.optimize import minimize, brent, least_squares
+from scipy.optimize import minimize, brent, least_squares, minimize_scalar
 from scipy.signal import savgol_filter
 
 import matplotlib.pyplot as plt
@@ -1605,29 +1605,20 @@ def linefit(xarr, yarr):
     xarr = np.asarray(xarr)
     yarr = np.asarray(yarr)
     
-    n = len(xarr)
-    sumx = np.sum(xarr)
-    sumy = np.sum(yarr)
-    
-    xavg = sumx / n
-    yavg = sumy / n
+    # Fit a line y = slope * x + intercept
+    slope, intercept = np.polyfit(xarr, yarr, 1)
 
-    xdelta = xarr - xavg
-    ydelta = yarr - yavg
-    
-    st2 = np.sum(xdelta**2)
-    sst = np.sum(ydelta**2)
+    # Predict y using the fitted line
+    y_pred = intercept + slope * xarr
 
-    # Use original y values in numerator (matches Pascal logic)
-    b = np.sum(xdelta * yarr)
-    slope = b / st2 if st2 > 0 else 9e9
+    # Total sum of squares
+    ss_tot = np.sum((yarr - np.mean(yarr))**2)
 
-    intercept = (sumy - sumx * slope) / n
+    # Residual sum of squares
+    ss_res = np.sum((yarr - y_pred)**2)
 
-    # Regression sum of squares (explained variance)
-    ssr = np.sum(((intercept + slope * xarr) - yavg) ** 2)
-
-    r2 = ssr / sst if sst > 0 else 1
+    # R^2 score
+    r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 1
 
     return intercept, slope, r2
 
@@ -1677,92 +1668,27 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
         return 0.0, 0.0  # Not enough points for regression
 
     intercept, slope, r2 = linefit(x1, y1)
-    V_shift = intercept / 2
-    return r2, V_shift
+    M_shift = intercept / 2
 
-def loop_Hshift_brent(loop_fields, loop_moments,tol=1e-6):
+    result = {'slope': slope, 'M_shift': M_shift, 'r2': r2}
+    return result
 
-    itmax = 100
-    cgold = 0.3819660
-    zeps = 1.0e-10
-
+def loop_Hshift_brent(loop_fields, loop_moments):
+    def objective(H_shift):
+        result = loop_H_off(loop_fields, loop_moments, H_shift)
+        return -result['r2']
+    
     ax = -np.max(loop_fields)/2
     bx = 0
     cx = -ax
+    result = minimize_scalar(objective, method='brent', bracket=(ax, bx, cx), tol=1e-6)
 
-    def sign(a, b):
-        return abs(a) if b > 0.0 else -abs(a)
+    opt_H_off = result.x
+    opt_shift = loop_H_off(loop_fields, loop_moments, opt_H_off)
+    opt_r2 = opt_shift['r2']
+    opt_M_off = opt_shift['M_shift']
 
-    a = min(ax, cx)
-    b = max(ax, cx)
-    v = w = x = bx
-    e = 0.0
-    fx = -loop_H_off(loop_fields, loop_moments, x)[0]
-    fv = fw = fx
-
-    for _ in range(itmax):
-        xm = 0.5 * (a + b)
-        tol1 = tol * abs(x) + zeps
-        tol2 = 2.0 * tol1
-
-        if abs(x - xm) <= (tol2 - 0.5 * (b - a)):
-            xmin = x
-            return fx, xmin
-
-        if abs(e) > tol1:
-            r = (x - w) * (fx - fv)
-            q = (x - v) * (fx - fw)
-            p = (x - v) * q - (x - w) * r
-            q = 2.0 * (q - r)
-            if q > 0.0:
-                p = -p
-            q = abs(q)
-            etemp = e
-            e = d
-            if (abs(p) >= abs(0.5 * q * etemp)) or (p <= q * (a - x)) or (p >= q * (b - x)):
-                if x >= xm:
-                    e = a - x
-                else:
-                    e = b - x
-                d = cgold * e
-            else:
-                d = p / q
-                u = x + d
-                if ((u - a) < tol2) or ((b - u) < tol2):
-                    d = sign(tol1, xm - x)
-        else:
-            if x >= xm:
-                e = a - x
-            else:
-                e = b - x
-            d = cgold * e
-
-        u = x + d if abs(d) >= tol1 else x + sign(tol1, d)
-        fu = -loop_H_off(loop_fields, loop_moments, u)[0]
-
-        if fu <= fx:
-            if u >= x:
-                a = x
-            else:
-                b = x
-            v, fv = w, fw
-            w, fw = x, fx
-            x, fx = u, fu
-        else:
-            if u < x:
-                a = u
-            else:
-                b = u
-            if (fu <= fw) or (w == x):
-                v, fv = w, fw
-                w, fw = u, fu
-            elif (fu <= fv) or (v == x):
-                v, fv = u, fu
-
-    print("pause in routine BRENT - too many iterations")
-    xmin = x
-    return fx, xmin
-
+    return opt_r2, opt_H_off, opt_M_off
 
 def hyst_loop_centering(grid_field, grid_magnetization):
     '''
@@ -1789,9 +1715,9 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     '''
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
-
-    _, H_offset = loop_Hshift_brent(grid_field, grid_magnetization)
-    R_squared, M_offset = loop_H_off(grid_field, grid_magnetization, H_offset)
+    R_squared, H_offset, M_offset = loop_Hshift_brent(grid_field, grid_magnetization)
+    # _, H_offset = loop_Hshift_brent(grid_field, grid_magnetization)
+    # R_squared, M_offset = loop_H_off(grid_field, grid_magnetization, H_offset)
     # signal to noise ratio
     M_sn = 1/(np.sqrt(1-R_squared))
     Q = np.log10(M_sn)
@@ -2551,7 +2477,7 @@ def split_warm_cool(experiment,temperature_column='meas_temp',
 
 def plot_X_T(experiment,
              temperature_column='meas_temp',
-             magnetic_column='susc_chi_mass'
+             magnetic_column='susc_chi_mass',
              temp_unit='C', 
              smooth_window=0,
              remove_holder=True):
