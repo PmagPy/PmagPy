@@ -1690,6 +1690,27 @@ def loop_Hshift_brent(loop_fields, loop_moments):
 
     return opt_r2, opt_H_off, opt_M_off
 
+def calc_Q(H, M, type='Q'):
+    '''
+    function for calculating quality factor Q for a hysteresis loop
+        Q factor is defined by the log10 of the signal to noise ratio
+        where signal is the sum of the square of the data 
+        which is the averaged sum over the upper and lower branches for Q
+        and is the sum of the square of the upper branch for Qf
+    '''
+    assert type in ['Q', 'Qf'], 'type must be either Q or Qf'
+    H = np.array(H)
+    M = np.array(M)
+    upper_branch, lower_branch = split_hysteresis_loop(H, M)  
+    Me = upper_branch[1] + lower_branch[1][::-1]
+    if type == 'Q':
+        M_sn = np.sqrt((np.sum(upper_branch[1]**2) + np.sum(lower_branch[1][::-1]**2))/2/np.sum(Me**2))
+    elif type == 'Qf':
+        M_sn = np.sqrt(np.sum(upper_branch[1]**2)/np.sum(Me**2))
+
+    Q = np.log10(M_sn)
+    return M_sn, Q
+
 def hyst_loop_centering(grid_field, grid_magnetization):
     '''
     function for finding the optimum applied field offset value for minimizing a linear fit through 
@@ -1716,11 +1737,8 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
     R_squared, H_offset, M_offset = loop_Hshift_brent(grid_field, grid_magnetization)
-    # _, H_offset = loop_Hshift_brent(grid_field, grid_magnetization)
-    # R_squared, M_offset = loop_H_off(grid_field, grid_magnetization, H_offset)
-    # signal to noise ratio
-    M_sn = 1/(np.sqrt(1-R_squared))
-    Q = np.log10(M_sn)
+
+    M_sn, Q = calc_Q(grid_field, grid_magnetization)
 
     # re-gridding after offset correction to ensure symmetry
     centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset/2, grid_magnetization-M_offset)
@@ -2184,7 +2202,6 @@ def drift_correction_Me(H, M):
         for i in range(len(Me_running_mean)):
             
             M_cor[i] = M[i] - Me_running_mean[i]
-        print(M_cor[:len(Me_running_mean)])
         return M_cor
     
 def prorated_drift_correction(field, magnetization):
