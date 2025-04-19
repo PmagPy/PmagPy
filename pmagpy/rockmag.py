@@ -1243,120 +1243,6 @@ def extract_hysteresis_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hyst_data(hyst_data,
-                   hyst_color='#1f77b4',
-                   hyst_marker=None,
-                   symbol_size=5, use_plotly=False, return_figure=False):
-    """
-    Plots hysteresis data using either Matplotlib or Plotly.
-
-    Parameters:
-        hyst_data (DataFrame): DataFrames containing the hysteresis data.
-        hyst_color: HEX color codes for each plot.
-        hyst_marker (str): Marker symbols for each plot.
-        symbol_size (int): Size of the markers in matplotlib, symbol size in plotly is fixed.
-        use_plotly (bool): If True, uses Plotly for plotting. Otherwise, uses Matplotlib.
-        
-    Returns:
-        fig: The matplotlib.figure.Figure object containing the plot (only when using Matplotlib).
-    """
-
-    if use_plotly:
-        rows, cols = (1, 1)
-        fig = make_subplots(rows=rows, cols=cols)
-        
-        # Add original data traces
-        fig.add_trace(go.Scatter(x=hyst_data['meas_field_dc'], y=hyst_data['magn_mass'], mode='markers+lines', name='Hyst', marker=dict(color=hyst_color)), row=1,    col=1)
-        
-        # Update layout and axis titles
-        # Set y-axis label for the first row to 'M (Am2/kg)'
-        fig.update_yaxes(title_text="M (Am2/kg)", row=1, col=1)
-        fig.update_yaxes(title_text="M (Am2/kg)", row=1, col=2)
-
-        fig.update_xaxes(title_text="Field (Tesla)", row=1, col=1)
-
-
-        fig.update_layout(title="Hysteresis Data")
-        
-        fig.show()
-            
-    else:
-        # Matplotlib plotting
-        fig, axs = plt.subplots(figsize=(8, 6))
-            
-        # Plot original data
-
-        axs.plot(hyst_data['meas_field_dc'], hyst_data['magn_mass'], color=hyst_color, marker=hyst_marker, linestyle='-', linewidth=0.5, markersize=symbol_size, label='Loop')
-
-        axs.set_xlabel("Field (Tesla)")
-        axs.set_ylabel("Magnetization (Am$^2$/kg)")
-        axs.legend()
-        axs.grid(True)
-
-        fig.tight_layout()
-        plt.show()
-        
-        if return_figure:
-            return fig
-           
-def make_hyst_plots(measurements):
-    """
-    Create a UI for specimen selection and dynamically update Hysteresis loop plots based on the selected
-    specimen and plot library choice. This version adds event handlers to ensure updates occur
-    upon initial selection.
-
-    Parameters:
-    experiments : pandas.DataFrame
-        The dataframe containing experiment data with columns including 'specimen' and 'method_codes'.
-    measurements : pandas.DataFrame
-        The dataframe containing measurement data used for plotting Hysteresis loop data.
-    """
-    # Filter to get specimens with desired method codes
-    experiments = measurements.groupby(['specimen', 'method_codes']).size().reset_index().iloc[:, :2]
-    filtered_experiments = experiments[experiments['method_codes'].isin(['LP-HYS',])]
-    specimen_options = filtered_experiments['specimen'].unique().tolist()
-
-    # Dropdown for specimen selection
-    specimen_dropdown = widgets.Dropdown(
-        options=specimen_options,
-        description='Specimen:',
-        value=specimen_options[0]
-    )
-
-    # Radio buttons for plot library choice
-    plot_choice = widgets.RadioButtons(
-        options=[('matplotlib', False), ('plotly', True)],
-        description='Plot with:',
-        disabled=False
-    )
-
-    # Interactive output container
-    out = widgets.Output()
-
-    def update_hyst_plots(specimen_name, use_plotly):
-        """
-        Update hysteresis loop based on the selected specimen and plotting library choice.
-        """
-        with out:
-            out.clear_output(wait=True)
-            hyst_data = extract_hysteresis_data(measurements, specimen_name)
-            plot_hyst_data(hyst_data, use_plotly=use_plotly)
-
-    def on_specimen_change(change):
-        update_hyst_plots(change['new'], plot_choice.value)
-
-    def on_plot_choice_change(change):
-        update_hyst_plots(specimen_dropdown.value, change['new'])
-
-    specimen_dropdown.observe(on_specimen_change, names='value')
-    plot_choice.observe(on_plot_choice_change, names='value')
-
-    # Initial plot to ensure something is displayed right away
-    update_hyst_plots(specimen_dropdown.value, plot_choice.value)
-
-    # Display UI components
-    display(specimen_dropdown, plot_choice, out)
-
 def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
     '''
     function to plot a hysteresis loop
@@ -1390,8 +1276,7 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color
     else:
         p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
         p.legend.location = legend_location
-    
-    show(p)
+
     return p
 
 def split_hysteresis_loop(field, magnetization):
@@ -1593,7 +1478,7 @@ def hyst_linearity_test(grid_field, grid_magnetization):
             'MSLF':MSLF, 
             'FL':FL, 'FNL':FNL, 
             'slope':slope, 'intercept':intercept, 
-            'loop is linear':FNL < 1.25}
+            'loop_is_linear':FNL < 1.25}
 
     return results
 
@@ -2016,7 +1901,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
             saturation_cutoff = 0.7
         if FNL60 < 2.5:  #saturated at 60%
             saturation_cutoff = 0.6
-    results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop is saturated':(saturation_cutoff != 0.92)}
+    results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop_is_saturated':(saturation_cutoff != 0.92)}
 
     return results
 
@@ -2078,132 +1963,6 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     results = {'SNR':SNR, 'HAR':HAR, 'loop_is_closed':loop_is_closed}
     return results
 
-
-def process_hyst_loop(field,magnetization, drift_correction=False):
-    # first grid the data into symmetric field values
-    grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
-
-    if drift_correction:
-        # if drift correction, by default we apply a prorated drift correction algorithm
-        corrected_magnetizations = prorated_drift_correction(grid_fields, grid_magnetizations)
-        grid_magnetizations = corrected_magnetizations
-
-    pos_max_mags = grid_magnetizations[np.where(grid_fields == np.max(grid_fields))]
-    neg_max_mags = grid_magnetizations[np.where(grid_fields == np.min(grid_fields))]
-    if (np.abs(np.diff(pos_max_mags)/2/np.mean(pos_max_mags))>0.001) or np.abs((np.diff(neg_max_mags)/2/np.mean(neg_max_mags))>0.001):
-        print('check loop drift!')
-
-    # then perform linearity test on the whole loop (to determine wether the specimen is dominated by paramagnetic or diamagnetic signal)
-    linearity_test_results = hyst_linearity_test(grid_fields, grid_magnetizations)
-    if linearity_test_results['loop is linear']:
-        print('raw data is linear')
-    else:
-        print('raw data is not linear')
-    print('FNL: ', round(linearity_test_results['FNL'],2))
-
-    if linearity_test_results['loop is linear']:
-        return grid_fields, grid_magnetizations, linearity_test_results
-    
-    # if the loop is not linear, we need to first center the loop
-    loop_centering_results = hyst_loop_centering(grid_fields, grid_magnetizations)
-
-    print('loop centering results: field offset = {} T'.format(round(loop_centering_results['opt_H_offset'],4)), 'magnetization offset = {} Am^2/kg'.format(round(loop_centering_results['opt_M_offset'], 4)))
-    print('centered raw loop Q value:', round(loop_centering_results['Q'], 2))
-
-    grid_fields_centered = grid_fields - loop_centering_results['opt_H_offset']
-    grid_magnetizations_centered = grid_magnetizations - loop_centering_results['opt_M_offset']
-
-    # then apply default high field correction
-    slope, intercept = linear_HF_fit(grid_fields_centered, grid_magnetizations_centered)
-    print('apply default high field linear correction:', 'slope (X_para/dia) = {}'.format(round(slope, 4)), 'intercept (Ms) = {} Am^2/kg'.format(round(intercept, 4)))
-    Ms = intercept
-
-    grid_magnetizations_centered_HF_corrected = hyst_slope_correction(grid_fields_centered, grid_magnetizations_centered, slope)
-
-    ferro_loop_centering_results = hyst_loop_centering(grid_fields_centered, grid_magnetizations_centered_HF_corrected)
-    Qf = ferro_loop_centering_results['Q']
-    print('centered ferromagnetic loop Qf value:', round(Qf, 2))
-
-    # calculate Bc
-    corrected_upper_branch, corrected_lower_branch = split_hysteresis_loop(grid_fields_centered, grid_magnetizations_centered_HF_corrected)
-    upper_Bc = np.interp(0, corrected_upper_branch[1], corrected_upper_branch[0])
-    lower_Bc = np.interp(0, corrected_lower_branch[1], corrected_lower_branch[0])
-    Bc = (np.abs(upper_Bc) + np.abs(lower_Bc))/2
-
-    # calculate the Mrh (remanence component), Mih (induced component), Me (error) arrays
-    H, Mrh, Mih, Me, Brh = calc_Mrh_Mih(grid_fields_centered, grid_magnetizations_centered_HF_corrected)
-
-    # check if the loop is closed
-    # check_loop_closure = calc_Mrh_Mih(grid_fields, grid_magnetizations)
-    loop_closure_SNR, loop_closure_HAR = loop_open_test(H, Mrh)
-    if (loop_closure_SNR >=8) or (loop_closure_HAR >= -48):
-        print('loop is still open!')
-
-    print('Ms = {} Am^2/kg'.format(round(Ms, 4)))
-    print('Mr = {} Am^2/kg'.format(round(Mr, 4)))
-    print('Bc = {} mT'.format(round(Bc*1000, 2))) 
-    print('Brh = {} mT'.format(round(Brh*1000,2)))
-
-    # test loop saturation on the not slope-corrected data
-    loop_saturation_stats = hyst_loop_saturation_test(grid_fields_centered, grid_magnetizations_centered)
-    if loop_saturation_stats['FNL60'] < 2.5:
-        print('loop is saturated beyond {} mT'.format(round(600*np.max(grid_fields_centered), 4)))
-    elif loop_saturation_stats['FNL70'] < 2.5:
-        print('loop is saturated beyond {} mT'.format(round(700*np.max(grid_fields_centered), 4)))
-    elif loop_saturation_stats['FNL80'] < 2.5:
-        print('loop is saturated beyond {} mT'.format(round(800*np.max(grid_fields_centered), 4)))
-    else:
-        print('loop is not saturated! check non-linear high field correction!')
-
-    fig, ax =  plt.subplots(figsize=(10,10))
-    ax = plot_hysteresis_loop(ax, grid_fields_centered, grid_magnetizations_centered, color='r', linewidth=1, label='centered raw data')
-    ax.plot(grid_fields_centered, grid_magnetizations_centered_HF_corrected, color='b', linewidth=1, label='HF slope corrected data')
-    ax.plot(H, Mrh, color='g', linewidth=1, label='Mrh')
-    ax.plot(H, Mih, color='y', linewidth=1, label='Mih')
-    ax.plot(H, Me, color='brown', linewidth=1, label='Me')
-    plt.legend()
-
-    results = {'grid_fields': grid_fields, 
-               'grid_magnetizations': grid_magnetizations, 
-               'linearity_test_results': linearity_test_results,
-               'loop_centering_results': loop_centering_results,
-               'ferro_loop_centering_results': ferro_loop_centering_results,
-               'grid_fields_centered': grid_fields_centered, 
-               'grid_magnetizations_centered': grid_magnetizations_centered, 
-               'grid_magnetizations_centered_HF_corrected': grid_magnetizations_centered_HF_corrected, 
-               'H': H, 'Mrh': Mrh, 'Mih': Mih, 'Me': Me, 'Ms': Ms, 'Mr': Mr, 'Bc': Bc, 'Brh': Brh,
-               'loop_saturation_stats': loop_saturation_stats}
-
-    return results, ax
-
-def export_hyst_specimen_table(specimen_name, results):
-    '''
-    function to export the hysteresis data to a MagIC specimen data table
-    
-    Parameters
-    ----------
-    specimen_name : str
-        name of the specimen
-    results : dict
-        dictionary with the hysteresis processing results
-    
-    Returns
-    -------
-    pd.DataFrame
-        dataframe with the hysteresis data
-    '''
-    results_df = pd.DataFrame(columns=['specimen', 'Q', 'Qf', 'Ms', 'Mr', 'Bc', 'Brh', 'FNL', 'method_codes'])
-    results_df.loc[0] = [specimen_name, 
-                         results['loop_centering_results']['Q'], 
-                         results['ferro_loop_centering_results']['Q'], 
-                         results['Ms'], 
-                         results['Mr'], 
-                         results['Bc'], 
-                         results['Brh'], 
-                         results['linearity_test_results']['FNL'], 
-                         'LP-HYS']
-    
-    return results_df
 
 def drift_correction_Me(H, M):
     '''
@@ -2496,6 +2255,143 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 
     final_result['Fnl_lin'] = Fnl_lin
     return final_result
+
+def process_hyst_loop(field, magnetization, specimen_name):
+    '''
+    function to process a hysteresis loop following the IRM decision tree
+    Parameters
+    ----------
+    field : array
+        array of field values
+    magnetization : array
+        array of magnetization values
+    Returns
+    -------
+    results : dict
+        dictionary with the hysteresis processing results and a Bokeh plot
+    '''
+    # first grid the data into symmetric field values
+    grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
+
+    # test linearity of the gridded original loop
+    loop_linearity_test_results = hyst_linearity_test(grid_fields, grid_magnetizations)
+
+    # loop centering
+    loop_centering_results = hyst_loop_centering(grid_fields, grid_magnetizations)
+    # check if the quality factor Q is < 2
+    if loop_centering_results['Q'] < 2:
+        # in case the loop quality is bad, no field correction is applied
+        loop_centering_results['opt_H_offset'] = 0
+        loop_centering_results['centered_H'] = grid_fields
+
+    centered_H, centered_M = loop_centering_results['centered_H'], loop_centering_results['centered_M']
+
+    # drift correction
+    drift_corr_M = drift_correction_Me(centered_H, centered_M)
+
+    # calculate Mr, Mrh, Mih, Me, Brh
+    H, Mr, Mrh, Mih, Me, Brh = calc_Mr_Mrh_Mih_Brh(centered_H, drift_corr_M)
+
+    # check if the loop is closed
+    loop_closure_test_results = loop_closure_test(H, Mrh)
+
+    # check if the loop is saturated (high field linearity test)
+    loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
+
+    if loop_saturation_stats['loop_is_saturated']:
+        # linear high field correction
+        chi_Hf, Ms = linear_HF_fit(centered_H, drift_corr_M, loop_saturation_stats['saturation_cutoff'])
+        Fnl_lin = None
+    else:
+        # do non linear approach to saturation fit
+        NL_fit_result = hyst_HF_nonlinear_optimization(centered_H, drift_corr_M, 0.6, 'IRM')
+        chi_Hf, Ms, Fnl_lin = NL_fit_result['chi_Hf'], NL_fit_result['Ms'], NL_fit_result['Fnl_lin']
+
+     # apply high field correction
+    slope_corr_M = hyst_slope_correction(centered_H, drift_corr_M, chi_Hf)
+
+    # calculate the Msn and Q factor for the ferromagentic component
+    M_sn_f, Qf = calc_Q(centered_H, slope_corr_M)
+
+    # calculate the coercivity Bc
+    Bc = calc_Bc(centered_H, slope_corr_M)
+
+    # plot original loop
+    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw Loop')
+    # plot centered loop
+    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected')
+    # plot drift corrected loop
+    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='blue', label=specimen_name+' drift corrected')
+    # plot slope corrected loop
+    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='pink', label=specimen_name+' slope corrected')
+    # plot Mrh
+    p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
+    p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
+    p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
+    show(p)
+    results = {'gridded_H': grid_fields, 
+               'gridded_M': grid_magnetizations, 
+               'linearity_test_results': loop_linearity_test_results,
+               'FNL': loop_linearity_test_results['FNL'],
+               'loop_centering_results': loop_centering_results,
+               'centered_H': centered_H, 
+               'centered_M': centered_M, 
+               'drift_corrected_M': drift_corr_M,
+               'slope_corrected_M': slope_corr_M,
+               'loop_closure_test_results': loop_closure_test_results,
+               'loop_saturation_stats': loop_saturation_stats,
+               'M_sn':loop_centering_results['M_sn'],
+               'Q': loop_centering_results['Q'],
+               'H': H, 'Mr': Mr, 'Mrh': Mrh, 'Mih': Mih, 'Me': Me, 'Brh': Brh, 
+               'FNL60': loop_saturation_stats['FNL60'],
+               'FNL70': loop_saturation_stats['FNL70'],
+               'FNL80': loop_saturation_stats['FNL80'],
+               'Ms': Ms, 'Bc': Bc, M_sn_f: M_sn_f,
+               'Qf': Qf, 'Fnl_lin': Fnl_lin,
+               'plot': p}
+
+    return results
+
+def export_hyst_specimen_table(specimen_name, results):
+    '''
+    function to export the hysteresis data to a MagIC specimen data table
+    
+    Parameters
+    ----------
+    specimen_name : str
+        name of the specimen
+    results : dict
+        dictionary with the hysteresis processing results
+    
+    Returns
+    -------
+    pd.DataFrame
+        dataframe with the hysteresis data
+    '''
+    results_df = pd.DataFrame(columns=['specimen', 'Q', 'Qf', 
+                                       'Ms', 'Mr', 'Bc', 'Brh', 
+                                       'FNL', 'FNL60', 'FNL70', 'FNL80', 
+                                       'Fnl_lin', 
+                                       'loop_is_linear', 'loop_is_closed', 'loop_is_saturated'])
+    results_df.loc[0] = [specimen_name, 
+                         results['Q'], 
+                         results['Qf'], 
+                         results['Ms'], 
+                         results['Mr'], 
+                         results['Bc'], 
+                         results['Brh'], 
+                         results['FNL'],
+                         results['FNL60'],
+                         results['FNL70'],
+                         results['FNL80'], 
+                         results['Fnl_lin'],
+                         results['linearity_test_results']['loop_is_linear'],
+                         results['loop_closure_test_results']['loop_is_closed'],
+                         results['loop_saturation_stats']['loop_is_saturated']]
+    
+    
+    
+    return results_df
 
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
