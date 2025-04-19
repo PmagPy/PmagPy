@@ -1615,7 +1615,7 @@ def linefit(xarr, yarr):
     ss_tot = np.sum((yarr - np.mean(yarr))**2)
 
     # Residual sum of squares
-    ss_res = np.sum((yarr - y_pred)**2)
+    ss_res = np.sum((y_pred - np.mean(yarr))**2)
 
     # R^2 score
     r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 1
@@ -1676,7 +1676,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
 def loop_Hshift_brent(loop_fields, loop_moments):
     def objective(H_shift):
         result = loop_H_off(loop_fields, loop_moments, H_shift)
-        return -result['r2']
+        return result['r2']
     
     ax = -np.max(loop_fields)/2
     bx = 0
@@ -1822,7 +1822,33 @@ def hyst_slope_correction(grid_field, grid_magnetization, chi_HF):
 
     return grid_magnetization_ferro
 
-def calc_Mrh_Mih(grid_field, grid_magnetization):
+def find_y_crossing(x, y, y_target=0.0):
+    """
+    Finds the x-value where y crosses a given y_target, nearest to x = 0.
+    Uses linear interpolation between adjacent points that bracket y_target.
+
+    Parameters:
+        x (array-like): x-values
+        y (array-like): y-values
+        y_target (float): y-value at which to find crossing (default: 0)
+
+    Returns:
+        x_cross (float or None): interpolated x at y = y_target nearest to x = 0, or None if not found
+    """
+    x = np.asarray(x)
+    y = np.asarray(y)
+
+    for i in range(len(x) - 1):
+        y0, y1 = y[i], y[i + 1]
+        if (y0 - y_target) * (y1 - y_target) < 0:  # sign change => crossing
+            x0, x1 = x[i], x[i + 1]
+            # Linear interpolation to find x at y = y_target
+            x_cross = x0 + (y_target - y0) * (x1 - x0) / (y1 - y0)
+            return x_cross
+
+    return None 
+
+def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
     '''
     function to calculate the Mrh and Mih values from a hysteresis loop
 
@@ -1855,26 +1881,49 @@ def calc_Mrh_Mih(grid_field, grid_magnetization):
     grid_magnetization = grid_magnetization
 
     upper_branch, lower_branch = split_hysteresis_loop(grid_field, grid_magnetization)
-    # make sure the x values for the branches are exactly the same
-    assert np.all(upper_branch[0] == lower_branch[0]), 'Field values for the upper and lower branches are not the same'
-    
+
     Mrh = (upper_branch[1] - lower_branch[1])/2
     Mih = (upper_branch[1] + lower_branch[1])/2
     Me = upper_branch[1] + lower_branch[1][::-1]
 
     H = upper_branch[0]
-    
     Mr = np.interp(0, H, Mrh)
-    # Brh is the median field of Mrh
-    pos_H = H[np.where(H >= 0)]
-    pos_Mrh = Mrh[np.where(H >= 0)]
+
+    # Brh is the field corresponding to the m=Mr/2
+    pos_H = H[np.where(H > 0)]
+    pos_Mrh = Mrh[np.where(H > 0)]
     neg_H = H[np.where(H < 0)]
     neg_Mrh = Mrh[np.where(H < 0)]
-    Brh_pos = np.interp(Mr/2, pos_Mrh[::-1], pos_H[::-1])
-    Brh_neg = np.interp(Mr/2, neg_Mrh, neg_H)
-    Brh = (np.abs(Brh_pos) + np.abs(Brh_neg))/2
+    Brh_pos = find_y_crossing(pos_H, pos_Mrh, Mr/2)
+    Brh_neg = find_y_crossing(neg_H, neg_Mrh, Mr/2)
+    Brh = np.abs((Brh_pos - Brh_neg)/2)
 
-    return H, Mrh, Mih, Me, Brh
+    return H, Mr, Mrh, Mih, Me, Brh
+
+def calc_Bc(H, M):
+    '''
+    function for calculating the coercivity of the ferromagnetic component of a hysteresis loop
+        the final Bc value is calculated as the average of the positive and negative Bc values
+
+    Parameters
+    ----------
+    H : numpy array
+        field values
+    M : numpy array
+        magnetization values
+
+    Returns
+    -------
+    Bc : float
+        coercivity of the ferromagnetic component of the hysteresis loop
+    '''
+    upper_branch, lower_branch = split_hysteresis_loop(H, M)
+
+    upper_Bc = find_y_crossing(upper_branch[0], upper_branch[1])
+    lower_Bc = find_y_crossing(lower_branch[0], lower_branch[1])
+    Bc = np.abs((upper_Bc - lower_Bc) / 2)
+
+    return Bc
 
 def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=0.97):
     '''
@@ -2372,7 +2421,6 @@ def Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
     prediction = Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta)
     return M_obs - prediction
 
-
 def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 1, -0.1, -0.1], bounds=([0, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0])):
     '''
     function for optimizing the high field non-linear fit
@@ -2430,26 +2478,27 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     # let's also report the Fnl_lin which is a measure of whether the nonlinear fit is better than a linear fit
     # let's first make a linear fit
     linear_fit_ANOVA = ANOVA(HF_field, HF_magnetization)
-    lin_SSD = linear_fit_ANOVA['SSD']
+    R_squared_l = 1 - linear_fit_ANOVA['R_squared']
 
-    # now calculate the nonlinear fit SSD
+    # now calculate the nonlinear fit SST
     nl_SST = np.sum((HF_magnetization - np.mean(HF_magnetization)) ** 2)
 
     # sum of squares due to regression
     nl_SSR = np.sum((nonlinear_fit - np.mean(HF_magnetization)) ** 2)
     
     # the remaining unexplained variation (noise and lack of fit)
-    nl_SSD = nl_SST-nl_SSR
+    nl_SSD = np.sum((HF_magnetization - nonlinear_fit) ** 2)
+    
+    R_squared_nl = 1 - nl_SSR/nl_SST 
 
     # calculate the Fnl_lin stat
-    Fnl_lin = ((lin_SSD - nl_SSD) / (4-2))/(nl_SSD / (len(HF_field) - 4))
+    Fnl_lin = R_squared_l / R_squared_nl
 
     final_result['Fnl_lin'] = Fnl_lin
     return final_result
 
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
-
 
 def split_warm_cool(experiment,temperature_column='meas_temp',
                     magnetic_column='susc_chi_mass'):
