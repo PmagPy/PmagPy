@@ -2020,7 +2020,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
 
     return results
 
-def loop_close_test(H, Mrh, HF_cutoff=0.8):
+def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     '''
     function for testing if the loop is open
     
