@@ -6810,14 +6810,14 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
 
     # validate input
     if '4' in samp_con[0]:
-        pattern = re.compile('[4][-]\d')
+        pattern = re.compile(r'[4][-]\d')
         result = pattern.match(samp_con)
         if not result:
             raise Exception(
                 "If using sample naming convention 4, you must provide the number of characters with which to distinguish sample from site. [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX)")
 
     if '7' in samp_con[0]:
-        pattern = re.compile('[7][-]\d')
+        pattern = re.compile(r'[7][-]\d')
         result = pattern.match(samp_con)
         if not result:
             raise Exception(
@@ -8467,29 +8467,29 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         for k in range(len(SiteCols)):
             fstring = fstring + 'r'
         sf.write(fstring + '}\n')
-        sf.write('\hline\n')
+        sf.write(r'\hline\n')
         fstring = tabstring
         for k in range(len(DirCols)):
             fstring = fstring + 'r'
         f.write(fstring + '}\n')
-        f.write('\hline\n')
+        f.write(r'\hline\n')
         fstring = tabstring
         for k in range(len(IntCols)):
             fstring = fstring + 'r'
         fI.write(fstring + '}\n')
-        fI.write('\hline\n')
+        fI.write(r'\hline\n')
         fstring = tabstring
         if crit_file:
             for k in range(len(CritKeys)):
                 fstring = fstring + 'r'
             cr.write(fstring + '}\n')
-            cr.write('\hline\n')
+            cr.write(r'\hline\n')
         if spec_file:
             fstring = tabstring
             for k in range(len(SpecCols)):
                 fstring = fstring + 'r'
             fsp.write(fstring + '}\n')
-            fsp.write('\hline\n')
+            fsp.write(r'\hline\n')
     else:   # just set the tab and line endings for tab delimited
         sep = ' \t '
         end = ''
@@ -8523,13 +8523,13 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         Spoutstring = Spoutstring + end + "\n"
         fsp.write(Spoutstring)
     if latex:  # put in a horizontal line in latex file
-        f.write('\hline\n')
-        sf.write('\hline\n')
-        fI.write('\hline\n')
+        f.write(r'\hline\n')
+        sf.write(r'\hline\n')
+        fI.write(r'\hline\n')
         if crit_file:
-            cr.write('\hline\n')
+            cr.write(r'\hline\n')
         if spec_file:
-            fsp.write('\hline\n')
+            fsp.write(r'\hline\n')
  # do criteria
     if crit_file:
         for crit in Crits:
@@ -8641,23 +8641,23 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             fsp.write(outstring.strip(sep) + end + '\n')
     #
     if latex:  # write out the tail stuff
-        f.write('\hline\n')
-        sf.write('\hline\n')
-        fI.write('\hline\n')
-        f.write('\end{longtable}\n')
-        sf.write('\end{longtable}\n')
-        fI.write('\end{longtable}\n')
-        f.write('\end{document}\n')
-        sf.write('\end{document}\n')
-        fI.write('\end{document}\n')
+        f.write(r'\hline\n')
+        sf.write(r'\hline\n')
+        fI.write(r'\hline\n')
+        f.write(r'\end{longtable}\n')
+        sf.write(r'\end{longtable}\n')
+        fI.write(r'\end{longtable}\n')
+        f.write(r'\end{document}\n')
+        sf.write(r'\end{document}\n')
+        fI.write(r'\end{document}\n')
         if spec_file:
-            fsp.write('\hline\n')
-            fsp.write('\end{longtable}\n')
-            fsp.write('\end{document}\n')
+            fsp.write(r'\hline\n')
+            fsp.write(r'\end{longtable}\n')
+            fsp.write(r'\end{document}\n')
         if crit_file:
-            cr.write('\hline\n')
-            cr.write('\end{longtable}\n')
-            cr.write('\end{document}\n')
+            cr.write(r'\hline\n')
+            cr.write(r'\end{longtable}\n')
+            cr.write(r'\end{document}\n')
     f.close()
     sf.close()
     fI.close()
@@ -9212,7 +9212,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     plt.figure(num=2, figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
-    plt.xlabel("inclination ($^\circ$)", fontsize=12)
+    plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
     plt.ylim(.9,5)
     plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
@@ -9254,7 +9254,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
-    pmagplotlib.plot_cdf(cdf_fig_num, I, 'inclination ($^\circ$)', 'r', title)
+    pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
@@ -9377,7 +9377,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     # plot E/I figure
     plt.figure(num=1, figsize=(4, 4))
     plt.plot(Is, Es, EI_color, zorder = nb+1, lw=3)
-    plt.xlabel("inclination ($^\circ$)", fontsize=12)
+    plt.xlabel(r"inclination ($^\circ$)", fontsize=12)
     plt.ylabel("elongation", fontsize=12)
     plt.text(Inc, Elong, ' %4.2f' % (flat_f), fontsize=12)
 
@@ -9412,7 +9412,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     plt.figure(figsize=(4, 4))
-    pmagplotlib.plot_cdf(2, I, 'inclination ($^\circ$)', 'r', title)
+    pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
     pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
     pmagplotlib.plot_vs(2, [Inc], 'g', '-')
     pmagplotlib.plot_vs(2, [Io], 'k', '-')
@@ -9475,7 +9475,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     plt.title('%7.1f [%7.1f, %7.1f]' % (plat_mode, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
-    plt.xlabel('paleolatitude ($^\circ$)', fontsize=16)
+    plt.xlabel(r'paleolatitude ($^\circ$)', fontsize=16)
     plt.ylabel('density', fontsize=16)
     
     if save:
@@ -9602,7 +9602,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     plt.hist(compilation_paleolats, alpha=0.6, density=1)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
-    plt.xlabel("compilation paleolatitudes ($^\circ$)", fontsize=16)
+    plt.xlabel(r"compilation paleolatitudes ($^\circ$)", fontsize=16)
     plt.ylabel("density", fontsize=16)
 
     compilation_mean_lons = []
@@ -12528,14 +12528,14 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
         spec_df = meas_df[meas_df.specimen == s]
         # remove ARM data
         spec_df = spec_df[- spec_df.method_codes.str.contains(
-            'LP-*[\w]*-ARM')]
+            r'LP-*[\w]*-ARM')]
         # split data into NRM, thermal, and af dataframes
         spec_df_nrm = spec_df[spec_df.method_codes.str.contains(
             'LT-NO')]  # get the NRM data
         spec_df_th = spec_df[spec_df.method_codes.str.contains(
             'LT-T-Z')]  # zero field thermal demag steps
         try:
-            cond = spec_df.method_codes.str.contains('(^|[\s\:])LT-PTRM')
+            cond = spec_df.method_codes.str.contains(r'(^|[\s\:])LT-PTRM')
             spec_df_th = spec_df_th[-cond]  # get rid of some pTRM steps
         except ValueError:
             keep_inds = []
@@ -13381,13 +13381,13 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             if dir_file.endswith('.xls'):
                 dir_file = dir_file[:-4] + ".tex"
             directions_out = open(dir_file, 'w+', errors="backslashreplace")
-            directions_out.write('\documentclass{article}\n')
+            directions_out.write(r'\documentclass{article}\n')
             directions_out.write('\\usepackage{booktabs}\n')
             directions_out.write('\\usepackage{longtable}\n')
             directions_out.write('\\begin{document}')
             directions_out.write(dir_df.to_latex(
                 index=False, longtable=True, multicolumn=False))
-            directions_out.write('\end{document}\n')
+            directions_out.write(r'\end{document}\n')
             directions_out.close()
         else:
             dir_df.to_excel(dir_file, index=False)
@@ -13402,13 +13402,13 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
                 intensity_file = intensity_file[:-4] + ".tex"
             intensities_out = open(intensity_file, 'w+',
                                    errors="backslashreplace")
-            intensities_out.write('\documentclass{article}\n')
+            intensities_out.write(r'\documentclass{article}\n')
             intensities_out.write('\\usepackage{booktabs}\n')
             intensities_out.write('\\usepackage{longtable}\n')
             intensities_out.write('\\begin{document}')
             intensities_out.write(int_df.to_latex(
                 index=False, longtable=True, multicolumn=False))
-            intensities_out.write('\end{document}\n')
+            intensities_out.write(r'\end{document}\n')
             intensities_out.close()
         else:
             int_df.to_excel(intensity_file, index=False)
@@ -13440,13 +13440,13 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             if info_file.endswith('.xls'):
                 info_file = info_file[:-4] + ".tex"
             info_out = open(info_file, 'w+', errors="backslashreplace")
-            info_out.write('\documentclass{article}\n')
+            info_out.write(r'\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             info_out.write('\\usepackage{longtable}\n')
             info_out.write('\\begin{document}')
             info_out.write(nfo_df.to_latex(
                 index=False, longtable=True, multicolumn=False))
-            info_out.write('\end{document}\n')
+            info_out.write(r'\end{document}\n')
             info_out.close()
         else:
             nfo_df.to_excel(info_file, index=False)
@@ -13503,7 +13503,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
             if out_file.endswith('.xls'):
                 out_file = out_file.rsplit('.')[0] + ".tex"
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write('\documentclass{article}\n')
+            info_out.write(r'\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             if landscape:
                 info_out.write('\\usepackage{lscape}')
@@ -13515,8 +13515,8 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
             info_out.write(table_df.to_latex(index=False, longtable=longtable,
                                              escape=True, multicolumn=False))
             if landscape:
-                info_out.write('\end{landscape}\n')
-            info_out.write('\end{document}\n')
+                info_out.write(r'\end{landscape}\n')
+            info_out.write(r'\end{document}\n')
             info_out.close()
         else:
             table_df.to_excel(out_file, index=False)
@@ -13578,7 +13578,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
                 '>'), 'operation'] = 'minimum'
             crit_df.loc[crit_df['Operation'] == '=', 'operation'] = 'equal to'
             info_out = open(out_file, 'w+', errors="backslashreplace")
-            info_out.write('\documentclass{article}\n')
+            info_out.write(r'\documentclass{article}\n')
             info_out.write('\\usepackage{booktabs}\n')
             # info_out.write('\\usepackage{longtable}\n')
             # T1 will ensure that symbols like '<' are formatted correctly
@@ -13586,7 +13586,7 @@ def criteria_extract(crit_file='criteria.txt', output_file='criteria.xls',
             info_out.write('\\begin{document}')
             info_out.write(crit_df.to_latex(index=False, longtable=False,
                                             escape=True, multicolumn=False))
-            info_out.write('\end{document}\n')
+            info_out.write(r'\end{document}\n')
             info_out.close()
         else:
             crit_df.to_excel(out_file, index=False)
@@ -14552,7 +14552,7 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
                      label='%i' % (f)+' Hz')
         plt.legend()
         plt.xlabel('Temperature (K)')
-        plt.ylabel('$\chi$ ($\mu$SI)')
+        plt.ylabel(r'$\chi$ ($\mu$SI)')
         plt.title('B = '+'%7.2e' % (b) + ' T')
 
         plotnum += 1
@@ -14572,7 +14572,7 @@ def chi_magic(infile="measurements.txt", dir_path=".", experiments="",
                      this_t.susc_chi_volume, label='%i' % (t)+' K')
         plt.legend()
         plt.xlabel('Frequency (Hz)')
-        plt.ylabel('$\chi$ ($\mu$SI)')
+        plt.ylabel(r'$\chi$ ($\mu$SI)')
         plt.title('B = '+'%7.2e' % (b) + ' T')
 
     if interactive:
