@@ -3148,26 +3148,28 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
 
     x_interp = np.linspace(smoothed_derivatives_x.min(), smoothed_derivatives_x.max(), n)
     best_fit_interp = result.eval(x=x_interp) * np.max(raw_derivatives_y)
-    delay_interp = result.eval_uncertainty(x=x_interp, sigma=sigma) * np.max(raw_derivatives_y)
-
+    dely_interp = result.eval_uncertainty(x=x_interp, sigma=sigma) * np.max(raw_derivatives_y)
+    # impose bounds on the dely to be smaller than the best fit
+    dely_interp = [min(dely_interp[i], best_fit_interp[i]) for i in range(len(dely_interp))]
     fig, ax = plt.subplots(figsize=figsize)
     # first plot the scatter raw dMdB data
     ax.scatter(raw_derivatives_x, raw_derivatives_y, c='grey', marker='o', s=10, label='raw coercivity spectrum')
     # plot the total best fit
     ax.plot(x_interp, best_fit_interp, '-', color='k', alpha=0.6, label='total spectrum best fit')
     ax.fill_between(x_interp,
-                    [max(best_fit_interp[j]-delay_interp[j],0) for j in range(len(best_fit_interp))],
-                    best_fit_interp+delay_interp,
+                    [max(best_fit_interp[j]-dely_interp[j],0) for j in range(len(best_fit_interp))],
+                    best_fit_interp+dely_interp,
                     color="#8A8A8A", 
                     label=f'total {sigma}-$\sigma$ band', alpha=0.5)
     if len(result.components) > 1:
         for i in range(len(result.components)):
             this_comp_interp = result.eval_components(x=x_interp)[f'g{i+1}_'] * np.max(raw_derivatives_y)
-            this_delay = result.dely_comps[f'g{i+1}_'] * np.max(raw_derivatives_y)
-            
+            this_dely = result.dely_comps[f'g{i+1}_'] * np.max(raw_derivatives_y)
+            # impose bounds on the dely to be smaller than the best fit for the component
+            this_dely = [min(this_dely[j], this_comp_interp[j]) for j in range(len(this_dely))]
             ax.plot(x_interp, this_comp_interp, c=f'C{i}', label=f'component #{i+1}, {sigma}-$\sigma$ band')
-            lower_bound = [max(this_comp_interp[j]-this_delay[j],0) for j in range(len(this_comp_interp))]
-            upper_bound = this_comp_interp+this_delay
+            lower_bound = [max(this_comp_interp[j]-this_dely[j],0) for j in range(len(this_comp_interp))]
+            upper_bound = this_comp_interp+this_dely
             ax.fill_between(x_interp,
                             lower_bound,
                             upper_bound,
@@ -3228,7 +3230,7 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
     amp_slidebars = create_slider_dict('amplitude', 0.0, 1, 0.01, 'amplitude')
     center_slidebars = create_slider_dict('center', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'center')
     sigma_slidebars = create_slider_dict('sigma', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'sigma')
-    gamma_slidebars = create_slider_dict('gamma', -1.0, 1.0, 0.01, 'gamma')
+    gamma_slidebars = create_slider_dict('gamma', -10.0, 10.0, 0.01, 'gamma')
 
     # Collect all sliders by component for display and registration
 
