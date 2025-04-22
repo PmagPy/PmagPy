@@ -24,11 +24,10 @@ except ImportError:
     go = None
     make_subplots = None
 try:
-
     from bokeh.plotting import figure, show
+    _HAS_BOKEH = True
 except ImportError:
-    raise ImportError("Bokeh is not installed. Please install it to enable hysteresis data processing.")
-
+    _HAS_BOKEH = False
 try:
     from lmfit import Parameters, Model  # for fitting
     from lmfit.models import SkewedGaussianModel
@@ -1259,6 +1258,10 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color
     -------
     p : bokeh.plotting.figure
     '''
+    if not _HAS_BOKEH:
+        print("Bokeh is not installed. Please install it to enable hysteresis data processing.")
+        return
+    
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
     if p is None:
         p = figure(title=f'{specimen_name} hysteresis loop',
