@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
 from builtins import range
-from past.utils import old_div
 from numpy import *
 
 
@@ -12,7 +10,7 @@ def rect_area(three_points):
    xB,yB=three_points[1][0],three_points[1][1]
    xC,yC=three_points[2][0],three_points[2][1]
    #area=abs((xB*yA-xA*yB)+(xC*yB-xB*yC)+(xA*yC-xC*yA))/2
-   area=old_div(abs((xB*yA-xA*yB)+(xC*yB-xB*yC)+(xA*yC-xC*yA)),2)
+   area = abs((xB*yA-xA*yB)+(xC*yB-xB*yC)+(xA*yC-xC*yA)) / 2
    return area
 
 
@@ -74,7 +72,7 @@ def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
                 C=array([X_IZZI_MD[i+2],Y_IZZI_MD[i+2]])
                 area=rect_area([A,B,C])
 
-                slope_A_C=old_div((C[1]-A[1]),(C[0]-A[0]))
+                slope_A_C = (C[1]-A[1]) / (C[0]-A[0])
                 intercept_A_C=A[1]-(slope_A_C*A[0])
                 #print 'slope_A_C,intercept_A_C', slope_A_C,intercept_A_C
                 #raw_input()
@@ -93,5 +91,5 @@ def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
 
         if total_ZI_curve == 0:
            return 0
-        IZZI_MD=old_div(total_Z_area,total_ZI_curve)
+        IZZI_MD = total_Z_area / total_ZI_curve
         return(IZZI_MD)

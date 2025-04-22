@@ -19,12 +19,9 @@ Uses "searchsorted" from the Numeric module, aka "binarysearch" in older
 versions.
 
 """
-from __future__ import division
-from __future__ import absolute_import
 
 from builtins import range
 
-from past.utils import old_div
 from . import func
 #from Numeric import *
 import numpy
@@ -55,8 +52,7 @@ class Spline(func.FuncOps):
         u        = numpy.zeros(n-1, 'f')
 
         if self.use_low_slope:
-            u[0] = (old_div(3.0,(x_vals[1]-x_vals[0]))) * \
-               (old_div((y_vals[1]-y_vals[0]),
+            u[0] = (3.0 / (x_vals[1]-x_vals[0])) * (((y_vals[1]-y_vals[0])
                 (x_vals[1]-x_vals[0]))-self.low_slope)
             y2_vals[0] = -0.5
         else:
@@ -64,27 +60,22 @@ class Spline(func.FuncOps):
             y2_vals[0] = 0.0   # natural spline
 
         for i in range(1, n-1):
-            sig = old_div((x_vals[i]-x_vals[i-1]), \
-              (x_vals[i+1]-x_vals[i-1]))
+            sig = (x_vals[i]-x_vals[i-1]) / (x_vals[i+1]-x_vals[i-1])
             p   = sig*y2_vals[i-1]+2.0
-            y2_vals[i] = old_div((sig-1.0),p)
-            u[i] = old_div((y_vals[i+1]-y_vals[i]), \
-               (x_vals[i+1]-x_vals[i])) - \
-               old_div((y_vals[i]-y_vals[i-1]), \
-               (x_vals[i]-x_vals[i-1]))
-            u[i] = old_div((6.0*u[i]/(x_vals[i+1]-x_vals[i-1]) -
-                sig*u[i-1]), p)
+            y2_vals[i] = (sig-1.0) / p
+            u[i] = (y_vals[i+1]-y_vals[i]) / (x_vals[i+1]-x_vals[i]) - \
+               (y_vals[i]-y_vals[i-1]) / (x_vals[i]-x_vals[i-1])
+            u[i] = (6.0*u[i]/(x_vals[i+1]-x_vals[i-1]) - sig*u[i-1]) / p
 
         if self.use_high_slope:
             qn = 0.5
-            un = (old_div(3.0,(x_vals[n-1]-x_vals[n-2]))) * \
-             (self.high_slope - old_div((y_vals[n-1]-y_vals[n-2]),
-              (x_vals[n-1]-x_vals[n-2])))
+            un = (3.0 / (x_vals[n-1]-x_vals[n-2])) * \
+             (self.high_slope - (y_vals[n-1]-y_vals[n-2]) / (x_vals[n-1]-x_vals[n-2]))
         else:
             qn = 0.0
             un = 0.0    # natural spline
 
-        y2_vals[n-1] = old_div((un-qn*u[n-2]),(qn*y2_vals[n-1]+1.0))
+        y2_vals[n-1] = (un-qn*u[n-2]) / (qn*y2_vals[n-1]+1.0)
 
         rng = list(range(n-1))
         rng.reverse()
@@ -119,8 +110,8 @@ class Spline(func.FuncOps):
         if h == 0.0:
             raise BadInput
 
-        a = old_div((self.x_vals[pos] - x), h)
-        b = old_div((x - self.x_vals[pos-1]), h)
+        a = (self.x_vals[pos] - x) / h
+        b = (x - self.x_vals[pos-1]) / h
         return (a*self.y_vals[pos-1] + b*self.y_vals[pos] + \
             ((a*a*a - a)*self.y2_vals[pos-1] + \
              (b*b*b - b)*self.y2_vals[pos]) * h*h/6.0)
@@ -157,8 +148,8 @@ class LinInt(func.FuncOps):
         if h == 0.0:
             raise BadInput
 
-        a = old_div((self.x_vals[pos] - x), h)
-        b = old_div((x - self.x_vals[pos-1]), h)
+        a = (self.x_vals[pos] - x) /  h
+        b = (x - self.x_vals[pos-1]) /  h
         return a*self.y_vals[pos-1] + b*self.y_vals[pos]
 
 def spline_interpolate(x1, y1, x2):

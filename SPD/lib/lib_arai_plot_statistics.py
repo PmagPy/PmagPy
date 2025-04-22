@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 
 #from scipy import *
-from __future__ import division
 from builtins import range
-from past.utils import old_div
 import numpy
 
 
@@ -17,7 +15,7 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     """
     x_err = x_segment - x_mean
     y_err = y_segment - y_mean
-    york_b = -1* numpy.sqrt(old_div(sum(y_err**2), sum(x_err**2)) )  # averaged slope
+    york_b = -1* numpy.sqrt(sum(y_err**2) / sum(x_err**2))  # averaged slope
 
     b = numpy.sign(sum(x_err * y_err)) * numpy.std(y_segment, ddof=1)/numpy.std(x_segment, ddof=1) # ddof is degrees of freedom
     if b == 0:
@@ -25,33 +23,33 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     else:
         york_b = b
 
-    york_sigma= numpy.sqrt( old_div((2 * sum(y_err**2) - 2*york_b* sum(x_err*y_err)), ( (n-2) * sum(x_err**2) )) )
+    york_sigma= numpy.sqrt((2 * sum(y_err**2) - 2*york_b* sum(x_err*y_err)) / ((n-2) * sum(x_err**2)))
     if york_sigma == 0: # prevent divide by zero
         york_sigma = 1e-10
-    beta_Coe = abs(old_div(york_sigma,york_b))
+    beta_Coe = abs(york_sigma / york_b)
     # y_T is the intercept of the extrepolated line
     # through the center of mass (see figure 7 in Coe (1978))
     y_T = y_mean - (york_b* x_mean)
-    x_T = old_div((-1 * y_T), york_b)  # x intercept
+    x_T = (-1 * y_T) / york_b  # x intercept
     # # calculate the extrarpolated data points for f and fvds
-    x_tag = old_div((y_segment - y_T ), york_b) # returns array of y points minus the y intercept, divided by slope
+    x_tag = (y_segment - y_T ) / york_b # returns array of y points minus the y intercept, divided by slope
     y_tag = york_b*x_segment + y_T
 
     # intersect of the dashed square and the horizontal dahed line  next to delta-y-5 in figure 7, Coe (1978)
-    x_prime = old_div((x_segment+x_tag), 2)
-    y_prime = old_div((y_segment+y_tag), 2)
+    x_prime = (x_segment+x_tag) / 2.
+    y_prime = (y_segment+y_tag) / 2.
 
     delta_x_prime = abs(max(x_prime) - min(x_prime)) # TRM length of best fit line
     delta_y_prime = abs(max(y_prime) - min(y_prime)) # NRM length of best fit line
 
-    f_Coe = old_div(delta_y_prime, abs(y_T))
+    f_Coe = delta_y_prime / abs(y_T)
     if delta_y_prime:
-        g_Coe =  1 - (old_div(sum((y_prime[:-1]-y_prime[1:])**2), delta_y_prime ** 2))  # gap factor
+        g_Coe =  1 - (sum((y_prime[:-1]-y_prime[1:])**2) / (delta_y_prime ** 2))  # gap factor
     else:
         g_Coe = float('nan')
-    g_lim = old_div((float(n) - 2), (float(n) - 1))
+    g_lim = (float(n) - 2) / (float(n) - 1)
     q_Coe = abs(york_b)*f_Coe*g_Coe/york_sigma
-    w_Coe = old_div(q_Coe, numpy.sqrt(n - 2))
+    w_Coe = q_Coe / numpy.sqrt(n - 2)
     count_IZ = steps_Arai.count('IZ')
     count_ZI = steps_Arai.count('ZI')
     B_lab = lab_dc_field * 1e6
@@ -76,11 +74,11 @@ def get_vds(zdata, delta_y_prime, start, end):
     last_vector = numpy.linalg.norm(zdata[-1])
     vector_diffs.append(last_vector)
     vds = sum(vector_diffs)
-    f_vds = abs(old_div(delta_y_prime, vds)) # fvds varies, because of delta_y_prime, but vds does not.
+    f_vds = abs(delta_y_prime / vds) # fvds varies, because of delta_y_prime, but vds does not.
     vector_diffs_segment = vector_diffs[start:end]
     partial_vds = sum(vector_diffs_segment)
     max_diff = max(vector_diffs_segment)
-    GAP_MAX = old_div(max_diff, partial_vds) #
+    GAP_MAX = max_diff / partial_vds #
     return {'max_diff': max_diff, 'vector_diffs': vector_diffs, 'specimen_vds': vds,
             'specimen_fvds': f_vds, 'vector_diffs_segment': vector_diffs_segment,
             'partial_vds': partial_vds, 'GAP-MAX': GAP_MAX}
@@ -99,10 +97,10 @@ def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1):
     # get lines that pass through mass center, with opposite slope
     slope1 =  slope + (2* slope_err_threshold)
     line1_y_int = y - (slope1 * x)
-    line1_x_int = -1 * (old_div(line1_y_int, slope1))
+    line1_x_int = -1 * (line1_y_int / slope1)
     slope2 = slope - (2 * slope_err_threshold)
     line2_y_int = y - (slope2 * x)
-    line2_x_int = -1 * (old_div(line2_y_int, slope2))
+    line2_x_int = -1 * (line2_y_int / slope2)
         # l1_y_int and l2_x_int form the bottom line of the box
         # l2_y_int and l1_x_int form the top line of the box
 #    print "_diagonal line1:", (0, line2_y_int), (line2_x_int, 0), (x, y)
@@ -114,13 +112,13 @@ def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1):
     x_max = high_bound[1][0]#
     y_max = high_bound[0][1]
     # function for low_bound
-    low_slope = old_div((low_bound[0][1] - low_bound[1][1]), (low_bound[0][0] - low_bound[1][0])) #
+    low_slope = (low_bound[0][1] - low_bound[1][1]) / (low_bound[0][0] - low_bound[1][0]) #
     low_y_int = low_bound[0][1]
     def low_bound(x):
         y = low_slope * x + low_y_int
         return y
     # function for high_bound
-    high_slope = old_div((high_bound[0][1] - high_bound[1][1]), (high_bound[0][0] - high_bound[1][0])) # y_0-y_1/x_0-x_1
+    high_slope = (high_bound[0][1] - high_bound[1][1]) / (high_bound[0][0] - high_bound[1][0]) # y_0-y_1/x_0-x_1
     high_y_int = high_bound[0][1]
     def high_bound(x):
         y = high_slope * x + high_y_int
@@ -226,7 +224,7 @@ def get_FRAC(vds, vector_diffs_segment):
             raise ValueError('vector diffs should not be negative')
     if vds == 0:
         raise ValueError('attempting to divide by zero. vds should be a positive number')
-    FRAC = old_div(sum(vector_diffs_segment), vds)
+    FRAC = sum(vector_diffs_segment) / vds
     return FRAC
 
 def get_R_corr2(x_avg, y_avg, x_segment, y_segment): #
@@ -238,7 +236,7 @@ def get_R_corr2(x_avg, y_avg, x_segment, y_segment): #
     yd = y_segment - y_avg # detrend y_segment
     if sum(xd**2) * sum(yd**2) == 0: # prevent divide by zero error
         return float('nan')
-    rcorr = old_div(sum((xd * yd))**2, (sum(xd**2) * sum(yd**2)))
+    rcorr = sum((xd * yd))**2 / (sum(xd**2) * sum(yd**2))
     return rcorr
 
 def get_R_det2(y_segment, y_avg, y_prime):
@@ -249,7 +247,7 @@ def get_R_det2(y_segment, y_avg, y_prime):
     numerator = sum((numpy.array(y_segment) - numpy.array(y_prime))**2)
     denominator = sum((numpy.array(y_segment) - y_avg)**2)
     if denominator: # prevent divide by zero error
-        R_det2 = 1 - (old_div(numerator, denominator))
+        R_det2 = 1 - (numerator / denominator)
         return R_det2
     else:
         return float('nan')
@@ -259,7 +257,7 @@ def get_b_wiggle(x, y, y_int):
     if x == 0:
         b_wiggle = 0
     else:
-        b_wiggle = old_div((y_int - y), x)
+        b_wiggle = (y_int - y) / x
     return b_wiggle
 
 def get_Z(x_segment, y_segment, x_int, y_int, slope):
@@ -271,7 +269,7 @@ def get_Z(x_segment, y_segment, x_int, y_int, slope):
     first_time = True
     for num, x in enumerate(x_segment):
         b_wiggle = get_b_wiggle(x, y_segment[num], y_int)
-        z = old_div((x * abs(b_wiggle - abs(slope)) ), abs(x_int))
+        z = (x * abs(b_wiggle - abs(slope)) ) / abs(x_int)
         Z += z
         first_time = False
     return Z
@@ -285,10 +283,10 @@ def get_Zstar(x_segment, y_segment, x_int, y_int, slope, n):
     first_time = True
     for num, x in enumerate(x_segment):
         b_wiggle = get_b_wiggle(x, y_segment[num], y_int)
-        result = 100 * ( old_div((x * abs(b_wiggle - abs(slope)) ), abs(y_int)) )
+        result = 100 * ((x * abs(b_wiggle - abs(slope)) ) / abs(y_int))
         total += result
         first_time = False
-    Zstar = (old_div(1., (n - 1.))) * total
+    Zstar = (1. / (n - 1.)) * total
     return Zstar
 
 
@@ -303,7 +301,7 @@ def get_normed_points(point_array, norm): # good to go
     #floated_array = []
     #for p in point_array: # need to make sure each point is a float
         #floated_array.append(float(p))
-    points = old_div(numpy.array(point_array), norm)
+    points = numpy.array(point_array) / norm
     return points
 
 def get_xy_array(x_segment, y_segment):

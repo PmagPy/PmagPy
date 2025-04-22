@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import division
-from past.utils import old_div
 import numpy
 
 
@@ -25,7 +23,7 @@ def get_delta_AC(n_add, add_checks, x_int):
         #print "x_int", x_int
         #print "(abs(incl_add_checks)", (abs(incl_add_checks))
         #print "( max(abs(incl_add_checks) ) ", ( max(abs(incl_add_checks) ) )
-        delta_AC = ( old_div(max(abs(incl_add_checks) ), abs(x_int)))  * 100.
+        delta_AC = (max(abs(incl_add_checks)) / abs(x_int))  * 100.
         #print delta_AC
     else:
         incl_add_checks = 0

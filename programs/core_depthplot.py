@@ -1,5 +1,4 @@
 #!/usr/bin/env pythonw
-#from __future__ import print_function
 import sys
 import wx
 import os

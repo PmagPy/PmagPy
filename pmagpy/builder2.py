@@ -3,7 +3,6 @@
 """
 Module for building or reading in specimen, sample, site, and location data.
 """
-from __future__ import print_function
 
 import os
 

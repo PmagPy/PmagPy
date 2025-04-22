@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 from builtins import range
-from past.utils import old_div
 import numpy
 from . import lib_curvature as lib_k
 
@@ -56,19 +52,19 @@ c IEEE Transactions on Instrumentation and Measurement."""
     E = 0.5 * (n * syx2 - sy * sx2 + n * sy3 - sy * sy2)
     # values check out up to here
 
-    xo = old_div((D * C - B * E), (A * C - B**2))
-    yo = old_div((A * E - B * D), (A * C - B**2))
+    xo = (D * C - B * E) / (A * C - B**2)
+    yo = (A * E - B * D) / (A * C - B**2)
     print("xo", xo)
     print("yo", yo)
 
     r = 0
     for z in range(n):
-        r = r + old_div(numpy.sqrt( (x[z]-xo)**2 + (y[z]-yo)**2 ), n)
+        r = r + numpy.sqrt( (x[z]-xo)**2 + (y[z]-yo)**2 ) / n
 
     if xo <= numpy.mean(x) and yo <= numpy.mean(y):
-        k = old_div(-1.,r)
+        k = -1. / r
     else:
-        k = old_div(1.,r)
+        k = 1. / r
 
     SSE = lib_k.get_SSE(xo, yo, r, x, y)
     print("r", r)

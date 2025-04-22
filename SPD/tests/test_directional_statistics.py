@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 
-from __future__ import division
-from past.utils import old_div
 import unittest
 import numpy
 import copy
@@ -118,7 +116,7 @@ class CheckAlpha(unittest.TestCase):
 
     d1 = [-1., 2.]
     d2 = [3., 4.]
-    ref_alpha = numpy.arccos(old_div(5., (numpy.sqrt(5) * 5))) # 1.1071487177940904
+    ref_alpha = numpy.arccos(5. / (numpy.sqrt(5) * 5)) # 1.1071487177940904
     ref_alpha_degrees = math.degrees(ref_alpha)
 
     ref_real_alpha = 2.074709711008407
@@ -139,7 +137,7 @@ class CheckDang(unittest.TestCase):
     dot_product =7.5 # .5 + (-6.) + 15.
     mag1 = numpy.sqrt(14.)#(1 + 4 + 9)
     mag2 = numpy.sqrt(41.25)#(.25 + 16 + 25)
-    ref_Dang = math.degrees(numpy.arccos(old_div(7.5, (mag1 * mag2))))
+    ref_Dang = math.degrees(numpy.arccos(7.5 / (mag1 * mag2)))
 
     ref_real_DANG = 2.08192544535
    
