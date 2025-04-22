@@ -11,6 +11,7 @@ import matplotlib.patches as patches
 
 try:
     import ipywidgets as widgets
+    from ipywidgets import FloatSlider, VBox, HBox
     from IPython.display import display
     
 except ImportError:
@@ -3024,7 +3025,7 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
     Parameters
     ----------
     field : np.array
-        The field values in the experiment
+        The field values in log10 unit in the experiment
     magnetization : np.array
         The magnetization values in the experiment
     n_comps : int
@@ -3078,14 +3079,14 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
         model = SkewedGaussianModel(prefix=prefix)
         
         # Initial parameter guesses
-        params.add(f'{prefix}amplitude', value=np.max(smoothed_derivatives_y)*parameters['amplitude'][i])
+        params.add(f'{prefix}amplitude', value=parameters['amplitude'][i])
         params.add(f'{prefix}center', value=np.log10(parameters['center'][i]))
         params.add(f'{prefix}sigma', value=np.log10(parameters['sigma'][i]))
         params.add(f'{prefix}gamma', value=parameters['gamma'][i])
         
         # now let's set bounds to the parameters to help fitting algorithm converge
         params[f'{prefix}amplitude'].min = 0  # Bounds for amplitude parameters
-        params[f'{prefix}amplitude'].max = np.max(smoothed_derivatives_y) # Bounds for proportion/amplitude parameters
+        params[f'{prefix}amplitude'].max = 1 # Bounds for proportion/amplitude parameters
         params[f'{prefix}center'].min = np.min(field)  # Bounds for center parameters
         params[f'{prefix}center'].max = np.max(field) # Bounds for center parameters
         params[f'{prefix}sigma'].min = 0
@@ -3100,17 +3101,17 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
         result = composite_model.fit(y, params, x=x)
         for i in range(n_comps):
             prefix = f'g{i+1}_'
-            parameters.loc[i, 'amplitude'] = result.params[f'{prefix}amplitude'].value/np.max(smoothed_derivatives_y) # convert back to original scale
+            parameters.loc[i, 'amplitude'] = result.params[f'{prefix}amplitude'].value # convert back to original scale
             parameters.loc[i, 'center'] = 10**result.params[f'{prefix}center'].value # convert back to mT
             parameters.loc[i, 'sigma'] = 10**result.params[f'{prefix}sigma'].value # convert back to mT
             parameters.loc[i, 'gamma'] = result.params[f'{prefix}gamma'].value
         return result, parameters
 
-    result, parameters = fitting_function(smoothed_derivatives_y, params, x=smoothed_derivatives_x)
+    result, parameters = fitting_function(smoothed_derivatives_y/np.max(smoothed_derivatives_y), params, x=smoothed_derivatives_x)
 
     if iter:
         for i in range(n_iter):
-            result, parameters = fitting_function(smoothed_derivatives_y, result.params, x=smoothed_derivatives_x)
+            result, parameters = fitting_function(smoothed_derivatives_y/np.max(smoothed_derivatives_y), result.params, x=smoothed_derivatives_x)
 
     return result, parameters
 
@@ -3146,8 +3147,8 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     smoothed_derivatives_x = experiment['smoothed_log_dc_field'].rolling(window=2).mean().dropna()
 
     x_interp = np.linspace(smoothed_derivatives_x.min(), smoothed_derivatives_x.max(), n)
-    best_fit_interp = result.eval(x=x_interp)
-    delay_interp = result.eval_uncertainty(x=x_interp, sigma=sigma)
+    best_fit_interp = result.eval(x=x_interp) * np.max(raw_derivatives_y)
+    delay_interp = result.eval_uncertainty(x=x_interp, sigma=sigma) * np.max(raw_derivatives_y)
 
     fig, ax = plt.subplots(figsize=figsize)
     # first plot the scatter raw dMdB data
@@ -3161,8 +3162,8 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
                     label=f'total {sigma}-$\sigma$ band', alpha=0.5)
     if len(result.components) > 1:
         for i in range(len(result.components)):
-            this_comp_interp = result.eval_components(x=x_interp)[f'g{i+1}_']
-            this_delay = result.dely_comps[f'g{i+1}_']
+            this_comp_interp = result.eval_components(x=x_interp)[f'g{i+1}_'] * np.max(raw_derivatives_y)
+            this_delay = result.dely_comps[f'g{i+1}_'] * np.max(raw_derivatives_y)
             
             ax.plot(x_interp, this_comp_interp, c=f'C{i}', label=f'component #{i+1}, {sigma}-$\sigma$ band')
             lower_bound = [max(this_comp_interp[j]-this_delay[j],0) for j in range(len(this_comp_interp))]
@@ -3180,4 +3181,240 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     ax.set_ylabel('dM/dB', fontsize=14)
     return fig, ax
 
+def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6)):
+    '''
+    Function for interactive backfield unmixing using skew-normal distributions.
+        no uncertainty propagation is shown, this function is useful for estimating initial guesses for parameters
+        *Important note: if you are using this function in a jupyter notebook environment, 
+        use %matplotlib widget command to enable live figure updates*
+        
+    Parameters
+    ----------
+    field : array-like
+        The field values in log scale.
+    magnetization : array-like
+        The magnetization values in log scale.
+    n_components : int
+        The number of components to fit.
+    figsize : tuple, optional
+        The size of the figure to display. Default is (10, 6).
+    
+    '''
 
+    # Calculate the smoothed derivative
+    smoothed_derivatives_y = -np.diff(magnetization) / np.diff(field)
+    smoothed_derivatives_x = pd.Series(field).rolling(window=2).mean().dropna()
+
+    fig, ax = plt.subplots(figsize=figsize)
+    fig.canvas.header_visible = False
+
+    # Store all sliders and text
+    sliders = []
+    texts = []
+
+    def create_slider_dict(name, min_val, max_val, step, description):
+        return {
+            f"{name}_{i}": FloatSlider(
+                value=0.0,
+                min=min_val,
+                max=max_val,
+                step=step,
+                description=f'{description}_{i+1}',
+                continuous_update=False
+            )
+            for i in range(n_components)
+        }
+
+    amp_slidebars = create_slider_dict('amplitude', 0.0, 1, 0.01, 'amplitude')
+    center_slidebars = create_slider_dict('center', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'center')
+    sigma_slidebars = create_slider_dict('sigma', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'sigma')
+    gamma_slidebars = create_slider_dict('gamma', -1.0, 1.0, 0.01, 'gamma')
+
+    # Collect all sliders by component for display and registration
+
+    for i in range(n_components):
+        # Create sliders for each component
+        amp_slider = amp_slidebars[f'amplitude_{i}']
+        center_slider = center_slidebars[f'center_{i}']
+        sigma_slider = sigma_slidebars[f'sigma_{i}']
+        gamma_slider = gamma_slidebars[f'gamma_{i}']
+        # Create a dictionary for each component
+        d = {
+            'amplitude': amp_slider,
+            'center': center_slider,
+            'sigma': sigma_slider,
+            'gamma': gamma_slider
+        }
+        # Add sliders to the list
+        sliders.append(VBox([amp_slider, center_slider, sigma_slider, gamma_slider]))
+
+    # now add the same amount of text boxes to update the best fit parameters on the fly
+    for i in range(n_components):
+        # make text boxes for each parameter
+        amp_text = widgets.Text(value=str(amp_slidebars[f'amplitude_{i}'].value), description=f'amplitude_{i+1}')
+        center_text = widgets.Text(value=str(center_slidebars[f'center_{i}'].value), description=f'center_{i+1}')
+        sigma_text = widgets.Text(value=str(sigma_slidebars[f'sigma_{i}'].value), description=f'sigma_{i+1}')
+        gamma_text = widgets.Text(value=str(gamma_slidebars[f'gamma_{i}'].value), description=f'gamma_{i+1}')
+        # add the text boxes to the texts list
+        texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
+
+    # Display sliders
+    display(HBox(sliders))
+    display(HBox(texts))
+
+    def update_plot(*args):
+        ax.clear()
+        ax.scatter(smoothed_derivatives_x, smoothed_derivatives_y, marker='o', s=5, alpha=0.5, color='grey', label='original data')
+        ax.set_xlabel('Field', fontsize=12)
+        ax.set_ylabel('dM/dB', fontsize=12)
+
+        # Get values from sliders
+        amp = [amp_slidebars[f'amplitude_{i}'].value  for i in range(n_components)]
+        center = [center_slidebars[f'center_{i}'].value for i in range(n_components)]
+        sigma = [sigma_slidebars[f'sigma_{i}'].value for i in range(n_components)]
+        gamma = [gamma_slidebars[f'gamma_{i}'].value for i in range(n_components)]
+        
+        # Create a DataFrame for the parameters
+        parameters = pd.DataFrame({
+            'amplitude': amp,
+            'center': center,
+            'sigma': sigma,
+            'gamma': gamma
+        })
+
+        result, updated_parameters = backfield_unmixing(field, magnetization, n_comps=n_components, parameters=parameters)
+        # update the text boxes with the updated parameters
+        for i in range(n_components):
+            amp_text = texts[i].children[0]
+            center_text = texts[i].children[1]
+            sigma_text = texts[i].children[2]
+            gamma_text = texts[i].children[3]
+            amp_text.value = str(updated_parameters['amplitude'][i].round(4))
+            center_text.value = str(updated_parameters['center'][i].round(4))
+            sigma_text.value = str(updated_parameters['sigma'][i].round(4))
+            gamma_text.value = str(updated_parameters['gamma'][i].round(4))
+
+        ax.plot(field, result.eval(x=field)*np.max(smoothed_derivatives_y), '-', color='k', alpha=0.6, label='total spectrum best fit')
+        if len(result.components) > 1:
+            for i in range(len(result.components)):
+                this_comp = result.eval_components(x=field)[f'g{i+1}_']*np.max(smoothed_derivatives_y)
+                ax.plot(field, this_comp, c=f'C{i}', label=f'component #{i+1}, {sigma[i]:.2f}-$\sigma$')
+
+        ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
+        ax.legend()
+
+        fig.canvas.draw()
+
+    # Attach observers
+    for box in sliders:
+        for slider in box.children:
+            if isinstance(slider, FloatSlider):
+                slider.observe(update_plot, names='value')
+
+    update_plot()
+
+
+def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resample=100, proportion=0.95, figsize=(10, 6)):
+    '''
+    function for performing the MaxUnmix backfield unmixing algorithm
+        The components are modelled as skew-normal distributions
+        The uncertainties are calculated based on a bootstrap approach
+            where the given data points are bootstrap resampled with replacement
+            and the unmixing is done with the same original estimates for each iteration
+
+    Parameters
+    ----------
+    field : array-like
+        The field values in log10 scale
+    magnetization : array-like
+        The magnetization values
+    parameters : DataFrame
+        The parameters for the unmixing. The DataFrame should contain the following columns:
+            'amplitude', 'center', 'sigma', 'gamma'
+        The number of rows in the DataFrame should be equal to n_comps
+    n_resample : int, optional
+        The number of bootstrap resamples. The default is 100.
+    proportion : float, optional
+        The proportion of the data to be used for the bootstrap resampling. The default is 0.95.
+        The actual number of resampled points per iteration is calculated as int(len(field) * proportion)
+    n_comps : int, optional
+        The number of components to be used for the unmixing. The default is 1.
+    '''
+
+    assert len(parameters) == n_comps, f"Number of rows in parameters ({len(parameters)}) should be equal to n_comps ({n_comps})"
+    assert proportion > 0 and proportion <= 1, f"proportion should be between 0 and 1, but got {proportion}"
+    assert parameters is not None, f"parameters should not be None"
+
+    field = np.array(field)
+    magnetization = np.array(magnetization)
+    dMdB = -np.diff(magnetization) / np.diff(field)
+    B = pd.Series(field).rolling(window=2).mean().dropna().to_numpy()
+
+    B_high_resolution = np.linspace(np.min(B), np.max(B), 200)
+    # store the total dMdB fits
+    all_total_dMdB = np.zeros((n_resample, len(B_high_resolution)))
+    # store dMdB fits for each component
+    all_component_dMdB = np.zeros((n_resample, n_comps, len(B_high_resolution)))
+    for iter in range(n_resample):
+        # bootstrap resample with replacement of the data
+        index_resample = np.random.choice(len(B), size=int(len(B) * proportion), replace=True)
+        B_resample = B[index_resample]
+        dMdB_resample = dMdB[index_resample]
+
+        params = Parameters()
+        # Create a composite model
+        composite_model = None
+        for i in range(n_comps):
+            prefix = f'g{i+1}_'
+            model = SkewedGaussianModel(prefix=prefix)
+            # Initial parameter guesses
+            params.add(f'{prefix}amplitude', value=parameters['amplitude'][i])
+            params.add(f'{prefix}center', value=np.log10(parameters['center'][i]))
+            params.add(f'{prefix}sigma', value=np.log10(parameters['sigma'][i]))
+            params.add(f'{prefix}gamma', value=parameters['gamma'][i])
+            
+            # now let's set bounds to the parameters to help fitting algorithm converge
+            params[f'{prefix}amplitude'].min = 0  # Bounds for amplitude parameters
+            params[f'{prefix}amplitude'].max = 1 # Bounds for proportion/amplitude parameters
+            params[f'{prefix}center'].min = np.min(B)  # Bounds for center parameters
+            params[f'{prefix}center'].max = np.max(B) # Bounds for center parameters
+            params[f'{prefix}sigma'].min = 0
+            params[f'{prefix}sigma'].max = np.max(B)-np.min(B)   # Bounds for sigma parameters
+
+            if composite_model is None:
+                composite_model = model
+            else:
+                composite_model += model
+            
+        result = composite_model.fit(dMdB_resample/np.max(dMdB_resample), params, x=B_resample)
+        all_total_dMdB[iter] = result.eval(x=B_high_resolution)*np.max(dMdB_resample)
+        for j in range(n_comps):
+            prefix = f'g{j+1}_'
+            # get the component model
+            this_comp = result.eval_components(x=B_high_resolution)[f'{prefix}']*np.max(dMdB_resample)
+            # store the component model
+            all_component_dMdB[iter][j] = this_comp
+    # calculate the 2.5, 50, and 97.5 percentiles of the bootstrap resamples
+    dMdB_2_5 = np.percentile(all_total_dMdB, 2.5, axis=0)
+    dMdB_50 = np.percentile(all_total_dMdB, 50, axis=0)
+    dMdB_97_5 = np.percentile(all_total_dMdB, 97.5, axis=0)
+
+    # calculate the 2.5, 50, and 97.5 percentiles of the bootstrap resamples for each component
+    dMdB_2_5_components = np.percentile(all_component_dMdB, 2.5, axis=0)
+    dMdB_50_components = np.percentile(all_component_dMdB, 50, axis=0)
+    dMdB_97_5_components = np.percentile(all_component_dMdB, 97.5, axis=0)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.scatter(B, dMdB, marker='o', s=5, alpha=0.5, color='grey', label='original data')
+    ax.plot(B_high_resolution, dMdB_50, '-', color='k', alpha=0.6, label='total best fit')
+    ax.fill_between(B_high_resolution, dMdB_2_5, dMdB_97_5, color='k', alpha=0.2, label='total 95% CI')
+    # plot the components
+    for k in range(n_comps):
+        ax.plot(B_high_resolution, dMdB_50_components[k], c=f'C{k}', label=f'component #{k+1}')
+        ax.fill_between(B_high_resolution, dMdB_2_5_components[k], dMdB_97_5_components[k], color=f'C{k}', alpha=0.2, label=f'component #{k+1} 95% CI')
+    ax.set_xlabel('Field (mT)', fontsize=12)
+    ax.set_ylabel('dM/dB', fontsize=12)
+    ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
+    ax.legend()
+
+    return ax
