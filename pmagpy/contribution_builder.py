@@ -1458,7 +1458,7 @@ class MagicDataFrame(object):
             return x
 
         def remove_extra_digits(x, prog):
-            """
+            r"""
             Remove extra digits
             x is a string,
             prog is always the following '_sre.SRE_Pattern':
