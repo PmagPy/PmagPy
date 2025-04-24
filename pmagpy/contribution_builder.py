@@ -1187,7 +1187,6 @@ class Contribution(object):
             columns = self.tables[dtype].df.columns.difference(remove)
             return self.tables[dtype].df[columns]
 
-
     ## Methods for validating contributions
 
     def find_missing_items(self, dtype):
@@ -1223,8 +1222,6 @@ class Contribution(object):
             if "id" in self.tables["contribution"].df.columns:
                 con_id = str(self.tables["contribution"].df["id"].values[0])
         return con_id
-
-
 
 class MagicDataFrame(object):
 
@@ -1367,7 +1364,6 @@ class MagicDataFrame(object):
             self.magic_file = magic_file
             # make sure names are strings (sometimes could be numbers)
 
-
             # drop all blank rows
             self.df = self.df.dropna(how='all', axis=0)
             #
@@ -1426,8 +1422,6 @@ class MagicDataFrame(object):
             self.add_measurement_names()
         self.name = name
         self.df.index.name = name + ' name'
-
-
 
     ## Methods to change self.df inplace
 
@@ -1495,7 +1489,7 @@ class MagicDataFrame(object):
         for col in self.df.columns:
             self.df[col] = self.df[col].apply(stringify)
 
-        prog = re.compile("\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z")
+        prog = re.compile(r"\d*[.]\d*([0]{5,100}|[9]{5,100})\d*\Z")
         for col in self.df.columns:
             self.df[col] = self.df[col].apply(lambda x: remove_extra_digits(x, prog))
 
@@ -2030,7 +2024,7 @@ class MagicDataFrame(object):
             cond = df['method_codes'].str.contains(meth_code).fillna(False)
         else:
             # grab only an exact match
-            pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
+            pattern = re.compile(r'{}(?=:|\s|\Z)'.format(meth_code))
             cond = df['method_codes'].str.contains(pattern).fillna(False)
         if incl:
             # return a copy of records with that method code:
