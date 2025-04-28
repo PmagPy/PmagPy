@@ -2345,15 +2345,15 @@ def process_hyst_loop(field, magnetization, specimen_name):
 
     if loop_saturation_stats['loop_is_saturated']:
         # linear high field correction
-        chi_Hf, Ms = linear_HF_fit(centered_H, drift_corr_M, loop_saturation_stats['saturation_cutoff'])
+        chi_HF, Ms = linear_HF_fit(centered_H, drift_corr_M, loop_saturation_stats['saturation_cutoff'])
         Fnl_lin = None
     else:
         # do non linear approach to saturation fit
         NL_fit_result = hyst_HF_nonlinear_optimization(centered_H, drift_corr_M, 0.6, 'IRM')
-        chi_Hf, Ms, Fnl_lin = NL_fit_result['chi_Hf'], NL_fit_result['Ms'], NL_fit_result['Fnl_lin']
+        chi_HF, Ms, Fnl_lin = NL_fit_result['chi_HF'], NL_fit_result['Ms'], NL_fit_result['Fnl_lin']
 
      # apply high field correction
-    slope_corr_M = hyst_slope_correction(centered_H, drift_corr_M, chi_Hf)
+    slope_corr_M = hyst_slope_correction(centered_H, drift_corr_M, chi_HF)
 
     # calculate the Msn and Q factor for the ferromagentic component
     M_sn_f, Qf = calc_Q(centered_H, slope_corr_M)
