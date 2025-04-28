@@ -1932,8 +1932,9 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
         if FNL60 < 2.5:  #saturated at 60%
             saturation_cutoff = 0.6
     results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop_is_saturated':(saturation_cutoff != 0.92)}
+    results_dict = dict_in_native_python(results)
+    return results_dict
 
-    return results
 
 def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     '''
