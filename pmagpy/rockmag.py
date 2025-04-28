@@ -47,6 +47,26 @@ except ImportError:
 # general I/O functions
 # ------------------------------------------------------------------------------------------------------------------
 
+def dict_in_native_python(d):
+    """Convert NumPy scalar values in a dict to native Python scalars.
+
+    Parameters
+    ----------
+    d : dict
+        Dictionary whose values may include NumPy scalar types
+        (e.g. np.float64, np.int64, np.bool_).
+
+    Returns
+    -------
+    dict
+        A new dictionary with the same keys as `d` but with any
+        NumPy scalar values replaced by their native Python
+        equivalents (float, int, bool). Non‐NumPy values are
+        left unchanged.
+    """
+    return {k: v.item() if isinstance(v, np.generic) else v for k, v in d.items()}
+
+
 def interactive_specimen_selection(measurements):
     """
     Creates and displays a dropdown widget for selecting a specimen from a given
@@ -1469,21 +1489,23 @@ def hyst_linearity_test(grid_field, grid_magnetization):
     # F-ratio for the non-linear component
     FNL = MSLF / MSPE
 
-    results = {'SST':SST, 
-            'SSR':SSR,
-            'SSD':SSD,
-            'R_squared': R_squared, 
-            'SSPE':SSPE,
-            'SSLF':SSLF, 
-            'MSPE':MSPE,
-            'MSLF':MSLF,
-            'MSR':MSR, 
-            'MSD':MSD, 
-            'MSPE':MSPE, 
-            'MSLF':MSLF, 
-            'FL':FL, 'FNL':FNL, 
-            'slope':slope, 'intercept':intercept, 
-            'loop_is_linear':FNL < 1.25}
+    results = {
+        'SST': float(SST),
+        'SSR': float(SSR),
+        'SSD': float(SSD),
+        'R_squared': float(R_squared),
+        'SSPE': float(SSPE),
+        'SSLF': float(SSLF),
+        'MSPE': float(MSPE),
+        'MSLF': float(MSLF),
+        'MSR': float(MSR),
+        'MSD': float(MSD),
+        'FL': float(FL),
+        'FNL': float(FNL),
+        'slope': float(slope),
+        'intercept': float(intercept),
+        'loop_is_linear': bool(FNL < 1.25),
+    }
 
     return results
 
@@ -1634,10 +1656,13 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset/2, grid_magnetization-M_offset)
 
     results = {'centered_H':centered_H, 
-                'centered_M': centered_M, 
-                'opt_H_offset':H_offset/2, 
-                'opt_M_offset':M_offset, 
-                'R_squared':R_squared, 'M_sn':M_sn, 'Q':Q}
+               'centered_M': centered_M, 
+               'opt_H_offset':float(H_offset/2), 
+               'opt_M_offset':float(M_offset), 
+               'R_squared':float(R_squared), 
+               'M_sn':float(M_sn), 
+               'Q':float(Q),
+               }
     return results
 
 def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
@@ -1965,7 +1990,10 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     HAR = 20*np.log10(total_HF_Mrh_area/total_Mrh_area)
     loop_is_closed = (SNR < 8) or (HAR < -48)
 
-    results = {'SNR':SNR, 'HAR':HAR, 'loop_is_closed':loop_is_closed}
+    results = {'SNR':float(SNR), 
+               'HAR':float(HAR), 
+               'loop_is_closed':bool(loop_is_closed),
+               }
     return results
 
 
@@ -2187,27 +2215,36 @@ def Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
 
 def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 1, -0.1, -0.1], bounds=([0, 0, -np.inf, -np.inf], [np.inf, np.inf, 0, 0])):
     '''
-    function for optimizing the high field non-linear fit
+    Optimize a high-field nonlinear fit
 
     Parameters
     ----------
-    H : numpy array
-        field values
-    M : numpy array
-        magnetization values
+    H : numpy.ndarray
+        Array of field values.
+    M : numpy.ndarray
+        Array of magnetization values.
     HF_cutoff : float
-        high field cutoff percentage value
-    fit_type : type of nonlinear fit
-        can be 'IRM' or 'Fabian' or 'Fabian_fixed_beta'
-    initial_guess : numpy array
-        initial guess for the optimization
-    bounds : tuple
-        bounds for the optimization
-
+        Fraction of max(|H|) defining the lower bound of the high-field region.
+    fit_type : {'IRM', 'Fabian', 'Fabian_fixed_beta'}
+        Type of nonlinear model to fit.
+    initial_guess : list of float, optional
+        Initial parameter guess for the optimizer.
+        Defaults to [1, 1, -0.1, -0.1]:
+        χ_HF = 1, Mₛ = 1, a₁ = –0.1, a₂ = –0.1 (or α, β for Fabian).
+    bounds : tuple of array-like, optional
+        Lower and upper bounds for each parameter.
+        Defaults to ([0, 0, -∞, -∞], [∞, ∞, 0, 0]):
+        - Lower: χ_HF ≥ 0, Mₛ ≥ 0, a₁ ≥ –∞, a₂ ≥ –∞  
+        - Upper: χ_HF ≤ ∞, Mₛ ≤ ∞, a₁ ≤ 0, a₂ ≤ 0  
+        (for Fabian, α and β follow the same positions/limits).
+    
     Returns
     -------
-    results : scipy.optimize.OptimizeResult
-        results of the optimization
+    dict
+        Fit results with keys:
+        - 'chi_HF', 'Ms', 'a_1', 'a_2' (for IRM) or
+          'chi_HF', 'Ms', 'alpha', 'beta' (for Fabian variants)
+        - 'Fnl_lin': float, ratio comparing nonlinear vs. linear fit  
     '''
     HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
 
@@ -2259,7 +2296,9 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     Fnl_lin = R_squared_l / R_squared_nl
 
     final_result['Fnl_lin'] = Fnl_lin
-    return final_result
+    final_result_dict = dict_in_native_python(final_result)
+    return final_result_dict
+
 
 def process_hyst_loop(field, magnetization, specimen_name):
     '''
