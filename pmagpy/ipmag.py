@@ -5255,6 +5255,7 @@ def download_magic_from_doi(doi):
     else:
         return False, 'Error:', response.json()['err'][0]['message'], '\n'
 
+
 def validate_with_public_endpoint(contribution_file,verbose=False):
     """
     validate contribution to MagIC using public endpoint
@@ -5702,6 +5703,32 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
             return False, "Could not create an upload file", None, None
     return new_up, val_response, None, None
 
+
+def contribution_to_magic(contribution, dir_path='.'):
+    """
+    Write a contribution object to MagIC-formatted files in the specified directory.
+    Compiles these files into a upload.txt file which can be uploaded into the 
+    MagIC database using the upload_magic function.
+    
+    Parameters
+    ----------
+    contribution : Contribution
+        A contribution object containing tables to be written to a MagIC-formatted file.
+    dir_path : str
+        The directory path where the MagIC-formatted file will be written.
+    """
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+        
+    contribution.tables['specimens'].write_magic_file(dir_path=dir_path)
+    contribution.tables['samples'].write_magic_file(dir_path=dir_path)
+    contribution.tables['sites'].write_magic_file(dir_path=dir_path)
+    contribution.tables['locations'].write_magic_file(dir_path=dir_path)
+    contribution.tables['measurements'].write_magic_file(dir_path=dir_path)
+    
+    upload_magic(dir_path=dir_path, input_dir_path=dir_path)
+    
+
 def create_private_contribution(username="",password=""):
     """
     Create a private contribution on earthref.org/MagIC.
@@ -5907,7 +5934,6 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
     except:
         print ('trouble validating:')
     return response
-
 
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites=False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM', 'DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
