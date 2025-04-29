@@ -985,7 +985,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
         }
     )
 
-    out.layout.height = '500px'
+    out.layout.height = '400px'
 
     display(ui, out)
 
