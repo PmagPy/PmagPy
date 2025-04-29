@@ -2715,6 +2715,7 @@ def plot_X_T(
     remove_holder=True,
     plot_derivative=True,
     plot_inverse=False,
+    return_figure=False,
 ):
     """
     Plot the high-temperature X–T curve, and optionally its derivative
@@ -2737,12 +2738,13 @@ def plot_X_T(
             If True, generate dX/dT plot. Defaults to True.
         plot_inverse (bool, optional):
             If True, generate 1/X plot. Defaults to False.
+        return_figure (bool, optional):
+            If True, return the Bokeh figure objects. Defaults to False.
 
     Returns:
-        tuple:
-            A tuple of Bokeh figures. Always returns the main X–T figure.
-            If plot_derivative is True, the second element is the dX/dT figure.
-            If plot_inverse is True, the last element is the 1/X figure.
+        tuple[bokeh.plotting.figure.Figure, ...] or None:
+            The requested Bokeh figures if return_figure is True;
+            otherwise, None.
     """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(
         experiment,
@@ -2769,7 +2771,6 @@ def plot_X_T(
     height = int(width / 1.618)
     title = experiment["specimen"].unique()[0]
 
-    # main X–T plot
     p = figure(
         title=title,
         width=width,
@@ -2779,41 +2780,24 @@ def plot_X_T(
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
 
-    # heating glyphs (red)
     r_warm_c = p.circle(
-        warm_T,
-        warm_X,
-        legend_label="Heating – zero corrected",
-        color="red",
-        alpha=0.5,
-        size=6,
+        warm_T, warm_X, legend_label="Heating",
+        color="red", alpha=0.5, size=6,
     )
     r_warm_l = p.line(
-        swT,
-        swX,
-        legend_label="Heating – smoothed",
-        line_width=2,
-        color="red",
+        swT, swX, legend_label="Heating – smoothed",
+        line_width=2, color="red",
     )
 
-    # cooling glyphs (blue)
     r_cool_c = p.circle(
-        cool_T,
-        cool_X,
-        legend_label="Cooling – zero corrected",
-        color="blue",
-        alpha=0.5,
-        size=6,
+        cool_T, cool_X, legend_label="Cooling",
+        color="blue", alpha=0.5, size=6,
     )
     r_cool_l = p.line(
-        scT,
-        scX,
-        legend_label="Cooling – smoothed",
-        line_width=2,
-        color="blue",
+        scT, scX, legend_label="Cooling – smoothed",
+        line_width=2, color="blue",
     )
 
-    # hover tools per renderer
     p.add_tools(
         HoverTool(renderers=[r_warm_c, r_warm_l],
                   tooltips=[("T", "@x"), ("Heating X", "@y")])
@@ -2830,7 +2814,6 @@ def plot_X_T(
 
     figs = [p]
 
-    # derivative plot
     if plot_derivative:
         p_dx = figure(
             title=f"{title} – dX/dT",
@@ -2864,7 +2847,6 @@ def plot_X_T(
         p_dx.legend.location = "top_left"
         figs.append(p_dx)
 
-    # reciprocal plot
     if plot_inverse:
         p_inv = figure(
             title=f"{title} – 1/X",
@@ -2901,7 +2883,9 @@ def plot_X_T(
     for fig in figs:
         show(fig)
 
-    return tuple(figs)
+    if return_figure:
+        return tuple(figs)
+    return None
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
