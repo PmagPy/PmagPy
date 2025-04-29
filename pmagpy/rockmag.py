@@ -19,12 +19,6 @@ except ImportError:
     display = None
 
 try:
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-except ImportError:
-    go = None
-    make_subplots = None
-try:
     from bokeh.plotting import figure, show
     from bokeh.layouts import gridplot
     from bokeh.models import HoverTool
@@ -271,31 +265,6 @@ def extract_mpms_data_dc(df, specimen_name):
     )
 
     return fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data
-
-
-def get_plotly_marker(matplotlib_marker):
-    """
-    Maps a Matplotlib marker style to its Plotly equivalent.
-
-    Parameters:
-        matplotlib_marker (str): A marker style in Matplotlib format.
-
-    Returns:
-        str: Corresponding marker style in Plotly format.
-    """
-    marker_dict = {
-        '.': 'circle',
-        'o': 'circle',
-        '^': 'triangle-up',
-        's': 'square',
-        '*': 'star',
-        '+': 'cross',
-        'x': 'x',
-        'D': 'diamond',
-        '|': 'line-ns',
-        '_': 'line-ew',
-    }
-    return marker_dict.get(matplotlib_marker, 'circle')  # Default to 'circle' if not found
 
 
 def plot_mpms_dc(
@@ -2737,315 +2706,202 @@ def split_warm_cool(experiment,temperature_column='meas_temp',
     return warm_T, warm_X, cool_T, cool_X
 
 
-def plot_X_T(experiment,
-             temperature_column='meas_temp',
-             magnetic_column='susc_chi_mass',
-             temp_unit='C', 
-             smooth_window=0,
-             remove_holder=True):
+def plot_X_T(
+    experiment,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    smooth_window=0,
+    remove_holder=True,
+    plot_derivative=True,
+    plot_inverse=False,
+):
     """
-    Plot the high‑temperature X–T curve, its derivative, and reciprocal.
+    Plot the high-temperature X–T curve, and optionally its derivative
+    and reciprocal using Bokeh.
 
     Parameters:
         experiment (pandas.DataFrame):
             The IRM experiment data exported into MagIC format.
         temperature_column (str, optional):
-            Name of the temperature column. Defaults to 'meas_temp'.
+            Name of the temperature column. Defaults to "meas_temp".
         magnetic_column (str, optional):
-            Name of the susceptibility column.
-            Defaults to 'susc_chi_mass'.
+            Name of the susceptibility column. Defaults to "susc_chi_mass".
         temp_unit (str, optional):
-            Unit of temperature, either 'K' or 'C'. Defaults to 'C'.
+            Unit of temperature, either "K" or "C". Defaults to "C".
         smooth_window (int, optional):
-            Window size for running‑average smoothing that represents
-            the temperature range over which the average is calculated. 
-            Defaults to 0 (no smoothing).
+            Window size for running-average smoothing. Defaults to 0.
         remove_holder (bool, optional):
-            If True, subtract the minimum holder signal from the data.
-            Defaults to True.
+            If True, subtract the minimum holder signal. Defaults to True.
+        plot_derivative (bool, optional):
+            If True, generate dX/dT plot. Defaults to True.
+        plot_inverse (bool, optional):
+            If True, generate 1/X plot. Defaults to False.
 
     Returns:
-        tuple[plotly.graph_objs.Figure, plotly.graph_objs.Figure, plotly.graph_objs.Figure]:
-            A 3‑tuple containing:
-            - fig: Combined heating and cooling X–T plot.
-            - fig_dxdt: dX/dT vs. temperature plot.
-            - fig_inv: 1/X vs. temperature plot.
+        tuple:
+            A tuple of Bokeh figures. Always returns the main X–T figure.
+            If plot_derivative is True, the second element is the dX/dT figure.
+            If plot_inverse is True, the last element is the 1/X figure.
     """
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment,
-                                                     temperature_column=temperature_column,
-                                                     magnetic_column=magnetic_column)
+    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+        experiment,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column,
+    )
 
-    # Create a plot for the 'heat' dataset with red points and a line
-    fig_heat = go.Figure()
-    if temp_unit == 'C':
-        warm_T = [T-273.15 for T in warm_T]
-        cool_T = [T-273.15 for T in cool_T]
-
+    if temp_unit == "C":
+        warm_T = [T - 273.15 for T in warm_T]
+        cool_T = [T - 273.15 for T in cool_T]
     else:
         raise ValueError('temp_unit must be either "K" or "C"')
-    
+
     if remove_holder:
-        # now use the min max temp range to select the holder X data
-        holder_warm_X = min(warm_X)
-        holder_cool_X = min(cool_X)
-        warm_X = [X - holder_warm_X for X in warm_X]
-        cool_X = [X - holder_cool_X for X in cool_X]
+        holder_w = min(warm_X)
+        holder_c = min(cool_X)
+        warm_X = [X - holder_w for X in warm_X]
+        cool_X = [X - holder_c for X in cool_X]
 
-    smoothed_warm_T, smoothed_warm_X, smoothed_warm_Tvars, smoothed_warm_Xvars = X_T_running_average(warm_T, warm_X, smooth_window)
-    smoothed_cool_T, smoothed_cool_X, smoothed_cool_Tvars, smoothed_cool_Xvars = X_T_running_average(cool_T, cool_X, smooth_window)
+    swT, swX, _, _ = X_T_running_average(warm_T, warm_X, smooth_window)
+    scT, scX, _, _ = X_T_running_average(cool_T, cool_X, smooth_window)
 
-    # Add heat data as a scatter plot with red points and lines
-    fig_heat.add_trace(go.Scatter(
-        x=warm_T,
-        y=warm_X,
-        mode='markers',
-        marker=dict(color='red', opacity=0.5),
-        name='Heating - zero corrected'
-    ))
-    fig_heat.add_trace(go.Scatter(
-        x=smoothed_warm_T,
-        y=smoothed_warm_X,
-        mode='lines',
-        line=dict(color='red'),
-        name='Heating - zero corrected - smoothed'
-    ))
-    # Create a scatter plot for the 'cooling' dataset with blue points and a line
-    fig_cool = go.Figure()
+    width = 900
+    height = int(width / 1.618)
+    title = experiment["specimen"].unique()[0]
 
-    # Add cooling data as a scatter plot with blue points and lines
-    fig_cool.add_trace(go.Scatter(
-        x=cool_T,
-        y=cool_X,
-        mode='markers',
-        marker=dict(color='blue', opacity=0.5),
-        name='Cooling - zero corrected'
-    ))
-    fig_cool.add_trace(go.Scatter(
-        x=smoothed_cool_T,
-        y=smoothed_cool_X,
-        mode='lines',
-        line=dict(color='blue'),
-        name='Cooling - zero corrected - smoothed'
-    ))
-
-    # Combine the two figures
-    fig = go.Figure(data=fig_heat.data + fig_cool.data)
-
-    width = 900  # Adjust the width to your preference
-    height = int(width / 1.618)  # Calculate height based on the golden ratio
-
-    # Update the layout with a unified title and labels
-    fig.update_layout(
-            title={
-            'text': f"{experiment['specimen'].unique()[0]}",
-            'x': 0.5,  # Center the title
-            'xanchor': 'center'
-        },
+    # main X–T plot
+    p = figure(
+        title=title,
         width=width,
         height=height,
-        xaxis_title=f'Temperature (&deg;{temp_unit})',
-        yaxis_title='<i>k</i> (m<sup>3</sup> kg<sup>-1</sup>)',
-        showlegend=True,
-        paper_bgcolor='white',  # Background color of the entire plot
-        plot_bgcolor='white',   # Background color of the plotting area
-        font=dict(
-            family='Roboto, sans-serif',
-            size=18,
-            color="Black"
-        ),
-        xaxis=dict(
-            tick0=0,  # Start at 0
-            dtick=100,  # Tick every 100 units
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show x-axis line
-            linewidth=1,  # Width of the x-axis line
-            linecolor='black'  # Color of the x-axis line
-        ),
-        yaxis=dict(
-            # Automatic tick marks on the y-axis
-            autorange= True,  # Reversed for easier reading
-            tickformat='.1e',  # Scientific notation format
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show y-axis line
-            linewidth=1,  # Width of the y-axis line
-            linecolor='black'  # Color of the y-axis line
-        ),
-            shapes=[
-            # Frame around the plot
-            dict(
-                type='rect',
-                xref='paper', yref='paper',
-                x0=0, y0=0, x1=1, y1=1,
-                line=dict(color='black', width=2)
-            )
-        ],
-        margin=dict(
-            l=50,  # Adjust left margin
-            r=50,  # Adjust right margin
-            b=50,  # Adjust bottom margin
-            t=80   # Adjust top margin for title
-        )
+        x_axis_label=f"Temperature (°{temp_unit})",
+        y_axis_label="k (m³ kg⁻¹)",
+        tools="pan,wheel_zoom,box_zoom,reset,save",
     )
 
-    # add a new figure below the X-T plot
-
-    fig_dxdt = go.Figure()
-    dxdt = np.gradient(smoothed_warm_X, smoothed_warm_T)
-    fig_dxdt.add_trace(go.Scatter(
-        x=smoothed_warm_T,
-        y=dxdt,
-        mode='markers+lines',
-        line=dict(color='red'),
-        name='Heating - dX/dT smoothed'
-    ))
-
-    dxdt = np.gradient(smoothed_cool_X, smoothed_cool_T)
-    fig_dxdt.add_trace(go.Scatter(
-        x=smoothed_cool_T,
-        y=dxdt,
-        mode='markers+lines',
-        line=dict(color='blue'),
-        name='Cooling - dX/dT smoothed'
-    ))
-
-    fig_dxdt.update_layout(
-        title={
-            'text': f"{experiment['specimen'].unique()[0]} - dX/dT",
-            'x': 0.5,  # Center the title
-            'xanchor': 'center'
-        },
-        width=width,
-        height=height,
-        xaxis_title=f'Temperature (&deg;{temp_unit})',
-        yaxis_title='dX/dT',
-        showlegend=True,
-        paper_bgcolor='white',  # Background color of the entire plot
-        plot_bgcolor='white',   # Background color of the plotting area
-        font=dict(
-            family='Roboto, sans-serif',
-            size=18,
-            color="Black"
-        ),
-        xaxis=dict(
-            tick0=0,  # Start at 0
-            dtick=100,  # Tick every 100 units
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show x-axis line
-            linewidth=1,  # Width of the x-axis line
-            linecolor='black'  # Color of the x-axis line
-        ),
-        yaxis=dict(
-            # Automatic tick marks on the y-axis
-            autorange=True,  # Reversed for easier reading
-            tickformat='.1e',  # Scientific notation format
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show y-axis line
-            linewidth=1,  # Width of the y-axis line
-            linecolor='black'  # Color of the y-axis line
-        ),
-        shapes=[
-            # Frame around the plot
-            dict(
-                type='rect',
-                xref='paper', yref='paper',
-                x0=0, y0=0, x1=1, y1=1,
-                line=dict(color='black', width=2)
-            )
-        ],
-        margin=dict(
-            l=50,  # Adjust left margin
-            r=50,  # Adjust right margin
-            b=50,  # Adjust bottom margin
-            t=80   # Adjust top margin for title
-        )
+    # heating glyphs (red)
+    r_warm_c = p.circle(
+        warm_T,
+        warm_X,
+        legend_label="Heating – zero corrected",
+        color="red",
+        alpha=0.5,
+        size=6,
+    )
+    r_warm_l = p.line(
+        swT,
+        swX,
+        legend_label="Heating – smoothed",
+        line_width=2,
+        color="red",
     )
 
-    # add a new figure below the X-T plot
-    fig_inv = go.Figure()
-    inv_warm_X = [1/X for X in smoothed_warm_X]
-    inv_cool_X = [1/X for X in smoothed_cool_X]
-    fig_inv.add_trace(go.Scatter(
-        x=smoothed_warm_T,
-        y=inv_warm_X,
-        mode='markers+lines',
-        line=dict(color='red'),
-        name='Heating - 1/X smoothed'
-    ))
-    fig_inv.add_trace(go.Scatter(
-        x=smoothed_cool_T,
-        y=inv_cool_X,
-        mode='markers+lines',
-        line=dict(color='blue'),
-        name='Cooling - 1/X smoothed'
-    ))
-
-    fig_inv.update_layout(
-        title={
-            'text': f"{experiment['specimen'].unique()[0]} - 1/X",
-            'x': 0.5,  # Center the title
-            'xanchor': 'center'
-        },
-        width=width,
-        height=height,
-        xaxis_title=f'Temperature (&deg;{temp_unit})',
-        yaxis_title='1/X',
-        showlegend=True,
-        paper_bgcolor='white',  # Background color of the entire plot
-        plot_bgcolor='white',   # Background color of the plotting area
-        font=dict(
-            family='Roboto, sans-serif',
-            size=18,
-            color="Black"
-        ),
-        xaxis=dict(
-            tick0=0,  # Start at 0
-            dtick=100,  # Tick every 100 units
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show x-axis line
-            linewidth=1,  # Width of the x-axis line
-            linecolor='black'  # Color of the x-axis line
-        ),
-        yaxis=dict(
-            # Automatic tick marks on the y-axis
-            autorange=True,  # Reversed for easier reading
-            tickformat='.1e',  # Scientific notation format
-            gridcolor='lightgray',  # Color of the grid lines
-            gridwidth=1,  # Width of the grid lines
-            showline=True,  # Show y-axis line
-            linewidth=1,  # Width of the y-axis line
-            linecolor='black'  # Color of the y-axis line
-        ),
-        shapes=[
-            # Frame around the plot
-            dict(
-                type='rect',
-                xref='paper', yref='paper',
-                x0=0, y0=0, x1=1, y1=1,
-                line=dict(color='black', width=2)
-            )
-        ],
-        margin=dict(
-            l=50,  # Adjust left margin
-            r=50,  # Adjust right margin
-            b=50,  # Adjust bottom margin
-            t=80   # Adjust top margin for title
-        )
+    # cooling glyphs (blue)
+    r_cool_c = p.circle(
+        cool_T,
+        cool_X,
+        legend_label="Cooling – zero corrected",
+        color="blue",
+        alpha=0.5,
+        size=6,
+    )
+    r_cool_l = p.line(
+        scT,
+        scX,
+        legend_label="Cooling – smoothed",
+        line_width=2,
+        color="blue",
     )
 
+    # hover tools per renderer
+    p.add_tools(
+        HoverTool(renderers=[r_warm_c, r_warm_l],
+                  tooltips=[("T", "@x"), ("Heating X", "@y")])
+    )
+    p.add_tools(
+        HoverTool(renderers=[r_cool_c, r_cool_l],
+                  tooltips=[("T", "@x"), ("Cooling X", "@y")])
+    )
 
-    # display the main figure
-    fig.show()
+    p.grid.grid_line_color = "lightgray"
+    p.outline_line_color = "black"
+    p.background_fill_color = "white"
+    p.legend.location = "top_left"
 
-    # display and return the other two figures depending on the plot_dxdt and plot_inv
-    fig_dxdt.show()
-    fig_inv.show()
+    figs = [p]
 
-    return fig, fig_dxdt, fig_inv
+    # derivative plot
+    if plot_derivative:
+        p_dx = figure(
+            title=f"{title} – dX/dT",
+            width=width,
+            height=height,
+            x_axis_label=f"Temperature (°{temp_unit})",
+            y_axis_label="dX/dT",
+            tools="pan,wheel_zoom,box_zoom,reset,save",
+        )
+        dx_w = np.gradient(swX, swT)
+        dx_c = np.gradient(scX, scT)
+        r_dx_w = p_dx.line(
+            swT, dx_w, legend_label="Heating – dX/dT",
+            line_width=2, color="red"
+        )
+        r_dx_c = p_dx.line(
+            scT, dx_c, legend_label="Cooling – dX/dT",
+            line_width=2, color="blue"
+        )
+        p_dx.add_tools(
+            HoverTool(renderers=[r_dx_w],
+                      tooltips=[("T", "@x"), ("dX/dT (heat)", "@y")])
+        )
+        p_dx.add_tools(
+            HoverTool(renderers=[r_dx_c],
+                      tooltips=[("T", "@x"), ("dX/dT (cool)", "@y")])
+        )
+        p_dx.grid.grid_line_color = "lightgray"
+        p_dx.outline_line_color = "black"
+        p_dx.background_fill_color = "white"
+        p_dx.legend.location = "top_left"
+        figs.append(p_dx)
+
+    # reciprocal plot
+    if plot_inverse:
+        p_inv = figure(
+            title=f"{title} – 1/X",
+            width=width,
+            height=height,
+            x_axis_label=f"Temperature (°{temp_unit})",
+            y_axis_label="1/X",
+            tools="pan,wheel_zoom,box_zoom,reset,save",
+        )
+        inv_w = [1.0 / x for x in swX]
+        inv_c = [1.0 / x for x in scX]
+        r_inv_w = p_inv.line(
+            swT, inv_w, legend_label="Heating – 1/X",
+            line_width=2, color="red"
+        )
+        r_inv_c = p_inv.line(
+            scT, inv_c, legend_label="Cooling – 1/X",
+            line_width=2, color="blue"
+        )
+        p_inv.add_tools(
+            HoverTool(renderers=[r_inv_w],
+                      tooltips=[("T", "@x"), ("1/X (heat)", "@y")])
+        )
+        p_inv.add_tools(
+            HoverTool(renderers=[r_inv_c],
+                      tooltips=[("T", "@x"), ("1/X (cool)", "@y")])
+        )
+        p_inv.grid.grid_line_color = "lightgray"
+        p_inv.outline_line_color = "black"
+        p_inv.background_fill_color = "white"
+        p_inv.legend.location = "top_left"
+        figs.append(p_inv)
+
+    for fig in figs:
+        show(fig)
+
+    return tuple(figs)
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
