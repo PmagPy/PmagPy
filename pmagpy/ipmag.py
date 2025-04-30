@@ -3354,7 +3354,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
     return (glon2, glat2, baz)
 
 
-def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True, fill=False):
+def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True, fill=False, lw=1):
     """
     This function enables A95 error ellipses to be drawn in cartopy around
     paleomagnetic poles in conjunction with shoot
@@ -3391,7 +3391,7 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
     # for non-filled ellipses
     if fill==False:
         plt.plot(X, Y, color=color,
-                 transform=ccrs.Geodetic(), alpha=alpha)
+                 transform=ccrs.Geodetic(), alpha=alpha, lw=lw)
 
     # for filled ellipses
     else:
