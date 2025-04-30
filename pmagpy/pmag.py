@@ -4502,7 +4502,7 @@ def fisher_mean(data):
         
     Examples
     --------
-    >>> data = [[150,-45],[151,-46],[145,-38],[146,-41]
+    >>> data = [[150,-45],[151,-46],[145,-38],[146,-41]]
     >>> pmag.fisher_mean(data)
     {'dec': 147.87247771265734,
     'inc': -42.52872729473035,
@@ -4512,7 +4512,9 @@ def fisher_mean(data):
     'alpha95': 4.865886096375297,
     'csd': 4.283846101842065}   
     """
-    N, fpars = len(data), {}
+    data = np.asarray(data)
+    N = data.shape[0]
+    fpars = {}
     
     if N < 2: 
         return {'dec': data[0][0], 
@@ -4520,10 +4522,9 @@ def fisher_mean(data):
     
     # use only dec, inc values even if intensity values are provided
     # so that calculations are on unit vectors
-    for i in range(N):
-        data[i] = data[i][:2]
+    dir_data = data[:, :2].copy()
 
-    X = np.array(dir2cart(data))
+    X = np.array(dir2cart(dir_data))
     Xbar = X.sum(axis=0)
     R = np.linalg.norm(Xbar)
     Xbar = Xbar/R
