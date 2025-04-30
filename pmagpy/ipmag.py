@@ -11,12 +11,14 @@ import time
 import urllib
 import zipfile
 import io
+import warnings
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.optimize import fminbound
 from scipy.integrate import quad
+from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.pylab import polyfit
@@ -7984,56 +7986,87 @@ def dayplot_magic(path_to_file='.', hyst_file="specimens.txt", rem_file='',
     return True, []
 
 
-def smooth(x, window_len, window='bartlett'):
+def smooth(y, window_len, window='bartlett', xvals=None, return_xvals=False):
     """
-    Smooth the data using a sliding window with requested size - meant to be
-    used with the ipmag function curie().
-    This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by padding the beginning and the end of the signal
-    with average of the first (last) ten values of the signal, to evoid jumps
-    at the beginning/end. Output is an array of the smoothed signal.
+    Smooth a 1-D signal using a sliding window.
 
-    Required Parameters
-    ----------
-    x : the input signal, equally spaced!
-    window_len : the dimension of the smoothing window
+    If only `y` is provided (no `xvals`), it is assumed that samples are
+    equally spaced by 1. If you have irregular sampling, pass `xvals`.
 
-    Optional Parameters (defaults are used if not specified)
+    Parameters
     ----------
-    window : type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
-        (default is Bartlett)
-        -flat window will produce a moving average smoothing.
-        -Bartlett window is very similar to triangular window,
-            but always ends with zeros at points 1 and n.
-        -hanning,hamming,blackman are used for smoothing the Fourier transform
+    y : array-like (list or 1-D array)
+        Signal values; assumed equally spaced if `xvals` is None.
+    window_len : int
+        Length of the smoothing window (must be >= 3).
+    window : {'flat','hanning','hamming','bartlett','blackman'}, optional
+        Type of window; 'flat' produces a moving average.
+    xvals : array-like, optional
+        Independent variable. If spacing ≠ 1, data will be re-gridded to
+        integer steps.
+    return_xvals : bool, default False
+        If True, return (x_equal, y_smooth); otherwise return y_smooth only.
+
+    Returns
+    -------
+    y_smooth : ndarray
+        Smoothed signal.
+    (x_equal, y_smooth) : tuple of ndarrays
+        Returned if return_xvals is True.
+
+    Notes
+    -----
+    Backwards-compatible: if you call with only `y`, it behaves exactly as
+    earlier versions (equally spaced assumption).
     """
-    if x.ndim != 1:
-        raise ValueError("smooth only accepts 1 dimension arrays.")
+    if xvals is None:
+        warnings.warn(
+            "No xvals provided: assuming y-values are equally spaced by 1.",
+            UserWarning,
+        )
 
-    if x.size < window_len:
-        raise ValueError("Input vector needs to be bigger than window size.")
+    y = np.asarray(y, dtype=float)
 
+    if xvals is not None:
+        xvals = np.asarray(xvals, dtype=float)
+        diffs = np.diff(xvals)
+        if not np.allclose(diffs, 1.0):
+            x_equal = np.arange(xvals[0], xvals[-1] + 1, 1.0)
+            f = interp1d(
+                xvals, y, kind='linear', fill_value='extrapolate'
+            )
+            y = f(x_equal)
+            xvals = x_equal
+
+    if y.ndim != 1:
+        raise ValueError("smooth only accepts 1-D arrays or lists.")
+    if y.size < window_len:
+        raise ValueError("Input vector must be larger than window size.")
     if window_len < 3:
-        return x
-
-    # numpy available windows
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        return (xvals, y) if return_xvals else y
+    if window not in [
+        'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+    ]:
         raise ValueError(
-            "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+            "window must be one of "
+            "['flat','hanning','hamming','bartlett','blackman']"
+        )
 
-    # padding the beginning and the end of the signal with an average value to
-    # evoid edge effect
-    start = [np.average(x[0:10])] * window_len
-    end = [np.average(x[-10:])] * window_len
-    s = start + list(x) + end
+    pad_start = np.full(window_len, y[:10].mean())
+    pad_end = np.full(window_len, y[-10:].mean())
+    s = np.concatenate([pad_start, y, pad_end])
 
-    # s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
-    if window == 'flat':  # moving average
-        w = ones(window_len, 'd')
+    if window == 'flat':
+        w = np.ones(window_len)
     else:
-        w = eval('np.' + window + '(window_len)')
-    y = np.convolve(w/w.sum(), s, mode='same')
-    return np.array(y[window_len:-window_len])
+        w = getattr(np, window)(window_len)
+
+    y_smooth = np.convolve(w / w.sum(), s, mode='same')
+    y_smooth = y_smooth[window_len:-window_len]
+
+    if return_xvals:
+        return (xvals, y_smooth)
+    return y_smooth
 
 
 def curie(path_to_file='.', file_name='', magic=False,
