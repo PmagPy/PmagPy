@@ -375,384 +375,149 @@ def plot_mpms_dc(
     drop_last=False,
 ):
     """
-    Plots MPMS data and optional derivatives using Matplotlib or Bokeh.
+    Plots MPMS DC data and optional derivatives, omitting empty panels.
 
-    Parameters:
-        fc_data (DataFrame or None): Field Cooled data.
-        zfc_data (DataFrame or None): Zero Field Cooled data.
-        rtsirm_cool_data (DataFrame or None): RTSIRM Cooling data.
-        rtsirm_warm_data (DataFrame or None): RTSIRM Warming data.
-        fc_color, zfc_color, rtsirm_cool_color, rtsirm_warm_color (str): HEX color codes.
+    Args:
+        fc_data (DataFrame or None): Field-cooled data.
+        zfc_data (DataFrame or None): Zero-field-cooled data.
+        rtsirm_cool_data (DataFrame or None): RTSIRM cooling data.
+        rtsirm_warm_data (DataFrame or None): RTSIRM warming data.
+        fc_color, zfc_color, rtsirm_cool_color, rtsirm_warm_color (str):
+            HEX color codes.
         fc_marker, zfc_marker, rtsirm_cool_marker, rtsirm_warm_marker (str):
-            Marker symbols.
-        symbol_size (int): Size of the markers.
-        interactive (bool): If True, use Bokeh for interactive plotting.
-        plot_derivative (bool): If True, plot derivative curves.
-        return_figure (bool): If True, return the figure object.
+            Matplotlib-style markers.
+        symbol_size (int): Marker size.
+        interactive (bool): If True, use Bokeh.
+        plot_derivative (bool): If True, plot dM/dT curves.
+        return_figure (bool): If True, return the figure/grid.
         show_plot (bool): If True, display the plot.
-        drop_first (bool): If True, drop first row of each DataFrame.
-        drop_last (bool): If True, drop last row of each DataFrame.
+        drop_first (bool): If True, drop first row of each series.
+        drop_last (bool): If True, drop last row of each series.
 
     Returns:
-        Figure or gridplot if return_figure is True, else None.
+        Bokeh grid or Matplotlib fig/axes tuple, or None.
     """
-    if drop_first:
-        if fc_data is not None:
-            fc_data = fc_data.iloc[1:]
-        if zfc_data is not None:
-            zfc_data = zfc_data.iloc[1:]
-        if rtsirm_cool_data is not None:
-            rtsirm_cool_data = rtsirm_cool_data.iloc[1:]
-        if rtsirm_warm_data is not None:
-            rtsirm_warm_data = rtsirm_warm_data.iloc[1:]
+    def trim(df):
+        if df is None or df.empty:
+            return None
+        df = df.reset_index(drop=True)
+        if drop_first:
+            df = df.iloc[1:].reset_index(drop=True)
+        if drop_last:
+            df = df.iloc[:-1].reset_index(drop=True)
+        return df
 
-    if drop_last:
-        if fc_data is not None:
-            fc_data = fc_data.iloc[:-1]
-        if zfc_data is not None:
-            zfc_data = zfc_data.iloc[:-1]
-        if rtsirm_cool_data is not None:
-            rtsirm_cool_data = rtsirm_cool_data.iloc[:-1]
-        if rtsirm_warm_data is not None:
-            rtsirm_warm_data = rtsirm_warm_data.iloc[:-1]
+    fc = trim(fc_data)
+    zfc = trim(zfc_data)
+    rc = trim(rtsirm_cool_data)
+    rw = trim(rtsirm_warm_data)
 
     if plot_derivative:
-        fc_derivative = (
-            thermomag_derivative(fc_data["meas_temp"], fc_data["magn_mass"])
-            if fc_data is not None
-            else None
-        )
-        zfc_derivative = (
-            thermomag_derivative(zfc_data["meas_temp"], zfc_data["magn_mass"])
-            if zfc_data is not None
-            else None
-        )
-        rtsirm_cool_derivative = (
-            thermomag_derivative(
-                rtsirm_cool_data["meas_temp"], rtsirm_cool_data["magn_mass"]
+        def deriv(df):
+            return None if df is None else thermomag_derivative(
+                df["meas_temp"], df["magn_mass"]
             )
-            if rtsirm_cool_data is not None
-            else None
-        )
-        rtsirm_warm_derivative = (
-            thermomag_derivative(
-                rtsirm_warm_data["meas_temp"], rtsirm_warm_data["magn_mass"]
-            )
-            if rtsirm_warm_data is not None
-            else None
-        )
+        fcd = deriv(fc)
+        zfcd = deriv(zfc)
+        rcd = deriv(rc)
+        rwd = deriv(rw)
 
-    if interactive:
-        hover = HoverTool(tooltips=[("T", "@x"), ("M", "@y")])
-        tools = [hover, "pan,box_zoom,wheel_zoom,reset,save"]
-        rows = 2 if plot_derivative else 1
-        cols = 2
-        plots = []
+    fc_zfc_present = (fc is not None) or (zfc is not None)  
+    rtsirm_present = (rc is not None) or (rw is not None)  
 
-        p0 = figure(
-            width=400,
-            height=300,
-            title="LTSIRM Data",
-            x_axis_label="Temperature (K)",
-            y_axis_label="Magnetization (Am2/kg)",
-            tools=tools
-        )
+    if interactive:  
+        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,reset,save"]  
+        figs = []  
 
-        if fc_data is not None:
-            p0.scatter(
-                fc_data["meas_temp"],
-                fc_data["magn_mass"],
-                marker=mpl_to_bokeh_markers.get(fc_marker, "circle"),
-                size=symbol_size,
-                color=fc_color,
-                legend_label="FC",
-            )
-            p0.line(fc_data["meas_temp"], fc_data["magn_mass"], color=fc_color)
-        if zfc_data is not None:
-            p0.scatter(
-                zfc_data["meas_temp"],
-                zfc_data["magn_mass"],
-                marker=mpl_to_bokeh_markers.get(zfc_marker, "circle"),
-                size=symbol_size,
-                color=zfc_color,
-                legend_label="ZFC",
-            )
-            p0.line(zfc_data["meas_temp"], zfc_data["magn_mass"], color=zfc_color)
-        plots.append(p0)
+        if fc_zfc_present:  
+            p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", y_axis_label="Magnetization (Am2/kg)", tools=tools, sizing_mode="stretch_width")  
+            if fc is not None:  
+                p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
+                p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
+            if zfc is not None:  
+                p0.line(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, legend_label="ZFC")  
+                p0.scatter(zfc["meas_temp"], zfc["magn_mass"], marker=mpl_to_bokeh_markers.get(zfc_marker), size=symbol_size, color=zfc_color)  
+            p0.legend.click_policy="hide"  
+            p0.xaxis.axis_label_text_font_style = "normal"
+            p0.yaxis.axis_label_text_font_style = "normal"
+            figs.append(p0)  
 
-        p1 = figure(
-            width=400,
-            height=300,
-            title="RTSIRM Data",
-            x_axis_label="Temperature (K)",
-            y_axis_label="Magnetization (Am2/kg)",
-            tools=tools
-        )
-        if rtsirm_cool_data is not None:
-            p1.scatter(
-                rtsirm_cool_data["meas_temp"],
-                rtsirm_cool_data["magn_mass"],
-                marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker, "circle"),
-                size=symbol_size,
-                color=rtsirm_cool_color,
-                legend_label="RTSIRM Cooling",
-            )
-            p1.line(
-                rtsirm_cool_data["meas_temp"], rtsirm_cool_data["magn_mass"]
-            , color=rtsirm_cool_color)
-        if rtsirm_warm_data is not None:
-            p1.scatter(
-                rtsirm_warm_data["meas_temp"],
-                rtsirm_warm_data["magn_mass"],
-                marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker, "circle"),
-                size=symbol_size,
-                color=rtsirm_warm_color,
-                legend_label="RTSIRM Warming",
-            )
-            p1.line(
-                rtsirm_warm_data["meas_temp"], rtsirm_warm_data["magn_mass"]
-            , color=rtsirm_warm_color)
-        plots.append(p1)
+        if rtsirm_present:  
+            p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", y_axis_label="Magnetization (Am2/kg)", tools=tools, sizing_mode="stretch_width")  
+            if rc is not None:  
+                p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
+                p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
+            if rw is not None:  
+                p1.line(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, legend_label="warm")  
+                p1.scatter(rw["meas_temp"], rw["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), size=symbol_size, color=rtsirm_warm_color)  
+            p1.legend.click_policy="hide"  
+            p1.xaxis.axis_label_text_font_style = "normal"
+            p1.yaxis.axis_label_text_font_style = "normal"
+            figs.append(p1)  
 
-        if plot_derivative:
-            p2 = figure(
-                width=400,
-                height=300,
-                title="LTSIRM Derivative",
-                x_axis_label="Temperature (K)",
-                y_axis_label="dM/dT",
-                tools=tools
-            )
-            if fc_derivative is not None:
-                p2.scatter(
-                    fc_derivative["T"],
-                    fc_derivative["dM_dT"],
-                    marker=mpl_to_bokeh_markers.get(fc_marker, "circle"),
-                    size=symbol_size,
-                    color=fc_color,
-                    legend_label="FC Derivative",
-                )
-                p2.line(fc_derivative["T"], fc_derivative["dM_dT"], color=fc_color)
-            if zfc_derivative is not None:
-                p2.scatter(
-                    zfc_derivative["T"],
-                    zfc_derivative["dM_dT"],
-                    marker=mpl_to_bokeh_markers.get(zfc_marker, "circle"),
-                    size=symbol_size,
-                    color=zfc_color,
-                    legend_label="ZFC Derivative",
-                )
-                p2.line(zfc_derivative["T"], zfc_derivative["dM_dT"], color=zfc_color)
-            plots.append(p2)
+        # separate derivative panels  
+        if plot_derivative and fc_zfc_present:  
+            p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", y_axis_label="dM/dT", tools=tools, sizing_mode="stretch_width")  
+            if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
+            if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
+            p2.legend.click_policy="hide" 
+            p2.xaxis.axis_label_text_font_style = "normal"
+            p2.yaxis.axis_label_text_font_style = "normal"        
+            figs.append(p2)  
 
-            p3 = figure(
-                width=400,
-                height=300,
-                title="RTSIRM Derivative",
-                x_axis_label="Temperature (K)",
-                y_axis_label="dM/dT",
-                tools=tools
-            )
-            if rtsirm_cool_derivative is not None:
-                p3.scatter(
-                    rtsirm_cool_derivative["T"],
-                    rtsirm_cool_derivative["dM_dT"],
-                    marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker, "circle"),
-                    size=symbol_size,
-                    color=rtsirm_cool_color,
-                    legend_label="RTSIRM Cooling Derivative",
-                )
-                p3.line(
-                    rtsirm_cool_derivative["T"],
-                    rtsirm_cool_derivative["dM_dT"],
-                    color=rtsirm_cool_color,
-                )
-            if rtsirm_warm_derivative is not None:
-                p3.scatter(
-                    rtsirm_warm_derivative["T"],
-                    rtsirm_warm_derivative["dM_dT"],
-                    marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker, "circle"),
-                    size=symbol_size,
-                    color=rtsirm_warm_color,
-                    legend_label="RTSIRM Warming Derivative",
-                )
-                p3.line(
-                    rtsirm_warm_derivative["T"],
-                    rtsirm_warm_derivative["dM_dT"],
-                    color=rtsirm_warm_color,
-                )
-            plots.append(p3)
-            
-        for p in plots:
-            p.legend.label_text_font_size = "8pt"
-            p.xaxis.axis_label_text_font_style = "normal"
-            p.yaxis.axis_label_text_font_style = "normal"
+        if plot_derivative and rtsirm_present:  
+            p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", y_axis_label="dM/dT", tools=tools, sizing_mode="stretch_width")  
+            if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
+            if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
+            p3.legend.click_policy="hide"  
+            p3.xaxis.axis_label_text_font_style = "normal"
+            p3.yaxis.axis_label_text_font_style = "normal"
+            figs.append(p3)  
 
-        # stretch the grid to full width
-        grid = gridplot(
-            [plots[i * cols : (i + 1) * cols] for i in range(rows)],
-            sizing_mode="stretch_width"
-        )
-        if show_plot:
-            show(grid)
-        if return_figure:
-            return grid
+        layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
+        if show_plot: show(layout)  
+        return layout if return_figure else None  
 
-    else:
-        if plot_derivative:
-            fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(9, 6))
-        else:
-            fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(9, 3))
+    # Matplotlib branch  
+    rows = 1 + (1 if plot_derivative else 0)  
+    cols = 2  
+    fig, axes = plt.subplots(rows, cols, figsize=(5*cols, 4*rows))  
+    axes = axes.reshape(rows, cols)  
 
-        if not plot_derivative:
-            if fc_data is not None:
-                axs[0].plot(
-                    fc_data["meas_temp"],
-                    fc_data["magn_mass"],
-                    color=fc_color,
-                    marker=fc_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="FC",
-                )
-            if zfc_data is not None:
-                axs[0].plot(
-                    zfc_data["meas_temp"],
-                    zfc_data["magn_mass"],
-                    color=zfc_color,
-                    marker=zfc_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="ZFC",
-                )
-            if rtsirm_cool_data is not None:
-                axs[1].plot(
-                    rtsirm_cool_data["meas_temp"],
-                    rtsirm_cool_data["magn_mass"],
-                    color=rtsirm_cool_color,
-                    marker=rtsirm_cool_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="RTSIRM Cooling",
-                )
-            if rtsirm_warm_data is not None:
-                axs[1].plot(
-                    rtsirm_warm_data["meas_temp"],
-                    rtsirm_warm_data["magn_mass"],
-                    color=rtsirm_warm_color,
-                    marker=rtsirm_warm_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="RTSIRM Warming",
-                )
-            for ax in axs:
-                ax.set_xlabel("Temperature (K)")
-                ax.set_ylabel("Magnetization (Am^2/kg)")
-                ax.legend()
-                ax.grid(True)
-                ax.set_xlim(0, 300)
+    if not fc_zfc_present:  
+        axes[0,0].set_visible(False)  
+        if plot_derivative: axes[1,0].set_visible(False)  
+    if not rtsirm_present:  
+        axes[0,1].set_visible(False)  
+        if plot_derivative: axes[1,1].set_visible(False)  
 
-        else:
-            if fc_data is not None:
-                axs[0, 0].plot(
-                    fc_data["meas_temp"],
-                    fc_data["magn_mass"],
-                    color=fc_color,
-                    marker=fc_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="FC",
-                )
-            if zfc_data is not None:
-                axs[0, 0].plot(
-                    zfc_data["meas_temp"],
-                    zfc_data["magn_mass"],
-                    color=zfc_color,
-                    marker=zfc_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="ZFC",
-                )
-            if rtsirm_cool_data is not None:
-                axs[0, 1].plot(
-                    rtsirm_cool_data["meas_temp"],
-                    rtsirm_cool_data["magn_mass"],
-                    color=rtsirm_cool_color,
-                    marker=rtsirm_cool_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="RTSIRM Cooling",
-                )
-            if rtsirm_warm_data is not None:
-                axs[0, 1].plot(
-                    rtsirm_warm_data["meas_temp"],
-                    rtsirm_warm_data["magn_mass"],
-                    color=rtsirm_warm_color,
-                    marker=rtsirm_warm_marker,
-                    linestyle="-",
-                    markersize=symbol_size,
-                    label="RTSIRM Warming",
-                )
-            for ax in axs[0, :]:
-                ax.set_xlabel("Temperature (K)")
-                ax.set_ylabel("Magnetization (Am^2/kg)")
-                ax.legend()
-                ax.grid(True)
-                ax.set_xlim(0, 300)
+    if fc_zfc_present:  
+        ax = axes[0,0]  
+        if fc is not None: ax.plot(fc["meas_temp"], fc["magn_mass"], color=fc_color, marker=fc_marker, label="FC")  
+        if zfc is not None: ax.plot(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, marker=zfc_marker, label="ZFC")  
+        ax.set_title("LTSIRM Data"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("Magnetization"); ax.legend(); ax.grid(True)  
 
-            if plot_derivative:
-                if fc_derivative is not None:
-                    axs[1, 0].plot(
-                        fc_derivative["T"],
-                        fc_derivative["dM_dT"],
-                        color=fc_color,
-                        marker=fc_marker,
-                        linestyle="-",
-                        markersize=symbol_size,
-                        label="FC Derivative",
-                    )
-                if zfc_derivative is not None:
-                    axs[1, 0].plot(
-                        zfc_derivative["T"],
-                        zfc_derivative["dM_dT"],
-                        color=zfc_color,
-                        marker=zfc_marker,
-                        linestyle="-",
-                        markersize=symbol_size,
-                        label="ZFC Derivative",
-                    )
-                if rtsirm_cool_derivative is not None:
-                    axs[1, 1].plot(
-                        rtsirm_cool_derivative["T"],
-                        rtsirm_cool_derivative["dM_dT"],
-                        color=rtsirm_cool_color,
-                        marker=rtsirm_cool_marker,
-                        linestyle="-",
-                        markersize=symbol_size,
-                        label="RTSIRM Cooling Derivative",
-                    )
-                if rtsirm_warm_derivative is not None:
-                    axs[1, 1].plot(
-                        rtsirm_warm_derivative["T"],
-                        rtsirm_warm_derivative["dM_dT"],
-                        color=rtsirm_warm_color,
-                        marker=rtsirm_warm_marker,
-                        linestyle="-",
-                        markersize=symbol_size,
-                        label="RTSIRM Warming Derivative",
-                    )
-                for ax in axs[1, :]:
-                    ax.set_xlabel("Temperature (K)")
-                    ax.set_ylabel("dM/dT")
-                    ax.legend()
-                    ax.grid(True)
-                    ax.set_xlim(0, 300)
+    if rtsirm_present:  
+        ax = axes[0,1]  
+        if rc is not None: ax.plot(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool")  
+        if rw is not None: ax.plot(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm")  
+        ax.set_title("RTSIRM Data"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("Magnetization"); ax.legend(); ax.grid(True)  
 
-        fig.tight_layout()
-        if show_plot:
-            plt.show()
-        if return_figure:
-            return fig
+    if plot_derivative and fc_zfc_present:  
+        ax = axes[1,0]  
+        if fcd is not None: ax.plot(fcd["T"], fcd["dM_dT"], color=fc_color, marker=fc_marker, label="FC dM/dT")  
+        if zfcd is not None: ax.plot(zfcd["T"], zfcd["dM_dT"], color=zfc_color, marker=zfc_marker, label="ZFC dM/dT")  
+        ax.set_title("LTSIRM Derivative"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("dM/dT"); ax.legend(); ax.grid(True)  
+
+    if plot_derivative and rtsirm_present:  
+        ax = axes[1,1]  
+        if rcd is not None: ax.plot(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool dM/dT")  
+        if rwd is not None: ax.plot(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm dM/dT")  
+        ax.set_title("RTSIRM Derivative"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("dM/dT"); ax.legend(); ax.grid(True)  
+
+    fig.tight_layout()  
+    if show_plot: plt.show()  
+    return fig if return_figure else None  
 
 
 def make_mpms_plots_dc(measurements):
