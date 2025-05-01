@@ -203,6 +203,91 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
+def ms_t_plot(
+    data,
+    temperature_column="meas_temp",
+    magnetization_column="magn_mass",
+    temp_unit="K",
+    interactive=False,
+    return_figure=False,
+    show_plot=True,
+):
+    """
+    Plot magnetization vs. temperature, either static or interactive,
+    with option to display in K or °C.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame or array-like
+        Table or array containing temperature and magnetization.
+    temperature_column : str
+        Name of the temperature column in `data` (assumed in K).
+    magnetization_column : str
+        Name of the magnetization column in `data`.
+    temp_unit : {'K','C'}, default 'K'
+        Units for the x-axis: 'K' for Kelvin or 'C' for Celsius.
+    interactive : bool, default False
+        If True, use Bokeh for an interactive plot.
+    return_figure : bool, default False
+        If True, return the figure object(s).
+    show_plot : bool, default True
+        If True, display the plot.
+
+    Returns
+    -------
+    (fig, ax) or bokeh layout or None
+        Matplotlib Figure and Axes or Bokeh layout if `return_figure` is True;
+        otherwise None.
+    """
+    # extract data arrays
+    T = np.asarray(data[temperature_column], dtype=float)
+    M = np.asarray(data[magnetization_column], dtype=float)
+
+    # convert to Celsius if requested
+    if temp_unit == "C":
+        T = T - 273.15
+        x_label = "Temperature (°C)"
+    else:
+        x_label = "Temperature (K)"
+
+    if interactive:
+        tools = [HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
+                 "pan,box_zoom,wheel_zoom,reset,save"]
+        p = figure(
+            title="M vs T",
+            x_axis_label=x_label,
+            y_axis_label="Magnetization",
+            tools=tools,
+            sizing_mode="stretch_width"
+        )
+        p.xaxis.axis_label_text_font_style = "normal"
+        p.yaxis.axis_label_text_font_style = "normal"
+        p.line(T, M, legend_label="M(T)", line_width=2)
+        p.circle(T, M, size=6, alpha=0.6, legend_label="M(T)")
+        p.legend.location = "top_left"
+        p.legend.click_policy = "hide"
+
+        layout = gridplot([[p]], sizing_mode="stretch_width")
+        if show_plot:
+            show(layout)
+        if return_figure:
+            return layout
+        return None
+
+    fig, ax = plt.subplots()
+    ax.plot(T, M, "o-", label="M(T)")
+    ax.set_xlabel(x_label)
+    ax.set_ylabel("Magnetization")
+    ax.set_title("M vs T")
+    ax.legend()
+    ax.grid(True)
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
+
+
 # MPMS functions
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -503,8 +588,10 @@ def plot_mpms_dc(
             p.xaxis.axis_label_text_font_style = "normal"
             p.yaxis.axis_label_text_font_style = "normal"
 
+        # stretch the grid to full width
         grid = gridplot(
-            [plots[i * cols : (i + 1) * cols] for i in range(rows)]
+            [plots[i * cols : (i + 1) * cols] for i in range(rows)],
+            sizing_mode="stretch_width"
         )
         if show_plot:
             show(grid)
