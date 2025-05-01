@@ -3940,7 +3940,10 @@ def day_plot(Ms, Mr, Bc, Bcr,
     ax.axhline(Mr_Ms_upper, color = lc, lw = lw)
     ax.axvline(Bc_Bcr_lower, color = lc, lw = lw)
     ax.axvline(Bc_Bcr_upper, color = lc, lw = lw)
-
+    ax.text(1.1, 0.55, 'SD', color = 'k', fontsize = 12)
+    ax.text(2.0, 0.06, 'PSD', color = 'k', fontsize = 12)
+    ax.text(5.0, 0.006, 'MD', color = 'k', fontsize = 12)
+    
     if plot_MD_slope:
         MD_Bcr_Bc = np.linspace(4, 20, 100)
         MD_Mr_Ms = 1/MD_Bcr_Bc * 45/480
