@@ -3071,10 +3071,10 @@ def plot_backfield_data(
     magnetization="magn_mass",
     figsize=(5, 12),
     plot_raw=True,
-    plot_processed=False,
-    plot_spectrum=False,
+    plot_processed=True,
+    plot_spectrum=FalTruee,
     interactive=False,
-    return_figure=False,
+    return_figure=True,
     show_plot=True,
 ):
     """
@@ -3648,12 +3648,57 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
 
 # Day plot function
 # ------------------------------------------------------------------------------------------------------------------
-def day_plot(Ms, Mr, Bc, Bcr, 
+def day_plot_MagIC(specimen_data, 
+                   by ='specimen',
+                   Mr = 'hyst_mr_mass',
+                   Ms = 'hyst_ms_mass',
+                   Bcr = 'hyst_bcr',
+                   Bc = 'hyst_bc',
+                   **kwargs):
+    """
+    Function to plot a Day plot from a MagIC specimens table.
+
+    Parameters
+    ----------
+    specimen_data : pandas.DataFrame
+        DataFrame containing the specimens data.
+    by : str
+        Column name to group by (default is 'specimen').
+    Mr : str
+        Column name for the remanence (default is 'hyst_mr_mass').
+    Ms : str
+        Column name for the saturation magnetization (default is 'hyst_ms_mass').
+    Bcr : str
+        Column name for the coercivity (default is 'hyst_bcr').
+    Bc : str
+        Column name for the coercivity of remanence (default is 'hyst_bc').
+    **kwargs : keyword arguments
+        Additional arguments to pass to the plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        The axes object containing the plot.
+    """
+    summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
+    summary_sats = summary_sats.dropna()
+
+    ax = day_plot(Mr = summary_sats[Mr],
+                       Ms = summary_sats[Ms],
+                       Bcr = summary_sats[Bcr],
+                       Bc = summary_sats[Bc], 
+                       **kwargs)
+    return ax
+    
+def day_plot(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_MD_slope=True,
              plot_SP_SD_mixing=[10, 15, 25, 30],
              plot_SD_MD_mixing=True,
-             color='black', marker='o', label = 'sample', alpha=1, lc='black', lw=0.5, legend=True, figsize=(8,6)):
+             color='black', marker='o', 
+             label = 'sample', alpha=1, 
+             lc='black', lw=0.5, 
+             legend=True, figsize=(8,6)):
     '''
     function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
         plots Mr/Ms vs Bc/Bcr. 
@@ -3698,14 +3743,16 @@ def day_plot(Ms, Mr, Bc, Bcr,
     Bcr = np.asarray(Bcr)
     Bcr_Bc = Bcr/Bc
     Mr_Ms = Mr/Ms
-    
     _, ax = plt.subplots(figsize = figsize)
     # plotting SD, PSD, MD regions
     ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
     ax.axhline(Mr_Ms_upper, color = lc, lw = lw)
     ax.axvline(Bc_Bcr_lower, color = lc, lw = lw)
     ax.axvline(Bc_Bcr_upper, color = lc, lw = lw)
-
+    ax.text(1.1, 0.55, 'SD', color = 'k', fontsize = 12)
+    ax.text(2.0, 0.06, 'PSD', color = 'k', fontsize = 12)
+    ax.text(5.0, 0.006, 'MD', color = 'k', fontsize = 12)
+    
     if plot_MD_slope:
         MD_Bcr_Bc = np.linspace(4, 20, 100)
         MD_Mr_Ms = 1/MD_Bcr_Bc * 45/480
@@ -3730,12 +3777,16 @@ def day_plot(Ms, Mr, Bc, Bcr,
         mask = mixing_Mr_Ms < Mr_Ms_SP_cutoff
         mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
         mixing_Mr_Ms = mixing_Mr_Ms[mask]
-        ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='--', label = 'SD/MD mixture')
+        ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='-.', label = 'SD/MD mixture')
     # plot the data
-    ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
+    ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha)
 
-    ax.set_xlim(0, 6)
-    ax.set_ylim(0, 0.6)
+    ax.set_xlim(1, 100)
+    ax.set_ylim(0.005, 1)
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.set_xticks([1, 2, 5, 10, 20, 50, 100], [1, 2, 5, 10, 20, 50, 100])
+    ax.set_yticks([0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1], [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1])
     ax.set_xlabel('Bcr/Bc', fontsize=12)
     ax.set_ylabel('Mr/Ms', fontsize=12)
     ax.set_title('Day plot', fontsize=14)
