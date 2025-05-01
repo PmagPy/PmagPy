@@ -3306,10 +3306,10 @@ def plot_backfield_data(
     magnetization="magn_mass",
     figsize=(5, 12),
     plot_raw=True,
-    plot_processed=False,
-    plot_spectrum=False,
+    plot_processed=True,
+    plot_spectrum=FalTruee,
     interactive=False,
-    return_figure=False,
+    return_figure=True,
     show_plot=True,
 ):
     """
