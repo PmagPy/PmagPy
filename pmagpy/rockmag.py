@@ -377,7 +377,7 @@ def plot_mpms_dc(
     """
     Plots MPMS DC data and optional derivatives, omitting empty panels.
 
-    Args:
+    Parameters:
         fc_data (DataFrame or None): Field-cooled data.
         zfc_data (DataFrame or None): Zero-field-cooled data.
         rtsirm_cool_data (DataFrame or None): RTSIRM cooling data.
@@ -430,7 +430,9 @@ def plot_mpms_dc(
         figs = []  
 
         if fc_zfc_present:  
-            p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", y_axis_label="Magnetization (Am2/kg)", tools=tools, sizing_mode="stretch_width")  
+            p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", 
+                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
+                        sizing_mode="stretch_width",plot_height=400)  
             if fc is not None:  
                 p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
                 p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
@@ -443,7 +445,9 @@ def plot_mpms_dc(
             figs.append(p0)  
 
         if rtsirm_present:  
-            p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", y_axis_label="Magnetization (Am2/kg)", tools=tools, sizing_mode="stretch_width")  
+            p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", 
+                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
+                        sizing_mode="stretch_width",plot_height=400)  
             if rc is not None:  
                 p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
                 p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
@@ -457,7 +461,9 @@ def plot_mpms_dc(
 
         # separate derivative panels  
         if plot_derivative and fc_zfc_present:  
-            p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", y_axis_label="dM/dT", tools=tools, sizing_mode="stretch_width")  
+            p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", 
+                        y_axis_label="dM/dT", tools=tools, 
+                        sizing_mode="stretch_width",plot_height=400)  
             if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
             if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
             p2.legend.click_policy="hide" 
@@ -466,7 +472,9 @@ def plot_mpms_dc(
             figs.append(p2)  
 
         if plot_derivative and rtsirm_present:  
-            p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", y_axis_label="dM/dT", tools=tools, sizing_mode="stretch_width")  
+            p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", 
+                        y_axis_label="dM/dT", tools=tools, 
+                        sizing_mode="stretch_width",plot_height=400)  
             if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
             if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
             p3.legend.click_policy="hide"  
@@ -3072,7 +3080,7 @@ def plot_backfield_data(
     figsize=(5, 12),
     plot_raw=True,
     plot_processed=True,
-    plot_spectrum=FalTruee,
+    plot_spectrum=True,
     interactive=False,
     return_figure=True,
     show_plot=True,
