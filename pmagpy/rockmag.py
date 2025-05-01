@@ -281,7 +281,7 @@ def plot_mpms_dc(
     rtsirm_cool_marker="s",
     rtsirm_warm_marker="o",
     symbol_size=4,
-    use_bokeh=False,
+    interactive=False,
     plot_derivative=False,
     return_figure=False,
     show_plot=True,
@@ -300,7 +300,7 @@ def plot_mpms_dc(
         fc_marker, zfc_marker, rtsirm_cool_marker, rtsirm_warm_marker (str):
             Marker symbols.
         symbol_size (int): Size of the markers.
-        use_bokeh (bool): If True, use Bokeh for plotting.
+        interactive (bool): If True, use Bokeh for interactive plotting.
         plot_derivative (bool): If True, plot derivative curves.
         return_figure (bool): If True, return the figure object.
         show_plot (bool): If True, display the plot.
@@ -356,7 +356,7 @@ def plot_mpms_dc(
             else None
         )
 
-    if use_bokeh:
+    if interactive:
         hover = HoverTool(tooltips=[("T", "@x"), ("M", "@y")])
         tools = [hover, "pan,box_zoom,wheel_zoom,reset,save"]
         rows = 2 if plot_derivative else 1
@@ -733,7 +733,6 @@ def make_mpms_plots_dc(measurements):
     ui = widgets.VBox([widgets.HBox([specimen_dd, library_rb]), out])
     display(ui)
     _update()
-
 
 
 def verwey_estimate(temps, mags, 
