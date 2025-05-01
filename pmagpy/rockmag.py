@@ -3282,6 +3282,8 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     '''
     assert smooth_frac >= 0 and smooth_frac <= 1, 'smooth_frac must be between 0 and 1'
     assert isinstance(drop_first, bool), 'drop_first must be a boolean'
+    
+    experiment = experiment.reset_index(drop=True)
     # check and make sure to force drop first row if the first treat field is in the wrong direction
     if experiment[field].iloc[0] > 0:
         drop_first = True
@@ -3298,60 +3300,183 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     experiment['smoothed_log_dc_field'] = spl[:, 0]
     return experiment
     
-def plot_backfield_data(experiment, field='treat_dc_field', magnetization='magn_mass', figsize=(5, 12)):
+def plot_backfield_data(
+    experiment,
+    field="treat_dc_field",
+    magnetization="magn_mass",
+    figsize=(5, 12),
+    plot_raw=True,
+    plot_processed=False,
+    plot_spectrum=False,
+    interactive=False,
+    return_figure=False,
+    show_plot=True,
+):
     """
-    Plot backfield data including raw, processed, and coercivity spectrum plots.
+    Plot backfield data: raw, processed, and coercivity spectrum.
+
+    Data processing steps:
+      - Raw: magnetization vs. field (T).
+      - Processed: magn_mass_shift = magn_mass − min(magn_mass);
+        log_dc_field = log10(−field·1e3) (log10 mT axis).
+      - Spectrum: derivative −ΔM/Δ(log B).
 
     Parameters
     ----------
     experiment : DataFrame
-        DataFrame containing the backfield data with columns 'treat_dc_field', 
-        'magn_mass', 'log_dc_field', 'magn_mass_shift', 
-        'smoothed_log_dc_field', and 'smoothed_magn_mass_shift'.
-    figsize : tuple of int, optional
-        Size of the figure to be created (default is (5, 12)).
+        Must contain raw and, if requested, processed columns.
+    plot_raw : bool
+    plot_processed : bool
+    plot_spectrum : bool
+    interactive : bool
+    return_figure : bool
+    show_plot : bool
 
     Returns
     -------
-    The matplotlib figure and axes objects: (fig, (ax1, ax2, ax3)).
+    Matplotlib (fig, axes) or Bokeh grid or None
     """
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1, figsize=figsize)
+    # check columns
+    req = []
+    if plot_raw:
+        req += [field, magnetization]
+    if plot_processed or plot_spectrum:
+        req += [
+            "log_dc_field",
+            "magn_mass_shift",
+            "smoothed_log_dc_field",
+            "smoothed_magn_mass_shift",
+        ]
+    missing = [c for c in req if c not in experiment.columns]
+    if missing:
+        raise KeyError(f"Missing columns: {missing}")
 
-    # raw data
-    ax1.scatter(experiment[field], experiment[magnetization], c='black', marker='o', s=10, label='raw backfield data')
-    ax1.plot(experiment[field], experiment[magnetization], c='black')
-    ax1.set_xlabel('treatment field (T)', fontsize=14)
-    ax1.set_ylabel('magnetization (Am$^2$/kg)', fontsize=14)
-    ax1.set_title('raw backfield data')
-    ax1.legend()
-    # processed data as curve on top of raw scattered data points in log10 space
-    ax2.scatter(experiment['log_dc_field'], experiment['magn_mass_shift'], c='grey', marker='o', s=10, label='shifted raw data')
-    ax2.plot(experiment['smoothed_log_dc_field'], experiment['smoothed_magn_mass_shift'], c='k', label='smoothed shifted raw data')
-    ax2ticks = ax2.get_xticks()
-    ax2.set_xticklabels([f'{round(10**i, 1)}' for i in ax2ticks])
-    ax2.set_xlabel('treatment field (mT)', fontsize=14)
-    ax2.set_ylabel('magnetization (Am$^2$/kg)', fontsize=14)
-    ax2.set_title('processed backfield data')
-    ax2.legend()
-    # coercivity spectrum
-    # first show the raw data in the derivative space
-    raw_derivatives_y = -np.diff(experiment['magn_mass_shift'])/np.diff(experiment['log_dc_field'])
-    # take the middle points of the logB values, and also get rid of the nan values
-    raw_derivatives_x = experiment['log_dc_field'].rolling(window=2).mean().dropna()
-    # derivatives of smoothed data
-    smoothed_derivatives_y = -np.diff(experiment['smoothed_magn_mass_shift'])/np.diff(experiment['smoothed_log_dc_field'])
-    smoothed_derivatives_x = experiment['smoothed_log_dc_field'].rolling(window=2).mean().dropna()
-    ax3.scatter(raw_derivatives_x, raw_derivatives_y, c='grey', marker='o', s=10, label='raw coercivity spectrum')
-    ax3.plot(smoothed_derivatives_x, smoothed_derivatives_y, c='k', label='smoothed coercivity spectrum')
-    ax3ticks = ax3.get_xticks()
-    ax3.set_xticklabels([f'{round(10**i, 1)}' for i in ax3ticks])
-    ax3.set_xlabel('treatment field (mT)', fontsize=14)
-    ax3.set_ylabel('dM/dB', fontsize=14)
-    ax3.set_title('coercivity spectrum')
-    ax3.legend()
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=0.4, wspace=0.2)
+    # prepare spectrum
+    if plot_spectrum:
+        log_b = experiment["log_dc_field"]
+        shift_m = experiment["magn_mass_shift"]
+        raw_dy = -np.diff(shift_m) / np.diff(log_b)
+        raw_dx_log = log_b.rolling(2).mean().dropna()
+        smooth_dy = -np.diff(experiment["smoothed_magn_mass_shift"]) / np.diff(
+            experiment["smoothed_log_dc_field"]
+        )
+        smooth_dx_log = experiment["smoothed_log_dc_field"].rolling(2).mean().dropna()
+        # axis: convert log10(mT) → mT for plotting, but axis scale remains log
+        raw_dx = 10**raw_dx_log
+        smooth_dx = 10**smooth_dx_log
 
-    return fig, (ax1, ax2, ax3)
+    if interactive:
+        tools = [
+            HoverTool(tooltips=[("Field (mT)", "@x"), ("Mag", "@y")]),
+            "pan,box_zoom,reset"
+        ]
+        figs = []
+        palette = Category10[3]
+
+        if plot_raw:
+            p0 = figure(
+                title="Raw backfield",
+                x_axis_label="Field (T)",
+                y_axis_label="Magnetization",
+                tools=tools,
+                sizing_mode="stretch_width",
+            )
+            p0.scatter(
+                experiment[field],
+                experiment[magnetization],
+                legend_label="raw",
+                color=palette[0],
+                size=6,
+            )
+            p0.line(experiment[field], experiment[magnetization], color=palette[0])
+            p0.legend.click_policy = "hide"
+            figs.append(p0)
+
+        if plot_processed:
+            x_shifted = 10 ** experiment["log_dc_field"]
+            x_smooth = 10 ** experiment["smoothed_log_dc_field"]
+            p1 = figure(
+                title="Processed backfield",
+                x_axis_label="Field (mT)",
+                y_axis_label="Magnetization",
+                x_axis_type="log",
+                tools=tools,
+                sizing_mode="stretch_width",
+            )
+            p1.scatter(
+                x_shifted,
+                experiment["magn_mass_shift"],
+                legend_label="shifted",
+                color=palette[1],
+                size=6,
+            )
+            p1.line(
+                x_smooth,
+                experiment["smoothed_magn_mass_shift"],
+                color=palette[1],
+                legend_label="smoothed",
+            )
+            p1.legend.click_policy = "hide"
+            figs.append(p1)
+
+        if plot_spectrum:
+            p2 = figure(
+                title="Coercivity spectrum",
+                x_axis_label="Field (mT)",
+                y_axis_label="dM/dB",
+                x_axis_type="log",
+                tools=tools,
+                sizing_mode="stretch_width",
+            )
+            p2.scatter(raw_dx, raw_dy, legend_label="raw spectrum",
+                       color=palette[2], size=6)
+            p2.line(smooth_dx, smooth_dy, color=palette[2],
+                    legend_label="smoothed spectrum")
+            p2.legend.click_policy = "hide"
+            figs.append(p2)
+
+        grid = gridplot(figs, ncols=1, sizing_mode="stretch_width")
+        if show_plot:
+            show(grid)
+        if return_figure:
+            return grid
+        return None
+
+    # static Matplotlib
+    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=figsize)
+    ax1, ax2, ax3 = axes
+    if plot_raw:
+        ax1.scatter(experiment[field], experiment[magnetization],
+                    c="k", s=10, label="raw")
+        ax1.plot(experiment[field], experiment[magnetization], c="k")
+        ax1.set(title="raw backfield", xlabel="field (T)",
+                ylabel="magnetization")
+        ax1.legend()
+    if plot_processed:
+        ax2.scatter(experiment["log_dc_field"],
+                    experiment["magn_mass_shift"],
+                    c="gray", s=10, label="shifted")
+        ax2.plot(experiment["smoothed_log_dc_field"],
+                 experiment["smoothed_magn_mass_shift"], c="k",
+                 label="smoothed")
+        ticks = ax2.get_xticks()
+        ax2.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
+        ax2.set(title="processed", xlabel="field (mT)", ylabel="magnetization")
+        ax2.legend()
+    if plot_spectrum:
+        ax3.scatter(raw_dx_log, raw_dy, c="gray", s=10, label="raw spectrum")
+        ax3.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
+        ticks3 = ax3.get_xticks()
+        ax3.set_xticklabels([f"{round(10**t,1)}" for t in ticks3])
+        ax3.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
+        ax3.legend()
+    fig.tight_layout()
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, (ax1, ax2, ax3)
+    return None
+
 
 def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=True, n_iter=3):
     '''
