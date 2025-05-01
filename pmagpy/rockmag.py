@@ -11,7 +11,7 @@ import matplotlib.patches as patches
 
 try:
     import ipywidgets as widgets
-    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox
+    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox, FloatSlider
     from IPython.display import HTML, display
     
 except ImportError:
@@ -3880,3 +3880,295 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
     ax.legend()
 
     return ax
+
+# Day plot function
+# ------------------------------------------------------------------------------------------------------------------
+def day_plot(Ms, Mr, Bc, Bcr, 
+             Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
+             plot_MD_slope=True,
+             plot_SP_SD_mixing=[10, 15, 25, 30],
+             plot_SD_MD_mixing=True,
+             color='black', marker='o', label = 'sample', alpha=1, lc='black', lw=0.5, legend=True, figsize=(8,6)):
+    '''
+    function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
+        plots Mr/Ms vs Bc/Bcr. 
+
+    Parameters
+    ----------
+    Ms : float or array-like
+        saturation magnetization
+    Mr : float or array-like
+        remanent magnetization
+    Bc : float or array-like
+        coercivity
+    Bcr : float or array-like
+        coercivity of remanence
+    color : str, optional
+        color of the points. The default is 'black'.
+    marker : str, optional
+        marker style of the points. The default is 'o'.
+    label : str, optional
+        label for the points. The default is 'sample'.
+    alpha : float, optional
+        transparency of the points. The default is 1.
+    lc : str, optional
+        color of the lines. The default is 'black'.
+    lw : float, optional
+        line width of the lines. The default is 0.5.
+    legend : bool, optional
+        whether to show the legend. The default is True.
+    figsize : tuple, optional
+        size of the figure. The default is (6,6).
+
+    Returns
+    -------
+    ax : matplotlib.axes._axes.Axes
+        the axes object of the plot.
+
+    '''
+    # force numpy arrays
+    Ms = np.asarray(Ms)
+    Mr = np.asarray(Mr)
+    Bc = np.asarray(Bc)
+    Bcr = np.asarray(Bcr)
+    Bcr_Bc = Bcr/Bc
+    Mr_Ms = Mr/Ms
+    
+    _, ax = plt.subplots(figsize = figsize)
+    # plotting SD, PSD, MD regions
+    ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
+    ax.axhline(Mr_Ms_upper, color = lc, lw = lw)
+    ax.axvline(Bc_Bcr_lower, color = lc, lw = lw)
+    ax.axvline(Bc_Bcr_upper, color = lc, lw = lw)
+
+    if plot_MD_slope:
+        MD_Bcr_Bc = np.linspace(4, 20, 100)
+        MD_Mr_Ms = 1/MD_Bcr_Bc * 45/480
+        ax.plot(MD_Bcr_Bc, MD_Mr_Ms, color = lc, lw = lw, label = 'MD slope')
+    if len(plot_SP_SD_mixing) > 0:
+        # get the SP saturation curve
+        Bcr_Bc_SP, Mr_Ms_SP = SP_saturation_curve()
+        ax.plot(Bcr_Bc_SP, Mr_Ms_SP, color = lc, lw = lw, ls='--', label = 'SP saturation curve')
+        for i, SP_size in enumerate(plot_SP_SD_mixing):
+            mixing_Bcr_Bc, mixing_Mr_Ms = SP_SD_mixture(SP_size)
+            # filter out anything above the SP saturation curve
+            Mr_Ms_SP_cutoff = np.interp(mixing_Bcr_Bc, Bcr_Bc_SP, Mr_Ms_SP)
+            mask = mixing_Mr_Ms < Mr_Ms_SP_cutoff
+            mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
+            mixing_Mr_Ms = mixing_Mr_Ms[mask]
+            ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'C'+str(i), lw = lw, ls='--', label = f'SP size {SP_size} nm')
+    if plot_SD_MD_mixing:
+        # get the SD/MD mixing curve
+        mixing_Bcr_Bc, mixing_Mr_Ms = SD_MD_mixture()
+        # filter out anything above the SP saturation curve
+        Mr_Ms_SP_cutoff = np.interp(mixing_Bcr_Bc, Bcr_Bc_SP, Mr_Ms_SP)
+        mask = mixing_Mr_Ms < Mr_Ms_SP_cutoff
+        mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
+        mixing_Mr_Ms = mixing_Mr_Ms[mask]
+        ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='--', label = 'SD/MD mixture')
+    # plot the data
+    ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
+
+    ax.set_xlim(0, 6)
+    ax.set_ylim(0, 0.6)
+    ax.set_xlabel('Bcr/Bc', fontsize=12)
+    ax.set_ylabel('Mr/Ms', fontsize=12)
+    ax.set_title('Day plot', fontsize=14)
+
+    if legend:
+        ax.legend(loc='lower right', fontsize=10)
+    return ax
+
+def squareness_Bc(Ms, Mr, Bc, color = 'black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, figsize = (6,6)):
+    '''
+    fuction for making squareness coercivity plot
+        plots Mr/Ms vs Bc
+    '''
+    # force numpy arrays
+    Ms = np.asarray(Ms)
+    Mr = np.asarray(Mr)
+    Bc = np.asarray(Bc)
+    Mr_Ms = Mr/Ms
+    _, ax = plt.subplots(figsize = figsize)
+    ax.scatter(Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
+
+    return ax
+
+def Langevin_alpha(V, Ms, H, T):
+    '''
+    Langevin alpha calculation
+
+    Parameters
+    ----------
+    V : float
+        volume of the particle
+    Ms : float
+        saturation magnetization
+    H : float
+        applied field
+    T : float
+        temperature in Kelvin
+
+    Returns
+    -------
+    alpha : float
+        Langevin alpha value
+    '''
+    mu0 = 4 * np.pi * 1e-7
+    k = 1.38064852e-23
+
+    return mu0*Ms * V * H / (k * T)
+
+def Langevin(alpha):
+    '''
+    Langevin function
+
+    Parameters
+    ----------
+    alpha : float
+        Langevin alpha value
+
+    Returns
+    -------
+    L : float
+        Langevin function value
+    '''
+    return 1 / np.tanh(alpha) - 1 / alpha
+
+def magnetite_Ms(T):
+    '''
+    Magnetite saturation magnetization calculation
+
+    Parameters
+    ----------
+    T : float
+        temperature in Celsius
+
+    Returns
+    -------
+    Ms : float
+        saturation magnetization value
+    '''
+    return 737.384 * 51.876 * (580 - T)**0.4
+
+def chi_SP(SP_size, T):
+    '''
+    SP size distribution function
+
+    Parameters
+    ----------
+    SP_size : float
+        size of the superparamagnetic particle in nm
+    T : float
+        temperature in Kelvin
+
+    Returns
+    -------
+    chi : float
+        susceptibility value
+    '''
+    mu0 = 4 * np.pi * 1e-7
+    k = 1.38064852e-23
+    Ms = magnetite_Ms(T - 273.15)
+    V = 4/3*np.pi*(SP_size/2)**3 / 1e27
+    return mu0 * V * Ms**2 / 3 / k / T
+
+
+def SP_SD_mixture(SP_size, SD_Mr_Ms = 0.5, SD_Bcr_Bc = 1.25, X_sd = 3, T = 300):
+    '''
+    function to calculate the SP/SD mixture curve according to Dunlop (2002)
+    Parameters
+    ----------
+    SP_size : float
+        size of the superparamagnetic particle in nm
+    SD_Mr_Ms : float, optional
+        remanent to saturation magnetization ratio. The default is 0.5.
+    SD_Bcr_Bc : float, optional
+        remanent coercivity to coercivity ratio. The default is 1.25.
+    X_sd : float, optional
+        approximate Mrs/Bc slope. The default is 3 for magnetite
+    T : float, optional
+        temperature in Kelvin. The default is 300.
+    Returns
+    -------
+    Bcr_Bc : numpy.ndarray
+        coercivity ratio array
+    Mrs_Ms : numpy.ndarray
+        saturation magnetization ratio array
+    '''
+    f_sd = 1/np.logspace(0, 2, 100)
+    f_sp = 1 - f_sd
+    Mrs_Ms = f_sd * SD_Mr_Ms
+    X_sp = chi_SP(SP_size, T)
+    Bcr_Bc = 1 / (f_sd * X_sd / (f_sd * X_sd + f_sp * X_sp)) * SD_Bcr_Bc
+
+    return Bcr_Bc, Mrs_Ms
+
+def SP_saturation_curve(SD_Mr_Ms=0.5, SD_Bcr_Bc = 1.25):
+    '''
+    function to calculate the SP saturation curve according to Dunlop (2002)
+
+    Parameters
+    ----------
+    SD_Mr_Ms : float, optional
+        saturation magnetization ratio. The default is 0.5.
+    SD_Bcr_Bc : float, optional
+        remanence coercivity to coercivity ratio. The default is 1.25.
+    Returns
+    -------
+    Bcr_Bc : numpy.ndarray
+        coercivity ratio array
+    Mrs_Ms : numpy.ndarray
+        saturation magnetization ratio array
+    '''
+    f_sp = np.linspace(0, 1/3, 100)
+    f_sd = 1 - f_sp
+    Mrs_Ms = f_sd * SD_Mr_Ms
+    Bcr_Bc = 1 / (1 - (f_sp/f_sd) / SD_Mr_Ms) * SD_Bcr_Bc
+    return Bcr_Bc, Mrs_Ms
+
+def SD_MD_mixture(Mr_Ms_SD = 0.5, Mr_Ms_MD = 0.019,
+                  Bc_SD = 400, Bc_MD = 43,
+                  Bcr_SD = 500, Bcr_MD = 230,
+                  X_sd = 0.6, X_MD = 0.209,
+                  Xr_SD = 0.48, Xr_MD = 0.039):
+    '''
+    function to calculate the SD/MD mixture curve according to Dunlop (2002)
+    Parameters
+    ----------
+    Mr_Ms_SD : float
+        remanent to saturation magnetization ratio for SD. The default is 0.5.
+    Mr_Ms_MD : float
+        remanent to saturation magnetization ratio for MD. The default is 0.019.
+    Bc_SD : float
+        coercivity for SD. The default is 400.
+    Bc_MD : float
+        coercivity for MD. The default is 43.
+    Bcr_SD : float
+        coercivity of remanence for SD. The default is 500.
+    Bcr_MD : float
+        coercivity of remanence for MD. The default is 230.
+    X_sd : float
+        approximate Mrs/Bc slope for SD. The default is 0.6.
+    X_MD : float
+        approximate Mrs/Bc slope for MD. The default is 0.209.
+    Xr_SD : float
+        approximate Mrs/Bcr slope for SD. The default is 0.48.
+    Xr_MD : float
+        approximate Mrs/Bcr slope for MD. The default is 0.039.
+    Returns
+    -------
+    Bcr_Bc : numpy.ndarray
+        coercivity ratio array
+    Mrs_Ms : numpy.ndarray
+        saturation magnetization ratio array
+
+    * the default values are fro the IRM database
+    '''
+    f_sd = np.linspace(0, 1, 100)
+    f_md = 1 - f_sd
+    Mrs_Ms = f_sd * Mr_Ms_SD + f_md * Mr_Ms_MD
+    Bc = (f_sd * X_sd * Bc_SD + f_md * X_MD * Bc_MD) / (f_sd * X_sd + f_md * X_MD)
+    Bcr = (f_sd * Xr_SD * Bcr_SD + f_md * Xr_MD * Bcr_MD) / (f_sd * Xr_SD + f_md * Xr_MD)
+    Bcr_Bc = Bcr / Bc
+    return Bcr_Bc, Mrs_Ms
