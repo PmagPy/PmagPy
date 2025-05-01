@@ -23,6 +23,7 @@ try:
     from bokeh.layouts import gridplot
     from bokeh.models import HoverTool
     from bokeh.embed import components
+    from bokeh.palettes import Category10
     _HAS_BOKEH = True
 except ImportError:
     _HAS_BOKEH = False
@@ -2995,59 +2996,172 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
     
     return avg_rms, avg_variance
 
-def plot_MPMS_AC_X_T(experiment, frequency=None, phase='in', figsize=(6,6)):
+
+def plot_mpms_ac(
+        experiment,
+        frequency=None,
+        phase='in',
+        figsize=(6, 6),
+        interactive=False,
+        return_figure=False,
+        show_plot=True):
     """
-    This function plots the AC susceptibility data from the MPMS-X for a given experiment
-    
+    Plot AC susceptibility data from MPMS-X, optionally as interactive Bokeh.
+
     Parameters
     ----------
-    experiment : pandas DataFrame
-        The experiment table from the MagIC contribution
-    frequency : float
-        The frequency of the AC measurement in Hz
-    phase : str
-        The phase of the AC measurement ('in' or 'out' or 'both')
+    experiment : pandas.DataFrame
+        The experiment table from the MagIC contribution.
+    frequency : float or None
+        Frequency of AC measurement in Hz; None plots all frequencies.
+    phase : {'in','out','both'}
+        Which phase to plot.
+    figsize : tuple of float
+        Figure size for Matplotlib (width, height).
+    interactive : bool
+        If True, render with Bokeh for interactive exploration.
+    return_figure : bool
+        If True, return the figure object(s).
+    show_plot : bool
+        If True, display the plot.
+
+    Returns
+    -------
+    fig, ax or (fig, axes) or Bokeh layout or None
     """
-    assert phase in ['in', 'out', 'both'], 'phase should be either "in" or "out" or "both"'
-    assert frequency is None or frequency in experiment['frequency'].unique(), 'frequency should be one of the available frequencies'
+    if phase not in ['in', 'out', 'both']:
+        raise ValueError('phase must be "in", "out", or "both"')
+    freqs = ([frequency] if frequency is not None
+             else experiment['meas_freq'].unique().tolist())
+    if frequency is not None and frequency not in freqs:
+        raise ValueError(f'frequency must be one of {freqs}')
 
-    if frequency is None:
-        # that means we will plot all frequencies
-        meas_freqs = experiment['meas_freq'].unique()
-    else:
-        meas_freqs = [frequency]
+    if interactive:
+        tools = [
+            HoverTool(tooltips=[('T', '@x'), ('χ', '@y')]),
+            'pan,box_zoom,wheel_zoom,reset,save']
+        n = len(freqs)
+        palette = Category10[n] if n <= 10 else Category10[10]
+        figs = []
 
-    if phase != 'both':
-        
+        if phase in ['in', 'out']:
+            p = figure(
+                title=f'AC χ ({phase} phase)',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 100),
+                height=int(figsize[1] * 100))
+            p.xaxis.axis_label_text_font_style = "normal"
+            p.yaxis.axis_label_text_font_style = "normal"
+            for i, f in enumerate(freqs):
+                d = experiment[experiment['meas_freq'] == f]
+                col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
+                color = palette[i]
+                p.line(
+                    d['meas_temp'], d[col],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p.circle(
+                    d['meas_temp'], d[col],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+            p.legend.location = 'top_left'
+            p.legend.click_policy = "hide"
+            figs = [p]
+        else:
+            p1 = figure(
+                title='AC χ in phase',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 50),
+                height=int(figsize[1] * 100))
+            p2 = figure(
+                title='AC χ out phase',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 50),
+                height=int(figsize[1] * 100))
+            for p in (p1, p2):
+                p.xaxis.axis_label_text_font_style = "normal"
+                p.yaxis.axis_label_text_font_style = "normal"
+            for i, f in enumerate(freqs):
+                d = experiment[experiment['meas_freq'] == f]
+                color = palette[i]
+                p1.line(
+                    d['meas_temp'], d['susc_chi_mass'],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p1.circle(
+                    d['meas_temp'], d['susc_chi_mass'],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+                p2.line(
+                    d['meas_temp'], d['susc_chi_qdr_mass'],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p2.circle(
+                    d['meas_temp'], d['susc_chi_qdr_mass'],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+            p1.legend.location = p2.legend.location = 'top_left'
+            p1.legend.click_policy = p2.legend.click_policy = "hide"
+            figs = [p1, p2]
+
+        layout = gridplot([figs], sizing_mode='stretch_width')
+        if show_plot:
+            show(layout)
+        if return_figure:
+            return layout
+        return None
+
+    # static Matplotlib
+    if phase in ['in', 'out']:
         fig, ax = plt.subplots(figsize=figsize)
-        for meas_freq in meas_freqs:
-            data = experiment[(experiment['meas_freq']==meas_freq)]
-            # plot the data
-            if phase == 'in':
-                ax.plot(data['meas_temp'], data['susc_chi_mass'], 'o-', label=f'{meas_freq} Hz')
-            else:
-                ax.plot(data['meas_temp'], data['susc_chi_qdr_mass'], 'o-', label=f'{meas_freq} Hz')
-
-        ax.set_xlabel('Temperature (K)', fontsize=16)
-        ax.set_ylabel('$m^3/kg$', fontsize=16)
-        ax.set_title('AC Susceptibility '+phase+' phase', fontsize=16)
+        col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
+        for f in freqs:
+            d = experiment[experiment['meas_freq'] == f]
+            ax.plot(d['meas_temp'], d[col], 'o-', label=f'{f} Hz')
+        ax.set_xlabel('Temperature (K)')
+        ax.set_ylabel('χ (m³/kg)')
+        ax.set_title(f'AC χ ({phase} phase)')
         ax.legend()
-        return fig, ax
-    else:
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
-        for meas_freq in meas_freqs:
-            data = experiment[(experiment['meas_freq']==meas_freq)]
-            # plot the data
-            ax1.plot(data['meas_temp'], data['susc_chi_mass'], 'o-', label=f'{meas_freq} Hz')
-            ax2.plot(data['meas_temp'], data['susc_chi_qdr_mass'], 'o-', label=f'{meas_freq} Hz')
-        ax1.set_xlabel('Temperature (K)', fontsize=16)
-        ax1.set_ylabel('$m^3/kg$', fontsize=16)
-        ax1.set_title('AC Susceptibility in phase', fontsize=16)
-        ax1.legend()
-        ax2.set_xlabel('Temperature (K)', fontsize=16)
-        ax2.set_ylabel('$m^3/kg$', fontsize=16)
-        ax2.set_title('AC Susceptibility out phase', fontsize=16)
-        ax2.legend()
+        if show_plot:
+            plt.show()
+        if return_figure:
+            return fig, ax
+        return None
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+    for f in freqs:
+        d = experiment[experiment['meas_freq'] == f]
+        ax1.plot(d['meas_temp'], d['susc_chi_mass'], 'o-', label=f'{f} Hz')
+        ax2.plot(d['meas_temp'], d['susc_chi_qdr_mass'], 'o-', label=f'{f} Hz')
+    ax1.set_xlabel('Temperature (K)')
+    ax1.set_ylabel('χ (m³/kg)')
+    ax1.set_title('AC χ in phase')
+    ax1.legend()
+    ax2.set_xlabel('Temperature (K)')
+    ax2.set_ylabel('χ (m³/kg)')
+    ax2.set_title('AC χ out phase')
+    ax2.legend()
+    if show_plot:
+        plt.show()
+    if return_figure:
         return fig, (ax1, ax2)
 
 
