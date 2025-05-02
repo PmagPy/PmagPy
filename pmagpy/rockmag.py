@@ -21,9 +21,12 @@ except ImportError:
 try:
     from bokeh.plotting import figure, show
     from bokeh.layouts import gridplot
-    from bokeh.models import HoverTool
+    from bokeh.models import HoverTool, Label
     from bokeh.embed import components
     from bokeh.palettes import Category10
+    from bokeh.models import ColumnDataSource
+    from bokeh.models.widgets import DataTable, TableColumn
+    from bokeh.layouts import column
     _HAS_BOKEH = True
 except ImportError:
     _HAS_BOKEH = False
@@ -2552,7 +2555,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name):
+def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True):
     '''
     function to process a hysteresis loop following the IRM decision tree
     Parameters
@@ -2651,8 +2654,79 @@ def process_hyst_loop(field, magnetization, specimen_name):
                'Ms': Ms, 'Bc': Bc, M_sn_f: M_sn_f,
                'Qf': Qf, 'Fnl_lin': Fnl_lin,
                'plot': p}
-
+    if show_results_table:
+        summary = {
+            'Mr':    [Mr],
+            'Ms':    [Ms],
+            'Bc':    [Bc],
+            'Q':     [loop_centering_results['Q']],
+            'Qf':    [Qf],
+            'chi_HF':[chi_HF],
+            'FNL60': [loop_saturation_stats['FNL60']],
+            'FNL70': [loop_saturation_stats['FNL70']],
+            'FNL80': [loop_saturation_stats['FNL80']],
+        }
+        src = ColumnDataSource(summary)
+        cols = [
+            TableColumn(field=param, title=param)
+            for param in summary
+        ]
+        data_table = DataTable(
+            source=src, columns=cols,
+            width=p_slope_corr.width, height=100
+        )
+        data_table.index_position = None 
+        layout = column(data_table)
+        show(layout)
     return results
+
+def process_hyst_loops(
+    hyst_experiments,
+    measurements,
+    field_col="meas_field_dc",
+    magn_col="magn_mass",
+    show_results_table=True,
+):
+    """
+    Process multiple hysteresis loops in batch.
+
+    Parameters
+    ----------
+    hyst_experiments : DataFrame
+        Must contain columns "experiment" and "specimen".
+    measurements : DataFrame
+        Must contain an "experiment" column and the data columns.
+    field_col : str, optional
+        Name of the column in `measurements` holding field values.
+        Defaults to "meas_field_dc".
+    magn_col : str, optional
+        Name of the column in `measurements` holding magnetization values.
+        Defaults to "magn_mass".
+    show_results_table : bool, optional
+        If True, display the summary table below each plot.
+
+    Returns
+    -------
+    list of dict
+        Each dict is the output of `process_hyst_loop` for one specimen.
+    """
+    results = []
+    for _, row in hyst_experiments.iterrows():
+        exp = row["experiment"]
+        spec = row["specimen"]
+        df = (
+            measurements[measurements["experiment"] == exp]
+            .reset_index(drop=True)
+        )
+        res = process_hyst_loop(
+            df[field_col].values,
+            df[magn_col].values,
+            spec,
+            show_results_table=show_results_table,
+        )
+        results.append(res)
+    return results
+
 
 def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_results):
     '''
