@@ -2629,6 +2629,7 @@ def process_hyst_loop(field, magnetization, specimen_name):
     results = {'gridded_H': grid_fields, 
                'gridded_M': grid_magnetizations, 
                'linearity_test_results': loop_linearity_test_results,
+               'loop_is_linear': loop_linearity_test_results['loop_is_linear'],
                'FNL': loop_linearity_test_results['FNL'],
                'loop_centering_results': loop_centering_results,
                'centered_H': centered_H, 
@@ -2636,10 +2637,14 @@ def process_hyst_loop(field, magnetization, specimen_name):
                'drift_corrected_M': drift_corr_M,
                'slope_corrected_M': slope_corr_M,
                'loop_closure_test_results': loop_closure_test_results,
+                'loop_is_closed': loop_closure_test_results['loop_is_closed'],
                'loop_saturation_stats': loop_saturation_stats,
+                'loop_is_saturated': loop_saturation_stats['loop_is_saturated'],
                'M_sn':loop_centering_results['M_sn'],
                'Q': loop_centering_results['Q'],
-               'H': H, 'Mr': Mr, 'Mrh': Mrh, 'Mih': Mih, 'Me': Me, 'Brh': Brh, 
+               'H': H, 'Mr': Mr, 'Mrh': Mrh, 
+               'Mih': Mih, 'Me': Me, 'Brh': Brh, 
+               'chi_HF': chi_HF, 
                'FNL60': loop_saturation_stats['FNL60'],
                'FNL70': loop_saturation_stats['FNL70'],
                'FNL80': loop_saturation_stats['FNL80'],
@@ -2649,7 +2654,7 @@ def process_hyst_loop(field, magnetization, specimen_name):
 
     return results
 
-def export_hyst_specimen_table(specimen_name, results):
+def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_results):
     '''
     function to export the hysteresis data to a MagIC specimen data table
     
@@ -2665,30 +2670,28 @@ def export_hyst_specimen_table(specimen_name, results):
     pd.DataFrame
         dataframe with the hysteresis data
     '''
-    results_df = pd.DataFrame(columns=['specimen', 'Q', 'Qf', 
+    result_keys = ['specimen', 'Q', 'Qf', 
                                        'Ms', 'Mr', 'Bc', 'Brh', 
+                                       'chi_HF',
                                        'FNL', 'FNL60', 'FNL70', 'FNL80', 
                                        'Fnl_lin', 
-                                       'loop_is_linear', 'loop_is_closed', 'loop_is_saturated'])
-    results_df.loc[0] = [specimen_name, 
-                         results['Q'], 
-                         results['Qf'], 
-                         results['Ms'], 
-                         results['Mr'], 
-                         results['Bc'], 
-                         results['Brh'], 
-                         results['FNL'],
-                         results['FNL60'],
-                         results['FNL70'],
-                         results['FNL80'], 
-                         results['Fnl_lin'],
-                         results['linearity_test_results']['loop_is_linear'],
-                         results['loop_closure_test_results']['loop_is_closed'],
-                         results['loop_saturation_stats']['loop_is_saturated']]
+                                       'loop_is_linear', 'loop_is_closed', 'loop_is_saturated']
+    columns=['specimen', 'hyst_Q', 'hyst_Qf', 
+                                       'hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_Brh', 
+                                       'hyst_xhf',
+                                       'hyst_FNL', 'hyst_FNL60', 'hyst_FNL70', 'hyst_FNL80', 
+                                       'hyst_Fnl_lin', 
+                                       'hyst_loop_is_linear', 'hyst_loop_is_closed', 'hyst_loop_is_saturated']
+
+    # first check if the rem_bcr column exists
+    for result_key, col in zip(result_keys, columns):
+        if col not in specimens_df.columns:
+            # add the column to the specimens table
+            specimens_df[col] = np.nan
     
+            specimens_df.loc[specimens_df['experiments'] == experiment_name, col] = hyst_results[result_key]     
     
-    
-    return results_df
+    return 
 
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
@@ -3680,7 +3683,7 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
 
     return     
 
-    
+
 # Day plot function
 # ------------------------------------------------------------------------------------------------------------------
 def day_plot_MagIC(specimen_data, 
