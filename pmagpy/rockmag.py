@@ -1314,6 +1314,174 @@ def interactive_goethite_removal(measurements, specimen_dropdown):
     display(ui, out)
 
 
+def plot_mpms_ac(
+        experiment,
+        frequency=None,
+        phase='in',
+        figsize=(6, 6),
+        interactive=False,
+        return_figure=False,
+        show_plot=True):
+    """
+    Plot AC susceptibility data from MPMS-X, optionally as interactive Bokeh.
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        The experiment table from the MagIC contribution.
+    frequency : float or None
+        Frequency of AC measurement in Hz; None plots all frequencies.
+    phase : {'in','out','both'}
+        Which phase to plot.
+    figsize : tuple of float
+        Figure size for Matplotlib (width, height).
+    interactive : bool
+        If True, render with Bokeh for interactive exploration.
+    return_figure : bool
+        If True, return the figure object(s).
+    show_plot : bool
+        If True, display the plot.
+
+    Returns
+    -------
+    fig, ax or (fig, axes) or Bokeh layout or None
+    """
+    if phase not in ['in', 'out', 'both']:
+        raise ValueError('phase must be "in", "out", or "both"')
+    freqs = ([frequency] if frequency is not None
+             else experiment['meas_freq'].unique().tolist())
+    if frequency is not None and frequency not in freqs:
+        raise ValueError(f'frequency must be one of {freqs}')
+
+    if interactive:
+        tools = [
+            HoverTool(tooltips=[('T', '@x'), ('χ', '@y')]),
+            'pan,box_zoom,wheel_zoom,reset,save']
+        n = len(freqs)
+        palette = Category10[n] if n <= 10 else Category10[10]
+        figs = []
+
+        if phase in ['in', 'out']:
+            p = figure(
+                title=f'AC χ ({phase} phase)',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 100),
+                height=int(figsize[1] * 100))
+            p.xaxis.axis_label_text_font_style = "normal"
+            p.yaxis.axis_label_text_font_style = "normal"
+            for i, f in enumerate(freqs):
+                d = experiment[experiment['meas_freq'] == f]
+                col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
+                color = palette[i]
+                p.line(
+                    d['meas_temp'], d[col],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p.circle(
+                    d['meas_temp'], d[col],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+            p.legend.location = 'top_left'
+            p.legend.click_policy = "hide"
+            figs = [p]
+        else:
+            p1 = figure(
+                title='AC χ in phase',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 50),
+                height=int(figsize[1] * 100))
+            p2 = figure(
+                title='AC χ out phase',
+                x_axis_label='Temperature (K)',
+                y_axis_label='χ (m³/kg)',
+                tools=tools,
+                width=int(figsize[0] * 50),
+                height=int(figsize[1] * 100))
+            for p in (p1, p2):
+                p.xaxis.axis_label_text_font_style = "normal"
+                p.yaxis.axis_label_text_font_style = "normal"
+            for i, f in enumerate(freqs):
+                d = experiment[experiment['meas_freq'] == f]
+                color = palette[i]
+                p1.line(
+                    d['meas_temp'], d['susc_chi_mass'],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p1.circle(
+                    d['meas_temp'], d['susc_chi_mass'],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+                p2.line(
+                    d['meas_temp'], d['susc_chi_qdr_mass'],
+                    legend_label=f'{f} Hz',
+                    line_width=2,
+                    color=color)
+                p2.circle(
+                    d['meas_temp'], d['susc_chi_qdr_mass'],
+                    size=6,
+                    alpha=0.6,
+                    fill_color=color,
+                    line_color=color,
+                    legend_label=f'{f} Hz')
+            p1.legend.location = p2.legend.location = 'top_left'
+            p1.legend.click_policy = p2.legend.click_policy = "hide"
+            figs = [p1, p2]
+
+        layout = gridplot([figs], sizing_mode='stretch_width')
+        if show_plot:
+            show(layout)
+        if return_figure:
+            return layout
+        return None
+
+    # static Matplotlib
+    if phase in ['in', 'out']:
+        fig, ax = plt.subplots(figsize=figsize)
+        col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
+        for f in freqs:
+            d = experiment[experiment['meas_freq'] == f]
+            ax.plot(d['meas_temp'], d[col], 'o-', label=f'{f} Hz')
+        ax.set_xlabel('Temperature (K)')
+        ax.set_ylabel('χ (m³/kg)')
+        ax.set_title(f'AC χ ({phase} phase)')
+        ax.legend()
+        if show_plot:
+            plt.show()
+        if return_figure:
+            return fig, ax
+        return None
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+    for f in freqs:
+        d = experiment[experiment['meas_freq'] == f]
+        ax1.plot(d['meas_temp'], d['susc_chi_mass'], 'o-', label=f'{f} Hz')
+        ax2.plot(d['meas_temp'], d['susc_chi_qdr_mass'], 'o-', label=f'{f} Hz')
+    ax1.set_xlabel('Temperature (K)')
+    ax1.set_ylabel('χ (m³/kg)')
+    ax1.set_title('AC χ in phase')
+    ax1.legend()
+    ax2.set_xlabel('Temperature (K)')
+    ax2.set_ylabel('χ (m³/kg)')
+    ax2.set_title('AC χ out phase')
+    ax2.legend()
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, (ax1, ax2)
+
+
 # hysteresis functions
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -2857,174 +3025,6 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
     return avg_rms, avg_variance
 
 
-def plot_mpms_ac(
-        experiment,
-        frequency=None,
-        phase='in',
-        figsize=(6, 6),
-        interactive=False,
-        return_figure=False,
-        show_plot=True):
-    """
-    Plot AC susceptibility data from MPMS-X, optionally as interactive Bokeh.
-
-    Parameters
-    ----------
-    experiment : pandas.DataFrame
-        The experiment table from the MagIC contribution.
-    frequency : float or None
-        Frequency of AC measurement in Hz; None plots all frequencies.
-    phase : {'in','out','both'}
-        Which phase to plot.
-    figsize : tuple of float
-        Figure size for Matplotlib (width, height).
-    interactive : bool
-        If True, render with Bokeh for interactive exploration.
-    return_figure : bool
-        If True, return the figure object(s).
-    show_plot : bool
-        If True, display the plot.
-
-    Returns
-    -------
-    fig, ax or (fig, axes) or Bokeh layout or None
-    """
-    if phase not in ['in', 'out', 'both']:
-        raise ValueError('phase must be "in", "out", or "both"')
-    freqs = ([frequency] if frequency is not None
-             else experiment['meas_freq'].unique().tolist())
-    if frequency is not None and frequency not in freqs:
-        raise ValueError(f'frequency must be one of {freqs}')
-
-    if interactive:
-        tools = [
-            HoverTool(tooltips=[('T', '@x'), ('χ', '@y')]),
-            'pan,box_zoom,wheel_zoom,reset,save']
-        n = len(freqs)
-        palette = Category10[n] if n <= 10 else Category10[10]
-        figs = []
-
-        if phase in ['in', 'out']:
-            p = figure(
-                title=f'AC χ ({phase} phase)',
-                x_axis_label='Temperature (K)',
-                y_axis_label='χ (m³/kg)',
-                tools=tools,
-                width=int(figsize[0] * 100),
-                height=int(figsize[1] * 100))
-            p.xaxis.axis_label_text_font_style = "normal"
-            p.yaxis.axis_label_text_font_style = "normal"
-            for i, f in enumerate(freqs):
-                d = experiment[experiment['meas_freq'] == f]
-                col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
-                color = palette[i]
-                p.line(
-                    d['meas_temp'], d[col],
-                    legend_label=f'{f} Hz',
-                    line_width=2,
-                    color=color)
-                p.circle(
-                    d['meas_temp'], d[col],
-                    size=6,
-                    alpha=0.6,
-                    fill_color=color,
-                    line_color=color,
-                    legend_label=f'{f} Hz')
-            p.legend.location = 'top_left'
-            p.legend.click_policy = "hide"
-            figs = [p]
-        else:
-            p1 = figure(
-                title='AC χ in phase',
-                x_axis_label='Temperature (K)',
-                y_axis_label='χ (m³/kg)',
-                tools=tools,
-                width=int(figsize[0] * 50),
-                height=int(figsize[1] * 100))
-            p2 = figure(
-                title='AC χ out phase',
-                x_axis_label='Temperature (K)',
-                y_axis_label='χ (m³/kg)',
-                tools=tools,
-                width=int(figsize[0] * 50),
-                height=int(figsize[1] * 100))
-            for p in (p1, p2):
-                p.xaxis.axis_label_text_font_style = "normal"
-                p.yaxis.axis_label_text_font_style = "normal"
-            for i, f in enumerate(freqs):
-                d = experiment[experiment['meas_freq'] == f]
-                color = palette[i]
-                p1.line(
-                    d['meas_temp'], d['susc_chi_mass'],
-                    legend_label=f'{f} Hz',
-                    line_width=2,
-                    color=color)
-                p1.circle(
-                    d['meas_temp'], d['susc_chi_mass'],
-                    size=6,
-                    alpha=0.6,
-                    fill_color=color,
-                    line_color=color,
-                    legend_label=f'{f} Hz')
-                p2.line(
-                    d['meas_temp'], d['susc_chi_qdr_mass'],
-                    legend_label=f'{f} Hz',
-                    line_width=2,
-                    color=color)
-                p2.circle(
-                    d['meas_temp'], d['susc_chi_qdr_mass'],
-                    size=6,
-                    alpha=0.6,
-                    fill_color=color,
-                    line_color=color,
-                    legend_label=f'{f} Hz')
-            p1.legend.location = p2.legend.location = 'top_left'
-            p1.legend.click_policy = p2.legend.click_policy = "hide"
-            figs = [p1, p2]
-
-        layout = gridplot([figs], sizing_mode='stretch_width')
-        if show_plot:
-            show(layout)
-        if return_figure:
-            return layout
-        return None
-
-    # static Matplotlib
-    if phase in ['in', 'out']:
-        fig, ax = plt.subplots(figsize=figsize)
-        col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
-        for f in freqs:
-            d = experiment[experiment['meas_freq'] == f]
-            ax.plot(d['meas_temp'], d[col], 'o-', label=f'{f} Hz')
-        ax.set_xlabel('Temperature (K)')
-        ax.set_ylabel('χ (m³/kg)')
-        ax.set_title(f'AC χ ({phase} phase)')
-        ax.legend()
-        if show_plot:
-            plt.show()
-        if return_figure:
-            return fig, ax
-        return None
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
-    for f in freqs:
-        d = experiment[experiment['meas_freq'] == f]
-        ax1.plot(d['meas_temp'], d['susc_chi_mass'], 'o-', label=f'{f} Hz')
-        ax2.plot(d['meas_temp'], d['susc_chi_qdr_mass'], 'o-', label=f'{f} Hz')
-    ax1.set_xlabel('Temperature (K)')
-    ax1.set_ylabel('χ (m³/kg)')
-    ax1.set_title('AC χ in phase')
-    ax1.legend()
-    ax2.set_xlabel('Temperature (K)')
-    ax2.set_ylabel('χ (m³/kg)')
-    ax2.set_title('AC χ out phase')
-    ax2.legend()
-    if show_plot:
-        plt.show()
-    if return_figure:
-        return fig, (ax1, ax2)
-
-
 # backfield data processing functions
 # ------------------------------------------------------------------------------------------------------------------
 def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_frac=0.0, drop_first=False):
@@ -3063,6 +3063,8 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     if drop_first:
         experiment = experiment.iloc[1:].reset_index(drop=1)
     
+    Bcr = np.abs(find_y_crossing(experiment[field], experiment[magnetization]))
+
     # to plot the backfield data in the conventional way, we need to shift the magnetization to be positive
     experiment['magn_mass_shift'] = [i - experiment[magnetization].min() for i in experiment[magnetization]]
     # we then calculate the log10 of the treatment fields
@@ -3071,7 +3073,7 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
     experiment['smoothed_magn_mass_shift'] = spl[:, 1]
     experiment['smoothed_log_dc_field'] = spl[:, 0]
-    return experiment
+    return experiment, Bcr
     
 def plot_backfield_data(
     experiment,
@@ -3654,6 +3656,31 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
 
     return ax
 
+
+def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
+    """
+    Add the Bcr value to the MagIC specimens table
+    the controled vocabulary for backfield derived Bcr is rem_bcr
+
+    Parameters
+    ----------
+    specimens : pandas.DataFrame
+        The specimens table from the MagIC database
+    experiment_name : str
+        The name of the experiment to which the Bcr value belongs
+    Bcr : float
+        The Bcr value to be added to the specimens table
+    """
+    # first check if the rem_bcr column exists
+    if 'rem_bcr' not in specimens_df.columns:
+        # add the rem_bcr column to the specimens table
+        specimens_df['rem_bcr'] = np.nan
+    # add the Bcr value to the specimens table
+    specimens_df.loc[specimens_df['experiments'] == experiment_name, 'rem_bcr'] = Bcr
+
+    return     
+
+    
 # Day plot function
 # ------------------------------------------------------------------------------------------------------------------
 def day_plot_MagIC(specimen_data, 
