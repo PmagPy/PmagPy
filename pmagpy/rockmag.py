@@ -2619,7 +2619,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     # calculate the shape parameter of Fabian 2003
     E_hyst = np.trapz(Mrh, H)
     sigma = np.log(E_hyst / 2 / Bc / Ms)
-    
+
     # plot original loop
     p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop')
     # plot centered loop
@@ -2741,15 +2741,15 @@ def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_result
     
     Parameters
     ----------
-    specimen_name : str
-        name of the specimen
-    results : dict
-        dictionary with the hysteresis processing results
-    
-    Returns
-    -------
-    pd.DataFrame
-        dataframe with the hysteresis data
+    specimens_df : pandas.DataFrame
+        dataframe with the specimens data
+    experiment_name : str
+        name of the experiment
+    hyst_results : dict
+        dictionary with the hysteresis data
+        as output from the rmag.process_hyst_loop function
+
+    updates the specimen table in place
     '''
 
     result_keys_MagIC = ['specimen',  
@@ -3171,8 +3171,10 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     if drop_first:
         experiment = experiment.iloc[1:].reset_index(drop=1)
     
-    Bcr = np.abs(find_y_crossing(experiment[field], experiment[magnetization]))
-
+    if find_y_crossing(experiment[field], experiment[magnetization]) is not None:
+        Bcr = np.abs(find_y_crossing(experiment[field], experiment[magnetization]))
+    else:
+        Bcr = np.nan
     # to plot the backfield data in the conventional way, we need to shift the magnetization to be positive
     experiment['magn_mass_shift'] = [i - experiment[magnetization].min() for i in experiment[magnetization]]
     # we then calculate the log10 of the treatment fields
@@ -3700,6 +3702,8 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
     all_total_dMdB = np.zeros((n_resample, len(B_high_resolution)))
     # store dMdB fits for each component
     all_component_dMdB = np.zeros((n_resample, n_comps, len(B_high_resolution)))
+    # store distrbution parameters
+    all_parameters = np.zeros((n_resample, n_comps, 4))
     for iter in range(n_resample):
         # bootstrap resample with replacement of the data
         index_resample = np.random.choice(len(B), size=int(len(B) * proportion), replace=True)
@@ -3732,6 +3736,10 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
                 composite_model += model
             
         result = composite_model.fit(dMdB_resample/np.max(dMdB_resample), params, x=B_resample)
+        all_parameters[iter] = np.array([[result.params[f'g{i+1}_amplitude'].value,
+                                          result.params[f'g{i+1}_center'].value,
+                                          result.params[f'g{i+1}_sigma'].value,
+                                          result.params[f'g{i+1}_gamma'].value] for i in range(n_comps)])
         all_total_dMdB[iter] = result.eval(x=B_high_resolution)*np.max(dMdB_resample)
         for j in range(n_comps):
             prefix = f'g{j+1}_'
@@ -3749,6 +3757,25 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
     dMdB_50_components = np.percentile(all_component_dMdB, 50, axis=0)
     dMdB_97_5_components = np.percentile(all_component_dMdB, 97.5, axis=0)
 
+    # calculate the mean and std of the parameters
+    mean_parameters = np.mean(all_parameters, axis=0)
+    std_parameters = np.std(all_parameters, axis=0)
+
+    # report a dictionary of the mean and std of the parameters
+    parameters_dict = {}
+    for i in range(n_comps):
+        this_parameters_dict = {
+            f'g{i+1}_amplitude': mean_parameters[i][0],
+            f'g{i+1}_center': 10**mean_parameters[i][1],
+            f'g{i+1}_sigma': 10**mean_parameters[i][2],
+            f'g{i+1}_gamma': mean_parameters[i][3],
+            f'g{i+1}_amplitude_std': std_parameters[i][0],
+            f'g{i+1}_center_std': 10**std_parameters[i][1],
+            f'g{i+1}_sigma_std': 10**std_parameters[i][2],
+            f'g{i+1}_gamma_std': std_parameters[i][3]
+        }
+        parameters_dict.update(this_parameters_dict)
+
     fig, ax = plt.subplots(figsize=figsize)
     ax.scatter(B, dMdB, marker='o', s=5, alpha=0.5, color='grey', label='original data')
     ax.plot(B_high_resolution, dMdB_50, '-', color='k', alpha=0.6, label='total best fit')
@@ -3762,8 +3789,49 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
     ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
     ax.legend()
 
-    return ax
+    return ax, parameters_dict
 
+
+def add_unmixing_stats_to_specimens_table(specimens_df, experiment_name, unmix_result, method='lmfit'):
+    '''
+    function to export the hysteresis data to a MagIC specimen data table
+    
+    Parameters
+    ----------
+    specimens_df : pd.DataFrame
+        dataframe with the specimen data
+    experiment_name : str
+        name of the experiment
+    unmix_result : dict
+        dictionary with the unmixing results
+        as output from rmag.backfield_MaxUnmix() or
+        from rmag.backfield_unmixing()
+
+    updates the specimen table in place
+    '''
+    if method == 'lmfit':
+        unmix_result_dict = unmix_result.params.valuesdict()
+    elif method == 'MaxUnmix':
+        unmix_result_dict = unmix_result
+    else:
+        raise ValueError(f"method should be either 'lmfit' or 'MaxUnmix', but got {method}")
+    # check if the description cell is type string
+    if isinstance(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0], str):
+        # unpack the string to a dict, then add the new stats, then pack it back to a string
+        description_dict = eval(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0])
+        for key in unmix_result_dict:
+            if key in description_dict:
+                # if the key already exists, update it
+                description_dict[key] = unmix_result_dict[key]
+            else:
+                # if the key does not exist, add it
+                description_dict[key] = unmix_result_dict[key]
+        # pack the dict back to a string
+        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(description_dict)
+    else:
+        # if not, create a new dict
+        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(unmix_result_dict)
+    return 
 
 def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     """
@@ -3772,7 +3840,7 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
 
     Parameters
     ----------
-    specimens : pandas.DataFrame
+    specimens_df : pandas.DataFrame
         The specimens table from the MagIC database
     experiment_name : str
         The name of the experiment to which the Bcr value belongs
