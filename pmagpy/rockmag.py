@@ -2616,6 +2616,10 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     # calculate the coercivity Bc
     Bc = calc_Bc(centered_H, slope_corr_M)
 
+    # calculate the shape parameter of Fabian 2003
+    E_hyst = np.trapz(Mrh, H)
+    sigma = np.log(E_hyst / 2 / Bc / Ms)
+    
     # plot original loop
     p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop')
     # plot centered loop
@@ -2646,19 +2650,22 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
                'M_sn':loop_centering_results['M_sn'],
                'Q': loop_centering_results['Q'],
                'H': H, 'Mr': Mr, 'Mrh': Mrh, 
-               'Mih': Mih, 'Me': Me, 'Brh': Brh, 
+               'Mih': Mih, 'Me': Me, 'Brh': Brh, 'sigma': sigma,
                'chi_HF': chi_HF, 
                'FNL60': loop_saturation_stats['FNL60'],
                'FNL70': loop_saturation_stats['FNL70'],
                'FNL80': loop_saturation_stats['FNL80'],
-               'Ms': Ms, 'Bc': Bc, M_sn_f: M_sn_f,
+               'Ms': Ms, 'Bc': Bc, 'M_sn_f': M_sn_f,
                'Qf': Qf, 'Fnl_lin': Fnl_lin,
                'plot': p}
+    
     if show_results_table:
         summary = {
             'Mr':    [Mr],
             'Ms':    [Ms],
             'Bc':    [Bc],
+            'Brh':   [Brh],
+            'sigma': [sigma],
             'Q':     [loop_centering_results['Q']],
             'Qf':    [Qf],
             'chi_HF':[chi_HF],
@@ -2744,27 +2751,51 @@ def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_result
     pd.DataFrame
         dataframe with the hysteresis data
     '''
-    result_keys = ['specimen', 'Q', 'Qf', 
-                                       'Ms', 'Mr', 'Bc', 'Brh', 
-                                       'chi_HF',
-                                       'FNL', 'FNL60', 'FNL70', 'FNL80', 
-                                       'Fnl_lin', 
-                                       'loop_is_linear', 'loop_is_closed', 'loop_is_saturated']
-    columns=['specimen', 'hyst_Q', 'hyst_Qf', 
-                                       'hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_Brh', 
-                                       'hyst_xhf',
-                                       'hyst_FNL', 'hyst_FNL60', 'hyst_FNL70', 'hyst_FNL80', 
-                                       'hyst_Fnl_lin', 
-                                       'hyst_loop_is_linear', 'hyst_loop_is_closed', 'hyst_loop_is_saturated']
 
-    # first check if the rem_bcr column exists
-    for result_key, col in zip(result_keys, columns):
+    result_keys_MagIC = ['specimen',  
+                        'Ms', 
+                        'Mr', 
+                        'Bc',  
+                        'chi_HF']
+
+    MagIC_columns=['specimen',  
+                    'hyst_ms_mass', 
+                    'hyst_mr_mass', 
+                    'hyst_bc',  
+                    'hyst_xhf']
+
+    # add MagIC available columns to the specimens table
+    for result_key, col in zip(result_keys_MagIC, MagIC_columns):
         if col not in specimens_df.columns:
             # add the column to the specimens table
             specimens_df[col] = np.nan
     
-            specimens_df.loc[specimens_df['experiments'] == experiment_name, col] = hyst_results[result_key]     
+            specimens_df.loc[specimens_df['experiments'] == experiment_name, col] = hyst_results[result_key]
     
+    # dump the rest of the stats to the description column
+    additional_keys = ['Q', 'Qf', 'sigma',
+                'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80', 
+                'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'loop_is_saturated']
+    additional_stats_dict = {}
+    for key in additional_keys:
+        additional_stats_dict[key] = hyst_results[key]
+        
+    # check if the description cell is type string
+    if isinstance(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0], str):
+        # unpack the string to a dict, then add the new stats, then pack it back to a string
+        description_dict = eval(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0])
+        for key in additional_keys:
+            if key in description_dict:
+                # if the key already exists, update it
+                description_dict[key] = hyst_results[key]
+            else:
+                # if the key does not exist, add it
+                description_dict[key] = hyst_results[key]
+        # pack the dict back to a string
+        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(description_dict)
+    else:
+        # if not, create a new dict
+        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(additional_stats_dict)
     return 
 
 # X-T functions
@@ -3764,7 +3795,7 @@ def day_plot_MagIC(specimen_data,
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
-                   Bcr = 'hyst_bcr',
+                   Bcr = 'rem_bcr',
                    Bc = 'hyst_bc',
                    **kwargs):
     """
