@@ -3328,38 +3328,60 @@ def plot_backfield_data(
         return None
 
     # static Matplotlib
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=figsize)
-    ax1, ax2, ax3 = axes
+    panels = []
     if plot_raw:
-        ax1.scatter(experiment[field], experiment[magnetization],
-                    c="k", s=10, label="raw")
-        ax1.plot(experiment[field], experiment[magnetization], c="k")
-        ax1.set(title="raw backfield", xlabel="field (T)",
-                ylabel="magnetization")
-        ax1.legend()
+        panels.append("raw")
     if plot_processed:
-        ax2.scatter(experiment["log_dc_field"],
-                    experiment["magn_mass_shift"],
-                    c="gray", s=10, label="shifted")
-        ax2.plot(experiment["smoothed_log_dc_field"],
-                 experiment["smoothed_magn_mass_shift"], c="k",
-                 label="smoothed")
-        ticks = ax2.get_xticks()
-        ax2.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
-        ax2.set(title="processed", xlabel="field (mT)", ylabel="magnetization")
-        ax2.legend()
+        panels.append("processed")
     if plot_spectrum:
-        ax3.scatter(raw_dx_log, raw_dy, c="gray", s=10, label="raw spectrum")
-        ax3.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
-        ticks3 = ax3.get_xticks()
-        ax3.set_xticklabels([f"{round(10**t,1)}" for t in ticks3])
-        ax3.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
-        ax3.legend()
+        panels.append("spectrum")
+
+    n = len(panels)
+    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=figsize)
+    if n == 1:
+        axes = [axes]
+
+    for ax, panel in zip(axes, panels):
+        if panel == "raw":
+            ax.scatter(
+                experiment[field], experiment[magnetization], c="k", s=10, label="raw"
+            )
+            ax.plot(experiment[field], experiment[magnetization], c="k")
+            ax.set(title="raw backfield", xlabel="field (T)", ylabel="magnetization")
+            ax.legend()
+        elif panel == "processed":
+            ax.scatter(
+                experiment["log_dc_field"],
+                experiment["magn_mass_shift"],
+                c="gray",
+                s=10,
+                label="shifted",
+            )
+            ax.plot(
+                experiment["smoothed_log_dc_field"],
+                experiment["smoothed_magn_mass_shift"],
+                c="k",
+                label="smoothed",
+            )
+            ticks = ax.get_xticks()
+            ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
+            ax.set(
+                title="processed", xlabel="field (mT)", ylabel="magnetization"
+            )
+            ax.legend()
+        else:  # spectrum
+            ax.scatter(raw_dx_log, raw_dy, c="gray", s=10, label="raw spectrum")
+            ax.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
+            ticks = ax.get_xticks()
+            ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
+            ax.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
+            ax.legend()
+
     fig.tight_layout()
     if show_plot:
         plt.show()
     if return_figure:
-        return fig, (ax1, ax2, ax3)
+        return fig, axes
     return None
 
 
@@ -3529,25 +3551,35 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     return fig, ax
 
 def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6)):
-    '''
-    Function for interactive backfield unmixing using skew-normal distributions.
-        no uncertainty propagation is shown, this function is useful for estimating initial guesses for parameters
-        *Important note: if you are using this function in a jupyter notebook environment, 
-        use %matplotlib widget command to enable live figure updates*
-        
+    """
+    Function for interactive backfield unmixing using skew‑normal distributions.
+    No uncertainty propagation is shown; this function is useful for estimating
+    initial guesses for parameters.
+
+    *Important note:* in a Jupyter notebook use the `%matplotlib widget`
+    command to enable live figure updates.
+
     Parameters
     ----------
-    field : array-like
+    field : array‑like
         The field values in log scale.
-    magnetization : array-like
+    magnetization : array‑like
         The magnetization values in log scale.
     n_components : int
-        The number of components to fit.
+        The number of skew‑normal components to fit.
     figsize : tuple, optional
         The size of the figure to display. Default is (10, 6).
-    
-    '''
 
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame of the most recent fit parameters with columns
+        `amplitude`, `center`, `sigma`, and `gamma`. This DataFrame is
+        updated in place as sliders are moved.
+    """
+    
+    final_fit = {"df": None}
+    
     # Calculate the smoothed derivative
     smoothed_derivatives_y = -np.diff(magnetization) / np.diff(field)
     smoothed_derivatives_x = pd.Series(field).rolling(window=2).mean().dropna()
@@ -3559,10 +3591,10 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
     sliders = []
     texts = []
 
-    def create_slider_dict(name, min_val, max_val, step, description):
+    def create_slider_dict(name, min_val, max_val, step, description, value=0.0):
         return {
             f"{name}_{i}": FloatSlider(
-                value=0.0,
+                value=value,
                 min=min_val,
                 max=max_val,
                 step=step,
@@ -3573,8 +3605,8 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
         }
 
     amp_slidebars = create_slider_dict('amplitude', 0.0, 1, 0.01, 'amplitude')
-    center_slidebars = create_slider_dict('center', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'center')
-    sigma_slidebars = create_slider_dict('sigma', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'sigma')
+    center_slidebars = create_slider_dict('center', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'center', value=10**np.max(field)/2)
+    sigma_slidebars = create_slider_dict('sigma', 0.0, 10**np.max(field), 10**np.max(field) / 100, 'sigma', value=10**np.max(field)/2)
     gamma_slidebars = create_slider_dict('gamma', -10.0, 10.0, 0.01, 'gamma')
 
     # Collect all sliders by component for display and registration
@@ -3651,7 +3683,13 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
         ax.legend()
 
         fig.canvas.draw()
-
+        if final_fit["df"] is None:
+            final_fit["df"] = updated_parameters.copy()
+        else:
+            # overwrite the existing DataFrame’s values
+            for col in updated_parameters.columns:
+                final_fit["df"][col] = updated_parameters[col].values
+        
     # Attach observers
     for box in sliders:
         for slider in box.children:
@@ -3659,7 +3697,7 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
                 slider.observe(update_plot, names='value')
 
     update_plot()
-
+    return final_fit["df"]
 
 def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resample=100, proportion=0.95, figsize=(10, 6)):
     '''
