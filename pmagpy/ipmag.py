@@ -11042,20 +11042,14 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         if ihext:  # plot the Hext ellipses
             ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
                        hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-            v1_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'r,', 1, plot=False))
-            v1_pts = pmag.dir2cart(v1_pts).T
+            v1_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'r,', 1, 1))
             ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
                        hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-            v2_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'b,', 1, plot=False))
-            v2_pts = pmag.dir2cart(v2_pts).T
+            v2_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'b,', 1, 1))
             ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
                        hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-            v3_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'k,', 1, plot=False))
-            v3_pts = pmag.dir2cart(v3_pts).T
-            plt.figure(num =fignum+1)
-            plt.plot(v1_pts[1], v1_pts[0], color='r', lw=1)
-            plt.plot(v2_pts[1], v2_pts[0], color='b', lw=1)
-            plt.plot(v3_pts[1], v3_pts[0], color='k', lw=1)
+            v3_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'k,', 1, 1))
+
             if len(Dir) > 0:   # plot the comparison direction components
                     # put in dimap and plot as white symbol with axis color?
                 plot_di(di_block=[Dir], color='green',
@@ -11116,21 +11110,14 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
 
                 ellpars = [hpars["v1_dec"], hpars["v1_inc"], bpars["v1_zeta"], bpars["v1_zeta_dec"],
                            bpars["v1_zeta_inc"], bpars["v1_eta"], bpars["v1_eta_dec"], bpars["v1_eta_inc"]]
-                pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
-                v1_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'r,', 1, plot=False))
-                v1_pts = pmag.dir2cart(v1_pts).T
+                v1_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'r,', 1, 1))
                 ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                v2_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'b,', 1, plot=False))
-                v2_pts = pmag.dir2cart(v2_pts).T
+                v2_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'b,', 1, 1))
                 ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
-                v3_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'k,', 1, plot=False))
-                v3_pts = pmag.dir2cart(v3_pts).T
-                plt.figure(num=fignum+1)
-                plt.plot(v1_pts[1], v1_pts[0], color='r', lw=1)
-                plt.plot(v2_pts[1], v2_pts[0], color='b', lw=1)
-                plt.plot(v3_pts[1], v3_pts[0], color='k', lw=1)
+                v3_pts = np.array(pmagplotlib.plot_ell(fignum+1, ellpars, 'k,', 1, 1))
+
                 if len(Dir) > 0:   # plot the comparison direction components
                     plot_di(di_block=[Dir], color='green',
                             marker='*', markersize=200)
