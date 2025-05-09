@@ -1737,20 +1737,26 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
         PTS.append([pts[0], pts[1]])
         # put on an equal area projection
         R = np.sqrt(1. - abs(elli[2])) / (np.sqrt(elli[0]**2 + elli[1]**2))
-        if elli[2] <= 0:
+        if pts[1] <= 0:
             #            for i in range(3): elli[i]=-elli[i]
+            if len(X_ell) != 0:
+                X_ell.append(np.nan)
+                Y_ell.append(np.nan)
             X_up.append(elli[1] * R)
             Y_up.append(elli[0] * R)
         else:
+            if len(X_up) != 0:
+                X_up.append(np.nan)
+                Y_up.append(np.nan)
             X_ell.append(elli[1] * R)
             Y_ell.append(elli[0] * R)
     if plot == 1:
         plt.figure(num=fignum)
-        col = col[0]+'.'
+        col = col[0]
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, col, markersize=3)
+            plt.plot(X_ell, Y_ell, color=col, lw=1)
         if X_up != []:
-            plt.plot(X_up, Y_up, col, markersize=3)
+            plt.plot(X_up, Y_up, color=col, lw=1, ls='--')
     else:
         return PTS
 
