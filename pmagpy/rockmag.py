@@ -3942,6 +3942,7 @@ def day_plot_MagIC(specimen_data,
     
 def day_plot(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
+             plot_day_lines = True, 
              plot_MD_slope=True,
              plot_SP_SD_mixing=[10, 15, 25, 30],
              plot_SD_MD_mixing=True,
@@ -3995,13 +3996,14 @@ def day_plot(Mr, Ms, Bcr, Bc,
     Mr_Ms = Mr/Ms
     _, ax = plt.subplots(figsize = figsize)
     # plotting SD, PSD, MD regions
-    ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
-    ax.axhline(Mr_Ms_upper, color = lc, lw = lw)
-    ax.axvline(Bc_Bcr_lower, color = lc, lw = lw)
-    ax.axvline(Bc_Bcr_upper, color = lc, lw = lw)
-    ax.text(1.1, 0.55, 'SD', color = 'k', fontsize = 12)
-    ax.text(2.0, 0.06, 'PSD', color = 'k', fontsize = 12)
-    ax.text(5.0, 0.006, 'MD', color = 'k', fontsize = 12)
+    if plot_day_lines:
+        ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
+        ax.axhline(Mr_Ms_upper, color = lc, lw = lw)
+        ax.axvline(Bc_Bcr_lower, color = lc, lw = lw)
+        ax.axvline(Bc_Bcr_upper, color = lc, lw = lw)
+        ax.text(1.1, 0.55, 'SD', color = 'k', fontsize = 12)
+        ax.text(2.0, 0.06, 'PSD', color = 'k', fontsize = 12)
+        ax.text(5.0, 0.006, 'MD', color = 'k', fontsize = 12)
     
     if plot_MD_slope:
         MD_Bcr_Bc = np.linspace(4, 20, 100)
