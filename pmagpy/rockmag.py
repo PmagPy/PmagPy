@@ -3677,7 +3677,7 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
         if len(result.components) > 1:
             for i in range(len(result.components)):
                 this_comp = result.eval_components(x=field)[f'g{i+1}_']*np.max(smoothed_derivatives_y)
-                ax.plot(field, this_comp, c=f'C{i}', label=f'component #{i+1}, {sigma[i]:.2f}-$\sigma$')
+                ax.plot(field, this_comp, c=f'C{i}', label=f'component #{i+1}')
 
         ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
         ax.legend()
@@ -3826,7 +3826,8 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
     ax.set_ylabel('dM/dB', fontsize=12)
     ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
     ax.legend()
-
+    fig.canvas.header_visible = False  
+    
     return ax, parameters_dict
 
 
