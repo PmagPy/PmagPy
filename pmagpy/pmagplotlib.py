@@ -1746,11 +1746,11 @@ def plot_ell(fignum, pars, col='k', lower=True, plot=True):
             Y_ell.append(elli[0] * R)
     if plot == 1:
         plt.figure(num=fignum)
-        col = col[0]
+        col = col[0]+'.'
         if X_ell != []:
-            plt.plot(X_ell, Y_ell, color=col, lw=1)
+            plt.plot(X_ell, Y_ell, col, markersize=3)
         if X_up != []:
-            plt.plot(X_up, Y_up, color=col, lw=1)
+            plt.plot(X_up, Y_up, col, markersize=3)
     else:
         return PTS
 
