@@ -3385,7 +3385,7 @@ def plot_backfield_data(
     return None
 
 
-def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=True, n_iter=3):
+def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=True, n_iter=3, skewed=True):
     '''
     backfield unmixing for a single experiment
 
@@ -3416,7 +3416,10 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
         to make sure the parameters are converged
     n_iter : int
         Number of iterations to run the fitting process
-        
+    skewed : bool
+        Whether to use skewed Gaussian model or not
+        if False, the program will use normal Gaussian model
+    
     Returns
     -------
     result : lmfit.model.ModelResult
@@ -3458,6 +3461,11 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
         params[f'{prefix}center'].max = np.max(field) # Bounds for center parameters
         params[f'{prefix}sigma'].min = 0
         params[f'{prefix}sigma'].max = np.max(field)-np.min(field)   # Bounds for sigma parameters
+
+        # restrict to normal distribution if skewed is False
+        if skewed == False:
+            params[f'{prefix}gamma'].min = 0
+            params[f'{prefix}gamma'].max = 0
 
         if composite_model is None:
             composite_model = model
@@ -3699,7 +3707,7 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
     update_plot()
     return final_fit["df"]
 
-def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resample=100, proportion=0.95, figsize=(10, 6)):
+def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=True, n_resample=100, proportion=0.95, figsize=(10, 6)):
     '''
     function for performing the MaxUnmix backfield unmixing algorithm
         The components are modelled as skew-normal distributions
@@ -3717,6 +3725,9 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
         The parameters for the unmixing. The DataFrame should contain the following columns:
             'amplitude', 'center', 'sigma', 'gamma'
         The number of rows in the DataFrame should be equal to n_comps
+    skewed : bool
+        Whether to use skewed Gaussian model or not
+        if not, the program will use normal Gaussian model
     n_resample : int, optional
         The number of bootstrap resamples. The default is 100.
     proportion : float, optional
@@ -3768,6 +3779,11 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, n_resam
             params[f'{prefix}sigma'].min = 0
             params[f'{prefix}sigma'].max = np.max(B)-np.min(B)   # Bounds for sigma parameters
 
+            # restrict to normal distribution if skewed is False
+            if skewed == False:
+                params[f'{prefix}gamma'].min = 0
+                params[f'{prefix}gamma'].max = 0
+                
             if composite_model is None:
                 composite_model = model
             else:
