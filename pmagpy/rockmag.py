@@ -828,11 +828,11 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     reset_button = widgets.Button(description="Reset to Default Values", layout=widgets.Layout(width='200px'))
     reset_button.on_click(reset_sliders)
     
-    title_label = widgets.Label(value='Adjust Parameters for ' + selected_specimen_name + ' ' + selected_method + ' fit')
+    # title_label = widgets.Label(value='Adjust Parameters for ' + selected_specimen_name + ' ' + selected_method + ' fit')
 
     # Add the reset button to the UI
     ui = widgets.VBox([ 
-        title_label,
+        # title_label,
         background_temp_range_slider, 
         excluded_temp_range_slider, 
         poly_deg_slider,
@@ -3751,7 +3751,6 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         if skewed:
             texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
         else:
-
             texts.append(VBox([amp_text, center_text, sigma_text]))
 
     # Display sliders
