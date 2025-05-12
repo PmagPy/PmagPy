@@ -2086,59 +2086,71 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum=None,tick_spacing=10):
+def plot_net(fignum=None, tick_spacing=10, ax=None):
     """
     Draws circle and tick marks for equal area projection.
-    tick_spacing: interval for declination tick marks, default is 10
+
+    Parameters:
+        fignum: int or None
+            Figure number to use for creating a new figure if no axis is provided.
+        tick_spacing: int
+            Interval for declination tick marks, default is 10.
+        ax: matplotlib.axes.Axes or None
+            Axis to plot on. If None, the current axis will be used (or created if fignum is given).
     """
-    if fignum != None:
-        plt.figure(num=fignum,)
-        plt.clf()
-    plt.axis("off")
-    Dcirc = np.arange(0, 361.)
-    Icirc = np.zeros(361, 'f')
+    if ax is None:
+        if fignum is not None:
+            plt.figure(num=fignum)
+            plt.clf()
+        ax = plt.gca()
+    ax.axis("off")
+    Dcirc = np.arange(0, 361.0)
+    Icirc = np.zeros(361, dtype=float)
     Xcirc, Ycirc = [], []
     for k in range(361):
         XY = pmag.dimap(Dcirc[k], Icirc[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc, Ycirc, 'k')
+    ax.plot(Xcirc, Ycirc, "k")
 
-# put on the tick marks
+    # Put on the tick marks
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 100, tick_spacing):
-        XY = pmag.dimap(0., I)
+        XY = pmag.dimap(0.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="_", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 100, tick_spacing):
-        XY = pmag.dimap(90., I)
+        XY = pmag.dimap(90.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="|", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 90, tick_spacing):
-        XY = pmag.dimap(180., I)
+        XY = pmag.dimap(180.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    plt.scatter(Xsym, Ysym, color='black',marker='_',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="_", s=10)
+
     Xsym, Ysym = [], []
     for I in range(tick_spacing, 90, tick_spacing):
-        XY = pmag.dimap(270., I)
+        XY = pmag.dimap(270.0, I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    #plt.plot(Xsym, Ysym, 'k|')
-    plt.scatter(Xsym, Ysym, color='black',marker='|',s=10)
+    ax.scatter(Xsym, Ysym, color="black", marker="|", s=10)
+
     for D in range(0, 360, tick_spacing):
         Xtick, Ytick = [], []
         for I in range(4):
             XY = pmag.dimap(D, I)
             Xtick.append(XY[0])
             Ytick.append(XY[1])
-        plt.plot(Xtick, Ytick, 'k')
-    plt.axis("equal")
-    plt.axis((-1.05, 1.05, -1.05, 1.05))
+        ax.plot(Xtick, Ytick, "k")
+    ax.axis("equal")
+    ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
@@ -11030,13 +11042,13 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         if ihext:  # plot the Hext ellipses
             ellpars = [hpars["v1_dec"], hpars["v1_inc"], hpars["e12"], hpars["v2_dec"],
                        hpars["v2_inc"], hpars["e13"], hpars["v3_dec"], hpars["v3_inc"]]
-            pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
+            v1_pts = pmagplotlib.plot_ell(fignum+1, ellpars, 'r,', 1, 1)
             ellpars = [hpars["v2_dec"], hpars["v2_inc"], hpars["e23"], hpars["v3_dec"],
                        hpars["v3_inc"], hpars["e12"], hpars["v1_dec"], hpars["v1_inc"]]
-            pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
+            v2_pts = pmagplotlib.plot_ell(fignum+1, ellpars, 'b,', 1, 1)
             ellpars = [hpars["v3_dec"], hpars["v3_inc"], hpars["e13"], hpars["v1_dec"],
                        hpars["v1_inc"], hpars["e23"], hpars["v2_dec"], hpars["v2_inc"]]
-            pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
+            v3_pts = pmagplotlib.plot_ell(fignum+1, ellpars, 'k,', 1, 1)
             if len(Dir) > 0:   # plot the comparison direction components
                     # put in dimap and plot as white symbol with axis color?
                 plot_di(di_block=[Dir], color='green',
@@ -11100,7 +11112,7 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
                 pmagplotlib.plot_ell(fignum+1, ellpars, 'r-,', 1, 1)
                 ellpars = [hpars["v2_dec"], hpars["v2_inc"], bpars["v2_zeta"], bpars["v2_zeta_dec"],
                            bpars["v2_zeta_inc"], bpars["v2_eta"], bpars["v2_eta_dec"], bpars["v2_eta_inc"]]
-                pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)
+                pmagplotlib.plot_ell(fignum+1, ellpars, 'b-,', 1, 1)    
                 ellpars = [hpars["v3_dec"], hpars["v3_inc"], bpars["v3_zeta"], bpars["v3_zeta_dec"],
                            bpars["v3_zeta_inc"], bpars["v3_eta"], bpars["v3_eta_dec"], bpars["v3_eta_inc"]]
                 pmagplotlib.plot_ell(fignum+1, ellpars, 'k-,', 1, 1)
@@ -11598,12 +11610,11 @@ def get_matrix(n_pos=6):
 
     if n_pos == 15:
             positions = [[315., 0., 1.], [225., 0., 1.], [180., 0., 1.], [135., 0., 1.], [45., 0., 1.],
-                         [90., -45., 1.], [270., -45., 1.], [270.,
-                                                             0., 1.], [270., 45., 1.], [90., 45., 1.],
+                         [90., -45., 1.], [270., -45., 1.], [270., 0., 1.], [270., 45., 1.], [90., 45., 1.],
                          [180., 45., 1.], [180., -45., 1.], [0., -90., 1.], [0, -45., 1.], [0, 45., 1.]]
     if n_pos == 9:
             positions = [[315., 0., 1.], [225., 0., 1.], [180., 0., 1.],
-        [90., -45., 1.], [270., -45., 1.], [270., 0., 1.],
+                        [90., -45., 1.], [270., -45., 1.], [270., 0., 1.],
                          [180., 45., 1.], [180., -45., 1.], [0., -90., 1.]]
 
     tmpH = np.zeros((n_pos, 3), 'f')  # define tmpH
