@@ -598,6 +598,82 @@ def make_mpms_plots_dc(measurements):
     display(ui)
     _update()
 
+def calc_verwey_estimate(temps, mags, 
+                    t_range_background_min=50,
+                    t_range_background_max=250,
+                    excluded_t_min=75,
+                    excluded_t_max=150,
+                    poly_deg=3):
+    """
+    Estimate the Verwey transition temperature and remanence loss of magnetite from MPMS data.
+    Plots the magnetization data, background fit, and resulting magnetite curve, and 
+    optionally the zero-crossing.
+
+    Parameters
+    ----------
+    temps : pd.Series
+        Series representing the temperatures at which magnetization measurements were taken.
+    mags : pd.Series
+        Series representing the magnetization measurements.
+    t_range_background_min : int or float, optional
+        Minimum temperature for the background fitting range. Default is 50.
+    t_range_background_max : int or float, optional
+        Maximum temperature for the background fitting range. Default is 250.
+    excluded_t_min : int or float, optional
+        Minimum temperature to exclude from the background fitting range. Default is 75.
+    excluded_t_max : int or float, optional
+        Maximum temperature to exclude from the background fitting range. Default is 150.
+    poly_deg : int, optional
+        Degree of the polynomial for background fitting. Default is 3.
+    """
+    
+    temps.reset_index(drop=True, inplace=True)
+    mags.reset_index(drop=True, inplace=True)
+
+    dM_dT_df = thermomag_derivative(temps, mags)
+    temps_dM_dT = dM_dT_df['T']
+
+    temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+    temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
+    dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
+
+    poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
+    dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
+
+    residuals = dM_dT_filtered - dM_dT_filtered_polyfit
+    ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
+    ss_res = np.sum(residuals ** 2)
+    r_squared = 1 - (ss_res / ss_tot)
+
+    temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+    temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
+    temps_dM_dT_background.reset_index(drop=True, inplace=True)
+    dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
+    dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
+
+    mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
+    mgt_dM_dT.reset_index(drop = True, inplace=True)
+
+    temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
+    temps_background = temps[temps_background_indices]
+
+    poly_func = np.poly1d(poly_background_fit)
+    background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
+
+    last_background_temp = temps_background.iloc[-1]    
+    last_background_mag = background_curve[-1]
+    target_temp_index = np.argmin(np.abs(temps - last_background_temp))
+    mags_value = mags[target_temp_index]
+    background_curve_adjusted = background_curve + (mags_value - last_background_mag)
+
+    mags_background = mags[temps_background_indices]
+    mgt_curve = mags_background - background_curve_adjusted
+    
+    verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
+    
+    remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
+
+    return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
 def verwey_estimate(temps, mags, 
                     t_range_background_min=50,
@@ -673,57 +749,13 @@ def verwey_estimate(temps, mags,
     >>> verwey_estimate(temps, mags)
     (75.0, 0.5)
     """
-    
-    temps.reset_index(drop=True, inplace=True)
-    mags.reset_index(drop=True, inplace=True)
-
-    dM_dT_df = thermomag_derivative(temps, mags)
-    temps_dM_dT = dM_dT_df['T']
-
-    temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-    temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
-    dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
-
-    poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
-    dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
-
-    residuals = dM_dT_filtered - dM_dT_filtered_polyfit
-    ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
-    ss_res = np.sum(residuals ** 2)
-    r_squared = 1 - (ss_res / ss_tot)
-
-    temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-    temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
-    temps_dM_dT_background.reset_index(drop=True, inplace=True)
-    dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
-    dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
-
-    mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
-    mgt_dM_dT.reset_index(drop = True, inplace=True)
-
-    temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
-    temps_background = temps[temps_background_indices]
-
-    poly_func = np.poly1d(poly_background_fit)
-    background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
-
-    last_background_temp = temps_background.iloc[-1]    
-    last_background_mag = background_curve[-1]
-    target_temp_index = np.argmin(np.abs(temps - last_background_temp))
-    mags_value = mags[target_temp_index]
-    background_curve_adjusted = background_curve + (mags_value - last_background_mag)
-
-    mags_background = mags[temps_background_indices]
-    mgt_curve = mags_background - background_curve_adjusted
-    
-    verwey_estimate = zero_crossing(temps_dM_dT_background, mgt_dM_dT, 
-                                    make_plot=plot_zero_crossing, 
-                                    xlim=(excluded_t_min, excluded_t_max),
-                                    verwey_marker=verwey_marker, verwey_color=verwey_color,
-                                    verwey_size=verwey_size)
-    
-    remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
-    
+    dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve = calc_verwey_estimate(temps, mags,
+                    t_range_background_min=t_range_background_min,
+                    t_range_background_max=t_range_background_max,
+                    excluded_t_min=excluded_t_min,
+                    excluded_t_max=excluded_t_max,
+                    poly_deg=poly_deg)
+        
     fig = plt.figure(figsize=(12,5))
     ax0 = fig.add_subplot(1,2,1)
     ax0.plot(temps, mags, marker=measurement_marker, markersize=markersize, color=measurement_color, 
@@ -855,56 +887,13 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
         excluded_t_max = excluded_temp_range_slider.value[1]
         poly_deg = poly_deg_slider.value
 
-        temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-        temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
-        dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
-
-        poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
-        dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
-
-        residuals = dM_dT_filtered - dM_dT_filtered_polyfit
-        ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
-        ss_res = np.sum(residuals ** 2)
-        r_squared = 1 - (ss_res / ss_tot)
-
-        temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-        temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
-        temps_dM_dT_background.reset_index(drop=True, inplace=True)
-        dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
-        dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
-
-        mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
-        mgt_dM_dT.reset_index(drop = True, inplace=True)
-
-        temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
-        temps_background = temps[temps_background_indices]
-
-        poly_func = np.poly1d(poly_background_fit)
-        background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
-
-        last_background_temp = temps_background.iloc[-1]    
-        last_background_mag = background_curve[-1]
-        target_temp_index = np.argmin(np.abs(temps - last_background_temp))
-        mags_value = mags[target_temp_index]
-        background_curve_adjusted = background_curve + (mags_value - last_background_mag)
-
-        mags_background = mags[temps_background_indices]
-        mgt_curve = mags_background - background_curve_adjusted
-        
-        max_dM_dT_temp = temps_dM_dT_background[mgt_dM_dT.idxmax()]
-    
-        d2M_dT2 = thermomag_derivative(temps_dM_dT_background, mgt_dM_dT)
-        d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
-        max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
-
-        d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
-        d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
-        d2M_dT2_T_after = d2M_dT2['T'][max_index]
-        d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
-
-        verwey_estimate = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
-
-        remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
+        # recalculate verwey estimate
+        dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve = calc_verwey_estimate(temps, mags,
+                    t_range_background_min=t_range_background_min,
+                    t_range_background_max=t_range_background_max,
+                    excluded_t_min=excluded_t_min,
+                    excluded_t_max=excluded_t_max,
+                    poly_deg=poly_deg)
     
         ax0.plot(temps, mags, marker='o', markersize=3.5, color='FireBrick', 
                 label='measurement')
@@ -1170,6 +1159,45 @@ def thermomag_derivative(temps, mags, drop_first=False, drop_last=False):
     return dM_dT_df
 
 
+def calc_zero_crossing(dM_dT_temps, dM_dT):
+    """
+    Calculate the temperature at which the second derivative of magnetization with respect to 
+    temperature crosses zero. This value provides an estimate of the peak of the derivative 
+    curve that is more precise than the maximum value.
+
+    The function computes the second derivative of magnetization (dM/dT) with respect to 
+    temperature, identifies the nearest points around the maximum value of the derivative, 
+    and then calculates the temperature at which this second derivative crosses zero using 
+    linear interpolation.
+
+    Parameters:
+        dM_dT_temps (pd.Series): A pandas Series representing temperatures corresponding to
+                                 the first derivation of magnetization with respect to temperature.
+        dM_dT (pd.Series): A pandas Series representing the first derivative of 
+                           magnetization with respect to temperature.
+    Returns:
+        float: The estimated temperature at which the second derivative of magnetization 
+               with respect to temperature crosses zero.
+
+    Note:
+        The function assumes that the input series `dM_dT_temps` and `dM_dT` are related to 
+        each other and are of equal length.
+    """    
+    max_dM_dT_temp = dM_dT_temps[dM_dT.idxmax()]
+    
+    d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
+    d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
+    max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
+
+    d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
+    d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
+    d2M_dT2_T_after = d2M_dT2['T'][max_index]
+    d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
+
+    zero_cross_temp = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
+
+    return d2M_dT2, d2M_dT2_T_before, d2M_dT2_before, d2M_dT2_T_after, d2M_dT2_after, zero_cross_temp
+
 def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
                   verwey_marker='*', verwey_color='Pink',
                   verwey_size=10,):
@@ -1206,19 +1234,8 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
         each other and are of equal length.
     """    
     
-    max_dM_dT_temp = dM_dT_temps[dM_dT.idxmax()]
+    d2M_dT2, d2M_dT2_T_before, d2M_dT2_before, d2M_dT2_T_after, d2M_dT2_after, zero_cross_temp = calc_zero_crossing(dM_dT_temps, dM_dT)
     
-    d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
-    d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
-    max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
-
-    d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
-    d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
-    d2M_dT2_T_after = d2M_dT2['T'][max_index]
-    d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
-
-    zero_cross_temp = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
-
     if make_plot:
         fig = plt.figure(figsize=(12,4))
         ax0 = fig.add_subplot(1,1,1)
