@@ -11,7 +11,7 @@ import matplotlib.patches as patches
 
 try:
     import ipywidgets as widgets
-    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox, FloatSlider
+    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox,  IntSlider, FloatSlider, IntRangeSlider
     from IPython.display import HTML, display
     
 except ImportError:
@@ -787,6 +787,10 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     elif selected_method == 'LP-ZFC':
         temps = zfc_data['meas_temp']
         mags = zfc_data['magn_mass']
+    temps.reset_index(drop=True, inplace=True)
+    mags.reset_index(drop=True, inplace=True)
+    dM_dT_df = thermomag_derivative(temps, mags)
+    temps_dM_dT = dM_dT_df['T']
 
     # Determine a fixed width for the descriptions to align the sliders
     description_width = '250px'  # Adjust this based on the longest description
@@ -796,19 +800,19 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     slider_layout = widgets.Layout(width=slider_total_width)  # Set the total width of the slider widget
 
     # Update sliders to use IntRangeSlider
-    background_temp_range_slider = widgets.IntRangeSlider(
+    background_temp_range_slider = IntRangeSlider(
         value=[60, 250], min=0, max=300, step=1,
         description='Background Temperature Range (K):',
         layout=slider_layout, style=description_style
     )
 
-    excluded_temp_range_slider = widgets.IntRangeSlider(
+    excluded_temp_range_slider = IntRangeSlider(
         value=[75, 150], min=0, max=300, step=1,
         description='Excluded Temperature Range (K):',
         layout=slider_layout, style=description_style
     )
 
-    poly_deg_slider = widgets.IntSlider(
+    poly_deg_slider = IntSlider(
         value=3, min=1, max=5, step=1,
         description='Background Fit Polynomial Degree:',
         layout=slider_layout, style=description_style
@@ -835,22 +839,121 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
         reset_button
     ])
 
-    out = widgets.interactive_output(
-        lambda background_temp_range, excluded_temp_range, poly_deg: verwey_estimate(
-            temps, mags, 
-            background_temp_range[0], background_temp_range[1], 
-            excluded_temp_range[0], excluded_temp_range[1], 
-            poly_deg
-        ), {
-            'background_temp_range': background_temp_range_slider,
-            'excluded_temp_range': excluded_temp_range_slider,
-            'poly_deg': poly_deg_slider,
-        }
-    )
+    display(ui)
 
-    out.layout.height = '400px'
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
+    fig.canvas.header_visible = False
 
-    display(ui, out)
+    def update_plot(*args):
+        ax0, ax1 = ax
+        ax0.clear()
+        ax1.clear()
+        # get values from sliders
+        t_range_background_min = background_temp_range_slider.value[0]
+        t_range_background_max = background_temp_range_slider.value[1]
+        excluded_t_min = excluded_temp_range_slider.value[0]
+        excluded_t_max = excluded_temp_range_slider.value[1]
+        poly_deg = poly_deg_slider.value
+
+        temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+        temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
+        dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
+
+        poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
+        dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
+
+        residuals = dM_dT_filtered - dM_dT_filtered_polyfit
+        ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
+        ss_res = np.sum(residuals ** 2)
+        r_squared = 1 - (ss_res / ss_tot)
+
+        temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+        temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
+        temps_dM_dT_background.reset_index(drop=True, inplace=True)
+        dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
+        dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
+
+        mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
+        mgt_dM_dT.reset_index(drop = True, inplace=True)
+
+        temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
+        temps_background = temps[temps_background_indices]
+
+        poly_func = np.poly1d(poly_background_fit)
+        background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
+
+        last_background_temp = temps_background.iloc[-1]    
+        last_background_mag = background_curve[-1]
+        target_temp_index = np.argmin(np.abs(temps - last_background_temp))
+        mags_value = mags[target_temp_index]
+        background_curve_adjusted = background_curve + (mags_value - last_background_mag)
+
+        mags_background = mags[temps_background_indices]
+        mgt_curve = mags_background - background_curve_adjusted
+        
+        max_dM_dT_temp = temps_dM_dT_background[mgt_dM_dT.idxmax()]
+    
+        d2M_dT2 = thermomag_derivative(temps_dM_dT_background, mgt_dM_dT)
+        d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
+        max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
+
+        d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
+        d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
+        d2M_dT2_T_after = d2M_dT2['T'][max_index]
+        d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
+
+        verwey_estimate = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
+
+        remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
+    
+        ax0.plot(temps, mags, marker='o', markersize=3.5, color='FireBrick', 
+                label='measurement')
+        ax0.plot(temps_background, background_curve_adjusted, marker='s', markersize=3.5, color='Teal', 
+                label='background fit')
+        ax0.plot(temps_background, mgt_curve, marker='d', markersize=3.5, color='RoyalBlue', 
+                label='magnetite (meas. minus background)')
+        verwey_y_value = np.interp(verwey_estimate, temps_background, mgt_curve)
+        ax0.plot(verwey_estimate, verwey_y_value, '*', color='Pink', markersize=10,
+            markeredgecolor='black', markeredgewidth=1,
+            label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
+        ax0.set_ylabel('M (Am$^2$/kg)')
+        ax0.set_xlabel('T (K)')
+        ax0.legend(loc='upper right')
+        ax0.grid(True)
+        ax0.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
+        
+        ax1.plot(dM_dT_df['T'], dM_dT_df['dM_dT'], marker='o', markersize=3.5, color='FireBrick', 
+                label='measurement')
+        ax1.plot(temps_dM_dT_background, dM_dT_polyfit, marker='s', markersize=3.5, color='Teal', 
+                label='background fit'+ ' (r$^2$ = ' + str(round(r_squared,3)) + ')' )
+        ax1.plot(temps_dM_dT_background, mgt_dM_dT, marker='d', markersize=3.5, color='RoyalBlue', 
+                label='magnetite (background fit minus measurement)')
+        verwey_y_value = np.interp(verwey_estimate, temps_dM_dT_background, mgt_dM_dT)
+        ax1.plot(verwey_estimate, verwey_y_value, '*', color='Pink', markersize=10,
+            markeredgecolor='black', markeredgewidth=1,
+            label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
+        rectangle = patches.Rectangle((excluded_t_min, ax1.get_ylim()[0]), excluded_t_max - excluded_t_min, 
+                                    ax1.get_ylim()[1] - ax1.get_ylim()[0], 
+                                    linewidth=0, edgecolor=None, facecolor='gray', 
+                                    alpha=0.3)
+        ax1.add_patch(rectangle)
+        rect_legend_patch = patches.Patch(color='gray', alpha=0.3, label='excluded from background fit')
+        handles, labels = ax1.get_legend_handles_labels()
+        handles.append(rect_legend_patch)  # Add the rectangle legend patch
+        ax1.legend(handles=handles, loc='lower right')
+        ax1.set_ylabel('dM/dT (Am$^2$/kg/K)')
+        ax1.set_xlabel('T (K)')
+        ax1.grid(True)
+        ax1.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
+
+
+    # Attach observers
+    background_temp_range_slider.observe(update_plot, names='value')
+    excluded_temp_range_slider.observe(update_plot, names='value')
+    poly_deg_slider.observe(update_plot, names='value')
+    reset_button.on_click(update_plot)
+
+    update_plot()
 
 
 def interactive_verwey_specimen_method_selection(measurements):
