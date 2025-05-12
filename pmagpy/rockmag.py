@@ -573,7 +573,7 @@ def make_mpms_plots_dc(measurements):
                     zfc_data,
                     rts_c,
                     rts_w,
-                    use_bokeh=False,
+                    interactive=False,
                     plot_derivative=True,
                     show_plot=True,
                 )
@@ -583,7 +583,7 @@ def make_mpms_plots_dc(measurements):
                     zfc_data,
                     rts_c,
                     rts_w,
-                    use_bokeh=True,
+                    interactive=True,
                     plot_derivative=True,
                     return_figure=True,
                     show_plot=False,
