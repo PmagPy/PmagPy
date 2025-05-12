@@ -3464,8 +3464,7 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
 
         # restrict to normal distribution if skewed is False
         if skewed == False:
-            params[f'{prefix}gamma'].min = 0
-            params[f'{prefix}gamma'].max = 0
+            params[f'{prefix}gamma'].set(value=0, vary=False)
 
         if composite_model is None:
             composite_model = model
@@ -3558,7 +3557,7 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     ax.set_ylabel('dM/dB', fontsize=14)
     return fig, ax
 
-def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6)):
+def interactive_backfield_fit(field, magnetization, n_components, skewed=True, figsize=(10, 6)):
     """
     Function for interactive backfield unmixing using skew‑normal distributions.
     No uncertainty propagation is shown; this function is useful for estimating
@@ -3633,7 +3632,10 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
             'gamma': gamma_slider
         }
         # Add sliders to the list
-        sliders.append(VBox([amp_slider, center_slider, sigma_slider, gamma_slider]))
+        if skewed:
+            sliders.append(VBox([amp_slider, center_slider, sigma_slider, gamma_slider]))
+        else:
+            sliders.append(VBox([amp_slider, center_slider, sigma_slider]))
 
     # now add the same amount of text boxes to update the best fit parameters on the fly
     for i in range(n_components):
@@ -3643,7 +3645,11 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
         sigma_text = widgets.Text(value=str(sigma_slidebars[f'sigma_{i}'].value), description=f'sigma_{i+1}')
         gamma_text = widgets.Text(value=str(gamma_slidebars[f'gamma_{i}'].value), description=f'gamma_{i+1}')
         # add the text boxes to the texts list
-        texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
+        if skewed:
+            texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
+        else:
+
+            texts.append(VBox([amp_text, center_text, sigma_text]))
 
     # Display sliders
     display(HBox(sliders))
@@ -3669,17 +3675,18 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
             'gamma': gamma
         })
 
-        result, updated_parameters = backfield_unmixing(field, magnetization, n_comps=n_components, parameters=parameters)
+        result, updated_parameters = backfield_unmixing(field, magnetization, n_comps=n_components, parameters=parameters, skewed=skewed)
         # update the text boxes with the updated parameters
         for i in range(n_components):
             amp_text = texts[i].children[0]
             center_text = texts[i].children[1]
             sigma_text = texts[i].children[2]
-            gamma_text = texts[i].children[3]
             amp_text.value = str(updated_parameters['amplitude'][i].round(4))
             center_text.value = str(updated_parameters['center'][i].round(4))
             sigma_text.value = str(updated_parameters['sigma'][i].round(4))
-            gamma_text.value = str(updated_parameters['gamma'][i].round(4))
+            if skewed:
+                gamma_text = texts[i].children[3]
+                gamma_text.value = str(updated_parameters['gamma'][i].round(4))
 
         ax.plot(field, result.eval(x=field)*np.max(smoothed_derivatives_y), '-', color='k', alpha=0.6, label='total spectrum best fit')
         if len(result.components) > 1:
@@ -3781,8 +3788,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
 
             # restrict to normal distribution if skewed is False
             if skewed == False:
-                params[f'{prefix}gamma'].min = 0
-                params[f'{prefix}gamma'].max = 0
+                params[f'{prefix}gamma'].set(value=0, vary=False)
                 
             if composite_model is None:
                 composite_model = model
