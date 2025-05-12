@@ -22,6 +22,7 @@ Thanks!
 """.format(sys.version))
 from . import pmag
 from . import ipmag
+from . import rockmag
 from . import pmagplotlib
 from . import find_pmag_dir
 from . import version
@@ -30,6 +31,6 @@ from . import data_model3
 from . import contribution_builder
 from . import mapping
 
-__all__ = [pmag, ipmag, pmagplotlib, find_pmag_dir, version,
+__all__ = [pmag, ipmag, rockmag, pmagplotlib, find_pmag_dir, version,
            controlled_vocabularies, data_model3, contribution_builder,
            mapping]
