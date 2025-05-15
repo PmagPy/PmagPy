@@ -266,7 +266,7 @@ def ms_t_plot(
         p.xaxis.axis_label_text_font_style = "normal"
         p.yaxis.axis_label_text_font_style = "normal"
         p.line(T, M, legend_label="M(T)", line_width=2)
-        p.circle(T, M, size=6, alpha=0.6, legend_label="M(T)")
+        p.scatter(T, M, size=6, alpha=0.6, legend_label="M(T)")
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
 
@@ -3036,7 +3036,7 @@ def plot_X_T(
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
 
-    r_warm_c = p.circle(
+    r_warm_c = p.scatter(
         warm_T, warm_X, legend_label="Heating",
         color="red", alpha=0.5, size=6,
     )
@@ -3045,7 +3045,7 @@ def plot_X_T(
         line_width=2, color="red",
     )
 
-    r_cool_c = p.circle(
+    r_cool_c = p.scatter(
         cool_T, cool_X, legend_label="Cooling",
         color="blue", alpha=0.5, size=6,
     )
