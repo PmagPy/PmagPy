@@ -435,7 +435,7 @@ def plot_mpms_dc(
         if fc_zfc_present:  
             p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", 
                         y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if fc is not None:  
                 p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
                 p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
@@ -450,7 +450,7 @@ def plot_mpms_dc(
         if rtsirm_present:  
             p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", 
                         y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if rc is not None:  
                 p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
                 p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
@@ -466,7 +466,7 @@ def plot_mpms_dc(
         if plot_derivative and fc_zfc_present:  
             p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
             if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
             p2.legend.click_policy="hide" 
@@ -477,7 +477,7 @@ def plot_mpms_dc(
         if plot_derivative and rtsirm_present:  
             p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
             if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
             p3.legend.click_policy="hide"  
@@ -1503,7 +1503,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p.circle(
+                p.scatter(
                     d['meas_temp'], d[col],
                     size=6,
                     alpha=0.6,
@@ -1539,7 +1539,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p1.circle(
+                p1.scatter(
                     d['meas_temp'], d['susc_chi_mass'],
                     size=6,
                     alpha=0.6,
@@ -1551,7 +1551,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p2.circle(
+                p2.scatter(
                     d['meas_temp'], d['susc_chi_qdr_mass'],
                     size=6,
                     alpha=0.6,
