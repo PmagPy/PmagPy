@@ -4,6 +4,7 @@ import copy
 
 from scipy.optimize import minimize, brent, least_squares, minimize_scalar
 from scipy.signal import savgol_filter
+from scipy.interpolate import UnivariateSpline
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -3352,7 +3353,7 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
 
 # backfield data processing functions
 # ------------------------------------------------------------------------------------------------------------------
-def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_frac=0.0, drop_first=False):
+def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_mode='lowess', smooth_frac=0.0, drop_first=False):
     '''
     Function to process the backfield data including shifting the magnetic 
     moment to be positive values taking the log base 10 of the magnetic 
@@ -3378,6 +3379,7 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     DataFrame
         The processed experiment DataFrame with new attributes.
     '''
+    assert smooth_mode in ['lowess', 'spline'], 'smooth_mode must be either lowess or spline'
     assert smooth_frac >= 0 and smooth_frac <= 1, 'smooth_frac must be between 0 and 1'
     assert isinstance(drop_first, bool), 'drop_first must be a boolean'
     
@@ -3396,10 +3398,25 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     experiment['magn_mass_shift'] = [i - experiment[magnetization].min() for i in experiment[magnetization]]
     # we then calculate the log10 of the treatment fields
     experiment['log_dc_field'] = np.log10(-experiment[field]*1e3)
-    # loess smoothing
-    spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
-    experiment['smoothed_magn_mass_shift'] = spl[:, 1]
-    experiment['smoothed_log_dc_field'] = spl[:, 0]
+    if smooth_mode == 'spline':
+        # spline smoothing
+        x = experiment['log_dc_field']
+        y = experiment['magn_mass_shift']
+        y_mean = np.mean(y)
+        y_std = np.std(y)
+        y_scaled = (y - y_mean) / y_std
+
+        # Map it to actual s value
+        s = smooth_frac * len(x) * y_mean
+
+        spl = UnivariateSpline(x, y_scaled, s=s)
+        experiment['smoothed_magn_mass_shift'] = spl(x) * y_std + y_mean
+        experiment['smoothed_log_dc_field'] = x
+    elif smooth_mode == 'lowess':
+        # loess smoothing
+        spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
+        experiment['smoothed_magn_mass_shift'] = spl[:, 1]
+        experiment['smoothed_log_dc_field'] = spl[:, 0]
     return experiment, Bcr
     
 def plot_backfield_data(
