@@ -3020,8 +3020,8 @@ def plot_X_T(
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
 
-    swT, swX, _, _ = X_T_running_average(warm_T, warm_X, smooth_window)
-    scT, scX, _, _ = X_T_running_average(cool_T, cool_X, smooth_window)
+    swT, swX = smooth(warm_T, warm_X, smooth_window)
+    scT, scX = smooth(cool_T, cool_X, smooth_window)
 
     width = 900
     height = int(width / 1.618)
@@ -3142,6 +3142,103 @@ def plot_X_T(
     if return_figure:
         return tuple(figs)
     return None
+
+
+def smooth(
+    x,
+    y,
+    x_window,
+    window_type="hanning",
+    pad_mode="edge",
+    return_variance=False,
+):
+    """
+    Smooth y vs x using an x-space moving window and numpy window functions.
+
+    Parameters:
+        x (array-like):
+            1-D sequence of independent variable values.
+        y (array-like):
+            1-D sequence of dependent variable values.
+        x_window (float):
+            Width of the x-window centered on each point; must be >= 0.
+            If zero, no smoothing is applied.
+        window_type (str, optional):
+            One of ['flat', 'hanning', 'hamming', 'bartlett', 'blackman'].
+            'flat' is a simple running mean. Defaults to 'hanning'.
+        pad_mode (str, optional):
+            Mode for numpy.pad to reduce edge artifacts (e.g., 'edge',
+            'constant', 'nearest'). Defaults to 'edge'.
+        return_variance (bool, optional):
+            If True, return weighted variances of x and y as well.
+            Otherwise, only return smoothed x and y. Defaults to False.
+
+    Returns:
+        smoothed_x, smoothed_y (, x_var, y_var)
+    """
+    # convert to numpy arrays
+    x = np.asarray(x)
+    y = np.asarray(y)
+
+    # validate dimensions
+    if x.ndim != 1 or y.ndim != 1 or x.size != y.size:
+        raise ValueError("`x` and `y` must be 1-D arrays of equal length.")
+
+    # handle non-positive window
+    if x_window < 0:
+        raise ValueError("`x_window` must be non-negative.")
+    if x_window == 0:
+        if return_variance:
+            x_var = np.zeros_like(x, dtype=float)
+            y_var = np.zeros_like(y, dtype=float)
+            return x, y, x_var, y_var
+        return x, y
+
+    # always pad to handle edge effects
+    pad_n = x.size
+    x_arr = np.pad(x, pad_n, mode=pad_mode)
+    y_arr = np.pad(y, pad_n, mode=pad_mode)
+
+    n = x.size
+    sm_x = np.empty(n)
+    sm_y = np.empty(n)
+    if return_variance:
+        x_var = np.empty(n)
+        y_var = np.empty(n)
+    half = x_window / 2.0
+
+    for i, center in enumerate(x):
+        mask = (x_arr >= center - half) & (x_arr <= center + half)
+        idx = np.nonzero(mask)[0]
+        if idx.size:
+            xx = x_arr[idx]
+            yy = y_arr[idx]
+            m = idx.size
+            if window_type == "flat":
+                w = np.ones(m)
+            else:
+                w = getattr(np, window_type)(m)
+            wsum = w.sum()
+            mean_x = (w * xx).sum() / wsum
+            mean_y = (w * yy).sum() / wsum
+            if return_variance:
+                vx = (w * (xx - mean_x) ** 2).sum() / wsum
+                vy = (w * (yy - mean_y) ** 2).sum() / wsum
+        else:
+            mean_x = center
+            mean_y = y[i]
+            if return_variance:
+                vx = vy = 0.0
+
+        sm_x[i] = mean_x
+        sm_y[i] = mean_y
+        if return_variance:
+            x_var[i] = vx
+            y_var[i] = vy
+
+    if return_variance:
+        return sm_x, sm_y, x_var, y_var
+    return sm_x, sm_y
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
