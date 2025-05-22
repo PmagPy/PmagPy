@@ -3021,8 +3021,8 @@ def plot_X_T(
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
 
-    swT, swX = smooth(warm_T, warm_X, smooth_window)
-    scT, scX = smooth(cool_T, cool_X, smooth_window)
+    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
+    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
 
     width = 900
     height = int(width / 1.618)
@@ -3113,16 +3113,32 @@ def plot_X_T(
             y_axis_label="1/X",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
-        inv_w = [1.0 / x for x in swX]
-        inv_c = [1.0 / x for x in scX]
+        # compute inverse safely (zeros become NaN)
+        swX_arr = np.array(swX)
+        scX_arr = np.array(scX)
+        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
+        inv_c = np.divide(1.0, scX_arr, out=np.full_like(scX_arr, np.nan), where=scX_arr != 0.0)
+
+        # mask to finite values only
+        mask_w = np.isfinite(inv_w)
+        mask_c = np.isfinite(inv_c)
+
+        # plot heating inverse
         r_inv_w = p_inv.line(
-            swT, inv_w, legend_label="Heating – 1/X",
-            line_width=2, color="red"
+            np.array(swT)[mask_w],
+            inv_w[mask_w],
+            legend_label="Heating – 1/X",
+            line_width=2, color="red",
         )
+
+        # plot cooling inverse
         r_inv_c = p_inv.line(
-            scT, inv_c, legend_label="Cooling – 1/X",
-            line_width=2, color="blue"
+            np.array(scT)[mask_c],
+            inv_c[mask_c],
+            legend_label="Cooling – 1/X",
+            line_width=2, color="blue",
         )
+
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_w],
                       tooltips=[("T", "@x"), ("1/X (heat)", "@y")])
@@ -3145,7 +3161,7 @@ def plot_X_T(
     return None
 
 
-def smooth(
+def smooth_moving_avg(
     x,
     y,
     x_window,
@@ -3308,7 +3324,7 @@ def X_T_running_average(temp_list, chi_list, temp_window):
     return avg_temps, avg_chis, temp_vars, chi_vars
 
 
-def optimize_X_T_running_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
+def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
@@ -3317,9 +3333,9 @@ def optimize_X_T_running_average_window(experiment, min_temp_window=0, max_temp_
     norm = colors.Normalize(vmin=min_temp_window, vmax=max_temp_window)
 
     for window in windows:
-        _, warm_avg_chis, _, warm_chi_vars = X_T_running_average(warm_T, warm_X, window)
+        _, warm_avg_chis, _, warm_chi_vars = smooth_moving_avg(warm_T, warm_X, window, return_variance=True)
         warm_avg_rms, warm_avg_variance = calculate_avg_variance_and_rms(warm_X, warm_avg_chis, warm_chi_vars)
-        _, cool_avg_chis, _, cool_chi_vars = X_T_running_average(cool_T, cool_X, window)  
+        _, cool_avg_chis, _, cool_chi_vars = smooth_moving_avg(cool_T, cool_X, window, return_variance=True)  
         cool_avg_rms, cool_avg_variance = calculate_avg_variance_and_rms(cool_X, cool_avg_chis, cool_chi_vars)
 
         axs[0].scatter(warm_avg_variance, warm_avg_rms, c=window, cmap=colormapwarm, norm=norm)
