@@ -4,6 +4,7 @@ import copy
 
 from scipy.optimize import minimize, brent, least_squares, minimize_scalar
 from scipy.signal import savgol_filter
+from scipy.interpolate import UnivariateSpline
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -11,7 +12,7 @@ import matplotlib.patches as patches
 
 try:
     import ipywidgets as widgets
-    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox, FloatSlider
+    from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox,  IntSlider, FloatSlider, IntRangeSlider
     from IPython.display import HTML, display
     
 except ImportError:
@@ -266,7 +267,7 @@ def ms_t_plot(
         p.xaxis.axis_label_text_font_style = "normal"
         p.yaxis.axis_label_text_font_style = "normal"
         p.line(T, M, legend_label="M(T)", line_width=2)
-        p.circle(T, M, size=6, alpha=0.6, legend_label="M(T)")
+        p.scatter(T, M, size=6, alpha=0.6, legend_label="M(T)")
         p.legend.location = "top_left"
         p.legend.click_policy = "hide"
 
@@ -435,7 +436,7 @@ def plot_mpms_dc(
         if fc_zfc_present:  
             p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", 
                         y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if fc is not None:  
                 p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
                 p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
@@ -450,7 +451,7 @@ def plot_mpms_dc(
         if rtsirm_present:  
             p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", 
                         y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if rc is not None:  
                 p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
                 p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
@@ -466,7 +467,7 @@ def plot_mpms_dc(
         if plot_derivative and fc_zfc_present:  
             p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
             if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
             p2.legend.click_policy="hide" 
@@ -477,7 +478,7 @@ def plot_mpms_dc(
         if plot_derivative and rtsirm_present:  
             p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",plot_height=400)  
+                        sizing_mode="stretch_width",height=400)  
             if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
             if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
             p3.legend.click_policy="hide"  
@@ -573,7 +574,7 @@ def make_mpms_plots_dc(measurements):
                     zfc_data,
                     rts_c,
                     rts_w,
-                    use_bokeh=False,
+                    interactive=False,
                     plot_derivative=True,
                     show_plot=True,
                 )
@@ -583,7 +584,7 @@ def make_mpms_plots_dc(measurements):
                     zfc_data,
                     rts_c,
                     rts_w,
-                    use_bokeh=True,
+                    interactive=True,
                     plot_derivative=True,
                     return_figure=True,
                     show_plot=False,
@@ -598,6 +599,82 @@ def make_mpms_plots_dc(measurements):
     display(ui)
     _update()
 
+def calc_verwey_estimate(temps, mags, 
+                    t_range_background_min=50,
+                    t_range_background_max=250,
+                    excluded_t_min=75,
+                    excluded_t_max=150,
+                    poly_deg=3):
+    """
+    Estimate the Verwey transition temperature and remanence loss of magnetite from MPMS data.
+    Plots the magnetization data, background fit, and resulting magnetite curve, and 
+    optionally the zero-crossing.
+
+    Parameters
+    ----------
+    temps : pd.Series
+        Series representing the temperatures at which magnetization measurements were taken.
+    mags : pd.Series
+        Series representing the magnetization measurements.
+    t_range_background_min : int or float, optional
+        Minimum temperature for the background fitting range. Default is 50.
+    t_range_background_max : int or float, optional
+        Maximum temperature for the background fitting range. Default is 250.
+    excluded_t_min : int or float, optional
+        Minimum temperature to exclude from the background fitting range. Default is 75.
+    excluded_t_max : int or float, optional
+        Maximum temperature to exclude from the background fitting range. Default is 150.
+    poly_deg : int, optional
+        Degree of the polynomial for background fitting. Default is 3.
+    """
+    
+    temps.reset_index(drop=True, inplace=True)
+    mags.reset_index(drop=True, inplace=True)
+
+    dM_dT_df = thermomag_derivative(temps, mags)
+    temps_dM_dT = dM_dT_df['T']
+
+    temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+    temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
+    dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
+
+    poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
+    dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
+
+    residuals = dM_dT_filtered - dM_dT_filtered_polyfit
+    ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
+    ss_res = np.sum(residuals ** 2)
+    r_squared = 1 - (ss_res / ss_tot)
+
+    temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
+    temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
+    temps_dM_dT_background.reset_index(drop=True, inplace=True)
+    dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
+    dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
+
+    mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
+    mgt_dM_dT.reset_index(drop = True, inplace=True)
+
+    temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
+    temps_background = temps[temps_background_indices]
+
+    poly_func = np.poly1d(poly_background_fit)
+    background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
+
+    last_background_temp = temps_background.iloc[-1]    
+    last_background_mag = background_curve[-1]
+    target_temp_index = np.argmin(np.abs(temps - last_background_temp))
+    mags_value = mags[target_temp_index]
+    background_curve_adjusted = background_curve + (mags_value - last_background_mag)
+
+    mags_background = mags[temps_background_indices]
+    mgt_curve = mags_background - background_curve_adjusted
+    
+    verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
+    
+    remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
+
+    return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
 def verwey_estimate(temps, mags, 
                     t_range_background_min=50,
@@ -673,57 +750,13 @@ def verwey_estimate(temps, mags,
     >>> verwey_estimate(temps, mags)
     (75.0, 0.5)
     """
-    
-    temps.reset_index(drop=True, inplace=True)
-    mags.reset_index(drop=True, inplace=True)
-
-    dM_dT_df = thermomag_derivative(temps, mags)
-    temps_dM_dT = dM_dT_df['T']
-
-    temps_dM_dT_filtered_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(excluded_t_min)) ) or ((float(temps_dM_dT[i]) > float(excluded_t_max)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-    temps_dM_dT_filtered = dM_dT_df['T'][temps_dM_dT_filtered_indices]
-    dM_dT_filtered = dM_dT_df['dM_dT'][temps_dM_dT_filtered_indices]
-
-    poly_background_fit = np.polyfit(temps_dM_dT_filtered, dM_dT_filtered, poly_deg)
-    dM_dT_filtered_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_filtered)
-
-    residuals = dM_dT_filtered - dM_dT_filtered_polyfit
-    ss_tot = np.sum((dM_dT_filtered - np.mean(dM_dT_filtered)) ** 2)
-    ss_res = np.sum(residuals ** 2)
-    r_squared = 1 - (ss_res / ss_tot)
-
-    temps_dM_dT_background_indices = [i for i in np.arange(len(temps_dM_dT)) if ((float(temps_dM_dT[i]) > float(t_range_background_min)) and (float(temps_dM_dT[i])  < float(t_range_background_max)))]
-    temps_dM_dT_background = dM_dT_df['T'][temps_dM_dT_background_indices]
-    temps_dM_dT_background.reset_index(drop=True, inplace=True)
-    dM_dT_background = dM_dT_df['dM_dT'][temps_dM_dT_background_indices]
-    dM_dT_polyfit = np.poly1d(poly_background_fit)(temps_dM_dT_background)
-
-    mgt_dM_dT = dM_dT_polyfit - dM_dT_background 
-    mgt_dM_dT.reset_index(drop = True, inplace=True)
-
-    temps_background_indices = [i for i in np.arange(len(temps)) if ((float(temps[i]) > float(t_range_background_min)) and (float(temps[i])  < float(t_range_background_max)))]
-    temps_background = temps[temps_background_indices]
-
-    poly_func = np.poly1d(poly_background_fit)
-    background_curve = np.cumsum(poly_func(temps_background) * np.gradient(temps_background))
-
-    last_background_temp = temps_background.iloc[-1]    
-    last_background_mag = background_curve[-1]
-    target_temp_index = np.argmin(np.abs(temps - last_background_temp))
-    mags_value = mags[target_temp_index]
-    background_curve_adjusted = background_curve + (mags_value - last_background_mag)
-
-    mags_background = mags[temps_background_indices]
-    mgt_curve = mags_background - background_curve_adjusted
-    
-    verwey_estimate = zero_crossing(temps_dM_dT_background, mgt_dM_dT, 
-                                    make_plot=plot_zero_crossing, 
-                                    xlim=(excluded_t_min, excluded_t_max),
-                                    verwey_marker=verwey_marker, verwey_color=verwey_color,
-                                    verwey_size=verwey_size)
-    
-    remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
-    
+    dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve = calc_verwey_estimate(temps, mags,
+                    t_range_background_min=t_range_background_min,
+                    t_range_background_max=t_range_background_max,
+                    excluded_t_min=excluded_t_min,
+                    excluded_t_max=excluded_t_max,
+                    poly_deg=poly_deg)
+        
     fig = plt.figure(figsize=(12,5))
     ax0 = fig.add_subplot(1,2,1)
     ax0.plot(temps, mags, marker=measurement_marker, markersize=markersize, color=measurement_color, 
@@ -787,6 +820,10 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     elif selected_method == 'LP-ZFC':
         temps = zfc_data['meas_temp']
         mags = zfc_data['magn_mass']
+    temps.reset_index(drop=True, inplace=True)
+    mags.reset_index(drop=True, inplace=True)
+    dM_dT_df = thermomag_derivative(temps, mags)
+    temps_dM_dT = dM_dT_df['T']
 
     # Determine a fixed width for the descriptions to align the sliders
     description_width = '250px'  # Adjust this based on the longest description
@@ -796,19 +833,19 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     slider_layout = widgets.Layout(width=slider_total_width)  # Set the total width of the slider widget
 
     # Update sliders to use IntRangeSlider
-    background_temp_range_slider = widgets.IntRangeSlider(
+    background_temp_range_slider = IntRangeSlider(
         value=[60, 250], min=0, max=300, step=1,
         description='Background Temperature Range (K):',
         layout=slider_layout, style=description_style
     )
 
-    excluded_temp_range_slider = widgets.IntRangeSlider(
+    excluded_temp_range_slider = IntRangeSlider(
         value=[75, 150], min=0, max=300, step=1,
         description='Excluded Temperature Range (K):',
         layout=slider_layout, style=description_style
     )
 
-    poly_deg_slider = widgets.IntSlider(
+    poly_deg_slider = IntSlider(
         value=3, min=1, max=5, step=1,
         description='Background Fit Polynomial Degree:',
         layout=slider_layout, style=description_style
@@ -824,33 +861,89 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     reset_button = widgets.Button(description="Reset to Default Values", layout=widgets.Layout(width='200px'))
     reset_button.on_click(reset_sliders)
     
-    title_label = widgets.Label(value='Adjust Parameters for ' + selected_specimen_name + ' ' + selected_method + ' fit')
+    # title_label = widgets.Label(value='Adjust Parameters for ' + selected_specimen_name + ' ' + selected_method + ' fit')
 
     # Add the reset button to the UI
     ui = widgets.VBox([ 
-        title_label,
+        # title_label,
         background_temp_range_slider, 
         excluded_temp_range_slider, 
         poly_deg_slider,
         reset_button
     ])
 
-    out = widgets.interactive_output(
-        lambda background_temp_range, excluded_temp_range, poly_deg: verwey_estimate(
-            temps, mags, 
-            background_temp_range[0], background_temp_range[1], 
-            excluded_temp_range[0], excluded_temp_range[1], 
-            poly_deg
-        ), {
-            'background_temp_range': background_temp_range_slider,
-            'excluded_temp_range': excluded_temp_range_slider,
-            'poly_deg': poly_deg_slider,
-        }
-    )
+    display(ui)
 
-    out.layout.height = '400px'
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
+    fig.canvas.header_visible = False
 
-    display(ui, out)
+    def update_plot(*args):
+        ax0, ax1 = ax
+        ax0.clear()
+        ax1.clear()
+        # get values from sliders
+        t_range_background_min = background_temp_range_slider.value[0]
+        t_range_background_max = background_temp_range_slider.value[1]
+        excluded_t_min = excluded_temp_range_slider.value[0]
+        excluded_t_max = excluded_temp_range_slider.value[1]
+        poly_deg = poly_deg_slider.value
+
+        # recalculate verwey estimate
+        dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve = calc_verwey_estimate(temps, mags,
+                    t_range_background_min=t_range_background_min,
+                    t_range_background_max=t_range_background_max,
+                    excluded_t_min=excluded_t_min,
+                    excluded_t_max=excluded_t_max,
+                    poly_deg=poly_deg)
+    
+        ax0.plot(temps, mags, marker='o', markersize=3.5, color='FireBrick', 
+                label='measurement')
+        ax0.plot(temps_background, background_curve_adjusted, marker='s', markersize=3.5, color='Teal', 
+                label='background fit')
+        ax0.plot(temps_background, mgt_curve, marker='d', markersize=3.5, color='RoyalBlue', 
+                label='magnetite (meas. minus background)')
+        verwey_y_value = np.interp(verwey_estimate, temps_background, mgt_curve)
+        ax0.plot(verwey_estimate, verwey_y_value, '*', color='Pink', markersize=10,
+            markeredgecolor='black', markeredgewidth=1,
+            label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
+        ax0.set_ylabel('M (Am$^2$/kg)')
+        ax0.set_xlabel('T (K)')
+        ax0.legend(loc='upper right')
+        ax0.grid(True)
+        ax0.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
+        
+        ax1.plot(dM_dT_df['T'], dM_dT_df['dM_dT'], marker='o', markersize=3.5, color='FireBrick', 
+                label='measurement')
+        ax1.plot(temps_dM_dT_background, dM_dT_polyfit, marker='s', markersize=3.5, color='Teal', 
+                label='background fit'+ ' (r$^2$ = ' + str(round(r_squared,3)) + ')' )
+        ax1.plot(temps_dM_dT_background, mgt_dM_dT, marker='d', markersize=3.5, color='RoyalBlue', 
+                label='magnetite (background fit minus measurement)')
+        verwey_y_value = np.interp(verwey_estimate, temps_dM_dT_background, mgt_dM_dT)
+        ax1.plot(verwey_estimate, verwey_y_value, '*', color='Pink', markersize=10,
+            markeredgecolor='black', markeredgewidth=1,
+            label='Verwey estimate' + ' (' + str(round(verwey_estimate,1)) + ' K)')
+        rectangle = patches.Rectangle((excluded_t_min, ax1.get_ylim()[0]), excluded_t_max - excluded_t_min, 
+                                    ax1.get_ylim()[1] - ax1.get_ylim()[0], 
+                                    linewidth=0, edgecolor=None, facecolor='gray', 
+                                    alpha=0.3)
+        ax1.add_patch(rectangle)
+        rect_legend_patch = patches.Patch(color='gray', alpha=0.3, label='excluded from background fit')
+        handles, labels = ax1.get_legend_handles_labels()
+        handles.append(rect_legend_patch)  # Add the rectangle legend patch
+        ax1.legend(handles=handles, loc='lower right')
+        ax1.set_ylabel('dM/dT (Am$^2$/kg/K)')
+        ax1.set_xlabel('T (K)')
+        ax1.grid(True)
+        ax1.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
+
+
+    # Attach observers
+    background_temp_range_slider.observe(update_plot, names='value')
+    excluded_temp_range_slider.observe(update_plot, names='value')
+    poly_deg_slider.observe(update_plot, names='value')
+    reset_button.on_click(update_plot)
+
+    update_plot()
 
 
 def interactive_verwey_specimen_method_selection(measurements):
@@ -1067,6 +1160,45 @@ def thermomag_derivative(temps, mags, drop_first=False, drop_last=False):
     return dM_dT_df
 
 
+def calc_zero_crossing(dM_dT_temps, dM_dT):
+    """
+    Calculate the temperature at which the second derivative of magnetization with respect to 
+    temperature crosses zero. This value provides an estimate of the peak of the derivative 
+    curve that is more precise than the maximum value.
+
+    The function computes the second derivative of magnetization (dM/dT) with respect to 
+    temperature, identifies the nearest points around the maximum value of the derivative, 
+    and then calculates the temperature at which this second derivative crosses zero using 
+    linear interpolation.
+
+    Parameters:
+        dM_dT_temps (pd.Series): A pandas Series representing temperatures corresponding to
+                                 the first derivation of magnetization with respect to temperature.
+        dM_dT (pd.Series): A pandas Series representing the first derivative of 
+                           magnetization with respect to temperature.
+    Returns:
+        float: The estimated temperature at which the second derivative of magnetization 
+               with respect to temperature crosses zero.
+
+    Note:
+        The function assumes that the input series `dM_dT_temps` and `dM_dT` are related to 
+        each other and are of equal length.
+    """    
+    max_dM_dT_temp = dM_dT_temps[dM_dT.idxmax()]
+    
+    d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
+    d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
+    max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
+
+    d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
+    d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
+    d2M_dT2_T_after = d2M_dT2['T'][max_index]
+    d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
+
+    zero_cross_temp = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
+
+    return d2M_dT2, d2M_dT2_T_before, d2M_dT2_before, d2M_dT2_T_after, d2M_dT2_after, zero_cross_temp
+
 def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
                   verwey_marker='*', verwey_color='Pink',
                   verwey_size=10,):
@@ -1103,19 +1235,8 @@ def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
         each other and are of equal length.
     """    
     
-    max_dM_dT_temp = dM_dT_temps[dM_dT.idxmax()]
+    d2M_dT2, d2M_dT2_T_before, d2M_dT2_before, d2M_dT2_T_after, d2M_dT2_after, zero_cross_temp = calc_zero_crossing(dM_dT_temps, dM_dT)
     
-    d2M_dT2 = thermomag_derivative(dM_dT_temps, dM_dT)
-    d2M_dT2_T_array = d2M_dT2['T'].to_numpy()
-    max_index = np.searchsorted(d2M_dT2_T_array, max_dM_dT_temp)
-
-    d2M_dT2_T_before = d2M_dT2['T'][max_index-1]
-    d2M_dT2_before = d2M_dT2['dM_dT'][max_index-1]
-    d2M_dT2_T_after = d2M_dT2['T'][max_index]
-    d2M_dT2_after = d2M_dT2['dM_dT'][max_index]
-
-    zero_cross_temp = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
-
     if make_plot:
         fig = plt.figure(figsize=(12,4))
         ax0 = fig.add_subplot(1,1,1)
@@ -1383,7 +1504,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p.circle(
+                p.scatter(
                     d['meas_temp'], d[col],
                     size=6,
                     alpha=0.6,
@@ -1419,7 +1540,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p1.circle(
+                p1.scatter(
                     d['meas_temp'], d['susc_chi_mass'],
                     size=6,
                     alpha=0.6,
@@ -1431,7 +1552,7 @@ def plot_mpms_ac(
                     legend_label=f'{f} Hz',
                     line_width=2,
                     color=color)
-                p2.circle(
+                p2.scatter(
                     d['meas_temp'], d['susc_chi_qdr_mass'],
                     size=6,
                     alpha=0.6,
@@ -2900,8 +3021,8 @@ def plot_X_T(
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
 
-    swT, swX, _, _ = X_T_running_average(warm_T, warm_X, smooth_window)
-    scT, scX, _, _ = X_T_running_average(cool_T, cool_X, smooth_window)
+    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
+    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
 
     width = 900
     height = int(width / 1.618)
@@ -2916,7 +3037,7 @@ def plot_X_T(
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
 
-    r_warm_c = p.circle(
+    r_warm_c = p.scatter(
         warm_T, warm_X, legend_label="Heating",
         color="red", alpha=0.5, size=6,
     )
@@ -2925,7 +3046,7 @@ def plot_X_T(
         line_width=2, color="red",
     )
 
-    r_cool_c = p.circle(
+    r_cool_c = p.scatter(
         cool_T, cool_X, legend_label="Cooling",
         color="blue", alpha=0.5, size=6,
     )
@@ -2992,16 +3113,32 @@ def plot_X_T(
             y_axis_label="1/X",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
-        inv_w = [1.0 / x for x in swX]
-        inv_c = [1.0 / x for x in scX]
+        # compute inverse safely (zeros become NaN)
+        swX_arr = np.array(swX)
+        scX_arr = np.array(scX)
+        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
+        inv_c = np.divide(1.0, scX_arr, out=np.full_like(scX_arr, np.nan), where=scX_arr != 0.0)
+
+        # mask to finite values only
+        mask_w = np.isfinite(inv_w)
+        mask_c = np.isfinite(inv_c)
+
+        # plot heating inverse
         r_inv_w = p_inv.line(
-            swT, inv_w, legend_label="Heating – 1/X",
-            line_width=2, color="red"
+            np.array(swT)[mask_w],
+            inv_w[mask_w],
+            legend_label="Heating – 1/X",
+            line_width=2, color="red",
         )
+
+        # plot cooling inverse
         r_inv_c = p_inv.line(
-            scT, inv_c, legend_label="Cooling – 1/X",
-            line_width=2, color="blue"
+            np.array(scT)[mask_c],
+            inv_c[mask_c],
+            legend_label="Cooling – 1/X",
+            line_width=2, color="blue",
         )
+
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_w],
                       tooltips=[("T", "@x"), ("1/X (heat)", "@y")])
@@ -3022,6 +3159,103 @@ def plot_X_T(
     if return_figure:
         return tuple(figs)
     return None
+
+
+def smooth_moving_avg(
+    x,
+    y,
+    x_window,
+    window_type="hanning",
+    pad_mode="edge",
+    return_variance=False,
+):
+    """
+    Smooth y vs x using an x-space moving window and numpy window functions.
+
+    Parameters:
+        x (array-like):
+            1-D sequence of independent variable values.
+        y (array-like):
+            1-D sequence of dependent variable values.
+        x_window (float):
+            Width of the x-window centered on each point; must be >= 0.
+            If zero, no smoothing is applied.
+        window_type (str, optional):
+            One of ['flat', 'hanning', 'hamming', 'bartlett', 'blackman'].
+            'flat' is a simple running mean. Defaults to 'hanning'.
+        pad_mode (str, optional):
+            Mode for numpy.pad to reduce edge artifacts (e.g., 'edge',
+            'constant', 'nearest'). Defaults to 'edge'.
+        return_variance (bool, optional):
+            If True, return weighted variances of x and y as well.
+            Otherwise, only return smoothed x and y. Defaults to False.
+
+    Returns:
+        smoothed_x, smoothed_y (, x_var, y_var)
+    """
+    # convert to numpy arrays
+    x = np.asarray(x)
+    y = np.asarray(y)
+
+    # validate dimensions
+    if x.ndim != 1 or y.ndim != 1 or x.size != y.size:
+        raise ValueError("`x` and `y` must be 1-D arrays of equal length.")
+
+    # handle non-positive window
+    if x_window < 0:
+        raise ValueError("`x_window` must be non-negative.")
+    if x_window == 0:
+        if return_variance:
+            x_var = np.zeros_like(x, dtype=float)
+            y_var = np.zeros_like(y, dtype=float)
+            return x, y, x_var, y_var
+        return x, y
+
+    # always pad to handle edge effects
+    pad_n = x.size
+    x_arr = np.pad(x, pad_n, mode=pad_mode)
+    y_arr = np.pad(y, pad_n, mode=pad_mode)
+
+    n = x.size
+    sm_x = np.empty(n)
+    sm_y = np.empty(n)
+    if return_variance:
+        x_var = np.empty(n)
+        y_var = np.empty(n)
+    half = x_window / 2.0
+
+    for i, center in enumerate(x):
+        mask = (x_arr >= center - half) & (x_arr <= center + half)
+        idx = np.nonzero(mask)[0]
+        if idx.size:
+            xx = x_arr[idx]
+            yy = y_arr[idx]
+            m = idx.size
+            if window_type == "flat":
+                w = np.ones(m)
+            else:
+                w = getattr(np, window_type)(m)
+            wsum = w.sum()
+            mean_x = (w * xx).sum() / wsum
+            mean_y = (w * yy).sum() / wsum
+            if return_variance:
+                vx = (w * (xx - mean_x) ** 2).sum() / wsum
+                vy = (w * (yy - mean_y) ** 2).sum() / wsum
+        else:
+            mean_x = center
+            mean_y = y[i]
+            if return_variance:
+                vx = vy = 0.0
+
+        sm_x[i] = mean_x
+        sm_y[i] = mean_y
+        if return_variance:
+            x_var[i] = vx
+            y_var[i] = vy
+
+    if return_variance:
+        return sm_x, sm_y, x_var, y_var
+    return sm_x, sm_y
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
@@ -3090,7 +3324,7 @@ def X_T_running_average(temp_list, chi_list, temp_window):
     return avg_temps, avg_chis, temp_vars, chi_vars
 
 
-def optimize_X_T_running_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
+def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
@@ -3099,9 +3333,9 @@ def optimize_X_T_running_average_window(experiment, min_temp_window=0, max_temp_
     norm = colors.Normalize(vmin=min_temp_window, vmax=max_temp_window)
 
     for window in windows:
-        _, warm_avg_chis, _, warm_chi_vars = X_T_running_average(warm_T, warm_X, window)
+        _, warm_avg_chis, _, warm_chi_vars = smooth_moving_avg(warm_T, warm_X, window, return_variance=True)
         warm_avg_rms, warm_avg_variance = calculate_avg_variance_and_rms(warm_X, warm_avg_chis, warm_chi_vars)
-        _, cool_avg_chis, _, cool_chi_vars = X_T_running_average(cool_T, cool_X, window)  
+        _, cool_avg_chis, _, cool_chi_vars = smooth_moving_avg(cool_T, cool_X, window, return_variance=True)  
         cool_avg_rms, cool_avg_variance = calculate_avg_variance_and_rms(cool_X, cool_avg_chis, cool_chi_vars)
 
         axs[0].scatter(warm_avg_variance, warm_avg_rms, c=window, cmap=colormapwarm, norm=norm)
@@ -3135,7 +3369,7 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
 
 # backfield data processing functions
 # ------------------------------------------------------------------------------------------------------------------
-def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_frac=0.0, drop_first=False):
+def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_mode='lowess', smooth_frac=0.0, drop_first=False):
     '''
     Function to process the backfield data including shifting the magnetic 
     moment to be positive values taking the log base 10 of the magnetic 
@@ -3161,6 +3395,7 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     DataFrame
         The processed experiment DataFrame with new attributes.
     '''
+    assert smooth_mode in ['lowess', 'spline'], 'smooth_mode must be either lowess or spline'
     assert smooth_frac >= 0 and smooth_frac <= 1, 'smooth_frac must be between 0 and 1'
     assert isinstance(drop_first, bool), 'drop_first must be a boolean'
     
@@ -3179,10 +3414,25 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     experiment['magn_mass_shift'] = [i - experiment[magnetization].min() for i in experiment[magnetization]]
     # we then calculate the log10 of the treatment fields
     experiment['log_dc_field'] = np.log10(-experiment[field]*1e3)
-    # loess smoothing
-    spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
-    experiment['smoothed_magn_mass_shift'] = spl[:, 1]
-    experiment['smoothed_log_dc_field'] = spl[:, 0]
+    if smooth_mode == 'spline':
+        # spline smoothing
+        x = experiment['log_dc_field']
+        y = experiment['magn_mass_shift']
+        y_mean = np.mean(y)
+        y_std = np.std(y)
+        y_scaled = (y - y_mean) / y_std
+
+        # Map it to actual s value
+        s = smooth_frac * len(x) * y_mean
+
+        spl = UnivariateSpline(x, y_scaled, s=s)
+        experiment['smoothed_magn_mass_shift'] = spl(x) * y_std + y_mean
+        experiment['smoothed_log_dc_field'] = x
+    elif smooth_mode == 'lowess':
+        # loess smoothing
+        spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
+        experiment['smoothed_magn_mass_shift'] = spl[:, 1]
+        experiment['smoothed_log_dc_field'] = spl[:, 0]
     return experiment, Bcr
     
 def plot_backfield_data(
@@ -3464,8 +3714,7 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
 
         # restrict to normal distribution if skewed is False
         if skewed == False:
-            params[f'{prefix}gamma'].min = 0
-            params[f'{prefix}gamma'].max = 0
+            params[f'{prefix}gamma'].set(value=0, vary=False)
 
         if composite_model is None:
             composite_model = model
@@ -3558,7 +3807,7 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     ax.set_ylabel('dM/dB', fontsize=14)
     return fig, ax
 
-def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6)):
+def interactive_backfield_fit(field, magnetization, n_components, skewed=True, figsize=(10, 6)):
     """
     Function for interactive backfield unmixing using skew‑normal distributions.
     No uncertainty propagation is shown; this function is useful for estimating
@@ -3633,7 +3882,10 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
             'gamma': gamma_slider
         }
         # Add sliders to the list
-        sliders.append(VBox([amp_slider, center_slider, sigma_slider, gamma_slider]))
+        if skewed:
+            sliders.append(VBox([amp_slider, center_slider, sigma_slider, gamma_slider]))
+        else:
+            sliders.append(VBox([amp_slider, center_slider, sigma_slider]))
 
     # now add the same amount of text boxes to update the best fit parameters on the fly
     for i in range(n_components):
@@ -3643,7 +3895,10 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
         sigma_text = widgets.Text(value=str(sigma_slidebars[f'sigma_{i}'].value), description=f'sigma_{i+1}')
         gamma_text = widgets.Text(value=str(gamma_slidebars[f'gamma_{i}'].value), description=f'gamma_{i+1}')
         # add the text boxes to the texts list
-        texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
+        if skewed:
+            texts.append(VBox([amp_text, center_text, sigma_text, gamma_text]))
+        else:
+            texts.append(VBox([amp_text, center_text, sigma_text]))
 
     # Display sliders
     display(HBox(sliders))
@@ -3669,17 +3924,18 @@ def interactive_backfield_fit(field, magnetization, n_components, figsize=(10, 6
             'gamma': gamma
         })
 
-        result, updated_parameters = backfield_unmixing(field, magnetization, n_comps=n_components, parameters=parameters)
+        result, updated_parameters = backfield_unmixing(field, magnetization, n_comps=n_components, parameters=parameters, skewed=skewed)
         # update the text boxes with the updated parameters
         for i in range(n_components):
             amp_text = texts[i].children[0]
             center_text = texts[i].children[1]
             sigma_text = texts[i].children[2]
-            gamma_text = texts[i].children[3]
             amp_text.value = str(updated_parameters['amplitude'][i].round(4))
             center_text.value = str(updated_parameters['center'][i].round(4))
             sigma_text.value = str(updated_parameters['sigma'][i].round(4))
-            gamma_text.value = str(updated_parameters['gamma'][i].round(4))
+            if skewed:
+                gamma_text = texts[i].children[3]
+                gamma_text.value = str(updated_parameters['gamma'][i].round(4))
 
         ax.plot(field, result.eval(x=field)*np.max(smoothed_derivatives_y), '-', color='k', alpha=0.6, label='total spectrum best fit')
         if len(result.components) > 1:
@@ -3781,8 +4037,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
 
             # restrict to normal distribution if skewed is False
             if skewed == False:
-                params[f'{prefix}gamma'].min = 0
-                params[f'{prefix}gamma'].max = 0
+                params[f'{prefix}gamma'].set(value=0, vary=False)
                 
             if composite_model is None:
                 composite_model = model
