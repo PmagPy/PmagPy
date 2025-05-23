@@ -3533,6 +3533,7 @@ def plot_backfield_data(
                 y_axis_label="Magnetization",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height = figsize[1]*25,
             )
             p0.scatter(
                 experiment[field],
@@ -3555,6 +3556,7 @@ def plot_backfield_data(
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height = figsize[1]*25,
             )
             p1.scatter(
                 x_shifted,
@@ -3580,6 +3582,7 @@ def plot_backfield_data(
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height = figsize[1]*25,
             )
             p2.scatter(raw_dx, raw_dy, legend_label="raw spectrum",
                        color=palette[2], size=6)
