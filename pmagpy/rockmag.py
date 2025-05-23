@@ -1559,7 +1559,8 @@ def plot_mpms_ac(
                     fill_color=color,
                     line_color=color,
                     legend_label=f'{f} Hz')
-            p1.legend.location = p2.legend.location = 'top_left'
+            p1.legend.location = 'top_left'
+            p2.legend.location = 'top_right'
             p1.legend.click_policy = p2.legend.click_policy = "hide"
             figs = [p1, p2]
 
@@ -3384,6 +3385,8 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
         The name of the treatment field column in the DataFrame
     magnetization : str
         The name of the magnetization column in the DataFrame
+    smooth_mode : str
+        The smoothing mode to be used, either 'lowess' or 'spline'
     smooth_frac : float
         Fraction of the data to be used for LOWESS smoothing, value must be between 0 and 1
     drop_first : bool
