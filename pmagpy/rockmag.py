@@ -758,6 +758,7 @@ def verwey_estimate(temps, mags,
                     poly_deg=poly_deg)
         
     fig = plt.figure(figsize=(12,5))
+    fig.canvas.header_visible = False
     ax0 = fig.add_subplot(1,2,1)
     ax0.plot(temps, mags, marker=measurement_marker, markersize=markersize, color=measurement_color, 
              label='measurement')
