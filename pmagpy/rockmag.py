@@ -25,7 +25,7 @@ try:
     from bokeh.models import HoverTool, Label
     from bokeh.embed import components
     from bokeh.palettes import Category10
-    from bokeh.models import ColumnDataSource
+    from bokeh.models import ColumnDataSource, Legend, LegendItem
     from bokeh.models.widgets import DataTable, TableColumn
     from bokeh.layouts import column
     _HAS_BOKEH = True
@@ -357,6 +357,34 @@ def extract_mpms_data_dc(df, specimen_name):
     return fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data
 
 
+def add_line_and_scatter_with_legend(fig, df, x_col, y_col, color, marker, label, size, marker_map):
+    """
+    Adds line and scatter plots to a Bokeh figure and returns a LegendItem.
+
+    Parameters:
+        fig (bokeh.plotting.figure): The figure to plot on.
+        df (pd.DataFrame): The data source.
+        x_col (str): Column name for x-axis values.
+        y_col (str): Column name for y-axis values.
+        color (str): Color for both glyphs.
+        marker (str): Matplotlib-style marker symbol.
+        label (str): Legend label.
+        size (int): Size of scatter points.
+        marker_map (dict): Mapping of matplotlib to Bokeh markers.
+
+    Returns:
+        bokeh.models.LegendItem: A grouped legend entry for the glyphs.
+    """
+    source = ColumnDataSource(data={"x": df[x_col], "y": df[y_col]})
+    line = fig.line("x", "y", source=source, color=color)
+    scatter = fig.scatter(
+        "x", "y", source=source,
+        marker=marker_map.get(marker, "circle"),
+        size=size, color=color,
+    )
+    return LegendItem(label=label, renderers=[line, scatter])
+
+
 def plot_mpms_dc(
     fc_data=None,
     zfc_data=None,
@@ -433,58 +461,89 @@ def plot_mpms_dc(
         tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,reset,save"]  
         figs = []  
 
-        if fc_zfc_present:  
-            p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", 
-                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",height=400)  
-            if fc is not None:  
-                p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
-                p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
-            if zfc is not None:  
-                p0.line(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, legend_label="ZFC")  
-                p0.scatter(zfc["meas_temp"], zfc["magn_mass"], marker=mpl_to_bokeh_markers.get(zfc_marker), size=symbol_size, color=zfc_color)  
-            p0.legend.click_policy="hide"  
+        if fc_zfc_present:
+            p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)",
+                        y_axis_label="Magnetization (Am2/kg)", tools=tools,
+                        sizing_mode="stretch_width", height=400)
+            legend_items_0 = []
+            if fc is not None:
+                legend_items_0.append(add_line_and_scatter_with_legend(
+                    p0, fc, "meas_temp", "magn_mass", fc_color,
+                    fc_marker, "FC", symbol_size, mpl_to_bokeh_markers
+                ))
+            if zfc is not None:
+                legend_items_0.append(add_line_and_scatter_with_legend(
+                    p0, zfc, "meas_temp", "magn_mass", zfc_color,
+                    zfc_marker, "ZFC", symbol_size, mpl_to_bokeh_markers
+                ))
+            p0.add_layout(Legend(items=legend_items_0), 'right')
+            p0.legend.click_policy = "hide"
             p0.xaxis.axis_label_text_font_style = "normal"
             p0.yaxis.axis_label_text_font_style = "normal"
-            figs.append(p0)  
+            figs.append(p0)
 
-        if rtsirm_present:  
-            p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", 
-                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
-                        sizing_mode="stretch_width",height=400)  
-            if rc is not None:  
-                p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
-                p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
-            if rw is not None:  
-                p1.line(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, legend_label="warm")  
-                p1.scatter(rw["meas_temp"], rw["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), size=symbol_size, color=rtsirm_warm_color)  
-            p1.legend.click_policy="hide"  
+        if rtsirm_present:
+            p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)",
+                        y_axis_label="Magnetization (Am2/kg)", tools=tools,
+                        sizing_mode="stretch_width", height=400)
+            legend_items_1 = []
+            if rc is not None:
+                legend_items_1.append(add_line_and_scatter_with_legend(
+                    p1, rc, "meas_temp", "magn_mass", rtsirm_cool_color,
+                    rtsirm_cool_marker, "cool", symbol_size, mpl_to_bokeh_markers
+                ))
+            if rw is not None:
+                legend_items_1.append(add_line_and_scatter_with_legend(
+                    p1, rw, "meas_temp", "magn_mass", rtsirm_warm_color,
+                    rtsirm_warm_marker, "warm", symbol_size, mpl_to_bokeh_markers
+                ))
+            p1.add_layout(Legend(items=legend_items_1), 'right')
+            p1.legend.click_policy = "hide"
             p1.xaxis.axis_label_text_font_style = "normal"
             p1.yaxis.axis_label_text_font_style = "normal"
-            figs.append(p1)  
+            figs.append(p1)
 
-        # separate derivative panels  
-        if plot_derivative and fc_zfc_present:  
-            p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", 
-                        y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",height=400)  
-            if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
-            if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
-            p2.legend.click_policy="hide" 
+        if plot_derivative and fc_zfc_present:
+            p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)",
+                        y_axis_label="dM/dT", tools=tools,
+                        sizing_mode="stretch_width", height=400)
+            legend_items_2 = []
+            if fcd is not None:
+                legend_items_2.append(add_line_and_scatter_with_legend(
+                    p2, fcd, "T", "dM_dT", fc_color, fc_marker,
+                    "FC dM/dT", symbol_size, mpl_to_bokeh_markers
+                ))
+            if zfcd is not None:
+                legend_items_2.append(add_line_and_scatter_with_legend(
+                    p2, zfcd, "T", "dM_dT", zfc_color, zfc_marker,
+                    "ZFC dM/dT", symbol_size, mpl_to_bokeh_markers
+                ))
+            p2.add_layout(Legend(items=legend_items_2), 'right')
+            p2.legend.click_policy = "hide"
             p2.xaxis.axis_label_text_font_style = "normal"
-            p2.yaxis.axis_label_text_font_style = "normal"        
-            figs.append(p2)  
+            p2.yaxis.axis_label_text_font_style = "normal"
+            figs.append(p2)
 
-        if plot_derivative and rtsirm_present:  
-            p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", 
-                        y_axis_label="dM/dT", tools=tools, 
-                        sizing_mode="stretch_width",height=400)  
-            if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
-            if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
-            p3.legend.click_policy="hide"  
+        if plot_derivative and rtsirm_present:
+            p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)",
+                        y_axis_label="dM/dT", tools=tools,
+                        sizing_mode="stretch_width", height=400)
+            legend_items_3 = []
+            if rcd is not None:
+                legend_items_3.append(add_line_and_scatter_with_legend(
+                    p3, rcd, "T", "dM_dT", rtsirm_cool_color,
+                    rtsirm_cool_marker, "cool dM/dT", symbol_size, mpl_to_bokeh_markers
+                ))
+            if rwd is not None:
+                legend_items_3.append(add_line_and_scatter_with_legend(
+                    p3, rwd, "T", "dM_dT", rtsirm_warm_color,
+                    rtsirm_warm_marker, "warm dM/dT", symbol_size, mpl_to_bokeh_markers
+                ))
+            p3.add_layout(Legend(items=legend_items_3), 'right')
+            p3.legend.click_policy = "hide"
             p3.xaxis.axis_label_text_font_style = "normal"
             p3.yaxis.axis_label_text_font_style = "normal"
-            figs.append(p3)  
+            figs.append(p3)
 
         layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
         if show_plot: show(layout)  
@@ -599,6 +658,7 @@ def make_mpms_plots_dc(measurements):
     display(ui)
     _update()
 
+
 def calc_verwey_estimate(temps, mags, 
                     t_range_background_min=50,
                     t_range_background_max=250,
@@ -675,6 +735,7 @@ def calc_verwey_estimate(temps, mags,
     remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
+
 
 def verwey_estimate(temps, mags, 
                     t_range_background_min=50,
@@ -1198,6 +1259,7 @@ def calc_zero_crossing(dM_dT_temps, dM_dT):
     zero_cross_temp = d2M_dT2_T_before + ((d2M_dT2_T_after - d2M_dT2_T_before) / (d2M_dT2_after - d2M_dT2_before)) * (0 - d2M_dT2_before)
 
     return d2M_dT2, d2M_dT2_T_before, d2M_dT2_before, d2M_dT2_T_after, d2M_dT2_after, zero_cross_temp
+
 
 def zero_crossing(dM_dT_temps, dM_dT, make_plot=False, xlim=None,
                   verwey_marker='*', verwey_color='Pink',
