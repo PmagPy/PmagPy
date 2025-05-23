@@ -2975,6 +2975,7 @@ def plot_X_T(
     plot_derivative=True,
     plot_inverse=False,
     return_figure=False,
+    panel_height=400,
 ):
     """
     Plot the high-temperature X–T curve, and optionally its derivative
@@ -3026,14 +3027,12 @@ def plot_X_T(
     swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
     scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
 
-    width = 900
-    height = int(width / 1.618)
     title = experiment["specimen"].unique()[0]
 
     p = figure(
         title=title,
-        width=width,
-        height=height,
+        sizing_mode="stretch_width",
+        panel_height=400,
         x_axis_label=f"Temperature (°{temp_unit})",
         y_axis_label="k (m³ kg⁻¹)",
         tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3076,8 +3075,8 @@ def plot_X_T(
     if plot_derivative:
         p_dx = figure(
             title=f"{title} – dX/dT",
-            width=width,
-            height=height,
+            sizing_mode="stretch_width",
+            panel_height=400,
             x_axis_label=f"Temperature (°{temp_unit})",
             y_axis_label="dX/dT",
             tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3088,9 +3087,17 @@ def plot_X_T(
             swT, dx_w, legend_label="Heating – dX/dT",
             line_width=2, color="red"
         )
+        r_dx_w_c = p_dx.scatter(
+            swT, dx_w,
+            color="red", alpha=0.5, size=6
+        )
         r_dx_c = p_dx.line(
             scT, dx_c, legend_label="Cooling – dX/dT",
             line_width=2, color="blue"
+        )
+        r_dx_c_c = p_dx.scatter(
+            scT, dx_c,
+            color="blue", alpha=0.5, size=6
         )
         p_dx.add_tools(
             HoverTool(renderers=[r_dx_w],
@@ -3109,8 +3116,8 @@ def plot_X_T(
     if plot_inverse:
         p_inv = figure(
             title=f"{title} – 1/X",
-            width=width,
-            height=height,
+            sizing_mode="stretch_width",
+            panel_height=400,
             x_axis_label=f"Temperature (°{temp_unit})",
             y_axis_label="1/X",
             tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3132,7 +3139,11 @@ def plot_X_T(
             legend_label="Heating – 1/X",
             line_width=2, color="red",
         )
-
+        r_inv_w_c = p_inv.scatter(
+            np.array(swT)[mask_w],
+            inv_w[mask_w],
+            color="red", alpha=0.5, size=6
+        )
         # plot cooling inverse
         r_inv_c = p_inv.line(
             np.array(scT)[mask_c],
@@ -3140,7 +3151,11 @@ def plot_X_T(
             legend_label="Cooling – 1/X",
             line_width=2, color="blue",
         )
-
+        r_inv_c_c = p_inv.scatter(
+            np.array(scT)[mask_c],
+            inv_c[mask_c],
+            color="blue", alpha=0.5, size=6
+        )
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_w],
                       tooltips=[("T", "@x"), ("1/X (heat)", "@y")])
