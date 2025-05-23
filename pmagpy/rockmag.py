@@ -3032,7 +3032,7 @@ def plot_X_T(
     p = figure(
         title=title,
         sizing_mode="stretch_width",
-        panel_height=400,
+        height=panel_height,
         x_axis_label=f"Temperature (°{temp_unit})",
         y_axis_label="k (m³ kg⁻¹)",
         tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3076,7 +3076,7 @@ def plot_X_T(
         p_dx = figure(
             title=f"{title} – dX/dT",
             sizing_mode="stretch_width",
-            panel_height=400,
+            height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
             y_axis_label="dX/dT",
             tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3088,7 +3088,7 @@ def plot_X_T(
             line_width=2, color="red"
         )
         r_dx_w_c = p_dx.scatter(
-            swT, dx_w,
+            swT, dx_w, legend_label="Heating – dX/dT",
             color="red", alpha=0.5, size=6
         )
         r_dx_c = p_dx.line(
@@ -3096,7 +3096,7 @@ def plot_X_T(
             line_width=2, color="blue"
         )
         r_dx_c_c = p_dx.scatter(
-            scT, dx_c,
+            scT, dx_c, legend_label="Cooling – dX/dT",
             color="blue", alpha=0.5, size=6
         )
         p_dx.add_tools(
@@ -3111,13 +3111,14 @@ def plot_X_T(
         p_dx.outline_line_color = "black"
         p_dx.background_fill_color = "white"
         p_dx.legend.location = "top_left"
+        p_dx.legend.click_policy = "hide"
         figs.append(p_dx)
 
     if plot_inverse:
         p_inv = figure(
             title=f"{title} – 1/X",
             sizing_mode="stretch_width",
-            panel_height=400,
+            height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
             y_axis_label="1/X",
             tools="pan,wheel_zoom,box_zoom,reset,save",
@@ -3168,6 +3169,7 @@ def plot_X_T(
         p_inv.outline_line_color = "black"
         p_inv.background_fill_color = "white"
         p_inv.legend.location = "top_left"
+        p_inv.legend.click_policy = "hide"
         figs.append(p_inv)
 
     for fig in figs:
