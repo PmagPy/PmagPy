@@ -1884,49 +1884,6 @@ def plot_vs(fignum, Xs, c, ls):
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
 
-def plot_ts(fignum, dates, ts):
-    """
-    plot the geomagnetic polarity time scale
-
-    Parameters
-    __________
-    fignum : matplotlib figure number
-    dates : bounding dates for plot
-    ts : time scale ck95, gts04, or gts12
-    """
-    vertical_plot_init(fignum, 10, 3)
-    TS, Chrons = pmag.get_ts(ts)
-    p = 1
-    X, Y = [], []
-    for d in TS:
-        if d <= dates[1]:
-            if d >= dates[0]:
-                if len(X) == 0:
-                    ind = TS.index(d)
-                    X.append(TS[ind - 1])
-                    Y.append(p % 2)
-                X.append(d)
-                Y.append(p % 2)
-                p += 1
-                X.append(d)
-                Y.append(p % 2)
-        else:
-            X.append(dates[1])
-            Y.append(p % 2)
-            plt.plot(X, Y, 'k')
-            plot_vs(fignum, dates, 'w', '-')
-            plot_hs(fignum, [1.1, -.1], 'w', '-')
-            plt.xlabel("Age (Ma): " + ts)
-            isign = -1
-            for c in Chrons:
-                off = -.1
-                isign = -1 * isign
-                if isign > 0:
-                    off = 1.05
-                if c[1] >= X[0] and c[1] < X[-1]:
-                    plt.text(c[1] - .2, off, c[0])
-            return
-
 
 def plot_hys(fignum, B, M, s):
     """
@@ -3426,25 +3383,26 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     plt.axis("equal")
 
 
-def plot_ts(ax, agemin, agemax, timescale='gts12', ylabel="Age (Ma)"):
+def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     """
     Make a time scale plot between specified ages.
 
     Parameters:
     ------------
     ax : figure object
-    agemin : Minimum age for timescale
-    agemax : Maximum age for timescale
-    timescale : Time Scale [ default is Gradstein et al., (2012)]
-       for other options see pmag.get_ts()
+    agemin : Minimum age for timescale in Ma
+    agemax : Maximum age for timescale in Ma
+    step : Y tick label spacing in Ma
+    timescale : Time Scale [ default is Gradstein et al., (2012), gts12 ], other options are ck95, gts04, ics22, or gts12
     ylabel : if set, plot as ylabel
     """
     ax.set_title(timescale.upper())
+    column_bnd = 0.8
     ax.axis([-.25, 1.5, agemax, agemin])
     ax.axes.get_xaxis().set_visible(False)
     # get dates and chron names for timescale
     TS, Chrons = pmag.get_ts(timescale)
-    X, Y, Y2 = [0, 1], [], []
+    X, Y, Y2 = [0, column_bnd], [], []
     cnt = 0
     if agemin < TS[1]:  # in the Brunhes
         Y = [agemin, agemin]  # minimum age
@@ -3460,20 +3418,37 @@ def plot_ts(ax, agemin, agemax, timescale='gts12', ylabel="Age (Ma)"):
             if pol:
                 # fill in every other time
                 ax.fill_between(X, Y, Y1, facecolor='black')
-    ax.plot([0, 1, 1, 0, 0], [agemin, agemin, agemax, agemax, agemin], 'k-')
-    plt.yticks(np.arange(agemin, agemax+1, 1))
+    ax.plot([0, column_bnd, column_bnd, 0, 0], [agemin, agemin, agemax, agemax, agemin], 'k-')
+    max_y_tick = agemin + np.floor((agemax-agemin)/step)*step
+    total_step = np.rint(((max_y_tick-agemin)/step)+1).astype(int)
+    plt.yticks(np.linspace(agemin, max_y_tick, total_step))
+    ax.set_ylim(agemin, agemax)
     if ylabel != "":
         ax.set_ylabel(ylabel)
     ax2 = ax.twinx()
+    ax2.sharey(ax)
     ax2.axis('off')
+    # fix courtesy of aluthfian
+    within_range = [(age[1]>=agemin)&(age[1]<=agemax) for age in Chrons]
+    ticker_num = 0
     for k in range(len(Chrons)-1):
         c = Chrons[k]
         cnext = Chrons[k+1]
-        d = cnext[1]-(cnext[1]-c[1])/3.
-        if d >= agemin and d < agemax:
+        d_plot = cnext[1]-(cnext[1]-c[1])
+        if (d_plot >= agemin) and (d_plot < agemax):
             # make the Chron boundary tick
-            ax2.plot([1, 1.5], [c[1], c[1]], 'k-')
-            ax2.text(1.05, d, c[0])
+            ax2.plot([column_bnd, 1.5], [c[1], c[1]], 'k-')
+        if ((within_range[k]==False)&(within_range[k+1]==True))&(ticker_num == 0):
+            d_txt = agemin + 0.5*np.abs(cnext[1]-agemin)
+            ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
+            ticker_num += 1
+        elif ((within_range[k]==True)&(within_range[k+1]==False))&(ticker_num == 1):
+            d_txt = agemax - 0.5*np.abs(agemax-c[1])
+            ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
+            ticker_num += 1
+        elif (within_range[k]==True)&(within_range[k+1]==True):
+            d_txt = cnext[1]-(cnext[1]-c[1])/2.5
+            ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
     ax2.axis([-.25, 1.5, agemax, agemin])
 
 
