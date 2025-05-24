@@ -3436,7 +3436,8 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
     if ylabel != "":
         ax.set_ylabel(ylabel)
     ax2 = ax.twinx()
-    ax2.sharey(ax)
+    ax2.set_yticks(ax.get_yticks())  # Synchronize y-ticks with ax
+    ax2.set_ylim(ax.get_ylim())  # Synchronize y-axis limits with ax
     ax2.axis('off')
     # fix courtesy of aluthfian
     within_range = [(age[1]>=agemin)&(age[1]<=agemax) for age in Chrons]
