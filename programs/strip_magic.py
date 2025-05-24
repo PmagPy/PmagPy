@@ -349,9 +349,9 @@ def main():
         pmagplotlib.plot_hs(FIG['strat'], [0], 'b', '-')
         pmagplotlib.plot_hs(FIG['strat'], [-90, 90], 'g', '-')
     if pTS == 1:
-        FIG['ts'] = 2
-        pmagplotlib.plot_init(FIG['ts'], 10, 5)
-        pmagplotlib.plot_ts(FIG['ts'], amin, amax,step=1.0, timescale=ts)
+        FIG['ts'] = pmagplotlib.plot_init(2, 10, 5)
+        ax_ts = FIG['ts'].add_subplot(111)
+        pmagplotlib.plot_ts(ax_ts, amin, amax,step=1.0, timescale=ts)
     files = {}
     for key in list(FIG.keys()):
         files[key] = key+'.'+fmt
