@@ -3383,7 +3383,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
     plt.axis("equal")
 
 
-def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
+def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
     """
     This function makes a time scale plot between specified ages, using timescales 
     as defined in pmag.get_ts().
@@ -3393,7 +3393,7 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     agemin : (float) Minimum age for timescale in Ma
     agemax : (float) Maximum age for timescale in Ma
     step : (float) Y tick label spacing in Ma
-    timescale : (string) polarity time scale, default is gts12 (Gradstein et al. 2012), other options ck95, gts04, gts20
+    timescale : (string) polarity time scale, default is gts20 (Gradstein et al. 2020), other options ck95, gts04, gts20
     ylabel : (string) if set, plot as ylabel
 
     Returns:
@@ -3431,7 +3431,7 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     ax.plot([0, column_bnd, column_bnd, 0, 0], [agemin, agemin, agemax, agemax, agemin], 'k-')
     max_y_tick = agemin + np.floor((agemax-agemin)/step)*step
     total_step = np.rint(((max_y_tick-agemin)/step)+1).astype(int)
-    plt.yticks(np.linspace(agemin, max_y_tick, total_step))
+    ax.set_yticks(np.linspace(agemin, max_y_tick, total_step))
     ax.set_ylim(agemin, agemax)
     if ylabel != "":
         ax.set_ylabel(ylabel)
