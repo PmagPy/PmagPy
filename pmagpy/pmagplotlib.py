@@ -3385,7 +3385,8 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
 
 def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     """
-    This function makes a time scale plot between specified ages, using timsecales defined pmag.get_ts().
+    This function makes a time scale plot between specified ages, using timescales 
+    as defined in pmag.get_ts().
 
     Parameters:
     ax : figure object
