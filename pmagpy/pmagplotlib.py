@@ -3448,15 +3448,15 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
         if (d_plot >= agemin) and (d_plot < agemax):
             # make the Chron boundary tick
             ax2.plot([column_bnd, 1.5], [c[1], c[1]], 'k-')
-        if ((within_range[k]==False)&(within_range[k+1]==True))&(ticker_num == 0):
+        if ((within_range[k]==False) and (within_range[k+1]==True)) and (ticker_num == 0):
             d_txt = agemin + 0.5*np.abs(cnext[1]-agemin)
             ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
             ticker_num += 1
-        elif ((within_range[k]==True)&(within_range[k+1]==False))&(ticker_num == 1):
+        elif ((within_range[k]==True) and (within_range[k+1]==False)) and (ticker_num == 1):
             d_txt = agemax - 0.5*np.abs(agemax-c[1])
             ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
             ticker_num += 1
-        elif (within_range[k]==True)&(within_range[k+1]==True):
+        elif (within_range[k]==True) and (within_range[k+1]==True):
             d_txt = cnext[1]-(cnext[1]-c[1])/2.5
             ax2.text(column_bnd+0.05, d_txt, c[0], verticalalignment='center')
     ax2.axis([-.25, 1.5, agemax, agemin])
