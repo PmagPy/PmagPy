@@ -3399,16 +3399,14 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
         figure object
 
     Example:
-        Provide an angle and two precision parameter estimates to get the probability of
-        simultaneity, compare to RC / 11 comparison from Table 2 of the original publication
-        (exact value may differ due to RNG):
+        Creates time scale plot from 0.5 to 5.5 Ma using the gts12 timescale:
 
         >>> fig=plt.figure(figsize=(9,12))
         >>> ax=fig.add_subplot(121)
         >>> pmagplotlib.plot_ts(ax, 0.5, 5.5, timescale='gts12')
     """
     ax.set_title(timescale.upper())
-    column_bnd = 0.8
+    column_bnd = 0.8 # width of timescale column
     ax.axis([-.25, 1.5, agemax, agemin])
     ax.axes.get_xaxis().set_visible(False)
     # get dates and chron names for timescale
@@ -3445,7 +3443,7 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     for k in range(len(Chrons)-1):
         c = Chrons[k]
         cnext = Chrons[k+1]
-        d_plot = cnext[1]-(cnext[1]-c[1])
+        d_plot = (c[1] + cnext[1]) / 2
         if (d_plot >= agemin) and (d_plot < agemax):
             # make the Chron boundary tick
             ax2.plot([column_bnd, 1.5], [c[1], c[1]], 'k-')
