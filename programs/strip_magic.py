@@ -351,7 +351,7 @@ def main():
     if pTS == 1:
         FIG['ts'] = 2
         pmagplotlib.plot_init(FIG['ts'], 10, 5)
-        pmagplotlib.plot_ts(FIG['ts'], amin, amax,step=1.0, ts)
+        pmagplotlib.plot_ts(FIG['ts'], amin, amax,step=1.0, timescale=ts)
     files = {}
     for key in list(FIG.keys()):
         files[key] = key+'.'+fmt

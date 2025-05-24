@@ -3385,16 +3385,27 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
 
 def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts12', ylabel="Age (Ma)"):
     """
-    Make a time scale plot between specified ages.
+    This function makes a time scale plot between specified ages, using timsecales defined pmag.get_ts().
 
     Parameters:
-    ------------
     ax : figure object
-    agemin : Minimum age for timescale in Ma
-    agemax : Maximum age for timescale in Ma
-    step : Y tick label spacing in Ma
-    timescale : Time Scale [ default is Gradstein et al., (2012), gts12 ], other options are ck95, gts04, ics22, or gts12
-    ylabel : if set, plot as ylabel
+    agemin : (float) Minimum age for timescale in Ma
+    agemax : (float) Maximum age for timescale in Ma
+    step : (float) Y tick label spacing in Ma
+    timescale : (string) polarity time scale, default is gts12 (Gradstein et al. 2012), other options ck95, gts04, gts20
+    ylabel : (string) if set, plot as ylabel
+
+    Returns:
+        figure object
+
+    Example:
+        Provide an angle and two precision parameter estimates to get the probability of
+        simultaneity, compare to RC / 11 comparison from Table 2 of the original publication
+        (exact value may differ due to RNG):
+
+        >>> fig=plt.figure(figsize=(9,12))
+        >>> ax=fig.add_subplot(121)
+        >>> pmagplotlib.plot_ts(ax, 0.5, 5.5, timescale='gts12')
     """
     ax.set_title(timescale.upper())
     column_bnd = 0.8
