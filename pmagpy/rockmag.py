@@ -4339,11 +4339,56 @@ def day_plot(Mr, Ms, Bcr, Bc,
         ax.legend(loc='lower right', fontsize=10)
     return ax
 
-def squareness_Bc(Ms, Mr, Bc, color = 'black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, figsize = (6,6)):
+
+def Neel_plot_MagIC(specimen_data, 
+                   by ='specimen',
+                   Mr = 'hyst_mr_mass',
+                   Ms = 'hyst_ms_mass',
+                   Bcr = 'rem_bcr',
+                   Bc = 'hyst_bc',
+                   **kwargs):
+    """
+    Function to plot a Day plot from a MagIC specimens table.
+
+    Parameters
+    ----------
+    specimen_data : pandas.DataFrame
+        DataFrame containing the specimens data.
+    by : str
+        Column name to group by (default is 'specimen').
+    Mr : str
+        Column name for the remanence (default is 'hyst_mr_mass').
+    Ms : str
+        Column name for the saturation magnetization (default is 'hyst_ms_mass').
+    Bcr : str
+        Column name for the coercivity (default is 'hyst_bcr').
+    Bc : str
+        Column name for the coercivity of remanence (default is 'hyst_bc').
+    **kwargs : keyword arguments
+        Additional arguments to pass to the plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        The axes object containing the plot.
+    """
+    summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
+    summary_sats = summary_sats.dropna()
+
+    ax = Neel_plot(Mr = summary_sats[Mr],
+                Ms = summary_sats[Ms],
+                Bc = summary_sats[Bc], 
+                **kwargs)
+    return ax
+
+
+def Neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     '''
     fuction for making squareness coercivity plot
-        plots Mr/Ms vs Bc
+        the original Neel diagram plots Mr/Ms vs Bc
+        a sister plot often used is Mr/M vs Bcr
     '''
+    assert axis_scale in ['linear', 'log'], "axis_scale must be 'linear' or 'log'"
     # force numpy arrays
     Ms = np.asarray(Ms)
     Mr = np.asarray(Mr)
@@ -4351,8 +4396,20 @@ def squareness_Bc(Ms, Mr, Bc, color = 'black', marker = 'o', label = 'sample', a
     Mr_Ms = Mr/Ms
     _, ax = plt.subplots(figsize = figsize)
     ax.scatter(Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
+    ax.set_xlabel('Bc', fontsize=12)
+    ax.set_ylabel('Mr/Ms', fontsize=12)
+    if axis_scale == 'linear':
+        ax.set_xscale('linear')   
+        ax.set_yscale('linear')
+    else:
+        ax.set_xscale('log')   
+        ax.set_yscale('log')
+    if legend:
+        ax.legend(loc='upper left', fontsize=12)
 
+    ax.grid(True, which='both', linestyle='--', linewidth=lw, color=lc)
     return ax
+
 
 def Langevin_alpha(V, Ms, H, T):
     '''
