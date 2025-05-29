@@ -30,7 +30,7 @@ a = Analysis(['programs/pmag_gui.py'],
                                 'pandas.concat', 'wget', 'pkg_resources.py2_warn'],
              hooksconfig={
                         "matplotlib": {
-                        "backends": "all",  # collect all backends
+                        "backends": "WXAgg",  # collect wxpython backends
                         },
                 },
              hookspath=[],

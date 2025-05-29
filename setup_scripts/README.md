@@ -63,6 +63,8 @@ This will create pmag\_gui.app in PmagPy/dist.  You can then move pmag\_gui.app 
 
 ### For a more compact OS X executable
 
+5/29/2025: strictly refer to the pmag_gui_compile.yml environment file in this folder for the easiest way to reproduce a pyinstaller environment for compiling the standalone executable. 
+
 You can create an executable that is over 100MB smaller by installing a more minimal Python distribution using homebrew and pip.  To do so, follow these steps:
 
 - Install brew
