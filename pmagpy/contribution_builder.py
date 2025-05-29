@@ -923,8 +923,9 @@ class Contribution(object):
             else:
                 # make sure is numeric
                 source_df.df[col] = pd.to_numeric(source_df.df[col], errors='coerce')
-        grouped = source_df.df[cols + [target_name]].groupby(target_name)
-        grouped = grouped[cols].apply(np.mean)
+
+        grouped = source_df.df[cols + [target_name]].groupby(target_name)[cols].mean()
+        
         if grouped.empty:
             print("-W- Something went wrong -- can't find data for the following columns: {}".format(", ".join(cols)))
             return target_df
