@@ -430,7 +430,7 @@ def plot_mpms_dc(
     rtsirm_present = (rc is not None) or (rw is not None)  
 
     if interactive:  
-        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,reset,save"]  
+        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,wheel_zoom,reset,save"]  
         figs = []  
 
         if fc_zfc_present:  
@@ -3523,8 +3523,8 @@ def plot_backfield_data(
 
     if interactive:
         tools = [
-            HoverTool(tooltips=[("Field (mT)", "@x"), ("Mag", "@y")]),
-            "pan,box_zoom,reset"
+            HoverTool(tooltips=[("Field (T)", "@x"), ("Mag", "@y")]),
+            "pan,box_zoom,wheel_zoom,reset,save"
         ]
         figs = []
         palette = Category10[3]
