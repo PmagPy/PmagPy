@@ -4340,7 +4340,7 @@ def day_plot(Mr, Ms, Bcr, Bc,
     return ax
 
 
-def Neel_plot_MagIC(specimen_data, 
+def neel_plot_magic(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4375,14 +4375,14 @@ def Neel_plot_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    ax = Neel_plot(Mr = summary_sats[Mr],
+    ax = neel_plot(Mr = summary_sats[Mr],
                 Ms = summary_sats[Ms],
                 Bc = summary_sats[Bc], 
                 **kwargs)
     return ax
 
 
-def Neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
+def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     '''
     fuction for making squareness coercivity plot
         the original Neel diagram plots Mr/Ms vs Bc
@@ -4435,6 +4435,7 @@ def Langevin_alpha(V, Ms, H, T):
     k = 1.38064852e-23
 
     return mu0*Ms * V * H / (k * T)
+
 
 def Langevin(alpha):
     '''
