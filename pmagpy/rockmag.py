@@ -1608,6 +1608,158 @@ def plot_mpms_ac(
         return fig, (ax1, ax2)
 
 
+def MPMS_signal_blender(measurement_1, measurement_2, 
+                        spec_1, spec_2,
+                        experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
+                        temp_col='meas_temp', moment_col='magn_mass',
+                        fraction=0.5):
+    '''
+    function for simulating simple mixtures of MPMS dc remanence measurements using the Insitute for Rock Magnetism's
+     rock magnetism bestiary data
+
+    Parameters
+    ----------
+    measurement_1 : pandas.DataFrame
+        MagIC formatted dataframe containing the first set of measurements.
+    measurement_2 : pandas.DataFrame
+        MagIC formatted dataframe containing the second set of measurements.
+    spec_1 : str
+        Specimen name for the first set of measurements.
+    spec_2 : str
+        Specimen name for the second set of measurements.
+    experiments : list of str, optional
+        List of experiment method codes to consider for blending. Default is
+        ['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'].
+    temp_col : str, optional
+        Column name for temperature in the measurement dataframes. Default is 'meas_temp'.
+    moment_col : str, optional
+        Column name for magnetization in the measurement dataframes. Default is 'magn_mass'.
+    fraction : float, optional
+        Fraction of the first specimen's magnetization to blend with the second specimen's magnetization. Default is 0.5.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are experiment method codes and values are dictionaries containing:
+    '''
+    spec_1_meas = measurement_1[measurement_1['specimen']==spec_1]
+    spec_2_meas = measurement_2[measurement_2['specimen']==spec_2]
+
+    output_dict = {}
+
+    for experiment in experiments:
+        exp_1 = spec_1_meas[spec_1_meas['method_codes']==experiment]
+        exp_2 = spec_2_meas[spec_2_meas['method_codes']==experiment]
+        if exp_1.empty or exp_2.empty:
+            continue
+
+        T1 = exp_1[temp_col].values
+        T2 = exp_2[temp_col].values
+        T_min = max(T1.min(), T2.min())
+        T_max = min(T1.max(), T2.max())
+        n = max(len(T1), len(T2))
+        T_common = np.linspace(T_min, T_max, n)
+
+        M1 = exp_1[moment_col].values
+        M2 = exp_2[moment_col].values
+        M1_interp = np.interp(T_common, T1, M1)
+        M2_interp = np.interp(T_common, T2, M2)
+       
+        M_blend = fraction * M1_interp + (1 - fraction) * M2_interp
+        output_dict[experiment] = {
+            'T': T_common,
+            'M_blend': M_blend,
+        }
+    return output_dict
+
+
+def MPMS_signal_blender_interactive(measurement_1, measurement_2, 
+                                    experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
+                                    temp_col='meas_temp', moment_col='magn_mass', 
+                                    figsize=(12, 6)):
+    '''
+    function for makeing interative blender of MPMS dc remanence measurements using the Insitute for Rock Magnetism's
+     rock magnetism bestiary data
+
+    Parameters
+    ----------
+    measurement_1 : pandas.DataFrame
+        MagIC formatted dataframe containing the first set of measurements.
+    measurement_2 : pandas.DataFrame
+        MagIC formatted dataframe containing the second set of measurements.    
+    experiments : list of str, optional
+        List of experiment method codes to consider for blending. Default is
+        ['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'].
+    temp_col : str, optional
+        Column name for temperature in the measurement dataframes. Default is 'meas_temp'.
+    moment_col : str, optional
+        Column name for magnetization in the measurement dataframes. Default is 'magn_mass'.
+    figsize : tuple of float, optional
+        Size of the figure for plotting. Default is (12, 6).
+
+    '''
+    slider = FloatSlider(
+        value=0.5, min=0, max=1, step=0.01,
+        description='fraction', continuous_update=False
+    )
+    display(HBox([slider]))
+
+    spec_1_dropdown = widgets.Dropdown(
+        options=measurement_1['specimen'].unique(),
+        description='Specimen 1:',
+        disabled=False,
+    )
+
+    spec_2_dropdown = widgets.Dropdown(
+        options=measurement_2['specimen'].unique(),
+        description='Specimen 2:',
+        disabled=False,
+    )
+
+    display(spec_1_dropdown, spec_2_dropdown)
+
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=figsize)
+    fig.canvas.header_visible = False
+    def update(*args):
+        ax[0].clear()
+        ax[1].clear()
+        blender_result = MPMS_signal_blender(
+            measurement_1, measurement_2,
+            spec_1_dropdown.value, spec_2_dropdown.value,
+            experiments=experiments,
+            temp_col=temp_col, moment_col=moment_col,
+            fraction=slider.value
+        )
+
+        for experiment, data in blender_result.items():
+
+            if 'LP-FC' in experiment:
+                ax[0].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='blue', alpha=0.6, label=experiment)
+            elif 'LP-ZFC' in experiment:
+                ax[0].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='red', alpha=0.6, label=experiment)
+            elif 'LP-CW-SIRM:LP-MC' in experiment:
+                ax[1].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='green', alpha=0.6, label=experiment)
+            elif 'LP-CW-SIRM:LP-MW' in experiment:
+                ax[1].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='black', alpha=0.6, label=experiment)
+
+        ax[0].set_xlabel('Temperature (K)', fontsize=12)
+        ax[0].set_ylabel('Magnetization (Am$^2$/kg)', fontsize=12)
+        ax[0].set_title('FC and ZFC')
+        ax[0].legend()
+        ax[0].grid()
+        ax[1].set_xlabel('Temperature (K)', fontsize=12)
+        ax[1].set_ylabel('Magnetization (Am$^2$/kg)', fontsize=12)
+        ax[1].set_title('RTSIRM cycling')
+        ax[1].legend()
+        ax[1].grid()
+        fig.canvas.draw()
+        plt.tight_layout()
+    slider.observe(update, names='value')
+    spec_1_dropdown.observe(update, names='value')
+    spec_2_dropdown.observe(update, names='value')
+    update()
+
+
 # hysteresis functions
 # ------------------------------------------------------------------------------------------------------------------
 
