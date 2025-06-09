@@ -94,6 +94,7 @@ def dict_in_native_python(d):
     """
     return {k: v.item() if isinstance(v, np.generic) else v for k, v in d.items()}
 
+
 def map_legend_location(matplotlib_loc):
     """
     Maps a Matplotlib legend location to a Bokeh legend location.
@@ -3704,43 +3705,53 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
         experiment['smoothed_log_dc_field'] = spl[:, 0]
     return experiment, Bcr
     
+    
 def plot_backfield_data(
     experiment,
     field="treat_dc_field",
     magnetization="magn_mass",
-    figsize=(5, 12),
+    Bcr=None,
+    size=(5, 10),
     plot_raw=True,
     plot_processed=True,
     plot_spectrum=True,
     interactive=False,
-    return_figure=True,
+    return_figure=False,
     show_plot=True,
+    y_axis_units="Am²/kg",
+    legend_location="upper left"
 ):
     """
     Plot backfield data: raw, processed, and coercivity spectrum.
-
-    Data processing steps:
-      - Raw: magnetization vs. field (T).
-      - Processed: magn_mass_shift = magn_mass − min(magn_mass);
-        log_dc_field = log10(−field·1e3) (log10 mT axis).
-      - Spectrum: derivative −ΔM/Δ(log B).
 
     Parameters
     ----------
     experiment : DataFrame
         Must contain raw and, if requested, processed columns.
+    field : str
+        Name of the magnetic field column.
+    magnetization : str
+        Name of the magnetization column.
+    Bcr : float, optional
+        Calculated Bcr (T). If provided, will be plotted as a pink star.
+    size : tuple(float, float)
+        Figure size (in inches).
     plot_raw : bool
     plot_processed : bool
     plot_spectrum : bool
     interactive : bool
     return_figure : bool
     show_plot : bool
+    y_axis_units : str, optional
+        Units to display on the y-axis labels of raw and processed panels.
+    legend_location : str, optional
+        Location of the legend in Matplotlib terms.
 
     Returns
     -------
     Matplotlib (fig, axes) or Bokeh grid or None
     """
-    # check columns
+    # Check columns
     req = []
     if plot_raw:
         req += [field, magnetization]
@@ -3755,7 +3766,7 @@ def plot_backfield_data(
     if missing:
         raise KeyError(f"Missing columns: {missing}")
 
-    # prepare spectrum
+    # Prepare spectrum
     if plot_spectrum:
         log_b = experiment["log_dc_field"]
         shift_m = experiment["magn_mass_shift"]
@@ -3765,26 +3776,27 @@ def plot_backfield_data(
             experiment["smoothed_log_dc_field"]
         )
         smooth_dx_log = experiment["smoothed_log_dc_field"].rolling(2).mean().dropna()
-        # axis: convert log10(mT) → mT for plotting, but axis scale remains log
-        raw_dx = 10**raw_dx_log
-        smooth_dx = 10**smooth_dx_log
+        raw_dx = 10 ** raw_dx_log
+        smooth_dx = 10 ** smooth_dx_log
 
-    if interactive:
+    # Interactive: Bokeh
+    if interactive and _HAS_BOKEH:
         tools = [
             HoverTool(tooltips=[("Field (T)", "@x"), ("Mag", "@y")]),
             "pan,box_zoom,wheel_zoom,reset,save"
         ]
         figs = []
-        palette = Category10[3]
+        palette = Category10[4]
+        bokeh_height = int(size[1]/3 * 96)
 
         if plot_raw:
             p0 = figure(
                 title="Raw backfield",
                 x_axis_label="Field (T)",
-                y_axis_label="Magnetization",
+                y_axis_label=f"Magnetization ({y_axis_units})",
                 tools=tools,
                 sizing_mode="stretch_width",
-                height = figsize[1]*25,
+                height=bokeh_height,
             )
             p0.scatter(
                 experiment[field],
@@ -3794,6 +3806,22 @@ def plot_backfield_data(
                 size=6,
             )
             p0.line(experiment[field], experiment[magnetization], color=palette[0])
+            if Bcr is not None and not np.isnan(Bcr):
+                y_min = experiment[magnetization].min()
+                y_max = experiment[magnetization].max()
+                y_mid = y_min + 0.5 * (y_max - y_min)
+                p0.scatter(
+                    [-Bcr],
+                    [y_mid],
+                    size=15,
+                    color="pink",
+                    marker="star",
+                    line_color="black",
+                    legend_label=f"Bcr = {Bcr:.5f} T",
+                )
+            p0.xaxis.axis_label_text_font_style = "normal"
+            p0.yaxis.axis_label_text_font_style = "normal"
+            p0.legend.location = map_legend_location(legend_location)
             p0.legend.click_policy = "hide"
             figs.append(p0)
 
@@ -3803,11 +3831,11 @@ def plot_backfield_data(
             p1 = figure(
                 title="Processed backfield",
                 x_axis_label="Field (mT)",
-                y_axis_label="Magnetization",
+                y_axis_label=f"Magnetization ({y_axis_units})",
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
-                height = figsize[1]*25,
+                height=bokeh_height,
             )
             p1.scatter(
                 x_shifted,
@@ -3822,6 +3850,9 @@ def plot_backfield_data(
                 color=palette[1],
                 legend_label="smoothed",
             )
+            p1.xaxis.axis_label_text_font_style = "normal"
+            p1.yaxis.axis_label_text_font_style = "normal"
+            p1.legend.location = map_legend_location(legend_location)
             p1.legend.click_policy = "hide"
             figs.append(p1)
 
@@ -3833,12 +3864,15 @@ def plot_backfield_data(
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
-                height = figsize[1]*25,
+                height=bokeh_height,
             )
             p2.scatter(raw_dx, raw_dy, legend_label="raw spectrum",
                        color=palette[2], size=6)
             p2.line(smooth_dx, smooth_dy, color=palette[2],
                     legend_label="smoothed spectrum")
+            p2.xaxis.axis_label_text_font_style = "normal"
+            p2.yaxis.axis_label_text_font_style = "normal"
+            p2.legend.location = map_legend_location(legend_location)
             p2.legend.click_policy = "hide"
             figs.append(p2)
 
@@ -3849,7 +3883,7 @@ def plot_backfield_data(
             return grid
         return None
 
-    # static Matplotlib
+    # Static: Matplotlib
     panels = []
     if plot_raw:
         panels.append("raw")
@@ -3859,7 +3893,7 @@ def plot_backfield_data(
         panels.append("spectrum")
 
     n = len(panels)
-    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=figsize)
+    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=size)
     if n == 1:
         axes = [axes]
 
@@ -3869,8 +3903,26 @@ def plot_backfield_data(
                 experiment[field], experiment[magnetization], c="k", s=10, label="raw"
             )
             ax.plot(experiment[field], experiment[magnetization], c="k")
-            ax.set(title="raw backfield", xlabel="field (T)", ylabel="magnetization")
-            ax.legend()
+            if Bcr is not None and not np.isnan(Bcr):
+                y_min = experiment[magnetization].min()
+                y_max = experiment[magnetization].max()
+                y_mid = y_min + 0.5 * (y_max - y_min)
+                ax.scatter(
+                    -Bcr,
+                    y_mid,
+                    marker="*",
+                    s=150,
+                    c="pink",
+                    edgecolors="black",
+                    label=f"Bcr = {Bcr:.5f} T",
+                    zorder=10,
+                )
+            ax.set(
+                title="raw backfield",
+                xlabel="field (T)",
+                ylabel=f"magnetization ({y_axis_units})",
+            )
+            ax.legend(loc=legend_location)
         elif panel == "processed":
             ax.scatter(
                 experiment["log_dc_field"],
@@ -3888,16 +3940,18 @@ def plot_backfield_data(
             ticks = ax.get_xticks()
             ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
             ax.set(
-                title="processed", xlabel="field (mT)", ylabel="magnetization"
+                title="processed",
+                xlabel="field (mT)",
+                ylabel=f"magnetization ({y_axis_units})",
             )
-            ax.legend()
+            ax.legend(loc=legend_location)
         else:  # spectrum
             ax.scatter(raw_dx_log, raw_dy, c="gray", s=10, label="raw spectrum")
             ax.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
             ticks = ax.get_xticks()
             ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
             ax.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
-            ax.legend()
+            ax.legend(loc=legend_location)
 
     fig.tight_layout()
     if show_plot:
