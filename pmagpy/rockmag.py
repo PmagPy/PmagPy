@@ -1662,9 +1662,14 @@ def MPMS_signal_blender(measurement_1, measurement_2,
 
         M1 = exp_1[moment_col].values
         M2 = exp_2[moment_col].values
-        M1_interp = np.interp(T_common, T1, M1)
-        M2_interp = np.interp(T_common, T2, M2)
-       
+        # sort M1 and M2 based on sorted T1 and T2
+        M1_sorted = M1[np.argsort(T1)]
+        M2_sorted = M2[np.argsort(T2)]
+        T1_sorted = np.sort(T1)
+        T2_sorted = np.sort(T2)
+        M1_interp = np.interp(T_common, T1_sorted, M1_sorted)
+        M2_interp = np.interp(T_common, T2_sorted, M2_sorted)
+
         M_blend = fraction * M1_interp + (1 - fraction) * M2_interp
         output_dict[experiment] = {
             'T': T_common,
