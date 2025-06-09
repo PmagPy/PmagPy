@@ -208,19 +208,37 @@ def interactive_specimen_experiment_selection(measurements):
     return specimen_dropdown, experiment_dropdown
 
 
-def make_experiment_df(measurements):
+def make_experiment_df(measurements, exclude_method_codes=None):
     """
     Creates a DataFrame of unique experiments from the measurements DataFrame.
 
-    Args:
-        measurements (pd.DataFrame): The DataFrame containing measurement data with columns 
-            'specimen', 'method_codes', and 'experiment'.
+    Parameters
+    ----------
+    measurements : pd.DataFrame
+        The DataFrame containing measurement data with columns 'specimen', 
+        'method_codes', and 'experiment'.
+    exclude_method_codes : list of str, optional
+        List of method codes to exclude from the output DataFrame. Rows with 
+        'method_codes' containing any of these substrings will be removed.
 
-    Returns:
-        pd.DataFrame: A DataFrame containing unique combinations of 'specimen', 'method_codes', 
-            and 'experiment'.
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing unique combinations of 'specimen', 'method_codes', 
+        and 'experiment'.
     """
-    experiments = measurements.groupby(['specimen', 'method_codes', 'experiment']).size().reset_index().iloc[:, :3]
+    if exclude_method_codes is not None:
+        mask = ~measurements["method_codes"].apply(
+            lambda x: any(code in x for code in exclude_method_codes)
+        )
+        measurements = measurements.loc[mask]
+
+    experiments = (
+        measurements.groupby(["specimen", "method_codes", "experiment"])
+        .size()
+        .reset_index()
+        .iloc[:, :3]
+    )
     return experiments
 
 
