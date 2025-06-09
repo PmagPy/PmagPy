@@ -4178,7 +4178,8 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
         ax.legend()
 
-        fig.canvas.draw()
+        # fig.canvas.draw()
+        fig.canvas.flush_events()
         if final_fit["df"] is None:
             final_fit["df"] = updated_parameters.copy()
         else:
