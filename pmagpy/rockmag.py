@@ -4561,8 +4561,8 @@ def day_plot(Mr, Ms, Bcr, Bc,
     ax.set_yscale('log')
     ax.set_xticks([1, 2, 5, 10, 20, 50, 100], [1, 2, 5, 10, 20, 50, 100])
     ax.set_yticks([0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1], [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1])
-    ax.set_xlabel('Bcr/Bc', fontsize=12)
-    ax.set_ylabel('Mr/Ms', fontsize=12)
+    ax.set_xlabel('B$_{cr}$/B$_{c}$', fontsize=12)
+    ax.set_ylabel('M$_{r}$/M$_{s}$', fontsize=12)
     ax.set_title('Day plot', fontsize=14)
 
     if legend:
@@ -4602,22 +4602,56 @@ def neel_plot_magic(specimen_data,
     ax : matplotlib.axes.Axes
         The axes object containing the plot.
     """
-    summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
-    summary_sats = summary_sats.dropna()
+    summary_stats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
+    summary_stats = summary_stats.dropna()
 
-    ax = neel_plot(Mr = summary_sats[Mr],
-                Ms = summary_sats[Ms],
-                Bc = summary_sats[Bc], 
+    ax = neel_plot(Mr = summary_stats[Mr],
+                Ms = summary_stats[Ms],
+                Bc = summary_stats[Bc], 
                 **kwargs)
     return ax
 
 
 def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
-    '''
-    fuction for making squareness coercivity plot
-        the original Neel diagram plots Mr/Ms vs Bc
-        a sister plot often used is Mr/M vs Bcr
-    '''
+    """
+    Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from hysteresis data.
+
+    This plot shows the ratio of remanent to saturation magnetization
+    (Mr/Ms) plotted against the coercivity (Bc). It is useful for 
+    characterizing magnetic domain states in rock magnetic samples.
+
+    Parameters
+    ----------
+    Mr : array-like
+        Saturation remanence values of the samples.
+    Ms : array-like
+        Saturation magnetization values of the samples.
+    Bc : array-like
+        Coercivity values of the samples.
+    color : str, optional
+        Color of the scatter points. Default is "black".
+    marker : str, optional
+        Marker style for scatter points. Default is "o".
+    label : str, optional
+        Label for the sample to be displayed in the legend. Default is "sample".
+    alpha : float, optional
+        Transparency of the scatter points. Default is 1 (opaque).
+    lc : str, optional
+        Color of the grid lines. Default is "black".
+    lw : float, optional
+        Line width of the grid lines. Default is 0.5.
+    legend : bool, optional
+        Whether to show the legend. Default is True.
+    axis_scale : str, optional
+        Scale for both axes: "linear" or "log". Default is "linear".
+    figsize : tuple of int, optional
+        Figure size in inches (width, height). Default is (5, 5).
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The matplotlib axes object containing the plot.
+    """
     assert axis_scale in ['linear', 'log'], "axis_scale must be 'linear' or 'log'"
     # force numpy arrays
     Ms = np.asarray(Ms)
@@ -4626,8 +4660,8 @@ def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1
     Mr_Ms = Mr/Ms
     _, ax = plt.subplots(figsize = figsize)
     ax.scatter(Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
-    ax.set_xlabel('Bc', fontsize=12)
-    ax.set_ylabel('Mr/Ms', fontsize=12)
+    ax.set_xlabel('B$_c$ (T)', fontsize=12)
+    ax.set_ylabel('M$_r$/M$_s$', fontsize=12)
     if axis_scale == 'linear':
         ax.set_xscale('linear')   
         ax.set_yscale('linear')
