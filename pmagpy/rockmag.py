@@ -2113,7 +2113,7 @@ def linefit(xarr, yarr):
     ss_res = np.sum((y_pred - np.mean(yarr))**2)
 
     # R^2 score
-    r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 1
+    r2 = ss_res / ss_tot if ss_tot > 0 else 1
 
     return intercept, slope, r2
 
@@ -2171,7 +2171,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
 def loop_Hshift_brent(loop_fields, loop_moments):
     def objective(H_shift):
         result = loop_H_off(loop_fields, loop_moments, H_shift)
-        return result['r2']
+        return -result['r2']
     
     ax = -np.max(loop_fields)/2
     bx = 0
