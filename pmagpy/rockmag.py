@@ -2150,7 +2150,7 @@ def linefit(xarr, yarr):
     ss_res = np.sum((y_pred - np.mean(yarr))**2)
 
     # R^2 score
-    r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 1
+    r2 = ss_res / ss_tot if ss_tot > 0 else 1
 
     return intercept, slope, r2
 
@@ -2208,7 +2208,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
 def loop_Hshift_brent(loop_fields, loop_moments):
     def objective(H_shift):
         result = loop_H_off(loop_fields, loop_moments, H_shift)
-        return result['r2']
+        return -result['r2']
     
     ax = -np.max(loop_fields)/2
     bx = 0
@@ -2273,11 +2273,11 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     M_sn, Q = calc_Q(grid_field, grid_magnetization)
 
     # re-gridding after offset correction to ensure symmetry
-    centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset/2, grid_magnetization-M_offset)
+    centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset, grid_magnetization-M_offset)
 
     results = {'centered_H':centered_H, 
                'centered_M': centered_M, 
-               'opt_H_offset':float(H_offset/2), 
+               'opt_H_offset':float(H_offset), 
                'opt_M_offset':float(M_offset), 
                'R_squared':float(R_squared), 
                'M_sn':float(M_sn), 
