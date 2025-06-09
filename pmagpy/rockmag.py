@@ -94,6 +94,36 @@ def dict_in_native_python(d):
     """
     return {k: v.item() if isinstance(v, np.generic) else v for k, v in d.items()}
 
+def map_legend_location(matplotlib_loc):
+    """
+    Maps a Matplotlib legend location to a Bokeh legend location.
+    Falls back to 'top_left' if no direct mapping exists.
+
+    Parameters
+    ----------
+    matplotlib_loc : str
+        Matplotlib legend location (e.g., 'upper right', 'lower left').
+
+    Returns
+    -------
+    str
+        Corresponding Bokeh legend location.
+    """
+    mapping = {
+        'best': 'top_left',
+        'upper right': 'top_right',
+        'upper left': 'top_left',
+        'lower left': 'bottom_left',
+        'lower right': 'bottom_right',
+        'right': 'right',
+        'center left': 'left',
+        'center right': 'right',
+        'lower center': 'bottom_center',
+        'upper center': 'top_center',
+        'center': 'center',
+    }
+    return mapping.get(matplotlib_loc, 'top_left')
+
 
 def interactive_specimen_selection(measurements):
     """
@@ -215,6 +245,8 @@ def ms_t_plot(
     interactive=False,
     return_figure=False,
     show_plot=True,
+    size=(6, 3),
+    legend_location="upper left"
 ):
     """
     Plot magnetization vs. temperature, either static or interactive,
@@ -236,39 +268,43 @@ def ms_t_plot(
         If True, return the figure object(s).
     show_plot : bool, default True
         If True, display the plot.
+    size : tuple(float, float), default (6, 3)
+        Controls both Bokeh height (in inches) and Matplotlib figure size.
+    legend_location : str, default 'upper left'
+        Location of the legend in Matplotlib terms.
 
     Returns
     -------
-    (fig, ax) or bokeh layout or None
-        Matplotlib Figure and Axes or Bokeh layout if `return_figure` is True;
-        otherwise None.
+    Figure and Axes or Bokeh layout or None
     """
-    # extract data arrays
     T = np.asarray(data[temperature_column], dtype=float)
     M = np.asarray(data[magnetization_column], dtype=float)
 
-    # convert to Celsius if requested
     if temp_unit == "C":
         T = T - 273.15
         x_label = "Temperature (°C)"
     else:
         x_label = "Temperature (K)"
 
+    bokeh_legend_location = map_legend_location(legend_location)
+
     if interactive:
         tools = [HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
                  "pan,box_zoom,wheel_zoom,reset,save"]
+        bokeh_height = int(size[1] * 96)
         p = figure(
             title="M vs T",
             x_axis_label=x_label,
             y_axis_label="Magnetization",
             tools=tools,
-            sizing_mode="stretch_width"
+            sizing_mode="stretch_width",
+            height=bokeh_height
         )
         p.xaxis.axis_label_text_font_style = "normal"
         p.yaxis.axis_label_text_font_style = "normal"
         p.line(T, M, legend_label="M(T)", line_width=2)
         p.scatter(T, M, size=6, alpha=0.6, legend_label="M(T)")
-        p.legend.location = "top_left"
+        p.legend.location = bokeh_legend_location
         p.legend.click_policy = "hide"
 
         layout = gridplot([[p]], sizing_mode="stretch_width")
@@ -278,12 +314,12 @@ def ms_t_plot(
             return layout
         return None
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=size)
     ax.plot(T, M, "o-", label="M(T)")
     ax.set_xlabel(x_label)
     ax.set_ylabel("Magnetization")
     ax.set_title("M vs T")
-    ax.legend()
+    ax.legend(loc=legend_location)
     ax.grid(True)
     if show_plot:
         plt.show()
@@ -430,7 +466,7 @@ def plot_mpms_dc(
     rtsirm_present = (rc is not None) or (rw is not None)  
 
     if interactive:  
-        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,reset,save"]  
+        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,wheel_zoom,reset,save"]  
         figs = []  
 
         if fc_zfc_present:  
@@ -776,6 +812,7 @@ def verwey_estimate(temps, mags,
                     poly_deg=poly_deg)
         
     fig = plt.figure(figsize=(12,5))
+    fig.canvas.header_visible = False
     ax0 = fig.add_subplot(1,2,1)
     ax0.plot(temps, mags, marker=measurement_marker, markersize=markersize, color=measurement_color, 
              label='measurement')
@@ -1463,7 +1500,8 @@ def plot_mpms_ac(
         figsize=(6, 6),
         interactive=False,
         return_figure=False,
-        show_plot=True):
+        show_plot=True,
+        legend_location='upper left'):
     """
     Plot AC susceptibility data from MPMS-X, optionally as interactive Bokeh.
 
@@ -1483,11 +1521,15 @@ def plot_mpms_ac(
         If True, return the figure object(s).
     show_plot : bool
         If True, display the plot.
+    legend_location : str, default 'upper left'
+        Location of the legend in Matplotlib terms.
 
     Returns
     -------
     fig, ax or (fig, axes) or Bokeh layout or None
     """
+    bokeh_legend_location = map_legend_location(legend_location)
+
     if phase not in ['in', 'out', 'both']:
         raise ValueError('phase must be "in", "out", or "both"')
     freqs = ([frequency] if frequency is not None
@@ -1503,14 +1545,17 @@ def plot_mpms_ac(
         palette = Category10[n] if n <= 10 else Category10[10]
         figs = []
 
+        bokeh_height = int(figsize[1] * 96)
+
         if phase in ['in', 'out']:
             p = figure(
                 title=f'AC χ ({phase} phase)',
                 x_axis_label='Temperature (K)',
                 y_axis_label='χ (m³/kg)',
                 tools=tools,
-                width=int(figsize[0] * 100),
-                height=int(figsize[1] * 100))
+                sizing_mode='stretch_width',
+                height=bokeh_height
+            )
             p.xaxis.axis_label_text_font_style = "normal"
             p.yaxis.axis_label_text_font_style = "normal"
             for i, f in enumerate(freqs):
@@ -1529,7 +1574,7 @@ def plot_mpms_ac(
                     fill_color=color,
                     line_color=color,
                     legend_label=f'{f} Hz')
-            p.legend.location = 'top_left'
+            p.legend.location = bokeh_legend_location
             p.legend.click_policy = "hide"
             figs = [p]
         else:
@@ -1538,15 +1583,17 @@ def plot_mpms_ac(
                 x_axis_label='Temperature (K)',
                 y_axis_label='χ (m³/kg)',
                 tools=tools,
-                width=int(figsize[0] * 50),
-                height=int(figsize[1] * 100))
+                sizing_mode='stretch_width',
+                height=bokeh_height
+            )
             p2 = figure(
                 title='AC χ out phase',
                 x_axis_label='Temperature (K)',
                 y_axis_label='χ (m³/kg)',
                 tools=tools,
-                width=int(figsize[0] * 50),
-                height=int(figsize[1] * 100))
+                sizing_mode='stretch_width',
+                height=bokeh_height
+            )
             for p in (p1, p2):
                 p.xaxis.axis_label_text_font_style = "normal"
                 p.yaxis.axis_label_text_font_style = "normal"
@@ -1577,7 +1624,8 @@ def plot_mpms_ac(
                     fill_color=color,
                     line_color=color,
                     legend_label=f'{f} Hz')
-            p1.legend.location = p2.legend.location = 'top_left'
+            p1.legend.location = bokeh_legend_location
+            p2.legend.location = bokeh_legend_location
             p1.legend.click_policy = p2.legend.click_policy = "hide"
             figs = [p1, p2]
 
@@ -1598,7 +1646,7 @@ def plot_mpms_ac(
         ax.set_xlabel('Temperature (K)')
         ax.set_ylabel('χ (m³/kg)')
         ax.set_title(f'AC χ ({phase} phase)')
-        ax.legend()
+        ax.legend(loc=legend_location)
         if show_plot:
             plt.show()
         if return_figure:
@@ -1613,15 +1661,172 @@ def plot_mpms_ac(
     ax1.set_xlabel('Temperature (K)')
     ax1.set_ylabel('χ (m³/kg)')
     ax1.set_title('AC χ in phase')
-    ax1.legend()
+    ax1.legend(loc=legend_location)
     ax2.set_xlabel('Temperature (K)')
     ax2.set_ylabel('χ (m³/kg)')
     ax2.set_title('AC χ out phase')
-    ax2.legend()
+    ax2.legend(loc=legend_location)
     if show_plot:
         plt.show()
     if return_figure:
         return fig, (ax1, ax2)
+
+
+def MPMS_signal_blender(measurement_1, measurement_2, 
+                        spec_1, spec_2,
+                        experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
+                        temp_col='meas_temp', moment_col='magn_mass',
+                        fraction=0.5):
+    '''
+    function for simulating simple mixtures of MPMS dc remanence measurements using the Insitute for Rock Magnetism's
+     rock magnetism bestiary data
+
+    Parameters
+    ----------
+    measurement_1 : pandas.DataFrame
+        MagIC formatted dataframe containing the first set of measurements.
+    measurement_2 : pandas.DataFrame
+        MagIC formatted dataframe containing the second set of measurements.
+    spec_1 : str
+        Specimen name for the first set of measurements.
+    spec_2 : str
+        Specimen name for the second set of measurements.
+    experiments : list of str, optional
+        List of experiment method codes to consider for blending. Default is
+        ['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'].
+    temp_col : str, optional
+        Column name for temperature in the measurement dataframes. Default is 'meas_temp'.
+    moment_col : str, optional
+        Column name for magnetization in the measurement dataframes. Default is 'magn_mass'.
+    fraction : float, optional
+        Fraction of the first specimen's magnetization to blend with the second specimen's magnetization. Default is 0.5.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are experiment method codes and values are dictionaries containing:
+    '''
+    spec_1_meas = measurement_1[measurement_1['specimen']==spec_1]
+    spec_2_meas = measurement_2[measurement_2['specimen']==spec_2]
+
+    output_dict = {}
+
+    for experiment in experiments:
+        exp_1 = spec_1_meas[spec_1_meas['method_codes']==experiment]
+        exp_2 = spec_2_meas[spec_2_meas['method_codes']==experiment]
+        if exp_1.empty or exp_2.empty:
+            continue
+
+        T1 = exp_1[temp_col].values
+        T2 = exp_2[temp_col].values
+        T_min = max(T1.min(), T2.min())
+        T_max = min(T1.max(), T2.max())
+        n = max(len(T1), len(T2))
+        T_common = np.linspace(T_min, T_max, n)
+
+        M1 = exp_1[moment_col].values
+        M2 = exp_2[moment_col].values
+        # sort M1 and M2 based on sorted T1 and T2
+        M1_sorted = M1[np.argsort(T1)]
+        M2_sorted = M2[np.argsort(T2)]
+        T1_sorted = np.sort(T1)
+        T2_sorted = np.sort(T2)
+        M1_interp = np.interp(T_common, T1_sorted, M1_sorted)
+        M2_interp = np.interp(T_common, T2_sorted, M2_sorted)
+
+        M_blend = fraction * M1_interp + (1 - fraction) * M2_interp
+        output_dict[experiment] = {
+            'T': T_common,
+            'M_blend': M_blend,
+        }
+    return output_dict
+
+
+def MPMS_signal_blender_interactive(measurement_1, measurement_2, 
+                                    experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
+                                    temp_col='meas_temp', moment_col='magn_mass', 
+                                    figsize=(12, 6)):
+    '''
+    function for making interactive blender of MPMS dc remanence measurements using the Institute for Rock Magnetism's
+     rock magnetism bestiary data
+
+    Parameters
+    ----------
+    measurement_1 : pandas.DataFrame
+        MagIC formatted dataframe containing the first set of measurements.
+    measurement_2 : pandas.DataFrame
+        MagIC formatted dataframe containing the second set of measurements.    
+    experiments : list of str, optional
+        List of experiment method codes to consider for blending. Default is
+        ['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'].
+    temp_col : str, optional
+        Column name for temperature in the measurement dataframes. Default is 'meas_temp'.
+    moment_col : str, optional
+        Column name for magnetization in the measurement dataframes. Default is 'magn_mass'.
+    figsize : tuple of float, optional
+        Size of the figure for plotting. Default is (12, 6).
+
+    '''
+    slider = FloatSlider(
+        value=0.5, min=0, max=1, step=0.01,
+        description='fraction', continuous_update=False
+    )
+    display(HBox([slider]))
+
+    spec_1_dropdown = widgets.Dropdown(
+        options=measurement_1['specimen'].unique(),
+        description='Specimen 1:',
+        disabled=False,
+    )
+
+    spec_2_dropdown = widgets.Dropdown(
+        options=measurement_2['specimen'].unique(),
+        description='Specimen 2:',
+        disabled=False,
+    )
+
+    display(spec_1_dropdown, spec_2_dropdown)
+
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=figsize)
+    fig.canvas.header_visible = False
+    def update(*args):
+        ax[0].clear()
+        ax[1].clear()
+        blender_result = MPMS_signal_blender(
+            measurement_1, measurement_2,
+            spec_1_dropdown.value, spec_2_dropdown.value,
+            experiments=experiments,
+            temp_col=temp_col, moment_col=moment_col,
+            fraction=slider.value
+        )
+
+        for experiment, data in blender_result.items():
+
+            if 'LP-FC' in experiment:
+                ax[0].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='blue', alpha=0.6, label=experiment)
+            elif 'LP-ZFC' in experiment:
+                ax[0].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='red', alpha=0.6, label=experiment)
+            elif 'LP-CW-SIRM:LP-MC' in experiment:
+                ax[1].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='green', alpha=0.6, label=experiment)
+            elif 'LP-CW-SIRM:LP-MW' in experiment:
+                ax[1].plot(data['T'], data['M_blend'], marker='o', markersize=5, color='black', alpha=0.6, label=experiment)
+
+        ax[0].set_xlabel('Temperature (K)', fontsize=12)
+        ax[0].set_ylabel('Magnetization (Am$^2$/kg)', fontsize=12)
+        ax[0].set_title('FC and ZFC')
+        ax[0].legend()
+        ax[0].grid()
+        ax[1].set_xlabel('Temperature (K)', fontsize=12)
+        ax[1].set_ylabel('Magnetization (Am$^2$/kg)', fontsize=12)
+        ax[1].set_title('RTSIRM cycling')
+        ax[1].legend()
+        ax[1].grid()
+        fig.canvas.draw()
+        plt.tight_layout()
+    slider.observe(update, names='value')
+    spec_1_dropdown.observe(update, names='value')
+    spec_2_dropdown.observe(update, names='value')
+    update()
 
 
 # hysteresis functions
@@ -2991,9 +3196,10 @@ def plot_X_T(
     plot_derivative=True,
     plot_inverse=False,
     return_figure=False,
+    panel_height=400,
 ):
     """
-    Plot the high-temperature X–T curve, and optionally its derivative
+    Plot the high-temperature susceptibility curve, and optionally its derivative
     and reciprocal using Bokeh.
 
     Parameters:
@@ -3010,9 +3216,9 @@ def plot_X_T(
         remove_holder (bool, optional):
             If True, subtract the minimum holder signal. Defaults to True.
         plot_derivative (bool, optional):
-            If True, generate dX/dT plot. Defaults to True.
+            If True, generate dk/dT plot. Defaults to True.
         plot_inverse (bool, optional):
-            If True, generate 1/X plot. Defaults to False.
+            If True, generate 1/k plot. Defaults to False.
         return_figure (bool, optional):
             If True, return the Bokeh figure objects. Defaults to False.
 
@@ -3042,18 +3248,18 @@ def plot_X_T(
     swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
     scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
 
-    width = 900
-    height = int(width / 1.618)
     title = experiment["specimen"].unique()[0]
 
     p = figure(
         title=title,
-        width=width,
-        height=height,
+        sizing_mode="stretch_width",
+        height=panel_height,
         x_axis_label=f"Temperature (°{temp_unit})",
         y_axis_label="k (m³ kg⁻¹)",
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
+    p.xaxis.axis_label_text_font_style = "normal"
+    p.yaxis.axis_label_text_font_style = "normal"
 
     r_warm_c = p.scatter(
         warm_T, warm_X, legend_label="Heating",
@@ -3075,11 +3281,11 @@ def plot_X_T(
 
     p.add_tools(
         HoverTool(renderers=[r_warm_c, r_warm_l],
-                  tooltips=[("T", "@x"), ("Heating X", "@y")])
+                  tooltips=[("T", "@x"), ("Heating k", "@y")])
     )
     p.add_tools(
         HoverTool(renderers=[r_cool_c, r_cool_l],
-                  tooltips=[("T", "@x"), ("Cooling X", "@y")])
+                  tooltips=[("T", "@x"), ("Cooling k", "@y")])
     )
 
     p.grid.grid_line_color = "lightgray"
@@ -3091,46 +3297,59 @@ def plot_X_T(
 
     if plot_derivative:
         p_dx = figure(
-            title=f"{title} – dX/dT",
-            width=width,
-            height=height,
+            title=f"{title} – dk/dT",
+            sizing_mode="stretch_width",
+            height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="dX/dT",
+            y_axis_label="dk/dT",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
+        p_dx.xaxis.axis_label_text_font_style = "normal"
+        p_dx.yaxis.axis_label_text_font_style = "normal"
         dx_w = np.gradient(swX, swT)
         dx_c = np.gradient(scX, scT)
         r_dx_w = p_dx.line(
-            swT, dx_w, legend_label="Heating – dX/dT",
+            swT, dx_w, legend_label="Heating – dk/dT",
             line_width=2, color="red"
         )
+        r_dx_w_c = p_dx.scatter(
+            swT, dx_w, legend_label="Heating – dk/dT",
+            color="red", alpha=0.5, size=6
+        )
         r_dx_c = p_dx.line(
-            scT, dx_c, legend_label="Cooling – dX/dT",
+            scT, dx_c, legend_label="Cooling – dk/dT",
             line_width=2, color="blue"
+        )
+        r_dx_c_c = p_dx.scatter(
+            scT, dx_c, legend_label="Cooling – dk/dT",
+            color="blue", alpha=0.5, size=6
         )
         p_dx.add_tools(
             HoverTool(renderers=[r_dx_w],
-                      tooltips=[("T", "@x"), ("dX/dT (heat)", "@y")])
+                      tooltips=[("T", "@x"), ("dk/dT (heat)", "@y")])
         )
         p_dx.add_tools(
             HoverTool(renderers=[r_dx_c],
-                      tooltips=[("T", "@x"), ("dX/dT (cool)", "@y")])
+                      tooltips=[("T", "@x"), ("dk/dT (cool)", "@y")])
         )
         p_dx.grid.grid_line_color = "lightgray"
         p_dx.outline_line_color = "black"
         p_dx.background_fill_color = "white"
         p_dx.legend.location = "top_left"
+        p_dx.legend.click_policy = "hide"
         figs.append(p_dx)
 
     if plot_inverse:
         p_inv = figure(
-            title=f"{title} – 1/X",
-            width=width,
-            height=height,
+            title=f"{title} – 1/k",
+            sizing_mode="stretch_width",
+            height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="1/X",
+            y_axis_label="1/k",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
+        p_inv.xaxis.axis_label_text_font_style = "normal"
+        p_inv.yaxis.axis_label_text_font_style = "normal"
         # compute inverse safely (zeros become NaN)
         swX_arr = np.array(swX)
         scX_arr = np.array(scX)
@@ -3145,30 +3364,39 @@ def plot_X_T(
         r_inv_w = p_inv.line(
             np.array(swT)[mask_w],
             inv_w[mask_w],
-            legend_label="Heating – 1/X",
+            legend_label="Heating – 1/k",
             line_width=2, color="red",
         )
-
+        r_inv_w_c = p_inv.scatter(
+            np.array(swT)[mask_w],
+            inv_w[mask_w],
+            color="red", alpha=0.5, size=6
+        )
         # plot cooling inverse
         r_inv_c = p_inv.line(
             np.array(scT)[mask_c],
             inv_c[mask_c],
-            legend_label="Cooling – 1/X",
+            legend_label="Cooling – 1/k",
             line_width=2, color="blue",
         )
-
+        r_inv_c_c = p_inv.scatter(
+            np.array(scT)[mask_c],
+            inv_c[mask_c],
+            color="blue", alpha=0.5, size=6
+        )
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_w],
-                      tooltips=[("T", "@x"), ("1/X (heat)", "@y")])
+                      tooltips=[("T", "@x"), ("1/k (heat)", "@y")])
         )
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_c],
-                      tooltips=[("T", "@x"), ("1/X (cool)", "@y")])
+                      tooltips=[("T", "@x"), ("1/k (cool)", "@y")])
         )
         p_inv.grid.grid_line_color = "lightgray"
         p_inv.outline_line_color = "black"
         p_inv.background_fill_color = "white"
         p_inv.legend.location = "top_left"
+        p_inv.legend.click_policy = "hide"
         figs.append(p_inv)
 
     for fig in figs:
@@ -3402,6 +3630,8 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
         The name of the treatment field column in the DataFrame
     magnetization : str
         The name of the magnetization column in the DataFrame
+    smooth_mode : str
+        The smoothing mode to be used, either 'lowess' or 'spline'
     smooth_frac : float
         Fraction of the data to be used for LOWESS smoothing, value must be between 0 and 1
     drop_first : bool
@@ -3520,8 +3750,8 @@ def plot_backfield_data(
 
     if interactive:
         tools = [
-            HoverTool(tooltips=[("Field (mT)", "@x"), ("Mag", "@y")]),
-            "pan,box_zoom,reset"
+            HoverTool(tooltips=[("Field (T)", "@x"), ("Mag", "@y")]),
+            "pan,box_zoom,wheel_zoom,reset,save"
         ]
         figs = []
         palette = Category10[3]
@@ -4339,11 +4569,56 @@ def day_plot(Mr, Ms, Bcr, Bc,
         ax.legend(loc='lower right', fontsize=10)
     return ax
 
-def squareness_Bc(Ms, Mr, Bc, color = 'black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, figsize = (6,6)):
+
+def neel_plot_magic(specimen_data, 
+                   by ='specimen',
+                   Mr = 'hyst_mr_mass',
+                   Ms = 'hyst_ms_mass',
+                   Bcr = 'rem_bcr',
+                   Bc = 'hyst_bc',
+                   **kwargs):
+    """
+    Function to plot a Day plot from a MagIC specimens table.
+
+    Parameters
+    ----------
+    specimen_data : pandas.DataFrame
+        DataFrame containing the specimens data.
+    by : str
+        Column name to group by (default is 'specimen').
+    Mr : str
+        Column name for the remanence (default is 'hyst_mr_mass').
+    Ms : str
+        Column name for the saturation magnetization (default is 'hyst_ms_mass').
+    Bcr : str
+        Column name for the coercivity (default is 'hyst_bcr').
+    Bc : str
+        Column name for the coercivity of remanence (default is 'hyst_bc').
+    **kwargs : keyword arguments
+        Additional arguments to pass to the plotting function.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        The axes object containing the plot.
+    """
+    summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
+    summary_sats = summary_sats.dropna()
+
+    ax = neel_plot(Mr = summary_sats[Mr],
+                Ms = summary_sats[Ms],
+                Bc = summary_sats[Bc], 
+                **kwargs)
+    return ax
+
+
+def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     '''
     fuction for making squareness coercivity plot
-        plots Mr/Ms vs Bc
+        the original Neel diagram plots Mr/Ms vs Bc
+        a sister plot often used is Mr/M vs Bcr
     '''
+    assert axis_scale in ['linear', 'log'], "axis_scale must be 'linear' or 'log'"
     # force numpy arrays
     Ms = np.asarray(Ms)
     Mr = np.asarray(Mr)
@@ -4351,8 +4626,20 @@ def squareness_Bc(Ms, Mr, Bc, color = 'black', marker = 'o', label = 'sample', a
     Mr_Ms = Mr/Ms
     _, ax = plt.subplots(figsize = figsize)
     ax.scatter(Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
+    ax.set_xlabel('Bc', fontsize=12)
+    ax.set_ylabel('Mr/Ms', fontsize=12)
+    if axis_scale == 'linear':
+        ax.set_xscale('linear')   
+        ax.set_yscale('linear')
+    else:
+        ax.set_xscale('log')   
+        ax.set_yscale('log')
+    if legend:
+        ax.legend(loc='upper left', fontsize=12)
 
+    ax.grid(True, which='both', linestyle='--', linewidth=lw, color=lc)
     return ax
+
 
 def Langevin_alpha(V, Ms, H, T):
     '''
@@ -4378,6 +4665,7 @@ def Langevin_alpha(V, Ms, H, T):
     k = 1.38064852e-23
 
     return mu0*Ms * V * H / (k * T)
+
 
 def Langevin(alpha):
     '''
