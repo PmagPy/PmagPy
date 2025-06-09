@@ -2236,11 +2236,11 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     M_sn, Q = calc_Q(grid_field, grid_magnetization)
 
     # re-gridding after offset correction to ensure symmetry
-    centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset/2, grid_magnetization-M_offset)
+    centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset, grid_magnetization-M_offset)
 
     results = {'centered_H':centered_H, 
                'centered_M': centered_M, 
-               'opt_H_offset':float(H_offset/2), 
+               'opt_H_offset':float(H_offset), 
                'opt_M_offset':float(M_offset), 
                'R_squared':float(R_squared), 
                'M_sn':float(M_sn), 
