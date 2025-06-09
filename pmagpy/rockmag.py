@@ -1729,7 +1729,7 @@ def MPMS_signal_blender_interactive(measurement_1, measurement_2,
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
     '''
-    function for makeing interative blender of MPMS dc remanence measurements using the Insitute for Rock Magnetism's
+    function for making interactive blender of MPMS dc remanence measurements using the Institute for Rock Magnetism's
      rock magnetism bestiary data
 
     Parameters
