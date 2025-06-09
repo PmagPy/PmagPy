@@ -858,7 +858,9 @@ def verwey_estimate(temps, mags,
     ax1.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
     if plot_title is not None:
         ax1.set_title(plot_title)
-    #plt.show()
+    
+    if plot_zero_crossing:
+        ax2 = zero_crossing(temps_dM_dT_background, mgt_dM_dT, make_plot=True)
 
     return verwey_estimate, remanence_loss
 
@@ -1821,7 +1823,8 @@ def MPMS_signal_blender_interactive(measurement_1, measurement_2,
         ax[1].set_title('RTSIRM cycling')
         ax[1].legend()
         ax[1].grid()
-        fig.canvas.draw()
+        # fig.canvas.draw()
+        fig.canvas.flush_events()
         plt.tight_layout()
     slider.observe(update, names='value')
     spec_1_dropdown.observe(update, names='value')
@@ -4197,7 +4200,8 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
         ax.legend()
 
-        fig.canvas.draw()
+        # fig.canvas.draw()
+        fig.canvas.flush_events()
         if final_fit["df"] is None:
             final_fit["df"] = updated_parameters.copy()
         else:
