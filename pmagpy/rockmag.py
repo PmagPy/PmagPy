@@ -243,6 +243,34 @@ def make_experiment_df(measurements, exclude_method_codes=None):
     return experiments
 
 
+def experiment_selection(measurements, experiment_name):
+    """
+    This function filters a measurements DataFrame to return only the rows 
+    that correspond to the specified experiment name. 
+    
+    Parameters
+    ----------
+    measurements : pd.DataFrame
+        The DataFrame containing measurement data with an 'experiment' column.
+    experiment_name : str
+        The name of the experiment to select from the DataFrame.
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing only the rows corresponding to the specified experiment.
+    """
+    if 'experiment' not in measurements.columns:
+        raise ValueError("The measurements DataFrame must contain an 'experiment' column.")
+    if not isinstance(experiment_name, str):
+        raise TypeError("The experiment_name must be a string.")
+    if experiment_name not in measurements['experiment'].unique():
+        raise ValueError(f"Experiment '{experiment_name}' not found in the measurements DataFrame.")
+    # Filter the DataFrame for the specified experiment
+    selected_experiment = measurements[measurements['experiment'] == experiment_name].reset_index(drop=True)
+    selected_experiment = clean_out_na(selected_experiment)
+    return selected_experiment
+
+
 def clean_out_na(dataframe):
     """
     Cleans a DataFrame by removing columns and rows that contain only NaN values.
@@ -3277,7 +3305,7 @@ def plot_X_T(
         sizing_mode="stretch_width",
         height=panel_height,
         x_axis_label=f"Temperature (°{temp_unit})",
-        y_axis_label="k (m³ kg⁻¹)",
+        y_axis_label="χ (m³ kg⁻¹)",
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
     p.xaxis.axis_label_text_font_style = "normal"
@@ -3303,11 +3331,11 @@ def plot_X_T(
 
     p.add_tools(
         HoverTool(renderers=[r_warm_c, r_warm_l],
-                  tooltips=[("T", "@x"), ("Heating k", "@y")])
+                  tooltips=[("T", "@x"), ("Heating χ", "@y")])
     )
     p.add_tools(
         HoverTool(renderers=[r_cool_c, r_cool_l],
-                  tooltips=[("T", "@x"), ("Cooling k", "@y")])
+                  tooltips=[("T", "@x"), ("Cooling χ", "@y")])
     )
 
     p.grid.grid_line_color = "lightgray"
@@ -3319,11 +3347,11 @@ def plot_X_T(
 
     if plot_derivative:
         p_dx = figure(
-            title=f"{title} – dk/dT",
+            title=f"{title} – dχ/dT",
             sizing_mode="stretch_width",
             height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="dk/dT",
+            y_axis_label="dχ/dT",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
         p_dx.xaxis.axis_label_text_font_style = "normal"
@@ -3331,28 +3359,28 @@ def plot_X_T(
         dx_w = np.gradient(swX, swT)
         dx_c = np.gradient(scX, scT)
         r_dx_w = p_dx.line(
-            swT, dx_w, legend_label="Heating – dk/dT",
+            swT, dx_w, legend_label="Heating – dχ/dT",
             line_width=2, color="red"
         )
         r_dx_w_c = p_dx.scatter(
-            swT, dx_w, legend_label="Heating – dk/dT",
+            swT, dx_w, legend_label="Heating – dχ/dT",
             color="red", alpha=0.5, size=6
         )
         r_dx_c = p_dx.line(
-            scT, dx_c, legend_label="Cooling – dk/dT",
+            scT, dx_c, legend_label="Cooling – dχ/dT",
             line_width=2, color="blue"
         )
         r_dx_c_c = p_dx.scatter(
-            scT, dx_c, legend_label="Cooling – dk/dT",
+            scT, dx_c, legend_label="Cooling – dχ/dT",
             color="blue", alpha=0.5, size=6
         )
         p_dx.add_tools(
             HoverTool(renderers=[r_dx_w],
-                      tooltips=[("T", "@x"), ("dk/dT (heat)", "@y")])
+                      tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
         )
         p_dx.add_tools(
             HoverTool(renderers=[r_dx_c],
-                      tooltips=[("T", "@x"), ("dk/dT (cool)", "@y")])
+                      tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
         )
         p_dx.grid.grid_line_color = "lightgray"
         p_dx.outline_line_color = "black"
@@ -3363,11 +3391,11 @@ def plot_X_T(
 
     if plot_inverse:
         p_inv = figure(
-            title=f"{title} – 1/k",
+            title=f"{title} – 1/χ",
             sizing_mode="stretch_width",
             height=panel_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="1/k",
+            y_axis_label="1/χ",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
         p_inv.xaxis.axis_label_text_font_style = "normal"
@@ -3386,7 +3414,7 @@ def plot_X_T(
         r_inv_w = p_inv.line(
             np.array(swT)[mask_w],
             inv_w[mask_w],
-            legend_label="Heating – 1/k",
+            legend_label="Heating – 1/χ",
             line_width=2, color="red",
         )
         r_inv_w_c = p_inv.scatter(
@@ -3398,7 +3426,7 @@ def plot_X_T(
         r_inv_c = p_inv.line(
             np.array(scT)[mask_c],
             inv_c[mask_c],
-            legend_label="Cooling – 1/k",
+            legend_label="Cooling – 1/χ",
             line_width=2, color="blue",
         )
         r_inv_c_c = p_inv.scatter(
@@ -3408,11 +3436,11 @@ def plot_X_T(
         )
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_w],
-                      tooltips=[("T", "@x"), ("1/k (heat)", "@y")])
+                      tooltips=[("T", "@x"), ("1/χ (heat)", "@y")])
         )
         p_inv.add_tools(
             HoverTool(renderers=[r_inv_c],
-                      tooltips=[("T", "@x"), ("1/k (cool)", "@y")])
+                      tooltips=[("T", "@x"), ("1/χ (cool)", "@y")])
         )
         p_inv.grid.grid_line_color = "lightgray"
         p_inv.outline_line_color = "black"
