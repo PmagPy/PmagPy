@@ -3921,7 +3921,7 @@ def plot_backfield_data(
             p2 = figure(
                 title="Coercivity spectrum",
                 x_axis_label="Field (mT)",
-                y_axis_label="dM/dB",
+                y_axis_label="dM/dlog(B)",
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
@@ -4011,7 +4011,7 @@ def plot_backfield_data(
             ax.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
             ticks = ax.get_xticks()
             ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
-            ax.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
+            ax.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dlog(B)")
             ax.legend(loc=legend_location)
 
     fig.tight_layout()
@@ -4191,7 +4191,7 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
     ax.legend()
     ax.set_title('coercivity unmixing results')
     ax.set_xlabel('treatment field (mT)', fontsize=14)
-    ax.set_ylabel('dM/dB', fontsize=14)
+    ax.set_ylabel('dM/dlog(B)', fontsize=14)
     return fig, ax
 
 def interactive_backfield_fit(field, magnetization, n_components, skewed=True, figsize=(10, 6)):
@@ -4295,7 +4295,7 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         ax.clear()
         ax.scatter(smoothed_derivatives_x, smoothed_derivatives_y, marker='o', s=5, alpha=0.5, color='grey', label='original data')
         ax.set_xlabel('Field', fontsize=12)
-        ax.set_ylabel('dM/dlogB', fontsize=12)
+        ax.set_ylabel('dM/dlog(B)', fontsize=12)
 
         # Get values from sliders
         amp = [amp_slidebars[f'amplitude_{i}'].value  for i in range(n_components)]
@@ -4482,7 +4482,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
         ax.plot(B_high_resolution, dMdB_50_components[k], c=f'C{k}', label=f'component #{k+1}')
         ax.fill_between(B_high_resolution, dMdB_2_5_components[k], dMdB_97_5_components[k], color=f'C{k}', alpha=0.2, label=f'component #{k+1} 95% CI')
     ax.set_xlabel('Field (mT)', fontsize=12)
-    ax.set_ylabel('dM/dB', fontsize=12)
+    ax.set_ylabel('dM/dlog(B)', fontsize=12)
     ax.set_xticklabels([f'{int(10**i)}' for i in ax.get_xticks()])
     ax.legend()
     fig.canvas.header_visible = False  
