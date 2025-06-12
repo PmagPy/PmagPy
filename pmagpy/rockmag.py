@@ -4295,7 +4295,7 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         ax.clear()
         ax.scatter(smoothed_derivatives_x, smoothed_derivatives_y, marker='o', s=5, alpha=0.5, color='grey', label='original data')
         ax.set_xlabel('Field', fontsize=12)
-        ax.set_ylabel('dM/dB', fontsize=12)
+        ax.set_ylabel('dM/dlogB', fontsize=12)
 
         # Get values from sliders
         amp = [amp_slidebars[f'amplitude_{i}'].value  for i in range(n_components)]
