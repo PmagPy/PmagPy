@@ -912,7 +912,7 @@ def verwey_estimate(temps, mags,
     return verwey_estimate, remanence_loss
 
 
-def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown):
+def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown, figsize=(11, 5)):
     
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
@@ -978,7 +978,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
 
     display(ui)
 
-    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(10, 5))
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=figsize)
     fig.canvas.header_visible = False
 
     def update_plot(*args):
@@ -3775,7 +3775,7 @@ def plot_backfield_data(
     field="treat_dc_field",
     magnetization="magn_mass",
     Bcr=None,
-    size=(5, 10),
+    figsize=(5, 10),
     plot_raw=True,
     plot_processed=True,
     plot_spectrum=True,
@@ -3798,7 +3798,7 @@ def plot_backfield_data(
         Name of the magnetization column.
     Bcr : float, optional
         Calculated Bcr (T). If provided, will be plotted as a pink star.
-    size : tuple(float, float)
+    figsize : tuple(float, float)
         Figure size (in inches).
     plot_raw : bool
     plot_processed : bool
@@ -3851,7 +3851,7 @@ def plot_backfield_data(
         ]
         figs = []
         palette = Category10[4]
-        bokeh_height = int(size[1]/3 * 96)
+        bokeh_height = int(figsize[1] / 3 * 96)
 
         if plot_raw:
             p0 = figure(
@@ -3954,7 +3954,7 @@ def plot_backfield_data(
         panels.append("spectrum")
 
     n = len(panels)
-    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=size)
+    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=figsize)
     if n == 1:
         axes = [axes]
 
