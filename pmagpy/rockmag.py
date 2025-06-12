@@ -913,6 +913,23 @@ def verwey_estimate(temps, mags,
 
 
 def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown):
+    '''
+    function to create a Jupyter notebook interactive UI for estimating the Verwey transition temperature
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        DataFrame containing MPMS measurements with columns such as 'specimen', 'meas_temp', 'magn_mass', and 'method_codes'.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen name.
+    method_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the method ('LP-FC' or 'LP-ZFC').
+
+    Returns
+    -------
+    None
+    Displays an interactive UI with sliders to adjust parameters for the Verwey estimate calculation.
+    '''
     
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
@@ -1482,6 +1499,19 @@ def goethite_removal(rtsirm_warm_data,
     
     
 def interactive_goethite_removal(measurements, specimen_dropdown):
+    '''
+    function for creating an interactive UI for goethite removal from MPMS data.
+    This function allows the user to select a specimen from a dropdown menu and adjust parameters
+    for the goethite removal process, including temperature range and polynomial degree for fitting.
+    The UI includes sliders for adjusting the temperature range and polynomial degree, a reset button
+    to restore default values, and a title label indicating the selected specimen.
+
+    Parameters:
+    ---------
+    measurements (pd.DataFrame): The DataFrame containing measurement data with columns
+                                    'specimen', 'meas_temp', and 'magn_mass'.
+    specimen_dropdown (ipywidgets.Dropdown): Dropdown widget for selecting the specimen.
+    '''
     
     selected_specimen_name = specimen_dropdown.value
 
@@ -2160,7 +2190,16 @@ def hyst_linearity_test(grid_field, grid_magnetization):
 def linefit(xarr, yarr):
     """
     Linear regression fit: y = intercept + slope * x
-    Returns: intercept, slope, R^2
+
+    Parameters:
+    -----------
+    xarr : array-like
+        Independent variable values (e.g., magnetic field).
+    yarr : array-like
+        Dependent variable values (e.g., magnetization).
+    Returns: 
+    ----------
+    intercept, slope, R^2
     """
     xarr = np.asarray(xarr)
     yarr = np.asarray(yarr)
@@ -2563,6 +2602,22 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     '''
     function for testing the saturation of a hysteresis loop
         which is based on the testing of linearity of the loop in field ranges of 60%, 70%, and 80% of the maximum field (<97%)
+
+    Parameters
+    ----------
+    grid_field : numpy array
+        gridded field values
+    grid_magnetization : numpy array
+        gridded magnetization values
+    max_field_cutoff : float
+        maximum field cutoff value, default is 0.97
+
+    Returns
+    -------
+    results_dict : dict
+        dictionary of the results of the saturation test
+        containing FNL60, FNL70, FNL80 values and saturation cutoff value
+        and loop_is_saturated boolean flag
     '''
     
     FNL60 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.6, max_field_cutoff = max_field_cutoff)['FNL']
@@ -3657,6 +3712,29 @@ def X_T_running_average(temp_list, chi_list, temp_window):
 
 
 def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
+    '''
+    function for optimizing the moving average window size for a given X-T experiment.
+    It will plot the average RMS and variance of the susceptibility data
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        DataFrame containing the X-T data
+    min_temp_window : float
+        Minimum temperature window size in degrees Celsius (default 0)
+    max_temp_window : float
+        Maximum temperature window size in degrees Celsius (default 50)
+    steps : int
+        Number of steps between min and max temperature window (default 50)
+    colormapwarm : str
+        Colormap for the warm cycle (default 'tab20b')
+    colormapcool : str
+        Colormap for the cool cycle (default 'tab20c')
+    Returns
+    -------
+    fig, axs : tuple
+        Matplotlib figure and axes objects containing the plots
+    '''
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
@@ -3689,6 +3767,25 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
 
 
 def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
+    '''
+    function for calculating the average RMS and variance of a given susceptibility data
+
+    Parameters
+    ----------
+    chi_list : list[float]
+        List of susceptibility values
+    avg_chis : list[float]
+        List of average susceptibility values for each point
+    chi_vars : list[float]
+        List of variances of susceptibility values for each point
+        
+    Returns
+    -------
+    avg_rms : float
+        Average RMS of the susceptibility data
+    avg_variance : float
+        Average variance of the susceptibility data
+    '''
     rms_list = np.sqrt([(chi - avg_chi)**2 for chi, avg_chi in zip(chi_list, avg_chis)])
     total_rms = np.sum(rms_list)
     avg_rms = total_rms / len(rms_list)
