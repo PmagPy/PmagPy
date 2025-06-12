@@ -978,7 +978,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
 
     display(ui)
 
-    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(10, 5))
     fig.canvas.header_visible = False
 
     def update_plot(*args):
@@ -3245,212 +3245,248 @@ def plot_X_T(
     remove_holder=True,
     plot_derivative=True,
     plot_inverse=False,
+    interactive=True,
     return_figure=False,
-    panel_height=400,
+    figsize=(6, 6),
 ):
     """
     Plot the high-temperature susceptibility curve, and optionally its derivative
-    and reciprocal using Bokeh.
+    and reciprocal using Bokeh or Matplotlib.
 
     Parameters:
-        experiment (pandas.DataFrame):
-            The IRM experiment data exported into MagIC format.
-        temperature_column (str, optional):
-            Name of the temperature column. Defaults to "meas_temp".
-        magnetic_column (str, optional):
-            Name of the susceptibility column. Defaults to "susc_chi_mass".
-        temp_unit (str, optional):
-            Unit of temperature, either "K" or "C". Defaults to "C".
-        smooth_window (int, optional):
-            Window size for running-average smoothing. Defaults to 0.
-        remove_holder (bool, optional):
-            If True, subtract the minimum holder signal. Defaults to True.
-        plot_derivative (bool, optional):
-            If True, generate dk/dT plot. Defaults to True.
-        plot_inverse (bool, optional):
-            If True, generate 1/k plot. Defaults to False.
-        return_figure (bool, optional):
-            If True, return the Bokeh figure objects. Defaults to False.
-
-    Returns:
-        tuple[bokeh.plotting.figure.Figure, ...] or None:
-            The requested Bokeh figures if return_figure is True;
-            otherwise, None.
+        experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
+        temperature_column (str): Name of temperature column.
+        magnetic_column (str): Name of susceptibility column.
+        temp_unit (str): "C" for Celsius.
+        smooth_window (int): Window for smoothing.
+        remove_holder (bool): Subtract holder signal.
+        plot_derivative (bool): Plot derivative.
+        plot_inverse (bool): Plot inverse.
+        interactive (bool): True for Bokeh, False for Matplotlib.
+        return_figure (bool): Return figure objects if True.
+        figsize (tuple): (width, height) in inches.
     """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(
         experiment,
         temperature_column=temperature_column,
         magnetic_column=magnetic_column,
     )
-
     if temp_unit == "C":
         warm_T = [T - 273.15 for T in warm_T]
         cool_T = [T - 273.15 for T in cool_T]
     else:
-        raise ValueError('temp_unit must be either "K" or "C"')
-
+        raise ValueError('temp_unit must be "C"')
     if remove_holder:
         holder_w = min(warm_X)
         holder_c = min(cool_X)
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
-
     swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
     scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
-
     title = experiment["specimen"].unique()[0]
+    figs = []
 
-    p = figure(
-        title=title,
-        sizing_mode="stretch_width",
-        height=panel_height,
-        x_axis_label=f"Temperature (°{temp_unit})",
-        y_axis_label="χ (m³ kg⁻¹)",
-        tools="pan,wheel_zoom,box_zoom,reset,save",
-    )
-    p.xaxis.axis_label_text_font_style = "normal"
-    p.yaxis.axis_label_text_font_style = "normal"
-
-    r_warm_c = p.scatter(
-        warm_T, warm_X, legend_label="Heating",
-        color="red", alpha=0.5, size=6,
-    )
-    r_warm_l = p.line(
-        swT, swX, legend_label="Heating – smoothed",
-        line_width=2, color="red",
-    )
-
-    r_cool_c = p.scatter(
-        cool_T, cool_X, legend_label="Cooling",
-        color="blue", alpha=0.5, size=6,
-    )
-    r_cool_l = p.line(
-        scT, scX, legend_label="Cooling – smoothed",
-        line_width=2, color="blue",
-    )
-
-    p.add_tools(
-        HoverTool(renderers=[r_warm_c, r_warm_l],
-                  tooltips=[("T", "@x"), ("Heating χ", "@y")])
-    )
-    p.add_tools(
-        HoverTool(renderers=[r_cool_c, r_cool_l],
-                  tooltips=[("T", "@x"), ("Cooling χ", "@y")])
-    )
-
-    p.grid.grid_line_color = "lightgray"
-    p.outline_line_color = "black"
-    p.background_fill_color = "white"
-    p.legend.location = "top_left"
-
-    figs = [p]
-
-    if plot_derivative:
-        p_dx = figure(
-            title=f"{title} – dχ/dT",
+    if interactive:
+        bokeh_height = int(figsize[1] * 96)
+        # Main plot
+        p = figure(
+            title=title,
             sizing_mode="stretch_width",
-            height=panel_height,
+            height=bokeh_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="dχ/dT",
+            y_axis_label="χ (m³ kg⁻¹)",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
-        p_dx.xaxis.axis_label_text_font_style = "normal"
-        p_dx.yaxis.axis_label_text_font_style = "normal"
-        dx_w = np.gradient(swX, swT)
-        dx_c = np.gradient(scX, scT)
-        r_dx_w = p_dx.line(
-            swT, dx_w, legend_label="Heating – dχ/dT",
-            line_width=2, color="red"
+        p.xaxis.axis_label_text_font_style = "normal"
+        p.yaxis.axis_label_text_font_style = "normal"
+        r_warm_c = p.scatter(
+            warm_T, warm_X, legend_label="Heating",
+            color="red", alpha=0.5, size=6,
         )
-        r_dx_w_c = p_dx.scatter(
-            swT, dx_w, legend_label="Heating – dχ/dT",
-            color="red", alpha=0.5, size=6
-        )
-        r_dx_c = p_dx.line(
-            scT, dx_c, legend_label="Cooling – dχ/dT",
-            line_width=2, color="blue"
-        )
-        r_dx_c_c = p_dx.scatter(
-            scT, dx_c, legend_label="Cooling – dχ/dT",
-            color="blue", alpha=0.5, size=6
-        )
-        p_dx.add_tools(
-            HoverTool(renderers=[r_dx_w],
-                      tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
-        )
-        p_dx.add_tools(
-            HoverTool(renderers=[r_dx_c],
-                      tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
-        )
-        p_dx.grid.grid_line_color = "lightgray"
-        p_dx.outline_line_color = "black"
-        p_dx.background_fill_color = "white"
-        p_dx.legend.location = "top_left"
-        p_dx.legend.click_policy = "hide"
-        figs.append(p_dx)
-
-    if plot_inverse:
-        p_inv = figure(
-            title=f"{title} – 1/χ",
-            sizing_mode="stretch_width",
-            height=panel_height,
-            x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="1/χ",
-            tools="pan,wheel_zoom,box_zoom,reset,save",
-        )
-        p_inv.xaxis.axis_label_text_font_style = "normal"
-        p_inv.yaxis.axis_label_text_font_style = "normal"
-        # compute inverse safely (zeros become NaN)
-        swX_arr = np.array(swX)
-        scX_arr = np.array(scX)
-        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
-        inv_c = np.divide(1.0, scX_arr, out=np.full_like(scX_arr, np.nan), where=scX_arr != 0.0)
-
-        # mask to finite values only
-        mask_w = np.isfinite(inv_w)
-        mask_c = np.isfinite(inv_c)
-
-        # plot heating inverse
-        r_inv_w = p_inv.line(
-            np.array(swT)[mask_w],
-            inv_w[mask_w],
-            legend_label="Heating – 1/χ",
+        r_warm_l = p.line(
+            swT, swX, legend_label="Heating",
             line_width=2, color="red",
         )
-        r_inv_w_c = p_inv.scatter(
-            np.array(swT)[mask_w],
-            inv_w[mask_w],
-            color="red", alpha=0.5, size=6
+        r_cool_c = p.scatter(
+            cool_T, cool_X, legend_label="Cooling",
+            color="blue", alpha=0.5, size=6,
         )
-        # plot cooling inverse
-        r_inv_c = p_inv.line(
-            np.array(scT)[mask_c],
-            inv_c[mask_c],
-            legend_label="Cooling – 1/χ",
+        r_cool_l = p.line(
+            scT, scX, legend_label="Cooling",
             line_width=2, color="blue",
         )
-        r_inv_c_c = p_inv.scatter(
-            np.array(scT)[mask_c],
-            inv_c[mask_c],
-            color="blue", alpha=0.5, size=6
+        p.add_tools(
+            HoverTool(renderers=[r_warm_c, r_warm_l],
+                      tooltips=[("T", "@x"), ("Heating χ", "@y")])
         )
-        p_inv.add_tools(
-            HoverTool(renderers=[r_inv_w],
-                      tooltips=[("T", "@x"), ("1/χ (heat)", "@y")])
+        p.add_tools(
+            HoverTool(renderers=[r_cool_c, r_cool_l],
+                      tooltips=[("T", "@x"), ("Cooling χ", "@y")])
         )
-        p_inv.add_tools(
-            HoverTool(renderers=[r_inv_c],
-                      tooltips=[("T", "@x"), ("1/χ (cool)", "@y")])
-        )
-        p_inv.grid.grid_line_color = "lightgray"
-        p_inv.outline_line_color = "black"
-        p_inv.background_fill_color = "white"
-        p_inv.legend.location = "top_left"
-        p_inv.legend.click_policy = "hide"
-        figs.append(p_inv)
+        p.grid.grid_line_color = "lightgray"
+        p.outline_line_color = "black"
+        p.background_fill_color = "white"
+        p.legend.location = "top_left"
+        p.legend.click_policy = "hide"
+        figs.append(p)
 
-    for fig in figs:
-        show(fig)
+        # Derivative
+        if plot_derivative:
+            p_dx = figure(
+                title=f"{title} – dχ/dT",
+                sizing_mode="stretch_width",
+                height=bokeh_height,
+                x_axis_label=f"Temperature (°{temp_unit})",
+                y_axis_label="dχ/dT",
+                tools="pan,wheel_zoom,box_zoom,reset,save",
+            )
+            p_dx.xaxis.axis_label_text_font_style = "normal"
+            p_dx.yaxis.axis_label_text_font_style = "normal"
+            dx_w = np.gradient(swX, swT)
+            dx_c = np.gradient(scX, scT)
+            r_dx_w = p_dx.line(
+                swT, dx_w, legend_label="Heating – dχ/dT",
+                line_width=2, color="red"
+            )
+            r_dx_w_c = p_dx.scatter(
+                swT, dx_w, legend_label="Heating – dχ/dT",
+                color="red", alpha=0.5, size=6
+            )
+            r_dx_c = p_dx.line(
+                scT, dx_c, legend_label="Cooling – dχ/dT",
+                line_width=2, color="blue"
+            )
+            r_dx_c_c = p_dx.scatter(
+                scT, dx_c, legend_label="Cooling – dχ/dT",
+                color="blue", alpha=0.5, size=6
+            )
+            p_dx.add_tools(
+                HoverTool(renderers=[r_dx_w, r_dx_w_c],
+                          tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
+            )
+            p_dx.add_tools(
+                HoverTool(renderers=[r_dx_c, r_dx_c_c],
+                          tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
+            )
+            p_dx.grid.grid_line_color = "lightgray"
+            p_dx.outline_line_color = "black"
+            p_dx.background_fill_color = "white"
+            p_dx.legend.location = "top_left"
+            p_dx.legend.click_policy = "hide"
+            figs.append(p_dx)
+
+        # Inverse
+        if plot_inverse:
+            p_inv = figure(
+                title=f"{title} – 1/χ",
+                sizing_mode="stretch_width",
+                height=bokeh_height,
+                x_axis_label=f"Temperature (°{temp_unit})",
+                y_axis_label="1/χ",
+                tools="pan,wheel_zoom,box_zoom,reset,save",
+            )
+            p_inv.xaxis.axis_label_text_font_style = "normal"
+            p_inv.yaxis.axis_label_text_font_style = "normal"
+            swX_arr = np.array(swX)
+            scX_arr = np.array(scX)
+            inv_w = np.divide(1.0, swX_arr,
+                              out=np.full_like(swX_arr, np.nan),
+                              where=swX_arr != 0.0)
+            inv_c = np.divide(1.0, scX_arr,
+                              out=np.full_like(scX_arr, np.nan),
+                              where=scX_arr != 0.0)
+            mask_w = np.isfinite(inv_w)
+            mask_c = np.isfinite(inv_c)
+            r_inv_w = p_inv.line(
+                np.array(swT)[mask_w], inv_w[mask_w],
+                legend_label="Heating – 1/χ",
+                line_width=2, color="red",
+            )
+            r_inv_w_c = p_inv.scatter(
+                np.array(swT)[mask_w], inv_w[mask_w],
+                color="red", alpha=0.5, size=6
+            )
+            r_inv_c = p_inv.line(
+                np.array(scT)[mask_c], inv_c[mask_c],
+                legend_label="Cooling – 1/χ",
+                line_width=2, color="blue",
+            )
+            r_inv_c_c = p_inv.scatter(
+                np.array(scT)[mask_c], inv_c[mask_c],
+                color="blue", alpha=0.5, size=6
+            )
+            p_inv.add_tools(
+                HoverTool(renderers=[r_inv_w, r_inv_w_c],
+                          tooltips=[("T", "@x"), ("1/χ (heat)", "@y")])
+            )
+            p_inv.add_tools(
+                HoverTool(renderers=[r_inv_c, r_inv_c_c],
+                          tooltips=[("T", "@x"), ("1/χ (cool)", "@y")])
+            )
+            p_inv.grid.grid_line_color = "lightgray"
+            p_inv.outline_line_color = "black"
+            p_inv.background_fill_color = "white"
+            p_inv.legend.location = "top_left"
+            p_inv.legend.click_policy = "hide"
+            figs.append(p_inv)
+
+        for fig in figs:
+            show(fig)
+
+    else:
+        fig_kwargs = {"figsize": figsize}
+        fig1, ax1 = plt.subplots(**fig_kwargs)
+        ax1.scatter(warm_T, warm_X, label="Heating", alpha=0.5)
+        ax1.plot(swT, swX, label="Heating – smoothed", linewidth=2)
+        ax1.scatter(cool_T, cool_X, label="Cooling", alpha=0.5)
+        ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
+        ax1.set_title(title)
+        ax1.set_xlabel(f"Temperature (°{temp_unit})")
+        ax1.set_ylabel("χ (m³ kg⁻¹)")
+        ax1.grid(True)
+        ax1.legend(loc="upper left")
+        figs.append(fig1)
+
+        if plot_derivative:
+            dx_w = np.gradient(swX, swT)
+            dx_c = np.gradient(scX, scT)
+            fig2, ax2 = plt.subplots(**fig_kwargs)
+            ax2.plot(swT, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
+            ax2.plot(scT, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
+            ax2.set_title(f"{title} – dχ/dT")
+            ax2.set_xlabel(f"Temperature (°{temp_unit})")
+            ax2.set_ylabel("dχ/dT")
+            ax2.grid(True)
+            ax2.legend(loc="upper left")
+            figs.append(fig2)
+
+        if plot_inverse:
+            swX_arr = np.array(swX)
+            scX_arr = np.array(scX)
+            inv_w = np.divide(
+                1.0, swX_arr,
+                out=np.full_like(swX_arr, np.nan),
+                where=swX_arr != 0.0,
+            )
+            inv_c = np.divide(
+                1.0, scX_arr,
+                out=np.full_like(scX_arr, np.nan),
+                where=scX_arr != 0.0,
+            )
+            mask_w = np.isfinite(inv_w)
+            mask_c = np.isfinite(inv_c)
+            fig3, ax3 = plt.subplots(**fig_kwargs)
+            ax3.plot(np.array(swT)[mask_w], inv_w[mask_w], label="Heating – 1/χ", linewidth=2, marker="o")
+            ax3.plot(np.array(scT)[mask_c], inv_c[mask_c], label="Cooling – 1/χ", linewidth=2, marker="o")
+            ax3.set_title(f"{title} – 1/χ")
+            ax3.set_xlabel(f"Temperature (°{temp_unit})")
+            ax3.set_ylabel("1/χ")
+            ax3.grid(True)
+            ax3.legend(loc="upper left")
+            figs.append(fig3)
+
+        for fig in figs:
+            plt.show(fig)
 
     if return_figure:
         return tuple(figs)
@@ -3835,12 +3871,9 @@ def plot_backfield_data(
             )
             p0.line(experiment[field], experiment[magnetization], color=palette[0])
             if Bcr is not None and not np.isnan(Bcr):
-                y_min = experiment[magnetization].min()
-                y_max = experiment[magnetization].max()
-                y_mid = y_min + 0.5 * (y_max - y_min)
                 p0.scatter(
                     [-Bcr],
-                    [y_mid],
+                    0,
                     size=15,
                     color="pink",
                     marker="star",
@@ -4821,6 +4854,7 @@ def Langevin(alpha):
     '''
     return 1 / np.tanh(alpha) - 1 / alpha
 
+
 def magnetite_Ms(T):
     '''
     Magnetite saturation magnetization calculation
@@ -4836,6 +4870,7 @@ def magnetite_Ms(T):
         saturation magnetization value
     '''
     return 737.384 * 51.876 * (580 - T)**0.4
+
 
 def chi_SP(SP_size, T):
     '''
@@ -4890,6 +4925,7 @@ def SP_SD_mixture(SP_size, SD_Mr_Ms = 0.5, SD_Bcr_Bc = 1.25, X_sd = 3, T = 300):
 
     return Bcr_Bc, Mrs_Ms
 
+
 def SP_saturation_curve(SD_Mr_Ms=0.5, SD_Bcr_Bc = 1.25):
     '''
     function to calculate the SP saturation curve according to Dunlop (2002)
@@ -4912,6 +4948,7 @@ def SP_saturation_curve(SD_Mr_Ms=0.5, SD_Bcr_Bc = 1.25):
     Mrs_Ms = f_sd * SD_Mr_Ms
     Bcr_Bc = 1 / (1 - (f_sp/f_sd) / SD_Mr_Ms) * SD_Bcr_Bc
     return Bcr_Bc, Mrs_Ms
+
 
 def SD_MD_mixture(Mr_Ms_SD = 0.5, Mr_Ms_MD = 0.019,
                   Bc_SD = 400, Bc_MD = 43,
