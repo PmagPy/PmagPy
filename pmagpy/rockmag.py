@@ -94,6 +94,7 @@ def dict_in_native_python(d):
     """
     return {k: v.item() if isinstance(v, np.generic) else v for k, v in d.items()}
 
+
 def map_legend_location(matplotlib_loc):
     """
     Maps a Matplotlib legend location to a Bokeh legend location.
@@ -208,20 +209,66 @@ def interactive_specimen_experiment_selection(measurements):
     return specimen_dropdown, experiment_dropdown
 
 
-def make_experiment_df(measurements):
+def make_experiment_df(measurements, exclude_method_codes=None):
     """
     Creates a DataFrame of unique experiments from the measurements DataFrame.
 
-    Args:
-        measurements (pd.DataFrame): The DataFrame containing measurement data with columns 
-            'specimen', 'method_codes', and 'experiment'.
+    Parameters
+    ----------
+    measurements : pd.DataFrame
+        The DataFrame containing measurement data with columns 'specimen', 
+        'method_codes', and 'experiment'.
+    exclude_method_codes : list of str, optional
+        List of method codes to exclude from the output DataFrame. Rows with 
+        'method_codes' containing any of these substrings will be removed.
 
-    Returns:
-        pd.DataFrame: A DataFrame containing unique combinations of 'specimen', 'method_codes', 
-            and 'experiment'.
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing unique combinations of 'specimen', 'method_codes', 
+        and 'experiment'.
     """
-    experiments = measurements.groupby(['specimen', 'method_codes', 'experiment']).size().reset_index().iloc[:, :3]
+    if exclude_method_codes is not None:
+        mask = ~measurements["method_codes"].apply(
+            lambda x: any(code in x for code in exclude_method_codes)
+        )
+        measurements = measurements.loc[mask]
+
+    experiments = (
+        measurements.groupby(["specimen", "method_codes", "experiment"])
+        .size()
+        .reset_index()
+        .iloc[:, :3]
+    )
     return experiments
+
+
+def experiment_selection(measurements, experiment_name):
+    """
+    This function filters a measurements DataFrame to return only the rows 
+    that correspond to the specified experiment name. 
+    
+    Parameters
+    ----------
+    measurements : pd.DataFrame
+        The DataFrame containing measurement data with an 'experiment' column.
+    experiment_name : str
+        The name of the experiment to select from the DataFrame.
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame containing only the rows corresponding to the specified experiment.
+    """
+    if 'experiment' not in measurements.columns:
+        raise ValueError("The measurements DataFrame must contain an 'experiment' column.")
+    if not isinstance(experiment_name, str):
+        raise TypeError("The experiment_name must be a string.")
+    if experiment_name not in measurements['experiment'].unique():
+        raise ValueError(f"Experiment '{experiment_name}' not found in the measurements DataFrame.")
+    # Filter the DataFrame for the specified experiment
+    selected_experiment = measurements[measurements['experiment'] == experiment_name].reset_index(drop=True)
+    selected_experiment = clean_out_na(selected_experiment)
+    return selected_experiment
 
 
 def clean_out_na(dataframe):
@@ -475,10 +522,12 @@ def plot_mpms_dc(
                         sizing_mode="stretch_width",height=400)  
             if fc is not None:  
                 p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
-                p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), size=symbol_size, color=fc_color)  
+                p0.scatter(fc["meas_temp"], fc["magn_mass"], marker=mpl_to_bokeh_markers.get(fc_marker), 
+                           size=symbol_size, color=fc_color, legend_label="FC")  
             if zfc is not None:  
                 p0.line(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, legend_label="ZFC")  
-                p0.scatter(zfc["meas_temp"], zfc["magn_mass"], marker=mpl_to_bokeh_markers.get(zfc_marker), size=symbol_size, color=zfc_color)  
+                p0.scatter(zfc["meas_temp"], zfc["magn_mass"], marker=mpl_to_bokeh_markers.get(zfc_marker), 
+                           size=symbol_size, color=zfc_color, legend_label="ZFC")  
             p0.legend.click_policy="hide"  
             p0.xaxis.axis_label_text_font_style = "normal"
             p0.yaxis.axis_label_text_font_style = "normal"
@@ -490,10 +539,12 @@ def plot_mpms_dc(
                         sizing_mode="stretch_width",height=400)  
             if rc is not None:  
                 p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
-                p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), size=symbol_size, color=rtsirm_cool_color)  
+                p1.scatter(rc["meas_temp"], rc["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), 
+                           size=symbol_size, color=rtsirm_cool_color, legend_label="cool")  
             if rw is not None:  
                 p1.line(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, legend_label="warm")  
-                p1.scatter(rw["meas_temp"], rw["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), size=symbol_size, color=rtsirm_warm_color)  
+                p1.scatter(rw["meas_temp"], rw["magn_mass"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), 
+                           size=symbol_size, color=rtsirm_warm_color, legend_label="warm")  
             p1.legend.click_policy="hide"  
             p1.xaxis.axis_label_text_font_style = "normal"
             p1.yaxis.axis_label_text_font_style = "normal"
@@ -504,8 +555,14 @@ def plot_mpms_dc(
             p2 = figure(title="LTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
                         sizing_mode="stretch_width",height=400)  
-            if fcd is not None: p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")  
-            if zfcd is not None: p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
+            if fcd is not None: 
+                p2.line(fcd["T"], fcd["dM_dT"], color=fc_color, legend_label="FC dM/dT")
+                p2.scatter(fcd["T"], fcd["dM_dT"], marker=mpl_to_bokeh_markers.get(fc_marker), 
+                           size=symbol_size, color=fc_color, legend_label="FC dM/dT")  
+            if zfcd is not None: 
+                p2.line(zfcd["T"], zfcd["dM_dT"], color=zfc_color, legend_label="ZFC dM/dT")  
+                p2.scatter(zfcd["T"], zfcd["dM_dT"], marker=mpl_to_bokeh_markers.get(zfc_marker), 
+                           size=symbol_size, color=zfc_color, legend_label="ZFC dM/dT")
             p2.legend.click_policy="hide" 
             p2.xaxis.axis_label_text_font_style = "normal"
             p2.yaxis.axis_label_text_font_style = "normal"        
@@ -515,8 +572,14 @@ def plot_mpms_dc(
             p3 = figure(title="RTSIRM Derivative", x_axis_label="Temperature (K)", 
                         y_axis_label="dM/dT", tools=tools, 
                         sizing_mode="stretch_width",height=400)  
-            if rcd is not None: p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
-            if rwd is not None: p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
+            if rcd is not None: 
+                p3.line(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, legend_label="cool dM/dT")  
+                p3.scatter(rcd["T"], rcd["dM_dT"], marker=mpl_to_bokeh_markers.get(rtsirm_cool_marker), 
+                           size=symbol_size, color=rtsirm_cool_color, legend_label="cool dM/dT")
+            if rwd is not None: 
+                p3.line(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, legend_label="warm dM/dT")  
+                p3.scatter(rwd["T"], rwd["dM_dT"], marker=mpl_to_bokeh_markers.get(rtsirm_warm_marker), 
+                           size=symbol_size, color=rtsirm_warm_color, legend_label="warm dM/dT")
             p3.legend.click_policy="hide"  
             p3.xaxis.axis_label_text_font_style = "normal"
             p3.yaxis.axis_label_text_font_style = "normal"
@@ -634,7 +697,8 @@ def make_mpms_plots_dc(measurements):
     ui = widgets.VBox([widgets.HBox([specimen_dd, library_rb]), out])
     display(ui)
     _update()
-
+    
+    
 def calc_verwey_estimate(temps, mags, 
                     t_range_background_min=50,
                     t_range_background_max=250,
@@ -711,6 +775,7 @@ def calc_verwey_estimate(temps, mags,
     remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
+
 
 def verwey_estimate(temps, mags, 
                     t_range_background_min=50,
@@ -913,7 +978,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
 
     display(ui)
 
-    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
+    fig, ax = plt.subplots(ncols=2, nrows=1, figsize=(10, 5))
     fig.canvas.header_visible = False
 
     def update_plot(*args):
@@ -3180,212 +3245,248 @@ def plot_X_T(
     remove_holder=True,
     plot_derivative=True,
     plot_inverse=False,
+    interactive=True,
     return_figure=False,
-    panel_height=400,
+    figsize=(6, 6),
 ):
     """
     Plot the high-temperature susceptibility curve, and optionally its derivative
-    and reciprocal using Bokeh.
+    and reciprocal using Bokeh or Matplotlib.
 
     Parameters:
-        experiment (pandas.DataFrame):
-            The IRM experiment data exported into MagIC format.
-        temperature_column (str, optional):
-            Name of the temperature column. Defaults to "meas_temp".
-        magnetic_column (str, optional):
-            Name of the susceptibility column. Defaults to "susc_chi_mass".
-        temp_unit (str, optional):
-            Unit of temperature, either "K" or "C". Defaults to "C".
-        smooth_window (int, optional):
-            Window size for running-average smoothing. Defaults to 0.
-        remove_holder (bool, optional):
-            If True, subtract the minimum holder signal. Defaults to True.
-        plot_derivative (bool, optional):
-            If True, generate dk/dT plot. Defaults to True.
-        plot_inverse (bool, optional):
-            If True, generate 1/k plot. Defaults to False.
-        return_figure (bool, optional):
-            If True, return the Bokeh figure objects. Defaults to False.
-
-    Returns:
-        tuple[bokeh.plotting.figure.Figure, ...] or None:
-            The requested Bokeh figures if return_figure is True;
-            otherwise, None.
+        experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
+        temperature_column (str): Name of temperature column.
+        magnetic_column (str): Name of susceptibility column.
+        temp_unit (str): "C" for Celsius.
+        smooth_window (int): Window for smoothing.
+        remove_holder (bool): Subtract holder signal.
+        plot_derivative (bool): Plot derivative.
+        plot_inverse (bool): Plot inverse.
+        interactive (bool): True for Bokeh, False for Matplotlib.
+        return_figure (bool): Return figure objects if True.
+        figsize (tuple): (width, height) in inches.
     """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(
         experiment,
         temperature_column=temperature_column,
         magnetic_column=magnetic_column,
     )
-
     if temp_unit == "C":
         warm_T = [T - 273.15 for T in warm_T]
         cool_T = [T - 273.15 for T in cool_T]
     else:
-        raise ValueError('temp_unit must be either "K" or "C"')
-
+        raise ValueError('temp_unit must be "C"')
     if remove_holder:
         holder_w = min(warm_X)
         holder_c = min(cool_X)
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
-
     swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
     scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
-
     title = experiment["specimen"].unique()[0]
+    figs = []
 
-    p = figure(
-        title=title,
-        sizing_mode="stretch_width",
-        height=panel_height,
-        x_axis_label=f"Temperature (°{temp_unit})",
-        y_axis_label="k (m³ kg⁻¹)",
-        tools="pan,wheel_zoom,box_zoom,reset,save",
-    )
-    p.xaxis.axis_label_text_font_style = "normal"
-    p.yaxis.axis_label_text_font_style = "normal"
-
-    r_warm_c = p.scatter(
-        warm_T, warm_X, legend_label="Heating",
-        color="red", alpha=0.5, size=6,
-    )
-    r_warm_l = p.line(
-        swT, swX, legend_label="Heating – smoothed",
-        line_width=2, color="red",
-    )
-
-    r_cool_c = p.scatter(
-        cool_T, cool_X, legend_label="Cooling",
-        color="blue", alpha=0.5, size=6,
-    )
-    r_cool_l = p.line(
-        scT, scX, legend_label="Cooling – smoothed",
-        line_width=2, color="blue",
-    )
-
-    p.add_tools(
-        HoverTool(renderers=[r_warm_c, r_warm_l],
-                  tooltips=[("T", "@x"), ("Heating k", "@y")])
-    )
-    p.add_tools(
-        HoverTool(renderers=[r_cool_c, r_cool_l],
-                  tooltips=[("T", "@x"), ("Cooling k", "@y")])
-    )
-
-    p.grid.grid_line_color = "lightgray"
-    p.outline_line_color = "black"
-    p.background_fill_color = "white"
-    p.legend.location = "top_left"
-
-    figs = [p]
-
-    if plot_derivative:
-        p_dx = figure(
-            title=f"{title} – dk/dT",
+    if interactive:
+        bokeh_height = int(figsize[1] * 96)
+        # Main plot
+        p = figure(
+            title=title,
             sizing_mode="stretch_width",
-            height=panel_height,
+            height=bokeh_height,
             x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="dk/dT",
+            y_axis_label="χ (m³ kg⁻¹)",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
-        p_dx.xaxis.axis_label_text_font_style = "normal"
-        p_dx.yaxis.axis_label_text_font_style = "normal"
-        dx_w = np.gradient(swX, swT)
-        dx_c = np.gradient(scX, scT)
-        r_dx_w = p_dx.line(
-            swT, dx_w, legend_label="Heating – dk/dT",
-            line_width=2, color="red"
+        p.xaxis.axis_label_text_font_style = "normal"
+        p.yaxis.axis_label_text_font_style = "normal"
+        r_warm_c = p.scatter(
+            warm_T, warm_X, legend_label="Heating",
+            color="red", alpha=0.5, size=6,
         )
-        r_dx_w_c = p_dx.scatter(
-            swT, dx_w, legend_label="Heating – dk/dT",
-            color="red", alpha=0.5, size=6
-        )
-        r_dx_c = p_dx.line(
-            scT, dx_c, legend_label="Cooling – dk/dT",
-            line_width=2, color="blue"
-        )
-        r_dx_c_c = p_dx.scatter(
-            scT, dx_c, legend_label="Cooling – dk/dT",
-            color="blue", alpha=0.5, size=6
-        )
-        p_dx.add_tools(
-            HoverTool(renderers=[r_dx_w],
-                      tooltips=[("T", "@x"), ("dk/dT (heat)", "@y")])
-        )
-        p_dx.add_tools(
-            HoverTool(renderers=[r_dx_c],
-                      tooltips=[("T", "@x"), ("dk/dT (cool)", "@y")])
-        )
-        p_dx.grid.grid_line_color = "lightgray"
-        p_dx.outline_line_color = "black"
-        p_dx.background_fill_color = "white"
-        p_dx.legend.location = "top_left"
-        p_dx.legend.click_policy = "hide"
-        figs.append(p_dx)
-
-    if plot_inverse:
-        p_inv = figure(
-            title=f"{title} – 1/k",
-            sizing_mode="stretch_width",
-            height=panel_height,
-            x_axis_label=f"Temperature (°{temp_unit})",
-            y_axis_label="1/k",
-            tools="pan,wheel_zoom,box_zoom,reset,save",
-        )
-        p_inv.xaxis.axis_label_text_font_style = "normal"
-        p_inv.yaxis.axis_label_text_font_style = "normal"
-        # compute inverse safely (zeros become NaN)
-        swX_arr = np.array(swX)
-        scX_arr = np.array(scX)
-        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
-        inv_c = np.divide(1.0, scX_arr, out=np.full_like(scX_arr, np.nan), where=scX_arr != 0.0)
-
-        # mask to finite values only
-        mask_w = np.isfinite(inv_w)
-        mask_c = np.isfinite(inv_c)
-
-        # plot heating inverse
-        r_inv_w = p_inv.line(
-            np.array(swT)[mask_w],
-            inv_w[mask_w],
-            legend_label="Heating – 1/k",
+        r_warm_l = p.line(
+            swT, swX, legend_label="Heating",
             line_width=2, color="red",
         )
-        r_inv_w_c = p_inv.scatter(
-            np.array(swT)[mask_w],
-            inv_w[mask_w],
-            color="red", alpha=0.5, size=6
+        r_cool_c = p.scatter(
+            cool_T, cool_X, legend_label="Cooling",
+            color="blue", alpha=0.5, size=6,
         )
-        # plot cooling inverse
-        r_inv_c = p_inv.line(
-            np.array(scT)[mask_c],
-            inv_c[mask_c],
-            legend_label="Cooling – 1/k",
+        r_cool_l = p.line(
+            scT, scX, legend_label="Cooling",
             line_width=2, color="blue",
         )
-        r_inv_c_c = p_inv.scatter(
-            np.array(scT)[mask_c],
-            inv_c[mask_c],
-            color="blue", alpha=0.5, size=6
+        p.add_tools(
+            HoverTool(renderers=[r_warm_c, r_warm_l],
+                      tooltips=[("T", "@x"), ("Heating χ", "@y")])
         )
-        p_inv.add_tools(
-            HoverTool(renderers=[r_inv_w],
-                      tooltips=[("T", "@x"), ("1/k (heat)", "@y")])
+        p.add_tools(
+            HoverTool(renderers=[r_cool_c, r_cool_l],
+                      tooltips=[("T", "@x"), ("Cooling χ", "@y")])
         )
-        p_inv.add_tools(
-            HoverTool(renderers=[r_inv_c],
-                      tooltips=[("T", "@x"), ("1/k (cool)", "@y")])
-        )
-        p_inv.grid.grid_line_color = "lightgray"
-        p_inv.outline_line_color = "black"
-        p_inv.background_fill_color = "white"
-        p_inv.legend.location = "top_left"
-        p_inv.legend.click_policy = "hide"
-        figs.append(p_inv)
+        p.grid.grid_line_color = "lightgray"
+        p.outline_line_color = "black"
+        p.background_fill_color = "white"
+        p.legend.location = "top_left"
+        p.legend.click_policy = "hide"
+        figs.append(p)
 
-    for fig in figs:
-        show(fig)
+        # Derivative
+        if plot_derivative:
+            p_dx = figure(
+                title=f"{title} – dχ/dT",
+                sizing_mode="stretch_width",
+                height=bokeh_height,
+                x_axis_label=f"Temperature (°{temp_unit})",
+                y_axis_label="dχ/dT",
+                tools="pan,wheel_zoom,box_zoom,reset,save",
+            )
+            p_dx.xaxis.axis_label_text_font_style = "normal"
+            p_dx.yaxis.axis_label_text_font_style = "normal"
+            dx_w = np.gradient(swX, swT)
+            dx_c = np.gradient(scX, scT)
+            r_dx_w = p_dx.line(
+                swT, dx_w, legend_label="Heating – dχ/dT",
+                line_width=2, color="red"
+            )
+            r_dx_w_c = p_dx.scatter(
+                swT, dx_w, legend_label="Heating – dχ/dT",
+                color="red", alpha=0.5, size=6
+            )
+            r_dx_c = p_dx.line(
+                scT, dx_c, legend_label="Cooling – dχ/dT",
+                line_width=2, color="blue"
+            )
+            r_dx_c_c = p_dx.scatter(
+                scT, dx_c, legend_label="Cooling – dχ/dT",
+                color="blue", alpha=0.5, size=6
+            )
+            p_dx.add_tools(
+                HoverTool(renderers=[r_dx_w, r_dx_w_c],
+                          tooltips=[("T", "@x"), ("dχ/dT (heat)", "@y")])
+            )
+            p_dx.add_tools(
+                HoverTool(renderers=[r_dx_c, r_dx_c_c],
+                          tooltips=[("T", "@x"), ("dχ/dT (cool)", "@y")])
+            )
+            p_dx.grid.grid_line_color = "lightgray"
+            p_dx.outline_line_color = "black"
+            p_dx.background_fill_color = "white"
+            p_dx.legend.location = "top_left"
+            p_dx.legend.click_policy = "hide"
+            figs.append(p_dx)
+
+        # Inverse
+        if plot_inverse:
+            p_inv = figure(
+                title=f"{title} – 1/χ",
+                sizing_mode="stretch_width",
+                height=bokeh_height,
+                x_axis_label=f"Temperature (°{temp_unit})",
+                y_axis_label="1/χ",
+                tools="pan,wheel_zoom,box_zoom,reset,save",
+            )
+            p_inv.xaxis.axis_label_text_font_style = "normal"
+            p_inv.yaxis.axis_label_text_font_style = "normal"
+            swX_arr = np.array(swX)
+            scX_arr = np.array(scX)
+            inv_w = np.divide(1.0, swX_arr,
+                              out=np.full_like(swX_arr, np.nan),
+                              where=swX_arr != 0.0)
+            inv_c = np.divide(1.0, scX_arr,
+                              out=np.full_like(scX_arr, np.nan),
+                              where=scX_arr != 0.0)
+            mask_w = np.isfinite(inv_w)
+            mask_c = np.isfinite(inv_c)
+            r_inv_w = p_inv.line(
+                np.array(swT)[mask_w], inv_w[mask_w],
+                legend_label="Heating – 1/χ",
+                line_width=2, color="red",
+            )
+            r_inv_w_c = p_inv.scatter(
+                np.array(swT)[mask_w], inv_w[mask_w],
+                color="red", alpha=0.5, size=6
+            )
+            r_inv_c = p_inv.line(
+                np.array(scT)[mask_c], inv_c[mask_c],
+                legend_label="Cooling – 1/χ",
+                line_width=2, color="blue",
+            )
+            r_inv_c_c = p_inv.scatter(
+                np.array(scT)[mask_c], inv_c[mask_c],
+                color="blue", alpha=0.5, size=6
+            )
+            p_inv.add_tools(
+                HoverTool(renderers=[r_inv_w, r_inv_w_c],
+                          tooltips=[("T", "@x"), ("1/χ (heat)", "@y")])
+            )
+            p_inv.add_tools(
+                HoverTool(renderers=[r_inv_c, r_inv_c_c],
+                          tooltips=[("T", "@x"), ("1/χ (cool)", "@y")])
+            )
+            p_inv.grid.grid_line_color = "lightgray"
+            p_inv.outline_line_color = "black"
+            p_inv.background_fill_color = "white"
+            p_inv.legend.location = "top_left"
+            p_inv.legend.click_policy = "hide"
+            figs.append(p_inv)
+
+        for fig in figs:
+            show(fig)
+
+    else:
+        fig_kwargs = {"figsize": figsize}
+        fig1, ax1 = plt.subplots(**fig_kwargs)
+        ax1.scatter(warm_T, warm_X, label="Heating", alpha=0.5)
+        ax1.plot(swT, swX, label="Heating – smoothed", linewidth=2)
+        ax1.scatter(cool_T, cool_X, label="Cooling", alpha=0.5)
+        ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
+        ax1.set_title(title)
+        ax1.set_xlabel(f"Temperature (°{temp_unit})")
+        ax1.set_ylabel("χ (m³ kg⁻¹)")
+        ax1.grid(True)
+        ax1.legend(loc="upper left")
+        figs.append(fig1)
+
+        if plot_derivative:
+            dx_w = np.gradient(swX, swT)
+            dx_c = np.gradient(scX, scT)
+            fig2, ax2 = plt.subplots(**fig_kwargs)
+            ax2.plot(swT, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
+            ax2.plot(scT, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
+            ax2.set_title(f"{title} – dχ/dT")
+            ax2.set_xlabel(f"Temperature (°{temp_unit})")
+            ax2.set_ylabel("dχ/dT")
+            ax2.grid(True)
+            ax2.legend(loc="upper left")
+            figs.append(fig2)
+
+        if plot_inverse:
+            swX_arr = np.array(swX)
+            scX_arr = np.array(scX)
+            inv_w = np.divide(
+                1.0, swX_arr,
+                out=np.full_like(swX_arr, np.nan),
+                where=swX_arr != 0.0,
+            )
+            inv_c = np.divide(
+                1.0, scX_arr,
+                out=np.full_like(scX_arr, np.nan),
+                where=scX_arr != 0.0,
+            )
+            mask_w = np.isfinite(inv_w)
+            mask_c = np.isfinite(inv_c)
+            fig3, ax3 = plt.subplots(**fig_kwargs)
+            ax3.plot(np.array(swT)[mask_w], inv_w[mask_w], label="Heating – 1/χ", linewidth=2, marker="o")
+            ax3.plot(np.array(scT)[mask_c], inv_c[mask_c], label="Cooling – 1/χ", linewidth=2, marker="o")
+            ax3.set_title(f"{title} – 1/χ")
+            ax3.set_xlabel(f"Temperature (°{temp_unit})")
+            ax3.set_ylabel("1/χ")
+            ax3.grid(True)
+            ax3.legend(loc="upper left")
+            figs.append(fig3)
+
+        for fig in figs:
+            plt.show(fig)
 
     if return_figure:
         return tuple(figs)
@@ -3668,43 +3769,53 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
         experiment['smoothed_log_dc_field'] = spl[:, 0]
     return experiment, Bcr
     
+    
 def plot_backfield_data(
     experiment,
     field="treat_dc_field",
     magnetization="magn_mass",
-    figsize=(5, 12),
+    Bcr=None,
+    size=(5, 10),
     plot_raw=True,
     plot_processed=True,
     plot_spectrum=True,
     interactive=False,
-    return_figure=True,
+    return_figure=False,
     show_plot=True,
+    y_axis_units="Am²/kg",
+    legend_location="upper left"
 ):
     """
     Plot backfield data: raw, processed, and coercivity spectrum.
-
-    Data processing steps:
-      - Raw: magnetization vs. field (T).
-      - Processed: magn_mass_shift = magn_mass − min(magn_mass);
-        log_dc_field = log10(−field·1e3) (log10 mT axis).
-      - Spectrum: derivative −ΔM/Δ(log B).
 
     Parameters
     ----------
     experiment : DataFrame
         Must contain raw and, if requested, processed columns.
+    field : str
+        Name of the magnetic field column.
+    magnetization : str
+        Name of the magnetization column.
+    Bcr : float, optional
+        Calculated Bcr (T). If provided, will be plotted as a pink star.
+    size : tuple(float, float)
+        Figure size (in inches).
     plot_raw : bool
     plot_processed : bool
     plot_spectrum : bool
     interactive : bool
     return_figure : bool
     show_plot : bool
+    y_axis_units : str, optional
+        Units to display on the y-axis labels of raw and processed panels.
+    legend_location : str, optional
+        Location of the legend in Matplotlib terms.
 
     Returns
     -------
     Matplotlib (fig, axes) or Bokeh grid or None
     """
-    # check columns
+    # Check columns
     req = []
     if plot_raw:
         req += [field, magnetization]
@@ -3719,7 +3830,7 @@ def plot_backfield_data(
     if missing:
         raise KeyError(f"Missing columns: {missing}")
 
-    # prepare spectrum
+    # Prepare spectrum
     if plot_spectrum:
         log_b = experiment["log_dc_field"]
         shift_m = experiment["magn_mass_shift"]
@@ -3729,25 +3840,27 @@ def plot_backfield_data(
             experiment["smoothed_log_dc_field"]
         )
         smooth_dx_log = experiment["smoothed_log_dc_field"].rolling(2).mean().dropna()
-        # axis: convert log10(mT) → mT for plotting, but axis scale remains log
-        raw_dx = 10**raw_dx_log
-        smooth_dx = 10**smooth_dx_log
+        raw_dx = 10 ** raw_dx_log
+        smooth_dx = 10 ** smooth_dx_log
 
-    if interactive:
+    # Interactive: Bokeh
+    if interactive and _HAS_BOKEH:
         tools = [
             HoverTool(tooltips=[("Field (T)", "@x"), ("Mag", "@y")]),
             "pan,box_zoom,wheel_zoom,reset,save"
         ]
         figs = []
-        palette = Category10[3]
+        palette = Category10[4]
+        bokeh_height = int(size[1]/3 * 96)
 
         if plot_raw:
             p0 = figure(
                 title="Raw backfield",
                 x_axis_label="Field (T)",
-                y_axis_label="Magnetization",
+                y_axis_label=f"Magnetization ({y_axis_units})",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height=bokeh_height,
             )
             p0.scatter(
                 experiment[field],
@@ -3757,6 +3870,19 @@ def plot_backfield_data(
                 size=6,
             )
             p0.line(experiment[field], experiment[magnetization], color=palette[0])
+            if Bcr is not None and not np.isnan(Bcr):
+                p0.scatter(
+                    [-Bcr],
+                    0,
+                    size=15,
+                    color="pink",
+                    marker="star",
+                    line_color="black",
+                    legend_label=f"Bcr = {Bcr:.5f} T",
+                )
+            p0.xaxis.axis_label_text_font_style = "normal"
+            p0.yaxis.axis_label_text_font_style = "normal"
+            p0.legend.location = map_legend_location(legend_location)
             p0.legend.click_policy = "hide"
             figs.append(p0)
 
@@ -3766,10 +3892,11 @@ def plot_backfield_data(
             p1 = figure(
                 title="Processed backfield",
                 x_axis_label="Field (mT)",
-                y_axis_label="Magnetization",
+                y_axis_label=f"Magnetization ({y_axis_units})",
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height=bokeh_height,
             )
             p1.scatter(
                 x_shifted,
@@ -3784,6 +3911,9 @@ def plot_backfield_data(
                 color=palette[1],
                 legend_label="smoothed",
             )
+            p1.xaxis.axis_label_text_font_style = "normal"
+            p1.yaxis.axis_label_text_font_style = "normal"
+            p1.legend.location = map_legend_location(legend_location)
             p1.legend.click_policy = "hide"
             figs.append(p1)
 
@@ -3795,11 +3925,15 @@ def plot_backfield_data(
                 x_axis_type="log",
                 tools=tools,
                 sizing_mode="stretch_width",
+                height=bokeh_height,
             )
             p2.scatter(raw_dx, raw_dy, legend_label="raw spectrum",
                        color=palette[2], size=6)
             p2.line(smooth_dx, smooth_dy, color=palette[2],
                     legend_label="smoothed spectrum")
+            p2.xaxis.axis_label_text_font_style = "normal"
+            p2.yaxis.axis_label_text_font_style = "normal"
+            p2.legend.location = map_legend_location(legend_location)
             p2.legend.click_policy = "hide"
             figs.append(p2)
 
@@ -3810,7 +3944,7 @@ def plot_backfield_data(
             return grid
         return None
 
-    # static Matplotlib
+    # Static: Matplotlib
     panels = []
     if plot_raw:
         panels.append("raw")
@@ -3820,7 +3954,7 @@ def plot_backfield_data(
         panels.append("spectrum")
 
     n = len(panels)
-    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=figsize)
+    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=size)
     if n == 1:
         axes = [axes]
 
@@ -3830,8 +3964,26 @@ def plot_backfield_data(
                 experiment[field], experiment[magnetization], c="k", s=10, label="raw"
             )
             ax.plot(experiment[field], experiment[magnetization], c="k")
-            ax.set(title="raw backfield", xlabel="field (T)", ylabel="magnetization")
-            ax.legend()
+            if Bcr is not None and not np.isnan(Bcr):
+                y_min = experiment[magnetization].min()
+                y_max = experiment[magnetization].max()
+                y_mid = y_min + 0.5 * (y_max - y_min)
+                ax.scatter(
+                    -Bcr,
+                    y_mid,
+                    marker="*",
+                    s=150,
+                    c="pink",
+                    edgecolors="black",
+                    label=f"Bcr = {Bcr:.5f} T",
+                    zorder=10,
+                )
+            ax.set(
+                title="raw backfield",
+                xlabel="field (T)",
+                ylabel=f"magnetization ({y_axis_units})",
+            )
+            ax.legend(loc=legend_location)
         elif panel == "processed":
             ax.scatter(
                 experiment["log_dc_field"],
@@ -3849,16 +4001,18 @@ def plot_backfield_data(
             ticks = ax.get_xticks()
             ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
             ax.set(
-                title="processed", xlabel="field (mT)", ylabel="magnetization"
+                title="processed",
+                xlabel="field (mT)",
+                ylabel=f"magnetization ({y_axis_units})",
             )
-            ax.legend()
+            ax.legend(loc=legend_location)
         else:  # spectrum
             ax.scatter(raw_dx_log, raw_dy, c="gray", s=10, label="raw spectrum")
             ax.plot(smooth_dx_log, smooth_dy, c="k", label="smoothed spectrum")
             ticks = ax.get_xticks()
             ax.set_xticklabels([f"{round(10**t, 1)}" for t in ticks])
             ax.set(title="spectrum", xlabel="field (mT)", ylabel="dM/dB")
-            ax.legend()
+            ax.legend(loc=legend_location)
 
     fig.tight_layout()
     if show_plot:
@@ -4544,8 +4698,8 @@ def day_plot(Mr, Ms, Bcr, Bc,
     ax.set_yscale('log')
     ax.set_xticks([1, 2, 5, 10, 20, 50, 100], [1, 2, 5, 10, 20, 50, 100])
     ax.set_yticks([0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1], [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1])
-    ax.set_xlabel('Bcr/Bc', fontsize=12)
-    ax.set_ylabel('Mr/Ms', fontsize=12)
+    ax.set_xlabel('B$_{cr}$/B$_{c}$', fontsize=12)
+    ax.set_ylabel('M$_{r}$/M$_{s}$', fontsize=12)
     ax.set_title('Day plot', fontsize=14)
 
     if legend:
@@ -4585,22 +4739,56 @@ def neel_plot_magic(specimen_data,
     ax : matplotlib.axes.Axes
         The axes object containing the plot.
     """
-    summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
-    summary_sats = summary_sats.dropna()
+    summary_stats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
+    summary_stats = summary_stats.dropna()
 
-    ax = neel_plot(Mr = summary_sats[Mr],
-                Ms = summary_sats[Ms],
-                Bc = summary_sats[Bc], 
+    ax = neel_plot(Mr = summary_stats[Mr],
+                Ms = summary_stats[Ms],
+                Bc = summary_stats[Bc], 
                 **kwargs)
     return ax
 
 
 def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
-    '''
-    fuction for making squareness coercivity plot
-        the original Neel diagram plots Mr/Ms vs Bc
-        a sister plot often used is Mr/M vs Bcr
-    '''
+    """
+    Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from hysteresis data.
+
+    This plot shows the ratio of remanent to saturation magnetization
+    (Mr/Ms) plotted against the coercivity (Bc). It is useful for 
+    characterizing magnetic domain states in rock magnetic samples.
+
+    Parameters
+    ----------
+    Mr : array-like
+        Saturation remanence values of the samples.
+    Ms : array-like
+        Saturation magnetization values of the samples.
+    Bc : array-like
+        Coercivity values of the samples.
+    color : str, optional
+        Color of the scatter points. Default is "black".
+    marker : str, optional
+        Marker style for scatter points. Default is "o".
+    label : str, optional
+        Label for the sample to be displayed in the legend. Default is "sample".
+    alpha : float, optional
+        Transparency of the scatter points. Default is 1 (opaque).
+    lc : str, optional
+        Color of the grid lines. Default is "black".
+    lw : float, optional
+        Line width of the grid lines. Default is 0.5.
+    legend : bool, optional
+        Whether to show the legend. Default is True.
+    axis_scale : str, optional
+        Scale for both axes: "linear" or "log". Default is "linear".
+    figsize : tuple of int, optional
+        Figure size in inches (width, height). Default is (5, 5).
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The matplotlib axes object containing the plot.
+    """
     assert axis_scale in ['linear', 'log'], "axis_scale must be 'linear' or 'log'"
     # force numpy arrays
     Ms = np.asarray(Ms)
@@ -4609,8 +4797,8 @@ def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1
     Mr_Ms = Mr/Ms
     _, ax = plt.subplots(figsize = figsize)
     ax.scatter(Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha, zorder = 100)
-    ax.set_xlabel('Bc', fontsize=12)
-    ax.set_ylabel('Mr/Ms', fontsize=12)
+    ax.set_xlabel('B$_c$ (T)', fontsize=12)
+    ax.set_ylabel('M$_r$/M$_s$', fontsize=12)
     if axis_scale == 'linear':
         ax.set_xscale('linear')   
         ax.set_yscale('linear')
@@ -4666,6 +4854,7 @@ def Langevin(alpha):
     '''
     return 1 / np.tanh(alpha) - 1 / alpha
 
+
 def magnetite_Ms(T):
     '''
     Magnetite saturation magnetization calculation
@@ -4681,6 +4870,7 @@ def magnetite_Ms(T):
         saturation magnetization value
     '''
     return 737.384 * 51.876 * (580 - T)**0.4
+
 
 def chi_SP(SP_size, T):
     '''
@@ -4735,6 +4925,7 @@ def SP_SD_mixture(SP_size, SD_Mr_Ms = 0.5, SD_Bcr_Bc = 1.25, X_sd = 3, T = 300):
 
     return Bcr_Bc, Mrs_Ms
 
+
 def SP_saturation_curve(SD_Mr_Ms=0.5, SD_Bcr_Bc = 1.25):
     '''
     function to calculate the SP saturation curve according to Dunlop (2002)
@@ -4757,6 +4948,7 @@ def SP_saturation_curve(SD_Mr_Ms=0.5, SD_Bcr_Bc = 1.25):
     Mrs_Ms = f_sd * SD_Mr_Ms
     Bcr_Bc = 1 / (1 - (f_sp/f_sd) / SD_Mr_Ms) * SD_Bcr_Bc
     return Bcr_Bc, Mrs_Ms
+
 
 def SD_MD_mixture(Mr_Ms_SD = 0.5, Mr_Ms_MD = 0.019,
                   Bc_SD = 400, Bc_MD = 43,

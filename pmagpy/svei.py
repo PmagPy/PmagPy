@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 from scipy.interpolate import PchipInterpolator
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 from scipy import interpolate
 from scipy.stats.distributions import chi2
 import pandas as pd
@@ -502,10 +502,10 @@ def su_GGPmodel(GGPmodel,lat,degree,dx,dy,hem):
 
     m_norm = np.sqrt(np.dot(np.matmul(Lamb,m),m))
     
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
     XX,YY = np.meshgrid(X,Y)
@@ -1041,10 +1041,10 @@ def integ(dx,dy):
 
     """
 
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1075,10 +1075,10 @@ def integ_x(dx,dy):
             - Y (ndarray): Array of Y values.
 
     """
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1110,10 +1110,10 @@ def integ_y(dx,dy):
 
     """
 
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1223,10 +1223,10 @@ def prediction_map_GGP_su_r(lat,GGPmodel,degree=8,dx=0.01,dy=0.01):
             - sp: Positive inclination hemisphere 'su' map in the equal-area projection. A 3-column array with x, y, and su.
             - sn: Negative inclination hemisphere 'su' map in the equal-area projection. A 3-column array with x, y, and su.
     """
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1258,10 +1258,10 @@ def prediction_map_GGP_su(lat,GGPmodel,degree=8,dx=0.01,dy=0.01):
             - XX: Meshgrid of x values.
             - YY: Meshgrid of y values.
     """
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1292,10 +1292,10 @@ def prediction_x_y_std_E_A_GGP(lats,GGPmodel,imprima=False, degree=8,dx=0.01,dy=
     Returns:
         np.ndarray: Array with 7 columns: lat, x, y, sigmax, sigmay, E, Adir.
     """
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1325,10 +1325,10 @@ def prediction_x_y_std_E_A_GGP(lats,GGPmodel,imprima=False, degree=8,dx=0.01,dy=
 
 def plotmap(sp, sn,GGP,lat,dx,dy):
     name = GGP['name']
-    n = np.int(1/dx)
+    n = int(1/dx)
     X = np.arange(-n*dx,n*dx+dx,dx)
     
-    n = np.int(1/dy)
+    n = int(1/dy)
     Y = np.arange(-n*dy,n*dy+dy,dy)
 
 
@@ -1453,7 +1453,7 @@ def GGP_cdf(GGPmodel, lat, degree):
         p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
         pI[j] = np.trapz(p0, x=np.deg2rad(D0)*z0[j])
 
-    cI = cumtrapz(pI, x=np.deg2rad(I0),initial=0)
+    cI = cumulative_trapezoid(pI, x=np.deg2rad(I0),initial=0)
     Icdf = PchipInterpolator(np.deg2rad(I0),cI) #inclination marginal distribution
     Iinv = PchipInterpolator(cI,np.deg2rad(I0))
     
@@ -1469,106 +1469,7 @@ def GGP_cdf(GGPmodel, lat, degree):
         p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
         pD[j] = np.trapz(p0*np.cos(np.deg2rad(I0)), x=np.deg2rad(I0))
 
-    cD = cumtrapz(pD, x=np.deg2rad(D0),initial=0)
-    Dcdf = PchipInterpolator(np.deg2rad(D0),cD) #declination marginal distribution
-    Dinv = PchipInterpolator(cD,np.deg2rad(D0))
-    
-    return Icdf, Dcdf
-
-def AD_inc(Is,Icdf): #AD test for distribution of inclinations
-    """
-    Performs the Anderson-Darling test for the distribution of inclinations.
-
-    Parameters:
-        Is (array-like): Array of observed inclinations in degrees.
-        Icdf (PchipInterpolator): PchipInterpolator function representing the CDF of inclinations.
-
-    Returns:
-        float: Test statistic for inclinations (A2).
-    """ 
-    C = Icdf(Is)
-    S = np.sum((2*np.arange(1,ns+1)-1)/ns*(np.log(C)+np.log(1-np.flip(C))))
-    A2 = -ns-S
-    
-    return A2
-
-def AD_dec(Ds,Dcdf): #AD test for distribution of declinations
-    """
-    Performs the Anderson-Darling test for the distribution of declinations.
-
-    Parameters:
-        Ds (array-like): Array of observed declinations in degrees.
-        Dcdf (PchipInterpolator): PchipInterpolator function representing the CDF of declinations.
-
-    Returns:
-        float: Test statistic for declinations (A2).
-    """
-
-    Ds[Ds>180] -=360
-    Ds = np.deg2rad(np.sort(Ds))
-    ns = np.size(Ds)
-    #S = 0
-    #for i in range(1,ns+1):
-    #    S += (2*i-1)/ns*(np.log(Dcdf(Ds[i-1]))+np.log(1-Dcdf(Ds[ns-i])))
-    
-    C = Dcdf(Ds)
-    S = np.sum((2*np.arange(1,ns+1)-1)/ns*(np.log(C)+np.log(1-np.flip(C))))    
-    
-    A2 = -ns-S
-    
-    return A2
-
-
-def GGP_cdf(GGPmodel, lat, degree):
-    """
-    Calculates the cumulative distribution functions (CDF) of inclinations and declinations for a given GGP model and latitude.
-
-    Parameters:
-        GGPmodel (dict): Set of coefficients for a specific GGP model.
-        lat (float): Latitude of interest in degrees.
-        degree (int): Maximum degree of the GGP model.
-
-    Returns:
-        tuple: A tuple of two PchipInterpolator objects representing the CDF of inclinations (Icdf) and declinations (Dcdf) for the given latitude.
-    """
-
-    
-    #set up grid for integration
-    nI = 180
-    nD = 361
-    I0 = np.linspace(-90,90,nI)
-    D0 = np.linspace(-180,180,nD)
-    z0 = np.cos(np.deg2rad(I0))
-    
-    #integrate WRT to dec to get marginal distribution as function of inc
-    pI = np.zeros(nI)
-    for j in range(nI):
-        di_block = []
-
-        for i in range(nD):
-            di_block.append([D0[i],I0[j]])
-    
-        xyz = np.asarray(pmag.dir2cart(di_block)).T
-        p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
-        pI[j] = np.trapz(p0, x=np.deg2rad(D0)*z0[j])
-
-    cI = cumtrapz(pI, x=np.deg2rad(I0),initial=0)
-    Icdf = PchipInterpolator(np.deg2rad(I0),cI) #inclination marginal distribution
-    Iinv = PchipInterpolator(cI,np.deg2rad(I0))
-    
-    #integrate WRT to inc to get marginal distribution as function of dec
-    pD = np.zeros(nD)
-    for j in range(nD):
-        di_block = []
-
-        for i in range(nI):
-            di_block.append([D0[j],I0[i]])
-    
-        xyz = np.asarray(pmag.dir2cart(di_block)).T
-        p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
-        pD[j] = np.trapz(p0*np.cos(np.deg2rad(I0)), x=np.deg2rad(I0))
-
-    cD = cumtrapz(pD, x=np.deg2rad(D0),initial=0)
+    cD = cumulative_trapezoid(pD, x=np.deg2rad(D0),initial=0)
     Dcdf = PchipInterpolator(np.deg2rad(D0),cD) #declination marginal distribution
     Dinv = PchipInterpolator(cD,np.deg2rad(D0))
     

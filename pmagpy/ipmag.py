@@ -611,7 +611,7 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
     declinations = []
     inclinations = []
     k = 140.0**2 / alpha95**2
-    if di_block == True:
+    if di_block:
         for data in range(n):
             d, i = pmag.fshdev(k)
             drot, irot = pmag.dodirot(d, i, dec, inc)
@@ -970,7 +970,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     plot_net(1)
     pmagplotlib.plot_di(1, Data)  # plot directions
     plt.text(-1.1, 1.15, 'Geographic')
-    if save == True:
+    if save:
         plt.savefig(os.path.join(save_folder, 'eq_geo') + '.' + fmt)
 
     D, I = pmag.dotilt_V(Data)
@@ -980,7 +980,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     plot_net(2)
     pmagplotlib.plot_di(2, TCs)  # plot directions
     plt.text(-1.1, 1.15, 'Tilt-corrected')
-    if save == True:
+    if save:
         plt.savefig(os.path.join(save_folder, 'eq_tc') + '.' + fmt)
     plt.show()
     print('doing ', num_sims, ' iterations...please be patient.....')
@@ -1031,7 +1031,7 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     print('range of all bootstrap samples: ')
     print(Untilt[0], ' - ', Untilt[-1], 'percent unfolding')
     plt.title(title)
-    if save == True:
+    if save:
         plt.savefig(os.path.join(save_folder, 'bootstrap_CDF') + '.' + fmt)
     plt.show()
 
@@ -1133,7 +1133,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     z_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.tight_layout()
-    if save == True:
+    if save:
         plt.savefig(os.path.join(
             save_folder, 'common_mean_bootstrap') + '.' + fmt,
                     dpi=300,bbox_inches='tight')
@@ -1208,7 +1208,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     
     X1 = np.transpose(pmag.dir2cart(Data1)) # normal directions in Cartesian coordinates (one direction per column)
     
-    if reversal == True:
+    if reversal:
         X2 = -np.transpose(pmag.dir2cart(Data2)) # inverted reversed directions in Cartesian coordinates
     else:
         X2 = np.transpose(pmag.dir2cart(Data2))
@@ -1316,7 +1316,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         else:
             plt.text(.8,.7,'Pass',color='blue',transform=ax1.transAxes)
 
-        if save == True:
+        if save:
             plt.savefig(os.path.join(
                 save_folder, 'bootstrap_test_histogram') + '.' + fmt)
         plt.show()
@@ -1429,33 +1429,33 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     D2 = (pars_2['dec'], pars_2['inc'])
     angle = pmag.angle(D1, D2)
 
-    if print_result == True:
+    if print_result:
         print("Results of Watson V test: ")
         print("")
         print("Watson's V:           " '%.1f' % (V))
         print("Critical value of V:  " '%.1f' % (Vcrit))
 
     if V < Vcrit:
-        if print_result == True:
+        if print_result:
             print('"Pass": Since V is less than Vcrit, the null hypothesis')
             print('that the two populations are drawn from distributions')
             print('that share a common mean direction can not be rejected.')
         result = 1
     elif V > Vcrit:
-        if print_result == True:
+        if print_result:
             print('"Fail": Since V is greater than Vcrit, the two means can')
             print('be distinguished at the 95% confidence level.')
         result = 0
         classification = ''
         
-    if print_result == True:
+    if print_result:
         print("")
         print("M&M1990 classification:")
         print("")
         print("Angle between data set means: " '%.1f' % (angle))
         print("Critical angle for M&M1990:   " '%.1f' % (critical_angle))
 
-    if print_result == True:
+    if print_result:
         if V > Vcrit:
             print("")
         elif V < Vcrit:
@@ -1484,7 +1484,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         p2 = pmagplotlib.plot_vs(CDF['cdf'], [V], 'g', '-')
         p3 = pmagplotlib.plot_vs(CDF['cdf'], [Vp[k]], 'b', '--')
         # pmagplotlib.draw_figs(CDF)
-        if save == True:
+        if save:
             plt.savefig(os.path.join(
                 save_folder, 'common_mean_watson') + '.' + fmt)
         pmagplotlib.show_fig(CDF['cdf'])
@@ -1664,7 +1664,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
     directions1, directions2 =pmag.flip(all_dirs)
 
-    if plot_stereo == True:
+    if plot_stereo:
         # plot equal area with two modes
         plt.figure(num=0, figsize=(4, 4))
         plot_net(0)
@@ -1771,7 +1771,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
 
     directions1, directions2 = pmag.flip(all_dirs)
 
-    if plot_stereo == True:
+    if plot_stereo:
         # plot equal area with two modes
         plt.figure(num=0, figsize=(4, 4))
         plot_net(0)
@@ -1937,7 +1937,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         D1=(D1-180.)%360 # Somehow this got lost
         Dtit = 'Mode 1 Declinations'
         Itit = 'Mode 1 Inclinations'
-        if plot == True:
+        if plot:
             plt.figure(fignum,figsize=(6, 3))
             fignum+=1
             Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
@@ -1945,7 +1945,7 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
             Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
                 QQ['exp'], I1, Itit, subplot=True)  # make plot
             plt.tight_layout()
-            if save == True:
+            if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode1')+'.'+fmt, dpi=450)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'Consistent with Fisher distribution'
@@ -1980,14 +1980,14 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
             Drbar = ppars['dec'] - 180.
         if ppars['inc']<0:
             Irbar['inc']=-ppars['inc']
-        if plot == True:
+        if plot:
             plt.figure(fignum,figsize=(6, 3))
             Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
                 QQ['unf'], D2, Dtit, subplot=True)  # make plot
             Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
                 QQ['exp'], I2, Itit, subplot=True)  # make plot
             plt.tight_layout()
-            if save == True:
+            if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode2')+'.'+fmt, dpi=450)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
@@ -2224,12 +2224,12 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             color_up.append(color)
 
     if len(X_up) > 0:
-        if connect_points == True:
+        if connect_points:
             plt.plot(X_up, Y_up, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
         plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
     if len(X_down) > 0:
-        if connect_points == True:
+        if connect_points:
             plt.plot(X_down, Y_down, ls = '-', linewidth=lw, color =lc, alpha = la, zorder=1)
         plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=edge,
                     s=markersize, marker=marker, label=label,alpha=alpha, zorder=zorder)
@@ -2392,12 +2392,12 @@ def make_orthographic_map(central_longitude=0, central_latitude=0, figsize=(8, 8
         central_longitude=central_longitude, central_latitude=central_latitude)
     ax = plt.axes(projection=map_projection)
     ax.set_global()
-    if add_ocean == True:
+    if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
-    if add_land == True:
+    if add_land:
         ax.add_feature(cartopy.feature.LAND, zorder=0,
                        facecolor=land_color, edgecolor=land_edge_color)
-    if grid_lines == True:
+    if grid_lines:
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid, linewidth=1,
                      color='black', linestyle='dotted')
     return ax
@@ -2433,13 +2433,13 @@ def make_mollweide_map(central_longitude=0, figsize=(8, 8),
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Mollweide(central_longitude=central_longitude)
     ax = plt.axes(projection=map_projection)
-    if add_ocean == True:
+    if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
-    if add_land == True:
+    if add_land:
         ax.add_feature(cartopy.feature.LAND, zorder=0,
                        facecolor=land_color, edgecolor=land_edge_color)
     ax.set_global()
-    if grid_lines == True:
+    if grid_lines:
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
@@ -2473,13 +2473,13 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
     fig = plt.figure(figsize=figsize)
     map_projection = ccrs.Robinson(central_longitude=central_longitude)
     ax = plt.axes(projection=map_projection)
-    if add_ocean == True:
+    if add_ocean:
         ax.add_feature(cartopy.feature.OCEAN, zorder=0, facecolor=ocean_color)
-    if add_land == True:
+    if add_land:
         ax.add_feature(cartopy.feature.LAND, zorder=0,
                        facecolor=land_color, edgecolor='black')
     ax.set_global()
-    if grid_lines == True:
+    if grid_lines:
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
@@ -2759,7 +2759,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     # print(C_deg)
     ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform)
 
-    if legend == True:
+    if legend:
         plt.legend(loc=2)
 
 
@@ -2811,7 +2811,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
                markersize=markersize,filled_pole=filled_pole,outline=outline,
                fill_color=colors, fill_alpha=fill_alpha, alpha=alpha, lw=lw)
 
-    if colorbar == True:
+    if colorbar:
         sm = plt.cm.ScalarMappable(
             cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
         sm._A = []
@@ -2865,7 +2865,7 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
                         s=markersize, color=color, label=label, zorder=zorder, 
                         alpha=alpha, transform=ccrs.PlateCarree())
     map_axis.set_global()
-    if legend == True:
+    if legend:
         plt.legend(loc=2)
 
 def vgp_calc(dataframe, tilt_correction='yes', site_lon='site_lon', site_lat='site_lat',
@@ -5023,7 +5023,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
         file_type = file_type.lower()
         if file_type[-1] == "\n":
             file_type = file_type[:-1]
-        if print_progress == True:
+        if print_progress:
             print('working on: ', repr(file_type))
         if file_type not in type_list:
             type_list.append(file_type)
@@ -5074,7 +5074,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                             rec[method_col] = methods[:-1]
                     NewRecs.append(rec)
                 pmag.magic_write(outfile, Recs, file_type)
-                if print_progress == True:
+                if print_progress:
                     print(file_type, " data put in ", outfile)
                 Recs = []
                 LN += 1
@@ -5123,7 +5123,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                     rec[method_col] = methods[:-1]
             NewRecs.append(rec)
         pmag.magic_write(outfile, Recs, file_type)
-        if print_progress == True:
+        if print_progress:
             print(file_type, " data put in ", outfile)
     # look through locations table and create separate directories for each
     # location
@@ -5140,7 +5140,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
         if len(locs) > 0:  # at least one location
             # go through unique location names
             for loc_name in locs:
-                if print_progress == True:
+                if print_progress:
                     print('\nlocation_' + str(locnum) + ": ", loc_name)
                 lpath = os.path.join(dir_path, 'Location_' + str(locnum))
                 locnum += 1
@@ -5154,13 +5154,13 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                         return False
                 for file_type in con.tables:
                     recs = con.tables[file_type].convert_to_pmag_data_list()
-                    if print_progress == True:
+                    if print_progress:
                         print(len(recs), ' read in')
                     lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
                     if len(lrecs) > 0:
                         outfile_name = os.path.join(lpath, file_type + ".txt")
                         pmag.magic_write(outfile_name, lrecs, file_type)
-                        if print_progress == True:
+                        if print_progress:
                             print(len(lrecs), ' stored in ', outfile_name)
     return True
 
@@ -7625,9 +7625,6 @@ class Site(object):
         import os
         from matplotlib import pyplot as plt
         import pandas as pd
-        global pd
-        global plt
-        global os
         import re
         dir_name = os.path.relpath(data_path)
         self.all_file_names = os.listdir(dir_name)
@@ -8041,7 +8038,7 @@ def smooth(x, window_len, window='bartlett'):
 
     # s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat':  # moving average
-        w = ones(window_len, 'd')
+        w = np.ones(window_len, 'd')
     else:
         w = eval('np.' + window + '(window_len)')
     y = np.convolve(w/w.sum(), s, mode='same')
@@ -8214,7 +8211,7 @@ def curie(path_to_file='.', file_name='', magic=False,
     files = {}
     for key in list(PLT.keys()):
         files[key] = str(key) + '.' + fmt
-    if save == True:
+    if save:
         for key in list(PLT.keys()):
             try:
                 plt.figure(num=PLT[key])
@@ -8334,7 +8331,7 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
                 pmagplotlib.plot_xtb(plotnum, XTB, Bs, e, f)
                 pmagplotlib.show_fig(plotnum)
                 plotnum += 1  # increment plot number
-            if save == True:
+            if save:
                 files = {}
                 PLTS = {}
                 for p in range(1, plotnum):
@@ -8874,7 +8871,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
                         float(sum(AVGblock[step]))/float(len(AVGblock[step])), 1, 'g'])
                 pmagplotlib.plot_mag(FIG['demag'], INTblock,
                                      title, 0, units, norm)
-        if save == True:
+        if save:
             plt.savefig(os.path.join(save_folder, title) + '.' + fmt)
         if single_plot is False:
             plt.show()
@@ -9241,7 +9238,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     Io = ppars['inc']
     n = ppars["N"]
     Es, Is, Fs, V2s = pmag.find_f(data)
-    if site_correction == True:
+    if site_correction:
         Inc, Elong = Is[Es.index(min(Es))], Es[Es.index(min(Es))]
         flat_f = Fs[Es.index(min(Es))]
     else:
@@ -9265,7 +9262,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
             plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
         if Esb[-1] != 0:
             ppars = pmag.doprinc(bdata)
-            if site_correction == True:
+            if site_correction:
                 I.append(abs(Isb[Esb.index(min(Esb))]))
                 E.append(Esb[Esb.index(min(Esb))])
             else:
@@ -9814,7 +9811,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
     plt.xlabel('Age (Ma)')
     plt.ylabel('n')
     plt.legend(loc=3)
-    if savefig == True:
+    if savefig:
         plot_extension = '_1.svg'
         plt.savefig(save_directory + figure_name + plot_extension)
     plt.show()
@@ -9875,7 +9872,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
 
         plot_vgp(map_axis, pole1_MCpole_long, pole1_MCpole_lat, color='b')
         plot_vgp(map_axis, pole2_MCpole_long, pole2_MCpole_lat, color='g')
-        if savefig == True:
+        if savefig:
             plot_extension = '_2.svg'
             plt.savefig(save_directory + figure_name + plot_extension)
         plt.show()
@@ -9922,7 +9919,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         plt.ylabel('n', size=14)
         plt.xlabel('latitudinal drift rate (cm/yr)', size=14)
         # plt.xlim([0,90])
-        if savefig == True:
+        if savefig:
             plot_extension = '_3.svg'
             plt.savefig(save_directory + figure_name + plot_extension)
         plt.show()
@@ -15591,7 +15588,7 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     # calculates probability based on how often the angle between the 'real' datasets is met or exceeded
     simul_prob = 1.0 * hit / trials
     
-    if print_result == True:
+    if print_result:
         print ('The probability that directions represent simultaneous samples of the geomagnetic field is: {0:5.3f}'.format(simul_prob))
     else:
         return simul_prob
@@ -15657,7 +15654,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     #the average of the two trials is the probability of the "random" hypothesis
     rand_prob = np.round((prand1 + prand2) / 2, 4)
    
-    if print_result == True:
+    if print_result:
         print ('The probability (average of P1 and P2) that directions represent random samples of the geomagnetic field is: {0:5.3f}'.format((prand1+prand2)/2))
     
     return rand_prob

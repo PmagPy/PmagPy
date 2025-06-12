@@ -221,7 +221,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
                 size = orig_size * 1.1
             else:
                 size = orig_size * 1.6
-            self.SetColSize(col, size)
+            self.SetColSize(col, int(size))
 
         self.ForceRefresh()
 
