@@ -913,7 +913,44 @@ def verwey_estimate(temps, mags,
 
 
 def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown, figsize=(11, 5)):
-    
+    """
+    Create an interactive widget for estimating the Verwey transition temperature from low temperature measurements.
+
+    This function displays interactive sliders and controls for adjusting background fitting parameters
+    and temperature ranges, allowing the user to visually estimate the Verwey transition temperature (T_v)
+    for a selected specimen and measurement method. The function updates plots in real-time according to user input,
+    enabling exploration of parameter effects on the calculated transition.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        low temperature measurement data containing temperature and magnetization columns for multiple specimens.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen to analyze.
+    method_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the measurement method ('LP-FC' or 'LP-ZFC').
+    figsize : tuple of (float, float), optional
+        Size of the matplotlib figure, by default (11, 5).
+
+    Notes
+    -----
+    - The function uses `ipywidgets` for interactive controls and `matplotlib` for visualization.
+    - The background fit and excluded temperature ranges can be adjusted using sliders.
+    - The polynomial degree of the background fit is also adjustable.
+    - A reset button restores the default slider values.
+    - The function relies on supporting functions such as `extract_mpms_data_dc`, `thermomag_derivative`, and `calc_verwey_estimate`.
+
+    Returns
+    -------
+    None
+        This function is intended for use in Jupyter notebooks or environments that support interactive widgets and inline plotting.
+        It displays interactive sliders and plots but does not return a value.
+
+    Examples
+    --------
+    >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
+    Displays an interactive interface for estimating the Verwey transition temperature.
+    """
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
 
