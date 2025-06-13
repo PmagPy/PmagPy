@@ -3374,8 +3374,12 @@ def plot_X_T(
         holder_c = min(cool_X)
         warm_X = [X - holder_w for X in warm_X]
         cool_X = [X - holder_c for X in cool_X]
-    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
-    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
+    smooth_dict_warming = smooth_moving_avg(warm_T, warm_X, smooth_window)
+    swT = smooth_dict_warming['x_smooth']
+    swX = smooth_dict_warming['y_smooth']
+    smooth_dict_cooling = smooth_moving_avg(cool_T, cool_X, smooth_window)
+    scT = smooth_dict_cooling['x_smooth']
+    scX = smooth_dict_cooling['y_smooth']
     title = experiment["specimen"].unique()[0]
     figs = []
 
@@ -3592,95 +3596,87 @@ def smooth_moving_avg(
     x_window,
     window_type="hanning",
     pad_mode="edge",
-    return_variance=False,
-):
+    ):
     """
-    Smooth y vs x using an x-space moving window and numpy window functions.
+    Smooth y vs x with moving window set as a width in x-units.
+    Supports arbitrary window shapes
+    ('flat', 'hanning', 'hamming', 'bartlett', 'blackman') with
+    normalized weights, computes weighted means and variances, and
+    returns results as a dictionary.
 
     Parameters:
-        x (array-like):
-            1-D sequence of independent variable values.
-        y (array-like):
-            1-D sequence of dependent variable values.
-        x_window (float):
-            Width of the x-window centered on each point; must be >= 0.
-            If zero, no smoothing is applied.
-        window_type (str, optional):
-            One of ['flat', 'hanning', 'hamming', 'bartlett', 'blackman'].
-            'flat' is a simple running mean. Defaults to 'hanning'.
-        pad_mode (str, optional):
-            Mode for numpy.pad to reduce edge artifacts (e.g., 'edge',
-            'constant', 'nearest'). Defaults to 'edge'.
-        return_variance (bool, optional):
-            If True, return weighted variances of x and y as well.
-            Otherwise, only return smoothed x and y. Defaults to False.
+        x (np.ndarray): Independent-variable samples (must be sorted).
+        y (np.ndarray): Dependent-variable samples.
+        x_window (float): Full width of each window in x-units.
+        window_type (str): One of ['flat', 'hanning', 'hamming',
+            'bartlett', 'blackman'].
+        pad_mode (str): Padding mode for numpy.pad at edges.
 
     Returns:
-        smoothed_x, smoothed_y (, x_var, y_var)
+        dict: {
+            "sm_x": np.ndarray,  Weighted mean x in each window,
+            "sm_y": np.ndarray,  Weighted mean y in each window,
+            "x_var": np.ndarray, Weighted variance of x,
+            "y_var": np.ndarray, Weighted variance of y
+        }
     """
-    # convert to numpy arrays
     x = np.asarray(x)
     y = np.asarray(y)
-
-    # validate dimensions
     if x.ndim != 1 or y.ndim != 1 or x.size != y.size:
         raise ValueError("`x` and `y` must be 1-D arrays of equal length.")
-
-    # handle non-positive window
     if x_window < 0:
         raise ValueError("`x_window` must be non-negative.")
-    if x_window == 0:
-        if return_variance:
-            x_var = np.zeros_like(x, dtype=float)
-            y_var = np.zeros_like(y, dtype=float)
-            return x, y, x_var, y_var
-        return x, y
-
-    # always pad to handle edge effects
-    pad_n = x.size
-    x_arr = np.pad(x, pad_n, mode=pad_mode)
-    y_arr = np.pad(y, pad_n, mode=pad_mode)
-
     n = x.size
-    sm_x = np.empty(n)
-    sm_y = np.empty(n)
-    if return_variance:
-        x_var = np.empty(n)
-        y_var = np.empty(n)
-    half = x_window / 2.0
+    if x_window == 0:
+        zeros = np.zeros(n, dtype=float)
+        return {"sm_x": x, "sm_y": y, "x_var": zeros, "y_var": zeros}
 
-    for i, center in enumerate(x):
-        mask = (x_arr >= center - half) & (x_arr <= center + half)
+    # Define window functions
+    funcs = {
+        "flat": np.ones,
+        "hanning": np.hanning,
+        "hamming": np.hamming,
+        "bartlett": np.bartlett,
+        "blackman": np.blackman,
+    }
+    if window_type not in funcs:
+        raise ValueError(f"Invalid window_type: {window_type}")
+
+    # padding to cover extremes
+    dx = np.median(np.diff(x))
+    half_pts = int(np.ceil((x_window / 2) / dx))
+    x_arr = np.pad(x, half_pts, mode=pad_mode)
+    y_arr = np.pad(y, half_pts, mode=pad_mode)
+
+    sm_x = np.empty(n, dtype=float)
+    sm_y = np.empty(n, dtype=float)
+    x_var = np.empty(n, dtype=float)
+    y_var = np.empty(n, dtype=float)
+    weight_cache = {}
+
+    for i, xi in enumerate(x):
+        mask = (x_arr >= xi - x_window / 2) & (x_arr <= xi + x_window / 2)
         idx = np.nonzero(mask)[0]
         if idx.size:
             xx = x_arr[idx]
             yy = y_arr[idx]
             m = idx.size
-            if window_type == "flat":
-                w = np.ones(m)
-            else:
-                w = getattr(np, window_type)(m)
-            wsum = w.sum()
-            mean_x = (w * xx).sum() / wsum
-            mean_y = (w * yy).sum() / wsum
-            if return_variance:
-                vx = (w * (xx - mean_x) ** 2).sum() / wsum
-                vy = (w * (yy - mean_y) ** 2).sum() / wsum
+            if m not in weight_cache:
+                weight_cache[m] = funcs[window_type](m)
+            w = weight_cache[m]
+            w = w / np.sum(w)
+            mean_x = np.dot(w, xx)
+            mean_y = np.dot(w, yy)
+            x_var[i] = np.dot(w, (xx - mean_x) ** 2)
+            y_var[i] = np.dot(w, (yy - mean_y) ** 2)
         else:
-            mean_x = center
-            mean_y = y[i]
-            if return_variance:
-                vx = vy = 0.0
+            mean_x, mean_y = xi, y[i]
+            x_var[i] = y_var[i] = 0.0
 
         sm_x[i] = mean_x
         sm_y[i] = mean_y
-        if return_variance:
-            x_var[i] = vx
-            y_var[i] = vy
 
-    if return_variance:
-        return sm_x, sm_y, x_var, y_var
-    return sm_x, sm_y
+    return {"x_smooth": sm_x, "y_smooth": sm_y, "x_var": x_var, "y_var": y_var}
 
 
 def X_T_running_average(temp_list, chi_list, temp_window):
@@ -3836,7 +3832,14 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
 
 # backfield data processing functions
 # ------------------------------------------------------------------------------------------------------------------
-def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_mode='lowess', smooth_frac=0.0, drop_first=False):
+def backfield_data_processing(
+    experiment,
+    field='treat_dc_field',
+    magnetization='magn_mass',
+    smooth_mode='lowess',
+    smooth_frac=0.0,
+    drop_first=False,
+    ):
     '''
     Function to process the backfield data including shifting the magnetic 
     moment to be positive values taking the log base 10 of the magnetic 
