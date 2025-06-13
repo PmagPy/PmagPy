@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ["macos-latest"]
+    runs-on: ["macos-latest", "windows-latest", "ubuntu-latest"]
     strategy:
       matrix:
         python-version: ["3.10", "3.12"]
@@ -27,7 +27,6 @@ jobs:
         run: |
           pip install scipy pandas matplotlib requests jupyter seaborn
           python dev_setup.py install
-          # pip install flake8 pytest pytest-cov
           pip install pytest pytest-cov
       # - name: Lint with flake8
       #   run: |
@@ -41,6 +40,6 @@ jobs:
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v3
       #   # with:
-      #   #   directory: ./smpsite
+      #   #   directory: ./pmagpy
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
