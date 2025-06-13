@@ -2638,7 +2638,7 @@ def plot_pole_ellipse(map_axis, dictionary,
         >>> ipmag.plot_pole_ellipse(map_axis,kent_dict, color='red',markersize=40)
     """
     if not has_cartopy:
-        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        print('-W- cartopy must be installed to run ipmag.plot_pole_ellipse')
         return
     pars = []
     pars.append(dictionary['dec'])
@@ -3192,7 +3192,7 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
         kwargs: other keyword arguments inherited from matplotlib
     '''
     if not has_cartopy:
-        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        print('-W- cartopy must be installed to run ipmag.plot_distributions')
         return
     cmap=kwargs.get('cmap', 'viridis')
 
