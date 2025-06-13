@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies manually
         run: |
           pip install scipy pandas matplotlib requests jupyter seaborn
-          pip install -e .
+          python dev_setup.py install
           pip install flake8 pytest pytest-cov
       - name: Lint with flake8
         run: |
