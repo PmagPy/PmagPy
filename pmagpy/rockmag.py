@@ -284,76 +284,114 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
+def convert_temperature(temp_array, input_unit, output_unit):
+    """
+    Convert temperatures between Kelvin and Celsius.
+
+    Parameters
+    ----------
+    temp_array : array-like
+        Temperatures in `input_unit`.
+    input_unit : {'K', 'C'}
+        Unit of the input temperatures.
+    output_unit : {'K', 'C'}
+        Desired unit for output temperatures.
+
+    Returns
+    -------
+    numpy.ndarray
+        Temperatures converted to `output_unit`.
+
+    Raises
+    ------
+    ValueError
+        If `input_unit` or `output_unit` is not 'K' or 'C'.
+    """
+    temps = np.asarray(temp_array, dtype=float)
+    if input_unit == output_unit:
+        return temps
+    if input_unit == "K" and output_unit == "C":
+        return temps - 273.15
+    if input_unit == "C" and output_unit == "K":
+        return temps + 273.15
+    raise ValueError(f"Unsupported unit conversion: {input_unit} -> {output_unit}")
+
+
 def ms_t_plot(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
-    temp_unit="K",
+    input_unit="K",
+    plot_unit="K",
     interactive=False,
     return_figure=False,
     show_plot=True,
     size=(6, 3),
-    legend_location="upper left"
+    legend_location="upper left",
 ):
     """
-    Plot magnetization vs. temperature, either static or interactive,
-    with option to display in K or °C.
+    Plot magnetization versus temperature in static or interactive mode.
 
     Parameters
     ----------
     data : pandas.DataFrame or array-like
-        Table or array containing temperature and magnetization.
-    temperature_column : str
-        Name of the temperature column in `data` (assumed in K).
-    magnetization_column : str
+        Table or array containing temperature and magnetization data.
+    temperature_column : str, default 'meas_temp'
+        Name of the temperature column in `data`.
+    magnetization_column : str, default 'magn_mass'
         Name of the magnetization column in `data`.
-    temp_unit : {'K','C'}, default 'K'
-        Units for the x-axis: 'K' for Kelvin or 'C' for Celsius.
+    input_unit : {'K', 'C'}, default 'K'
+        Unit of the input temperature data.
+    plot_unit : {'K', 'C'}, default 'K'
+        Unit for the x-axis display.
     interactive : bool, default False
         If True, use Bokeh for an interactive plot.
     return_figure : bool, default False
-        If True, return the figure object(s).
+        If True, return the figure object(s). Assign to capture, e.g.:
+            fig, ax = ms_t_plot(..., return_figure=True)
     show_plot : bool, default True
-        If True, display the plot.
+        If True, display the plot immediately.
     size : tuple(float, float), default (6, 3)
-        Controls both Bokeh height (in inches) and Matplotlib figure size.
+        Figure size in inches (Matplotlib) or height for Bokeh.
     legend_location : str, default 'upper left'
-        Location of the legend in Matplotlib terms.
+        Legend location in Matplotlib terms.
 
     Returns
     -------
-    Figure and Axes or Bokeh layout or None
+    tuple or layout or None
+        - If `return_figure=True` and `interactive=False`, returns (fig, ax).
+        - If `return_figure=True` and `interactive=True`, returns the Bokeh
+          layout object.
+        - Otherwise, returns None.
     """
-    T = np.asarray(data[temperature_column], dtype=float)
+    # raw data arrays
+    T_raw = np.asarray(data[temperature_column], dtype=float)
     M = np.asarray(data[magnetization_column], dtype=float)
 
-    if temp_unit == "C":
-        T = T - 273.15
-        x_label = "Temperature (°C)"
-    else:
-        x_label = "Temperature (K)"
+    # convert to desired plotting unit
+    T = convert_temperature(T_raw, input_unit, plot_unit)
+    x_label = "Temperature (°C)" if plot_unit == "C" else "Temperature (K)"
 
-    bokeh_legend_location = map_legend_location(legend_location)
-
+    # plotting
     if interactive:
-        tools = [HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
-                 "pan,box_zoom,wheel_zoom,reset,save"]
-        bokeh_height = int(size[1] * 96)
+        bokeh_loc = map_legend_location(legend_location)
+        tools = [
+            HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
+            "pan,box_zoom,wheel_zoom,reset,save",
+        ]
+        height = int(size[1] * 96)
         p = figure(
             title="M vs T",
             x_axis_label=x_label,
             y_axis_label="Magnetization",
             tools=tools,
             sizing_mode="stretch_width",
-            height=bokeh_height
+            height=height,
         )
-        p.xaxis.axis_label_text_font_style = "normal"
-        p.yaxis.axis_label_text_font_style = "normal"
         p.line(T, M, legend_label="M(T)", line_width=2)
         p.scatter(T, M, size=6, alpha=0.6, legend_label="M(T)")
-        p.legend.location = bokeh_legend_location
+        p.legend.location = bokeh_loc
         p.legend.click_policy = "hide"
-
         layout = gridplot([[p]], sizing_mode="stretch_width")
         if show_plot:
             show(layout)
