@@ -3,10 +3,10 @@ name: run-tests
 on:
    pull_request:
     branches:
-      - main
+      - master
    push:
     branches:
-      - main
+      - master
    workflow_dispatch:
       
 jobs:
@@ -27,7 +27,8 @@ jobs:
         run: |
           pip install scipy pandas matplotlib requests jupyter seaborn
           python dev_setup.py install
-          pip install flake8 pytest pytest-cov
+          # pip install flake8 pytest pytest-cov
+          pip install pytest pytest-cov
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
