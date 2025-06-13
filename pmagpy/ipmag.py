@@ -2483,6 +2483,7 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
+
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
