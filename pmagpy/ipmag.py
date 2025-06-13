@@ -2573,7 +2573,9 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color=colors, markersize=40)
 
     """
-
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        return
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
@@ -2598,6 +2600,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
     if legend == 'yes':
         plt.legend(loc=2)
+
 
 def plot_pole_ellipse(map_axis, dictionary, 
                       color='k', edgecolor='k', marker='s', 
@@ -2634,6 +2637,9 @@ def plot_pole_ellipse(map_axis, dictionary,
         >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=90)
         >>> ipmag.plot_pole_ellipse(map_axis,kent_dict, color='red',markersize=40)
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        return
     pars = []
     pars.append(dictionary['dec'])
     pars.append(dictionary['inc'])
@@ -2660,7 +2666,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k', pole_edgecolor='k', pole_marker='o',
                     site_color='r', site_edgecolor='r', site_marker='s',
-                    markersize=20, legend=True, transform=ccrs.PlateCarree()):
+                    markersize=20, legend=True, transform="PlateCarree"):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
 
@@ -2683,11 +2689,12 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         pole_label : string that labels the pole.
         site_label : string that labels the site
         legend : the default is a legend (True). Putting False will suppress legend plotting.
-        transform : the default is the PlateCarree transform in Cartopy. 
-                    Other transforms can be chosen (e.g. ccrs.geodetic), but this parameter 
-                    rarely needs to be changed by the user and is included for completeness
-                    and in case of artifacts arising from the PlateCarree transform on some
-                    map projections in which case the Geodetic transform may work better.
+        transform : str or cartopy.crs.Projection, default "PlateCarree"
+            The coordinate reference system used to interpret input coordinates.
+            Can be a string ("PlateCarree" or "Geodetic") or a Cartopy CRS object
+            (e.g., ccrs.PlateCarree()). If a string is provided, it will be
+            internally mapped to the appropriate Cartopy transform. This parameter
+            rarely needs to be changed, but "Geodetic" may help in certain projections.
 
     Examples:
         >>> dec = 280
@@ -2707,14 +2714,43 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole_dp_dm')
         return
+    
+    transform_map = {
+        "PlateCarree": ccrs.PlateCarree(),
+        "Geodetic": ccrs.Geodetic(),
+    }
+
+    if isinstance(transform, str):
+        if transform not in transform_map:
+            raise ValueError(f"Invalid transform '{transform}'. Choose from {list(transform_map)}.")
+        transform_obj = transform_map[transform]
+    else:
+        transform_obj = transform 
+        
     dp_km = dp*111.32
     dm_km = dm*111.32
-    map_axis.scatter(plon, plat, marker=pole_marker,
-                     color=pole_color, edgecolors=pole_edgecolor, s=markersize,
-                     label=pole_label, zorder=101, transform=ccrs.PlateCarree())
-    map_axis.scatter(slon, slat, marker=site_marker,
-                     color=site_color, edgecolors=site_edgecolor, s=markersize,
-                     label=site_label, zorder=101, transform=ccrs.PlateCarree())
+    map_axis.scatter(
+        plon,
+        plat,
+        marker=pole_marker,
+        color=pole_color,
+        edgecolors=pole_edgecolor,
+        s=markersize,
+        label=pole_label,
+        zorder=101,
+        transform=transform_obj,
+    )
+    map_axis.scatter(
+        slon,
+        slat,
+        marker=site_marker,
+        color=site_color,
+        edgecolors=site_edgecolor,
+        s=markersize,
+        label=site_label,
+        zorder=101,
+        transform=transform_obj,
+    )
     # the orientation of the ellipse needs to be determined using the
     # two laws of cosines for spherical triangles where the triangle is
     # A: site, B: north pole, C: paleomagnetic pole (see Fig. A.2 of Butler)
@@ -2757,7 +2793,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             C_deg = np.abs(np.rad2deg(C_rad))
 
     # print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj)
 
     if legend:
         plt.legend(loc=2)
@@ -3155,6 +3191,9 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
         resolution: the resolution at which to plot the distributions
         kwargs: other keyword arguments inherited from matplotlib
     '''
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        return
     cmap=kwargs.get('cmap', 'viridis')
 
     artists = []
