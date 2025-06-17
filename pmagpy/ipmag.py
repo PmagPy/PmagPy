@@ -15698,3 +15698,68 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
         print ('The probability (average of P1 and P2) that directions represent random samples of the geomagnetic field is: {0:5.3f}'.format((prand1+prand2)/2))
     
     return rand_prob
+
+
+def MADcrit(N,alpha,niter=int(1E8)):
+    """
+    Estimate the MAD critical value at a given significance level to 
+    test a null hypothesis of random demagnetization behavior.
+    function from Heslop and Roberts, 2025, Establishing a Statistical Framework for Assessing Paleomagnetic Data Quality: A Significance Test Based on Maximum Angular Deviation doi: https://doi.org/10.1029/ 2025JB031417
+
+    Parameters
+    ----------
+    N : integer
+        Number of demagnetization points in the unanchored PCA fit.
+    alpha : float
+        Array of significance values for which the critical MAD values should be estimated.
+    niter: integer
+        Number of Monte Carlo iterations (default is 1E8).
+        Because α values of interest are in the lower tail of the MAD distribution, it is important to ensure that B is sufficiently large to sample the distribution extremes accurately.
+    Returns
+    -------
+    float
+        Array of estimated critical MAD values.
+
+    Examples
+    --------
+    >>> N = 10
+    >>> alpha = np.array([0.0001,0.001,0.01,0.05,0.1])
+    >>> MADcrit(N, alpha)
+    [19.5, 23.1, 27.6, 31.7, 33.9]
+    """
+    
+    df = N-1 #degrees of freedom of the Wishart distribution
+    X = wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
+    X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
+    #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
+    MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
+    
+    return np.rad2deg(MAD_prc) #return critical values in degrees
+
+def MADcrit_95_filter(N, MAD):
+    '''
+    A convenience function to quickly filter for MADcrit values at the 95% significance level.
+    '''
+    if N < 3:
+        raise ValueError("N must be greater than 2 for MADcrit_95_filter")
+    if N > 50:
+        raise ValueError("N must be less than 51 for MADcrit_95_filter")
+    Ns = np.arange(3, 51)
+    MADcrit_95 = np.array([6.5, 14.8, 20.13, 23.8, 26.54, 28.64, 30.34,
+                            31.74, 32.93, 33.96, 34.86, 35.63,
+                            36.34, 36.95, 37.53, 38.04, 38.51,
+                            38.94, 39.34, 39.72, 40.08, 40.39,
+                            40.7, 40.99, 41.25, 41.51, 41.75,
+                            41.98, 42.18, 42.4, 42.6, 42.77,
+                            42.96, 43.13, 43.29, 43.44, 43.59,
+                            43.74, 43.87, 44.01, 44.14, 44.26,
+                            44.38, 44.5, 44.61, 44.72, 44.83,
+                            44.92])
+    MADcrit_table = pd.Series(MADcrit_95, index=Ns, name='MADcrit_95')
+    # compare a given MAD to the critical value for the given N
+    MADcrit = MADcrit_table.loc[N]
+
+    if MAD < MADcrit:
+        return True
+    else:
+        return False
