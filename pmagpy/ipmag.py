@@ -9725,11 +9725,101 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     if len(results) == 1:
         return results[0]
     return tuple(results)
+ 
                               
-def find_svei_kent(data, plon, plat, A95,site_latitude, site_longitude,f_low,f_hi, kent_color='k', n=1000, save=False, save_folder='.', fmt='svg',return_poles=False,
-                   return_kent_stats=True,return_paleolats=False,num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
-                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0 ):
+def find_svei_kent(
+    data,
+    plon,
+    plat,
+    A95,
+    site_latitude,
+    site_longitude,
+    f_low,
+    f_hi,
+    kent_color="k",
+    n=1000,
+    save=False,
+    save_folder=".",
+    fmt="svg",
+    return_poles=False,
+    return_kent_stats=True,
+    return_paleolats=False,
+    vgp_nb=100,
+    cmap="viridis_r",
+    central_longitude=0,
+    central_latitude=0,
+):
+    """
+    Uses a uniform distribution of flattening factors (f) derived from the SVEI analysis
+    of Tauxe et al. (2024) to correct inclination shallowing in sedimentary paleomagnetic
+    data and quantify uncertainty in the resulting mean pole using a Kent distribution.
 
+    The f values are sampled uniformly from a user-defined interval (`f_low`, `f_hi`) 
+    that should be determined in advance using the `find_flat` function of the SVEI 
+    module (Tauxe et al., 2024), which identifies the range of flattening factors 
+    consistent with the THG24 geomagnetic field model.
+
+    For each sampled f, the directions are "unflattened" using the tangent transformation,
+    converted to VGPs, and resampled with a Fisher distribution. The resulting distribution
+    of mean poles is summarized with a Kent distribution. Plots of corrected directions,
+    paleolatitudes, and resampled poles are optionally generated and saved.
+
+    Parameters:
+        data : list or array-like
+            Nested list or array of [dec, inc] or [dec, inc, intensity] directional data.
+        plon : float
+            Longitude of the original (uncorrected) paleomagnetic pole.
+        plat : float
+            Latitude of the original (uncorrected) paleomagnetic pole.
+        A95 : float
+            A95 confidence radius of the original pole.
+        site_latitude : float
+            Latitude of the paleomagnetic sampling site.
+        site_longitude : float
+            Longitude of the paleomagnetic sampling site.
+        f_low : float
+            Lower bound for flattening factor, as determined from SVEI analysis (e.g. 0.51).
+        f_hi : float
+            Upper bound for flattening factor, as determined from SVEI analysis (e.g. 0.89).
+        kent_color : str, optional
+            Color of the plotted Kent ellipse (default is 'k').
+        n : int, optional
+            Number of flattening factors to sample (default is 1000).
+        save : bool, optional
+            If True, saves figures to the specified folder (default is False).
+        save_folder : str, optional
+            Directory to save plots (default is current directory).
+        fmt : str, optional
+            Format for saved figures (e.g., 'svg', 'png') (default is 'svg').
+        return_poles : bool, optional
+            If True, returns the resampled mean pole positions (default is False).
+        return_kent_stats : bool, optional
+            If True, returns the Kent distribution statistics (default is True).
+        return_paleolats : bool, optional
+            If True, returns the distribution of calculated paleolatitudes (default is False).
+        vgp_nb : int, optional
+            Number of Fisher resamples per unflattened mean pole (default is 100).
+        cmap : str, optional
+            Colormap used to indicate f value in directional plots (default is 'viridis_r').
+        central_longitude : float, optional
+            Central longitude of the orthographic projection (default is 0).
+        central_latitude : float, optional
+            Central latitude of the orthographic projection (default is 0).
+
+    Returns:
+        Depending on flags, returns one or more of:
+        - kent_stats : dict
+            Kent distribution parameters summarizing the resampled mean poles.
+        - mean_lons, mean_lats : list of float
+            Longitudes and latitudes of resampled mean poles.
+        - paleolats : list of float
+            Paleolatitudes calculated from resampled mean poles.
+
+    Notes:
+        This function assumes the user has previously run the SVEI `find_flat` function
+        (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_hi`)
+        that are consistent with the THG24 GGP model for the dataset under consideration.
+    """
     f_resample = np.random.uniform(f_low,f_hi,n)
 
     plt.figure(figsize=(4,4))
