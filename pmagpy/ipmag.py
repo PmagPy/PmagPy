@@ -9725,6 +9725,102 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     if len(results) == 1:
         return results[0]
     return tuple(results)
+                              
+def find_svei_kent(data, plon, plat, A95,site_latitude, site_longitude,f_low,f_hi, kent_color='k', n=1000, save=False, save_folder='.', fmt='svg',return_poles=False,
+                   return_kent_stats=True,return_paleolats=False,num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
+                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0 ):
+
+    f_resample = np.random.uniform(f_low,f_hi,n)
+
+    plt.figure(figsize=(4,4))
+    plot_net()
+    cNorm  = colors.Normalize(vmin=min(f_resample), vmax=max(f_resample))
+    f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
+        
+    di_lists = unpack_di_block(data)
+    if len(di_lists) == 3:
+        decs, incs, intensity = di_lists
+    if len(di_lists) == 2:
+        decs, incs = di_lists
+
+    mean_lons = []
+    mean_lats = []
+    paleolats=[]
+
+    for f in f_resample:
+        unsquish_incs = unsquish(incs, f)
+        #unsquish_mean_dir=fisher_mean(dec=decs,inc=unsquish_incs)
+        unsquish_VGPs = pmag.dia_vgp(np.array([decs, unsquish_incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+        unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
+        unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
+                                                        dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+        resampled_poles = np.column_stack((resampled_lons, resampled_lats))
+        N = resampled_poles.shape[0]  # Number of rows
+        site_array = np.tile([site_longitude,site_latitude], (N, 1))
+        mean_lons.extend(resampled_lons)
+        mean_lats.extend(resampled_lats)
+        plats = 90 - pmag.angle(resampled_poles, site_array)
+        paleolats.extend(plats.tolist())
+        rgba = f_scalarMap.to_rgba(f)
+        hex_color = colors.rgb2hex(rgba)
+        plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
+    cb = plt.colorbar(f_scalarMap, ax=plt.gca(),orientation='horizontal',fraction=0.05, pad=0.05)
+    cb.ax.tick_params(labelsize=14)
+    cb.ax.set_title(label='$f$ values', fontsize=14)
+
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+        # plot paleolatitudes distribution
+    #EI_plats = np.degrees(np.arctan(np.tan(np.radians(flat_unflat_incs)) / 2))
+    #plat_mode = stats.mode(np.round(paleolats, 1), keepdims=False).mode.item()
+    plat_med=np.median(paleolats)
+    plat_lower, plat_upper = np.round(np.percentile(paleolats, [2.5, 97.5]), 1)
+    mu, std = stats.norm.fit(paleolats)
+    x = np.linspace(min(paleolats), max(paleolats), 100)
+    p = stats.norm.pdf(x, mu, std)
+
+    plt.figure(figsize=(4, 4))
+    plt.hist(paleolats, bins=15, alpha=0.6, density=1)
+    plt.plot(x, p, 'k', linewidth=1)
+
+    plt.axvline(x=plat_lower, color = 'gray', ls='--')
+    plt.axvline(x=plat_upper, color = 'gray', ls='--')
+
+    plt.title('%7.1f [%7.1f, %7.1f]' % (plat_med, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel(r'paleolatitude ($^\circ$)', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+        
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+        
+    plt.show()
+            
+    # plot resampled mean poles
+    m = make_orthographic_map(central_longitude, central_latitude)
+    plot_vgp(m, mean_lons, mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
+        
+    kent_stats = kent_distribution_95(dec=mean_lons,inc=mean_lats) 
+    print_kent_mean(kent_stats)
+    plot_pole_ellipse(m,kent_stats, color=kent_color,label="Kent mean pole")
+    plot_pole(m, plon, plat, A95, label="uncorrected pole position", color="C0")
+    plt.legend(loc=8, fontsize=14)
+    plt.show()
+
+    results = []
+    if return_kent_stats:
+        results.append(kent_stats)
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if return_paleolats:
+        results.append(paleolats)
+
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
 
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
