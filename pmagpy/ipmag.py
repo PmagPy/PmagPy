@@ -9725,6 +9725,194 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     if len(results) == 1:
         return results[0]
     return tuple(results)
+ 
+                              
+def find_svei_kent(
+    di_block,
+    site_latitude,
+    site_longitude,
+    f_low,
+    f_high,
+    kent_color="k",
+    n=1000,
+    save=False,
+    save_folder=".",
+    figprefix="SVEI",
+    fmt="svg",
+    return_poles=False,
+    return_kent_stats=True,
+    return_paleolats=False,
+    vgp_nb=100,
+    cmap="viridis_r",
+    central_longitude=0,
+    central_latitude=0,
+):
+    """
+    Uses a uniform distribution of flattening factors (f) derived from the SVEI analysis
+    of Tauxe et al. (2024) to correct inclination shallowing in sedimentary paleomagnetic
+    data and quantify uncertainty in the resulting mean pole using a Kent distribution.
+
+    The f values are sampled uniformly from a user-defined interval (`f_low`, `f_high`) 
+    that should be determined in advance using the `find_flat` function of the SVEI 
+    module (Tauxe et al., 2024), which identifies the range of flattening factors 
+    consistent with the THG24 geomagnetic field model.
+
+    For each sampled f, the directions are "unflattened" using the tangent transformation,
+    converted to VGPs, and resampled with a Fisher distribution. The resulting distribution
+    of mean poles is summarized with a Kent distribution. Plots of corrected directions,
+    paleolatitudes, and resampled poles are optionally generated and saved.
+
+    Parameters:
+        di_block : list or array-like (a di block)
+            Nested list or array of [dec, inc] or [dec, inc, intensity] directional data.
+        site_latitude : float
+            Latitude of the paleomagnetic sampling site.
+        site_longitude : float
+            Longitude of the paleomagnetic sampling site.
+        f_low : float
+            Lower bound for flattening factor, as determined from SVEI analysis (e.g. 0.51).
+        f_high : float
+            Upper bound for flattening factor, as determined from SVEI analysis (e.g. 0.89).
+        kent_color : str, optional
+            Color of the plotted Kent ellipse (default is 'k').
+        n : int, optional
+            Number of flattening factors to sample (default is 1000).
+        save : bool, optional
+            If True, saves figures to the specified folder (default is False).
+        save_folder : str, optional
+            Directory to save plots (default is current directory).
+        figprefix : str, optional
+            Prefix for saved figure filenames (default is 'SVEI').
+        fmt : str, optional
+            Format for saved figures (e.g., 'svg', 'png') (default is 'svg').
+        return_poles : bool, optional
+            If True, returns the resampled mean pole positions (default is False).
+        return_kent_stats : bool, optional
+            If True, returns the Kent distribution statistics (default is True).
+        return_paleolats : bool, optional
+            If True, returns the distribution of calculated paleolatitudes (default is False).
+        vgp_nb : int, optional
+            Number of Fisher resamples per unflattened mean pole (default is 100).
+        cmap : str, optional
+            Colormap used to indicate f value in directional plots (default is 'viridis_r').
+        central_longitude : float, optional
+            Central longitude of the orthographic projection (default is 0).
+        central_latitude : float, optional
+            Central latitude of the orthographic projection (default is 0).
+
+    Returns:
+        Depending on flags, returns one or more of:
+        - kent_stats : dict
+            Kent distribution parameters summarizing the resampled mean poles.
+        - mean_lons, mean_lats : list of float
+            Longitudes and latitudes of resampled mean poles.
+        - paleolats : list of float
+            Paleolatitudes calculated from resampled mean poles.
+
+    Notes:
+        This function assumes the user has previously run the SVEI `find_flat` function
+        (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_high`)
+        that are consistent with the THG24 GGP model for the dataset under consideration.
+    """
+    f_resample = np.random.uniform(f_low,f_high,n)
+
+    plt.figure(figsize=(4,4))
+    plot_net()
+    cNorm  = colors.Normalize(vmin=min(f_resample), vmax=max(f_resample))
+    f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
+        
+    di_lists = unpack_di_block(di_block)
+    if len(di_lists) == 3:
+        decs, incs, intensity = di_lists
+    if len(di_lists) == 2:
+        decs, incs = di_lists
+
+    mean_lons = []
+    mean_lats = []
+    paleolats=[]
+    
+    VGPs = pmag.dia_vgp(np.array([decs, incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+    VGPs_lons, VGPs_lats = VGPs[0], VGPs[1]
+    uncorrected_pole = fisher_mean(VGPs_lons, VGPs_lats)
+    plon = uncorrected_pole['dec'] 
+    plat = uncorrected_pole['inc']
+    A95 = uncorrected_pole['alpha95']
+    
+    for f in f_resample:
+        unsquish_incs = unsquish(incs, f)
+        #unsquish_mean_dir=fisher_mean(dec=decs,inc=unsquish_incs)
+        unsquish_VGPs = pmag.dia_vgp(np.array([decs, unsquish_incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+        unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
+        unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
+                                                        dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+        resampled_poles = np.column_stack((resampled_lons, resampled_lats))
+        N = resampled_poles.shape[0]  # Number of rows
+        site_array = np.tile([site_longitude,site_latitude], (N, 1))
+        mean_lons.extend(resampled_lons)
+        mean_lats.extend(resampled_lats)
+        plats = 90 - pmag.angle(resampled_poles, site_array)
+        paleolats.extend(plats.tolist())
+        rgba = f_scalarMap.to_rgba(f)
+        hex_color = colors.rgb2hex(rgba)
+        plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
+    cb = plt.colorbar(f_scalarMap, ax=plt.gca(),orientation='horizontal',fraction=0.05, pad=0.05)
+    cb.ax.tick_params(labelsize=14)
+    cb.ax.set_title(label='$f$ values', fontsize=14)
+
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+    plat_med=np.median(paleolats)
+    plat_lower, plat_upper = np.round(np.percentile(paleolats, [2.5, 97.5]), 1)
+    mu, std = stats.norm.fit(paleolats)
+    x = np.linspace(min(paleolats), max(paleolats), 100)
+    p = stats.norm.pdf(x, mu, std)
+
+    plt.figure(figsize=(4, 4))
+    plt.hist(paleolats, bins=15, alpha=0.6, density=1)
+    plt.plot(x, p, 'k', linewidth=1)
+
+    plt.axvline(x=plat_lower, color = 'gray', ls='--')
+    plt.axvline(x=plat_upper, color = 'gray', ls='--')
+
+    plt.title('%7.1f [%7.1f, %7.1f]' % (plat_med, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel(r'paleolatitude ($^\circ$)', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+        
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+        
+    plt.show()
+            
+    # plot resampled mean poles
+    m = make_orthographic_map(central_longitude, central_latitude)
+    plot_vgp(m, mean_lons, mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
+        
+    kent_stats = kent_distribution_95(dec=mean_lons,inc=mean_lats) 
+    print_kent_mean(kent_stats)
+    plot_pole_ellipse(m,kent_stats, color=kent_color,label="Kent mean pole")
+    plot_pole(m, plon, plat, A95, label="uncorrected pole position", color="C0")
+    plt.legend(loc=8, fontsize=14)
+    
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+ 
+    plt.show()
+
+    results = []
+    if return_kent_stats:
+        results.append(kent_stats)
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if return_paleolats:
+        results.append(paleolats)
+
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
 
 
 def pole_comparison_H2019(lon_1,lat_1,k_1,r_1,lon_2,lat_2,k_2,r_2):
