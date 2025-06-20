@@ -9728,18 +9728,16 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
  
                               
 def find_svei_kent(
-    data,
-    plon,
-    plat,
-    A95,
+    di_block,
     site_latitude,
     site_longitude,
     f_low,
-    f_hi,
+    f_high,
     kent_color="k",
     n=1000,
     save=False,
     save_folder=".",
+    figprefix="SVEI",
     fmt="svg",
     return_poles=False,
     return_kent_stats=True,
@@ -9754,7 +9752,7 @@ def find_svei_kent(
     of Tauxe et al. (2024) to correct inclination shallowing in sedimentary paleomagnetic
     data and quantify uncertainty in the resulting mean pole using a Kent distribution.
 
-    The f values are sampled uniformly from a user-defined interval (`f_low`, `f_hi`) 
+    The f values are sampled uniformly from a user-defined interval (`f_low`, `f_high`) 
     that should be determined in advance using the `find_flat` function of the SVEI 
     module (Tauxe et al., 2024), which identifies the range of flattening factors 
     consistent with the THG24 geomagnetic field model.
@@ -9765,21 +9763,15 @@ def find_svei_kent(
     paleolatitudes, and resampled poles are optionally generated and saved.
 
     Parameters:
-        data : list or array-like
+        di_block : list or array-like (a di block)
             Nested list or array of [dec, inc] or [dec, inc, intensity] directional data.
-        plon : float
-            Longitude of the original (uncorrected) paleomagnetic pole.
-        plat : float
-            Latitude of the original (uncorrected) paleomagnetic pole.
-        A95 : float
-            A95 confidence radius of the original pole.
         site_latitude : float
             Latitude of the paleomagnetic sampling site.
         site_longitude : float
             Longitude of the paleomagnetic sampling site.
         f_low : float
             Lower bound for flattening factor, as determined from SVEI analysis (e.g. 0.51).
-        f_hi : float
+        f_high : float
             Upper bound for flattening factor, as determined from SVEI analysis (e.g. 0.89).
         kent_color : str, optional
             Color of the plotted Kent ellipse (default is 'k').
@@ -9789,6 +9781,8 @@ def find_svei_kent(
             If True, saves figures to the specified folder (default is False).
         save_folder : str, optional
             Directory to save plots (default is current directory).
+        figprefix : str, optional
+            Prefix for saved figure filenames (default is 'SVEI').
         fmt : str, optional
             Format for saved figures (e.g., 'svg', 'png') (default is 'svg').
         return_poles : bool, optional
@@ -9817,17 +9811,17 @@ def find_svei_kent(
 
     Notes:
         This function assumes the user has previously run the SVEI `find_flat` function
-        (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_hi`)
+        (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_high`)
         that are consistent with the THG24 GGP model for the dataset under consideration.
     """
-    f_resample = np.random.uniform(f_low,f_hi,n)
+    f_resample = np.random.uniform(f_low,f_high,n)
 
     plt.figure(figsize=(4,4))
     plot_net()
     cNorm  = colors.Normalize(vmin=min(f_resample), vmax=max(f_resample))
     f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
         
-    di_lists = unpack_di_block(data)
+    di_lists = unpack_di_block(di_block)
     if len(di_lists) == 3:
         decs, incs, intensity = di_lists
     if len(di_lists) == 2:
@@ -9836,7 +9830,14 @@ def find_svei_kent(
     mean_lons = []
     mean_lats = []
     paleolats=[]
-
+    
+    VGPs = pmag.dia_vgp(np.array([decs, incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+    VGPs_lons, VGPs_lats = VGPs[0], VGPs[1]
+    uncorrected_pole = fisher_mean(VGPs_lons, VGPs_lats)
+    plon = uncorrected_pole['dec'] 
+    plat = uncorrected_pole['inc']
+    A95 = uncorrected_pole['alpha95']
+    
     for f in f_resample:
         unsquish_incs = unsquish(incs, f)
         #unsquish_mean_dir=fisher_mean(dec=decs,inc=unsquish_incs)
@@ -9862,9 +9863,6 @@ def find_svei_kent(
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
 
-        # plot paleolatitudes distribution
-    #EI_plats = np.degrees(np.arctan(np.tan(np.radians(flat_unflat_incs)) / 2))
-    #plat_mode = stats.mode(np.round(paleolats, 1), keepdims=False).mode.item()
     plat_med=np.median(paleolats)
     plat_lower, plat_upper = np.round(np.percentile(paleolats, [2.5, 97.5]), 1)
     mu, std = stats.norm.fit(paleolats)
@@ -9898,6 +9896,10 @@ def find_svei_kent(
     plot_pole_ellipse(m,kent_stats, color=kent_color,label="Kent mean pole")
     plot_pole(m, plon, plat, A95, label="uncorrected pole position", color="C0")
     plt.legend(loc=8, fontsize=14)
+    
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+ 
     plt.show()
 
     results = []
