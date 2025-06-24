@@ -2046,13 +2046,20 @@ def split_hysteresis_loop(field, magnetization):
     field_gradient = np.gradient(field)
     # There should just be one turning point in the field gradient
     turning_points = np.where(np.diff(np.sign(field_gradient)))[0]
-    if len(turning_points) > 1:
-        raise ValueError('More than one turning point found in the gradient of the applied field')
-    turning_point = turning_points[0]
-    upper_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
-    # sort the upper branch in reverse order
-    upper_branch = [field[:turning_point+1][::-1], magnetization[:turning_point+1][::-1]]
-    lower_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
+    if len(turning_points) == 0:
+        raise ValueError('No turning point found in the field gradient. The data may not be a hysteresis loop.')
+    elif len(turning_points) > 1:
+        print('More than one turning point found in the gradient of the applied field')
+        print('Trying to force splitting the loop based on the number of measurements...')
+        n = len(field) // 2
+        upper_branch = [field[:n], magnetization[:n]]
+        lower_branch = [field[n:], magnetization[n:]]
+    else:
+        turning_point = turning_points[0]
+        upper_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
+        # sort the upper branch in reverse order
+        upper_branch = [field[:turning_point+1][::-1], magnetization[:turning_point+1][::-1]]
+        lower_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
     
     return upper_branch, lower_branch
 
@@ -2423,9 +2430,9 @@ def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
 
     high_field_index = np.where((np.abs(field) >= HF_cutoff*np.max(np.abs(field))) & (np.abs(field) <= max_field_cutoff*np.max(np.abs(field))))[0]
 
-    # invert points in the third quadrant to the first
+    # invert points in the negative high fields
     high_field = np.abs(field[high_field_index])
-    high_field_magnetization = np.abs(magnetization[high_field_index])
+    high_field_magnetization = [magnetization[i] if field[i] >= 0 else -magnetization[i] for i in high_field_index]
 
     # the slope would be the paramagnetic/diamagnetic susceptibility
     # the y-intercept would be the Ms value (saturation magnetization of the ferromagnetic component)
@@ -3042,7 +3049,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True):
+def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, NL_fit=False):
     '''
     function to process a hysteresis loop following the IRM decision tree
     Parameters
@@ -3084,6 +3091,8 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
 
     # check if the loop is saturated (high field linearity test)
     loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
+    if NL_fit:
+        loop_saturation_stats['loop_is_saturated'] = False  # force saturation for non-linear fit
 
     if loop_saturation_stats['loop_is_saturated']:
         # linear high field correction
