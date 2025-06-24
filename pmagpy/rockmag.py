@@ -2998,7 +2998,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
 
     HF_field = np.abs(H[HF_index])
-    HF_magnetization = np.abs(M[HF_index])
+    HF_magnetization = [M[i] if H[i] >= 0 else -M[i] for i in HF_index]
 
     if fit_type == 'IRM':
         cost_function = IRM_nonlinear_fit_cost_function
