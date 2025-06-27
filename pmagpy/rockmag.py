@@ -3077,6 +3077,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
         # in case the loop quality is bad, no field correction is applied
         loop_centering_results['opt_H_offset'] = 0
         loop_centering_results['centered_H'] = grid_fields
+        loop_centering_results['centered_M'] = grid_magnetizations - loop_centering_results['opt_M_offset']
 
     centered_H, centered_M = loop_centering_results['centered_H'], loop_centering_results['centered_M']
 
