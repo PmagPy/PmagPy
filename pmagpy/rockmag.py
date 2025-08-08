@@ -4555,9 +4555,9 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     return     
 
 
-# Day plot function
+# Day plot functions
 # ------------------------------------------------------------------------------------------------------------------
-def day_plot_MagIC(specimen_data, 
+def plot_day_MagIC(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4592,14 +4592,14 @@ def day_plot_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    ax = day_plot(Mr = summary_sats[Mr],
+    ax = plot_day(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
     return ax
     
-def day_plot(Mr, Ms, Bcr, Bc, 
+def plot_day(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_day_lines = True, 
              plot_MD_slope=True,
@@ -4608,7 +4608,8 @@ def day_plot(Mr, Ms, Bcr, Bc,
              color='black', marker='o', 
              label = 'sample', alpha=1, 
              lc='black', lw=0.5, 
-             legend=True, figsize=(8,6)):
+             legend=True, figsize=(8,6),
+             show_plot=True, return_figure=False):
     '''
     function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
         plots Mr/Ms vs Bc/Bcr. 
@@ -4642,8 +4643,9 @@ def day_plot(Mr, Ms, Bcr, Bc,
 
     Returns
     -------
-    ax : matplotlib.axes._axes.Axes
-        the axes object of the plot.
+    tuple or None
+        - If return_figure is True, returns (fig, ax).
+        - Otherwise, returns None.
 
     '''
     # force numpy arrays
@@ -4653,7 +4655,7 @@ def day_plot(Mr, Ms, Bcr, Bc,
     Bcr = np.asarray(Bcr)
     Bcr_Bc = Bcr/Bc
     Mr_Ms = Mr/Ms
-    _, ax = plt.subplots(figsize = figsize)
+    fig, ax = plt.subplots(figsize = figsize)
     # plotting SD, PSD, MD regions
     if plot_day_lines:
         ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
@@ -4689,9 +4691,9 @@ def day_plot(Mr, Ms, Bcr, Bc,
         mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
         mixing_Mr_Ms = mixing_Mr_Ms[mask]
         ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='-.', label = 'SD/MD mixture')
+    
     # plot the data
     ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha)
-
     ax.set_xlim(1, 100)
     ax.set_ylim(0.005, 1)
     ax.set_xscale('log')
@@ -4704,7 +4706,11 @@ def day_plot(Mr, Ms, Bcr, Bc,
 
     if legend:
         ax.legend(loc='lower right', fontsize=10)
-    return ax
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 
 def neel_plot_magic(specimen_data, 
