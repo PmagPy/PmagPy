@@ -4592,12 +4592,12 @@ def plot_day_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    ax = plot_day(Mr = summary_sats[Mr],
+    fig, ax = plot_day(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
-    return ax
+    return fig, ax
     
 def plot_day(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
@@ -4609,7 +4609,7 @@ def plot_day(Mr, Ms, Bcr, Bc,
              label = 'sample', alpha=1, 
              lc='black', lw=0.5, 
              legend=True, figsize=(8,6),
-             show_plot=True, return_figure=False):
+             show_plot=True, return_figure=True):
     '''
     function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
         plots Mr/Ms vs Bc/Bcr. 
@@ -4640,11 +4640,15 @@ def plot_day(Mr, Ms, Bcr, Bc,
         whether to show the legend. The default is True.
     figsize : tuple, optional
         size of the figure. The default is (6,6).
+    show_plot : bool, optional
+        whether to show the plot. The default is True.
+    return_figure : bool, optional
+        whether to return the figure and axes objects. The default is True, so that a different function (plot_day_MagIC) can use it.
 
     Returns
     -------
     tuple or None
-        - If return_figure is True, returns (fig, ax).
+        - If return_figure is True (default), returns (fig, ax).
         - Otherwise, returns None.
 
     '''
