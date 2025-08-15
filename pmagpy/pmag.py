@@ -1140,8 +1140,8 @@ def get_sb_df(df, mm97=False):
         Ns = df.dir_n
         Ls = np.radians(df.lat)
         A95s = 140./np.sqrt(ks*Ns)
-        Sw2_n = 0.335*(A95s**2)*(2.*(1.+3.*np.sin(Ls)**2) /
-                                 (5.-3.*np.sin(Ls)**2))
+        Sw2_n = 0.335*(A95s**2)*(2.*(1.+3.*np.sin(Ls)**2)**2 /
+                                 (5.+3.*np.sin(Ls)**2))
         return np.sqrt(Sp2-Sw2_n.mean())
     else:
         return np.sqrt(Sp2)
