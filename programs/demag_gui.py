@@ -1721,14 +1721,14 @@ class Demag_GUI(wx.Frame):
                         X_c_d.append(XY[0])
                         Y_c_d.append(XY[1])
 
-                if self.plane_display_box.GetValue() == "u. hemisphere" or \
-                   self.plane_display_box.GetValue() == "whole plane" or \
-                   "wp" in self.plane_display_box.GetValue():
-                    self.specimen_eqarea.plot(X_c_d, Y_c_d, 'b')
                 if self.plane_display_box.GetValue() == "l. hemisphere" or \
                    self.plane_display_box.GetValue() == "whole plane" or \
                    "wp" in self.plane_display_box.GetValue():
-                    self.specimen_eqarea.plot(X_c_up, Y_c_up, 'c')
+                    self.specimen_eqarea.plot(X_c_d, Y_c_d, c='b', lw=0.75)
+                if self.plane_display_box.GetValue() == "u. hemisphere" or \
+                   self.plane_display_box.GetValue() == "whole plane" or \
+                   "wp" in self.plane_display_box.GetValue():
+                    self.specimen_eqarea.plot(X_c_up, Y_c_up, ls='dotted', c='c', lw=0.75)
                 eqarea_x = XY[0]
                 eqarea_y = XY[1]
                 z = 1
@@ -2166,16 +2166,16 @@ class Demag_GUI(wx.Frame):
                                 X_c_d.append(XY[0])
                                 Y_c_d.append(XY[1])
 
-                        if self.plane_display_box.GetValue() == "u. hemisphere" or \
-                           self.plane_display_box.GetValue() == "whole plane" or \
-                           self.plane_display_box.GetValue() == "wp + bfv":
-                            fig.plot(X_c_d, Y_c_d, 'b')
-                            if self.ie_open:
-                                self.ie.plot(X_c_d, Y_c_d, 'b')
                         if self.plane_display_box.GetValue() == "l. hemisphere" or \
                            self.plane_display_box.GetValue() == "whole plane" or \
                            self.plane_display_box.GetValue() == "wp + bfv":
-                            fig.plot(X_c_up, Y_c_up, 'c')
+                            fig.plot(X_c_d, Y_c_d, c='b', lw=0.75)
+                            if self.ie_open:
+                                self.ie.plot(X_c_d, Y_c_d, 'b')
+                        if self.plane_display_box.GetValue() == "u. hemisphere" or \
+                           self.plane_display_box.GetValue() == "whole plane" or \
+                           self.plane_display_box.GetValue() == "wp + bfv":
+                            fig.plot(X_c_up, Y_c_up, ls='dotted', c='c', lw=0.75)
                             if self.ie_open:
                                 self.ie.plot(X_c_up, Y_c_up, 'c')
 
