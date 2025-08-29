@@ -1791,7 +1791,7 @@ def MPMS_signal_blender(measurement_1, measurement_2,
     return output_dict
 
 
-def MPMS_signal_blender_interactive(measurement_1, measurement_2, 
+def interactive_MPMS_signal_blender(measurement_1, measurement_2, 
                                     experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
