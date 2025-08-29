@@ -284,7 +284,7 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
-def ms_t_plot(
+def plot_ms_t(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
@@ -1912,7 +1912,7 @@ def extract_hysteresis_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
+def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
     '''
     function to plot a hysteresis loop
 
@@ -1926,31 +1926,51 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color
     Returns
     -------
     p : bokeh.plotting.figure
+    
     '''
     if not _HAS_BOKEH:
         print("Bokeh is not installed. Please install it to enable hysteresis data processing.")
         return
     
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
-    if p is None:
-        p = figure(title=f'{specimen_name} hysteresis loop',
-                  x_axis_label='Field (T)',
-                  y_axis_label='Magnetization (Am\u00B2/kg)',
-                  width=600,
-                  height=600, aspect_ratio=1)
-        p.axis.axis_label_text_font_size = '12pt'
-        p.axis.axis_label_text_font_style = 'normal'
-        p.title.text_font_size = '14pt'
-        p.title.text_font_style = 'bold'
-        p.title.align = 'center'
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.click_policy="hide"
-        p.legend.location = legend_location
-    else:
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.location = legend_location
-
-    return p
+    if interactive:
+        if p is None:
+            p = figure(title=f'{specimen_name} hysteresis loop',
+                    x_axis_label='Field (T)',
+                    y_axis_label='Magnetization (Am\u00B2/kg)',
+                    width=600,
+                    height=600, aspect_ratio=1)
+            p.axis.axis_label_text_font_size = '12pt'
+            p.axis.axis_label_text_font_style = 'normal'
+            p.title.text_font_size = '14pt'
+            p.title.text_font_style = 'bold'
+            p.title.align = 'center'
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.click_policy="hide"
+            p.legend.location = legend_location
+        else:
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.location = legend_location
+        
+        if show_plot:
+            show(p)
+        if return_figure:
+            return p
+        return None
+    
+    # static Matplotlib
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.plot(field, magnetization, color=line_color, linewidth=line_width, label=label)
+    ax.set_title(f'{specimen_name} hysteresis loop')
+    ax.set_xlabel('Field (T)')
+    ax.set_ylabel('Magnetization (Am²/kg)')
+    ax.legend(loc=legend_location)
+    ax.grid(True)
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 def split_hysteresis_loop(field, magnetization):
     '''
@@ -4717,7 +4737,7 @@ def plot_day(Mr, Ms, Bcr, Bc,
     return None
 
 
-def neel_plot_magic(specimen_data, 
+def plot_neel_magic(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4752,14 +4772,14 @@ def neel_plot_magic(specimen_data,
     summary_stats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_stats = summary_stats.dropna()
 
-    ax = neel_plot(Mr = summary_stats[Mr],
+    ax = plot_neel(Mr = summary_stats[Mr],
                 Ms = summary_stats[Ms],
                 Bc = summary_stats[Bc], 
                 **kwargs)
     return ax
 
 
-def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
+def plot_neel(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     """
     Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from hysteresis data.
 
