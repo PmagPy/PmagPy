@@ -5243,7 +5243,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
 
     if response.status_code == 200 and response.text:
         # Write the content to the file only if the request was successful and the content is not empty
-        with open(out_path, 'w') as file:
+        with open(out_path, 'w', encoding="utf-8") as file:
             file.write(response.text)
         print("Download successful. File saved to:", out_path)
         return True, file_name
