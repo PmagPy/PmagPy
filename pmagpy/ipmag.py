@@ -3551,7 +3551,7 @@ def combine_magic(filenames, outfile='measurements.txt', data_model=3, magic_tab
                 magic_table))
             return False
         # figure out file type from first of files to join
-        with open(filenames[0]) as f:
+        with open(filenames[0], encoding="utf-8") as f:
             file_type = f.readline().split()[1]
         if file_type in ['er_specimens', 'er_samples', 'er_sites',
                          'er_locations', 'er_ages', 'pmag_specimens',
@@ -4468,7 +4468,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     if sum_file:
         # os.path.join(input_dir_path, sum_file)
         sum_file = pmag.resolve_file_name(sum_file, input_dir_path)
-        with open(sum_file, 'r') as fin:
+        with open(sum_file, 'r', encoding="utf-8") as fin:
             indat = fin.readlines()
         if "Core Summary" in indat[0]:
             headline = 1
@@ -5285,7 +5285,7 @@ def download_magic_from_doi(doi):
         for filename in contribution_zip.namelist():
             if (re.match(r'^\d+\/magic_contribution_\d+\.txt', filename)):
                 contribution_text = io.TextIOWrapper(contribution_zip.open(filename)).read()
-                with open('magic_contribution.txt', 'wt') as fh:
+                with open('magic_contribution.txt', 'wt', encoding="utf-8") as fh:
                     fh.write(contribution_text)
                 print(filename, 'extracted to magic_contribution.txt', '\n')
                 return True, ""
@@ -5899,7 +5899,7 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     response['method']='PUT'
     response['upload_file']=upload_file
     try:
-        with open(upload_file, 'rb') as f:
+        with open(upload_file, 'rb', encoding="utf-8") as f:
             upload_response = requests.put(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password),
