@@ -22,7 +22,7 @@ except ImportError:
 try:
     from bokeh.plotting import figure, show
     from bokeh.layouts import gridplot
-    from bokeh.models import HoverTool, Label
+    from bokeh.models import HoverTool, Label, ColumnDataSource, PointDrawTool, CustomJS, Div
     from bokeh.embed import components
     from bokeh.palettes import Category10
     from bokeh.models import ColumnDataSource
@@ -3492,6 +3492,140 @@ def plot_X_T(
         return tuple(figs)
     return None
 
+def estimate_curie_temperature(
+    experiment,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    smooth_window=0,
+    remove_holder=True,
+    figsize=(6, 6),
+    inverse_method=False,
+    print_estimates=True
+):
+    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+        experiment,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column
+    )
+
+    if temp_unit == "C":
+        warm_T = [T - 273.15 for T in warm_T]
+        cool_T = [T - 273.15 for T in cool_T]
+    else:
+        raise ValueError('temp_unit must be "C"')
+
+    if remove_holder:
+        holder_w = min(warm_X)
+        holder_c = min(cool_X)
+        warm_X = [X - holder_w for X in warm_X]
+        cool_X = [X - holder_c for X in cool_X]
+
+    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
+    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
+
+    dx_w = np.gradient(swX, swT)
+    dx_c = np.gradient(scX, scT)
+
+    temp_of_first_derivative_min_heating = swT[np.argmin(dx_w)]
+    temp_of_first_derivative_min_cooling = scT[np.argmin(dx_c)]
+
+    dx_2_w = np.gradient(dx_w, swT)
+    dx_2_c = np.gradient(dx_c, scT)
+
+    temp_of_second_derivative_max_heating = swT[np.argmin(dx_2_w)]
+    temp_of_second_derivative_max_cooling = scT[np.argmin(dx_2_c)]
+
+    # Physically consistent zero-crossing logic for heating
+    min_idx_w = np.argmin(dx_2_w)
+    max_idx_w = np.argmax(dx_2_w)
+    lower_w, upper_w = sorted([min_idx_w, max_idx_w])
+    dx2_slice_w = dx_2_w[lower_w:upper_w]
+    temp_slice_w = swT[lower_w:upper_w]
+    crossings_w = np.where(np.diff(np.sign(dx2_slice_w)))[0]
+    temp_of_zero_crossing_heating = [temp_slice_w[i] for i in crossings_w]
+
+    # Physically consistent zero-crossing logic for cooling
+    min_idx_c = np.argmin(dx_2_c)
+    max_idx_c = np.argmax(dx_2_c)
+    lower_c, upper_c = sorted([min_idx_c, max_idx_c])
+    dx2_slice_c = dx_2_c[lower_c:upper_c]
+    temp_slice_c = scT[lower_c:upper_c]
+    crossings_c = np.where(np.diff(np.sign(dx2_slice_c)))[0]
+    temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
+
+    if inverse_method:
+        bokeh_height = int(figsize[1] * 96)
+        title = experiment["specimen"].unique()[0]
+    
+        swX_arr = np.array(swX)
+        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
+        mask_w = np.isfinite(inv_w)
+        T = np.array(swT)[mask_w]
+        inv_chi = inv_w[mask_w]
+
+        # Initial fit endpoints (choose two points in the linear region)
+        fit_x = [T[int(len(T)*0.7)], T[-1]]
+        fit_y = [inv_chi[int(len(inv_chi)*0.7)], inv_chi[-1]]
+        fit_source = ColumnDataSource(data=dict(x=fit_x, y=fit_y))
+    
+        # Scatter and line for data
+        data_source = ColumnDataSource(data=dict(x=T, y=inv_chi))
+        p_inv = figure(title=f"{title} – 1/χ",
+                       height=bokeh_height,
+                       x_axis_label=f"Temperature (°{temp_unit})",
+                       y_axis_label="1/χ",
+                       tools="pan,wheel_zoom,box_zoom,reset,save",
+                      )
+        p_inv.scatter('x', 'y', source=data_source, size=8, color="red", legend_label="Heating – 1/χ")
+        renderer = p_inv.scatter('x', 'y', source=fit_source, size=12, color="blue", legend_label="Fit Endpoints")
+        line_renderer = p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
+    
+        # PointDrawTool for dragging endpoints
+        draw_tool = PointDrawTool(renderers=[renderer], add=False)
+        p_inv.add_tools(draw_tool)
+        p_inv.toolbar.active_tap = draw_tool
+        p_inv.legend.location = "top_left"
+    
+        # Div to display Curie temperature
+        curie_estimate = Div(text="Curie temperature: --", styles={'font-size': '16px', 'color': 'darkred'})
+    
+        # JS callback to update fit line and Curie temperature estimate
+        callback = CustomJS(args=dict(source=fit_source, div=curie_estimate), code="""
+            var x = source.data.x;
+            var y = source.data.y;
+            if (x.length == 2) {
+                var slope = (y[1] - y[0]) / (x[1] - x[0]);
+                var intercept = y[0] - slope * x[0];
+                // Estimate Curie temperature: x where y=0
+                var Tc = -intercept / slope;
+                div.text = "Curie temperature estimate: " + Tc.toFixed(2) + " °C";
+            }
+        """)
+        fit_source.js_on_change('data', callback)
+        #show(p_inv)
+        show(column(p_inv, curie_estimate))
+
+    if print_estimates:
+        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_heating)} for heating')
+        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_cooling)} for cooling')
+        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_heating)} for heating')
+        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_cooling)} for cooling')
+        print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')
+        print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')
+       
+
+    heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
+    cooling_zero = temp_of_zero_crossing_cooling[0] if temp_of_zero_crossing_cooling else None
+
+    return (
+        temp_of_first_derivative_min_heating,
+        temp_of_first_derivative_min_cooling,
+        temp_of_second_derivative_max_heating,
+        temp_of_second_derivative_max_cooling,
+        heating_zero if heating_zero is not None else None,
+        cooling_zero if cooling_zero is not None else None
+    )
 
 def smooth_moving_avg(
     x,
