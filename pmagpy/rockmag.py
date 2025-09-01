@@ -3503,6 +3503,39 @@ def estimate_curie_temperature(
     inverse_method=False,
     print_estimates=True
 ):
+    """
+    Estimate the Curie temperature from high temperature susceptibility curves in multiple ways. Automatically calculates first derivative minimum, second derivative maximum, and
+    second derivative zero-crossing. Also has option to estimate Curie temperature from inverse susceptibility (Petrovsky and A. Kapicka, 2006). Uses Bokeh for the interactive plot.
+
+    Parameters:
+        experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
+        temperature_column (str): Name of temperature column.
+        magnetic_column (str): Name of susceptibility column.
+        temp_unit (str): "C" for Celsius.
+        smooth_window (int): Window for smoothing.
+        remove_holder (bool): Subtract holder signal.
+        figsize (tuple): (width, height) in inches.
+        inverse_method (bool): Use inverse susceptibility method.
+        print_estimates (bool): Print estimated Curie temperatures.
+    
+    Returns
+    -------
+
+    temp_of_first_derivative_min_heating : float
+        temperature of first derivative minimum for heating cycle
+    temp_of_first_derivative_min_cooling : float
+        temperature of first derivative minimum for cooling cycle
+    temp_of_second_derivative_max_heating : float
+        temperature of second derivative maximum for heating cycle
+    temp_of_second_derivative_max_cooling : float
+        temperature of second derivative maximum for cooling cycle
+    heating_zero : list[float] or None
+        temperatures of second derivative zero-crossings for heating cycle, or None if none found
+    cooling_zero : list[float] or None
+        temperatures of second derivative zero-crossings for cooling cycle, or None if none found
+       
+    """
+
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(
         experiment,
         temperature_column=temperature_column,
