@@ -3646,7 +3646,6 @@ def estimate_curie_temperature(
         print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_cooling)} for cooling')
         print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')
         print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')
-       
 
     heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
     cooling_zero = temp_of_zero_crossing_cooling[0] if temp_of_zero_crossing_cooling else None
