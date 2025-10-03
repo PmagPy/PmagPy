@@ -1481,7 +1481,7 @@ def goethite_removal(rtsirm_warm_data,
         return rtsirm_warm_adjusted, rtsirm_cool_adjusted
     
     
-def interactive_goethite_removal(measurements, specimen_dropdown):
+def goethite_removal_interactive(measurements, specimen_dropdown):
     
     selected_specimen_name = specimen_dropdown.value
 
@@ -1791,7 +1791,7 @@ def mpms_signal_blender(measurement_1, measurement_2,
     return output_dict
 
 
-def interactive_mpms_signal_blender(measurement_1, measurement_2, 
+def mpms_signal_blender_interactive(measurement_1, measurement_2, 
                                     experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
