@@ -1721,7 +1721,7 @@ def plot_mpms_ac(
         return fig, (ax1, ax2)
 
 
-def MPMS_signal_blender(measurement_1, measurement_2, 
+def mpms_signal_blender(measurement_1, measurement_2, 
                         spec_1, spec_2,
                         experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                         temp_col='meas_temp', moment_col='magn_mass',
@@ -1791,7 +1791,7 @@ def MPMS_signal_blender(measurement_1, measurement_2,
     return output_dict
 
 
-def interactive_MPMS_signal_blender(measurement_1, measurement_2, 
+def interactive_mpms_signal_blender(measurement_1, measurement_2, 
                                     experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
@@ -1841,7 +1841,7 @@ def interactive_MPMS_signal_blender(measurement_1, measurement_2,
     def update(*args):
         ax[0].clear()
         ax[1].clear()
-        blender_result = MPMS_signal_blender(
+        blender_result = mpms_signal_blender(
             measurement_1, measurement_2,
             spec_1_dropdown.value, spec_2_dropdown.value,
             experiments=experiments,
@@ -4577,7 +4577,7 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
 
 # Day plot functions
 # ------------------------------------------------------------------------------------------------------------------
-def plot_day_MagIC(specimen_data, 
+def plot_day_plot_MagIC(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4612,14 +4612,14 @@ def plot_day_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    fig, ax = plot_day(Mr = summary_sats[Mr],
+    fig, ax = plot_day_plot(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
     return fig, ax
     
-def plot_day(Mr, Ms, Bcr, Bc, 
+def plot_day_plot(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_day_lines = True, 
              plot_MD_slope=True,
