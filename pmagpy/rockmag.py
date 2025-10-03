@@ -586,7 +586,8 @@ def plot_mpms_dc(
             figs.append(p3)  
 
         layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
-        if show_plot: show(layout)  
+        if show_plot:
+            show(layout)
         return layout if return_figure else None  
 
     # Matplotlib branch  
@@ -597,37 +598,64 @@ def plot_mpms_dc(
 
     if not fc_zfc_present:  
         axes[0,0].set_visible(False)  
-        if plot_derivative: axes[1,0].set_visible(False)  
+        if plot_derivative:
+            axes[1,0].set_visible(False)
     if not rtsirm_present:  
         axes[0,1].set_visible(False)  
-        if plot_derivative: axes[1,1].set_visible(False)  
+        if plot_derivative:
+            axes[1,1].set_visible(False)
 
     if fc_zfc_present:  
         ax = axes[0,0]  
-        if fc is not None: ax.plot(fc["meas_temp"], fc["magn_mass"], color=fc_color, marker=fc_marker, label="FC")  
-        if zfc is not None: ax.plot(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, marker=zfc_marker, label="ZFC")  
-        ax.set_title("LTSIRM Data"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("Magnetization"); ax.legend(); ax.grid(True)  
+        if fc is not None: 
+            ax.plot(fc["meas_temp"], fc["magn_mass"], color=fc_color, marker=fc_marker, label="FC")  
+        if zfc is not None:
+            ax.plot(zfc["meas_temp"], zfc["magn_mass"], color=zfc_color, marker=zfc_marker, label="ZFC")  
+        ax.set_title("LTSIRM Data")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel("Magnetization")
+        ax.legend()
+        ax.grid(True)
 
     if rtsirm_present:  
         ax = axes[0,1]  
-        if rc is not None: ax.plot(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool")  
-        if rw is not None: ax.plot(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm")  
-        ax.set_title("RTSIRM Data"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("Magnetization"); ax.legend(); ax.grid(True)  
+        if rc is not None: 
+            ax.plot(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool")
+        if rw is not None: 
+            ax.plot(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm")
+        ax.set_title("RTSIRM Data")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel("Magnetization")
+        ax.legend()
+        ax.grid(True)  
 
-    if plot_derivative and fc_zfc_present:  
-        ax = axes[1,0]  
-        if fcd is not None: ax.plot(fcd["T"], fcd["dM_dT"], color=fc_color, marker=fc_marker, label="FC dM/dT")  
-        if zfcd is not None: ax.plot(zfcd["T"], zfcd["dM_dT"], color=zfc_color, marker=zfc_marker, label="ZFC dM/dT")  
-        ax.set_title("LTSIRM Derivative"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("dM/dT"); ax.legend(); ax.grid(True)  
+    if plot_derivative and fc_zfc_present:
+        ax = axes[1,0]
+        if fcd is not None:
+            ax.plot(fcd["T"], fcd["dM_dT"], color=fc_color, marker=fc_marker, label="FC dM/dT")
+        if zfcd is not None:
+            ax.plot(zfcd["T"], zfcd["dM_dT"], color=zfc_color, marker=zfc_marker, label="ZFC dM/dT")
+        ax.set_title("LTSIRM Derivative")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel("dM/dT")
+        ax.legend()
+        ax.grid(True)  
 
     if plot_derivative and rtsirm_present:  
         ax = axes[1,1]  
-        if rcd is not None: ax.plot(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool dM/dT")  
-        if rwd is not None: ax.plot(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm dM/dT")  
-        ax.set_title("RTSIRM Derivative"); ax.set_xlabel("Temperature (K)"); ax.set_ylabel("dM/dT"); ax.legend(); ax.grid(True)  
+        if rcd is not None:
+            ax.plot(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool dM/dT")
+        if rwd is not None:
+            ax.plot(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm dM/dT")
+        ax.set_title("RTSIRM Derivative")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel("dM/dT")
+        ax.legend()
+        ax.grid(True)
 
     fig.tight_layout()  
-    if show_plot: plt.show()  
+    if show_plot:
+        plt.show()
     return fig if return_figure else None  
 
 
@@ -4100,7 +4128,7 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
         params[f'{prefix}sigma'].max = np.max(field)-np.min(field)   # Bounds for sigma parameters
 
         # restrict to normal distribution if skewed is False
-        if skewed == False:
+        if not skewed:
             params[f'{prefix}gamma'].set(value=0, vary=False)
 
         if composite_model is None:
@@ -4424,7 +4452,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
             params[f'{prefix}sigma'].max = np.max(B)-np.min(B)   # Bounds for sigma parameters
 
             # restrict to normal distribution if skewed is False
-            if skewed == False:
+            if not skewed:
                 params[f'{prefix}gamma'].set(value=0, vary=False)
                 
             if composite_model is None:
