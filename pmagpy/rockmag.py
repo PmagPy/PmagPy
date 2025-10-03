@@ -587,7 +587,7 @@ def plot_mpms_dc(
 
         layout = gridplot([figs[:2], figs[2:]], sizing_mode="stretch_width")  
         if show_plot:
-            show(layout)  
+            show(layout)
         return layout if return_figure else None  
 
     # Matplotlib branch  
@@ -598,12 +598,12 @@ def plot_mpms_dc(
 
     if not fc_zfc_present:  
         axes[0,0].set_visible(False)  
-        if plot_derivative: 
-            axes[1,0].set_visible(False)  
+        if plot_derivative:
+            axes[1,0].set_visible(False)
     if not rtsirm_present:  
         axes[0,1].set_visible(False)  
-        if plot_derivative: 
-            axes[1,1].set_visible(False)  
+        if plot_derivative:
+            axes[1,1].set_visible(False)
 
     if fc_zfc_present:  
         ax = axes[0,0]  
@@ -615,47 +615,47 @@ def plot_mpms_dc(
         ax.set_xlabel("Temperature (K)")
         ax.set_ylabel("Magnetization")
         ax.legend()
-        ax.grid(True)  
+        ax.grid(True)
 
     if rtsirm_present:  
         ax = axes[0,1]  
         if rc is not None: 
-            ax.plot(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool")  
+            ax.plot(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool")
         if rw is not None: 
-            ax.plot(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm")  
-        ax.set_title("RTSIRM Data") 
-        ax.set_xlabel("Temperature (K)") 
-        ax.set_ylabel("Magnetization") 
-        ax.legend() 
-        ax.grid(True)  
-
-    if plot_derivative and fc_zfc_present:  
-        ax = axes[1,0]  
-        if fcd is not None: 
-            ax.plot(fcd["T"], fcd["dM_dT"], color=fc_color, marker=fc_marker, label="FC dM/dT")  
-        if zfcd is not None: 
-            ax.plot(zfcd["T"], zfcd["dM_dT"], color=zfc_color, marker=zfc_marker, label="ZFC dM/dT")  
-        ax.set_title("LTSIRM Derivative") 
+            ax.plot(rw["meas_temp"], rw["magn_mass"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm")
+        ax.set_title("RTSIRM Data")
         ax.set_xlabel("Temperature (K)")
-        ax.set_ylabel("dM/dT") 
-        ax.legend() 
+        ax.set_ylabel("Magnetization")
+        ax.legend()
         ax.grid(True)  
 
-    if plot_derivative and rtsirm_present:  
-        ax = axes[1,1]  
-        if rcd is not None: 
-            ax.plot(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool dM/dT")  
-        if rwd is not None: 
-            ax.plot(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm dM/dT")  
-        ax.set_title("RTSIRM Derivative")
+    if plot_derivative and fc_zfc_present:
+        ax = axes[1,0]
+        if fcd is not None:
+            ax.plot(fcd["T"], fcd["dM_dT"], color=fc_color, marker=fc_marker, label="FC dM/dT")
+        if zfcd is not None:
+            ax.plot(zfcd["T"], zfcd["dM_dT"], color=zfc_color, marker=zfc_marker, label="ZFC dM/dT")
+        ax.set_title("LTSIRM Derivative")
         ax.set_xlabel("Temperature (K)")
         ax.set_ylabel("dM/dT")
         ax.legend()
         ax.grid(True)  
 
+    if plot_derivative and rtsirm_present:  
+        ax = axes[1,1]  
+        if rcd is not None:
+            ax.plot(rcd["T"], rcd["dM_dT"], color=rtsirm_cool_color, marker=rtsirm_cool_marker, label="cool dM/dT")
+        if rwd is not None:
+            ax.plot(rwd["T"], rwd["dM_dT"], color=rtsirm_warm_color, marker=rtsirm_warm_marker, label="warm dM/dT")
+        ax.set_title("RTSIRM Derivative")
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel("dM/dT")
+        ax.legend()
+        ax.grid(True)
+
     fig.tight_layout()  
-    if show_plot: 
-        plt.show()  
+    if show_plot:
+        plt.show()
     return fig if return_figure else None  
 
 
