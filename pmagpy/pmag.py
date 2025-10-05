@@ -3060,6 +3060,87 @@ def circ(dec, dip, alpha,npts=201):
     return D_out, I_out
 
 
+def int_pars(x, y, vds, **kwargs):
+    """
+    Depreciated 9/7/2022 
+
+    Calculates York regression and paleointensity parameters (with Tauxe Fvds).
+    """
+    # first do linear regression a la York
+    # do Data Model 3 way:
+    if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
+        n_key = 'int_n_measurements'
+        b_key = 'int_b'
+        sigma_key = 'int_b_sigma'
+        f_key = 'int_f'
+        fvds_key = 'int_fvds'
+        g_key = 'int_g'
+        q_key = 'int_q'
+        b_beta_key = 'int_b_beta'
+
+    else:  # version 2
+        n_key = 'specimen_int_n'
+        b_key = 'specimen_b'
+        sigma_key = 'specimen_b_sigma'
+        f_key = 'specimen_f'
+        fvds_key = 'specimen_fvds'
+        g_key = 'specimen_g'
+        q_key = 'specimen_q'
+        b_beta_key = 'specimen_b_beta'
+
+    xx, yer, xer, xyer, yy, xsum, ysum, xy = 0., 0., 0., 0., 0., 0., 0., 0.
+    xprime, yprime = [], []
+    pars = {}
+    pars[n_key] = len(x)
+    n = float(len(x))
+    if n <= 2:
+        print("shouldn't be here at all!")
+        return pars, 1
+    for i in range(len(x)):
+        xx += x[i]**2.
+        yy += y[i]**2.
+        xy += x[i] * y[i]
+        xsum += x[i]
+        ysum += y[i]
+    xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
+    ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
+    sum = 0
+    for i in range(int(n)):
+        yer += (y[i] - (ysum / n))**2.
+        xer += (x[i] - (xsum / n))**2.
+        xyer += (y[i] - (ysum / n)) * (x[i] - (xsum / n))
+    slop = -np.sqrt(yer / xer)
+    pars[b_key] = slop
+    s1 = 2. * yer - 2. * slop * xyer
+    s2 = (n - 2.) * xer
+    sigma = np.sqrt(s1 / s2)
+    pars[sigma_key] = sigma
+    s = (xy - (xsum * ysum / n)) / (xx - (xsum**2 / n))
+    r = (s * xsig) / ysig
+    pars["specimen_rsc"] = r**2.
+    ytot = abs(ysum / n - slop * xsum / n)
+    for i in range(int(n)):
+        xprime.append(((slop * x[i] + y[i] - ytot) / (2. * slop)))
+        yprime.append(((slop * x[i] + y[i] - ytot) / 2.) + ytot)
+    sumdy, dy = 0, []
+    dyt = abs(yprime[0] - yprime[int(n) - 1])
+    for i in range((int(n) - 1)):
+        dy.append(abs(yprime[i + 1] - yprime[i]))
+        sumdy += dy[i]**2.
+    f = dyt / ytot
+    pars[f_key] = f
+    pars["specimen_ytot"] = ytot
+    ff = dyt / vds
+    pars[fvds_key] = ff
+    ddy = (1. / dyt) * sumdy
+    g = 1. - ddy / dyt
+    pars[g_key] = g
+    q = abs(slop) * f * g / sigma
+    pars[q_key] = q
+    pars[b_beta_key] = -sigma / slop
+    return pars, 0
+
+
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
     Calculate the paleointensity with magic parameters and make some definitions.
@@ -8426,8 +8507,45 @@ def sbootpars(Taus, Vs):
     bpars["v3_eta_dec"] = kpars["Edec"]
     bpars["v3_eta_inc"] = kpars["Einc"]
     return bpars
+
+
+def apseudo(Ss, ipar, sigma):
+    """
+    Depreciated: 9/14/2022
+
+    Draw a bootstrap sample of Ss.
+
+    Parameters
+    ----------
+    Ss : six element tensor as a list
+    ipar : boolean (True, False, or zero value)
+    sigma : sigma of Ss
+
+    Returns
+    -------
+    BSs : array 
+        bootstrap sample of Ss
+
+    Examples 
+    --------
+    >>> pmag.apseudo(np.array([2,2,1,6,1,1]),0,0)
+    array([1, 2, 1, 2, 2, 1])
+    """
 #
-#
+    Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
+    Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
+    #Ss = np.array(Ss)
+    if not ipar: # ipar == 0:
+        BSs = Ss[Is]
+    else:  # need to recreate measurement - then do the parametric stuffr
+        A, B = design(6)  # get the design matrix for 6 measurementsa
+        K, BSs = [], []
+        for k in range(len(Ss)):
+            K.append(np.dot(A, Ss[k][0:6]))
+        Pars = np.random.normal(K, sigma)
+        for k in range(len(Ss)):
+            BSs.append(np.dot(B, Pars[k]))
+    return np.array(BSs)
 
 
 def s_boot(Ss, ipar=0, nb=1000):
