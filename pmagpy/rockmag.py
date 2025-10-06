@@ -941,7 +941,44 @@ def verwey_estimate(temps, mags,
 
 
 def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown, figsize=(11, 5)):
-    
+    """
+    Create an interactive widget for estimating the Verwey transition temperature from low temperature remanence measurements.
+
+    This function displays interactive sliders and controls for adjusting background fitting parameters
+    and temperature ranges, allowing the user to visually estimate the Verwey transition temperature (T_v)
+    for a selected specimen and measurement method. The function updates plots in real-time according to user input,
+    enabling exploration of parameter effects on the calculated transition.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        low temperature remanence measurement data containing temperature and magnetization columns for multiple specimens.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen to analyze.
+    method_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the measurement method ('LP-FC' or 'LP-ZFC').
+    figsize : tuple of (float, float), optional
+        Size of the matplotlib figure, by default (11, 5).
+
+    Notes
+    -----
+    - The function uses `ipywidgets` for interactive controls and `matplotlib` for visualization.
+    - The background fit and excluded temperature ranges can be adjusted using sliders.
+    - The polynomial degree of the background fit is also adjustable.
+    - A reset button restores the default slider values.
+    - The function relies on supporting functions such as `extract_mpms_data_dc`, `thermomag_derivative`, and `calc_verwey_estimate`.
+
+    Returns
+    -------
+    None
+        This function is intended for use in Jupyter notebooks or environments that support interactive widgets and inline plotting.
+        It displays interactive sliders and plots but does not return a value.
+
+    Examples
+    --------
+    >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
+    Displays an interactive interface for estimating the Verwey transition temperature.
+    """
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
 
@@ -1510,7 +1547,38 @@ def goethite_removal(rtsirm_warm_data,
     
     
 def interactive_goethite_removal(measurements, specimen_dropdown):
-    
+    """
+    Display an interactive widget for fitting and visualizing goethite removal from low temperature remanence data.
+
+    This function creates an interactive interface that allows the user to select a specimen and adjust parameters
+    (temperature range and polynomial degree) for fitting the goethite component in RTSIRM (Room Temperature Saturation Isothermal Remanent Magnetization) warming and cooling curves. 
+    The user can visually explore the effect of these parameters on the fit and resulting goethite removal, with real-time updated plots.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        Low temperature remanence measurement data containing temperature and magnetization information for multiple specimens.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen to analyze.
+
+    Notes
+    -----
+    - Uses `ipywidgets` for interactive controls and `matplotlib` for plotting.
+    - The temperature range for the goethite fit and the polynomial degree of the fit can be adjusted via sliders.
+    - A reset button allows restoration of default parameter values.
+    - Supporting functions such as `extract_mpms_data_dc` and `goethite_removal` are required for this function to operate.
+    - This function is intended to be used in a Jupyter notebook or similar interactive environment.
+
+    Returns
+    -------
+    None
+        The function displays interactive widgets and plots for goethite removal but does not return a value.
+
+    Examples
+    --------
+    >>> interactive_goethite_removal(measurements_df, specimen_dropdown)
+    Displays interactive sliders and plots for fitting goethite removal to the selected specimen's data.
+    """
     selected_specimen_name = specimen_dropdown.value
 
     fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
@@ -2187,8 +2255,32 @@ def hyst_linearity_test(grid_field, grid_magnetization):
 
 def linefit(xarr, yarr):
     """
-    Linear regression fit: y = intercept + slope * x
-    Returns: intercept, slope, R^2
+    Perform a simple linear regression (least squares fit) on two arrays.
+    
+    Parameters
+    ----------
+    xarr : array_like
+        Array of x-values (independent variable).
+    yarr : array_like
+        Array of y-values (dependent variable), must be the same shape as `xarr`.
+
+    Returns
+    -------
+    intercept : float
+        The intercept of the best-fit line.
+    slope : float
+        The slope of the best-fit line.
+    r2 : float
+        The coefficient of determination (R²), a measure of how well the regression line fits the data.
+        R² = 1 indicates a perfect fit, lower values indicate a poorer fit.
+
+    Examples
+    --------
+    >>> x = [0, 1, 2, 3, 4]
+    >>> y = [1, 3, 5, 7, 9]
+    >>> intercept, slope, r2 = linefit(x, y)
+    >>> print(f"Intercept: {intercept:.2f}, Slope: {slope:.2f}, R^2: {r2:.2f}")
+    Intercept: 1.00, Slope: 2.00, R^2: 1.00
     """
     xarr = np.asarray(xarr)
     yarr = np.asarray(yarr)
@@ -2212,18 +2304,39 @@ def linefit(xarr, yarr):
 
 def loop_H_off(loop_fields, loop_moments, H_shift):
     """
-    Estimates a vertical shift (V_shift) and returns R² of a reflected loop.
-    
-    Arguments:
-    - loop_fields: List or array of magnetic field values.
-    - loop_moments: Corresponding list or array of magnetic moments.
-    - H_shift: Horizontal shift to apply to loop_fields.
-    
-    Returns:
-    - r2: R-squared value from linear regression between original and reflected data.
-    - V_shift: Estimated vertical shift (mean of linear fit x-intercept).
-    """
+    Estimate the vertical shift (M_shift) and symmetry (R²) of a magnetic hysteresis loop after applying a horizontal field shift.
 
+    This function shifts the field data by a specified amount, finds symmetrically equivalent points in the second half of the loop,
+    and performs a linear regression between the original and reflected/negated data. It then estimates the vertical offset (M_shift)
+    based on the intercept of the regression and returns additional regression results.
+
+    Parameters
+    ----------
+    loop_fields : array_like
+        Array of magnetic field values for the hysteresis loop.
+    loop_moments : array_like
+        Array of corresponding magnetic moment values.
+    H_shift : float
+        Horizontal (field) shift to apply to the loop_fields before symmetry calculation.
+
+    Returns
+    -------
+    result : dict
+        Dictionary containing:
+            - 'slope': float, slope of the linear regression between the original and reflected moments.
+            - 'M_shift': float, estimated vertical shift (half the regression intercept).
+            - 'r2': float, coefficient of determination (R²) for the regression, indicating symmetry.
+
+    Notes
+    -----
+    - The function is typically used to estimate vertical offsets and assess symmetry in magnetic hysteresis loops.
+    - Returns zeros if not enough symmetrical points are found for regression.
+
+    Examples
+    --------
+    >>> res = loop_H_off(fields, moments, H_shift=10)
+    >>> print(res['M_shift'], res['r2'])
+    """
     n = len(loop_fields)
 
     # Apply horizontal shift
@@ -2262,6 +2375,42 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
     return result
 
 def loop_Hshift_brent(loop_fields, loop_moments):
+    """
+    Optimize the horizontal (field) shift of a magnetic hysteresis loop using Brent's method to maximize symmetry.
+
+    This function determines the optimal horizontal field shift (H_shift) to apply to a hysteresis loop,
+    such that the R² value (symmetry) of the loop, as calculated by `loop_H_off`, is maximized.
+    It uses the Brent optimization algorithm to efficiently search for the H_shift that gives the highest R².
+    The function returns the optimal R², the corresponding field shift, and the vertical offset (M_shift) at this position.
+
+    Parameters
+    ----------
+    loop_fields : array_like
+        Array of magnetic field values for the hysteresis loop.
+    loop_moments : array_like
+        Array of corresponding magnetic moment values.
+
+    Returns
+    -------
+    opt_r2 : float
+        The maximum R² value achieved by shifting the loop.
+    opt_H_off : float
+        The optimal horizontal (field) shift applied to maximize symmetry.
+    opt_M_off : float
+        The estimated vertical shift (M_shift) at the optimal field shift.
+
+    Notes
+    -----
+    - Uses Brent's method for optimization via `scipy.optimize.minimize_scalar` with a bracket based on the loop field range.
+    - Calls `loop_H_off` to compute symmetry and vertical shift for each candidate field shift.
+    - Useful for correcting field and moment offsets in hysteresis loop analysis.
+
+    Examples
+    --------
+    >>> r2, H_off, M_off = loop_Hshift_brent(fields, moments)
+    >>> print(f"Optimal field shift: {H_off:.2f}, R²: {r2:.3f}, M_shift: {M_off:.3e}")
+    """
+
     def objective(H_shift):
         result = loop_H_off(loop_fields, loop_moments, H_shift)
         return -result['r2']
@@ -2279,13 +2428,46 @@ def loop_Hshift_brent(loop_fields, loop_moments):
     return opt_r2, opt_H_off, opt_M_off
 
 def calc_Q(H, M, type='Q'):
-    '''
-    function for calculating quality factor Q for a hysteresis loop
-        Q factor is defined by the log10 of the signal to noise ratio
-        where signal is the sum of the square of the data 
-        which is the averaged sum over the upper and lower branches for Q
-        and is the sum of the square of the upper branch for Qf
-    '''
+    """
+    Calculate the quality factor (Q) for a magnetic hysteresis loop.
+
+    The Q factor is a logarithmic measure (base 10) of the signal-to-noise ratio for a hysteresis loop.
+    The calculation can be performed in two modes:
+        - 'Q': Uses the mean squared magnetization of both the upper and lower branches.
+        - 'Qf': Uses only the upper branch.
+
+    Parameters
+    ----------
+    H : array_like
+        Array of applied magnetic field values.
+    M : array_like
+        Array of measured magnetization (moment) values, corresponding to `H`.
+    type : {'Q', 'Qf'}, optional
+        Type of Q calculation to perform:
+            - 'Q' (default): Uses both upper and lower branches of the loop.
+            - 'Qf': Uses only the upper branch.
+
+    Returns
+    -------
+    M_sn : float
+        The calculated signal-to-noise ratio (before applying the logarithm).
+    Q : float
+        The quality factor, defined as log10(M_sn).
+
+    Notes
+    -----
+    - The function splits the hysteresis loop into upper and lower branches using `split_hysteresis_loop`.
+    - For type 'Q', the numerator is the average of the sum of squares of the upper and lower branches; for 'Qf', only the upper branch is used.
+    - The denominator is always the sum of squares of the combined (averaged) upper and reversed lower branches.
+    - Higher Q values indicate a higher signal-to-noise ratio in the hysteresis loop data.
+
+    Examples
+    --------
+    >>> H = np.linspace(-1, 1, 200)
+    >>> M = np.tanh(3 * H) + 0.05 * np.random.randn(200)
+    >>> M_sn, Q = calc_Q(H, M, type='Q')
+    >>> print(f"Signal-to-noise ratio: {M_sn:.3f}, Q: {Q:.2f}")
+    """
     assert type in ['Q', 'Qf'], 'type must be either Q or Qf'
     H = np.array(H)
     M = np.array(M)
@@ -2588,10 +2770,48 @@ def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=
     
 
 def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0.97):
-    '''
-    function for testing the saturation of a hysteresis loop
-        which is based on the testing of linearity of the loop in field ranges of 60%, 70%, and 80% of the maximum field (<97%)
-    '''
+    """
+    Assess the saturation state of a magnetic hysteresis loop based on linearity at high-field segments.
+
+    This function evaluates the degree of saturation in a hysteresis loop by calculating the first normalized linearity (FNL)
+    at 60%, 70%, and 80% of the maximum field (up to a specified cutoff). The FNL values are analyzed to determine the field
+    fraction at which the loop can be considered saturated, based on whether FNL exceeds a threshold (typically 2.5).
+    The result helps determine if the sample reached magnetic saturation during measurement.
+
+    Parameters
+    ----------
+    grid_field : array_like
+        Array of applied magnetic field values for the hysteresis loop.
+    grid_magnetization : array_like
+        Array of magnetization (moment) values corresponding to `grid_field`.
+    max_field_cutoff : float, optional
+        Fraction of the maximum field to use as an upper cutoff for the analysis (default is 0.97).
+
+    Returns
+    -------
+    results_dict : dict
+        Dictionary containing:
+            - 'FNL60': float, FNL at 60% of the maximum field.
+            - 'FNL70': float, FNL at 70% of the maximum field.
+            - 'FNL80': float, FNL at 80% of the maximum field.
+            - 'saturation_cutoff': float, field fraction (0.6, 0.7, 0.8, or 0.92) at which the loop is considered saturated.
+            - 'loop_is_saturated': bool, True if the loop is not saturated at 80%, 70%, or 60%.
+              (False means the loop is considered saturated at one of those field fractions.)
+
+    Notes
+    -----
+    - The function uses `loop_saturation_stats` to compute FNL values for each field fraction.
+    - FNL values above 2.5 indicate linear (unsaturated) behavior; values below suggest saturation.
+    - The 'saturation_cutoff' indicates the lowest field fraction where the loop is still considered saturated;
+      0.92 is returned if the loop does not saturate at any tested fraction (typical for IRM measurements).
+    - The result is converted to standard Python types using `dict_in_native_python`.
+
+    Examples
+    --------
+    >>> results = hyst_loop_saturation_test(fields, magnetizations)
+    >>> print(results['saturation_cutoff'], results['loop_is_saturated'])
+    0.8 False
+    """
     
     FNL60 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.6, max_field_cutoff = max_field_cutoff)['FNL']
     FNL70 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.7, max_field_cutoff = max_field_cutoff)['FNL']
@@ -2675,16 +2895,34 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
 
 
 def drift_correction_Me(H, M):
-    '''
-    default IRM drift correction algorithm based on Me 
+    """
+    Perform default IRM drift correction for a hysteresis loop based on the Me method.
+
+    This function applies a drift correction algorithm to magnetization data (M) measured as a function of applied field (H),
+    commonly used for IRM (Isothermal Remanent Magnetization) experiments. The correction is based on the Me signal,
+    which is the sum of the upper and reversed lower branches of the hysteresis loop.
+    The correction method adapts depending on whether significant drift is detected in the high-field region.
 
     Parameters
     ----------
-    H : numpy array
-        field values
-    M : numpy array
-        magnetization values
-    '''
+    H : numpy.ndarray
+        Array of magnetic field values.
+    M : numpy.ndarray
+        Array of measured magnetization values corresponding to `H`.
+
+    Returns
+    -------
+    M_cor : numpy.ndarray
+        Corrected magnetization values after drift correction.
+
+    Examples
+    --------
+    >>> H = np.linspace(-1, 1, 200)
+    >>> M = measure_hysteresis(H)
+    >>> M_cor = drift_correction_Me(H, M)
+    >>> plot(H, M, label='Original')
+    >>> plot(H, M_cor, label='Drift Corrected')
+    """
     # split loop branches
     upper_branch, lower_branch = split_hysteresis_loop(H, M)
     # calculate Me
@@ -2759,7 +2997,32 @@ def prorated_drift_correction(field, magnetization):
     return np.array(corrected_magnetization)
 
 def symmetric_averaging_drift_corr(field, magnetization):
-    
+    """
+    Apply symmetric averaging drift correction to a hysteresis loop.
+
+    This function corrects drift in magnetic hysteresis loop data by averaging the upper branch and
+    the inverted lower branch of the magnetization curve, then adjusting for tip-to-tip separation.
+    The corrected magnetization is constructed by concatenating the reversed, drift-corrected upper branch
+    and its inverted counterpart, restoring symmetry to the loop.
+
+    Parameters
+    ----------
+    field : array_like
+        Array of applied magnetic field values for the hysteresis loop.
+    magnetization : array_like
+        Array of measured magnetization values corresponding to `field`.
+
+    Returns
+    -------
+    corrected_magnetization : numpy.ndarray
+        Array of drift-corrected magnetization values, symmetrically constructed for the full loop.
+
+    Examples
+    --------
+    >>> field = np.linspace(-1, 1, 200)
+    >>> magnetization = some_hysteresis_measurement(field)
+    >>> corrected = symmetric_averaging_drift_corr(field, magnetization)
+    """
     field = np.array(field)
     magnetization = np.array(magnetization)
 
@@ -2779,29 +3042,49 @@ def symmetric_averaging_drift_corr(field, magnetization):
     return corrected_magnetization
 
 def IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2):
-    '''
-    function for calculating the IRM non-linear fit
+    """
+    Calculate the non-linear fit for Isothermal Remanent Magnetization (IRM) as a function of applied field.
+
+    This function models the IRM signal as a sum of high-field linear susceptibility, 
+    saturation magnetization, and non-linear correction terms with inverse field dependence.
+    The model is commonly used for fitting high-field IRM data, especially for extracting 
+    parameters such as high-field susceptibility (chi_HF) and saturation magnetization (Ms).
 
     Parameters
     ----------
-    H : numpy array
-        field values
+    H : numpy.ndarray
+        Array of applied magnetic field values (in Tesla).
     chi_HF : float
-        high field susceptibility, converted to Tesla to match the unit of the field
+        High-field magnetic susceptibility.Cconverted to Tesla to match the unit of the field.
     Ms : float
-        saturation magnetization
+        Saturation magnetization (in the same units as IRM).
     a_1 : float
-        coefficient for H^(-1), needs to be negative
+        Coefficient for the H^(-1) non-linear correction term. Should be negative.
     a_2 : float
-        coefficient for H^(-2), needs to be negative
+        Coefficient for the H^(-2) non-linear correction term. Should be negative.
 
-    '''
+    Returns
+    -------
+    IRM_fit : numpy.ndarray
+        Array of fitted IRM values corresponding to each field value in `H`.
+
+    Examples
+    --------
+    >>> H = np.linspace(0.1, 3, 100)  # field in Tesla, avoid zero for stability
+    >>> fit = IRM_nonlinear_fit(H, chi_HF=0.02, Ms=1.2, a_1=-0.03, a_2=-0.01)
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot(H, fit)
+    >>> plt.xlabel('Field (T)')
+    >>> plt.ylabel('IRM fit')
+    >>> plt.show()
+    """
+    
     chi_HF = chi_HF/(4*np.pi/1e7)
     return chi_HF * H + Ms + a_1 * H**(-1) + a_2 * H**(-2)
 
 def IRM_nonlinear_fit_cost_function(params, H, M_obs):
     '''
-    cost function for the IRM non-linear least squares fit optimization
+    Cost function for the IRM non-linear least squares fit optimization
 
     Parameters
     ----------
@@ -2838,6 +3121,11 @@ def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
         coefficient for H^(beta), needs to be negative
     beta : float
         coefficient for H^(beta), needs to be negative
+
+    Returns
+    -----------
+
+    numpy array of the same shape as H, giving the fitted magnetization values for each field value provided
 
     '''
     chi_HF = chi_HF/(4*np.pi/1e7) # convert to Tesla
@@ -2978,20 +3266,53 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 
 
 def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True):
-    '''
-    function to process a hysteresis loop following the IRM decision tree
+    """
+    Process a magnetic hysteresis loop using the IRM decision tree workflow.
+
+    This function performs a complete analysis of a hysteresis loop, including gridding, centering, drift correction,
+    high-field correction, and extraction of key magnetic parameters. The workflow follows best practices in rock magnetism
+    and outputs both a summary of results and a Bokeh plot visualizing the various processing steps.
+
     Parameters
     ----------
-    field : array
-        array of field values
-    magnetization : array
-        array of magnetization values
-        
+    field : array_like
+        Array of applied magnetic field values (typically in Tesla).
+    magnetization : array_like
+        Array of magnetization values (same length as `field`).
+    specimen_name : str
+        Identifier for the specimen, used for labeling plots.
+    show_results_table : bool, optional
+        If True (default), display a summary table of key parameters using Bokeh.
+
     Returns
     -------
     results : dict
-        dictionary with the hysteresis processing results and a Bokeh plot
-    '''
+        Dictionary containing the following keys:
+            - 'gridded_H': gridded field values
+            - 'gridded_M': gridded magnetization values
+            - 'linearity_test_results': results of the initial linearity test
+            - 'loop_is_linear': whether the loop passes the linearity test
+            - 'FNL': first normalized linearity value
+            - 'loop_centering_results': results of centering optimization
+            - 'centered_H': centered field values
+            - 'centered_M': centered magnetization values
+            - 'drift_corrected_M': drift-corrected magnetization
+            - 'slope_corrected_M': slope-corrected magnetization
+            - 'loop_closure_test_results': results of closure test
+            - 'loop_is_closed': whether the loop is closed
+            - 'loop_saturation_stats': saturation test results
+            - 'loop_is_saturated': whether the loop is saturated
+            - 'M_sn', 'Q': quality metrics from centering
+            - 'H', 'Mr', 'Mrh', 'Mih', 'Me', 'Brh': characteristic field and moment parameters
+            - 'sigma': shape parameter (Fabian, 2003)
+            - 'chi_HF': high-field susceptibility
+            - 'FNL60', 'FNL70', 'FNL80': FNL at 60%, 70%, and 80% field
+            - 'Ms': saturation magnetization
+            - 'Bc': coercive field
+            - 'M_sn_f', 'Qf': quality metrics for ferromagnetic component
+            - 'Fnl_lin': FNL from linear fit (None if saturated)
+            - 'plot': Bokeh figure with overlaid processing steps
+    """
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
@@ -3685,6 +4006,41 @@ def X_T_running_average(temp_list, chi_list, temp_window):
 
 
 def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
+    """
+    Visualize and optimize the moving average window size for smoothing experimental temperature-dependent data.
+
+    This function evaluates the effect of different moving average window sizes on the smoothing of both the warm and cool cycles
+    of an experiment (such as low temperature remanence or thermal demagnetization data). It iterates over a range of window sizes,
+    applies smoothing, and computes the average variance and root mean square (RMS) for each window. These metrics are plotted
+    to help the user visually identify the optimal window size for minimizing variance and RMS, balancing noise reduction and signal fidelity.
+
+    Parameters
+    ----------
+    experiment : object or structured array
+        Experimental data containing temperature and measurement values. It must be compatible with the `split_warm_cool` function.
+    min_temp_window : float, optional
+        Minimum window size (in degrees Celsius) for the moving average. Default is 0.
+    max_temp_window : float, optional
+        Maximum window size (in degrees Celsius) for the moving average. Default is 50.
+    steps : int, optional
+        Number of window size steps to evaluate between the minimum and maximum. Default is 50.
+    colormapwarm : str, optional
+        Matplotlib colormap name for the warm cycle plot. Default is 'tab20b'.
+    colormapcool : str, optional
+        Matplotlib colormap name for the cool cycle plot. Default is 'tab20c'.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The matplotlib Figure object containing the optimization plots.
+    axs : numpy.ndarray of matplotlib.axes.Axes
+        Array of Axes objects (one for the warm cycle, one for the cool cycle).
+
+    Examples
+    --------
+    >>> fig, axs = optimize_moving_average_window(my_experiment, min_temp_window=5, max_temp_window=30, steps=20)
+    >>> fig.show()
+    """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
@@ -3717,6 +4073,38 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
 
 
 def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
+    """
+    Calculate the average root mean square (RMS) deviation and average variance for a set of measurements.
+
+    This function computes two statistical metrics for a given list of measurement values and their corresponding 
+    moving averages and variances:
+      1. The average RMS deviation, which quantifies the typical deviation between each measurement and its local average.
+      2. The average variance, representing the mean of the provided variances for the measurements.
+
+    Parameters
+    ----------
+    chi_list : array-like
+        List or array of measurement values (e.g., susceptibility, magnetization).
+    avg_chis : array-like
+        List or array of moving average values corresponding to `chi_list`.
+    chi_vars : array-like
+        List or array of variance values for each measurement.
+
+    Returns
+    -------
+    avg_rms : float
+        The average root mean square deviation between each value in `chi_list` and its corresponding `avg_chis`.
+    avg_variance : float
+        The average of all values in `chi_vars`.
+
+    Examples
+    --------
+    >>> chi = [1.0, 2.0, 3.0]
+    >>> avg_chi = [0.9, 2.1, 2.9]
+    >>> vars = [0.01, 0.02, 0.03]
+    >>> avg_rms, avg_var = calculate_avg_variance_and_rms(chi, avg_chi, vars)
+    >>> print(f"Average RMS: {avg_rms:.3f}, Average Variance: {avg_var:.3f}")
+    """
     rms_list = np.sqrt([(chi - avg_chi)**2 for chi, avg_chi in zip(chi_list, avg_chis)])
     total_rms = np.sum(rms_list)
     avg_rms = total_rms / len(rms_list)
