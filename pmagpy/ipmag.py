@@ -1098,12 +1098,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", color2, "")
         bounds2 = [X2[minimum], X2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        x_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
         pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    x_overlap = pmag.interval_overlap(bounds1,bounds2)
-
+    
     plt.subplot(1, 3, 2)
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", color1, "")
     bounds1 = [Y1[minimum], Y1[maximum]]
@@ -1112,10 +1112,10 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", color2, "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        y_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
         pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
     plt.ylim(0, 1)
-    y_overlap = pmag.interval_overlap(bounds1,bounds2)
     
     plt.subplot(1, 3, 3)
     Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", color1, "")
@@ -1126,12 +1126,12 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", color2, "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        z_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
         pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    z_overlap = pmag.interval_overlap(bounds1,bounds2)
-
+    
     plt.tight_layout()
     if save:
         plt.savefig(os.path.join(
@@ -1139,38 +1139,39 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
                     dpi=300,bbox_inches='tight')
     plt.show()
     
-    if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
-        if verbose:print('Pass')
-        result = 1
-        return result
-    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in x')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in y')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in z')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in x and y')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in x and z')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in y and z')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in x, y and z')
-        result = 0
-        return result
+    if np.array(Data2).shape[0] > 2:
+        if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
+            if verbose:print('Pass')
+            result = 1
+            return result
+        elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
+            if verbose:print('Fail, distinct in x')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
+            if verbose:print('Fail, distinct in y')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
+            if verbose:print('Fail, distinct in z')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
+            if verbose:print('Fail, distinct in x and y')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
+            if verbose:print('Fail, distinct in x and z')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
+            if verbose:print('Fail, distinct in y and z')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
+            if verbose:print('Fail, distinct in x, y and z')
+            result = 0
+            return result
         
 
 def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
