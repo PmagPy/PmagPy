@@ -3063,7 +3063,7 @@ def circ(dec, dip, alpha,npts=201):
 def int_pars(x, y, vds, **kwargs):
     """
     This function calculates York regression and paleointensity parameters
-    (with Tauxe Fvds), building a dictionary which is used in pmag.PintPars.
+    (with Tauxe Fvds), building a dictionary which is used in PintPars.
 
     Parameters
     ----------
@@ -3157,6 +3157,8 @@ def int_pars(x, y, vds, **kwargs):
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
     Calculate the paleointensity with magic parameters and make some definitions.
+    
+    Uses functions int_pars and dovds
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         meth_key = 'method_codes'
@@ -8524,7 +8526,7 @@ def sbootpars(Taus, Vs):
 
 def apseudo(Ss, ipar, sigma):
     """
-    This function draws a bootstrap sample of Ss.
+    This function draws a bootstrap sample of Ss, for use in pmag.s_boot.
 
     Parameters
     ----------
