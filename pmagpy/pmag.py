@@ -3062,9 +3062,22 @@ def circ(dec, dip, alpha,npts=201):
 
 def int_pars(x, y, vds, **kwargs):
     """
-    Depreciated 9/7/2022 
+    This function calculates York regression and paleointensity parameters
+    (with Tauxe Fvds), building a dictionary which is used in pmag.PintPars.
 
-    Calculates York regression and paleointensity parameters (with Tauxe Fvds).
+    Parameters
+    ----------
+    x : x values of TRM and NRM points on the Arai plot
+    y : y values of TRM and NRM points on the Arai plot
+    vds : vector difference sum (from pmag.dovds)
+    **kwargs
+
+    Returns
+    -------
+    pars : dctionary of regression and paleointensity parameters
+    errcode : bool
+        0 if no errors, 1 if too few points 
+
     """
     # first do linear regression a la York
     # do Data Model 3 way:
@@ -8511,9 +8524,7 @@ def sbootpars(Taus, Vs):
 
 def apseudo(Ss, ipar, sigma):
     """
-    Depreciated: 9/14/2022
-
-    Draw a bootstrap sample of Ss.
+    This function draws a bootstrap sample of Ss.
 
     Parameters
     ----------
@@ -8534,7 +8545,7 @@ def apseudo(Ss, ipar, sigma):
 #
     Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
     Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
-    #Ss = np.array(Ss)
+    
     if not ipar: # ipar == 0:
         BSs = Ss[Is]
     else:  # need to recreate measurement - then do the parametric stuffr
