@@ -284,7 +284,7 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
-def ms_t_plot(
+def plot_ms_t(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
@@ -1546,7 +1546,7 @@ def goethite_removal(rtsirm_warm_data,
         return rtsirm_warm_adjusted, rtsirm_cool_adjusted
     
     
-def interactive_goethite_removal(measurements, specimen_dropdown):
+def goethite_removal_interactive(measurements, specimen_dropdown):
     """
     Display an interactive widget for fitting and visualizing goethite removal from low temperature remanence data.
 
@@ -1817,7 +1817,7 @@ def plot_mpms_ac(
         return fig, (ax1, ax2)
 
 
-def MPMS_signal_blender(measurement_1, measurement_2, 
+def mpms_signal_blender(measurement_1, measurement_2, 
                         spec_1, spec_2,
                         experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                         temp_col='meas_temp', moment_col='magn_mass',
@@ -1887,7 +1887,7 @@ def MPMS_signal_blender(measurement_1, measurement_2,
     return output_dict
 
 
-def MPMS_signal_blender_interactive(measurement_1, measurement_2, 
+def mpms_signal_blender_interactive(measurement_1, measurement_2, 
                                     experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
@@ -1937,7 +1937,7 @@ def MPMS_signal_blender_interactive(measurement_1, measurement_2,
     def update(*args):
         ax[0].clear()
         ax[1].clear()
-        blender_result = MPMS_signal_blender(
+        blender_result = mpms_signal_blender(
             measurement_1, measurement_2,
             spec_1_dropdown.value, spec_2_dropdown.value,
             experiments=experiments,
@@ -2008,7 +2008,7 @@ def extract_hysteresis_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
+def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
     '''
     function to plot a hysteresis loop
 
@@ -2022,31 +2022,51 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color
     Returns
     -------
     p : bokeh.plotting.figure
+    
     '''
     if not _HAS_BOKEH:
         print("Bokeh is not installed. Please install it to enable hysteresis data processing.")
         return
     
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
-    if p is None:
-        p = figure(title=f'{specimen_name} hysteresis loop',
-                  x_axis_label='Field (T)',
-                  y_axis_label='Magnetization (Am\u00B2/kg)',
-                  width=600,
-                  height=600, aspect_ratio=1)
-        p.axis.axis_label_text_font_size = '12pt'
-        p.axis.axis_label_text_font_style = 'normal'
-        p.title.text_font_size = '14pt'
-        p.title.text_font_style = 'bold'
-        p.title.align = 'center'
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.click_policy="hide"
-        p.legend.location = legend_location
-    else:
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.location = legend_location
-
-    return p
+    if interactive:
+        if p is None:
+            p = figure(title=f'{specimen_name} hysteresis loop',
+                    x_axis_label='Field (T)',
+                    y_axis_label='Magnetization (Am\u00B2/kg)',
+                    width=600,
+                    height=600, aspect_ratio=1)
+            p.axis.axis_label_text_font_size = '12pt'
+            p.axis.axis_label_text_font_style = 'normal'
+            p.title.text_font_size = '14pt'
+            p.title.text_font_style = 'bold'
+            p.title.align = 'center'
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.click_policy="hide"
+            p.legend.location = legend_location
+        else:
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.location = legend_location
+        
+        if show_plot:
+            show(p)
+        if return_figure:
+            return p
+        return None
+    
+    # static Matplotlib
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.plot(field, magnetization, color=line_color, linewidth=line_width, label=label)
+    ax.set_title(f'{specimen_name} hysteresis loop')
+    ax.set_xlabel('Field (T)')
+    ax.set_ylabel('Magnetization (Am²/kg)')
+    ax.legend(loc=legend_location)
+    ax.grid(True)
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 def split_hysteresis_loop(field, magnetization):
     '''
@@ -4971,9 +4991,9 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     return     
 
 
-# Day plot function
+# Day plot functions
 # ------------------------------------------------------------------------------------------------------------------
-def day_plot_MagIC(specimen_data, 
+def plot_day_plot_MagIC(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -5008,14 +5028,14 @@ def day_plot_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    ax = day_plot(Mr = summary_sats[Mr],
+    fig, ax = plot_day_plot(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
-    return ax
+    return fig, ax
     
-def day_plot(Mr, Ms, Bcr, Bc, 
+def plot_day_plot(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_day_lines = True, 
              plot_MD_slope=True,
@@ -5024,7 +5044,8 @@ def day_plot(Mr, Ms, Bcr, Bc,
              color='black', marker='o', 
              label = 'sample', alpha=1, 
              lc='black', lw=0.5, 
-             legend=True, figsize=(8,6)):
+             legend=True, figsize=(8,6),
+             show_plot=True, return_figure=True):
     '''
     function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
         plots Mr/Ms vs Bc/Bcr. 
@@ -5055,11 +5076,16 @@ def day_plot(Mr, Ms, Bcr, Bc,
         whether to show the legend. The default is True.
     figsize : tuple, optional
         size of the figure. The default is (6,6).
+    show_plot : bool, optional
+        whether to show the plot. The default is True.
+    return_figure : bool, optional
+        whether to return the figure and axes objects. The default is True, so that a different function (plot_day_MagIC) can use it.
 
     Returns
     -------
-    ax : matplotlib.axes._axes.Axes
-        the axes object of the plot.
+    tuple or None
+        - If return_figure is True (default), returns (fig, ax).
+        - Otherwise, returns None.
 
     '''
     # force numpy arrays
@@ -5069,7 +5095,7 @@ def day_plot(Mr, Ms, Bcr, Bc,
     Bcr = np.asarray(Bcr)
     Bcr_Bc = Bcr/Bc
     Mr_Ms = Mr/Ms
-    _, ax = plt.subplots(figsize = figsize)
+    fig, ax = plt.subplots(figsize = figsize)
     # plotting SD, PSD, MD regions
     if plot_day_lines:
         ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
@@ -5105,9 +5131,9 @@ def day_plot(Mr, Ms, Bcr, Bc,
         mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
         mixing_Mr_Ms = mixing_Mr_Ms[mask]
         ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='-.', label = 'SD/MD mixture')
+    
     # plot the data
     ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha)
-
     ax.set_xlim(1, 100)
     ax.set_ylim(0.005, 1)
     ax.set_xscale('log')
@@ -5120,10 +5146,14 @@ def day_plot(Mr, Ms, Bcr, Bc,
 
     if legend:
         ax.legend(loc='lower right', fontsize=10)
-    return ax
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 
-def neel_plot_magic(specimen_data, 
+def plot_neel_magic(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -5158,14 +5188,14 @@ def neel_plot_magic(specimen_data,
     summary_stats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_stats = summary_stats.dropna()
 
-    ax = neel_plot(Mr = summary_stats[Mr],
+    ax = plot_neel(Mr = summary_stats[Mr],
                 Ms = summary_stats[Ms],
                 Bc = summary_stats[Bc], 
                 **kwargs)
     return ax
 
 
-def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
+def plot_neel(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     """
     Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from hysteresis data.
 
