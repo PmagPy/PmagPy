@@ -4574,7 +4574,7 @@ def gausspars(data):
 
     Notes
     -----
-    - If the input array is empty, returns two empty strings.
+    - If the input array is empty, returns a tuple of two empty strings.
     - If the array contains a single observation, returns the observation as the mean
       and 0 as the standard deviation.
     - The standard deviation is computed using the `ddof` parameter in NumPy, which
