@@ -1188,7 +1188,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", color2, "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
-        z_overlap = pmag.interval_overlap(bounds1,bounds2)
+        z_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
         z_in_bounds = Z1[minimum] <= Z2 <= Z1[maximum]
         pmagplotlib.plot_vs(fignum, [Z2], color2, ':')
@@ -1204,35 +1204,35 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
 
     if is_block:
         if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
-            if verbose:print('Pass')
+            if verbose: print('Pass')
             result = 1
             return result
         elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
-            if verbose:print('Fail, distinct in x')
+            if verbose: print('Fail, distinct in x')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
-            if verbose:print('Fail, distinct in y')
+            if verbose: print('Fail, distinct in y')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
-            if verbose:print('Fail, distinct in z')
+            if verbose: print('Fail, distinct in z')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
-            if verbose:print('Fail, distinct in x and y')
+            if verbose: print('Fail, distinct in x and y')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
-            if verbose:print('Fail, distinct in x and z')
+            if verbose: print('Fail, distinct in x and z')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
-            if verbose:print('Fail, distinct in y and z')
+            if verbose: print('Fail, distinct in y and z')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
-            if verbose:print('Fail, distinct in x, y and z')
+            if verbose: print('Fail, distinct in x, y and z')
             result = 0
             return result
 
