@@ -2689,6 +2689,34 @@ def Tmatrix(X):
     return T
 
 
+def vspec(data):
+    """
+    Takes the vector mean of replicate measurements at a given step. Used in zeq_magic2.py.
+    """
+    vdata, Dirdata, step_meth = [], [], []
+    tr0 = data[0][0]  # set beginning treatment
+    data.append("Stop")
+    k, R = 1, 0
+    for i in range(k, len(data)):
+        Dirdata = []
+        if data[i][0] != tr0:
+            if i == k:  # sample is unique
+                vdata.append(data[i - 1])
+                step_meth.append(" ")
+            else:  # sample is not unique
+                for l in range(k - 1, i):
+                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
+                dir, R = vector_mean(Dirdata)
+                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
+                step_meth.append("DE-VM")
+            tr0 = data[i][0]
+            k = i + 1
+            if tr0 == "stop":
+                break
+    del data[-1]
+    return step_meth, vdata
+
+
 def dir2cart(d):
     """
     Converts a list or array of vector directions in degrees (declination,
@@ -5946,6 +5974,75 @@ def dobingham(di_block):
     return bpars
 
 
+def scoreit(pars, PmagSpecRec, accept, text, verbose):
+    """
+    This function produces a grade for a given set of data. Used in thellier_magic2.py and
+    microwave_magic.py.
+    """
+    s = PmagSpecRec["er_specimen_name"]
+    PmagSpecRec["measurement_step_min"] = '%8.3e' % (
+        pars["measurement_step_min"])
+    PmagSpecRec["measurement_step_max"] = '%8.3e' % (
+        pars["measurement_step_max"])
+    PmagSpecRec["measurement_step_unit"] = pars["measurement_step_unit"]
+    PmagSpecRec["specimen_int_n"] = '%i' % (pars["specimen_int_n"])
+    PmagSpecRec["specimen_lab_field_dc"] = '%8.3e' % (
+        pars["specimen_lab_field_dc"])
+    PmagSpecRec["specimen_int"] = '%8.3e ' % (pars["specimen_int"])
+    PmagSpecRec["specimen_b"] = '%5.3f ' % (pars["specimen_b"])
+    PmagSpecRec["specimen_q"] = '%5.1f ' % (pars["specimen_q"])
+    PmagSpecRec["specimen_f"] = '%5.3f ' % (pars["specimen_f"])
+    PmagSpecRec["specimen_fvds"] = '%5.3f' % (pars["specimen_fvds"])
+    PmagSpecRec["specimen_b_beta"] = '%5.3f' % (pars["specimen_b_beta"])
+    PmagSpecRec["specimen_int_mad"] = '%7.1f' % (pars["specimen_int_mad"])
+    PmagSpecRec["specimen_dec"] = '%7.1f' % (pars["specimen_dec"])
+    PmagSpecRec["specimen_inc"] = '%7.1f' % (pars["specimen_inc"])
+    PmagSpecRec["specimen_int_dang"] = '%7.1f ' % (pars["specimen_int_dang"])
+    PmagSpecRec["specimen_drats"] = '%7.1f ' % (pars["specimen_drats"])
+    PmagSpecRec["specimen_int_ptrm_n"] = '%i ' % (pars["specimen_int_ptrm_n"])
+    PmagSpecRec["specimen_rsc"] = '%6.4f ' % (pars["specimen_rsc"])
+    PmagSpecRec["specimen_md"] = '%i ' % (int(pars["specimen_md"]))
+    PmagSpecRec["specimen_b_sigma"] = '%5.3f ' % (pars["specimen_b_sigma"])
+    if 'specimen_scat' in list(pars.keys()):
+        PmagSpecRec['specimen_scat'] = pars['specimen_scat']
+    if 'specimen_gmax' in list(pars.keys()):
+        PmagSpecRec['specimen_gmax'] = '%5.3f' % (pars['specimen_gmax'])
+    if 'specimen_frac' in list(pars.keys()):
+        PmagSpecRec['specimen_frac'] = '%5.3f' % (pars['specimen_frac'])
+    # PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
+  # check score
+    #
+    kill = grade(PmagSpecRec, accept, 'specimen_int')
+    Grade = ""
+    if len(kill) == 0:
+        Grade = 'A'
+    else:
+        Grade = 'F'
+    pars["specimen_grade"] = Grade
+    if verbose == 0:
+        return pars, kill
+    diffcum = 0
+    if pars['measurement_step_unit'] == 'K':
+        outstr = "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gamma_max \n"
+        pars_out = (s, (pars["measurement_step_min"] - 273), (pars["measurement_step_max"] - 273), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"],
+                    pars["specimen_b_beta"], pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars['specimen_gamma'])
+        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out + '\n'
+    elif pars['measurement_step_unit'] == 'J':
+        outstr = "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
+        pars_out = (s, (pars["measurement_step_min"]), (pars["measurement_step_max"]), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"], pars["specimen_b_beta"],
+                    pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars["specimen_theta"], pars["specimen_delta"], pars["specimen_gamma"])
+        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out + '\n'
+    if pars["specimen_grade"] != "A":
+        print('\n killed by:')
+        for k in kill:
+            print(k, ':, criterion set to: ',
+                  accept[k], ', specimen value: ', pars[k])
+        print('\n')
+    print(outstr)
+    print(outstring)
+    return pars, kill
+
+
 def doflip(dec, inc):
     """
     Flips upper hemisphere data to lower hemisphere.
@@ -6959,6 +7056,78 @@ def adjust_ages(AgesIn):
                     AgesOut.append((1950 - agerec[0]) / factor)
     return AgesOut, age_unit
 #
+
+
+def Dir_anis_corr(InDir, AniSpec):
+    """
+    This function takes the 6 element 's' vector and the Dec,Inc 'InDir' data and performs a
+    simple anisotropy correction, returning corrected Dec, Inc. Used in thellier_magic2.py. 
+    """
+    Dir = np.zeros((3), 'f')
+    Dir[0] = InDir[0]
+    Dir[1] = InDir[1]
+    Dir[2] = 1.
+    chi, chi_inv = check_F(AniSpec)
+    if chi[0][0] == 1.:
+        return Dir  # isotropic
+    X = dir2cart(Dir)
+    M = np.array(X)
+    H = np.dot(M, chi_inv)
+    return cart2dir(H)
+
+
+def doaniscorr(PmagSpecRec, AniSpec):
+    """
+    This function takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
+    performs simple anisotropy correction, and returns corrected Dec, Inc, Int. This
+    is used in thellier_magic2.py. 
+    """
+    AniSpecRec = {}
+    for key in list(PmagSpecRec.keys()):
+        AniSpecRec[key] = PmagSpecRec[key]
+    Dir = np.zeros((3), 'f')
+    Dir[0] = float(PmagSpecRec["specimen_dec"])
+    Dir[1] = float(PmagSpecRec["specimen_inc"])
+    Dir[2] = float(PmagSpecRec["specimen_int"])
+# check if F test passes!  if anisotropy_sigma available
+    chi, chi_inv = check_F(AniSpec)
+    if chi[0][0] == 1.:  # isotropic
+        cDir = [Dir[0], Dir[1]]  # no change
+        newint = Dir[2]
+    else:
+        X = dir2cart(Dir)
+        M = np.array(X)
+        H = np.dot(M, chi_inv)
+        cDir = cart2dir(H)
+        Hunit = [(H[0] / cDir[2]), (H[1] / cDir[2]), (H[2] / cDir[2])]  # unit vector parallel to Banc
+        Zunit = [0, 0, -1.]  # unit vector parallel to lab field
+        Hpar = np.dot(chi, Hunit)  # unit vector applied along ancient field
+        Zpar = np.dot(chi, Zunit)  # unit vector applied along lab field
+        # intensity of resultant vector from ancient field
+        HparInt = cart2dir(Hpar)[2]
+        # intensity of resultant vector from lab field
+        ZparInt = cart2dir(Zpar)[2]
+        newint = Dir[2] * ZparInt / HparInt
+        if cDir[0] - Dir[0] > 90:
+            cDir[1] = -cDir[1]
+            cDir[0] = (cDir[0] - 180.) % 360.
+    AniSpecRec["specimen_dec"] = '%7.1f' % (cDir[0])
+    AniSpecRec["specimen_inc"] = '%7.1f' % (cDir[1])
+    AniSpecRec["specimen_int"] = '%9.4e' % (newint)
+    AniSpecRec["specimen_correction"] = 'c'
+    if 'magic_method_codes' in list(AniSpecRec.keys()):
+        methcodes = AniSpecRec["magic_method_codes"]
+    else:
+        methcodes = ""
+    if methcodes == "":
+        methcodes = "DA-AC-" + AniSpec['anisotropy_type']
+    if methcodes != "":
+        methcodes = methcodes + ":DA-AC-" + AniSpec['anisotropy_type']
+    if chi[0][0] == 1.:  # isotropic
+        # indicates anisotropy was checked and no change necessary
+        methcodes = methcodes + ':DA-AC-ISO'
+    AniSpecRec["magic_method_codes"] = methcodes.strip(":")
+    return AniSpecRec
 
 
 def gaussdev(mean, sigma, N=1):
