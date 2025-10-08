@@ -9345,10 +9345,10 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     Returns:
         - equal area plot of original directions
-        - Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+        - Elongation/inclination pairs as a function of f,  data plus num_resample_to_plot bootstrap samples
         - Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
             Estimate from original data set plotted as solid line
-        - Orientation of principle direction through unflattening
+        - Orientation of principal direction through unflattening
      
     NOTE: 
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
@@ -9358,7 +9358,6 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
@@ -9409,19 +9408,19 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
-        title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
         title = 'Pathological Distribution: ' 
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
@@ -9454,11 +9453,11 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     
@@ -9473,6 +9472,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         return flat_f, I, E, F
     else:
         return
+
 
 def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
                 return_new_dirs=False, return_values=False, figprefix='EI', 
@@ -9530,7 +9530,6 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
 
     ppars = pmag.doprinc(data)
@@ -9569,17 +9568,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
+            '[%7.1f, %7.1f]' % (i_lo, i_hi)
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     plt.figure(figsize=(4, 4))
     pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(2, [Inc], 'g', '-')
     pmagplotlib.plot_vs(2, [Io], 'k', '-')
     if save:
@@ -9663,11 +9664,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     print("")
