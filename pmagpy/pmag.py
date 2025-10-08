@@ -11982,37 +11982,64 @@ def squish(incs, f):
 
 
 def unsquish(incs, f):
-    """
-    Returns 'unflattened' inclination, assuming factor, f and King (1955) formula: tan (I_o) = tan (I_f)/f.
+    r"""
+    Restore (``unsquish``) inclinations using the King (1955) inclination-shallowing
+    correction.
+
+    King (1955) described the relationship between the inclination of a specimen’s
+    magnetization (:math:`I_o`, the *observed* inclination) and the inclination of
+    the field in which the magnetization was acquired (:math:`I_f`) as:
+
+    .. math::
+
+       \tan(I_o) = f \, \tan(I_f)
+
+    where :math:`f` is the flattening factor (:math:`0 < f \le 1`). When
+    :math:`f < 1`, the observed inclination is shallower than the original field
+    inclination due to compaction-related flattening.
+
+    This function inverts King's equation to estimate the original inclination from
+    observed inclinations:
+
+    .. math::
+
+       \tan(I_f) = \frac{\tan(I_o)}{f}
 
     Parameters
     ----------
-    incs : array of inclination (I_f) data to unflatten
-    f : flattening factor
+    incs : array_like
+        One-dimensional list or NumPy array of observed inclinations (:math:`I_o`)
+        in degrees, typically measured from remanent magnetization directions.
+    f : float
+        Flattening factor (:math:`0 < f \le 1`). Values less than 1 indicate
+        inclination shallowing; smaller values correspond to stronger flattening.
 
     Returns
     -------
-    I_o : array of inclinations after unflattening
-    
+    ndarray
+        NumPy array of ``unsquished_incs`` (restored inclinations) in degrees with
+        the same shape as ``incs``.
+
     Examples
     --------
-    >>> incs = [63.4,59.2,73.9,85,-49.1,70.7]
-    >>> np.round(pmag.unsquish(incs,.5),1)
-    array([ 75.9,  73.4,  81.8,  87.5, -66.6,  80.1])
+    Basic usage with a list of observed inclinations (degrees):
 
-    >>> incs=np.loadtxt('data_files/unsquish/unsquish_example.dat')
-    >>> pmag.unsquish(incs,.5)
-    array([[-19.791612533135584,  38.94002937796913 ],
-       [  3.596453939529656,  35.75555908297152 ],
-       [ 11.677464698445519,  27.012196299111633],
-       [  0.399995126240053,  46.27631997468994 ],
-       [ 46.760422847350405,  39.080596252430965],
-       [ 48.64708345693855 ,  37.07969161240791 ],
-   ... 
+    >>> incs = [63.4, 59.2, 73.9, 85.1, -49.1, 70.7]
+    >>> unsquished = pmag.unsquish(incs, 0.6)
+    >>> print(np.round(unsquished, 1))
+    [ 73.3  70.3  80.2  87.1 -62.5  78.1]
+
+    Loading inclinations from a data file where they are stored as the second column:
+
+    >>> directions = np.loadtxt('data_files/unsquish/unsquish_example.dat')
+    >>> incs = directions[:, 1]  # extract the inclination column
+    >>> unsquished = pmag.unsquish(incs, 0.61)
+    >>> print(np.round(unsquished[:5], 1))  # show first 5 results
+    [33.5 30.5 22.7 40.6 33.7]
     """
     incs = np.radians(incs)
-    I_o = np.tan(incs)/f  # divide tangent by flattening factor
-    return np.degrees(np.arctan(I_o))
+    unsquished_incs = np.tan(incs) / f
+    return np.degrees(np.arctan(unsquished_incs))
 
 
 def get_ts(ts):
