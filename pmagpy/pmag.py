@@ -4593,7 +4593,7 @@ def gausspars(data):
     Standard deviation: 2.072409225997607
     """
     data = np.asarray(data)
-    N = data.size
+    N = len(data)
 
     if N < 1:
         return "", ""
