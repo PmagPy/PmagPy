@@ -1190,7 +1190,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
         z_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
-        z_in_bounds = Z1[minimum] <= Z2 <= Z1[maximum]    
+        z_in_bounds = Z1[minimum] <= Z2 <= Z1[maximum]
         pmagplotlib.plot_vs(fignum, [Z2], color2, ':')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
