@@ -1174,7 +1174,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", color2, "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
-        y_overlap = pmag.interval_overlap(bounds1,bounds2)
+        y_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
         y_in_bounds = Y1[minimum] <= Y2 <= Y1[maximum]
         pmagplotlib.plot_vs(fignum, [Y2], color2, ':')
