@@ -12095,37 +12095,38 @@ def execute(st, **kwargs):
 
 def initialize_acceptance_criteria(**kwargs):
     """
-    initialize acceptance criteria with NULL values for thellier_gui and demag_gui
+    Initializes a dictionary of acceptance criteria with default null values.
 
-    acceptance criteria format is doctionaries:
+    This function is used by thellier_gui and demag_gui to set up the
+    criteria for accepting or rejecting paleomagnetic data at different
+    levels (specimen, sample, site, etc.).
 
-    acceptance_criteria={}
-        acceptance_criteria[crit]={}
-            acceptance_criteria[crit]['category']=
-            acceptance_criteria[crit]['criterion_name']=
-            acceptance_criteria[crit]['value']=
-            acceptance_criteria[crit]['threshold_type']
-            acceptance_criteria[crit]['decimal_points']
+    Returns
+    -------
+    dict
+        A dictionary where each key is a specific criterion name (e.g., 'specimen_n').
+        The value for each key is another dictionary containing the metadata for that
+        criterion, with the following structure:
 
-   'category':
-       'DE-SPEC','DE-SAMP'..etc
-   'criterion_name':
-       MagIC name
-   'value':
-        a number (for 'regular criteria')
-        a string (for 'flag')
-        1 for True (if criteria is bullean)
-        0 for False (if criteria is bullean)
-        -999 means N/A
-   'threshold_type':
-       'low'for low threshold value
-       'high'for high threshold value
-        [flag1.flag2]: for flags
-        'bool' for boolean flags (can be 'g','b' or True/Flase or 1/0)
-   'decimal_points':
-       number of decimal points in rounding
-       (this is used in displaying criteria in the dialog box)
-       -999 means Exponent with 3 descimal points for floats and string for string
+        'category' : str
+            The category of the criterion (e.g., 'DE-SPEC', 'DE-SAMP').
+        'criterion_name' : str
+            The MagIC name for the criterion.
+        'value' : int, float, or str
+            The threshold value for the criterion.
+            - Numerical value for standard criteria.
+            - String for a flag.
+            - 1 for True, 0 for False for boolean criteria.
+            - -999 indicates Not Applicable (N/A).
+        'threshold_type' : str or list
+            Specifies how the threshold is applied.
+            - 'low': A lower bound (the measured value must be greater).
+            - 'high': An upper bound (the measured value must be less).
+            - list of str (e.g., ['n', 'r']): A list of acceptable flag values.
+            - 'bool': A boolean flag.
+        'decimal_points' : int
+            The number of decimal points for rounding when displaying the value.
+            - A value of -999 formats floats with an exponent and 3 decimal places.
     """
     acceptance_criteria = {}
     # --------------------------------
