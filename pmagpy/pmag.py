@@ -7296,31 +7296,56 @@ def adjust_ages(AgesIn):
                 if agerec[1] == "Years Cal AD (+/-)":
                     AgesOut.append((1950 - agerec[0]) / factor)
     return AgesOut, age_unit
-#
 
 
 def gaussdev(mean, sigma, N=1):
     """
-    Returns a number randomly drawn from a gaussian distribution with the given mean, sigma
-    
-    Parmeters
-    ---------
-    mean : mean of the gaussian distribution from which to draw deviates
-    sigma : standard deviation of same
-    N : number of deviates desired
+    Generate random samples drawn from a Gaussian (normal) distribution.
+
+    This function samples from a normal distribution with a specified mean and
+    standard deviation, returning a NumPy array of length ``N``.
+
+    Parameters
+    ----------
+    mean : float
+        Mean (center) of the normal distribution.
+    sigma : float
+        Standard deviation of the normal distribution.
+    N : int, optional
+        Number of random samples to generate. Defaults to 1.
 
     Returns
     -------
-    N deviates from the normal distribution
-    
+    ndarray
+        NumPy array of length ``N`` containing random samples drawn from the
+        specified normal distribution. If ``N=1``, the returned array has shape
+        ``(1,)``.
+
+    Notes
+    -----
+    This function is a thin convenience wrapper around ``numpy.random.normal``.
+    Its primary purpose is to provide a default of ``N=1`` and to ensure that
+    the return value is always a NumPy array, even when generating a single
+    sample. Results will vary between runs unless a random seed is set using
+    ``np.random.seed()``.
+
     Examples
     --------
-    >>> pmag.gaussdev(5.5,1.2,6)
-    array([5.090856280215007, 3.305193918953536, 7.313490558588299,
-           5.412029315803913, 6.819820301799303, 7.632257251681613])
+    Generate six samples from a normal distribution with mean 5.5 and standard
+    deviation 1.2:
+
+    >>> np.random.seed(42)  # optional, for reproducibility
+    >>> pmag.gaussdev(5.5, 1.2, 6)
+    array([6.096056983613479, 5.334082838594578, 6.277226245720831,
+        7.327635827689631, 5.219015950331997, 5.219035651660984])
+
+    Generate a single sample:
+
+    >>> np.random.seed(42)
+    >>> pmag.gaussdev(5.5, 1.2, 1)
+    array([6.096056983613479])
     """
     return random.normal(mean, sigma, N)  # return gaussian deviate
-#
 
 
 def get_unf(N=100):
