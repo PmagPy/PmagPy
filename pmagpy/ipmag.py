@@ -1041,52 +1041,113 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
                           save=False, save_folder='.', fmt='svg', 
                           figsize=(7, 2.3), x_tick_bins=4,verbose=True):
     """
-    Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
-    inclination data sets. Plots are generated of the cumulative distributions
-    of the Cartesian coordinates of the means of the pseudo-samples (one for x,
-    one for y and one for z). If the 95 percent confidence bounds for each
-    component overlap, the two set of directions "pass" the test and are
-    consistent with sharing a common mean.
+    Conducts a bootstrap test for a common mean on two directional data sets.
 
-    Parameters:
-        Data1 : a nested list of directional data [dec,inc] (a di_block)
-        Data2 : a nested list of directional data [dec,inc] (a di_block)
-                if Data2 is length of 1, treat as single direction
-        NumSims : number of bootstrap samples (default is 1000)
-        save : optional save of plots (default is False)
-        save_folder : path to directory where plots should be saved
-        fmt : format of figures to be saved (default is 'svg')
-        figsize : optionally adjust figure size (default is (7, 2.3))
-        x_tick_bins : because they occasionally overlap depending on the data, this
-            argument allows you adjust number of tick marks on the x axis of graphs
-            (default is 4)
+    This function implements the bootstrap test from Tauxe (2010) to determine
+    if two sets of directional data are consistent with sharing a common mean.
+    It generates cumulative distribution plots for the X, Y, and Z components
+    of the bootstrapped means. The test "passes" if the 95% confidence bounds
+    for each of the three components overlap.
 
-    Returns:
-        **three plots** (cumulative distributions of the X, Y, Z of bootstrapped means, 
-        **result** (a boolean where 0 is fail and 1 is pass)
+    Alternatively, if a single direction is provided for `Data2`, the function
+    tests if that direction falls within the 95% confidence bounds of `Data1`.
 
-    Examples:
-        Develop two populations of directions using ``ipmag.fishrot()``. Use the
-        function to determine if they share a common mean.
+    Parameters
+    ----------
+    Data1 : array-like
+        A list of lists or NumPy array of directional data, where each inner
+        list is [declination, inclination].
+    Data2 : array-like
+        A second set of directional data in the same format as `Data1`, or a
+        single direction as [declination, inclination].
+    NumSims : int, optional
+        The number of bootstrap samples to generate. Defaults to 1000.
+    color1 : str, optional
+        Matplotlib color for the first dataset. Defaults to 'r' (red).
+    color2 : str, optional
+        Matplotlib color for the second dataset. Defaults to 'b' (blue).
+    save : bool, optional
+        If True, saves the generated plots. Defaults to False.
+    save_folder : str, optional
+        The directory path where plots will be saved. Defaults to '.'.
+    fmt : str, optional
+        The file format for saved plots (e.g., 'svg', 'png', 'pdf').
+        Defaults to 'svg'.
+    figsize : tuple, optional
+        The size of the figure for the plots. Defaults to (7, 2.3).
+    x_tick_bins : int, optional
+        The maximum number of tick mark bins for the x-axis of the plots.
+        Defaults to 4.
+    verbose : bool, optional
+        If True, prints the test result ('Pass' or 'Fail') to the console.
+        Defaults to True.
 
-        >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
-        >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
-        >>> ipmag.common_mean_bootstrap(directions_A, directions_B)
+    Returns
+    -------
+    int
+        Returns 1 if the datasets pass the common mean test, and 0 if they fail.
+
+    Notes
+    -----
+    The function also displays or saves three plots showing the cumulative
+    distributions for the X, Y, and Z components of the bootstrapped means. These
+    plots are a visual representation of the statistical test.
+
+    Examples
+    --------
+    Develop two populations of directions using ``ipmag.fishrot()`` and then
+    use the function to determine if they share a common mean.
+
+    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+    >>> result = ipmag.common_mean_bootstrap_new(directions_A, directions_B)
+    Pass
+    >>> print(result)
+    1
+    
+    Compare a single direction to a population.
+    
+    >>> directions_A = ipmag.fishrot(k=100, n=30, dec=45, inc=45)
+    >>> direction_B = [45,45]
+    >>> common_mean_bootstrap_new(directions_A, direction_B)
+    Pass
     """
-    counter = 0
     BDI1 = pmag.di_boot(Data1)
     cart1 = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart1[0], cart1[1], cart1[2]
-    if np.array(Data2).shape[0] > 2:
-        BDI2 = pmag.di_boot(Data2)
-        cart2 = pmag.dir2cart(BDI2).transpose()
+    
+    Data2_arr = np.asarray(Data2, dtype=float)
+
+    # Determine if Data2 is a single direction or a block
+    if Data2_arr.ndim == 1 and Data2_arr.size in (2, 3):
+        is_block = False
+        single_direction = Data2_arr  # (2,) or (3,)
+    elif Data2_arr.ndim == 2 and Data2_arr.shape[1] in (2, 3):
+        is_block = Data2_arr.shape[0] > 1
+        direction_block = Data2_arr  # (N, 2) or (N, 3)
+    elif Data2_arr.ndim == 2 and Data2_arr.shape[0] in (2, 3) and Data2_arr.shape[1] > 1:
+        # Handle transposed input like (2, N) or (3, N)
+        direction_block = Data2_arr.T
+        if direction_block.shape[1] not in (2, 3):
+            raise ValueError(f"Expected (N, 2) or (N, 3), got {direction_block.shape}.")
+        is_block = direction_block.shape[0] > 1
+    else:
+        raise ValueError(
+            f"Expected [dec, inc(, intensity)] or an array with 2 or 3 columns; "
+            f"got shape {Data2_arr.shape}."
+        )
+
+    if is_block:
+        BDI2 = pmag.di_boot(direction_block)
+        cart2 = pmag.dir2cart(BDI2).T
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
     else:
-        cart = pmag.dir2cart(Data2).transpose()
-    
+        cart2 = pmag.dir2cart(single_direction).T
+        X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
+
     minimum = int(0.025 * len(X1))
     maximum = int(0.975 * len(X1))
-    
+
     fignum = 1
     fig = plt.figure(figsize=figsize)
 
@@ -1094,52 +1155,54 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", color1, "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", color2, "")
         bounds2 = [X2[minimum], X2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
-        x_overlap = pmag.interval_overlap(bounds1,bounds2)
+        x_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
+        x_in_bounds = X1[minimum] <= X2 <= X1[maximum]
+        pmagplotlib.plot_vs(fignum, [X2], color2, ':')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    
+
     plt.subplot(1, 3, 2)
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", color1, "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", color2, "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
         y_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
+        y_in_bounds = Y1[minimum] <= Y2 <= Y1[maximum]
+        pmagplotlib.plot_vs(fignum, [Y2], color2, ':')
     plt.ylim(0, 1)
-    
+
     plt.subplot(1, 3, 3)
     Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", color1, "")
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", color2, "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
         z_overlap = pmag.interval_overlap(bounds1,bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
+        z_in_bounds = Z1[minimum] <= Z2 <= Z1[maximum]    
+        pmagplotlib.plot_vs(fignum, [Z2], color2, ':')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    
+
     plt.tight_layout()
     if save:
         plt.savefig(os.path.join(
             save_folder, 'common_mean_bootstrap') + '.' + fmt,
                     dpi=300,bbox_inches='tight')
     plt.show()
-    
-    if np.array(Data2).shape[0] > 2:
+
+    if is_block:
         if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
             if verbose:print('Pass')
             result = 1
@@ -1172,6 +1235,33 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
             if verbose:print('Fail, distinct in x, y and z')
             result = 0
             return result
+
+    else:
+        if x_in_bounds and y_in_bounds and z_in_bounds:
+            if verbose: print('Pass')
+            return 1
+        elif (not x_in_bounds) and y_in_bounds and z_in_bounds:
+            if verbose: print('Fail, distinct in x')
+            return 0
+        elif x_in_bounds and (not y_in_bounds) and z_in_bounds:
+            if verbose: print('Fail, distinct in y')
+            return 0
+        elif x_in_bounds and y_in_bounds and (not z_in_bounds):
+            if verbose: print('Fail, distinct in z')
+            return 0
+        elif (not x_in_bounds) and (not y_in_bounds) and z_in_bounds:
+            if verbose: print('Fail, distinct in x and y')
+            return 0
+        elif (not x_in_bounds) and y_in_bounds and (not z_in_bounds):
+            if verbose: print('Fail, distinct in x and z')
+            return 0
+        elif x_in_bounds and (not y_in_bounds) and (not z_in_bounds):
+            if verbose: print('Fail, distinct in y and z')
+            return 0
+        else:
+            # all three out of bounds
+            if verbose: print('Fail, distinct in x, y and z')
+            return 0
         
 
 def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
