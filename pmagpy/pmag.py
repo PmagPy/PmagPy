@@ -4556,44 +4556,52 @@ def fisher_mean(data):
 
 def gausspars(data):
     """
-    Calculates gaussian statistics for data. 
-    
-    Parmeters
-    ---------
-    data : array of data 
-    
-    Returns 
+    Compute the mean and standard deviation of a one-dimensional array of numerical data.
+
+    This function calculates the arithmetic mean and the standard deviation
+    (using N - 1 in the denominator) for a single series of observations.
+
+    Parameters
+    ----------
+    data : array_like
+        One-dimensional list or array of numerical data.
+
+    Returns
     -------
-    mean : array the length of the data array  
-    stdev : second array the length of the data array
-    
+    tuple of (float, float)
+        Mean and standard deviation of the input data. The standard deviation is
+        calculated with N - 1 degrees of freedom.
+
+    Notes
+    -----
+    - If the input array is empty, returns a tuple of two empty strings.
+    - If the array contains a single observation, returns the observation as the mean
+      and 0 as the standard deviation.
+    - The standard deviation is computed using the `ddof` parameter in NumPy, which
+      stands for *delta degrees of freedom*. The divisor in the calculation is
+      ``N - ddof``, where ``N`` is the number of observations. Here, ``ddof=1`` is
+      used so that the result is the **sample standard deviation**, the conventional
+      choice when the data represent a sample from a larger population.
+
     Examples
     --------
-    >>> data=np.loadtxt('data_files/vector_mean/vector_mean_example.dat')
-    >>> pmag.gausspars(data)
-    (array([  154.72699999999995,    44.43599999999999, 23709.242399999992  ]),
-     array([  166.93766686153165 ,    19.578257988354988,
-        11563.604723319804   ]))
-          
-    >>> data = np.array([  [16.0,    43.0, 21620.33],
-           [30.5,    53.6, 12922.58],
-            [6.9,    33.2, 15780.08],
-          [352.5,    40.2, 33947.52], 
-          [354.2,    45.1, 19725.45]])
-    >>> pmag.gausspars(data)
-    (array([  152.02, 43.019999999999996, 20799.192]),
-     array([1.839818931308187e+02, 7.427112494098901e+00, 8.092252785230450e+03]))
+    >>> data = np.array([54.15, 49.08, 50.62, 49.44, 49.64])
+    >>> mean, stdev = pmag.gausspars(data)
+    >>> print("Mean:", mean)
+    >>> print("Standard deviation:", stdev)
+    Mean: 50.586
+    Standard deviation: 2.072409225997607
     """
-    N, mean, d = len(data), 0., 0.
+    data = np.asarray(data)
+    N = len(data)
+
     if N < 1:
         return "", ""
     if N == 1:
-        return data[0], 0
-    for j in range(N):
-        mean += data[j] / float(N)
-    for j in range(N):
-        d += (data[j] - mean)**2
-    stdev = np.sqrt(d * (1./(float(N - 1))))
+        return float(data[0]), 0.0
+
+    mean = np.mean(data)
+    stdev = np.std(data, ddof=1)
     return mean, stdev
 
 
@@ -11959,7 +11967,7 @@ def unsquish(incs, f):
 
     Returns
     -------
-    I_o :  array of inclinations after unflattening
+    I_o : array of inclinations after unflattening
     
     Examples
     --------
