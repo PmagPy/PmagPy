@@ -121,7 +121,7 @@ class Forc(object):
         '''
         df_negative = df[(df.x < 0.03)].copy()
         df_negative.x = df_negative.x*-1
-        df = df.append(df_negative)
+        df = pd.concat([df, df_negative], ignore_index=True)
         df = df.drop_duplicates(['x', 'y'])
         df = df.sort_values('x')
         # plt.scatter(df.x,df.y,c=df.z)
@@ -160,7 +160,6 @@ class Forc(object):
         plt.xlabel('B$_{c}$ (mT)', fontsize=12)
         plt.ylabel('B$_{i}$ (mT)', fontsize=12)
 
-        from pmagpy import pmagplotlib
         if save:
             pmagplotlib.save_plots({'forc': 1}, {'forc': 'forc.{}'.format(fmt)})
             return
@@ -198,9 +197,8 @@ class dataLoad(object):
                 # else:
                 #    print('file format wrong, cannot find the data row.')
         skiprows = 34 if skiprows == None else skiprows
-        df = pd.read_csv(fileAdres, skiprows=skiprows, sep='\s+',
-                         delimiter=',', names=['H', 'M'], skipfooter=1,
-                         engine='python')
+        df = pd.read_csv(fileAdres, skiprows=skiprows, sep=r'[,\s]+', 
+        names=['H', 'M'], skipfooter=1,engine='python')
 
         H = df.H  # measured field
         M = df.M  # measured magnetic moment
