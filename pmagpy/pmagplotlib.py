@@ -3433,6 +3433,7 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
     total_step = np.rint(((max_y_tick-agemin)/step)+1).astype(int)
     ax.set_yticks(np.linspace(agemin, max_y_tick, total_step))
     ax.set_ylim(agemin, agemax)
+    ax.invert_yaxis()
     if ylabel != "":
         ax.set_ylabel(ylabel)
     ax2 = ax.twinx()
