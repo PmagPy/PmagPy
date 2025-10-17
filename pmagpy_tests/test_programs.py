@@ -5,12 +5,15 @@ import os
 import unittest
 import shutil
 import sys
-from pkg_resources import resource_filename
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib_resources # if Python < 3.7
 import programs
 
 # set constants
-fname = resource_filename(programs.__name__, 'angle.py')
-programs_WD = os.path.split(fname)[0]
+fname = importlib_resources.files(programs.__name__) / 'angle.py'
+programs_WD = os.path.split(str(fname))[0]
 #env = TestFileEnvironment('./new-test-output')
 
 
