@@ -41,7 +41,7 @@ from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
 has_cartopy, cartopy = pmag.import_cartopy()
 
-if has_cartopy == True:
+if has_cartopy:
     import cartopy.crs as ccrs
 
 
@@ -904,9 +904,9 @@ def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
         dflip = []
         for rec in di_block:
             d, i = (rec[0] - 180.) % 360., -rec[1]
-            if unit_vector==True:
+            if unit_vector:
                 dflip.append([d, i, 1.0])
-            if unit_vector==False:
+            if not unit_vector:
                 dflip.append([d, i])
         return dflip
 
@@ -1204,63 +1204,79 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
 
     if is_block:
         if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
-            if verbose: print('Pass')
+            if verbose:
+                print('Pass')
             result = 1
             return result
         elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
-            if verbose: print('Fail, distinct in x')
+            if verbose:
+                print('Fail, distinct in x')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
-            if verbose: print('Fail, distinct in y')
+            if verbose:
+                print('Fail, distinct in y')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
-            if verbose: print('Fail, distinct in z')
+            if verbose:
+                print('Fail, distinct in z')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
-            if verbose: print('Fail, distinct in x and y')
+            if verbose:
+                print('Fail, distinct in x and y')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
-            if verbose: print('Fail, distinct in x and z')
+            if verbose:
+                print('Fail, distinct in x and z')
             result = 0
             return result
         elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
-            if verbose: print('Fail, distinct in y and z')
+            if verbose:
+                print('Fail, distinct in y and z')
             result = 0
             return result
         elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
-            if verbose: print('Fail, distinct in x, y and z')
+            if verbose:
+                print('Fail, distinct in x, y and z')
             result = 0
             return result
 
     else:
         if x_in_bounds and y_in_bounds and z_in_bounds:
-            if verbose: print('Pass')
+            if verbose:
+                print('Pass')
             return 1
         elif (not x_in_bounds) and y_in_bounds and z_in_bounds:
-            if verbose: print('Fail, distinct in x')
+            if verbose:
+                print('Fail, distinct in x')
             return 0
         elif x_in_bounds and (not y_in_bounds) and z_in_bounds:
-            if verbose: print('Fail, distinct in y')
+            if verbose:
+                print('Fail, distinct in y')
             return 0
         elif x_in_bounds and y_in_bounds and (not z_in_bounds):
-            if verbose: print('Fail, distinct in z')
+            if verbose:
+                print('Fail, distinct in z')
             return 0
         elif (not x_in_bounds) and (not y_in_bounds) and z_in_bounds:
-            if verbose: print('Fail, distinct in x and y')
+            if verbose:
+                print('Fail, distinct in x and y')
             return 0
         elif (not x_in_bounds) and y_in_bounds and (not z_in_bounds):
-            if verbose: print('Fail, distinct in x and z')
+            if verbose:
+                print('Fail, distinct in x and z')
             return 0
         elif x_in_bounds and (not y_in_bounds) and (not z_in_bounds):
-            if verbose: print('Fail, distinct in y and z')
+            if verbose:
+                print('Fail, distinct in y and z')
             return 0
         else:
             # all three out of bounds
-            if verbose: print('Fail, distinct in x, y and z')
+            if verbose:
+                print('Fail, distinct in x, y and z')
             return 0
         
 
@@ -1376,25 +1392,31 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Lmin_c = np.quantile(Lmin_b,1-alpha) #test critical value
     # (n.b., if Lmin > Lmin_c reject null of common means at alpha significance level)
 
-    if verbose: print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
-    if verbose: print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
-    if verbose: print("Estimated p-value = {:.2f}".format(p))
+    if verbose:
+        print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
+    if verbose:
+        print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
+    if verbose:
+        print("Estimated p-value = {:.2f}".format(p))
     if p < alpha:
-        if verbose:print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:
+            print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 0
     else:
-        if verbose:print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:
+            print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 1
         
-    if plot==True:
+    if plot:
         fig=plt.figure()
         ax1=fig.add_subplot(111)
-        plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6");
+        plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6")
         #axes = plt.gca()
         y_min, y_max = ax1.get_ylim()
         plt.plot([Lmin,Lmin],[y_min,y_max],'--r',label='Test statistic:')
         plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
-        if y_max<Lmin:y_max=Lmin+5
+        if y_max<Lmin:
+            y_max=Lmin+5
         plt.ylim([y_min,y_max])
         plt.xlim(np.min(Lmin_b),np.max(Lmin_b)+10)
         plt.xlabel(r'$\lambda_{\rm{min}}^{(b)}$')
@@ -1604,7 +1626,7 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     X1=pmag.dir2cart(Data1)
     X2=pmag.dir2cart(Data2) 
     
-    if reversal_test==True:
+    if reversal_test:
         X12=np.concatenate((X1,-X2), axis=0) #pool site directions
     else:
         X12=np.concatenate((X1,X2), axis=0) #pool site directions
@@ -1869,7 +1891,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
         plot_di(di_block=directions1, color='b'),
         plot_di(di_block=do_flip(di_block=directions2), color='r')
 
-    if plot_CDF == False:
+    if not plot_CDF:
         result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, 
                                                                          save=save, save_folder=save_folder, fmt=fmt)
     else:
@@ -2292,14 +2314,14 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             if inc[n] >= 0:
                 X_down.append(XY[0])
                 Y_down.append(XY[1])
-                if type(color) == list:
+                if isinstance(color, list):
                     color_down.append(color[n])
                 else:
                     color_down.append(color)
             else:
                 X_up.append(XY[0])
                 Y_up.append(XY[1])
-                if type(color) == list:
+                if isinstance(color, list):
                     color_up.append(color[n])
                 else:
                     color_up.append(color)
@@ -2327,7 +2349,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend == 'yes':
         plt.legend(loc=2)
     plt.tight_layout()
-    if title != None:
+    if title is not None:
         plt.title(title)
 
 
@@ -2615,9 +2637,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha = mean_alpha)
-    if filled_pole==False:
+    if not filled_pole:
         equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
-    elif filled_pole==True:
+    elif filled_pole:
         equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
@@ -2671,8 +2693,8 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
-    if filled_pole==False:
-        if isinstance(color,str)==True:
+    if not filled_pole:
+        if isinstance(color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw)
@@ -2680,8 +2702,8 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw)
-    elif filled_pole==True:
-        if isinstance(fill_color,str)==True:
+    elif filled_pole:
+        if isinstance(fill_color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw)
@@ -2978,13 +3000,13 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_vgp')
         return
-    if di_block != None:
+    if di_block is not None:
         di_lists = unpack_di_block(di_block)
         if len(di_lists) == 3:
             vgp_lon, vgp_lat, intensity = di_lists
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
-    if edge==None:
+    if edge is None:
         map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=None,
                     s=markersize, color=color, label=label, zorder=zorder, 
                     alpha=alpha, transform=ccrs.PlateCarree())
@@ -3335,10 +3357,10 @@ def make_di_block(dec, inc, unit_vector=True):
         [[180.3, 12.1, 1.0], [179.2, 13.7, 1.0], [177.2, 11.9, 1.0]]
     """
     di_block = []
-    if unit_vector==True:
+    if unit_vector:
         for n in range(0, len(dec)):
             di_block.append([dec[n], inc[n], 1.0])
-    if unit_vector==False:
+    if not unit_vector:
         for n in range(0, len(dec)):
             di_block.append([dec[n], inc[n]])
     return di_block
@@ -3532,14 +3554,14 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
     Y = Y[::-1]
 
     # for non-filled ellipses
-    if fill==False:
+    if not fill:
         plt.plot(X, Y, color=color,
                  transform=ccrs.Geodetic(), alpha=alpha, lw=lw)
 
     # for filled ellipses
     else:
         XY = np.stack([X,Y],axis=1)
-        if outline==True:
+        if outline:
             circle_edge = Polygon(XY,
                                   edgecolor=color,facecolor='none',
                                   transform=ccrs.Geodetic())
@@ -3573,7 +3595,7 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         The map object with the ellipse plotted on it
 
     """
-    if transform == None:
+    if transform is None:
         transform=ccrs.PlateCarree()
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.ellipse')
@@ -3601,8 +3623,10 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         map_axis.add_patch(poly)
     else:
         try:
-            if "facecolor" in kwargs: kwargs["color"] = kwargs.pop("facecolor")
-            if "edgecolor" in kwargs: kwargs["color"] = kwargs.pop("edgecolor")
+            if "facecolor" in kwargs:
+                kwargs["color"] = kwargs.pop("facecolor")
+            if "edgecolor" in kwargs:
+                kwargs["color"] = kwargs.pop("edgecolor")
             map_axis.plot(X, Y, transform=transform, **kwargs)
             return True
         except ValueError:
@@ -4182,8 +4206,10 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             for depth in depths:
                 if depth >= dmin and depth < dmax:
                     plt.axhline(depth,color='blue',linestyle='dotted')
-        if tau_min>.3: tau_min=.3
-        if tau_max<.36: tau_max=.36
+        if tau_min>.3:
+            tau_min=.3
+        if tau_max<.36:
+            tau_max=.36
         ax.axis([tau_min, tau_max, dmax, dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale == 'core_depth':
@@ -4369,7 +4395,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     if spc_size:
         spc_size = int(spc_size)
     title = ""
-    if location:title=location
+    if location:
+        title=location
 
     # file formats not supported for the moment
     ngr_file = ""  # nothing needed, not implemented fully in original script
@@ -5504,7 +5531,7 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
                 # (this causes validation errors, elsewise)
                 ignore = True
                 for rec in Data:
-                    if ignore == False:
+                    if not ignore:
                         break
                     keys = list(rec.keys())
                     exclude_keys = ['er_citation_names', 'er_site_name', 'er_sample_name',
@@ -6054,7 +6081,8 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             response['errors']='None'
             errors_dict=json.loads(create_response.text)
             response['validation_results']=errors_dict['validation']['errors']
-            if verbose:print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
+            if verbose:
+                print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
         else:
             response['status_code']=False
             response['url']=create_response.request.url
@@ -7762,7 +7790,7 @@ class Site(object):
         os.path.join
         self.file_names = []
         for file_name in self.all_file_names:
-            if re.match('.*txt', file_name) != None:
+            if re.match('.*txt', file_name) is not None:
                 self.file_names.append(file_name)
         for i in self.file_names:
             path_to_open = os.path.join(dir_name, i)
@@ -7782,9 +7810,9 @@ class Site(object):
         #self.er_sites_path = er_sites_path
         if self.data_format == "MagIC":
             self.fits = pd.read_csv(self.data_path, sep="\t", skiprows=1)
-            if self.mean_path != None:
+            if self.mean_path is not None:
                 self.means = pd.read_csv(self.mean_path, sep="\t", skiprows=1)
-            if self.er_sites_path != None:
+            if self.er_sites_path is not None:
                 self.location = pd.read_csv(
                     self.er_sites_path, sep="\t", skiprows=1)
         else:
@@ -7794,7 +7822,7 @@ class Site(object):
         self.lon = float(self.location.site_lon)
         # the following exception won't be necessary if parse_all_fits is
         # working properly
-        if self.mean_path == None:
+        if self.mean_path is None:
             raise Exception(
                 'Make fisher means within the demag GUI - functionality for handling this is in progress')
 
@@ -7826,7 +7854,7 @@ class Site(object):
 
     def get_fisher_mean(self, fit_name):
         mean_name = str(fit_name) + "_mean"
-        if self.mean_path != None:
+        if self.mean_path is not None:
             self.fisher_dict = {'dec': float(getattr(self, mean_name).site_dec),
                                 'inc': float(getattr(self, mean_name).site_inc),
                                 'alpha95': float(getattr(self, mean_name).site_alpha95),
@@ -7888,7 +7916,7 @@ class Site(object):
                              float(getattr(self, mean_code).site_alpha95),
                              color=self.random_color, marker='s', label=fits + ' mean')
         plt.legend(**kwargs)
-        if title != None:
+        if title is not None:
             plt.title(title)
         plt.show()
 
@@ -7908,7 +7936,7 @@ class Site(object):
                      float(getattr(self, mean_code).site_inc),
                      float(getattr(self, mean_code).site_alpha95), marker='s', label=fit_name + ' mean')
         plt.legend(**kwargs)
-        if title != None:
+        if title is not None:
             plt.title(title)
         plt.show()
 
@@ -8895,7 +8923,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
     elif plot_by == 'spc':
         plot_key = 'er_specimen_name'
 
-    if treat != None:
+    if treat is not None:
         LT = 'LT-' + treat + '-Z'  # get lab treatment for plotting
         if LT == 'LT-T-Z':
             units, dmag_key = 'K', 'treatment_temp'
@@ -8946,7 +8974,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
     int_key = IntMeths[0]
     # print plotlist
     if individual is not None:
-        if type(individual) == list or type(individual) == tuple:
+        if isinstance(individual, (list, tuple)):
             plotlist = list(individual)
         else:
             plotlist = []
@@ -10118,7 +10146,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
                     100000)/((pole1_age - pole2_age) * 1000000)
     print("The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate))
 
-    if random_seed != None:
+    if random_seed is not None:
         np.random.seed(random_seed)
     pole1_MCages = np.random.normal(pole1_age, pole1_age_error, samplesize)
     pole2_MCages = np.random.normal(pole2_age, pole2_age_error, samplesize)
@@ -10320,9 +10348,9 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
     if make_plots:
         ZED = {}
         ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
-        plt.figure(num=ZED['zijd'], figsize=(5, 5));
-        plt.figure(num=ZED['eqarea'], figsize=(5, 5));
-        plt.figure(num=ZED['demag'], figsize=(5, 5));
+        plt.figure(num=ZED['zijd'], figsize=(5, 5))
+        plt.figure(num=ZED['eqarea'], figsize=(5, 5))
+        plt.figure(num=ZED['demag'], figsize=(5, 5))
 #
 #
         pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
@@ -10345,12 +10373,13 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
             recnum += 1
         #pmagplotlib.draw_figs(ZED)
     if begin_pca != "" and end_pca != "" and calculation_type != "":
-        if make_plots:pmagplotlib.plot_zed(ZED, datablock, angle, s,
-                             SIunits)  # plot the data
+        if make_plots:
+            pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
         # get best-fit direction/great circle
         mpars = pmag.domean(datablock, begin_pca, end_pca, calculation_type)
         # plot the best-fit direction/great circle
-        if make_plots:pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+        if make_plots:
+            pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
         if units == 'mT':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
@@ -11250,12 +11279,18 @@ def plot_dmag(data="", title="", fignum=1, norm=1,dmag_key='treat_ac_field',inte
     data = data[data[int_key].notnull()]  # fish out all data with this key
     units = "U"  # this  sets the units for plotting to undefined
     if not dmag_key:
-        if 'treat_temp' in data.columns: units = "K"  # kelvin
-        elif 'treat_ac_field' in data.columns: units = "T"  # tesla
-        elif 'treat_mw_energy' in data.columns: units = "J"  # joules
-    if dmag_key=='treat_temp': units='K'
-    if dmag_key=='treat_ac_field': units='T'
-    if dmag_key=='treat_mw_energy': units='J'
+        if 'treat_temp' in data.columns:
+            units = "K"  # kelvin
+        elif 'treat_ac_field' in data.columns:
+            units = "T"  # tesla
+        elif 'treat_mw_energy' in data.columns:
+            units = "J"  # joules
+    if dmag_key=='treat_temp':
+        units='K'
+    if dmag_key=='treat_ac_field':
+        units='T'
+    if dmag_key=='treat_mw_energy':
+        units='J'
     spcs = data.specimen.unique()  # get a list of all specimens in DataFrame data
     if len(spcs)==0:
         print('no data for plotting')
@@ -12026,7 +12061,8 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
         old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
     # check format of output specimens table
     for col in aniso_spec_columns:
-        if col not in old_spec_df.columns:old_spec_df[col]=""
+        if col not in old_spec_df.columns:
+            old_spec_df[col]=""
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-ARM')]
     if not len(df):
@@ -12083,13 +12119,13 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df['aniso_type']='AARM'
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
-                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
-                    (old_spec_df['aniso_type']=='AARM')].empty==False: # there is a previous record of AARM for this specimen
+                if old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='AARM')].empty: # there is a previous record of AARM for this specimen
                         print ('replacing existing AARM data for ',spec)
                         for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
                             old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='AARM')&
                                 (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing AARM data for this specimen
-                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of AARM for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[old_spec_df['specimen']==spec].empty: # there is a no previous record of AARM for this specimen
                     print ('adding AARM data for ',spec)
                     for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add AARM data for this specimen
@@ -12621,7 +12657,8 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
     # check format of output specimens table
     for col in aniso_spec_columns:
-        if col not in old_spec_df.columns:old_spec_df[col]=""
+        if col not in old_spec_df.columns:
+            old_spec_df[col]=""
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-TRM')]
     if not len(df):
@@ -12685,13 +12722,13 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
                 new_spec_df['aniso_type']='ATRM'
-                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
-                    (old_spec_df['aniso_type']=='ATRM')].empty==False: # there is a previous record of ATRM for this specimen
+                if old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='ATRM')].empty: # there is a previous record of ATRM for this specimen
                         print ('replacing existing ATRM data for ',spec)
                         for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                             old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='ATRM')&
                                 (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing ATRM data for this specimen
-                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of ATRM for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[old_spec_df['specimen']==spec].empty: # there is a no previous record of ATRM for this specimen
                     print ('adding ATRM data for ',spec)
                     for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add ATRM data for this specimen
@@ -14664,7 +14701,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
 
     #Opts['pltgrid'] = -1
-    if proj=='merc':Opts['pltgrid']=1
+    if proj=='merc':
+        Opts['pltgrid']=1
     Opts['sym'] = sym
     Opts['symsize'] = symsize
     if len(dates) > 0:
