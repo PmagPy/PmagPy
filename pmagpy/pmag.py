@@ -13,7 +13,6 @@ from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from . import find_pmag_dir
 from pmag_env import set_env
-import pandas as pd
 import SPD.lib.leastsq_jacobian as lib_k
 
 WARNINGS = {'cartopy': False}
@@ -179,14 +178,14 @@ def get_dictkey(In, k, dtype):
         if dtype == 'f':
             if d[k] == "":
                 Out.append(0)
-            elif d[k] == None:
+            elif d[k] is None:
                 Out.append(0)
             else:
                 Out.append(float(d[k]))
         if dtype == 'int':
             if d[k] == "":
                 Out.append(0)
-            elif d[k] == None:
+            elif d[k] is None:
                 Out.append(0)
             else:
                 Out.append(int(d[k]))
@@ -740,10 +739,10 @@ def getsampVGP(SampRec, SiteNFO, data_model=2.5):
         site = get_dictitem(SiteNFO, 'site', SampRec['site'], 'T')
         if len(site) > 1:
             lat, lon, i = None, None, 0
-            while lat == None or lon == None or i >= len(site):
-                if site[i]['lat'] != None:
+            while lat is None or lon is None or i >= len(site):
+                if site[i]['lat'] is not None:
                     lat = float(site[i]['lat'])
-                if site[i]['lon'] != None:
+                if site[i]['lon'] is not None:
                     lon = float(site[i]['lon'])
                 i += 1
         else:
@@ -777,10 +776,10 @@ def getsampVGP(SampRec, SiteNFO, data_model=2.5):
                             SampRec['er_site_name'], 'T')
         if len(site) > 1:
             lat, lon, i = None, None, 0
-            while lat == None or lon == None or i >= len(site):
-                if site[i]['site_lat'] != None:
+            while lat is None or lon is None or i >= len(site):
+                if site[i]['site_lat'] is not None:
                     lat = float(site[i]['site_lat'])
-                if site[i]['site_lon'] != None:
+                if site[i]['site_lon'] is not None:
                     lon = float(site[i]['site_lon'])
                 i += 1
         else:
@@ -6476,9 +6475,9 @@ def dokent(data, NN, distribution_95=False):
     sigma1 = sigma1/float(N)
     sigma2 = sigma2/float(N)
     
-    if distribution_95==False:
+    if not distribution_95:
         g = -2.0 * np.log(0.05) / (float(NN) * xmu**2)
-    if distribution_95==True:
+    if distribution_95:
         g = -2.0 * np.log(0.05) / (xmu**2)
     
     if np.sqrt(sigma1 * g) < 1:
@@ -6748,12 +6747,12 @@ def kentdev(kappa, beta, n=1000):
         if (x1*x1+x2*x2)>1:
             continue
 
-        ratio1 = np.exp(-0.5*(a*x1*x1+gamma*x1*x1*x1*x1)-1+lam1*x1);
+        ratio1 = np.exp(-0.5*(a*x1*x1+gamma*x1*x1*x1*x1)-1+lam1*x1)
 
         if u1 > ratio1:
             continue
 
-        ratio2 = np.exp(-0.5*(b*x2*x2-gamma*x2*x2*x2*x2)-c2+lam2*x2);
+        ratio2 = np.exp(-0.5*(b*x2*x2-gamma*x2*x2*x2*x2)-c2+lam2*x2)
 
         if u2 > ratio2:
             continue
@@ -8431,7 +8430,7 @@ def sbar(Ss):
       0.002760033333333333,
       -4.933333333333345e-06])
     """
-    if type(Ss) == list:
+    if isinstance(Ss, list):
         Ss = np.array(Ss)
     npts = Ss.shape[0]
     Ss = Ss.transpose()
@@ -10459,7 +10458,8 @@ def measurements_methods3(meas_data, noave,savelast=False):
         noave = 1
     else:
         noave = 0
-    if savelast:noave=0
+    if savelast:
+        noave=0
     version_num = get_version()
     seqnum = 0
     sids = get_specs(meas_data)
@@ -11225,7 +11225,7 @@ def get_samp_con():
             else:
                 Z = samp_con.split("-")[1]
                 samp_con = "7"
-        if samp_con.isdigit() == False or int(samp_con) > 7:
+        if not samp_con.isdigit() or int(samp_con) > 7:
             print("Try again\n ")
             samp_con = ""
     return samp_con, Z
@@ -11672,7 +11672,7 @@ def pseudo(DIs, random_seed=None):
        [-40, 150],
        [-45, 150]])
     """
-    if random_seed != None:
+    if random_seed is not None:
         np.random.seed(random_seed)
     Inds = np.random.randint(len(DIs), size=len(DIs))
     D = np.array(DIs)
@@ -12696,7 +12696,7 @@ def read_criteria_from_file(path, acceptance_criteria, **kwargs):
                     acceptance_criteria[crit]['value'] = False
 
             # criteria as flags
-            elif type(acceptance_criteria[crit]['threshold_type']) == list:
+            elif isinstance(acceptance_criteria[crit]['threshold_type'], list):
                 if str(rec[crit]) in acceptance_criteria[crit]['threshold_type']:
                     acceptance_criteria[crit]['value'] = str(rec[crit])
                 else:
@@ -12766,19 +12766,19 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
                     value_key = crit
 
         # fix True/False typoes
-                if type(acceptance_criteria[crit]["value"]) == str:
+                if isinstance(acceptance_criteria[crit]["value"], str):
                     if acceptance_criteria[crit]["value"] == "TRUE":
                         acceptance_criteria[crit]["value"] = "True"
                     if acceptance_criteria[crit]["value"] == "FALSE":
                         acceptance_criteria[crit]["value"] = "False"
-                if type(acceptance_criteria[crit]["value"]) == str:
+                if isinstance(acceptance_criteria[crit]["value"], str):
                     if acceptance_criteria[crit]["value"] != "-999" and acceptance_criteria[crit]['value'] != "":
                         rec[value_key] = acceptance_criteria[crit]['value']
-                elif type(acceptance_criteria[crit]["value"]) == int:
+                elif isinstance(acceptance_criteria[crit]["value"], int):
                     if acceptance_criteria[crit]["value"] != -999:
                         rec[value_key] = "%.i" % (
                             acceptance_criteria[crit]["value"])
-                    elif type(acceptance_criteria[crit]["value"]) == float:
+                    elif isinstance(acceptance_criteria[crit]["value"], float):
                         if float(acceptance_criteria[crit]["value"]) == -999:
                             continue
                 if 'decimal_points' in acceptance_criteria[crit] in list(acceptance_criteria[crit].keys()):
@@ -12790,7 +12790,7 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
                         # exec command
                 else:
                     rec[value_key] = str(acceptance_criteria[crit]["value"])
-                if type(acceptance_criteria[crit]["value"]) == bool:
+                if isinstance(acceptance_criteria[crit]["value"], bool):
                     rec[value_key] = str(acceptance_criteria[crit]["value"])
                 # need to make a list of these dictionaries
                 if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
@@ -13067,7 +13067,8 @@ def do_mag_map(date, lon_0=0, alt=0, file="", mod="cals10k",resolution='low'):
             gh.append(lmgh[2][i])
             if lmgh[1][i] != 0:
                 gh.append(lmgh[3][i])
-        while len(gh)<120:gh.append(0)
+        while len(gh)<120:
+            gh.append(0)
 
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
@@ -13225,9 +13226,12 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
     """
     vgp_df['delta'] = 90.-vgp_df.vgp_lat.values
     # filter by cutoff, kappa, and n if desired
-    if v: vgp_df = vgp_df[vgp_df.delta <= cutoff]
-    if mm97:vgp_df = vgp_df[vgp_df.dir_k >= kappa]
-    if n: vgp_df = vgp_df[vgp_df.dir_n_samples >= n]
+    if v: 
+        vgp_df = vgp_df[vgp_df.delta <= cutoff]
+    if mm97:
+        vgp_df = vgp_df[vgp_df.dir_k >= kappa]
+    if n:
+        vgp_df = vgp_df[vgp_df.dir_n_samples >= n]
     if spin:  # do transformation to pole
         Pvgps = vgp_df[['vgp_lon', 'vgp_lat']].values
         ppars = doprinc(Pvgps)
@@ -13239,7 +13243,8 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         vgp_df['vgp_lat'] = lats
         vgp_df['delta'] = 90.-vgp_df.vgp_lat
     if anti:
-        if verbose: print('flipping reverse')
+        if verbose: 
+            print('flipping reverse')
         vgp_rev = vgp_df[vgp_df.vgp_lat < 0]
         vgp_norm = vgp_df[vgp_df.vgp_lat >= 0]
         vgp_anti = vgp_rev
@@ -13862,7 +13867,7 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
     for i in range(201):
             theta = i*np.pi/100
             
-            ylen = np.zeros(201);
+            ylen = np.zeros(201)
             phi = np.linspace(0,np.pi/2,201)
             for j in range(201):
                 y[0] = np.sin(phi[j])*np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
@@ -13871,7 +13876,7 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
                 ylen[j] = np.linalg.norm(y)
                 
             idx = np.argsort(ylen)
-            phi0 = np.interp(1.0,ylen[idx],phi[idx]);
+            phi0 = np.interp(1.0,ylen[idx],phi[idx])
             y[0] = np.sin(phi0)*np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
             y[1] = np.sin(phi0)*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
             y[2] = np.cos(phi0)*np.sqrt(Tc)/np.sqrt(D[2])
