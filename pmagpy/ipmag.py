@@ -1383,7 +1383,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Ahat_b *= n
         
         D_b,V_b = np.linalg.eig(Ahat_b) #Eigenvalues and eigenvectors
-        Lmin_b[i] = float(np.min(D_b)) #minimum eigenvalue for boostrap sample
+        Lmin_b[i] = float(np.min(D_b)) #minimum eigenvalue for bootstrap sample
         T_b[i] = np.matmul(np.matmul(np.transpose(mhat0),Ahat_b),mhat0) #Bootstrap T for pooled data (equation 11)
         
     p = (1+np.sum(Lmin_b>=Lmin))/(num_sims+1) # p-value (step 8 of CMDT, Section 3)
