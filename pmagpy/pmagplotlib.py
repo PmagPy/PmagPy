@@ -3183,7 +3183,7 @@ def plot_map(fignum, lats, lons, Opts):
             pmag_data_dir = find_pmag_dir.get_data_files_dir()
             EDIR = os.path.join(pmag_data_dir, "etopo20")
             etopo_path = os.path.join(EDIR, "etopo20data.gz")
-            etopo = np.loadtxt(os.path.join(EDIR, "etopo20data.gz"))
+            etopo = np.loadtxt(etopo_path)
             elons = np.loadtxt(os.path.join(EDIR, "etopo20lons.gz"))
             elats = np.loadtxt(os.path.join(EDIR, "etopo20lats.gz"))
             xx, yy = np.meshgrid(elons, elats)
