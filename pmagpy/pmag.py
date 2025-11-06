@@ -13756,13 +13756,14 @@ def form_Mhat(mhat):
     Raises:
         ValueError: If the data sets have incompatible shapes.
     """
-    b = np.matrix(mhat[0:2][:,np.newaxis])
+    mhat = np.asarray(mhat)
+    b = mhat[0:2, np.newaxis]
     c = mhat[2]
     
     if c==0:
-        A1 = np.eye(2)-(b*b.getH())
+        A1 = np.eye(2) - (b @ b.conj().T)
     else:
-        A1 = c/np.abs(c)*np.eye(2)-c/(np.abs(c)+np.abs(c)**2)*(b*b.getH())
+        A1 = c/np.abs(c)*np.eye(2) - c/(np.abs(c)+np.abs(c)**2) * (b @ b.conj().T)
         
     A2 = -b
     Mhat = np.hstack((A1,A2))
@@ -13789,14 +13790,19 @@ def form_Ghat(X,Mhat):
 
     n = np.shape(X)[1]
     term1 = np.power(np.linalg.norm(np.sum(X,axis=1)/n),-2)/n
-    X = np.matrix(X)
-    Mhat_T = Mhat.getT()
-    Ghat = np.matrix(np.zeros((2,2)))
+    X = np.asarray(X)
+    Mhat = np.asarray(Mhat)
+    Mhat_T = Mhat.T
+    Ghat = np.zeros((2,2))
     
     for u in range(2):
         for v in range(2):
             for i in range(n):
-                Ghat[u,v] += Mhat_T[:,u].getT()*X[:,i]*X[:,i].getT()*Mhat_T[:,v]
+                # Extract scalar explicitly using .item() to avoid deprecation warning
+                # Mhat_T[:,u] is column u of Mhat_T (shape: (3,))
+                # X[:,i] is column i of X (shape: (3,))
+                # We need: Mhat_T[:,u]^T @ X[:,i] @ X[:,i]^T @ Mhat_T[:,v]
+                Ghat[u,v] += (Mhat_T[:,u] @ X[:,i]) * (X[:,i] @ Mhat_T[:,v])
             Ghat[u,v] *= term1
     
     return Ghat
@@ -13820,18 +13826,18 @@ def form_Q(a,b):
     #input - b, starting direction (unit vector)
     #output - Q, rotation matrix so Qb = a
     
-    a = np.matrix(a)
+    a = np.asarray(a)
     a = np.reshape(a,(3,1))
-    b = np.matrix(b)
+    b = np.asarray(b)
     b = np.reshape(b,(3,1))
 
-    c = b-a*(a.getT()*b)
+    c = b - a * (a.T @ b).item()
     c /= np.linalg.norm(c)
 
-    alpha = np.arccos(a.getT()*b)
-    A = a*c.getT()-c*a.getT()
+    alpha = np.arccos((a.T @ b).item())
+    A = a @ c.T - c @ a.T
 
-    Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1,a*a.getT()+c*c.getT())
+    Q = np.eye(3) + np.sin(alpha) * A + (np.cos(alpha) - 1) * (a @ a.T + c @ c.T)
     
     return Q
 
@@ -13863,7 +13869,7 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
     V = V[:,idx]
         
     mCI = np.zeros((3,201))
-    y = np.matrix(np.zeros((3,1)))
+    y = np.zeros((3,1))
     for i in range(201):
             theta = i*np.pi/100
             
@@ -13881,7 +13887,7 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
             y[1] = np.sin(phi0)*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
             y[2] = np.cos(phi0)*np.sqrt(Tc)/np.sqrt(D[2])
                 
-            mCI[:,i] = np.ndarray.flatten(V*y)
+            mCI[:,i] = (V @ y).flatten()
     
     #Check if points are in the correct hemisphere
     mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
@@ -13896,13 +13902,13 @@ def find_T(m,n,Mhat,Ghat):
     Calculates the T value estimated from Equation 6.
 
     Parameters:
-        m: numpy matrix representing the direction under consideration.
+        m: numpy array representing the direction under consideration.
         n: int, number of observations.
-        Mhat: numpy matrix representing the Mhat matrix for mean direction.
-        Ghat: numpy matrix representing the covariance matrix.
+        Mhat: numpy array representing the Mhat matrix for mean direction.
+        Ghat: numpy array representing the covariance matrix.
 
     Returns:
-        numpy array: T value estimated from Equation 6 of Heslop et al., 2023
+        float: T value estimated from Equation 6 of Heslop et al., 2023
 
     Raises:
         None
@@ -13914,9 +13920,15 @@ def find_T(m,n,Mhat,Ghat):
     #input - Ghat matrix representing covariance
     #output - T value estimated from Equation 6
     
-    m = np.matrix(m[:,np.newaxis])
+    m = np.asarray(m)
+    if m.ndim == 1:
+        m = m[:, np.newaxis]
+    Mhat = np.asarray(Mhat)
+    Ghat = np.asarray(Ghat)
     
-    return np.array(n*m.getT()*Mhat.getT()*np.linalg.inv(Ghat)*Mhat*m)    
+    # Compute T and extract scalar explicitly using .item()
+    result = n * m.T @ Mhat.T @ np.linalg.inv(Ghat) @ Mhat @ m
+    return result.item()    
 
 def find_CR(mhat,Mhat,Ghat,n,Tc):
     """
@@ -13924,8 +13936,8 @@ def find_CR(mhat,Mhat,Ghat,n,Tc):
 
     Parameters:
         mhat: numpy array representing the mean direction of the original data set.
-        Mhat: numpy matrix representing the Mhat matrix for mean direction.
-        Ghat: numpy matrix representing the covariance matrix.
+        Mhat: numpy array representing the Mhat matrix for mean direction.
+        Ghat: numpy array representing the covariance matrix.
         n: int, number of observations.
         Tc: float, critical T value on the confidence region boundary.
 
@@ -13943,7 +13955,10 @@ def find_CR(mhat,Mhat,Ghat,n,Tc):
     #input - Tc, critical T value on confidence region boundary
     #output - mCI, closed confidence region boundary
     
-    C = n*Mhat.getT()*np.linalg.inv(Ghat)*Mhat
+    Mhat = np.asarray(Mhat)
+    Ghat = np.asarray(Ghat)
+    
+    C = n * Mhat.T @ np.linalg.inv(Ghat) @ Mhat
     [D,V] = np.linalg.eig(C)
     
     idx=np.flip(np.argsort(D))
@@ -13951,13 +13966,13 @@ def find_CR(mhat,Mhat,Ghat,n,Tc):
     V = V[:,idx]
     
     mCI = np.zeros((3,201))
-    y = np.matrix(np.zeros((3,1)))
+    y = np.zeros((3,1))
     for i in range(201):
             theta = i*np.pi/100
             y[0] = np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
             y[1] = np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
             y[2] = np.sqrt(1-y[0]**2-y[1]**2)
-            mCI[:,i] = np.ndarray.flatten(V*y)
+            mCI[:,i] = (V @ y).flatten()
     
     mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
     if np.arctan2(np.linalg.norm(np.cross(mhat,mCIbar)),np.dot(mhat,mCIbar))>np.pi/2:

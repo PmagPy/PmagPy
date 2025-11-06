@@ -1341,8 +1341,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Mhat2 = pmag.form_Mhat(mhat2) #Mhat of second data set
     Ghat2 = pmag.form_Ghat(X2,Mhat2) #Ghat of second data set
 
-    Ahat = Mhat1.getH()*np.linalg.inv(Ghat1)*Mhat1
-    Ahat += Mhat2.getH()*np.linalg.inv(Ghat2)*Mhat2
+    Ahat = Mhat1.conj().T @ np.linalg.inv(Ghat1) @ Mhat1
+    Ahat += Mhat2.conj().T @ np.linalg.inv(Ghat2) @ Mhat2
     Ahat *= n
 
     D,V = np.linalg.eig(Ahat)
@@ -1378,12 +1378,12 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Mhat20_b = pmag.form_Mhat(mhat20_b) #\hat{M} for bootstrap sample
         Ghat20_b = pmag.form_Ghat(X20_b,Mhat20_b) #\hat{G} for bootstrap sample
         
-        Ahat_b = Mhat10_b.getH()*np.linalg.inv(Ghat10_b)*Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
-        Ahat_b += Mhat20_b.getH()*np.linalg.inv(Ghat20_b)*Mhat20_b
+        Ahat_b = Mhat10_b.conj().T @ np.linalg.inv(Ghat10_b) @ Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
+        Ahat_b += Mhat20_b.conj().T @ np.linalg.inv(Ghat20_b) @ Mhat20_b
         Ahat_b *= n
         
         D_b,V_b = np.linalg.eig(Ahat_b) #Eigenvalues and eigenvectors
-        Lmin_b[i] = np.min(D_b) #minimum eigenvalue for boostrap sample
+        Lmin_b[i] = float(np.min(D_b)) #minimum eigenvalue for boostrap sample
         T_b[i] = np.matmul(np.matmul(np.transpose(mhat0),Ahat_b),mhat0) #Bootstrap T for pooled data (equation 11)
         
     p = (1+np.sum(Lmin_b>=Lmin))/(num_sims+1) # p-value (step 8 of CMDT, Section 3)
