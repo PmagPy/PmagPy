@@ -3274,7 +3274,7 @@ def plot_map(fignum, lats, lons, Opts):
                 gl.xlabels_top = False
     elif Opts["pltgrid"]:
         print(
-            "gridlines only supported for PlateCarree, Orthorhombic, "
+            "gridlines only supported for PlateCarree, Orthographic, "
             "Lambert Conformal, and Mercator plots currently"
         )
 
