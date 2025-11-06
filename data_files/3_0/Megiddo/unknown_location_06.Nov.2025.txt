@@ -1,0 +1,11 @@
+tab 	images
+file	keywords	sample	title	type
+run2N_89G_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_89G_100k	Scanning SQUID Microscopy
+run2N_140C_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_140C_100k	Scanning SQUID Microscopy
+run2N_173C_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_173C_100k	Scanning SQUID Microscopy
+run2N_210C_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_210C_100k	Scanning SQUID Microscopy
+run2N_243C_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_243C_100k	Scanning SQUID Microscopy
+run2N_275C_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_275C_100k	Scanning SQUID Microscopy
+run2N_IRM4000G_100k.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2N_IRM4000G_100k	Scanning SQUID Microscopy
+run2S_89G_1M.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2S_89G_1M	Scanning SQUID Microscopy
+run2S_IRM4000G_1M.pdf	Jack Hills	RSES-57	Sample: RSES-57, Run2S_IRM4000G_1M	Scanning SQUID Microscopy

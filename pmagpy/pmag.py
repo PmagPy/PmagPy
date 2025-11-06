@@ -13826,13 +13826,13 @@ def form_Q(a,b):
     #input - b, starting direction (unit vector)
     #output - Q, rotation matrix so Qb = a
     
-    a = np.asarray(a)
+    a = np.asarray(a, dtype=float)
     a = np.reshape(a,(3,1))
-    b = np.asarray(b)
+    b = np.asarray(b, dtype=float)
     b = np.reshape(b,(3,1))
 
     c = b - a * (a.T @ b).item()
-    c /= np.linalg.norm(c)
+    c = c / np.linalg.norm(c)
 
     alpha = np.arccos((a.T @ b).item())
     A = a @ c.T - c @ a.T
