@@ -2977,12 +2977,16 @@ def plot_map(fignum, lats, lons, Opts):
                  'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,
                  'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'',
                  'south':False,'oceancolor':'azure','landcolor':'bisque'}
+
+    Returns:
+    ____________
+    ax : matplotlib/cartopy axes object containing the map
+            
     """
     if not has_cartopy:
         print("This function requires installation of cartopy")
         return
 
-    from matplotlib import cm
     import numpy as np
 
     # ---- helper (replacement for removed cartopy.util.wrap_longitudes) ----
@@ -2990,9 +2994,6 @@ def plot_map(fignum, lats, lons, Opts):
         """Wrap longitude array into [start, start + 360)."""
         return ((np.asarray(arr, float) - start) % 360) + start
 
-    # draw meridian labels on the bottom [left,right,top,bottom]
-    mlabels = [0, 0, 0, 1]
-    plabels = [1, 0, 0, 0]  # draw parallel labels on the left
     Opts_defaults = {
         "latmin": -90,
         "latmax": 90,
@@ -3196,7 +3197,7 @@ def plot_map(fignum, lats, lons, Opts):
                 transform=ccrs.PlateCarree(),
                 cmap=Opts["cmap"],
             )
-            cbar = plt.colorbar(m)
+            plt.colorbar(m)
 
         if Opts["res"] == "c" or Opts["res"] == "l":
             resolution = "110m"
