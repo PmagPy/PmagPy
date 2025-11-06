@@ -1,7 +1,0 @@
-tab	specimens
-citations	experiments	hyst_bc	hyst_bcr	hyst_mr_moment	hyst_ms_moment	hyst_xhf	meas_orient_phi	meas_orient_theta	method_codes	rem_bcr	rem_mr_moment	software_packages	specimen
-This study	IS06a-1:IS06a-1:LP-IRM-DCD	2.868e-02	6.117e-02	9.812e+00	3.983e+01	2.48e-05	0	0	LP-HYS:LP-BCR-HDM:LP-HYS	5.684e-02	1.004e+01	pmagpy-4.3.8	IS06a-1
-This study	IS06a-2:IS06a-2:LP-IRM-DCD	6.235e-02	1.097e-01	1.524e-06	4.085e-06	1.28e-11	0	0	LP-HYS:LP-BCR-HDM:LP-HYS	1.185e-01	1.513e-06	pmagpy-4.3.8	IS06a-2
-This study	IS06a-3:IS06a-3:LP-IRM-DCD	6.227e-02	1.137e-01	5.901e-07	1.669e-06	1.01e-11	0	0	LP-HYS:LP-BCR-HDM:LP-HYS	1.200e-01	5.770e-07	pmagpy-4.3.8	IS06a-3
-This study	IS06a-4:IS06a-4:LP-IRM-DCD	6.918e-02	9.758e-02	6.763e-06	1.483e-05	1.68e-11	0	0	LP-HYS:LP-BCR-HDM:LP-HYS	1.016e-01	6.753e-06	pmagpy-4.3.8	IS06a-4
-This study	IS06a-5:IS06a-5:LP-IRM-DCD	3.982e-02	8.231e-02	6.093e-06	1.928e-05	1.84e-11	0	0	LP-HYS:LP-BCR-HDM:LP-HYS	8.118e-02	6.133e-06	pmagpy-4.3.8	IS06a-5
