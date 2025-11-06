@@ -22,10 +22,9 @@ except ImportError:
 try:
     from bokeh.plotting import figure, show
     from bokeh.layouts import gridplot
-    from bokeh.models import HoverTool, Label, ColumnDataSource, PointDrawTool, CustomJS, Div
+    from bokeh.models import HoverTool, ColumnDataSource, PointDrawTool, CustomJS, Div
     from bokeh.embed import components
     from bokeh.palettes import Category10
-    from bokeh.models import ColumnDataSource
     from bokeh.models.widgets import DataTable, TableColumn
     from bokeh.layouts import column
     _HAS_BOKEH = True
@@ -3258,7 +3257,7 @@ def plot_X_T(
         temperature_column (str): Name of temperature column.
         magnetic_column (str): Name of susceptibility column.
         temp_unit (str): "C" for Celsius.
-        smooth_window (int): Window for smoothing.
+        smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
         remove_holder (bool): Subtract holder signal.
         plot_derivative (bool): Plot derivative.
         plot_inverse (bool): Plot inverse.
@@ -3505,15 +3504,15 @@ def estimate_curie_temperature(
 ):
     """
     Estimate the Curie temperature from high temperature susceptibility curves in multiple ways. Automatically calculates first derivative minimum, second derivative maximum, and
-    second derivative zero-crossing. Also has option to estimate Curie temperature from inverse susceptibility (Petrovsky and A. Kapicka, 2006). Uses Bokeh for the interactive plot.
+    second derivative zero-crossing. Also has option to estimate Curie temperature from inverse susceptibility (E. Petrovsky and A. Kapicka, 2006). Uses Bokeh for the interactive plot.
 
     Parameters:
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
         temperature_column (str): Name of temperature column.
         magnetic_column (str): Name of susceptibility column.
         temp_unit (str): "C" for Celsius.
-        smooth_window (int): Window for smoothing.
-        remove_holder (bool): Subtract holder signal.
+        smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
+        remove_holder (bool): Subtracts holder signal to better isolate specimen signal.
         figsize (tuple): (width, height) in inches.
         inverse_method (bool): Use inverse susceptibility method.
         print_estimates (bool): Print estimated Curie temperatures.
@@ -3529,9 +3528,9 @@ def estimate_curie_temperature(
         temperature of second derivative maximum for heating cycle
     temp_of_second_derivative_max_cooling : float
         temperature of second derivative maximum for cooling cycle
-    heating_zero : list[float] or None
+    heating_zero : list of float or None
         temperatures of second derivative zero-crossings for heating cycle, or None if none found
-    cooling_zero : list[float] or None
+    cooling_zero : list of float or None
         temperatures of second derivative zero-crossings for cooling cycle, or None if none found
        
     """
@@ -3566,8 +3565,8 @@ def estimate_curie_temperature(
     dx_2_w = np.gradient(dx_w, swT)
     dx_2_c = np.gradient(dx_c, scT)
 
-    temp_of_second_derivative_max_heating = swT[np.argmin(dx_2_w)]
-    temp_of_second_derivative_max_cooling = scT[np.argmin(dx_2_c)]
+    temp_of_second_derivative_max_heating = swT[np.argmax(dx_2_w)]
+    temp_of_second_derivative_max_cooling = scT[np.argmax(dx_2_c)]
 
     # Physically consistent zero-crossing logic for heating
     min_idx_w = np.argmin(dx_2_w)
@@ -3588,6 +3587,8 @@ def estimate_curie_temperature(
     temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
 
     if inverse_method:
+        if not _HAS_BOKEH:  
+            raise ImportError("Bokeh is required for inverse_method=True")
         bokeh_height = int(figsize[1] * 96)
         title = experiment["specimen"].unique()[0]
     
@@ -3598,6 +3599,7 @@ def estimate_curie_temperature(
         inv_chi = inv_w[mask_w]
 
         # Initial fit endpoints (choose two points in the linear region)
+        # 0.7 number places initial fit near expected linear region
         fit_x = [T[int(len(T)*0.7)], T[-1]]
         fit_y = [inv_chi[int(len(inv_chi)*0.7)], inv_chi[-1]]
         fit_source = ColumnDataSource(data=dict(x=fit_x, y=fit_y))
@@ -3612,7 +3614,7 @@ def estimate_curie_temperature(
                       )
         p_inv.scatter('x', 'y', source=data_source, size=8, color="red", legend_label="Heating – 1/χ")
         renderer = p_inv.scatter('x', 'y', source=fit_source, size=12, color="blue", legend_label="Fit Endpoints")
-        line_renderer = p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
+        p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
     
         # PointDrawTool for dragging endpoints
         draw_tool = PointDrawTool(renderers=[renderer], add=False)
@@ -3636,7 +3638,7 @@ def estimate_curie_temperature(
             }
         """)
         fit_source.js_on_change('data', callback)
-        #show(p_inv)
+        
         show(column(p_inv, curie_estimate))
 
     if print_estimates:
@@ -3644,8 +3646,14 @@ def estimate_curie_temperature(
         print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_cooling)} for cooling')
         print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_heating)} for heating')
         print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_cooling)} for cooling')
-        print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')
-        print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')
+        if temp_of_zero_crossing_heating:  
+            print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')  
+        else:  
+            print('No zero crossing found for the second derivative of the heating curve.')  
+        if temp_of_zero_crossing_cooling:  
+            print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')  
+        else:  
+            print('No zero crossing found for the second derivative of the cooling curve.')
 
     heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
     cooling_zero = temp_of_zero_crossing_cooling[0] if temp_of_zero_crossing_cooling else None
@@ -3655,8 +3663,8 @@ def estimate_curie_temperature(
         temp_of_first_derivative_min_cooling,
         temp_of_second_derivative_max_heating,
         temp_of_second_derivative_max_cooling,
-        heating_zero if heating_zero is not None else None,
-        cooling_zero if cooling_zero is not None else None
+        heating_zero,
+        cooling_zero
     )
 
 def smooth_moving_avg(
