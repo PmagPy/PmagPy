@@ -16,6 +16,7 @@ import itertools
 import matplotlib
 from matplotlib import pyplot as plt
 import pandas as pd
+import time
 from scipy.interpolate import griddata
 # To fix backend issues in Jupyter vs normal Python
 try:
@@ -353,7 +354,7 @@ def param_argvs(inputs=None):
 
 
 def main():
-    #start_time = time.time()
+    start_time = time.time()
     fileAdres, SF, save, fmt = param_argvs(inputs=sys.argv)
 
     if fileAdres is not None:
@@ -365,8 +366,8 @@ def main():
             pass
     else:
         print('!please include filename and smooth_factor, e.g.:\nforc_diagram.py -f /data_path/forc_file_name.text -sf 5')
-    #end_time = time.time()
-    #print(end_time - start_time)
+    end_time = time.time()
+    print(f"File took {end_time - start_time} seconds to process.")
 
 
 if __name__ == '__main__':
