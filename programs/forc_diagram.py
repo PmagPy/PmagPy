@@ -38,7 +38,7 @@ class Forc(object):
         '''
         self.rawData = dataLoad(fileAdres)
         # self.matrix_z,self.x_range,self.y_range=dataLoad(fileAdres).initial()
-        if irData != None:
+        if irData is not None:
             self.rawData = irData  # dataLoad(fileAdres)
         else:
             self.rawData = dataLoad(fileAdres)
@@ -199,7 +199,7 @@ class dataLoad(object):
                     break
                 # else:
                 #    print('file format wrong, cannot find the data row.')
-        skiprows = 34 if skiprows == None else skiprows
+        skiprows = 34 if skiprows is None else skiprows
         df = pd.read_csv(fileAdres, skiprows=skiprows, sep=r'[,\s]+', 
         names=['H', 'M'], skipfooter=1,engine='python')
 
@@ -356,7 +356,7 @@ def main():
     #start_time = time.time()
     fileAdres, SF, save, fmt = param_argvs(inputs=sys.argv)
 
-    if fileAdres != None:
+    if fileAdres is not None:
         try:
             Forc(fileAdres=fileAdres, SF=SF).plot(save, fmt)
             pass
