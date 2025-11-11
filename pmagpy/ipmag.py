@@ -7073,8 +7073,8 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                     ImageRecs.append(map_magic.mapping(
                         image_rec, map_magic.image_magic3_2_magic2_map))
             print('image data to be appended to: ', image_file)
-        except:
-            print('problem with existing file: ',
+        except Exception as e:
+            print('problem', e, ' with existing file: ',
                   image_file, ' will create new.')
     #
     # read in file to convert
@@ -8377,8 +8377,8 @@ def curie(path_to_file='.', file_name='', magic=False,
             try:
                 plt.figure(num=PLT[key])
                 plt.savefig(save_folder + '/' + files[key].replace('/', '-'))
-            except:
-                print('could not save: ', PLT[key], files[key])
+            except Exception as e:
+                print('could not save: ', PLT[key], files[key], ' because', e)
                 print("output file format not supported ")
     plt.show()
 
@@ -8504,8 +8504,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
                         plt.figure(num=PLTS[key])
                         plt.savefig(save_folder + '/' +
                                     files[key].replace('/', '-'))
-                    except:
-                        print('could not save: ', PLTS[key], files[key])
+                    except Exception as e:
+                        print('could not save: ', PLTS[key], files[key], ' because', e)
                         print("output file format not supported ")
 
 
@@ -11217,7 +11217,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
         try:
             locs = cs_df['location'].unique()
-        except:
+        except KeyError:
             locs = [""]
         locs = "-".join(locs)
         files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
@@ -12961,7 +12961,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
-            except:
+            except (ValueError, KeyError):
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
