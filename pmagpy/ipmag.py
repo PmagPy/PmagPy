@@ -23,11 +23,6 @@ from matplotlib.pylab import polyfit
 import matplotlib.ticker as mtick
 from matplotlib import colors
 from matplotlib import cm
-try:
-    import requests
-except ImportError:
-    requests = None
-encoding = "ISO-8859-1"
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmagpy import spline
@@ -36,11 +31,15 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from .contribution_builder import Contribution
+#from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
+try:
+    import requests
+except ImportError:
+    requests = None
+encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
-
 if has_cartopy:
     import cartopy.crs as ccrs
 
@@ -781,7 +780,8 @@ def unsquish(incs, f):
             inc_new = np.rad2deg(np.arctan(inc_new_rad))
             incs_unsquished.append(inc_new)
         return incs_unsquished
-    except:
+    except TypeError as e:
+        print("TypeError implies single value:", e) # to catch single values
         inc_rad = np.deg2rad(incs)  # convert to radians
         inc_new_rad = (1.0/f) * np.tan(inc_rad)
         inc_new = np.rad2deg(np.arctan(inc_new_rad))  # convert back to degrees
@@ -822,7 +822,8 @@ def squish(incs, f):
                 np.pi  # convert back to degrees
             incs_squished.append(inc_new)
         return incs_squished
-    except:
+    except TypeError as e: # to catch single values
+        print("TypeError implies single value:", e)
         inc_rad = incs * np.pi / 180.  # convert to radians
         inc_new_rad = f * np.tan(inc_rad)
         inc_new = np.arctan(inc_new_rad) * 180. / \
@@ -1489,7 +1490,6 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
 
     # do monte carlo simulation of datasets with same kappas as data,
     # but a common mean
-    counter = 0
     Vp = []  # set of Vs from simulations
     for k in range(NumSims):
 
@@ -2308,7 +2308,6 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         if len(di_lists) == 2:
             dec, inc = di_lists
     try:
-        length = len(dec)
         for n in range(len(dec)):
             XY = pmag.dimap(dec[n], inc[n])
             if inc[n] >= 0:
@@ -2325,7 +2324,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
                     color_up.append(color[n])
                 else:
                     color_up.append(color)
-    except:
+    except TypeError as e:
+        print("TypeError implies single value:", e)
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
@@ -5150,8 +5150,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                     table_dicts=table.to_dict('records')
                     outfile = os.path.join(dir_path, sheet + '.txt')
                     pmag.magic_write(outfile,table_dicts,sheet)
-                except:
-                    print ('sheet not found ',sheet)
+                except Exception as ex:
+                    print (f'sheet not found {sheet}: {ex}')
             return
 
         # try to deal reasonably with unicode errors
@@ -5304,7 +5304,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                 locnum += 1
                 try:
                     os.mkdir(lpath)
-                except:
+                except FileExistsError:
                     print('directory ', lpath,
                           ' already exists - overwriting everything: {}'.format(overwrite))
                     if not overwrite:
@@ -5353,7 +5353,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
     out_path = os.path.join(directory, file_name)
     
     # Define API endpoint
-    api = f'https://api.earthref.org/v1/MagIC/data'
+    api = 'https://api.earthref.org/v1/MagIC/data'
     params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
 
     # Perform the request
@@ -5930,7 +5930,8 @@ def create_private_contribution(username="",password=""):
             response['url']=create_response.request.url
             response['id']='None'
             response['errors']=create_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error creating private contribution:", e)
         pass
     return response
 
@@ -5979,7 +5980,8 @@ def delete_private_contribution(contribution_id,username="",password=""):
             response['url']=delete_response.request.url
             response['id']='None'
             response['errors']=delete_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error deleting private contribution:", e)
         pass
     return response
 
@@ -6031,8 +6033,8 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
             response['status_code']=False
             response['url']=upload_response.request.url
             #response['errors']=upload_response.json()['errors'][0]['message']
-    except:
-        print ('trouble uploading:')
+    except Exception as e:
+        print ('trouble uploading:', e)
         print (upload_response.json()['errors'])
     return response
 
@@ -6090,8 +6092,8 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             response['validation_results']='None'
             print('A private contribution with ID', contribution_id,
                   ' could not be found in your private workspace for validation\n')
-    except:
-        print ('trouble validating:')
+    except Exception as e:
+        print ('trouble validating:', e)
     return response
 
 
@@ -6150,7 +6152,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else:
         nositeints = 1
 
-    # chagne these all to True/False instead of 1/0
+    # change these all to True/False instead of 1/0
 
     if not skip_intensities:
         # set model lat and
@@ -6175,7 +6177,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     ModelLat["sample_lat"] = tmp[1]
                     ModelLats.append(ModelLat)
                 mlat.clos()
-            except:
+            except FileNotFoundError:
                 print("use_paleolatitude option requires a valid paleolatitude file")
         else:
             get_model_lat = 0  # skips VADM calculation entirely
@@ -8185,7 +8187,7 @@ def smooth(x, window_len, window='bartlett'):
         return x
 
     # numpy available windows
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError(
             "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
@@ -8414,8 +8416,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
     if EXP != "":
         try:
             k = experiment_names.index(EXP)
-        except:
-            print("Bad experiment name")
+        except Exception as e:
+            print("Bad experiment name:", e)
             sys.exit()
     while k < len(experiment_names):
         e = experiment_names[k]
@@ -10996,7 +10998,8 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                         try:
                             k = sitelist.index(site)
                             keepon = 0
-                        except:
+                        except Exception as e:
+                            print("Error finding site:", e)
                             tmplist = []
                             for qq in range(len(sitelist)):
                                 if site in sitelist[qq]:
@@ -11678,7 +11681,7 @@ def aarm_magic_dm2(infile, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -12254,7 +12257,7 @@ def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -13482,7 +13485,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     elif n_specs != "all":
         try:
             sids = sids[:n_specs]
-        except:
+        except Exception as e:
+            print("Error selecting n_specs:", e)
             pass
     cnt = 0
     while k < len(sids):
@@ -16047,7 +16051,7 @@ def MADcrit(N,alpha,niter=int(1E8)):
     """
     
     df = N-1 #degrees of freedom of the Wishart distribution
-    X = wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
+    X = stats.wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
     X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
     #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
     MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
