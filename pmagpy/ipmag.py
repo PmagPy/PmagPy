@@ -7655,8 +7655,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         try:
             SampRecs, file_type = pmag.magic_read(samp_file)
             print("sample data to be appended to: ", samp_file)
-        except:
-            print('problem with existing samp file: ',
+        except Exception as e:
+            print('problem: ', e, ' with existing samp file',
                   samp_file, ' will create new')
     #
     # read in file to convert
@@ -12981,7 +12981,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
-            except:
+            except Exception:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
