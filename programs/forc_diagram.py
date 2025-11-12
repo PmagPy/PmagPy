@@ -14,12 +14,18 @@ import os
 import numpy as np
 import itertools
 import matplotlib
-matplotlib.use('TKAgg')
 from matplotlib import pyplot as plt
 import pandas as pd
-from scipy.interpolate import griddata
 import time
-from pmagpy import pmagplotlib
+from scipy.interpolate import griddata
+# To fix backend issues in Jupyter vs normal Python
+try:
+    get_ipython()  # means we're in Jupyter/IPython
+    print("Detected Jupyter environment - using inline plotting")
+except NameError:
+    # if in normal, use TKAgg for external windows
+    matplotlib.use('TKAgg')
+    print("Using TKAgg backend for external windows")
 from pmagpy import pmag
 
 
@@ -33,7 +39,7 @@ class Forc(object):
         '''
         self.rawData = dataLoad(fileAdres)
         # self.matrix_z,self.x_range,self.y_range=dataLoad(fileAdres).initial()
-        if irData != None:
+        if irData is not None:
             self.rawData = irData  # dataLoad(fileAdres)
         else:
             self.rawData = dataLoad(fileAdres)
@@ -148,26 +154,24 @@ class Forc(object):
         fig = plt.figure(figsize=(6, 5), facecolor='white')
         fig.subplots_adjust(left=0.18, right=0.97,
                             bottom=0.18, top=0.9, wspace=0.5, hspace=0.5)
-        #ax = fig.add_subplot(1,1,1)
+        
         plt.contour(self.xi*1000, self.yi*1000, self.zi, 9,
-                    colors='k', linewidths=0.5)  # mt to T
-        # plt.pcolormesh(X,Y,Z_a,cmap=plt.get_cmap('rainbow'))#vmin=np.min(rho)-0.2)
+                    colors='k', linewidths=0.5)
         plt.pcolormesh(self.xi*1000, self.yi*1000, self.zi,
-                       cmap=plt.get_cmap('rainbow'))  # vmin=np.min(rho)-0.2)
+                    cmap=plt.get_cmap('viridis'))
         plt.colorbar()
-        # plt.xlim(0,0.15)
-        # plt.ylim(-0.1,0.1)
         plt.xlabel('B$_{c}$ (mT)', fontsize=12)
         plt.ylabel('B$_{i}$ (mT)', fontsize=12)
-
+        
         if save:
-            pmagplotlib.save_plots({'forc': 1}, {'forc': 'forc.{}'.format(fmt)})
-            return
+            plt.savefig(f'forc.{fmt}', format=fmt, dpi=300, bbox_inches='tight')
+            print(f"Figure saved as forc.{fmt}")
+            plt.show()
+            plt.close()
         else:
-            pmagplotlib.draw_figs({'forc': 1})
-            res = pmagplotlib.save_or_quit()
-            if res == 'a':
-                pmagplotlib.save_plots({'forc': 1}, {'forc': 'forc.{}'.format(fmt)})
+            print("If you do want to save the figure, use the save button on the window.")
+            plt.show()
+            plt.close()
 
 
 class dataLoad(object):
@@ -196,7 +200,7 @@ class dataLoad(object):
                     break
                 # else:
                 #    print('file format wrong, cannot find the data row.')
-        skiprows = 34 if skiprows == None else skiprows
+        skiprows = 34 if skiprows is None else skiprows
         df = pd.read_csv(fileAdres, skiprows=skiprows, sep=r'[,\s]+', 
         names=['H', 'M'], skipfooter=1,engine='python')
 
@@ -278,7 +282,9 @@ def d2_func(x, y, z):
     A = np.array([np.ones(len(X)), X, X**2, Y, Y**2, X*Y]).T
     Z = np.array(z)
     B = Z.flatten()
-    # print(A.shape,B.shape)
+    # catching mismatched shapes and NaNs to avoid Intel oneMKL errors
+    if A.shape[0] != B.shape[0] or np.any(np.isnan(A)) or np.any(np.isnan(B)):
+        return np.nan
     coeff, r, rank, s = np.linalg.lstsq(A, B, rcond=None)
     return -coeff[5]
 
@@ -342,7 +348,7 @@ def param_argvs(inputs=None):
         return
     SF = pmag.get_named_arg('-sf', reqd=True)
     try:
-        SF = int(inputs[4])
+        SF = int(SF)
     except:
         print('-sf has to be int')
         return
@@ -350,10 +356,10 @@ def param_argvs(inputs=None):
 
 
 def main():
-    #start_time = time.time()
+    start_time = time.time()
     fileAdres, SF, save, fmt = param_argvs(inputs=sys.argv)
 
-    if fileAdres != None:
+    if fileAdres is not None:
         try:
             Forc(fileAdres=fileAdres, SF=SF).plot(save, fmt)
             pass
@@ -362,8 +368,8 @@ def main():
             pass
     else:
         print('!please include filename and smooth_factor, e.g.:\nforc_diagram.py -f /data_path/forc_file_name.text -sf 5')
-    #end_time = time.time()
-    #print(end_time - start_time)
+    end_time = time.time()
+    print(f"File took {end_time - start_time} seconds to process.")
 
 
 if __name__ == '__main__':
