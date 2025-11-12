@@ -781,7 +781,7 @@ def unsquish(incs, f):
             incs_unsquished.append(inc_new)
         return incs_unsquished
     except TypeError as e:
-        print("TypeError implies single value:", e) # to catch single values
+        print("TypeError caught: ", e) # to catch single values
         inc_rad = np.deg2rad(incs)  # convert to radians
         inc_new_rad = (1.0/f) * np.tan(inc_rad)
         inc_new = np.rad2deg(np.arctan(inc_new_rad))  # convert back to degrees
@@ -823,7 +823,7 @@ def squish(incs, f):
             incs_squished.append(inc_new)
         return incs_squished
     except TypeError as e: # to catch single values
-        print("TypeError implies single value:", e)
+        print("TypeError caught: ", e)
         inc_rad = incs * np.pi / 180.  # convert to radians
         inc_new_rad = f * np.tan(inc_rad)
         inc_new = np.arctan(inc_new_rad) * 180. / \
@@ -2325,7 +2325,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
                 else:
                     color_up.append(color)
     except TypeError as e:
-        print("TypeError implies single value:", e)
+        print("TypeError caught:", e)
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
@@ -9326,7 +9326,7 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 ax4.set_xlabel('B (T)')
                 ax4.set_ylabel('M/Mr')
         except Exception as e:
-            print("I'm not not doing it because:", e)
+            print("Processing skipped because:", e)
             hpars['hysteresis_bcr'] = '0'
             hpars['magic_method_codes'] = ""
         plt.gcf()
@@ -10974,7 +10974,7 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                                 print(
                                     " enter the dec and inc of the pole on one line ")
                             else:
-                                print("Something is wrong: ", e)
+                                print("Error parsing input, please reconsider: ", e)
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
