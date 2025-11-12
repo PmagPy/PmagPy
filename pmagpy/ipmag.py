@@ -9140,7 +9140,8 @@ def iplot_hys(fignum, B, M, s):
         poly = polyfit(Baz, Maz, 1)
         Bac = -poly[1]/poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception as e:
+        print("cannot compute Bc:", e)
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm, B, Mnorm, MadjN
 
@@ -9324,8 +9325,8 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 ax4.axvline(0, color='k')
                 ax4.set_xlabel('B (T)')
                 ax4.set_ylabel('M/Mr')
-        except:
-            print("not doing it")
+        except Exception as e:
+            print("I'm not not doing it because:", e)
             hpars['hysteresis_bcr'] = '0'
             hpars['magic_method_codes'] = ""
         plt.gcf()
@@ -10967,20 +10968,18 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                             PDir.append(float(di[0]))
                             PDir.append(float(di[1]))
                             con = 0
-                        except:
+                        except Exception as e:
                             cnt += 1
                             if cnt < 10:
                                 print(
                                     " enter the dec and inc of the pole on one line ")
                             else:
-                                print(
-                                    "ummm - you are doing something wrong - i give up")
+                                print("Something is wrong: ", e)
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
                         pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                               title, iplot, comp, vec, Dir, num_bootstraps)
-
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
                     if verbose and not plots:
@@ -13659,7 +13658,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                     try:
                         k = sids.index(specimen)
                         keepon = 0
-                    except:
+                    except Exception as e:
+                        print("Error:", e)
                         tmplist = []
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:
