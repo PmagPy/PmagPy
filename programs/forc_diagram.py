@@ -282,7 +282,9 @@ def d2_func(x, y, z):
     A = np.array([np.ones(len(X)), X, X**2, Y, Y**2, X*Y]).T
     Z = np.array(z)
     B = Z.flatten()
-    # print(A.shape,B.shape)
+    # catching mismatched shapes and NaNs to avoid Intel oneMKL errors
+    if A.shape[0] != B.shape[0] or np.any(np.isnan(A)) or np.any(np.isnan(B)):
+        return np.nan
     coeff, r, rank, s = np.linalg.lstsq(A, B, rcond=None)
     return -coeff[5]
 
