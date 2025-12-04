@@ -3532,7 +3532,6 @@ def estimate_curie_temperature(
         temperatures of second derivative zero-crossings for heating cycle, or None if none found
     cooling_zero : list of float or None
         temperatures of second derivative zero-crossings for cooling cycle, or None if none found
-       
     """
 
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(
@@ -3587,24 +3586,22 @@ def estimate_curie_temperature(
     temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
 
     if inverse_method:
-        if not _HAS_BOKEH:  
+        if not _HAS_BOKEH:
             raise ImportError("Bokeh is required for inverse_method=True")
         bokeh_height = int(figsize[1] * 96)
         title = experiment["specimen"].unique()[0]
-    
         swX_arr = np.array(swX)
         inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
         mask_w = np.isfinite(inv_w)
         T = np.array(swT)[mask_w]
         inv_chi = inv_w[mask_w]
 
-        # Initial fit endpoints (choose two points in the linear region)
-        # 0.7 number places initial fit near expected linear region
+        # Creates initial fit endpoints (choose two points in the linear region)
+        # 0.7 is Magic Number which places initial fit near expected linear region
         fit_x = [T[int(len(T)*0.7)], T[-1]]
         fit_y = [inv_chi[int(len(inv_chi)*0.7)], inv_chi[-1]]
         fit_source = ColumnDataSource(data=dict(x=fit_x, y=fit_y))
-    
-        # Scatter and line for data
+        # scatter and line for data
         data_source = ColumnDataSource(data=dict(x=T, y=inv_chi))
         p_inv = figure(title=f"{title} – 1/χ",
                        height=bokeh_height,
@@ -3615,16 +3612,13 @@ def estimate_curie_temperature(
         p_inv.scatter('x', 'y', source=data_source, size=8, color="red", legend_label="Heating – 1/χ")
         renderer = p_inv.scatter('x', 'y', source=fit_source, size=12, color="blue", legend_label="Fit Endpoints")
         p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
-    
         # PointDrawTool for dragging endpoints
         draw_tool = PointDrawTool(renderers=[renderer], add=False)
         p_inv.add_tools(draw_tool)
         p_inv.toolbar.active_tap = draw_tool
-        p_inv.legend.location = "top_left"
-    
+        p_inv.legend.location = "top_left"   
         # Div to display Curie temperature
-        curie_estimate = Div(text="Curie temperature: --", styles={'font-size': '16px', 'color': 'darkred'})
-    
+        curie_estimate = Div(text="Curie temperature: --", styles={'font-size': '16px', 'color': 'darkred'})  
         # JS callback to update fit line and Curie temperature estimate
         callback = CustomJS(args=dict(source=fit_source, div=curie_estimate), code="""
             var x = source.data.x;
@@ -3637,8 +3631,7 @@ def estimate_curie_temperature(
                 div.text = "Curie temperature estimate: " + Tc.toFixed(2) + " °C";
             }
         """)
-        fit_source.js_on_change('data', callback)
-        
+        fit_source.js_on_change('data', callback)       
         show(column(p_inv, curie_estimate))
 
     if print_estimates:
@@ -3652,7 +3645,7 @@ def estimate_curie_temperature(
             print('No zero crossing found for the second derivative of the heating curve.')  
         if temp_of_zero_crossing_cooling:  
             print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')  
-        else:  
+        else:
             print('No zero crossing found for the second derivative of the cooling curve.')
 
     heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
