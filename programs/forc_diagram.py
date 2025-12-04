@@ -14,10 +14,6 @@ import os
 import numpy as np
 import itertools
 import matplotlib
-from matplotlib import pyplot as plt
-import pandas as pd
-import time
-from scipy.interpolate import griddata
 # To fix backend issues in Jupyter vs normal Python
 try:
     get_ipython()  # means we're in Jupyter/IPython
@@ -26,6 +22,12 @@ except NameError:
     # if in normal, use TKAgg for external windows
     matplotlib.use('TKAgg')
     print("Using TKAgg backend for external windows")
+from matplotlib import pyplot as plt
+import pandas as pd
+import time
+import warnings
+from scipy.interpolate import griddata
+
 from pmagpy import pmag
 
 
@@ -284,6 +286,7 @@ def d2_func(x, y, z):
     B = Z.flatten()
     # catching mismatched shapes and NaNs to avoid Intel oneMKL errors
     if A.shape[0] != B.shape[0] or np.any(np.isnan(A)) or np.any(np.isnan(B)):
+        warnings.warn("Some mismatched shapes or NaNs found, fit will still occur but be aware of possible issues.", RuntimeWarning)
         return np.nan
     coeff, r, rank, s = np.linalg.lstsq(A, B, rcond=None)
     return -coeff[5]
@@ -349,7 +352,7 @@ def param_argvs(inputs=None):
     SF = pmag.get_named_arg('-sf', reqd=True)
     try:
         SF = int(SF)
-    except:
+    except ValueError or TypeError:
         print('-sf has to be int')
         return
     return fileAdres, SF, save, fmt
@@ -369,7 +372,9 @@ def main():
     else:
         print('!please include filename and smooth_factor, e.g.:\nforc_diagram.py -f /data_path/forc_file_name.text -sf 5')
     end_time = time.time()
-    print(f"File took {end_time - start_time} seconds to process.")
+    if fileAdres is not None:
+        print(f"File took {end_time - start_time} seconds to process.")
+    
 
 
 if __name__ == '__main__':
