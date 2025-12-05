@@ -245,3 +245,9 @@ data_files/aarm_magic/samples.txt
 data_files/aarm_magic/sites.txt
 data_files/aarm_magic/locations.txt
 data_files/k15_magic/*.txt
+
+# Test output files
+custom_specimens.txt
+images.txt
+images_errors.txt
+data_files/3_0/Megiddo/unknown_location_*.txt
