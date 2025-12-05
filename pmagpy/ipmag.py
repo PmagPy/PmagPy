@@ -16085,3 +16085,82 @@ def MADcrit_95_filter(N, MAD):
         return True
     else:
         return False
+
+def mad_to_a95(mad, n_steps, anchored=False, strict=True):
+    """
+    Convert MAD (or aMAD) to α95 using the scaling factors of
+    Khokhlov & Hulot (2016), Table 8.
+
+    Parameters
+    ----------
+    mad : float or array-like
+        MAD (for standard PCA) or aMAD (for anchored PCA), in degrees.
+    n_steps : int
+        Number of demagnetization steps used in the line fit.
+    anchored : bool, default False (conservative estimate)
+        False -> use CMAD (standard principal component analysis, MAD).
+        True  -> use CaMAD (anchored PCA, aMAD).
+    strict : bool, default True
+        If True  -> raise ValueError when n_steps not in the table.
+        If False -> use the factor for the closest available n_steps.
+
+    Returns
+    -------
+    a95 : same type as `mad`
+        Estimated α95 in degrees.
+    """
+
+    # Table 8 from Khokhlov & Hulot (2016)
+    CMAD = {
+        3: 7.69,
+        4: 3.90,
+        5: 3.18,
+        6: 2.88,
+        7: 2.71,
+        8: 2.63,
+        9: 2.57,
+        10: 2.54,
+        11: 2.51,
+        12: 2.48,
+        13: 2.46,
+        14: 2.44,
+        15: 2.43,
+        16: 2.43,
+        100: 2.37,
+    }
+
+    CaMAD = {
+        3: 6.00,
+        4: 5.00,
+        5: 4.63,
+        6: 4.43,
+        7: 4.31,
+        8: 4.24,
+        9: 4.18,
+        10: 4.14,
+        11: 4.12,
+        12: 4.11,
+        13: 4.08,
+        14: 4.08,
+        15: 4.06,
+        16: 4.05,
+        100: 3.99,
+    }
+
+    table = CaMAD if anchored else CMAD
+
+    if n_steps in table:
+        factor = table[n_steps]
+    else:
+        if strict:
+            raise ValueError(
+                f"n_steps={n_steps} not in Table 8. "
+                f"Valid values: {sorted(table.keys())}"
+            )
+        # use factor for closest available n
+        closest_n = min(table.keys(), key=lambda k: abs(k - n_steps))
+        factor = table[closest_n]
+
+    # works for scalars, numpy arrays, pandas Series, etc.
+    return mad * factor
+
