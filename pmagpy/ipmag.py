@@ -16086,7 +16086,7 @@ def MADcrit_95_filter(N, MAD):
     else:
         return False
 
-def mad_to_a95(mad, n_steps, anchored=False, strict=True):
+def mad_to_a95(mad, n_steps, anchored=False):
     """
     Convert MAD (or aMAD) to α95 using the scaling factors of
     Khokhlov & Hulot (2016), Table 8.
@@ -16096,18 +16096,30 @@ def mad_to_a95(mad, n_steps, anchored=False, strict=True):
     mad : float or array-like
         MAD (for standard PCA) or aMAD (for anchored PCA), in degrees.
     n_steps : int
-        Number of demagnetization steps used in the line fit.
-    anchored : bool, default False (conservative estimate)
-        False -> use CMAD (standard principal component analysis, MAD).
-        True  -> use CaMAD (anchored PCA, aMAD).
-    strict : bool, default True
-        If True  -> raise ValueError when n_steps not in the table.
-        If False -> use the factor for the closest available n_steps.
+        Number of vector measurements (demagnetization steps) used in the line fit.
+        Table 8 of Khokhlov & Hulot (2016) is defined for 3 <= n_steps <= 16.
+        For n_steps > 16, the large-N asymptotic scaling factor is applied.
+    anchored : bool, default False
+        If False, use CMAD factors for standard (unanchored) PCA MAD.
+        If True, use CaMAD factors for anchored PCA aMAD.
 
     Returns
     -------
-    a95 : same type as `mad`
-        Estimated α95 in degrees.
+    a95 : float or array-like
+        Estimated α95 in degrees, with the same shape as `mad`.
+        
+    Notes
+    -----
+    For n_steps < 3, this function raises a ValueError because Table 8 is not
+    defined for fewer than three measurements. For n_steps > 16, the asymptotic
+    large-N scaling factor tabulated at n = 100 in Khokhlov & Hulot (2016) is used.
+    
+    Examples
+    --------
+    Convert a MAD value of 4.2 determined from an anchored line fit with 7 steps
+    to α95:
+    >>> ipmag.mad_to_a95(4.2, n_steps=7, anchored=True)
+    >>> 18.102
     """
 
     # Table 8 from Khokhlov & Hulot (2016)
@@ -16149,17 +16161,13 @@ def mad_to_a95(mad, n_steps, anchored=False, strict=True):
 
     table = CaMAD if anchored else CMAD
 
-    if n_steps in table:
-        factor = table[n_steps]
+    if n_steps < 3:
+        raise ValueError(
+        f"n_steps={n_steps} is too small; Table 8 is defined for n>=3.")
+    elif n_steps > 16:
+        factor = table[100]  # large-N asymptotic factor
     else:
-        if strict:
-            raise ValueError(
-                f"n_steps={n_steps} not in Table 8. "
-                f"Valid values: {sorted(table.keys())}"
-            )
-        # use factor for closest available n
-        closest_n = min(table.keys(), key=lambda k: abs(k - n_steps))
-        factor = table[closest_n]
+        factor = table[n_steps]
 
     # works for scalars, numpy arrays, pandas Series, etc.
     return mad * factor
