@@ -16095,8 +16095,10 @@ def mad_to_a95(mad, n_steps, anchored=False):
     ----------
     mad : float or array-like
         MAD (for standard PCA) or aMAD (for anchored PCA), in degrees.
-    n_steps : int
-        Number of vector measurements (demagnetization steps) used in the line fit.
+    n_steps : int or array-like of int
+        Number of vector measurements (demagnetization steps) used in the line
+        fit. Can be a scalar (applied to all MAD values) or an array with the
+        same shape as `mad` to allow different n_steps for different specimens.
         Table 8 of Khokhlov & Hulot (2016) is defined for 3 <= n_steps <= 16.
         For n_steps > 16, the large-N asymptotic scaling factor is applied.
     anchored : bool, default False
@@ -16120,6 +16122,12 @@ def mad_to_a95(mad, n_steps, anchored=False):
     to α95:
     >>> ipmag.mad_to_a95(4.2, n_steps=7, anchored=True)
     >>> 18.102
+    
+    Convert arrays of MAD values with different n_steps for each specimen:
+    >>> mads = np.array([2.0, 3.0, 4.0])
+    >>> steps = np.array([5, 7, 10])
+    >>> ipmag.mad_to_a95(mads, n_steps=steps, anchored=False)
+    array([ 6.36 ,  8.13 , 10.16 ])
     """
 
     # Table 8 from Khokhlov & Hulot (2016)
@@ -16161,14 +16169,39 @@ def mad_to_a95(mad, n_steps, anchored=False):
 
     table = CaMAD if anchored else CMAD
 
-    if n_steps < 3:
-        raise ValueError(
-        f"n_steps={n_steps} is too small; Table 8 is defined for n>=3.")
-    elif n_steps > 16:
-        factor = table[100]  # large-N asymptotic factor
+    if np.isscalar(n_steps):
+        n = int(n_steps)
+        if n < 3:
+            raise ValueError(
+            f"n_steps={n} is too small; Table 8 is defined for n>=3.")
+        elif n > 16:
+            factor = table[100]  # large-N asymptotic factor
+        else:
+            factor = table[n]
+        # works for scalars, numpy arrays, pandas Series, etc.
+        return mad * factor
+
     else:
-        factor = table[n_steps]
+        # Array-like n_steps → elementwise mapping, same shape as mad
+        mad_arr = np.asarray(mad, dtype=float)
+        n_arr = np.asarray(n_steps)
 
-    # works for scalars, numpy arrays, pandas Series, etc.
-    return mad * factor
+        if mad_arr.shape != n_arr.shape:
+            raise ValueError(
+                "When n_steps is array-like, it must have the same shape as mad."
+            )
 
+        def _factor_for_n(n):
+            n = int(n)
+            if n < 3:
+                raise ValueError(
+                    f"n_steps={n} is too small; Table 8 is defined for n>=3."
+                )
+            if n > 16:
+                return table[100]
+            return table[n]
+
+        vec_factor = np.vectorize(_factor_for_n, otypes=[float])
+        factors = vec_factor(n_arr)
+
+        return mad_arr * factors
