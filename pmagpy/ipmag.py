@@ -2966,7 +2966,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
             cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
         sm._A = []
         plt.colorbar(sm, orientation='horizontal', shrink=0.8,
-                     pad=0.05, label=colorbar_label)
+                     pad=0.05, label=colorbar_label, ax=map_axis)
 
 
 def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
