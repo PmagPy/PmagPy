@@ -3383,13 +3383,13 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     sigma = np.log(E_hyst / 2 / Bc / Ms)
 
     # plot original loop
-    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop')
+    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', return_figure=True)
     # plot centered loop
-    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected')
+    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', return_figure=True)
     # plot drift corrected loop
-    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected')
+    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', return_figure=True)
     # plot slope corrected loop
-    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected')
+    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', return_figure=True)
     # plot Mrh
     p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
     p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
