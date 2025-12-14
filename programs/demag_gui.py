@@ -766,6 +766,7 @@ class Demag_GUI(wx.Frame):
         side_bar_sizer.Add(wx.StaticLine(self.side_panel), 0,
                            wx.ALL | wx.EXPAND, side_bar_v_space)
 
+
         coordinate_sizer = wx.StaticBoxSizer(wx.StaticBox(
             self.side_panel, wx.ID_ANY, "Coordinate System"), wx.VERTICAL)
         coordinate_sizer.Add(self.coordinates_box, 0, wx.EXPAND)
@@ -778,6 +779,50 @@ class Demag_GUI(wx.Frame):
         zijderveld_option_sizer.Add(self.orthogonal_box, 1, wx.EXPAND)
         side_bar_sizer.Add(zijderveld_option_sizer, 0,
                             wx.EXPAND)
+
+        # --- Specimen Orientation Box ---
+        self.orientation_box = wx.StaticBoxSizer(wx.StaticBox(
+            self.side_panel, wx.ID_ANY, "Specimen Orientation"), wx.VERTICAL)
+
+        # First row is azimuth and dip
+        azdip_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        az_sizer = wx.BoxSizer(wx.VERTICAL)
+        dip_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        az_label = wx.StaticText(self.side_panel, label="Azimuth")
+        self.az_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
+        az_sizer.Add(az_label, 0, wx.ALIGN_CENTER)
+        az_sizer.Add(self.az_text, 0, wx.EXPAND | wx.TOP, 2)
+
+        dip_label = wx.StaticText(self.side_panel, label="Dip")
+        self.dip_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
+        dip_sizer.Add(dip_label, 0, wx.ALIGN_CENTER)
+        dip_sizer.Add(self.dip_text, 0, wx.EXPAND | wx.TOP, 2)
+
+        azdip_sizer.Add(az_sizer, 1, wx.EXPAND | wx.RIGHT, 5)
+        azdip_sizer.Add(dip_sizer, 1, wx.EXPAND | wx.LEFT, 5)
+        self.orientation_box.Add(azdip_sizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+
+        # Second row: Bed Dip and Bed Dip Dir
+        bed_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        bed_dip_sizer = wx.BoxSizer(wx.VERTICAL)
+        bed_dir_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        bed_dip_label = wx.StaticText(self.side_panel, label="Bed Dip")
+        self.bed_dip_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
+        bed_dip_sizer.Add(bed_dip_label, 0, wx.ALIGN_CENTER)
+        bed_dip_sizer.Add(self.bed_dip_text, 0, wx.EXPAND | wx.TOP, 2)
+
+        bed_dir_label = wx.StaticText(self.side_panel, label="Bed Dip Dir")
+        self.bed_dir_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
+        bed_dir_sizer.Add(bed_dir_label, 0, wx.ALIGN_CENTER)
+        bed_dir_sizer.Add(self.bed_dir_text, 0, wx.EXPAND | wx.TOP, 2)
+
+        bed_sizer.Add(bed_dip_sizer, 1, wx.EXPAND | wx.RIGHT, 5)
+        bed_sizer.Add(bed_dir_sizer, 1, wx.EXPAND | wx.LEFT, 5)
+        self.orientation_box.Add(bed_sizer, 0, wx.EXPAND)
+
+        side_bar_sizer.Add(self.orientation_box, 0, wx.EXPAND | wx.TOP, 10)
 
         side_bar_sizer.Add(self.logger, proportion=1,
                            flag= wx.TOP | wx.EXPAND, border=8)
@@ -818,7 +863,40 @@ class Demag_GUI(wx.Frame):
         outersizer.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
+        self.update_orientation_box()
+    
+    def update_orientation_box(self):
+        """
+        Update the orientation box with info for the current specimen.
+        """
+        # Get current specimen and its sample
+        specimen = getattr(self, 's', None)
+        if not specimen:
+            self.az_text.SetValue("")
+            self.dip_text.SetValue("")
+            self.bed_dip_text.SetValue("")
+            self.bed_dir_text.SetValue("")
+            return
 
+        sample = self.Data_hierarchy.get('sample_of_specimen', {}).get(specimen, None)
+        if not sample:
+            self.az_text.SetValue("")
+            self.dip_text.SetValue("")
+            self.bed_dip_text.SetValue("")
+            self.bed_dir_text.SetValue("")
+            return
+            return
+
+        sample_info = self.Data_info.get("er_samples", {}).get(sample, {})
+        az = sample_info.get("sample_azimuth", "--")
+        dip = sample_info.get("sample_dip", "--")
+        bed_dip = sample_info.get("sample_bed_dip", "--")
+        bed_dip_dir = sample_info.get("sample_bed_dip_direction", "--")
+
+        self.az_text.SetValue(str(az))
+        self.dip_text.SetValue(str(dip))
+        self.bed_dip_text.SetValue(str(bed_dip))
+        self.bed_dir_text.SetValue(str(bed_dip_dir))
 
     def get_coordinate_system(self):
         """
@@ -1476,13 +1554,17 @@ class Demag_GUI(wx.Frame):
         # remove old selected points
         for a in self.selected_meas_artists:
             if a in self.zijplot.collections:
-                self.zijplot.collections.remove(a)
+                a.remove()
+                #self.zijplot.collections.remove(a)
             if a in self.specimen_eqarea.collections:
-                self.specimen_eqarea.collections.remove(a)
+                a.remove()
+                #self.specimen_eqarea.collections.remove(a)
             if a in self.mplot.collections:
-                self.mplot.collections.remove(a)
+                a.remove()
+                #self.mplot.collections.remove(a)
             if a in self.mplot_af.collections:
-                self.mplot_af.collections.remove(a)
+                a.remove()
+                #self.mplot_af.collections.remove(a)
 
         # do zijderveld plot
         self.selected_meas_artists = []
@@ -3698,6 +3780,8 @@ class Demag_GUI(wx.Frame):
             self.current_fit = None
         if self.s != self.specimens_box.GetValue():
             self.specimens_box.SetValue(self.s)
+        
+        self.update_orientation_box()
 
     def clear_interpretations(self, message=None):
         """
@@ -8179,6 +8263,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.ie_open:
             self.ie.change_selected(self.current_fit)
         self.update_selection()
+        self.update_orientation_box()
 
     def on_enter_specimen(self, event):
         """
@@ -8195,6 +8280,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.ie_open:
             self.ie.change_selected(self.current_fit)
         self.update_selection()
+        self.update_orientation_box()
 
     def onSelect_coordinates(self, event):
         old = self.COORDINATE_SYSTEM
@@ -8568,6 +8654,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.ie_open:
             self.ie.change_selected(self.current_fit)
         self.update_selection()
+        self.update_orientation_box()
 
     def on_prev_button(self, event):
         """
@@ -8599,6 +8686,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.ie_open:
             self.ie.change_selected(self.current_fit)
         self.update_selection()
+        self.update_orientation_box()
 
     def on_select_stats_button(self, events):
         i = self.switch_stats_button.GetValue()
