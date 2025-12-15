@@ -824,6 +824,10 @@ class Demag_GUI(wx.Frame):
 
         side_bar_sizer.Add(self.orientation_box, 0, wx.EXPAND | wx.TOP, 10)
 
+        self.save_orientation_btn = wx.Button(self.side_panel, label="Save Orientation")
+        self.save_orientation_btn.Bind(wx.EVT_BUTTON, self.on_save_orientation)
+        self.orientation_box.Add(self.save_orientation_btn, 0, wx.EXPAND | wx.TOP, 5)
+
         side_bar_sizer.Add(self.logger, proportion=1,
                            flag= wx.TOP | wx.EXPAND, border=8)
 
@@ -897,6 +901,82 @@ class Demag_GUI(wx.Frame):
         self.dip_text.SetValue(str(dip))
         self.bed_dip_text.SetValue(str(bed_dip))
         self.bed_dir_text.SetValue(str(bed_dip_dir))
+    
+
+    def on_save_orientation(self, event):
+        """
+        Save the edited orientation fields back to the samples.txt file.
+        """
+        specimen = getattr(self, 's', None)
+        if not specimen:
+            wx.MessageBox("No specimen selected.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        sample = self.Data_hierarchy.get('sample_of_specimen', {}).get(specimen, None)
+        if not sample:
+            wx.MessageBox("No sample found for this specimen.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        # Get values from text boxes
+        azimuth = self.az_text.GetValue()
+        dip = self.dip_text.GetValue()
+        bed_dip = self.bed_dip_text.GetValue()
+        bed_dir = self.bed_dir_text.GetValue()
+
+        # Confirmation dialog
+        msg = (
+            f"Save the following orientation to samples.txt file for sample '{sample}'?\n\n"
+            f"Azimuth: {azimuth} "
+            f"Dip: {dip}\n"
+            f"Bed Dip: {bed_dip} "
+            f"Bed Dip Dir: {bed_dir}"
+        )
+        dlg = wx.MessageDialog(self, msg, "Confirm Save", wx.YES_NO | wx.ICON_QUESTION)
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        if result != wx.ID_YES:
+            return
+
+        # Update in-memory data
+        er_samples = self.Data_info.get("er_samples", {})
+        updated = False
+        if isinstance(er_samples, dict):
+            sample_rec = er_samples.get(sample)
+            if sample_rec:
+                sample_rec["sample_azimuth"] = azimuth
+                sample_rec["sample_dip"] = dip
+                sample_rec["sample_bed_dip"] = bed_dip
+                sample_rec["sample_bed_dip_direction"] = bed_dir
+                updated = True
+            records = list(er_samples.values())
+        else:
+            # It's a list of dicts
+            records = er_samples
+            for rec in records:
+                if rec.get("er_sample_name") == sample:
+                    rec["sample_azimuth"] = azimuth
+                    rec["sample_dip"] = dip
+                    rec["sample_bed_dip"] = bed_dip
+                    rec["sample_bed_dip_direction"] = bed_dir
+                    updated = True
+                    break
+
+        if not updated:
+            wx.MessageBox("Sample record not found in memory.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        # Write back to samples.txt
+        samples_path = os.path.join(self.WD, "samples.txt")
+        try:
+            pmag.magic_write(samples_path, list(er_samples.values()) if isinstance(er_samples, dict) else er_samples, 'er_samples')
+            wx.MessageBox("Orientation saved to samples.txt.", "Success", wx.OK | wx.ICON_INFORMATION)
+            # Logging to demag_gui.log
+            log_msg = (f"Orientation updated for sample '{sample}': Azimuth={azimuth}, Dip={dip}, Bed Dip={bed_dip}, Bed Dip Dir={bed_dir}")
+            log_path = os.path.join(self.WD, "demag_gui.log")
+            with open(log_path, "a") as log_file:
+                log_file.write(log_msg + "\n")
+        except Exception as e:
+            wx.MessageBox(f"Failed to write samples.txt: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
     def get_coordinate_system(self):
         """
