@@ -16085,3 +16085,123 @@ def MADcrit_95_filter(N, MAD):
         return True
     else:
         return False
+
+def mad_to_a95(mad, n_steps, anchored=False):
+    """
+    Convert MAD (or aMAD) to α95 using the scaling factors of
+    Khokhlov & Hulot (2016), Table 8.
+
+    Parameters
+    ----------
+    mad : float or array-like
+        MAD (for standard PCA) or aMAD (for anchored PCA), in degrees.
+    n_steps : int or array-like of int
+        Number of vector measurements (demagnetization steps) used in the line
+        fit. Can be a scalar (applied to all MAD values) or an array with the
+        same shape as `mad` to allow different n_steps for different specimens.
+        Table 8 of Khokhlov & Hulot (2016) is defined for 3 <= n_steps <= 16.
+        For n_steps > 16, the large-N asymptotic scaling factor is applied.
+    anchored : bool, default False
+        If False, use CMAD factors for standard (unanchored) PCA MAD.
+        If True, use CaMAD factors for anchored PCA aMAD.
+
+    Returns
+    -------
+    a95 : float or array-like
+        Estimated α95 in degrees, with the same shape as `mad`.
+        
+    Notes
+    -----
+    For n_steps < 3, this function raises a ValueError because Table 8 is not
+    defined for fewer than three measurements. For n_steps > 16, the asymptotic
+    large-N scaling factor tabulated at n = 100 in Khokhlov & Hulot (2016) is used.
+    
+    Examples
+    --------
+    Convert a MAD value of 4.2 determined from an anchored line fit with 7 steps
+    to α95:
+    >>> ipmag.mad_to_a95(4.2, n_steps=7, anchored=True)
+    >>> 18.102
+    
+    Convert arrays of MAD values with different n_steps for each specimen:
+    >>> mads = np.array([2.0, 3.0, 4.0])
+    >>> steps = np.array([5, 7, 10])
+    >>> ipmag.mad_to_a95(mads, n_steps=steps, anchored=False)
+    array([ 6.36 ,  8.13 , 10.16 ])
+    """
+
+    # Table 8 from Khokhlov & Hulot (2016)
+    CMAD = {
+        3: 7.69,
+        4: 3.90,
+        5: 3.18,
+        6: 2.88,
+        7: 2.71,
+        8: 2.63,
+        9: 2.57,
+        10: 2.54,
+        11: 2.51,
+        12: 2.48,
+        13: 2.46,
+        14: 2.44,
+        15: 2.43,
+        16: 2.43,
+        100: 2.37,
+    }
+
+    CaMAD = {
+        3: 6.00,
+        4: 5.00,
+        5: 4.63,
+        6: 4.43,
+        7: 4.31,
+        8: 4.24,
+        9: 4.18,
+        10: 4.14,
+        11: 4.12,
+        12: 4.11,
+        13: 4.08,
+        14: 4.08,
+        15: 4.06,
+        16: 4.05,
+        100: 3.99,
+    }
+
+    table = CaMAD if anchored else CMAD
+
+    if np.isscalar(n_steps):
+        n = int(n_steps)
+        if n < 3:
+            raise ValueError(
+            f"n_steps={n} is too small; Table 8 is defined for n>=3.")
+        elif n > 16:
+            factor = table[100]  # large-N asymptotic factor
+        else:
+            factor = table[n]
+        # works for scalars, numpy arrays, pandas Series, etc.
+        return mad * factor
+
+    else:
+        # Array-like n_steps → elementwise mapping, same shape as mad
+        mad_arr = np.asarray(mad, dtype=float)
+        n_arr = np.asarray(n_steps)
+
+        if mad_arr.shape != n_arr.shape:
+            raise ValueError(
+                "When n_steps is array-like, it must have the same shape as mad."
+            )
+
+        def _factor_for_n(n):
+            n = int(n)
+            if n < 3:
+                raise ValueError(
+                    f"n_steps={n} is too small; Table 8 is defined for n>=3."
+                )
+            if n > 16:
+                return table[100]
+            return table[n]
+
+        vec_factor = np.vectorize(_factor_for_n, otypes=[float])
+        factors = vec_factor(n_arr)
+
+        return mad_arr * factors
