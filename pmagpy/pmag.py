@@ -1402,86 +1402,6 @@ def dia_vgp(*args):  # new function interface by J.Holmes, SIO, 6/1/2011
     return plong.tolist(), plat.tolist(), dp.tolist(), dm.tolist()
 
 
-def int_pars(x, y, vds, **kwargs):
-    """
-    Depreciated 9/7/2022 
-    
-    Calculates York regression and paleointensity parameters (with Tauxe Fvds).
-    """
-    # first do linear regression a la York
-    # do Data Model 3 way:
-    if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
-        n_key = 'int_n_measurements'
-        b_key = 'int_b'
-        sigma_key = 'int_b_sigma'
-        f_key = 'int_f'
-        fvds_key = 'int_fvds'
-        g_key = 'int_g'
-        q_key = 'int_q'
-        b_beta_key = 'int_b_beta'
-
-    else:  # version 2
-        n_key = 'specimen_int_n'
-        b_key = 'specimen_b'
-        sigma_key = 'specimen_b_sigma'
-        f_key = 'specimen_f'
-        fvds_key = 'specimen_fvds'
-        g_key = 'specimen_g'
-        q_key = 'specimen_q'
-        b_beta_key = 'specimen_b_beta'
-
-    xx, yer, xer, xyer, yy, xsum, ysum, xy = 0., 0., 0., 0., 0., 0., 0., 0.
-    xprime, yprime = [], []
-    pars = {}
-    pars[n_key] = len(x)
-    n = float(len(x))
-    if n <= 2:
-        print("shouldn't be here at all!")
-        return pars, 1
-    for i in range(len(x)):
-        xx += x[i]**2.
-        yy += y[i]**2.
-        xy += x[i] * y[i]
-        xsum += x[i]
-        ysum += y[i]
-    xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
-    ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
-    sum = 0
-    for i in range(int(n)):
-        yer += (y[i] - (ysum / n))**2.
-        xer += (x[i] - (xsum / n))**2.
-        xyer += (y[i] - (ysum / n)) * (x[i] - (xsum / n))
-    slop = -np.sqrt(yer / xer)
-    pars[b_key] = slop
-    s1 = 2. * yer - 2. * slop * xyer
-    s2 = (n - 2.) * xer
-    sigma = np.sqrt(s1 / s2)
-    pars[sigma_key] = sigma
-    s = (xy - (xsum * ysum / n)) / (xx - (xsum**2 / n))
-    r = (s * xsig) / ysig
-    pars["specimen_rsc"] = r**2.
-    ytot = abs(ysum / n - slop * xsum / n)
-    for i in range(int(n)):
-        xprime.append(((slop * x[i] + y[i] - ytot) / (2. * slop)))
-        yprime.append(((slop * x[i] + y[i] - ytot) / 2.) + ytot)
-    sumdy, dy = 0, []
-    dyt = abs(yprime[0] - yprime[int(n) - 1])
-    for i in range((int(n) - 1)):
-        dy.append(abs(yprime[i + 1] - yprime[i]))
-        sumdy += dy[i]**2.
-    f = dyt / ytot
-    pars[f_key] = f
-    pars["specimen_ytot"] = ytot
-    ff = dyt / vds
-    pars[fvds_key] = ff
-    ddy = (1. / dyt) * sumdy
-    g = 1. - ddy / dyt
-    pars[g_key] = g
-    q = abs(slop) * f * g / sigma
-    pars[q_key] = q
-    pars[b_beta_key] = -sigma / slop
-    return pars, 0
-
 def get_curve(araiblock,**kwargs):
 #   curvature stuff
     pars={}
@@ -1747,34 +1667,6 @@ def vector_mean(data):
     Xbar = Xbar/R
     dir = cart2dir(Xbar)
     return dir, R
-
-
-def mark_dmag_rec(s, ind, data):
-    """
-    Depreciated 9/14/2022
-    
-    Edits demagnetization data to mark "bad" points with measurement_flag.
-    """
-    datablock = []
-    for rec in data:
-        if rec['er_specimen_name'] == s:
-            meths = rec['magic_method_codes'].split(':')
-            if 'LT-NO' in meths or 'LT-AF-Z' in meths or 'LT-T-Z' in meths:
-                datablock.append(rec)
-    dmagrec = datablock[ind]
-    for k in range(len(data)):
-        meths = data[k]['magic_method_codes'].split(':')
-        if 'LT-NO' in meths or 'LT-AF-Z' in meths or 'LT-T-Z' in meths:
-            if data[k]['er_specimen_name'] == s:
-                if data[k]['treatment_temp'] == dmagrec['treatment_temp'] and data[k]['treatment_ac_field'] == dmagrec['treatment_ac_field']:
-                    if data[k]['measurement_dec'] == dmagrec['measurement_dec'] and data[k]['measurement_inc'] == dmagrec['measurement_inc'] and data[k]['measurement_magn_moment'] == dmagrec['measurement_magn_moment']:
-                        if data[k]['measurement_flag'] == 'g':
-                            flag = 'b'
-                        else:
-                            flag = 'g'
-                        data[k]['measurement_flag'] = flag
-                        break
-    return data
 
 
 def mark_samp(Samps, data, crd):
@@ -2154,55 +2046,6 @@ def sort_magic_data(magic_data, sort_name):
             magic_data_sorted[name] = []
         magic_data_sorted[name].append(rec)
     return magic_data_sorted
-
-
-def upload_read(infile, table):
-    """
-    Depreciated 9/14/2022
-    
-    Reads a table from a MagIC upload (or downloaded) txt file and puts data in a
-    list of dictionaries.
-    """
-    delim = 'tab'
-    hold, magic_data, magic_record, magic_keys = [], [], {}, []
-    f = open(infile, "r")
-#
-# look for right table
-#
-    line = f.readline()[:-1]
-    file_type = line.split('\t')[1]
-    if file_type == 'delimited':
-        file_type = line.split('\t')[2]
-    if delim == 'tab':
-        line = f.readline()[:-1].split('\t')
-    else:
-        f.close()
-        print("only tab delimitted files are supported now")
-        return
-    while file_type != table:
-        while line[0][0:5] in f.readlines() != ">>>>>":
-            pass
-        line = f.readline()[:-1]
-        file_type = line.split('\t')[1]
-        if file_type == 'delimited':
-            file_type = line.split('\t')[2]
-        ine = f.readline()[:-1].split('\t')
-    while line[0][0:5] in f.readlines() != ">>>>>":
-        for key in line:
-            magic_keys.append(key)
-        for line in f.readlines():
-            rec = line[:-1].split('\t')
-            hold.append(rec)
-        for rec in hold:
-            magic_record = {}
-            if len(magic_keys) != len(rec):
-                print("Uneven record lengths detected: ", rec)
-                input("Return to continue.... ")
-            for k in range(len(magic_keys)):
-                magic_record[magic_keys[k]] = rec[k]
-            magic_data.append(magic_record)
-    f.close()
-    return magic_data
 
 
 def putout(ofile, keylist, Rec):
@@ -2642,36 +2485,6 @@ def find_samp_rec(s, data, az_type):
     return orient
 
 
-def vspec(data):
-    """
-    Depreciated 9/14/2022
-    
-    Takes the vector mean of replicate measurements at a given step.
-    """
-    vdata, Dirdata, step_meth = [], [], []
-    tr0 = data[0][0]  # set beginning treatment
-    data.append("Stop")
-    k, R = 1, 0
-    for i in range(k, len(data)):
-        Dirdata = []
-        if data[i][0] != tr0:
-            if i == k:  # sample is unique
-                vdata.append(data[i - 1])
-                step_meth.append(" ")
-            else:  # sample is not unique
-                for l in range(k - 1, i):
-                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
-                dir, R = vector_mean(Dirdata)
-                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
-                step_meth.append("DE-VM")
-            tr0 = data[i][0]
-            k = i + 1
-            if tr0 == "stop":
-                break
-    del data[-1]
-    return step_meth, vdata
-
-
 def Vdiff(D1, D2):
     """
     Calculates the vector difference between two directions D1, D2.
@@ -2873,6 +2686,34 @@ def Tmatrix(X):
             for l in range(3):
                 T[k][l] += row[k] * row[l]
     return T
+
+
+def vspec(data):
+    """
+    Takes the vector mean of replicate measurements at a given step. Used in zeq_magic2.py.
+    """
+    vdata, Dirdata, step_meth = [], [], []
+    tr0 = data[0][0]  # set beginning treatment
+    data.append("Stop")
+    k, R = 1, 0
+    for i in range(k, len(data)):
+        Dirdata = []
+        if data[i][0] != tr0:
+            if i == k:  # sample is unique
+                vdata.append(data[i - 1])
+                step_meth.append(" ")
+            else:  # sample is not unique
+                for l in range(k - 1, i):
+                    Dirdata.append([data[l][1], data[l][2], data[l][3]])
+                dir, R = vector_mean(Dirdata)
+                vdata.append([data[i - 1][0], dir[0], dir[1], R / (i - k + 1), '1', 'g'])
+                step_meth.append("DE-VM")
+            tr0 = data[i][0]
+            k = i + 1
+            if tr0 == "stop":
+                break
+    del data[-1]
+    return step_meth, vdata
 
 
 def dir2cart(d):
@@ -3246,9 +3087,105 @@ def circ(dec, dip, alpha,npts=201):
     return D_out, I_out
 
 
+def int_pars(x, y, vds, **kwargs):
+    """
+    This function calculates York regression and paleointensity parameters
+    (with Tauxe Fvds), building a dictionary which is used in PintPars.
+
+    Parameters
+    ----------
+    x : x values of TRM and NRM points on the Arai plot
+    y : y values of TRM and NRM points on the Arai plot
+    vds : vector difference sum (from pmag.dovds)
+    **kwargs
+
+    Returns
+    -------
+    pars : dctionary of regression and paleointensity parameters
+    errcode : bool
+        0 if no errors, 1 if too few points 
+
+    """
+    # first do linear regression a la York
+    # do Data Model 3 way:
+    if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
+        n_key = 'int_n_measurements'
+        b_key = 'int_b'
+        sigma_key = 'int_b_sigma'
+        f_key = 'int_f'
+        fvds_key = 'int_fvds'
+        g_key = 'int_g'
+        q_key = 'int_q'
+        b_beta_key = 'int_b_beta'
+
+    else:  # version 2
+        n_key = 'specimen_int_n'
+        b_key = 'specimen_b'
+        sigma_key = 'specimen_b_sigma'
+        f_key = 'specimen_f'
+        fvds_key = 'specimen_fvds'
+        g_key = 'specimen_g'
+        q_key = 'specimen_q'
+        b_beta_key = 'specimen_b_beta'
+
+    xx, yer, xer, xyer, yy, xsum, ysum, xy = 0., 0., 0., 0., 0., 0., 0., 0.
+    xprime, yprime = [], []
+    pars = {}
+    pars[n_key] = len(x)
+    n = float(len(x))
+    if n <= 2:
+        print("shouldn't be here at all!")
+        return pars, 1
+    for i in range(len(x)):
+        xx += x[i]**2.
+        yy += y[i]**2.
+        xy += x[i] * y[i]
+        xsum += x[i]
+        ysum += y[i]
+    xsig = np.sqrt((xx - (xsum**2 / n)) / (n - 1.))
+    ysig = np.sqrt((yy - (ysum**2 / n)) / (n - 1.))
+    sum = 0
+    for i in range(int(n)):
+        yer += (y[i] - (ysum / n))**2.
+        xer += (x[i] - (xsum / n))**2.
+        xyer += (y[i] - (ysum / n)) * (x[i] - (xsum / n))
+    slop = -np.sqrt(yer / xer)
+    pars[b_key] = slop
+    s1 = 2. * yer - 2. * slop * xyer
+    s2 = (n - 2.) * xer
+    sigma = np.sqrt(s1 / s2)
+    pars[sigma_key] = sigma
+    s = (xy - (xsum * ysum / n)) / (xx - (xsum**2 / n))
+    r = (s * xsig) / ysig
+    pars["specimen_rsc"] = r**2.
+    ytot = abs(ysum / n - slop * xsum / n)
+    for i in range(int(n)):
+        xprime.append(((slop * x[i] + y[i] - ytot) / (2. * slop)))
+        yprime.append(((slop * x[i] + y[i] - ytot) / 2.) + ytot)
+    sumdy, dy = 0, []
+    dyt = abs(yprime[0] - yprime[int(n) - 1])
+    for i in range((int(n) - 1)):
+        dy.append(abs(yprime[i + 1] - yprime[i]))
+        sumdy += dy[i]**2.
+    f = dyt / ytot
+    pars[f_key] = f
+    pars["specimen_ytot"] = ytot
+    ff = dyt / vds
+    pars[fvds_key] = ff
+    ddy = (1. / dyt) * sumdy
+    g = 1. - ddy / dyt
+    pars[g_key] = g
+    q = abs(slop) * f * g / sigma
+    pars[q_key] = q
+    pars[b_beta_key] = -sigma / slop
+    return pars, 0
+
+
 def PintPars(datablock, araiblock, zijdblock, start, end, accept, **kwargs):
     """
     Calculate the paleointensity with magic parameters and make some definitions.
+    
+    Uses functions int_pars and dovds
     """
     if 'version' in list(kwargs.keys()) and kwargs['version'] == 3:
         meth_key = 'method_codes'
@@ -3954,22 +3891,6 @@ def getkeys(table):
         keys.append("measurement_magn_moment")
         keys.append("measurement_csd")
     return keys
-
-# commented out as of 8/18/22
-#def getnames():
-#    """
-#    get mail names
-#    """
-#    namestring = ""
-#    addmore = 1
-#    while addmore:
-#        scientist = input("Enter  name  - <Return> when done ")
-#        if scientist != "":
-#            namestring = namestring + ":" + scientist
-#        else:
-#            namestring = namestring[1:]
-#            addmore = 0
-#    return namestring
 
 
 def magic_help(keyhelp):
@@ -4838,66 +4759,6 @@ def fisher_by_pol(data):
     return FisherByPoles
 
 
-def dolnp3_0(Data):
-    """
-    DEPRECATED!!  USE dolnp()
-    Description: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
-    Parameters
-    ---------------_
-    Data : nested list of dictionaries with keys
-        dir_dec
-        dir_inc
-        dir_tilt_correction
-        method_codes
-
-    Returns
-    -------
-        ReturnData : dictionary with keys
-            dec : fisher mean dec of data in Data
-            inc : fisher mean inc of data in Data
-            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-            n_planes : number of best fit planes [method_code = DE-BFP]
-            alpha95  : fisher confidence circle from Data
-            R : fisher R value of Data
-            K : fisher k value of Data
-    Effects
-        prints to screen in case of no data
-    """
-    if len(Data) == 0:
-        print("This function requires input Data have at least 1 entry")
-        return {}
-    if len(Data) == 1:
-        ReturnData = {}
-        ReturnData["dec"] = Data[0]['dir_dec']
-        ReturnData["inc"] = Data[0]['dir_inc']
-        ReturnData["n_total"] = '1'
-        if "DE-BFP" in Data[0]['method_codes']:
-            ReturnData["n_lines"] = '0'
-            ReturnData["n_planes"] = '1'
-        else:
-            ReturnData["n_planes"] = '0'
-            ReturnData["n_lines"] = '1'
-        ReturnData["alpha95"] = ""
-        ReturnData["R"] = ""
-        ReturnData["K"] = ""
-        return ReturnData
-    else:
-        LnpData = []
-        for n, d in enumerate(Data):
-            LnpData.append({})
-            LnpData[n]['dec'] = d['dir_dec']
-            LnpData[n]['inc'] = d['dir_inc']
-            LnpData[n]['tilt_correction'] = d['dir_tilt_correction']
-            if 'method_codes' in list(d.keys()):
-                if "DE-BFP" in d['method_codes']:
-                    LnpData[n]['dir_type'] = 'p'
-                else:
-                    LnpData[n]['dir_type'] = 'l'
-        # get a sample average from all specimens
-        ReturnData = dolnp(LnpData, 'dir_type')
-        return ReturnData
-
-
 def dolnp(data, direction_type_key):
     """
     Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
@@ -5135,76 +4996,6 @@ def process_data_for_mean(data, direction_type_key):
             E[2] += cart[2]
 
     return fdata, n_lines, L, n_planes, E
-
-
-def scoreit(pars, PmagSpecRec, accept, text, verbose):
-    """
-    Depreciated 9/14/2022
-    
-    Gets a grade for a given set of data, spits out stuff.
-    """
-    s = PmagSpecRec["er_specimen_name"]
-    PmagSpecRec["measurement_step_min"] = '%8.3e' % (
-        pars["measurement_step_min"])
-    PmagSpecRec["measurement_step_max"] = '%8.3e' % (
-        pars["measurement_step_max"])
-    PmagSpecRec["measurement_step_unit"] = pars["measurement_step_unit"]
-    PmagSpecRec["specimen_int_n"] = '%i' % (pars["specimen_int_n"])
-    PmagSpecRec["specimen_lab_field_dc"] = '%8.3e' % (
-        pars["specimen_lab_field_dc"])
-    PmagSpecRec["specimen_int"] = '%8.3e ' % (pars["specimen_int"])
-    PmagSpecRec["specimen_b"] = '%5.3f ' % (pars["specimen_b"])
-    PmagSpecRec["specimen_q"] = '%5.1f ' % (pars["specimen_q"])
-    PmagSpecRec["specimen_f"] = '%5.3f ' % (pars["specimen_f"])
-    PmagSpecRec["specimen_fvds"] = '%5.3f' % (pars["specimen_fvds"])
-    PmagSpecRec["specimen_b_beta"] = '%5.3f' % (pars["specimen_b_beta"])
-    PmagSpecRec["specimen_int_mad"] = '%7.1f' % (pars["specimen_int_mad"])
-    PmagSpecRec["specimen_dec"] = '%7.1f' % (pars["specimen_dec"])
-    PmagSpecRec["specimen_inc"] = '%7.1f' % (pars["specimen_inc"])
-    PmagSpecRec["specimen_int_dang"] = '%7.1f ' % (pars["specimen_int_dang"])
-    PmagSpecRec["specimen_drats"] = '%7.1f ' % (pars["specimen_drats"])
-    PmagSpecRec["specimen_int_ptrm_n"] = '%i ' % (pars["specimen_int_ptrm_n"])
-    PmagSpecRec["specimen_rsc"] = '%6.4f ' % (pars["specimen_rsc"])
-    PmagSpecRec["specimen_md"] = '%i ' % (int(pars["specimen_md"]))
-    PmagSpecRec["specimen_b_sigma"] = '%5.3f ' % (pars["specimen_b_sigma"])
-    if 'specimen_scat' in list(pars.keys()):
-        PmagSpecRec['specimen_scat'] = pars['specimen_scat']
-    if 'specimen_gmax' in list(pars.keys()):
-        PmagSpecRec['specimen_gmax'] = '%5.3f' % (pars['specimen_gmax'])
-    if 'specimen_frac' in list(pars.keys()):
-        PmagSpecRec['specimen_frac'] = '%5.3f' % (pars['specimen_frac'])
-    # PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
-  # check score
-    #
-    kill = grade(PmagSpecRec, accept, 'specimen_int')
-    Grade = ""
-    if len(kill) == 0:
-        Grade = 'A'
-    else:
-        Grade = 'F'
-    pars["specimen_grade"] = Grade
-    if verbose == 0:
-        return pars, kill
-    diffcum = 0
-    if pars['measurement_step_unit'] == 'K':
-        outstr = "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gamma_max \n"
-        pars_out = (s, (pars["measurement_step_min"] - 273), (pars["measurement_step_max"] - 273), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"],
-                    pars["specimen_b_beta"], pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars['specimen_gamma'])
-        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out + '\n'
-    elif pars['measurement_step_unit'] == 'J':
-        outstr = "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
-        pars_out = (s, (pars["measurement_step_min"]), (pars["measurement_step_max"]), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"], pars["specimen_b_beta"],
-                    pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars["specimen_theta"], pars["specimen_delta"], pars["specimen_gamma"])
-        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out + '\n'
-    if pars["specimen_grade"] != "A":
-        print('\n killed by:')
-        for k in kill:
-            print(k, ':, criterion set to: ',
-                  accept[k], ', specimen value: ', pars[k])
-        print('\n')
-    print(outstr)
-    print(outstring)
-    return pars, kill
 
 
 def b_vdm(B, lat):
@@ -6190,6 +5981,75 @@ def dobingham(di_block):
     return bpars
 
 
+def scoreit(pars, PmagSpecRec, accept, text, verbose):
+    """
+    This function produces a grade for a given set of data. Used in thellier_magic2.py and
+    microwave_magic.py.
+    """
+    s = PmagSpecRec["er_specimen_name"]
+    PmagSpecRec["measurement_step_min"] = '%8.3e' % (
+        pars["measurement_step_min"])
+    PmagSpecRec["measurement_step_max"] = '%8.3e' % (
+        pars["measurement_step_max"])
+    PmagSpecRec["measurement_step_unit"] = pars["measurement_step_unit"]
+    PmagSpecRec["specimen_int_n"] = '%i' % (pars["specimen_int_n"])
+    PmagSpecRec["specimen_lab_field_dc"] = '%8.3e' % (
+        pars["specimen_lab_field_dc"])
+    PmagSpecRec["specimen_int"] = '%8.3e ' % (pars["specimen_int"])
+    PmagSpecRec["specimen_b"] = '%5.3f ' % (pars["specimen_b"])
+    PmagSpecRec["specimen_q"] = '%5.1f ' % (pars["specimen_q"])
+    PmagSpecRec["specimen_f"] = '%5.3f ' % (pars["specimen_f"])
+    PmagSpecRec["specimen_fvds"] = '%5.3f' % (pars["specimen_fvds"])
+    PmagSpecRec["specimen_b_beta"] = '%5.3f' % (pars["specimen_b_beta"])
+    PmagSpecRec["specimen_int_mad"] = '%7.1f' % (pars["specimen_int_mad"])
+    PmagSpecRec["specimen_dec"] = '%7.1f' % (pars["specimen_dec"])
+    PmagSpecRec["specimen_inc"] = '%7.1f' % (pars["specimen_inc"])
+    PmagSpecRec["specimen_int_dang"] = '%7.1f ' % (pars["specimen_int_dang"])
+    PmagSpecRec["specimen_drats"] = '%7.1f ' % (pars["specimen_drats"])
+    PmagSpecRec["specimen_int_ptrm_n"] = '%i ' % (pars["specimen_int_ptrm_n"])
+    PmagSpecRec["specimen_rsc"] = '%6.4f ' % (pars["specimen_rsc"])
+    PmagSpecRec["specimen_md"] = '%i ' % (int(pars["specimen_md"]))
+    PmagSpecRec["specimen_b_sigma"] = '%5.3f ' % (pars["specimen_b_sigma"])
+    if 'specimen_scat' in list(pars.keys()):
+        PmagSpecRec['specimen_scat'] = pars['specimen_scat']
+    if 'specimen_gmax' in list(pars.keys()):
+        PmagSpecRec['specimen_gmax'] = '%5.3f' % (pars['specimen_gmax'])
+    if 'specimen_frac' in list(pars.keys()):
+        PmagSpecRec['specimen_frac'] = '%5.3f' % (pars['specimen_frac'])
+    # PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
+  # check score
+    #
+    kill = grade(PmagSpecRec, accept, 'specimen_int')
+    Grade = ""
+    if len(kill) == 0:
+        Grade = 'A'
+    else:
+        Grade = 'F'
+    pars["specimen_grade"] = Grade
+    if verbose == 0:
+        return pars, kill
+    diffcum = 0
+    if pars['measurement_step_unit'] == 'K':
+        outstr = "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gamma_max \n"
+        pars_out = (s, (pars["measurement_step_min"] - 273), (pars["measurement_step_max"] - 273), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"],
+                    pars["specimen_b_beta"], pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars['specimen_gamma'])
+        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out + '\n'
+    elif pars['measurement_step_unit'] == 'J':
+        outstr = "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
+        pars_out = (s, (pars["measurement_step_min"]), (pars["measurement_step_max"]), (pars["specimen_int_n"]), 1e6 * (pars["specimen_lab_field_dc"]), 1e6 * (pars["specimen_int"]), pars["specimen_b"], pars["specimen_q"], pars["specimen_f"], pars["specimen_fvds"], pars["specimen_b_beta"],
+                    pars["specimen_int_mad"], pars["specimen_int_dang"], pars["specimen_drats"], pars["specimen_int_ptrm_n"], pars["specimen_grade"], np.sqrt(pars["specimen_rsc"]), int(pars["specimen_md"]), pars["specimen_b_sigma"], pars["specimen_theta"], pars["specimen_delta"], pars["specimen_gamma"])
+        outstring = '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out + '\n'
+    if pars["specimen_grade"] != "A":
+        print('\n killed by:')
+        for k in kill:
+            print(k, ':, criterion set to: ',
+                  accept[k], ', specimen value: ', pars[k])
+        print('\n')
+    print(outstr)
+    print(outstring)
+    return pars, kill
+
+
 def doflip(dec, inc):
     """
     Flips upper hemisphere data to lower hemisphere.
@@ -6627,24 +6487,6 @@ def pt_rot(EP, Lats, Lons):
     return RLats, RLons
 
 
-def dread(infile, cols):
-    """
-    Depreciated 9/14/2022 
-    
-    Reads in specimen, tr, dec, inc int into data[].  position of
-    tr, dec, inc, int determined by cols[]
-    """
-    data = []
-    f = open(infile, "r")
-    for line in f.readlines():
-        tmp = line.split()
-        rec = (tmp[0], float(tmp[cols[0]]), float(tmp[cols[1]]), float(tmp[cols[2]]),
-               float(tmp[cols[3]]))
-        data.append(rec)
-    f.close()
-    return data
-
-
 def fshdev(k):
     """
     Generate a random draw from a Fisher distribution with mean declination
@@ -6871,81 +6713,6 @@ def check_F(AniSpec):
             [[s[0], s[3], s[5]], [s[3], s[1], s[4]], [s[5], s[4], s[2]]])
         chi_inv = linalg.inv(chi)
     return chi, chi_inv
-
-
-def Dir_anis_corr(InDir, AniSpec):
-    """
-    Depreciated 9/14/2022
-    
-    Takes the 6 element 's' vector and the Dec,Inc 'InDir' data,
-    performs simple anisotropy correction. returns corrected Dec, Inc
-    """
-    Dir = np.zeros((3), 'f')
-    Dir[0] = InDir[0]
-    Dir[1] = InDir[1]
-    Dir[2] = 1.
-    chi, chi_inv = check_F(AniSpec)
-    if chi[0][0] == 1.:
-        return Dir  # isotropic
-    X = dir2cart(Dir)
-    M = np.array(X)
-    H = np.dot(M, chi_inv)
-    return cart2dir(H)
-
-
-def doaniscorr(PmagSpecRec, AniSpec):
-    """
-    Depreciated 9/14/2022
-    
-    Takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
-    performs simple anisotropy correction. returns corrected Dec, Inc, Int
-    """
-    AniSpecRec = {}
-    for key in list(PmagSpecRec.keys()):
-        AniSpecRec[key] = PmagSpecRec[key]
-    Dir = np.zeros((3), 'f')
-    Dir[0] = float(PmagSpecRec["specimen_dec"])
-    Dir[1] = float(PmagSpecRec["specimen_inc"])
-    Dir[2] = float(PmagSpecRec["specimen_int"])
-# check if F test passes!  if anisotropy_sigma available
-    chi, chi_inv = check_F(AniSpec)
-    if chi[0][0] == 1.:  # isotropic
-        cDir = [Dir[0], Dir[1]]  # no change
-        newint = Dir[2]
-    else:
-        X = dir2cart(Dir)
-        M = np.array(X)
-        H = np.dot(M, chi_inv)
-        cDir = cart2dir(H)
-        Hunit = [(H[0] / cDir[2]), (H[1] / cDir[2]), (H[2] / cDir[2])]  # unit vector parallel to Banc
-        Zunit = [0, 0, -1.]  # unit vector parallel to lab field
-        Hpar = np.dot(chi, Hunit)  # unit vector applied along ancient field
-        Zpar = np.dot(chi, Zunit)  # unit vector applied along lab field
-        # intensity of resultant vector from ancient field
-        HparInt = cart2dir(Hpar)[2]
-        # intensity of resultant vector from lab field
-        ZparInt = cart2dir(Zpar)[2]
-        newint = Dir[2] * ZparInt / HparInt
-        if cDir[0] - Dir[0] > 90:
-            cDir[1] = -cDir[1]
-            cDir[0] = (cDir[0] - 180.) % 360.
-    AniSpecRec["specimen_dec"] = '%7.1f' % (cDir[0])
-    AniSpecRec["specimen_inc"] = '%7.1f' % (cDir[1])
-    AniSpecRec["specimen_int"] = '%9.4e' % (newint)
-    AniSpecRec["specimen_correction"] = 'c'
-    if 'magic_method_codes' in list(AniSpecRec.keys()):
-        methcodes = AniSpecRec["magic_method_codes"]
-    else:
-        methcodes = ""
-    if methcodes == "":
-        methcodes = "DA-AC-" + AniSpec['anisotropy_type']
-    if methcodes != "":
-        methcodes = methcodes + ":DA-AC-" + AniSpec['anisotropy_type']
-    if chi[0][0] == 1.:  # isotropic
-        # indicates anisotropy was checked and no change necessary
-        methcodes = methcodes + ':DA-AC-ISO'
-    AniSpecRec["magic_method_codes"] = methcodes.strip(":")
-    return AniSpecRec
 
 
 def vfunc(pars_1, pars_2):
@@ -7295,6 +7062,78 @@ def adjust_ages(AgesIn):
                 if agerec[1] == "Years Cal AD (+/-)":
                     AgesOut.append((1950 - agerec[0]) / factor)
     return AgesOut, age_unit
+
+
+def Dir_anis_corr(InDir, AniSpec):
+    """
+    This function takes the 6 element 's' vector and the Dec,Inc 'InDir' data and performs a
+    simple anisotropy correction, returning corrected Dec, Inc. Used in thellier_magic2.py. 
+    """
+    Dir = np.zeros((3), 'f')
+    Dir[0] = InDir[0]
+    Dir[1] = InDir[1]
+    Dir[2] = 1.
+    chi, chi_inv = check_F(AniSpec)
+    if chi[0][0] == 1.:
+        return Dir  # isotropic
+    X = dir2cart(Dir)
+    M = np.array(X)
+    H = np.dot(M, chi_inv)
+    return cart2dir(H)
+
+
+def doaniscorr(PmagSpecRec, AniSpec):
+    """
+    This function takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
+    performs simple anisotropy correction, and returns corrected Dec, Inc, Int. This
+    is used in thellier_magic2.py. 
+    """
+    AniSpecRec = {}
+    for key in list(PmagSpecRec.keys()):
+        AniSpecRec[key] = PmagSpecRec[key]
+    Dir = np.zeros((3), 'f')
+    Dir[0] = float(PmagSpecRec["specimen_dec"])
+    Dir[1] = float(PmagSpecRec["specimen_inc"])
+    Dir[2] = float(PmagSpecRec["specimen_int"])
+# check if F test passes!  if anisotropy_sigma available
+    chi, chi_inv = check_F(AniSpec)
+    if chi[0][0] == 1.:  # isotropic
+        cDir = [Dir[0], Dir[1]]  # no change
+        newint = Dir[2]
+    else:
+        X = dir2cart(Dir)
+        M = np.array(X)
+        H = np.dot(M, chi_inv)
+        cDir = cart2dir(H)
+        Hunit = [(H[0] / cDir[2]), (H[1] / cDir[2]), (H[2] / cDir[2])]  # unit vector parallel to Banc
+        Zunit = [0, 0, -1.]  # unit vector parallel to lab field
+        Hpar = np.dot(chi, Hunit)  # unit vector applied along ancient field
+        Zpar = np.dot(chi, Zunit)  # unit vector applied along lab field
+        # intensity of resultant vector from ancient field
+        HparInt = cart2dir(Hpar)[2]
+        # intensity of resultant vector from lab field
+        ZparInt = cart2dir(Zpar)[2]
+        newint = Dir[2] * ZparInt / HparInt
+        if cDir[0] - Dir[0] > 90:
+            cDir[1] = -cDir[1]
+            cDir[0] = (cDir[0] - 180.) % 360.
+    AniSpecRec["specimen_dec"] = '%7.1f' % (cDir[0])
+    AniSpecRec["specimen_inc"] = '%7.1f' % (cDir[1])
+    AniSpecRec["specimen_int"] = '%9.4e' % (newint)
+    AniSpecRec["specimen_correction"] = 'c'
+    if 'magic_method_codes' in list(AniSpecRec.keys()):
+        methcodes = AniSpecRec["magic_method_codes"]
+    else:
+        methcodes = ""
+    if methcodes == "":
+        methcodes = "DA-AC-" + AniSpec['anisotropy_type']
+    if methcodes != "":
+        methcodes = methcodes + ":DA-AC-" + AniSpec['anisotropy_type']
+    if chi[0][0] == 1.:  # isotropic
+        # indicates anisotropy was checked and no change necessary
+        methcodes = methcodes + ':DA-AC-ISO'
+    AniSpecRec["magic_method_codes"] = methcodes.strip(":")
+    return AniSpecRec
 
 
 def gaussdev(mean, sigma, N=1):
@@ -8782,48 +8621,6 @@ def dostilt(s, bed_az, bed_dip):
         Vrot.append([d, i])
     s_rot = doeigs_s(tau, Vrot)
     return s_rot
-#
-#
-
-
-def apseudo(Ss, ipar, sigma):
-    """
-    Depreciated: 9/14/2022
-    
-    Draw a bootstrap sample of Ss.
-    
-    Parameters
-    ----------
-    Ss : six element tensor as a list
-    ipar : boolean (True, False, or zero value)
-    sigma : sigma of Ss
-    
-    Returns
-    -------
-    BSs : array 
-        bootstrap sample of Ss
-        
-    Examples 
-    --------
-    >>> pmag.apseudo(np.array([2,2,1,6,1,1]),0,0)
-    array([1, 2, 1, 2, 2, 1])
-    """
-#
-    Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
-    Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
-    #Ss = np.array(Ss)
-    if not ipar: # ipar == 0:
-        BSs = Ss[Is]
-    else:  # need to recreate measurement - then do the parametric stuffr
-        A, B = design(6)  # get the design matrix for 6 measurementsa
-        K, BSs = [], []
-        for k in range(len(Ss)):
-            K.append(np.dot(A, Ss[k][0:6]))
-        Pars = np.random.normal(K, sigma)
-        for k in range(len(Ss)):
-            BSs.append(np.dot(B, Pars[k]))
-    return np.array(BSs)
-#
 
 
 def sbootpars(Taus, Vs):
@@ -8926,8 +8723,43 @@ def sbootpars(Taus, Vs):
     bpars["v3_eta_dec"] = kpars["Edec"]
     bpars["v3_eta_inc"] = kpars["Einc"]
     return bpars
+
+
+def apseudo(Ss, ipar, sigma):
+    """
+    This function draws a bootstrap sample of Ss, for use in pmag.s_boot.
+
+    Parameters
+    ----------
+    Ss : six element tensor as a list
+    ipar : boolean (True, False, or zero value)
+    sigma : sigma of Ss
+
+    Returns
+    -------
+    BSs : array 
+        bootstrap sample of Ss
+
+    Examples 
+    --------
+    >>> pmag.apseudo(np.array([2,2,1,6,1,1]),0,0)
+    array([1, 2, 1, 2, 2, 1])
+    """
 #
-#
+    Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
+    Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
+    
+    if not ipar: # ipar == 0:
+        BSs = Ss[Is]
+    else:  # need to recreate measurement - then do the parametric stuffr
+        A, B = design(6)  # get the design matrix for 6 measurementsa
+        K, BSs = [], []
+        for k in range(len(Ss)):
+            K.append(np.dot(A, Ss[k][0:6]))
+        Pars = np.random.normal(K, sigma)
+        for k in range(len(Ss)):
+            BSs.append(np.dot(B, Pars[k]))
+    return np.array(BSs)
 
 
 def s_boot(Ss, ipar=0, nb=1000):

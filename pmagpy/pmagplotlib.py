@@ -1422,7 +1422,7 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
         3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], method_codes =['DE-BFP','DE-BFL']
         2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
-    fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
+    fpars : Fisher parameters calculated by pmag.dolnp()
     direction_type_key : key for dictionary direction_type ('specimen_direction_type')
     Effects
     _______
