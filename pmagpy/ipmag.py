@@ -23,11 +23,6 @@ from matplotlib.pylab import polyfit
 import matplotlib.ticker as mtick
 from matplotlib import colors
 from matplotlib import cm
-try:
-    import requests
-except ImportError:
-    requests = None
-encoding = "ISO-8859-1"
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmagpy import spline
@@ -36,11 +31,15 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from .contribution_builder import Contribution
+#from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
+try:
+    import requests
+except ImportError:
+    requests = None
+encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
-
 if has_cartopy:
     import cartopy.crs as ccrs
 
@@ -781,7 +780,8 @@ def unsquish(incs, f):
             inc_new = np.rad2deg(np.arctan(inc_new_rad))
             incs_unsquished.append(inc_new)
         return incs_unsquished
-    except:
+    except TypeError as e:
+        print("TypeError caught: ", e) # to catch single values
         inc_rad = np.deg2rad(incs)  # convert to radians
         inc_new_rad = (1.0/f) * np.tan(inc_rad)
         inc_new = np.rad2deg(np.arctan(inc_new_rad))  # convert back to degrees
@@ -822,7 +822,8 @@ def squish(incs, f):
                 np.pi  # convert back to degrees
             incs_squished.append(inc_new)
         return incs_squished
-    except:
+    except TypeError as e: # to catch single values
+        print("TypeError caught: ", e)
         inc_rad = incs * np.pi / 180.  # convert to radians
         inc_new_rad = f * np.tan(inc_rad)
         inc_new = np.arctan(inc_new_rad) * 180. / \
@@ -1489,7 +1490,6 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
 
     # do monte carlo simulation of datasets with same kappas as data,
     # but a common mean
-    counter = 0
     Vp = []  # set of Vs from simulations
     for k in range(NumSims):
 
@@ -2308,7 +2308,6 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
         if len(di_lists) == 2:
             dec, inc = di_lists
     try:
-        length = len(dec)
         for n in range(len(dec)):
             XY = pmag.dimap(dec[n], inc[n])
             if inc[n] >= 0:
@@ -2325,7 +2324,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
                     color_up.append(color[n])
                 else:
                     color_up.append(color)
-    except:
+    except TypeError as e:
+        print("TypeError caught:", e)
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
@@ -5150,8 +5150,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                     table_dicts=table.to_dict('records')
                     outfile = os.path.join(dir_path, sheet + '.txt')
                     pmag.magic_write(outfile,table_dicts,sheet)
-                except:
-                    print ('sheet not found ',sheet)
+                except Exception as ex:
+                    print (f'sheet not found {sheet}: {ex}')
             return
 
         # try to deal reasonably with unicode errors
@@ -5304,7 +5304,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                 locnum += 1
                 try:
                     os.mkdir(lpath)
-                except:
+                except FileExistsError:
                     print('directory ', lpath,
                           ' already exists - overwriting everything: {}'.format(overwrite))
                     if not overwrite:
@@ -5353,7 +5353,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
     out_path = os.path.join(directory, file_name)
     
     # Define API endpoint
-    api = f'https://api.earthref.org/v1/MagIC/data'
+    api = 'https://api.earthref.org/v1/MagIC/data'
     params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
 
     # Perform the request
@@ -5930,7 +5930,8 @@ def create_private_contribution(username="",password=""):
             response['url']=create_response.request.url
             response['id']='None'
             response['errors']=create_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error creating private contribution:", e)
         pass
     return response
 
@@ -5979,7 +5980,8 @@ def delete_private_contribution(contribution_id,username="",password=""):
             response['url']=delete_response.request.url
             response['id']='None'
             response['errors']=delete_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error deleting private contribution:", e)
         pass
     return response
 
@@ -6031,8 +6033,8 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
             response['status_code']=False
             response['url']=upload_response.request.url
             #response['errors']=upload_response.json()['errors'][0]['message']
-    except:
-        print ('trouble uploading:')
+    except Exception as e:
+        print ('trouble uploading:', e)
         print (upload_response.json()['errors'])
     return response
 
@@ -6090,8 +6092,8 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             response['validation_results']='None'
             print('A private contribution with ID', contribution_id,
                   ' could not be found in your private workspace for validation\n')
-    except:
-        print ('trouble validating:')
+    except Exception as e:
+        print ('trouble validating:', e)
     return response
 
 
@@ -6150,7 +6152,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else:
         nositeints = 1
 
-    # chagne these all to True/False instead of 1/0
+    # change these all to True/False instead of 1/0
 
     if not skip_intensities:
         # set model lat and
@@ -6175,7 +6177,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     ModelLat["sample_lat"] = tmp[1]
                     ModelLats.append(ModelLat)
                 mlat.clos()
-            except:
+            except FileNotFoundError:
                 print("use_paleolatitude option requires a valid paleolatitude file")
         else:
             get_model_lat = 0  # skips VADM calculation entirely
@@ -7071,8 +7073,8 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                     ImageRecs.append(map_magic.mapping(
                         image_rec, map_magic.image_magic3_2_magic2_map))
             print('image data to be appended to: ', image_file)
-        except:
-            print('problem with existing file: ',
+        except Exception as e:
+            print('problem', e, ' with existing file: ',
                   image_file, ' will create new.')
     #
     # read in file to convert
@@ -7653,8 +7655,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         try:
             SampRecs, file_type = pmag.magic_read(samp_file)
             print("sample data to be appended to: ", samp_file)
-        except:
-            print('problem with existing samp file: ',
+        except Exception as e:
+            print('problem: ', e, ' with existing samp file',
                   samp_file, ' will create new')
     #
     # read in file to convert
@@ -8185,7 +8187,7 @@ def smooth(x, window_len, window='bartlett'):
         return x
 
     # numpy available windows
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError(
             "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
@@ -8375,8 +8377,8 @@ def curie(path_to_file='.', file_name='', magic=False,
             try:
                 plt.figure(num=PLT[key])
                 plt.savefig(save_folder + '/' + files[key].replace('/', '-'))
-            except:
-                print('could not save: ', PLT[key], files[key])
+            except Exception as e:
+                print('could not save: ', PLT[key], files[key], ' because', e)
                 print("output file format not supported ")
     plt.show()
 
@@ -8414,8 +8416,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
     if EXP != "":
         try:
             k = experiment_names.index(EXP)
-        except:
-            print("Bad experiment name")
+        except Exception as e:
+            print("Bad experiment name:", e)
             sys.exit()
     while k < len(experiment_names):
         e = experiment_names[k]
@@ -8502,8 +8504,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
                         plt.figure(num=PLTS[key])
                         plt.savefig(save_folder + '/' +
                                     files[key].replace('/', '-'))
-                    except:
-                        print('could not save: ', PLTS[key], files[key])
+                    except Exception as e:
+                        print('could not save: ', PLTS[key], files[key], ' because', e)
                         print("output file format not supported ")
 
 
@@ -9138,7 +9140,8 @@ def iplot_hys(fignum, B, M, s):
         poly = polyfit(Baz, Maz, 1)
         Bac = -poly[1]/poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception as e:
+        print("cannot compute Bc:", e)
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm, B, Mnorm, MadjN
 
@@ -9322,8 +9325,8 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 ax4.axvline(0, color='k')
                 ax4.set_xlabel('B (T)')
                 ax4.set_ylabel('M/Mr')
-        except:
-            print("not doing it")
+        except Exception as e:
+            print("Processing skipped because:", e)
             hpars['hysteresis_bcr'] = '0'
             hpars['magic_method_codes'] = ""
         plt.gcf()
@@ -9373,10 +9376,10 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
     Returns:
         - equal area plot of original directions
-        - Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+        - Elongation/inclination pairs as a function of f,  data plus num_resample_to_plot bootstrap samples
         - Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
             Estimate from original data set plotted as solid line
-        - Orientation of principle direction through unflattening
+        - Orientation of principal direction through unflattening
      
     NOTE: 
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
@@ -9386,7 +9389,6 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
@@ -9437,19 +9439,19 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
-        title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
         title = 'Pathological Distribution: ' 
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
@@ -9482,11 +9484,11 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     
@@ -9501,6 +9503,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         return flat_f, I, E, F
     else:
         return
+
 
 def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
                 return_new_dirs=False, return_values=False, figprefix='EI', 
@@ -9558,7 +9561,6 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
 
     ppars = pmag.doprinc(data)
@@ -9597,17 +9599,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
+            '[%7.1f, %7.1f]' % (i_lo, i_hi)
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     plt.figure(figsize=(4, 4))
     pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(2, [Inc], 'g', '-')
     pmagplotlib.plot_vs(2, [Io], 'k', '-')
     if save:
@@ -9691,11 +9695,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     print("")
@@ -10964,20 +10968,18 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                             PDir.append(float(di[0]))
                             PDir.append(float(di[1]))
                             con = 0
-                        except:
+                        except Exception as e:
                             cnt += 1
                             if cnt < 10:
                                 print(
                                     " enter the dec and inc of the pole on one line ")
                             else:
-                                print(
-                                    "ummm - you are doing something wrong - i give up")
+                                print("Error parsing input, please reconsider: ", e)
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
                         pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                               title, iplot, comp, vec, Dir, num_bootstraps)
-
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
                     if verbose and not plots:
@@ -10995,7 +10997,8 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                         try:
                             k = sitelist.index(site)
                             keepon = 0
-                        except:
+                        except Exception as e:
+                            print("Error finding site:", e)
                             tmplist = []
                             for qq in range(len(sitelist)):
                                 if site in sitelist[qq]:
@@ -11213,7 +11216,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
         try:
             locs = cs_df['location'].unique()
-        except:
+        except KeyError:
             locs = [""]
         locs = "-".join(locs)
         files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
@@ -11677,7 +11680,7 @@ def aarm_magic_dm2(infile, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -12253,7 +12256,7 @@ def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -12957,7 +12960,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
-            except:
+            except (ValueError, KeyError):
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
@@ -12977,7 +12980,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
-            except:
+            except Exception:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
@@ -13481,7 +13484,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     elif n_specs != "all":
         try:
             sids = sids[:n_specs]
-        except:
+        except Exception as e:
+            print("Error selecting n_specs:", e)
             pass
     cnt = 0
     while k < len(sids):
@@ -13654,7 +13658,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                     try:
                         k = sids.index(specimen)
                         keepon = 0
-                    except:
+                    except Exception as e:
+                        print("Error:", e)
                         tmplist = []
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:
@@ -16046,7 +16051,7 @@ def MADcrit(N,alpha,niter=int(1E8)):
     """
     
     df = N-1 #degrees of freedom of the Wishart distribution
-    X = wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
+    X = stats.wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
     X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
     #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
     MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
