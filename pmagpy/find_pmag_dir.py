@@ -2,7 +2,10 @@ from importlib import reload
 import os
 import sys
 
-from pkg_resources import resource_filename
+try:
+    import importlib.resources as importlib_resources
+except ImportError:
+    import importlib_resources # if Python < 3.7
 import locator
 
 
@@ -20,42 +23,30 @@ def get_pmag_dir():
     """
     Returns directory in which PmagPy is installed
     """
-    # this is correct for py2exe (DEPRECATED)
-    #win_frozen = is_frozen()
-    #if win_frozen:
-    #    path = os.path.abspath(unicode(sys.executable, sys.getfilesystemencoding()))
-    #    path = os.path.split(path)[0]
-    #    return path
     # this is correct for py2app
     try:
         return os.environ['RESOURCEPATH']
     # this works for everything else
-    except KeyError: pass
-    # new way:
-    # if we're in the local PmagPy directory:
+    except KeyError: 
+        pass
+    # new way if we're in the local PmagPy directory:
     if os.path.isfile(os.path.join(os.getcwd(), 'pmagpy', 'pmag.py')):
         lib_dir = os.path.join(os.getcwd(), 'pmagpy')
     # if we're anywhere else:
     elif getattr(sys, 'frozen', False): #pyinstaller datafile directory
         return sys._MEIPASS
     else:
-        # horrible, hack-y fix
-        # (prevents namespace issue between
-        # local github PmagPy and pip-installed PmagPy).
-        # must reload because we may have
-        # changed directories since importing
+        # new way (as of 2025)
         temp = os.getcwd()
         os.chdir('..')
         reload(locator)
-        lib_file = resource_filename('locator', 'resource.py')
-        full_dir = os.path.split(lib_file)[0]
-        ind = full_dir.rfind(os.sep)
-        lib_dir = full_dir[:ind+1]
-        lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
+        ref = importlib_resources.files('locator') / 'resource.py'
+        with importlib_resources.as_file(ref) as path:
+            full_dir = os.path.split(str(path))[0]
+            ind = full_dir.rfind(os.sep)
+            lib_dir = full_dir[:ind+1]
+            lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
         os.chdir(temp)
-        # end fix
-        # old way:
-        #lib_dir = os.path.dirname(os.path.realpath(__file__))
     if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
         lib_dir = os.getcwd()
     fname = os.path.join(lib_dir, 'pmag.py')

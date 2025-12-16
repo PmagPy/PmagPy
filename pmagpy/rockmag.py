@@ -22,10 +22,9 @@ except ImportError:
 try:
     from bokeh.plotting import figure, show
     from bokeh.layouts import gridplot
-    from bokeh.models import HoverTool, Label
+    from bokeh.models import HoverTool, ColumnDataSource, PointDrawTool, CustomJS, Div
     from bokeh.embed import components
     from bokeh.palettes import Category10
-    from bokeh.models import ColumnDataSource
     from bokeh.models.widgets import DataTable, TableColumn
     from bokeh.layouts import column
     _HAS_BOKEH = True
@@ -284,7 +283,7 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
-def ms_t_plot(
+def plot_ms_t(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
@@ -941,7 +940,44 @@ def verwey_estimate(temps, mags,
 
 
 def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown, figsize=(11, 5)):
-    
+    """
+    Create an interactive widget for estimating the Verwey transition temperature from low temperature remanence measurements.
+
+    This function displays interactive sliders and controls for adjusting background fitting parameters
+    and temperature ranges, allowing the user to visually estimate the Verwey transition temperature (T_v)
+    for a selected specimen and measurement method. The function updates plots in real-time according to user input,
+    enabling exploration of parameter effects on the calculated transition.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        low temperature remanence measurement data containing temperature and magnetization columns for multiple specimens.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen to analyze.
+    method_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the measurement method ('LP-FC' or 'LP-ZFC').
+    figsize : tuple of (float, float), optional
+        Size of the matplotlib figure, by default (11, 5).
+
+    Notes
+    -----
+    - The function uses `ipywidgets` for interactive controls and `matplotlib` for visualization.
+    - The background fit and excluded temperature ranges can be adjusted using sliders.
+    - The polynomial degree of the background fit is also adjustable.
+    - A reset button restores the default slider values.
+    - The function relies on supporting functions such as `extract_mpms_data_dc`, `thermomag_derivative`, and `calc_verwey_estimate`.
+
+    Returns
+    -------
+    None
+        This function is intended for use in Jupyter notebooks or environments that support interactive widgets and inline plotting.
+        It displays interactive sliders and plots but does not return a value.
+
+    Examples
+    --------
+    >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
+    Displays an interactive interface for estimating the Verwey transition temperature.
+    """
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
 
@@ -1509,8 +1545,39 @@ def goethite_removal(rtsirm_warm_data,
         return rtsirm_warm_adjusted, rtsirm_cool_adjusted
     
     
-def interactive_goethite_removal(measurements, specimen_dropdown):
-    
+def goethite_removal_interactive(measurements, specimen_dropdown):
+    """
+    Display an interactive widget for fitting and visualizing goethite removal from low temperature remanence data.
+
+    This function creates an interactive interface that allows the user to select a specimen and adjust parameters
+    (temperature range and polynomial degree) for fitting the goethite component in RTSIRM (Room Temperature Saturation Isothermal Remanent Magnetization) warming and cooling curves. 
+    The user can visually explore the effect of these parameters on the fit and resulting goethite removal, with real-time updated plots.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        Low temperature remanence measurement data containing temperature and magnetization information for multiple specimens.
+    specimen_dropdown : ipywidgets.Dropdown
+        Dropdown widget for selecting the specimen to analyze.
+
+    Notes
+    -----
+    - Uses `ipywidgets` for interactive controls and `matplotlib` for plotting.
+    - The temperature range for the goethite fit and the polynomial degree of the fit can be adjusted via sliders.
+    - A reset button allows restoration of default parameter values.
+    - Supporting functions such as `extract_mpms_data_dc` and `goethite_removal` are required for this function to operate.
+    - This function is intended to be used in a Jupyter notebook or similar interactive environment.
+
+    Returns
+    -------
+    None
+        The function displays interactive widgets and plots for goethite removal but does not return a value.
+
+    Examples
+    --------
+    >>> interactive_goethite_removal(measurements_df, specimen_dropdown)
+    Displays interactive sliders and plots for fitting goethite removal to the selected specimen's data.
+    """
     selected_specimen_name = specimen_dropdown.value
 
     fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
@@ -1749,7 +1816,7 @@ def plot_mpms_ac(
         return fig, (ax1, ax2)
 
 
-def MPMS_signal_blender(measurement_1, measurement_2, 
+def mpms_signal_blender(measurement_1, measurement_2, 
                         spec_1, spec_2,
                         experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                         temp_col='meas_temp', moment_col='magn_mass',
@@ -1819,7 +1886,7 @@ def MPMS_signal_blender(measurement_1, measurement_2,
     return output_dict
 
 
-def MPMS_signal_blender_interactive(measurement_1, measurement_2, 
+def mpms_signal_blender_interactive(measurement_1, measurement_2, 
                                     experiments=['LP-ZFC', 'LP-FC', 'LP-CW-SIRM:LP-MC', 'LP-CW-SIRM:LP-MW'],
                                     temp_col='meas_temp', moment_col='magn_mass', 
                                     figsize=(12, 6)):
@@ -1869,7 +1936,7 @@ def MPMS_signal_blender_interactive(measurement_1, measurement_2,
     def update(*args):
         ax[0].clear()
         ax[1].clear()
-        blender_result = MPMS_signal_blender(
+        blender_result = mpms_signal_blender(
             measurement_1, measurement_2,
             spec_1_dropdown.value, spec_2_dropdown.value,
             experiments=experiments,
@@ -1940,7 +2007,7 @@ def extract_hysteresis_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
+def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
     '''
     function to plot a hysteresis loop
 
@@ -1954,31 +2021,51 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, line_color
     Returns
     -------
     p : bokeh.plotting.figure
+    
     '''
     if not _HAS_BOKEH:
         print("Bokeh is not installed. Please install it to enable hysteresis data processing.")
         return
     
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
-    if p is None:
-        p = figure(title=f'{specimen_name} hysteresis loop',
-                  x_axis_label='Field (T)',
-                  y_axis_label='Magnetization (Am\u00B2/kg)',
-                  width=600,
-                  height=600, aspect_ratio=1)
-        p.axis.axis_label_text_font_size = '12pt'
-        p.axis.axis_label_text_font_style = 'normal'
-        p.title.text_font_size = '14pt'
-        p.title.text_font_style = 'bold'
-        p.title.align = 'center'
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.click_policy="hide"
-        p.legend.location = legend_location
-    else:
-        p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
-        p.legend.location = legend_location
-
-    return p
+    if interactive:
+        if p is None:
+            p = figure(title=f'{specimen_name} hysteresis loop',
+                    x_axis_label='Field (T)',
+                    y_axis_label='Magnetization (Am\u00B2/kg)',
+                    width=600,
+                    height=600, aspect_ratio=1)
+            p.axis.axis_label_text_font_size = '12pt'
+            p.axis.axis_label_text_font_style = 'normal'
+            p.title.text_font_size = '14pt'
+            p.title.text_font_style = 'bold'
+            p.title.align = 'center'
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.click_policy="hide"
+            p.legend.location = legend_location
+        else:
+            p.line(field, magnetization, line_width=line_width, color=line_color, legend_label=label)
+            p.legend.location = legend_location
+        
+        if show_plot:
+            show(p)
+        if return_figure:
+            return p
+        return None
+    
+    # static Matplotlib
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.plot(field, magnetization, color=line_color, linewidth=line_width, label=label)
+    ax.set_title(f'{specimen_name} hysteresis loop')
+    ax.set_xlabel('Field (T)')
+    ax.set_ylabel('Magnetization (Am²/kg)')
+    ax.legend(loc=legend_location)
+    ax.grid(True)
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 def split_hysteresis_loop(field, magnetization):
     '''
@@ -2187,8 +2274,32 @@ def hyst_linearity_test(grid_field, grid_magnetization):
 
 def linefit(xarr, yarr):
     """
-    Linear regression fit: y = intercept + slope * x
-    Returns: intercept, slope, R^2
+    Perform a simple linear regression (least squares fit) on two arrays.
+    
+    Parameters
+    ----------
+    xarr : array_like
+        Array of x-values (independent variable).
+    yarr : array_like
+        Array of y-values (dependent variable), must be the same shape as `xarr`.
+
+    Returns
+    -------
+    intercept : float
+        The intercept of the best-fit line.
+    slope : float
+        The slope of the best-fit line.
+    r2 : float
+        The coefficient of determination (R²), a measure of how well the regression line fits the data.
+        R² = 1 indicates a perfect fit, lower values indicate a poorer fit.
+
+    Examples
+    --------
+    >>> x = [0, 1, 2, 3, 4]
+    >>> y = [1, 3, 5, 7, 9]
+    >>> intercept, slope, r2 = linefit(x, y)
+    >>> print(f"Intercept: {intercept:.2f}, Slope: {slope:.2f}, R^2: {r2:.2f}")
+    Intercept: 1.00, Slope: 2.00, R^2: 1.00
     """
     xarr = np.asarray(xarr)
     yarr = np.asarray(yarr)
@@ -2212,18 +2323,39 @@ def linefit(xarr, yarr):
 
 def loop_H_off(loop_fields, loop_moments, H_shift):
     """
-    Estimates a vertical shift (V_shift) and returns R² of a reflected loop.
-    
-    Arguments:
-    - loop_fields: List or array of magnetic field values.
-    - loop_moments: Corresponding list or array of magnetic moments.
-    - H_shift: Horizontal shift to apply to loop_fields.
-    
-    Returns:
-    - r2: R-squared value from linear regression between original and reflected data.
-    - V_shift: Estimated vertical shift (mean of linear fit x-intercept).
-    """
+    Estimate the vertical shift (M_shift) and symmetry (R²) of a magnetic hysteresis loop after applying a horizontal field shift.
 
+    This function shifts the field data by a specified amount, finds symmetrically equivalent points in the second half of the loop,
+    and performs a linear regression between the original and reflected/negated data. It then estimates the vertical offset (M_shift)
+    based on the intercept of the regression and returns additional regression results.
+
+    Parameters
+    ----------
+    loop_fields : array_like
+        Array of magnetic field values for the hysteresis loop.
+    loop_moments : array_like
+        Array of corresponding magnetic moment values.
+    H_shift : float
+        Horizontal (field) shift to apply to the loop_fields before symmetry calculation.
+
+    Returns
+    -------
+    result : dict
+        Dictionary containing:
+            - 'slope': float, slope of the linear regression between the original and reflected moments.
+            - 'M_shift': float, estimated vertical shift (half the regression intercept).
+            - 'r2': float, coefficient of determination (R²) for the regression, indicating symmetry.
+
+    Notes
+    -----
+    - The function is typically used to estimate vertical offsets and assess symmetry in magnetic hysteresis loops.
+    - Returns zeros if not enough symmetrical points are found for regression.
+
+    Examples
+    --------
+    >>> res = loop_H_off(fields, moments, H_shift=10)
+    >>> print(res['M_shift'], res['r2'])
+    """
     n = len(loop_fields)
 
     # Apply horizontal shift
@@ -2262,6 +2394,42 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
     return result
 
 def loop_Hshift_brent(loop_fields, loop_moments):
+    """
+    Optimize the horizontal (field) shift of a magnetic hysteresis loop using Brent's method to maximize symmetry.
+
+    This function determines the optimal horizontal field shift (H_shift) to apply to a hysteresis loop,
+    such that the R² value (symmetry) of the loop, as calculated by `loop_H_off`, is maximized.
+    It uses the Brent optimization algorithm to efficiently search for the H_shift that gives the highest R².
+    The function returns the optimal R², the corresponding field shift, and the vertical offset (M_shift) at this position.
+
+    Parameters
+    ----------
+    loop_fields : array_like
+        Array of magnetic field values for the hysteresis loop.
+    loop_moments : array_like
+        Array of corresponding magnetic moment values.
+
+    Returns
+    -------
+    opt_r2 : float
+        The maximum R² value achieved by shifting the loop.
+    opt_H_off : float
+        The optimal horizontal (field) shift applied to maximize symmetry.
+    opt_M_off : float
+        The estimated vertical shift (M_shift) at the optimal field shift.
+
+    Notes
+    -----
+    - Uses Brent's method for optimization via `scipy.optimize.minimize_scalar` with a bracket based on the loop field range.
+    - Calls `loop_H_off` to compute symmetry and vertical shift for each candidate field shift.
+    - Useful for correcting field and moment offsets in hysteresis loop analysis.
+
+    Examples
+    --------
+    >>> r2, H_off, M_off = loop_Hshift_brent(fields, moments)
+    >>> print(f"Optimal field shift: {H_off:.2f}, R²: {r2:.3f}, M_shift: {M_off:.3e}")
+    """
+
     def objective(H_shift):
         result = loop_H_off(loop_fields, loop_moments, H_shift)
         return -result['r2']
@@ -2279,13 +2447,46 @@ def loop_Hshift_brent(loop_fields, loop_moments):
     return opt_r2, opt_H_off, opt_M_off
 
 def calc_Q(H, M, type='Q'):
-    '''
-    function for calculating quality factor Q for a hysteresis loop
-        Q factor is defined by the log10 of the signal to noise ratio
-        where signal is the sum of the square of the data 
-        which is the averaged sum over the upper and lower branches for Q
-        and is the sum of the square of the upper branch for Qf
-    '''
+    """
+    Calculate the quality factor (Q) for a magnetic hysteresis loop.
+
+    The Q factor is a logarithmic measure (base 10) of the signal-to-noise ratio for a hysteresis loop.
+    The calculation can be performed in two modes:
+        - 'Q': Uses the mean squared magnetization of both the upper and lower branches.
+        - 'Qf': Uses only the upper branch.
+
+    Parameters
+    ----------
+    H : array_like
+        Array of applied magnetic field values.
+    M : array_like
+        Array of measured magnetization (moment) values, corresponding to `H`.
+    type : {'Q', 'Qf'}, optional
+        Type of Q calculation to perform:
+            - 'Q' (default): Uses both upper and lower branches of the loop.
+            - 'Qf': Uses only the upper branch.
+
+    Returns
+    -------
+    M_sn : float
+        The calculated signal-to-noise ratio (before applying the logarithm).
+    Q : float
+        The quality factor, defined as log10(M_sn).
+
+    Notes
+    -----
+    - The function splits the hysteresis loop into upper and lower branches using `split_hysteresis_loop`.
+    - For type 'Q', the numerator is the average of the sum of squares of the upper and lower branches; for 'Qf', only the upper branch is used.
+    - The denominator is always the sum of squares of the combined (averaged) upper and reversed lower branches.
+    - Higher Q values indicate a higher signal-to-noise ratio in the hysteresis loop data.
+
+    Examples
+    --------
+    >>> H = np.linspace(-1, 1, 200)
+    >>> M = np.tanh(3 * H) + 0.05 * np.random.randn(200)
+    >>> M_sn, Q = calc_Q(H, M, type='Q')
+    >>> print(f"Signal-to-noise ratio: {M_sn:.3f}, Q: {Q:.2f}")
+    """
     assert type in ['Q', 'Qf'], 'type must be either Q or Qf'
     H = np.array(H)
     M = np.array(M)
@@ -2588,10 +2789,48 @@ def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=
     
 
 def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0.97):
-    '''
-    function for testing the saturation of a hysteresis loop
-        which is based on the testing of linearity of the loop in field ranges of 60%, 70%, and 80% of the maximum field (<97%)
-    '''
+    """
+    Assess the saturation state of a magnetic hysteresis loop based on linearity at high-field segments.
+
+    This function evaluates the degree of saturation in a hysteresis loop by calculating the first normalized linearity (FNL)
+    at 60%, 70%, and 80% of the maximum field (up to a specified cutoff). The FNL values are analyzed to determine the field
+    fraction at which the loop can be considered saturated, based on whether FNL exceeds a threshold (typically 2.5).
+    The result helps determine if the sample reached magnetic saturation during measurement.
+
+    Parameters
+    ----------
+    grid_field : array_like
+        Array of applied magnetic field values for the hysteresis loop.
+    grid_magnetization : array_like
+        Array of magnetization (moment) values corresponding to `grid_field`.
+    max_field_cutoff : float, optional
+        Fraction of the maximum field to use as an upper cutoff for the analysis (default is 0.97).
+
+    Returns
+    -------
+    results_dict : dict
+        Dictionary containing:
+            - 'FNL60': float, FNL at 60% of the maximum field.
+            - 'FNL70': float, FNL at 70% of the maximum field.
+            - 'FNL80': float, FNL at 80% of the maximum field.
+            - 'saturation_cutoff': float, field fraction (0.6, 0.7, 0.8, or 0.92) at which the loop is considered saturated.
+            - 'loop_is_saturated': bool, True if the loop is not saturated at 80%, 70%, or 60%.
+              (False means the loop is considered saturated at one of those field fractions.)
+
+    Notes
+    -----
+    - The function uses `loop_saturation_stats` to compute FNL values for each field fraction.
+    - FNL values above 2.5 indicate linear (unsaturated) behavior; values below suggest saturation.
+    - The 'saturation_cutoff' indicates the lowest field fraction where the loop is still considered saturated;
+      0.92 is returned if the loop does not saturate at any tested fraction (typical for IRM measurements).
+    - The result is converted to standard Python types using `dict_in_native_python`.
+
+    Examples
+    --------
+    >>> results = hyst_loop_saturation_test(fields, magnetizations)
+    >>> print(results['saturation_cutoff'], results['loop_is_saturated'])
+    0.8 False
+    """
     
     FNL60 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.6, max_field_cutoff = max_field_cutoff)['FNL']
     FNL70 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.7, max_field_cutoff = max_field_cutoff)['FNL']
@@ -2675,16 +2914,34 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
 
 
 def drift_correction_Me(H, M):
-    '''
-    default IRM drift correction algorithm based on Me 
+    """
+    Perform default IRM drift correction for a hysteresis loop based on the Me method.
+
+    This function applies a drift correction algorithm to magnetization data (M) measured as a function of applied field (H),
+    commonly used for IRM (Isothermal Remanent Magnetization) experiments. The correction is based on the Me signal,
+    which is the sum of the upper and reversed lower branches of the hysteresis loop.
+    The correction method adapts depending on whether significant drift is detected in the high-field region.
 
     Parameters
     ----------
-    H : numpy array
-        field values
-    M : numpy array
-        magnetization values
-    '''
+    H : numpy.ndarray
+        Array of magnetic field values.
+    M : numpy.ndarray
+        Array of measured magnetization values corresponding to `H`.
+
+    Returns
+    -------
+    M_cor : numpy.ndarray
+        Corrected magnetization values after drift correction.
+
+    Examples
+    --------
+    >>> H = np.linspace(-1, 1, 200)
+    >>> M = measure_hysteresis(H)
+    >>> M_cor = drift_correction_Me(H, M)
+    >>> plot(H, M, label='Original')
+    >>> plot(H, M_cor, label='Drift Corrected')
+    """
     # split loop branches
     upper_branch, lower_branch = split_hysteresis_loop(H, M)
     # calculate Me
@@ -2759,7 +3016,32 @@ def prorated_drift_correction(field, magnetization):
     return np.array(corrected_magnetization)
 
 def symmetric_averaging_drift_corr(field, magnetization):
-    
+    """
+    Apply symmetric averaging drift correction to a hysteresis loop.
+
+    This function corrects drift in magnetic hysteresis loop data by averaging the upper branch and
+    the inverted lower branch of the magnetization curve, then adjusting for tip-to-tip separation.
+    The corrected magnetization is constructed by concatenating the reversed, drift-corrected upper branch
+    and its inverted counterpart, restoring symmetry to the loop.
+
+    Parameters
+    ----------
+    field : array_like
+        Array of applied magnetic field values for the hysteresis loop.
+    magnetization : array_like
+        Array of measured magnetization values corresponding to `field`.
+
+    Returns
+    -------
+    corrected_magnetization : numpy.ndarray
+        Array of drift-corrected magnetization values, symmetrically constructed for the full loop.
+
+    Examples
+    --------
+    >>> field = np.linspace(-1, 1, 200)
+    >>> magnetization = some_hysteresis_measurement(field)
+    >>> corrected = symmetric_averaging_drift_corr(field, magnetization)
+    """
     field = np.array(field)
     magnetization = np.array(magnetization)
 
@@ -2779,29 +3061,49 @@ def symmetric_averaging_drift_corr(field, magnetization):
     return corrected_magnetization
 
 def IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2):
-    '''
-    function for calculating the IRM non-linear fit
+    """
+    Calculate the non-linear fit for Isothermal Remanent Magnetization (IRM) as a function of applied field.
+
+    This function models the IRM signal as a sum of high-field linear susceptibility, 
+    saturation magnetization, and non-linear correction terms with inverse field dependence.
+    The model is commonly used for fitting high-field IRM data, especially for extracting 
+    parameters such as high-field susceptibility (chi_HF) and saturation magnetization (Ms).
 
     Parameters
     ----------
-    H : numpy array
-        field values
+    H : numpy.ndarray
+        Array of applied magnetic field values (in Tesla).
     chi_HF : float
-        high field susceptibility, converted to Tesla to match the unit of the field
+        High-field magnetic susceptibility.Cconverted to Tesla to match the unit of the field.
     Ms : float
-        saturation magnetization
+        Saturation magnetization (in the same units as IRM).
     a_1 : float
-        coefficient for H^(-1), needs to be negative
+        Coefficient for the H^(-1) non-linear correction term. Should be negative.
     a_2 : float
-        coefficient for H^(-2), needs to be negative
+        Coefficient for the H^(-2) non-linear correction term. Should be negative.
 
-    '''
+    Returns
+    -------
+    IRM_fit : numpy.ndarray
+        Array of fitted IRM values corresponding to each field value in `H`.
+
+    Examples
+    --------
+    >>> H = np.linspace(0.1, 3, 100)  # field in Tesla, avoid zero for stability
+    >>> fit = IRM_nonlinear_fit(H, chi_HF=0.02, Ms=1.2, a_1=-0.03, a_2=-0.01)
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot(H, fit)
+    >>> plt.xlabel('Field (T)')
+    >>> plt.ylabel('IRM fit')
+    >>> plt.show()
+    """
+    
     chi_HF = chi_HF/(4*np.pi/1e7)
     return chi_HF * H + Ms + a_1 * H**(-1) + a_2 * H**(-2)
 
 def IRM_nonlinear_fit_cost_function(params, H, M_obs):
     '''
-    cost function for the IRM non-linear least squares fit optimization
+    Cost function for the IRM non-linear least squares fit optimization
 
     Parameters
     ----------
@@ -2838,6 +3140,11 @@ def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
         coefficient for H^(beta), needs to be negative
     beta : float
         coefficient for H^(beta), needs to be negative
+
+    Returns
+    -----------
+
+    numpy array of the same shape as H, giving the fitted magnetization values for each field value provided
 
     '''
     chi_HF = chi_HF/(4*np.pi/1e7) # convert to Tesla
@@ -2978,20 +3285,53 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
 
 
 def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True):
-    '''
-    function to process a hysteresis loop following the IRM decision tree
+    """
+    Process a magnetic hysteresis loop using the IRM decision tree workflow.
+
+    This function performs a complete analysis of a hysteresis loop, including gridding, centering, drift correction,
+    high-field correction, and extraction of key magnetic parameters. The workflow follows best practices in rock magnetism
+    and outputs both a summary of results and a Bokeh plot visualizing the various processing steps.
+
     Parameters
     ----------
-    field : array
-        array of field values
-    magnetization : array
-        array of magnetization values
-        
+    field : array_like
+        Array of applied magnetic field values (typically in Tesla).
+    magnetization : array_like
+        Array of magnetization values (same length as `field`).
+    specimen_name : str
+        Identifier for the specimen, used for labeling plots.
+    show_results_table : bool, optional
+        If True (default), display a summary table of key parameters using Bokeh.
+
     Returns
     -------
     results : dict
-        dictionary with the hysteresis processing results and a Bokeh plot
-    '''
+        Dictionary containing the following keys:
+            - 'gridded_H': gridded field values
+            - 'gridded_M': gridded magnetization values
+            - 'linearity_test_results': results of the initial linearity test
+            - 'loop_is_linear': whether the loop passes the linearity test
+            - 'FNL': first normalized linearity value
+            - 'loop_centering_results': results of centering optimization
+            - 'centered_H': centered field values
+            - 'centered_M': centered magnetization values
+            - 'drift_corrected_M': drift-corrected magnetization
+            - 'slope_corrected_M': slope-corrected magnetization
+            - 'loop_closure_test_results': results of closure test
+            - 'loop_is_closed': whether the loop is closed
+            - 'loop_saturation_stats': saturation test results
+            - 'loop_is_saturated': whether the loop is saturated
+            - 'M_sn', 'Q': quality metrics from centering
+            - 'H', 'Mr', 'Mrh', 'Mih', 'Me', 'Brh': characteristic field and moment parameters
+            - 'sigma': shape parameter (Fabian, 2003)
+            - 'chi_HF': high-field susceptibility
+            - 'FNL60', 'FNL70', 'FNL80': FNL at 60%, 70%, and 80% field
+            - 'Ms': saturation magnetization
+            - 'Bc': coercive field
+            - 'M_sn_f', 'Qf': quality metrics for ferromagnetic component
+            - 'Fnl_lin': FNL from linear fit (None if saturated)
+            - 'plot': Bokeh figure with overlaid processing steps
+    """
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
@@ -3043,13 +3383,13 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     sigma = np.log(E_hyst / 2 / Bc / Ms)
 
     # plot original loop
-    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop')
+    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', return_figure=True)
     # plot centered loop
-    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected')
+    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', return_figure=True)
     # plot drift corrected loop
-    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected')
+    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', return_figure=True)
     # plot slope corrected loop
-    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected')
+    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', return_figure=True)
     # plot Mrh
     p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
     p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
@@ -3286,7 +3626,7 @@ def plot_X_T(
         temperature_column (str): Name of temperature column.
         magnetic_column (str): Name of susceptibility column.
         temp_unit (str): "C" for Celsius.
-        smooth_window (int): Window for smoothing.
+        smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
         remove_holder (bool): Subtract holder signal.
         plot_derivative (bool): Plot derivative.
         plot_inverse (bool): Plot inverse.
@@ -3520,6 +3860,174 @@ def plot_X_T(
         return tuple(figs)
     return None
 
+def estimate_curie_temperature(
+    experiment,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    smooth_window=0,
+    remove_holder=True,
+    figsize=(6, 6),
+    inverse_method=False,
+    print_estimates=True
+):
+    """
+    Estimate the Curie temperature from high temperature susceptibility curves in multiple ways. Automatically calculates first derivative minimum, second derivative maximum, and
+    second derivative zero-crossing. Also has option to estimate Curie temperature from inverse susceptibility (E. Petrovsky and A. Kapicka, 2006). Uses Bokeh for the interactive plot.
+
+    Parameters:
+        experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
+        temperature_column (str): Name of temperature column.
+        magnetic_column (str): Name of susceptibility column.
+        temp_unit (str): "C" for Celsius.
+        smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
+        remove_holder (bool): Subtracts holder signal to better isolate specimen signal.
+        figsize (tuple): (width, height) in inches.
+        inverse_method (bool): Use inverse susceptibility method.
+        print_estimates (bool): Print estimated Curie temperatures.
+    
+    Returns
+    -------
+
+    temp_of_first_derivative_min_heating : float
+        temperature of first derivative minimum for heating cycle
+    temp_of_first_derivative_min_cooling : float
+        temperature of first derivative minimum for cooling cycle
+    temp_of_second_derivative_max_heating : float
+        temperature of second derivative maximum for heating cycle
+    temp_of_second_derivative_max_cooling : float
+        temperature of second derivative maximum for cooling cycle
+    heating_zero : list of float or None
+        temperatures of second derivative zero-crossings for heating cycle, or None if none found
+    cooling_zero : list of float or None
+        temperatures of second derivative zero-crossings for cooling cycle, or None if none found
+    """
+
+    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+        experiment,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column
+    )
+
+    if temp_unit == "C":
+        warm_T = [T - 273.15 for T in warm_T]
+        cool_T = [T - 273.15 for T in cool_T]
+    else:
+        raise ValueError('temp_unit must be "C"')
+
+    if remove_holder:
+        holder_w = min(warm_X)
+        holder_c = min(cool_X)
+        warm_X = [X - holder_w for X in warm_X]
+        cool_X = [X - holder_c for X in cool_X]
+
+    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
+    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
+
+    dx_w = np.gradient(swX, swT)
+    dx_c = np.gradient(scX, scT)
+
+    temp_of_first_derivative_min_heating = swT[np.argmin(dx_w)]
+    temp_of_first_derivative_min_cooling = scT[np.argmin(dx_c)]
+
+    dx_2_w = np.gradient(dx_w, swT)
+    dx_2_c = np.gradient(dx_c, scT)
+
+    temp_of_second_derivative_max_heating = swT[np.argmax(dx_2_w)]
+    temp_of_second_derivative_max_cooling = scT[np.argmax(dx_2_c)]
+
+    # Physically consistent zero-crossing logic for heating
+    min_idx_w = np.argmin(dx_2_w)
+    max_idx_w = np.argmax(dx_2_w)
+    lower_w, upper_w = sorted([min_idx_w, max_idx_w])
+    dx2_slice_w = dx_2_w[lower_w:upper_w]
+    temp_slice_w = swT[lower_w:upper_w]
+    crossings_w = np.where(np.diff(np.sign(dx2_slice_w)))[0]
+    temp_of_zero_crossing_heating = [temp_slice_w[i] for i in crossings_w]
+
+    # Physically consistent zero-crossing logic for cooling
+    min_idx_c = np.argmin(dx_2_c)
+    max_idx_c = np.argmax(dx_2_c)
+    lower_c, upper_c = sorted([min_idx_c, max_idx_c])
+    dx2_slice_c = dx_2_c[lower_c:upper_c]
+    temp_slice_c = scT[lower_c:upper_c]
+    crossings_c = np.where(np.diff(np.sign(dx2_slice_c)))[0]
+    temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
+
+    if inverse_method:
+        if not _HAS_BOKEH:
+            raise ImportError("Bokeh is required for inverse_method=True")
+        bokeh_height = int(figsize[1] * 96)
+        title = experiment["specimen"].unique()[0]
+        swX_arr = np.array(swX)
+        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
+        mask_w = np.isfinite(inv_w)
+        T = np.array(swT)[mask_w]
+        inv_chi = inv_w[mask_w]
+
+        # Creates initial fit endpoints (choose two points in the linear region)
+        # 0.7 is Magic Number which places initial fit near expected linear region
+        fit_x = [T[int(len(T)*0.7)], T[-1]]
+        fit_y = [inv_chi[int(len(inv_chi)*0.7)], inv_chi[-1]]
+        fit_source = ColumnDataSource(data=dict(x=fit_x, y=fit_y))
+        # scatter and line for data
+        data_source = ColumnDataSource(data=dict(x=T, y=inv_chi))
+        p_inv = figure(title=f"{title} – 1/χ",
+                       height=bokeh_height,
+                       x_axis_label=f"Temperature (°{temp_unit})",
+                       y_axis_label="1/χ",
+                       tools="pan,wheel_zoom,box_zoom,reset,save",
+                      )
+        p_inv.scatter('x', 'y', source=data_source, size=8, color="red", legend_label="Heating – 1/χ")
+        renderer = p_inv.scatter('x', 'y', source=fit_source, size=12, color="blue", legend_label="Fit Endpoints")
+        p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
+        # PointDrawTool for dragging endpoints
+        draw_tool = PointDrawTool(renderers=[renderer], add=False)
+        p_inv.add_tools(draw_tool)
+        p_inv.toolbar.active_tap = draw_tool
+        p_inv.legend.location = "top_left"   
+        # Div to display Curie temperature
+        curie_estimate = Div(text="Curie temperature: --", styles={'font-size': '16px', 'color': 'darkred'})  
+        # JS callback to update fit line and Curie temperature estimate
+        callback = CustomJS(args=dict(source=fit_source, div=curie_estimate), code="""
+            var x = source.data.x;
+            var y = source.data.y;
+            if (x.length == 2) {
+                var slope = (y[1] - y[0]) / (x[1] - x[0]);
+                var intercept = y[0] - slope * x[0];
+                // Estimate Curie temperature: x where y=0
+                var Tc = -intercept / slope;
+                div.text = "Curie temperature estimate: " + Tc.toFixed(2) + " °C";
+            }
+        """)
+        fit_source.js_on_change('data', callback)       
+        show(column(p_inv, curie_estimate))
+
+    if print_estimates:
+        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_heating)} for heating')
+        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_cooling)} for cooling')
+        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_heating)} for heating')
+        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_cooling)} for cooling')
+        if temp_of_zero_crossing_heating:  
+            print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')  
+        else:  
+            print('No zero crossing found for the second derivative of the heating curve.')  
+        if temp_of_zero_crossing_cooling:  
+            print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')  
+        else:
+            print('No zero crossing found for the second derivative of the cooling curve.')
+
+    heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
+    cooling_zero = temp_of_zero_crossing_cooling[0] if temp_of_zero_crossing_cooling else None
+
+    return (
+        temp_of_first_derivative_min_heating,
+        temp_of_first_derivative_min_cooling,
+        temp_of_second_derivative_max_heating,
+        temp_of_second_derivative_max_cooling,
+        heating_zero,
+        cooling_zero
+    )
 
 def smooth_moving_avg(
     x,
@@ -3685,6 +4193,41 @@ def X_T_running_average(temp_list, chi_list, temp_window):
 
 
 def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
+    """
+    Visualize and optimize the moving average window size for smoothing experimental temperature-dependent data.
+
+    This function evaluates the effect of different moving average window sizes on the smoothing of both the warm and cool cycles
+    of an experiment (such as low temperature remanence or thermal demagnetization data). It iterates over a range of window sizes,
+    applies smoothing, and computes the average variance and root mean square (RMS) for each window. These metrics are plotted
+    to help the user visually identify the optimal window size for minimizing variance and RMS, balancing noise reduction and signal fidelity.
+
+    Parameters
+    ----------
+    experiment : object or structured array
+        Experimental data containing temperature and measurement values. It must be compatible with the `split_warm_cool` function.
+    min_temp_window : float, optional
+        Minimum window size (in degrees Celsius) for the moving average. Default is 0.
+    max_temp_window : float, optional
+        Maximum window size (in degrees Celsius) for the moving average. Default is 50.
+    steps : int, optional
+        Number of window size steps to evaluate between the minimum and maximum. Default is 50.
+    colormapwarm : str, optional
+        Matplotlib colormap name for the warm cycle plot. Default is 'tab20b'.
+    colormapcool : str, optional
+        Matplotlib colormap name for the cool cycle plot. Default is 'tab20c'.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The matplotlib Figure object containing the optimization plots.
+    axs : numpy.ndarray of matplotlib.axes.Axes
+        Array of Axes objects (one for the warm cycle, one for the cool cycle).
+
+    Examples
+    --------
+    >>> fig, axs = optimize_moving_average_window(my_experiment, min_temp_window=5, max_temp_window=30, steps=20)
+    >>> fig.show()
+    """
     warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
@@ -3717,6 +4260,38 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
 
 
 def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
+    """
+    Calculate the average root mean square (RMS) deviation and average variance for a set of measurements.
+
+    This function computes two statistical metrics for a given list of measurement values and their corresponding 
+    moving averages and variances:
+      1. The average RMS deviation, which quantifies the typical deviation between each measurement and its local average.
+      2. The average variance, representing the mean of the provided variances for the measurements.
+
+    Parameters
+    ----------
+    chi_list : array-like
+        List or array of measurement values (e.g., susceptibility, magnetization).
+    avg_chis : array-like
+        List or array of moving average values corresponding to `chi_list`.
+    chi_vars : array-like
+        List or array of variance values for each measurement.
+
+    Returns
+    -------
+    avg_rms : float
+        The average root mean square deviation between each value in `chi_list` and its corresponding `avg_chis`.
+    avg_variance : float
+        The average of all values in `chi_vars`.
+
+    Examples
+    --------
+    >>> chi = [1.0, 2.0, 3.0]
+    >>> avg_chi = [0.9, 2.1, 2.9]
+    >>> vars = [0.01, 0.02, 0.03]
+    >>> avg_rms, avg_var = calculate_avg_variance_and_rms(chi, avg_chi, vars)
+    >>> print(f"Average RMS: {avg_rms:.3f}, Average Variance: {avg_var:.3f}")
+    """
     rms_list = np.sqrt([(chi - avg_chi)**2 for chi, avg_chi in zip(chi_list, avg_chis)])
     total_rms = np.sum(rms_list)
     avg_rms = total_rms / len(rms_list)
@@ -4583,9 +5158,9 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     return     
 
 
-# Day plot function
+# Day plot functions
 # ------------------------------------------------------------------------------------------------------------------
-def day_plot_MagIC(specimen_data, 
+def plot_day_plot_MagIC(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4620,14 +5195,14 @@ def day_plot_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    ax = day_plot(Mr = summary_sats[Mr],
+    fig, ax = plot_day_plot(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
-    return ax
+    return fig, ax
     
-def day_plot(Mr, Ms, Bcr, Bc, 
+def plot_day_plot(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_day_lines = True, 
              plot_MD_slope=True,
@@ -4636,7 +5211,8 @@ def day_plot(Mr, Ms, Bcr, Bc,
              color='black', marker='o', 
              label = 'sample', alpha=1, 
              lc='black', lw=0.5, 
-             legend=True, figsize=(8,6)):
+             legend=True, figsize=(8,6),
+             show_plot=True, return_figure=True):
     '''
     function to plot given Ms, Mr, Bc, Bcr values either as single values or list/array of values 
         plots Mr/Ms vs Bc/Bcr. 
@@ -4667,11 +5243,16 @@ def day_plot(Mr, Ms, Bcr, Bc,
         whether to show the legend. The default is True.
     figsize : tuple, optional
         size of the figure. The default is (6,6).
+    show_plot : bool, optional
+        whether to show the plot. The default is True.
+    return_figure : bool, optional
+        whether to return the figure and axes objects. The default is True, so that a different function (plot_day_MagIC) can use it.
 
     Returns
     -------
-    ax : matplotlib.axes._axes.Axes
-        the axes object of the plot.
+    tuple or None
+        - If return_figure is True (default), returns (fig, ax).
+        - Otherwise, returns None.
 
     '''
     # force numpy arrays
@@ -4681,7 +5262,7 @@ def day_plot(Mr, Ms, Bcr, Bc,
     Bcr = np.asarray(Bcr)
     Bcr_Bc = Bcr/Bc
     Mr_Ms = Mr/Ms
-    _, ax = plt.subplots(figsize = figsize)
+    fig, ax = plt.subplots(figsize = figsize)
     # plotting SD, PSD, MD regions
     if plot_day_lines:
         ax.axhline(Mr_Ms_lower, color = lc, lw = lw)
@@ -4717,9 +5298,9 @@ def day_plot(Mr, Ms, Bcr, Bc,
         mixing_Bcr_Bc = mixing_Bcr_Bc[mask]
         mixing_Mr_Ms = mixing_Mr_Ms[mask]
         ax.plot(mixing_Bcr_Bc, mixing_Mr_Ms, color = 'k', lw = lw, ls='-.', label = 'SD/MD mixture')
+    
     # plot the data
     ax.scatter(Bcr_Bc, Mr_Ms, color = color, marker = marker, label = label, alpha=alpha)
-
     ax.set_xlim(1, 100)
     ax.set_ylim(0.005, 1)
     ax.set_xscale('log')
@@ -4732,10 +5313,14 @@ def day_plot(Mr, Ms, Bcr, Bc,
 
     if legend:
         ax.legend(loc='lower right', fontsize=10)
-    return ax
+    if show_plot:
+        plt.show()
+    if return_figure:
+        return fig, ax
+    return None
 
 
-def neel_plot_magic(specimen_data, 
+def plot_neel_magic(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -4770,14 +5355,14 @@ def neel_plot_magic(specimen_data,
     summary_stats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_stats = summary_stats.dropna()
 
-    ax = neel_plot(Mr = summary_stats[Mr],
+    ax = plot_neel(Mr = summary_stats[Mr],
                 Ms = summary_stats[Ms],
                 Bc = summary_stats[Bc], 
                 **kwargs)
     return ax
 
 
-def neel_plot(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
+def plot_neel(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1, lc = 'black', lw=0.5, legend=True, axis_scale='linear', figsize = (5, 5)):
     """
     Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from hysteresis data.
 
