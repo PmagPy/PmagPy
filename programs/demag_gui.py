@@ -789,37 +789,37 @@ class Demag_GUI(wx.Frame):
         az_sizer = wx.BoxSizer(wx.VERTICAL)
         dip_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        az_label = wx.StaticText(self.side_panel, label="Azimuth")
+        az_label = wx.StaticText(self.side_panel, label="Sample X direction Azimuth")
         self.az_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
         az_sizer.Add(az_label, 0, wx.ALIGN_CENTER)
-        az_sizer.Add(self.az_text, 0, wx.EXPAND | wx.TOP, 2)
+        az_sizer.Add(self.az_text, 0, wx.EXPAND | wx.TOP, 1)
 
-        dip_label = wx.StaticText(self.side_panel, label="Dip")
+        dip_label = wx.StaticText(self.side_panel, label="Sample X direction Dip")
         self.dip_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
         dip_sizer.Add(dip_label, 0, wx.ALIGN_CENTER)
-        dip_sizer.Add(self.dip_text, 0, wx.EXPAND | wx.TOP, 2)
+        dip_sizer.Add(self.dip_text, 0, wx.EXPAND | wx.TOP, 1)
 
-        azdip_sizer.Add(az_sizer, 1, wx.EXPAND | wx.RIGHT, 5)
-        azdip_sizer.Add(dip_sizer, 1, wx.EXPAND | wx.LEFT, 5)
-        self.orientation_box.Add(azdip_sizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        azdip_sizer.Add(az_sizer, 1, wx.EXPAND | wx.RIGHT, 2)
+        azdip_sizer.Add(dip_sizer, 1, wx.EXPAND | wx.LEFT, 2)
+        self.orientation_box.Add(azdip_sizer, 0, wx.EXPAND | wx.BOTTOM, 4)
 
         # Second row: Bed Dip and Bed Dip Dir
         bed_sizer = wx.BoxSizer(wx.HORIZONTAL)
         bed_dip_sizer = wx.BoxSizer(wx.VERTICAL)
         bed_dir_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        bed_dip_label = wx.StaticText(self.side_panel, label="Bed Dip")
+        bed_dip_label = wx.StaticText(self.side_panel, label="Bedding Dip")
         self.bed_dip_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
         bed_dip_sizer.Add(bed_dip_label, 0, wx.ALIGN_CENTER)
-        bed_dip_sizer.Add(self.bed_dip_text, 0, wx.EXPAND | wx.TOP, 2)
+        bed_dip_sizer.Add(self.bed_dip_text, 0, wx.EXPAND | wx.TOP, 1)
 
-        bed_dir_label = wx.StaticText(self.side_panel, label="Bed Dip Dir")
+        bed_dir_label = wx.StaticText(self.side_panel, label="Bedding Dip Direction")
         self.bed_dir_text = wx.TextCtrl(self.side_panel, style=wx.TE_PROCESS_ENTER)
         bed_dir_sizer.Add(bed_dir_label, 0, wx.ALIGN_CENTER)
-        bed_dir_sizer.Add(self.bed_dir_text, 0, wx.EXPAND | wx.TOP, 2)
+        bed_dir_sizer.Add(self.bed_dir_text, 0, wx.EXPAND | wx.TOP, 1)
 
-        bed_sizer.Add(bed_dip_sizer, 1, wx.EXPAND | wx.RIGHT, 5)
-        bed_sizer.Add(bed_dir_sizer, 1, wx.EXPAND | wx.LEFT, 5)
+        bed_sizer.Add(bed_dir_sizer, 1, wx.EXPAND | wx.RIGHT, 2)
+        bed_sizer.Add(bed_dip_sizer, 1, wx.EXPAND | wx.LEFT, 2)
         self.orientation_box.Add(bed_sizer, 0, wx.EXPAND)
 
         side_bar_sizer.Add(self.orientation_box, 0, wx.EXPAND | wx.TOP, 10)
