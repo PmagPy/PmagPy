@@ -16104,6 +16104,7 @@ def mad_to_a95(mad, n_steps, anchored=False):
     anchored : bool, default False
         If False, use CMAD factors for standard (unanchored) PCA MAD.
         If True, use CaMAD factors for anchored PCA aMAD.
+        If an array of bool is provided, it must have the same shape as `mad`.
 
     Returns
     -------
@@ -16167,9 +16168,9 @@ def mad_to_a95(mad, n_steps, anchored=False):
         100: 3.99,
     }
 
-    table = CaMAD if anchored else CMAD
-
     if np.isscalar(n_steps):
+        table = CaMAD if anchored else CMAD
+
         n = int(n_steps)
         if n < 3:
             raise ValueError(
@@ -16185,14 +16186,16 @@ def mad_to_a95(mad, n_steps, anchored=False):
         # Array-like n_steps → elementwise mapping, same shape as mad
         mad_arr = np.asarray(mad, dtype=float)
         n_arr = np.asarray(n_steps)
+        anchored = np.asarray(anchored)
 
         if mad_arr.shape != n_arr.shape:
             raise ValueError(
                 "When n_steps is array-like, it must have the same shape as mad."
             )
 
-        def _factor_for_n(n):
+        def _factor_for_n(n, anchored):
             n = int(n)
+            table = CaMAD if anchored else CMAD
             if n < 3:
                 raise ValueError(
                     f"n_steps={n} is too small; Table 8 is defined for n>=3."
@@ -16202,6 +16205,6 @@ def mad_to_a95(mad, n_steps, anchored=False):
             return table[n]
 
         vec_factor = np.vectorize(_factor_for_n, otypes=[float])
-        factors = vec_factor(n_arr)
+        factors = vec_factor(n_arr, anchored)
 
         return mad_arr * factors
