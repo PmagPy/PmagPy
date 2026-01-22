@@ -9486,11 +9486,8 @@ def doigrf(lon, lat, alt, date, **kwargs):
 # ensure all positive east longitudes
     itype = 1
     models, igrf14coeffs = cf.get_igrf14()
-    #models, igrf12coeffs = cf.get_igrf12()
     if 'mod' in list(kwargs.keys()):
-        if kwargs['mod'] == 'igrf13':
-            psvmodels, psvcoeffs = cf.get_igrf13()
-        elif kwargs['mod'] == 'arch3k':
+        if kwargs['mod'] == 'arch3k':
             psvmodels, psvcoeffs = cf.get_arch3k()  # use ARCH3k coefficients
         elif kwargs['mod'] == 'cals3k':
             # use CALS3K_4b coefficients between -1000,1940
