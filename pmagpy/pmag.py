@@ -9421,7 +9421,7 @@ def docustom(lon, lat, alt, gh):
 
 def doigrf(lon, lat, alt, date, **kwargs):
     """
-    Calculates the interpolated (<=2020) or extrapolated (>2020) main field and
+    Calculates the interpolated (<=2025) or extrapolated (>2025) main field and
     secular variation coefficients and passes them to the Malin and Barraclough
     routine (function pmag.magsyn) to calculate the field from the coefficients.
 
@@ -9457,7 +9457,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
     gh : list of gauss coefficients
         only if coeffs=True
 
-    By default, igrf13 coefficients are used between 1900 and 2020
+    By default, IGRF14 coefficients are used between 1900 and 2025
     from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
 
 
@@ -9485,10 +9485,12 @@ def doigrf(lon, lat, alt, date, **kwargs):
         lon = lon + 360.
 # ensure all positive east longitudes
     itype = 1
-    models, igrf13coeffs = cf.get_igrf13()
+    models, igrf14coeffs = cf.get_igrf14()
     #models, igrf12coeffs = cf.get_igrf12()
     if 'mod' in list(kwargs.keys()):
-        if kwargs['mod'] == 'arch3k':
+        if kwargs['mod'] == 'igrf13':
+            psvmodels, psvcoeffs = cf.get_igrf13()
+        elif kwargs['mod'] == 'arch3k':
             psvmodels, psvcoeffs = cf.get_arch3k()  # use ARCH3k coefficients
         elif kwargs['mod'] == 'cals3k':
             # use CALS3K_4b coefficients between -1000,1940
@@ -9522,7 +9524,7 @@ def doigrf(lon, lat, alt, date, **kwargs):
         if 'mod' in list(kwargs.keys()):
             return psvmodels, psvcoeffs
         else:
-            return models, igrf13coeffs
+            return models, igrf14coeffs
     if date < -100000:
         print('too old')
         return
@@ -9563,20 +9565,20 @@ def doigrf(lon, lat, alt, date, **kwargs):
             sv = (psvcoeffs[psvmodels.index(model + incr)] - gh)/float(incr)
          
         else:
-            field2 = igrf13coeffs[models.index(1940)][0:120]
+            field2 = igrf14coeffs[models.index(1940)][0:120]
             sv = (field2 - gh)/float(1940 - model)
         x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     else:
         model = date - date % 5
-        if date <=2025:
-            gh = np.array(igrf13coeffs[models.index(model)])
-            if date<2025:
-                sv = (np.array(igrf13coeffs[models.index(model + 5)]) - gh)/5.
+        if date <=2030:
+            gh = np.array(igrf14coeffs[models.index(model)])
+            if date<2030:
+                sv = (np.array(igrf14coeffs[models.index(model + 5)]) - gh)/5.
             else:
-                sv = (np.zeros(len(igrf13coeffs[models.index(model)])))
+                sv = (np.zeros(len(igrf14coeffs[models.index(model)])))
             x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
         else:
-            print ('model not available past 2025')
+            print ('model not available past 2030')
             x,y,z,f=0,0,0,0
         #    gh = igrf13coeffs[models.index(2020)]
         #    sv = np.array(igrf13coeffs[models.index(2020.2)])
