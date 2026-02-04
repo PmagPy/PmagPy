@@ -3284,7 +3284,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True):
+def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -3302,6 +3302,8 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
         If True (default), display a summary table of key parameters using Bokeh.
+    show_plot : bool, optional
+        If True, display the Bokeh plot of the hysteresis loop and processing steps.
 
     Returns
     -------
@@ -3398,7 +3400,8 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
     p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
     p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
-    show(p_slope_corr)
+    if show_plot:
+        show(p_slope_corr)
     results = {'gridded_H': grid_fields, 
                'gridded_M': grid_magnetizations, 
                'linearity_test_results': loop_linearity_test_results,
@@ -3459,6 +3462,7 @@ def process_hyst_loops(
     field_col="meas_field_dc",
     magn_col="magn_mass",
     show_results_table=True,
+    show_plots=True,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -3477,13 +3481,15 @@ def process_hyst_loops(
         Defaults to "magn_mass".
     show_results_table : bool, optional
         If True, display the summary table below each plot.
+    show_plots : bool, optional
+        If True, display the hysteresis plots for each specimen.
 
     Returns
     -------
-    list of dict
-        Each dict is the output of `process_hyst_loop` for one specimen.
+    results_df : pandas.DataFrame
+        DataFrame with hysteresis results for each specimen.
     """
-    results = []
+    results = {}
     for _, row in hyst_experiments.iterrows():
         exp = row["experiment"]
         spec = row["specimen"]
@@ -3496,9 +3502,11 @@ def process_hyst_loops(
             df[magn_col].values,
             spec,
             show_results_table=show_results_table,
+            show_plot=show_plots,
         )
-        results.append(res)
-    return results
+        results[spec] = res
+    results_df = pd.DataFrame.from_dict(results, orient='index')
+    return results_df
 
 
 def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_results):
