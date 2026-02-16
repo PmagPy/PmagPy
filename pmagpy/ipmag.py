@@ -57,7 +57,7 @@ def igrf(input_list, mod='', ghfile=""):
             date must be in decimal year format XXXX.XXXX (Common Era)
             altitude is in kilometers
         mod :  desired model
-            "" : Use the IGRF13 model by default
+            "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
             ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
