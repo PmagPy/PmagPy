@@ -9577,13 +9577,9 @@ def doigrf(lon, lat, alt, date, **kwargs):
         else:
             print ('model not available past 2030')
             x,y,z,f=0,0,0,0
-        #    gh = igrf13coeffs[models.index(2020)]
-        #    sv = np.array(igrf13coeffs[models.index(2020.2)])
-        #    x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
     return x, y, z, f
-#
 
 
 def unpack(gh):
