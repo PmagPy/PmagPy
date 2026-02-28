@@ -428,7 +428,8 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
         Mhat_b = pmag.form_Mhat(mhat_b) #\hat{M} for bootstrap sample
         Ghat_b = pmag.form_Ghat(X_b,Mhat_b) #\hat{G} for bootstrap sample
         T_b[i] = pmag.find_T(mhat,n,Mhat_b,Ghat_b) #T for bootstrap sample
-        
+
+    T_b = T_b[np.isfinite(T_b)] #discard degenerate bootstrap samples
     Tc = np.quantile(T_b,1-alpha) #find 1-alpha quantile of T
     pars["T_critical"] = Tc
 
@@ -1342,8 +1343,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Mhat2 = pmag.form_Mhat(mhat2) #Mhat of second data set
     Ghat2 = pmag.form_Ghat(X2,Mhat2) #Ghat of second data set
 
-    Ahat = Mhat1.getH()*np.linalg.inv(Ghat1)*Mhat1
-    Ahat += Mhat2.getH()*np.linalg.inv(Ghat2)*Mhat2
+    Ahat = Mhat1.conj().T @ np.linalg.inv(Ghat1) @ Mhat1
+    Ahat += Mhat2.conj().T @ np.linalg.inv(Ghat2) @ Mhat2
     Ahat *= n
 
     D,V = np.linalg.eig(Ahat)
@@ -1379,8 +1380,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Mhat20_b = pmag.form_Mhat(mhat20_b) #\hat{M} for bootstrap sample
         Ghat20_b = pmag.form_Ghat(X20_b,Mhat20_b) #\hat{G} for bootstrap sample
         
-        Ahat_b = Mhat10_b.getH()*np.linalg.inv(Ghat10_b)*Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
-        Ahat_b += Mhat20_b.getH()*np.linalg.inv(Ghat20_b)*Mhat20_b
+        Ahat_b = Mhat10_b.conj().T @ np.linalg.inv(Ghat10_b) @ Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
+        Ahat_b += Mhat20_b.conj().T @ np.linalg.inv(Ghat20_b) @ Mhat20_b
         Ahat_b *= n
         
         D_b,V_b = np.linalg.eig(Ahat_b) #Eigenvalues and eigenvectors
@@ -1565,7 +1566,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         print("")
         print("M&M1990 classification:")
         print("")
-        print("Angle between data set means: " '%.1f' % (angle))
+        print("Angle between data set means: " '%.1f' % (angle[0]))
         print("Critical angle for M&M1990:   " '%.1f' % (critical_angle))
 
     if print_result:
@@ -2176,7 +2177,7 @@ def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
     ref_loc = (ref_loc_lon, ref_loc_lat)
     pole = (pole_plon, pole_plat)
     paleo_lat = 90 - pmag.angle(pole, ref_loc)
-    return float(paleo_lat)
+    return float(paleo_lat[0])
 
 
 def inc_from_lat(lat):
