@@ -7265,7 +7265,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             try:
                 x, y, z, f = pmag.doigrf(lon, lat, 0, decimal_year)
             except TypeError: # see issue 617
-                return None, "Only dates prior to 2020 supported"
+                return None, "Only dates prior to 2030 supported"
             Dir = pmag.cart2dir((x, y, z))
             dec_correction = Dir[0]
         if "bedding_dip" in list(OrRec.keys()):
