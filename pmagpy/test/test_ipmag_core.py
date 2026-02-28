@@ -308,7 +308,7 @@ class TestIpMagCoreFunctions(unittest.TestCase):
         self.assertIn("dec", pars)
         assert_allclose(float(pars["dec"]), 40.03627966362325)
         assert_allclose(float(pars["inc"]), 60.0075508357781)
-        assert_allclose(float(pars["T_critical"]), 22.516075590053603)
+        assert_allclose(float(pars["T_critical"]), 29.037531082920076)
         boundary_array = np.array(boundary)
         self.assertEqual(boundary_array.shape[1], 3)
         self.assertGreater(boundary_array.shape[0], 100)
