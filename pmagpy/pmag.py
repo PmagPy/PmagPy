@@ -13588,14 +13588,14 @@ def form_Mhat(mhat):
     Raises:
         ValueError: If the data sets have incompatible shapes.
     """
-    b = np.matrix(mhat[0:2][:,np.newaxis])
+    b = mhat[0:2][:,np.newaxis].astype(float)
     c = mhat[2]
-    
+
     if c==0:
-        A1 = np.eye(2)-(b*b.getH())
+        A1 = np.eye(2)-(b @ b.conj().T)
     else:
-        A1 = c/np.abs(c)*np.eye(2)-c/(np.abs(c)+np.abs(c)**2)*(b*b.getH())
-        
+        A1 = c/np.abs(c)*np.eye(2)-c/(np.abs(c)+np.abs(c)**2)*(b @ b.conj().T)
+
     A2 = -b
     Mhat = np.hstack((A1,A2))
     return Mhat
@@ -13621,16 +13621,16 @@ def form_Ghat(X,Mhat):
 
     n = np.shape(X)[1]
     term1 = np.power(np.linalg.norm(np.sum(X,axis=1)/n),-2)/n
-    X = np.matrix(X)
-    Mhat_T = Mhat.getT()
-    Ghat = np.matrix(np.zeros((2,2)))
-    
+    X = np.asarray(X, dtype=float)
+    Mhat_T = Mhat.T
+    Ghat = np.zeros((2,2))
+
     for u in range(2):
         for v in range(2):
             for i in range(n):
-                Ghat[u,v] += Mhat_T[:,u].getT()*X[:,i]*X[:,i].getT()*Mhat_T[:,v]
+                Ghat[u,v] += (Mhat_T[:,u] @ X[:,i]) * (X[:,i] @ Mhat_T[:,v])
             Ghat[u,v] *= term1
-    
+
     return Ghat
 
 def form_Q(a,b):
@@ -13652,19 +13652,17 @@ def form_Q(a,b):
     #input - b, starting direction (unit vector)
     #output - Q, rotation matrix so Qb = a
     
-    a = np.matrix(a)
-    a = np.reshape(a,(3,1))
-    b = np.matrix(b)
-    b = np.reshape(b,(3,1))
+    a = np.asarray(a, dtype=float).reshape(3,1)
+    b = np.asarray(b, dtype=float).reshape(3,1)
 
-    c = b-a*(a.getT()*b)
+    c = b - a @ (a.T @ b)
     c /= np.linalg.norm(c)
 
-    alpha = np.arccos(a.getT()*b)
-    A = a*c.getT()-c*a.getT()
+    alpha = np.arccos(a.T @ b)
+    A = a @ c.T - c @ a.T
 
-    Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1,a*a.getT()+c*c.getT())
-    
+    Q = np.eye(3)+np.multiply(np.sin(alpha),A)+np.multiply(np.cos(alpha)-1, a @ a.T + c @ c.T)
+
     return Q
 
 def find_CMDT_CR(Ahat,Tc,mhat12):
@@ -13695,10 +13693,10 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
     V = V[:,idx]
         
     mCI = np.zeros((3,201))
-    y = np.matrix(np.zeros((3,1)))
+    y = np.zeros((3,1))
     for i in range(201):
             theta = i*np.pi/100
-            
+
             ylen = np.zeros(201)
             phi = np.linspace(0,np.pi/2,201)
             for j in range(201):
@@ -13706,14 +13704,14 @@ def find_CMDT_CR(Ahat,Tc,mhat12):
                 y[1] = np.sin(phi[j])*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
                 y[2] = np.cos(phi[j])*np.sqrt(Tc)/np.sqrt(D[2])
                 ylen[j] = np.linalg.norm(y)
-                
+
             idx = np.argsort(ylen)
             phi0 = np.interp(1.0,ylen[idx],phi[idx])
             y[0] = np.sin(phi0)*np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
             y[1] = np.sin(phi0)*np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
             y[2] = np.cos(phi0)*np.sqrt(Tc)/np.sqrt(D[2])
-                
-            mCI[:,i] = np.ndarray.flatten(V*y)
+
+            mCI[:,i] = (V @ y).ravel()
     
     #Check if points are in the correct hemisphere
     mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
@@ -13746,9 +13744,13 @@ def find_T(m,n,Mhat,Ghat):
     #input - Ghat matrix representing covariance
     #output - T value estimated from Equation 6
     
-    m = np.matrix(m[:,np.newaxis])
-    
-    return np.array(n*m.getT()*Mhat.getT()*np.linalg.inv(Ghat)*Mhat*m)    
+    m = m[:,np.newaxis].astype(float)
+
+    if not np.isfinite(Ghat).all():
+        return np.inf
+    if np.linalg.cond(Ghat) > 1e12:
+        return np.inf
+    return (n * m.T @ Mhat.T @ np.linalg.inv(Ghat) @ Mhat @ m).item()
 
 def find_CR(mhat,Mhat,Ghat,n,Tc):
     """
@@ -13775,21 +13777,21 @@ def find_CR(mhat,Mhat,Ghat,n,Tc):
     #input - Tc, critical T value on confidence region boundary
     #output - mCI, closed confidence region boundary
     
-    C = n*Mhat.getT()*np.linalg.inv(Ghat)*Mhat
+    C = n * Mhat.T @ np.linalg.inv(Ghat) @ Mhat
     [D,V] = np.linalg.eig(C)
-    
+
     idx=np.flip(np.argsort(D))
     D = D[idx]
     V = V[:,idx]
-    
+
     mCI = np.zeros((3,201))
-    y = np.matrix(np.zeros((3,1)))
+    y = np.zeros((3,1))
     for i in range(201):
             theta = i*np.pi/100
             y[0] = np.cos(theta)*np.sqrt(Tc)/np.sqrt(D[0])
             y[1] = np.sin(theta)*np.sqrt(Tc)/np.sqrt(D[1])
             y[2] = np.sqrt(1-y[0]**2-y[1]**2)
-            mCI[:,i] = np.ndarray.flatten(V*y)
+            mCI[:,i] = (V @ y).ravel()
     
     mCIbar = np.mean(mCI,axis=1)/np.linalg.norm(np.mean(mCI,axis=1))
     if np.arctan2(np.linalg.norm(np.cross(mhat,mCIbar)),np.dot(mhat,mCIbar))>np.pi/2:
