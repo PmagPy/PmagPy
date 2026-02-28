@@ -9740,7 +9740,6 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
         one = (gh[l - 1] + sv[ll + l - 1] * t) * rr
         if m != 0:  # else go to 7
             two = (gh[l] + sv[ll + l] * t) * rr
-            two = (gh[l]) * rr
             three = one * cl[m - 1] + two * sl[m - 1]
             x = x + three * q[k]
             z = z - (fn + 1.0) * three * p[k]
