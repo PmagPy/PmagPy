@@ -13746,6 +13746,8 @@ def find_T(m,n,Mhat,Ghat):
     
     m = m[:,np.newaxis].astype(float)
 
+    if not np.isfinite(Ghat).all():
+        return np.inf
     if np.linalg.cond(Ghat) > 1e12:
         return np.inf
     return (n * m.T @ Mhat.T @ np.linalg.inv(Ghat) @ Mhat @ m).item()

@@ -430,6 +430,11 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
         T_b[i] = pmag.find_T(mhat,n,Mhat_b,Ghat_b) #T for bootstrap sample
 
     T_b = T_b[np.isfinite(T_b)] #discard degenerate bootstrap samples
+    if T_b.size == 0:
+        raise ValueError(
+            "No finite bootstrap T values were obtained; the input directions may be too "
+            "few or too degenerate for mean_bootstrap_confidence to compute a confidence region."
+        )
     Tc = np.quantile(T_b,1-alpha) #find 1-alpha quantile of T
     pars["T_critical"] = Tc
 
@@ -2263,7 +2268,7 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Xtick.append(XY[0])
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
-    ax.axis("equal")
+    ax.set_aspect("equal")
     ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
