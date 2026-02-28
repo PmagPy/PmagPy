@@ -2268,7 +2268,7 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Xtick.append(XY[0])
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
-    ax.axis("equal")
+    ax.set_aspect("equal")
     ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 

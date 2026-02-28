@@ -169,7 +169,7 @@ def plot_square(fignum):
     fignum : matplotlib figure number
     """
     plt.figure(num=fignum)
-    plt.axis('equal')
+    plt.gca().set_aspect('equal')
 
 
 def gaussfunc(y, ybar, sigma):
@@ -537,7 +537,7 @@ def plot_net(fignum):
         plt.plot(Xtick, Ytick, 'k')
     BoxX, BoxY = [-1.1, 1.1, 1.1, -1.1, -1.1], [-1.1, -1.1, 1.1, 1.1, -1.1]
     plt.plot(BoxX, BoxY, 'k-', linewidth=.5)
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 
 
 def plot_di(fignum, DIblock):
@@ -739,7 +739,7 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     plt.ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
     plt.axis([amin, amax, amax, amin])
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.title(tstring)
 #
 #
@@ -1037,7 +1037,7 @@ def plot_dir(ZED, pars, datablock, angle):
 
         plt.plot(px, py, 'g', linewidth=2)
         plt.plot(px, pz, 'g', linewidth=2)
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
     else:
         plt.figure(num=ZED['eqarea'])
         XY = pmag.dimap(StartDir[0], StartDir[1])
@@ -1052,7 +1052,7 @@ def plot_dir(ZED, pars, datablock, angle):
         plot_circ(ZED['eqarea'], pole, 90., 'g')
         plt.xlim((-1., 1.))
         plt.ylim((-1., 1.))
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
         #plt.draw()
 
 
@@ -1313,7 +1313,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
         plt.figure(num=Figs['zijd'])
         plt.scatter(zx, zy, marker='d', s=100, c='y')
         plt.scatter(zx, zz, marker='d', s=100, c='y')
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
     ax.append(first_I[0][3] / first_Z[0][3])
     ax.append(first_I[-1][3] / first_Z[0][3])
     ay.append(first_Z[0][3] / first_Z[0][3])
@@ -1500,7 +1500,7 @@ def plot_eq(fignum, DIblock, s):
 #   put on the directions
 #
     plot_di(fignum, DIblock)  # plot directions
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
     plt.draw()
 
@@ -1527,7 +1527,7 @@ def plot_eq_sym(fignum, DIblock, s, sym):
 #   put on the directions
 #
     plot_di_sym(fignum, DIblock, sym)  # plot directions with symbols in sym
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
 #
 
@@ -1589,7 +1589,7 @@ def plot_teq(fignum, araiblock, s, pars):
     sym = {'lower': ['^', 'g'], 'upper': ['^', 'y']}
     if len(pTblock) > 0:
         plot_di_sym(fignum, pTblock, sym)  # plot pTRM directions
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
 
 
@@ -1668,7 +1668,7 @@ def plot_evec(fignum, Vs, symsize, title):
             Y.append(XY[1])
         plt.scatter(X, Y, s=symsize,
                     marker=symb[VEC], c=col[VEC], edgecolors='none')
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 #
 
 
@@ -3512,7 +3512,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
         plt.plot(x, y, 'w-', linewidth=26)
         x, y = [], []
     # the axes
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 
 
 def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
