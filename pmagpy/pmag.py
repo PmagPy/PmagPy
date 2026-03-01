@@ -18,6 +18,33 @@ import SPD.lib.leastsq_jacobian as lib_k
 WARNINGS = {'cartopy': False}
 
 
+def _resolve_rng(random_seed):
+    """Return a numpy random Generator.
+
+    Parameters
+    ----------
+    random_seed : None, int, or numpy.random.Generator
+        If None, returns a Generator with fresh entropy (non-reproducible).
+        If int, returns a seeded Generator (reproducible).
+        If already a Generator, returns it unchanged. This allows parent
+        functions to thread a single Generator through call chains via the
+        same ``random_seed`` parameter, keeping one shared RNG state.
+
+    Raises
+    ------
+    TypeError
+        If random_seed is not None, an integer, or a numpy.random.Generator.
+    """
+    if random_seed is None or isinstance(random_seed, (int, np.integer)):
+        return np.random.default_rng(random_seed)
+    if isinstance(random_seed, np.random.Generator):
+        return random_seed
+    raise TypeError(
+        f"random_seed must be None, an int, or a numpy.random.Generator, "
+        f"got {type(random_seed).__name__}"
+    )
+
+
 def get_version():
     """
     Determines the version of PmagPy installed on your machine.
@@ -6487,7 +6514,7 @@ def pt_rot(EP, Lats, Lons):
     return RLats, RLons
 
 
-def fshdev(k):
+def fshdev(k, random_seed=None):
     """
     Generate a random draw from a Fisher distribution with mean declination
     of 0 and inclination of 90 with a specified kappa.
@@ -6496,24 +6523,27 @@ def fshdev(k):
     ----------
     k : single number or an array of values
         kappa (precision parameter) of the distribution
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     dec, inc : declination and inclination of random Fisher distribution draw
                if k is an array, dec, inc are returned as arrays, otherwise, single values
-    
+
     Examples
     --------
     >>> pmag.fshdev(8)
     (334.3434290469283, 61.06963783415771)
     """
+    rng = _resolve_rng(random_seed)
     k = np.array(k)
     if len(k.shape) != 0:
         n = k.shape[0]
     else:
         n = 1
-    R1 = random.random(size=n)
-    R2 = random.random(size=n)
+    R1 = rng.random(size=n)
+    R2 = rng.random(size=n)
     L = np.exp(-2 * k)
     a = R1 * (1 - L) + L
     fac = np.sqrt(-np.log(a)/(2 * k))
@@ -6524,10 +6554,10 @@ def fshdev(k):
     else:
         return dec, inc
 
-def kentdev(kappa, beta, n=1000):
+def kentdev(kappa, beta, n=1000, random_seed=None):
     """
     Generate a random draw from a Kent distribution with mean declination
-    of 0 and inclination of 90, elongated along -90 to 90 longitude 
+    of 0 and inclination of 90, elongated along -90 to 90 longitude
     with a specified kappa and beta.
 
     Parameters
@@ -6535,18 +6565,21 @@ def kentdev(kappa, beta, n=1000):
     kappa : kappa (precision parameter) of the distribution
     beta : beta ellipticity of the contours of equal probability of the distribution
     n : number of samples to redraw
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     dec, inc : declination and inclination of random Kent distribution draw
-    
+
     Examples
     --------
     >>> pmag.kentdev(30,0.2,3)
     ([249.6338265814872, 243.60784772662754, 273.37935292238103],
      [74.05222965175194, 80.43784483273899, 82.34979130960458])
     """
-    
+    rng = _resolve_rng(random_seed)
+
     # initialize dec, inc lists to be reported
     decs = []
     incs = []
@@ -6571,10 +6604,10 @@ def kentdev(kappa, beta, n=1000):
     N=0
     
     while N<n:
-        v1=random.random()
-        v2=random.random()
-        u1=random.random()
-        u2=random.random()
+        v1=rng.random()
+        v2=rng.random()
+        u1=rng.random()
+        u2=rng.random()
 
         try:
             x1 = -np.log(1-v1*(1-np.exp(-lam1)))/lam1
@@ -6599,8 +6632,8 @@ def kentdev(kappa, beta, n=1000):
         if u2 > ratio2:
             continue
         
-        sign1 = [-1 if random.random()-0.5 < 0 else 1][0]
-        sign2 = [-1 if random.random()-0.5 < 0 else 1][0]
+        sign1 = [-1 if rng.random()-0.5 < 0 else 1][0]
+        sign2 = [-1 if rng.random()-0.5 < 0 else 1][0]
 
         x1=x1*sign1
         x2=x2*sign2
@@ -7136,7 +7169,7 @@ def doaniscorr(PmagSpecRec, AniSpec):
     return AniSpecRec
 
 
-def gaussdev(mean, sigma, N=1):
+def gaussdev(mean, sigma, N=1, random_seed=None):
     """
     Generate random samples drawn from a Gaussian (normal) distribution.
 
@@ -7151,6 +7184,8 @@ def gaussdev(mean, sigma, N=1):
         Standard deviation of the normal distribution.
     N : int, optional
         Number of random samples to generate. Defaults to 1.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
@@ -7164,41 +7199,41 @@ def gaussdev(mean, sigma, N=1):
     This function is a thin convenience wrapper around ``numpy.random.normal``.
     Its primary purpose is to provide a default of ``N=1`` and to ensure that
     the return value is always a NumPy array, even when generating a single
-    sample. Results will vary between runs unless a random seed is set using
-    ``np.random.seed()``.
+    sample. Pass an integer ``random_seed`` for reproducible results.
 
     Examples
     --------
     Generate six samples from a normal distribution with mean 5.5 and standard
     deviation 1.2:
 
-    >>> np.random.seed(42)  # optional, for reproducibility
-    >>> pmag.gaussdev(5.5, 1.2, 6)
+    >>> pmag.gaussdev(5.5, 1.2, 6, random_seed=42)
     array([6.096056983613479, 5.334082838594578, 6.277226245720831,
         7.327635827689631, 5.219015950331997, 5.219035651660984])
 
     Generate a single sample:
 
-    >>> np.random.seed(42)
-    >>> pmag.gaussdev(5.5, 1.2, 1)
+    >>> pmag.gaussdev(5.5, 1.2, 1, random_seed=42)
     array([6.096056983613479])
     """
-    return random.normal(mean, sigma, N)  # return gaussian deviate
+    rng = _resolve_rng(random_seed)
+    return rng.normal(mean, sigma, N)
 
 
-def get_unf(N=100):
+def get_unf(N=100, random_seed=None):
     """
     Generates N uniformly distributed directions
     using the way described in Fisher et al. (1987).
-    
+
     Parameters
     ----------
     N : number of directions, default is 100
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     array of nested dec, inc pairs
-    
+
     Examples
     --------
     >>> pmag.get_unf(5)
@@ -7208,10 +7243,10 @@ def get_unf(N=100):
        [ 61.71574344812653 ,  -4.005335509042522],
        [ 15.867001505749716,  -1.404412703673322]])
     """
-#
+    rng = _resolve_rng(random_seed)
 # get uniform directions  [dec,inc]
-    z = random.uniform(-1., 1., size=N)
-    t = random.uniform(0., 360., size=N)  # decs
+    z = rng.uniform(-1., 1., size=N)
+    t = rng.uniform(0., 360., size=N)  # decs
     i = np.arcsin(z) * 180. / np.pi  # incs
     return np.array([t, i]).transpose()
 
@@ -8725,7 +8760,7 @@ def sbootpars(Taus, Vs):
     return bpars
 
 
-def apseudo(Ss, ipar, sigma):
+def apseudo(Ss, ipar, sigma, random_seed=None):
     """
     This function draws a bootstrap sample of Ss, for use in pmag.s_boot.
 
@@ -8734,21 +8769,23 @@ def apseudo(Ss, ipar, sigma):
     Ss : six element tensor as a list
     ipar : boolean (True, False, or zero value)
     sigma : sigma of Ss
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
-    BSs : array 
+    BSs : array
         bootstrap sample of Ss
 
-    Examples 
+    Examples
     --------
     >>> pmag.apseudo(np.array([2,2,1,6,1,1]),0,0)
     array([1, 2, 1, 2, 2, 1])
     """
-#
+    rng = _resolve_rng(random_seed)
     Ss = np.array(Ss)   # added 9/9/22 for consistency with other functions using the variable "Ss"
-    Is = random.randint(0, len(Ss) - 1, size=len(Ss))  # draw N random integers
-    
+    Is = rng.integers(0, len(Ss), size=len(Ss))
+
     if not ipar: # ipar == 0:
         BSs = Ss[Is]
     else:  # need to recreate measurement - then do the parametric stuffr
@@ -8756,13 +8793,13 @@ def apseudo(Ss, ipar, sigma):
         K, BSs = [], []
         for k in range(len(Ss)):
             K.append(np.dot(A, Ss[k][0:6]))
-        Pars = np.random.normal(K, sigma)
+        Pars = rng.normal(K, sigma)
         for k in range(len(Ss)):
             BSs.append(np.dot(B, Pars[k]))
     return np.array(BSs)
 
 
-def s_boot(Ss, ipar=0, nb=1000):
+def s_boot(Ss, ipar=0, nb=1000, random_seed=None):
     """
     Returns bootstrap parameters for S data.
 
@@ -8771,6 +8808,8 @@ def s_boot(Ss, ipar=0, nb=1000):
     Ss : nested array of [[x11 x22 x33 x12 x23 x13],....] data
     ipar : if True, do a parametric bootstrap
     nb : number of bootstraps
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
@@ -8778,7 +8817,7 @@ def s_boot(Ss, ipar=0, nb=1000):
     Vmean : average eigvectors
     Taus : bootstrapped eigenvalues
     Vs :  bootstrapped eigenvectors
-    
+
     Examples
     --------
     >>> Ss = [[0.33586472,0.32757074,0.33656454,0.0056526,0.00449771,-0.00036542], [0.33815295,0.32601482,0.33583224,0.00754076,0.00405271,-0.0001627],
@@ -8797,23 +8836,16 @@ def s_boot(Ss, ipar=0, nb=1000):
        [166.21187481069492, 70.40546729047502],
        [295.4174263407004, 12.681162985818712]]])
     """
-    #npts = len(Ss)
+    rng = _resolve_rng(random_seed)
     Ss = np.array(Ss)
     npts = Ss.shape[0]
-# get average s for whole dataset
     nf, Sigma, avs = sbar(Ss)
-    Tmean, Vmean = doseigs(avs)  # get eigenvectors of mean tensor
-#
-# now do bootstrap to collect Vs and taus of bootstrap means
-#
-    Taus, Vs = [], []  # number of bootstraps, list of bootstrap taus and eigenvectors
-#
-    for k in range(int(float(nb))):  # repeat nb times
-        #        if k%50==0:print k,' out of ',nb
-        # get a pseudosample - if ipar=1, do a parametric bootstrap
-        BSs = apseudo(Ss, ipar, Sigma)
-        nf, sigma, avbs = sbar(BSs)  # get bootstrap mean s
-        tau, Vdirs = doseigs(avbs)  # get bootstrap eigenparameters
+    Tmean, Vmean = doseigs(avs)
+    Taus, Vs = [], []
+    for k in range(int(float(nb))):
+        BSs = apseudo(Ss, ipar, Sigma, random_seed=rng)
+        nf, sigma, avbs = sbar(BSs)
+        tau, Vdirs = doseigs(avbs)
         Taus.append(tau)
         Vs.append(Vdirs)
     return Tmean, Vmean, Taus, Vs
@@ -11364,15 +11396,19 @@ def s_l(l, alpha=27.7):
 #
 
 
-def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
+def mktk03(terms, seed, G2, G3, G1=-18e3, verbose=False, random_seed=None):
     """
     Generates a list of gauss coefficients drawn from the TK03 distribution.
-    
+
     Parameters
     ----------
     terms : int
             number of terms to return
-    seed : random seed
+    seed : int
+         Legacy parameter, unused. Present since the initial PmagPy revision
+         (2011) but the corresponding ``random.seed()`` call was commented
+         out and never active. Kept for backwards compatibility with existing
+         callers (e.g. ``programs/tk03.py``). Use ``random_seed`` instead.
     G2 : int
          ratio of axial quadrupole term to dipole term
     G3 : int
@@ -11380,14 +11416,15 @@ def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
     G1 : float
          value of the axial dipole, default is -18e3 (in nT)
     verbose : default is False
-    
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
+
     Returns
     -------
     gh : list
         list of l,m,g,h field model generated by TK03
     """
-# random.seed(n)
-    n = seed
+    rng = _resolve_rng(random_seed)
     gh = []
     g10, beta, afact = G1, 3.8, 2.4
     g20 = G2 * g10
@@ -11395,13 +11432,13 @@ def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
     alpha = g10/afact
     s1 = s_l(1, alpha=alpha)
     s10 = beta * s1
-    gnew = random.normal(g10, s10)
-    if verbose: 
+    gnew = rng.normal(g10, s10)
+    if verbose:
         print(1, 0, gnew, 0)
     gh.append(gnew)
-    gh.append(random.normal(0, s1))
+    gh.append(rng.normal(0, s1))
     gnew = gh[-1]
-    gh.append(random.normal(0, s1))
+    gh.append(rng.normal(0, s1))
     hnew = gh[-1]
     if verbose:
         print(1, 1, gnew, hnew)
@@ -11416,12 +11453,12 @@ def mktk03(terms, seed, G2, G3,G1=-18e3,verbose=False):
             j = (l - m) % 2
             if j == 1: # dipole family
                 s = s * beta
-            gh.append(random.normal(OFF, s))
+            gh.append(rng.normal(OFF, s))
             gnew = gh[-1]
             if m == 0:
                 hnew = 0
             else:
-                gh.append(random.normal(0, s))
+                gh.append(rng.normal(0, s))
                 hnew = gh[-1]
             if verbose:
                 print(l, m, gnew, hnew)
@@ -11487,13 +11524,14 @@ def pseudo(DIs, random_seed=None):
     Parameters
     ----------
     DIs : nested list of dec, inc lists (known as a di_block)
-    random_seed : set random seed for reproducible number generation (default is None)
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     Bootstrap_directions : nested list of dec, inc lists that have been
     bootstrapped resampled
-    
+
     Examples
     --------
     >>> di_block = ([[-45,150],
@@ -11504,26 +11542,27 @@ def pseudo(DIs, random_seed=None):
        [-40, 150],
        [-45, 150]])
     """
-    if random_seed is not None:
-        np.random.seed(random_seed)
-    Inds = np.random.randint(len(DIs), size=len(DIs))
+    rng = _resolve_rng(random_seed)
+    Inds = rng.integers(len(DIs), size=len(DIs))
     D = np.array(DIs)
     return D[Inds]
 
 
-def di_boot(DIs, nb=5000):
+def di_boot(DIs, nb=5000, random_seed=None):
     """
     Returns bootstrap means for Directional data.
-     
+
     Parameters
     ----------
     DIs : nested list of Dec,Inc pairs
     nb : number of bootstrap pseudosamples, default is 5000
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     BDIs : nested list of bootstrapped mean Dec,Inc pairs
-    
+
     Examples
     --------
     >>> di_block = ([[-45,150],
@@ -11536,21 +11575,16 @@ def di_boot(DIs, nb=5000):
      [136.66619627955163, 30.021001931432338],
      [139.58053739971953, 33.378250658618654]]
     """
-#
-# now do bootstrap to collect BDIs  bootstrap means
-#
-    BDIs = []  # number of bootstraps, list of bootstrap directions
-#
-
-    for k in range(nb):  # repeat nb times
-        #        if k%50==0:print k,' out of ',nb
-        pDIs = pseudo(DIs)  # get a pseudosample
-        bfpars = fisher_mean(pDIs)  # get bootstrap mean bootstrap sample
+    rng = _resolve_rng(random_seed)
+    BDIs = []
+    for k in range(nb):
+        pDIs = pseudo(DIs, random_seed=rng)
+        bfpars = fisher_mean(pDIs)
         BDIs.append([bfpars['dec'], bfpars['inc']])
     return BDIs
 
 
-def dir_df_boot(dir_df, nb=5000, par=False):
+def dir_df_boot(dir_df, nb=5000, par=False, random_seed=None):
     """
     Performs a bootstrap for direction DataFrame with optional parametric bootstrap
 
@@ -11564,11 +11598,13 @@ def dir_df_boot(dir_df, nb=5000, par=False):
         dir_k : Fisher k statistic for mean
     nb : number of bootstraps, default is 5000
     par : if True, do a parameteric bootstrap
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
     BDIs : nested list of bootstrapped mean Dec,Inc pairs
-    
+
     Examples
     --------
     >>> dir_df = pd.DataFrame()
@@ -11579,7 +11615,7 @@ def dir_df_boot(dir_df, nb=5000, par=False):
      [52.15562660104691, 14.523345688004293],
      [214.5976992675414, 49.79280429500907],
      [119.6384153360684, 86.17066958304461]]
-     
+
     >>> dir_df['dir_n'] = [4,15,2,36,55]
     >>> dir_df['dir_k'] = [1.2,3.0,0.4,0.4,0.8]
     >>> pmag.dir_df_boot(dir_df,3,par=True)
@@ -11587,18 +11623,19 @@ def dir_df_boot(dir_df, nb=5000, par=False):
      [278.5836582875345, 25.159165079114043],
      [276.59474232833645, -22.88695795286902]]
     """
+    rng = _resolve_rng(random_seed)
     N = dir_df.dir_dec.values.shape[0]  # number of data points
     BDIs = []
     for k in range(nb):
-        pdir_df = dir_df.sample(n=N, replace=True)  # bootstrap pseudosample
-        pdir_df.reset_index(inplace=True)  # reset the index
+        indices = rng.integers(0, N, size=N)
+        pdir_df = dir_df.iloc[indices].reset_index(drop=True)
         if par:  # do a parametric bootstrap
             for i in pdir_df.index:  # set through the pseudosample
                 n = pdir_df.loc[i, 'dir_n']  # get number of samples/site
                 # get ks for each sample
                 ks = np.ones(shape=n)*pdir_df.loc[i, 'dir_k']
                 # draw a fisher distributed set of directions
-                decs, incs = fshdev(ks)
+                decs, incs = fshdev(ks, random_seed=rng)
                 di_block = np.column_stack((decs, incs))
                 #  rotate them to the mean
                 di_block = dodirot_V(
@@ -11669,16 +11706,25 @@ def dir_df_fisher_mean(dir_df):
     return fpars
 
 
-def pseudosample(x):
+def pseudosample(x, random_seed=None):
     """
-    Draw a bootstrap sample of x
+    Draw a bootstrap sample of x.
+
+    Parameters
+    ----------
+    x : list
+        Data to bootstrap resample.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
+
+    Returns
+    -------
+    BXs : list
+        Bootstrap sample of x (same length as x).
     """
-#
-    BXs = []
-    for k in range(len(x)):
-        ind = random.randint(0, len(x) - 1)
-        BXs.append(x[ind])
-    return BXs
+    rng = _resolve_rng(random_seed)
+    Inds = rng.integers(0, len(x), size=len(x))
+    return [x[i] for i in Inds]
 
 
 def get_plate_data(plate):
