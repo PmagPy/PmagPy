@@ -57,7 +57,7 @@ def igrf(input_list, mod='', ghfile=""):
             date must be in decimal year format XXXX.XXXX (Common Era)
             altitude is in kilometers
         mod :  desired model
-            "" : Use the IGRF13 model by default
+            "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
             ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
@@ -7312,7 +7312,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             try:
                 x, y, z, f = pmag.doigrf(lon, lat, 0, decimal_year)
             except TypeError: # see issue 617
-                return None, "Only dates prior to 2020 supported"
+                return None, "Only dates prior to 2030 supported"
             Dir = pmag.cart2dir((x, y, z))
             dec_correction = Dir[0]
         if "bedding_dip" in list(OrRec.keys()):
