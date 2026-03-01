@@ -23,10 +23,10 @@ class TestSimulCorrelationProb:
         assert 0 <= prob <= 1
 
     def test_reference_value(self):
-        """Matches a known reference value within stochastic tolerance."""
-        prob = ipmag.simul_correlation_prob(3.6, 391, 146, trials=1000)
-        expected_prob = 0.8127
-        assert_allclose(prob, expected_prob, rtol=0.05)
+        """Matches a known seeded reference value."""
+        prob = ipmag.simul_correlation_prob(3.6, 391, 146, trials=1000,
+                                            random_seed=42)
+        assert_allclose(prob, 0.775, atol=1e-10)
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ class TestRandCorrelationProb:
         assert 0 <= prob <= 1
 
     def test_reference_value(self):
-        """Matches a known reference value within stochastic tolerance."""
-        prob = ipmag.rand_correlation_prob(40, 17.2, 20, 3.6, trials=1000)
-        expected_prob = 0.0103
-        assert abs(prob - expected_prob) < 0.05
+        """Matches a known seeded reference value."""
+        prob = ipmag.rand_correlation_prob(40, 17.2, 20, 3.6, trials=1000,
+                                           random_seed=42)
+        assert_allclose(prob, 0.009, atol=1e-10)
