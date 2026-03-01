@@ -13,7 +13,7 @@ from pmagpy import pmag
 
 
 # ---------------------------------------------------------------------------
-# doigrf: IGRF-13 field calculations
+# doigrf: IGRF field calculations
 # ---------------------------------------------------------------------------
 
 class TestDoigrf:
