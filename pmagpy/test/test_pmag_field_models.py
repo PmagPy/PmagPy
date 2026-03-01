@@ -1,10 +1,10 @@
 """
 Tests for geomagnetic field model functions in pmag.py.
 
-Covers doigrf (IGRF-13 and paleomagnetic field models) and magsyn
-(spherical harmonic synthesis). An existing test in test_igrf.py covers
-the ipmag.igrf wrapper; these tests exercise the lower-level pmag functions
-directly with multiple dates, locations, and models.
+Covers doigrf (IGRF and paleomagnetic field models). Tests in test_igrf.py
+cover the ipmag.igrf wrapper with reference values; these tests exercise
+the lower-level pmag functions with property-based checks across multiple
+dates, locations, and models.
 """
 import numpy as np
 from numpy.testing import assert_allclose
@@ -18,14 +18,6 @@ from pmagpy import pmag
 
 class TestDoigrf:
     """Tests for pmag.doigrf."""
-
-    def test_docstring_example(self):
-        """Verify the docstring example."""
-        x, y, z, f = pmag.doigrf(30, 70, 10, 2022)
-        assert_allclose(x, 10030.985358058582, atol=1)
-        assert_allclose(y, 2797.0490284010084, atol=1)
-        assert_allclose(z, 53258.99275624336, atol=1)
-        assert_allclose(f, 54267.52675339505, atol=1)
 
     def test_total_field_is_vector_magnitude(self):
         """Total field f equals sqrt(x² + y² + z²)."""
