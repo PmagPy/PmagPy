@@ -935,7 +935,7 @@ def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
         return dflip
 
 
-def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False):
+def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False, random_seed=None):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -959,6 +959,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
         save_folder : path to directory where plots should be saved
         fmt : format of figures to be saved (default is 'svg')
         ninety_nine : changes confidence bounds from 95 percent to 99 if True
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - uncorrected data equal area plot
@@ -985,6 +987,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
         >>> ipmag.bootstrap_fold_test(data_array)
     """
+    rng = pmag._resolve_rng(random_seed)
+
     if bedding_error != 0:
         kappa = (81.0/bedding_error)**2
     else:
@@ -1017,10 +1021,10 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     for n in range(num_sims):  # do bootstrap data sets - plot first 25 as dashed red line
             # if n%50==0:print n
         Taus = []  # set up lists for taus
-        PDs = pmag.pseudo(Data)
+        PDs = pmag.pseudo(Data, random_seed=rng)
         if kappa != 0:
             for k in range(len(PDs)):
-                d, i = pmag.fshdev(kappa)
+                d, i = pmag.fshdev(kappa, random_seed=rng)
                 dipdir, dip = pmag.dodirot(d, i, PDs[k][2], PDs[k][3])
                 PDs[k][2] = dipdir
                 PDs[k][3] = dip
