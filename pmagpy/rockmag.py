@@ -5000,9 +5000,9 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
         Seed for reproducible bootstrap resampling (default None).
     '''
 
+    assert parameters is not None, f"parameters should not be None"
     assert len(parameters) == n_comps, f"Number of rows in parameters ({len(parameters)}) should be equal to n_comps ({n_comps})"
     assert proportion > 0 and proportion <= 1, f"proportion should be between 0 and 1, but got {proportion}"
-    assert parameters is not None, f"parameters should not be None"
 
     rng = _resolve_rng(random_seed)
 
