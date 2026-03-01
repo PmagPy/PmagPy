@@ -89,9 +89,10 @@ class TestMagicWrite:
         assert data[0]['specimen'] == 'abc01'
         assert data[1]['dec'] == '12.5'
 
-    def test_empty_records_returns_false(self):
+    def test_empty_records_returns_false(self, tmp_path):
         """Empty record list returns (False, '')."""
-        success, ofile = pmag.magic_write('/tmp/empty.txt', [], 'specimens')
+        outfile = str(tmp_path / 'empty.txt')
+        success, ofile = pmag.magic_write(outfile, [], 'specimens')
         assert success is False
 
     def test_file_has_magic_header(self, tmp_path):
