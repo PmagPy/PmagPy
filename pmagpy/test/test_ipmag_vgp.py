@@ -1,8 +1,8 @@
 """
 Tests for VGP and paleolatitude functions in ipmag.py.
 
-Covers lat_from_inc / inc_from_lat (dipole equation), vgp_calc
-(DataFrame-based VGP computation), and sb_vgp_calc (VGP scatter).
+Covers lat_from_inc / inc_from_lat (dipole equation), lat_from_pole,
+vgp_calc (DataFrame-based VGP computation), and sb_vgp_calc (VGP scatter).
 Includes cross-validation against the parallel pmag.py implementations
 (pmag.plat, pmag.pinc, pmag.dia_vgp).
 """
@@ -72,6 +72,22 @@ class TestIncFromLatCrossValidation:
             recovered = ipmag.lat_from_inc(inc)
             assert_allclose(recovered, lat, atol=1e-10,
                             err_msg=f"Roundtrip failed at lat={lat}")
+
+
+# ---------------------------------------------------------------------------
+# lat_from_pole: paleolatitude from pole position
+# ---------------------------------------------------------------------------
+
+class TestLatFromPole:
+    """Tests for ipmag.lat_from_pole."""
+
+    def test_pole_at_geographic_north(self):
+        """Pole at geographic north gives paleolatitude = site latitude."""
+        assert_allclose(ipmag.lat_from_pole(0, 30, 0, 90), 30.0, atol=1e-6)
+
+    def test_equatorial_site_pole_at_north(self):
+        """Equatorial site with pole at north gives paleolatitude = 0."""
+        assert_allclose(ipmag.lat_from_pole(0, 0, 0, 90), 0.0, atol=1e-6)
 
 
 # ---------------------------------------------------------------------------
