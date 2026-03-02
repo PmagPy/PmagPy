@@ -13052,7 +13052,8 @@ def dovandamme(vgp_df):
         A = 1.8 * ASD + 5.
 
 
-def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=False, mm97=False, nb=1000,verbose=True):
+def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, boot=False, mm97=False, nb=1000, verbose=True,
+                 random_seed=None):
     """
     Calculates Sf for a dataframe with VGP Lat., and optional Fisher's k,
     site latitude and N information can be used to correct for within site
@@ -13087,6 +13088,8 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
         number of bootstrapped pseudosamples for confidence estimate
     verbose : Boolean
         if True, print messages
+    random_seed : None, int, or numpy.random.Generator, optional
+        Seed for reproducible bootstrap resampling (default None).
 
     Returns
     -------
@@ -13131,8 +13134,10 @@ def scalc_vgp_df(vgp_df, anti=0, rev=0, cutoff=180., kappa=0, n=0, spin=0, v=0, 
     N = vgp_df.shape[0]
     SBs, low, high = [], 0, 0
     if boot:
+        rng = _resolve_rng(random_seed)
         for i in range(nb):  # now do bootstrap
-            bs_df = vgp_df.sample(n=N, replace=True)
+            idx = rng.integers(0, N, N)
+            bs_df = vgp_df.iloc[idx]
             Sb_bs = get_sb_df(bs_df)
             SBs.append(Sb_bs)
         SBs.sort()
