@@ -2268,8 +2268,9 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Xtick.append(XY[0])
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
-    ax.set_aspect("equal")
-    ax.axis((-1.05, 1.05, -1.05, 1.05))
+    ax.set_xlim(-1.05, 1.05)
+    ax.set_ylim(-1.05, 1.05)
+    ax.set_aspect("equal", adjustable="box")
 
 
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
