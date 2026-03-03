@@ -11398,11 +11398,6 @@ def mktk03(terms, seed, G2, G3, G1=-18e3, verbose=False, random_seed=None):
     ----------
     terms : int
             number of terms to return
-    seed : int
-         Legacy parameter, unused. Present since the initial PmagPy revision
-         (2011) but the corresponding ``random.seed()`` call was commented
-         out and never active. Kept for backwards compatibility with existing
-         callers (e.g. ``programs/tk03.py``). Use ``random_seed`` instead.
     G2 : int
          ratio of axial quadrupole term to dipole term
     G3 : int
