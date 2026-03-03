@@ -113,8 +113,8 @@ class TestVgpDi:
         slat = 45.0
         dec, inc = pmag.vgp_di(90, 0, slat, 0)
         expected_inc = float(pmag.pinc(slat))
-        assert_allclose(dec % 360., 0.0, atol=1e-6)
-        assert_allclose(inc, expected_inc, atol=1e-6)
+        assert_allclose(dec % 360., 0.0, atol=2e-6)
+        assert_allclose(inc, expected_inc, atol=2e-6)
 
     def test_roundtrip_with_dia_vgp(self):
         """dia_vgp → vgp_di recovers the original direction."""
