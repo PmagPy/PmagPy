@@ -12134,7 +12134,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     for col in aniso_spec_columns:
         if col not in old_spec_df.columns:
             old_spec_df[col]=np.nan
-        old_spec_df[col] = old_spec_df[col].astype(object)
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-ARM')]
     if not len(df):
@@ -12731,7 +12731,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     for col in aniso_spec_columns:
         if col not in old_spec_df.columns:
             old_spec_df[col]=np.nan
-        old_spec_df[col] = old_spec_df[col].astype(object)
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-TRM')]
     if not len(df):
