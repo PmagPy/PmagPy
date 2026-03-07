@@ -11390,7 +11390,7 @@ def s_l(l, alpha=27.7):
 #
 
 
-def mktk03(terms, seed, G2, G3, G1=-18e3, verbose=False, random_seed=None):
+def mktk03(terms, G2, G3, G1=-18e3, verbose=False, random_seed=None):
     """
     Generates a list of gauss coefficients drawn from the TK03 distribution.
 

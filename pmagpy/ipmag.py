@@ -749,7 +749,7 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0,
     tk_03_output = []
     k=0
     while k < n:
-        gh = pmag.mktk03(8, k, G2, G3, G1=G1, random_seed=rng)
+        gh = pmag.mktk03(8, G2, G3, G1=G1, random_seed=rng)
         # get a random longitude, between 0 and 360
         lon = int(rng.integers(0, 361))
         vec = pmag.getvec(gh, lat, lon)  # send field model and lat to getvec
