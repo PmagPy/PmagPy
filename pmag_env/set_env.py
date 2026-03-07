@@ -6,9 +6,15 @@ verbose = True
 IS_WIN = True if sys.platform in ['win32', 'win64'] else False
 IS_LINUX = True if 'linux' in sys.platform else False
 IS_FROZEN = getattr(sys, 'frozen', False)
-IS_NOTEBOOK = True if 'JPY_PARENT_PID' in os.environ else False
+try:
+    from IPython import get_ipython
+
+    ip = get_ipython()
+    shell = ip.__class__.__name__ if ip is not None else ""
+    IS_NOTEBOOK = shell in {"ZMQInteractiveShell", "Shell"}
+except Exception:
+    IS_NOTEBOOK = False
 OFFLINE = False
-#  other way to test for notebook: see if get_ipython raises a NameError
 
 def set_backend(wx=True):
     if wx:
