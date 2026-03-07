@@ -10396,7 +10396,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         SIunits = "U"
     if file != "":
         f = pd.read_csv(os.path.join(path_to_file, file),
-                        delim_whitespace=True, header=None)
+                        sep=r"\s+", header=None)
         f.columns = ['specimen', 'treatment',
                      'intensity', 'declination', 'inclination']
         # adjust for angle rotation
@@ -12133,7 +12133,8 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
     # check format of output specimens table
     for col in aniso_spec_columns:
         if col not in old_spec_df.columns:
-            old_spec_df[col]=""
+            old_spec_df[col]=np.nan
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-ARM')]
     if not len(df):
@@ -12729,7 +12730,8 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
     # check format of output specimens table
     for col in aniso_spec_columns:
         if col not in old_spec_df.columns:
-            old_spec_df[col]=""
+            old_spec_df[col]=np.nan
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-TRM')]
     if not len(df):
