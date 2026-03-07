@@ -59,7 +59,7 @@ def main():
             ind = sys.argv.index('-G3')
             G3 = float(sys.argv[ind + 1])
     for k in range(N):
-        gh = pmag.mktk03(8, k, G2, G3)  # terms and random seed
+        gh = pmag.mktk03(8, G2, G3, random_seed=k)  # terms and random seed
         # get a random longitude, between 0 and 359
         lon = random.randint(0, 360)
         vec = pmag.getvec(gh, L, lon)  # send field model and lat to getvec

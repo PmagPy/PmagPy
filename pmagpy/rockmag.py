@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.patches as patches
 
+from pmagpy.pmag import _resolve_rng
+
 try:
     import ipywidgets as widgets
     from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox,  IntSlider, FloatSlider, IntRangeSlider
@@ -4966,7 +4968,7 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
     update_plot()
     return final_fit["df"]
 
-def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=True, n_resample=100, proportion=0.95, figsize=(10, 6)):
+def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=True, n_resample=100, proportion=0.95, figsize=(10, 6), random_seed=None):
     '''
     function for performing the MaxUnmix backfield unmixing algorithm
         The components are modelled as skew-normal distributions
@@ -4994,11 +4996,15 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
         The actual number of resampled points per iteration is calculated as int(len(field) * proportion)
     n_comps : int, optional
         The number of components to be used for the unmixing. The default is 1.
+    random_seed : None, int, or numpy.random.Generator, optional
+        Seed for reproducible bootstrap resampling (default None).
     '''
 
+    assert parameters is not None, f"parameters should not be None"
     assert len(parameters) == n_comps, f"Number of rows in parameters ({len(parameters)}) should be equal to n_comps ({n_comps})"
     assert proportion > 0 and proportion <= 1, f"proportion should be between 0 and 1, but got {proportion}"
-    assert parameters is not None, f"parameters should not be None"
+
+    rng = _resolve_rng(random_seed)
 
     field = np.array(field)
     magnetization = np.array(magnetization)
@@ -5014,7 +5020,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
     all_parameters = np.zeros((n_resample, n_comps, 4))
     for iter in range(n_resample):
         # bootstrap resample with replacement of the data
-        index_resample = np.random.choice(len(B), size=int(len(B) * proportion), replace=True)
+        index_resample = rng.choice(len(B), size=int(len(B) * proportion), replace=True)
         B_resample = B[index_resample]
         dMdB_resample = dMdB[index_resample]
 

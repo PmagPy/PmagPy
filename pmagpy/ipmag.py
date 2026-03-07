@@ -376,12 +376,13 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         return pmag.dokent(di_block, len(di_block), distribution_95=True)
     
     
-def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alpha=0.05):
+def mean_bootstrap_confidence(dec=None, inc=None, di_block=None, num_sims=10000,
+                              alpha=0.05, random_seed=None):
     """
-    Estimates the bootstrap confidence region for the mean of a collection of paleomagnetic 
+    Estimates the bootstrap confidence region for the mean of a collection of paleomagnetic
     directions based on the approach of Heslop et al. (2023). This approach involves the projection
     onto a tangent plane for a tractable statistical analysis in two dimensions.
-    
+
     Parameters:
         dec (list or None): List of declination values. Default is None.
         inc (list or None): List of inclination values. Default is None.
@@ -390,21 +391,24 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
             will be used. Either dec, inc lists or a di_block needs to be provided.
         num_sims (int): Number of bootstrap iterations. Default is 10,000.
         alpha (float): Confidence region. Default is 0.05 corresponding to 95% region.
-    
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
+
     Returns:
         tuple: A tuple containing:
-                (1) a dictionary of parameters the includes the estimated mean 
-                direction and the T statistic which is the basis of the bootstrap confidence region, 
+                (1) a dictionary of parameters the includes the estimated mean
+                direction and the T statistic which is the basis of the bootstrap confidence region,
                 (2) list of [dec, inc] pairs that represent the boundary of the confidence region.
                 The bootstrap confidence region cannot be reported readily in a compact form so is
                 instead a long list of points along the boundary of the confidence region.
-               
+
     References:
-        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023).
         A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
         https://doi.org/10.1029/2023JB026983
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     if di_block is None:
         di_block = make_di_block(dec, inc)
         
@@ -421,7 +425,7 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
     T_b = np.zeros(num_sims) #predefine output array for bootstrapped T values
 
     for i in range(num_sims): #loop through bootstrap iterations
-        idx = np.random.randint(0,n,n) #select observation indicies with replacement
+        idx = rng.integers(0,n,n) #select observation indices with replacement
         X_b = X[:,idx] #form bootstrap sample
         mhat_b = np.mean(X_b,axis=1) #mean direction of bootstrap sample
         mhat_b /= np.linalg.norm(mhat_b)
@@ -548,7 +552,7 @@ def print_kent_mean(mean_dictionary):
     print('Number of directions in mean (n): ' + str(mean_dictionary['n']))
 
 
-def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
+def fishrot(k=20, n=100, dec=0, inc=90, di_block=True, random_seed=None):
     """
     Generates Fisher distributed unit vectors from a specified distribution
     using the pmag.py function pmag.fshdev() and pmag.dodirot_V() functions.
@@ -559,7 +563,9 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
         dec : mean declination of distribution (default is 0)
         inc : mean inclination of distribution (default is 90)
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
-        if di_block = False it will return a list of dec and a list of inc
+            if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - di_block, a nested list of [dec,inc,1.0] (default)
@@ -573,9 +579,10 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
                [61.28572459596148 , 51.5004074156194  ,  1.               ],
                [55.20784339888985 , 54.186746152272484,  1.               ]])
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     # Generation of samples
-    declinations, inclinations = pmag.fshdev(np.repeat(k, n))
+    declinations, inclinations = pmag.fshdev(np.repeat(k, n), random_seed=rng)
 
     # Rotation to have desired mean direction
     resampled_di = np.vstack([declinations, inclinations]).T
@@ -587,7 +594,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
         return resampled_di_rotated[:,0], resampled_di_rotated[:,1]
     
     
-def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
+def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True, random_seed=None):
     """
     Generates resamples of directional means from a Fisher mean with a specified
     alpha95. Equivalent of sampling from the angular standard deviation.
@@ -599,6 +606,8 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
         inc : mean inclination of distribution (default is 90)
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
             if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - di_block, a nested list of [dec,inc,1.0] (default)
@@ -612,26 +621,27 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
             [28.282076485842992, 59.67015046929257, 1.0],
             [41.87081053973009, 57.18064045614739, 1.0]]
     """
+    rng = pmag._resolve_rng(random_seed)
     directions = []
     declinations = []
     inclinations = []
     k = 140.0**2 / alpha95**2
     if di_block:
         for data in range(n):
-            d, i = pmag.fshdev(k)
+            d, i = pmag.fshdev(k, random_seed=rng)
             drot, irot = pmag.dodirot(d, i, dec, inc)
             directions.append([drot, irot, 1.])
         return directions
     else:
         for data in range(n):
-            d, i = pmag.fshdev(k)
+            d, i = pmag.fshdev(k, random_seed=rng)
             drot, irot = pmag.dodirot(d, i, dec, inc)
             declinations.append(drot)
             inclinations.append(irot)
         return declinations, inclinations
 
 
-def kentrot(kent_dict, n=100, di_block=True):
+def kentrot(kent_dict, n=100, di_block=True, random_seed=None):
     '''
     Generates Kent distributed unit vectors from a specified distribution
     using the pmag.py function pmag.kentdev().
@@ -648,11 +658,16 @@ def kentrot(kent_dict, n=100, di_block=True):
             R2: Kent distribution shape quantity for calculating kappa and beta}
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
         if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Controls reproducibility. None for random, int for seeded, or a
+            Generator instance for RNG threading through call chains.
 
     Returns:
         **di_block**, a nested list of [dec,inc,1.0] (default)
         **dec, inc**, a list of dec and a list of inc (if di_block = False)
     '''
+    rng = pmag._resolve_rng(random_seed)
+
     # get kent states from dictionary
     mean_lon = kent_dict['dec']
     mean_lat = kent_dict['inc']
@@ -668,7 +683,7 @@ def kentrot(kent_dict, n=100, di_block=True):
     beta = 1/2*(1/(2-2*R1-R2)-1/(2-2*R1+R2))
     
     # generate unrotated decs and incs
-    decs, incs = pmag.kentdev(kappa, beta, n)
+    decs, incs = pmag.kentdev(kappa, beta, n, random_seed=rng)
     
     #convert to cartesion coordinates
     X = pmag.dir2cart(np.array([decs, incs]).T)
@@ -695,7 +710,8 @@ def kentrot(kent_dict, n=100, di_block=True):
         return rotated_decs, rotated_incs
 
 
-def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
+def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0,
+         random_seed=None):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
@@ -713,6 +729,8 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
     G3 : specify average g_3^0 fraction (default is 0)
     B_threshold : return vectors with B>B_threshold (in nT) (default is 0 which
         returns all vectors)
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     ----------
@@ -727,12 +745,13 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
      [352.93759572283585, 0.086693343935840397, 18524.551174838372],
      [352.48366219759953, 11.579098286352332, 24928.412830772766]]
     """
+    rng = pmag._resolve_rng(random_seed)
     tk_03_output = []
     k=0
-    while k < n: 
-        gh = pmag.mktk03(8, k, G2, G3, G1=G1)  # terms and random seed
-        # get a random longitude, between 0 and 359
-        lon = random.randint(0, 360)
+    while k < n:
+        gh = pmag.mktk03(8, G2, G3, G1=G1, random_seed=rng)
+        # get a random longitude, between 0 and 360
+        lon = int(rng.integers(0, 361))
         vec = pmag.getvec(gh, lat, lon)  # send field model and lat to getvec
         vec[0] += dec
         if vec[0] >= 360.:
@@ -743,8 +762,6 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
         if vec[2]>B_threshold:
             tk_03_output.append([vec[0], vec[1], vec[2]])
             k+=1
-        #else: # do more 
-        #    k-=1
     return tk_03_output
 
 
@@ -918,7 +935,7 @@ def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
         return dflip
 
 
-def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False):
+def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False, random_seed=None):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -942,6 +959,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
         save_folder : path to directory where plots should be saved
         fmt : format of figures to be saved (default is 'svg')
         ninety_nine : changes confidence bounds from 95 percent to 99 if True
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - uncorrected data equal area plot
@@ -968,6 +987,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
         >>> ipmag.bootstrap_fold_test(data_array)
     """
+    rng = pmag._resolve_rng(random_seed)
+
     if bedding_error != 0:
         kappa = (81.0/bedding_error)**2
     else:
@@ -1000,10 +1021,10 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     for n in range(num_sims):  # do bootstrap data sets - plot first 25 as dashed red line
             # if n%50==0:print n
         Taus = []  # set up lists for taus
-        PDs = pmag.pseudo(Data)
+        PDs = pmag.pseudo(Data, random_seed=rng)
         if kappa != 0:
             for k in range(len(PDs)):
-                d, i = pmag.fshdev(kappa)
+                d, i = pmag.fshdev(kappa, random_seed=rng)
                 dipdir, dip = pmag.dodirot(d, i, PDs[k][2], PDs[k][3])
                 PDs[k][2] = dipdir
                 PDs[k][3] = dip
@@ -1043,10 +1064,11 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     plt.show()
 
 
-def common_mean_bootstrap(Data1, Data2, NumSims=1000, 
+def common_mean_bootstrap(Data1, Data2, NumSims=1000,
                           color1='r', color2='b',
-                          save=False, save_folder='.', fmt='svg', 
-                          figsize=(7, 2.3), x_tick_bins=4,verbose=True):
+                          save=False, save_folder='.', fmt='svg',
+                          figsize=(7, 2.3), x_tick_bins=4, verbose=True,
+                          random_seed=None):
     """
     Conducts a bootstrap test for a common mean on two directional data sets.
 
@@ -1088,6 +1110,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     verbose : bool, optional
         If True, prints the test result ('Pass' or 'Fail') to the console.
         Defaults to True.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     -------
@@ -1119,7 +1143,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     >>> common_mean_bootstrap_new(directions_A, direction_B)
     Pass
     """
-    BDI1 = pmag.di_boot(Data1)
+    rng = pmag._resolve_rng(random_seed)
+    BDI1 = pmag.di_boot(Data1, random_seed=rng)
     cart1 = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart1[0], cart1[1], cart1[2]
     
@@ -1145,7 +1170,7 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         )
 
     if is_block:
-        BDI2 = pmag.di_boot(direction_block)
+        BDI2 = pmag.di_boot(direction_block, random_seed=rng)
         cart2 = pmag.dir2cart(BDI2).T
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
     else:
@@ -1288,7 +1313,8 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
         
 
 def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
-                              save=False, save_folder='.', fmt='svg',verbose=False):
+                              save=False, save_folder='.', fmt='svg', verbose=False,
+                              random_seed=None):
     """
     Perform a bootstrap common mean direction test following Heslop et al. (2023).
 
@@ -1306,6 +1332,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         save (bool, optional): If True, saves the histogram plot. Default is False.
         save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
         fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         tuple: Contains the following elements:
@@ -1315,11 +1343,12 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
             - p (float): The p-value of the test.
 
     References:
-        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023).
         A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
         https://doi.org/10.1029/2023JB026983
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     X1 = np.transpose(pmag.dir2cart(Data1)) # normal directions in Cartesian coordinates (one direction per column)
     
     if reversal:
@@ -1367,7 +1396,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     T_b = np.zeros(num_sims) ##predefine output array for Tb (equation 11)
 
     for i in range(num_sims): #loop through bootstrap iterations
-        idx1 = np.random.randint(0,n1,n1) #select observation indicies with replacement
+        idx1 = rng.integers(0,n1,n1) #select observation indices with replacement
         X10_b = np.asarray(X10[:,idx1]) #form bootstrap sample from rotated version of first data set
         
         mhat10_b = np.mean(X10_b,axis=1) #mean direction of bootstrap sample
@@ -1376,7 +1405,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Mhat10_b = pmag.form_Mhat(mhat10_b) #\hat{M} for bootstrap sample
         Ghat10_b = pmag.form_Ghat(X10_b,Mhat10_b) #\hat{G} for bootstrap sample
         
-        idx2 = np.random.randint(0,n2,n2) #select observation indicies with replacement
+        idx2 = rng.integers(0,n2,n2) #select observation indices with replacement
         X20_b = np.asarray(X20[:,idx2]) #form bootstrap sample from rotated version of second data set
         
         mhat20_b = np.mean(X20_b,axis=1) #mean direction of bootstrap sample
@@ -1444,7 +1473,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     return result, Lmin, Lmin_c, p
 
 
-def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no', save=False, save_folder='.', fmt='svg'):
+def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
+                       save=False, save_folder='.', fmt='svg', random_seed=None):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -1459,18 +1489,20 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         Data2 : a nested list of directional data [dec,inc] (a di_block)
         NumSims : number of Monte Carlo simulations (default is 5000)
         print_result : default is to print the test result (True)
-        plot : the default is no plot ('no'). 
+        plot : the default is no plot ('no').
             Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
         save : optional save of plots (default is False)
         save_folder : path to where plots will be saved (default is current)
         fmt : format of figures to be saved (default is 'svg')
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
-        **printed text** (text describing the test result is printed), 
-        **result** (a boolean where 0 is fail and 1 is pass), 
-        **angle** (angle between the Fisher means of the two data sets), 
-        **critical_angle** (critical angle for the test to pass), 
-        **classification** (MM1990 classification for a positive test), 
+        **printed text** (text describing the test result is printed),
+        **result** (a boolean where 0 is fail and 1 is pass),
+        **angle** (angle between the Fisher means of the two data sets),
+        **critical_angle** (critical angle for the test to pass),
+        **classification** (MM1990 classification for a positive test),
 
     Examples:
         Develop two populations of directions using ``ipmag.fishrot``. Use the
@@ -1480,6 +1512,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
         >>> ipmag.common_mean_watson(directions_A, directions_B)
     """
+    rng = pmag._resolve_rng(random_seed)
     pars_1 = pmag.fisher_mean(Data1)
     pars_2 = pmag.fisher_mean(Data2)
     cart_1 = pmag.dir2cart([pars_1["dec"], pars_1["inc"], pars_1["r"]])
@@ -1503,13 +1536,13 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         # calculate fisher stats
         Dirp = []
         for i in range(pars_1["n"]):
-            Dirp.append(pmag.fshdev(pars_1["k"]))
+            Dirp.append(pmag.fshdev(pars_1["k"], random_seed=rng))
         pars_p1 = pmag.fisher_mean(Dirp)
     # get a set of N2 fisher distributed vectors with k2,
     # calculate fisher stats
         Dirp = []
         for i in range(pars_2["n"]):
-            Dirp.append(pmag.fshdev(pars_2["k"]))
+            Dirp.append(pmag.fshdev(pars_2["k"], random_seed=rng))
         pars_p2 = pmag.fisher_mean(Dirp)
     # get the V for these
         Vk = pmag.vfunc(pars_p1, pars_p2)
@@ -1735,7 +1768,8 @@ def separate_directions(dec=None, inc=None, di_block=None):
 
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False,
                             color1='blue', color2='red',
-                            save=False, save_folder='.', fmt='svg',verbose=True):
+                            save=False, save_folder='.', fmt='svg', verbose=True,
+                            random_seed=None):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
     determine whether two populations of directions could be from an antipodal
@@ -1752,11 +1786,13 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
         save : boolean argument to save plots (default is False)
         save_folder : directory where plots will be saved (default is current directory, '.')
         fmt : format of saved figures (default is 'svg')
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
-        A boolean where 0 is fail and 1 is pass is returned. 
+        A boolean where 0 is fail and 1 is pass is returned.
         Plots of the cumulative distribution of Cartesian components are shown
-        an equal area plot if `plot_stereo = True`. 
+        an equal area plot if `plot_stereo = True`.
 
     Examples:
         Populations of roughly antipodal directions are developed here using
@@ -1781,7 +1817,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     else:
         all_dirs = di_block
 
-    directions1, directions2 =pmag.flip(all_dirs)
+    directions1, directions2 = pmag.flip(all_dirs)
 
     if plot_stereo:
         # plot equal area with two modes
@@ -1792,24 +1828,26 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
     result = common_mean_bootstrap(directions1, directions2,
                                    color1=color1, color2=color2,
-                                   save=save, save_folder=save_folder, fmt=fmt,verbose=True)
-    
+                                   save=save, save_folder=save_folder, fmt=fmt,
+                                   verbose=verbose, random_seed=random_seed)
+
     return result
 
 
 def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=10000, alpha=0.05, plot=True,
-                          save=False, save_folder='.', fmt='svg',verbose=True):
+                          save=False, save_folder='.', fmt='svg', verbose=True,
+                          random_seed=None):
     """
     Bootstrap reversal test following Heslop et al. (2023).
 
-    This function calls common_mean_bootstrap_H23 with directional data that have been flipped, 
-    for a reversal test. The directional data can be provided either as separate 
+    This function calls common_mean_bootstrap_H23 with directional data that have been flipped,
+    for a reversal test. The directional data can be provided either as separate
     declination and inclination arrays or as a di_block array.
 
     Parameters:
         dec (array): Array of declinations, only considered if di_block is None.
         inc (array): Array of inclinations, only considered if di_block is None.
-        di_block (array, optional): Directional data as [dec, inc] for each sample. If provided, 
+        di_block (array, optional): Directional data as [dec, inc] for each sample. If provided,
                                     dec and inc are ignored.
         num_sims (int, optional): Number of bootstrap simulations. Default is 1000.
         alpha (float, optional): Significance level for hypothesis testing. Default is 0.05.
@@ -1817,6 +1855,8 @@ def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=1000
         save (bool, optional): If True, save the histogram plot. Default is False.
         save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
         fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         tuple: Contains the following elements:
@@ -1831,13 +1871,15 @@ def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=1000
         all_dirs = di_block
 
     F1, F2 = pmag.flip(all_dirs)
-    
+
     return common_mean_bootstrap_H23(F1, F2, num_sims=num_sims, alpha=alpha, plot=plot,
-                                     save=save, save_folder=save_folder, fmt=fmt,verbose=verbose)
+                                     save=save, save_folder=save_folder, fmt=fmt,
+                                     verbose=verbose, random_seed=random_seed)
 
 
-def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, 
-                         plot_stereo=False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
+                         plot_stereo=False, save=False, save_folder='.', fmt='svg',
+                         random_seed=None):
     """
     Calculates Watson's V statistic from input files through Monte Carlo
     simulation in order to test whether normal and reversed populations could
@@ -1858,6 +1900,8 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
         save (bool, optional): If True, save the plots. Defaults to False.
         save_folder (str, optional): Directory path for saving plots. Defaults to current directory.
         fmt (str, optional): Format of saved figures. Defaults to 'svg'.
+        random_seed (None, int, or numpy.random.Generator, optional): Seed for
+            reproducible Monte Carlo sampling (default None).
 
     Returns:
         result (bool): 0 indicates fail, 1 indicates pass.
@@ -1898,11 +1942,13 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
         plot_di(di_block=do_flip(di_block=directions2), color='r')
 
     if not plot_CDF:
-        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, 
-                                                                         save=save, save_folder=save_folder, fmt=fmt)
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2,
+                                                                         save=save, save_folder=save_folder, fmt=fmt,
+                                                                         random_seed=random_seed)
     else:
         result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot='yes',
-                                                                         save=save, save_folder=save_folder, fmt=fmt)
+                                                                         save=save, save_folder=save_folder, fmt=fmt,
+                                                                         random_seed=random_seed)
     
     return result, angle, critical_angle, classification
 
@@ -9345,8 +9391,9 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False, figprefix='EI', 
-            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False):
+            site_correction=False, return_new_dirs=False, figprefix='EI',
+            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False,
+            random_seed=None):
     """
     Applies series of assumed flattening factors and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -9379,6 +9426,8 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
         tight_axes: optional argument to tighten up the axes limits for the inclination-elongation figure
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible bootstrap resampling (default None).
 
     Returns:
         - equal area plot of original directions
@@ -9386,11 +9435,13 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         - Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
             Estimate from original data set plotted as solid line
         - Orientation of principal direction through unflattening
-     
-    NOTE: 
+
+    NOTE:
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
+    rng = pmag._resolve_rng(random_seed)
+
     print("Bootstrapping.... be patient")
     print("")
     sys.stdout.flush()
@@ -9423,7 +9474,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     b = 0
 
     while b < nb:
-        bdata = pmag.pseudo(data)
+        bdata = pmag.pseudo(data, random_seed=rng)
         Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
         if b < num_resample_to_plot:
             plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
@@ -9512,9 +9563,10 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
 
 
 def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
-                return_new_dirs=False, return_values=False, figprefix='EI', 
-                num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
-                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
+                return_new_dirs=False, return_values=False, figprefix='EI',
+                num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
+                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
+                 random_seed=None):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9562,7 +9614,8 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     print("Bootstrapping.... be patient")
     print("")
     sys.stdout.flush()
@@ -9586,7 +9639,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     b = 0
 
     while b < nb:
-        bdata = pmag.pseudo(data)
+        bdata = pmag.pseudo(data, random_seed=rng)
         Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
         if b < num_resample_to_plot:
             plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
@@ -9729,7 +9782,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
                           f_from_compilation=None, n=10000, n_fish=100,
                           return_poles=False, return_kent_stats=True,
                           return_paleolats=False, map_central_longitude=0,
-                          map_central_latitude=0):
+                          map_central_latitude=0, random_seed=None):
     
     """
     Applies flattening factors from the compilation to sedimentary paleomagnetic pole where only
@@ -9762,6 +9815,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
             False)
         map_central_longitude: central longitude for the orthographic map (default is 0)
         map_central_latitude: central latitude for the orthographic map (default is 0)
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
 
     Returns:
         Depending on the combination of boolean flags provided, returns one or more of:
@@ -9788,7 +9843,9 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     else:
         f_from_compilation = pd.Series(f_from_compilation)
 
-    f_resample = f_from_compilation.sample(n=n, replace=True).tolist()
+    rng = pmag._resolve_rng(random_seed)
+    idx = rng.integers(0, len(f_from_compilation), n)
+    f_resample = f_from_compilation.iloc[idx].tolist()
 
     plt.figure(figsize=(6, 6))
     plt.hist(f_resample, alpha=0.6, density=1)
@@ -9820,7 +9877,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
             n=n_fish,
             dec=unsquish_plon,
             inc=unsquish_plats,
-            di_block=0)
+            di_block=0,
+            random_seed=rng)
         compilation_mean_lons.extend(resampled_lons)
         compilation_mean_lats.extend(resampled_lats)
 
@@ -9875,6 +9933,7 @@ def find_svei_kent(
     cmap="viridis_r",
     central_longitude=0,
     central_latitude=0,
+    random_seed=None,
 ):
     """
     Uses a uniform distribution of flattening factors (f) derived from the SVEI analysis
@@ -9928,6 +9987,8 @@ def find_svei_kent(
             Central longitude of the orthographic projection (default is 0).
         central_latitude : float, optional
             Central latitude of the orthographic projection (default is 0).
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         Depending on flags, returns one or more of:
@@ -9943,7 +10004,8 @@ def find_svei_kent(
         (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_high`)
         that are consistent with the THG24 GGP model for the dataset under consideration.
     """
-    f_resample = np.random.uniform(f_low,f_high,n)
+    rng = pmag._resolve_rng(random_seed)
+    f_resample = rng.uniform(f_low,f_high,n)
 
     plt.figure(figsize=(4,4))
     plot_net()
@@ -9973,8 +10035,9 @@ def find_svei_kent(
         unsquish_VGPs = pmag.dia_vgp(np.array([decs, unsquish_incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
         unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
         unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
-        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb, 
-                                                        dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb,
+                                                        dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0,
+                                                        random_seed=rng)
         resampled_poles = np.column_stack((resampled_lons, resampled_lats))
         N = resampled_poles.shape[0]  # Number of rows
         site_array = np.tile([site_longitude,site_latitude], (N, 1))
@@ -10156,10 +10219,9 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
                     100000)/((pole1_age - pole2_age) * 1000000)
     print("The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate))
 
-    if random_seed is not None:
-        np.random.seed(random_seed)
-    pole1_MCages = np.random.normal(pole1_age, pole1_age_error, samplesize)
-    pole2_MCages = np.random.normal(pole2_age, pole2_age_error, samplesize)
+    rng = pmag._resolve_rng(random_seed)
+    pole1_MCages = rng.normal(pole1_age, pole1_age_error, samplesize)
+    pole2_MCages = rng.normal(pole2_age, pole2_age_error, samplesize)
 
     plt.hist(pole1_MCages, 100, histtype='stepfilled',
              color='darkred', label='Pole 1 ages')
@@ -10182,7 +10244,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         for vgp in range(pole1_N):
             # pmag.dev returns a direction from a fisher distribution with
             # specified kappa
-            direction_atN = pmag.fshdev(pole1_kappa)
+            direction_atN = pmag.fshdev(pole1_kappa, random_seed=rng)
             # this direction is centered at latitude of 90 degrees and needs to be rotated
             # to be centered on the mean pole position
             tilt_direction = pole1_plon
@@ -10207,7 +10269,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         for vgp in range(pole2_N):
             # pmag.dev returns a direction from a fisher distribution with
             # specified kappa
-            direction_atN = pmag.fshdev(pole2_kappa)
+            direction_atN = pmag.fshdev(pole2_kappa, random_seed=rng)
             # this direction is centered at latitude of 90 degrees and needs to be rotated
             # to be centered on the mean pole position
             tilt_direction = pole2_plon
@@ -15911,22 +15973,25 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     return magic_dir,upload_file
 
 
-def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
+def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False,
+                           random_seed=None):
     """
-    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
-    for probabilistic correlation, evaluating the probability that the similarity between 
-    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
-    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP. 
-    
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883)
+    for probabilistic correlation, evaluating the probability that the similarity between
+    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic
+    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
+
     Parameters:
         alpha : angle between paleomagnetic directions (site means)
         k1 (float): kappa estimate for first direction
         k2 (float): kappa estimate for second direction
         trials (int): the number of simulations [default = 10,000]
         print_result (boolean): the probability value returned in a sentence [default = False]
-    
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible Monte Carlo sampling (default None).
+
     Returns:
-        float 
+        float
             number indicating probability value
 
     Example:
@@ -15937,15 +16002,17 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
         >>> ipmag.simul_correlation_prob(3.6, 391, 146)
         0.8127
     """
+    rng = pmag._resolve_rng(random_seed)
+
     #sets initial value for counters
     hit = 0
     miss = 0
-    
+
     # trial loop
     for i in range(trials):
         # generates two synthetic directions, using the estimated kappas
-        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False)
-        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False)
+        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False, random_seed=rng)
+        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False, random_seed=rng)
         # determines the angle between the generated directions
         angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
         # checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
@@ -15961,28 +16028,31 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     else:
         return simul_prob
 
-def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False):
+def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False,
+                          random_seed=None):
 
     """
-    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
-    for probabilistic correlation, evaluating the probability that the similarity between 
-    two paleomagnetic directions is due to random sampling of the ancient magnetic 
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883)
+    for probabilistic correlation, evaluating the probability that the similarity between
+    two paleomagnetic directions is due to random sampling of the ancient magnetic
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
-    
+
     Parameters:
     sec_var: kappa estimate of regional secular variation (probably 30 or 40)
     alpha: angle between paleomagnetic directions (or poles)
     delta1: distance of direction 1 from mean direction
     delta2: distance of direction 2 from mean direction
     trials: the number of simulations, default=10,000
-    print_result: the probability value printed as a sentence, default=False 
-    
+    print_result: the probability value printed as a sentence, default=False
+    random_seed: None, int, or numpy.random.Generator, optional
+        Seed for reproducible Monte Carlo sampling (default None).
+
     Returns:
-        float 
+        float
             number indicating probability value
-    
+
     Example:
-        Provide estimate of regional secular variation, angle between directions, 
+        Provide estimate of regional secular variation, angle between directions,
         distance of each direction from a mean direction (like GAD) to return probability
         of random field sampling, compare to RC / 11 comparison from Table 2 of the original
         publication (exact value may differ due to RNG):
@@ -15990,18 +16060,19 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
         >>> ipmag.rand_correlation_prob(40, 17.2, 20, 3.6)
         np.float64(0.0103)
     """
+    rng = pmag._resolve_rng(random_seed)
 
     # calc probability of getting vgp within alpha of vgp1
     i = 0
     miss = 0
     hit = 0
     for i in range(trials):
-        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False, random_seed=rng)
         angle = pmag.angle([dec[0], inc[0]], [0, delta1])
         if (angle <= alpha):
             hit = hit + 1
         else:
-            miss = miss + 1 
+            miss = miss + 1
 
     prand1=(1.0 * hit) / trials
     #print ('P1(Hr): ',prand1);
@@ -16011,7 +16082,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     hit = 0
     miss = 0
     for i in range(trials):
-        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False, random_seed=rng)
         angle = pmag.angle([dec[0], inc[0]], [0,delta2])
         if (angle <= alpha):
             hit = hit + 1
