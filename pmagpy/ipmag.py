@@ -10396,7 +10396,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         SIunits = "U"
     if file != "":
         f = pd.read_csv(os.path.join(path_to_file, file),
-                        delim_whitespace=True, header=None)
+                        sep=r"\s+", header=None)
         f.columns = ['specimen', 'treatment',
                      'intensity', 'declination', 'inclination']
         # adjust for angle rotation
