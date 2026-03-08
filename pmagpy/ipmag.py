@@ -2359,7 +2359,18 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             dec, inc, intensity = di_lists
         if len(di_lists) == 2:
             dec, inc = di_lists
-    try:
+    if np.ndim(dec) == 0:
+        # scalar dec/inc values
+        XY = pmag.dimap(dec, inc)
+        if inc >= 0:
+            X_down.append(XY[0])
+            Y_down.append(XY[1])
+            color_down.append(color)
+        else:
+            X_up.append(XY[0])
+            Y_up.append(XY[1])
+            color_up.append(color)
+    else:
         for n in range(len(dec)):
             XY = pmag.dimap(dec[n], inc[n])
             if inc[n] >= 0:
@@ -2376,17 +2387,6 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
                     color_up.append(color[n])
                 else:
                     color_up.append(color)
-    except TypeError as e:
-        print("TypeError caught:", e)
-        XY = pmag.dimap(dec, inc)
-        if inc >= 0:
-            X_down.append(XY[0])
-            Y_down.append(XY[1])
-            color_down.append(color)
-        else:
-            X_up.append(XY[0])
-            Y_up.append(XY[1])
-            color_up.append(color)
 
     if len(X_up) > 0:
         if connect_points:
