@@ -4199,9 +4199,11 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         pcol += 1
 
     Data = pmag.get_dictitem(Data, 'aniso_s', '', 'not_null')
+    # filter out records where aniso_s is not a colon-delimited string (e.g. NaN)
+    Data = [d for d in Data if isinstance(d.get('aniso_s'), str) and ':' in d['aniso_s']]
     # get all the s1 values from Data as floats
     aniso_s = pmag.get_dictkey(Data, 'aniso_s', '')
-    aniso_s = [a.split(':') for a in aniso_s if a is not None]
+    aniso_s = [a.split(':') for a in aniso_s]
     #print('aniso_s', aniso_s)
     s1 = [float(a[0]) for a in aniso_s]
     s2 = [float(a[1]) for a in aniso_s]
@@ -8294,7 +8296,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         magn_key = cb.get_intensity_col(data_df)
         M = data_df[magn_key].values
     else:
-        Data = np.loadtxt(complete_path, dtype=np.float)
+        Data = np.loadtxt(complete_path, dtype=float)
         T = Data.transpose()[0]
         M = Data.transpose()[1]
     T = list(T)
@@ -10569,8 +10571,7 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
             isite = 0
             plot = 1
         else:
-            sitelist = spec_df['site'].unique()
-            sitelist.sort()
+            sitelist = sorted(spec_df['site'].unique())
             plot = len(sitelist)
     else:
         plot = 1
@@ -15803,8 +15804,7 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     data = data[data[int_key].notnull()]
     # make list of individual plots
     # by default, will be by location_name
-    plotlist = data[plot_key].unique()
-    plotlist.sort()
+    plotlist = sorted(data[plot_key].unique())
     pmagplotlib.plot_init(FIG['demag'], 5, 5)
     last_plot = False
     saved = []

@@ -716,15 +716,15 @@ class Contribution(object):
         if source_df_name[:-1] not in source_df.columns:
             source_df[source_df_name[:-1]] = source_df.index
         source_df = source_df.drop_duplicates(inplace=False, subset=col_names + [source_df_name[:-1]])
-        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill')
-        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='bfill')
+        source_df = source_df.groupby(source_df.index, sort=False).ffill()
+        source_df = source_df.groupby(source_df.index, sort=False).bfill()
         # if the groupby/fillna operation fails due to pandas bug, do the same by hand:
         if not len(source_df):
             new = []
             grouped = backup_source_df.groupby(backup_source_df.index)
             for label, group in grouped:
-                new_group = group.fillna(method="ffill")
-                new_group = new_group.fillna(method="bfill")
+                new_group = group.ffill()
+                new_group = new_group.bfill()
                 new.append(new_group)
             source_df = pd.concat(new, sort=True)
 
