@@ -69,13 +69,15 @@ def draw_figs(FIGS):
 
     """
     is_win = True if sys.platform in ['win32', 'win64'] else False
-    if not is_win:
+    if set_env.IS_NOTEBOOK:
+        plt.show()
+    elif not is_win:
         plt.ion()
         for fig in list(FIGS.keys()):
             plt.draw()
             plt.show()
         plt.ioff()
-    if is_win:
+    else:
         # this style basically works for Windows
         plt.draw()
         print("You must manually close all plots to continue")
