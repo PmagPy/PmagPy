@@ -1373,10 +1373,14 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
      
     plt.show()
 
-def GGPrand(GGPmodel, lat, n,degree=8):
+def GGPrand(GGPmodel, lat, n, degree=8, seed=None):
     m = m_TAF(GGPmodel, lat)
-    Cov = Cov_modelo(GGPmodel,lat,degree)
-    X = np.random.multivariate_normal(m, Cov,n)*1000
+    Cov = Cov_modelo(GGPmodel, lat, degree)
+    if seed is None:
+        X = np.random.multivariate_normal(m, Cov, n) * 1000
+    else:
+        rng = np.random.default_rng(seed)
+        X = rng.multivariate_normal(m, Cov, n) * 1000
     DI = pmag.cart2dir(X)
     return DI
 
