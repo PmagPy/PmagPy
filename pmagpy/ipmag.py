@@ -1473,7 +1473,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     return result, Lmin, Lmin_c, p
 
 
-def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
+def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot=False,
                        save=False, save_folder='.', fmt='svg', random_seed=None):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
@@ -1489,8 +1489,8 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         Data2 : a nested list of directional data [dec,inc] (a di_block)
         NumSims : number of Monte Carlo simulations (default is 5000)
         print_result : default is to print the test result (True)
-        plot : the default is no plot ('no').
-            Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
+        plot : if True, plot the CDF from the Monte Carlo simulations
+            (default is False).
         save : optional save of plots (default is False)
         save_folder : path to where plots will be saved (default is current)
         fmt : format of figures to be saved (default is 'svg')
@@ -1498,11 +1498,15 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
             Seed for reproducible random number generation (default is None).
 
     Returns:
-        **printed text** (text describing the test result is printed),
-        **result** (a boolean where 0 is fail and 1 is pass),
-        **angle** (angle between the Fisher means of the two data sets),
-        **critical_angle** (critical angle for the test to pass),
-        **classification** (MM1990 classification for a positive test),
+        tuple of (result, angle, critical_angle, classification) where:
+            result (int) : 1 if the test passes (common mean cannot be
+                rejected) or 0 if the test fails.
+            angle (float) : angle between the Fisher means of the two
+                data sets.
+            critical_angle (float) : critical angle of the Watson V test.
+            classification (str) : McFadden and McElhinny (1990)
+                classification ('A', 'B', 'C', 'indeterminate') for a
+                positive test, or '' for a negative test.
 
     Examples:
         Develop two populations of directions using ``ipmag.fishrot``. Use the
@@ -1581,54 +1585,46 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     D2 = (pars_2['dec'], pars_2['inc'])
     angle = pmag.angle(D1, D2)
 
+    # determine test result and classification
+    if V <= Vcrit:
+        result = 1
+        if critical_angle < 5:
+            classification = 'A'
+        elif critical_angle < 10:
+            classification = 'B'
+        elif critical_angle < 20:
+            classification = 'C'
+        else:
+            classification = 'indeterminate'
+    else:
+        result = 0
+        classification = ''
+
     if print_result:
         print("Results of Watson V test: ")
         print("")
         print("Watson's V:           " '%.1f' % (V))
         print("Critical value of V:  " '%.1f' % (Vcrit))
 
-    if V < Vcrit:
-        if print_result:
+        if V <= Vcrit:
             print('"Pass": Since V is less than Vcrit, the null hypothesis')
             print('that the two populations are drawn from distributions')
             print('that share a common mean direction can not be rejected.')
-        result = 1
-    elif V > Vcrit:
-        if print_result:
+        else:
             print('"Fail": Since V is greater than Vcrit, the two means can')
             print('be distinguished at the 95% confidence level.')
-        result = 0
-        classification = ''
-        
-    if print_result:
+
         print("")
         print("M&M1990 classification:")
         print("")
         print("Angle between data set means: " '%.1f' % (angle[0]))
         print("Critical angle for M&M1990:   " '%.1f' % (critical_angle))
 
-    if print_result:
-        if V > Vcrit:
-            print("")
-        elif V < Vcrit:
-            if critical_angle < 5:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'A'")
-                classification = 'A'
-            elif critical_angle < 10:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'B'")
-                classification = 'B'
-            elif critical_angle < 20:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'C'")
-                classification = 'C'
-            else:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'INDETERMINATE;")
-                classification = 'indeterminate'
+        if V <= Vcrit:
+            print("The McFadden and McElhinny (1990) classification for")
+            print("this test is: '%s'" % classification)
 
-    if plot == 'yes':
+    if plot:
         CDF = {'cdf': 1}
         # pmagplotlib.plot_init(CDF['cdf'],5,5)
         plt.figure(figsize=(3.5, 2.5))
@@ -1946,7 +1942,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
                                                                          save=save, save_folder=save_folder, fmt=fmt,
                                                                          random_seed=random_seed)
     else:
-        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot='yes',
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot=True,
                                                                          save=save, save_folder=save_folder, fmt=fmt,
                                                                          random_seed=random_seed)
     
