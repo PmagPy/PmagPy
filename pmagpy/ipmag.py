@@ -2004,6 +2004,137 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
+def conglomerate_test_Bayes(dec=None, inc=None, di_block=None):
+    """
+    Bayesian paleomagnetic conglomerate test following Heslop and Roberts
+    (2018). Estimates the posterior probability that a set of directions is
+    drawn from a uniform distribution on the sphere (H_A, randomness) versus
+    a Fisher distribution with a common mean (H_B, unimodal).
+
+    A positive conglomerate test — supporting primary remanence — corresponds
+    to large p(H_A|R), indicating that the directions are consistent with
+    randomness. A small p(H_A|R) supports a common mean (unimodal)
+    distribution, indicating possible remagnetization.
+
+    Uses the Fisher marginal likelihood (Equation 9), the prior on kappa from
+    Dowe et al. (1996) (Equation 11), and the Bayes factor formulation of
+    Equation 12 from Heslop and Roberts (2018).
+
+    Parameters:
+        dec : list of declinations
+        inc : list of inclinations
+            or
+        di_block : a nested list of [dec, inc] (a di_block).
+            Either dec/inc lists or a di_block must be provided.
+
+    Returns:
+        result : dictionary with keys
+
+            - ``'n'`` — number of directions
+            - ``'R'`` — resultant vector length
+            - ``'BF'`` — Bayes factor (H_A / H_B); values > 1 favor uniform
+              (random) directions
+            - ``'p_HA'`` — posterior probability of H_A (uniform/random)
+              assuming equal prior odds; large values support randomness
+            - ``'support'`` — verbal classification following Table 1 of
+              Heslop and Roberts (2018)
+
+    Examples:
+        Directions from randomly oriented conglomerate clasts:
+
+        >>> result = ipmag.conglomerate_test_Bayes(
+        ...     dec=[208.8, 233.3, 220.2, 240.8, 225.4, 23.8, 29.1, 20.0],
+        ...     inc=[-51.1, -55.9, -66.0, -85.7, -76.6, -43.4, -69.4, -9.3])
+
+    References:
+        Heslop, D., & Roberts, A. P. (2018). A Bayesian approach to the
+        paleomagnetic conglomerate test. Journal of Geophysical Research:
+        Solid Earth, 123, 1132–1142.
+        https://doi.org/10.1029/2018JB015533
+    """
+    if di_block is not None:
+        dec = [d[0] for d in di_block]
+        inc = [d[1] for d in di_block]
+
+    if dec is None or inc is None:
+        raise ValueError("Either dec/inc lists or a di_block must be provided.")
+
+    di_block_full = [[d, i] for d, i in zip(dec, inc)]
+    X = pmag.dir2cart(di_block_full)
+
+    N = len(dec)
+    R = np.sqrt(np.sum(np.sum(X, axis=0)**2))
+
+    def log_sinh(k):
+        """Numerically stable log(sinh(k))."""
+        if k > 700:
+            return k - np.log(2.0)
+        else:
+            return np.log(np.sinh(k))
+
+    def U(k, N, R):
+        """Marginal likelihood U(kappa, N, R) for a Fisher distribution with
+        concentration kappa, marginalized over the mean direction
+        (Equation 9 of Heslop & Roberts, 2018)."""
+        log_val = (N * (np.log(k) - np.log(4 * np.pi) - log_sinh(k))
+                   + np.log(4 * np.pi) + log_sinh(k * R)
+                   - np.log(k * R))
+        return np.exp(log_val)
+
+    def h(k):
+        """Prior on kappa from Dowe et al. (1996)
+        (Equation 11 of Heslop & Roberts, 2018)."""
+        return 4.0 * k**2 / (np.pi * (1.0 + k**2)**2)
+
+    def integrand(k, N, R):
+        return U(k, N, R) * h(k)
+
+    # Marginal likelihood under H_A: uniform distribution (kappa = 0)
+    # Equation 10: U_0(N) = (4*pi)^(1-N)
+    U_0 = (4.0 * np.pi)**(1.0 - N)
+
+    # Marginal likelihood under H_B: Fisher distribution (kappa > 0)
+    # Integrate U(kappa, N, R) * h(kappa) from 0 to infinity
+    mL_fisher = quad(integrand, 0, np.inf, args=(N, R))[0]
+
+    # Bayes factor: H_A (uniform) over H_B (unimodal)
+    # Equation 12: BF = U_0(N) / integral
+    BF = U_0 / mL_fisher
+
+    # Posterior probability of H_A (uniform) assuming equal prior odds
+    # Equation 13: p(H_A|R) = BF / (BF + 1)
+    p_HA = BF / (1.0 + BF)
+
+    # Classification following Table 1 of Heslop & Roberts (2018)
+    if p_HA < 0.01:
+        support = 'Unimodal: very strong support'
+    elif p_HA < 0.05:
+        support = 'Unimodal: strong support'
+    elif p_HA < 0.25:
+        support = 'Unimodal: positive support'
+    elif p_HA < 0.50:
+        support = 'Unimodal: weak support'
+    elif p_HA == 0.50:
+        support = 'No preference'
+    elif p_HA < 0.75:
+        support = 'Uniform: weak support'
+    elif p_HA < 0.95:
+        support = 'Uniform: positive support'
+    elif p_HA < 0.99:
+        support = 'Uniform: strong support'
+    else:
+        support = 'Uniform: very strong support'
+
+    print(f"N = {N}")
+    print(f"R = {R:.4f}")
+    print(f"Bayes factor (uniform / unimodal) = {BF:.4f}")
+    print(f"p(H_A|R) = {p_HA:.4f}")
+    print(f"Result: {support}")
+
+    result = {'n': N, 'R': R, 'BF': BF, 'p_HA': p_HA, 'support': support}
+    return result
+
+
 def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
