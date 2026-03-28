@@ -558,7 +558,7 @@ def convert_site_dm3_table_intensity(sites_df):
                              'int_abs_sigma_perc', 'vadm_ZAm2', 'vadm_sigma_ZAm2', 'vdm_ZAm2', 'vdm_sigma_ZAm2']]
         int_df.columns = IntCols
         int_df.sort_values(by=['Site'], inplace=True, ascending=True)
-        int_df.fillna(value='', inplace=True)
+        int_df = int_df.astype(object).fillna('')
     return int_df
 
 

@@ -506,8 +506,8 @@ def _2g_bin(dir_path=".", mag_file="", dec_corr=True,meas_file='measurements.txt
     meas_df['measurement']=meas_df['treat_step_num'].astype('str')
     meas_df['experiment']=specname+'_'+LPcode
     meas_df.drop(columns=['treat_type'],inplace=True)
-    meas_df.fillna("",inplace=True)
-    meas_dicts = meas_df.to_dict('records')                                              
+    meas_df = meas_df.astype(object).fillna("")
+    meas_dicts = meas_df.to_dict('records')
     pmag.magic_write(output_dir_path+'/'+meas_file, meas_dicts, 'measurements')
 
 # save to files
@@ -743,7 +743,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
     meas_magic_df['dir_dec']=meas_df['CD'].values
     meas_magic_df['dir_inc']=meas_df['CI'].values
     meas_magic_df['magn_moment']=meas_df['J'].astype('float')*1e-3 # convert from emu to Am2
-    meas_magic_df.fillna("",inplace=True)
+    meas_magic_df = meas_magic_df.astype(object).fillna("")
     meas_magic_df['treat_dc_field']=0
     meas_magic_df['treat_dc_field_phi']=0
     meas_magic_df['treat_dc_field_theta']=0
@@ -3599,7 +3599,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         ex_df=ex_df[['Test No.','offline_treatment']]
         in_df=in_df.merge(ex_df,on='Test No.')
         in_df['offline_treatment']=in_df['offline_treatment_y']
-        in_df['offline_treatment'].fillna("",inplace=True)
+        in_df['offline_treatment'] = in_df['offline_treatment'].astype(object).fillna("")
     in_df.drop_duplicates(inplace=True)
     if len(in_df)==0:
         print ('you must download a csv file from the LIMS database and place it in your input_dir_path')
@@ -3653,7 +3653,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df.loc[measurements_df['description']=='IN-LINE AF DEMAG',\
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
-    measurements_df.fillna("",inplace=True)
+    measurements_df = measurements_df.astype(object).fillna("")
     measurements_df.sort_values(by='sequence',inplace=True)
     if dscr_ex_file:
         meas_df=measurements_df[measurements_df.offline_treatment==""] # all the records with no offline treatments
@@ -3715,7 +3715,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
         offline_df.drop(columns=['offline_treatment'],inplace=True)
         offline_df.sort_values(by='sequence',inplace=True)
         offline_df.drop_duplicates(subset=['sequence'],inplace=True)
-        offline_df.fillna("",inplace=True)
+        offline_df = offline_df.astype(object).fillna("")
         offline_dicts = offline_df.to_dict('records')
         pmag.magic_write(offline_meas_out, offline_dicts, 'measurements')
         measurements_df=meas_df # put all the non-offline treatments back into measurements_df
@@ -3726,7 +3726,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df.sort_values(by='sequence',inplace=True)
     measurements_df.drop_duplicates(subset=['sequence'],inplace=True)
     measurements_df['treat_step_num']=measurements_df['sequence']
-    measurements_df.fillna("",inplace=True)
+    measurements_df = measurements_df.astype(object).fillna("")
     measurements_df['description']=measurements_df['description']+':'+measurements_df['comment']
     measurements_df.drop(columns=['comment'],inplace=True)
     meas_dicts = measurements_df.to_dict('records')
@@ -3860,7 +3860,7 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     #measurements_df.loc[measurements_df['description']=='IRM',\
        #                 'instrument_codes']='IODP-SRM:IODP-IRM'
 
-    measurements_df.fillna("",inplace=True)
+    measurements_df = measurements_df.astype(object).fillna("")
     meas_dicts = measurements_df.to_dict('records')
     meas_dicts=pmag.measurements_methods3(meas_dicts,noave=noave)
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
@@ -4026,11 +4026,11 @@ def iodp_kly4s_lore(kly4s_file, meas_out='measurements.txt',
 
 
 # output data files
-    measurements_df.fillna("",inplace=True)
+    measurements_df = measurements_df.astype(object).fillna("")
     meas_dicts = measurements_df.to_dict('records')
 
     pmag.magic_write(meas_out, meas_dicts, 'measurements')
-    specimens_df.fillna("",inplace=True)
+    specimens_df = specimens_df.astype(object).fillna("")
     spec_dicts = specimens_df.to_dict('records')
     pmag.magic_write(spec_out, spec_dicts, 'specimens')
 
@@ -4558,7 +4558,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
                             inplace=True)
 
     # replace the 'nan' values with blanks
-    iodp_sample_data.fillna('',inplace=True)
+    iodp_sample_data = iodp_sample_data.astype(object).fillna('')
     # check if there are data
     if len(iodp_sample_data)==0:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formatted IODP samples csv file."
@@ -4635,7 +4635,7 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
     specimens_df['volume']=iodp_sample_data[volume_key]*1e-6 # convert from cm^3 to m^3
     specimens_df['citations']='This study'
     # fill in the np.nan with blanks
-    specimens_df.fillna("",inplace=True)
+    specimens_df = specimens_df.astype(object).fillna("")
     # make specimen_df format compatible with MagicDataFrame
     specimens_df.index = specimens_df['specimen']
     specimens_df.index.name = 'specimen name'
@@ -4649,8 +4649,8 @@ def iodp_samples_csv(lims_sample_file, spec_file='specimens.txt',samp_file="samp
         pmag.magic_write(spec_out, spec_dicts, 'specimens')
 
     # fill in the np.nan with blanks
-    samples_df.fillna("",inplace=True)
-    sites_df.fillna("",inplace=True)
+    samples_df = samples_df.astype(object).fillna("")
+    sites_df = sites_df.astype(object).fillna("")
     # save the files in the designated spots samp_out, site_out and loc_out
     samp_dicts = samples_df.to_dict('records')
     pmag.magic_write(samp_out, samp_dicts, 'samples')
@@ -4760,9 +4760,9 @@ def iodp_samples_srm(df, spec_file='specimens.txt',samp_file="samples.txt",site_
     specimens_df['method_codes']='FS-C-DRILL-IODP'
     specimens_df['citations']='This study'
     # fill in the np.nan with blanks
-    specimens_df.fillna("",inplace=True)
-    samples_df.fillna("",inplace=True)
-    sites_df.fillna("",inplace=True)
+    specimens_df = specimens_df.astype(object).fillna("")
+    samples_df = samples_df.astype(object).fillna("")
+    sites_df = sites_df.astype(object).fillna("")
     # save the files in the designated spots spec_out, samp_out, site_out and loc_out
     spec_dicts = specimens_df.to_dict('records')
     pmag.magic_write(spec_out, spec_dicts, 'specimens')
@@ -4870,7 +4870,7 @@ def iodp_srm_lore(srm_file, dir_path=".", input_dir_path="",noave=False,comp_dep
                         'instrument_codes']='IODP-SRM:IODP-SRM-AF'
     measurements_df['external_database_ids']='LORE['+in_df['Test No.'].astype('str')+']'
 
-    measurements_df.fillna("",inplace=True)
+    measurements_df = measurements_df.astype(object).fillna("")
     measurements_df['description']=measurements_df['description']+':'+measurements_df['comment']
     measurements_df.drop(columns=['comment'],inplace=True)
 

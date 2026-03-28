@@ -162,7 +162,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         Add items and/or update existing items in grid
         """
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:
@@ -288,7 +288,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         col_ind = self.GetGridCursorCol()
         row_ind = self.GetGridCursorRow()
         # read in clipboard text
-        text_df = pd.read_clipboard(header=None, sep='\t').fillna('')
+        text_df = pd.read_clipboard(header=None, sep='\t').astype(object).fillna('')
         # add extra rows if need to accomadate clipboard text
         row_length_diff = len(text_df) - (len(self.row_labels) - row_ind)
         if row_length_diff > 0:
@@ -502,7 +502,7 @@ class MagicGrid(BaseMagicGrid):
         Add items and/or update existing items in grid
         """
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:
@@ -575,7 +575,7 @@ class HugeMagicGrid(BaseMagicGrid):
 
     def add_items(self, dataframe, hide_cols=()):
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:

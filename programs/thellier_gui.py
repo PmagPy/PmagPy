@@ -7676,8 +7676,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 #  https://github.com/pandas-dev/pandas/issues/14955,
                 #  hence the try/except)
                 try:
-                    samples = samples.groupby(samples.index, sort=False).fillna(
-                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                    samples = samples.groupby(samples.index, sort=False).ffill().groupby(samples.index, sort=False).bfill()
                 except ValueError:
                     pass
                 # then get rid of any duplicates

@@ -2196,7 +2196,7 @@ def magic_write(ofile, Recs, file_type, dataframe=False,append=False):
         print('No records to write to file {}'.format(ofile))
         return False, ""
     if dataframe: # convert to traditional list of dictionaries
-        Recs.fillna("",inplace=True) 
+        Recs = Recs.astype(object).fillna("")
         Recs=Recs.to_dict('records')
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])

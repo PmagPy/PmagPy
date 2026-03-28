@@ -346,8 +346,8 @@ class Contribution(object):
             return
         # convert lat/lon columns to string type
         # (this is necessary for consistency because they MAY be string type already)
-        site_container.df['lat'] = site_container.df['lat'].fillna('').astype(str)
-        site_container.df['lon'] = site_container.df['lon'].fillna('').astype(str)
+        site_container.df['lat'] = site_container.df['lat'].astype(object).fillna('').astype(str)
+        site_container.df['lon'] = site_container.df['lon'].astype(object).fillna('').astype(str)
         # replace empty strings with np.nan
         site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
         site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)
@@ -2500,7 +2500,7 @@ def stringify_col(df, col_name):
     col_name : string
     """
     df = df.copy()
-    df[col_name] = df[col_name].fillna("")
+    df[col_name] = df[col_name].astype(object).fillna("")
     df[col_name] = df[col_name].astype(str)
     return df
 
