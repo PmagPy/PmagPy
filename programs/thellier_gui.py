@@ -552,14 +552,14 @@ DESCRIPTION
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         FONT_RATIO = self.GUI_RESOLUTION + (self.GUI_RESOLUTION - 1) * 5
-        font1 = wx.Font(9 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font1 = wx.Font(int(9 + FONT_RATIO), wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         # GUI headers
 
-        font3 = wx.Font(11 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font3 = wx.Font(int(11 + FONT_RATIO), wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10 + FONT_RATIO)
+        font.SetPointSize(int(10 + FONT_RATIO))
 
         #--------------------------------------------------------------------
         # Create Figures and FigCanvas objects.
@@ -643,12 +643,12 @@ DESCRIPTION
         self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(
             100 * self.GUI_RESOLUTION, 100 * self.GUI_RESOLUTION), style=wx.LC_REPORT)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'i', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'Step', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'Tr', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'Dec', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(4, 'Inc', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'M', width=75 * self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'i', width=int(45 * self.GUI_RESOLUTION))
+        self.logger.InsertColumn(1, 'Step', width=int(45 * self.GUI_RESOLUTION))
+        self.logger.InsertColumn(2, 'Tr', width=int(65 * self.GUI_RESOLUTION))
+        self.logger.InsertColumn(3, 'Dec', width=int(65 * self.GUI_RESOLUTION))
+        self.logger.InsertColumn(4, 'Inc', width=int(65 * self.GUI_RESOLUTION))
+        self.logger.InsertColumn(5, 'M', width=int(75 * self.GUI_RESOLUTION))
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                   self.on_click_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
@@ -948,9 +948,9 @@ DESCRIPTION
         sizer_logger_plots.Add(self.plot_panel, 3, wx.EXPAND | wx.ALIGN_LEFT)
 
         sizer_outer = wx.BoxSizer(wx.VERTICAL)
-        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, int(v_space / 2)),
                              (sizer_logger_plots, 4, wx.EXPAND |
-                              wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+                              wx.ALIGN_TOP | wx.BOTTOM, int(v_space / 2)),
                              (self.bottom_panel, 1, wx.EXPAND | wx.ALIGN_TOP)])
 
         self.SetSizer(sizer_outer)
@@ -6432,6 +6432,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
     def get_data(self):
 
+        def has_value(value):
+            if value is None:
+                return False
+            text = str(value).strip()
+            return text != "" and text.lower() != 'nan'
+
         def tan_h(x, a, b):
             return a * np.tanh(b * x)
 
@@ -7213,16 +7219,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # thermal or microwave
             rec = datablock[0]
-            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"] != "":
+            if "treat_mw_step" in list(rec.keys()) and has_value(rec["treat_mw_step"]):
                 THERMAL = False
                 MICROWAVE = True
-            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"] != "":
+            elif "treatment_mw_integral" in list(rec.keys()) and has_value(rec["treatment_mw_integral"]):
                 THERMAL = False
                 MICROWAVE = True
-            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"] != "":
+            elif "treatment_mw_power" in list(rec.keys()) and has_value(rec["treatment_mw_power"]):
                 THERMAL = False
                 MICROWAVE = True
-            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"] != "":
+            elif "treatment_temp" in list(rec.keys()) and has_value(rec["treatment_temp"]):
                 temp = float(rec["treatment_temp"])
                 THERMAL = True
                 MICROWAVE = False
@@ -7934,6 +7940,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
         sorts data block in to first_Z, first_I, etc.
         """
 
+        def has_value(value):
+            if value is None:
+                return False
+            text = str(value).strip()
+            return text != "" and text.lower() != 'nan'
+
         first_Z, first_I, zptrm_check, ptrm_check, ptrm_tail = [], [], [], [], []
         field, phi, theta = "", "", ""
         starthere = 0
@@ -7954,12 +7966,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
             if 'treatment_mw_integral' in list(rec.keys()) and rec['treatment_mw_integral'] is None: rec['treatment_mw_integral']=""
             if 'treatment_mw_power' in list(rec.keys()) and rec['treatment_mw_power'] is None: rec['treatment_mw_power']=""
             if 'treatment_temp' in list(rec.keys()) and rec['treatment_temp'] is None:rec['treatment_temp']=""
-            if "treat_mw_step" in list(rec.keys()) and rec["treat_mw_step"]!="":
+            if "treat_mw_step" in list(rec.keys()) and has_value(rec["treat_mw_step"]):
 
                 THERMAL = False
                 MICROWAVE = True
                 temp = float(rec["treat_mw_step"])
-            elif "treatment_mw_integral" in list(rec.keys()) and rec["treatment_mw_integral"]!="":
+            elif "treatment_mw_integral" in list(rec.keys()) and has_value(rec["treatment_mw_integral"]):
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7968,7 +7980,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
-            elif "treatment_mw_power" in list(rec.keys()) and rec["treatment_mw_power"]!="":
+            elif "treatment_mw_power" in list(rec.keys()) and has_value(rec["treatment_mw_power"]):
                 THERMAL = False
                 MICROWAVE = True
                 if "measurement_description" in list(rec.keys()):
@@ -7977,7 +7989,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp = float(STEP.split("-")[-1])
-            elif "treatment_temp" in list(rec.keys()) and rec["treatment_temp"]!="":
+            elif "treatment_temp" in list(rec.keys()) and has_value(rec["treatment_temp"]):
                 temp = float(rec["treatment_temp"])
                 THERMAL = True
                 MICROWAVE = False
