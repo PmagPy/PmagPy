@@ -23,11 +23,6 @@ from matplotlib.pylab import polyfit
 import matplotlib.ticker as mtick
 from matplotlib import colors
 from matplotlib import cm
-try:
-    import requests
-except ImportError:
-    requests = None
-encoding = "ISO-8859-1"
 from .mapping import map_magic
 from pmagpy import contribution_builder as cb
 from pmagpy import spline
@@ -36,12 +31,16 @@ from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
-from .contribution_builder import Contribution
+#from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
 from numpy.linalg import inv, eig
+try:
+    import requests
+except ImportError:
+    requests = None
+encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
-
-if has_cartopy == True:
+if has_cartopy:
     import cartopy.crs as ccrs
 
 
@@ -58,7 +57,7 @@ def igrf(input_list, mod='', ghfile=""):
             date must be in decimal year format XXXX.XXXX (Common Era)
             altitude is in kilometers
         mod :  desired model
-            "" : Use the IGRF13 model by default
+            "" : Use the IGRF14 model by default
             'custom' : use values supplied in ghfile
             or choose from this list
             ['arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','shadif14','shawq2k','shawqIA','ggf100k']
@@ -377,12 +376,13 @@ def kent_distribution_95(dec=None, inc=None, di_block=None):
         return pmag.dokent(di_block, len(di_block), distribution_95=True)
     
     
-def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alpha=0.05):
+def mean_bootstrap_confidence(dec=None, inc=None, di_block=None, num_sims=10000,
+                              alpha=0.05, random_seed=None):
     """
-    Estimates the bootstrap confidence region for the mean of a collection of paleomagnetic 
+    Estimates the bootstrap confidence region for the mean of a collection of paleomagnetic
     directions based on the approach of Heslop et al. (2023). This approach involves the projection
     onto a tangent plane for a tractable statistical analysis in two dimensions.
-    
+
     Parameters:
         dec (list or None): List of declination values. Default is None.
         inc (list or None): List of inclination values. Default is None.
@@ -391,21 +391,24 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
             will be used. Either dec, inc lists or a di_block needs to be provided.
         num_sims (int): Number of bootstrap iterations. Default is 10,000.
         alpha (float): Confidence region. Default is 0.05 corresponding to 95% region.
-    
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
+
     Returns:
         tuple: A tuple containing:
-                (1) a dictionary of parameters the includes the estimated mean 
-                direction and the T statistic which is the basis of the bootstrap confidence region, 
+                (1) a dictionary of parameters the includes the estimated mean
+                direction and the T statistic which is the basis of the bootstrap confidence region,
                 (2) list of [dec, inc] pairs that represent the boundary of the confidence region.
                 The bootstrap confidence region cannot be reported readily in a compact form so is
                 instead a long list of points along the boundary of the confidence region.
-               
+
     References:
-        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023).
         A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
         https://doi.org/10.1029/2023JB026983
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     if di_block is None:
         di_block = make_di_block(dec, inc)
         
@@ -422,14 +425,20 @@ def mean_bootstrap_confidence(dec=None,inc=None,di_block=None,num_sims=10000,alp
     T_b = np.zeros(num_sims) #predefine output array for bootstrapped T values
 
     for i in range(num_sims): #loop through bootstrap iterations
-        idx = np.random.randint(0,n,n) #select observation indicies with replacement
+        idx = rng.integers(0,n,n) #select observation indices with replacement
         X_b = X[:,idx] #form bootstrap sample
         mhat_b = np.mean(X_b,axis=1) #mean direction of bootstrap sample
         mhat_b /= np.linalg.norm(mhat_b)
         Mhat_b = pmag.form_Mhat(mhat_b) #\hat{M} for bootstrap sample
         Ghat_b = pmag.form_Ghat(X_b,Mhat_b) #\hat{G} for bootstrap sample
         T_b[i] = pmag.find_T(mhat,n,Mhat_b,Ghat_b) #T for bootstrap sample
-        
+
+    T_b = T_b[np.isfinite(T_b)] #discard degenerate bootstrap samples
+    if T_b.size == 0:
+        raise ValueError(
+            "No finite bootstrap T values were obtained; the input directions may be too "
+            "few or too degenerate for mean_bootstrap_confidence to compute a confidence region."
+        )
     Tc = np.quantile(T_b,1-alpha) #find 1-alpha quantile of T
     pars["T_critical"] = Tc
 
@@ -543,7 +552,7 @@ def print_kent_mean(mean_dictionary):
     print('Number of directions in mean (n): ' + str(mean_dictionary['n']))
 
 
-def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
+def fishrot(k=20, n=100, dec=0, inc=90, di_block=True, random_seed=None):
     """
     Generates Fisher distributed unit vectors from a specified distribution
     using the pmag.py function pmag.fshdev() and pmag.dodirot_V() functions.
@@ -554,7 +563,9 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
         dec : mean declination of distribution (default is 0)
         inc : mean inclination of distribution (default is 90)
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
-        if di_block = False it will return a list of dec and a list of inc
+            if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - di_block, a nested list of [dec,inc,1.0] (default)
@@ -568,9 +579,10 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
                [61.28572459596148 , 51.5004074156194  ,  1.               ],
                [55.20784339888985 , 54.186746152272484,  1.               ]])
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     # Generation of samples
-    declinations, inclinations = pmag.fshdev(np.repeat(k, n))
+    declinations, inclinations = pmag.fshdev(np.repeat(k, n), random_seed=rng)
 
     # Rotation to have desired mean direction
     resampled_di = np.vstack([declinations, inclinations]).T
@@ -582,7 +594,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
         return resampled_di_rotated[:,0], resampled_di_rotated[:,1]
     
     
-def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
+def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True, random_seed=None):
     """
     Generates resamples of directional means from a Fisher mean with a specified
     alpha95. Equivalent of sampling from the angular standard deviation.
@@ -594,6 +606,8 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
         inc : mean inclination of distribution (default is 90)
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
             if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - di_block, a nested list of [dec,inc,1.0] (default)
@@ -607,26 +621,27 @@ def fisher_mean_resample(alpha95=20, n=100, dec=0, inc=90, di_block=True):
             [28.282076485842992, 59.67015046929257, 1.0],
             [41.87081053973009, 57.18064045614739, 1.0]]
     """
+    rng = pmag._resolve_rng(random_seed)
     directions = []
     declinations = []
     inclinations = []
     k = 140.0**2 / alpha95**2
     if di_block:
         for data in range(n):
-            d, i = pmag.fshdev(k)
+            d, i = pmag.fshdev(k, random_seed=rng)
             drot, irot = pmag.dodirot(d, i, dec, inc)
             directions.append([drot, irot, 1.])
         return directions
     else:
         for data in range(n):
-            d, i = pmag.fshdev(k)
+            d, i = pmag.fshdev(k, random_seed=rng)
             drot, irot = pmag.dodirot(d, i, dec, inc)
             declinations.append(drot)
             inclinations.append(irot)
         return declinations, inclinations
 
 
-def kentrot(kent_dict, n=100, di_block=True):
+def kentrot(kent_dict, n=100, di_block=True, random_seed=None):
     '''
     Generates Kent distributed unit vectors from a specified distribution
     using the pmag.py function pmag.kentdev().
@@ -643,11 +658,16 @@ def kentrot(kent_dict, n=100, di_block=True):
             R2: Kent distribution shape quantity for calculating kappa and beta}
         di_block : this function returns a nested list of [dec,inc,1.0] as the default
         if di_block = False it will return a list of dec and a list of inc
+        random_seed : None, int, or numpy.random.Generator
+            Controls reproducibility. None for random, int for seeded, or a
+            Generator instance for RNG threading through call chains.
 
     Returns:
         **di_block**, a nested list of [dec,inc,1.0] (default)
         **dec, inc**, a list of dec and a list of inc (if di_block = False)
     '''
+    rng = pmag._resolve_rng(random_seed)
+
     # get kent states from dictionary
     mean_lon = kent_dict['dec']
     mean_lat = kent_dict['inc']
@@ -663,7 +683,7 @@ def kentrot(kent_dict, n=100, di_block=True):
     beta = 1/2*(1/(2-2*R1-R2)-1/(2-2*R1+R2))
     
     # generate unrotated decs and incs
-    decs, incs = pmag.kentdev(kappa, beta, n)
+    decs, incs = pmag.kentdev(kappa, beta, n, random_seed=rng)
     
     #convert to cartesion coordinates
     X = pmag.dir2cart(np.array([decs, incs]).T)
@@ -690,7 +710,8 @@ def kentrot(kent_dict, n=100, di_block=True):
         return rotated_decs, rotated_incs
 
 
-def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
+def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0,
+         random_seed=None):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
@@ -708,6 +729,8 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
     G3 : specify average g_3^0 fraction (default is 0)
     B_threshold : return vectors with B>B_threshold (in nT) (default is 0 which
         returns all vectors)
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
     Returns
     ----------
@@ -722,12 +745,13 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
      [352.93759572283585, 0.086693343935840397, 18524.551174838372],
      [352.48366219759953, 11.579098286352332, 24928.412830772766]]
     """
+    rng = pmag._resolve_rng(random_seed)
     tk_03_output = []
     k=0
-    while k < n: 
-        gh = pmag.mktk03(8, k, G2, G3, G1=G1)  # terms and random seed
-        # get a random longitude, between 0 and 359
-        lon = random.randint(0, 360)
+    while k < n:
+        gh = pmag.mktk03(8, G2, G3, G1=G1, random_seed=rng)
+        # get a random longitude, between 0 and 360
+        lon = int(rng.integers(0, 361))
         vec = pmag.getvec(gh, lat, lon)  # send field model and lat to getvec
         vec[0] += dec
         if vec[0] >= 360.:
@@ -738,8 +762,6 @@ def tk03(n=100, dec=0, lat=0, rev='no', G1=-18e3, G2=0, G3=0, B_threshold=0):
         if vec[2]>B_threshold:
             tk_03_output.append([vec[0], vec[1], vec[2]])
             k+=1
-        #else: # do more 
-        #    k-=1
     return tk_03_output
 
 
@@ -781,7 +803,8 @@ def unsquish(incs, f):
             inc_new = np.rad2deg(np.arctan(inc_new_rad))
             incs_unsquished.append(inc_new)
         return incs_unsquished
-    except:
+    except TypeError as e:
+        print("TypeError caught: ", e) # to catch single values
         inc_rad = np.deg2rad(incs)  # convert to radians
         inc_new_rad = (1.0/f) * np.tan(inc_rad)
         inc_new = np.rad2deg(np.arctan(inc_new_rad))  # convert back to degrees
@@ -822,7 +845,8 @@ def squish(incs, f):
                 np.pi  # convert back to degrees
             incs_squished.append(inc_new)
         return incs_squished
-    except:
+    except TypeError as e: # to catch single values
+        print("TypeError caught: ", e)
         inc_rad = incs * np.pi / 180.  # convert to radians
         inc_new_rad = f * np.tan(inc_rad)
         inc_new = np.arctan(inc_new_rad) * 180. / \
@@ -904,14 +928,14 @@ def do_flip(dec=None, inc=None, di_block=None, unit_vector=True):
         dflip = []
         for rec in di_block:
             d, i = (rec[0] - 180.) % 360., -rec[1]
-            if unit_vector==True:
+            if unit_vector:
                 dflip.append([d, i, 1.0])
-            if unit_vector==False:
+            if not unit_vector:
                 dflip.append([d, i])
         return dflip
 
 
-def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False):
+def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save=False, save_folder='.', fmt='svg', ninety_nine=False, random_seed=None):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -935,6 +959,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
         save_folder : path to directory where plots should be saved
         fmt : format of figures to be saved (default is 'svg')
         ninety_nine : changes confidence bounds from 95 percent to 99 if True
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         - uncorrected data equal area plot
@@ -961,6 +987,8 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 
         >>> ipmag.bootstrap_fold_test(data_array)
     """
+    rng = pmag._resolve_rng(random_seed)
+
     if bedding_error != 0:
         kappa = (81.0/bedding_error)**2
     else:
@@ -993,10 +1021,10 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     for n in range(num_sims):  # do bootstrap data sets - plot first 25 as dashed red line
             # if n%50==0:print n
         Taus = []  # set up lists for taus
-        PDs = pmag.pseudo(Data)
+        PDs = pmag.pseudo(Data, random_seed=rng)
         if kappa != 0:
             for k in range(len(PDs)):
-                d, i = pmag.fshdev(kappa)
+                d, i = pmag.fshdev(kappa, random_seed=rng)
                 dipdir, dip = pmag.dodirot(d, i, PDs[k][2], PDs[k][3])
                 PDs[k][2] = dipdir
                 PDs[k][3] = dip
@@ -1036,57 +1064,122 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     plt.show()
 
 
-def common_mean_bootstrap(Data1, Data2, NumSims=1000, 
+def common_mean_bootstrap(Data1, Data2, NumSims=1000,
                           color1='r', color2='b',
-                          save=False, save_folder='.', fmt='svg', 
-                          figsize=(7, 2.3), x_tick_bins=4,verbose=True):
+                          save=False, save_folder='.', fmt='svg',
+                          figsize=(7, 2.3), x_tick_bins=4, verbose=True,
+                          random_seed=None):
     """
-    Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
-    inclination data sets. Plots are generated of the cumulative distributions
-    of the Cartesian coordinates of the means of the pseudo-samples (one for x,
-    one for y and one for z). If the 95 percent confidence bounds for each
-    component overlap, the two set of directions "pass" the test and are
-    consistent with sharing a common mean.
+    Conducts a bootstrap test for a common mean on two directional data sets.
 
-    Parameters:
-        Data1 : a nested list of directional data [dec,inc] (a di_block)
-        Data2 : a nested list of directional data [dec,inc] (a di_block)
-                if Data2 is length of 1, treat as single direction
-        NumSims : number of bootstrap samples (default is 1000)
-        save : optional save of plots (default is False)
-        save_folder : path to directory where plots should be saved
-        fmt : format of figures to be saved (default is 'svg')
-        figsize : optionally adjust figure size (default is (7, 2.3))
-        x_tick_bins : because they occasionally overlap depending on the data, this
-            argument allows you adjust number of tick marks on the x axis of graphs
-            (default is 4)
+    This function implements the bootstrap test from Tauxe (2010) to determine
+    if two sets of directional data are consistent with sharing a common mean.
+    It generates cumulative distribution plots for the X, Y, and Z components
+    of the bootstrapped means. The test "passes" if the 95% confidence bounds
+    for each of the three components overlap.
 
-    Returns:
-        **three plots** (cumulative distributions of the X, Y, Z of bootstrapped means, 
-        **result** (a boolean where 0 is fail and 1 is pass)
+    Alternatively, if a single direction is provided for `Data2`, the function
+    tests if that direction falls within the 95% confidence bounds of `Data1`.
 
-    Examples:
-        Develop two populations of directions using ``ipmag.fishrot()``. Use the
-        function to determine if they share a common mean.
+    Parameters
+    ----------
+    Data1 : array-like
+        A list of lists or NumPy array of directional data, where each inner
+        list is [declination, inclination].
+    Data2 : array-like
+        A second set of directional data in the same format as `Data1`, or a
+        single direction as [declination, inclination].
+    NumSims : int, optional
+        The number of bootstrap samples to generate. Defaults to 1000.
+    color1 : str, optional
+        Matplotlib color for the first dataset. Defaults to 'r' (red).
+    color2 : str, optional
+        Matplotlib color for the second dataset. Defaults to 'b' (blue).
+    save : bool, optional
+        If True, saves the generated plots. Defaults to False.
+    save_folder : str, optional
+        The directory path where plots will be saved. Defaults to '.'.
+    fmt : str, optional
+        The file format for saved plots (e.g., 'svg', 'png', 'pdf').
+        Defaults to 'svg'.
+    figsize : tuple, optional
+        The size of the figure for the plots. Defaults to (7, 2.3).
+    x_tick_bins : int, optional
+        The maximum number of tick mark bins for the x-axis of the plots.
+        Defaults to 4.
+    verbose : bool, optional
+        If True, prints the test result ('Pass' or 'Fail') to the console.
+        Defaults to True.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible random number generation (default is None).
 
-        >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
-        >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
-        >>> ipmag.common_mean_bootstrap(directions_A, directions_B)
+    Returns
+    -------
+    int
+        Returns 1 if the datasets pass the common mean test, and 0 if they fail.
+
+    Notes
+    -----
+    The function also displays or saves three plots showing the cumulative
+    distributions for the X, Y, and Z components of the bootstrapped means. These
+    plots are a visual representation of the statistical test.
+
+    Examples
+    --------
+    Develop two populations of directions using ``ipmag.fishrot()`` and then
+    use the function to determine if they share a common mean.
+
+    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+    >>> result = ipmag.common_mean_bootstrap_new(directions_A, directions_B)
+    Pass
+    >>> print(result)
+    1
+    
+    Compare a single direction to a population.
+    
+    >>> directions_A = ipmag.fishrot(k=100, n=30, dec=45, inc=45)
+    >>> direction_B = [45,45]
+    >>> common_mean_bootstrap_new(directions_A, direction_B)
+    Pass
     """
-    counter = 0
-    BDI1 = pmag.di_boot(Data1)
+    rng = pmag._resolve_rng(random_seed)
+    BDI1 = pmag.di_boot(Data1, random_seed=rng)
     cart1 = pmag.dir2cart(BDI1).transpose()
     X1, Y1, Z1 = cart1[0], cart1[1], cart1[2]
-    if np.array(Data2).shape[0] > 2:
-        BDI2 = pmag.di_boot(Data2)
-        cart2 = pmag.dir2cart(BDI2).transpose()
+    
+    Data2_arr = np.asarray(Data2, dtype=float)
+
+    # Determine if Data2 is a single direction or a block
+    if Data2_arr.ndim == 1 and Data2_arr.size in (2, 3):
+        is_block = False
+        single_direction = Data2_arr  # (2,) or (3,)
+    elif Data2_arr.ndim == 2 and Data2_arr.shape[1] in (2, 3):
+        is_block = Data2_arr.shape[0] > 1
+        direction_block = Data2_arr  # (N, 2) or (N, 3)
+    elif Data2_arr.ndim == 2 and Data2_arr.shape[0] in (2, 3) and Data2_arr.shape[1] > 1:
+        # Handle transposed input like (2, N) or (3, N)
+        direction_block = Data2_arr.T
+        if direction_block.shape[1] not in (2, 3):
+            raise ValueError(f"Expected (N, 2) or (N, 3), got {direction_block.shape}.")
+        is_block = direction_block.shape[0] > 1
+    else:
+        raise ValueError(
+            f"Expected [dec, inc(, intensity)] or an array with 2 or 3 columns; "
+            f"got shape {Data2_arr.shape}."
+        )
+
+    if is_block:
+        BDI2 = pmag.di_boot(direction_block, random_seed=rng)
+        cart2 = pmag.dir2cart(BDI2).T
         X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
     else:
-        cart = pmag.dir2cart(Data2).transpose()
-    
+        cart2 = pmag.dir2cart(single_direction).T
+        X2, Y2, Z2 = cart2[0], cart2[1], cart2[2]
+
     minimum = int(0.025 * len(X1))
     maximum = int(0.975 * len(X1))
-    
+
     fignum = 1
     fig = plt.figure(figsize=figsize)
 
@@ -1094,43 +1187,45 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
     X1, y = pmagplotlib.plot_cdf(fignum, X1, "X component", color1, "")
     bounds1 = [X1[minimum], X1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         X2, y = pmagplotlib.plot_cdf(fignum, X2, "X component", color2, "")
         bounds2 = [X2[minimum], X2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        x_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[0]], 'k', '--')
+        x_in_bounds = X1[minimum] <= X2 <= X1[maximum]
+        pmagplotlib.plot_vs(fignum, [X2], color2, ':')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    x_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.subplot(1, 3, 2)
     Y1, y = pmagplotlib.plot_cdf(fignum, Y1, "Y component", color1, "")
     bounds1 = [Y1[minimum], Y1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         Y2, y = pmagplotlib.plot_cdf(fignum, Y2, "Y component", color2, "")
         bounds2 = [Y2[minimum], Y2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        y_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[1]], 'k', '--')
+        y_in_bounds = Y1[minimum] <= Y2 <= Y1[maximum]
+        pmagplotlib.plot_vs(fignum, [Y2], color2, ':')
     plt.ylim(0, 1)
-    y_overlap = pmag.interval_overlap(bounds1,bounds2)
-    
+
     plt.subplot(1, 3, 3)
     Z1, y = pmagplotlib.plot_cdf(fignum, Z1, "Z component", color1, "")
     bounds1 = [Z1[minimum], Z1[maximum]]
     pmagplotlib.plot_vs(fignum, bounds1, color1, '-')
-
-    if np.array(Data2).shape[0] > 2:
+    if is_block:
         Z2, y = pmagplotlib.plot_cdf(fignum, Z2, "Z component", color2, "")
         bounds2 = [Z2[minimum], Z2[maximum]]
         pmagplotlib.plot_vs(fignum, bounds2, color2, '--')
+        z_overlap = pmag.interval_overlap(bounds1, bounds2)
     else:
-        pmagplotlib.plot_vs(fignum, [cart[2]], 'k', '--')
+        z_in_bounds = Z1[minimum] <= Z2 <= Z1[maximum]
+        pmagplotlib.plot_vs(fignum, [Z2], color2, ':')
     plt.ylim(0, 1)
     plt.locator_params(nbins=x_tick_bins)
-    z_overlap = pmag.interval_overlap(bounds1,bounds2)
 
     plt.tight_layout()
     if save:
@@ -1138,43 +1233,88 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000,
             save_folder, 'common_mean_bootstrap') + '.' + fmt,
                     dpi=300,bbox_inches='tight')
     plt.show()
-    
-    if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
-        if verbose:print('Pass')
-        result = 1
-        return result
-    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in x')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in y')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in z')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
-        if verbose:print('Fail, distinct in x and y')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in x and z')
-        result = 0
-        return result
-    elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in y and z')
-        result = 0
-        return result
-    elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
-        if verbose:print('Fail, distinct in x, y and z')
-        result = 0
-        return result
+
+    if is_block:
+        if ((x_overlap != 0) and (y_overlap != 0) and (z_overlap != 0)):
+            if verbose:
+                print('Pass')
+            result = 1
+            return result
+        elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap != 0)):
+            if verbose:
+                print('Fail, distinct in x')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap != 0)):
+            if verbose:
+                print('Fail, distinct in y')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap != 0) and (z_overlap == 0)):
+            if verbose:
+                print('Fail, distinct in z')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap != 0)):
+            if verbose:
+                print('Fail, distinct in x and y')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap != 0) and (z_overlap == 0)):
+            if verbose:
+                print('Fail, distinct in x and z')
+            result = 0
+            return result
+        elif ((x_overlap != 0) and (y_overlap == 0) and (z_overlap == 0)):
+            if verbose:
+                print('Fail, distinct in y and z')
+            result = 0
+            return result
+        elif ((x_overlap == 0) and (y_overlap == 0) and (z_overlap == 0)):
+            if verbose:
+                print('Fail, distinct in x, y and z')
+            result = 0
+            return result
+
+    else:
+        if x_in_bounds and y_in_bounds and z_in_bounds:
+            if verbose:
+                print('Pass')
+            return 1
+        elif (not x_in_bounds) and y_in_bounds and z_in_bounds:
+            if verbose:
+                print('Fail, distinct in x')
+            return 0
+        elif x_in_bounds and (not y_in_bounds) and z_in_bounds:
+            if verbose:
+                print('Fail, distinct in y')
+            return 0
+        elif x_in_bounds and y_in_bounds and (not z_in_bounds):
+            if verbose:
+                print('Fail, distinct in z')
+            return 0
+        elif (not x_in_bounds) and (not y_in_bounds) and z_in_bounds:
+            if verbose:
+                print('Fail, distinct in x and y')
+            return 0
+        elif (not x_in_bounds) and y_in_bounds and (not z_in_bounds):
+            if verbose:
+                print('Fail, distinct in x and z')
+            return 0
+        elif x_in_bounds and (not y_in_bounds) and (not z_in_bounds):
+            if verbose:
+                print('Fail, distinct in y and z')
+            return 0
+        else:
+            # all three out of bounds
+            if verbose:
+                print('Fail, distinct in x, y and z')
+            return 0
         
 
 def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=True, reversal=False,
-                              save=False, save_folder='.', fmt='svg',verbose=False):
+                              save=False, save_folder='.', fmt='svg', verbose=False,
+                              random_seed=None):
     """
     Perform a bootstrap common mean direction test following Heslop et al. (2023).
 
@@ -1192,6 +1332,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         save (bool, optional): If True, saves the histogram plot. Default is False.
         save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
         fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         tuple: Contains the following elements:
@@ -1201,11 +1343,12 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
             - p (float): The p-value of the test.
 
     References:
-        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023). 
+        Heslop, D., Scealy, J. L., Wood, A. T. A., Tauxe, L., & Roberts, A. P. (2023).
         A bootstrap common mean direction test. Journal of Geophysical Research: Solid Earth, 128, e2023JB026983.
         https://doi.org/10.1029/2023JB026983
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     X1 = np.transpose(pmag.dir2cart(Data1)) # normal directions in Cartesian coordinates (one direction per column)
     
     if reversal:
@@ -1234,8 +1377,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Mhat2 = pmag.form_Mhat(mhat2) #Mhat of second data set
     Ghat2 = pmag.form_Ghat(X2,Mhat2) #Ghat of second data set
 
-    Ahat = Mhat1.getH()*np.linalg.inv(Ghat1)*Mhat1
-    Ahat += Mhat2.getH()*np.linalg.inv(Ghat2)*Mhat2
+    Ahat = Mhat1.conj().T @ np.linalg.inv(Ghat1) @ Mhat1
+    Ahat += Mhat2.conj().T @ np.linalg.inv(Ghat2) @ Mhat2
     Ahat *= n
 
     D,V = np.linalg.eig(Ahat)
@@ -1253,7 +1396,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     T_b = np.zeros(num_sims) ##predefine output array for Tb (equation 11)
 
     for i in range(num_sims): #loop through bootstrap iterations
-        idx1 = np.random.randint(0,n1,n1) #select observation indicies with replacement
+        idx1 = rng.integers(0,n1,n1) #select observation indices with replacement
         X10_b = np.asarray(X10[:,idx1]) #form bootstrap sample from rotated version of first data set
         
         mhat10_b = np.mean(X10_b,axis=1) #mean direction of bootstrap sample
@@ -1262,7 +1405,7 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Mhat10_b = pmag.form_Mhat(mhat10_b) #\hat{M} for bootstrap sample
         Ghat10_b = pmag.form_Ghat(X10_b,Mhat10_b) #\hat{G} for bootstrap sample
         
-        idx2 = np.random.randint(0,n2,n2) #select observation indicies with replacement
+        idx2 = rng.integers(0,n2,n2) #select observation indices with replacement
         X20_b = np.asarray(X20[:,idx2]) #form bootstrap sample from rotated version of second data set
         
         mhat20_b = np.mean(X20_b,axis=1) #mean direction of bootstrap sample
@@ -1271,8 +1414,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
         Mhat20_b = pmag.form_Mhat(mhat20_b) #\hat{M} for bootstrap sample
         Ghat20_b = pmag.form_Ghat(X20_b,Mhat20_b) #\hat{G} for bootstrap sample
         
-        Ahat_b = Mhat10_b.getH()*np.linalg.inv(Ghat10_b)*Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
-        Ahat_b += Mhat20_b.getH()*np.linalg.inv(Ghat20_b)*Mhat20_b
+        Ahat_b = Mhat10_b.conj().T @ np.linalg.inv(Ghat10_b) @ Mhat10_b #bootstrap estimate of \hat{A}_0 (equation 8)
+        Ahat_b += Mhat20_b.conj().T @ np.linalg.inv(Ghat20_b) @ Mhat20_b
         Ahat_b *= n
         
         D_b,V_b = np.linalg.eig(Ahat_b) #Eigenvalues and eigenvectors
@@ -1285,25 +1428,31 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     Lmin_c = np.quantile(Lmin_b,1-alpha) #test critical value
     # (n.b., if Lmin > Lmin_c reject null of common means at alpha significance level)
 
-    if verbose: print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
-    if verbose: print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
-    if verbose: print("Estimated p-value = {:.2f}".format(p))
+    if verbose:
+        print("Heslop et al. (2023) test statistic value = {:.2f}".format(Lmin))
+    if verbose:
+        print("Heslop et al. (2023) critical test statistic value = {:.2f}".format(Lmin_c))
+    if verbose:
+        print("Estimated p-value = {:.2f}".format(p))
     if p < alpha:
-        if verbose:print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:
+            print("Reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 0
     else:
-        if verbose:print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
+        if verbose:
+            print("Cannot reject null of common means at alpha = {:.2f} confidence level".format(alpha))
         result = 1
         
-    if plot==True:
+    if plot:
         fig=plt.figure()
         ax1=fig.add_subplot(111)
-        plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6");
+        plt.hist(Lmin_b,bins=int(np.sqrt(num_sims)),color = "0.6", ec="0.6")
         #axes = plt.gca()
         y_min, y_max = ax1.get_ylim()
         plt.plot([Lmin,Lmin],[y_min,y_max],'--r',label='Test statistic:')
         plt.plot([Lmin_c,Lmin_c],[y_min,y_max],'-k',label='Critical value')
-        if y_max<Lmin:y_max=Lmin+5
+        if y_max<Lmin:
+            y_max=Lmin+5
         plt.ylim([y_min,y_max])
         plt.xlim(np.min(Lmin_b),np.max(Lmin_b)+10)
         plt.xlabel(r'$\lambda_{\rm{min}}^{(b)}$')
@@ -1324,7 +1473,8 @@ def common_mean_bootstrap_H23(Data1, Data2, num_sims=10000, alpha=0.05, plot=Tru
     return result, Lmin, Lmin_c, p
 
 
-def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no', save=False, save_folder='.', fmt='svg'):
+def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot=False,
+                       save=False, save_folder='.', fmt='svg', random_seed=None):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -1339,18 +1489,24 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         Data2 : a nested list of directional data [dec,inc] (a di_block)
         NumSims : number of Monte Carlo simulations (default is 5000)
         print_result : default is to print the test result (True)
-        plot : the default is no plot ('no'). 
-            Putting 'yes' will the plot the CDF from the Monte Carlo simulations.
+        plot : if True, plot the CDF from the Monte Carlo simulations
+            (default is False).
         save : optional save of plots (default is False)
         save_folder : path to where plots will be saved (default is current)
         fmt : format of figures to be saved (default is 'svg')
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
-        **printed text** (text describing the test result is printed), 
-        **result** (a boolean where 0 is fail and 1 is pass), 
-        **angle** (angle between the Fisher means of the two data sets), 
-        **critical_angle** (critical angle for the test to pass), 
-        **classification** (MM1990 classification for a positive test), 
+        tuple of (result, angle, critical_angle, classification) where:
+            result (int) : 1 if the test passes (common mean cannot be
+                rejected) or 0 if the test fails.
+            angle (float) : angle between the Fisher means of the two
+                data sets.
+            critical_angle (float) : critical angle of the Watson V test.
+            classification (str) : McFadden and McElhinny (1990)
+                classification ('A', 'B', 'C', 'indeterminate') for a
+                positive test, or '' for a negative test.
 
     Examples:
         Develop two populations of directions using ``ipmag.fishrot``. Use the
@@ -1360,6 +1516,7 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
         >>> ipmag.common_mean_watson(directions_A, directions_B)
     """
+    rng = pmag._resolve_rng(random_seed)
     pars_1 = pmag.fisher_mean(Data1)
     pars_2 = pmag.fisher_mean(Data2)
     cart_1 = pmag.dir2cart([pars_1["dec"], pars_1["inc"], pars_1["r"]])
@@ -1376,7 +1533,6 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
 
     # do monte carlo simulation of datasets with same kappas as data,
     # but a common mean
-    counter = 0
     Vp = []  # set of Vs from simulations
     for k in range(NumSims):
 
@@ -1384,13 +1540,13 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
         # calculate fisher stats
         Dirp = []
         for i in range(pars_1["n"]):
-            Dirp.append(pmag.fshdev(pars_1["k"]))
+            Dirp.append(pmag.fshdev(pars_1["k"], random_seed=rng))
         pars_p1 = pmag.fisher_mean(Dirp)
     # get a set of N2 fisher distributed vectors with k2,
     # calculate fisher stats
         Dirp = []
         for i in range(pars_2["n"]):
-            Dirp.append(pmag.fshdev(pars_2["k"]))
+            Dirp.append(pmag.fshdev(pars_2["k"], random_seed=rng))
         pars_p2 = pmag.fisher_mean(Dirp)
     # get the V for these
         Vk = pmag.vfunc(pars_p1, pars_p2)
@@ -1429,54 +1585,46 @@ def common_mean_watson(Data1, Data2, NumSims=5000, print_result=True, plot='no',
     D2 = (pars_2['dec'], pars_2['inc'])
     angle = pmag.angle(D1, D2)
 
+    # determine test result and classification
+    if V <= Vcrit:
+        result = 1
+        if critical_angle < 5:
+            classification = 'A'
+        elif critical_angle < 10:
+            classification = 'B'
+        elif critical_angle < 20:
+            classification = 'C'
+        else:
+            classification = 'indeterminate'
+    else:
+        result = 0
+        classification = ''
+
     if print_result:
         print("Results of Watson V test: ")
         print("")
         print("Watson's V:           " '%.1f' % (V))
         print("Critical value of V:  " '%.1f' % (Vcrit))
 
-    if V < Vcrit:
-        if print_result:
+        if V <= Vcrit:
             print('"Pass": Since V is less than Vcrit, the null hypothesis')
             print('that the two populations are drawn from distributions')
             print('that share a common mean direction can not be rejected.')
-        result = 1
-    elif V > Vcrit:
-        if print_result:
+        else:
             print('"Fail": Since V is greater than Vcrit, the two means can')
             print('be distinguished at the 95% confidence level.')
-        result = 0
-        classification = ''
-        
-    if print_result:
+
         print("")
         print("M&M1990 classification:")
         print("")
-        print("Angle between data set means: " '%.1f' % (angle))
+        print("Angle between data set means: " '%.1f' % (angle[0]))
         print("Critical angle for M&M1990:   " '%.1f' % (critical_angle))
 
-    if print_result:
-        if V > Vcrit:
-            print("")
-        elif V < Vcrit:
-            if critical_angle < 5:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'A'")
-                classification = 'A'
-            elif critical_angle < 10:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'B'")
-                classification = 'B'
-            elif critical_angle < 20:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'C'")
-                classification = 'C'
-            else:
-                print("The McFadden and McElhinny (1990) classification for")
-                print("this test is: 'INDETERMINATE;")
-                classification = 'indeterminate'
+        if V <= Vcrit:
+            print("The McFadden and McElhinny (1990) classification for")
+            print("this test is: '%s'" % classification)
 
-    if plot == 'yes':
+    if plot:
         CDF = {'cdf': 1}
         # pmagplotlib.plot_init(CDF['cdf'],5,5)
         plt.figure(figsize=(3.5, 2.5))
@@ -1513,7 +1661,7 @@ def common_mean_bayes(Data1, Data2, reversal_test=False):
     X1=pmag.dir2cart(Data1)
     X2=pmag.dir2cart(Data2) 
     
-    if reversal_test==True:
+    if reversal_test:
         X12=np.concatenate((X1,-X2), axis=0) #pool site directions
     else:
         X12=np.concatenate((X1,X2), axis=0) #pool site directions
@@ -1616,7 +1764,8 @@ def separate_directions(dec=None, inc=None, di_block=None):
 
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False,
                             color1='blue', color2='red',
-                            save=False, save_folder='.', fmt='svg',verbose=True):
+                            save=False, save_folder='.', fmt='svg', verbose=True,
+                            random_seed=None):
     """
     Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
     determine whether two populations of directions could be from an antipodal
@@ -1633,11 +1782,13 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
         save : boolean argument to save plots (default is False)
         save_folder : directory where plots will be saved (default is current directory, '.')
         fmt : format of saved figures (default is 'svg')
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
-        A boolean where 0 is fail and 1 is pass is returned. 
+        A boolean where 0 is fail and 1 is pass is returned.
         Plots of the cumulative distribution of Cartesian components are shown
-        an equal area plot if `plot_stereo = True`. 
+        an equal area plot if `plot_stereo = True`.
 
     Examples:
         Populations of roughly antipodal directions are developed here using
@@ -1662,7 +1813,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
     else:
         all_dirs = di_block
 
-    directions1, directions2 =pmag.flip(all_dirs)
+    directions1, directions2 = pmag.flip(all_dirs)
 
     if plot_stereo:
         # plot equal area with two modes
@@ -1673,24 +1824,26 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo=False
 
     result = common_mean_bootstrap(directions1, directions2,
                                    color1=color1, color2=color2,
-                                   save=save, save_folder=save_folder, fmt=fmt,verbose=True)
-    
+                                   save=save, save_folder=save_folder, fmt=fmt,
+                                   verbose=verbose, random_seed=random_seed)
+
     return result
 
 
 def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=10000, alpha=0.05, plot=True,
-                          save=False, save_folder='.', fmt='svg',verbose=True):
+                          save=False, save_folder='.', fmt='svg', verbose=True,
+                          random_seed=None):
     """
     Bootstrap reversal test following Heslop et al. (2023).
 
-    This function calls common_mean_bootstrap_H23 with directional data that have been flipped, 
-    for a reversal test. The directional data can be provided either as separate 
+    This function calls common_mean_bootstrap_H23 with directional data that have been flipped,
+    for a reversal test. The directional data can be provided either as separate
     declination and inclination arrays or as a di_block array.
 
     Parameters:
         dec (array): Array of declinations, only considered if di_block is None.
         inc (array): Array of inclinations, only considered if di_block is None.
-        di_block (array, optional): Directional data as [dec, inc] for each sample. If provided, 
+        di_block (array, optional): Directional data as [dec, inc] for each sample. If provided,
                                     dec and inc are ignored.
         num_sims (int, optional): Number of bootstrap simulations. Default is 1000.
         alpha (float, optional): Significance level for hypothesis testing. Default is 0.05.
@@ -1698,6 +1851,8 @@ def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=1000
         save (bool, optional): If True, save the histogram plot. Default is False.
         save_folder (str, optional): Directory where the histogram plot will be saved. Default is the current directory.
         fmt (str, optional): File format for saving the histogram plot. Default is 'svg'.
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
 
     Returns:
         tuple: Contains the following elements:
@@ -1712,13 +1867,15 @@ def reversal_test_bootstrap_H23(dec=None, inc=None, di_block=None, num_sims=1000
         all_dirs = di_block
 
     F1, F2 = pmag.flip(all_dirs)
-    
+
     return common_mean_bootstrap_H23(F1, F2, num_sims=num_sims, alpha=alpha, plot=plot,
-                                     save=save, save_folder=save_folder, fmt=fmt,verbose=verbose)
+                                     save=save, save_folder=save_folder, fmt=fmt,
+                                     verbose=verbose, random_seed=random_seed)
 
 
-def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, 
-                         plot_stereo=False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
+                         plot_stereo=False, save=False, save_folder='.', fmt='svg',
+                         random_seed=None):
     """
     Calculates Watson's V statistic from input files through Monte Carlo
     simulation in order to test whether normal and reversed populations could
@@ -1739,6 +1896,8 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
         save (bool, optional): If True, save the plots. Defaults to False.
         save_folder (str, optional): Directory path for saving plots. Defaults to current directory.
         fmt (str, optional): Format of saved figures. Defaults to 'svg'.
+        random_seed (None, int, or numpy.random.Generator, optional): Seed for
+            reproducible Monte Carlo sampling (default None).
 
     Returns:
         result (bool): 0 indicates fail, 1 indicates pass.
@@ -1778,12 +1937,14 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False,
         plot_di(di_block=directions1, color='b'),
         plot_di(di_block=do_flip(di_block=directions2), color='r')
 
-    if plot_CDF == False:
-        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, 
-                                                                         save=save, save_folder=save_folder, fmt=fmt)
+    if not plot_CDF:
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2,
+                                                                         save=save, save_folder=save_folder, fmt=fmt,
+                                                                         random_seed=random_seed)
     else:
-        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot='yes',
-                                                                         save=save, save_folder=save_folder, fmt=fmt)
+        result, angle, critical_angle, classification=common_mean_watson(directions1, directions2, plot=True,
+                                                                         save=save, save_folder=save_folder, fmt=fmt,
+                                                                         random_seed=random_seed)
     
     return result, angle, critical_angle, classification
 
@@ -2063,7 +2224,7 @@ def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
     ref_loc = (ref_loc_lon, ref_loc_lat)
     pole = (pole_plon, pole_plat)
     paleo_lat = 90 - pmag.angle(pole, ref_loc)
-    return float(paleo_lat)
+    return float(paleo_lat[0])
 
 
 def inc_from_lat(lat):
@@ -2149,7 +2310,7 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Xtick.append(XY[0])
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
-    ax.axis("equal")
+    ax.set_aspect("equal")
     ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
@@ -2194,25 +2355,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             dec, inc, intensity = di_lists
         if len(di_lists) == 2:
             dec, inc = di_lists
-    try:
-        length = len(dec)
-        for n in range(len(dec)):
-            XY = pmag.dimap(dec[n], inc[n])
-            if inc[n] >= 0:
-                X_down.append(XY[0])
-                Y_down.append(XY[1])
-                if type(color) == list:
-                    color_down.append(color[n])
-                else:
-                    color_down.append(color)
-            else:
-                X_up.append(XY[0])
-                Y_up.append(XY[1])
-                if type(color) == list:
-                    color_up.append(color[n])
-                else:
-                    color_up.append(color)
-    except:
+    if np.ndim(dec) == 0:
+        # scalar dec/inc values
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
@@ -2222,6 +2366,23 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             X_up.append(XY[0])
             Y_up.append(XY[1])
             color_up.append(color)
+    else:
+        for n in range(len(dec)):
+            XY = pmag.dimap(dec[n], inc[n])
+            if inc[n] >= 0:
+                X_down.append(XY[0])
+                Y_down.append(XY[1])
+                if isinstance(color, list):
+                    color_down.append(color[n])
+                else:
+                    color_down.append(color)
+            else:
+                X_up.append(XY[0])
+                Y_up.append(XY[1])
+                if isinstance(color, list):
+                    color_up.append(color[n])
+                else:
+                    color_up.append(color)
 
     if len(X_up) > 0:
         if connect_points:
@@ -2236,7 +2397,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend == 'yes':
         plt.legend(loc=2)
     plt.tight_layout()
-    if title != None:
+    if title is not None:
         plt.title(title)
 
 
@@ -2483,6 +2644,7 @@ def make_robinson_map(central_longitude=0, figsize=(8, 8),
         ax.gridlines(xlocs=lon_grid, ylocs=lat_grid)
     return ax
 
+
 def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
               marker='o', markersize=20, legend='no',outline=True,
               filled_pole=False, fill_color='k', fill_alpha=1.0, 
@@ -2523,9 +2685,9 @@ def plot_pole(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha = mean_alpha)
-    if filled_pole==False:
+    if not filled_pole:
         equi(map_axis, plon, plat, A95_km, color, alpha=A95_alpha)
-    elif filled_pole==True:
+    elif filled_pole:
         equi(map_axis, plon, plat, A95_km, fill_color, alpha=fill_alpha, outline=outline,fill=True)
     if legend == 'yes':
         plt.legend(loc=2)
@@ -2573,12 +2735,14 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
         >>> ipmag.plot_poles(map_axis, plons, plats, A95s, color=colors, markersize=40)
 
     """
-
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_poles')
+        return
     map_axis.scatter(plon, plat, marker=marker,
                      color=color, edgecolors=edgecolor, s=markersize,
                      label=label, zorder=zorder, transform=ccrs.PlateCarree(), alpha=alpha)
-    if filled_pole==False:
-        if isinstance(color,str)==True:
+    if not filled_pole:
+        if isinstance(color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, color, alpha=alpha, lw=lw)
@@ -2586,8 +2750,8 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, color[n], alpha=alpha, lw=lw)
-    elif filled_pole==True:
-        if isinstance(fill_color,str)==True:
+    elif filled_pole:
+        if isinstance(fill_color,str):
             for n in range(0,len(A95)):
                 A95_km = A95[n] * 111.32
                 equi(map_axis, plon[n], plat[n], A95_km, fill_color, alpha=fill_alpha, outline=outline, fill=True, lw=lw)
@@ -2598,6 +2762,7 @@ def plot_poles(map_axis, plon, plat, A95, label='', color='k', edgecolor='k',
 
     if legend == 'yes':
         plt.legend(loc=2)
+
 
 def plot_pole_ellipse(map_axis, dictionary, 
                       color='k', edgecolor='k', marker='s', 
@@ -2634,6 +2799,9 @@ def plot_pole_ellipse(map_axis, dictionary,
         >>> map_axis = ipmag.make_orthographic_map(central_longitude=200,central_latitude=90)
         >>> ipmag.plot_pole_ellipse(map_axis,kent_dict, color='red',markersize=40)
     """
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_pole_ellipse')
+        return
     pars = []
     pars.append(dictionary['dec'])
     pars.append(dictionary['inc'])
@@ -2660,7 +2828,7 @@ def plot_pole_ellipse(map_axis, dictionary,
 def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole', site_label='site',
                     pole_color='k', pole_edgecolor='k', pole_marker='o',
                     site_color='r', site_edgecolor='r', site_marker='s',
-                    markersize=20, legend=True, transform=ccrs.PlateCarree()):
+                    markersize=20, legend=True, transform="PlateCarree"):
     """
     This function plots a paleomagnetic pole and a dp/dm confidence ellipse on a cartopy map axis.
 
@@ -2683,11 +2851,12 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
         pole_label : string that labels the pole.
         site_label : string that labels the site
         legend : the default is a legend (True). Putting False will suppress legend plotting.
-        transform : the default is the PlateCarree transform in Cartopy. 
-                    Other transforms can be chosen (e.g. ccrs.geodetic), but this parameter 
-                    rarely needs to be changed by the user and is included for completeness
-                    and in case of artifacts arising from the PlateCarree transform on some
-                    map projections in which case the Geodetic transform may work better.
+        transform : str or cartopy.crs.Projection, default "PlateCarree"
+            The coordinate reference system used to interpret input coordinates.
+            Can be a string ("PlateCarree" or "Geodetic") or a Cartopy CRS object
+            (e.g., ccrs.PlateCarree()). If a string is provided, it will be
+            internally mapped to the appropriate Cartopy transform. This parameter
+            rarely needs to be changed, but "Geodetic" may help in certain projections.
 
     Examples:
         >>> dec = 280
@@ -2707,14 +2876,43 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_pole_dp_dm')
         return
+    
+    transform_map = {
+        "PlateCarree": ccrs.PlateCarree(),
+        "Geodetic": ccrs.Geodetic(),
+    }
+
+    if isinstance(transform, str):
+        if transform not in transform_map:
+            raise ValueError(f"Invalid transform '{transform}'. Choose from {list(transform_map)}.")
+        transform_obj = transform_map[transform]
+    else:
+        transform_obj = transform 
+        
     dp_km = dp*111.32
     dm_km = dm*111.32
-    map_axis.scatter(plon, plat, marker=pole_marker,
-                     color=pole_color, edgecolors=pole_edgecolor, s=markersize,
-                     label=pole_label, zorder=101, transform=ccrs.PlateCarree())
-    map_axis.scatter(slon, slat, marker=site_marker,
-                     color=site_color, edgecolors=site_edgecolor, s=markersize,
-                     label=site_label, zorder=101, transform=ccrs.PlateCarree())
+    map_axis.scatter(
+        plon,
+        plat,
+        marker=pole_marker,
+        color=pole_color,
+        edgecolors=pole_edgecolor,
+        s=markersize,
+        label=pole_label,
+        zorder=101,
+        transform=transform_obj,
+    )
+    map_axis.scatter(
+        slon,
+        slat,
+        marker=site_marker,
+        color=site_color,
+        edgecolors=site_edgecolor,
+        s=markersize,
+        label=site_label,
+        zorder=101,
+        transform=transform_obj,
+    )
     # the orientation of the ellipse needs to be determined using the
     # two laws of cosines for spherical triangles where the triangle is
     # A: site, B: north pole, C: paleomagnetic pole (see Fig. A.2 of Butler)
@@ -2757,7 +2955,7 @@ def plot_pole_dp_dm(map_axis, plon, plat, slon, slat, dp, dm, pole_label='pole',
             C_deg = np.abs(np.rad2deg(C_rad))
 
     # print(C_deg)
-    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform)
+    ellipse(map_axis, plon, plat, dp_km, dm_km, C_deg, color=pole_color, transform=transform_obj)
 
     if legend:
         plt.legend(loc=2)
@@ -2816,7 +3014,7 @@ def plot_poles_colorbar(map_axis, plons, plats, A95s, colorvalues, vmin, vmax,
             cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
         sm._A = []
         plt.colorbar(sm, orientation='horizontal', shrink=0.8,
-                     pad=0.05, label=colorbar_label)
+                     pad=0.05, label=colorbar_label, ax=map_axis)
 
 
 def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', color='k', marker='o',
@@ -2850,13 +3048,13 @@ def plot_vgp(map_axis, vgp_lon=None, vgp_lat=None, di_block=None, label='', colo
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.plot_vgp')
         return
-    if di_block != None:
+    if di_block is not None:
         di_lists = unpack_di_block(di_block)
         if len(di_lists) == 3:
             vgp_lon, vgp_lat, intensity = di_lists
         if len(di_lists) == 2:
             vgp_lon, vgp_lat = di_lists
-    if edge==None:
+    if edge is None:
         map_axis.scatter(vgp_lon, vgp_lat, marker=marker, edgecolors=None,
                     s=markersize, color=color, label=label, zorder=zorder, 
                     alpha=alpha, transform=ccrs.PlateCarree())
@@ -3155,6 +3353,9 @@ def plot_distributions(ax, lon_samples, lat_samples, to_plot='d', resolution=100
         resolution: the resolution at which to plot the distributions
         kwargs: other keyword arguments inherited from matplotlib
     '''
+    if not has_cartopy:
+        print('-W- cartopy must be installed to run ipmag.plot_distributions')
+        return
     cmap=kwargs.get('cmap', 'viridis')
 
     artists = []
@@ -3204,10 +3405,10 @@ def make_di_block(dec, inc, unit_vector=True):
         [[180.3, 12.1, 1.0], [179.2, 13.7, 1.0], [177.2, 11.9, 1.0]]
     """
     di_block = []
-    if unit_vector==True:
+    if unit_vector:
         for n in range(0, len(dec)):
             di_block.append([dec[n], inc[n], 1.0])
-    if unit_vector==False:
+    if not unit_vector:
         for n in range(0, len(dec)):
             di_block.append([dec[n], inc[n]])
     return di_block
@@ -3401,14 +3602,14 @@ def equi(map_axis, centerlon, centerlat, radius, color, alpha=1.0, outline=True,
     Y = Y[::-1]
 
     # for non-filled ellipses
-    if fill==False:
+    if not fill:
         plt.plot(X, Y, color=color,
                  transform=ccrs.Geodetic(), alpha=alpha, lw=lw)
 
     # for filled ellipses
     else:
         XY = np.stack([X,Y],axis=1)
-        if outline==True:
+        if outline:
             circle_edge = Polygon(XY,
                                   edgecolor=color,facecolor='none',
                                   transform=ccrs.Geodetic())
@@ -3442,7 +3643,7 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         The map object with the ellipse plotted on it
 
     """
-    if transform == None:
+    if transform is None:
         transform=ccrs.PlateCarree()
     if not has_cartopy:
         print('-W- cartopy must be installed to run ipmag.ellipse')
@@ -3470,8 +3671,10 @@ def ellipse(map_axis, centerlon, centerlat, major_axis, minor_axis, angle, n=360
         map_axis.add_patch(poly)
     else:
         try:
-            if "facecolor" in kwargs: kwargs["color"] = kwargs.pop("facecolor")
-            if "edgecolor" in kwargs: kwargs["color"] = kwargs.pop("edgecolor")
+            if "facecolor" in kwargs:
+                kwargs["color"] = kwargs.pop("facecolor")
+            if "edgecolor" in kwargs:
+                kwargs["color"] = kwargs.pop("edgecolor")
             map_axis.plot(X, Y, transform=transform, **kwargs)
             return True
         except ValueError:
@@ -3511,7 +3714,7 @@ def combine_magic(filenames, outfile='measurements.txt', data_model=3, magic_tab
                 magic_table))
             return False
         # figure out file type from first of files to join
-        with open(filenames[0]) as f:
+        with open(filenames[0], encoding="utf-8") as f:
             file_type = f.readline().split()[1]
         if file_type in ['er_specimens', 'er_samples', 'er_sites',
                          'er_locations', 'er_ages', 'pmag_specimens',
@@ -3992,9 +4195,11 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
         pcol += 1
 
     Data = pmag.get_dictitem(Data, 'aniso_s', '', 'not_null')
+    # filter out records where aniso_s is not a colon-delimited string (e.g. NaN)
+    Data = [d for d in Data if isinstance(d.get('aniso_s'), str) and ':' in d['aniso_s']]
     # get all the s1 values from Data as floats
     aniso_s = pmag.get_dictkey(Data, 'aniso_s', '')
-    aniso_s = [a.split(':') for a in aniso_s if a is not None]
+    aniso_s = [a.split(':') for a in aniso_s]
     #print('aniso_s', aniso_s)
     s1 = [float(a[0]) for a in aniso_s]
     s2 = [float(a[1]) for a in aniso_s]
@@ -4051,8 +4256,10 @@ def ani_depthplot(spec_file='specimens.txt', samp_file='samples.txt',
             for depth in depths:
                 if depth >= dmin and depth < dmax:
                     plt.axhline(depth,color='blue',linestyle='dotted')
-        if tau_min>.3: tau_min=.3
-        if tau_max<.36: tau_max=.36
+        if tau_min>.3:
+            tau_min=.3
+        if tau_max<.36:
+            tau_max=.36
         ax.axis([tau_min, tau_max, dmax, dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale == 'core_depth':
@@ -4238,7 +4445,8 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     if spc_size:
         spc_size = int(spc_size)
     title = ""
-    if location:title=location
+    if location:
+        title=location
 
     # file formats not supported for the moment
     ngr_file = ""  # nothing needed, not implemented fully in original script
@@ -4428,7 +4636,7 @@ def core_depthplot(input_dir_path='.', meas_file='measurements.txt', spc_file=''
     if sum_file:
         # os.path.join(input_dir_path, sum_file)
         sum_file = pmag.resolve_file_name(sum_file, input_dir_path)
-        with open(sum_file, 'r') as fin:
+        with open(sum_file, 'r', encoding="utf-8") as fin:
             indat = fin.readlines()
         if "Core Summary" in indat[0]:
             headline = 1
@@ -4992,8 +5200,8 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                     table_dicts=table.to_dict('records')
                     outfile = os.path.join(dir_path, sheet + '.txt')
                     pmag.magic_write(outfile,table_dicts,sheet)
-                except:
-                    print ('sheet not found ',sheet)
+                except Exception as ex:
+                    print (f'sheet not found {sheet}: {ex}')
             return
 
         # try to deal reasonably with unicode errors
@@ -5146,7 +5354,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
                 locnum += 1
                 try:
                     os.mkdir(lpath)
-                except:
+                except FileExistsError:
                     print('directory ', lpath,
                           ' already exists - overwriting everything: {}'.format(overwrite))
                     if not overwrite:
@@ -5195,7 +5403,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
     out_path = os.path.join(directory, file_name)
     
     # Define API endpoint
-    api = f'https://api.earthref.org/v1/MagIC/data'
+    api = 'https://api.earthref.org/v1/MagIC/data'
     params = {'id': magic_id, 'key': share_key} if share_key else {'id': magic_id}
 
     # Perform the request
@@ -5203,7 +5411,7 @@ def download_magic_from_id(magic_id, directory='.', share_key=""):
 
     if response.status_code == 200 and response.text:
         # Write the content to the file only if the request was successful and the content is not empty
-        with open(out_path, 'w') as file:
+        with open(out_path, 'w', encoding="utf-8") as file:
             file.write(response.text)
         print("Download successful. File saved to:", out_path)
         return True, file_name
@@ -5245,7 +5453,7 @@ def download_magic_from_doi(doi):
         for filename in contribution_zip.namelist():
             if (re.match(r'^\d+\/magic_contribution_\d+\.txt', filename)):
                 contribution_text = io.TextIOWrapper(contribution_zip.open(filename)).read()
-                with open('magic_contribution.txt', 'wt') as fh:
+                with open('magic_contribution.txt', 'wt', encoding="utf-8") as fh:
                     fh.write(contribution_text)
                 print(filename, 'extracted to magic_contribution.txt', '\n')
                 return True, ""
@@ -5373,7 +5581,7 @@ def upload_magic2(concat=0, dir_path='.', data_model=None):
                 # (this causes validation errors, elsewise)
                 ignore = True
                 for rec in Data:
-                    if ignore == False:
+                    if not ignore:
                         break
                     keys = list(rec.keys())
                     exclude_keys = ['er_citation_names', 'er_site_name', 'er_sample_name',
@@ -5772,7 +5980,8 @@ def create_private_contribution(username="",password=""):
             response['url']=create_response.request.url
             response['id']='None'
             response['errors']=create_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error creating private contribution:", e)
         pass
     return response
 
@@ -5821,7 +6030,8 @@ def delete_private_contribution(contribution_id,username="",password=""):
             response['url']=delete_response.request.url
             response['id']='None'
             response['errors']=delete_response.json()['errors'][0]['message']
-    except:
+    except Exception as e:
+        print("Error deleting private contribution:", e)
         pass
     return response
 
@@ -5859,7 +6069,7 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
     response['method']='PUT'
     response['upload_file']=upload_file
     try:
-        with open(upload_file, 'rb') as f:
+        with open(upload_file, 'rb', encoding="utf-8") as f:
             upload_response = requests.put(api.format('private'),
                                           params={'id':contribution_id},
                                           auth=(username, password),
@@ -5873,8 +6083,8 @@ def upload_to_private_contribution(contribution_id, upload_file,username="",pass
             response['status_code']=False
             response['url']=upload_response.request.url
             #response['errors']=upload_response.json()['errors'][0]['message']
-    except:
-        print ('trouble uploading:')
+    except Exception as e:
+        print ('trouble uploading:', e)
         print (upload_response.json()['errors'])
     return response
 
@@ -5923,7 +6133,8 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             response['errors']='None'
             errors_dict=json.loads(create_response.text)
             response['validation_results']=errors_dict['validation']['errors']
-            if verbose:print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
+            if verbose:
+                print('Validated contribution with ID', contribution_id, ':\n', response['validation_results'])
         else:
             response['status_code']=False
             response['url']=create_response.request.url
@@ -5931,8 +6142,8 @@ def validate_private_contribution(contribution_id,username="",password="",verbos
             response['validation_results']='None'
             print('A private contribution with ID', contribution_id,
                   ' could not be found in your private workspace for validation\n')
-    except:
-        print ('trouble validating:')
+    except Exception as e:
+        print ('trouble validating:', e)
     return response
 
 
@@ -5991,7 +6202,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else:
         nositeints = 1
 
-    # chagne these all to True/False instead of 1/0
+    # change these all to True/False instead of 1/0
 
     if not skip_intensities:
         # set model lat and
@@ -6016,7 +6227,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     ModelLat["sample_lat"] = tmp[1]
                     ModelLats.append(ModelLat)
                 mlat.clos()
-            except:
+            except FileNotFoundError:
                 print("use_paleolatitude option requires a valid paleolatitude file")
         else:
             get_model_lat = 0  # skips VADM calculation entirely
@@ -6912,8 +7123,8 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                     ImageRecs.append(map_magic.mapping(
                         image_rec, map_magic.image_magic3_2_magic2_map))
             print('image data to be appended to: ', image_file)
-        except:
-            print('problem with existing file: ',
+        except Exception as e:
+            print('problem', e, ' with existing file: ',
                   image_file, ' will create new.')
     #
     # read in file to convert
@@ -7104,7 +7315,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             try:
                 x, y, z, f = pmag.doigrf(lon, lat, 0, decimal_year)
             except TypeError: # see issue 617
-                return None, "Only dates prior to 2020 supported"
+                return None, "Only dates prior to 2030 supported"
             Dir = pmag.cart2dir((x, y, z))
             dec_correction = Dir[0]
         if "bedding_dip" in list(OrRec.keys()):
@@ -7494,8 +7705,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="samples.txt", samp_con="1",
         try:
             SampRecs, file_type = pmag.magic_read(samp_file)
             print("sample data to be appended to: ", samp_file)
-        except:
-            print('problem with existing samp file: ',
+        except Exception as e:
+            print('problem: ', e, ' with existing samp file',
                   samp_file, ' will create new')
     #
     # read in file to convert
@@ -7631,7 +7842,7 @@ class Site(object):
         os.path.join
         self.file_names = []
         for file_name in self.all_file_names:
-            if re.match('.*txt', file_name) != None:
+            if re.match('.*txt', file_name) is not None:
                 self.file_names.append(file_name)
         for i in self.file_names:
             path_to_open = os.path.join(dir_name, i)
@@ -7651,9 +7862,9 @@ class Site(object):
         #self.er_sites_path = er_sites_path
         if self.data_format == "MagIC":
             self.fits = pd.read_csv(self.data_path, sep="\t", skiprows=1)
-            if self.mean_path != None:
+            if self.mean_path is not None:
                 self.means = pd.read_csv(self.mean_path, sep="\t", skiprows=1)
-            if self.er_sites_path != None:
+            if self.er_sites_path is not None:
                 self.location = pd.read_csv(
                     self.er_sites_path, sep="\t", skiprows=1)
         else:
@@ -7663,7 +7874,7 @@ class Site(object):
         self.lon = float(self.location.site_lon)
         # the following exception won't be necessary if parse_all_fits is
         # working properly
-        if self.mean_path == None:
+        if self.mean_path is None:
             raise Exception(
                 'Make fisher means within the demag GUI - functionality for handling this is in progress')
 
@@ -7695,7 +7906,7 @@ class Site(object):
 
     def get_fisher_mean(self, fit_name):
         mean_name = str(fit_name) + "_mean"
-        if self.mean_path != None:
+        if self.mean_path is not None:
             self.fisher_dict = {'dec': float(getattr(self, mean_name).site_dec),
                                 'inc': float(getattr(self, mean_name).site_inc),
                                 'alpha95': float(getattr(self, mean_name).site_alpha95),
@@ -7757,7 +7968,7 @@ class Site(object):
                              float(getattr(self, mean_code).site_alpha95),
                              color=self.random_color, marker='s', label=fits + ' mean')
         plt.legend(**kwargs)
-        if title != None:
+        if title is not None:
             plt.title(title)
         plt.show()
 
@@ -7777,7 +7988,7 @@ class Site(object):
                      float(getattr(self, mean_code).site_inc),
                      float(getattr(self, mean_code).site_alpha95), marker='s', label=fit_name + ' mean')
         plt.legend(**kwargs)
-        if title != None:
+        if title is not None:
             plt.title(title)
         plt.show()
 
@@ -8026,7 +8237,7 @@ def smooth(x, window_len, window='bartlett'):
         return x
 
     # numpy available windows
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError(
             "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
@@ -8081,7 +8292,7 @@ def curie(path_to_file='.', file_name='', magic=False,
         magn_key = cb.get_intensity_col(data_df)
         M = data_df[magn_key].values
     else:
-        Data = np.loadtxt(complete_path, dtype=np.float)
+        Data = np.loadtxt(complete_path, dtype=float)
         T = Data.transpose()[0]
         M = Data.transpose()[1]
     T = list(T)
@@ -8216,8 +8427,8 @@ def curie(path_to_file='.', file_name='', magic=False,
             try:
                 plt.figure(num=PLT[key])
                 plt.savefig(save_folder + '/' + files[key].replace('/', '-'))
-            except:
-                print('could not save: ', PLT[key], files[key])
+            except Exception as e:
+                print('could not save: ', PLT[key], files[key], ' because', e)
                 print("output file format not supported ")
     plt.show()
 
@@ -8255,8 +8466,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
     if EXP != "":
         try:
             k = experiment_names.index(EXP)
-        except:
-            print("Bad experiment name")
+        except Exception as e:
+            print("Bad experiment name:", e)
             sys.exit()
     while k < len(experiment_names):
         e = experiment_names[k]
@@ -8343,8 +8554,8 @@ def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',
                         plt.figure(num=PLTS[key])
                         plt.savefig(save_folder + '/' +
                                     files[key].replace('/', '-'))
-                    except:
-                        print('could not save: ', PLTS[key], files[key])
+                    except Exception as e:
+                        print('could not save: ', PLTS[key], files[key], ' because', e)
                         print("output file format not supported ")
 
 
@@ -8764,7 +8975,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
     elif plot_by == 'spc':
         plot_key = 'er_specimen_name'
 
-    if treat != None:
+    if treat is not None:
         LT = 'LT-' + treat + '-Z'  # get lab treatment for plotting
         if LT == 'LT-T-Z':
             units, dmag_key = 'K', 'treatment_temp'
@@ -8815,7 +9026,7 @@ def demag_magic(path_to_file='.', file_name='magic_measurements.txt',
     int_key = IntMeths[0]
     # print plotlist
     if individual is not None:
-        if type(individual) == list or type(individual) == tuple:
+        if isinstance(individual, (list, tuple)):
             plotlist = list(individual)
         else:
             plotlist = []
@@ -8979,7 +9190,8 @@ def iplot_hys(fignum, B, M, s):
         poly = polyfit(Baz, Maz, 1)
         Bac = -poly[1]/poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception as e:
+        print("cannot compute Bc:", e)
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm, B, Mnorm, MadjN
 
@@ -9163,8 +9375,8 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
                 ax4.axvline(0, color='k')
                 ax4.set_xlabel('B (T)')
                 ax4.set_ylabel('M/Mr')
-        except:
-            print("not doing it")
+        except Exception as e:
+            print("Processing skipped because:", e)
             hpars['hysteresis_bcr'] = '0'
             hpars['magic_method_codes'] = ""
         plt.gcf()
@@ -9177,8 +9389,9 @@ def hysteresis_magic2(path_to_file='.', hyst_file="rmag_hysteresis.txt",
 
 
 def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
-            site_correction=False, return_new_dirs=False, figprefix='EI', 
-            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False):
+            site_correction=False, return_new_dirs=False, figprefix='EI',
+            return_values=False, num_resample_to_plot=1000, data_color='k', EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, tight_axes=False,
+            random_seed=None):
     """
     Applies series of assumed flattening factors and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03;
@@ -9211,23 +9424,26 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
         resample_EI_color: the color of the EI curves for all f values except for the most frequent f (default is grey)
         resample_EI_alpha: the transparency of the EI curves for all f values except for the most frequent f (default is grey)
         tight_axes: optional argument to tighten up the axes limits for the inclination-elongation figure
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible bootstrap resampling (default None).
 
     Returns:
         - equal area plot of original directions
-        - Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+        - Elongation/inclination pairs as a function of f,  data plus num_resample_to_plot bootstrap samples
         - Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
             Estimate from original data set plotted as solid line
-        - Orientation of principle direction through unflattening
-     
-    NOTE: 
+        - Orientation of principal direction through unflattening
+
+    NOTE:
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
+    rng = pmag._resolve_rng(random_seed)
+
     print("Bootstrapping.... be patient")
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
     plt.figure(num=1, figsize=(4, 4))
     plot_net(1)
@@ -9256,7 +9472,7 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     b = 0
 
     while b < nb:
-        bdata = pmag.pseudo(data)
+        bdata = pmag.pseudo(data, random_seed=rng)
         Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
         if b < num_resample_to_plot:
             plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
@@ -9278,19 +9494,19 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
-        title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
         title = 'Pathological Distribution: ' 
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_EI_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     cdf_fig_num = 3
     plt.figure(num=cdf_fig_num, figsize=(4, 4))
     pmagplotlib.plot_cdf(cdf_fig_num, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(cdf_fig_num, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(cdf_fig_num, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(cdf_fig_num, [Inc], 'g', '-')
     pmagplotlib.plot_vs(cdf_fig_num, [Io], 'k', '-')
     if save:
@@ -9323,11 +9539,11 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     
@@ -9343,10 +9559,12 @@ def find_ei(data, nb=1000, save=False, save_folder='.', fmt='svg',
     else:
         return
 
+
 def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, save=False, save_folder='.', fmt='svg',
-                return_new_dirs=False, return_values=False, figprefix='EI', 
-                num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05, 
-                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0):
+                return_new_dirs=False, return_values=False, figprefix='EI',
+                num_resample_to_plot=1000, EI_color='r', resample_EI_color='grey', resample_EI_alpha=0.05,
+                 vgp_nb=100, cmap='viridis_r', central_longitude=0, central_latitude=0,
+                 random_seed=None):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
     Finds flattening factor that gives elongation/inclination pair consistent with TK03
@@ -9394,12 +9612,12 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
         valid solutions and those are plotted in the CDFs and E/I plot.
     """
-    
+    rng = pmag._resolve_rng(random_seed)
+
     print("Bootstrapping.... be patient")
     print("")
     sys.stdout.flush()
 
-    upper, lower = int(round(.975 * nb)), int(round(.025 * nb))
     E, I = [], []
 
     ppars = pmag.doprinc(data)
@@ -9419,7 +9637,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     b = 0
 
     while b < nb:
-        bdata = pmag.pseudo(data)
+        bdata = pmag.pseudo(data, random_seed=rng)
         Esb, Isb, Fsb, V2sb = pmag.find_f(bdata)
         if b < num_resample_to_plot:
             plt.plot(Isb, Esb, resample_EI_color, alpha=resample_EI_alpha)
@@ -9438,17 +9656,19 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     for i in I:
         Eexp.append(pmag.EI(i))
     plt.plot(I, Eexp, 'k')
+    
+    i_lo, i_hi = np.quantile(I, [0.025, 0.975])
     if Inc == 0:
         title = 'Pathological Distribution: ' + \
-            '[%7.1f, %7.1f]' % (I[lower], I[upper])
+            '[%7.1f, %7.1f]' % (i_lo, i_hi)
     else:
-        title = '%7.1f [%7.1f, %7.1f]' % (Inc, I[lower], I[upper])
+        title = '%7.1f [%7.1f, %7.1f]' % (Inc, i_lo, i_hi)
     if save:
         plt.savefig(save_folder+'/'+figprefix+'_bootstraps'+'.'+fmt, bbox_inches='tight', dpi=300)
 
     plt.figure(figsize=(4, 4))
     pmagplotlib.plot_cdf(2, I, r'inclination ($^\circ$)', 'r', title)
-    pmagplotlib.plot_vs(2, [I[lower], I[upper]], 'b', '--')
+    pmagplotlib.plot_vs(2, [i_lo, i_hi], 'b', '--')
     pmagplotlib.plot_vs(2, [Inc], 'g', '-')
     pmagplotlib.plot_vs(2, [Io], 'k', '-')
     if save:
@@ -9532,11 +9752,11 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     print("")
     print("The corrected inclination is: " + str(np.round(Inc,2)))
     print("with bootstrapped confidence bounds of: " +
-          str(np.round(I[lower],2)) + ' to ' + str(np.round(I[upper],2)))
+          str(np.round(i_lo,2)) + ' to ' + str(np.round(i_hi,2)))
     print("and elongation parameter of: " + str(np.round(Elong,2)))
     print("The flattening factor is: " + str(np.round(flat_f,2)))
-    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[lower]))
-    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(I[upper]))
+    f_lower = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_lo))
+    f_upper = np.tan(np.deg2rad(Io))/np.tan(np.deg2rad(i_hi))
     print("with bootstrapped confidence bounds of: " +
            str(np.round(f_lower,2)) + ' to ' + str(np.round(f_upper,2)))
     print("")
@@ -9560,7 +9780,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
                           f_from_compilation=None, n=10000, n_fish=100,
                           return_poles=False, return_kent_stats=True,
                           return_paleolats=False, map_central_longitude=0,
-                          map_central_latitude=0):
+                          map_central_latitude=0, random_seed=None):
     
     """
     Applies flattening factors from the compilation to sedimentary paleomagnetic pole where only
@@ -9593,6 +9813,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
             False)
         map_central_longitude: central longitude for the orthographic map (default is 0)
         map_central_latitude: central latitude for the orthographic map (default is 0)
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible resampling (default None).
 
     Returns:
         Depending on the combination of boolean flags provided, returns one or more of:
@@ -9619,7 +9841,9 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     else:
         f_from_compilation = pd.Series(f_from_compilation)
 
-    f_resample = f_from_compilation.sample(n=n, replace=True).tolist()
+    rng = pmag._resolve_rng(random_seed)
+    idx = rng.integers(0, len(f_from_compilation), n)
+    f_resample = f_from_compilation.iloc[idx].tolist()
 
     plt.figure(figsize=(6, 6))
     plt.hist(f_resample, alpha=0.6, density=1)
@@ -9651,7 +9875,8 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
             n=n_fish,
             dec=unsquish_plon,
             inc=unsquish_plats,
-            di_block=0)
+            di_block=0,
+            random_seed=rng)
         compilation_mean_lons.extend(resampled_lons)
         compilation_mean_lats.extend(resampled_lats)
 
@@ -9681,6 +9906,199 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
         results.append(f_compilation_kent_distribution_95)
     if return_paleolats:
         results.append(compilation_paleolats)
+
+    if len(results) == 1:
+        return results[0]
+    return tuple(results)
+ 
+                              
+def find_svei_kent(
+    di_block,
+    site_latitude,
+    site_longitude,
+    f_low,
+    f_high,
+    kent_color="k",
+    n=1000,
+    save=False,
+    save_folder=".",
+    figprefix="SVEI",
+    fmt="svg",
+    return_poles=False,
+    return_kent_stats=True,
+    return_paleolats=False,
+    vgp_nb=100,
+    cmap="viridis_r",
+    central_longitude=0,
+    central_latitude=0,
+    random_seed=None,
+):
+    """
+    Uses a uniform distribution of flattening factors (f) derived from the SVEI analysis
+    of Tauxe et al. (2024) to correct inclination shallowing in sedimentary paleomagnetic
+    data and quantify uncertainty in the resulting mean pole using a Kent distribution.
+
+    The f values are sampled uniformly from a user-defined interval (`f_low`, `f_high`) 
+    that should be determined in advance using the `find_flat` function of the SVEI 
+    module (Tauxe et al., 2024), which identifies the range of flattening factors 
+    consistent with the THG24 geomagnetic field model.
+
+    For each sampled f, the directions are "unflattened" using the tangent transformation,
+    converted to VGPs, and resampled with a Fisher distribution. The resulting distribution
+    of mean poles is summarized with a Kent distribution. Plots of corrected directions,
+    paleolatitudes, and resampled poles are optionally generated and saved.
+
+    Parameters:
+        di_block : list or array-like (a di block)
+            Nested list or array of [dec, inc] or [dec, inc, intensity] directional data.
+        site_latitude : float
+            Latitude of the paleomagnetic sampling site.
+        site_longitude : float
+            Longitude of the paleomagnetic sampling site.
+        f_low : float
+            Lower bound for flattening factor, as determined from SVEI analysis (e.g. 0.51).
+        f_high : float
+            Upper bound for flattening factor, as determined from SVEI analysis (e.g. 0.89).
+        kent_color : str, optional
+            Color of the plotted Kent ellipse (default is 'k').
+        n : int, optional
+            Number of flattening factors to sample (default is 1000).
+        save : bool, optional
+            If True, saves figures to the specified folder (default is False).
+        save_folder : str, optional
+            Directory to save plots (default is current directory).
+        figprefix : str, optional
+            Prefix for saved figure filenames (default is 'SVEI').
+        fmt : str, optional
+            Format for saved figures (e.g., 'svg', 'png') (default is 'svg').
+        return_poles : bool, optional
+            If True, returns the resampled mean pole positions (default is False).
+        return_kent_stats : bool, optional
+            If True, returns the Kent distribution statistics (default is True).
+        return_paleolats : bool, optional
+            If True, returns the distribution of calculated paleolatitudes (default is False).
+        vgp_nb : int, optional
+            Number of Fisher resamples per unflattened mean pole (default is 100).
+        cmap : str, optional
+            Colormap used to indicate f value in directional plots (default is 'viridis_r').
+        central_longitude : float, optional
+            Central longitude of the orthographic projection (default is 0).
+        central_latitude : float, optional
+            Central latitude of the orthographic projection (default is 0).
+        random_seed : None, int, or numpy.random.Generator
+            Seed for reproducible random number generation (default is None).
+
+    Returns:
+        Depending on flags, returns one or more of:
+        - kent_stats : dict
+            Kent distribution parameters summarizing the resampled mean poles.
+        - mean_lons, mean_lats : list of float
+            Longitudes and latitudes of resampled mean poles.
+        - paleolats : list of float
+            Paleolatitudes calculated from resampled mean poles.
+
+    Notes:
+        This function assumes the user has previously run the SVEI `find_flat` function
+        (Tauxe et al., 2024) to determine the range of flattening factors (`f_low`, `f_high`)
+        that are consistent with the THG24 GGP model for the dataset under consideration.
+    """
+    rng = pmag._resolve_rng(random_seed)
+    f_resample = rng.uniform(f_low,f_high,n)
+
+    plt.figure(figsize=(4,4))
+    plot_net()
+    cNorm  = colors.Normalize(vmin=min(f_resample), vmax=max(f_resample))
+    f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
+        
+    di_lists = unpack_di_block(di_block)
+    if len(di_lists) == 3:
+        decs, incs, intensity = di_lists
+    if len(di_lists) == 2:
+        decs, incs = di_lists
+
+    mean_lons = []
+    mean_lats = []
+    paleolats=[]
+    
+    VGPs = pmag.dia_vgp(np.array([decs, incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+    VGPs_lons, VGPs_lats = VGPs[0], VGPs[1]
+    uncorrected_pole = fisher_mean(VGPs_lons, VGPs_lats)
+    plon = uncorrected_pole['dec'] 
+    plat = uncorrected_pole['inc']
+    A95 = uncorrected_pole['alpha95']
+    
+    for f in f_resample:
+        unsquish_incs = unsquish(incs, f)
+        #unsquish_mean_dir=fisher_mean(dec=decs,inc=unsquish_incs)
+        unsquish_VGPs = pmag.dia_vgp(np.array([decs, unsquish_incs, np.zeros(len(decs)), np.full(len(decs), site_latitude), np.full(len(decs),site_longitude)]).T)
+        unsquish_lons, unsquish_lats = unsquish_VGPs[0], unsquish_VGPs[1]
+        unsquish_VGPs_mean = fisher_mean(unsquish_lons, unsquish_lats)
+        resampled_lons, resampled_lats = fisher_mean_resample(alpha95=unsquish_VGPs_mean['alpha95'], n=vgp_nb,
+                                                        dec=unsquish_VGPs_mean['dec'], inc=unsquish_VGPs_mean['inc'], di_block=0,
+                                                        random_seed=rng)
+        resampled_poles = np.column_stack((resampled_lons, resampled_lats))
+        N = resampled_poles.shape[0]  # Number of rows
+        site_array = np.tile([site_longitude,site_latitude], (N, 1))
+        mean_lons.extend(resampled_lons)
+        mean_lats.extend(resampled_lats)
+        plats = 90 - pmag.angle(resampled_poles, site_array)
+        paleolats.extend(plats.tolist())
+        rgba = f_scalarMap.to_rgba(f)
+        hex_color = colors.rgb2hex(rgba)
+        plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
+    cb = plt.colorbar(f_scalarMap, ax=plt.gca(),orientation='horizontal',fraction=0.05, pad=0.05)
+    cb.ax.tick_params(labelsize=14)
+    cb.ax.set_title(label='$f$ values', fontsize=14)
+
+    if save:
+        plt.savefig(save_folder+'/'+figprefix+'_corrected_directions'+'.'+fmt, bbox_inches='tight', dpi=300)
+
+    plat_med=np.median(paleolats)
+    plat_lower, plat_upper = np.round(np.percentile(paleolats, [2.5, 97.5]), 1)
+    mu, std = stats.norm.fit(paleolats)
+    x = np.linspace(min(paleolats), max(paleolats), 100)
+    p = stats.norm.pdf(x, mu, std)
+
+    plt.figure(figsize=(4, 4))
+    plt.hist(paleolats, bins=15, alpha=0.6, density=1)
+    plt.plot(x, p, 'k', linewidth=1)
+
+    plt.axvline(x=plat_lower, color = 'gray', ls='--')
+    plt.axvline(x=plat_upper, color = 'gray', ls='--')
+
+    plt.title('%7.1f [%7.1f, %7.1f]' % (plat_med, plat_lower, plat_upper) + '\nFit result: mu='+str(round(mu,2))+'\nstd='+str(round(std, 2)), fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.xlabel(r'paleolatitude ($^\circ$)', fontsize=16)
+    plt.ylabel('density', fontsize=16)
+        
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+        
+    plt.show()
+            
+    # plot resampled mean poles
+    m = make_orthographic_map(central_longitude, central_latitude)
+    plot_vgp(m, mean_lons, mean_lats, color='lightgrey', edge='none', markersize=5, alpha=0.02)
+        
+    kent_stats = kent_distribution_95(dec=mean_lons,inc=mean_lats) 
+    print_kent_mean(kent_stats)
+    plot_pole_ellipse(m,kent_stats, color=kent_color,label="Kent mean pole")
+    plot_pole(m, plon, plat, A95, label="uncorrected pole position", color="C0")
+    plt.legend(loc=8, fontsize=14)
+    
+    if save:
+         plt.savefig(save_folder+'/'+figprefix+'_paleolatitudes'+'.'+fmt, bbox_inches='tight', dpi=300)
+ 
+    plt.show()
+
+    results = []
+    if return_kent_stats:
+        results.append(kent_stats)
+    if return_poles:
+        results.extend([mean_lons, mean_lats])
+    if return_paleolats:
+        results.append(paleolats)
 
     if len(results) == 1:
         return results[0]
@@ -9799,10 +10217,9 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
                     100000)/((pole1_age - pole2_age) * 1000000)
     print("The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate))
 
-    if random_seed != None:
-        np.random.seed(random_seed)
-    pole1_MCages = np.random.normal(pole1_age, pole1_age_error, samplesize)
-    pole2_MCages = np.random.normal(pole2_age, pole2_age_error, samplesize)
+    rng = pmag._resolve_rng(random_seed)
+    pole1_MCages = rng.normal(pole1_age, pole1_age_error, samplesize)
+    pole2_MCages = rng.normal(pole2_age, pole2_age_error, samplesize)
 
     plt.hist(pole1_MCages, 100, histtype='stepfilled',
              color='darkred', label='Pole 1 ages')
@@ -9825,7 +10242,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         for vgp in range(pole1_N):
             # pmag.dev returns a direction from a fisher distribution with
             # specified kappa
-            direction_atN = pmag.fshdev(pole1_kappa)
+            direction_atN = pmag.fshdev(pole1_kappa, random_seed=rng)
             # this direction is centered at latitude of 90 degrees and needs to be rotated
             # to be centered on the mean pole position
             tilt_direction = pole1_plon
@@ -9850,7 +10267,7 @@ def plate_rate_mc(pole1_plon, pole1_plat, pole1_kappa, pole1_N, pole1_age, pole1
         for vgp in range(pole2_N):
             # pmag.dev returns a direction from a fisher distribution with
             # specified kappa
-            direction_atN = pmag.fshdev(pole2_kappa)
+            direction_atN = pmag.fshdev(pole2_kappa, random_seed=rng)
             # this direction is centered at latitude of 90 degrees and needs to be rotated
             # to be centered on the mean pole position
             tilt_direction = pole2_plon
@@ -9977,7 +10394,7 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
         SIunits = "U"
     if file != "":
         f = pd.read_csv(os.path.join(path_to_file, file),
-                        delim_whitespace=True, header=None)
+                        sep=r"\s+", header=None)
         f.columns = ['specimen', 'treatment',
                      'intensity', 'declination', 'inclination']
         # adjust for angle rotation
@@ -10001,9 +10418,9 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
     if make_plots:
         ZED = {}
         ZED['eqarea'], ZED['zijd'],  ZED['demag'] = 2, 1, 3
-        plt.figure(num=ZED['zijd'], figsize=(5, 5));
-        plt.figure(num=ZED['eqarea'], figsize=(5, 5));
-        plt.figure(num=ZED['demag'], figsize=(5, 5));
+        plt.figure(num=ZED['zijd'], figsize=(5, 5))
+        plt.figure(num=ZED['eqarea'], figsize=(5, 5))
+        plt.figure(num=ZED['demag'], figsize=(5, 5))
 #
 #
         pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
@@ -10026,12 +10443,13 @@ def zeq(path_to_file='.', file='', data="", units='U', calculation_type="DE-BFL"
             recnum += 1
         #pmagplotlib.draw_figs(ZED)
     if begin_pca != "" and end_pca != "" and calculation_type != "":
-        if make_plots:pmagplotlib.plot_zed(ZED, datablock, angle, s,
-                             SIunits)  # plot the data
+        if make_plots:
+            pmagplotlib.plot_zed(ZED, datablock, angle, s, SIunits)  # plot the data
         # get best-fit direction/great circle
         mpars = pmag.domean(datablock, begin_pca, end_pca, calculation_type)
         # plot the best-fit direction/great circle
-        if make_plots:pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
+        if make_plots:
+            pmagplotlib.plot_dir(ZED, mpars, datablock, angle)
         print('Specimen, calc_type, N, min, max, MAD, dec, inc')
         if units == 'mT':
             print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s, calculation_type,
@@ -10149,8 +10567,7 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
             isite = 0
             plot = 1
         else:
-            sitelist = spec_df['site'].unique()
-            sitelist.sort()
+            sitelist = sorted(spec_df['site'].unique())
             plot = len(sitelist)
     else:
         plot = 1
@@ -10616,20 +11033,18 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                             PDir.append(float(di[0]))
                             PDir.append(float(di[1]))
                             con = 0
-                        except:
+                        except Exception as e:
                             cnt += 1
                             if cnt < 10:
                                 print(
                                     " enter the dec and inc of the pole on one line ")
                             else:
-                                print(
-                                    "ummm - you are doing something wrong - i give up")
+                                print("Error parsing input, please reconsider: ", e)
                                 sys.exit()
                     if set_env.IS_WIN:
                         # if windows, must re-draw everything
                         pmagplotlib.plot_anis(ANIS, Ss, iboot, ihext, ivec, ipar,
                                               title, iplot, comp, vec, Dir, num_bootstraps)
-
                     pmagplotlib.plot_circ(ANIS['data'], PDir, 90., 'g')
                     pmagplotlib.plot_circ(ANIS['conf'], PDir, 90., 'g')
                     if verbose and not plots:
@@ -10647,7 +11062,8 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
                         try:
                             k = sitelist.index(site)
                             keepon = 0
-                        except:
+                        except Exception as e:
+                            print("Error finding site:", e)
                             tmplist = []
                             for qq in range(len(sitelist)):
                                 if site in sitelist[qq]:
@@ -10865,7 +11281,7 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                           ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
         try:
             locs = cs_df['location'].unique()
-        except:
+        except KeyError:
             locs = [""]
         locs = "-".join(locs)
         files = {key:  locs + "_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
@@ -10931,12 +11347,18 @@ def plot_dmag(data="", title="", fignum=1, norm=1,dmag_key='treat_ac_field',inte
     data = data[data[int_key].notnull()]  # fish out all data with this key
     units = "U"  # this  sets the units for plotting to undefined
     if not dmag_key:
-        if 'treat_temp' in data.columns: units = "K"  # kelvin
-        elif 'treat_ac_field' in data.columns: units = "T"  # tesla
-        elif 'treat_mw_energy' in data.columns: units = "J"  # joules
-    if dmag_key=='treat_temp': units='K'
-    if dmag_key=='treat_ac_field': units='T'
-    if dmag_key=='treat_mw_energy': units='J'
+        if 'treat_temp' in data.columns:
+            units = "K"  # kelvin
+        elif 'treat_ac_field' in data.columns:
+            units = "T"  # tesla
+        elif 'treat_mw_energy' in data.columns:
+            units = "J"  # joules
+    if dmag_key=='treat_temp':
+        units='K'
+    if dmag_key=='treat_ac_field':
+        units='T'
+    if dmag_key=='treat_mw_energy':
+        units='J'
     spcs = data.specimen.unique()  # get a list of all specimens in DataFrame data
     if len(spcs)==0:
         print('no data for plotting')
@@ -11323,7 +11745,7 @@ def aarm_magic_dm2(infile, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -11707,7 +12129,9 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
         old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
     # check format of output specimens table
     for col in aniso_spec_columns:
-        if col not in old_spec_df.columns:old_spec_df[col]=""
+        if col not in old_spec_df.columns:
+            old_spec_df[col]=np.nan
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-ARM')]
     if not len(df):
@@ -11764,13 +12188,13 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df['aniso_type']='AARM'
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
-                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
-                    (old_spec_df['aniso_type']=='AARM')].empty==False: # there is a previous record of AARM for this specimen
+                if old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='AARM')].empty: # there is a previous record of AARM for this specimen
                         print ('replacing existing AARM data for ',spec)
                         for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
                             old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='AARM')&
                                 (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing AARM data for this specimen
-                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of AARM for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[old_spec_df['specimen']==spec].empty: # there is a no previous record of AARM for this specimen
                     print ('adding AARM data for ',spec)
                     for col in ['aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','software_packages','citations']:
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add AARM data for this specimen
@@ -11898,7 +12322,7 @@ def atrm_magic_dm2(meas_file, dir_path=".", input_dir_path="",
             RmagSpecRec["er_location_name"] = data[0].get(
                 "er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            if not "er_sample_name" in RmagSpecRec:
+            if "er_sample_name" not in RmagSpecRec:
                 RmagSpecRec["er_sample_name"] = data[0].get(
                     "er_sample_name", "")
             RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
@@ -12302,7 +12726,9 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
         old_spec_df=pd.DataFrame.from_dict(old_spec_recs)
     # check format of output specimens table
     for col in aniso_spec_columns:
-        if col not in old_spec_df.columns:old_spec_df[col]=""
+        if col not in old_spec_df.columns:
+            old_spec_df[col]=np.nan
+    old_spec_df[aniso_spec_columns] = old_spec_df[aniso_spec_columns].astype(object)
     df=pd.DataFrame.from_dict(meas_data)
     df=df[df['method_codes'].str.contains('LP-AN-TRM')]
     if not len(df):
@@ -12366,13 +12792,13 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                 new_spec_df['software_packages']=pmag.get_version()
                 new_spec_df['citations']='This study'
                 new_spec_df['aniso_type']='ATRM'
-                if old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[(old_spec_df['specimen']==spec)&
-                    (old_spec_df['aniso_type']=='ATRM')].empty==False: # there is a previous record of ATRM for this specimen
+                if old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[(old_spec_df['specimen']==spec)&
+                    (old_spec_df['aniso_type']=='ATRM')].empty: # there is a previous record of ATRM for this specimen
                         print ('replacing existing ATRM data for ',spec)
                         for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                             old_spec_df.loc[(old_spec_df['specimen']==spec)&(old_spec_df['aniso_type']=='ATRM')&
                                 (old_spec_df[col].notnull()),col]=new_spec_df[col].values[0] # replace existing ATRM data for this specimen
-                elif old_specs and 'aniso_s' in old_spec_df.columns and old_spec_df.loc[old_spec_df['specimen']==spec].empty==False: # there is a no previous record of ATRM for this specimen
+                elif old_specs and 'aniso_s' in old_spec_df.columns and not old_spec_df.loc[old_spec_df['specimen']==spec].empty: # there is a no previous record of ATRM for this specimen
                     print ('adding ATRM data for ',spec)
                     for col in ['aniso_alt','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_p','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','aniso_v1','aniso_v2','aniso_v3','aniso_ftest_quality','aniso_tilt_correction','description','method_codes','software_packages','citations']:
                         old_spec_df.loc[old_spec_df['specimen']==spec,col]=new_spec_df[col].values[0] # add ATRM data for this specimen
@@ -12601,7 +13027,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_temp'] = this_spec_meas_df['treat_temp'].astype(float)
-            except:
+            except (ValueError, KeyError):
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_temp', 'dir_dec', 'dir_inc',
@@ -12621,7 +13047,7 @@ def zeq_magic(meas_file='measurements.txt', spec_file='',crd='s', dir_path = "."
             try:
                 this_spec_meas_df['magn_moment'] = this_spec_meas_df['magn_moment'].astype(float)
                 this_spec_meas_df['treat_ac_field'] = this_spec_meas_df['treat_ac_field'].astype(float)
-            except:
+            except Exception:
                 print('-W- There are malformed or missing data for specimen {}, skipping'.format(spec))
                 return False, False
             datablock = this_spec_meas_df[['treat_ac_field', 'dir_dec', 'dir_inc',
@@ -13125,7 +13551,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
     elif n_specs != "all":
         try:
             sids = sids[:n_specs]
-        except:
+        except Exception as e:
+            print("Error selecting n_specs:", e)
             pass
     cnt = 0
     while k < len(sids):
@@ -13298,7 +13725,8 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                     try:
                         k = sids.index(specimen)
                         keepon = 0
-                    except:
+                    except Exception as e:
+                        print("Error:", e)
                         tmplist = []
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:
@@ -14345,7 +14773,8 @@ def polemap_magic(loc_file="locations.txt", dir_path=".", interactive=False, crd
     pmagplotlib.plot_map(FIG['map'], [90.], [0.], Opts)
 
     #Opts['pltgrid'] = -1
-    if proj=='merc':Opts['pltgrid']=1
+    if proj=='merc':
+        Opts['pltgrid']=1
     Opts['sym'] = sym
     Opts['symsize'] = symsize
     if len(dates) > 0:
@@ -15371,8 +15800,7 @@ def dmag_magic(in_file="measurements.txt", dir_path=".", input_dir_path="",
     data = data[data[int_key].notnull()]
     # make list of individual plots
     # by default, will be by location_name
-    plotlist = data[plot_key].unique()
-    plotlist.sort()
+    plotlist = sorted(data[plot_key].unique())
     pmagplotlib.plot_init(FIG['demag'], 5, 5)
     last_plot = False
     saved = []
@@ -15543,22 +15971,25 @@ def validate_magic(top_dir,doi=False,private_key=False,contribution_id=False):
     return magic_dir,upload_file
 
 
-def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
+def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False,
+                           random_seed=None):
     """
-    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
-    for probabilistic correlation, evaluating the probability that the similarity between 
-    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic 
-    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP. 
-    
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883)
+    for probabilistic correlation, evaluating the probability that the similarity between
+    two paleomagnetic directions is due to simultaneous sampling of the ancient magnetic
+    field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
+
     Parameters:
         alpha : angle between paleomagnetic directions (site means)
         k1 (float): kappa estimate for first direction
         k2 (float): kappa estimate for second direction
         trials (int): the number of simulations [default = 10,000]
         print_result (boolean): the probability value returned in a sentence [default = False]
-    
+        random_seed: None, int, or numpy.random.Generator, optional
+            Seed for reproducible Monte Carlo sampling (default None).
+
     Returns:
-        float 
+        float
             number indicating probability value
 
     Example:
@@ -15569,15 +16000,17 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
         >>> ipmag.simul_correlation_prob(3.6, 391, 146)
         0.8127
     """
+    rng = pmag._resolve_rng(random_seed)
+
     #sets initial value for counters
     hit = 0
     miss = 0
-    
+
     # trial loop
     for i in range(trials):
         # generates two synthetic directions, using the estimated kappas
-        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False)
-        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False)
+        lontp1,lattp1 = fishrot(k1, 1, 0, 90, di_block=False, random_seed=rng)
+        lontp2,lattp2 = fishrot(k2, 1, 0, 90, di_block=False, random_seed=rng)
         # determines the angle between the generated directions
         angle=pmag.angle([lontp1[0], lattp1[0]], [lontp2[0], lattp2[0]])
         # checks if angle between synthetic directions meets or exceeds 'known' angle from directions to be tested
@@ -15593,28 +16026,31 @@ def simul_correlation_prob(alpha, k1, k2, trials=10000, print_result=False):
     else:
         return simul_prob
 
-def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False):
+def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_result=False,
+                          random_seed=None):
 
     """
-    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883) 
-    for probabilistic correlation, evaluating the probability that the similarity between 
-    two paleomagnetic directions is due to random sampling of the ancient magnetic 
+    The function runs an algorithm from Bogue and Coe (1981; doi: 10.1029/JB086iB12p11883)
+    for probabilistic correlation, evaluating the probability that the similarity between
+    two paleomagnetic directions is due to random sampling of the ancient magnetic
     field. Original written in Python by S. Bogue, translated to PmagPy functionality by AFP.
-    
+
     Parameters:
     sec_var: kappa estimate of regional secular variation (probably 30 or 40)
     alpha: angle between paleomagnetic directions (or poles)
     delta1: distance of direction 1 from mean direction
     delta2: distance of direction 2 from mean direction
     trials: the number of simulations, default=10,000
-    print_result: the probability value printed as a sentence, default=False 
-    
+    print_result: the probability value printed as a sentence, default=False
+    random_seed: None, int, or numpy.random.Generator, optional
+        Seed for reproducible Monte Carlo sampling (default None).
+
     Returns:
-        float 
+        float
             number indicating probability value
-    
+
     Example:
-        Provide estimate of regional secular variation, angle between directions, 
+        Provide estimate of regional secular variation, angle between directions,
         distance of each direction from a mean direction (like GAD) to return probability
         of random field sampling, compare to RC / 11 comparison from Table 2 of the original
         publication (exact value may differ due to RNG):
@@ -15622,18 +16058,19 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
         >>> ipmag.rand_correlation_prob(40, 17.2, 20, 3.6)
         np.float64(0.0103)
     """
+    rng = pmag._resolve_rng(random_seed)
 
     # calc probability of getting vgp within alpha of vgp1
     i = 0
     miss = 0
     hit = 0
     for i in range(trials):
-        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec,inc = fishrot(sec_var, 1, 0, 0, di_block=False, random_seed=rng)
         angle = pmag.angle([dec[0], inc[0]], [0, delta1])
         if (angle <= alpha):
             hit = hit + 1
         else:
-            miss = miss + 1 
+            miss = miss + 1
 
     prand1=(1.0 * hit) / trials
     #print ('P1(Hr): ',prand1);
@@ -15643,7 +16080,7 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
     hit = 0
     miss = 0
     for i in range(trials):
-        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False)
+        dec, inc = fishrot(sec_var, 1, 0, 0, di_block=False, random_seed=rng)
         angle = pmag.angle([dec[0], inc[0]], [0,delta2])
         if (angle <= alpha):
             hit = hit + 1
@@ -15658,3 +16095,191 @@ def rand_correlation_prob(sec_var, delta1, delta2, alpha, trials=10000, print_re
         print ('The probability (average of P1 and P2) that directions represent random samples of the geomagnetic field is: {0:5.3f}'.format((prand1+prand2)/2))
     
     return rand_prob
+
+
+def MADcrit(N,alpha,niter=int(1E8)):
+    """
+    Estimate the MAD critical value at a given significance level to 
+    test a null hypothesis of random demagnetization behavior.
+    function from Heslop and Roberts, 2025, Establishing a Statistical Framework for Assessing Paleomagnetic Data Quality: A Significance Test Based on Maximum Angular Deviation doi: https://doi.org/10.1029/ 2025JB031417
+
+    Parameters
+    ----------
+    N : integer
+        Number of demagnetization points in the unanchored PCA fit.
+    alpha : float
+        Array of significance values for which the critical MAD values should be estimated.
+    niter: integer
+        Number of Monte Carlo iterations (default is 1E8).
+        Because α values of interest are in the lower tail of the MAD distribution, it is important to ensure that B is sufficiently large to sample the distribution extremes accurately.
+    Returns
+    -------
+    float
+        Array of estimated critical MAD values.
+
+    Examples
+    --------
+    >>> N = 10
+    >>> alpha = np.array([0.0001,0.001,0.01,0.05,0.1])
+    >>> MADcrit(N, alpha)
+    [19.5, 23.1, 27.6, 31.7, 33.9]
+    """
+    
+    df = N-1 #degrees of freedom of the Wishart distribution
+    X = stats.wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
+    X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
+    #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
+    MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
+    
+    return np.rad2deg(MAD_prc) #return critical values in degrees
+
+def MADcrit_95_filter(N, MAD):
+    '''
+    A convenience function to quickly filter for MADcrit values at the 95% significance level.
+    '''
+    if N < 3:
+        raise ValueError("N must be greater than 2 for MADcrit_95_filter")
+    if N > 50:
+        raise ValueError("N must be less than 51 for MADcrit_95_filter")
+    Ns = np.arange(3, 51)
+    MADcrit_95 = np.array([6.5, 14.8, 20.13, 23.8, 26.54, 28.64, 30.34,
+                            31.74, 32.93, 33.96, 34.86, 35.63,
+                            36.34, 36.95, 37.53, 38.04, 38.51,
+                            38.94, 39.34, 39.72, 40.08, 40.39,
+                            40.7, 40.99, 41.25, 41.51, 41.75,
+                            41.98, 42.18, 42.4, 42.6, 42.77,
+                            42.96, 43.13, 43.29, 43.44, 43.59,
+                            43.74, 43.87, 44.01, 44.14, 44.26,
+                            44.38, 44.5, 44.61, 44.72, 44.83,
+                            44.92])
+    MADcrit_table = pd.Series(MADcrit_95, index=Ns, name='MADcrit_95')
+    # compare a given MAD to the critical value for the given N
+    MADcrit = MADcrit_table.loc[N]
+
+    if MAD < MADcrit:
+        return True
+    else:
+        return False
+
+def mad_to_a95(mad, n_steps, anchored=False):
+    """
+    Convert MAD (or aMAD) to α95 using the scaling factors of
+    Khokhlov & Hulot (2016), Table 8.
+
+    Parameters
+    ----------
+    mad : float or array-like
+        MAD (for standard PCA) or aMAD (for anchored PCA), in degrees.
+    n_steps : int or array-like of int
+        Number of vector measurements (demagnetization steps) used in the line
+        fit. Can be a scalar (applied to all MAD values) or an array with the
+        same shape as `mad` to allow different n_steps for different specimens.
+        Table 8 of Khokhlov & Hulot (2016) is defined for 3 <= n_steps <= 16.
+        For n_steps > 16, the large-N asymptotic scaling factor is applied.
+    anchored : bool, default False
+        If False, use CMAD factors for standard (unanchored) PCA MAD.
+        If True, use CaMAD factors for anchored PCA aMAD.
+        If an array of bool is provided, it must have the same shape as `mad`.
+
+    Returns
+    -------
+    a95 : float or array-like
+        Estimated α95 in degrees, with the same shape as `mad`.
+        
+    Notes
+    -----
+    For n_steps < 3, this function raises a ValueError because Table 8 is not
+    defined for fewer than three measurements. For n_steps > 16, the asymptotic
+    large-N scaling factor tabulated at n = 100 in Khokhlov & Hulot (2016) is used.
+    
+    Examples
+    --------
+    Convert a MAD value of 4.2 determined from an anchored line fit with 7 steps
+    to α95:
+    >>> ipmag.mad_to_a95(4.2, n_steps=7, anchored=True)
+    >>> 18.102
+    
+    Convert arrays of MAD values with different n_steps for each specimen:
+    >>> mads = np.array([2.0, 3.0, 4.0])
+    >>> steps = np.array([5, 7, 10])
+    >>> ipmag.mad_to_a95(mads, n_steps=steps, anchored=False)
+    array([ 6.36 ,  8.13 , 10.16 ])
+    """
+
+    # Table 8 from Khokhlov & Hulot (2016)
+    CMAD = {
+        3: 7.69,
+        4: 3.90,
+        5: 3.18,
+        6: 2.88,
+        7: 2.71,
+        8: 2.63,
+        9: 2.57,
+        10: 2.54,
+        11: 2.51,
+        12: 2.48,
+        13: 2.46,
+        14: 2.44,
+        15: 2.43,
+        16: 2.43,
+        100: 2.37,
+    }
+
+    CaMAD = {
+        3: 6.00,
+        4: 5.00,
+        5: 4.63,
+        6: 4.43,
+        7: 4.31,
+        8: 4.24,
+        9: 4.18,
+        10: 4.14,
+        11: 4.12,
+        12: 4.11,
+        13: 4.08,
+        14: 4.08,
+        15: 4.06,
+        16: 4.05,
+        100: 3.99,
+    }
+
+    if np.isscalar(n_steps):
+        table = CaMAD if anchored else CMAD
+
+        n = int(n_steps)
+        if n < 3:
+            raise ValueError(
+            f"n_steps={n} is too small; Table 8 is defined for n>=3.")
+        elif n > 16:
+            factor = table[100]  # large-N asymptotic factor
+        else:
+            factor = table[n]
+        # works for scalars, numpy arrays, pandas Series, etc.
+        return mad * factor
+
+    else:
+        # Array-like n_steps → elementwise mapping, same shape as mad
+        mad_arr = np.asarray(mad, dtype=float)
+        n_arr = np.asarray(n_steps)
+        anchored = np.asarray(anchored)
+
+        if mad_arr.shape != n_arr.shape:
+            raise ValueError(
+                "When n_steps is array-like, it must have the same shape as mad."
+            )
+
+        def _factor_for_n(n, anchored):
+            n = int(n)
+            table = CaMAD if anchored else CMAD
+            if n < 3:
+                raise ValueError(
+                    f"n_steps={n} is too small; Table 8 is defined for n>=3."
+                )
+            if n > 16:
+                return table[100]
+            return table[n]
+
+        vec_factor = np.vectorize(_factor_for_n, otypes=[float])
+        factors = vec_factor(n_arr, anchored)
+
+        return mad_arr * factors

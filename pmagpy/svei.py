@@ -757,7 +757,7 @@ def s_lmGGP(terms,GGPmodel):
         tuple: A tuple containing two lists: all_s (list of standard deviations) and degrees (list of degree and order arrays).
 
     Notes:
-        - The function is modified from pmagpy (mktk03(terms, seed, G2, G3)).
+        - The function is modified from pmagpy (mktk03(terms, G2, G3)).
         - The GGPmodel dictionary should contain the following keys:
             - 'g10': g10 value
             - 'g20': g20 value

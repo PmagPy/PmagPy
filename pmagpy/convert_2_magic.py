@@ -710,7 +710,7 @@ def _2g_asc(dir_path=".", mag_file="", meas_file='measurements.txt',
                               skiprows=skiprows,header=None,usecols=range(len(columns)))
             meas_df.columns=columns
         else:
-            meas_df=pd.read_csv(mag_file_path,delim_whitespace=True,header=0) # no meta data
+            meas_df=pd.read_csv(mag_file_path,sep=r"\s+",header=0) # no meta data
 
     except Exception as ex:
         print('ex', ex)
@@ -6102,12 +6102,12 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     else:  # measured on the Joides Resolution JR6
         column_names = ['specimen', 'step', 'negz', 'y', 'x', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
                         'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
-    data = pd.read_csv(tmp_file, delim_whitespace=True,
+    data = pd.read_csv(tmp_file, sep=r"\s+",
                        names=column_names, index_col=False)
     if isinstance(data['x'][0], str):
         column_names = ['specimen', 'step', 'step_unit', 'x', 'y', 'z', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
                         'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
-        data = pd.read_csv(tmp_file, delim_whitespace=True,
+        data = pd.read_csv(tmp_file, sep=r"\s+",
                            names=column_names, index_col=False)
     if JR:
         data['z'] = -data['negz']

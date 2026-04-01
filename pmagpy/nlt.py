@@ -1,7 +1,7 @@
 from builtins import range
 
 import math
-
+import sys
 from scipy import optimize
 
 # some functions required by non-linear TRM programs
@@ -56,15 +56,18 @@ def TRMinv(m,a,b):
     """
     if float(a)==0:
         print('ERROR: TRMinv: a==0.')
-        if not WARN : sys.exit()
+        if not WARN :
+            sys.exit()
     if float(b)==0:
         print('ERROR: TRMinv: b==0.')
-        if not WARN : sys.exit()
+        if not WARN :
+            sys.exit()
     x = float(m) / float(a)
     if (1-x)<=0:
          print('ERROR:  TRMinv: (1-x)==0.')
          return -1
-    if not WARN : sys.exit()
+    if not WARN :
+        sys.exit()
     f = (1. / float(b)) * 0.5 * math.log ((1+x) / (1-x))
     return float(f)
 
@@ -76,7 +79,8 @@ def NRM(f,a,b,best):
     """
     if float(f)==0:
         print('ERROR: NRM: f==0.')
-    if not WARN : sys.exit()
+    if not WARN :
+        sys.exit()
     m = (float(best) /float(f)) * TRM(f,a,b)
     return float(m)
 #
@@ -93,20 +97,24 @@ def NLtrm(Bs,TRMs,best,blab,jackknife):
     xi=[0,0]  # arguments for simplex
     Tmax,Bmax=0,0
     for i in range(len(TRMs)):
-        if TRMs[i]>Tmax:Tmax=TRMs[i]    
-        if Bs[i]>Bmax:Bmax=Bs[i]    
+        if TRMs[i]>Tmax:
+            Tmax=TRMs[i]    
+        if Bs[i]>Bmax:
+            Bmax=Bs[i]    
     xi[0] = 2.0 * Tmax # maximum TRM
     xi[1] = 1.0 / Bmax # maximum field
 # Minimize tanh function using simplex
     xopt = optimize.fmin(funk, xi, args=(Bs, TRMs),xtol=FTOL,ftol=FTOL,maxiter=MAXITER)
     xopt2= optimize.fmin(funk, xopt, args=(Bs, TRMs),xtol=FTOL,ftol=FTOL,maxiter=MAXITER)
     if (compare(xopt, xopt2) > FTOL) :     # Second run of fmin produced different parameters
-        if WARN : print('WARNING: Fmin did not converge second time')
+        if WARN :
+            print('WARNING: Fmin did not converge second time')
         print(xopt,xopt2,FTOL)
     try:
         n=NRM(blab,xopt2[0],xopt2[1],best)
         banc=TRMinv(n,xopt2[0],xopt2[1])
-        if banc==-1:banc=-best
+        if banc==-1:
+            banc=-best
         bmin=-1
         bmax=-1
         rms=0

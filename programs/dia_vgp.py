@@ -5,24 +5,6 @@ from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
-def spitout(line):
-    print (line)
-    if len(line) > 1:
-        (dec,inc,a95,slat,slon) = (line)
-        output = pmag.dia_vgp(dec,inc,a95,slat,slon)
-    else:
-        line = line[0]
-        output = pmag.dia_vgp(line)
-    return output
-
-def printout(output): # print out returned stuff
-    if len(output) > 1:
-        if isinstance(output[0],list):        
-            for i in range(len(output[0])):
-                print('%7.1f %7.1f %7.1f %7.1f'%(output[0][i],output[1][i],output[2][i],output[3][i]))
-        else:
-            print('%7.1f %7.1f %7.1f %7.1f'%(output[0],output[1],output[2],output[3]))     
-
 def main():
     """
     NAME
@@ -74,33 +56,26 @@ def main():
                 ans=input("Input Site Longitude:  ")
                 slon =float(ans)
                 plong,plat,dp,dm = pmag.dia_vgp(Dec,Inc,a95,slat,slon)
-                #plong,plat,dp,dm=spitout(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
                 print('%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm)) # print out returned stuff
             except:
                 print("\n Good-bye\n")
                 sys.exit()
             
     elif '-f' in sys.argv: # manual input of file name
-        ind=sys.argv.index('-f')
-        file=sys.argv[ind+1]
-        f=open(file,'r')
-        inlist  = []
-        for line in f.readlines():
-            inlist.append([])
-            # loop over the elements, split by whitespace
-            for el in line.split():
-                inlist[-1].append(float(el))
-        spitout(inlist)
-
+        ind = sys.argv.index('-f')
+        file = sys.argv[ind + 1]
+        with open(file, 'r') as f:
+            for line in f:
+                vals = [float(el) for el in line.split()]
+                if len(vals) == 5:
+                    plong, plat, dp, dm = pmag.dia_vgp(*vals)
+                    print('%7.1f %7.1f %7.1f %7.1f' % (plong, plat, dp, dm))
     else:
-        lines = sys.stdin.readlines()  # read from standard input
-        inlist  = []
-        for line in lines:   # read in the data (as string variable), line by line
-            inlist.append([])
-            # loop over the elements, split by whitespace
-            for el in line.split():
-                inlist[-1].append(float(el))
-        spitout(inlist)
+        for line in sys.stdin:
+            vals = [float(el) for el in line.split()]
+            if len(vals) == 5:
+                plong, plat, dp, dm = pmag.dia_vgp(*vals)
+                print('%7.1f %7.1f %7.1f %7.1f' % (plong, plat, dp, dm))
 
 if __name__ == "__main__":
     main()

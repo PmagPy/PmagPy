@@ -89,7 +89,7 @@ class Spline(func.FuncOps):
         """
         Simulate a ufunc; handle being called on an array.
         """
-        if type(arg) == func.ArrayType:
+        if isinstance(arg, (numpy.ndarray, list, tuple)):
             return func.array_map(self.call, arg)
         else:
             return self.call(arg)
@@ -127,7 +127,7 @@ class LinInt(func.FuncOps):
         """
         Simulate a ufunc; handle being called on an array.
         """
-        if type(arg) == func.ArrayType:
+        if isinstance(arg, (numpy.ndarray, list, tuple)):
             return func.array_map(self.call, arg)
         else:
             return self.call(arg)
@@ -165,8 +165,8 @@ def logspline_interpolate(x1, y1, x2):
     Given a function at a set of points (x1, y1), interpolate to
     evaluate it at points x2.
     """
-    sp = Spline(log(x1), log(y1))
-    return exp(sp(log(x2)))
+    sp = Spline(numpy.log(x1), numpy.log(y1))
+    return numpy.exp(sp(numpy.log(x2)))
 
 
 def linear_interpolate(x1, y1, x2):

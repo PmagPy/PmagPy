@@ -69,13 +69,15 @@ def draw_figs(FIGS):
 
     """
     is_win = True if sys.platform in ['win32', 'win64'] else False
-    if not is_win:
+    if set_env.IS_NOTEBOOK:
+        plt.show()
+    elif not is_win:
         plt.ion()
         for fig in list(FIGS.keys()):
             plt.draw()
             plt.show()
         plt.ioff()
-    if is_win:
+    else:
         # this style basically works for Windows
         plt.draw()
         print("You must manually close all plots to continue")
@@ -169,7 +171,7 @@ def plot_square(fignum):
     fignum : matplotlib figure number
     """
     plt.figure(num=fignum)
-    plt.axis('equal')
+    plt.gca().set_aspect('equal')
 
 
 def gaussfunc(y, ybar, sigma):
@@ -537,7 +539,7 @@ def plot_net(fignum):
         plt.plot(Xtick, Ytick, 'k')
     BoxX, BoxY = [-1.1, 1.1, 1.1, -1.1, -1.1], [-1.1, -1.1, 1.1, 1.1, -1.1]
     plt.plot(BoxX, BoxY, 'k-', linewidth=.5)
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 
 
 def plot_di(fignum, DIblock):
@@ -739,7 +741,7 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     plt.ylabel('Circles: Y; Squares: Z')
     tstring = s + ': NRM = ' + '%9.2e' % (datablock[0][3])
     plt.axis([amin, amax, amax, amin])
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.title(tstring)
 #
 #
@@ -1037,7 +1039,7 @@ def plot_dir(ZED, pars, datablock, angle):
 
         plt.plot(px, py, 'g', linewidth=2)
         plt.plot(px, pz, 'g', linewidth=2)
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
     else:
         plt.figure(num=ZED['eqarea'])
         XY = pmag.dimap(StartDir[0], StartDir[1])
@@ -1052,7 +1054,7 @@ def plot_dir(ZED, pars, datablock, angle):
         plot_circ(ZED['eqarea'], pole, 90., 'g')
         plt.xlim((-1., 1.))
         plt.ylim((-1., 1.))
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
         #plt.draw()
 
 
@@ -1313,7 +1315,7 @@ def plot_b(Figs, araiblock, zijdblock, pars):
         plt.figure(num=Figs['zijd'])
         plt.scatter(zx, zy, marker='d', s=100, c='y')
         plt.scatter(zx, zz, marker='d', s=100, c='y')
-        plt.axis("equal")
+        plt.gca().set_aspect("equal")
     ax.append(first_I[0][3] / first_Z[0][3])
     ax.append(first_I[-1][3] / first_Z[0][3])
     ay.append(first_Z[0][3] / first_Z[0][3])
@@ -1422,7 +1424,7 @@ def plot_lnp(fignum, s, datablock, fpars, direction_type_key):
     datablock : nested list of dictionaries with keys in 3.0 or 2.5 format
         3.0 keys: dir_dec, dir_inc, dir_tilt_correction = [-1,0,100], method_codes =['DE-BFP','DE-BFL']
         2.5 keys: dec, inc, tilt_correction = [-1,0,100],direction_type_key =['p','l']
-    fpars : Fisher parameters calculated by, e.g., pmag.dolnp() or pmag.dolnp3_0()
+    fpars : Fisher parameters calculated by pmag.dolnp()
     direction_type_key : key for dictionary direction_type ('specimen_direction_type')
     Effects
     _______
@@ -1500,7 +1502,7 @@ def plot_eq(fignum, DIblock, s):
 #   put on the directions
 #
     plot_di(fignum, DIblock)  # plot directions
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
     plt.draw()
 
@@ -1527,7 +1529,7 @@ def plot_eq_sym(fignum, DIblock, s, sym):
 #   put on the directions
 #
     plot_di_sym(fignum, DIblock, sym)  # plot directions with symbols in sym
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
 #
 
@@ -1589,7 +1591,7 @@ def plot_teq(fignum, araiblock, s, pars):
     sym = {'lower': ['^', 'g'], 'upper': ['^', 'y']}
     if len(pTblock) > 0:
         plot_di_sym(fignum, pTblock, sym)  # plot pTRM directions
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
     plt.text(-1.1, 1.15, s)
 
 
@@ -1668,7 +1670,7 @@ def plot_evec(fignum, Vs, symsize, title):
             Y.append(XY[1])
         plt.scatter(X, Y, s=symsize,
                     marker=symb[VEC], c=col[VEC], edgecolors='none')
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 #
 
 
@@ -2966,219 +2968,351 @@ def plot_map(fignum, lats, lons, Opts):
                 lakes : if True, plot lakes
                 fancy : if True, plot etopo 20 grid
                     NB:  etopo must be installed
-        if Opts keys not set :these are the defaults:
-           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,'proj':'moll','sym':'ro,'symsize':5,'edge':'black','pltgrid':1,'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'','south':False,'oceancolor':'azure','landcolor':'bisque'}
+            ax : optional matplotlib/cartopy axes object on which to plot.
+                 If provided, plot_map will add data to this axes instead of
+                 creating a new one. This allows overlaying multiple datasets
+                 (e.g., continents, site symbols) on a single map.
 
+        if Opts keys not set :these are the defaults:
+           Opts={'latmin':-90,'latmax':90,'lonmin':0,'lonmax':360,'lat_0':0,'lon_0':0,
+                 'proj':'moll','sym':'ro','symsize':5,'edge':'black','pltgrid':1,
+                 'res':'c','boundinglat':0.,'padlon':0,'padlat':0,'gridspace':30,
+                 'details':all False,'edge':None,'cmap':'jet','fancy':0,'zone':'',
+                 'south':False,'oceancolor':'azure','landcolor':'bisque'}
+
+    Returns:
+    ____________
+    ax : matplotlib/cartopy axes object containing the map
+            
     """
     if not has_cartopy:
-        print('This function requires installation of cartopy')
+        print("This function requires installation of cartopy")
         return
-    from matplotlib import cm
-    # draw meridian labels on the bottom [left,right,top,bottom]
-    mlabels = [0, 0, 0, 1]
-    plabels = [1, 0, 0, 0]  # draw parallel labels on the left
-    Opts_defaults = {'latmin': -90, 'latmax': 90, 'lonmin': 0, 'lonmax': 360,
-                     'lat_0': 0, 'lon_0': 0, 'proj': 'moll', 'sym': 'ro', 'symsize': 5,
-                     'edge': None, 'pltgrid': 1, 'res': 'c', 'boundinglat': 0.,
-                     'padlon': 0, 'padlat': 0, 'gridspace': 30, 'global': 1, 'cmap': 'jet','oceancolor':'azure','landcolor':'bisque',
-                     'details': {'fancy': 0, 'coasts': 0, 'rivers': 0, 'states': 0, 'countries': 0, 'ocean': 0, 'lakes': 0},
-                     'edgecolor': 'face'}
+
+    import numpy as np
+
+    # ---- helper (replacement for removed cartopy.util.wrap_longitudes) ----
+    def wrap_longitudes(arr, start=-180):
+        """Wrap longitude array into [start, start + 360)."""
+        return ((np.asarray(arr, float) - start) % 360) + start
+
+    Opts_defaults = {
+        "latmin": -90,
+        "latmax": 90,
+        "lonmin": 0,
+        "lonmax": 360,
+        "lat_0": 0,
+        "lon_0": 0,
+        "proj": "moll",
+        "sym": "ro",
+        "symsize": 5,
+        "edge": None,
+        "pltgrid": 1,
+        "res": "c",
+        "boundinglat": 0.0,
+        "padlon": 0,
+        "padlat": 0,
+        "gridspace": 30,
+        "global": 1,
+        "cmap": "jet",
+        "oceancolor": "azure",
+        "landcolor": "bisque",
+        "details": {
+            "fancy": 0,
+            "coasts": 0,
+            "rivers": 0,
+            "states": 0,
+            "countries": 0,
+            "ocean": 0,
+            "lakes": 0,
+        },
+        "edgecolor": "face",
+    }
     for key in Opts_defaults.keys():
-        if key not in Opts.keys() and key != 'details':
+        if key not in Opts.keys() and key != "details":
             Opts[key] = Opts_defaults[key]
-        if key == 'details':
+        if key == "details":
             if key not in Opts.keys():
                 Opts[key] = Opts_defaults[key]
             for detail_key in Opts_defaults[key].keys():
                 if detail_key not in Opts[key].keys():
                     Opts[key][detail_key] = Opts_defaults[key][detail_key]
-    if Opts['proj'] == 'pc':
+
+    # ------------------------------------------------------------------
+    # Axes handling: reuse if provided, else create new one for projection
+    # ------------------------------------------------------------------
+    ax = Opts.get("ax", None)
+
+    if ax is None and Opts["proj"] == "pc":
         ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
-                      crs=ccrs.PlateCarree())
-    if Opts['proj'] == 'aea':
-        ax = plt.axes(projection=ccrs.AlbersEqualArea(
-            central_longitude=Opts['lon_0'],
-            central_latitude=Opts['lat_0'],
-            false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
-            globe=None))
-    if Opts['proj'] == 'lcc':
-        proj = ccrs.LambertConformal(central_longitude=Opts['lon_0'],  central_latitude=Opts['lat_0'],\
-               false_easting=0.0, false_northing=0.0, standard_parallels=(20.0, 50.0),
-               globe=None)
-        fig=plt.figure(fignum,figsize=(6,6),frameon=True)
+        ax.set_extent(
+            [Opts["lonmin"], Opts["lonmax"], Opts["latmin"], Opts["latmax"]],
+            crs=ccrs.PlateCarree(),
+        )
+    if ax is None and Opts["proj"] == "aea":
+        ax = plt.axes(
+            projection=ccrs.AlbersEqualArea(
+                central_longitude=Opts["lon_0"],
+                central_latitude=Opts["lat_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                standard_parallels=(20.0, 50.0),
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "lcc":
+        proj = ccrs.LambertConformal(
+            central_longitude=Opts["lon_0"],
+            central_latitude=Opts["lat_0"],
+            false_easting=0.0,
+            false_northing=0.0,
+            standard_parallels=(20.0, 50.0),
+            globe=None,
+        )
+        fig = plt.figure(fignum, figsize=(6, 6), frameon=True)
         ax = plt.axes(projection=proj)
-        ax.set_extent([Opts['lonmin'], Opts['lonmax'], Opts['latmin'], Opts['latmax']],
-                      crs=ccrs.PlateCarree())
-    if Opts['proj'] == 'lcyl':
-        ax = plt.axes(projection=ccrs.LambertCylindrical(
-            central_longitude=Opts['lon_0']))
+        ax.set_extent(
+            [Opts["lonmin"], Opts["lonmax"], Opts["latmin"], Opts["latmax"]],
+            crs=ccrs.PlateCarree(),
+        )
+    if ax is None and Opts["proj"] == "lcyl":
+        ax = plt.axes(
+            projection=ccrs.LambertCylindrical(central_longitude=Opts["lon_0"])
+        )
+    if ax is None and Opts["proj"] == "merc":
+        ax = plt.axes(
+            projection=ccrs.Mercator(
+                central_longitude=Opts["lon_0"],
+                min_latitude=Opts["latmin"],
+                max_latitude=Opts["latmax"],
+                latitude_true_scale=0.0,
+                globe=None,
+            )
+        )
+        ax.set_extent([Opts["lonmin"], Opts["lonmax"], Opts["latmin"], Opts["latmax"]])
+    if ax is None and Opts["proj"] == "mill":
+        ax = plt.axes(projection=ccrs.Miller(central_longitude=Opts["lon_0"]))
+    if ax is None and Opts["proj"] == "moll":
+        # FIX: use lon_0 (not lat_0) for Mollweide central meridian
+        ax = plt.axes(
+            projection=ccrs.Mollweide(central_longitude=Opts["lon_0"], globe=None)
+        )
+    if ax is None and Opts["proj"] == "ortho":
+        ax = plt.axes(
+            projection=ccrs.Orthographic(
+                central_longitude=Opts["lon_0"], central_latitude=Opts["lat_0"]
+            )
+        )
+    if ax is None and Opts["proj"] == "robin":
+        ax = plt.axes(
+            projection=ccrs.Robinson(central_longitude=Opts["lon_0"], globe=None)
+        )
+    if ax is None and Opts["proj"] == "sinu":
+        ax = plt.axes(
+            projection=ccrs.Sinusoidal(
+                central_longitude=Opts["lon_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "stere":
+        ax = plt.axes(
+            projection=ccrs.Stereographic(
+                central_longitude=Opts["lon_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                true_scale_latitude=None,
+                scale_factor=None,
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "tmerc":
+        ax = plt.axes(
+            projection=ccrs.TransverseMercator(
+                central_longitude=Opts["lon_0"],
+                central_latitude=Opts["lat_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                scale_factor=None,
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "utm":
+        ax = plt.axes(
+            projection=ccrs.UTM(
+                zone=Opts["zone"], southern_hemisphere=Opts["south"], globe=None
+            )
+        )
+    if ax is None and Opts["proj"] == "geos":
+        ax = plt.axes(
+            projection=ccrs.Geostationary(
+                central_longitude=Opts["lon_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                satellite_height=35785831,
+                sweep_axis="y",
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "laea":
+        ax = plt.axes(
+            projection=ccrs.LambertAzimuthalEqualArea(
+                central_longitude=Opts["lon_0"],
+                central_latitude=Opts["lat_0"],
+                false_easting=0.0,
+                false_northing=0.0,
+                globe=None,
+            )
+        )
+    if ax is None and Opts["proj"] == "npstere":
+        ax = plt.axes(
+            projection=ccrs.NorthPolarStereo(
+                central_longitude=Opts["lon_0"], true_scale_latitude=None, globe=None
+            )
+        )
+    if ax is None and Opts["proj"] == "spstere":
+        ax = plt.axes(
+            projection=ccrs.SouthPolarStereo(
+                central_longitude=Opts["lon_0"], true_scale_latitude=None, globe=None
+            )
+        )
 
-    if Opts['proj'] == 'merc':
-        ax = plt.axes(projection=ccrs.Mercator(
-            central_longitude=Opts['lon_0'], min_latitude=Opts['latmin'],
-            max_latitude=Opts['latmax'], latitude_true_scale=0.0, globe=None))
-        ax.set_extent([Opts['lonmin'],Opts['lonmax'],\
-                     Opts['latmin'],Opts['latmax']])
-    if Opts['proj'] == 'mill':
-        ax = plt.axes(projection=ccrs.Miller(
-            central_longitude=Opts['lon_0']))
-    if Opts['proj'] == 'moll':
-        ax = plt.axes(projection=ccrs.Mollweide(
-            central_longitude=Opts['lat_0'], globe=None))
-    if Opts['proj'] == 'ortho':
-        ax = plt.axes(projection=ccrs.Orthographic(
-            central_longitude=Opts['lon_0'],
-            central_latitude=Opts['lat_0']))
-    if Opts['proj'] == 'robin':
-        ax = plt.axes(projection=ccrs.Robinson(
-            central_longitude=Opts['lon_0'],
-            globe=None))
-
-    if Opts['proj'] == 'sinu':
-        ax = plt.axes(projection=ccrs.Sinusoidal(
-            central_longitude=Opts['lon_0'],
-            false_easting=0.0, false_northing=0.0,
-            globe=None))
-
-    if Opts['proj'] == 'stere':
-        ax = plt.axes(projection=ccrs.Stereographic(
-            central_longitude=Opts['lon_0'],
-            false_easting=0.0, false_northing=0.0,
-            true_scale_latitude=None,
-            scale_factor=None,
-            globe=None))
-    if Opts['proj'] == 'tmerc':
-        ax = plt.axes(projection=ccrs.TransverseMercator(
-            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
-            false_easting=0.0, false_northing=0.0,
-            scale_factor=None,
-            globe=None))
-    if Opts['proj'] == 'utm':
-        ax = plt.axes(projection=ccrs.UTM(
-            zone=Opts['zone'],
-            southern_hemisphere=Opts['south'],
-            globe=None))
-    if Opts['proj'] == 'geos':
-        ax = plt.axes(projection=ccrs.Geostationary(
-            central_longitude=Opts['lon_0'],
-            false_easting=0.0, false_northing=0.0,
-            satellite_height=35785831,
-            sweep_axis='y',
-            globe=None))
-    if Opts['proj'] == 'laea':
-        ax = plt.axes(projection=ccrs.LambertAzimuthalEqualArea(
-            central_longitude=Opts['lon_0'], central_latitude=Opts['lat_0'],
-            false_easting=0.0, false_northing=0.0,
-            globe=None))
-    if Opts['proj'] == 'npstere':
-        ax = plt.axes(projection=ccrs.NorthPolarStereo(
-            central_longitude=Opts['lon_0'],
-            true_scale_latitude=None,
-            globe=None))
-    if Opts['proj'] == 'spstere':
-        ax = plt.axes(projection=ccrs.SouthPolarStereo(
-            central_longitude=Opts['lon_0'],
-            true_scale_latitude=None,
-            globe=None))
-
-    if 'details' in list(Opts.keys()):
-        if Opts['details']['fancy'] == 1:
+    # ----------------
+    # Map decorations
+    # ----------------
+    if "details" in list(Opts.keys()):
+        if Opts["details"]["fancy"] == 1:
             pmag_data_dir = find_pmag_dir.get_data_files_dir()
             EDIR = os.path.join(pmag_data_dir, "etopo20")
-            etopo_path = os.path.join(EDIR, 'etopo20data.gz')
-            etopo = np.loadtxt(os.path.join(EDIR, 'etopo20data.gz'))
-            elons = np.loadtxt(os.path.join(EDIR, 'etopo20lons.gz'))
-            elats = np.loadtxt(os.path.join(EDIR, 'etopo20lats.gz'))
+            etopo_path = os.path.join(EDIR, "etopo20data.gz")
+            etopo = np.loadtxt(etopo_path)
+            elons = np.loadtxt(os.path.join(EDIR, "etopo20lons.gz"))
+            elats = np.loadtxt(os.path.join(EDIR, "etopo20lats.gz"))
             xx, yy = np.meshgrid(elons, elats)
-            levels = np.arange(-10000, 8000, 500)  # define contour intervals
-            m = ax.contourf(xx, yy, etopo, levels,
-                            transform=ccrs.PlateCarree(),
-                            cmap=Opts['cmap'])
-            cbar=plt.colorbar(m)
-        if Opts['res']=='c' or Opts['res']=='l':
-            resolution='110m'
-        elif Opts['res']=='i':
-            resolution='50m'
-        elif Opts['res']=='h':
-            resolution='10m'
-        if Opts['details']['coasts'] == 1:
-            ax.coastlines(resolution=resolution)
-        if Opts['details']['rivers'] == 1:
-            ax.add_feature(cfeature.RIVERS)
-        if Opts['details']['states'] == 1:
-            states_provinces = cfeature.NaturalEarthFeature(
-                category='cultural',
-                name='admin_1_states_provinces_lines',
-                scale=resolution,
-                edgecolor='black',
-                facecolor='none',
-                linestyle='dotted')
-            ax.add_feature(states_provinces)
-        if Opts['details']['countries'] == 1:
-            ax.add_feature(BORDERS.with_scale(resolution), linestyle='-', linewidth=2)
-        if Opts['details']['ocean'] == 1:
-            ax.add_feature(OCEAN.with_scale(resolution), color=Opts['oceancolor'])
-            ax.add_feature(LAND.with_scale(resolution), color=Opts['landcolor'])
-            ax.add_feature(LAKES.with_scale(resolution), color=Opts['oceancolor'])
-    if Opts['proj'] in ['merc', 'pc','lcc','ortho']:
-        if Opts['pltgrid']:
-            if Opts['proj']=='lcc':
-                fig.canvas.draw()
-                #xticks=list(np.arange(Opts['lonmin'],Opts['lonmax']+Opts['gridspace'],Opts['gridspace']))
-                #yticks=list(np.arange(Opts['latmin'],Opts['latmax']+Opts['gridspace'],Opts['gridspace']))
-                xticks=list(np.arange(-180,180,Opts['gridspace']))
-                yticks=list(np.arange(-90,90,Opts['gridspace']))
-                ax.gridlines(ylocs=yticks,xlocs=xticks,linewidth=2,
-                              linestyle='dotted')
-                ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER) # you need this here
-                ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)# you need this here, too
+            levels = np.arange(-10000, 8000, 500)
+            m = ax.contourf(
+                xx,
+                yy,
+                etopo,
+                levels,
+                transform=ccrs.PlateCarree(),
+                cmap=Opts["cmap"],
+            )
+            plt.colorbar(m)
 
+        if Opts["res"] == "c" or Opts["res"] == "l":
+            resolution = "110m"
+        elif Opts["res"] == "i":
+            resolution = "50m"
+        elif Opts["res"] == "h":
+            resolution = "10m"
+        else:
+            resolution = "110m"
+
+        if Opts["details"]["coasts"] == 1:
+            ax.coastlines(resolution=resolution)
+        if Opts["details"]["rivers"] == 1:
+            ax.add_feature(cfeature.RIVERS)
+        if Opts["details"]["states"] == 1:
+            states_provinces = cfeature.NaturalEarthFeature(
+                category="cultural",
+                name="admin_1_states_provinces_lines",
+                scale=resolution,
+                edgecolor="black",
+                facecolor="none",
+                linestyle="dotted",
+            )
+            ax.add_feature(states_provinces)
+        if Opts["details"]["countries"] == 1:
+            ax.add_feature(BORDERS.with_scale(resolution), linestyle="-", linewidth=2)
+        if Opts["details"]["ocean"] == 1:
+            ax.add_feature(OCEAN.with_scale(resolution), color=Opts["oceancolor"])
+            ax.add_feature(LAND.with_scale(resolution), color=Opts["landcolor"])
+            ax.add_feature(LAKES.with_scale(resolution), color=Opts["oceancolor"])
+
+    # -------------
+    # Gridlines
+    # -------------
+    if Opts["proj"] in ["merc", "pc", "lcc", "ortho"]:
+        if Opts["pltgrid"]:
+            if Opts["proj"] == "lcc":
+                # ensure we have a figure handle even if ax was reused
+                fig = ax.figure
+                fig.canvas.draw()
+                xticks = list(np.arange(-180, 180, Opts["gridspace"]))
+                yticks = list(np.arange(-90, 90, Opts["gridspace"]))
+                ax.gridlines(
+                    ylocs=yticks, xlocs=xticks, linewidth=2, linestyle="dotted"
+                )
+                ax.xaxis.set_major_formatter(LONGITUDE_FORMATTER)
+                ax.yaxis.set_major_formatter(LATITUDE_FORMATTER)
                 try:
                     import pmagpy.lcc_ticks as lcc_ticks
+
                     lcc_ticks.lambert_xticks(ax, xticks)
                     lcc_ticks.lambert_yticks(ax, yticks)
-
-                except:
-                    print ('plotting of tick marks on Lambert Conformal requires the package "shapely".\n Try importing with "conda install -c conda-forge shapely"')
+                except Exception:
+                    print(
+                        'plotting of tick marks on Lambert Conformal requires the '
+                        'package "shapely".\n Try importing with '
+                        '"conda install -c conda-forge shapely"'
+                    )
             else:
-                if Opts['proj']=='ortho':
-                    draw_labels=False
-                else:
-                    draw_labels=True
-                gl = ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2,
-                              linestyle='dotted', draw_labels=draw_labels)
-                gl.ylocator = mticker.FixedLocator(np.arange(-80, 81, Opts['gridspace']))
-                gl.xlocator = mticker.FixedLocator(np.arange(-180, 181, Opts['gridspace']))
+                draw_labels = Opts["proj"] != "ortho"
+                gl = ax.gridlines(
+                    crs=ccrs.PlateCarree(),
+                    linewidth=2,
+                    linestyle="dotted",
+                    draw_labels=draw_labels,
+                )
+                gl.ylocator = mticker.FixedLocator(
+                    np.arange(-80, 81, Opts["gridspace"])
+                )
+                gl.xlocator = mticker.FixedLocator(
+                    np.arange(-180, 181, Opts["gridspace"])
+                )
                 gl.xformatter = LONGITUDE_FORMATTER
                 gl.yformatter = LATITUDE_FORMATTER
                 gl.xlabels_top = False
-        #else:
-        #    gl = ax.gridlines(crs=ccrs.PlateCarree(),
-        #                      linewidth=2, linestyle='dotted')
-    elif Opts['pltgrid']:
-        print('gridlines only supported for PlateCarree, Orthorhombic, Lambert Conformal, and Mercator plots currently')
+    elif Opts["pltgrid"]:
+        print(
+            "gridlines only supported for PlateCarree, Orthographic, "
+            "Lambert Conformal, and Mercator plots currently"
+        )
+
+    # -------------
+    # Data plotting
+    # -------------
     prn_name, symsize = 0, 5
-    # if 'names' in list(Opts.keys()) > 0:
-    #    names = Opts['names']
-    #    if len(names) > 0:
-    #        prn_name = 1
-##
-    X, Y, T, k = [], [], [], 0
-    if 'symsize' in list(Opts.keys()):
-        symsize = Opts['symsize']
-    if Opts['sym'][-1] != '-':  # just plot points
-        color, symbol = Opts['sym'][0], Opts['sym'][1]
-        ax.scatter(lons, lats, s=Opts['symsize'], c=color, marker=symbol,
-                   transform=ccrs.PlateCarree(), edgecolors=Opts['edgecolor'])
+    if "symsize" in list(Opts.keys()):
+        symsize = Opts["symsize"]
+
+    # Wrap longitudes relative to the central meridian to avoid seam artifacts
+    lon0 = Opts.get("lon_0", 0)
+    lons = wrap_longitudes(lons, start=lon0 - 180)
+
+    if Opts["sym"][-1] != "-":  # just plot points
+        color, symbol = Opts["sym"][0], Opts["sym"][1]
+        ax.scatter(
+            lons,
+            lats,
+            s=Opts["symsize"],
+            c=color,
+            marker=symbol,
+            transform=ccrs.PlateCarree(),
+            edgecolors=Opts["edgecolor"],
+        )
         if prn_name == 1:
-            print('labels not yet implemented in plot_map')
-            # for pt in range(len(lats)):
-            #    T.append(plt.text(X[pt] + 5000, Y[pt] - 5000, names[pt]))
-    else:  # for lines,  need to separate chunks using lat==100.
-        ax.plot(lons, lats, Opts['sym'], transform=ccrs.PlateCarree())
-    if Opts['global']:
+            print("labels not yet implemented in plot_map")
+    else:  # for lines, draw geodetically so Cartopy splits across the dateline
+        ax.plot(lons, lats, Opts["sym"], transform=ccrs.Geodetic())
+
+    if Opts["global"]:
         ax.set_global()
+
+    return ax
+
 
 def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon_0=0, date="", contours=False, proj='PlateCarree', min=False,max=False):
     """
@@ -3380,7 +3514,7 @@ def plot_eq_cont(fignum, DIblock, color_map='coolwarm'):
         plt.plot(x, y, 'w-', linewidth=26)
         x, y = [], []
     # the axes
-    plt.axis("equal")
+    plt.gca().set_aspect("equal")
 
 
 def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
@@ -3433,6 +3567,7 @@ def plot_ts(ax, agemin, agemax, step=1.0, timescale='gts20', ylabel="Age (Ma)"):
     total_step = np.rint(((max_y_tick-agemin)/step)+1).astype(int)
     ax.set_yticks(np.linspace(agemin, max_y_tick, total_step))
     ax.set_ylim(agemin, agemax)
+    ax.invert_yaxis()
     if ylabel != "":
         ax.set_ylabel(ylabel)
     ax2 = ax.twinx()

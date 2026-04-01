@@ -145,7 +145,7 @@ def convert_ts_dspin(infile, citations, instrument, ARM_DC_field):
     #
     columns=['XRM','step','magn_mass','dir_inc','dir_dec','Smag']
     lab_field=lab_field_uT*1e-6 # convert from uT to T
-    data=pd.read_csv(infile,delim_whitespace=True,header=None,skiprows=4)
+    data=pd.read_csv(infile,sep=r"\s+",header=None,skiprows=4)
     data.columns=columns
     data['dir_dec']=data['dir_dec']%360
     data=data[data.XRM.str.contains('#')==False]
