@@ -244,6 +244,113 @@ class TestConglomerateTestWatson:
 
 
 # ---------------------------------------------------------------------------
+# conglomerate_test_Bayes: Bayesian conglomerate test (Heslop & Roberts, 2018)
+# ---------------------------------------------------------------------------
+
+class TestConglomerateTestBayes:
+    """Tests for ipmag.conglomerate_test_Bayes.
+
+    Validates the Bayesian conglomerate test against equations and Table 2
+    of Heslop & Roberts (2018, JGR: Solid Earth, 123, 1132–1142).
+    """
+
+    def test_returns_expected_keys(self, capsys):
+        """Function returns dictionary with all expected keys."""
+        dec = [0, 90, 180, 270, 45, 135, 225, 315]
+        inc = [30, -30, 30, -30, -60, 60, -60, 60]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        assert set(result.keys()) == {'n', 'R', 'BF', 'p_HA', 'support'}
+        assert result['n'] == 8
+
+    def test_clustered_directions_favor_unimodal(self, capsys):
+        """Tightly clustered directions: p(H_A|R) very small (unimodal)."""
+        dec = [0, 2, 358, 1, 359, 3, 357, 0, 1, 2]
+        inc = [45, 46, 44, 45, 44, 46, 43, 47, 45, 44]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        assert result['p_HA'] < 0.01
+        assert 'Unimodal' in result['support']
+        assert 'very strong' in result['support']
+
+    def test_scattered_directions_favor_uniform(self, capsys):
+        """Widely scattered directions: p(H_A|R) large (uniform/random)."""
+        dec = [12, 85, 167, 248, 325, 53, 199, 291]
+        inc = [22, -48, 63, -31, 8, -72, 41, -15]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        assert result['p_HA'] > 0.75
+        assert 'Random' in result['support']
+
+    def test_di_block_matches_dec_inc(self, capsys):
+        """di_block input gives identical results to separate dec/inc lists."""
+        dec = [208.8, 233.3, 220.2, 240.8, 225.4, 23.8, 29.1, 20.0]
+        inc = [-51.1, -55.9, -66.0, -85.7, -76.6, -43.4, -69.4, -9.3]
+        result_di = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        di_block = [[d, i] for d, i in zip(dec, inc)]
+        result_block = ipmag.conglomerate_test_Bayes(di_block=di_block)
+        assert_allclose(result_di['R'], result_block['R'])
+        assert_allclose(result_di['BF'], result_block['BF'])
+        assert_allclose(result_di['p_HA'], result_block['p_HA'])
+
+    def test_raises_on_missing_input(self):
+        """ValueError when neither dec/inc nor di_block provided."""
+        try:
+            ipmag.conglomerate_test_Bayes()
+            assert False, "Should have raised ValueError"
+        except ValueError:
+            pass
+
+    def test_raises_on_partial_input(self):
+        """ValueError when only dec is provided (no inc)."""
+        try:
+            ipmag.conglomerate_test_Bayes(dec=[0, 90, 180])
+            assert False, "Should have raised ValueError"
+        except ValueError:
+            pass
+
+    def test_high_kappa_fisher_favors_unimodal(self, capsys):
+        """Fisher-distributed directions with high kappa favor unimodal.
+
+        Uses fishrot to generate realistic clustered directions (R < N)
+        avoiding the R=N edge case where the integral diverges.
+        """
+        dirs = ipmag.fishrot(k=200, n=10, dec=0, inc=45, random_seed=100)
+        dec = [d[0] for d in dirs]
+        inc = [d[1] for d in dirs]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        assert result['p_HA'] < 0.05
+        assert 'Unimodal' in result['support']
+
+    def test_bayes_factor_relationship(self, capsys):
+        """Verify p(H_A|R) = BF / (BF + 1) (Equation 13)."""
+        dec = [208.8, 233.3, 220.2, 240.8, 225.4, 23.8, 29.1, 20.0]
+        inc = [-51.1, -55.9, -66.0, -85.7, -76.6, -43.4, -69.4, -9.3]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        expected_p_HA = result['BF'] / (1.0 + result['BF'])
+        assert_allclose(result['p_HA'], expected_p_HA, rtol=1e-10)
+
+    def test_docstring_example(self, capsys):
+        """Docstring example runs and returns reasonable results."""
+        dec = [208.8, 233.3, 220.2, 240.8, 225.4, 23.8, 29.1, 20.0]
+        inc = [-51.1, -55.9, -66.0, -85.7, -76.6, -43.4, -69.4, -9.3]
+        result = ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        assert result['n'] == 8
+        assert 0 < result['R'] < 8
+        assert result['BF'] > 0
+        assert 0 < result['p_HA'] < 1
+
+    def test_prints_output(self, capsys):
+        """Function prints summary output to stdout."""
+        dec = [208.8, 233.3, 220.2, 240.8, 225.4, 23.8, 29.1, 20.0]
+        inc = [-51.1, -55.9, -66.0, -85.7, -76.6, -43.4, -69.4, -9.3]
+        ipmag.conglomerate_test_Bayes(dec=dec, inc=inc)
+        captured = capsys.readouterr()
+        assert "N = 8" in captured.out
+        assert "R =" in captured.out
+        assert "Bayes factor" in captured.out
+        assert "p(H_A|R)" in captured.out
+        assert "Result:" in captured.out
+
+
+# ---------------------------------------------------------------------------
 # Reversal tests
 # ---------------------------------------------------------------------------
 

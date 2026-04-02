@@ -2032,12 +2032,14 @@ def conglomerate_test_Bayes(dec=None, inc=None, di_block=None):
 
             - ``'n'`` — number of directions
             - ``'R'`` — resultant vector length
-            - ``'BF'`` — Bayes factor (H_A / H_B); values > 1 favor uniform
-              (random) directions
-            - ``'p_HA'`` — posterior probability of H_A (uniform/random)
+            - ``'BF'`` — Bayes factor (H_A / H_B); values > 1 favor random
+              directions
+            - ``'p_HA'`` — posterior probability of H_A (random)
               assuming equal prior odds; large values support randomness
             - ``'support'`` — verbal classification following Table 1 of
-              Heslop and Roberts (2018)
+              Heslop and Roberts (2018); labels use "Random" (corresponding
+              to H_A, uniform distribution on the sphere) and "Unimodal"
+              (corresponding to H_B, Fisher distribution with common mean)
 
     Examples:
         Directions from randomly oriented conglomerate clasts:
@@ -2067,7 +2069,9 @@ def conglomerate_test_Bayes(dec=None, inc=None, di_block=None):
 
     def log_sinh(k):
         """Numerically stable log(sinh(k))."""
-        if k > 700:
+        if k <= 0:
+            return -np.inf
+        elif k > 700:
             return k - np.log(2.0)
         else:
             return np.log(np.sinh(k))
@@ -2095,7 +2099,7 @@ def conglomerate_test_Bayes(dec=None, inc=None, di_block=None):
 
     # Marginal likelihood under H_B: Fisher distribution (kappa > 0)
     # Integrate U(kappa, N, R) * h(kappa) from 0 to infinity
-    mL_fisher = quad(integrand, 0, np.inf, args=(N, R))[0]
+    mL_fisher = quad(integrand, 0, np.inf, args=(N, R), limit=100)[0]
 
     # Bayes factor: H_A (uniform) over H_B (unimodal)
     # Equation 12: BF = U_0(N) / integral
@@ -2114,20 +2118,20 @@ def conglomerate_test_Bayes(dec=None, inc=None, di_block=None):
         support = 'Unimodal: positive support'
     elif p_HA < 0.50:
         support = 'Unimodal: weak support'
-    elif p_HA == 0.50:
+    elif np.isclose(p_HA, 0.50, atol=1e-6):
         support = 'No preference'
     elif p_HA < 0.75:
-        support = 'Uniform: weak support'
+        support = 'Random: weak support'
     elif p_HA < 0.95:
-        support = 'Uniform: positive support'
+        support = 'Random: positive support'
     elif p_HA < 0.99:
-        support = 'Uniform: strong support'
+        support = 'Random: strong support'
     else:
-        support = 'Uniform: very strong support'
+        support = 'Random: very strong support'
 
     print(f"N = {N}")
     print(f"R = {R:.4f}")
-    print(f"Bayes factor (uniform / unimodal) = {BF:.4f}")
+    print(f"Bayes factor (random / unimodal) = {BF:.4f}")
     print(f"p(H_A|R) = {p_HA:.4f}")
     print(f"Result: {support}")
 
