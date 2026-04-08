@@ -11,12 +11,13 @@ import matplotlib.colors as colors
 import matplotlib.patches as patches
 
 from pmagpy.pmag import _resolve_rng
+from pmagpy.version import version as pmagpy_version
 
 try:
     import ipywidgets as widgets
     from ipywidgets import HBox, VBox, Output, Dropdown, RadioButtons, Checkbox,  IntSlider, FloatSlider, IntRangeSlider
     from IPython.display import HTML, display
-    
+
 except ImportError:
     widgets = None
     display = None
@@ -46,6 +47,38 @@ try:
 except ImportError:
     sm = None
     lowess = None
+
+
+def _check_ipywidgets():
+    if widgets is None:
+        raise ImportError(
+            "ipywidgets is required for interactive functions. "
+            "Install it with: pip install ipywidgets"
+        )
+
+
+def _check_bokeh():
+    if not _HAS_BOKEH:
+        raise ImportError(
+            "bokeh is required for interactive plotting. "
+            "Install it with: pip install bokeh"
+        )
+
+
+def _check_lmfit():
+    if Parameters is None:
+        raise ImportError(
+            "lmfit is required for curve fitting/unmixing. "
+            "Install it with: pip install lmfit"
+        )
+
+
+def _check_statsmodels():
+    if lowess is None:
+        raise ImportError(
+            "statsmodels is required for LOWESS smoothing. "
+            "Install it with: pip install statsmodels"
+        )
     
 mpl_to_bokeh_markers = {
     ".": "dot",
@@ -145,6 +178,7 @@ def interactive_specimen_selection(measurements):
         A dropdown widget allowing for the selection of a specimen. The initial
         selection in the dropdown is set to the first specimen option.
     """
+    _check_ipywidgets()
     # Extract unique specimen names from the measurements DataFrame
     specimen_options = measurements['specimen'].unique().tolist()
 
@@ -184,6 +218,7 @@ def interactive_specimen_experiment_selection(measurements):
         the chosen specimen. The experiment dropdown is dynamically updated based on the
         specimen selection.
     """
+    _check_ipywidgets()
     specimen_dropdown = widgets.Dropdown(
         options = measurements['specimen'].unique(),
         description = 'specimen:',
@@ -285,76 +320,115 @@ def clean_out_na(dataframe):
     return cleaned_df
 
 
+def convert_temperature(temp_array, input_unit, output_unit):
+    """
+    Convert temperatures between Kelvin and Celsius.
+
+    Parameters
+    ----------
+    temp_array : array-like
+        Temperatures in `input_unit`.
+    input_unit : {'K', 'C'}
+        Unit of the input temperatures.
+    output_unit : {'K', 'C'}
+        Desired unit for output temperatures.
+
+    Returns
+    -------
+    numpy.ndarray
+        Temperatures converted to `output_unit`.
+
+    Raises
+    ------
+    ValueError
+        If `input_unit` or `output_unit` is not 'K' or 'C'.
+    """
+    temps = np.asarray(temp_array, dtype=float)
+    if input_unit == output_unit:
+        return temps
+    if input_unit == "K" and output_unit == "C":
+        return temps - 273.15
+    if input_unit == "C" and output_unit == "K":
+        return temps + 273.15
+    raise ValueError(f"Unsupported unit conversion: {input_unit} -> {output_unit}")
+
+
 def plot_ms_t(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
-    temp_unit="K",
+    input_unit="K",
+    plot_unit="K",
     interactive=False,
     return_figure=False,
     show_plot=True,
     size=(6, 3),
-    legend_location="upper left"
+    legend_location="upper left",
 ):
     """
-    Plot magnetization vs. temperature, either static or interactive,
-    with option to display in K or °C.
+    Plot magnetization versus temperature in static or interactive mode.
 
     Parameters
     ----------
     data : pandas.DataFrame or array-like
-        Table or array containing temperature and magnetization.
-    temperature_column : str
-        Name of the temperature column in `data` (assumed in K).
-    magnetization_column : str
+        Table or array containing temperature and magnetization data.
+    temperature_column : str, default 'meas_temp'
+        Name of the temperature column in `data`.
+    magnetization_column : str, default 'magn_mass'
         Name of the magnetization column in `data`.
-    temp_unit : {'K','C'}, default 'K'
-        Units for the x-axis: 'K' for Kelvin or 'C' for Celsius.
+    input_unit : {'K', 'C'}, default 'K'
+        Unit of the input temperature data.
+    plot_unit : {'K', 'C'}, default 'K'
+        Unit for the x-axis display.
     interactive : bool, default False
         If True, use Bokeh for an interactive plot.
     return_figure : bool, default False
-        If True, return the figure object(s).
+        If True, return the figure object(s). Assign to capture, e.g.:
+            fig, ax = plot_ms_t(..., return_figure=True)
     show_plot : bool, default True
-        If True, display the plot.
+        If True, display the plot immediately.
     size : tuple(float, float), default (6, 3)
-        Controls both Bokeh height (in inches) and Matplotlib figure size.
+        Figure size in inches (Matplotlib) or height for Bokeh.
     legend_location : str, default 'upper left'
-        Location of the legend in Matplotlib terms.
+        Legend location in Matplotlib terms.
 
     Returns
     -------
-    Figure and Axes or Bokeh layout or None
+    tuple or layout or None
+        - If `return_figure=True` and `interactive=False`, returns (fig, ax).
+        - If `return_figure=True` and `interactive=True`, returns the Bokeh
+          layout object.
+        - Otherwise, returns None.
     """
-    T = np.asarray(data[temperature_column], dtype=float)
+    # raw data arrays
+    T_raw = np.asarray(data[temperature_column], dtype=float)
     M = np.asarray(data[magnetization_column], dtype=float)
 
-    if temp_unit == "C":
-        T = T - 273.15
-        x_label = "Temperature (°C)"
-    else:
-        x_label = "Temperature (K)"
+    # convert to desired plotting unit
+    T = convert_temperature(T_raw, input_unit, plot_unit)
+    x_label = "Temperature (°C)" if plot_unit == "C" else "Temperature (K)"
 
-    bokeh_legend_location = map_legend_location(legend_location)
-
+    # plotting
     if interactive:
-        tools = [HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
-                 "pan,box_zoom,wheel_zoom,reset,save"]
-        bokeh_height = int(size[1] * 96)
+        _check_bokeh()
+        bokeh_loc = map_legend_location(legend_location)
+        tools = [
+            HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
+            "pan,box_zoom,wheel_zoom,reset,save",
+        ]
+        height = int(size[1] * 96)
         p = figure(
             title="M vs T",
             x_axis_label=x_label,
             y_axis_label="Magnetization",
             tools=tools,
             sizing_mode="stretch_width",
-            height=bokeh_height
+            height=height,
         )
-        p.xaxis.axis_label_text_font_style = "normal"
-        p.yaxis.axis_label_text_font_style = "normal"
         p.line(T, M, legend_label="M(T)", line_width=2)
         p.scatter(T, M, size=6, alpha=0.6, legend_label="M(T)")
-        p.legend.location = bokeh_legend_location
+        p.legend.location = bokeh_loc
         p.legend.click_policy = "hide"
-
         layout = gridplot([[p]], sizing_mode="stretch_width")
         if show_plot:
             show(layout)
@@ -513,8 +587,9 @@ def plot_mpms_dc(
     fc_zfc_present = (fc is not None) or (zfc is not None)  
     rtsirm_present = (rc is not None) or (rw is not None)  
 
-    if interactive:  
-        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,wheel_zoom,reset,save"]  
+    if interactive:
+        _check_bokeh()
+        tools = [HoverTool(tooltips=[("T","@x"),("M","@y")]), "pan,box_zoom,wheel_zoom,reset,save"]
         figs = []  
 
         if fc_zfc_present:  
@@ -667,6 +742,7 @@ def make_mpms_plots_dc(measurements):
         measurements (pandas.DataFrame): DataFrame with 'specimen' and
             'method_codes'.
     """
+    _check_ipywidgets()
     experiments = (
         measurements.groupby(["specimen", "method_codes"])
         .size()
@@ -801,7 +877,7 @@ def calc_verwey_estimate(temps, mags,
     
     verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
     
-    remanence_loss = np.trapz(mgt_dM_dT, temps_dM_dT_background)
+    remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
@@ -980,6 +1056,7 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
     Displays an interactive interface for estimating the Verwey transition temperature.
     """
+    _check_ipywidgets()
     selected_specimen_name = specimen_dropdown.value
     selected_method = method_dropdown.value
 
@@ -1143,6 +1220,7 @@ def interactive_verwey_specimen_method_selection(measurements):
         first selected specimen. The available methods are specifically filtered for 'LP-FC'
         and 'LP-ZFC' codes.
     """
+    _check_ipywidgets()
     # Filter to get specimens with desired method codes
     experiments = measurements.groupby(['specimen', 'method_codes']).size().reset_index().iloc[:, :2]
     filtered_experiments = experiments[experiments['method_codes'].isin(['LP-FC', 'LP-ZFC'])]
@@ -1552,7 +1630,7 @@ def goethite_removal_interactive(measurements, specimen_dropdown):
     Display an interactive widget for fitting and visualizing goethite removal from low temperature remanence data.
 
     This function creates an interactive interface that allows the user to select a specimen and adjust parameters
-    (temperature range and polynomial degree) for fitting the goethite component in RTSIRM (Room Temperature Saturation Isothermal Remanent Magnetization) warming and cooling curves. 
+    (temperature range and polynomial degree) for fitting the goethite component in RTSIRM (Room Temperature Saturation Isothermal Remanent Magnetization) warming and cooling curves.
     The user can visually explore the effect of these parameters on the fit and resulting goethite removal, with real-time updated plots.
 
     Parameters
@@ -1577,9 +1655,10 @@ def goethite_removal_interactive(measurements, specimen_dropdown):
 
     Examples
     --------
-    >>> interactive_goethite_removal(measurements_df, specimen_dropdown)
+    >>> goethite_removal_interactive(measurements_df, specimen_dropdown)
     Displays interactive sliders and plots for fitting goethite removal to the selected specimen's data.
     """
+    _check_ipywidgets()
     selected_specimen_name = specimen_dropdown.value
 
     fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
@@ -1684,6 +1763,7 @@ def plot_mpms_ac(
         raise ValueError(f'frequency must be one of {freqs}')
 
     if interactive:
+        _check_bokeh()
         tools = [
             HoverTool(tooltips=[('T', '@x'), ('χ', '@y')]),
             'pan,box_zoom,wheel_zoom,reset,save']
@@ -1913,6 +1993,7 @@ def mpms_signal_blender_interactive(measurement_1, measurement_2,
         Size of the figure for plotting. Default is (12, 6).
 
     '''
+    _check_ipywidgets()
     slider = FloatSlider(
         value=0.5, min=0, max=1, step=0.01,
         description='fraction', continuous_update=False
@@ -2025,10 +2106,7 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactiv
     p : bokeh.plotting.figure
     
     '''
-    if not _HAS_BOKEH:
-        print("Bokeh is not installed. Please install it to enable hysteresis data processing.")
-        return
-    
+    _check_bokeh()
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
     if interactive:
         if p is None:
@@ -2095,13 +2173,20 @@ def split_hysteresis_loop(field, magnetization):
     field_gradient = np.gradient(field)
     # There should just be one turning point in the field gradient
     turning_points = np.where(np.diff(np.sign(field_gradient)))[0]
-    if len(turning_points) > 1:
-        raise ValueError('More than one turning point found in the gradient of the applied field')
-    turning_point = turning_points[0]
-    upper_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
-    # sort the upper branch in reverse order
-    upper_branch = [field[:turning_point+1][::-1], magnetization[:turning_point+1][::-1]]
-    lower_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
+    if len(turning_points) == 0:
+        raise ValueError('No turning point found in the field gradient. The data may not be a hysteresis loop.')
+    elif len(turning_points) > 1:
+        print('More than one turning point found in the gradient of the applied field')
+        print('Trying to force splitting the loop based on the number of measurements...')
+        n = len(field) // 2
+        upper_branch = [field[:n], magnetization[:n]]
+        lower_branch = [field[n:], magnetization[n:]]
+    else:
+        turning_point = turning_points[0]
+        upper_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
+        # sort the upper branch in reverse order
+        upper_branch = [field[:turning_point+1][::-1], magnetization[:turning_point+1][::-1]]
+        lower_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
     
     return upper_branch, lower_branch
 
@@ -2277,7 +2362,7 @@ def hyst_linearity_test(grid_field, grid_magnetization):
 def linefit(xarr, yarr):
     """
     Perform a simple linear regression (least squares fit) on two arrays.
-    
+
     Parameters
     ----------
     xarr : array_like
@@ -2577,9 +2662,9 @@ def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
 
     high_field_index = np.where((np.abs(field) >= HF_cutoff*np.max(np.abs(field))) & (np.abs(field) <= max_field_cutoff*np.max(np.abs(field))))[0]
 
-    # invert points in the third quadrant to the first
+    # invert points in the negative high fields
     high_field = np.abs(field[high_field_index])
-    high_field_magnetization = np.abs(magnetization[high_field_index])
+    high_field_magnetization = np.where(field[high_field_index] >= 0, magnetization[high_field_index], -magnetization[high_field_index])
 
     # the slope would be the paramagnetic/diamagnetic susceptibility
     # the y-intercept would be the Ms value (saturation magnetization of the ferromagnetic component)
@@ -2902,8 +2987,8 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     HF_Mrh_noise_RMS = np.sqrt(np.mean(HF_Mrh_noise**2))
     SNR = 20*np.log10(HF_Mrh_signal_RMS/HF_Mrh_noise_RMS)
 
-    total_Mrh_area = np.trapz(pos_Mrh, pos_H) + np.trapz(-neg_Mrh[::-1], -neg_H[::-1])
-    total_HF_Mrh_area = np.trapz(average_Mrh, pos_H)
+    total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
+    total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
 
     HAR = 20*np.log10(total_HF_Mrh_area/total_Mrh_area)
     loop_is_closed = (SNR < 8) or (HAR < -48)
@@ -3235,7 +3320,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
 
     HF_field = np.abs(H[HF_index])
-    HF_magnetization = np.abs(M[HF_index])
+    HF_magnetization = np.where(H[HF_index] >= 0, M[HF_index], -M[HF_index])
 
     if fit_type == 'IRM':
         cost_function = IRM_nonlinear_fit_cost_function
@@ -3286,7 +3371,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True):
+def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True, NL_fit=False):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -3305,7 +3390,9 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     show_results_table : bool, optional
         If True (default), display a summary table of key parameters using Bokeh.
     show_plot : bool, optional
-        If True, display the Bokeh plot of the hysteresis loop and processing steps.
+        If True (default), display the Bokeh plot of the hysteresis loop and processing steps.
+    NL_fit : bool, optional
+        If True, force non-linear high-field fitting regardless of the saturation test result (default is False).
 
     Returns
     -------
@@ -3336,6 +3423,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
             - 'Fnl_lin': FNL from linear fit (None if saturated)
             - 'plot': Bokeh figure with overlaid processing steps
     """
+    _check_bokeh()
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
@@ -3349,6 +3437,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
         # in case the loop quality is bad, no field correction is applied
         loop_centering_results['opt_H_offset'] = 0
         loop_centering_results['centered_H'] = grid_fields
+        loop_centering_results['centered_M'] = grid_magnetizations - loop_centering_results['opt_M_offset']
 
     centered_H, centered_M = loop_centering_results['centered_H'], loop_centering_results['centered_M']
 
@@ -3363,6 +3452,8 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
 
     # check if the loop is saturated (high field linearity test)
     loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
+    if NL_fit:
+        loop_saturation_stats['loop_is_saturated'] = False  # force non-linear high-field fitting
 
     if loop_saturation_stats['loop_is_saturated']:
         # linear high field correction
@@ -3383,7 +3474,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     Bc = calc_Bc(centered_H, slope_corr_M)
 
     # calculate the shape parameter of Fabian 2003
-    E_hyst = np.trapz(Mrh, H)
+    E_hyst = np.trapezoid(Mrh, H)
     sigma = np.log(E_hyst / 2 / Bc / Ms)
 
     # plot original loop
@@ -3489,9 +3580,10 @@ def process_hyst_loops(
     Returns
     -------
     results_df : pandas.DataFrame
-        DataFrame with hysteresis results for each specimen.
+        DataFrame with hysteresis results for each experiment.
+        Has a numeric index with 'specimen' and 'experiment' as columns.
     """
-    results = {}
+    results = []
     for _, row in hyst_experiments.iterrows():
         exp = row["experiment"]
         spec = row["specimen"]
@@ -3506,73 +3598,121 @@ def process_hyst_loops(
             show_results_table=show_results_table,
             show_plot=show_plots,
         )
-        results[spec] = res
-    results_df = pd.DataFrame.from_dict(results, orient='index')
+        res['specimen'] = spec
+        res['experiment'] = exp
+        res['processed_by'] = pmagpy_version
+        results.append(res)
+    results_df = pd.DataFrame(results)
     return results_df
 
 
-def add_hyst_stats_to_specimens_table(specimens_df, experiment_name, hyst_results):
+def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True):
     '''
-    function to export the hysteresis data to a MagIC specimen data table
-    
+    Return a copy of the specimens table with hysteresis results added.
+
+    The input DataFrame is not modified. Assign the return value to
+    update your table, e.g.:
+        specimens = add_hyst_stats_to_specimens_table(specimens, hyst_results)
+
     Parameters
     ----------
     specimens_df : pandas.DataFrame
         dataframe with the specimens data
-    experiment_name : str
-        name of the experiment
-    hyst_results : dict
-        dictionary with the hysteresis data
-        as output from the rmag.process_hyst_loop function
+    hyst_results : pandas.DataFrame
+        DataFrame with hysteresis results including 'specimen' and
+        'experiment' columns, as output from rmag.process_hyst_loops.
+        Has a numeric index (one row per experiment).
+    overwrite : bool, optional
+        If True (default), existing MagIC column values and description stats
+        are replaced with new values from hyst_results. If False, existing
+        rows are preserved as-is and new rows are appended with the
+        hyst results.
 
-    updates the specimen table in place
+    Returns
+    -------
+    specimens_df : pandas.DataFrame
+        A new DataFrame with hysteresis results added.
+        If a specimen has multiple experiments, its row is duplicated
+        so that each experiment gets its own row.
     '''
 
-    result_keys_MagIC = ['specimen',  
-                        'Ms', 
-                        'Mr', 
-                        'Bc',  
-                        'chi_HF']
+    specimens_df = specimens_df.copy()
 
-    MagIC_columns=['specimen',  
-                    'hyst_ms_mass', 
-                    'hyst_mr_mass', 
-                    'hyst_bc',  
-                    'hyst_xhf']
+    result_keys_MagIC = ['Ms', 'Mr', 'Bc', 'chi_HF']
+    MagIC_columns = ['hyst_ms_mass', 'hyst_mr_mass', 'hyst_bc', 'hyst_xhf']
 
-    # add MagIC available columns to the specimens table
-    for result_key, col in zip(result_keys_MagIC, MagIC_columns):
-        if col not in specimens_df.columns:
-            # add the column to the specimens table
-            specimens_df[col] = np.nan
-    
-            specimens_df.loc[specimens_df['experiments'] == experiment_name, col] = hyst_results[result_key]
-    
-    # dump the rest of the stats to the description column
     additional_keys = ['Q', 'Qf', 'sigma',
-                'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80', 
-                'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'loop_is_saturated']
-    additional_stats_dict = {}
-    for key in additional_keys:
-        additional_stats_dict[key] = hyst_results[key]
-        
-    # check if the description cell is type string
-    if isinstance(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0], str):
-        # unpack the string to a dict, then add the new stats, then pack it back to a string
-        description_dict = eval(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0])
-        for key in additional_keys:
-            if key in description_dict:
-                # if the key already exists, update it
-                description_dict[key] = hyst_results[key]
+                'Brh', 'FNL', 'FNL60', 'FNL70', 'FNL80',
+                'Fnl_lin', 'loop_is_linear', 'loop_is_closed', 'loop_is_saturated',
+                'processed_by']
+
+    # ensure MagIC columns exist in specimens_df
+    for col in MagIC_columns:
+        if col not in specimens_df.columns:
+            specimens_df[col] = np.nan
+    if 'description' not in specimens_df.columns:
+        specimens_df['description'] = np.nan
+
+    for _, row in hyst_results.iterrows():
+        specimen_name = row['specimen']
+        experiment_name = row['experiment']
+        mask = specimens_df['experiments'] == experiment_name
+
+        if overwrite:
+            if not mask.any():
+                # no row for this experiment — create one from specimen template
+                spec_mask = specimens_df['specimen'] == specimen_name
+                if spec_mask.any():
+                    new_row = specimens_df.loc[spec_mask].iloc[0].copy()
+                else:
+                    new_row = pd.Series(dtype='object')
+                    new_row['specimen'] = specimen_name
+                new_row['experiments'] = experiment_name
+                specimens_df = pd.concat(
+                    [specimens_df, new_row.to_frame().T],
+                    ignore_index=True,
+                )
+                mask = specimens_df['experiments'] == experiment_name
+            ipos = mask.values.nonzero()[0][0]
+        else:
+            # overwrite=False: leave existing row alone, always add a new row
+            spec_mask = specimens_df['specimen'] == specimen_name
+            if spec_mask.any():
+                new_row = specimens_df.loc[spec_mask].iloc[0].copy()
             else:
-                # if the key does not exist, add it
-                description_dict[key] = hyst_results[key]
-        # pack the dict back to a string
-        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(description_dict)
-    else:
-        # if not, create a new dict
-        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(additional_stats_dict)
-    return 
+                new_row = pd.Series(dtype='object')
+                new_row['specimen'] = specimen_name
+            new_row['experiments'] = experiment_name
+            specimens_df = pd.concat(
+                [specimens_df, new_row.to_frame().T],
+                ignore_index=True,
+            )
+            ipos = len(specimens_df) - 1
+
+        # write MagIC columns
+        for result_key, col in zip(result_keys_MagIC, MagIC_columns):
+            specimens_df.iloc[ipos, specimens_df.columns.get_loc(col)] = row[result_key]
+
+        # build and write additional stats into description
+        additional_stats_dict = {key: row[key] for key in additional_keys
+                                 if key in row.index}
+        desc_col = specimens_df.columns.get_loc('description')
+        desc = specimens_df.iloc[ipos, desc_col]
+        if isinstance(desc, str):
+            try:
+                description_dict = eval(desc)
+                if isinstance(description_dict, dict):
+                    description_dict.update(additional_stats_dict)
+                    specimens_df.iloc[ipos, desc_col] = str(description_dict)
+                else:
+                    raise ValueError
+            except (SyntaxError, ValueError, NameError):
+                additional_stats_dict['description'] = desc
+                specimens_df.iloc[ipos, desc_col] = str(additional_stats_dict)
+        else:
+            specimens_df.iloc[ipos, desc_col] = str(additional_stats_dict)
+
+    return specimens_df
 
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
@@ -3669,6 +3809,7 @@ def plot_X_T(
     figs = []
 
     if interactive:
+        _check_bokeh()
         bokeh_height = int(figsize[1] * 96)
         # Main plot
         p = figure(
@@ -3969,8 +4110,7 @@ def estimate_curie_temperature(
     temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
 
     if inverse_method:
-        if not _HAS_BOKEH:
-            raise ImportError("Bokeh is required for inverse_method=True")
+        _check_bokeh()
         bokeh_height = int(figsize[1] * 96)
         title = experiment["specimen"].unique()[0]
         swX_arr = np.array(swX)
@@ -4277,7 +4417,7 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
     """
     Calculate the average root mean square (RMS) deviation and average variance for a set of measurements.
 
-    This function computes two statistical metrics for a given list of measurement values and their corresponding 
+    This function computes two statistical metrics for a given list of measurement values and their corresponding
     moving averages and variances:
       1. The average RMS deviation, which quantifies the typical deviation between each measurement and its local average.
       2. The average variance, representing the mean of the provided variances for the measurements.
@@ -4380,7 +4520,7 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
         experiment['smoothed_magn_mass_shift'] = spl(x) * y_std + y_mean
         experiment['smoothed_log_dc_field'] = x
     elif smooth_mode == 'lowess':
-        # loess smoothing
+        _check_statsmodels()
         spl = lowess(experiment['magn_mass_shift'], experiment['log_dc_field'], frac=smooth_frac)
         experiment['smoothed_magn_mass_shift'] = spl[:, 1]
         experiment['smoothed_log_dc_field'] = spl[:, 0]
@@ -4461,7 +4601,8 @@ def plot_backfield_data(
         smooth_dx = 10 ** smooth_dx_log
 
     # Interactive: Bokeh
-    if interactive and _HAS_BOKEH:
+    if interactive:
+        _check_bokeh()
         tools = [
             HoverTool(tooltips=[("Field (T)", "@x"), ("Mag", "@y")]),
             "pan,box_zoom,wheel_zoom,reset,save"
@@ -4681,7 +4822,7 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
     parameters : DataFrame
         The updated parameters table
     '''
-
+    _check_lmfit()
     assert n_comps > 0, 'n_component must be greater than 0'
     assert isinstance(n_comps, int), 'n_component must be an integer'
     assert isinstance(parameters, pd.DataFrame), f"Expected a pandas DataFrame, but got {type(parameters).__name__}"
@@ -4839,8 +4980,10 @@ def interactive_backfield_fit(field, magnetization, n_components, skewed=True, f
         updated in place as sliders are moved.
     """
     
+    _check_ipywidgets()
+    _check_lmfit()
     final_fit = {"df": None}
-    
+
     # Calculate the smoothed derivative
     smoothed_derivatives_y = -np.diff(magnetization) / np.diff(field)
     smoothed_derivatives_x = pd.Series(field).rolling(window=2).mean().dropna()
@@ -4999,7 +5142,7 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
     random_seed : None, int, or numpy.random.Generator, optional
         Seed for reproducible bootstrap resampling (default None).
     '''
-
+    _check_lmfit()
     assert parameters is not None, f"parameters should not be None"
     assert len(parameters) == n_comps, f"Number of rows in parameters ({len(parameters)}) should be equal to n_comps ({n_comps})"
     assert proportion > 0 and proportion <= 1, f"proportion should be between 0 and 1, but got {proportion}"
