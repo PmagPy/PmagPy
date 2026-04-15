@@ -11232,8 +11232,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
             if 'sites' in con.tables:
                 if 'location' in con.tables['sites'].df.columns:
                     locs = con.tables['sites'].df.loc[site, 'location']
-                    if len(con.tables['sites'].df)>1:
-                        loc=locs[0]
+                    if isinstance(locs, pd.Series):
+                        loc=locs.iloc[0]
                     else:
                         loc=locs
 
