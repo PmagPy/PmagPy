@@ -704,8 +704,10 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     gXYZ.columns = ['X', 'Y', 'Z']
     amax = np.maximum(gXYZ.X.max(), gXYZ.Z.max())
     amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
-    if amin > 0:
-        amin = 0
+    amax = np.maximum(amax, gXYZ.Y.max())#DEBUG
+    amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())#DEBUG
+    if amin > 0: 
+        amin = 0 
     bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
 # plotting stuff
     if angle != 0:
@@ -718,10 +720,12 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     if len(bXYZ) > 0:
         plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
         plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'ro')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'ws', markeredgecolor='blue')
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'r-')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'b-')
+    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
+    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
+    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
+    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
+    
+
     for k in range(len(gXYZ)):
         plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
                               [k]), ha='left', va='bottom')
@@ -774,7 +778,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Mex, Tex, Vdif = [], [], []
     recbak = []
     for rec in datablock:
-        if rec[5] == 'g':
+        if rec[4] == 'g':
             if units == "T":
                 T.append(rec[0] * 1e3)
                 Tv.append(rec[0] * 1e3)
@@ -904,7 +908,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         if cb.is_null(rec[2],zero_as_null=False):
             print('-W- You are missing an inclination for specimen', s, ', skipping this row')
             continue
-        if rec[5] == 'b':
+        if rec[4] == 'b':
             DIbad.append((rec[1], rec[2]))
         else:
             DIgood.append((rec[1], rec[2]))
