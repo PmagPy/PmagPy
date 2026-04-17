@@ -69,22 +69,18 @@ import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
-# try: import zeq_gui_preferences
-# except ImportError: pass
 import wx
 import wx.lib.scrolledpanel
 import numpy as np
 from numpy import vstack, sqrt, arange, array, pi, cos, sin, mean, exp, linspace, convolve, nan
 from matplotlib.figure import Figure
-from scipy.optimize import curve_fit
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
-from dialogs import pmag_widgets as pw
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
-from copy import deepcopy, copy
+from copy import deepcopy
 import pmagpy.contribution_builder as cb
 from pandas import DataFrame, Series
 from pmagpy.mapping import map_magic
@@ -4686,29 +4682,29 @@ class Demag_GUI(wx.Frame):
             try:
                 data_er_samples = self.read_magic_file(
                     os.path.join(self.WD, "er_samples.txt"), 'er_sample_name')
-            except:
+            except FileNotFoundError:
                 print("-W- Can't find er_sample.txt in project directory")
 
             try:
                 data_er_sites = self.read_magic_file(
                     os.path.join(self.WD, "er_sites.txt"), 'er_site_name')
-            except:
+            except FileNotFoundError:
                 print("-W- Can't find er_sites.txt in project directory")
 
             try:
                 data_er_locations = self.read_magic_file(os.path.join(
                     self.WD, "er_locations.txt"), 'er_location_name')
-            except:
+            except FileNotFoundError:
                 print("-W- Can't find er_locations.txt in project directory")
 
             try:
                 data_er_ages = self.read_magic_file(
                     os.path.join(self.WD, "er_ages.txt"), 'er_sample_name')
-            except:
+            except FileNotFoundError:
                 try:
                     data_er_ages = self.read_magic_file(
                         os.path.join(self.WD, "er_ages.txt"), 'er_site_name')
-                except:
+                except FileNotFoundError:
                     print("-W- Can't find er_ages in project directory")
 
         Data_info["er_samples"] = data_er_samples
