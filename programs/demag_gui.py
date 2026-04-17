@@ -56,36 +56,36 @@ AUTHORS
 import matplotlib
 from functools import reduce
 matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 import os
 import sys
 import pandas as pd
 import pdb
 import shutil
+import wx
+import wx.lib.scrolledpanel
+import numpy as np
+from numpy import vstack, sqrt, arange, array, mean, nan
+from matplotlib.figure import Figure
+from scipy.signal import find_peaks_cwt
+from webbrowser import open as webopen
+from re import findall
+from copy import deepcopy
+# self imports
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = pmag.get_version()
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
-from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
-import wx
-import wx.lib.scrolledpanel
-import numpy as np
-from numpy import vstack, sqrt, arange, array, pi, cos, sin, mean, exp, linspace, convolve, nan
-from matplotlib.figure import Figure
-from scipy.signal import find_peaks_cwt
-from webbrowser import open as webopen
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
-from copy import deepcopy
 import pmagpy.contribution_builder as cb
-from pandas import DataFrame, Series
 from pmagpy.mapping import map_magic
 import help_files.demag_gui_help as dgh
-from re import findall
 
 matplotlib.rc('xtick', labelsize=10)
 matplotlib.rc('ytick', labelsize=10)
@@ -5302,7 +5302,7 @@ class Demag_GUI(wx.Frame):
                 new_crit['citations'] = "This study"
                 new_crit['description'] = ''
                 new_crits.append(new_crit)
-            cdf = DataFrame(new_crits)
+            cdf = pd.DataFrame(new_crits)
             cdf = cdf.set_index("table_column")
             cdf["table_column"] = cdf.index
             #cdf = cdf.reindex_axis(sorted(cdf.columns), axis=1)
@@ -5642,7 +5642,7 @@ class Demag_GUI(wx.Frame):
                         prev_meth_codes = self.con.tables['samples'].df.loc[samp]['method_codes']
                         # get a list of the methods used
                         new_meth_codes = pmag.get_list(CompDir, 'method_codes')
-                        if isinstance(prev_meth_codes, Series):
+                        if isinstance(prev_meth_codes, pd.Series):
                             merged_meths = self.merge_meth_codes(
                                 prev_meth_codes.iloc[0], new_meth_codes)
                         else:
@@ -5680,7 +5680,7 @@ class Demag_GUI(wx.Frame):
                 for dc in ['magic_method_codes']:
                     if dc in self.con.tables['samples'].df:
                         del self.con.tables['samples'].df[dc]
-                samps_df = DataFrame(PmagSamps)
+                samps_df = pd.DataFrame(PmagSamps)
                 samps_df = samps_df.set_index('sample')
                 samps_df['sample'] = samps_df.index
                 nsdf = self.con.tables['samples'].merge_dfs(samps_df)
@@ -5763,13 +5763,13 @@ class Demag_GUI(wx.Frame):
                             ': demag_gui.v.3.0'
 
                         # here we need to grab ages from sites or ages
-                        site_age_rec = Series()
+                        site_age_rec = pd.Series()
                         if 'ages' in self.con.tables:
                             ages_df = self.con.tables['ages'].df
                             if 'site' in ages_df.columns:
                                 site_age_records = ages_df[ages_df['site'] == site]
                                 if len(site_age_records):
-                                    if isinstance(site_age_records, Series):
+                                    if isinstance(site_age_records, pd.Series):
                                         site_age_rec = site_age_records
                                     else:
                                         site_age_rec = site_age_records.iloc[0]
@@ -5777,7 +5777,7 @@ class Demag_GUI(wx.Frame):
                             sites_df = self.con.tables['sites'].df
                             site_age_records = sites_df.loc[site]
                             if len(site_age_records):
-                                if isinstance(site_age_records, Series):
+                                if isinstance(site_age_records, pd.Series):
                                     site_age_rec = site_age_records
                                 else:
                                     site_age_rec = site_age_records.iloc[0]
@@ -5873,7 +5873,7 @@ class Demag_GUI(wx.Frame):
             if len(PmagSites) > 0:
                 if 'sites' not in self.con.tables:
                     self.con.tables.add_empty_magic_table('sites')
-                sites_df = DataFrame(PmagSites)
+                sites_df = pd.DataFrame(PmagSites)
                 if 'tilt_correction' in sites_df.columns:
                     sites_df.drop('tilt_correction', axis=1, inplace=True)
                 sites_df = sites_df.set_index('site')
@@ -5941,7 +5941,7 @@ class Demag_GUI(wx.Frame):
                             sites_dat = self.con.tables['sites'].df
                             for e in ['samples', 'specimens']:
                                 PolRes[e] = reduce(lambda x, y: x+':'+y, [sites_dat.loc[site][e].iloc[0] if isinstance(
-                                    sites_dat.loc[site][e], Series) else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
+                                    sites_dat.loc[site][e], pd.Series) else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
                             PolRes['dir_n_samples'] = len(
                                 PolRes['samples'].split(':'))
                             PolRes['dir_n_specimens'] = len(
@@ -5957,7 +5957,7 @@ class Demag_GUI(wx.Frame):
                                     self.con.tables['locations'].df = add_missing_ages(locs_df)
                                     loc_recs = locs_df.loc[location]
                                     if len(loc_recs):
-                                        if isinstance(loc_recs, Series):
+                                        if isinstance(loc_recs, pd.Series):
                                             loc_rec = loc_recs
                                         else:
                                             loc_rec = loc_recs.iloc[0]
@@ -5972,18 +5972,18 @@ class Demag_GUI(wx.Frame):
                                     locs_dat = self.con.tables['locations'].df
                                     if 'lat_n' in locs_dat.columns:
                                         lat = locs_dat['lat_n'][location].iloc[0] if isinstance(
-                                            locs_dat['lat_n'][location], Series) else locs_dat['lat_n'][location]
+                                            locs_dat['lat_n'][location], pd.Series) else locs_dat['lat_n'][location]
                                     elif 'lat_s' in locs_dat.columns:
                                         lat = locs_dat['lat_s'][location].iloc[0] if isinstance(
-                                            locs_dat['lat_s'][location], Series) else locs_dat['lat_s'][location]
+                                            locs_dat['lat_s'][location], pd.Series) else locs_dat['lat_s'][location]
                                     else:
                                         sucess_lat_lon_info = False
                                     if 'lon_e' in locs_dat.columns:
                                         lon = locs_dat['lon_e'][location].iloc[0] if isinstance(
-                                            locs_dat['lon_e'][location], Series) else locs_dat['lon_e'][location]
+                                            locs_dat['lon_e'][location], pd.Series) else locs_dat['lon_e'][location]
                                     elif 'lon_w' in locs_dat.columns:
                                         lon = locs_dat['lon_w'][location].iloc[0] if isinstance(
-                                            locs_dat['lon_w'][location], Series) else locs_dat['lon_w'][location]
+                                            locs_dat['lon_w'][location], pd.Series) else locs_dat['lon_w'][location]
                                     else:
                                         sucess_lat_lon_info = False
                                 if not sucess_lat_lon_info:
@@ -6057,7 +6057,7 @@ class Demag_GUI(wx.Frame):
                             PmagLocs.append(PolRes)
 
             if len(PmagLocs) > 0:
-                locs_df = DataFrame(PmagLocs)
+                locs_df = pd.DataFrame(PmagLocs)
                 locs_df = locs_df.set_index('location')
                 locs_df['location'] = locs_df.index
                 nsdf = self.con.tables['locations'].merge_dfs(locs_df)
@@ -6929,7 +6929,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.data_model == 3.0:
 
             # translate demag_gui output to 3.0 DataFrame
-            ndf2_5 = DataFrame(PmagSpecs_fixed)
+            ndf2_5 = pd.DataFrame(PmagSpecs_fixed)
             if 'specimen_direction_type' in ndf2_5.columns:
                 # doesn't exist in new model
                 del ndf2_5['specimen_direction_type']
