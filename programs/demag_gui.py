@@ -2873,8 +2873,7 @@ class Demag_GUI(wx.Frame):
         if er_ages_rec["age"] == "":
             if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
                 if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
-                    er_ages_rec["age"] = scipy.mean(
-                        [float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
+                    er_ages_rec["age"] = mean([float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
         if er_ages_rec["age"] == "":
             return(er_ages_rec)
 
@@ -6750,11 +6749,11 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if self.test_mode:
             CoorTypes = ['DA-DIR']
         elif dia.ShowModal() == wx.ID_OK:  # Until the user clicks OK, show the message
-            if dia.cb_spec_coor.GetValue() == True:
+            if dia.cb_spec_coor.GetValue():
                 CoorTypes.append('DA-DIR')
-            if dia.cb_geo_coor.GetValue() == True:
+            if dia.cb_geo_coor.GetValue():
                 CoorTypes.append('DA-DIR-GEO')
-            if dia.cb_tilt_coor.GetValue() == True:
+            if dia.cb_tilt_coor.GetValue():
                 CoorTypes.append('DA-DIR-TILT')
         else:
             self.user_warning("MagIC tables not saved")
