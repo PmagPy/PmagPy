@@ -3095,7 +3095,7 @@ class Demag_GUI(wx.Frame):
             mpars = {}
         for k in list(mpars.keys()):
             try:
-                if math.isnan(float(mpars[k])):
+                if np.isnan(float(mpars[k])):
                     mpars[k] = 0
             except:
                 pass
@@ -4966,17 +4966,17 @@ class Demag_GUI(wx.Frame):
         try:
             pmag_specimens, file_type = pmag.magic_read(
                 os.path.join(self.WD, "pmag_specimens.txt"))
-        except:
+        except FileNotFoundError:
             print("-I- Can't read pmag_specimens.txt")
         try:
             pmag_samples, file_type = pmag.magic_read(
                 os.path.join(self.WD, "pmag_samples.txt"))
-        except:
+        except FileNotFoundError:
             print("-I- Can't read pmag_samples.txt")
         try:
             pmag_sites, file_type = pmag.magic_read(
                 os.path.join(self.WD, "pmag_sites.txt"))
-        except:
+        except FileNotFoundError:
             print("-I- Can't read pmag_sites.txt")
         # --------------------------
         # reads pmag_specimens.txt and
