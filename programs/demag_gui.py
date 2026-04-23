@@ -1535,6 +1535,7 @@ class Demag_GUI(wx.Frame):
         self.mplot.get_xaxis().tick_bottom()
         self.mplot.get_yaxis().tick_left()
         self.mplot.set_ylabel("M / NRM0", fontsize=8*self.GUI_RESOLUTION)
+        self.mplot.set_ylim(0)
 
         self.canvas3.draw()
 
@@ -1626,7 +1627,7 @@ class Demag_GUI(wx.Frame):
             self.selected_meas_artists.append(self.mplot.scatter(
                 T_x, T_y, facecolor=red_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
         self.mplot.set_xlim([xmin, xmax])
-        self.mplot.set_ylim([ymin, ymax])
+        self.mplot.set_ylim([0, ymax])
 
         xmin, xmax = self.mplot_af.get_xlim()
         ymin, ymax = self.mplot_af.get_ylim()
@@ -1634,7 +1635,7 @@ class Demag_GUI(wx.Frame):
             self.selected_meas_artists.append(self.mplot_af.scatter(
                 af_x, af_y, facecolor=blue_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
         self.mplot_af.set_xlim([xmin, xmax])
-        self.mplot_af.set_ylim([ymin, ymax])
+        self.mplot_af.set_ylim([0, ymax])
 
         self.canvas1.draw()
         self.canvas2.draw()
