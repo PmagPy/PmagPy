@@ -66,7 +66,6 @@ import shutil
 import wx
 import wx.lib.scrolledpanel
 import numpy as np
-from numpy import vstack, sqrt, arange, array, mean, nan
 from matplotlib.figure import Figure
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
@@ -238,8 +237,8 @@ class Demag_GUI(wx.Frame):
         self.selected_meas_called = False
         self.dirtypes = ['DA-DIR', 'DA-DIR-GEO', 'DA-DIR-TILT']
         self.bad_fits = []
-        self.CART_rot, self.CART_rot_good, self.CART_rot_bad = array(
-            []), array([]), array([])
+        self.CART_rot, self.CART_rot_good, self.CART_rot_bad = np.array(
+            []), np.array([]), np.array([])
 
         # initialize selecting criteria
         self.COORDINATE_SYSTEM = 'geographic'
@@ -299,7 +298,7 @@ class Demag_GUI(wx.Frame):
         self.scrolled_panel.SetupScrolling()  # endable scrolling
 
         # Draw figures and add text
-        if self.Data and any(self.Data[s][k] if not isinstance(self.Data[s][k], type(array([]))) else self.Data[s][k].any() for s in self.Data for k in self.Data[s]):
+        if self.Data and any(self.Data[s][k] if not isinstance(self.Data[s][k], type(np.array([]))) else self.Data[s][k].any() for s in self.Data for k in self.Data[s]):
             # get previous interpretations from pmag tables
             if self.data_model == 3.0 and 'specimens' in self.con.tables:
                 self.get_interpretations3()
@@ -1246,8 +1245,8 @@ class Demag_GUI(wx.Frame):
 
         props = dict(color='black', linewidth=1.0, markeredgewidth=0.5)
 
-        xlocs = array(list(arange(0.2, xmax, 0.2)) +
-                      list(arange(-0.2, xmin, -0.2)))
+        xlocs = np.array(list(np.arange(0.2, xmax, 0.2)) +
+                      list(np.arange(-0.2, xmin, -0.2)))
         if len(xlocs) > 0:
             xtickline, = self.zijplot.plot(
                 xlocs, [0]*len(xlocs), linestyle='', marker='+', **props)
@@ -1278,8 +1277,8 @@ class Demag_GUI(wx.Frame):
         if ymin > 0:
             ymin = 0
 
-        ylocs = array(list(arange(0.2, ymax, 0.2)) +
-                      list(arange(-0.2, ymin, -0.2)))
+        ylocs = np.array(list(np.arange(0.2, ymax, 0.2)) +
+                      list(np.arange(-0.2, ymin, -0.2)))
         if len(ylocs) > 0:
             ytickline, = self.zijplot.plot(
                 [0]*len(ylocs), ylocs, linestyle='', marker='+', **props)
@@ -1354,9 +1353,9 @@ class Demag_GUI(wx.Frame):
         self.specimen_eqarea.text(-1.2, 1.15, "specimen: %s" % self.s, {
                                   'family': self.font_type, 'fontsize': 10*self.GUI_RESOLUTION, 'style': 'normal', 'va': 'center', 'ha': 'left'})
 
-        x_eq = array([row[0] for row in self.zij_norm])
-        y_eq = array([row[1] for row in self.zij_norm])
-        z_eq = abs(array([row[2] for row in self.zij_norm]))
+        x_eq = np.array([row[0] for row in self.zij_norm])
+        y_eq = np.array([row[1] for row in self.zij_norm])
+        z_eq = abs(np.array([row[2] for row in self.zij_norm]))
 
         # remove bad data from plotting:
         x_eq_good, y_eq_good, z_eq_good = [], [], []
@@ -1371,15 +1370,15 @@ class Demag_GUI(wx.Frame):
                 y_eq_bad.append(self.zij_norm[i][1])
                 z_eq_bad.append(abs(self.zij_norm[i][2]))
 
-        x_eq_good, y_eq_good, z_eq_good = array(
-            x_eq_good), array(y_eq_good), array(z_eq_good)
-        x_eq_bad, y_eq_bad, z_eq_bad = array(
-            x_eq_bad), array(y_eq_bad), array(z_eq_bad)
+        x_eq_good, y_eq_good, z_eq_good = np.array(
+            x_eq_good), np.array(y_eq_good), np.array(z_eq_good)
+        x_eq_bad, y_eq_bad, z_eq_bad = np.array(
+            x_eq_bad), np.array(y_eq_bad), np.array(z_eq_bad)
 
-        R_good = array(sqrt(1-z_eq_good)/sqrt(x_eq_good**2 +
+        R_good = np.array(np.sqrt(1-z_eq_good)/np.sqrt(x_eq_good**2 +
                                               y_eq_good**2))  # from Collinson 1983
         # from Collinson 1983
-        R_bad = array(sqrt(1-z_eq_bad)/sqrt(x_eq_bad**2+y_eq_bad**2))
+        R_bad = np.array(np.sqrt(1-z_eq_bad)/np.sqrt(x_eq_bad**2+y_eq_bad**2))
 
         eqarea_data_x_good = y_eq_good*R_good
         eqarea_data_y_good = x_eq_good*R_good
@@ -1395,25 +1394,25 @@ class Demag_GUI(wx.Frame):
         # --------------------
 
         x_eq_dn, y_eq_dn, z_eq_dn, eq_dn_temperatures = [], [], [], []
-        x_eq_dn = array([row[0] for row in self.zij_norm if row[2] > 0])
-        y_eq_dn = array([row[1] for row in self.zij_norm if row[2] > 0])
-        z_eq_dn = abs(array([row[2] for row in self.zij_norm if row[2] > 0]))
+        x_eq_dn = np.array([row[0] for row in self.zij_norm if row[2] > 0])
+        y_eq_dn = np.array([row[1] for row in self.zij_norm if row[2] > 0])
+        z_eq_dn = abs(np.array([row[2] for row in self.zij_norm if row[2] > 0]))
 
         if len(x_eq_dn) > 0:
             # from Collinson 1983
-            R = array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2))
+            R = np.array(np.sqrt(1-z_eq_dn)/np.sqrt(x_eq_dn**2+y_eq_dn**2))
             eqarea_data_x_dn = y_eq_dn*R
             eqarea_data_y_dn = x_eq_dn*R
             self.specimen_eqarea.scatter([eqarea_data_x_dn], [eqarea_data_y_dn], marker='o',
                                          edgecolor='black', facecolor="#808080", s=15*self.GUI_RESOLUTION, lw=1, clip_on=False)
 
         x_eq_up, y_eq_up, z_eq_up = [], [], []
-        x_eq_up = array([row[0] for row in self.zij_norm if row[2] <= 0])
-        y_eq_up = array([row[1] for row in self.zij_norm if row[2] <= 0])
-        z_eq_up = abs(array([row[2] for row in self.zij_norm if row[2] <= 0]))
+        x_eq_up = np.array([row[0] for row in self.zij_norm if row[2] <= 0])
+        y_eq_up = np.array([row[1] for row in self.zij_norm if row[2] <= 0])
+        z_eq_up = abs(np.array([row[2] for row in self.zij_norm if row[2] <= 0]))
         if len(x_eq_up) > 0:
             # from Collinson 1983
-            R = array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2))
+            R = np.array(np.sqrt(1-z_eq_up)/np.sqrt(x_eq_up**2+y_eq_up**2))
             eqarea_data_x_up = y_eq_up*R
             eqarea_data_y_up = x_eq_up*R
             self.specimen_eqarea.scatter([eqarea_data_x_up], [eqarea_data_y_up], marker='o',
@@ -1569,30 +1568,30 @@ class Demag_GUI(wx.Frame):
             x, -1*z, c=blue_cover, marker='s', s=MS_selected, zorder=2))
 
         # do down data for eqarea
-        x_eq = array([row[0] for i, row in enumerate(self.zij_norm)
+        x_eq = np.array([row[0] for i, row in enumerate(self.zij_norm)
                       if i in self.selected_meas and row[2] > 0])
-        y_eq = array([row[1] for i, row in enumerate(self.zij_norm)
+        y_eq = np.array([row[1] for i, row in enumerate(self.zij_norm)
                       if i in self.selected_meas and row[2] > 0])
-        z_eq = abs(array([row[2] for i, row in enumerate(
+        z_eq = abs(np.array([row[2] for i, row in enumerate(
             self.zij_norm) if i in self.selected_meas and row[2] > 0]))
         if len(x_eq) > 0:
             # from Collinson 1983
-            R = array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2))
+            R = np.array(np.sqrt(1-z_eq)/np.sqrt(x_eq**2+y_eq**2))
             eqarea_data_x = y_eq*R
             eqarea_data_y = x_eq*R
             self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x], [
                                               eqarea_data_y], marker='o', edgecolor=eqarea_outline, facecolor="#808080", s=15*self.GUI_RESOLUTION, lw=1, clip_on=False))
 
         # do up data for eqarea
-        x_eq = array([row[0] for i, row in enumerate(self.zij_norm)
+        x_eq = np.array([row[0] for i, row in enumerate(self.zij_norm)
                       if i in self.selected_meas and row[2] < 0])
-        y_eq = array([row[1] for i, row in enumerate(self.zij_norm)
+        y_eq = np.array([row[1] for i, row in enumerate(self.zij_norm)
                       if i in self.selected_meas and row[2] < 0])
-        z_eq = abs(array([row[2] for i, row in enumerate(
+        z_eq = abs(np.array([row[2] for i, row in enumerate(
             self.zij_norm) if i in self.selected_meas and row[2] < 0]))
         if len(x_eq) > 0:
             # from Collinson 1983
-            R = array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2))
+            R = np.array(np.sqrt(1-z_eq)/np.sqrt(x_eq**2+y_eq**2))
             eqarea_data_x = y_eq*R
             eqarea_data_y = x_eq*R
             self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x], [
@@ -1605,12 +1604,12 @@ class Demag_GUI(wx.Frame):
             i for i in self.selected_meas if "T" in steps[i] or steps[i] == "0" and flags[i] != "b"]
         selected_T_meas = [i for i in self.selected_meas if "C" in steps[i]
                            or steps[i] == "0" and flags[i] != "b"]
-        data = array(self.Data[self.s]['zijdblock'])
-        af_x = array(list(map(float, data[selected_af_meas, 0])))
-        af_y = array(
+        data = np.array(self.Data[self.s]['zijdblock'])
+        af_x = np.array(list(map(float, data[selected_af_meas, 0])))
+        af_y = np.array(
             list(map(float, data[selected_af_meas, 3])))/float(data[0, 3])
-        T_x = array(list(map(float, data[selected_T_meas, 0])))
-        T_y = array(
+        T_x = np.array(list(map(float, data[selected_T_meas, 0])))
+        T_y = np.array(
             list(map(float, data[selected_T_meas, 3])))/float(data[0, 3])
 
         xmin, xmax = self.mplot.get_xlim()
@@ -1740,15 +1739,15 @@ class Demag_GUI(wx.Frame):
                 slop_xz_PCA = -1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
 
                 # Center of mass rotated for plotting
-                CM_x = mean(self.CART_rot_good[:, 0][tmin_index:tmax_index+1])
-                CM_y = mean(self.CART_rot_good[:, 1][tmin_index:tmax_index+1])
-                CM_z = mean(self.CART_rot_good[:, 2][tmin_index:tmax_index+1])
+                CM_x = np.mean(self.CART_rot_good[:, 0][tmin_index:tmax_index+1])
+                CM_y = np.mean(self.CART_rot_good[:, 1][tmin_index:tmax_index+1])
+                CM_z = np.mean(self.CART_rot_good[:, 2][tmin_index:tmax_index+1])
 
                 # intercpet from the center of mass
                 intercept_xy_PCA = -1*CM_y - slop_xy_PCA*CM_x
                 intercept_xz_PCA = -1*CM_z - slop_xz_PCA*CM_x
 
-                xx = array([self.CART_rot[:, 0][tmax_index],
+                xx = np.array([self.CART_rot[:, 0][tmax_index],
                             self.CART_rot[:, 0][tmin_index]])
                 yy = slop_xy_PCA*xx+intercept_xy_PCA
                 zz = slop_xz_PCA*xx+intercept_xz_PCA
@@ -1820,7 +1819,7 @@ class Demag_GUI(wx.Frame):
                         x = CART[0]
                         y = CART[1]
                         z = CART[2]
-                        R = array(sqrt(1-abs(z))/sqrt(x**2+y**2))
+                        R = np.array(np.sqrt(1-abs(z))/np.sqrt(x**2+y**2))
                         eqarea_x = y*R
                         eqarea_y = x*R
                     except KeyError:
@@ -1833,7 +1832,7 @@ class Demag_GUI(wx.Frame):
                 x = CART[0]
                 y = CART[1]
                 z = CART[2]
-                R = array(sqrt(1-abs(z))/sqrt(x**2+y**2))
+                R = np.array(np.sqrt(1-abs(z))/np.sqrt(x**2+y**2))
                 eqarea_x = y*R
                 eqarea_y = x*R
 
@@ -2430,15 +2429,15 @@ class Demag_GUI(wx.Frame):
             self.ORTHO_PLOT_TYPE = 'ZIJ'
         if self.COORDINATE_SYSTEM == 'geographic':
             # self.CART_rot=self.Data[self.s]['zij_rotated_geo']
-            self.zij = array(self.Data[self.s]['zdata_geo'])
+            self.zij = np.array(self.Data[self.s]['zdata_geo'])
             self.zijblock = self.Data[self.s]['zijdblock_geo']
         elif self.COORDINATE_SYSTEM == 'tilt-corrected':
             # self.CART_rot=self.Data[self.s]['zij_rotated_tilt']
-            self.zij = array(self.Data[self.s]['zdata_tilt'])
+            self.zij = np.array(self.Data[self.s]['zdata_tilt'])
             self.zijblock = self.Data[self.s]['zijdblock_tilt']
         else:
             # self.CART_rot=self.Data[self.s]['zij_rotated']
-            self.zij = array(self.Data[self.s]['zdata'])
+            self.zij = np.array(self.Data[self.s]['zdata'])
             self.zijblock = self.Data[self.s]['zijdblock']
 
         if self.COORDINATE_SYSTEM == 'geographic':
@@ -2495,7 +2494,7 @@ class Demag_GUI(wx.Frame):
                 self.CART_rot = Rotate_zijderveld(
                     self.Data[self.s]['zdata'], pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
 
-        self.zij_norm = array([row/sqrt(sum(row**2)) for row in self.zij])
+        self.zij_norm = np.array([row/np.sqrt(sum(row**2)) for row in self.zij])
 
         # remove bad data from plotting:
         self.CART_rot_good = []
@@ -2506,9 +2505,9 @@ class Demag_GUI(wx.Frame):
             else:
                 self.CART_rot_bad.append(list(self.CART_rot[i]))
 
-        self.CART_rot = array(self.CART_rot)
-        self.CART_rot_good = array(self.CART_rot_good)
-        self.CART_rot_bad = array(self.CART_rot_bad)
+        self.CART_rot = np.array(self.CART_rot)
+        self.CART_rot_good = np.array(self.CART_rot_good)
+        self.CART_rot_bad = np.array(self.CART_rot_bad)
 
     def add_fit(self, specimen, name, fmin, fmax, PCA_type="DE-BFL", color=None, suppress_warnings=False, saved=True):
         """
@@ -2874,7 +2873,7 @@ class Demag_GUI(wx.Frame):
         if er_ages_rec["age"] == "":
             if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
                 if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
-                    er_ages_rec["age"] = mean([float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
+                    er_ages_rec["age"] = np.mean([float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
         if er_ages_rec["age"] == "":
             return(er_ages_rec)
 
@@ -3174,7 +3173,7 @@ class Demag_GUI(wx.Frame):
         if mads == []:
             return
 
-        peaks = find_peaks_cwt(array(mads), arange(5, 10))
+        peaks = find_peaks_cwt(np.array(mads), np.arange(5, 10))
         len_temps = len(self.Data[specimen]['zijdblock_steps'])
         peaks = [0] + peaks + [len(temps)]
 
@@ -3368,7 +3367,7 @@ class Demag_GUI(wx.Frame):
                 # set the initial direction arbitrarily
                 V = dir2cart([180., -45., 1.])
             else:
-                R = sqrt(E[0]**2+E[1]**2+E[2]**2)
+                R = np.sqrt(E[0]**2+E[1]**2+E[2]**2)
                 V = [c/R for c in E]  # set initial direction as mean of lines
             bfvs_cart = pmag.calculate_best_fit_vectors(L, E, V, n_planes)
             bfvs = [pmag.cart2dir(bfv) for bfv in bfvs_cart]
@@ -4095,8 +4094,8 @@ class Demag_GUI(wx.Frame):
             meas_container = self.con.tables['measurements']
             meas_data3_0 = meas_container.df
 
-            meas_data3_0.replace({'specimen': {nan: 'unknown'}, 'sample': {nan: 'unknown'}, 'site': {
-                                 nan: 'unknown'}, 'location': {nan: 'unknown'}}, inplace=True)
+            meas_data3_0.replace({'specimen': {np.nan: 'unknown'}, 'sample': {np.nan: 'unknown'}, 'site': {
+                                 np.nan: 'unknown'}, 'location': {np.nan: 'unknown'}}, inplace=True)
             meas_data3_0['specimen'] = meas_data3_0['specimen'].apply(str)
             meas_data3_0['sample'] = meas_data3_0['sample'].apply(str)
             meas_data3_0['site'] = meas_data3_0['site'].apply(str)
@@ -4356,7 +4355,7 @@ class Demag_GUI(wx.Frame):
                 Data[s]['csds'].append(csd)
                 DIR = [dec, inc, intensity/NRM]
                 cart = pmag.dir2cart(DIR)
-                Data[s]['zdata'].append(array([cart[0], cart[1], cart[2]]))
+                Data[s]['zdata'].append(np.array([cart[0], cart[1], cart[2]]))
 
                 if 'magic_experiment_name' in list(Data[s].keys()) and Data[s]['magic_experiment_name'] != rec["magic_experiment_name"]:
                     print(("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?" % (s)))
@@ -4426,7 +4425,7 @@ class Demag_GUI(wx.Frame):
 
                 if len(Data[s]['zdata']) > 1:
                     Data[s]['vector_diffs'].append(
-                        sqrt(sum((array(Data[s]['zdata'][-2])-array(Data[s]['zdata'][-1]))**2)))
+                        np.sqrt(sum((np.array(Data[s]['zdata'][-2])-np.array(Data[s]['zdata'][-1]))**2)))
 
             # ---------------------
             # hierarchy is determined from magic_measurements.txt
@@ -4496,13 +4495,13 @@ class Demag_GUI(wx.Frame):
         for s in self.specimens:
             if len(Data[s]['zdata']) > 0:
                 Data[s]['vector_diffs'].append(
-                    sqrt(sum(array(Data[s]['zdata'][-1])**2)))  # last vector of the vds
+                    np.sqrt(sum(np.array(Data[s]['zdata'][-1])**2)))  # last vector of the vds
             vds = sum(Data[s]['vector_diffs'])  # vds calculation
-            Data[s]['vector_diffs'] = array(Data[s]['vector_diffs'])
+            Data[s]['vector_diffs'] = np.array(Data[s]['vector_diffs'])
             Data[s]['vds'] = vds
-            Data[s]['zdata'] = array(Data[s]['zdata'])
-            Data[s]['zdata_geo'] = array(Data[s]['zdata_geo'])
-            Data[s]['zdata_tilt'] = array(Data[s]['zdata_tilt'])
+            Data[s]['zdata'] = np.array(Data[s]['zdata'])
+            Data[s]['zdata_geo'] = np.array(Data[s]['zdata_geo'])
+            Data[s]['zdata_tilt'] = np.array(Data[s]['zdata_tilt'])
         return(Data, Data_hierarchy)
 
     def get_interpretations3(self):
@@ -7651,7 +7650,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         ----------
         event : the wx Mouseevent for that click
         """
-        if not array(self.CART_rot).any():
+        if not np.array(self.CART_rot).any():
             return
         pos = event.GetPosition()
         width, height = self.canvas1.get_width_height()
@@ -7660,7 +7659,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = list(self.CART_rot[:, 0]) + list(self.CART_rot[:, 0])
         ydata_org = list(-1*self.CART_rot[:, 1]) + list(-1*self.CART_rot[:, 2])
         data_corrected = self.zijplot.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7671,7 +7670,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         else:
             self.canvas1.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas1.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
@@ -7690,7 +7689,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         ------
         current_fit
         """
-        if not array(self.CART_rot_good).any():
+        if not np.array(self.CART_rot_good).any():
             return
         pos = event.GetPosition()
         width, height = self.canvas1.get_width_height()
@@ -7701,7 +7700,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         ydata_org = list(-1*self.CART_rot_good[:, 1]) + \
             list(-1*self.CART_rot_good[:, 2])
         data_corrected = self.zijplot.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7709,7 +7708,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
         index = None
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 index = i
                 break
         if index is not None:
@@ -7736,7 +7735,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         ------
         current_fit
         """
-        if not array(self.CART_rot).any():
+        if not np.array(self.CART_rot).any():
             return
         pos = event.GetPosition()
         width, height = self.canvas1.get_width_height()
@@ -7745,7 +7744,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = list(self.CART_rot[:, 0]) + list(self.CART_rot[:, 0])
         ydata_org = list(-1*self.CART_rot[:, 1]) + list(-1*self.CART_rot[:, 2])
         data_corrected = self.zijplot.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7753,7 +7752,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
         index = None
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 index = i
                 break
         if index is not None:
@@ -7832,7 +7831,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
         data_corrected = self.specimen_eqarea.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7843,7 +7842,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         else:
             self.canvas2.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas2.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
@@ -7871,7 +7870,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
         data_corrected = self.specimen_eqarea.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7879,7 +7878,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
         index = None
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 index = i
                 break
         if index is not None:
@@ -7947,7 +7946,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = self.high_EA_xdata
         ydata_org = self.high_EA_ydata
         data_corrected = self.high_level_eqarea.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -7960,7 +7959,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         if not self.high_EA_xdata or not self.high_EA_ydata:
             return
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas4.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
@@ -7994,7 +7993,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         xdata_org = self.high_EA_xdata
         ydata_org = self.high_EA_ydata
         data_corrected = fig.transData.transform(
-            vstack([xdata_org, ydata_org]).T)
+            np.vstack([xdata_org, ydata_org]).T)
         xdata, ydata = data_corrected.T
         xdata = list(map(float, xdata))
         ydata = list(map(float, ydata))
@@ -8002,7 +8001,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
         index = None
         for i, (x, y) in enumerate(zip(xdata, ydata)):
-            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+            if 0 < np.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 index = i
                 break
         if index is not None:
