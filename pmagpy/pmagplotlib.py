@@ -703,11 +703,11 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     gXYZ = pd.DataFrame(pmag.dir2cart(forVDS))
     gXYZ.columns = ['X', 'Y', 'Z']
     amax = np.maximum(gXYZ.X.max(), gXYZ.Z.max())
+    amax = np.maximum(amax, gXYZ.Y.max())
     amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
-    amax = np.maximum(amax, gXYZ.Y.max())#DEBUG
-    amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())#DEBUG
-    if amin > 0: 
-        amin = 0 
+    amin = np.minimum(amin, gXYZ.Y.min())
+    if amin > 0:
+        amin = 0
     bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
 # plotting stuff
     if angle != 0:
@@ -778,7 +778,7 @@ def plot_mag(fignum, datablock, s, num, units, norm):
     Mex, Tex, Vdif = [], [], []
     recbak = []
     for rec in datablock:
-        if rec[4] == 'g':
+        if rec[5] == 'g':
             if units == "T":
                 T.append(rec[0] * 1e3)
                 Tv.append(rec[0] * 1e3)
@@ -882,7 +882,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         eqarea : figure number for equal area projection
         zijd   : figure number for  zijderveld plot
         demag :  figure number for magnetization against demag step
-        datablock : nested list of [step, dec, inc, M (Am2), quality]
+        datablock : nested list of [step, dec, inc, M (Am2), type, quality]
         step : units assumed in SI
         M    : units assumed Am2
         quality : [g,b], good or bad measurement; if bad will be marked as such
@@ -908,7 +908,7 @@ def plot_zed(ZED, datablock, angle, s, units):
         if cb.is_null(rec[2],zero_as_null=False):
             print('-W- You are missing an inclination for specimen', s, ', skipping this row')
             continue
-        if rec[4] == 'b':
+        if rec[5] == 'b':
             DIbad.append((rec[1], rec[2]))
         else:
             DIgood.append((rec[1], rec[2]))
