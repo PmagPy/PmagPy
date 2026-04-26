@@ -2,11 +2,13 @@
 # -*- python-indent-offset: 4; -*-
 
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 from pmagpy import pmag
-from pmagpy import ipmag
+from pmagpy import rockmag
+import pandas as pd
 
 
 def main():
@@ -29,6 +31,7 @@ def main():
         -fmt [svg,png,jpg] format for output plots, default svg
         -sav saves plots and quits quietly
     """
+
     args = sys.argv
     if "-h" in args:
         print(main.__doc__)
@@ -36,14 +39,21 @@ def main():
     dir_path = pmag.get_named_arg('-WD', '.')
     fmt = pmag.get_named_arg('-fmt', 'svg')
     save_plots = False
-    interactive = True
     if '-sav' in sys.argv:
         save_plots = True
-        interactive = False
     infile = pmag.get_named_arg("-f", "specimens.txt")
-    ipmag.dayplot_magic(dir_path, infile, save=save_plots,
-                        fmt=fmt, interactive=interactive)
-
+    infile_path = os.path.join(dir_path, infile)
+    if not os.path.isfile(infile_path):
+        print(f"Specimens file not found: {infile_path}")
+        sys.exit(1)
+    # Read specimens table
+    df = pd.read_csv(infile_path, sep='\t', skiprows=1)
+    # Plot Day plot using rockmag
+    fig, ax = rockmag.plot_day_plot_MagIC(df, show_plot=not save_plots, return_figure=True)
+    if save_plots and fig is not None:
+        outname = os.path.splitext(os.path.basename(infile))[0] + f"_dayplot.{fmt}"
+        fig.savefig(outname, format=fmt)
+        print(f"Saved plot to {outname}")
 
 
 if __name__ == "__main__":
