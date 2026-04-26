@@ -58,7 +58,7 @@ def main():
     M = data[:, 1]
     df = pd.DataFrame({"meas_temp": T, "magn_mass": M})
 
-    # Restrict to temperature range if requested
+    # Restrict to temperature range if requested (assume input is always Celsius)
     if t_begin is not None and t_end is not None:
         df = df[(df["meas_temp"] >= t_begin) & (df["meas_temp"] <= t_end)]
 
@@ -67,7 +67,6 @@ def main():
         df,
         temperature_column="meas_temp",
         magnetization_column="magn_mass",
-        temp_unit="C",
         interactive=False,
         return_figure=True,
         show_plot=not save_plot,
