@@ -1890,6 +1890,129 @@ def plot_vs(fignum, Xs, c, ls):
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
 
+def plot_hys(fignum, B, M, s):
+    """
+   function to plot hysteresis data
+   Parameters:
+   _____________________
+   Input :
+       fignum : matplotlib figure number
+       B : list of field values (in tesla)
+       M : list of magnetizations
+   Output :
+       hpars : dictionary of hysteresis parameters
+           keys: ['hysteresis_xhf', 'hysteresis_ms_moment', 'hysteresis_mr_moment', 'hysteresis_bc']
+       deltaM : list of differences between down and upgoing loops
+       Bdm : field values
+
+    """
+    B = list(B)
+    from . import spline
+    if fignum != 0:
+        plt.figure(num=fignum)
+        plt.clf()
+        if not isServer:
+            plt.figtext(.02, .01, version_num)
+    hpars = {}
+# close up loop
+    Npts = len(M)
+    B70 = 0.7 * B[0]  # 70 percent of maximum field
+    for b in B:
+        if b < B70:
+            break
+    Nint = B.index(b) - 1
+    if Nint > 30:
+        Nint = 30
+    if Nint < 10:
+        Nint = 10
+    Bzero, Mzero, Mfix, Mnorm, Madj, MadjN = "", "", [], [], [], []
+    Mazero = ""
+    m_init = 0.5 * (M[0] + M[1])
+    m_fin = 0.5 * (M[-1] + M[-2])
+    diff = m_fin - m_init
+    Bmin = 0.
+    for k in range(Npts):
+        frac = float(k) / float(Npts - 1)
+        Mfix.append((M[k] - diff * frac))
+        if Bzero == "" and B[k] < 0:
+            Bzero = k
+        if B[k] < Bmin:
+            Bmin = B[k]
+            kmin = k
+    # adjust slope with first 30 data points (throwing out first 3)
+    Bslop = B[2:Nint + 2]
+    Mslop = Mfix[2:Nint + 2]
+    # best fit line to high field points
+    polyU = np.polyfit(Bslop, Mslop, 1)
+    # adjust slope with first 30 points of ascending branch
+    Bslop = B[kmin:kmin + (Nint + 1)]
+    Mslop = Mfix[kmin:kmin + (Nint + 1)]
+    # best fit line to high field points
+    polyL = np.polyfit(Bslop, Mslop, 1)
+    xhf = 0.5 * (polyU[0] + polyL[0])  # mean of two slopes
+    # convert B to A/m, high field slope in m^3
+    hpars['hysteresis_xhf'] = '%8.2e' % (xhf * 4 * np.pi * 1e-7)
+    meanint = 0.5 * (polyU[1] + polyL[1])  # mean of two intercepts
+    Msat = 0.5 * (polyU[1] - polyL[1])  # mean of saturation remanence
+    Moff = []
+    for k in range(Npts):
+        # take out linear slope and offset (makes symmetric about origin)
+        Moff.append((Mfix[k] - xhf * B[k] - meanint))
+        if Mzero == "" and Moff[k] < 0:
+            Mzero = k
+        if Mzero != "" and Mazero == "" and Moff[k] > 0:
+            Mazero = k
+    hpars['hysteresis_ms_moment'] = '%8.3e' % (Msat)  # Ms in Am^2
+#
+# split into upper and lower loops for splining
+    Mupper, Bupper, Mlower, Blower = [], [], [], []
+    deltaM, Bdm = [], []  # diff between upper and lower curves at Bdm
+    for k in range(kmin - 2, 0, -1):
+        Mupper.append(Moff[k] / Msat)
+        Bupper.append(B[k])
+    for k in range(kmin + 2, len(B)):
+        Mlower.append(Moff[k] / Msat)
+        Blower.append(B[k])
+    Iupper = spline.Spline(Bupper, Mupper)  # get splines for upper up and down
+    Ilower = spline.Spline(Blower, Mlower)  # get splines for lower
+    incr = B[0] * .01
+    for b in np.arange(B[0], step=incr):  # get range of field values
+        Mpos = ((Iupper(b) - Ilower(b)))  # evaluate on both sides of B
+        Mneg = ((Iupper(-b) - Ilower(-b)))
+        Bdm.append(b)
+        deltaM.append(0.5 * (Mpos + Mneg))  # take average delta M
+    for k in range(Npts):
+        MadjN.append(Moff[k] / Msat)
+        Mnorm.append(M[k] / Msat)
+    if fignum != 0:
+        plt.plot(B, Mnorm, 'r')
+        plt.plot(B, MadjN, 'b')
+        plt.xlabel('B (T)')
+        plt.ylabel("M/Msat")
+        plt.axhline(0, color='k')
+        plt.axvline(0, color='k')
+        plt.title(s)
+# find Mr : average of two spline fits evaluated at B=0 (times Msat)
+    Mr = Msat * 0.5 * (Iupper(0.) - Ilower(0.))
+    hpars['hysteresis_mr_moment'] = '%8.3e' % (Mr)
+# find Bc (x intercept), interpolate between two bounding points
+    Bz = B[Mzero - 1:Mzero + 1]
+    Mz = Moff[Mzero - 1:Mzero + 1]
+    Baz = B[Mazero - 1:Mazero + 1]
+    Maz = Moff[Mazero - 1:Mazero + 1]
+    try:
+        # best fit line through two bounding points
+        poly = np.polyfit(Bz, Mz, 1)
+        Bc = -poly[1] / poly[0]  # x intercept
+        # best fit line through two bounding points
+        poly = np.polyfit(Baz, Maz, 1)
+        Bac = -poly[1] / poly[0]  # x intercept
+        hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
+    except:
+        hpars['hysteresis_bc'] = '0'
+    return hpars, deltaM, Bdm
+#
+
 def plot_delta_m(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
