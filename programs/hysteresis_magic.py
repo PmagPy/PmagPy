@@ -73,6 +73,11 @@ def main():
         sys.exit(1)
     measurements = pd.read_csv(meas_path, sep='\t', skiprows=1)
 
+    # Detect magnetization column (support magn_mass, magn_moment, etc.)
+    magn_col = next((col for col in measurements.columns if 'magn_' in col), None)
+    if magn_col is None:
+        raise KeyError("No column containing 'magn_' found in measurement file.")
+
     # Load specimen data
     spec_path = os.path.join(output_dir_path, spec_file)
     if os.path.isfile(spec_path):
@@ -87,7 +92,7 @@ def main():
             print(f"No hysteresis data found for specimen: {pltspec}")
             sys.exit(1)
         field = hyst_data['meas_field_dc'].values
-        magnetization = hyst_data['magn_mass'].values
+        magnetization = hyst_data[magn_col].values
         res = rockmag.process_hyst_loop(field, magnetization, pltspec, show_results_table=True, show_plot=make_plots)
         if save_plots:
             fig = res.get('plot', None)
@@ -113,7 +118,7 @@ def main():
     exp_spec_df = hyst_experiments[['experiment', 'specimen']].drop_duplicates().reset_index(drop=True)
     results_df = rockmag.process_hyst_loops(
         exp_spec_df, measurements,
-        field_col="meas_field_dc", magn_col="magn_mass",
+        field_col="meas_field_dc", magn_col=magn_col,
         show_results_table=True, show_plots=make_plots
     )
 
