@@ -11105,22 +11105,13 @@ def aniso_magic_old(infile='specimens.txt', samp_file='samples.txt', site_file='
 
 
 
-def aniso_magic_nb(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
-                   ipar=False, ihext=True, ivec=False, isite=False, iboot=False, vec=0,
-                   Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
-                   save_plots=True, interactive=False, fmt="png", contribution=None):
-    """
-    Wrapper for aniso_magic
-    """
-    return aniso_magic(infile, samp_file, site_file, verbose, ipar, ihext, ivec,
-                       isite, iboot, vec, Dir, PDir, crd, num_bootstraps,
-                       dir_path, fignum, save_plots, interactive, fmt, contribution)
-
-
 def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='sites.txt', verbose=True,
-                ipar=False, ihext=True, ivec=False, isite=False, iboot=False, vec=0,
-                Dir=[], PDir=[], crd="s", num_bootstraps=1000, dir_path=".", fignum=1,
-                save_plots=True, interactive=False, fmt="png", contribution=None, image_records=False):
+                ipar=False, ihext=True, ivec=False,
+                isite=False, sites=None, group_sites=False,
+                isample=False, samples=None, group_samples=False,
+                iboot=False, vec=0, Dir=[], PDir=[], crd="s", num_bootstraps=1000,
+                dir_path=".", fignum=1, save_plots=True, interactive=False, fmt="png",
+                contribution=None, image_records=False):
     """
     Makes plots of anisotropy eigenvectors, eigenvalues and confidence bounds
     All directions are on the lower hemisphere.
@@ -11133,7 +11124,36 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         ipar (confidence bound parameter): if True - perform parametric bootstrap - requires non-blank aniso_s_sigma
         ihext (confidence bound parameter): if True - Hext ellipses
         ivec (confidence bound parameter): if True - plot bootstrapped eigenvectors instead of ellipses
-        isite (confidence bound parameter): if True plot by site, requires non-blank samp_file
+        isite (confidence bound parameter): if True, produce one plot per site
+            (iterating over all sites in the data). Statistics are computed per site.
+            Mutually exclusive with isample. Equivalent to passing sites=<all sites>.
+        sites : str or list of str, optional (default None)
+            a site name or list of site names to plot. Each listed site gets its own
+            plot with statistics computed on that site alone (per-site iteration).
+            Pass group_sites=True to instead combine all listed sites into a single
+            plot with pooled statistics. Site names not present in the data are
+            skipped with a message when verbose=True. May be combined with
+            samples=... + group_samples=True to also filter by sample within each
+            per-site plot.
+        group_sites : bool, default False
+            if True, combine the specimens from the sites listed in `sites` into a
+            single plot with pooled statistics rather than iterating per site.
+            Has no effect if `sites` is None. Cannot be combined with isite=True.
+        isample (confidence bound parameter): if True, produce one plot per sample
+            (iterating over all samples in the data). Statistics are computed per
+            sample. Mutually exclusive with isite. Equivalent to passing
+            samples=<all samples>.
+        samples : str or list of str, optional (default None)
+            a sample name or list of sample names to plot. Each listed sample gets
+            its own plot with statistics computed on that sample alone (per-sample
+            iteration). Pass group_samples=True to instead combine all listed
+            samples into a single plot with pooled statistics. Sample names not
+            present in the data are skipped with a message when verbose=True.
+        group_samples : bool, default False
+            if True, combine the specimens from the samples listed in `samples`
+            into a single plot with pooled statistics rather than iterating per
+            sample. Has no effect if `samples` is None. Cannot be combined with
+            isample=True.
         iboot (confidence bound parameter): if True - bootstrap ellipses
         vec : eigenvector for comparison with Dir
         Dir : [Dec,Inc] list for comparison direction
@@ -11167,6 +11187,25 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     ihext = int(ihext)
     ivec = int(ivec)
     isite = int(isite)
+    isample = int(isample)
+    group_sites = bool(group_sites)
+    group_samples = bool(group_samples)
+    if isite and isample:
+        raise ValueError("aniso_magic: isite and isample are mutually exclusive")
+    if isite and group_sites:
+        raise ValueError("aniso_magic: isite=True conflicts with group_sites=True "
+                         "(isite iterates per site, group_sites combines them)")
+    if isample and group_samples:
+        raise ValueError("aniso_magic: isample=True conflicts with group_samples=True "
+                         "(isample iterates per sample, group_samples combines them)")
+    # iterate per-site when the user asked for it explicitly (isite=True) or
+    # supplied a sites list without opting into grouping. Same for samples.
+    iter_by_site = bool(isite) or (sites is not None and not group_sites)
+    iter_by_sample = bool(isample) or (samples is not None and not group_samples)
+    if iter_by_site and iter_by_sample:
+        raise ValueError(
+            "aniso_magic: cannot iterate by both site and sample. "
+            "Set group_sites=True or group_samples=True to combine one of them.")
     #iloc = int(iloc) # NOT USED
     iboot = int(iboot)
     # initialize some variables
@@ -11224,27 +11263,56 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
         if verbose:
             print("desired coordinate system not available, using available: ", crd)
     cs_df = spec_df[spec_df['aniso_tilt_correction'] == CS]
-    if isite:
-        sites = cs_df['site'].unique()
-        for site in list(sites):
-            site_df = cs_df[cs_df.site == site]
-            loc = ""
-            if 'sites' in con.tables:
-                if 'location' in con.tables['sites'].df.columns:
-                    locs = con.tables['sites'].df.loc[site, 'location']
-                    if isinstance(locs, pd.Series):
-                        loc=locs.iloc[0]
-                    else:
-                        loc=locs
+    # apply optional site / sample name filters
+    def _apply_name_filter(df, col, names, label):
+        if names is None:
+            return df, names
+        if isinstance(names, str):
+            names = [names]
+        requested = set(names)
+        if col not in df.columns:
+            if verbose:
+                print("'{}' column not in specimens; cannot filter by {}".format(col, label))
+            return df.iloc[0:0], names
+        available = set(df[col].dropna().unique())
+        missing = requested - available
+        if missing and verbose:
+            print("requested {} not in data:".format(label), sorted(missing))
+        return df[df[col].isin(requested)], names
+    cs_df, sites = _apply_name_filter(cs_df, 'site', sites, 'sites')
+    cs_df, samples = _apply_name_filter(cs_df, 'sample', samples, 'samples')
 
-            figs = plot_aniso(fignum, site_df, Dir=Dir, PDir=PDir, ipar=ipar,
+    if iter_by_site or iter_by_sample:
+        group_col = 'site' if iter_by_site else 'sample'
+        group_tag = 'SI' if iter_by_site else 'SA'
+        group_values = cs_df[group_col].unique() if group_col in cs_df.columns else []
+        for group_val in list(group_values):
+            group_df = cs_df[cs_df[group_col] == group_val]
+            # look up location for filenames: from sites table when grouping by site,
+            # from the (already-propagated) location column on specimens when grouping by sample
+            loc = ""
+            if iter_by_site:
+                if 'sites' in con.tables and 'location' in con.tables['sites'].df.columns:
+                    locs = con.tables['sites'].df.loc[group_val, 'location']
+                    if isinstance(locs, pd.Series):
+                        loc = locs.iloc[0]
+                    else:
+                        loc = locs
+            else:  # iter_by_sample
+                if 'location' in group_df.columns:
+                    loc_vals = group_df['location'].dropna().unique()
+                    if len(loc_vals):
+                        loc = loc_vals[0]
+
+            figs = plot_aniso(fignum, group_df, Dir=Dir, PDir=PDir, ipar=ipar,
                               ihext=ihext, ivec=ivec, iboot=iboot,
-                              vec=vec, num_bootstraps=num_bootstraps, title=site)
-            files = {key: loc + "_" + site +"_" + crd + "_aniso-" + key + ".png" for (key, value) in figs.items()}
+                              vec=vec, num_bootstraps=num_bootstraps, title=group_val)
+            files = {key: loc + "_" + group_val + "_" + crd + "_aniso-" + key + ".png"
+                     for (key, value) in figs.items()}
             if pmagplotlib.isServer:
                 titles = {}
                 for key in figs.keys():
-                    files[key] = "LO:_" + loc + "_SI:_" + site +  '_TY:_aniso_' + key + '_.' + fmt
+                    files[key] = "LO:_" + loc + "_" + group_tag + ":_" + group_val + '_TY:_aniso_' + key + '_.' + fmt
                     titles = {}
                     titles['data'] = "Eigenvectors"
                     titles['tcdf'] = "Eigenvalue Confidence"
@@ -11256,8 +11324,8 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
 
             if image_records:
                 for plot_type, fname in files.items():
-                    image_rec = {'site': site, 'file': fname, 'type': PLOT_TYPES[plot_type],
-                                 'title': "{} {}".format(site, PLOT_TYPES[plot_type]),
+                    image_rec = {group_col: group_val, 'file': fname, 'type': PLOT_TYPES[plot_type],
+                                 'title': "{} {}".format(group_val, PLOT_TYPES[plot_type]),
                                  'timestamp': date.today().isoformat(), 'software_packages': version.version}
                     image_recs.append(image_rec)
 
@@ -11277,8 +11345,18 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
                 if len(Dir) > 0:
                     fignum += 1
     else:
+        # compose a title for the combined plot based on what was grouped
+        title_parts = []
+        if group_sites and sites is not None and 'site' in cs_df.columns:
+            n_sites = cs_df['site'].dropna().nunique()
+            title_parts.append("{} grouped sites".format(n_sites))
+        if group_samples and samples is not None and 'sample' in cs_df.columns:
+            n_samples = cs_df['sample'].dropna().nunique()
+            title_parts.append("{} grouped samples".format(n_samples))
+        combined_title = ", ".join(title_parts)
         figs = plot_aniso(fignum, cs_df, Dir=Dir, PDir=PDir, ipar=ipar, ihext=ihext,
-                          ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps)
+                          ivec=ivec, iboot=iboot, vec=vec, num_bootstraps=num_bootstraps,
+                          title=combined_title)
         try:
             locs = cs_df['location'].unique()
         except KeyError:
@@ -11315,6 +11393,12 @@ def aniso_magic(infile='specimens.txt', samp_file='samples.txt', site_file='site
     if image_records:
         return True, saved, image_recs
     return True, saved
+
+
+# `aniso_magic_nb` was historically a notebook-oriented wrapper around `aniso_magic`
+# that duplicated the signature and forwarded every argument. Collapsing it to an
+# alias means both names point at the same implementation and cannot drift apart.
+aniso_magic_nb = aniso_magic
 
 
 def plot_dmag(data="", title="", fignum=1, norm=1,dmag_key='treat_ac_field',intensity='',
