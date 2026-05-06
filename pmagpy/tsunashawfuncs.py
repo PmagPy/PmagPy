@@ -11,7 +11,6 @@ import pmagpy.pmagplotlib as pmagplotlib
 import re
 import scipy.integrate as integrate
 import scipy.stats as stats
-import seaborn as sns
 import SPD.lib.leastsq_jacobian as lib_k
 import sys
 
