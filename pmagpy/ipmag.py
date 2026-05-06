@@ -5800,16 +5800,29 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
                     print(
                         '-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
                     df.drop(DropKeys, axis=1, inplace=True)
+            # Strip ".0" off integer-valued floats (e.g. "10.0" -> "10") in
+            # count columns that pandas may have read as float when NaNs were
+            # present. Earlier versions used str.strip(".0"), which also
+            # stripped any leading/trailing '.' or '0' chars and silently
+            # truncated values like "10" -> "1" or "100" -> "1" (issue #848).
+            def _drop_trailing_dot_zero(s):
+                s = str(s).strip()
+                if s == '' or s.lower() in ('nan', 'none'):
+                    return ''
+                try:
+                    f = float(s)
+                except (ValueError, TypeError):
+                    return s
+                if f.is_integer():
+                    return str(int(f))
+                return s
             n_cols=df.filter(like='_n',axis=1)
             if 'lat_n' in n_cols.columns:
-                n_cols.drop(columns=['lat_n'],inplace=True) #  oops: lat_n was also getting stripped of '0.' below!
+                n_cols=n_cols.drop(columns=['lat_n']) # lat_n is a float coord, not a count
             other_int_cols=['contribution_id','pole_w_q','pole_bc_q','order','sequence','hyst_loop','treat_step_num']
-            for col in n_cols:
+            for col in list(n_cols.columns) + other_int_cols:
                 if col in df.columns:
-                    df[col]=df[col].astype('str').str.strip(".0")
-            for col in other_int_cols:
-                if col in df.columns:
-                    df[col]=df[col].astype('str').str.strip(".0")
+                    df[col]=df[col].astype('str').map(_drop_trailing_dot_zero)
 
             # convert int_scat to True/False
             if 'int_scat' in df.columns:
