@@ -663,7 +663,8 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     __________
     fignum : matplotlib figure number
     datablock : nested list of [step, dec, inc, M (Am2), type, quality]
-                where type is a string, either 'ZI' or 'IZ' for IZZI experiments
+                (type indicates the IZZI step for paleointensity experiments —
+                'ZI'/'IZ' or 1/0; empty string for pure demagnetization data)
     angle : desired rotation in the horizontal plane (0 puts X on X axis)
     s : specimen name
     norm : if True, normalize to initial magnetization = unity
@@ -883,6 +884,8 @@ def plot_zed(ZED, datablock, angle, s, units):
         zijd   : figure number for  zijderveld plot
         demag :  figure number for magnetization against demag step
         datablock : nested list of [step, dec, inc, M (Am2), type, quality]
+            (type indicates the IZZI step for paleointensity experiments —
+            'ZI'/'IZ' or 1/0; empty string for pure demagnetization data)
         step : units assumed in SI
         M    : units assumed Am2
         quality : [g,b], good or bad measurement; if bad will be marked as such
