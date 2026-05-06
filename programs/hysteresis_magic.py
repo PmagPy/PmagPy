@@ -93,19 +93,17 @@ def main():
             sys.exit(1)
         field = hyst_data['meas_field_dc'].values
         magnetization = hyst_data[magn_col].values
-        res = rockmag.process_hyst_loop(field, magnetization, pltspec, show_results_table=True, show_plot=make_plots)
-        if save_plots:
-            fig = res.get('plot', None)
-            if fig is not None:
-                from bokeh.io import export_svgs, export_png
-                fig.output_backend = fmt if fmt in ['svg', 'png'] else 'svg'
-                outname = f"{pltspec}_hysteresis.{fmt}"
-                outpath = os.path.join(output_dir_path, outname)
-                if fmt == 'svg':
-                    export_svgs(fig, filename=outpath)
-                elif fmt == 'png':
-                    export_png(fig, filename=outpath)
-                print(f"Saved plot to {outpath}")
+        # Always use static Matplotlib plot
+        fig_ax = rockmag.plot_hysteresis_loop(
+            field, magnetization, pltspec,
+            interactive=False, show_plot=make_plots, return_figure=True
+        )
+        if save_plots and fig_ax is not None:
+            fig, ax = fig_ax
+            outname = f"{pltspec}_hysteresis.{fmt}"
+            outpath = os.path.join(output_dir_path, outname)
+            fig.savefig(outpath, format=fmt)
+            print(f"Saved plot to {outpath}")
         sys.exit(0)
 
     # Otherwise, process all specimens in batch
@@ -119,7 +117,7 @@ def main():
     results_df = rockmag.process_hyst_loops(
         exp_spec_df, measurements,
         field_col="meas_field_dc", magn_col=magn_col,
-        show_results_table=True, show_plots=make_plots
+        show_results_table=True, show_plots=False
     )
 
     # Save results to output_dir_path/specimens.txt if requested
@@ -139,19 +137,23 @@ def main():
         results_df.reset_index().to_csv(out_spec_path, sep='\t', index=False)
         print(f"Specimen results written to {out_spec_path}")
 
-    # Optionally save all plots
+    # Optionally save all static plots
     if save_plots:
-        for spec, res in results_df.iterrows():
-            fig = res.get('plot', None)
-            if fig is not None:
-                from bokeh.io import export_svgs, export_png
-                fig.output_backend = fmt if fmt in ['svg', 'png'] else 'svg'
+        for spec in results_df.index:
+            hyst_data = rockmag.extract_hysteresis_data(measurements, spec)
+            if hyst_data.empty:
+                continue
+            field = hyst_data['meas_field_dc'].values
+            magnetization = hyst_data[magn_col].values
+            fig_ax = rockmag.plot_hysteresis_loop(
+                field, magnetization, spec,
+                interactive=False, show_plot=False, return_figure=True
+            )
+            if fig_ax is not None:
+                fig, ax = fig_ax
                 outname = f"{spec}_hysteresis.{fmt}"
                 outpath = os.path.join(output_dir_path, outname)
-                if fmt == 'svg':
-                    export_svgs(fig, filename=outpath)
-                elif fmt == 'png':
-                    export_png(fig, filename=outpath)
+                fig.savefig(outpath, format=fmt)
                 print(f"Saved plot to {outpath}")
 
 
