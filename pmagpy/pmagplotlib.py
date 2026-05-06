@@ -663,7 +663,8 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     __________
     fignum : matplotlib figure number
     datablock : nested list of [step, dec, inc, M (Am2), type, quality]
-                where type is a string, either 'ZI' or 'IZ' for IZZI experiments
+                (type indicates the IZZI step for paleointensity experiments —
+                'ZI'/'IZ' or 1/0; empty string for pure demagnetization data)
     angle : desired rotation in the horizontal plane (0 puts X on X axis)
     s : specimen name
     norm : if True, normalize to initial magnetization = unity
@@ -703,7 +704,9 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     gXYZ = pd.DataFrame(pmag.dir2cart(forVDS))
     gXYZ.columns = ['X', 'Y', 'Z']
     amax = np.maximum(gXYZ.X.max(), gXYZ.Z.max())
+    amax = np.maximum(amax, gXYZ.Y.max())
     amin = np.minimum(gXYZ.X.min(), gXYZ.Z.min())
+    amin = np.minimum(amin, gXYZ.Y.min())
     if amin > 0:
         amin = 0
     bXYZ = pmag.dir2cart(bdata[['dec', 'inc', 'int']].values).transpose()
@@ -718,10 +721,12 @@ def plot_zij(fignum, datablock, angle, s, norm=True):
     if len(bXYZ) > 0:
         plt.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
         plt.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'ro')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'ws', markeredgecolor='blue')
-    plt.plot(gXYZ['X'], gXYZ['Y'], 'r-')
-    plt.plot(gXYZ['X'], gXYZ['Z'], 'b-')
+    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'ro')
+    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'ws', markeredgecolor='blue')
+    plt.plot(gXYZ['X'].values, gXYZ['Y'].values, 'r-')
+    plt.plot(gXYZ['X'].values, gXYZ['Z'].values, 'b-')
+    
+
     for k in range(len(gXYZ)):
         plt.annotate(str(k), (gXYZ['X'][k], gXYZ['Z']
                               [k]), ha='left', va='bottom')
@@ -878,7 +883,9 @@ def plot_zed(ZED, datablock, angle, s, units):
         eqarea : figure number for equal area projection
         zijd   : figure number for  zijderveld plot
         demag :  figure number for magnetization against demag step
-        datablock : nested list of [step, dec, inc, M (Am2), quality]
+        datablock : nested list of [step, dec, inc, M (Am2), type, quality]
+            (type indicates the IZZI step for paleointensity experiments —
+            'ZI'/'IZ' or 1/0; empty string for pure demagnetization data)
         step : units assumed in SI
         M    : units assumed Am2
         quality : [g,b], good or bad measurement; if bad will be marked as such
