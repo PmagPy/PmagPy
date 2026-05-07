@@ -67,6 +67,7 @@ def main():
         df,
         temperature_column="meas_temp",
         magnetization_column="magn_mass",
+        temp_unit="C",
         interactive=False,
         return_figure=True,
         show_plot=not save_plot,

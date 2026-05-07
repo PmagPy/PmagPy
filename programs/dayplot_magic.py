@@ -9,6 +9,7 @@ if matplotlib.get_backend() != "TKAgg":
 from pmagpy import pmag
 from pmagpy import rockmag
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -83,13 +84,6 @@ def main():
         print("Available columns:", list(df.columns))
         sys.exit(1)
 
-    # Calculate summary stats once
-    import matplotlib.pyplot as plt
-    summary_stats = df.groupby('specimen').agg({mr_col: 'mean', ms_col: 'mean', bcr_col: 'mean', bc_col: 'mean'}).reset_index().dropna()
-    Mr_Ms = summary_stats[mr_col] / summary_stats[ms_col]
-    Bc = summary_stats[bc_col]
-    Bcr = summary_stats[bcr_col]
-
     # Plot 1: Day plot (Mr/Ms vs Bcr/Bc)
     fig1, ax1 = rockmag.plot_day_plot_MagIC(
         df,
@@ -102,6 +96,12 @@ def main():
     )
 
     # Plot 2 & 3: Squareness vs Bc and vs Bcr
+    summary = df.groupby('specimen').agg(
+        {mr_col: 'mean', ms_col: 'mean', bcr_col: 'mean', bc_col: 'mean'}
+    ).reset_index().dropna()
+    Mr_Ms = summary[mr_col] / summary[ms_col]
+    Bc = summary[bc_col]
+    Bcr = summary[bcr_col]
     scatter_plots = [
         (Bc, Mr_Ms, 'dodgerblue', 'Bc', 'Squareness-Coercivity Plot', '_neelplot'),
         (Bcr, Mr_Ms, 'seagreen', 'Bcr', 'Squareness-Bcr Plot', '_bcrplot')
