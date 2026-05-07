@@ -70,33 +70,35 @@ The `dialogs` directory contains GUI components that are used to build the graph
 
 - `build`, `dist`, `pmagpy.egg_info` and `pmagpy_cli.egg_info` are not in the main Github repo, however they may be created automatically when making a pip release.  You should not need to interact directly with any of them.
 
-- `uninstall_Mac_OSX.app` is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
-
 Here is a visual representation of the directory structure:
 
 ```
+├── PmagPy_online
+├── SPD
+│   ├── lib
+│   └── tests
 ├── bin
-├── build
 ├── data_files
 │   └── notebooks
 ├── dialogs
 │   └── help_files
-├── dist
 ├── help_files
 ├── locator
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
-│   └── mapping
-├── pmagpy.egg-info
-├── pmagpy_cli.egg-info
+│   ├── field_models
+│   ├── mapping
+│   └── test
 ├── pmagpy_tests
+│   └── examples
 ├── programs
+│   ├── conversion_scripts
+│   ├── conversion_scripts2
 │   ├── deprecated
-├── setup_scripts
-└── uninstall_Mac_OSX.app
+│   └── images
+└── setup_scripts
 ```
-
 
 ## Git protocols
 
