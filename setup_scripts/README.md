@@ -159,27 +159,6 @@ If you need to install this way, but you get a weird error, you might have a pep
 
 
 
-## Compiling on Linux
-
-The Linux binary is generated very similar to the Windows binary. Again you must have all PmagPy dependencies and pyinstaller on your machine all of which can be found in the standard repositories or pypi. Then you should modify and run this script from the PmagPy main directory to make the .spec file:
-
-```bash
-pyi-makespec --onefile --windowed --icon=./programs/images/PmagPy.ico
---name=PmagGUI -p=$PATH_TO_ANY_DEPENDENCIES_NOT_ALREADY_IN_ENV
-./programs/pmag_gui.py
-```
-
-Then just like above you should open the PmagGUI.spec file and edit the line `datas=None` so it reads `datas=[('./pmagpy/data_model/*','./data_model')]`. Once you've fixed the datas line you should run the same code as above to finish the compiling process.
-
-```bash
-pyinstaller --clean PmagGUI.spec
-```
-
-The executable will be in the dist directory. If it does not run when you double click it or enter its name in the terminal you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME`. Also due to the way Pyinstaller is constructed when bundling as one-file you should note that it can take 5-30 seconds for the program to run so check with an activity manager (like top) before assuming the executable did not compile correctly.
-
-**Note:** if compiling this document to pdf using pandoc the command used is `pandoc devguide.md -o devguide.pdf --highlight-style tango -V geometry:margin=.7in`
-
-
 ## Troubleshooting
 
 You can run the executable with output to Terminal (this is particularly useful when your build is refusing to launch):
