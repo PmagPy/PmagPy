@@ -34,7 +34,7 @@ The `pmagpy` directory contains all the low-level functionality that the PmagPy 
 
 To see a notebook with examples of how to use pmag.py and ipmag.py, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually _run_ that notebook, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get the notebook up and running.
+To actually _run_ that notebook, see the [Jupyter notebook setup guide](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/Jupyter.html) for how to get the notebook up and running.
 
 
 #### SPD
@@ -45,13 +45,13 @@ The `programs` directory contains executable programs that are installed as part
 
 To see a notebook with examples of how to run most of the command-line programs, see the [PmagPy notebook](http://pmagpy.github.io/PmagPy.html).
 
-To actually run these notebooks, see this [Cookbook section](https://earthref.org/PmagPy/cookbook/#notebook_quickstart) on how to get notebooks up and running.
+To actually run these notebooks, see the [Jupyter notebook setup guide](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/Jupyter.html) for how to get notebooks up and running.
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
 
 #### data_files
-`data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
+`data_files` contains example files used in testing and in the [PmagPy documentation notebooks](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/PmagPy_introduction.html).
 
 #### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
@@ -128,7 +128,7 @@ PmagPy ships in two forms, released on different cadences:
 
 ### PmagPy-specific resources
 
-Detailed information about installing and running all of the [PmagPy programs](https://earthref.org/PmagPy/cookbook/)
+Detailed information about installing and running [PmagPy command-line programs](https://pmagpy.github.io/PmagPy-docs/programs/command_line_programs.html), and the rest of the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/).
 
 ### The larger world of MagIC and paleomagnetism
 

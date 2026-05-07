@@ -27,13 +27,13 @@ PmagPy is comprised of:
   - GUI programs for getting data into MagIC database format (pmag\_gui), analyzing demagnetization data (demag\_gui) and analyzing paleointensity data (thellier\_gui). These GUIs are available as part of the python package pmagpy-cli.  Alternatively, these GUIs are availible for download as [executable programs](#stand-alone-applications) outside of this repository.
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository and pip installed as pmagpy-cli).
   - The pmagpy function modules for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy installed ([described below](#full-pmagpy-install)), these modules are can be imported (e.g. ```from pmagpy import ipmag```).
-  - Example data files that are used in the examples provided in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook)
+  - Example data files that are used in the examples provided in the [PmagPy documentation notebooks](https://pmagpy.github.io/PmagPy-docs/documentation_notebooks/PmagPy_introduction.html)
 
-Use of all these features is described in the [Cookbook](http://earthref.org/PmagPy/cookbook) and the underlying science behind the data and code can be explored in the book [Essentials of Paleomagnetism: Third Web Edition](http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this [repository](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks)
+Use of all these features is described in the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/) and the underlying science behind the data and code can be explored in the book [Essentials of Paleomagnetism: Third Web Edition](http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this [repository](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks)
 
 ## How to get it
 
-There are several different ways to install PmagPy.  Complete documentation for PmagPy installation and use is available in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook).
+There are several different ways to install PmagPy.  Complete documentation for PmagPy installation and use is available in the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/installation/PmagPy_install.html).
 
 You can try a preview of PmagPy here:
 
@@ -59,9 +59,9 @@ You’ll find the latest stable release here: [Linux PmagPy Executable Applicati
 
 ### Full PmagPy install
 
-To get the full use of PmagPy functionality, you will first have to have a Python installation with some standard scientific modules. You can follow instructions to do so [here](https://earthref.org/PmagPy/cookbook/#x1-60001.2). Once you have Python installed:
+To get the full use of PmagPy functionality, you will first have to have a Python environment with the standard scientific Python packages. The [pip install instructions](https://pmagpy.github.io/PmagPy-docs/installation/pip_install.html) walk through setting one up using `conda`. Once you have Python ready:
 
-- Find and open your command line (for help finding your command prompt, see the [documentation](http://earthref.org/PmagPy/#command_line))
+- Find and open your command line (Terminal on macOS or Linux, Anaconda Prompt on Windows)
 - Update pip: type on the command line: ```pip install --upgrade pip```
 - Install or update pmagpy: use the command: ```pip install --upgrade pmagpy```
 - Install or update pmagpy-cli, use the command: ```pip install --upgrade pmagpy-cli```
@@ -69,7 +69,7 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 - To uninstall, use the commands: ```pip uninstall pmagpy``` and ```pip uninstall pmagpy-cli```
 - If you run into trouble, use pip to uninstall both pmagpy and pmagpy-cli, then try again to install first pmagpy and then pmagpy-cli
 
-If you want access to the master branch rather than the latest release, see the [developer install instructions](https://earthref.org/PmagPy/cookbook/#developer_install).
+If you want access to the master branch rather than the latest release, see the [developer install instructions](https://pmagpy.github.io/PmagPy-docs/installation/developer_install.html).
 
 <!-- Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.-->
 
@@ -83,7 +83,7 @@ If you want to get involved with the project - whether that means reporting a bu
 
 ## More information
 
-This code and the PmagPy cookbook (http://earthref.org/PmagPy/cookbook) are companions to the the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/) written by Lisa Tauxe with contributions from Subir K. Banerjee, Robert F. Butler and Rob van der Voo. The printed version of the book came out in January, 2010 from University of California Press (http://www.ucpress.edu/book.php?isbn=9780520260313).
+This code and the [PmagPy documentation](https://pmagpy.github.io/PmagPy-docs/) are companions to the the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/) written by Lisa Tauxe with contributions from Subir K. Banerjee, Robert F. Butler and Rob van der Voo. The printed version of the book came out in January, 2010 from University of California Press (http://www.ucpress.edu/book.php?isbn=9780520260313).
 
 ## Licensing
 

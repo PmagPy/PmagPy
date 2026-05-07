@@ -13840,4 +13840,4 @@ def find_CR(mhat,Mhat,Ghat,n,Tc):
     return mCI
 
 def main():
-    print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")
+    print("Full PmagPy documentation is available at: https://pmagpy.github.io/PmagPy-docs/")
