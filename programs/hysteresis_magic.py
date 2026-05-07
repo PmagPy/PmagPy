@@ -7,7 +7,7 @@ import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
 from pmagpy import pmag
-from pmagpy import rockmag
+from pmagpy import pmagplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -164,81 +164,35 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
 
         if B:
             try:
-                res = rockmag.process_hyst_loop(np.array(B), np.array(M), specimen,
-                                                show_results_table=False, show_plot=False)
-                Msat = res['Ms']
-                Mr = res['Mr']
-                Bc = res['Bc']
-                Bcr_hyst = res['Brh']
-                chi_HF = res['chi_HF']
-                H = res['H']
-                Mrh = res['Mrh']
+                if make_plots:
+                    fig_hyst = plt.figure(figsize=(5, 5))
+                    fig_dm = plt.figure(figsize=(5, 5))
+                    fig_ddm = plt.figure(figsize=(5, 5))
+                    HDD = {'hyst': fig_hyst.number,
+                           'deltaM': fig_dm.number,
+                           'DdeltaM': fig_ddm.number}
+                else:
+                    HDD = {'hyst': 0, 'deltaM': 0, 'DdeltaM': 0}
 
-                HystRec['hyst_ms_moment'] = '%8.3e' % Msat
-                HystRec['hyst_mr_moment'] = '%8.3e' % Mr
-                HystRec['hyst_bc'] = '%8.3e' % Bc
-                HystRec['hyst_bcr'] = '%8.3e' % Bcr_hyst
-                HystRec['hyst_xhf'] = '%8.2e' % (chi_HF * 4 * np.pi * 1e-7)
-                hmeths = list(meths) + ['LP-BCR-HDM']
-                HystRec['method_codes'] = ':'.join(m.strip() for m in hmeths if m.strip())
-                HystRec['experiments'] = e
+                hpars = pmagplotlib.plot_hdd(HDD, B, M, specimen)
 
                 if make_plots:
-                    # hyst: red=raw, blue=corrected, normalized to Ms (matches plot_hys/plot_hpars)
-                    fig_hyst, ax_hyst = plt.subplots(figsize=(5, 5))
-                    ax_hyst.plot(res['gridded_H'], res['gridded_M'] / Msat, 'r')
-                    ax_hyst.plot(res['centered_H'], res['slope_corrected_M'] / Msat, 'b')
-                    ax_hyst.axhline(0, color='k')
-                    ax_hyst.axvline(0, color='k')
-                    ax_hyst.set_xlabel('B (T)')
-                    ax_hyst.set_ylabel('M/Msat')
-                    ax_hyst.set_title(specimen)
-                    Mr_norm = Mr / Msat
-                    ax_hyst.plot([0, Bc], [Mr_norm, 0], 'bs')
-                    bounds = ax_hyst.axis()
-                    xtext = bounds[0] + 0.05 * (bounds[1] - bounds[0])
-                    ax_hyst.text(xtext, -0.9, 'Ms: %8.2e Am^2' % Msat)
-                    ax_hyst.text(xtext, -0.7, 'Mr: %8.2e Am^2' % Mr)
-                    ax_hyst.text(xtext, -0.5, 'Bc: %8.2e T' % Bc)
-                    ax_hyst.text(xtext, -0.3,
-                                 'Xhf: %8.2e m^3' % (chi_HF * 4 * np.pi * 1e-7))
-                    plt.tight_layout()
+                    pmagplotlib.plot_hpars(HDD, hpars, 'bs')
+                    for fn in [fig_hyst.number, fig_dm.number, fig_ddm.number]:
+                        plt.figure(fn)
+                        plt.tight_layout()
                     spec_figs['hyst'] = fig_hyst
-
-                    # deltaM: blue, zero lines, red Bcr crosshair (matches plot_delta_m)
-                    deltaM = 2 * Mrh / Msat
-                    fig_dm, ax_dm = plt.subplots(figsize=(5, 5))
-                    ax_dm.plot(H, deltaM, 'b')
-                    ax_dm.axhline(0, color='k')
-                    ax_dm.axvline(0, color='k')
-                    if len(deltaM) > 0:
-                        ax_dm.plot([0, Bcr_hyst, Bcr_hyst],
-                                   [deltaM[0] / 2, deltaM[0] / 2, 0], 'r')
-                    ax_dm.set_xlabel('B (T)')
-                    ax_dm.set_ylabel('Delta M')
-                    ax_dm.set_title(specimen)
-                    ax_dm.plot([Bcr_hyst], [0], 'bs')
-                    dm_bounds = ax_dm.axis()
-                    ax_dm.text(dm_bounds[0] + 0.5 * (dm_bounds[1] - dm_bounds[0]),
-                               0.9 * dm_bounds[3],
-                               'Bcr: %8.2e T' % Bcr_hyst)
-                    plt.tight_layout()
                     spec_figs['deltaM'] = fig_dm
-
-                    # DdeltaM: finite differences (matches plot_d_delta_m)
-                    DdeltaM = []
-                    for ki in range(2, len(H)):
-                        dh = H[ki] - H[ki - 2]
-                        DdeltaM.append(
-                            abs(deltaM[ki] - deltaM[ki - 2]) / dh if dh != 0 else 0.0)
-                    start = len(H) - len(DdeltaM)
-                    fig_ddm, ax_ddm = plt.subplots(figsize=(5, 5))
-                    ax_ddm.plot(H[start:], DdeltaM, 'b')
-                    ax_ddm.set_xlabel('B (T)')
-                    ax_ddm.set_ylabel('d(Delta M)/dB')
-                    ax_ddm.set_title(specimen)
-                    plt.tight_layout()
                     spec_figs['DdeltaM'] = fig_ddm
+
+                HystRec['hyst_ms_moment'] = hpars.get('hysteresis_ms_moment', '')
+                HystRec['hyst_mr_moment'] = hpars.get('hysteresis_mr_moment', '')
+                HystRec['hyst_bc'] = hpars.get('hysteresis_bc', '')
+                HystRec['hyst_bcr'] = hpars.get('hysteresis_bcr', '0')
+                HystRec['hyst_xhf'] = hpars.get('hysteresis_xhf', '')
+                hmeths = list(meths) + [hpars.get('magic_method_codes', 'LP-BCR-HDM')]
+                HystRec['method_codes'] = ':'.join(m.strip() for m in hmeths if m.strip())
+                HystRec['experiments'] = e
 
             except Exception as e:
                 print('Error processing hysteresis for %s: %s' % (specimen, e))
