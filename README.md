@@ -65,6 +65,7 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 - Update pip: type on the command line: ```pip install --upgrade pip```
 - Install or update pmagpy: use the command: ```pip install --upgrade pmagpy```
 - Install or update pmagpy-cli, use the command: ```pip install --upgrade pmagpy-cli```
+- If you want to make maps, install with the optional `[maps]` extra to pull in cartopy and shapely: ```pip install --upgrade pmagpy[maps]``` (or ```pip install --upgrade pmagpy-cli[maps]``` for the cli).  These dependencies are optional because they require system libraries (GEOS, PROJ) that pip can't always install cleanly across platforms; if the install fails, conda-forge handles them well.
 - To uninstall, use the commands: ```pip uninstall pmagpy``` and ```pip uninstall pmagpy-cli```
 - If you run into trouble, use pip to uninstall both pmagpy and pmagpy-cli, then try again to install first pmagpy and then pmagpy-cli
 

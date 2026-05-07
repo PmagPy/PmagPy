@@ -70,33 +70,35 @@ The `dialogs` directory contains GUI components that are used to build the graph
 
 - `build`, `dist`, `pmagpy.egg_info` and `pmagpy_cli.egg_info` are not in the main Github repo, however they may be created automatically when making a pip release.  You should not need to interact directly with any of them.
 
-- `uninstall_Mac_OSX.app` is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
-
 Here is a visual representation of the directory structure:
 
 ```
+├── PmagPy_online
+├── SPD
+│   ├── lib
+│   └── tests
 ├── bin
-├── build
 ├── data_files
 │   └── notebooks
 ├── dialogs
 │   └── help_files
-├── dist
 ├── help_files
 ├── locator
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
-│   └── mapping
-├── pmagpy.egg-info
-├── pmagpy_cli.egg-info
+│   ├── field_models
+│   ├── mapping
+│   └── test
 ├── pmagpy_tests
+│   └── examples
 ├── programs
+│   ├── conversion_scripts
+│   ├── conversion_scripts2
 │   ├── deprecated
-├── setup_scripts
-└── uninstall_Mac_OSX.app
+│   └── images
+└── setup_scripts
 ```
-
 
 ## Git protocols
 
@@ -116,39 +118,11 @@ If you are left with any questions about git and Github best practices, go ahead
 
 ## Compile and Release Guide
 
-We try to make new releases of PmagPy several times per year.
+PmagPy ships in two forms, released on different cadences:
 
-A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
+- __pip packages__ (`pmagpy` and `pmagpy-cli`) — released several times per year. The full process is documented in [pip_README.md](pip_README.md): prerequisites, pre-release testing on Colab from a feature branch, the build/upload commands for both packages, the optional TestPyPI rehearsal, and tagging plus GitHub release.
 
-- Make sure you are set up with PyPI.  You must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](https://github.com/PmagPy/PmagPy/blob/master/example_pypirc)).
-
-- Make sure all tests are passing and all new features are working.  You can check [Travis CI](https://travis-ci.com/PmagPy/PmagPy) for the test history.
-
-- Run `git clean -f` in the repo (will remove any unneeded files)
-
-- These are the steps to make a new pip release for pmagpy and pmagpy-cli:
-
-    + First, increment the version number pmagpy/version.py.  PYPI will reject a duplicate version number, so you need to update version.py each time.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
-
-    + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
-
-    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/*`
-
-    + To install that new release:  `pip install pmagpy --upgrade --no-deps`
-
-    + To make a *test* release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
-
-    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* -r testpypi`
-
-    + To install the test release: `pip install -i https://testpypi.python.org/pypi pmagpy --upgrade --no-deps`
-
-    + To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
-
-    + A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
-
-    + This article has some more good information about uploading to PYPI, etc.: [clearest but slightly out of date](https://tom-christie.github.io/articles/pypi/), [official documentation](https://packaging.python.org/tutorials/distributing-packages/), [how to use testpypi](https://packaging.python.org/guides/using-testpypi/).
-
-- Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
+- __Standalone GUI executables__ (Windows, Mac, Linux) — released less frequently. See the [setup_scripts README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts) for the build process.
 
 ## Resources
 
