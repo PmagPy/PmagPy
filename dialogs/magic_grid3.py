@@ -162,7 +162,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         Add items and/or update existing items in grid
         """
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:
@@ -502,7 +502,7 @@ class MagicGrid(BaseMagicGrid):
         Add items and/or update existing items in grid
         """
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:
@@ -575,7 +575,7 @@ class HugeMagicGrid(BaseMagicGrid):
 
     def add_items(self, dataframe, hide_cols=()):
         # replace "None" values with ""
-        dataframe = dataframe.fillna("")
+        dataframe = dataframe.astype(object).fillna("")
         # remove any columns that shouldn't be shown
         for col in hide_cols:
             if col in dataframe.columns:

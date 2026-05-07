@@ -5195,7 +5195,7 @@ def download_magic(infile=None, dir_path='.', input_dir_path='',
             for sheet in sheets:
                 try:
                     table=pd.read_excel(infile,header=3,sheet_name=sheet)
-                    table.fillna("",inplace=True)
+                    table = table.astype(object).fillna("")
                     table.drop(columns=['Column: '],inplace=True)
                     table_dicts=table.to_dict('records')
                     outfile = os.path.join(dir_path, sheet + '.txt')
@@ -5782,7 +5782,7 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
     dmodel = data_model.DataModel()
     for file_type in file_names:
         df = pd.read_csv(file_type,sep='\t',header=1)
-        df.fillna("",inplace=True)
+        df = df.astype(object).fillna("")
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
@@ -12300,7 +12300,7 @@ def aarm_magic(meas_file, dir_path=".", input_dir_path="",
                     old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record
             else:
                 print ('something wrong with measurements for: ',spec)
-    old_spec_df.fillna("",inplace=True)
+    old_spec_df = old_spec_df.astype(object).fillna("")
     spec_dicts=old_spec_df.to_dict('records')
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')
 
@@ -12904,7 +12904,7 @@ def atrm_magic(meas_file, dir_path=".", input_dir_path="",
                     old_spec_df=pd.concat([old_spec_df,new_spec_df]) # add in new record
             else:
                 print ('something wrong with measurements for: ',spec)
-    old_spec_df.fillna("",inplace=True)
+    old_spec_df = old_spec_df.astype(object).fillna("")
     spec_dicts=old_spec_df.to_dict('records')
     pmag.magic_write(output_spec_file,spec_dicts,'specimens')
 
@@ -13994,7 +13994,7 @@ def sites_extract(site_file='sites.txt', directions_file='directions.xls',
             nfo_df = nfo_df[['site', 'location', 'lat', 'lon']]
         nfo_df.drop_duplicates(inplace=True)
         nfo_df.columns = SiteCols
-        nfo_df.fillna(value='', inplace=True)
+        nfo_df = nfo_df.astype(object).fillna("")
         if latex:
             if info_file.endswith('.xls'):
                 info_file = info_file[:-4] + ".tex"
