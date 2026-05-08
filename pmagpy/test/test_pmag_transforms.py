@@ -337,6 +337,26 @@ class TestGetTilt:
         dd, dip = pmag.get_tilt(45.0, 30.0, 45.0, 30.0)
         assert dd == 0.0 and dip == 0.0
 
+    def test_equal_x_components(self):
+        """Round-trip when G and T have identical cartesian x-components.
+
+        Earlier the strike was computed as Sx = Sy * (Ty-Gy) / (Gx-Tx),
+        which divides by zero in this configuration and returned NaN.
+        """
+        # Construct G and T as unit vectors with identical x-components.
+        GCart = np.array([0.5, 0.5, np.sqrt(0.5)])
+        TCart_raw = np.array([0.5, 0.7, np.sqrt(1 - 0.25 - 0.49)])
+        TCart = TCart_raw / np.linalg.norm(TCart_raw)
+        dec_g, inc_g, _ = pmag.cart2dir(GCart)
+        dec_t, inc_t, _ = pmag.cart2dir(TCart)
+        dd, dip = pmag.get_tilt(dec_g, inc_g, dec_t, inc_t)
+        assert np.isfinite(dd) and np.isfinite(dip)
+        # Round-trip via dotilt
+        dec_t2, inc_t2 = pmag.dotilt(dec_g, inc_g, dd, dip)
+        v1 = pmag.dir2cart([dec_t, inc_t, 1.])
+        v2 = pmag.dir2cart([dec_t2, inc_t2, 1.])
+        assert_allclose(v1, v2, atol=1e-9)
+
 
 # ---------------------------------------------------------------------------
 # get_azpl: recover sample orientation (azimuth, plunge) such that dogeo
@@ -346,16 +366,16 @@ class TestGetTilt:
 class TestGetAzpl:
     """Tests for pmag.get_azpl.
 
-    get_azpl is the inverse of dogeo: given a specimen direction
-    (cdec, cinc) and the geographic direction (gdec, ginc) that resulted
-    from applying dogeo with some (az, pl), find an (az, pl) that maps
-    the specimen direction to the geographic direction.
+    get_azpl is the analytical inverse of dogeo: given a specimen
+    direction (cdec, cinc) and the geographic direction (gdec, ginc)
+    produced by applying dogeo with some (az, pl), recover an (az, pl)
+    that maps the specimen direction to the geographic direction.
 
-    The mapping is many-to-one: many (az, pl) pairs can map a specimen
-    direction to a given geographic direction. The function finds *one*
-    such pair via brute-force search, and the round-trip property to
-    test is that dogeo(cdec, cinc, az_rec, pl_rec) ≈ (gdec, ginc), not
-    that the recovered (az, pl) matches the originals.
+    The mapping is generally 2-to-1: two distinct (az, pl) pairs produce
+    the same geographic direction. The function returns the candidate
+    with the smaller plunge. Round-trip tests therefore check that
+    dogeo(cdec, cinc, az_rec, pl_rec) ≈ (gdec, ginc), not that the
+    recovered (az, pl) matches the original.
     """
 
     def test_docstring_example(self):

@@ -11186,11 +11186,16 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     if np.allclose(GCart, TCart):
         return 0.0, 0.0
     # Strike axis is the horizontal unit vector S with G·S = T·S, i.e.
-    # (G - T) · S = 0. With S = (Sx, Sy, 0) and Sx² + Sy² = 1, this gives
-    # Sx = Sy * X where X = (Ty - Gy) / (Gx - Tx).
-    X = (TCart[1] - GCart[1]) / (GCart[0] - TCart[0])
-    Sy = np.sqrt(1. / (X**2 + 1.))
-    SCart = np.array([Sy * X, Sy, 0.])
+    # (G - T) · S = 0. Equivalently, S is perpendicular to the horizontal
+    # projection of (G - T): if Dh = (Gx - Tx, Gy - Ty), then S is one of
+    # ±(Dh.y, -Dh.x, 0) / |Dh|.
+    Dx, Dy = GCart[0] - TCart[0], GCart[1] - TCart[1]
+    Dh = np.sqrt(Dx * Dx + Dy * Dy)
+    if Dh < 1e-12:
+        # G and T share their horizontal direction but differ vertically —
+        # not produced by a normal bedding tilt; treat as degenerate.
+        return 0.0, 0.0
+    SCart = np.array([Dy / Dh, -Dx / Dh, 0.])
     # Two strike directions are mathematically equidistant; dotilt's
     # rotation axis is the one for which the rotation from G to T around
     # +S (right-hand rule) is positive — i.e. (G × T) · S > 0.
