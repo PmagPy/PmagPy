@@ -4786,106 +4786,45 @@ def fisher_by_pol(data):
     return FisherByPoles
 
 
-def dolnp3_0(Data):
+def dolnp(data, direction_type_key):
     """
-    Compute the Fisher mean for a list of dicts using data-model 3.0 keys.
-    Translates 3.0-style records (with `dir_dec`, `dir_inc`, `dir_tilt_correction`,
-    and `method_codes` containing `DE-BFP` for planes) into the 2.5-style format
-    that dolnp() expects, then calls dolnp() and returns the result.
-
-    Used by demag_gui.py for computing sample- and site-level Fisher means
-    when saving MagIC tables.
+    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
+    Handles both data-model 3.0 (dir_dec, dir_inc, method_codes) and 2.5 (dec, inc, magic_method_codes) records.
 
     Parameters
     ----------
-    Data : nested list of dictionaries with keys
-        dir_dec
-        dir_inc
-        dir_tilt_correction
-        method_codes
+    data : list of dicts with keys:
+        Data model 3.0: dir_dec, dir_inc, dir_tilt_correction, method_codes
+        Data model 2.5: dec, inc, tilt_correction, magic_method_codes
+    direction_type_key : key for line/plane classification ('direction_type', 'dir_type', etc.).
+        If absent from records, classification falls back to checking method_codes for DE-BFP.
 
     Returns
     -------
-        ReturnData : dictionary with keys
-            dec : fisher mean dec of data in Data
-            inc : fisher mean inc of data in Data
-            n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-            n_planes : number of best fit planes [method_code = DE-BFP]
-            alpha95  : fisher confidence circle from Data
-            R : fisher R value of Data
-            K : fisher k value of Data
+    dict with keys: dec, inc, n_total, n_lines, n_planes, alpha95, R, K
+
     Effects
-        prints to screen in case of no data
+    -------
+    prints to screen in case of no data
     """
-    if len(Data) == 0:
+    if len(data) == 0:
         print("This function requires input Data have at least 1 entry")
         return {}
-    if len(Data) == 1:
-        ReturnData = {}
-        ReturnData["dec"] = Data[0]['dir_dec']
-        ReturnData["inc"] = Data[0]['dir_inc']
-        ReturnData["n_total"] = '1'
-        if "DE-BFP" in Data[0]['method_codes']:
+    dec_key = 'dir_dec' if 'dir_dec' in data[0] else 'dec'
+    inc_key = 'dir_inc' if dec_key == 'dir_dec' else 'inc'
+    meth_key = 'method_codes' if dec_key == 'dir_dec' else 'magic_method_codes'
+    if len(data) == 1:
+        ReturnData = {
+            "dec": data[0][dec_key], "inc": data[0][inc_key],
+            "n_total": '1', "alpha95": "", "R": "", "K": ""
+        }
+        if "DE-BFP" in data[0].get(meth_key, ''):
             ReturnData["n_lines"] = '0'
             ReturnData["n_planes"] = '1'
         else:
             ReturnData["n_planes"] = '0'
             ReturnData["n_lines"] = '1'
-        ReturnData["alpha95"] = ""
-        ReturnData["R"] = ""
-        ReturnData["K"] = ""
         return ReturnData
-    else:
-        LnpData = []
-        for n, d in enumerate(Data):
-            LnpData.append({})
-            LnpData[n]['dec'] = d['dir_dec']
-            LnpData[n]['inc'] = d['dir_inc']
-            LnpData[n]['tilt_correction'] = d['dir_tilt_correction']
-            if 'method_codes' in list(d.keys()):
-                if "DE-BFP" in d['method_codes']:
-                    LnpData[n]['dir_type'] = 'p'
-                else:
-                    LnpData[n]['dir_type'] = 'l'
-        # get a sample average from all specimens
-        ReturnData = dolnp(LnpData, 'dir_type')
-        return ReturnData
-
-
-def dolnp(data, direction_type_key):
-    """
-    Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
-
-    Parameters
-    ----------
-    Data : nested list of dictionaries with keys
-        Data model 3.0:
-            dir_dec
-            dir_inc
-            dir_tilt_correction
-            method_codes
-        Data model 2.5:
-            dec
-            inc
-            tilt_correction
-            magic_method_codes
-    direction_type_key :  ['specimen_direction_type']
-    
-    Returns
-    -------
-    ReturnData : dictionary with keys
-        dec : fisher mean dec of data in Data
-        inc : fisher mean inc of data in Data
-        n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-        n_planes : number of best fit planes [method_code = DE-BFP]
-        alpha95  : fisher confidence circle from Data
-        R : fisher R value of Data
-        K : fisher k value of Data
-        
-    Effects
-    -------
-    prints to screen in case of no data
-    """
     if 'dir_dec' in data[0].keys():
         tilt_key = 'dir_tilt_correction'  # this is data model 3.0
     else:

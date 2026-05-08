@@ -5614,7 +5614,7 @@ class Demag_GUI(wx.Frame):
                             x for x in CompDir if 'result_quality' in x and x['result_quality'] == 'g']
                         if len(CompDir) <= 0:
                             continue  # no data for comp
-                        PmagSampRec = pmag.dolnp3_0(CompDir)
+                        PmagSampRec = pmag.dolnp(CompDir, 'direction_type')
                         for k, v in list(renamelnp_samp.items()):
                             if k in PmagSampRec:
                                 PmagSampRec[v] = PmagSampRec[k]
@@ -5730,13 +5730,13 @@ class Demag_GUI(wx.Frame):
                         if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
                             # At the site level, sample means are usually directed lines,
                             # so DE-BFP should be stripped from method_codes to prevent
-                            # dolnp3_0 from misclassifying the sample as a pole to a plane.
+                            # dolnp from misclassifying the sample as a pole to a plane.
                             #
                             # Exception: when a sample has exactly 1 BFP specimen and no
-                            # line specimens, dolnp3_0's single-record path stored the raw
-                            # pole (dir_dec/dir_inc = pole to great circle) in the sample
+                            # line specimens, dolnp's N=1 path stored the raw pole
+                            # (dir_dec/dir_inc = pole to great circle) in the sample
                             # record unchanged.  In that case DE-BFP must be kept so that
-                            # dolnp3_0 at the site level correctly treats dir_dec/dir_inc
+                            # dolnp at the site level correctly treats dir_dec/dir_inc
                             # as a plane normal and applies McFadden-McElhinny rather than
                             # using the pole as a directed line.
                             siteD_for_mean = []
@@ -5754,9 +5754,9 @@ class Demag_GUI(wx.Frame):
                                         c for c in d.get('method_codes', '').split(':')
                                         if c != 'DE-BFP'
                                     )})
-                            PmagSiteRec = pmag.dolnp3_0(siteD_for_mean)  # get an average for this site
+                            PmagSiteRec = pmag.dolnp(siteD_for_mean, 'direction_type')  # get an average for this site
                         else:
-                            PmagSiteRec = pmag.dolnp3_0(siteD)  # get an average for this site
+                            PmagSiteRec = pmag.dolnp(siteD, 'direction_type')  # get an average for this site
                         for k, v in list(renamelnp.items()):
                             if k in PmagSiteRec:
 
