@@ -11157,9 +11157,9 @@ def get_samp_con():
 
 def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
     """
-    Function to return the dip direction and dip that would yield the tilt
-    corrected direction if applied to the uncorrected direction (geographic
-    coordinates).
+    Return the bedding orientation (dip direction, dip) such that applying
+    pmag.dotilt to (dec_geo, inc_geo) with that bedding yields
+    (dec_tilt, inc_tilt). This is the inverse of pmag.dotilt.
 
     Parameters
     ----------
@@ -11170,74 +11170,115 @@ def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
 
     Returns
     -------
-    DipDir, Dip : tuple of dip direction and dip
-    
+    DipDir, Dip : tuple of dip direction (degrees, 0-360) and dip
+        (degrees, 0-90). When the geographic and tilt-corrected
+        directions are identical (no tilt), bedding is undefined and
+        the function returns (0.0, 0.0).
+
     Examples
     --------
     >>> pmag.get_tilt(85,110,80.2,112.3)
     (223.67057238530975, 2.95374920443805)
     """
-# strike is horizontal line equidistant from two input directions
-    SCart = [0, 0, 0]  # cartesian coordites of Strike
-    SCart[2] = 0.  # by definition
-    # cartesian coordites of Geographic D
-    GCart = dir2cart([dec_geo, inc_geo, 1.])
-    TCart = dir2cart([dec_tilt, inc_tilt, 1.])  # cartesian coordites of Tilt D
+    GCart = np.asarray(dir2cart([dec_geo, inc_geo, 1.]), dtype=float)
+    TCart = np.asarray(dir2cart([dec_tilt, inc_tilt, 1.]), dtype=float)
+    # No tilt: bedding is undefined; return a horizontal-bedding answer.
+    if np.allclose(GCart, TCart):
+        return 0.0, 0.0
+    # Strike axis is the horizontal unit vector S with G·S = T·S, i.e.
+    # (G - T) · S = 0. With S = (Sx, Sy, 0) and Sx² + Sy² = 1, this gives
+    # Sx = Sy * X where X = (Ty - Gy) / (Gx - Tx).
     X = (TCart[1] - GCart[1]) / (GCart[0] - TCart[0])
-    SCart[1] = np.sqrt(1 / (X**2 + 1.))
-    SCart[0] = SCart[1] * X
+    Sy = np.sqrt(1. / (X**2 + 1.))
+    SCart = np.array([Sy * X, Sy, 0.])
+    # Two strike directions are mathematically equidistant; dotilt's
+    # rotation axis is the one for which the rotation from G to T around
+    # +S (right-hand rule) is positive — i.e. (G × T) · S > 0.
+    if np.dot(np.cross(GCart, TCart), SCart) < 0:
+        SCart = -SCart
     SDir = cart2dir(SCart)
+    # dotilt rotates around an axis at azimuth (dip_direction + 90°),
+    # so dip direction = strike azimuth - 90°.
     DipDir = (SDir[0] - 90.) % 360.
-    DipDir = (SDir[0] + 90.) % 360.
-# D is great circle distance between geo direction and strike
-# theta is GCD between geo and tilt (on unit sphere).  use law of cosines
-# to get small cirlce between geo and tilt (dip)
-    cosd = GCart[0] * SCart[0] + GCart[1] * \
-        SCart[1]  # cosine of angle between two
-    d = np.arccos(cosd)
-    cosTheta = GCart[0] * TCart[0] + GCart[1] * TCart[1] + GCart[2] * TCart[2]
-    Dip = (180. / np.pi) * np.arccos(-((cosd**2 - cosTheta) / np.sin(d)**2))
-    if Dip > 90:
-        Dip = -Dip
+    # Dip is the rotation angle around the strike axis. Use spherical
+    # law of cosines on the triangle (G, T, strike): G and T are both
+    # at angle d from S, and the angle at S equals the dip.
+    cosd = GCart[0] * SCart[0] + GCart[1] * SCart[1]
+    cosTheta = float(np.dot(GCart, TCart))
+    Dip = np.degrees(np.arccos((cosTheta - cosd**2) / (1. - cosd**2)))
     return DipDir, Dip
-#
 
 
 def get_azpl(cdec, cinc, gdec, ginc):
     """
-    Gets azimuth and plunge from specimen declination, inclination, and (geographic) coordinates.
-    
+    Recover the sample-orientation azimuth and plunge (az, pl) such that
+    pmag.dogeo(cdec, cinc, az, pl) yields (gdec, ginc). This is the
+    inverse of pmag.dogeo.
+
     Parameters
     ----------
     cdec : specimen declination
     cinc : specimen inclination
     gdec : geographic declination
     ginc : geographic inclination
-    
+
     Returns
     -------
-    list of the two values for the azmiuth and plunge 
-    
+    az, pl : tuple of azimuth (degrees, 0-360) and plunge (degrees).
+
+    Notes
+    -----
+    The forward map (az, pl) -> (gdec, ginc) for a fixed specimen
+    direction is generally 2-to-1: two distinct (az, pl) pairs produce
+    the same geographic direction. To match the previous function's
+    convention (and the conventional drill range), the lower of the two
+    valid plunges is returned. When the specimen direction lies along
+    the +/- y axis the plunge is undetermined; this function returns 0
+    in that case.
+
     Examples
     --------
-    >>> pmag.get_azpl(85,110,80.2,112.3)
-    (323.77999999985053, -12.079999999990653)
+    >>> pmag.get_azpl(85, 110, 80.2, 112.3)
+    (324.08509406620256, -12.050207555689255)
     """
-    TOL = 1e-4
-    Xp = dir2cart([gdec, ginc, 1.])
-    X = dir2cart([cdec, cinc, 1.])
-    # find plunge first
-    az, pl, zdif, ang = 0., -90., 1., 360.
-    while zdif > TOL and pl < 180.:
-        znew = X[0] * np.sin(np.radians(pl)) + X[2] * np.cos(np.radians(pl))
-        zdif = abs(Xp[2] - znew)
-        pl += .01
-
-    while ang > 0.1 and az < 360.:
-        d, i = dogeo(cdec, cinc, az, pl)
-        ang = angle([gdec, ginc], [d, i])
-        az += .01
-    return az - .01, pl - .01
+    X = np.asarray(dir2cart([cdec, cinc, 1.]), dtype=float)
+    Xp = np.asarray(dir2cart([gdec, ginc, 1.]), dtype=float)
+    a, b = float(X[0]), float(X[2])
+    zp = float(Xp[2])
+    # Solve a*sin(pl) + b*cos(pl) = zp for pl by writing the LHS as
+    # R*sin(pl + phi) with R = sqrt(a^2 + b^2), phi = atan2(b, a).
+    r2 = a * a + b * b
+    if r2 < 1e-12:
+        # Specimen direction along +/- y axis: plunge has no effect on
+        # how X maps to Xp, so it is undetermined. Default to pl = 0.
+        pl_rad = 0.0
+    else:
+        R = np.sqrt(r2)
+        phi = np.arctan2(b, a)
+        s = np.arcsin(np.clip(zp / R, -1.0, 1.0))
+        # Two candidate plunges; both round-trip exactly through dogeo.
+        candidates = [(raw + np.pi) % (2 * np.pi) - np.pi
+                      for raw in (s - phi, np.pi - s - phi)]
+        # Match the previous function's scan range pl in [-90, 180]
+        # degrees; otherwise accept the smaller candidate.
+        in_range = [c for c in candidates
+                    if -np.pi / 2 - 1e-9 <= c <= np.pi + 1e-9]
+        pl_rad = min(in_range) if in_range else min(candidates)
+    # With pl known, az comes from the 2D rotation
+    #     [xp, yp] = R(az) . [u, v]
+    # where u = cos(pl)*X[0] - sin(pl)*X[2] and v = X[1].
+    u = np.cos(pl_rad) * a - np.sin(pl_rad) * b
+    v = float(X[1])
+    xp, yp = float(Xp[0]), float(Xp[1])
+    az_deg = float(np.degrees(np.arctan2(yp * u - xp * v,
+                                         xp * u + yp * v)))
+    # Wrap to [0, 360); guard against tiny negative float values that
+    # would otherwise alias to 360.
+    if az_deg < 0:
+        az_deg += 360.
+    if az_deg >= 360.:
+        az_deg -= 360.
+    return az_deg, float(np.degrees(pl_rad))
 
 
 def set_priorities(SO_methods, ask):
@@ -11276,8 +11317,6 @@ def set_priorities(SO_methods, ask):
             SO_priorities.append(pri)
             del prior_list[prior_list.index(pri)]
     return SO_priorities
-#
-#
 
 
 def get_EOL(file):
@@ -11302,7 +11341,6 @@ def get_EOL(file):
         EOL = '\n'
     f.close()
     return EOL
-#
 
 
 def sortshaw(s, datablock):
@@ -11364,8 +11402,6 @@ def sortshaw(s, datablock):
                 break
     shawblock = (NRM, TRM, ARM1, ARM2, TRM_ADJ)
     return shawblock, field
-#
-#
 
 
 def makelist(List):
@@ -11453,7 +11489,6 @@ def s_l(l, alpha=27.7):
     c_a = 0.547
     s_l = np.sqrt(((c_a**(2. * l)) * a2)/ ((l + 1.) * (2. * l + 1.)))
     return s_l
-#
 
 
 def mktk03(terms, G2, G3, G1=-18e3, verbose=False, random_seed=None):
@@ -11518,8 +11553,6 @@ def mktk03(terms, G2, G3, G1=-18e3, verbose=False, random_seed=None):
             if verbose:
                 print(l, m, gnew, hnew)
     return gh
-#
-#
 
 
 def pinc(lat):
@@ -11543,7 +11576,6 @@ def pinc(lat):
     tanl = np.tan(np.radians(lat))
     inc = np.arctan(2. * tanl)
     return np.degrees(inc)
-#
 
 
 def plat(inc):
@@ -11567,8 +11599,6 @@ def plat(inc):
     tani = np.tan(np.radians(inc))
     lat = np.arctan(tani/2.)
     return np.degrees(lat)
-#
-#
 
 
 def pseudo(DIs, random_seed=None):

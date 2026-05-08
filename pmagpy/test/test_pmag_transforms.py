@@ -3,7 +3,8 @@ Tests for coordinate transformation functions in pmag.py.
 
 Covers dotilt/dotilt_V (bedding tilt correction), dogeo/dogeo_V
 (specimen → geographic rotation), doflip (upper → lower hemisphere),
-and flip (separate normal/reversed populations).
+flip (separate normal/reversed populations), and get_tilt (recovering
+a bedding orientation from geographic and tilt-corrected directions).
 """
 import numpy as np
 from numpy.testing import assert_allclose
@@ -274,3 +275,133 @@ class TestFlip:
         # All inclinations should be positive (lower hemisphere)
         for rec in combined:
             assert rec[1] >= 0
+
+
+# ---------------------------------------------------------------------------
+# get_tilt: recover bedding orientation (dip direction, dip) that maps
+# the geographic direction to the tilt-corrected direction
+# ---------------------------------------------------------------------------
+
+class TestGetTilt:
+    """Tests for pmag.get_tilt.
+
+    get_tilt is the inverse of dotilt: given a geographic direction and
+    a tilt-corrected direction, return the bedding (dip direction, dip)
+    that, when applied via dotilt to the geographic direction, yields
+    the tilt-corrected direction.
+    """
+
+    def test_docstring_example(self):
+        """Regression check on the documented numerical output."""
+        dd, dip = pmag.get_tilt(85, 110, 80.2, 112.3)
+        assert_allclose(dd, 223.67057238530975, atol=1e-6)
+        assert_allclose(dip, 2.95374920443805, atol=1e-6)
+
+    def test_round_trip_recovers_bedding(self):
+        """Sweep bedding orientations across multiple geographic directions;
+        every case must round-trip cleanly via dotilt → get_tilt → dotilt.
+
+        Covers all four dip-direction quadrants and dips from 10° to 70°.
+        Before the cross-product strike-side fix, ~57% of these failed.
+        """
+        first_failure = None
+        for dec_g, inc_g in [(45.0, 30.0), (350.0, 60.0),
+                             (10.0, 5.0), (270.0, -20.0)]:
+            for dd_true in range(0, 360, 30):
+                for dip_true in [10, 30, 50, 70]:
+                    dec_t, inc_t = pmag.dotilt(
+                        dec_g, inc_g, dd_true, dip_true)
+                    dd_rec, dip_rec = pmag.get_tilt(
+                        dec_g, inc_g, dec_t, inc_t)
+                    # Bedding parameters must match exactly (modulo 360°
+                    # for dip direction).
+                    dd_err = abs(((dd_rec - dd_true + 180.) % 360.) - 180.)
+                    if dd_err > 1e-6 or abs(dip_rec - dip_true) > 1e-6:
+                        first_failure = (dec_g, inc_g, dd_true, dip_true,
+                                         dd_rec, dip_rec)
+                        break
+                if first_failure:
+                    break
+            if first_failure:
+                break
+        assert first_failure is None, (
+            f"Round-trip failed for geo=({first_failure[0]}, {first_failure[1]}), "
+            f"true bedding=({first_failure[2]}, {first_failure[3]}), "
+            f"recovered=({first_failure[4]:.3f}, {first_failure[5]:.3f}).")
+
+    def test_identical_directions_returns_zero(self):
+        """No-tilt scenario: bedding is undefined (any horizontal bedding
+        maps the direction to itself), so the function returns (0, 0)
+        rather than raising or returning NaN.
+        """
+        dd, dip = pmag.get_tilt(45.0, 30.0, 45.0, 30.0)
+        assert dd == 0.0 and dip == 0.0
+
+
+# ---------------------------------------------------------------------------
+# get_azpl: recover sample orientation (azimuth, plunge) such that dogeo
+# applied to the specimen direction yields the geographic direction
+# ---------------------------------------------------------------------------
+
+class TestGetAzpl:
+    """Tests for pmag.get_azpl.
+
+    get_azpl is the inverse of dogeo: given a specimen direction
+    (cdec, cinc) and the geographic direction (gdec, ginc) that resulted
+    from applying dogeo with some (az, pl), find an (az, pl) that maps
+    the specimen direction to the geographic direction.
+
+    The mapping is many-to-one: many (az, pl) pairs can map a specimen
+    direction to a given geographic direction. The function finds *one*
+    such pair via brute-force search, and the round-trip property to
+    test is that dogeo(cdec, cinc, az_rec, pl_rec) ≈ (gdec, ginc), not
+    that the recovered (az, pl) matches the originals.
+    """
+
+    def test_docstring_example(self):
+        """Regression check on the documented numerical output."""
+        az, pl = pmag.get_azpl(85, 110, 80.2, 112.3)
+        assert_allclose(az, 324.08509406620256, atol=1e-9)
+        assert_allclose(pl, -12.050207555689255, atol=1e-9)
+
+    def test_round_trip_through_dogeo(self):
+        """For representative cases spanning both signs of plunge and
+        all four azimuth quadrants, applying dogeo with the recovered
+        (az, pl) must reproduce the geographic direction to float64
+        precision.
+        """
+        cases = [
+            # (cdec, cinc, az, pl)
+            (10.0, 20.0, 90.0, 30.0),     # NE quadrant az, +pl
+            (350.0, 30.0, 270.0, -20.0),  # NW quadrant az, -pl
+            (270.0, -30.0, 60.0, 15.0),   # negative cinc, NE az
+            (135.0, 45.0, 200.0, 60.0),   # SW quadrant az, +pl
+            (45.0, -60.0, 315.0, -75.0),  # steep negative pl, NW az
+            (200.0, 0.0, 45.0, 0.0),      # horizontal everything
+        ]
+        for cdec, cinc, az_true, pl_true in cases:
+            gdec, ginc = pmag.dogeo(cdec, cinc, az_true, pl_true)
+            az_rec, pl_rec = pmag.get_azpl(cdec, cinc, gdec, ginc)
+            gdec2, ginc2 = pmag.dogeo(cdec, cinc, az_rec, pl_rec)
+            # Compare in cartesian — pmag.angle returns NaN when both
+            # directions are bit-identical (acos(1.0) numerical edge).
+            v1 = pmag.dir2cart([gdec, ginc, 1.])
+            v2 = pmag.dir2cart([gdec2, ginc2, 1.])
+            assert_allclose(v1, v2, atol=1e-9, err_msg=(
+                f"Round-trip failed for cdec={cdec}, cinc={cinc}, "
+                f"az={az_true}, pl={pl_true}: recovered=({az_rec:.3f}, "
+                f"{pl_rec:.3f})."))
+
+    def test_specimen_along_y_axis_returns_zero_plunge(self):
+        """When the specimen direction is along the ±y axis, the plunge
+        is mathematically undetermined: any pl produces the same
+        geographic direction. The function returns pl=0 by convention,
+        and the recovered (az, pl=0) must still round-trip through dogeo.
+        """
+        cdec, cinc = 90.0, 0.0  # specimen direction = +y
+        gdec, ginc = pmag.dogeo(cdec, cinc, 50.0, 25.0)
+        az_rec, pl_rec = pmag.get_azpl(cdec, cinc, gdec, ginc)
+        assert pl_rec == 0.0
+        gdec2, ginc2 = pmag.dogeo(cdec, cinc, az_rec, pl_rec)
+        err = pmag.angle([gdec, ginc], [gdec2, ginc2])[0]
+        assert err < 1e-6
