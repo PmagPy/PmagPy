@@ -5727,7 +5727,36 @@ class Demag_GUI(wx.Frame):
                         if len(siteD) <= 0:
                             # print("no data for comp %s in site %s. skipping"%(comp,site))
                             continue
-                        PmagSiteRec = pmag.dolnp3_0(siteD)  # get an average for this site
+                        if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
+                            # At the site level, sample means are usually directed lines,
+                            # so DE-BFP should be stripped from method_codes to prevent
+                            # dolnp3_0 from misclassifying the sample as a pole to a plane.
+                            #
+                            # Exception: when a sample has exactly 1 BFP specimen and no
+                            # line specimens, dolnp3_0's single-record path stored the raw
+                            # pole (dir_dec/dir_inc = pole to great circle) in the sample
+                            # record unchanged.  In that case DE-BFP must be kept so that
+                            # dolnp3_0 at the site level correctly treats dir_dec/dir_inc
+                            # as a plane normal and applies McFadden-McElhinny rather than
+                            # using the pole as a directed line.
+                            siteD_for_mean = []
+                            for d in siteD:
+                                try:
+                                    n_lines = int(float(d.get('dir_n_specimens_lines', 0) or 0))
+                                    n_planes = int(float(d.get('dir_n_specimens_planes', 0) or 0))
+                                except (ValueError, TypeError):
+                                    n_lines, n_planes = 0, 0
+                                # single-BFP-only sample: dir_dec/dir_inc is the raw pole — keep DE-BFP
+                                if n_lines == 0 and n_planes == 1:
+                                    siteD_for_mean.append(d)
+                                else:
+                                    siteD_for_mean.append({**d, 'method_codes': ':'.join(
+                                        c for c in d.get('method_codes', '').split(':')
+                                        if c != 'DE-BFP'
+                                    )})
+                            PmagSiteRec = pmag.dolnp3_0(siteD_for_mean)  # get an average for this site
+                        else:
+                            PmagSiteRec = pmag.dolnp3_0(siteD)  # get an average for this site
                         for k, v in list(renamelnp.items()):
                             if k in PmagSiteRec:
 
