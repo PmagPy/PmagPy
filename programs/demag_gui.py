@@ -5583,8 +5583,16 @@ class Demag_GUI(wx.Frame):
             PmagSamps, SampDirs = [], []
             PmagSites = []  # list of all site data
             SampInts = []
-            renamelnp = {'R': 'dir_r', 'n': 'dir_n_samples', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
-                         'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # rename map for sample-level means: n_total = number of specimens averaged
+            renamelnp_samp = {'R': 'dir_r', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
+                              'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                              'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # rename map for site-level means: n_total = number of samples averaged
+            renamelnp_site = {'R': 'dir_r', 'n_total': 'dir_n_samples', 'alpha95': 'dir_alpha95',
+                              'n_lines': 'dir_n_samples_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                              'n_planes': 'dir_n_samples_planes', 'inc': 'dir_inc'}
+            # keep renamelnp as site-level map for backward compatibility with site loop below
+            renamelnp = renamelnp_site
             for samp in samples:  # run through the sample names
                 if not avg_directions_by_sample:
                     break
@@ -5607,7 +5615,7 @@ class Demag_GUI(wx.Frame):
                         if len(CompDir) <= 0:
                             continue  # no data for comp
                         PmagSampRec = pmag.dolnp3_0(CompDir)
-                        for k, v in list(renamelnp.items()):
+                        for k, v in list(renamelnp_samp.items()):
                             if k in PmagSampRec:
                                 PmagSampRec[v] = PmagSampRec[k]
                                 del PmagSampRec[k]
@@ -5719,10 +5727,10 @@ class Demag_GUI(wx.Frame):
                         if len(siteD) <= 0:
                             # print("no data for comp %s in site %s. skipping"%(comp,site))
                             continue
-                        PmagSiteRec = PmagSampRec = pmag.dolnp3_0(
-                            siteD)  # get an average for this site
+                        PmagSiteRec = pmag.dolnp3_0(siteD)  # get an average for this site
                         for k, v in list(renamelnp.items()):
                             if k in PmagSiteRec:
+
                                 PmagSiteRec[v] = PmagSiteRec[k]
                                 del PmagSiteRec[k]
                         # decorate the site record
