@@ -5589,8 +5589,8 @@ class Demag_GUI(wx.Frame):
                               'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
             # rename map for site-level means: n_total = number of samples averaged
             renamelnp_site = {'R': 'dir_r', 'n_total': 'dir_n_samples', 'alpha95': 'dir_alpha95',
-                              'n_lines': 'dir_n_samples_lines', 'K': 'dir_k', 'dec': 'dir_dec',
-                              'n_planes': 'dir_n_samples_planes', 'inc': 'dir_inc'}
+                              'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                              'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
             # keep renamelnp as site-level map for backward compatibility with site loop below
             renamelnp = renamelnp_site
             for samp in samples:  # run through the sample names
