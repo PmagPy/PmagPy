@@ -4814,11 +4814,19 @@ def dolnp(data, direction_type_key):
     inc_key = 'dir_inc' if dec_key == 'dir_dec' else 'inc'
     meth_key = 'method_codes' if dec_key == 'dir_dec' else 'magic_method_codes'
     if len(data) == 1:
+        tilt_key = 'dir_tilt_correction' if dec_key == 'dir_dec' else 'tilt_correction'
+        tc = str(data[0][tilt_key]) if tilt_key in data[0] else '-1'
         ReturnData = {
-            "dec": data[0][dec_key], "inc": data[0][inc_key],
-            "n_total": '1', "alpha95": "", "R": "", "K": ""
+            "dec": '%7.1f ' % float(data[0][dec_key]),
+            "inc": '%7.1f ' % float(data[0][inc_key]),
+            "n_total": '1', "alpha95": "", "R": "", "K": "",
+            "tilt_correction": tc
         }
-        if "DE-BFP" in data[0].get(meth_key, ''):
+        rec = data[0]
+        if direction_type_key in rec and rec[direction_type_key] == 'p':
+            ReturnData["n_lines"] = '0'
+            ReturnData["n_planes"] = '1'
+        elif "DE-BFP" in rec.get(meth_key, ''):
             ReturnData["n_lines"] = '0'
             ReturnData["n_planes"] = '1'
         else:

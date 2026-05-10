@@ -5587,12 +5587,19 @@ class Demag_GUI(wx.Frame):
             renamelnp_samp = {'R': 'dir_r', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
                               'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
                               'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
-            # rename map for site-level means: n_total = number of samples averaged
+            # rename map for site-level means when averaging samples: n_total = number of samples averaged
             renamelnp_site = {'R': 'dir_r', 'n_total': 'dir_n_samples', 'alpha95': 'dir_alpha95',
                               'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
                               'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
-            # keep renamelnp as site-level map for backward compatibility with site loop below
-            renamelnp = renamelnp_site
+            # rename map for site-level means when averaging specimens: n_total = number of specimens averaged
+            renamelnp_site_specimens = {'R': 'dir_r', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
+                                         'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                                         'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+             # keep renamelnp as the site-level map used by the site loop below
+            if dia.combo_site_mean.GetValue() == 'samples':
+                renamelnp = renamelnp_site
+            else:
+                renamelnp = renamelnp_site_specimens
             for samp in samples:  # run through the sample names
                 if not avg_directions_by_sample:
                     break
