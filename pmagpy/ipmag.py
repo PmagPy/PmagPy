@@ -14052,7 +14052,7 @@ def specimens_extract(spec_file='specimens.txt', output_file='specimens.xls', la
         print("bad specimen file name")
         return False, "bad specimen file name"
     spec_df = pd.read_csv(fname, sep='\t', header=1)
-    spec_df.dropna('columns', how='all', inplace=True)
+    spec_df.dropna(axis='columns', how='all', inplace=True)
     if 'int_abs' in spec_df.columns:
         spec_df.dropna(subset=['int_abs'], inplace=True)
     if len(spec_df) > 0:
