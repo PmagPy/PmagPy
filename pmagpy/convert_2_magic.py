@@ -1426,8 +1426,8 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         spec_file="specimens.txt", samp_file="samples.txt",
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
         sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
-        norm='cc', oersted=True, noave=False, meas_n_orient='8',
-        labfield=0, phi=0, theta=0):
+        norm='cc', noave=False, meas_n_orient='8',
+        labfield=0, phi=0, theta=0, oersted=True):
     """
     Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -1448,10 +1448,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
-    oersted : True if AF demag step values in the .sam file are recorded in cgs units
-        (Gauss; numerically equivalent to Oersted); False if they are recorded in
-        milliTesla (default : True, matching the standard CIT format convention where
-        e.g. an AF step of 10 means 10 G = 1 mT).
     noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -1467,6 +1463,10 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     labfield : DC_FIELD in microTesla (default : 0)
     phi : DC_PHI in degrees (default : 0)
     theta : DC_THETA in degrees (default : 0)
+    oersted : True if AF demag step values in the .sam file are recorded in cgs units
+        (Gauss; numerically equivalent to Oersted); False if they are recorded in
+        milliTesla (default : True, matching the standard CIT format convention where
+        e.g. an AF step of 10 means 10 G = 1 mT).
 
     Returns
     -----------
