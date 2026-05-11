@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import importlib
 import matplotlib
 import numpy as np
 import wx
@@ -18,9 +19,10 @@ from numpy import vstack,sqrt
 from functools import reduce
 
 has_cartopy, Cartopy = pmag.import_cartopy()
+cfeature = ccrs = None
 if has_cartopy:
-    import cartopy.feature as cfeature
-    import cartopy.crs as ccrs
+    cfeature = importlib.import_module('cartopy.feature')
+    ccrs = importlib.import_module('cartopy.crs')
 
 #============================================================================================
 # LOG HEADER:

@@ -196,6 +196,7 @@ import json
 import sys
 import os
 import copy
+import importlib
 import pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
@@ -242,14 +243,26 @@ except ImportError:
 version = version + ": thellier_gui." + CURRENT_VERSION
 
 has_cartopy, cartopy = pmag.import_cartopy()
+cfeature = ccrs = config = LongitudeFormatter = LatitudeFormatter = None
+LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
+NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
     # import some cartopy stuff
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    ccrs = importlib.import_module('cartopy.crs')
+    config = importlib.import_module('cartopy.config')
+    cfeature = importlib.import_module('cartopy.feature')
+    cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
+    LongitudeFormatter = cartopy_ticker.LongitudeFormatter
+    LatitudeFormatter = cartopy_ticker.LatitudeFormatter
+    cartopy_gridliner = importlib.import_module('cartopy.mpl.gridliner')
+    LONGITUDE_FORMATTER = cartopy_gridliner.LONGITUDE_FORMATTER
+    LATITUDE_FORMATTER = cartopy_gridliner.LATITUDE_FORMATTER
+    NaturalEarthFeature = cfeature.NaturalEarthFeature
+    LAND = cfeature.LAND
+    COASTLINE = cfeature.COASTLINE
+    OCEAN = cfeature.OCEAN
+    LAKES = cfeature.LAKES
+    BORDERS = cfeature.BORDERS
     import matplotlib.ticker as mticker
 
 

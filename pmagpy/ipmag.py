@@ -3,6 +3,7 @@
 
 import codecs
 from datetime import date
+import importlib
 import os
 import random
 import re
@@ -40,8 +41,9 @@ except ImportError:
     requests = None
 encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
+ccrs = None
 if has_cartopy:
-    import cartopy.crs as ccrs
+    ccrs = importlib.import_module('cartopy.crs')
 
 
 def igrf(input_list, mod='', ghfile=""):
