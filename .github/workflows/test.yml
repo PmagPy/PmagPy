@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies manually
         run: |
-          pip install scipy pandas matplotlib requests jupyter seaborn cartopy
+          pip install scipy pandas matplotlib requests jupyter seaborn cartopy pytz
           python dev_setup.py install
           pip install pytest pytest-cov
       # - name: Lint with flake8
