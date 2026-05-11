@@ -5767,16 +5767,16 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
-              'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
+              'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
               'Site', 'Object Number', 'version', 'site_definition')
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location','treat_mw_energy'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
                                   'age_low', 'age_sigma', 'specimen_core_depth','result_type'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
-                                'age_sigma', 'core_depth', 'composite_depth','result_type'],
+                                'age_sigma', 'core_depth', 'composite_depth'],
                     'sites': ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
-                              'orientation_quality', 'sample_alternatives', 'timestamp','result_type'],
+                              'orientation_quality', 'sample_alternatives', 'timestamp'],
                     'ages': ['level']}
 
     dmodel = data_model.DataModel()
