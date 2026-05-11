@@ -3636,6 +3636,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_dc_field"] = measurements_df["treat_dc_field"].astype(object)
     measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
@@ -3817,6 +3818,8 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    for col in ("treat_temp", "treat_dc_field"):
+        measurements_df[col] = measurements_df[col].astype(object)
     measurements_df["treat_step_num"] = 1
     measurements_df['meas_n_orient'] = 3
     measurements_df["standard"] = 'u'  # assume all data are "good"
