@@ -12,7 +12,9 @@ current_dir = os.getcwd()
 block_cipher = None
 
 files = [('{}/pmagpy/data_model/*.json'.format(current_dir), './pmagpy/data_model/'),
-         ('{}/dialogs/help_files/*.html'.format(current_dir), './dialogs/help_files')
+         ('{}/dialogs/help_files/*.html'.format(current_dir), './dialogs/help_files'),
+         # bundle the splash image so pmag_gui.py can find it at runtime
+         ('{}/programs/images/logo2.png'.format(current_dir), './programs/images')
         ]
 
 
@@ -41,17 +43,43 @@ a = Analysis(['programs/pmag_gui.py'],
              cipher=block_cipher)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-exe = EXE(pyz,
-          a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
-          #name='pmag_gui',
-          name=app_name,
-          debug=False,
-          strip=False,
-          upx=True,
-          console=False, icon='./programs/images/pmagpy_logo.ico')
+
+# PyInstaller's Splash() is supported on Windows and Linux only — macOS
+# builds fall back to the OS-provided bouncing dock icon for startup
+# feedback. The Python side closes the splash via pyi_splash.close()
+# once the main frame is shown (see programs/pmag_gui.py:main).
+if sys.platform != 'darwin':
+    splash = Splash('./programs/images/logo2.png',
+                    binaries=a.binaries,
+                    datas=a.datas,
+                    text_pos=(10, 80),
+                    text_size=10,
+                    text_default='Loading Pmag GUI, please wait...',
+                    text_color='black',
+                    always_on_top=True)
+    exe = EXE(pyz,
+              a.scripts,
+              splash,
+              splash.binaries,
+              a.binaries,
+              a.zipfiles,
+              a.datas,
+              name=app_name,
+              debug=False,
+              strip=False,
+              upx=True,
+              console=False, icon='./programs/images/pmagpy_logo.ico')
+else:
+    exe = EXE(pyz,
+              a.scripts,
+              a.binaries,
+              a.zipfiles,
+              a.datas,
+              name=app_name,
+              debug=False,
+              strip=False,
+              upx=True,
+              console=False, icon='./programs/images/pmagpy_logo.ico')
 app = BUNDLE(exe,
              name=app_name + ".app",
              icon='./programs/images/pmagpy_logo.ico',

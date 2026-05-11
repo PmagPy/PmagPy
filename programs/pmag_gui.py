@@ -3,14 +3,54 @@
 # pylint: disable=W0612,C0111,C0103,W0201,E402
 
 print("-I- Importing Pmag GUI dependencies")
+import sys
+import os
+import wx
+import wx.adv
+
+# Initialise wx and show a splash screen as early as possible so the
+# user has visual feedback during the slow import phase. PyInstaller's
+# native Splash() is unsupported on macOS, so a wx-based splash is the
+# only option there. On macOS the dock icon bounces during the
+# PyInstaller bootstrap that precedes any Python execution, and then
+# this splash takes over once Python starts running.
+_app = wx.GetApp() or wx.App(redirect=False)
+
+
+def _find_splash_image():
+    """Locate the splash image in either a frozen bundle or the source tree."""
+    candidates = []
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        candidates.append(os.path.join(sys._MEIPASS, 'programs', 'images', 'logo2.png'))
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates.append(os.path.join(here, 'images', 'logo2.png'))
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return None
+
+
+_splash = None
+_splash_image_path = _find_splash_image()
+if _splash_image_path:
+    try:
+        _splash_bitmap = wx.Bitmap(_splash_image_path, wx.BITMAP_TYPE_PNG)
+        _splash = wx.adv.SplashScreen(
+            _splash_bitmap,
+            wx.adv.SPLASH_CENTRE_ON_SCREEN | wx.adv.SPLASH_NO_TIMEOUT,
+            0,
+            None,
+        )
+        _splash.Show()
+        _app.Yield()
+    except Exception:
+        _splash = None
+
 from pmag_env import set_env
 import matplotlib
 matplotlib.use('WXAgg')
-import sys
-import wx
 import wx.lib.buttons as buttons
 import wx.lib.newevent as newevent
-import os
 import webbrowser
 
 from pmagpy import pmag
@@ -25,8 +65,10 @@ from dialogs import pmag_widgets as pw
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
-from programs import demag_gui
-from programs import thellier_gui
+# demag_gui and thellier_gui are imported lazily inside their button
+# handlers because they pull in large matplotlib/wx stacks that would
+# otherwise be loaded at startup and significantly slow the launch of
+# the frozen binary.
 
 
 class MagMainFrame(wx.Frame):
@@ -54,13 +96,36 @@ class MagMainFrame(wx.Frame):
 
         self.data_model = dmodel
         self.FIRST_RUN = True
+        # Stash the requested working directory so it can be resolved
+        # after the main frame is shown (see setup_working_directory).
+        self._initial_WD = WD
+        self.WD = None
 
         self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
 #        self.panel.SetBackgroundColour("EDEDED")
 
-        # if not specified on the command line,
-        # make the user choose their working directory
+        # for use as module:
+        self.resource_dir = os.getcwd()
+
+        # set some things
+        self.HtmlIsOpen = False
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
+
+        # do menubar
+        menubar = pmag_gui_menu.MagICMenu(self)
+        self.SetMenuBar(menubar)
+        self.menubar = menubar
+
+    def setup_working_directory(self):
+        """
+        Resolve the working directory and load any available data.
+
+        This logic used to run inside __init__, but it is now invoked
+        after the main frame is shown so the user sees the landing page
+        before any directory-selection dialog appears.
+        """
+        WD = self._initial_WD
         if WD:
             self.WD = WD
         else:
@@ -72,13 +137,6 @@ class MagMainFrame(wx.Frame):
         # set data model and read in data
         self.dir_path.SetValue(self.WD)
 
-        # for use as module:
-        self.resource_dir = os.getcwd()
-
-        # set some things
-        self.HtmlIsOpen = False
-        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-
         # if specified directory doesn't exist, try to make it
         try:
             if not os.path.exists(self.WD):
@@ -87,11 +145,6 @@ class MagMainFrame(wx.Frame):
         except FileNotFoundError:
             pw.simple_warning("You have provided a directory that does not exist and cannot be created.\n Please pick a different directory.")
             print("-W- You have provided a directory that does not exist and cannot be created.\n    Please pick a different directory.")
-
-        # do menubar
-        menubar = pmag_gui_menu.MagICMenu(self)
-        self.SetMenuBar(menubar)
-        self.menubar = menubar
 
 
     def get_wd_data(self):
@@ -434,6 +487,8 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        # imported lazily to keep startup fast
+        from programs import thellier_gui
         # create custom Thellier GUI closing event and bind it
         ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
@@ -465,6 +520,8 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        # imported lazily to keep startup fast
+        from programs import demag_gui
         # create custom Demag GUI closing event and bind it
         DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
@@ -852,15 +909,44 @@ INFORMATION
         print(help_msg)
         sys.exit()
     print('-I- Starting Pmag GUI - please be patient')
-    # if redirect is true, wxpython makes its own output window for stdout/stderr
-    if 'darwin' in sys.platform and (not set_env.IS_FROZEN):
-        app = wx.App(redirect=True)
-    else:
-        app = wx.App(redirect=True) #SET TO TRUE BEFORE COMMIT
+    # Reuse the wx.App created at module-load time (which is showing the
+    # splash). On macOS this also keeps stdout/stderr in the terminal
+    # when running from a terminal; in the frozen .app bundle there is
+    # no terminal but lost prints are acceptable in production.
+    app = _app
     dir_path = pmag.get_named_arg("-WD", None)
     app.frame = MagMainFrame(WD=dir_path)
     app.frame.Show()
     app.frame.Center()
+    # Bring the window to the foreground on macOS, which otherwise often
+    # leaves the wx window behind the terminal that launched it.
+    app.frame.Raise()
+    # Force the frame to paint now so the landing page is actually
+    # visible before any modal dialog opens.
+    app.frame.Update()
+    wx.SafeYield()
+    # Destroy the early splash screen now that the landing page is up.
+    global _splash
+    if _splash is not None:
+        try:
+            _splash.Destroy()
+        except Exception:
+            pass
+        _splash = None
+    # Close the PyInstaller splash screen (if running from a frozen
+    # binary built with a Splash() block — Windows/Linux only) now that
+    # the landing page is visible.
+    try:
+        import pyi_splash  # type: ignore
+        if pyi_splash.is_alive():
+            pyi_splash.close()
+    except ImportError:
+        pass
+    # Delay the directory-selection dialog briefly so the main frame has
+    # time to paint and the user sees the landing page before being
+    # asked to pick a working directory. wx.CallAfter races the modal
+    # dialog against the paint event on macOS and the dialog often wins.
+    wx.CallLater(250, app.frame.setup_working_directory)
     ## use for debugging:
     #if '-i' in sys.argv:
     #    import wx.lib.inspection
