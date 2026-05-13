@@ -9692,6 +9692,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     
     plt.figure(figsize=(4,4))
     plot_net()
+    net_ax = plt.gca()
     cNorm  = colors.Normalize(vmin=min(F), vmax=max(F))
     f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
     
@@ -9718,7 +9719,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         hex_color = colors.rgb2hex(rgba)
 
         plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
-    cb = plt.colorbar(f_scalarMap,orientation='horizontal',fraction=0.05, pad=0.05)
+    cb = plt.colorbar(f_scalarMap, ax=net_ax, orientation='horizontal', fraction=0.05, pad=0.05)
     cb.ax.tick_params(labelsize=14)
     cb.ax.set_title(label='$f$ values', fontsize=14)
 
@@ -9727,7 +9728,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     # plot paleolatitudes distribution
     EI_plats = np.degrees(np.arctan(np.tan(np.radians(I))/2))
-    plat_mode = stats.mode(np.round(EI_plats, 1))[0][0]
+    plat_mode = stats.mode(np.round(EI_plats, 1)).mode
     plat_lower, plat_upper = np.round(np.percentile(EI_plats, [2.5, 97.5]), 1)
     mu, std = stats.norm.fit(EI_plats)
     x = np.linspace(min(EI_plats), max(EI_plats), 100)
