@@ -878,6 +878,7 @@ def calc_verwey_estimate(temps, mags,
     verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
     
     remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
+    remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
@@ -2147,6 +2148,86 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactiv
         return fig, ax
     return None
 
+def collapse_hysteresis_field_plateaus(field, magnetization):
+    """Average consecutive repeated field steps into a single point."""
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
+
+    if field.size == 0:
+        return field, magnetization
+
+    collapsed_field = []
+    collapsed_magnetization = []
+    start = 0
+
+    for index in range(1, len(field) + 1):
+        if index == len(field) or field[index] != field[start]:
+            collapsed_field.append(field[start])
+            collapsed_magnetization.append(np.mean(magnetization[start:index]))
+            start = index
+
+    return np.asarray(collapsed_field, dtype=float), np.asarray(collapsed_magnetization, dtype=float)
+
+def find_hysteresis_turning_point(field):
+    """Find the single loop reversal, tolerating repeated plateaus and minor field glitches."""
+    field = np.asarray(field, dtype=float)
+    if field.size < 3:
+        raise ValueError('At least three field steps are required to split a hysteresis loop')
+
+    field_diff = np.diff(field)
+    nonzero_diff = field_diff[field_diff != 0]
+    if nonzero_diff.size == 0:
+        raise ValueError('Applied field does not vary and cannot be split into loop branches')
+
+    diff_sign = np.sign(nonzero_diff)
+    turning_points = np.where(diff_sign[:-1] * diff_sign[1:] < 0)[0] + 1
+    if len(turning_points) == 1:
+        return int(turning_points[0])
+
+    initial_direction = np.sign(np.median(diff_sign[:min(10, len(diff_sign))]))
+    if initial_direction == 0:
+        initial_direction = diff_sign[0]
+
+    extremum_index = int(np.argmin(field) if initial_direction < 0 else np.argmax(field))
+    if len(turning_points) > 1:
+        return int(turning_points[np.argmin(np.abs(turning_points - extremum_index))])
+
+    midpoint = len(field) // 2
+    if 0 < extremum_index < len(field) - 1:
+        return extremum_index
+    return midpoint
+
+def build_symmetric_hysteresis_grid(upper_branch, lower_branch):
+    """Build a symmetric field grid over the overlap shared by the two loop branches."""
+    upper_field = np.asarray(upper_branch[0], dtype=float)
+    lower_field = np.asarray(lower_branch[0], dtype=float)
+
+    branch_steps = np.concatenate([
+        np.abs(np.diff(upper_field)),
+        np.abs(np.diff(lower_field)),
+    ])
+    branch_steps = branch_steps[branch_steps > 0]
+    if branch_steps.size == 0:
+        raise ValueError('Cannot determine a non-zero field step for hysteresis gridding')
+
+    field_step = np.median(branch_steps)
+    max_field = min(
+        np.max(upper_field),
+        np.max(lower_field),
+        np.abs(np.min(upper_field)),
+        np.abs(np.min(lower_field)),
+    )
+    if max_field <= 0:
+        raise ValueError('Hysteresis branches do not overlap symmetrically about zero field')
+
+    positive_field = np.arange(max_field, 0, -field_step, dtype=float)
+    if positive_field.size == 0:
+        positive_field = np.asarray([max_field], dtype=float)
+
+    upper_grid = np.concatenate([positive_field, -positive_field[::-1]])
+    lower_grid = upper_grid[::-1]
+    return upper_grid, lower_grid
+
 def split_hysteresis_loop(field, magnetization):
     '''
     function to split a hysteresis loop into upper and lower branches
@@ -2213,11 +2294,7 @@ def grid_hysteresis_loop(field, magnetization):
 
     upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
 
-    # calculate the average field step size
-    field_step = np.mean(np.abs(np.diff(upper_branch[0])))
-    # grid the hysteresis loop
-    upper_field = np.arange(np.max(field), 0, -field_step)
-    upper_field = np.concatenate([upper_field, -upper_field[::-1]])
+    upper_field, lower_field = build_symmetric_hysteresis_grid(upper_branch, lower_branch)
     lower_field = upper_field[::-1]
     grid_field = np.concatenate([upper_field, lower_field])
     
@@ -2401,12 +2478,52 @@ def linefit(xarr, yarr):
     ss_tot = np.sum((yarr - np.mean(yarr))**2)
 
     # Residual sum of squares
-    ss_res = np.sum((y_pred - np.mean(yarr))**2)
+    ss_res = np.sum((yarr - y_pred)**2)
 
     # R^2 score
-    r2 = ss_res / ss_tot if ss_tot > 0 else 1
+    r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 1
 
     return intercept, slope, r2
+
+def branch_symmetry_mismatch(loop_fields, loop_moments, H_shift=0.0, M_shift=None,
+                              low_field_fraction=0.35, weight_power=4):
+    """Measure branch inversion symmetry with optional low-field weighting."""
+    corrected_fields = np.asarray(loop_fields, dtype=float) - H_shift
+    corrected_moments = np.asarray(loop_moments, dtype=float)
+
+    upper_branch, lower_branch = split_hysteresis_loop(corrected_fields, corrected_moments)
+    upper_field = np.asarray(upper_branch[0], dtype=float)
+    upper_moment = np.asarray(upper_branch[1], dtype=float)
+    lower_field = np.asarray(lower_branch[0], dtype=float)
+    lower_moment = np.asarray(lower_branch[1], dtype=float)
+
+    mirror_field = -upper_field
+    valid = (mirror_field >= np.min(lower_field)) & (mirror_field <= np.max(lower_field))
+    if not np.any(valid):
+        raise ValueError('Loop branches do not overlap after applying the proposed field shift')
+
+    overlap_field = upper_field[valid]
+    overlap_upper_moment = upper_moment[valid]
+    overlap_lower_moment = np.interp(-overlap_field, lower_field, lower_moment)
+
+    max_field = np.max(np.abs(overlap_field))
+    field_scale = max(low_field_fraction * max_field, np.finfo(float).eps)
+    weights = 1.0 / (1.0 + (np.abs(overlap_field) / field_scale) ** weight_power)
+
+    offset_samples = (overlap_upper_moment + overlap_lower_moment) / 2.0
+    if M_shift is None:
+        M_shift = np.average(offset_samples, weights=weights)
+
+    mismatch = overlap_upper_moment + overlap_lower_moment - 2.0 * M_shift
+    weighted_rms = np.sqrt(np.average(mismatch ** 2, weights=weights))
+
+    return {
+        'field': overlap_field,
+        'mismatch': mismatch,
+        'weights': weights,
+        'weighted_rms': float(weighted_rms),
+        'M_shift': float(M_shift),
+    }
 
 def loop_H_off(loop_fields, loop_moments, H_shift):
     """
@@ -2472,7 +2589,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
                 y1.append(-y)
 
     if len(x1) < 2:
-        return 0.0, 0.0  # Not enough points for regression
+        return {'slope': 0.0, 'M_shift': 0.0, 'r2': 0.0}
 
     intercept, slope, r2 = linefit(x1, y1)
     M_shift = intercept / 2
@@ -2480,7 +2597,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
     result = {'slope': slope, 'M_shift': M_shift, 'r2': r2}
     return result
 
-def loop_Hshift_brent(loop_fields, loop_moments):
+def loop_Hshift_brent(loop_fields, loop_moments, shift_bound_fraction=0.1):
     """
     Optimize the horizontal (field) shift of a magnetic hysteresis loop using Brent's method to maximize symmetry.
 
@@ -2518,20 +2635,75 @@ def loop_Hshift_brent(loop_fields, loop_moments):
     """
 
     def objective(H_shift):
-        result = loop_H_off(loop_fields, loop_moments, H_shift)
-        return -result['r2']
-    
-    ax = -np.max(loop_fields)/2
-    bx = 0
-    cx = -ax
-    result = minimize_scalar(objective, method='brent', bracket=(ax, bx, cx), tol=1e-6)
+        return -loop_H_off(loop_fields, loop_moments, H_shift)['r2']
 
-    opt_H_off = result.x
+    shift_bound = shift_bound_fraction * np.max(np.abs(loop_fields))
+    if shift_bound == 0:
+        return 0.0, 0.0, 0.0
+
+    coarse_grid = np.linspace(-shift_bound, shift_bound, 41)
+    coarse_scores = np.asarray([loop_H_off(loop_fields, loop_moments, shift)['r2'] for shift in coarse_grid])
+    best_index = int(np.argmax(coarse_scores))
+    left_index = max(best_index - 1, 0)
+    right_index = min(best_index + 1, len(coarse_grid) - 1)
+
+    if left_index == right_index:
+        opt_H_off = float(coarse_grid[best_index])
+    else:
+        result = minimize_scalar(
+            objective,
+            bounds=(float(coarse_grid[left_index]), float(coarse_grid[right_index])),
+            method='bounded',
+            options={'xatol': 1e-6},
+        )
+        opt_H_off = float(result.x)
+
     opt_shift = loop_H_off(loop_fields, loop_moments, opt_H_off)
     opt_r2 = opt_shift['r2']
     opt_M_off = opt_shift['M_shift']
 
     return opt_r2, opt_H_off, opt_M_off
+
+def loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
+                         shift_bound_fraction=0.1, weight_power=4):
+    """Optimize loop centering using a low-field-weighted inversion-symmetry mismatch."""
+    loop_fields = np.asarray(loop_fields, dtype=float)
+    loop_moments = np.asarray(loop_moments, dtype=float)
+
+    shift_bound = shift_bound_fraction * np.max(np.abs(loop_fields))
+    if shift_bound == 0:
+        mismatch = branch_symmetry_mismatch(
+            loop_fields,
+            loop_moments,
+            low_field_fraction=low_field_fraction,
+            weight_power=weight_power,
+        )
+        return mismatch['weighted_rms'], 0.0, mismatch['M_shift'], mismatch
+
+    def objective(H_shift):
+        return branch_symmetry_mismatch(
+            loop_fields,
+            loop_moments,
+            H_shift=H_shift,
+            low_field_fraction=low_field_fraction,
+            weight_power=weight_power,
+        )['weighted_rms']
+
+    result = minimize_scalar(
+        objective,
+        bounds=(-shift_bound, shift_bound),
+        method='bounded',
+        options={'xatol': 1e-6},
+    )
+    opt_H_off = float(result.x)
+    mismatch = branch_symmetry_mismatch(
+        loop_fields,
+        loop_moments,
+        H_shift=opt_H_off,
+        low_field_fraction=low_field_fraction,
+        weight_power=weight_power,
+    )
+    return mismatch['weighted_rms'], opt_H_off, mismatch['M_shift'], mismatch
 
 def calc_Q(H, M, type='Q'):
     """
@@ -2627,6 +2799,70 @@ def hyst_loop_centering(grid_field, grid_magnetization):
                'M_sn':float(M_sn), 
                'Q':float(Q),
                }
+    return results
+
+def hyst_loop_centering_iterative(grid_field, grid_magnetization, hf_cutoff=0.8,
+                                  low_field_fraction=0.35, shift_bound_fraction=0.1,
+                                  weight_power=4, max_iterations=5,
+                                  field_tolerance=1e-5, moment_tolerance=1e-8):
+    """
+    Center a hysteresis loop by iterating between provisional slope removal and offset fitting.
+
+    The routine alternates between fitting a provisional high-field slope and optimizing horizontal
+    and vertical offsets on the residual loop using a low-field-weighted inversion-symmetry metric.
+    This is designed for weak ferromagnetic loops superimposed on a strong linear background.
+    """
+    centered_H, centered_M = grid_hysteresis_loop(grid_field, grid_magnetization)
+    total_H_offset = 0.0
+    total_M_offset = 0.0
+    iteration_history = []
+    provisional_slope = 0.0
+    symmetry_score = np.nan
+
+    for iteration in range(max_iterations):
+        try:
+            provisional_slope, _ = linear_HF_fit(centered_H, centered_M, HF_cutoff=hf_cutoff)
+        except Exception:
+            provisional_slope = 0.0
+
+        ferro_like_M = hyst_slope_correction(centered_H, centered_M, provisional_slope)
+        symmetry_score, delta_H, delta_M, mismatch = loop_Hshift_weighted(
+            centered_H,
+            ferro_like_M,
+            low_field_fraction=low_field_fraction,
+            shift_bound_fraction=shift_bound_fraction,
+            weight_power=weight_power,
+        )
+
+        centered_H, centered_M = grid_hysteresis_loop(centered_H - delta_H, centered_M - delta_M)
+        total_H_offset += delta_H
+        total_M_offset += delta_M
+        iteration_history.append({
+            'iteration': iteration + 1,
+            'provisional_slope': float(provisional_slope),
+            'delta_H_offset': float(delta_H),
+            'delta_M_offset': float(delta_M),
+            'symmetry_score': float(symmetry_score),
+            'low_field_fraction': float(low_field_fraction),
+            'matched_points': int(len(mismatch['field'])),
+        })
+
+        if abs(delta_H) <= field_tolerance and abs(delta_M) <= moment_tolerance:
+            break
+
+    M_sn, Q = calc_Q(centered_H, centered_M)
+    results = {
+        'centered_H': centered_H,
+        'centered_M': centered_M,
+        'opt_H_offset': float(total_H_offset),
+        'opt_M_offset': float(total_M_offset),
+        'M_sn': float(M_sn),
+        'Q': float(Q),
+        'provisional_slope': float(provisional_slope),
+        'symmetry_score': float(symmetry_score),
+        'iterations': iteration_history,
+        'method': 'iterative_low_field_weighted',
+    }
     return results
 
 def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
@@ -2987,6 +3223,8 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
     HF_Mrh_noise_RMS = np.sqrt(np.mean(HF_Mrh_noise**2))
     SNR = 20*np.log10(HF_Mrh_signal_RMS/HF_Mrh_noise_RMS)
 
+    total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
+    total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
     total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
     total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
 
@@ -3431,7 +3669,13 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     loop_linearity_test_results = hyst_linearity_test(grid_fields, grid_magnetizations)
 
     # loop centering
-    loop_centering_results = hyst_loop_centering(grid_fields, grid_magnetizations)
+    if centering_protocol == 'legacy':
+        loop_centering_results = hyst_loop_centering(grid_fields, grid_magnetizations)
+    elif centering_protocol == 'iterative':
+        loop_centering_results = hyst_loop_centering_iterative(grid_fields, grid_magnetizations)
+    else:
+        raise ValueError("centering_protocol must be either 'legacy' or 'iterative'")
+
     # check if the quality factor Q is < 2
     if loop_centering_results['Q'] < 2:
         # in case the loop quality is bad, no field correction is applied
@@ -3475,32 +3719,37 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
 
     # calculate the shape parameter of Fabian 2003
     E_hyst = np.trapezoid(Mrh, H)
+    E_hyst = np.trapezoid(Mrh, H)
     sigma = np.log(E_hyst / 2 / Bc / Ms)
 
-    # plot original loop
-    p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', 
-                             return_figure=True, show_plot=False)
-    # plot centered loop
-    p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', 
-                                      return_figure=True, show_plot=False)
-    # plot drift corrected loop
-    p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', 
-                                        return_figure=True, show_plot=False)
-    # plot slope corrected loop
-    p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', 
-                                        return_figure=True, show_plot=False)
-    # plot Mrh
-    p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
-    p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
-    p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
-    if show_plot:
-        show(p_slope_corr)
+    p = None
+    p_slope_corr = None
+    if _HAS_BOKEH:
+        # plot original loop
+        p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', 
+                                 return_figure=True, show_plot=False)
+        # plot centered loop
+        p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', 
+                                          return_figure=True, show_plot=False)
+        # plot drift corrected loop
+        p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', 
+                                            return_figure=True, show_plot=False)
+        # plot slope corrected loop
+        p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', 
+                                            return_figure=True, show_plot=False)
+        # plot Mrh
+        p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
+        p_slope_corr.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
+        p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
+        if show_plot:
+            show(p_slope_corr)
     results = {'gridded_H': grid_fields, 
                'gridded_M': grid_magnetizations, 
                'linearity_test_results': loop_linearity_test_results,
                'loop_is_linear': loop_linearity_test_results['loop_is_linear'],
                'FNL': loop_linearity_test_results['FNL'],
                'loop_centering_results': loop_centering_results,
+               'centering_protocol': centering_protocol,
                'centered_H': centered_H, 
                'centered_M': centered_M, 
                'drift_corrected_M': drift_corr_M,
@@ -3521,7 +3770,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
                'Qf': Qf, 'Fnl_lin': Fnl_lin,
                'plot': p}
     
-    if show_results_table:
+    if show_results_table and _HAS_BOKEH and p_slope_corr is not None:
         summary = {
             'Mr':    [Mr],
             'Ms':    [Ms],
