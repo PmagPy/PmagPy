@@ -3609,7 +3609,8 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True, NL_fit=False):
+def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True,
+                      NL_fit=False, centering_protocol='legacy'):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -3631,6 +3632,9 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
         If True (default), display the Bokeh plot of the hysteresis loop and processing steps.
     NL_fit : bool, optional
         If True, force non-linear high-field fitting regardless of the saturation test result (default is False).
+    centering_protocol : {'legacy', 'iterative'}, optional
+        Centering workflow to apply before drift and high-field corrections.
+        Defaults to 'legacy' for backward compatibility.
 
     Returns
     -------
@@ -3805,6 +3809,7 @@ def process_hyst_loops(
     magn_col="magn_mass",
     show_results_table=True,
     show_plots=True,
+    centering_protocol='legacy',
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -3825,6 +3830,9 @@ def process_hyst_loops(
         If True, display the summary table below each plot.
     show_plots : bool, optional
         If True, display the hysteresis plots for each specimen.
+    centering_protocol : {'legacy', 'iterative'}, optional
+        Centering workflow to pass through to process_hyst_loop.
+        Defaults to 'legacy' for backward compatibility.
 
     Returns
     -------
@@ -3846,6 +3854,7 @@ def process_hyst_loops(
             spec,
             show_results_table=show_results_table,
             show_plot=show_plots,
+            centering_protocol=centering_protocol,
         )
         res['specimen'] = spec
         res['experiment'] = exp
