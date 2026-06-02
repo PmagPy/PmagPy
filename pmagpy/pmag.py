@@ -4815,24 +4815,25 @@ def dolnp(data, direction_type_key):
     meth_key = 'method_codes' if dec_key == 'dir_dec' else 'magic_method_codes'
     if len(data) == 1:
         tilt_key = 'dir_tilt_correction' if dec_key == 'dir_dec' else 'tilt_correction'
-        tc = str(data[0][tilt_key]) if tilt_key in data[0] else '-1'
-        ReturnData = {
-            "dec": '%7.1f ' % float(data[0][dec_key]),
-            "inc": '%7.1f ' % float(data[0][inc_key]),
-            "n_total": '1', "alpha95": "", "R": "", "K": "",
-            "tilt_correction": tc
-        }
         rec = data[0]
-        if direction_type_key in rec and rec[direction_type_key] == 'p':
-            ReturnData["n_lines"] = '0'
-            ReturnData["n_planes"] = '1'
-        elif "DE-BFP" in rec.get(meth_key, ''):
-            ReturnData["n_lines"] = '0'
-            ReturnData["n_planes"] = '1'
+        tc = str(rec[tilt_key]) if tilt_key in rec else '-1'
+        # Line/plane classification mirrors process_data_for_mean: when
+        # direction_type_key is present it is authoritative; only otherwise do we
+        # fall back to checking method_codes for DE-BFP.
+        if direction_type_key in rec:
+            is_plane = rec[direction_type_key] == 'p'
         else:
-            ReturnData["n_planes"] = '0'
-            ReturnData["n_lines"] = '1'
-        return ReturnData
+            is_plane = "DE-BFP" in rec.get(meth_key, '')
+        n_lines, n_planes = (0, 1) if is_plane else (1, 0)
+        return {
+            "dec": '%7.1f ' % float(rec[dec_key]),
+            "inc": '%7.1f ' % float(rec[inc_key]),
+            "n_total": '%i ' % 1,
+            "n_lines": '%i ' % n_lines,
+            "n_planes": '%i ' % n_planes,
+            "alpha95": "", "R": "", "K": "",
+            "tilt_correction": tc,
+        }
     if 'dir_dec' in data[0].keys():
         tilt_key = 'dir_tilt_correction'  # this is data model 3.0
     else:
