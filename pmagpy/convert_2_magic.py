@@ -7359,7 +7359,8 @@ def kly4s(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                     for key in list(AniRec.keys()):
                         SampRec[key] = AniRec[key]
                     SampRec[azimuth_col] = '%7.1f' % (labaz)
-                    SampRec[dip_col] = '%7.1f' % (labdip)
+                    #SampRec[dip_col] = '%7.1f' % (labdip)
+                    SampRec[samp_dip_col] = '%7.1f' % (labdip)
                     SampRec[bed_dip_direction_col] = '%7.1f' % (
                         bed_dip_direction)
                     SampRec[bed_dip_col] = '%7.1f' % (bed_dip)
