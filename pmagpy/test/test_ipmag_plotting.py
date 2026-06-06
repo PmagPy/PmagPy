@@ -251,6 +251,33 @@ class TestFishqq:
         assert summary.get('N', 0) > 10
         plt.close('all')
 
+    def test_stats_computed_without_plot(self):
+        """fishqq returns the same statistics with plot=False as plot=True."""
+        directions = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                                    random_seed=33).tolist()
+        with_plot = ipmag.fishqq(di_block=directions, plot=True, save=False)
+        no_plot = ipmag.fishqq(di_block=directions, plot=False, save=False)
+        assert isinstance(no_plot, dict)
+        for key in ('Mu', 'Mu_critical', 'Me', 'Me_critical'):
+            assert abs(no_plot[key] - with_plot[key]) < 1e-9
+        assert no_plot['Test_result'] == with_plot['Test_result']
+        plt.close('all')
+
+    def test_data_type_poles_labels(self):
+        """data_type='poles' labels the QQ subplots Longitudes/Latitudes."""
+        vgps = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                             random_seed=33).tolist()
+        ipmag.fishqq(di_block=vgps, plot=True, save=False, data_type='poles')
+        titles = [ax.get_title() for ax in plt.gcf().get_axes()]
+        assert 'Mode 1 Longitudes' in titles
+        assert 'Mode 1 Latitudes' in titles
+        plt.close('all')
+        ipmag.fishqq(di_block=vgps, plot=True, save=False)
+        titles = [ax.get_title() for ax in plt.gcf().get_axes()]
+        assert 'Mode 1 Declinations' in titles
+        assert 'Mode 1 Inclinations' in titles
+        plt.close('all')
+
 
 # ---------------------------------------------------------------------------
 # igrf_print: IGRF output formatting
