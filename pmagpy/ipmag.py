@@ -2004,7 +2004,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.'):
+def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.',data_type='directions'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -2029,6 +2029,15 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         save_folder : relative directory where plots will be saved
             (default is current directory, '.')
         fmt : format of saved plot (default is 'png')
+        data_type : 'directions' (default) or 'poles'. Controls the axis/plot
+            labels only: 'directions' labels the components 'Declinations' and
+            'Inclinations'; 'poles' labels them 'Longitudes' and 'Latitudes'
+            (appropriate when the input di_block is a set of VGPs/poles).
+
+    Note:
+        The Mu and Me test statistics are computed whether or not ``plot`` is
+        True (when ``plot`` is False they are calculated on a temporary figure
+        that is closed without display).
 
     Returns:
         dictionary 
@@ -2080,6 +2089,10 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
     QQ_dict2 = {}
     QQ = {'unf': 1, 'exp': 2}
     fignum=1
+    if data_type == 'poles':
+        dec_label, inc_label = 'Longitudes', 'Latitudes'
+    else:
+        dec_label, inc_label = 'Declinations', 'Inclinations'
     di=np.array(all_dirs).transpose()
     decs=di[0]
     incs=di[1]
@@ -2096,18 +2109,25 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         ndata=np.column_stack((Ds,Is,az,pl))
         D1,I1=pmag.dotilt_V(ndata)
         D1=(D1-180.)%360 # Somehow this got lost
-        Dtit = 'Mode 1 Declinations'
-        Itit = 'Mode 1 Inclinations'
+        Dtit = 'Mode 1 ' + dec_label
+        Itit = 'Mode 1 ' + inc_label
         if plot:
             plt.figure(fignum,figsize=(6, 3))
             fignum+=1
-            Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
-                QQ['unf'], D1, Dtit, subplot=True)  # make plot
-            Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
-                QQ['exp'], I1, Itit, subplot=True)  # make plot
+        else:
+            tmp_fig = plt.figure(figsize=(6, 3))
+        # the Mu/Me statistics are computed within the plotting functions, so
+        # they are called whether or not the plot is retained
+        Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
+            QQ['unf'], D1, Dtit, subplot=True)  # make plot
+        Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
+            QQ['exp'], I1, Itit, subplot=True)  # make plot
+        if plot:
             plt.tight_layout()
             if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode1')+'.'+fmt, dpi=450)
+        else:
+            plt.close(tmp_fig)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'Consistent with Fisher distribution'
         else:
@@ -2134,22 +2154,27 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         rdata=np.column_stack((Ds,Is,az,pl))
         D2,I2=pmag.dotilt_V(rdata)
         D2=(D2-180.)%360 # Somehow this got lost
-        Dtit = 'Mode 2 Declinations'
-        Itit = 'Mode 2 Inclinations'
+        Dtit = 'Mode 2 ' + dec_label
+        Itit = 'Mode 2 ' + inc_label
         ppars = pmag.doprinc(rDIs)  # get principal directions
         if ppars['dec']>90 and ppars['dec']<270:
             Drbar = ppars['dec'] - 180.
         if ppars['inc']<0:
-            Irbar['inc']=-ppars['inc']
+            Irbar=-ppars['inc']
         if plot:
             plt.figure(fignum,figsize=(6, 3))
-            Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
-                QQ['unf'], D2, Dtit, subplot=True)  # make plot
-            Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
-                QQ['exp'], I2, Itit, subplot=True)  # make plot
+        else:
+            tmp_fig = plt.figure(figsize=(6, 3))
+        Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
+            QQ['unf'], D2, Dtit, subplot=True)  # make plot
+        Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
+            QQ['exp'], I2, Itit, subplot=True)  # make plot
+        if plot:
             plt.tight_layout()
             if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode2')+'.'+fmt, dpi=450)
+        else:
+            plt.close(tmp_fig)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'Consistent with Fisher distribution'
@@ -2165,10 +2190,11 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         QQ_dict2['Me_critical'] = Me_rcr
         QQ_dict2['Test_result'] = F_r
 
-    if QQ_dict2:
-        return QQ_dict1, QQ_dict2
-    elif QQ_dict1:
-        return QQ_dict1
+    populated = [d for d in (QQ_dict1, QQ_dict2) if d]
+    if len(populated) == 2:
+        return populated[0], populated[1]
+    elif len(populated) == 1:
+        return populated[0]
     else:
         print('you need N> 10 for at least one mode')
 
