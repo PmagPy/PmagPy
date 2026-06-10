@@ -2273,7 +2273,8 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum=None, tick_spacing=10, ax=None):
+def plot_net(fignum=None, tick_spacing=10, ax=None, label_directions=False,
+             label_type='cardinal'):
     """
     Draws circle and tick marks for equal area projection.
 
@@ -2284,6 +2285,17 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Interval for declination tick marks, default is 10.
         ax: matplotlib.axes.Axes or None
             Axis to plot on. If None, the current axis will be used (or created if fignum is given).
+        label_directions: bool
+            If True, label the directions around the perimeter of the net.
+            Default is False.
+        label_type: str
+            Style of perimeter labels used when label_directions is True.
+            Options are:
+                'cardinal' (default): N, E, S, W
+                'numeric': 000, 090, 180, 270
+                'numeric_degree': 0°, 90°, 180°, 270°
+                'slotz_special': 0° at the top (N) and 90° at the right (E),
+                    with the bottom and left positions left blank.
     """
     if ax is None:
         if fignum is not None:
@@ -2337,7 +2349,27 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
     ax.set_aspect("equal")
-    ax.axis((-1.05, 1.05, -1.05, 1.05))
+    if label_directions:
+        label_sets = {
+            'cardinal': ("N", "E", "S", "W"),
+            'numeric': ("000", "090", "180", "270"),
+            'numeric_degree': (r"  0$\degree$", r" 90$\degree$",
+                               r" 180$\degree$", r" 270$\degree$"),
+            'slotz_special': (r"  0$\degree$", r" 90$\degree$", "", ""),
+        }
+        if label_type not in label_sets:
+            raise ValueError(
+                "label_type must be one of {}".format(sorted(label_sets)))
+        north, east, south, west = label_sets[label_type]
+        offset = 0.05
+        fontsize = 12
+        ax.text(0, 1 + offset, north, ha="center", va="bottom", fontsize=fontsize)
+        ax.text(1 + offset, 0, east, ha="left", va="center", fontsize=fontsize)
+        ax.text(0, -1 - offset, south, ha="center", va="top", fontsize=fontsize)
+        ax.text(-1 - offset, 0, west, ha="right", va="center", fontsize=fontsize)
+        ax.axis((-1.1, 1.1, -1.1, 1.1))
+    else:
+        ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
