@@ -2227,6 +2227,108 @@ def lat_from_pole(ref_loc_lon, ref_loc_lat, pole_plon, pole_plat):
     return float(paleo_lat[0])
 
 
+def site_from_pole(pole_plon, pole_plat, dec, inc):
+    """
+    Calculate possible site locations from a paleomagnetic pole and direction.
+
+    A pole and a local direction generally define two possible site locations.
+    This function returns all valid solutions assuming a geocentric axial
+    dipole field.
+
+    Parameters:
+        pole_plon: paleopole longitude in degrees E
+        pole_plat: paleopole latitude in degrees N
+        dec: declination at the site in degrees
+        inc: inclination at the site in degrees
+
+    Returns:
+        list of ``(site_lon, site_lat)`` tuples. Longitudes are in the range
+        0 <= longitude < 360.
+
+    Examples:
+        Recover the two possible sites for a pole and direction:
+
+        >>> pole_lon, pole_lat, _, _ = pmag.dia_vgp(30, 45, 0, 40, -100)
+        >>> ipmag.site_from_pole(pole_lon, pole_lat, 30, 45)
+        [(298.30385577624175, 19.99999999999998),
+         (260.00000000000006, 40.00000000000001)]
+
+    Notes:
+        At a geographic pole, longitude and declination are not sufficient to
+        recover a unique site longitude. Other special geometries can also
+        define a continuum of sites; these cases raise ``ValueError``.
+    """
+    values = np.asarray([pole_plon, pole_plat, dec, inc], dtype=float)
+    if not np.all(np.isfinite(values)):
+        raise ValueError("pole position and direction must contain finite values")
+    pole_plon, pole_plat, dec, inc = values
+    if not -90. <= pole_plat <= 90.:
+        raise ValueError("pole_plat must be between -90 and 90 degrees")
+    if not -90. <= inc <= 90.:
+        raise ValueError("inc must be between -90 and 90 degrees")
+
+    rad = np.pi / 180.
+    pole_lat = pole_plat * rad
+    direction = (dec % 360.) * rad
+    inclination = inc * rad
+    pole_distance = np.arctan2(2., np.tan(inclination))
+
+    if np.isclose(np.cos(pole_lat), 0., atol=1e-12):
+        raise ValueError(
+            "site longitude is indeterminate for a geographic-pole position"
+        )
+
+    # From the spherical law of cosines:
+    # sin(plat) = sin(slat) cos(p) + cos(slat) sin(p) cos(dec).
+    sin_lat_coefficient = np.cos(pole_distance)
+    cos_lat_coefficient = np.sin(pole_distance) * np.cos(direction)
+    amplitude = np.hypot(sin_lat_coefficient, cos_lat_coefficient)
+    target = np.sin(pole_lat)
+
+    if np.isclose(amplitude, 0., atol=1e-12):
+        if np.isclose(target, 0., atol=1e-12):
+            raise ValueError("pole and direction define infinitely many sites")
+        raise ValueError("pole and direction do not define a site location")
+
+    normalized_target = target / amplitude
+    if abs(normalized_target) > 1. + 1e-12:
+        raise ValueError("pole and direction do not define a site location")
+    normalized_target = np.clip(normalized_target, -1., 1.)
+
+    phase = np.arctan2(cos_lat_coefficient, sin_lat_coefficient)
+    principal = np.arcsin(normalized_target)
+    site_lats = []
+    for root in (principal, np.pi - principal):
+        for cycle in range(-1, 2):
+            site_lat = root - phase + 2. * np.pi * cycle
+            if (-np.pi / 2. - 1e-12 <= site_lat <=
+                    np.pi / 2. + 1e-12):
+                site_lat = np.clip(site_lat, -np.pi / 2., np.pi / 2.)
+                if not any(np.isclose(site_lat, known, atol=1e-10)
+                           for known in site_lats):
+                    site_lats.append(site_lat)
+
+    solutions = []
+    for site_lat in site_lats:
+        sin_lon_difference = (
+            np.sin(pole_distance) * np.sin(direction) / np.cos(pole_lat)
+        )
+        cos_lon_difference = (
+            (np.cos(pole_distance) -
+             np.sin(site_lat) * np.sin(pole_lat)) /
+            (np.cos(site_lat) * np.cos(pole_lat))
+        )
+        lon_difference = np.arctan2(
+            sin_lon_difference, cos_lon_difference
+        )
+        site_lon = (pole_plon - np.degrees(lon_difference)) % 360.
+        solutions.append((float(site_lon), float(np.degrees(site_lat))))
+
+    if not solutions:
+        raise ValueError("pole and direction do not define a site location")
+    return solutions
+
+
 def inc_from_lat(lat):
     """
     Calculate inclination predicted from latitude using the dipole equation.

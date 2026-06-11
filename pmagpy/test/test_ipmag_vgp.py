@@ -2,12 +2,14 @@
 Tests for VGP and paleolatitude functions in ipmag.py.
 
 Covers lat_from_inc / inc_from_lat (dipole equation), lat_from_pole,
-vgp_calc (DataFrame-based VGP computation), and sb_vgp_calc (VGP scatter).
+site_from_pole, vgp_calc (DataFrame-based VGP computation), and sb_vgp_calc
+(VGP scatter).
 Includes cross-validation against the parallel pmag.py implementations
 (pmag.plat, pmag.pinc, pmag.dia_vgp).
 """
 import numpy as np
 import pandas as pd
+import pytest
 from numpy.testing import assert_allclose
 
 from pmagpy import ipmag, pmag
@@ -88,6 +90,79 @@ class TestLatFromPole:
     def test_equatorial_site_pole_at_north(self):
         """Equatorial site with pole at north gives paleolatitude = 0."""
         assert_allclose(ipmag.lat_from_pole(0, 0, 0, 90), 0.0, atol=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# site_from_pole: site locations from pole position and direction
+# ---------------------------------------------------------------------------
+
+class TestSiteFromPole:
+    """Tests for ipmag.site_from_pole."""
+
+    @staticmethod
+    def _longitude_difference(lon_1, lon_2):
+        return ((lon_1 - lon_2 + 180.) % 360.) - 180.
+
+    def test_recovers_original_site(self):
+        """The solutions include the site used to calculate the pole."""
+        dec, inc = 30., 45.
+        site_lat, site_lon = 40., -100.
+        pole_lon, pole_lat, _, _ = pmag.dia_vgp(
+            dec, inc, 0., site_lat, site_lon
+        )
+
+        solutions = ipmag.site_from_pole(pole_lon, pole_lat, dec, inc)
+
+        assert any(
+            abs(site_lat_out - site_lat) < 1e-8 and
+            abs(self._longitude_difference(site_lon_out, site_lon)) < 1e-8
+            for site_lon_out, site_lat_out in solutions
+        )
+
+    def test_returns_both_valid_solutions(self):
+        """A typical pole and direction produce two valid site locations."""
+        dec, inc = 4., 41.
+        pole_lon, pole_lat, _, _ = pmag.dia_vgp(dec, inc, 0., 33., -117.)
+
+        solutions = ipmag.site_from_pole(pole_lon, pole_lat, dec, inc)
+
+        assert len(solutions) == 2
+        for site_lon, site_lat in solutions:
+            recovered_lon, recovered_lat, _, _ = pmag.dia_vgp(
+                dec, inc, 0., site_lat, site_lon
+            )
+            assert_allclose(recovered_lat, pole_lat, atol=1e-8)
+            assert_allclose(
+                self._longitude_difference(recovered_lon, pole_lon),
+                0.,
+                atol=1e-8,
+            )
+
+    def test_southern_hemisphere_roundtrip(self):
+        """The inverse works for a southern-hemisphere site and pole."""
+        dec, inc = 185., -40.
+        site_lat, site_lon = -35., 150.
+        pole_lon, pole_lat, _, _ = pmag.dia_vgp(
+            dec, inc, 0., site_lat, site_lon
+        )
+
+        solutions = ipmag.site_from_pole(pole_lon, pole_lat, dec, inc)
+
+        assert any(
+            abs(site_lat_out - site_lat) < 1e-8 and
+            abs(self._longitude_difference(site_lon_out, site_lon)) < 1e-8
+            for site_lon_out, site_lat_out in solutions
+        )
+
+    def test_inconsistent_geometry_raises(self):
+        """A pole unreachable for the given direction raises ValueError."""
+        with pytest.raises(ValueError, match="do not define a site"):
+            ipmag.site_from_pole(0., 80., 90., 45.)
+
+    def test_geographic_pole_is_indeterminate(self):
+        """A geographic-pole position cannot determine site longitude."""
+        with pytest.raises(ValueError, match="indeterminate"):
+            ipmag.site_from_pole(0., 90., 0., 45.)
 
 
 # ---------------------------------------------------------------------------
