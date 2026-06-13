@@ -4855,37 +4855,51 @@ def dolnp3_0(Data):
 def dolnp(data, direction_type_key):
     """
     Returns fisher mean, a95 for data using the method of McFadden and McElhinny 1988 for lines and planes.
+    Handles both data-model 3.0 (dir_dec, dir_inc, method_codes) and 2.5 (dec, inc, magic_method_codes) records.
 
     Parameters
     ----------
-    Data : nested list of dictionaries with keys
-        Data model 3.0:
-            dir_dec
-            dir_inc
-            dir_tilt_correction
-            method_codes
-        Data model 2.5:
-            dec
-            inc
-            tilt_correction
-            magic_method_codes
-    direction_type_key :  ['specimen_direction_type']
-    
+    data : list of dicts with keys:
+        Data model 3.0: dir_dec, dir_inc, dir_tilt_correction, method_codes
+        Data model 2.5: dec, inc, tilt_correction, magic_method_codes
+    direction_type_key : key for line/plane classification ('direction_type', 'dir_type', etc.).
+        If absent from records, classification falls back to checking method_codes for DE-BFP.
+
     Returns
     -------
-    ReturnData : dictionary with keys
-        dec : fisher mean dec of data in Data
-        inc : fisher mean inc of data in Data
-        n_lines : number of directed lines [method_code = DE-BFL or DE-FM]
-        n_planes : number of best fit planes [method_code = DE-BFP]
-        alpha95  : fisher confidence circle from Data
-        R : fisher R value of Data
-        K : fisher k value of Data
-        
+    dict with keys: dec, inc, n_total, n_lines, n_planes, alpha95, R, K
+
     Effects
     -------
     prints to screen in case of no data
     """
+    if len(data) == 0:
+        print("This function requires input Data have at least 1 entry")
+        return {}
+    dec_key = 'dir_dec' if 'dir_dec' in data[0] else 'dec'
+    inc_key = 'dir_inc' if dec_key == 'dir_dec' else 'inc'
+    meth_key = 'method_codes' if dec_key == 'dir_dec' else 'magic_method_codes'
+    if len(data) == 1:
+        tilt_key = 'dir_tilt_correction' if dec_key == 'dir_dec' else 'tilt_correction'
+        rec = data[0]
+        tc = str(rec[tilt_key]) if tilt_key in rec else '-1'
+        # Line/plane classification mirrors process_data_for_mean: when
+        # direction_type_key is present it is authoritative; only otherwise do we
+        # fall back to checking method_codes for DE-BFP.
+        if direction_type_key in rec:
+            is_plane = rec[direction_type_key] == 'p'
+        else:
+            is_plane = "DE-BFP" in rec.get(meth_key, '')
+        n_lines, n_planes = (0, 1) if is_plane else (1, 0)
+        return {
+            "dec": '%7.1f ' % float(rec[dec_key]),
+            "inc": '%7.1f ' % float(rec[inc_key]),
+            "n_total": '%i ' % 1,
+            "n_lines": '%i ' % n_lines,
+            "n_planes": '%i ' % n_planes,
+            "alpha95": "", "R": "", "K": "",
+            "tilt_correction": tc,
+        }
     if 'dir_dec' in data[0].keys():
         tilt_key = 'dir_tilt_correction'  # this is data model 3.0
     else:
