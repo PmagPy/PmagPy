@@ -5826,7 +5826,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # self.mplot.clear()
             self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT']) * 1e6, self.Data[self.s]
                                ['NLT_parameters']['M_NLT_norm'], marker='o', facecolor='b', edgecolor='k', s=15, clip_on=False)
-            self.mplot.set_xlabel("$\mu$ T", fontsize=8)
+            self.mplot.set_xlabel(r"$\mu$ T", fontsize=8)
             self.mplot.set_ylabel(
                 "M / M[%.0f]" % (self.Data[self.s]['lab_dc_field'] * 1e6), fontsize=8)
             try:
