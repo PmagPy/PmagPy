@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 import pandas as pd
 warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
-from distutils.version import LooseVersion
+from packaging.version import Version, InvalidVersion
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -45,7 +45,7 @@ version_num = pmag.get_version()
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
-if matplotlib.__version__ < '2.1':
+if Version(matplotlib.__version__) < Version('2.1'):
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
        conda upgrade matplotlib
@@ -3372,7 +3372,12 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
     if proj == 'Mollweide':
         fig = plt.figure(fignum)
         # this issue is fixed in >=0.17
-        if not LooseVersion(Cartopy.__version__) > LooseVersion('0.16.0'):
+        try:
+            cartopy_supports_lon0 = Version(Cartopy.__version__) > Version('0.16.0')
+        except InvalidVersion:
+            # If the version string is non-standard, skip this guard.
+            cartopy_supports_lon0 = True
+        if not cartopy_supports_lon0:
             if lon_0 != 0:
                 print('This projection requires lon_0=0')
                 return
