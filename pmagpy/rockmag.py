@@ -878,7 +878,6 @@ def calc_verwey_estimate(temps, mags,
     verwey_estimate = calc_zero_crossing(temps_dM_dT_background, mgt_dM_dT)[-1]
     
     remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
-    remanence_loss = np.trapezoid(mgt_dM_dT, temps_dM_dT_background)
 
     return dM_dT_df, verwey_estimate, remanence_loss, r_squared, temps_background, temps_dM_dT_background, mgt_dM_dT, dM_dT_polyfit, background_curve_adjusted, mgt_curve
 
@@ -3225,8 +3224,6 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8):
 
     total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
     total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
-    total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
-    total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
 
     HAR = 20*np.log10(total_HF_Mrh_area/total_Mrh_area)
     loop_is_closed = (SNR < 8) or (HAR < -48)
@@ -3721,7 +3718,6 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     Bc = calc_Bc(centered_H, slope_corr_M)
 
     # calculate the shape parameter of Fabian 2003
-    E_hyst = np.trapezoid(Mrh, H)
     E_hyst = np.trapezoid(Mrh, H)
     sigma = np.log(E_hyst / 2 / Bc / Ms)
 
