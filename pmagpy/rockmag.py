@@ -5089,6 +5089,14 @@ def backfield_unmixing(field, magnetization, n_comps=1, parameters=None, iter=Tr
     assert n_comps == parameters.shape[0], 'number of components must match the number of rows in the parameters table'
     assert n_iter > 0, 'n_iter must be greater than 0'
 
+    # Ensure the parameter columns are float. The fit updates below write
+    # floats back into these columns in place; if the caller passes integer
+    # initial guesses (as the docstring example does), the columns are int
+    # dtype and pandas >= 3.0 raises when a float is assigned into them.
+    for col in ['amplitude', 'center', 'sigma', 'gamma']:
+        if col in parameters.columns:
+            parameters[col] = parameters[col].astype(float)
+
     if not iter:
         n_iter = 1
 
