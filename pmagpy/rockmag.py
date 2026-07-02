@@ -3905,6 +3905,14 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     if 'description' not in specimens_df.columns:
         specimens_df['description'] = np.nan
 
+    # Coerce target columns so scalar writes succeed across pandas versions.
+    # MagIC tables are read as text, so these arrive as string dtype under
+    # pandas >= 3.0 (future.infer_string), which rejects assigning a float
+    # (numeric stats) or a description string into a string-dtype column.
+    for col in MagIC_columns:
+        specimens_df[col] = pd.to_numeric(specimens_df[col], errors='coerce')
+    specimens_df['description'] = specimens_df['description'].astype(object)
+
     for _, row in hyst_results.iterrows():
         specimen_name = row['specimen']
         experiment_name = row['experiment']
