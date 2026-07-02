@@ -3665,7 +3665,6 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
             - 'Fnl_lin': FNL from linear fit (None if saturated)
             - 'plot': Bokeh figure with overlaid processing steps
     """
-    _check_bokeh()
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
