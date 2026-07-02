@@ -2294,7 +2294,6 @@ def grid_hysteresis_loop(field, magnetization):
     upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
 
     upper_field, lower_field = build_symmetric_hysteresis_grid(upper_branch, lower_branch)
-    lower_field = upper_field[::-1]
     grid_field = np.concatenate([upper_field, lower_field])
     
     upper_branch_itp = np.interp(upper_field, upper_branch[0], upper_branch[1])
