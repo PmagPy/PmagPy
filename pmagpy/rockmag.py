@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
 import copy
+import json
+import ast
 
-from scipy.optimize import minimize, brent, least_squares, minimize_scalar
-from scipy.signal import savgol_filter
+from scipy.optimize import minimize, brent, least_squares, minimize_scalar, brentq
+from scipy.signal import savgol_filter, find_peaks
+from scipy.special import erf, owens_t
 from scipy.interpolate import UnivariateSpline
 
 import matplotlib.pyplot as plt
@@ -2062,26 +2065,21 @@ def mpms_signal_blender_interactive(measurement_1, measurement_2,
 
 def extract_hysteresis_data(df, specimen_name):
     """
-    Extracts and separates Hysteresis data 
-    for a specific specimen from a dataframe.
+    Extracts hysteresis loop data for a specific specimen from a dataframe.
 
-    This function filters data for a given specimen and separates it based on 
-    different MagIC measurement method codes. It specifically looks for data 
-    corresponding to 'LP-HYS' Hysteresis Data
+    This function filters measurements for a given specimen and returns rows
+    whose MagIC method codes contain 'LP-HYS' (hysteresis loop experiments).
 
     Parameters:
-        df (pandas.DataFrame): The dataframe containing MPMS measurement data.
+        df (pandas.DataFrame): The dataframe containing MagIC measurement data.
         specimen_name (str): The name of the specimen to filter data for.
 
     Returns:
-        tuple: A tuple containing four pandas.DataFrames:
-            - fc_data: Data filtered for 'LP-FC' method if available, otherwise an empty DataFrame.
-            - zfc_data: Data filtered for 'LP-ZFC' method if available, otherwise an empty DataFrame.
-            - rtsirm_cool_data: Data filtered for 'LP-CW-SIRM:LP-MC' method if available, otherwise an empty DataFrame.
-            - rtsirm_warm_data: Data filtered for 'LP-CW-SIRM:LP-MW' method if available, otherwise an empty DataFrame.
+        pandas.DataFrame: Measurements for the specimen with 'LP-HYS' in
+            their method codes (empty if none are present).
 
     Example:
-        >>> fc, zfc, rtsirm_cool, rtsirm_warm = extract_mpms_data_dc(measurements_df, 'Specimen_1')
+        >>> hyst_data = extract_hysteresis_data(measurements_df, 'Specimen_1')
     """
 
     specimen_df = df[df['specimen'] == specimen_name]
@@ -2168,33 +2166,40 @@ def collapse_hysteresis_field_plateaus(field, magnetization):
     return np.asarray(collapsed_field, dtype=float), np.asarray(collapsed_magnetization, dtype=float)
 
 def find_hysteresis_turning_point(field):
-    """Find the single loop reversal, tolerating repeated plateaus and minor field glitches."""
+    """Find the single loop reversal, tolerating repeated plateaus and minor field glitches.
+
+    Returns the index of the last point of the first field sweep, such that
+    field[:index+1] is the first branch and field[index+1:] is the second
+    branch. Zero field steps (plateaus from repeated field values) are ignored
+    when detecting the reversal, and if field glitches produce multiple sign
+    changes, the reversal closest to the global field extremum opposite the
+    initial sweep direction is chosen.
+    """
     field = np.asarray(field, dtype=float)
     if field.size < 3:
         raise ValueError('At least three field steps are required to split a hysteresis loop')
 
     field_diff = np.diff(field)
-    nonzero_diff = field_diff[field_diff != 0]
-    if nonzero_diff.size == 0:
+    nonzero_indices = np.where(field_diff != 0)[0]
+    if nonzero_indices.size == 0:
         raise ValueError('Applied field does not vary and cannot be split into loop branches')
 
-    diff_sign = np.sign(nonzero_diff)
-    turning_points = np.where(diff_sign[:-1] * diff_sign[1:] < 0)[0] + 1
-    if len(turning_points) == 1:
-        return int(turning_points[0])
+    diff_sign = np.sign(field_diff[nonzero_indices])
+    # sign changes between consecutive non-zero field steps mark reversals;
+    # the turning point is the last index of the sweep ending at the reversal
+    sign_changes = np.where(diff_sign[:-1] * diff_sign[1:] < 0)[0]
+    if sign_changes.size == 0:
+        raise ValueError('No turning point found in the applied field. The data may not be a hysteresis loop.')
+    candidates = nonzero_indices[sign_changes] + 1
+    if candidates.size == 1:
+        return int(candidates[0])
 
     initial_direction = np.sign(np.median(diff_sign[:min(10, len(diff_sign))]))
     if initial_direction == 0:
         initial_direction = diff_sign[0]
 
     extremum_index = int(np.argmin(field) if initial_direction < 0 else np.argmax(field))
-    if len(turning_points) > 1:
-        return int(turning_points[np.argmin(np.abs(turning_points - extremum_index))])
-
-    midpoint = len(field) // 2
-    if 0 < extremum_index < len(field) - 1:
-        return extremum_index
-    return midpoint
+    return int(candidates[np.argmin(np.abs(candidates - extremum_index))])
 
 def build_symmetric_hysteresis_grid(upper_branch, lower_branch):
     """Build a symmetric field grid over the overlap shared by the two loop branches."""
@@ -2227,10 +2232,77 @@ def build_symmetric_hysteresis_grid(upper_branch, lower_branch):
     lower_grid = upper_grid[::-1]
     return upper_grid, lower_grid
 
+def sanitize_hysteresis_inputs(field, magnetization, drop_nonfinite=True):
+    """Coerce hysteresis loop inputs into clean float arrays for processing.
+
+    This helper makes the processing functions usable with data from any
+    source: MagIC measurement table columns (including ones read as text),
+    plain Python lists, or arrays exported from instrument software.
+
+    Parameters
+    ----------
+    field : array_like
+        Applied field values. Expected in tesla: the chi_HF unit conversions
+        in `linear_HF_fit`, `hyst_slope_correction`, and the nonlinear fits
+        assume tesla, so a warning is printed if the values appear to be in
+        mT or Oe (max |field| > 20).
+    magnetization : array_like
+        Magnetization or moment values, in any unit that is consistent
+        across the loop (mass-normalized Am2/kg matches MagIC conventions).
+    drop_nonfinite : bool, optional
+        If True (default), measurement pairs where either value is NaN or
+        infinite are dropped with a printed report. If False, a ValueError
+        is raised when non-finite values are present.
+
+    Returns
+    -------
+    field, magnetization : numpy.ndarray
+        Equal-length float arrays with only finite values.
+    """
+    try:
+        field = np.asarray(field, dtype=float)
+        magnetization = np.asarray(magnetization, dtype=float)
+    except (TypeError, ValueError) as error:
+        raise ValueError('Field and magnetization values must be numeric '
+                         f'(or numeric strings): {error}')
+    if field.ndim != 1 or magnetization.ndim != 1:
+        raise ValueError('Field and magnetization must be one-dimensional sequences')
+    if field.shape != magnetization.shape:
+        raise ValueError('Field and magnetization arrays must be the same length')
+
+    finite = np.isfinite(field) & np.isfinite(magnetization)
+    if not finite.all():
+        n_dropped = int(np.sum(~finite))
+        if not drop_nonfinite:
+            raise ValueError(f'{n_dropped} measurement(s) have non-finite field '
+                             'or magnetization values')
+        print(f'-W- dropping {n_dropped} measurement(s) with non-finite field '
+              'or magnetization values')
+        field = field[finite]
+        magnetization = magnetization[finite]
+
+    if field.size < 10:
+        raise ValueError('At least 10 finite measurements are required to '
+                         'process a hysteresis loop')
+
+    max_field = np.max(np.abs(field))
+    if max_field > 20:
+        print(f'-W- maximum |field| is {max_field:g}, which suggests the field '
+              'values are not in tesla (e.g. mT or Oe); the high-field '
+              'susceptibility unit conversions assume tesla')
+
+    return field, magnetization
+
 def split_hysteresis_loop(field, magnetization):
     '''
     function to split a hysteresis loop into upper and lower branches
-        by the change of sign in the applied field gradient
+        at the reversal of the applied field sweep
+
+    The loop reversal is located with `find_hysteresis_turning_point`, which
+    tolerates repeated field plateaus and minor field glitches. Loops measured
+    in either sweep order are supported: the branch measured from the positive
+    field extreme downward is returned as the upper branch regardless of
+    whether it was measured first or second.
 
     Parameters
     ----------
@@ -2241,33 +2313,30 @@ def split_hysteresis_loop(field, magnetization):
 
     Returns
     -------
-    upper_branch : tuple
-        tuple of field and magnetization values for the upper branch
-    lower_branch : tuple
-        tuple of field and magnetization values for the lower branch
+    upper_branch : list
+        [field, magnetization] for the upper branch, in ascending field order
+    lower_branch : list
+        [field, magnetization] for the lower branch, in ascending field order
     '''
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
 
-    # identify loop turning point by change in sign of the field difference
-    # split the data into upper and lower branches
-    field_gradient = np.gradient(field)
-    # There should just be one turning point in the field gradient
-    turning_points = np.where(np.diff(np.sign(field_gradient)))[0]
-    if len(turning_points) == 0:
-        raise ValueError('No turning point found in the field gradient. The data may not be a hysteresis loop.')
-    elif len(turning_points) > 1:
-        print('More than one turning point found in the gradient of the applied field')
-        print('Trying to force splitting the loop based on the number of measurements...')
-        n = len(field) // 2
-        upper_branch = [field[:n], magnetization[:n]]
-        lower_branch = [field[n:], magnetization[n:]]
+    turning_point = find_hysteresis_turning_point(field)
+    first_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
+    second_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
+
+    if field[0] > field[turning_point]:
+        # sweep starts at the positive extreme: the first segment is the
+        # descending upper branch; reverse it into ascending field order
+        upper_branch = [first_branch[0][::-1], first_branch[1][::-1]]
+        lower_branch = second_branch
     else:
-        turning_point = turning_points[0]
-        upper_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
-        # sort the upper branch in reverse order
-        upper_branch = [field[:turning_point+1][::-1], magnetization[:turning_point+1][::-1]]
-        lower_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
-    
+        # sweep starts at the negative extreme: the first segment is the
+        # ascending lower branch and the second is the descending upper branch
+        lower_branch = first_branch
+        upper_branch = [second_branch[0][::-1], second_branch[1][::-1]]
+
     return upper_branch, lower_branch
 
 def grid_hysteresis_loop(field, magnetization):
@@ -2290,8 +2359,20 @@ def grid_hysteresis_loop(field, magnetization):
         gridded magnetization values
     '''
     assert len(field) == len(magnetization), 'Field and magnetization arrays must be the same length'
+    field = np.asarray(field, dtype=float)
+    magnetization = np.asarray(magnetization, dtype=float)
+    if not (np.isfinite(field).all() and np.isfinite(magnetization).all()):
+        raise ValueError('Non-finite field or magnetization values present; '
+                         'clean the inputs first (see sanitize_hysteresis_inputs)')
 
     upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
+
+    # average any exactly repeated field steps within each branch (e.g.
+    # instrument plateaus at the loop tips) so duplicate fields do not enter
+    # the interpolation; small non-monotonic field glitches are not repaired
+    # here and np.interp will locally smooth over them
+    upper_branch = collapse_hysteresis_field_plateaus(upper_branch[0], upper_branch[1])
+    lower_branch = collapse_hysteresis_field_plateaus(lower_branch[0], lower_branch[1])
 
     upper_field, lower_field = build_symmetric_hysteresis_grid(upper_branch, lower_branch)
     grid_field = np.concatenate([upper_field, lower_field])
@@ -2707,7 +2788,15 @@ def calc_Q(H, M, type='Q'):
     """
     Calculate the quality factor (Q) for a magnetic hysteresis loop.
 
-    The Q factor is a logarithmic measure (base 10) of the signal-to-noise ratio for a hysteresis loop.
+    The Q factor is a logarithmic measure (base 10) of the signal-to-noise ratio for a
+    hysteresis loop, following Jackson and Solheid (2010): the upper and inverted lower
+    branches are treated as replicate measurements, so their mean squared moment relative
+    to the mean squared mismatch between them (the err(H) curve) quantifies signal/noise.
+    Q = log10(s/n); loops with Q >= 2 have small deviations from inversion symmetry while
+    loops with Q below ~0.3 (s/n ~ 2) are too noisy for meaningful parameter estimation.
+    The quality factor of the ferromagnetic component (Q_f of Jackson and Solheid, 2010)
+    is obtained by calling this function on the slope-corrected loop.
+
     The calculation can be performed in two modes:
         - 'Q': Uses the mean squared magnetization of both the upper and lower branches.
         - 'Qf': Uses only the upper branch.
@@ -2734,7 +2823,9 @@ def calc_Q(H, M, type='Q'):
     -----
     - The function splits the hysteresis loop into upper and lower branches using `split_hysteresis_loop`.
     - For type 'Q', the numerator is the average of the sum of squares of the upper and lower branches; for 'Qf', only the upper branch is used.
-    - The denominator is always the sum of squares of the combined (averaged) upper and reversed lower branches.
+    - The denominator is the sum of squares of err(H), the mismatch between the upper branch
+      and the inverted lower branch, so M_sn is equivalent to the 1/(1 - R^2) signal/noise
+      measure of Jackson and Solheid (2010, equation 3).
     - Higher Q values indicate a higher signal-to-noise ratio in the hysteresis loop data.
 
     Examples
@@ -2747,8 +2838,12 @@ def calc_Q(H, M, type='Q'):
     assert type in ['Q', 'Qf'], 'type must be either Q or Qf'
     H = np.array(H)
     M = np.array(M)
-    upper_branch, lower_branch = split_hysteresis_loop(H, M)  
+    upper_branch, lower_branch = split_hysteresis_loop(H, M)
     Me = upper_branch[1] + lower_branch[1][::-1]
+    # the square root follows the convention of the IRM software and HystLab
+    # (Paterson et al., 2018, equation 4): Q = log10(1/sqrt(1 - R^2)); the
+    # equation as printed in Jackson and Solheid (2010) omits the square root
+    # but their reported values include it (see Paterson et al., 2018)
     if type == 'Q':
         M_sn = np.sqrt((np.sum(upper_branch[1]**2) + np.sum(lower_branch[1][::-1]**2))/2/np.sum(Me**2))
     elif type == 'Qf':
@@ -2784,10 +2879,16 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     grid_magnetization = np.array(grid_magnetization)
     R_squared, H_offset, M_offset = loop_Hshift_brent(grid_field, grid_magnetization)
 
-    M_sn, Q = calc_Q(grid_field, grid_magnetization)
-
     # re-gridding after offset correction to ensure symmetry
     centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset, grid_magnetization-M_offset)
+
+    # quality factor from the offset-corrected loop (Jackson and Solheid, 2010,
+    # section 3: Q reflects noise and drift after the effects of loop offsets
+    # are removed; HystLab likewise computes Q on the offset-corrected curves).
+    # Computing Q on the uncorrected loop would let a loop offset depress Q
+    # below the decision-tree gate that decides whether to apply the offset
+    # correction itself.
+    M_sn, Q = calc_Q(centered_H, centered_M)
 
     results = {'centered_H':centered_H, 
                'centered_M': centered_M, 
@@ -2876,9 +2977,11 @@ def linear_HF_fit(field, magnetization, HF_cutoff=0.8):
 
     Returns
     -------
-    slope : float
-        slope of the linear fit
-        can be interpreted to be the paramagnetic/diamagnetic susceptibility
+    chi_HF : float
+        high-field susceptibility of the paramagnetic/diamagnetic contribution
+        in SI units (the raw fitted slope in field units of Tesla multiplied
+        by mu_0 = 4*pi*1e-7); `hyst_slope_correction` performs the inverse
+        conversion when removing this contribution from a loop
     intercept : float
         y-intercept of the linear fit
         can be interpreted to be the saturation magnetization of the ferromagnetic component
@@ -2937,8 +3040,9 @@ def hyst_slope_correction(grid_field, grid_magnetization, chi_HF):
 
 def find_y_crossing(x, y, y_target=0.0):
     """
-    Finds the x-value where y crosses a given y_target, nearest to x = 0.
-    Uses linear interpolation between adjacent points that bracket y_target.
+    Finds the x-value where y crosses a given y_target, taking the first
+    crossing encountered in array order. Uses linear interpolation between
+    adjacent points that bracket y_target.
 
     Parameters:
         x (array-like): x-values
@@ -2946,7 +3050,8 @@ def find_y_crossing(x, y, y_target=0.0):
         y_target (float): y-value at which to find crossing (default: 0)
 
     Returns:
-        x_cross (float or None): interpolated x at y = y_target nearest to x = 0, or None if not found
+        x_cross (float or None): interpolated x at y = y_target for the first
+            crossing in array order, or None if not found
     """
     x = np.asarray(x)
     y = np.asarray(y)
@@ -2976,22 +3081,21 @@ def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
     -------
     H : numpy array
         field values of the upper branch (the two branches should have the same field values)
-    Mrh : float
-        remanent magnetization value
-    Mih : float
-        induced magnetization value
+    Mr : float
+        remanent magnetization (Mrh interpolated at zero field)
+    Mrh : numpy array
+        remanent hysteretic magnetization, (upper - lower)/2
+    Mih : numpy array
+        induced hysteretic magnetization, (upper + lower)/2
     Me : numpy array
-        error on M(H), calculated as the subtraction of the inverted lower branch from the upper branch
+        error curve err(H), the mismatch between the upper branch and the inverted lower branch
     Brh : float
-        median field of Mrh
+        median field of Mrh (field at which Mrh falls to half of Mr)
 
     '''
-    # calculate Mrh bu subtracting the upper and lower branches of a hysterisis loop
+    # calculate Mrh by subtracting the upper and lower branches of a hysteresis loop
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
-
-    grid_field = grid_field
-    grid_magnetization = grid_magnetization
 
     upper_branch, lower_branch = split_hysteresis_loop(grid_field, grid_magnetization)
 
@@ -3062,7 +3166,6 @@ def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=
     field = np.array(field)
     magnetization = np.array(magnetization)
     upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
-    Me = upper_branch[1] + lower_branch[1][::-1]
     # filter for the high field portion of each branch
     pos_high_field_index = np.where((field >= HF_cutoff*np.max(np.abs(field))) & (field <= max_field_cutoff*np.max(np.abs(field))))[0]
     neg_high_field_index = np.where((field <= -HF_cutoff*np.max(np.abs(field))) & (field >= -max_field_cutoff*np.max(np.abs(field))))[0]
@@ -3085,12 +3188,24 @@ def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=
     SSD = anova_results['SSD']
     R_squared = anova_results['R_squared']
 
-    SSPE = np.sum((upper_branch[1] - (-lower_branch[1][::-1])) ** 2)  / 2
+    # pure error from the mismatch between symmetrically equivalent points,
+    # restricted to the same high-field window used for the lack-of-fit SSD
+    # (err(H) indexed by the upper branch field covers each pair once)
+    err_field = np.asarray(upper_branch[0], dtype=float)
+    err = np.asarray(upper_branch[1], dtype=float) + np.asarray(lower_branch[1], dtype=float)[::-1]
+    max_abs_field = np.max(np.abs(field))
+    hf_pairs = (np.abs(err_field) >= HF_cutoff * max_abs_field) & \
+               (np.abs(err_field) <= max_field_cutoff * max_abs_field)
+    SSPE = np.sum(err[hf_pairs] ** 2) / 2
     SSLF = SSD - SSPE
-    MSR = SSR 
+    n_pairs = int(np.sum(hf_pairs))
+    if n_pairs <= 2:
+        raise ValueError('Too few high-field points for the lack-of-fit test; '
+                         'lower HF_cutoff or measure with finer field steps')
+    MSR = SSR
     MSD = SSD / (len(high_field) - 2)
-    MSPE = SSPE / (len(high_field) / 2)
-    MSLF = SSLF / (len(high_field)/2 - 2)
+    MSPE = SSPE / n_pairs
+    MSLF = SSLF / (n_pairs - 2)
 
     FL = MSR / MSD
     FNL = MSLF / MSPE
@@ -3113,10 +3228,11 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     """
     Assess the saturation state of a magnetic hysteresis loop based on linearity at high-field segments.
 
-    This function evaluates the degree of saturation in a hysteresis loop by calculating the first normalized linearity (FNL)
-    at 60%, 70%, and 80% of the maximum field (up to a specified cutoff). The FNL values are analyzed to determine the field
-    fraction at which the loop can be considered saturated, based on whether FNL exceeds a threshold (typically 2.5).
-    The result helps determine if the sample reached magnetic saturation during measurement.
+    This function evaluates the degree of saturation in a hysteresis loop by calculating the F statistic
+    for nonlinearity (FNL, the lack-of-fit F ratio of Jackson and Solheid, 2010) over high-field windows
+    starting at 60%, 70%, and 80% of the maximum field (up to a specified cutoff). A significant FNL
+    (above the 2.5 threshold) indicates reproducible curvature in that window, i.e. the ferromagnetic
+    moment has not saturated and a linear high-field fit is inappropriate there.
 
     Parameters
     ----------
@@ -3131,19 +3247,21 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     -------
     results_dict : dict
         Dictionary containing:
-            - 'FNL60': float, FNL at 60% of the maximum field.
-            - 'FNL70': float, FNL at 70% of the maximum field.
-            - 'FNL80': float, FNL at 80% of the maximum field.
-            - 'saturation_cutoff': float, field fraction (0.6, 0.7, 0.8, or 0.92) at which the loop is considered saturated.
-            - 'loop_is_saturated': bool, True if the loop is not saturated at 80%, 70%, or 60%.
-              (False means the loop is considered saturated at one of those field fractions.)
+            - 'FNL60': float, FNL for the window from 60% of the maximum field.
+            - 'FNL70': float, FNL for the window from 70% of the maximum field.
+            - 'FNL80': float, FNL for the window from 80% of the maximum field.
+            - 'saturation_cutoff': float, lowest field fraction (0.6, 0.7, or 0.8) at which the
+              high-field segment is statistically linear (saturated); 0.92 (the IRM default for
+              a nonlinear fit window) if no tested window is linear.
+            - 'loop_is_saturated': bool, True if the loop is saturated (linear) in at least one
+              tested high-field window; False if all windows show significant nonlinearity,
+              in which case an approach-to-saturation fit should be used.
 
     Notes
     -----
     - The function uses `loop_saturation_stats` to compute FNL values for each field fraction.
-    - FNL values above 2.5 indicate linear (unsaturated) behavior; values below suggest saturation.
-    - The 'saturation_cutoff' indicates the lowest field fraction where the loop is still considered saturated;
-      0.92 is returned if the loop does not saturate at any tested fraction (typical for IRM measurements).
+    - FNL values below 2.5 indicate statistically linear (saturated) high-field behavior;
+      values above 2.5 indicate significant nonlinearity (nonsaturation).
     - The result is converted to standard Python types using `dict_in_native_python`.
 
     Examples
@@ -3172,63 +3290,93 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     return results_dict
 
 
-def loop_closure_test(H, Mrh, HF_cutoff=0.8):
+def loop_closure_test(H, Mrh, Me=None, HF_cutoff=0.8, max_field_cutoff=0.99):
     '''
-    function for testing if the loop is open
-    
+    function for testing whether a hysteresis loop is closed at high fields
+
+    Mrh should be an even function of field for a well-behaved loop
+    (Mrh(-H) = Mrh(H)), so its field-reflection average (even part, with
+    unphysical negative values set to zero) is taken as the signal. A loop
+    that remains open at high fields (e.g. due to unsaturated high-coercivity
+    phases such as hematite or goethite) retains a significant Mrh signal in
+    the high-field window, giving a high signal-to-noise ratio (SNR) and a
+    high ratio of high-field Mrh area to total Mrh area (HAR). The noise is
+    estimated from the high-field portion of the err(H) curve when `Me` is
+    provided (matching the HystLab implementation of this test; Paterson et
+    al., 2018, section 4.5), or from the odd part of Mrh otherwise. Fields
+    above max_field_cutoff (default 99%) of the maximum field are excluded
+    from the high-field windows to avoid extreme-tip artifacts.
+
     Parameters
     ----------
     H: array-like
-        field values
+        field values of the upper branch (ascending)
     Mrh: array-like
-        remanence componentt
+        remanent hysteretic magnetization Mrh(H)
+    Me: array-like, optional
+        error curve err(H) on the same field axis (as returned by
+        calc_Mr_Mrh_Mih_Brh); used as the noise estimate when provided
     HF_cutoff: float
-        high field cutoff value taken as percentage of the max field value
+        high field cutoff value taken as fraction of the max field value
+    max_field_cutoff: float
+        upper trim of the high-field windows as fraction of the max field
 
     Returns
     -------
-    SNR: float
-        high field signal to noise ratio
-    HAR: float
-        high field area ratio
+    results : dict
+        Dictionary containing:
+            - 'SNR': float, high-field signal-to-noise ratio in dB
+            - 'HAR': float, high-field to total Mrh area ratio in dB
+            - 'loop_is_closed': bool, True if SNR < 8 dB or HAR < -48 dB
     '''
     assert len(H) == len(Mrh), 'H, Mrh must have the same length'
+    H = np.asarray(H, dtype=float)
+    Mrh = np.asarray(Mrh, dtype=float)
+    max_H = np.max(np.abs(H))
+
     pos_H_index = np.where(H > 0)
     neg_H_index = np.where(H < 0)
     pos_H = H[pos_H_index]
-    neg_H = H[neg_H_index]
     pos_Mrh = Mrh[pos_H_index]
     neg_Mrh = Mrh[neg_H_index]
 
-    pos_HF_index = np.where(H > HF_cutoff*np.max(H))
-    neg_HF_index = np.where(H < -HF_cutoff*np.max(H))
+    pos_HF_index = np.where((H > HF_cutoff*max_H) & (H <= max_field_cutoff*max_H))
+    neg_HF_index = np.where((H < -HF_cutoff*max_H) & (H >= -max_field_cutoff*max_H))
     pos_HF = H[pos_HF_index]
-    neg_HF = H[neg_HF_index]
     pos_HF_Mrh = Mrh[pos_HF_index]
     neg_HF_Mrh = Mrh[neg_HF_index]
-    
-    average_Mrh = (pos_Mrh - neg_Mrh[::-1])/2
-    # replace all negative values with 0
+
+    # field-reflection average of Mrh (signal); negative values are noise
+    # excursions and are set to 0 so that only positive signal is counted
+    average_Mrh = (pos_Mrh + neg_Mrh[::-1])/2
     average_Mrh[average_Mrh < 0] = 0
-    average_HF_Mrh = (pos_HF_Mrh - neg_HF_Mrh[::-1])/2
-    # replace all negative values with 0
+    average_HF_Mrh = (pos_HF_Mrh + neg_HF_Mrh[::-1])/2
     average_HF_Mrh[average_HF_Mrh < 0] = 0
-    HF_Mrh_noise = pos_HF_Mrh + neg_HF_Mrh[::-1]
-    # replace all negative values with 0
-    HF_Mrh_noise[HF_Mrh_noise < 0] = 0
+
+    if Me is not None:
+        # noise from the high-field portion of the err(H) curve, over both
+        # field polarities (the HystLab convention)
+        Me = np.asarray(Me, dtype=float)
+        assert len(Me) == len(H), 'H, Me must have the same length'
+        hf_noise = Me[(np.abs(H) > HF_cutoff*max_H) & (np.abs(H) <= max_field_cutoff*max_H)]
+    else:
+        # fall back to the odd part of Mrh (the residual between the field
+        # polarities); for white noise this runs ~3 dB below the err(H)-based
+        # estimate, biasing slightly toward classifying loops as open
+        hf_noise = pos_HF_Mrh - neg_HF_Mrh[::-1]
 
     HF_Mrh_signal_RMS = np.sqrt(np.mean(average_HF_Mrh**2))
-    HF_Mrh_noise_RMS = np.sqrt(np.mean(HF_Mrh_noise**2))
+    HF_Mrh_noise_RMS = np.sqrt(np.mean(hf_noise**2))
     SNR = 20*np.log10(HF_Mrh_signal_RMS/HF_Mrh_noise_RMS)
 
-    total_Mrh_area = np.trapezoid(pos_Mrh, pos_H) + np.trapezoid(-neg_Mrh[::-1], -neg_H[::-1])
-    total_HF_Mrh_area = np.trapezoid(average_Mrh, pos_H)
+    total_Mrh_area = np.trapezoid(average_Mrh, pos_H)
+    HF_Mrh_area = np.trapezoid(average_HF_Mrh, pos_HF)
 
-    HAR = 20*np.log10(total_HF_Mrh_area/total_Mrh_area)
+    HAR = 20*np.log10(HF_Mrh_area/total_Mrh_area)
     loop_is_closed = (SNR < 8) or (HAR < -48)
 
-    results = {'SNR':float(SNR), 
-               'HAR':float(HAR), 
+    results = {'SNR':float(SNR),
+               'HAR':float(HAR),
                'loop_is_closed':bool(loop_is_closed),
                }
     return results
@@ -3307,6 +3455,12 @@ def prorated_drift_correction(field, magnetization):
         apply linearly prorated correction of M(H)
         this should be applied to the gridded data
 
+    Note: the prorated ramp assumes the array order corresponds to measurement
+    time with the upper (descending) branch first, which is the order produced
+    by `grid_hysteresis_loop`. For loops originally measured in the opposite
+    sweep order the correction still closes the loop but attributes the drift
+    with the opposite sense.
+
     Parameters
     ----------
     field : numpy array
@@ -3332,7 +3486,9 @@ def prorated_drift_correction(field, magnetization):
     M_ce = upper_branch[1][upper_branch_max_idx] - lower_branch[1][lower_branch_max_idx]
 
     # apply linearly prorated correction of M(H)
-    corrected_magnetization = [M_ce * ((i-1)/(len(field)-1) - 1/2) + magnetization[i] for i in range(len(field))]
+    # delta_M_i = M_ce * (i/(N-1) - 1/2) with 0-based i, which averages to zero
+    # over the loop and removes the closure error M_ce between first and last points
+    corrected_magnetization = [M_ce * (i/(len(field)-1) - 1/2) + magnetization[i] for i in range(len(field))]
 
     return np.array(corrected_magnetization)
 
@@ -3549,7 +3705,15 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
         Fit results with keys:
         - 'chi_HF', 'Ms', 'a_1', 'a_2' (for IRM) or
           'chi_HF', 'Ms', 'alpha', 'beta' (for Fabian variants)
-        - 'Fnl_lin': float, ratio comparing nonlinear vs. linear fit  
+        - 'Fnl_lin': float, F statistic for the improvement of the nonlinear fit
+          over a linear fit (Jackson and Solheid, 2010, equation 21); values above
+          ~3-3.5 indicate a statistically significant improvement for the
+          4-parameter models (for 'Fabian_fixed_beta' the degrees of freedom are
+          (1, N-3) and the 5% critical value is ~3.9-4.0). Because the nonlinear
+          coefficients are constrained non-positive, the statistic is conservative
+          under the null (saturated loops give values well below the critical
+          value, occasionally marginally negative when the bounded fit is a hair
+          worse than unconstrained least squares).
     '''
     HF_index = np.where((np.abs(H) >= HF_cutoff*np.max(np.abs(H))) & (np.abs(H) <= 0.97*np.max(np.abs(H))))[0]
 
@@ -3581,31 +3745,26 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
         chi_HF, Ms, alpha = results.x
         nonlinear_fit = Fabian_nonlinear_fit(HF_field, chi_HF, Ms, alpha, -2)
 
-    # let's also report the Fnl_lin which is a measure of whether the nonlinear fit is better than a linear fit
-    # let's first make a linear fit
+    # Fnl_lin (Jackson and Solheid, 2010, equation 21) tests whether the nonlinear fit
+    # significantly improves on a linear fit:
+    # Fnl_lin = [(SSD_lin - SSD_nl)/(p_nl - p_lin)] / [SSD_nl/(N - p_nl)]
+    # where p are the number of model parameters. Values above ~3-3.5 indicate a
+    # statistically significant improvement from the nonlinear term(s).
     linear_fit_ANOVA = ANOVA(HF_field, HF_magnetization)
-    R_squared_l = 1 - linear_fit_ANOVA['R_squared']
+    SSD_lin = linear_fit_ANOVA['SSD']
+    SSD_nl = np.sum((HF_magnetization - nonlinear_fit) ** 2)
 
-    # now calculate the nonlinear fit SST
-    nl_SST = np.sum((HF_magnetization - np.mean(HF_magnetization)) ** 2)
-
-    # sum of squares due to regression
-    nl_SSR = np.sum((nonlinear_fit - np.mean(HF_magnetization)) ** 2)
-    
-    # the remaining unexplained variation (noise and lack of fit)
-    nl_SSD = np.sum((HF_magnetization - nonlinear_fit) ** 2)
-    
-    R_squared_nl = 1 - nl_SSR/nl_SST 
-
-    # calculate the Fnl_lin stat
-    Fnl_lin = R_squared_l / R_squared_nl
+    n_points = len(HF_magnetization)
+    p_lin = 2
+    p_nl = 3 if fit_type == 'Fabian_fixed_beta' else 4
+    Fnl_lin = ((SSD_lin - SSD_nl) / (p_nl - p_lin)) / (SSD_nl / (n_points - p_nl))
 
     final_result['Fnl_lin'] = Fnl_lin
     final_result_dict = dict_in_native_python(final_result)
     return final_result_dict
 
 
-def process_hyst_loop(field, magnetization, specimen_name, show_results_table=True, show_plot=True,
+def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
                       NL_fit=False, centering_protocol='legacy'):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
@@ -3614,13 +3773,23 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     high-field correction, and extraction of key magnetic parameters. The workflow follows best practices in rock magnetism
     and outputs both a summary of results and a Bokeh plot visualizing the various processing steps.
 
+    The inputs need not come from a MagIC measurements table: any pair of
+    field and magnetization sequences (lists, arrays, or dataframe columns)
+    can be processed. Inputs are passed through `sanitize_hysteresis_inputs`,
+    so non-finite measurement pairs are dropped with a report, numeric
+    strings are converted, and either field sweep order (starting from
+    positive or negative saturation) is accepted.
+
     Parameters
     ----------
     field : array_like
-        Array of applied magnetic field values (typically in Tesla).
+        Array of applied magnetic field values in tesla (the chi_HF unit
+        conversions assume tesla; a warning is printed if the values appear
+        to be in mT or Oe).
     magnetization : array_like
-        Array of magnetization values (same length as `field`).
-    specimen_name : str
+        Array of magnetization values (same length as `field`), in any
+        consistent unit; mass-normalized Am2/kg matches MagIC conventions.
+    specimen_name : str, optional
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
         If True (default), display a summary table of key parameters using Bokeh.
@@ -3640,7 +3809,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
             - 'gridded_M': gridded magnetization values
             - 'linearity_test_results': results of the initial linearity test
             - 'loop_is_linear': whether the loop passes the linearity test
-            - 'FNL': first normalized linearity value
+            - 'FNL': F statistic for whole-loop nonlinearity (lack-of-fit F ratio)
             - 'loop_centering_results': results of centering optimization
             - 'centered_H': centered field values
             - 'centered_M': centered magnetization values
@@ -3654,13 +3823,19 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
             - 'H', 'Mr', 'Mrh', 'Mih', 'Me', 'Brh': characteristic field and moment parameters
             - 'sigma': shape parameter (Fabian, 2003)
             - 'chi_HF': high-field susceptibility
-            - 'FNL60', 'FNL70', 'FNL80': FNL at 60%, 70%, and 80% field
+            - 'FNL60', 'FNL70', 'FNL80': high-field nonlinearity F statistics for windows
+              starting at 60%, 70%, and 80% of the maximum field
             - 'Ms': saturation magnetization
             - 'Bc': coercive field
             - 'M_sn_f', 'Qf': quality metrics for ferromagnetic component
-            - 'Fnl_lin': FNL from linear fit (None if saturated)
+            - 'Fnl_lin': F statistic for improvement of the nonlinear over the linear
+              high-field fit (None if the loop is saturated and no nonlinear fit is made)
             - 'plot': Bokeh figure with overlaid processing steps
     """
+    # clean the inputs (accepts lists/Series/text columns, drops non-finite
+    # pairs, warns on apparent non-tesla field units)
+    field, magnetization = sanitize_hysteresis_inputs(field, magnetization)
+
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
@@ -3691,7 +3866,7 @@ def process_hyst_loop(field, magnetization, specimen_name, show_results_table=Tr
     H, Mr, Mrh, Mih, Me, Brh = calc_Mr_Mrh_Mih_Brh(centered_H, drift_corr_M)
 
     # check if the loop is closed
-    loop_closure_test_results = loop_closure_test(H, Mrh)
+    loop_closure_test_results = loop_closure_test(H, Mrh, Me)
 
     # check if the loop is saturated (high field linearity test)
     loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
@@ -5486,21 +5661,26 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
     dMdB_50_components = np.percentile(all_component_dMdB, 50, axis=0)
     dMdB_97_5_components = np.percentile(all_component_dMdB, 97.5, axis=0)
 
-    # calculate the mean and std of the parameters
+    # calculate the mean and std of the parameters; center and sigma are
+    # fit in log10 space, so convert each bootstrap value to linear (mT)
+    # units before taking the mean/std (10**std of log values is not a
+    # standard deviation in mT)
     mean_parameters = np.mean(all_parameters, axis=0)
     std_parameters = np.std(all_parameters, axis=0)
+    center_mT = 10 ** all_parameters[:, :, 1]
+    sigma_mT = 10 ** all_parameters[:, :, 2]
 
     # report a dictionary of the mean and std of the parameters
     parameters_dict = {}
     for i in range(n_comps):
         this_parameters_dict = {
             f'g{i+1}_amplitude': mean_parameters[i][0],
-            f'g{i+1}_center': 10**mean_parameters[i][1],
-            f'g{i+1}_sigma': 10**mean_parameters[i][2],
+            f'g{i+1}_center': np.mean(center_mT[:, i]),
+            f'g{i+1}_sigma': np.mean(sigma_mT[:, i]),
             f'g{i+1}_gamma': mean_parameters[i][3],
             f'g{i+1}_amplitude_std': std_parameters[i][0],
-            f'g{i+1}_center_std': 10**std_parameters[i][1],
-            f'g{i+1}_sigma_std': 10**std_parameters[i][2],
+            f'g{i+1}_center_std': np.std(center_mT[:, i]),
+            f'g{i+1}_sigma_std': np.std(sigma_mT[:, i]),
             f'g{i+1}_gamma_std': std_parameters[i][3]
         }
         parameters_dict.update(this_parameters_dict)
@@ -5545,23 +5725,18 @@ def add_unmixing_stats_to_specimens_table(specimens_df, experiment_name, unmix_r
         unmix_result_dict = unmix_result
     else:
         raise ValueError(f"method should be either 'lmfit' or 'MaxUnmix', but got {method}")
-    # check if the description cell is type string
-    if isinstance(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0], str):
-        # unpack the string to a dict, then add the new stats, then pack it back to a string
-        description_dict = eval(specimens_df[specimens_df['experiments'] == experiment_name]['description'].iloc[0])
-        for key in unmix_result_dict:
-            if key in description_dict:
-                # if the key already exists, update it
-                description_dict[key] = unmix_result_dict[key]
-            else:
-                # if the key does not exist, add it
-                description_dict[key] = unmix_result_dict[key]
-        # pack the dict back to a string
-        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(description_dict)
-    else:
-        # if not, create a new dict
-        specimens_df.loc[specimens_df['experiments'] == experiment_name, 'description'] = str(unmix_result_dict)
-    return 
+    unmix_result_dict = dict_in_native_python(unmix_result_dict)
+    # merge into the description cell, preserving free text and any
+    # existing structured content (parsed safely rather than with eval)
+    mask = specimens_df['experiments'] == experiment_name
+    for idx in specimens_df.index[mask]:
+        text, description_dict = parse_specimen_description(
+            specimens_df.at[idx, 'description'])
+        description_dict.update(unmix_result_dict)
+        payload = json.dumps(description_dict)
+        specimens_df.at[idx, 'description'] = (
+            f'{text} | {payload}' if text else payload)
+    return
 
 def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     """
@@ -5584,7 +5759,3063 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     # add the Bcr value to the specimens table
     specimens_df.loc[specimens_df['experiments'] == experiment_name, 'rem_bcr'] = Bcr
 
-    return     
+    return
+
+
+# coercivity spectrum unmixing functions
+# ------------------------------------------------------------------------------------------------------------------
+# Toolkit for decomposing remanence curves (backfield demagnetization or IRM
+# acquisition) into coercivity components. Every component is a skew-normal
+# distribution in x = log10(B/mT) parameterized by its integrated area
+# ('contribution', in the units of the magnetization data), location, scale
+# ('dp'), and shape ('skew'). With skew = 0 the component reduces exactly to
+# the log-Gaussian of Robertson & France (1994). Because the skew-normal has
+# an analytic CDF (via Owen's T function), the same component model can be
+# fit in two data spaces:
+#
+#   1. spectrum space -- fitting the coercivity spectrum |dM/dlog10(B)|,
+#      following Kruiver et al. (2001), Egli (2003), and the MAX UnMix
+#      program of Maxbauer et al. (2016).
+#   2. measurement space -- fitting the measured remanence curve M(B)
+#      directly with cumulative (CDF) components, which avoids numerical
+#      differentiation and smoothing of the data altogether.
+#
+# Model selection is supported through AIC/BIC and F-tests, and parameter
+# uncertainties through both linearized (covariance) standard errors and
+# bootstrap resampling.
+
+_SQRT2 = np.sqrt(2.0)
+_SQRT2PI = np.sqrt(2.0 * np.pi)
+UNMIX_PARAM_COLUMNS = ['contribution', 'location', 'dp', 'skew']
+
+
+def _trapz(y, x):
+    """Trapezoidal integration compatible with numpy 1.x and 2.x."""
+    trapezoid = getattr(np, 'trapezoid', None)
+    if trapezoid is None:
+        trapezoid = np.trapz
+    return trapezoid(y, x)
+
+
+def skewnormal_pdf(x, location, dp, skew=0.0):
+    """
+    Skew-normal probability density function (unit area).
+
+    With skew = 0 this is a Gaussian with mean = location and standard
+    deviation = dp; in log10(B) coordinates that Gaussian is the log-Gaussian
+    coercivity distribution of Robertson & France (1994). Nonzero skew
+    follows the Azzalini (1985) formulation: negative values skew the
+    distribution toward low values (tail to the left).
+
+    Parameters
+    ----------
+    x : array-like
+        Points at which to evaluate the density (log10 of field in mT).
+    location : float
+        Location parameter (log10 mT). Equal to the mean only when skew = 0.
+    dp : float
+        Scale parameter (log10 units); must be positive. Equal to the
+        standard deviation only when skew = 0.
+    skew : float
+        Shape parameter alpha of the Azzalini skew-normal (default 0).
+
+    Returns
+    -------
+    numpy.ndarray
+        Density values with unit integrated area.
+    """
+    x = np.asarray(x, dtype=float)
+    z = (x - location) / dp
+    return np.exp(-0.5 * z * z) / (_SQRT2PI * dp) * (1.0 + erf(skew * z / _SQRT2))
+
+
+def skewnormal_cdf(x, location, dp, skew=0.0):
+    """
+    Skew-normal cumulative distribution function.
+
+    Evaluated analytically as Phi(z) - 2*T(z, skew) where T is Owen's T
+    function (scipy.special.owens_t).
+
+    Parameters
+    ----------
+    x : array-like
+        Points at which to evaluate the CDF (log10 of field in mT).
+    location : float
+        Location parameter (log10 mT).
+    dp : float
+        Scale parameter (log10 units); must be positive.
+    skew : float
+        Shape parameter alpha (default 0).
+
+    Returns
+    -------
+    numpy.ndarray
+        CDF values between 0 and 1.
+    """
+    x = np.asarray(x, dtype=float)
+    z = (x - location) / dp
+    Phi = 0.5 * (1.0 + erf(z / _SQRT2))
+    if skew == 0:
+        return Phi
+    return Phi - 2.0 * owens_t(z, skew)
+
+
+def skewnormal_stats(location, dp, skew=0.0):
+    """
+    Moments and characteristic points of a skew-normal distribution.
+
+    Parameters
+    ----------
+    location : float
+        Location parameter (log10 mT).
+    dp : float
+        Scale parameter (log10 units).
+    skew : float
+        Shape parameter alpha.
+
+    Returns
+    -------
+    dict
+        With keys 'mean', 'std', 'median', and 'mode', all in the same
+        (log10) units as location and dp. For skew = 0 all of mean, median,
+        and mode equal location and std equals dp.
+    """
+    delta = skew / np.sqrt(1.0 + skew ** 2)
+    mean = location + dp * delta * np.sqrt(2.0 / np.pi)
+    std = dp * np.sqrt(1.0 - 2.0 * delta ** 2 / np.pi)
+    if skew == 0:
+        return {'mean': mean, 'std': std, 'median': location, 'mode': location}
+    median = brentq(lambda t: skewnormal_cdf(t, location, dp, skew) - 0.5,
+                    location - 12 * dp, location + 12 * dp)
+    mode_res = minimize_scalar(lambda t: -skewnormal_pdf(t, location, dp, skew),
+                               bounds=(location - 5 * dp, location + 5 * dp),
+                               method='bounded')
+    return {'mean': mean, 'std': std, 'median': median, 'mode': float(mode_res.x)}
+
+
+def _unmix_parameters_to_array(parameters):
+    """Coerce a parameters DataFrame/array to an (n_components, 4) float array."""
+    if isinstance(parameters, pd.DataFrame):
+        missing = [c for c in UNMIX_PARAM_COLUMNS if c not in parameters.columns]
+        if missing:
+            raise KeyError(f"parameters table is missing columns: {missing}")
+        return parameters[UNMIX_PARAM_COLUMNS].to_numpy(dtype=float)
+    arr = np.atleast_2d(np.asarray(parameters, dtype=float))
+    if arr.shape[1] != 4:
+        raise ValueError("parameters must have four columns: "
+                         f"{UNMIX_PARAM_COLUMNS}")
+    return arr
+
+
+def coercivity_spectrum_components(x, parameters):
+    """
+    Evaluate each unmixing component in spectrum space (dM/dlog10 B).
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    parameters : pandas.DataFrame or array-like
+        One row per component with columns 'contribution' (area under the
+        component in magnetization units), 'location', 'dp', 'skew'.
+
+    Returns
+    -------
+    numpy.ndarray
+        Array of shape (n_components, len(x)).
+    """
+    arr = _unmix_parameters_to_array(parameters)
+    x = np.asarray(x, dtype=float)
+    return np.array([c * skewnormal_pdf(x, loc, dp, skew)
+                     for c, loc, dp, skew in arr])
+
+
+def coercivity_spectrum_model(x, parameters):
+    """
+    Evaluate the summed unmixing model in spectrum space.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    parameters : pandas.DataFrame or array-like
+        Component parameters (see coercivity_spectrum_components).
+
+    Returns
+    -------
+    numpy.ndarray
+        Total model spectrum at x.
+    """
+    return coercivity_spectrum_components(x, parameters).sum(axis=0)
+
+
+def coercivity_curve_components(x, parameters, curve_type='backfield'):
+    """
+    Evaluate each component in measurement space (cumulative curves).
+
+    For 'backfield' curves (processed so that magnetization decays from a
+    maximum toward zero with increasing field magnitude) each component is
+    contribution * (1 - CDF); for 'acquisition' curves each component is
+    contribution * CDF.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    parameters : pandas.DataFrame or array-like
+        Component parameters (see coercivity_spectrum_components).
+    curve_type : str
+        'backfield' or 'acquisition'.
+
+    Returns
+    -------
+    numpy.ndarray
+        Array of shape (n_components, len(x)).
+    """
+    assert curve_type in ('backfield', 'acquisition'), \
+        "curve_type must be 'backfield' or 'acquisition'"
+    arr = _unmix_parameters_to_array(parameters)
+    x = np.asarray(x, dtype=float)
+    comps = []
+    for c, loc, dp, skew in arr:
+        cdf = skewnormal_cdf(x, loc, dp, skew)
+        comps.append(c * (1.0 - cdf) if curve_type == 'backfield' else c * cdf)
+    return np.array(comps)
+
+
+def coercivity_curve_model(x, parameters, offset=0.0, curve_type='backfield'):
+    """
+    Evaluate the summed unmixing model in measurement space.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    parameters : pandas.DataFrame or array-like
+        Component parameters (see coercivity_spectrum_components).
+    offset : float
+        Constant baseline added to the model (accounts for a small
+        unsaturated or instrumental offset; default 0).
+    curve_type : str
+        'backfield' or 'acquisition'.
+
+    Returns
+    -------
+    numpy.ndarray
+        Total model curve at x.
+    """
+    return coercivity_curve_components(x, parameters, curve_type).sum(axis=0) + offset
+
+
+def coercivity_spectrum_from_curve(x, magnetization, curve_type='backfield'):
+    """
+    Compute a finite-difference coercivity spectrum from a remanence curve.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT), monotonically increasing.
+    magnetization : array-like
+        Magnetization values at x (shifted to positive for backfield data,
+        e.g. the 'magn_mass_shift' column from backfield_data_processing).
+    curve_type : str
+        'backfield' (decaying curve, spectrum = -dM/dx) or 'acquisition'
+        (growing curve, spectrum = dM/dx).
+
+    Returns
+    -------
+    tuple
+        (x_mid, spectrum) where x_mid are midpoints between successive x
+        values and spectrum is the centered finite-difference derivative.
+    """
+    assert curve_type in ('backfield', 'acquisition'), \
+        "curve_type must be 'backfield' or 'acquisition'"
+    x = np.asarray(x, dtype=float)
+    M = np.asarray(magnetization, dtype=float)
+    dM = np.diff(M) / np.diff(x)
+    x_mid = 0.5 * (x[1:] + x[:-1])
+    return x_mid, (-dM if curve_type == 'backfield' else dM)
+
+
+def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None):
+    """
+    Automatic initial-guess estimation for unmixing components.
+
+    The spectrum is interpolated onto a uniform grid, lightly smoothed
+    (Savitzky-Golay), and searched for peaks. The n_components most
+    prominent peaks seed the component locations; widths at half maximum
+    seed dp; peak heights seed the contributions. If fewer peaks than
+    components are found, the remaining components are placed at evenly
+    spaced quantiles of the cumulative spectrum.
+
+    Initial choices matter for nonlinear fitting: these automatic estimates
+    are a starting point that can (and often should) be refined by the user,
+    e.g. with interactive_coercivity_unmixing.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    spectrum : array-like
+        Coercivity spectrum values at x.
+    n_components : int
+        Number of components to estimate.
+    smooth_window : int, optional
+        Savitzky-Golay window length (grid points). Defaults to ~1/10 of
+        the grid (minimum 5).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Initial parameters with columns 'contribution', 'location', 'dp',
+        'skew' (skew = 0), sorted by location.
+    """
+    assert isinstance(n_components, (int, np.integer)) and n_components > 0, \
+        'n_components must be a positive integer'
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(spectrum, dtype=float)
+    order = np.argsort(x)
+    x, y = x[order], y[order]
+
+    n_grid = max(200, len(x))
+    xg = np.linspace(x.min(), x.max(), n_grid)
+    yg = np.interp(xg, x, y)
+    if smooth_window is None:
+        smooth_window = max(5, (n_grid // 10) | 1)  # odd
+    else:
+        smooth_window = max(5, int(smooth_window) | 1)
+    yg_smooth = savgol_filter(yg, smooth_window, polyorder=3)
+    yg_smooth = np.clip(yg_smooth, 0, None)
+    dx = xg[1] - xg[0]
+
+    peak_idx, props = find_peaks(yg_smooth, prominence=0.02 * yg_smooth.max(),
+                                 width=1)
+    if len(peak_idx) > 0:
+        # keep the n most prominent peaks
+        keep = np.argsort(props['prominences'])[::-1][:n_components]
+        peak_idx = peak_idx[keep]
+        widths = props['widths'][keep] * dx
+    else:
+        peak_idx = np.array([], dtype=int)
+        widths = np.array([])
+
+    locations = list(xg[peak_idx])
+    dps = [max(w / 2.355, 0.05) for w in widths]  # FWHM -> sigma
+    heights = list(yg_smooth[peak_idx])
+
+    # fill any missing components at quantiles of the cumulative spectrum
+    if len(locations) < n_components:
+        cumulative = np.cumsum(yg_smooth)
+        cumulative = cumulative / cumulative[-1]
+        n_missing = n_components - len(locations)
+        quantiles = np.linspace(0.15, 0.85, n_components)
+        candidates = [xg[np.searchsorted(cumulative, q)] for q in quantiles]
+        # prefer candidate positions away from already-found peaks
+        for cand in sorted(candidates,
+                           key=lambda c: -min([abs(c - loc) for loc in locations],
+                                              default=np.inf)):
+            if n_missing == 0:
+                break
+            locations.append(cand)
+            dps.append(0.25)
+            heights.append(np.interp(cand, xg, yg_smooth))
+            n_missing -= 1
+
+    initial = pd.DataFrame({
+        'contribution': [h * dp * _SQRT2PI for h, dp in zip(heights, dps)],
+        'location': locations,
+        'dp': dps,
+        'skew': 0.0,
+    })
+    return initial.sort_values('location').reset_index(drop=True)
+
+
+def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
+                      vary_skew=True, fit_offset=True, weights=None,
+                      dp_bounds=(0.01, 2.0), skew_bounds=(-10.0, 10.0),
+                      max_nfev=20000):
+    """
+    Shared bounded least-squares engine for both unmixing data spaces.
+
+    Returns the scipy result plus unpacked, physically scaled parameter
+    arrays, standard errors, and offset. Used by unmix_coercivity_spectrum
+    and unmix_backfield_curve; not intended to be called directly.
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    assert len(x) == len(y), 'x and y must have the same length'
+    finite = np.isfinite(x) & np.isfinite(y)
+    x, y = x[finite], y[finite]
+    if weights is not None:
+        weights = np.asarray(weights, dtype=float)[finite]
+
+    init_arr = _unmix_parameters_to_array(initial)
+    K = init_arr.shape[0]
+    if len(x) <= 3 * K + 1:
+        raise ValueError(f'too few data points ({len(x)}) to fit '
+                         f'{K} components')
+
+    y_scale = np.max(np.abs(y))
+    if y_scale == 0:
+        raise ValueError('y data are all zero')
+    ys = y / y_scale
+
+    c0 = np.clip(init_arr[:, 0] / y_scale, 1e-6, 20.0)
+    loc0 = np.clip(init_arr[:, 1], x.min() - 0.5, x.max() + 0.5)
+    dp0 = np.clip(init_arr[:, 2], dp_bounds[0], dp_bounds[1])
+    skew0 = np.clip(init_arr[:, 3], skew_bounds[0], skew_bounds[1])
+
+    fit_offset = fit_offset and method == 'curve'
+    p0 = np.concatenate([c0, loc0, dp0])
+    lb = np.concatenate([np.zeros(K), np.full(K, x.min() - 0.5),
+                         np.full(K, dp_bounds[0])])
+    ub = np.concatenate([np.full(K, 20.0), np.full(K, x.max() + 0.5),
+                         np.full(K, dp_bounds[1])])
+    if vary_skew:
+        p0 = np.concatenate([p0, skew0])
+        lb = np.concatenate([lb, np.full(K, skew_bounds[0])])
+        ub = np.concatenate([ub, np.full(K, skew_bounds[1])])
+    if fit_offset:
+        p0 = np.concatenate([p0, [0.0]])
+        lb = np.concatenate([lb, [-0.5]])
+        ub = np.concatenate([ub, [0.5]])
+
+    def unpack(p):
+        c = p[:K]
+        loc = p[K:2 * K]
+        dp = p[2 * K:3 * K]
+        skew = p[3 * K:4 * K] if vary_skew else skew0
+        offset = p[-1] if fit_offset else 0.0
+        return c, loc, dp, skew, offset
+
+    def model_scaled(p):
+        c, loc, dp, skew, offset = unpack(p)
+        params = np.column_stack([c, loc, dp, skew])
+        if method == 'spectrum':
+            return coercivity_spectrum_model(x, params)
+        return coercivity_curve_model(x, params, offset=offset,
+                                      curve_type=curve_type)
+
+    def residuals(p):
+        r = model_scaled(p) - ys
+        return r * weights if weights is not None else r
+
+    res = least_squares(residuals, p0, bounds=(lb, ub), method='trf',
+                        x_scale='jac', max_nfev=max_nfev)
+
+    # covariance-based standard errors (linearized approximation)
+    n_pts, n_par = len(x), len(res.x)
+    dof = n_pts - n_par
+    se = np.full(n_par, np.nan)
+    if dof > 0:
+        try:
+            JtJ = res.jac.T @ res.jac
+            cov = 2.0 * res.cost / dof * np.linalg.pinv(JtJ)
+            se = np.sqrt(np.clip(np.diag(cov), 0, None))
+        except np.linalg.LinAlgError:
+            pass
+
+    c, loc, dp, skew, offset = unpack(res.x)
+    se_c = se[:K] * y_scale
+    se_loc = se[K:2 * K]
+    se_dp = se[2 * K:3 * K]
+    se_skew = se[3 * K:4 * K] if vary_skew else np.zeros(K)
+    se_offset = se[-1] * y_scale if fit_offset else 0.0
+
+    # order components by mean coercivity
+    delta = skew / np.sqrt(1.0 + skew ** 2)
+    means = loc + dp * delta * np.sqrt(2.0 / np.pi)
+    order = np.argsort(means)
+
+    return {
+        'scipy_result': res,
+        'contribution': c[order] * y_scale, 'se_contribution': se_c[order],
+        'location': loc[order], 'se_location': se_loc[order],
+        'dp': dp[order], 'se_dp': se_dp[order],
+        'skew': np.asarray(skew)[order], 'se_skew': np.asarray(se_skew)[order],
+        'offset': offset * y_scale, 'se_offset': se_offset,
+        'x': x, 'y': y, 'weights': weights, 'y_scale': y_scale,
+    }
+
+
+def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
+                        initial):
+    """Assemble the standardized result dictionary from the fit engine output."""
+    K = len(engine['contribution'])
+    rows = []
+    for i in range(K):
+        stats_i = skewnormal_stats(engine['location'][i], engine['dp'][i],
+                                   engine['skew'][i])
+        rows.append({
+            'contribution': engine['contribution'][i],
+            'se_contribution': engine['se_contribution'][i],
+            'location': engine['location'][i],
+            'se_location': engine['se_location'][i],
+            'dp': engine['dp'][i],
+            'se_dp': engine['se_dp'][i],
+            'skew': engine['skew'][i],
+            'se_skew': engine['se_skew'][i],
+            'sd_log': stats_i['std'],
+            'log10_B_mean': stats_i['mean'],
+            'B_mean_mT': 10 ** stats_i['mean'],
+            'B_median_mT': 10 ** stats_i['median'],
+            'B_peak_mT': 10 ** stats_i['mode'],
+        })
+    params = pd.DataFrame(rows, index=pd.RangeIndex(1, K + 1,
+                                                    name='component'))
+    total = params['contribution'].sum()
+    params.insert(1, 'proportion',
+                  params['contribution'] / total if total > 0 else np.nan)
+
+    x, y = engine['x'], engine['y']
+    param_arr = params[UNMIX_PARAM_COLUMNS].to_numpy()
+    if method == 'spectrum':
+        y_fit = coercivity_spectrum_model(x, param_arr)
+    else:
+        y_fit = coercivity_curve_model(x, param_arr, offset=engine['offset'],
+                                       curve_type=curve_type)
+    residuals = y - y_fit
+    n = len(x)
+    n_params = (3 + int(vary_skew)) * K + int(fit_offset and method == 'curve')
+    rss = float(np.sum(residuals ** 2))
+    tss = float(np.sum((y - y.mean()) ** 2))
+    dof = n - n_params
+    # Gaussian-likelihood information criteria (constant terms omitted);
+    # comparable only between fits to the same data
+    with np.errstate(divide='ignore'):
+        log_term = np.log(rss / n) if rss > 0 else -np.inf
+    stats = {
+        'n': n,
+        'n_params': n_params,
+        'dof': dof,
+        'rss': rss,
+        'r_squared': 1.0 - rss / tss if tss > 0 else np.nan,
+        'reduced_chi_square': rss / dof if dof > 0 else np.nan,
+        'aic': n * log_term + 2 * n_params,
+        'bic': n * log_term + n_params * np.log(n),
+    }
+
+    scipy_result = engine['scipy_result']
+    initial_df = (initial.copy() if isinstance(initial, pd.DataFrame)
+                  else pd.DataFrame(_unmix_parameters_to_array(initial),
+                                    columns=UNMIX_PARAM_COLUMNS))
+    return {
+        'method': method,
+        'curve_type': curve_type,
+        'n_components': K,
+        'success': bool(scipy_result.success),
+        'message': scipy_result.message,
+        'params': params,
+        'offset': engine['offset'],
+        'se_offset': engine['se_offset'],
+        'x': x,
+        'y': y,
+        'y_fit': y_fit,
+        'residuals': residuals,
+        'weights': engine['weights'],
+        'stats': stats,
+        'initial_parameters': initial_df,
+        'vary_skew': vary_skew,
+    }
+
+
+def unmix_coercivity_spectrum(x, spectrum, n_components=None,
+                              initial_parameters=None, vary_skew=True,
+                              weights=None, dp_bounds=(0.01, 2.0),
+                              skew_bounds=(-10.0, 10.0)):
+    """
+    Unmix a coercivity spectrum into skew-normal (log-Gaussian) components.
+
+    Fits the derivative spectrum dM/dlog10(B) with a sum of skew-normal
+    densities, following the approach popularized by Kruiver et al. (2001)
+    and the MAX UnMix program (Maxbauer et al., 2016). Compared to fitting
+    the measured curve directly (unmix_backfield_curve) this operates on a
+    numerically differentiated (and possibly smoothed) version of the data,
+    so the choice of smoothing can influence the result; the advantage is
+    that components are fit in the space where they are most readily
+    interpreted visually.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT), e.g. midpoints from
+        coercivity_spectrum_from_curve.
+    spectrum : array-like
+        Coercivity spectrum values at x (magnetization per decade).
+    n_components : int, optional
+        Number of components. Required if initial_parameters is None.
+    initial_parameters : pandas.DataFrame, optional
+        Initial guesses with columns 'contribution', 'location', 'dp',
+        'skew' (one row per component). If None, automatic estimates from
+        estimate_coercivity_components are used.
+    vary_skew : bool
+        If False, skew values are fixed at their initial values (default 0,
+        i.e. symmetric log-Gaussian components).
+    weights : array-like, optional
+        Multiplicative weights applied to the residuals.
+    dp_bounds : tuple
+        (min, max) bounds on the dp scale parameter in log10 units.
+    skew_bounds : tuple
+        (min, max) bounds on the skew shape parameter.
+
+    Returns
+    -------
+    dict
+        Standardized result dictionary with keys including 'params' (a
+        DataFrame of fitted parameters, linearized standard errors, and
+        derived quantities such as B_mean_mT and proportion), 'y_fit',
+        'residuals', 'stats' (rss, r_squared, aic, bic, ...), 'success',
+        and 'initial_parameters'.
+    """
+    if initial_parameters is None:
+        if n_components is None:
+            raise ValueError('specify n_components or initial_parameters')
+        initial_parameters = estimate_coercivity_components(x, spectrum,
+                                                            n_components)
+    elif (n_components is not None
+          and len(initial_parameters) != n_components):
+        raise ValueError('n_components does not match the number of rows in '
+                         'initial_parameters')
+    engine = _unmix_fit_engine(x, spectrum, initial_parameters,
+                               method='spectrum', vary_skew=vary_skew,
+                               weights=weights, dp_bounds=dp_bounds,
+                               skew_bounds=skew_bounds)
+    return _build_unmix_result(engine, 'spectrum', 'backfield', vary_skew,
+                               False, initial_parameters)
+
+
+def unmix_backfield_curve(x, magnetization, n_components=None,
+                          initial_parameters=None, curve_type='backfield',
+                          vary_skew=True, fit_offset=True, weights=None,
+                          dp_bounds=(0.01, 2.0), skew_bounds=(-10.0, 10.0)):
+    """
+    Unmix a remanence curve by fitting cumulative components directly.
+
+    Fits the measured curve M(log10 B) with a sum of skew-normal CDF
+    components (plus an optional constant offset), avoiding numerical
+    differentiation and smoothing entirely. The component parameterization
+    is identical to unmix_coercivity_spectrum, so results from the two
+    data spaces are directly comparable. Fitting in measurement space uses
+    the raw measurements with their original noise structure; fitting in
+    spectrum space can be more visually intuitive. Agreement between the
+    two approaches is a good indication of a robust unmixing model.
+
+    For backfield data processed with backfield_data_processing, pass
+    x = 'log_dc_field' and magnetization = 'magn_mass_shift'. Note that the
+    shifted backfield curve spans twice the saturation remanence, so each
+    fitted 'contribution' is twice the remanence carried by that component;
+    'proportion' values are unaffected.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    magnetization : array-like
+        Remanence curve values at x (shifted positive for backfield data).
+    n_components : int, optional
+        Number of components. Required if initial_parameters is None.
+    initial_parameters : pandas.DataFrame, optional
+        Initial guesses (see unmix_coercivity_spectrum). If None, automatic
+        estimates are derived from the finite-difference spectrum.
+    curve_type : str
+        'backfield' (decaying curve) or 'acquisition' (growing curve).
+    vary_skew : bool
+        If False, skew values are fixed at their initial values.
+    fit_offset : bool
+        Whether to fit a constant baseline offset (default True).
+    weights : array-like, optional
+        Multiplicative weights applied to the residuals.
+    dp_bounds, skew_bounds : tuple
+        Bounds as in unmix_coercivity_spectrum.
+
+    Returns
+    -------
+    dict
+        Standardized result dictionary (see unmix_coercivity_spectrum),
+        additionally including the fitted 'offset' and 'se_offset'.
+    """
+    if initial_parameters is None:
+        if n_components is None:
+            raise ValueError('specify n_components or initial_parameters')
+        x_mid, spec = coercivity_spectrum_from_curve(x, magnetization,
+                                                     curve_type)
+        initial_parameters = estimate_coercivity_components(x_mid, spec,
+                                                            n_components)
+    elif (n_components is not None
+          and len(initial_parameters) != n_components):
+        raise ValueError('n_components does not match the number of rows in '
+                         'initial_parameters')
+    engine = _unmix_fit_engine(x, magnetization, initial_parameters,
+                               method='curve', curve_type=curve_type,
+                               vary_skew=vary_skew, fit_offset=fit_offset,
+                               weights=weights, dp_bounds=dp_bounds,
+                               skew_bounds=skew_bounds)
+    return _build_unmix_result(engine, 'curve', curve_type, vary_skew,
+                               fit_offset, initial_parameters)
+
+
+def _unmix_method_spectrum(x, magnetization, n_components=None,
+                           initial_parameters=None, curve_type='backfield',
+                           vary_skew=True, **kwargs):
+    """Registered 'spectrum' method: finite-difference spectrum fit."""
+    x_mid, spectrum = coercivity_spectrum_from_curve(x, magnetization,
+                                                     curve_type)
+    return unmix_coercivity_spectrum(x_mid, spectrum,
+                                     n_components=n_components,
+                                     initial_parameters=initial_parameters,
+                                     vary_skew=vary_skew, **kwargs)
+
+
+def _unmix_method_curve(x, magnetization, n_components=None,
+                        initial_parameters=None, curve_type='backfield',
+                        vary_skew=True, **kwargs):
+    """Registered 'curve' method: direct measurement-space fit."""
+    return unmix_backfield_curve(x, magnetization, n_components=n_components,
+                                 initial_parameters=initial_parameters,
+                                 curve_type=curve_type, vary_skew=vary_skew,
+                                 **kwargs)
+
+
+def _unmix_method_maxunmix(x, magnetization, n_components=None,
+                           initial_parameters=None, curve_type='backfield',
+                           vary_skew=True, n_boot=100, proportion=0.95,
+                           noise_level=0.02, random_seed=None, **kwargs):
+    """
+    Registered 'maxunmix' method: emulation of the MAX UnMix workflow.
+
+    Fits skew-normal components to the coercivity spectrum and estimates
+    uncertainties with the MAX UnMix resampling scheme (case resampling of
+    95% of the data with 2% multiplicative Gaussian noise; Maxbauer et al.,
+    2016). Results are comparable to the MAX UnMix web application, with
+    the caveats that skewness here follows the Azzalini parameterization
+    rather than the Fernandez-Steel one used by MAX UnMix, and that
+    contributions are parameterized by component area rather than peak
+    height.
+    """
+    result = _unmix_method_spectrum(x, magnetization,
+                                    n_components=n_components,
+                                    initial_parameters=initial_parameters,
+                                    curve_type=curve_type,
+                                    vary_skew=vary_skew, **kwargs)
+    return unmixing_bootstrap(result, n_boot=n_boot, resample='cases',
+                              proportion=proportion, noise_level=noise_level,
+                              random_seed=random_seed)
+
+
+UNMIXING_METHODS = {
+    'spectrum': _unmix_method_spectrum,
+    'curve': _unmix_method_curve,
+    'maxunmix': _unmix_method_maxunmix,
+}
+
+
+def register_unmixing_method(name, function):
+    """
+    Register a custom coercivity unmixing method.
+
+    Registered methods become available through unmix_coercivity and
+    unmix_backfield_experiments alongside the built-in 'spectrum', 'curve',
+    and 'maxunmix' methods. The function must accept
+    (x, magnetization, n_components=None, initial_parameters=None,
+    curve_type='backfield', vary_skew=True, **kwargs) and return the
+    standardized result dictionary (see unmix_coercivity_spectrum); the
+    component model helpers (skewnormal_pdf, coercivity_spectrum_model,
+    coercivity_curve_model, ...) can be reused when implementing new
+    methods.
+
+    Parameters
+    ----------
+    name : str
+        Name under which the method is registered.
+    function : callable
+        The method implementation.
+
+    Returns
+    -------
+    None
+    """
+    if not callable(function):
+        raise TypeError('function must be callable')
+    UNMIXING_METHODS[name] = function
+
+
+def unmix_coercivity(x, magnetization, method='spectrum', n_components=None,
+                     initial_parameters=None, curve_type='backfield',
+                     vary_skew=True, **kwargs):
+    """
+    Unmix a remanence curve into coercivity components with a named method.
+
+    This is the common entry point to the unmixing approaches implemented
+    in rockmagpy (and to any user-registered methods; see
+    register_unmixing_method). All methods take the measured remanence
+    curve -- not a precomputed derivative -- and share the same skew-normal
+    component parameterization, so their results are directly comparable.
+
+    Built-in methods:
+
+    - 'spectrum': fits the finite-difference coercivity spectrum
+      dM/dlog10(B) with skew-normal components (Kruiver et al., 2001;
+      Egli, 2003 lineage). Point estimates only; combine with
+      unmixing_bootstrap for uncertainties.
+    - 'curve': fits the measured curve directly with cumulative
+      (CDF) components, avoiding numerical differentiation entirely.
+    - 'maxunmix': the 'spectrum' fit plus the MAX UnMix resampling
+      uncertainty scheme (Maxbauer et al., 2016): 95% case resampling with
+      2% noise, 100 replicates by default.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT), e.g. 'log_dc_field' from
+        backfield_data_processing.
+    magnetization : array-like
+        Remanence curve values at x (e.g. 'magn_mass_shift').
+    method : str
+        Name of a registered unmixing method (default 'spectrum').
+    n_components : int, optional
+        Number of components (required if initial_parameters is None).
+    initial_parameters : pandas.DataFrame, optional
+        Initial guesses with columns 'contribution', 'location', 'dp',
+        'skew'; automatic estimates are used when omitted.
+    curve_type : str
+        'backfield' or 'acquisition'.
+    vary_skew : bool
+        Whether skew parameters vary during fitting.
+    **kwargs
+        Passed through to the method implementation (e.g. n_boot,
+        proportion, noise_level for 'maxunmix'; fit_offset for 'curve').
+
+    Returns
+    -------
+    dict
+        Standardized result dictionary (see unmix_coercivity_spectrum).
+    """
+    if method not in UNMIXING_METHODS:
+        raise ValueError(f"unknown unmixing method '{method}'; available: "
+                         f'{sorted(UNMIXING_METHODS)}')
+    return UNMIXING_METHODS[method](x, magnetization,
+                                    n_components=n_components,
+                                    initial_parameters=initial_parameters,
+                                    curve_type=curve_type,
+                                    vary_skew=vary_skew, **kwargs)
+
+
+def compare_unmixing_models(results):
+    """
+    Compare unmixing fits with different numbers of components.
+
+    Builds a comparison table with information criteria and sequential
+    F-tests. All results must be fits of the same data with the same
+    method ('spectrum' or 'curve'); AIC/BIC values are only meaningful
+    relative to one another under that condition. The F-test compares each
+    model to the previous (simpler) one; a small p-value indicates the
+    additional component produces a statistically significant improvement.
+    As emphasized by Maxbauer et al. (2016) and Egli (2003), statistical
+    significance alone should not decide the number of components --
+    independent knowledge of the likely magnetic mineralogy should inform
+    the choice.
+
+    Parameters
+    ----------
+    results : list of dict
+        Result dictionaries from unmix_coercivity_spectrum or
+        unmix_backfield_curve, typically with increasing n_components.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per model with n_components, n_params, rss, r_squared,
+        aic, bic, delta_aic, delta_bic, F, and p_value columns.
+    """
+    from scipy.stats import f as f_distribution
+    if len(results) == 0:
+        raise ValueError('results list is empty')
+    methods = {r['method'] for r in results}
+    lengths = {len(r['x']) for r in results}
+    if len(methods) > 1 or len(lengths) > 1:
+        raise ValueError('all results must fit the same data with the same '
+                         'method for a meaningful comparison')
+    ordered = sorted(results, key=lambda r: r['stats']['n_params'])
+    rows = []
+    for i, r in enumerate(ordered):
+        s = r['stats']
+        row = {
+            'n_components': r['n_components'],
+            'n_params': s['n_params'],
+            'rss': s['rss'],
+            'r_squared': s['r_squared'],
+            'aic': s['aic'],
+            'bic': s['bic'],
+            'F': np.nan,
+            'p_value': np.nan,
+        }
+        if i > 0:
+            s0 = ordered[i - 1]['stats']
+            dp_extra = s['n_params'] - s0['n_params']
+            if dp_extra > 0 and s['dof'] > 0 and s['rss'] > 0:
+                F = ((s0['rss'] - s['rss']) / dp_extra) / (s['rss'] / s['dof'])
+                row['F'] = F
+                row['p_value'] = float(f_distribution.sf(F, dp_extra,
+                                                         s['dof']))
+        rows.append(row)
+    table = pd.DataFrame(rows)
+    table['delta_aic'] = table['aic'] - table['aic'].min()
+    table['delta_bic'] = table['bic'] - table['bic'].min()
+    return table
+
+
+def estimate_measurement_noise(x, magnetization, curve_type='backfield'):
+    """
+    Robustly estimate the measurement noise of a remanence curve.
+
+    Uses a third-difference (DER_SNR-style) estimator that suppresses the
+    smooth signal and returns a robust standard deviation of the residual
+    scatter, without any smoothing or model fitting. This provides the
+    noise scale needed to judge when an unmixing model fits "to within the
+    measurement noise" (see select_n_components).
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT); the data are sorted by x internally.
+    magnetization : array-like
+        Remanence curve values at x.
+    curve_type : str
+        Unused; accepted for signature consistency with the unmixing
+        functions.
+
+    Returns
+    -------
+    float
+        Estimated measurement noise standard deviation in magnetization
+        units.
+    """
+    x = np.asarray(x, dtype=float)
+    M = np.asarray(magnetization, dtype=float)
+    order = np.argsort(x)
+    M = M[order]
+    if len(M) < 5:
+        return float(np.std(M))
+    # |2 M_i - M_{i-2} - M_{i+2}| cancels linear trends; the median makes it
+    # robust to the minority of high-curvature points on a sigmoidal curve
+    differences = np.abs(2 * M[2:-2] - M[:-4] - M[4:])
+    return float(1.482602 / np.sqrt(6) * np.median(differences))
+
+
+def select_n_components(x, magnetization, method='curve', min_components=1,
+                        max_components=4, criterion='parsimony',
+                        min_improvement=0.02, noise_level=None,
+                        reduced_chi2_target=1.0, curve_type='backfield',
+                        vary_skew=False, verbose=False, **kwargs):
+    """
+    Choose the number of coercivity components by a parsimony rule.
+
+    Fits models with a range of component counts and selects the simplest
+    one that adequately describes the data. This is deliberately different
+    from minimizing an information criterion or maximizing the Bayesian
+    evidence: with high-resolution, low-noise curves those measures tend to
+    keep favoring more components indefinitely, because a real coercivity
+    distribution is never exactly log-Gaussian and each added component
+    removes a little more systematic misfit. Following the parsimony
+    principle emphasized by Egli (2003) and Heslop (2015), an extra
+    component is accepted only when it produces a large enough improvement,
+    so a simpler adequate model is preferred.
+
+    Two selection criteria are provided:
+
+    - 'parsimony' (default): an added component is retained only if it
+      reduces the residual sum of squares by at least `min_improvement`
+      times the baseline (single-component) residual. Because the second
+      component typically removes most of the baseline misfit while a
+      spurious third component removes only a tiny fraction of it, this
+      robustly stops at the mineralogically meaningful count regardless of
+      the noise level.
+    - 'chi2': the simplest model whose reduced chi-square (using
+      `noise_level`, estimated with estimate_measurement_noise if not
+      given) falls at or below `reduced_chi2_target`, i.e. the simplest
+      model that fits to within the measurement noise. This is more
+      principled when a trustworthy noise level is available, but is
+      sensitive to the accuracy of that noise estimate.
+
+    In all cases the returned table reports the fit statistics, the
+    fractional RSS improvement per added component, and (when a noise level
+    is available) the reduced chi-square, so the selection can be inspected
+    and overridden.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    magnetization : array-like
+        Remanence curve values at x.
+    method : str
+        Registered unmixing method used for each fit (default 'curve').
+    min_components, max_components : int
+        Range of component counts to consider.
+    criterion : str
+        'parsimony' or 'chi2'.
+    min_improvement : float
+        For 'parsimony': minimum fraction of the baseline residual an added
+        component must explain to be retained (default 0.02).
+    noise_level : float, optional
+        Measurement noise standard deviation for 'chi2'; estimated from the
+        data if not given.
+    reduced_chi2_target : float
+        For 'chi2': the reduced chi-square at or below which a model is
+        considered adequate (default 1.0).
+    curve_type : str
+        'backfield' or 'acquisition'.
+    vary_skew : bool
+        Whether skew varies during fitting.
+    verbose : bool
+        Print the selection outcome.
+    **kwargs
+        Passed to the unmixing method.
+
+    Returns
+    -------
+    tuple
+        (selected_n, table, results) where selected_n is the chosen number
+        of components, table is a DataFrame of per-model statistics (with a
+        boolean 'selected' column), and results maps component count ->
+        result dictionary.
+    """
+    assert criterion in ('parsimony', 'chi2'), \
+        "criterion must be 'parsimony' or 'chi2'"
+    if method not in UNMIXING_METHODS:
+        raise ValueError(f"unknown unmixing method '{method}'; available: "
+                         f'{sorted(UNMIXING_METHODS)}')
+    counts = list(range(min_components, max_components + 1))
+    if len(counts) == 0:
+        raise ValueError('max_components must be >= min_components')
+
+    if noise_level is None:
+        noise_level = estimate_measurement_noise(x, magnetization, curve_type)
+
+    results = {}
+    rows = []
+    for K in counts:
+        result = unmix_coercivity(x, magnetization, method=method,
+                                  n_components=K, curve_type=curve_type,
+                                  vary_skew=vary_skew, **kwargs)
+        results[K] = result
+        stats = result['stats']
+        rows.append({
+            'n_components': K,
+            'n_params': stats['n_params'],
+            'rss': stats['rss'],
+            'r_squared': stats['r_squared'],
+            'aic': stats['aic'],
+            'bic': stats['bic'],
+            'reduced_chi2': (stats['rss'] / (noise_level ** 2 * stats['dof'])
+                             if stats['dof'] > 0 else np.nan),
+        })
+    table = pd.DataFrame(rows)
+
+    baseline_rss = table['rss'].iloc[0]
+    improvement = [np.nan]
+    for i in range(1, len(table)):
+        improvement.append((table['rss'].iloc[i - 1] - table['rss'].iloc[i])
+                           / baseline_rss if baseline_rss > 0 else np.nan)
+    table['rss_improvement_fraction'] = improvement
+
+    if criterion == 'parsimony':
+        selected = counts[0]
+        for i in range(1, len(table)):
+            if table['rss_improvement_fraction'].iloc[i] >= min_improvement:
+                selected = counts[i]
+            else:
+                break
+    else:  # chi2 adequacy
+        adequate = table[table['reduced_chi2'] <= reduced_chi2_target]
+        selected = (int(adequate['n_components'].iloc[0]) if len(adequate)
+                    else counts[-1])
+
+    table['selected'] = table['n_components'] == selected
+    if verbose:
+        print(f"selected {selected} component(s) by '{criterion}' criterion "
+              f'(noise ~ {noise_level:.3g})')
+    return selected, table, results
+
+
+def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
+                       noise_level=None, random_seed=None, n_grid=200,
+                       verbose=False):
+    """
+    Bootstrap uncertainty estimation for an unmixing result.
+
+    Repeatedly refits the model to resampled data, starting each fit from
+    the best-fit parameters, and summarizes the distributions of parameters
+    and model curves. Two resampling schemes are available:
+
+    - 'cases': data points are drawn with replacement ('proportion'
+      controls the resample size relative to the data). With
+      proportion=0.95 and noise_level=0.02 this emulates the resampling
+      scheme of the MAX UnMix program (Maxbauer et al., 2016).
+    - 'residuals': the best-fit curve is perturbed with resampled fit
+      residuals, preserving the field spacing of the original data.
+
+    Bootstrap distributions capture the full nonlinearity of the model and
+    are generally more trustworthy than the linearized standard errors in
+    the 'params' table, especially for strongly overlapping components.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmix_coercivity_spectrum or unmix_backfield_curve.
+    n_boot : int
+        Number of bootstrap replicates (default 500).
+    resample : str
+        'cases' or 'residuals'.
+    proportion : float
+        Fraction of the data resampled per replicate for 'cases' (default 1).
+    noise_level : float, optional
+        If given, multiplicative Gaussian noise with this relative standard
+        deviation is added to each resampled dataset (MAX UnMix uses 0.02).
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducibility.
+    n_grid : int
+        Number of grid points for the model-curve confidence bands.
+    verbose : bool
+        Print a progress summary.
+
+    Returns
+    -------
+    dict
+        A copy of the input result with an added 'bootstrap' entry
+        containing 'param_summary' (per-component mean/std/percentiles for
+        each parameter and derived quantity), 'curves' (percentile bands of
+        the total and per-component model on 'x_grid'), 'n_success', and
+        'param_samples' (the raw bootstrap parameter arrays).
+    """
+    assert resample in ('cases', 'residuals'), \
+        "resample must be 'cases' or 'residuals'"
+    assert 0 < proportion <= 1, 'proportion must be in (0, 1]'
+    rng = _resolve_rng(random_seed)
+
+    x, y = result['x'], result['y']
+    method = result['method']
+    curve_type = result['curve_type']
+    vary_skew = result['vary_skew']
+    K = result['n_components']
+    best = result['params'][UNMIX_PARAM_COLUMNS].copy().reset_index(drop=True)
+    n = len(x)
+    n_sample = max(int(n * proportion), 3 * K + 2)
+
+    x_grid = np.linspace(x.min(), x.max(), n_grid)
+    tracked = ['contribution', 'proportion', 'location', 'dp', 'skew',
+               'sd_log', 'B_mean_mT', 'B_median_mT', 'B_peak_mT']
+    samples = {name: [] for name in tracked}
+    total_curves = []
+    comp_curves = []
+    n_success = 0
+
+    for _ in range(n_boot):
+        if resample == 'cases':
+            idx = rng.choice(n, size=n_sample, replace=True)
+            xb, yb = x[idx], y[idx]
+        else:
+            perturbation = rng.choice(result['residuals'], size=n,
+                                      replace=True)
+            xb, yb = x, result['y_fit'] + perturbation
+        if noise_level is not None:
+            yb = yb * (1.0 + rng.normal(0.0, noise_level, size=len(yb)))
+        try:
+            if method == 'spectrum':
+                fit = unmix_coercivity_spectrum(xb, yb,
+                                                initial_parameters=best,
+                                                vary_skew=vary_skew)
+            else:
+                fit = unmix_backfield_curve(xb, yb, initial_parameters=best,
+                                            curve_type=curve_type,
+                                            vary_skew=vary_skew)
+        except (ValueError, RuntimeError):
+            continue
+        if not fit['success']:
+            continue
+        # components are sorted by mean coercivity within each fit, which
+        # aligns replicate components with the reference ordering
+        p = fit['params']
+        for name in tracked:
+            samples[name].append(p[name].to_numpy())
+        arr = p[UNMIX_PARAM_COLUMNS].to_numpy()
+        if method == 'spectrum':
+            total_curves.append(coercivity_spectrum_model(x_grid, arr))
+            comp_curves.append(coercivity_spectrum_components(x_grid, arr))
+        else:
+            total_curves.append(coercivity_curve_model(
+                x_grid, arr, offset=fit['offset'], curve_type=curve_type))
+            comp_curves.append(coercivity_curve_components(
+                x_grid, arr, curve_type=curve_type))
+        n_success += 1
+
+    if n_success < max(10, n_boot // 10):
+        raise RuntimeError(f'only {n_success} of {n_boot} bootstrap '
+                           'replicates converged; check the fit or initial '
+                           'parameters')
+    if verbose:
+        print(f'{n_success}/{n_boot} bootstrap replicates converged')
+
+    percentiles = [2.5, 50, 97.5]
+    summary_rows = []
+    for comp in range(K):
+        row = {'component': comp + 1}
+        for name in tracked:
+            vals = np.array([s[comp] for s in samples[name]])
+            row[f'{name}_mean'] = vals.mean()
+            row[f'{name}_std'] = vals.std()
+            for pct in percentiles:
+                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
+                    np.percentile(vals, pct)
+        summary_rows.append(row)
+    param_summary = pd.DataFrame(summary_rows).set_index('component')
+
+    total_curves = np.array(total_curves)
+    comp_curves = np.array(comp_curves)
+    curves = {
+        'x_grid': x_grid,
+        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
+        'total_p50': np.percentile(total_curves, 50, axis=0),
+        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
+        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
+        'components_p50': np.percentile(comp_curves, 50, axis=0),
+        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
+    }
+
+    result_out = copy.deepcopy(result)
+    result_out['bootstrap'] = {
+        'n_boot': n_boot,
+        'n_success': n_success,
+        'resample': resample,
+        'proportion': proportion,
+        'noise_level': noise_level,
+        'param_summary': param_summary,
+        'param_samples': {name: np.array(vals)
+                          for name, vals in samples.items()},
+        'curves': curves,
+    }
+    return result_out
+
+
+def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
+                        n_starts=100, vary_skew=False, curve_type='backfield',
+                        random_seed=None, location_tolerance=0.1,
+                        proportion_tolerance=0.05, verbose=False, **kwargs):
+    """
+    Map the distinct unmixing solutions reachable from many initializations.
+
+    Coercivity unmixing is a non-convex problem: fits started from
+    different initial parameters can converge to different local minima
+    that describe the data almost equally well. A single fit (and a
+    bootstrap of it, which restarts every replicate from the best-fit
+    values) is conditioned on one solution basin and therefore hides this
+    non-uniqueness. This function launches the fit from n_starts dispersed
+    random initializations (plus the automatic peak-detection estimate),
+    clusters the converged solutions, and reports each distinct solution
+    with its fit statistics and Akaike weight, making the degeneracy of
+    the decomposition explicit.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    magnetization : array-like
+        Remanence curve values at x (e.g. 'magn_mass_shift').
+    method : str
+        Registered unmixing method used for each fit (default 'spectrum').
+    n_components : int
+        Number of components (default 2).
+    n_starts : int
+        Number of random initializations (default 100).
+    vary_skew : bool
+        Whether skew varies during fitting; random starts draw skew from
+        [-5, 5] when True.
+    curve_type : str
+        'backfield' or 'acquisition'.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible starting points.
+    location_tolerance : float
+        Two solutions are considered the same when all component
+        locations agree within this tolerance (log10 units, default 0.1)
+        and all proportions agree within proportion_tolerance.
+    proportion_tolerance : float
+        Proportion agreement tolerance (default 0.05).
+    verbose : bool
+        Print a summary of the distinct solutions.
+    **kwargs
+        Passed through to the unmixing method.
+
+    Returns
+    -------
+    dict
+        The best (lowest RSS) result dictionary, augmented with a
+        'multistart' entry containing 'solutions' (a DataFrame with one
+        row per distinct solution: n_hits, rss, r_squared, aic,
+        delta_aic, akaike_weight, and per-component B_mean_mT / sd_log /
+        proportion columns), 'results' (the representative result
+        dictionary for each solution, in the same order), 'n_starts', and
+        'n_converged'.
+    """
+    if method not in UNMIXING_METHODS:
+        raise ValueError(f"unknown unmixing method '{method}'; available: "
+                         f'{sorted(UNMIXING_METHODS)}')
+    rng = _resolve_rng(random_seed)
+    x = np.asarray(x, dtype=float)
+    M = np.asarray(magnetization, dtype=float)
+    x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
+    total_area = np.abs(_trapz(spectrum, x_mid))
+    K = n_components
+
+    starting_tables = [None]  # None -> automatic estimation inside the method
+    lo, hi = x.min() + 0.05, x.max() - 0.05
+    for _ in range(n_starts):
+        locations = np.sort(rng.uniform(lo, hi, size=K))
+        dps = np.exp(rng.uniform(np.log(0.03), np.log(0.8), size=K))
+        proportions = rng.dirichlet(np.ones(K))
+        skews = rng.uniform(-5, 5, size=K) if vary_skew else np.zeros(K)
+        starting_tables.append(pd.DataFrame({
+            'contribution': proportions * total_area,
+            'location': locations,
+            'dp': dps,
+            'skew': skews,
+        }))
+
+    fits = []
+    for table in starting_tables:
+        try:
+            fit = unmix_coercivity(x, M, method=method,
+                                   n_components=K if table is None else None,
+                                   initial_parameters=table,
+                                   curve_type=curve_type,
+                                   vary_skew=vary_skew, **kwargs)
+        except (ValueError, RuntimeError):
+            continue
+        if fit['success'] and np.isfinite(fit['stats']['rss']):
+            fits.append(fit)
+    if not fits:
+        raise RuntimeError('no multistart fits converged')
+
+    # cluster converged fits into distinct solutions (best fit first)
+    fits.sort(key=lambda f: f['stats']['rss'])
+    clusters = []  # list of dicts: {'representative': fit, 'n_hits': int}
+    for fit in fits:
+        locations = fit['params']['location'].to_numpy()
+        proportions = fit['params']['proportion'].to_numpy()
+        for cluster in clusters:
+            ref = cluster['representative']['params']
+            same_location = np.all(np.abs(
+                locations - ref['location'].to_numpy()) <= location_tolerance)
+            same_proportion = np.all(np.abs(
+                proportions - ref['proportion'].to_numpy())
+                <= proportion_tolerance)
+            if same_location and same_proportion:
+                cluster['n_hits'] += 1
+                break
+        else:
+            clusters.append({'representative': fit, 'n_hits': 1})
+
+    aics = np.array([c['representative']['stats']['aic'] for c in clusters])
+    delta_aic = aics - aics.min()
+    with np.errstate(over='ignore'):
+        weights = np.exp(-0.5 * delta_aic)
+    weights = weights / weights.sum()
+
+    rows = []
+    for i, cluster in enumerate(clusters):
+        fit = cluster['representative']
+        row = {
+            'solution': i + 1,
+            'n_hits': cluster['n_hits'],
+            'rss': fit['stats']['rss'],
+            'r_squared': fit['stats']['r_squared'],
+            'aic': fit['stats']['aic'],
+            'delta_aic': delta_aic[i],
+            'akaike_weight': weights[i],
+        }
+        for comp_index, prow in fit['params'].iterrows():
+            row[f'B_mean_mT_c{comp_index}'] = prow['B_mean_mT']
+            row[f'sd_log_c{comp_index}'] = prow['sd_log']
+            row[f'proportion_c{comp_index}'] = prow['proportion']
+        rows.append(row)
+    solutions = pd.DataFrame(rows).set_index('solution')
+
+    if verbose:
+        print(f'{len(fits)}/{len(starting_tables)} fits converged; '
+              f'{len(clusters)} distinct solution(s)')
+
+    best = copy.deepcopy(clusters[0]['representative'])
+    best['multistart'] = {
+        'solutions': solutions,
+        'results': [c['representative'] for c in clusters],
+        'n_starts': len(starting_tables),
+        'n_converged': len(fits),
+        'method': method,
+    }
+    return best
+
+
+# Bayesian unmixing via nested sampling
+# ------------------------------------------------------------------------------------------------------------------
+
+def _check_dynesty():
+    try:
+        import dynesty  # noqa: F401
+    except ImportError:
+        raise ImportError(
+            'dynesty is required for Bayesian unmixing. '
+            'Install it with: pip install dynesty')
+
+
+def _ordered_uniform_transform(u, low, high):
+    """
+    Map unit-cube draws to ordered uniform order statistics on [low, high].
+
+    Uses the standard recursive inverse-CDF construction so that the
+    returned values are jointly distributed as the order statistics of K
+    independent uniforms, which enforces component ordering (and thereby
+    removes label switching) without distorting the prior.
+    """
+    K = len(u)
+    ordered = np.empty(K)
+    upper = 1.0
+    for k in range(K - 1, -1, -1):
+        upper = upper * u[k] ** (1.0 / (k + 1))
+        ordered[k] = upper
+    return low + (high - low) * ordered
+
+
+def unmix_coercivity_bayes(x, magnetization, n_components=2,
+                           curve_type='backfield', vary_skew=False,
+                           fit_offset=True, priors=None, nlive=250,
+                           dlogz=0.1, sample='rslice', random_seed=None,
+                           n_grid=200, n_posterior_curves=300,
+                           verbose=False):
+    """
+    Bayesian coercivity unmixing by nested sampling (requires dynesty).
+
+    The measured remanence curve is modeled in measurement space (where an
+    independent Gaussian noise model is defensible; numerically
+    differentiated spectra have correlated noise) as a sum of cumulative
+    skew-normal components plus an offset, with the noise standard
+    deviation treated as a free parameter. The posterior is sampled with
+    static nested sampling (Skilling, 2006) as implemented in dynesty
+    (Speagle, 2020), which also returns the Bayesian evidence (logz) --
+    the principled criterion for choosing the number of components
+    (compare logz between runs with different n_components).
+
+    Unlike bootstrap resampling of a single fit, the posterior represents
+    the full range of component decompositions consistent with the data
+    and priors: parameter trade-offs between overlapping components appear
+    as wide, correlated, and possibly multimodal posterior distributions
+    rather than being hidden by a single optimizer solution.
+
+    Component locations are sampled as ordered order-statistics, which
+    fixes component labels without distorting the prior. Default priors
+    are weakly informative (locations uniform across the measured field
+    range, dispersions log-uniform on [0.02, 1.0] decades, contributions
+    uniform up to ~3x the data range); mineralogical knowledge can be
+    injected through the priors argument.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT).
+    magnetization : array-like
+        Remanence curve values at x (e.g. 'magn_mass_shift').
+    n_components : int
+        Number of components (default 2).
+    curve_type : str
+        'backfield' or 'acquisition'.
+    vary_skew : bool
+        Sample component skew (uniform prior on [-10, 10]); default False
+        (symmetric log-Gaussian components).
+    fit_offset : bool
+        Include a constant baseline offset (default True).
+    priors : dict, optional
+        Overrides for the default prior bounds. Recognized keys:
+        'location', 'dp', 'contribution', 'skew' map to a list of
+        (low, high) tuples, one per component (locations/dp in log10
+        units, contributions in the units of the magnetization data);
+        'offset' and 'noise' map to a single (low, high) tuple in
+        magnetization units. When per-component 'location' bounds are
+        given they replace the ordered-uniform construction, so they
+        should be non-overlapping or ordered to keep labels meaningful.
+    nlive : int
+        Number of live points (default 250).
+    dlogz : float
+        Evidence convergence tolerance (default 0.1).
+    sample : str
+        dynesty sampling method (default 'rslice'). Slice sampling is
+        robust to the thin, curved likelihood ridges that overlapping
+        components produce; the dynesty default uniform-ellipsoid
+        sampler can stall on such geometries.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducibility.
+    n_grid : int
+        Grid size for posterior model bands.
+    n_posterior_curves : int
+        Number of posterior draws used for the model bands (default 300).
+    verbose : bool
+        Show dynesty progress.
+
+    Returns
+    -------
+    dict
+        Standardized result dictionary (parameters set to posterior
+        medians) with an added 'bayes' entry containing 'param_summary'
+        (per-component posterior mean/std/percentiles, same format as the
+        bootstrap summary), 'samples' (equally weighted posterior draws
+        for every parameter and derived quantity), 'logz', 'logzerr',
+        'noise' (posterior median noise standard deviation), and 'curves'
+        (posterior percentile bands of the model).
+    """
+    _check_dynesty()
+    import dynesty
+    assert curve_type in ('backfield', 'acquisition'), \
+        "curve_type must be 'backfield' or 'acquisition'"
+    rng = _resolve_rng(random_seed)
+    priors = dict(priors or {})
+
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(magnetization, dtype=float)
+    finite = np.isfinite(x) & np.isfinite(y)
+    x, y = x[finite], y[finite]
+    y_scale = np.max(np.abs(y))
+    if y_scale == 0:
+        raise ValueError('magnetization data are all zero')
+    ys = y / y_scale
+    K = n_components
+    n_data = len(x)
+
+    # prior bounds (normalized units for contribution/offset/noise)
+    location_bounds = priors.get('location')
+    if location_bounds is not None:
+        location_bounds = [tuple(b) for b in location_bounds]
+        assert len(location_bounds) == K
+    location_range = (x.min() - 0.2, x.max() + 0.2)
+    dp_bounds = priors.get('dp', [(0.02, 1.0)] * K)
+    contribution_bounds = [(low / y_scale, high / y_scale) for low, high in
+                           priors.get('contribution',
+                                      [(0.0, 3.0 * y_scale)] * K)]
+    skew_bounds = priors.get('skew', [(-10.0, 10.0)] * K)
+    offset_low, offset_high = np.array(
+        priors.get('offset', (-0.2 * y_scale, 0.2 * y_scale))) / y_scale
+    noise_low, noise_high = np.array(
+        priors.get('noise', (1e-4 * y_scale, 0.3 * y_scale))) / y_scale
+
+    ndim = 3 * K + (K if vary_skew else 0) + (1 if fit_offset else 0) + 1
+
+    def prior_transform(u):
+        theta = np.empty(ndim)
+        i = 0
+        for k in range(K):  # contributions
+            low, high = contribution_bounds[k]
+            theta[i] = low + (high - low) * u[i]
+            i += 1
+        if location_bounds is None:  # ordered locations
+            theta[i:i + K] = _ordered_uniform_transform(
+                u[i:i + K], location_range[0], location_range[1])
+        else:
+            for k in range(K):
+                low, high = location_bounds[k]
+                theta[i + k] = low + (high - low) * u[i + k]
+        i += K
+        for k in range(K):  # dispersions, log-uniform
+            low, high = dp_bounds[k]
+            theta[i] = np.exp(np.log(low)
+                              + (np.log(high) - np.log(low)) * u[i])
+            i += 1
+        if vary_skew:
+            for k in range(K):
+                low, high = skew_bounds[k]
+                theta[i] = low + (high - low) * u[i]
+                i += 1
+        if fit_offset:
+            theta[i] = offset_low + (offset_high - offset_low) * u[i]
+            i += 1
+        theta[i] = np.exp(np.log(noise_low)
+                          + (np.log(noise_high) - np.log(noise_low)) * u[i])
+        return theta
+
+    def unpack(theta):
+        c = theta[:K]
+        loc = theta[K:2 * K]
+        dp = theta[2 * K:3 * K]
+        i = 3 * K
+        if vary_skew:
+            skew = theta[i:i + K]
+            i += K
+        else:
+            skew = np.zeros(K)
+        offset = theta[i] if fit_offset else 0.0
+        noise = theta[-1]
+        return c, loc, dp, skew, offset, noise
+
+    log_norm = -0.5 * n_data * np.log(2.0 * np.pi)
+
+    def loglike(theta):
+        c, loc, dp, skew, offset, noise = unpack(theta)
+        params = np.column_stack([c, loc, dp, skew])
+        model = coercivity_curve_model(x, params, offset=offset,
+                                       curve_type=curve_type)
+        residual = (model - ys) / noise
+        value = log_norm - n_data * np.log(noise) \
+            - 0.5 * float(residual @ residual)
+        return value if np.isfinite(value) else -1e300
+
+    sampler = dynesty.NestedSampler(loglike, prior_transform, ndim,
+                                    nlive=nlive, sample=sample, rstate=rng)
+    sampler.run_nested(dlogz=dlogz, print_progress=verbose)
+    ns_results = sampler.results
+    samples = ns_results.samples_equal(rstate=rng)
+
+    # per-draw derived quantities (analytic, vectorized)
+    contributions = samples[:, :K] * y_scale
+    locations = samples[:, K:2 * K]
+    dps = samples[:, 2 * K:3 * K]
+    skews = samples[:, 3 * K:4 * K] if vary_skew else np.zeros_like(locations)
+    offsets = (samples[:, -2] * y_scale if fit_offset
+               else np.zeros(len(samples)))
+    noises = samples[:, -1] * y_scale
+    deltas = skews / np.sqrt(1.0 + skews ** 2)
+    means_log = locations + dps * deltas * np.sqrt(2.0 / np.pi)
+    sd_logs = dps * np.sqrt(1.0 - 2.0 * deltas ** 2 / np.pi)
+    proportions = contributions / contributions.sum(axis=1, keepdims=True)
+    derived = {
+        'contribution': contributions,
+        'proportion': proportions,
+        'location': locations,
+        'dp': dps,
+        'skew': skews,
+        'sd_log': sd_logs,
+        'B_mean_mT': 10 ** means_log,
+    }
+
+    percentiles = [2.5, 50, 97.5]
+    summary_rows = []
+    for comp in range(K):
+        row = {'component': comp + 1}
+        for name, values in derived.items():
+            column = values[:, comp]
+            row[f'{name}_mean'] = column.mean()
+            row[f'{name}_std'] = column.std()
+            for pct in percentiles:
+                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
+                    np.percentile(column, pct)
+        summary_rows.append(row)
+    param_summary = pd.DataFrame(summary_rows).set_index('component')
+
+    # posterior-median parameter table in the standard result format
+    median_params = np.column_stack([
+        np.median(contributions, axis=0), np.median(locations, axis=0),
+        np.median(dps, axis=0), np.median(skews, axis=0)])
+    offset_median = float(np.median(offsets))
+    rows = []
+    for comp in range(K):
+        c_med, loc_med, dp_med, skew_med = median_params[comp]
+        stats_comp = skewnormal_stats(loc_med, dp_med, skew_med)
+        rows.append({
+            'contribution': c_med,
+            'se_contribution': contributions[:, comp].std(),
+            'location': loc_med,
+            'se_location': locations[:, comp].std(),
+            'dp': dp_med,
+            'se_dp': dps[:, comp].std(),
+            'skew': skew_med,
+            'se_skew': skews[:, comp].std(),
+            'sd_log': stats_comp['std'],
+            'log10_B_mean': stats_comp['mean'],
+            'B_mean_mT': 10 ** stats_comp['mean'],
+            'B_median_mT': 10 ** stats_comp['median'],
+            'B_peak_mT': 10 ** stats_comp['mode'],
+        })
+    params = pd.DataFrame(rows, index=pd.RangeIndex(1, K + 1,
+                                                    name='component'))
+    total = params['contribution'].sum()
+    params.insert(1, 'proportion', params['contribution'] / total)
+
+    y_fit = coercivity_curve_model(x, median_params, offset=offset_median,
+                                   curve_type=curve_type)
+    residuals = y - y_fit
+    rss = float(np.sum(residuals ** 2))
+    tss = float(np.sum((y - y.mean()) ** 2))
+    n_params = ndim
+    stats = {
+        'n': n_data,
+        'n_params': n_params,
+        'dof': n_data - n_params,
+        'rss': rss,
+        'r_squared': 1.0 - rss / tss if tss > 0 else np.nan,
+        'reduced_chi_square': (rss / (n_data - n_params)
+                               if n_data > n_params else np.nan),
+        'aic': np.nan,  # use logz for Bayesian model comparison
+        'bic': np.nan,
+        'logz': float(ns_results.logz[-1]),
+        'logzerr': float(ns_results.logzerr[-1]),
+    }
+
+    # posterior model bands from a subset of equally weighted draws
+    x_grid = np.linspace(x.min(), x.max(), n_grid)
+    n_draws = min(n_posterior_curves, len(samples))
+    draw_index = rng.choice(len(samples), size=n_draws, replace=False)
+    total_curves = np.empty((n_draws, n_grid))
+    comp_curves = np.empty((n_draws, K, n_grid))
+    for j, index in enumerate(draw_index):
+        draw_params = np.column_stack([
+            contributions[index], locations[index], dps[index],
+            skews[index]])
+        comps = coercivity_curve_components(x_grid, draw_params,
+                                            curve_type=curve_type)
+        comp_curves[j] = comps
+        total_curves[j] = comps.sum(axis=0) + offsets[index]
+    curves = {
+        'x_grid': x_grid,
+        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
+        'total_p50': np.percentile(total_curves, 50, axis=0),
+        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
+        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
+        'components_p50': np.percentile(comp_curves, 50, axis=0),
+        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
+    }
+
+    initial_df = pd.DataFrame(median_params, columns=UNMIX_PARAM_COLUMNS)
+    return {
+        'method': 'bayes',
+        'curve_type': curve_type,
+        'n_components': K,
+        'success': True,
+        'message': (f'nested sampling converged '
+                    f'(logz = {stats["logz"]:.2f} '
+                    f'+/- {stats["logzerr"]:.2f})'),
+        'params': params,
+        'offset': offset_median,
+        'se_offset': float(np.std(offsets)),
+        'x': x,
+        'y': y,
+        'y_fit': y_fit,
+        'residuals': residuals,
+        'weights': None,
+        'stats': stats,
+        'initial_parameters': initial_df,
+        'vary_skew': vary_skew,
+        'bayes': {
+            'param_summary': param_summary,
+            'samples': {**{name: values for name, values in derived.items()},
+                        'offset': offsets, 'noise': noises},
+            'logz': stats['logz'],
+            'logzerr': stats['logzerr'],
+            'noise': float(np.median(noises)),
+            'ncall': int(ns_results.ncall.sum()),
+            'niter': int(ns_results.niter),
+            'nlive': nlive,
+            'curves': curves,
+        },
+    }
+
+
+def _unmix_method_bayes(x, magnetization, n_components=None,
+                        initial_parameters=None, curve_type='backfield',
+                        vary_skew=False, priors=None, **kwargs):
+    """
+    Registered 'bayes' method: nested-sampling posterior in measurement
+    space. If initial_parameters are supplied (e.g. from the interactive
+    widget) and no explicit priors are given, per-component location and
+    dispersion priors are centered on them.
+    """
+    # a priors dict from mineral_priors() carries one entry per component,
+    # so n_components can be inferred from it
+    if (n_components is None and priors is not None
+            and priors.get('location') is not None):
+        n_components = len(priors['location'])
+    if initial_parameters is not None:
+        if n_components is None:
+            n_components = len(initial_parameters)
+        if priors is None:
+            table = _unmix_parameters_to_array(initial_parameters)
+            order = np.argsort(table[:, 1])
+            table = table[order]
+            priors = {
+                'location': [(row[1] - max(3 * row[2], 0.3),
+                              row[1] + max(3 * row[2], 0.3))
+                             for row in table],
+                'dp': [(max(row[2] / 4, 0.02), min(row[2] * 4, 1.5))
+                       for row in table],
+            }
+    if n_components is None:
+        raise ValueError('specify n_components, initial_parameters, or priors')
+    return unmix_coercivity_bayes(x, magnetization,
+                                  n_components=n_components,
+                                  curve_type=curve_type,
+                                  vary_skew=vary_skew, priors=priors,
+                                  **kwargs)
+
+
+UNMIXING_METHODS['bayes'] = _unmix_method_bayes
+
+
+# Coercivity component prior library
+# ------------------------------------------------------------------------------------------------------------------
+# Characteristic coercivity ranges for common remanence-carrying magnetic
+# mineral components, for use as informative priors in Bayesian unmixing
+# (unmix_coercivity_bayes) or as initial parameters for the least-squares
+# methods. Covered minerals: magnetite (igneous, detrital, eolian,
+# pedogenic/extracellular, and biogenic soft/hard), oxidized maghemite, the
+# ferrimagnetic iron sulphides greigite and pyrrhotite, and the
+# antiferromagnetic iron oxides/oxyhydroxides hematite (pigmentary/detrital)
+# and goethite. Each entry gives a plausible range for the median coercivity
+# (B_median_mT), the dispersion (dp, in log10 units), and the skew, together
+# with the literature source.
+#
+# IMPORTANT CAVEATS:
+#  * The magnetite-family values derive from Egli (2004a,b), whose component
+#    analysis is based on AF demagnetization of ARM/IRM and reports the
+#    median destructive field (MDF) of the coercivity distribution. For IRM
+#    acquisition or backfield curves the relevant quantity is the median
+#    acquisition/remanence field, which is comparable to the MDF for a given
+#    mineral population but not identical; treat these as soft, approximate
+#    priors, not calibrations.
+#  * The sulphide, hematite, and goethite values are from Roberts (2025),
+#    "Mineral Magnetism". These ranges are broad on purpose: they overlap
+#    one another (greigite and pyrrhotite overlap biogenic-hard magnetite
+#    and maghemite; pyrrhotite overlaps pigmentary hematite), so a coercivity
+#    prior constrains a window, it does not identify a mineral. Al-substitution
+#    drives hematite coercivity up to ~1300 mT and then collapses it toward
+#    zero at high substitution, while Al- and micro-goethite can fall below
+#    ~60 mT.
+#  * Pyrrhotite and goethite do not magnetically saturate in ordinary
+#    laboratory fields (pyrrhotite needs >2 T; goethite is unsaturated even
+#    in 57 T fields), so a typical backfield or IRM experiment (<= 2-5 T)
+#    captures only the low-coercivity tail of such a component and
+#    underestimates its contribution; pass field_max_mT to keep priors within
+#    the measured range and interpret any such contribution as a minimum.
+#  * Component fitting near the SP/SD threshold can produce a spurious
+#    low-coercivity component (Heslop et al., 2004); an unexpectedly soft
+#    component should be checked against independent evidence.
+#  * Ranges are deliberately generous (roughly the spread of the cited
+#    populations, not a single sample). Narrow them with the `tighten`
+#    argument of mineral_priors only when justified by independent data.
+#
+# Values are the (low, high) bounds of a uniform prior on each quantity.
+COERCIVITY_COMPONENT_LIBRARY = {
+    'magnetite_pedogenic': {
+        'B_median_mT': (12.0, 25.0), 'dp': (0.25, 0.38),
+        'skew': (-1.0, 0.0),
+        'source': 'Egli (2004a), components PD/EX; Roberts (2025) '
+                  '(pedogenic / extracellular ultrafine magnetite)',
+        'note': 'ultrafine SP-SSD magnetite; MDF ~16-18 mT, DP ~0.30, '
+                'strongly left-skewed'},
+    'magnetite_detrital': {
+        'B_median_mT': (18.0, 40.0), 'dp': (0.30, 0.45),
+        'skew': (-0.7, 0.0),
+        'source': 'Egli (2004a), component D; Roberts (2025) '
+                  '(detrital magnetite)',
+        'note': 'coarse detrital magnetite in water-lain sediments; '
+                'MDF ~25-33 mT, DP ~0.35-0.40'},
+    'magnetite_igneous': {
+        'B_median_mT': (8.0, 40.0), 'dp': (0.20, 0.50),
+        'skew': (-0.6, 0.2),
+        'source': 'Roberts (2025), magnetite chapter (grain-size '
+                  'systematics of primary magmatic magnetite)',
+        'note': 'primary magmatic (titano)magnetite; broad and grain-size '
+                'dependent, spanning low-coercivity coarse PSD-MD grains to '
+                'finer PSD/SD grains in rapidly cooled volcanics; oxidation '
+                'to titanomaghemite raises coercivity (see '
+                'maghemite_oxidized)'},
+    'magnetite_eolian': {
+        'B_median_mT': (18.0, 45.0), 'dp': (0.20, 0.40),
+        'skew': (-0.6, 0.0),
+        'source': 'Egli (2004a), component ED; Roberts (2025) '
+                  '(wind-blown dust magnetite)',
+        'note': 'aeolian / loess detrital magnetite'},
+    'magnetite_biogenic_soft': {
+        'B_median_mT': (25.0, 55.0), 'dp': (0.10, 0.25),
+        'skew': (-0.5, 0.0),
+        'source': 'Egli (2004a), component BS; Roberts (2025) '
+                  '(low-coercivity magnetosomes)',
+        'note': 'biogenic soft magnetite; diagnostic narrow DP (~0.1-0.2)'},
+    'magnetite_biogenic_hard': {
+        'B_median_mT': (50.0, 100.0), 'dp': (0.08, 0.22),
+        'skew': (-0.3, 0.2),
+        'source': 'Egli (2004a), component BH; Roberts (2025) '
+                  '(high-coercivity magnetosomes)',
+        'note': 'biogenic hard magnetite; diagnostic very narrow DP'},
+    'maghemite_oxidized': {
+        'B_median_mT': (45.0, 110.0), 'dp': (0.15, 0.35),
+        'skew': (-0.6, 0.2),
+        'source': 'Egli (2004a), component L; Roberts (2025) '
+                  '(oxidized maghemite in loess)',
+        'note': 'low-temperature-oxidized magnetite/maghemite; '
+                'higher coercivity than parent magnetite'},
+    'greigite': {
+        'B_median_mT': (30.0, 95.0), 'dp': (0.15, 0.35),
+        'skew': (-0.4, 0.4),
+        'source': 'Roberts (2025), greigite chapter (Roberts et al., '
+                  '2011b compilation)',
+        'note': 'authigenic ferrimagnetic iron sulphide; stable-SD '
+                'greigite Bcr ~75 mT (60-95 mT), SD+MD mixtures ~45 mT, '
+                'MD-dominated ~25 mT; saturates below ~0.3 T'},
+    'pyrrhotite': {
+        'B_median_mT': (25.0, 150.0), 'dp': (0.20, 0.45),
+        'skew': (-0.5, 0.5),
+        'source': 'Roberts (2025), pyrrhotite chapter',
+        'note': 'monoclinic 4C pyrrhotite; medium- to high-coercivity '
+                'ferrimagnet, Bcr from ~15-20 mT (coarse MD) to ~100-200 mT '
+                '(fine SD), with metamorphic/3C samples reaching >300 mT; '
+                'requires >2 T to saturate, so backfield contributions are '
+                'minimum estimates'},
+    'hematite_pigmentary': {
+        'B_median_mT': (150.0, 700.0), 'dp': (0.35, 0.95),
+        'skew': (-0.5, 1.5),
+        'source': 'Maxbauer et al. (2016); Swanson-Hysell et al. (2019) '
+                  'red bed pigmentary hematite',
+        'note': 'fine pigmentary hematite; broad, often skewed distribution'},
+    'hematite_detrital': {
+        'B_median_mT': (500.0, 1500.0), 'dp': (0.18, 0.40),
+        'skew': (-0.5, 1.0),
+        'source': 'Swanson-Hysell et al. (2019); Ozdemir & Dunlop (2014); '
+                  'Roberts (2025) specular / detrital hematite',
+        'note': 'coarser specular/detrital hematite; narrower, '
+                'higher-coercivity than pigmentary hematite; Al-substituted '
+                'hematite coercivity peaks near ~7 mol% Al (~1300 mT) and '
+                'collapses at higher substitution'},
+    'hematite': {
+        'B_median_mT': (150.0, 1500.0), 'dp': (0.20, 0.90),
+        'skew': (-0.5, 1.5),
+        'source': 'Ozdemir & Dunlop (2014); Heslop (2015); Roberts (2025)',
+        'note': 'generic hematite window spanning pigmentary and detrital '
+                'end-members; use the specific entries when possible'},
+    'goethite': {
+        'B_median_mT': (300.0, 5000.0), 'dp': (0.20, 0.60),
+        'skew': (-0.5, 1.0),
+        'source': 'Roberts (2025) goethite chapter; Heslop (2015)',
+        'note': 'very high coercivity, but with a huge natural range: '
+                'fitted goethite components span ~300-5000 mT and FORC '
+                'coercivities in well-crystalline goethite exceed 700 mT, '
+                'while Al-substituted and microparticulate goethite can '
+                'fall below ~60 mT. Goethite remanence is unsaturated even '
+                'in 57 T fields, so ordinary backfield/IRM experiments see '
+                'only its low-coercivity tail: treat any fitted goethite '
+                'contribution as a minimum and pass field_max_mT'},
+}
+
+
+def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
+    """
+    Build a Bayesian-unmixing prior dictionary from named mineral components.
+
+    Converts a list of component names from COERCIVITY_COMPONENT_LIBRARY
+    into the `priors` dictionary accepted by unmix_coercivity_bayes, with
+    one location and dispersion (and skew) prior per component. Components
+    are sorted by their central coercivity so that the returned order
+    matches the (low-to-high coercivity) component ordering of the fit.
+
+    Because these are informative priors on an ill-posed decomposition,
+    they should be treated as soft constraints; see the caveats in the
+    COERCIVITY_COMPONENT_LIBRARY documentation (AF-demagnetization vs IRM
+    acquisition, Al-substitution, generous default ranges).
+
+    Parameters
+    ----------
+    mineral_names : list of str
+        Component names, each a key of COERCIVITY_COMPONENT_LIBRARY (e.g.
+        ['magnetite_detrital', 'hematite_pigmentary', 'hematite_detrital']).
+    tighten : float
+        Factor (>= 1) by which to narrow every range about its center; 1
+        keeps the library ranges, 2 halves their width. Use only when
+        justified by independent constraints.
+    field_max_mT : float, optional
+        Maximum applied field of the measurement (mT). Location upper
+        bounds are clipped to this value, so that components whose library
+        range extends past the measured field (e.g. goethite in a 2 T
+        experiment) are not given prior support the data cannot constrain.
+
+    Returns
+    -------
+    dict
+        A priors dictionary with 'location', 'dp', and 'skew' keys, each a
+        list of (low, high) tuples in the order of increasing coercivity,
+        suitable for `unmix_coercivity_bayes(..., priors=...)`. The chosen
+        component names, in the same order, are returned under the
+        'components' key.
+    """
+    if isinstance(mineral_names, str):
+        mineral_names = [mineral_names]
+    if tighten < 1:
+        raise ValueError('tighten must be >= 1')
+
+    def _narrow(low, high):
+        center = 0.5 * (low + high)
+        half = 0.5 * (high - low) / tighten
+        return center - half, center + half
+
+    entries = []
+    for name in mineral_names:
+        if name not in COERCIVITY_COMPONENT_LIBRARY:
+            raise KeyError(
+                f"unknown mineral component '{name}'; available: "
+                f'{sorted(COERCIVITY_COMPONENT_LIBRARY)}')
+        entry = COERCIVITY_COMPONENT_LIBRARY[name]
+        b_low, b_high = _narrow(*entry['B_median_mT'])
+        if field_max_mT is not None:
+            b_high = min(b_high, field_max_mT)
+            b_low = min(b_low, b_high)
+        entries.append((name, np.sqrt(b_low * b_high),
+                        (np.log10(b_low), np.log10(b_high)),
+                        _narrow(*entry['dp']), _narrow(*entry['skew'])))
+    entries.sort(key=lambda item: item[1])
+
+    return {
+        'components': [item[0] for item in entries],
+        'location': [item[2] for item in entries],
+        'dp': [item[3] for item in entries],
+        'skew': [item[4] for item in entries],
+    }
+
+
+def _format_mT_axis(ax):
+    """Label a log10(B) axis with field values in mT."""
+    from matplotlib.ticker import FuncFormatter
+
+    def _fmt(value, _pos):
+        field = 10 ** value
+        return f'{field:g}' if field < 1000 else f'{field:.0f}'
+    ax.xaxis.set_major_formatter(FuncFormatter(_fmt))
+
+
+def plot_coercivity_unmixing(result, show_components=True,
+                             show_bootstrap=True, show_initial=False,
+                             n_grid=300, figsize=None, title=None):
+    """
+    Plot an unmixing result in its fitted data space.
+
+    For spectrum-space fits a single panel shows the data, total model, and
+    components. For measurement-space (curve) fits an upper panel shows the
+    measured curve with the cumulative model and a lower panel shows the
+    finite-difference spectrum of the data with the implied component
+    density curves. Bootstrap 95% bands are drawn when present.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmix_coercivity_spectrum, unmix_backfield_curve, or
+        unmixing_bootstrap.
+    show_components : bool
+        Draw the individual components (default True).
+    show_bootstrap : bool
+        Draw bootstrap confidence bands if available (default True).
+    show_initial : bool
+        Also draw the model implied by the initial parameters (dotted),
+        useful for judging how far the optimizer moved (default False).
+    n_grid : int
+        Number of points for smooth model curves.
+    figsize : tuple, optional
+        Figure size; defaults depend on the number of panels.
+    title : str, optional
+        Figure title.
+
+    Returns
+    -------
+    tuple
+        (fig, axes) with axes a list of the panel axes.
+    """
+    method = result['method']
+    curve_type = result['curve_type']
+    params = result['params']
+    param_arr = params[UNMIX_PARAM_COLUMNS].to_numpy()
+    x, y = result['x'], result['y']
+    x_grid = np.linspace(x.min(), x.max(), n_grid)
+    boot = None
+    band_label = '95% bootstrap band'
+    if show_bootstrap:
+        if 'bootstrap' in result:
+            boot = result['bootstrap']
+        elif 'bayes' in result:
+            boot = result['bayes']
+            band_label = '95% credible band'
+
+    plot_as_curve = method in ('curve', 'bayes')
+    n_panels = 2 if plot_as_curve else 1
+    if figsize is None:
+        figsize = (8, 4.5 * n_panels)
+    fig, axes = plt.subplots(nrows=n_panels, ncols=1, figsize=figsize,
+                             sharex=True)
+    axes = list(np.atleast_1d(axes))
+
+    def _component_label(i):
+        row = params.loc[i]
+        return (f'component {i}: {row["B_mean_mT"]:.0f} mT, '
+                f'DP {row["sd_log"]:.2f}, {row["proportion"] * 100:.0f}%')
+
+    if plot_as_curve:
+        ax_curve, ax_spec = axes
+        ax_curve.scatter(x, y, c='grey', s=12, label='measurements')
+        ax_curve.plot(x_grid, coercivity_curve_model(
+            x_grid, param_arr, offset=result['offset'],
+            curve_type=curve_type), c='k', label='model')
+        if show_components:
+            comps = coercivity_curve_components(x_grid, param_arr,
+                                                curve_type=curve_type)
+            for i in range(len(params)):
+                ax_curve.plot(x_grid, comps[i] + result['offset'],
+                              c=f'C{i}', alpha=0.8)
+        if boot is not None:
+            curves = boot['curves']
+            ax_curve.fill_between(curves['x_grid'], curves['total_p2_5'],
+                                  curves['total_p97_5'], color='k',
+                                  alpha=0.2, label=band_label)
+        ax_curve.set_ylabel('magnetization')
+        ax_curve.legend(fontsize=9)
+        # implied spectrum panel from finite differences of the data
+        x_mid, spec = coercivity_spectrum_from_curve(x, y, curve_type)
+        ax_spec.scatter(x_mid, spec, c='grey', s=12,
+                        label='finite-difference spectrum')
+        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr),
+                     c='k', label='model')
+        if show_components:
+            comps = coercivity_spectrum_components(x_grid, param_arr)
+            for i, comp_index in enumerate(params.index):
+                ax_spec.plot(x_grid, comps[i], c=f'C{i}',
+                             label=_component_label(comp_index))
+        if show_initial:
+            init_arr = _unmix_parameters_to_array(
+                result['initial_parameters'])
+            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr),
+                         c='k', ls=':', alpha=0.6, label='initial model')
+        ax_spec.set_ylabel('dM/dlog$_{10}$(B)')
+        ax_spec.set_xlabel('field (mT)')
+        ax_spec.legend(fontsize=9)
+    else:
+        ax_spec = axes[0]
+        ax_spec.scatter(x, y, c='grey', s=12, label='coercivity spectrum')
+        if boot is not None:
+            curves = boot['curves']
+            ax_spec.fill_between(curves['x_grid'], curves['total_p2_5'],
+                                 curves['total_p97_5'], color='k', alpha=0.2,
+                                 label=band_label)
+            if show_components:
+                for i in range(len(params)):
+                    ax_spec.fill_between(curves['x_grid'],
+                                         curves['components_p2_5'][i],
+                                         curves['components_p97_5'][i],
+                                         color=f'C{i}', alpha=0.2)
+        ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr),
+                     c='k', label='model')
+        if show_components:
+            comps = coercivity_spectrum_components(x_grid, param_arr)
+            for i, comp_index in enumerate(params.index):
+                ax_spec.plot(x_grid, comps[i], c=f'C{i}',
+                             label=_component_label(comp_index))
+        if show_initial:
+            init_arr = _unmix_parameters_to_array(
+                result['initial_parameters'])
+            ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, init_arr),
+                         c='k', ls=':', alpha=0.6, label='initial model')
+        ax_spec.set_ylabel('dM/dlog$_{10}$(B)')
+        ax_spec.set_xlabel('field (mT)')
+        ax_spec.legend(fontsize=9)
+
+    for ax in axes:
+        _format_mT_axis(ax)
+    if title is not None:
+        fig.suptitle(title)
+    fig.tight_layout()
+    return fig, axes
+
+
+def _unmixing_samples(result):
+    """
+    Return the per-draw parameter samples from a bootstrap or Bayesian result.
+
+    Both unmixing_bootstrap and unmix_coercivity_bayes attach a dictionary of
+    posterior/bootstrap draws (one array of shape (n_draws, n_components) per
+    tracked quantity). This helper returns that dictionary along with a label
+    describing the uncertainty source, or raises if the result carries no
+    draws.
+
+    Returns
+    -------
+    tuple
+        (samples, source_label) where samples maps quantity name -> array of
+        shape (n_draws, n_components) and source_label is 'bootstrap' or
+        'posterior'.
+    """
+    if 'bayes' in result:
+        return result['bayes']['samples'], 'posterior'
+    if 'bootstrap' in result:
+        return result['bootstrap']['param_samples'], 'bootstrap'
+    raise ValueError('result has no bootstrap or Bayesian draws; run '
+                     'unmixing_bootstrap or method="bayes" first')
+
+
+def plot_unmixing_posterior(result, quantity='B_mean_mT', bins=40,
+                            figsize=None, colors=None):
+    """
+    Plot marginal uncertainty distributions of a component quantity.
+
+    Draws one histogram per component of the requested derived quantity from
+    the bootstrap or Bayesian draws, with the median and 95% interval marked.
+    This visualizes how tightly each component parameter is constrained,
+    including asymmetric and multimodal uncertainties that a single
+    standard-error value cannot convey.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmixing_bootstrap or unmix_coercivity_bayes.
+    quantity : str
+        Name of the quantity to plot (e.g. 'B_mean_mT', 'proportion',
+        'sd_log', 'location', 'dp', 'skew'). Must be present in the draws.
+    bins : int
+        Number of histogram bins.
+    figsize : tuple, optional
+        Figure size; defaults to (7, 2.2 * n_components).
+    colors : list, optional
+        Per-component colors; defaults to the matplotlib C0, C1, ... cycle.
+
+    Returns
+    -------
+    tuple
+        (fig, axes).
+    """
+    samples, source = _unmixing_samples(result)
+    if quantity not in samples:
+        raise KeyError(f"'{quantity}' is not in the draws; available: "
+                       f'{sorted(samples)}')
+    values = np.asarray(samples[quantity])
+    K = values.shape[1]
+    log_x = quantity in ('B_mean_mT', 'B_median_mT', 'B_peak_mT')
+    if figsize is None:
+        figsize = (7, 2.2 * K)
+    if colors is None:
+        colors = [f'C{i}' for i in range(K)]
+    fig, axes = plt.subplots(K, 1, figsize=figsize, squeeze=False)
+    axes = axes.ravel()
+    for i in range(K):
+        column = values[:, i]
+        median = np.median(column)
+        low, high = np.percentile(column, [2.5, 97.5])
+        if log_x:
+            bin_edges = np.logspace(np.log10(column.min()),
+                                    np.log10(column.max()), bins)
+            axes[i].set_xscale('log')
+        else:
+            bin_edges = bins
+        axes[i].hist(column, bins=bin_edges, color=colors[i], alpha=0.6,
+                     density=True)
+        axes[i].axvline(median, color='k', lw=1.2,
+                        label=f'median {median:.3g}')
+        axes[i].axvline(low, color='k', ls='--', lw=0.9)
+        axes[i].axvline(high, color='k', ls='--', lw=0.9,
+                        label=f'95%: [{low:.3g}, {high:.3g}]')
+        axes[i].set_ylabel(f'component {i + 1}')
+        axes[i].legend(fontsize=8)
+    axes[-1].set_xlabel(f'{quantity} ({source} draws)')
+    fig.tight_layout()
+    return fig, axes
+
+
+def plot_unmixing_tradeoff(result, x='B_mean_mT', y='proportion',
+                           component=None, figsize=(5, 5), colors=None):
+    """
+    Scatter two component quantities across draws to reveal parameter trade-offs.
+
+    Overlapping coercivity components trade parameters against one another;
+    plotting one quantity against another across the bootstrap or posterior
+    draws exposes these correlations (and any multimodality) that marginal
+    intervals hide. By default every component is shown; pass a component
+    index to isolate one.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmixing_bootstrap or unmix_coercivity_bayes.
+    x, y : str
+        Quantity names for the two axes (e.g. 'B_mean_mT', 'proportion',
+        'sd_log').
+    component : int, optional
+        1-based component index to plot alone; if None, all components are
+        overlaid.
+    figsize : tuple
+        Figure size.
+    colors : list, optional
+        Per-component colors.
+
+    Returns
+    -------
+    tuple
+        (fig, ax).
+    """
+    samples, source = _unmixing_samples(result)
+    for name in (x, y):
+        if name not in samples:
+            raise KeyError(f"'{name}' is not in the draws; available: "
+                           f'{sorted(samples)}')
+    xv = np.asarray(samples[x])
+    yv = np.asarray(samples[y])
+    K = xv.shape[1]
+    components = range(K) if component is None else [component - 1]
+    if colors is None:
+        colors = [f'C{i}' for i in range(K)]
+    fig, ax = plt.subplots(figsize=figsize)
+    for i in components:
+        ax.scatter(xv[:, i], yv[:, i], s=6, alpha=0.25, color=colors[i],
+                   edgecolors='none', label=f'component {i + 1}')
+    if x in ('B_mean_mT', 'B_median_mT', 'B_peak_mT'):
+        ax.set_xscale('log')
+    if y in ('B_mean_mT', 'B_median_mT', 'B_peak_mT'):
+        ax.set_yscale('log')
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    ax.set_title(f'parameter trade-off ({source} draws)')
+    if component is None and K > 1:
+        ax.legend(fontsize=8)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_unmixing_ensemble(result, space='spectrum', n_draws=200, n_grid=300,
+                           show_components=True, figsize=(8, 5), title=None,
+                           colors=None, random_seed=None):
+    """
+    Overlay many draws of the model curves to visualize decomposition spread.
+
+    Rather than a single best fit with an error band, this draws the total
+    model and (optionally) the individual components for many bootstrap or
+    posterior samples, so the full range of decompositions consistent with
+    the data is visible directly -- including cases where components exchange
+    coercivity or amplitude between draws.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmixing_bootstrap or unmix_coercivity_bayes.
+    space : str
+        'spectrum' (dM/dlog10 B) or 'curve' (measurement space).
+    n_draws : int
+        Number of draws to overlay (capped at the number available).
+    n_grid : int
+        Number of field points for the smooth curves.
+    show_components : bool
+        Overlay per-component curves in addition to the total.
+    figsize : tuple
+        Figure size.
+    title : str, optional
+        Figure title.
+    colors : list, optional
+        Per-component colors.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for choosing which draws to plot.
+
+    Returns
+    -------
+    tuple
+        (fig, ax).
+    """
+    assert space in ('spectrum', 'curve'), \
+        "space must be 'spectrum' or 'curve'"
+    samples, source = _unmixing_samples(result)
+    rng = _resolve_rng(random_seed)
+    curve_type = result['curve_type']
+    x, y = result['x'], result['y']
+    x_grid = np.linspace(x.min(), x.max(), n_grid)
+
+    contribution = np.asarray(samples['contribution'])
+    location = np.asarray(samples['location'])
+    dp = np.asarray(samples['dp'])
+    skew = np.asarray(samples['skew'])
+    n_available, K = contribution.shape
+    if colors is None:
+        colors = [f'C{i}' for i in range(K)]
+    offset_draws = np.asarray(result['bayes']['samples']['offset']) \
+        if ('bayes' in result and space == 'curve') else None
+
+    n_plot = min(n_draws, n_available)
+    idx = rng.choice(n_available, size=n_plot, replace=False)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    # data
+    if space == 'spectrum':
+        x_mid, spectrum = coercivity_spectrum_from_curve(x, y, curve_type)
+        ax.scatter(x_mid, spectrum, s=10, c='grey', alpha=0.5, zorder=3,
+                   label='data spectrum')
+    else:
+        ax.scatter(x, y, s=10, c='grey', alpha=0.5, zorder=3, label='data')
+
+    for draw, j in enumerate(idx):
+        params = np.column_stack([contribution[j], location[j], dp[j],
+                                  skew[j]])
+        if space == 'spectrum':
+            total = coercivity_spectrum_model(x_grid, params)
+            comps = (coercivity_spectrum_components(x_grid, params)
+                     if show_components else None)
+        else:
+            offset = offset_draws[j] if offset_draws is not None \
+                else result['offset']
+            total = coercivity_curve_model(x_grid, params, offset=offset,
+                                           curve_type=curve_type)
+            comps = (coercivity_curve_components(x_grid, params,
+                                                 curve_type=curve_type)
+                     if show_components else None)
+        ax.plot(x_grid, total, color='k', alpha=0.04, lw=0.8,
+                label='model draws' if draw == 0 else None)
+        if comps is not None:
+            for i in range(K):
+                ax.plot(x_grid, comps[i], color=colors[i], alpha=0.04,
+                        lw=0.8,
+                        label=f'component {i + 1}' if draw == 0 else None)
+    ax.set_xlabel('field (mT)')
+    ax.set_ylabel('dM/dlog$_{10}$(B)' if space == 'spectrum'
+                  else 'magnetization')
+    _format_mT_axis(ax)
+    ax.set_title(title if title is not None
+                 else f'ensemble of {n_plot} {source} draws')
+    # legend with opaque proxies
+    handles, labels = ax.get_legend_handles_labels()
+    for handle in handles:
+        handle.set_alpha(1.0)
+    ax.legend(handles, labels, fontsize=8)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
+                              n_grid=300, figsize=None, colors=None):
+    """
+    Visualize the distinct solutions found by a multi-start analysis.
+
+    Produces a panel of small multiples, one per distinct solution (ordered
+    by Akaike weight), each showing that solution's decomposition against the
+    data, plus a final parameter-space map that places every solution's
+    components on a coercivity-versus-proportion plot. Together these make
+    the non-uniqueness of the decomposition concrete: how many genuinely
+    different solutions the data admit, how each partitions the spectrum, and
+    how much statistical support each carries.
+
+    Parameters
+    ----------
+    result : dict
+        Result from unmixing_multistart (carries a 'multistart' entry).
+    max_solutions : int
+        Maximum number of distinct solutions to draw as small multiples
+        (the highest-weight solutions are shown).
+    space : str
+        'spectrum' (dM/dlog10 B) or 'curve' (measurement space) for the
+        decomposition panels.
+    n_grid : int
+        Number of field points for the smooth model curves.
+    figsize : tuple, optional
+        Figure size; a default is chosen from the panel count.
+    colors : list, optional
+        Per-solution colors; defaults to the tab10 cycle.
+
+    Returns
+    -------
+    tuple
+        (fig, axes).
+    """
+    if 'multistart' not in result:
+        raise ValueError('result has no multistart analysis; run '
+                         'unmixing_multistart first')
+    assert space in ('spectrum', 'curve'), \
+        "space must be 'spectrum' or 'curve'"
+    multistart = result['multistart']
+    solutions = multistart['solutions']
+    solution_results = multistart['results']
+    curve_type = result['curve_type']
+    x, y = result['x'], result['y']
+    x_grid = np.linspace(x.min(), x.max(), n_grid)
+
+    # order solutions by Akaike weight (descending)
+    order = np.argsort(solutions['akaike_weight'].to_numpy())[::-1]
+    n_show = min(max_solutions, len(order))
+    order = order[:n_show]
+    if colors is None:
+        cmap = plt.get_cmap('tab10')
+        colors = [cmap(i % 10) for i in range(len(solution_results))]
+
+    n_panels = n_show + 1  # decompositions + parameter map
+    n_cols = min(3, n_panels)
+    n_rows = int(np.ceil(n_panels / n_cols))
+    if figsize is None:
+        figsize = (4.2 * n_cols, 3.2 * n_rows)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize, squeeze=False)
+    axes_flat = axes.ravel()
+
+    if space == 'spectrum':
+        x_data, y_data = coercivity_spectrum_from_curve(x, y, curve_type)
+    else:
+        x_data, y_data = x, y
+
+    for panel, sol_idx in enumerate(order):
+        ax = axes_flat[panel]
+        fit = solution_results[sol_idx]
+        params = fit['params'][UNMIX_PARAM_COLUMNS].to_numpy()
+        weight = solutions['akaike_weight'].iloc[sol_idx]
+        n_hits = int(solutions['n_hits'].iloc[sol_idx])
+        ax.scatter(x_data, y_data, s=8, c='lightgrey', zorder=1)
+        if space == 'spectrum':
+            total = coercivity_spectrum_model(x_grid, params)
+            comps = coercivity_spectrum_components(x_grid, params)
+        else:
+            total = coercivity_curve_model(x_grid, params,
+                                           offset=fit.get('offset', 0.0),
+                                           curve_type=curve_type)
+            comps = coercivity_curve_components(x_grid, params,
+                                                curve_type=curve_type)
+        for i in range(len(params)):
+            ax.plot(x_grid, comps[i], color=colors[sol_idx], lw=1.2,
+                    alpha=0.9)
+        ax.plot(x_grid, total, color='k', lw=1.2)
+        ax.set_title(f'solution {sol_idx + 1}: weight {weight:.2f}, '
+                     f'{n_hits} starts', fontsize=9,
+                     color=colors[sol_idx])
+        _format_mT_axis(ax)
+        ax.set_xlabel('field (mT)', fontsize=8)
+        ax.tick_params(labelsize=7)
+
+    # parameter-space map panel
+    ax_map = axes_flat[n_show]
+    for sol_idx in order:
+        row = solutions.iloc[sol_idx]
+        weight = row['akaike_weight']
+        component_cols = [c for c in solutions.columns
+                          if c.startswith('B_mean_mT_c')]
+        for col in component_cols:
+            suffix = col.split('_c')[-1]
+            proportion = row.get(f'proportion_c{suffix}', np.nan)
+            ax_map.scatter(row[col], proportion, s=30 + 300 * weight,
+                           color=colors[sol_idx], alpha=0.7,
+                           edgecolors='k', linewidths=0.5)
+    # x-data are already in mT (not log10 units), so a plain log scale is used
+    ax_map.set_xscale('log')
+    ax_map.set_xlabel('component mean coercivity (mT)', fontsize=8)
+    ax_map.set_ylabel('proportion', fontsize=8)
+    ax_map.set_title('solution map (size = Akaike weight)', fontsize=9)
+    ax_map.tick_params(labelsize=7)
+
+    for ax in axes_flat[n_panels:]:
+        ax.axis('off')
+    fig.tight_layout()
+    return fig, axes_flat[:n_panels]
+
+
+def interactive_coercivity_unmixing(x, magnetization, n_components=2,
+                                    method='spectrum',
+                                    curve_type='backfield', vary_skew=True,
+                                    figsize=(9, 5)):
+    """
+    Interactive widget for choosing initial unmixing parameters visually.
+
+    Initial parameter choices strongly influence nonlinear unmixing fits.
+    This widget shows the coercivity spectrum with a live model built from
+    per-component sliders (peak field in mT on a log scale, proportion of
+    the total remanence, dispersion DP, and skew). Sliders are seeded from
+    automatic peak detection. Pressing "Fit" runs the chosen optimizer
+    (spectrum- or measurement-space) starting from the current slider
+    values and overlays the optimized model.
+
+    *Important*: run `%matplotlib widget` in the notebook first so the
+    figure updates live.
+
+    Parameters
+    ----------
+    x : array-like
+        log10 of field values (mT), e.g. 'log_dc_field' from
+        backfield_data_processing.
+    magnetization : array-like
+        Remanence curve values at x (e.g. 'magn_mass_shift').
+    n_components : int
+        Number of components (default 2).
+    method : str
+        'spectrum' or 'curve' -- the fitting approach used by the Fit
+        button.
+    curve_type : str
+        'backfield' or 'acquisition'.
+    vary_skew : bool
+        Include skew sliders and let the fit vary skew (default True).
+    figsize : tuple
+        Figure size.
+
+    Returns
+    -------
+    dict
+        A live handle with keys 'initial_parameters' (DataFrame updated as
+        sliders move; pass to the unmixing functions) and 'result' (filled
+        with the standardized result dictionary after Fit is pressed).
+    """
+    _check_ipywidgets()
+    assert method in ('spectrum', 'curve'), \
+        "method must be 'spectrum' or 'curve'"
+    x = np.asarray(x, dtype=float)
+    M = np.asarray(magnetization, dtype=float)
+    x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
+    total_area = _trapz(spectrum, x_mid)
+    x_grid = np.linspace(x.min(), x.max(), 300)
+
+    auto = estimate_coercivity_components(x_mid, spectrum, n_components)
+    handle = {'initial_parameters': None, 'result': None}
+
+    fig, ax = plt.subplots(figsize=figsize)
+    fig.canvas.header_visible = False
+
+    sliders = []
+    for i in range(n_components):
+        peak_mT = 10 ** auto['location'][i]
+        proportion_0 = min(auto['contribution'][i] / total_area, 1.0)
+        column = [
+            widgets.FloatLogSlider(value=peak_mT, base=10,
+                                   min=x.min(), max=x.max(), step=0.01,
+                                   description=f'B{i + 1} (mT)',
+                                   continuous_update=False),
+            widgets.FloatSlider(value=round(proportion_0, 2), min=0.0,
+                                max=1.0, step=0.01,
+                                description=f'proportion{i + 1}',
+                                continuous_update=False),
+            widgets.FloatSlider(value=round(auto['dp'][i], 2), min=0.02,
+                                max=1.2, step=0.01,
+                                description=f'DP{i + 1}',
+                                continuous_update=False),
+        ]
+        if vary_skew:
+            column.append(widgets.FloatSlider(value=0.0, min=-8.0, max=8.0,
+                                              step=0.1,
+                                              description=f'skew{i + 1}',
+                                              continuous_update=False))
+        sliders.append(column)
+
+    fit_button = widgets.Button(description='Fit from these values',
+                                button_style='primary')
+    output = Output()
+
+    def slider_parameters():
+        rows = []
+        for column in sliders:
+            rows.append({
+                'contribution': column[1].value * total_area,
+                'location': np.log10(column[0].value),
+                'dp': column[2].value,
+                'skew': column[3].value if vary_skew else 0.0,
+            })
+        return pd.DataFrame(rows)
+
+    def redraw(*_args):
+        parameters = slider_parameters()
+        handle['initial_parameters'] = parameters
+        ax.clear()
+        ax.scatter(x_mid, spectrum, c='grey', s=10, alpha=0.6,
+                   label='coercivity spectrum')
+        arr = parameters[UNMIX_PARAM_COLUMNS].to_numpy()
+        comps = coercivity_spectrum_components(x_grid, arr)
+        for i in range(n_components):
+            ax.plot(x_grid, comps[i], c=f'C{i}', ls='--', alpha=0.8,
+                    label=f'component {i + 1}')
+        ax.plot(x_grid, comps.sum(axis=0), c='k', ls='--', alpha=0.8,
+                label='total (manual)')
+        if handle['result'] is not None:
+            fitted = handle['result']['params'][UNMIX_PARAM_COLUMNS].to_numpy()
+            fitted_comps = coercivity_spectrum_components(x_grid, fitted)
+            for i in range(n_components):
+                ax.plot(x_grid, fitted_comps[i], c=f'C{i}')
+            ax.plot(x_grid, fitted_comps.sum(axis=0), c='k',
+                    label='total (fitted)')
+        ax.set_xlabel('field (mT)')
+        ax.set_ylabel('dM/dlog$_{10}$(B)')
+        _format_mT_axis(ax)
+        ax.legend(fontsize=8)
+        fig.canvas.draw_idle()
+
+    def run_fit(_button):
+        parameters = slider_parameters()
+        with output:
+            output.clear_output()
+            try:
+                if method == 'spectrum':
+                    handle['result'] = unmix_coercivity_spectrum(
+                        x_mid, spectrum, initial_parameters=parameters,
+                        vary_skew=vary_skew)
+                else:
+                    handle['result'] = unmix_backfield_curve(
+                        x, M, initial_parameters=parameters,
+                        curve_type=curve_type, vary_skew=vary_skew)
+            except (ValueError, RuntimeError) as error:
+                print(f'fit failed: {error}')
+                return
+            stats = handle['result']['stats']
+            print(f"fit success: {handle['result']['success']}, "
+                  f"R^2 = {stats['r_squared']:.5f}, "
+                  f"AIC = {stats['aic']:.1f}, BIC = {stats['bic']:.1f}")
+            display(handle['result']['params'].round(4))
+        redraw()
+
+    for column in sliders:
+        for slider in column:
+            slider.observe(redraw, names='value')
+    fit_button.on_click(run_fit)
+
+    display(HBox([VBox(column) for column in sliders]))
+    display(fit_button)
+    display(output)
+    redraw()
+    return handle
+
+
+def unmix_backfield_experiments(measurements, experiments=None,
+                                n_components=2, method='spectrum',
+                                initial_parameters=None, vary_skew=True,
+                                n_boot=0, resample='cases',
+                                proportion=1.0, noise_level=None,
+                                smooth_mode='spline', smooth_frac=0.0,
+                                drop_first=False, field='treat_dc_field',
+                                magnetization='magn_mass', random_seed=None,
+                                verbose=True, **method_kwargs):
+    """
+    Batch coercivity unmixing of backfield experiments in a MagIC
+    measurements table.
+
+    Each experiment is processed with backfield_data_processing and unmixed
+    with the requested method (any name registered in UNMIXING_METHODS,
+    dispatched through unmix_coercivity). When initial parameters are not
+    supplied they are estimated automatically per experiment; supplying a
+    common initial-parameter table (or a per-experiment dict, e.g. built
+    with interactive_coercivity_unmixing) enforces a consistent starting
+    model across specimens, which aids comparability of the resulting
+    components.
+
+    Parameters
+    ----------
+    measurements : pandas.DataFrame
+        MagIC measurements table (must include 'experiment', 'specimen',
+        'method_codes', and the field/magnetization columns).
+    experiments : list, optional
+        Experiment names to process. Defaults to all experiments whose
+        method_codes include 'LP-BCR-BF'.
+    n_components : int
+        Number of components fit to each experiment (default 2).
+    method : str
+        Registered unmixing method name: 'spectrum', 'curve', 'maxunmix',
+        or a custom method added with register_unmixing_method.
+    initial_parameters : pandas.DataFrame or dict, optional
+        Either a single initial-parameter table applied to every
+        experiment, or a dict mapping experiment name -> table. Experiments
+        missing from the dict fall back to automatic estimation.
+    vary_skew : bool
+        Whether skew parameters vary during fitting.
+    n_boot : int
+        If > 0, ensure each result carries a bootstrap with this many
+        replicates (methods that bootstrap internally, like 'maxunmix',
+        are not re-bootstrapped).
+    resample, proportion, noise_level : see unmixing_bootstrap.
+    smooth_mode, smooth_frac, drop_first : see backfield_data_processing.
+        The defaults (spline with smooth_frac=0) leave the data unsmoothed.
+    field, magnetization : str
+        Column names in the measurements table.
+    random_seed : None, int, or numpy.random.Generator
+        Seed for reproducible bootstraps.
+    verbose : bool
+        Print progress and failures.
+    **method_kwargs
+        Additional keyword arguments passed to the unmixing method.
+
+    Returns
+    -------
+    tuple
+        (components_df, results) where components_df is a tidy DataFrame
+        with one row per experiment and component (parameters, derived
+        coercivities, uncertainties, fit statistics, and Bcr) and results
+        is a dict mapping experiment name -> full result dictionary.
+    """
+    if method not in UNMIXING_METHODS:
+        raise ValueError(f"unknown unmixing method '{method}'; available: "
+                         f'{sorted(UNMIXING_METHODS)}')
+    if experiments is None:
+        is_backfield = measurements['method_codes'].astype(str).str.contains(
+            'LP-BCR-BF', na=False)
+        experiments = list(pd.unique(
+            measurements.loc[is_backfield, 'experiment']))
+    if len(experiments) == 0:
+        raise ValueError('no backfield experiments found')
+    rng = _resolve_rng(random_seed)
+
+    results = {}
+    rows = []
+    failures = []
+    for experiment_name in experiments:
+        experiment = measurements[
+            measurements['experiment'] == experiment_name].copy()
+        if len(experiment) == 0:
+            failures.append((experiment_name, 'experiment not found'))
+            continue
+        specimen = (experiment['specimen'].iloc[0]
+                    if 'specimen' in experiment.columns else '')
+        try:
+            processed, Bcr = backfield_data_processing(
+                experiment, field=field, magnetization=magnetization,
+                smooth_mode=smooth_mode, smooth_frac=smooth_frac,
+                drop_first=drop_first)
+            x = processed['log_dc_field'].to_numpy()
+            M = processed['magn_mass_shift'].to_numpy()
+            if smooth_frac > 0:
+                x_s = processed['smoothed_log_dc_field'].to_numpy()
+                M_s = processed['smoothed_magn_mass_shift'].to_numpy()
+            else:
+                x_s, M_s = x, M
+
+            if isinstance(initial_parameters, dict):
+                initial = initial_parameters.get(experiment_name)
+            else:
+                initial = initial_parameters
+            if initial is not None:
+                initial = initial.copy()
+
+            # methods operating on the derivative use the (optionally
+            # smoothed) curve; the measurement-space method always fits
+            # the unsmoothed data
+            x_fit, M_fit = (x, M) if method == 'curve' else (x_s, M_s)
+            if method == 'maxunmix':
+                method_kwargs.setdefault('n_boot', n_boot if n_boot > 0
+                                         else 100)
+                method_kwargs.setdefault('random_seed', rng)
+            result = unmix_coercivity(
+                x_fit, M_fit, method=method, n_components=n_components,
+                initial_parameters=initial, vary_skew=vary_skew,
+                **method_kwargs)
+            if n_boot > 0 and 'bootstrap' not in result and 'bayes' not in result:
+                result = unmixing_bootstrap(
+                    result, n_boot=n_boot, resample=resample,
+                    proportion=proportion, noise_level=noise_level,
+                    random_seed=rng)
+        except (ValueError, RuntimeError, KeyError) as error:
+            failures.append((experiment_name, str(error)))
+            if verbose:
+                print(f'  {experiment_name}: FAILED ({error})')
+            continue
+
+        results[experiment_name] = result
+        stats = result['stats']
+        for comp_index, prow in result['params'].iterrows():
+            row = {
+                'experiment': experiment_name,
+                'specimen': specimen,
+                'method': method,
+                'n_components': n_components,
+                'component': comp_index,
+                'success': result['success'],
+                'Bcr_mT': Bcr * 1e3 if np.isfinite(Bcr) else np.nan,
+                'rss': stats['rss'],
+                'r_squared': stats['r_squared'],
+                'aic': stats['aic'],
+                'bic': stats['bic'],
+            }
+            row.update(prow.to_dict())
+            uncertainty = result.get('bootstrap') or result.get('bayes')
+            if uncertainty is not None:
+                summary_row = uncertainty['param_summary'].loc[comp_index]
+                for name in ['proportion', 'B_mean_mT', 'sd_log']:
+                    row[f'{name}_std'] = summary_row[f'{name}_std']
+                    row[f'{name}_p2_5'] = summary_row[f'{name}_p2_5']
+                    row[f'{name}_p97_5'] = summary_row[f'{name}_p97_5']
+            rows.append(row)
+        if verbose:
+            summary = ', '.join(
+                f"{prow['B_mean_mT']:.0f} mT ({prow['proportion'] * 100:.0f}%)"
+                for _i, prow in result['params'].iterrows())
+            print(f'  {experiment_name} ({specimen}): {summary}, '
+                  f"R^2 = {stats['r_squared']:.4f}")
+
+    components_df = pd.DataFrame(rows)
+    if verbose and failures:
+        print(f'{len(failures)} experiment(s) failed: '
+              f'{[name for name, _reason in failures]}')
+    return components_df, results
+
+
+def parse_specimen_description(description):
+    """
+    Parse a MagIC specimens 'description' cell into (text, dict).
+
+    The description convention used here stores free text and a
+    machine-readable JSON dictionary separated by ' | '. Legacy cells that
+    contain a Python dict repr (from older rockmagpy versions) are parsed
+    with ast.literal_eval.
+
+    Parameters
+    ----------
+    description : str or NaN
+        Contents of the description cell.
+
+    Returns
+    -------
+    tuple
+        (text, data) where text is the free-text portion (str, possibly
+        empty) and data is the parsed dictionary (possibly empty).
+    """
+    if description is None or (isinstance(description, float)
+                               and np.isnan(description)):
+        return '', {}
+    description = str(description).strip()
+    if not description:
+        return '', {}
+    text, data = description, {}
+    if ' | ' in description:
+        candidate_text, candidate_json = description.split(' | ', 1)
+        try:
+            data = json.loads(candidate_json)
+            return candidate_text, data
+        except (json.JSONDecodeError, ValueError):
+            pass
+    for parser in (json.loads, ast.literal_eval):
+        try:
+            parsed = parser(description)
+            if isinstance(parsed, dict):
+                return '', parsed
+        except (ValueError, SyntaxError):
+            continue
+    return text, data
+
+
+def _unmixing_component_record(row):
+    """Build the JSON-serializable record for one unmixing component row."""
+    record = {
+        'component': int(row['component']),
+        'B_mean_mT': round(float(row['B_mean_mT']), 2),
+        'B_median_mT': round(float(row['B_median_mT']), 2),
+        'DP': round(float(row['sd_log']), 4),
+        'skew': round(float(row['skew']), 4),
+        'proportion': round(float(row['proportion']), 4),
+        'contribution': float(row['contribution']),
+    }
+    if 'B_mean_mT_p2_5' in row.index and pd.notna(row['B_mean_mT_p2_5']):
+        record['B_mean_mT_95CI'] = [round(float(row['B_mean_mT_p2_5']), 2),
+                                    round(float(row['B_mean_mT_p97_5']), 2)]
+        record['proportion_95CI'] = [round(float(row['proportion_p2_5']), 4),
+                                     round(float(row['proportion_p97_5']), 4)]
+    return record
+
+
+def _match_specimen_rows(specimens_df, experiment_name, specimen_name):
+    """Boolean mask of specimens rows matching an experiment (or specimen)."""
+    if 'experiments' in specimens_df.columns:
+        mask = specimens_df['experiments'].astype(str).str.contains(
+            str(experiment_name), na=False, regex=False)
+    else:
+        mask = pd.Series(False, index=specimens_df.index)
+    if not mask.any() and 'specimen' in specimens_df.columns:
+        mask = specimens_df['specimen'] == specimen_name
+    return mask
+
+
+def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
+    """
+    Record coercivity unmixing results in a MagIC specimens table.
+
+    Two recording conventions are supported:
+
+    - mode='rows' (default, conformant with the MagIC data model): one new
+      specimens row is appended per experiment and component, populating
+      the controlled-vocabulary columns rem_cmf (component median field,
+      in tesla), rem_cd (component dispersion, log10 units), and
+      rem_n_comp (number of components in the model), along with specimen
+      identity columns copied from the matching existing row. The full
+      parameter set (proportion, skew, confidence intervals, ...) is
+      stored as JSON in each new row's 'description' cell. Rows from a
+      previous call for the same experiments are replaced.
+    - mode='description': the matching existing specimens rows are updated
+      in place, storing the complete unmixing model as JSON under the
+      'coercivity_unmixing' key in 'description' (any existing free text
+      is preserved with a 'text | json' convention readable by
+      parse_specimen_description).
+
+    Parameters
+    ----------
+    specimens_df : pandas.DataFrame
+        MagIC specimens table.
+    components_df : pandas.DataFrame
+        Tidy components table from unmix_backfield_experiments.
+    mode : str
+        'rows' or 'description'.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The updated specimens table. With mode='description' the input
+        table is also modified in place; with mode='rows' a new table is
+        returned (pandas cannot append rows in place).
+    """
+    assert mode in ('rows', 'description'), \
+        "mode must be 'rows' or 'description'"
+    if 'description' not in specimens_df.columns:
+        specimens_df['description'] = np.nan
+    specimens_df['description'] = specimens_df['description'].astype(object)
+
+    if mode == 'description':
+        for experiment_name, group in components_df.groupby('experiment'):
+            first = group.iloc[0]
+            unmix_record = {
+                'method': f"rockmagpy_{first['method']}",
+                'software_version': pmagpy_version,
+                'n_components': int(first['n_components']),
+                'r_squared': round(float(first['r_squared']), 5),
+                'components': [_unmixing_component_record(row)
+                               for _i, row in group.iterrows()],
+            }
+            mask = _match_specimen_rows(specimens_df, experiment_name,
+                                        first['specimen'])
+            for idx in specimens_df.index[mask]:
+                text, data = parse_specimen_description(
+                    specimens_df.at[idx, 'description'])
+                data['coercivity_unmixing'] = unmix_record
+                payload = json.dumps(data)
+                specimens_df.at[idx, 'description'] = (
+                    f'{text} | {payload}' if text else payload)
+        return specimens_df
+
+    # mode == 'rows': one MagIC specimens row per component
+    identity_columns = ['specimen', 'sample', 'experiments', 'citations',
+                        'result_quality', 'weight', 'volume']
+    new_rows = []
+    processed_experiments = []
+    for experiment_name, group in components_df.groupby('experiment'):
+        first = group.iloc[0]
+        mask = _match_specimen_rows(specimens_df, experiment_name,
+                                    first['specimen'])
+        template = (specimens_df.loc[mask].iloc[0]
+                    if mask.any() else pd.Series(dtype=object))
+        processed_experiments.append(str(experiment_name))
+        for _i, row in group.iterrows():
+            new_row = {col: template[col] for col in identity_columns
+                       if col in template.index and pd.notna(template[col])}
+            new_row.setdefault('specimen', first['specimen'])
+            new_row.setdefault('experiments', str(experiment_name))
+            new_row['method_codes'] = 'LP-BCR-BF'
+            new_row['software_packages'] = pmagpy_version
+            new_row['rem_cmf'] = float(row['B_median_mT']) * 1e-3  # tesla
+            new_row['rem_cd'] = float(row['sd_log'])
+            new_row['rem_n_comp'] = int(row['n_components'])
+            if pd.notna(row.get('Bcr_mT')):
+                new_row['rem_bcr'] = float(row['Bcr_mT']) * 1e-3  # tesla
+            record = {'coercivity_unmixing': {
+                'method': f"rockmagpy_{row['method']}",
+                'software_version': pmagpy_version,
+                'experiment': str(experiment_name),
+                'n_components': int(row['n_components']),
+                'r_squared': round(float(row['r_squared']), 5),
+                'component': _unmixing_component_record(row),
+            }}
+            new_row['description'] = json.dumps(record)
+            new_rows.append(new_row)
+
+    # drop rows added by a previous call for these experiments
+    is_previous = (specimens_df['description'].astype(str).str.contains(
+        '"coercivity_unmixing"', na=False, regex=False)
+        & specimens_df.get('rem_cmf', pd.Series(np.nan,
+                                                index=specimens_df.index))
+        .notna())
+    if 'experiments' in specimens_df.columns:
+        in_processed = specimens_df['experiments'].astype(str).isin(
+            processed_experiments)
+        is_previous = is_previous & in_processed
+    kept = specimens_df.loc[~is_previous]
+    return pd.concat([kept, pd.DataFrame(new_rows)], ignore_index=True)
 
 
 # Day plot functions
