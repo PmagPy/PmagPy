@@ -124,6 +124,33 @@ class TestSplitWarmCool:
         assert warm_T.size == 2
         assert np.all(np.isfinite(warm_X))
 
+    def test_duplicate_heating_temperatures_no_phantom_cooling(self):
+        # repeated furnace-stabilization temperatures on a heating-only run
+        # must stay on the heating branch, not seed a spurious cooling branch
+        T = np.repeat(np.arange(300.0, 901.0, 50.0), 2)
+        df = pd.DataFrame({
+            "meas_temp": T,
+            "magn_mass": np.linspace(1.0, 0.1, T.size),
+        })
+        warm_T, _, cool_T, _ = rmag.split_warm_cool(
+            df, magnetic_column="magn_mass"
+        )
+        assert cool_T.size == 0
+        assert warm_T.size == T.size
+
+    def test_noisy_heating_temperatures_no_phantom_cooling(self):
+        # temperature read-noise larger than the step must not scatter heating
+        # points into the cooling branch
+        rng = np.random.RandomState(0)
+        base = np.arange(300.0, 900.0, 3.0)
+        T = base + rng.normal(0.0, 3.0, base.size)
+        df = pd.DataFrame({
+            "meas_temp": T,
+            "magn_mass": np.linspace(1.0, 0.1, T.size),
+        })
+        _, _, cool_T, _ = rmag.split_warm_cool(df, magnetic_column="magn_mass")
+        assert cool_T.size == 0
+
 
 class TestPrepareThermomagBranches:
     def test_branches_ascending_and_holder_removed(self, heat_cool_experiment):
@@ -142,6 +169,15 @@ class TestPrepareThermomagBranches:
         branches = rmag.prepare_thermomag_branches(df)
         assert branches["cooling"] is None
         assert branches["heating"]["T"].size == 50
+
+    def test_duplicate_heating_temperatures_returns_none_cooling(self):
+        # furnace-stabilization duplicates on a heating-only run must not
+        # produce a phantom cooling branch downstream of split_warm_cool
+        T = np.repeat(np.arange(300.0, 901.0, 50.0), 2)
+        df = pd.DataFrame({"meas_temp": T, "susc_chi_mass": np.exp(-T / 300)})
+        branches = rmag.prepare_thermomag_branches(df)
+        assert branches["cooling"] is None
+        assert branches["heating"] is not None
 
     def test_temperature_units(self, heat_cool_experiment):
         branches_C = rmag.prepare_thermomag_branches(

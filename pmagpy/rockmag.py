@@ -3982,12 +3982,20 @@ def split_warm_cool(experiment, temperature_column='meas_temp',
     """
     Split a thermomagnetic curve into heating and cooling portions.
 
-    Points are classified by the sign of the local temperature change: a
-    measurement is assigned to the heating branch when the temperature
-    increased relative to the previous measurement, and to the cooling branch
-    otherwise (the first point is assigned to the heating branch). Rows with
-    non-finite temperature or magnetic values are dropped. Data that only heat
-    (or only cool) return an empty array for the missing branch.
+    The sequence is split at the temperature turning point (the global
+    maximum): measurements up to and including the peak form the heating
+    branch and the descending remainder forms the cooling branch. A run whose
+    temperature never descends after its peak returns an empty cooling branch,
+    and a run that descends from its first measurement returns an empty heating
+    branch. Rows with non-finite temperature or magnetic values are dropped.
+
+    Splitting at the turning point rather than on the sign of each local step
+    keeps repeated furnace-stabilization temperatures (where the step is zero)
+    and noisy readings on the heating ramp within the heating branch. A
+    point-by-point classification instead misroutes those points into a
+    spurious cooling branch, so a heating-only run with duplicated or noisy
+    temperatures would otherwise produce a phantom cooling curve. This assumes
+    a single heat-then-cool trajectory, the standard thermomagnetic protocol.
 
     Parameters
     ----------
@@ -4021,11 +4029,14 @@ def split_warm_cool(experiment, temperature_column='meas_temp',
         empty = np.array([], dtype=float)
         return empty, empty.copy(), empty.copy(), empty.copy()
 
-    steps = np.diff(T) > 0
-    # the first point takes the direction of the first step so that a
-    # cooling-only sequence does not produce a spurious one-point heating branch
-    first = steps[0] if steps.size else True
-    is_heating = np.insert(steps, 0, first)
+    peak_index = int(np.argmax(T))
+    descends_after_peak = bool(np.any(T[peak_index + 1:] < T[peak_index]))
+    if not descends_after_peak:
+        is_heating = np.ones(T.size, dtype=bool)
+    elif peak_index == 0:
+        is_heating = np.zeros(T.size, dtype=bool)
+    else:
+        is_heating = np.arange(T.size) <= peak_index
 
     warm_T = T[is_heating]
     warm_X = X[is_heating]
