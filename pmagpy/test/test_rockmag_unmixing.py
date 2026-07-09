@@ -600,6 +600,139 @@ class TestBatchProcessing:
         assert components_df['experiment'].nunique() == 1
 
 
+class TestAggregateByClass:
+    """aggregate_by_class collapses components into coercivity classes."""
+
+    @staticmethod
+    def _components():
+        # two experiments; expt A has a single magnetite component that the
+        # optimizer split into two, expt B has magnetite + hematite
+        return pd.DataFrame({
+            'experiment': ['A', 'A', 'B', 'B'],
+            'specimen': ['sA', 'sA', 'sB', 'sB'],
+            'B_mean_mT': [40.0, 60.0, 50.0, 600.0],
+            'proportion': [0.5, 0.5, 0.7, 0.3],
+            'contribution': [0.5, 0.5, 0.7, 0.3],
+            'r_squared': [0.999, 0.999, 0.998, 0.998],
+        })
+
+    def test_split_component_is_robust(self):
+        out = rmag.aggregate_by_class(
+            self._components(), boundaries_mT=200.0,
+            class_names=['magnetite', 'hematite'])
+        row_a = out[out['experiment'] == 'A'].iloc[0]
+        # the spurious two-way split of one mineral is summed back to 1.0
+        assert row_a['magnetite_fraction'] == pytest.approx(1.0)
+        assert row_a['hematite_fraction'] == pytest.approx(0.0)
+        row_b = out[out['experiment'] == 'B'].iloc[0]
+        assert row_b['magnetite_fraction'] == pytest.approx(0.7)
+        assert row_b['hematite_fraction'] == pytest.approx(0.3)
+
+    def test_passthrough_columns_carried(self):
+        out = rmag.aggregate_by_class(
+            self._components(), boundaries_mT=200.0,
+            class_names=['magnetite', 'hematite'])
+        assert set(['specimen', 'r_squared']).issubset(out.columns)
+        assert out[out['experiment'] == 'A'].iloc[0]['specimen'] == 'sA'
+
+    def test_curve_factor_halves_remanence(self):
+        out = rmag.aggregate_by_class(
+            self._components(), boundaries_mT=200.0,
+            class_names=['magnetite', 'hematite'], curve_factor=2.0)
+        row_b = out[out['experiment'] == 'B'].iloc[0]
+        # contribution 0.7 divided by the backfield span factor of 2
+        assert row_b['magnetite_remanence'] == pytest.approx(0.35)
+
+    def test_three_classes_from_two_boundaries(self):
+        out = rmag.aggregate_by_class(
+            self._components(), boundaries_mT=[45.0, 200.0],
+            class_names=['soft', 'mid', 'hard'])
+        row_a = out[out['experiment'] == 'A'].iloc[0]
+        # 40 mT -> soft, 60 mT -> mid
+        assert row_a['soft_fraction'] == pytest.approx(0.5)
+        assert row_a['mid_fraction'] == pytest.approx(0.5)
+        assert row_a['hard_fraction'] == pytest.approx(0.0)
+
+    def test_default_class_names(self):
+        out = rmag.aggregate_by_class(self._components(), boundaries_mT=200.0)
+        assert 'class_1_fraction' in out.columns
+        assert 'class_2_fraction' in out.columns
+
+    def test_wrong_class_name_count_raises(self):
+        with pytest.raises(ValueError):
+            rmag.aggregate_by_class(self._components(), boundaries_mT=200.0,
+                                    class_names=['only_one'])
+
+    def test_missing_coercivity_column_raises(self):
+        with pytest.raises(KeyError):
+            rmag.aggregate_by_class(self._components(), boundaries_mT=200.0,
+                                    coercivity_column='nope')
+
+    def test_end_to_end_from_batch(self):
+        measurements = make_magic_measurements()
+        components_df, _results = rmag.unmix_backfield_experiments(
+            measurements, n_components=2, vary_skew=False, verbose=False)
+        out = rmag.aggregate_by_class(
+            components_df, boundaries_mT=500.0,
+            class_names=['low', 'high'])
+        row = out.iloc[0]
+        # the two synthetic components straddle 500 mT (250 and 750)
+        assert row['low_fraction'] == pytest.approx(0.4, abs=0.08)
+        assert row['high_fraction'] == pytest.approx(0.6, abs=0.08)
+        assert (row['low_fraction'] + row['high_fraction']) == pytest.approx(
+            1.0, abs=1e-6)
+
+
+class TestComponentColors:
+    """color_by option of plot_coercivity_unmixing / helper."""
+
+    def test_component_colors_by_order(self):
+        colors = rmag._unmixing_component_colors(
+            [40.0, 600.0], color_by='component',
+            class_boundaries=None, class_colors=None)
+        assert colors == ['C0', 'C1']
+
+    def test_class_colors_group_by_coercivity(self):
+        # two low-coercivity components and one high: the two low ones share
+        # a color, the high one differs
+        colors = rmag._unmixing_component_colors(
+            [40.0, 60.0, 600.0], color_by='class',
+            class_boundaries=200.0, class_colors=None)
+        assert colors[0] == colors[1]
+        assert colors[0] != colors[2]
+
+    def test_class_requires_boundaries(self):
+        with pytest.raises(ValueError):
+            rmag._unmixing_component_colors(
+                [40.0], color_by='class',
+                class_boundaries=None, class_colors=None)
+
+    def test_bad_color_by_raises(self):
+        with pytest.raises(ValueError):
+            rmag._unmixing_component_colors(
+                [40.0], color_by='rainbow',
+                class_boundaries=None, class_colors=None)
+
+    def test_custom_class_colors(self):
+        colors = rmag._unmixing_component_colors(
+            [40.0, 600.0], color_by='class', class_boundaries=200.0,
+            class_colors=['k', 'r'])
+        assert colors == ['k', 'r']
+
+    def test_wrong_class_colors_count_raises(self):
+        with pytest.raises(ValueError):
+            rmag._unmixing_component_colors(
+                [40.0, 600.0], color_by='class', class_boundaries=200.0,
+                class_colors=['k'])
+
+    def test_plot_accepts_color_by_class(self):
+        x, spectrum = synthetic_spectrum()
+        fit = rmag.unmix_coercivity_spectrum(x, spectrum, n_components=2)
+        fig, _ax = rmag.plot_coercivity_unmixing(
+            fit, color_by='class', class_boundaries=500.0)
+        plt.close(fig)
+
+
 class TestSpecimensExport:
     """unmixing_to_specimens_table in both recording modes."""
 
@@ -970,6 +1103,41 @@ class TestMineralPriors:
     def test_tighten_below_one_raises(self):
         with pytest.raises(ValueError):
             rmag.mineral_priors(['hematite'], tighten=0.5)
+
+    def test_widen_broadens_ranges(self):
+        wide = rmag.mineral_priors(['hematite'])['dp'][0]
+        wider = rmag.mineral_priors(['hematite'], widen=2)['dp'][0]
+        assert (wider[1] - wider[0]) == pytest.approx(2 * (wide[1] - wide[0]))
+        # same center
+        assert (wider[0] + wider[1]) == pytest.approx(wide[0] + wide[1])
+
+    def test_widen_below_one_raises(self):
+        with pytest.raises(ValueError):
+            rmag.mineral_priors(['hematite'], widen=0.5)
+
+    def test_widen_and_tighten_compose(self):
+        base = rmag.mineral_priors(['hematite'])['dp'][0]
+        both = rmag.mineral_priors(['hematite'], widen=3, tighten=2)['dp'][0]
+        # net width factor is widen / tighten = 1.5
+        assert (both[1] - both[0]) == pytest.approx(1.5 * (base[1] - base[0]))
+
+    def test_override_replaces_window(self):
+        priors = rmag.mineral_priors(
+            ['magnetite_detrital'],
+            overrides={'magnetite_detrital': {'B_median_mT': (20.0, 160.0)}})
+        assert priors['location'][0] == pytest.approx(
+            (np.log10(20.0), np.log10(160.0)))
+        # non-overridden windows still come from the library
+        assert priors['dp'][0] == pytest.approx(
+            rmag.COERCIVITY_COMPONENT_LIBRARY['magnetite_detrital']['dp'])
+
+    def test_override_composes_with_widen(self):
+        priors = rmag.mineral_priors(
+            ['hematite'], widen=2,
+            overrides={'hematite': {'dp': (0.2, 0.4)}})
+        low, high = priors['dp'][0]
+        # override window (0.2, 0.4) widened x2 about center 0.3 -> (0.1, 0.5)
+        assert (low, high) == pytest.approx((0.1, 0.5))
 
     @needs_dynesty
     def test_priors_drive_bayes_and_infer_n_components(self):

@@ -7699,7 +7699,8 @@ COERCIVITY_COMPONENT_LIBRARY = {
 }
 
 
-def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
+def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
+                   overrides=None):
     """
     Build a Bayesian-unmixing prior dictionary from named mineral components.
 
@@ -7709,10 +7710,18 @@ def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
     are sorted by their central coercivity so that the returned order
     matches the (low-to-high coercivity) component ordering of the fit.
 
-    Because these are informative priors on an ill-posed decomposition,
-    they should be treated as soft constraints; see the caveats in the
-    COERCIVITY_COMPONENT_LIBRARY documentation (AF-demagnetization vs IRM
-    acquisition, Al-substitution, generous default ranges).
+    The library windows are broad starting points; real samples often need
+    them adapted. Use `tighten` to narrow every window, `widen` to broaden
+    every window, and `overrides` to replace specific windows outright when
+    a mineral in your samples sits outside its library range (for example a
+    harder, finer-grained magnetite, or a hematite whose low-coercivity
+    shoulder starts below the library's detrital-hematite window). A typical
+    workflow is to fit unconstrained first, see where the components land,
+    and then set the windows accordingly.
+
+    Because these are informative priors on an ill-posed decomposition, they
+    should be treated as soft constraints; see the caveats in the
+    COERCIVITY_COMPONENT_LIBRARY documentation.
 
     Parameters
     ----------
@@ -7720,14 +7729,24 @@ def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
         Component names, each a key of COERCIVITY_COMPONENT_LIBRARY (e.g.
         ['magnetite_detrital', 'hematite_pigmentary', 'hematite_detrital']).
     tighten : float
-        Factor (>= 1) by which to narrow every range about its center; 1
-        keeps the library ranges, 2 halves their width. Use only when
-        justified by independent constraints.
+        Factor (>= 1) by which to narrow every window about its center; 1
+        keeps the library width.
+    widen : float
+        Factor (>= 1) by which to broaden every window about its center; 1
+        keeps the library width. tighten and widen compose (net width factor
+        = widen / tighten).
     field_max_mT : float, optional
-        Maximum applied field of the measurement (mT). Location upper
-        bounds are clipped to this value, so that components whose library
-        range extends past the measured field (e.g. goethite in a 2 T
-        experiment) are not given prior support the data cannot constrain.
+        Maximum applied field of the measurement (mT). Location upper bounds
+        are clipped to this value, so that components whose window extends
+        past the measured field (e.g. goethite in a 2 T experiment) are not
+        given prior support the data cannot constrain.
+    overrides : dict, optional
+        Per-mineral window replacements, mapping a mineral name to a dict
+        with any of 'B_median_mT', 'dp', 'skew' as (low, high) tuples. The
+        replacement window is used in place of the library value (before
+        tighten/widen and field clipping are applied), letting you anchor to
+        the library for most minerals while tuning the ones your samples
+        require.
 
     Returns
     -------
@@ -7742,10 +7761,14 @@ def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
         mineral_names = [mineral_names]
     if tighten < 1:
         raise ValueError('tighten must be >= 1')
+    if widen < 1:
+        raise ValueError('widen must be >= 1')
+    overrides = overrides or {}
+    scale = widen / tighten  # > 1 broadens, < 1 narrows
 
-    def _narrow(low, high):
+    def _rescale(low, high):
         center = 0.5 * (low + high)
-        half = 0.5 * (high - low) / tighten
+        half = 0.5 * (high - low) * scale
         return center - half, center + half
 
     entries = []
@@ -7754,14 +7777,15 @@ def mineral_priors(mineral_names, tighten=1.0, field_max_mT=None):
             raise KeyError(
                 f"unknown mineral component '{name}'; available: "
                 f'{sorted(COERCIVITY_COMPONENT_LIBRARY)}')
-        entry = COERCIVITY_COMPONENT_LIBRARY[name]
-        b_low, b_high = _narrow(*entry['B_median_mT'])
+        entry = {**COERCIVITY_COMPONENT_LIBRARY[name], **overrides.get(name, {})}
+        b_low, b_high = _rescale(*entry['B_median_mT'])
+        b_low = max(b_low, 1e-3)  # keep positive for log10
         if field_max_mT is not None:
             b_high = min(b_high, field_max_mT)
             b_low = min(b_low, b_high)
         entries.append((name, np.sqrt(b_low * b_high),
                         (np.log10(b_low), np.log10(b_high)),
-                        _narrow(*entry['dp']), _narrow(*entry['skew'])))
+                        _rescale(*entry['dp']), _rescale(*entry['skew'])))
     entries.sort(key=lambda item: item[1])
 
     return {
@@ -7782,9 +7806,38 @@ def _format_mT_axis(ax):
     ax.xaxis.set_major_formatter(FuncFormatter(_fmt))
 
 
+def _unmixing_component_colors(b_means_mT, color_by, class_boundaries,
+                               class_colors):
+    """Assign a color to each component, by fit order or coercivity class."""
+    n = len(b_means_mT)
+    if color_by == 'component':
+        return [f'C{i}' for i in range(n)]
+    if color_by not in ('class', 'coercivity'):
+        raise ValueError("color_by must be 'component', 'class', or "
+                         "'coercivity'")
+    if class_boundaries is None:
+        raise ValueError("class_boundaries is required when color_by='class'")
+    boundaries = np.sort(np.atleast_1d(class_boundaries).astype(float))
+    n_classes = len(boundaries) + 1
+    if class_colors is None:
+        class_colors = (['royalblue', 'crimson'] if n_classes == 2
+                        else [plt.get_cmap('coolwarm')(t)
+                              for t in np.linspace(0, 1, n_classes)])
+    if len(class_colors) != n_classes:
+        raise ValueError(f'class_colors must have {n_classes} entries '
+                         f'({len(boundaries)} boundaries + 1)')
+    # component in class k when its mean coercivity exceeds the k-th boundary;
+    # a component exactly on a boundary is assigned to the lower class
+    class_index = np.searchsorted(boundaries, np.asarray(b_means_mT),
+                                  side='left')
+    return [class_colors[k] for k in class_index]
+
+
 def plot_coercivity_unmixing(result, show_components=True,
                              show_bootstrap=True, show_initial=False,
-                             n_grid=300, figsize=None, title=None):
+                             n_grid=300, figsize=None, title=None,
+                             color_by='component', class_boundaries=None,
+                             class_colors=None):
     """
     Plot an unmixing result in its fitted data space.
 
@@ -7812,6 +7865,20 @@ def plot_coercivity_unmixing(result, show_components=True,
         Figure size; defaults depend on the number of panels.
     title : str, optional
         Figure title.
+    color_by : str
+        How to color the components. 'component' (default) colors by fit
+        order (C0, C1, ...). 'class' (or the alias 'coercivity') colors
+        each component by the coercivity class its mean field falls into,
+        so the mineralogy is read directly and a second component of the
+        same mineral does not take a different color; requires
+        class_boundaries.
+    class_boundaries : float or sequence of float, optional
+        Coercivity cut points in mT that partition the components into
+        classes when color_by='class' (e.g. 200 for a magnetite/hematite
+        split, or [30, 300] for three classes).
+    class_colors : sequence, optional
+        One color per class (length = number of boundaries + 1). Defaults
+        to blue/red for two classes, or a diverging colormap otherwise.
 
     Returns
     -------
@@ -7824,6 +7891,9 @@ def plot_coercivity_unmixing(result, show_components=True,
     param_arr = params[UNMIX_PARAM_COLUMNS].to_numpy()
     x, y = result['x'], result['y']
     x_grid = np.linspace(x.min(), x.max(), n_grid)
+    component_colors = _unmixing_component_colors(
+        params['B_mean_mT'].to_numpy(), color_by, class_boundaries,
+        class_colors)
     boot = None
     band_label = '95% bootstrap band'
     if show_bootstrap:
@@ -7857,7 +7927,7 @@ def plot_coercivity_unmixing(result, show_components=True,
                                                 curve_type=curve_type)
             for i in range(len(params)):
                 ax_curve.plot(x_grid, comps[i] + result['offset'],
-                              c=f'C{i}', alpha=0.8)
+                              c=component_colors[i], alpha=0.8)
         if boot is not None:
             curves = boot['curves']
             ax_curve.fill_between(curves['x_grid'], curves['total_p2_5'],
@@ -7874,7 +7944,7 @@ def plot_coercivity_unmixing(result, show_components=True,
         if show_components:
             comps = coercivity_spectrum_components(x_grid, param_arr)
             for i, comp_index in enumerate(params.index):
-                ax_spec.plot(x_grid, comps[i], c=f'C{i}',
+                ax_spec.plot(x_grid, comps[i], c=component_colors[i],
                              label=_component_label(comp_index))
         if show_initial:
             init_arr = _unmix_parameters_to_array(
@@ -7897,13 +7967,13 @@ def plot_coercivity_unmixing(result, show_components=True,
                     ax_spec.fill_between(curves['x_grid'],
                                          curves['components_p2_5'][i],
                                          curves['components_p97_5'][i],
-                                         color=f'C{i}', alpha=0.2)
+                                         color=component_colors[i], alpha=0.2)
         ax_spec.plot(x_grid, coercivity_spectrum_model(x_grid, param_arr),
                      c='k', label='model')
         if show_components:
             comps = coercivity_spectrum_components(x_grid, param_arr)
             for i, comp_index in enumerate(params.index):
-                ax_spec.plot(x_grid, comps[i], c=f'C{i}',
+                ax_spec.plot(x_grid, comps[i], c=component_colors[i],
                              label=_component_label(comp_index))
         if show_initial:
             init_arr = _unmix_parameters_to_array(
@@ -8627,6 +8697,96 @@ def unmix_backfield_experiments(measurements, experiments=None,
         print(f'{len(failures)} experiment(s) failed: '
               f'{[name for name, _reason in failures]}')
     return components_df, results
+
+
+def aggregate_by_class(components, boundaries_mT, class_names=None,
+                       coercivity_column='B_mean_mT',
+                       proportion_column='proportion',
+                       contribution_column='contribution',
+                       curve_factor=2.0, group_column='experiment',
+                       passthrough=('specimen', 'Bcr_mT', 'r_squared')):
+    """
+    Aggregate fitted unmixing components into coercivity classes.
+
+    Sums each component's remanence proportion (and, if available, its
+    contribution) into classes defined by one or more coercivity cut points,
+    per experiment. This is the robust way to quantify a mineral assemblage
+    from an unmixing fit: because it integrates the fitted distribution
+    within coercivity bands, the result is insensitive to how many
+    components the optimizer used or how it split a single mineral, so long
+    as the mineral populations are separated by the cut points. Typical use
+    is a magnetite/hematite split at a single boundary, but any number of
+    classes is supported.
+
+    Parameters
+    ----------
+    components : pandas.DataFrame
+        Tidy component table, e.g. from unmix_backfield_experiments (one row
+        per experiment and component).
+    boundaries_mT : float or sequence of float
+        Coercivity cut point(s) in mT. A single value gives two classes; a
+        sequence of k values gives k+1 classes. A component is placed in the
+        class between the cut points that bracket its coercivity; a component
+        exactly on a boundary goes to the lower class.
+    class_names : sequence of str, optional
+        Names for the classes, in order of increasing coercivity (length =
+        number of boundaries + 1). Defaults to 'class_1', 'class_2', ...;
+        for a two-class split you would typically pass e.g.
+        ['magnetite', 'hematite'].
+    coercivity_column : str
+        Column used to classify each component (default 'B_mean_mT').
+    proportion_column : str
+        Column summed to give each class's remanence fraction (default
+        'proportion').
+    contribution_column : str
+        Column summed (and divided by curve_factor) to give each class's
+        absolute remanence; skipped if the column is absent.
+    curve_factor : float
+        Divisor applied to summed contributions. Use 2 for a shift-corrected
+        backfield curve (which spans twice the saturation remanence) and 1
+        for an IRM acquisition curve.
+    group_column : str
+        Column identifying each specimen/experiment to aggregate within
+        (default 'experiment').
+    passthrough : sequence of str
+        Columns copied through unchanged (first value per group), e.g.
+        specimen name and fit statistics. Missing columns are ignored.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per group with the passthrough columns and, for each class,
+        a '{name}_fraction' column and (when contributions are present) a
+        '{name}_remanence' column.
+    """
+    if coercivity_column not in components.columns:
+        raise KeyError(f"components has no '{coercivity_column}' column")
+    boundaries = np.sort(np.atleast_1d(boundaries_mT).astype(float))
+    edges = np.concatenate([[-np.inf], boundaries, [np.inf]])
+    n_classes = len(edges) - 1
+    if class_names is None:
+        class_names = [f'class_{i + 1}' for i in range(n_classes)]
+    if len(class_names) != n_classes:
+        raise ValueError(f'class_names must have {n_classes} entries '
+                         f'({len(boundaries)} boundaries + 1)')
+    has_contribution = contribution_column in components.columns
+
+    rows = []
+    for group_name, group in components.groupby(group_column):
+        row = {group_column: group_name}
+        for col in passthrough:
+            if col in group.columns:
+                row[col] = group[col].iloc[0]
+        b = group[coercivity_column].to_numpy()
+        for k, name in enumerate(class_names):
+            in_class = (b > edges[k]) & (b <= edges[k + 1])
+            row[f'{name}_fraction'] = \
+                group.loc[in_class, proportion_column].sum()
+            if has_contribution:
+                row[f'{name}_remanence'] = \
+                    group.loc[in_class, contribution_column].sum() / curve_factor
+        rows.append(row)
+    return pd.DataFrame(rows)
 
 
 def parse_specimen_description(description):
