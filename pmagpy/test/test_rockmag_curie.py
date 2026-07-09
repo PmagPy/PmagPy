@@ -253,6 +253,23 @@ class TestCurieDerivativeEstimates:
         result = rmag.curie_derivative_estimates(T, M_nan)
         assert result["inflection_temp"] == pytest.approx(580.0, abs=2.0)
 
+    def test_smooth_window_stabilizes_noisy_derivative(self):
+        # differentiation amplifies noise: the raw first derivative of a noisy
+        # curve has a ragged minimum, so argmin can latch onto a spike offset
+        # from the true inflection. smooth_window smooths the derivative and
+        # recovers the transition center, without distorting a clean curve.
+        T = np.linspace(300.0, 700.0, 400)
+        M = (1.0 - np.tanh((T - 500.0) / 18.0)) / 2.0  # inflection at 500
+        clean = rmag.curie_derivative_estimates(T, M, smooth_window=20)
+        assert clean["inflection_temp"] == pytest.approx(500.0, abs=1.0)
+        rng = np.random.default_rng(0)
+        y = M + rng.normal(0.0, 0.013, T.size)
+        raw = rmag.curie_derivative_estimates(T, y)["inflection_temp"]
+        smoothed = rmag.curie_derivative_estimates(
+            T, y, smooth_window=20)["inflection_temp"]
+        assert abs(raw - 500.0) > 10.0  # noise displaces the raw estimate
+        assert smoothed == pytest.approx(500.0, abs=3.0)
+
 
 class TestCurieTwoTangent:
     def test_recovers_transition_on_landau_curve(self, landau_heating_C):
@@ -560,7 +577,7 @@ class TestCurieTemperatureEstimates:
         estimates = rmag.curie_temperature_estimates(
             df, methods=("two_tangent",), remove_holder=False
         )
-        assert "not physically justified" in estimates.iloc[0]["notes"]
+        assert "lacks a rigorous physical basis" in estimates.iloc[0]["notes"]
 
     def test_unknown_method_raises(self, heat_cool_experiment):
         with pytest.raises(ValueError, match="unknown method"):
@@ -568,6 +585,23 @@ class TestCurieTemperatureEstimates:
                 heat_cool_experiment, methods=("kink_point",),
                 magnetic_column="magn_mass",
             )
+
+    def test_smooth_window_forwarded_to_derivative(self):
+        # the wrapper must pass its smoothing window through to the derivative
+        # estimator so the recommended path is robust to derivative noise
+        T_K = np.linspace(300.0, 700.0, 400) + 273.15
+        M = (1.0 - np.tanh((T_K - (500.0 + 273.15)) / 18.0)) / 2.0
+        rng = np.random.default_rng(0)
+        df = pd.DataFrame({
+            "meas_temp": T_K,
+            "magn_mass": M + rng.normal(0.0, 0.013, T_K.size),
+            "specimen": "syn", "experiment": "SYN-1",
+        })
+        est = rmag.curie_temperature_estimates(
+            df, magnetic_column="magn_mass", smooth_window=20,
+            methods=("inflection",))
+        infl = float(est[est["branch"] == "heating"].iloc[0]["curie_temp"])
+        assert infl == pytest.approx(500.0, abs=4.0)
 
     def test_heating_only_yields_heating_rows(self):
         T = np.linspace(323.15, 973.15, 200)
@@ -664,6 +698,26 @@ class TestAddCurieEstimatesToSpecimensTable:
             rmag.add_curie_estimates_to_specimens_table(
                 specimens, "SYN-LP-MST-1", estimates
             )
+
+    def test_nan_experiments_rows_are_skipped(self, heat_cool_experiment):
+        """Real specimens tables include rows with no experiments recorded
+        (NaN in a string-dtype column); the colon-token match must skip them
+        rather than raise when it splits the cell."""
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        specimens = pd.DataFrame({
+            "specimen": ["synthetic-01", "blank-holder"],
+            "experiments": pd.array(
+                ["OTHER-EXP:SYN-LP-MST-1", pd.NA], dtype="string"),
+            "description": [np.nan, np.nan],
+        })
+        rmag.add_curie_estimates_to_specimens_table(
+            specimens, "SYN-LP-MST-1", estimates, method="landau"
+        )
+        # matched the colon-delimited token on row 0; NaN row 1 left untouched
+        assert specimens.loc[0, "critical_temp_type"] == "Curie"
+        assert pd.isna(specimens.loc[1, "critical_temp"])
 
 
 class TestPlotCurieEstimates:

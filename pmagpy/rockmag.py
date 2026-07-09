@@ -4436,8 +4436,10 @@ def plot_X_T(
 # * low-field susceptibility X(T): several mechanisms (para-effect, rotation
 #   against anisotropy, domain-wall motion, superparamagnetism) contribute
 #   near the ordering temperature; the Hopkinson peak marks blocking, not Tc,
-#   and the two-tangent construction is not physically justified (Petrovsky &
-#   Kapicka, 2006, doi:10.1029/2006JB004507). The inverse-susceptibility
+#   and the maximum-curvature and two-tangent constructions lack a rigorous
+#   physical basis (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507) --
+#   both are robust, transition-based estimators but lie above the inflection
+#   point. The inverse-susceptibility
 #   (Curie-Weiss) extrapolation yields the paramagnetic Curie temperature
 #   theta, an upper bound on Tc.
 #
@@ -4508,7 +4510,7 @@ def _interpolated_zero_crossings(x, y):
     return np.array(crossings, dtype=float)
 
 
-def curie_derivative_estimates(T, y, t_range=None):
+def curie_derivative_estimates(T, y, t_range=None, smooth_window=0):
     """
     Derivative-based Curie temperature estimates from one thermomagnetic branch.
 
@@ -4537,12 +4539,16 @@ def curie_derivative_estimates(T, y, t_range=None):
     point, so isolated noise or structure in the flat tails does not capture
     them.
 
-    The input arrays are nonetheless assumed to be smoothed as appropriate
-    (see ``prepare_thermomag_branches``); derivatives amplify noise, and a
-    noise feature steeper than a gently field-rounded transition can still
-    displace the estimate. For noisy data or multi-phase curves, smooth the
-    branch and use ``t_range`` to isolate the transition of interest, and
-    check the returned estimate against ``first_derivative_min_temp`` and the
+    Differentiation amplifies noise, so even a smoothed signal can yield a
+    ragged first derivative whose global minimum is a noise spike within a
+    broad, flat-bottomed transition rather than the true steepest descent.
+    Set ``smooth_window`` to smooth the first and second derivatives on the
+    same temperature scale used to smooth the signal (as the legacy
+    ``ipmag.curie`` does), which locates the estimate at the center of the
+    transition instead of an arbitrary spike; ``curie_temperature_estimates``
+    passes its smoothing window through automatically. For multi-phase curves,
+    additionally use ``t_range`` to isolate the transition of interest, and
+    check the estimate against ``first_derivative_min_temp`` and the
     ``diagnostics`` arrays.
 
     Parameters
@@ -4556,6 +4562,12 @@ def curie_derivative_estimates(T, y, t_range=None):
         Restrict the analysis to temperatures within ``(t_min, t_max)``.
         Useful for isolating one Curie transition in a multi-phase curve or
         excluding low-temperature structure (e.g., a Hopkinson peak).
+    smooth_window : float, optional
+        Width, in the temperature units of ``T``, of a moving-average window
+        applied to the first and second derivatives before their extrema are
+        located (default 0, no derivative smoothing). Recommended for noisy
+        data; a good choice is the window used to smooth the signal. The
+        ``diagnostics`` arrays reflect the smoothed derivatives actually used.
 
     Returns
     -------
@@ -4587,7 +4599,16 @@ def curie_derivative_estimates(T, y, t_range=None):
         }
 
     dy = np.gradient(y, T)
+    if smooth_window and smooth_window > 0:
+        # np.gradient's one-sided boundary values are unreliable; replace them
+        # before smoothing so edge padding cannot propagate an outlier into a
+        # spurious plateau that captures the steepest-descent search
+        dy[0], dy[-1] = dy[1], dy[-2]
+        _, dy = smooth_moving_avg(T, dy, smooth_window)
     d2y = np.gradient(dy, T)
+    if smooth_window and smooth_window > 0:
+        d2y[0], d2y[-1] = d2y[1], d2y[-2]
+        _, d2y = smooth_moving_avg(T, d2y, smooth_window)
 
     # locate the steepest descent over the interior only; np.gradient forms
     # one-sided differences at the array boundaries, which are the most
@@ -4651,9 +4672,10 @@ def curie_two_tangent(T, y, lower_range=None, upper_range=None, min_points=3):
     M(T). Even there it coincides with the maximum-curvature estimate and
     therefore lies systematically above the inflection-point Curie temperature
     (Fabian et al., 2013, doi:10.1029/2012GC004440). Applied to low-field
-    susceptibility X(T) it is not physically justified and can considerably
-    overestimate Tc (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507); it
-    is provided for such data only to allow comparison with legacy results.
+    susceptibility X(T) it lacks a rigorous physical basis and can overestimate
+    Tc (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507); it remains a
+    robust, transition-based estimator useful for mineral identification and
+    for comparison with legacy results.
 
     Parameters
     ----------
@@ -5139,10 +5161,17 @@ def curie_landau_fit(T, M, fit_range=None, temp_unit="C", tc_bounds=None,
 
 
 _CURIE_CHI_METHOD_CAVEATS = {
+    "max_curvature": (
+        "maximum-curvature estimate on susceptibility lacks a rigorous "
+        "physical basis and lies above the inflection-point Tc; it "
+        "coincides with the two-tangent estimate and can overestimate Tc "
+        "(Fabian et al., 2013; Petrovsky & Kapicka, 2006)"
+    ),
     "two_tangent": (
-        "two-tangent intersection on susceptibility is not physically "
-        "justified and can considerably overestimate Tc (Petrovsky & "
-        "Kapicka, 2006)"
+        "two-tangent intersection on susceptibility lacks a rigorous "
+        "physical basis and lies above the inflection-point Tc; it "
+        "coincides with the maximum-curvature estimate and can overestimate "
+        "Tc (Fabian et al., 2013; Petrovsky & Kapicka, 2006)"
     ),
     "landau": (
         "the Landau M(T) model does not describe the mechanisms that "
@@ -5332,6 +5361,7 @@ def curie_temperature_estimates(
         )
 
     derivative_kwargs = {
+        "smooth_window": smooth_window,
         **method_kwargs.get("derivative", {}),
         **method_kwargs.get("inflection", {}),
         **method_kwargs.get("max_curvature", {}),
@@ -5874,14 +5904,17 @@ def add_curie_estimates_to_specimens_table(
     # specimen name recorded in the estimates table; exact/token matching is
     # used rather than substring matching so that an experiment name cannot
     # match a longer sibling name (e.g., '...-MST-1' matching '...-MST-10')
-    experiments_column = specimens_df["experiments"].astype(str)
-    target = experiments_column == experiment_name
+    experiments_column = specimens_df["experiments"]
+    target = (experiments_column == experiment_name).fillna(False).to_numpy(
+        dtype=bool)
     if not target.any():
-        target = experiments_column.apply(
-            lambda cell: experiment_name in cell.split(":")
-        )
+        target = np.array([
+            isinstance(cell, str) and experiment_name in cell.split(":")
+            for cell in experiments_column
+        ])
     if not target.any() and row["specimen"]:
-        target = specimens_df["specimen"] == row["specimen"]
+        target = (specimens_df["specimen"] == row["specimen"]).fillna(
+            False).to_numpy(dtype=bool)
     if not target.any():
         raise ValueError(
             f"experiment '{experiment_name}' (and specimen "
