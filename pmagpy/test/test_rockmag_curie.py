@@ -283,6 +283,19 @@ class TestCurieTwoTangent:
         assert np.isnan(result["curie_temp"])
         assert "note" in result["params"]
 
+    def test_reliable_flag_true_on_full_curve(self, landau_heating_C):
+        # a curve that reaches a flat baseline above Tc is a reliable fit
+        T, M = landau_heating_C
+        result = rmag.curie_two_tangent(T, M)
+        assert result["params"]["reliable"] is True
+
+    def test_non_finite_values_dropped(self, landau_heating_C):
+        T, M = landau_heating_C
+        M_nan = M.copy()
+        M_nan[7] = np.nan
+        result = rmag.curie_two_tangent(T, M_nan)
+        assert np.isfinite(result["curie_temp"])
+
 
 class TestCurieInverseSusceptibility:
     def test_exact_recovery_of_theta(self, curie_weiss_chi):
@@ -344,6 +357,42 @@ class TestCurieInverseSusceptibility:
                                                    fit_range=(620, 700))
         assert "warning" not in result["params"]
 
+    def test_stderr_matches_monte_carlo(self):
+        # the reported 1-sigma on theta must match the actual spread of theta
+        # under noise, which requires the slope-intercept covariance term in
+        # the delta-method propagation; omitting it inflates the value ~12x
+        # because slope and intercept are almost perfectly anti-correlated
+        theta, C = 590.0, 2e-6
+        T = np.linspace(620, 700, 40)
+        inv_true = (T - theta) / C
+        sigma = 0.01 * inv_true.max()  # homoscedastic noise in 1/chi
+        rng = np.random.default_rng(12345)
+        chi0 = 1.0 / (inv_true + rng.normal(0, sigma, T.size))
+        reported = rmag.curie_inverse_susceptibility(
+            T, chi0, fit_range=(620, 700))["curie_temp_stderr"]
+        recovered = [
+            rmag.curie_inverse_susceptibility(
+                T, 1.0 / (inv_true + rng.normal(0, sigma, T.size)),
+                fit_range=(620, 700))["curie_temp"]
+            for _ in range(1500)
+        ]
+        assert reported == pytest.approx(np.std(recovered), rel=0.5)
+        # guard the covariance cross-term explicitly: without it the reported
+        # value would be several times the true spread
+        (slope, intercept), cov = np.polyfit(T, 1.0 / chi0, 1, cov=True)
+        naive = np.sqrt((intercept / slope**2)**2 * cov[0, 0]
+                        + (1.0 / slope)**2 * cov[1, 1])
+        assert reported < 0.5 * naive
+
+    def test_min_points_below_three_is_graceful(self, curie_weiss_chi):
+        # a covariance line fit needs more than two points; the function must
+        # return a note rather than let np.polyfit(cov=True) raise
+        T, chi = curie_weiss_chi
+        result = rmag.curie_inverse_susceptibility(
+            T, chi, fit_range=(699, 700), min_points=2)
+        assert np.isnan(result["curie_temp"])
+        assert "note" in result["params"]
+
 
 class TestCurieLandauFit:
     def test_exact_recovery_noiseless(self, landau_heating_C):
@@ -398,6 +447,25 @@ class TestCurieLandauFit:
         assert np.isnan(result["curie_temp"])
         assert "note" in result["params"]
 
+    def test_stderr_matches_monte_carlo(self):
+        # the reported 1-sigma on Tc must match the spread of Tc under noise
+        # for a curve measured through the transition
+        tc_K = 853.15
+        T_K = np.linspace(600, 1000, 80)
+        M0 = landau_curve_K(T_K, tc_K=tc_K, h=1e-3)
+        sigma = 0.004
+        rng = np.random.default_rng(2024)
+        reported = rmag.curie_landau_fit(
+            T_K, M0 + rng.normal(0, sigma, T_K.size), temp_unit="K"
+        )["curie_temp_stderr"]
+        recovered = [
+            rmag.curie_landau_fit(
+                T_K, M0 + rng.normal(0, sigma, T_K.size), temp_unit="K"
+            )["curie_temp"]
+            for _ in range(200)
+        ]
+        assert reported == pytest.approx(np.std(recovered), rel=0.4)
+
 
 class TestCurieTemperatureEstimates:
     def test_tidy_table_shape_and_defaults_magnetization(
@@ -437,6 +505,30 @@ class TestCurieTemperatureEstimates:
         assert tc["inflection"] <= tc["max_curvature"] + 1.0
         assert tc["inflection"] <= tc["two_tangent"] + 1.0
         assert tc["landau"] == pytest.approx(580.0, abs=2.0)
+
+    def test_bias_ordering_strict_separation(self, heat_cool_experiment):
+        # the estimators must be genuinely separated, not collapsed onto one
+        # another: two_tangent > max_curvature > inflection (Fabian et al.,
+        # 2013). A slack `<= x + 1` check would pass a degenerate estimator.
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        heating = estimates[estimates["branch"] == "heating"].set_index("method")
+        tc = heating["curie_temp"]
+        assert tc["max_curvature"] > tc["inflection"] + 3.0
+        assert tc["two_tangent"] > tc["max_curvature"] + 3.0
+
+    def test_cooling_branch_recovers_tc(self, heat_cool_experiment):
+        # the cooling branch (scaled Landau curve, same Tc) must yield a
+        # correct Curie temperature, not merely a well-shaped table row
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        cooling = estimates[estimates["branch"] == "cooling"].set_index("method")
+        assert cooling.loc["inflection", "curie_temp"] == pytest.approx(
+            580.0, abs=3.0)
+        assert cooling.loc["landau", "curie_temp"] == pytest.approx(
+            580.0, abs=2.0)
 
     def test_method_kwargs_forwarding(self, curie_weiss_chi):
         T, chi = curie_weiss_chi
@@ -736,6 +828,7 @@ class TestReviewFixes:
         result = rmag.curie_two_tangent(T_K, M)
         assert "note" in result["params"]
         assert "descending limb" in result["params"]["note"]
+        assert result["params"]["reliable"] is False
 
     def test_inverse_susceptibility_helper_masks_nonpositive(self):
         chi = np.array([2.0, 0.0, -1.0, 4.0])
@@ -743,3 +836,27 @@ class TestReviewFixes:
         assert inv[0] == pytest.approx(0.5)
         assert np.isnan(inv[1]) and np.isnan(inv[2])
         assert inv[3] == pytest.approx(0.25)
+
+
+class TestThermomagPlots:
+    def test_plot_x_t_matplotlib_returns_figures(self, heat_cool_experiment):
+        import matplotlib.pyplot as plt
+        figs = rmag.plot_X_T(
+            heat_cool_experiment, magnetic_column="magn_mass",
+            interactive=False, return_figure=True,
+            plot_derivative=True, plot_inverse=True,
+        )
+        assert isinstance(figs, tuple) and len(figs) >= 1
+        assert all(isinstance(f, plt.Figure) for f in figs)
+        plt.close("all")
+
+    def test_interactive_inverse_susceptibility_missing_branch_raises(self):
+        pytest.importorskip("bokeh")
+        T = np.linspace(323.15, 973.15, 100)  # heating-only run
+        df = pd.DataFrame({
+            "meas_temp": T,
+            "susc_chi_mass": np.exp(-T / 300),
+            "specimen": "syn",
+        })
+        with pytest.raises(ValueError):
+            rmag.interactive_curie_inverse_susceptibility(df, branch="cooling")

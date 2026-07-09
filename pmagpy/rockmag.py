@@ -4190,6 +4190,12 @@ def plot_X_T(
             window, one of 'flat', 'hanning', 'hamming', 'bartlett', or
             'blackman' (default 'hanning'). Only used when smooth_window > 0.
             See prepare_thermomag_branches for a description of each option.
+
+    Returns:
+        tuple or None: If return_figure is True, a tuple of the figure
+        objects created (Matplotlib Figures when interactive is False, Bokeh
+        figures when interactive is True). Otherwise the figures are displayed
+        and None is returned.
     """
     branches = prepare_thermomag_branches(
         experiment,
@@ -4542,7 +4548,8 @@ def curie_derivative_estimates(T, y, t_range=None):
     Parameters
     ----------
     T : array-like
-        Temperatures, ascending.
+        Temperatures, ascending (Celsius or Kelvin; the returned temperatures
+        are in the same unit as the input).
     y : array-like
         Magnetization or susceptibility values.
     t_range : tuple of (float, float), optional
@@ -4651,7 +4658,8 @@ def curie_two_tangent(T, y, lower_range=None, upper_range=None, min_points=3):
     Parameters
     ----------
     T : array-like
-        Temperatures, ascending.
+        Temperatures, ascending (Celsius or Kelvin; the returned intersection
+        temperature is in the same unit as the input).
     y : array-like
         Magnetization (preferred) or susceptibility values.
     lower_range : tuple of (float, float), optional
@@ -4671,13 +4679,19 @@ def curie_two_tangent(T, y, lower_range=None, upper_range=None, min_points=3):
     dict
         ``curie_temp`` (intersection temperature, NaN if the tangents are
         parallel or a segment has too few points), ``params`` with the two
-        (slope, intercept) pairs, the temperature ranges actually used, and
-        point counts, and ``diagnostics`` with the segment masks for plotting.
+        (slope, intercept) pairs, the temperature ranges actually used, point
+        counts, and ``reliable`` (False when no near-flat baseline was found
+        above the transition and the upper tangent fell back to the uppermost
+        points, i.e. the curve may end below Tc), and ``diagnostics`` with the
+        segment masks for plotting.
     """
-    T, y = _dedupe_temperatures(T, y)
+    T = np.asarray(T, dtype=float)
+    y = np.asarray(y, dtype=float)
+    finite = np.isfinite(T) & np.isfinite(y)
+    T, y = _dedupe_temperatures(T[finite], y[finite])
     result = {
         "curie_temp": np.nan,
-        "params": {},
+        "params": {"reliable": False},
         "diagnostics": {},
     }
     if T.size < 2 * min_points:
@@ -4751,6 +4765,7 @@ def curie_two_tangent(T, y, lower_range=None, upper_range=None, min_points=3):
             "be on the descending limb if the curve ends below the Curie "
             "temperature — verify or set upper_range explicitly"
         )
+    result["params"]["reliable"] = not baseline_fallback
     result["diagnostics"] = {
         "T": T,
         "y": y,
@@ -4792,7 +4807,8 @@ def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
     Parameters
     ----------
     T : array-like
-        Temperatures, ascending.
+        Temperatures, ascending (Celsius or Kelvin; theta is returned in the
+        same unit as the input).
     chi : array-like
         Susceptibility values (holder-corrected).
     fit_range : tuple of (float, float), optional
@@ -4818,6 +4834,9 @@ def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
     """
     T = np.asarray(T, dtype=float)
     chi = np.asarray(chi, dtype=float)
+    # a straight-line covariance fit needs more than two points; below three
+    # np.polyfit(..., cov=True) raises instead of returning gracefully
+    min_points = max(int(min_points), 3)
 
     if fit_range is None:
         t_span = T.max() - T.min()
@@ -5694,6 +5713,20 @@ def interactive_curie_inverse_susceptibility(
         temperature range — a starting position only, meant to be dragged.
     figsize : tuple, optional
         (width, height) in inches; height sets the Bokeh plot height.
+
+    Returns
+    -------
+    None
+        The interactive Bokeh application is displayed as a side effect; no
+        value is returned. For a reproducible, reportable estimate use
+        ``curie_inverse_susceptibility`` with the ``fit_range`` identified
+        here.
+
+    Raises
+    ------
+    ValueError
+        If the requested ``branch`` is not present in the experiment, or if it
+        has fewer than two usable (finite, positive-susceptibility) points.
     """
     _check_bokeh()
 
@@ -5920,7 +5953,14 @@ def smooth_moving_avg(
             Otherwise, only return smoothed x and y. Defaults to False.
 
     Returns:
-        smoothed_x, smoothed_y (, x_var, y_var)
+        tuple: ``(smoothed_x, smoothed_y)`` by default, or
+        ``(smoothed_x, smoothed_y, x_var, y_var)`` when return_variance is
+        True. ``smoothed_x`` and ``smoothed_y`` are the window-averaged arrays
+        (same length as the inputs); ``x_var`` and ``y_var`` are the
+        corresponding per-point weighted variances within each window (in the
+        squared units of x and y), a measure of local spread. When
+        x_window is 0 the inputs are returned unchanged and the variances are
+        zero.
     """
     # convert to numpy arrays
     x = np.asarray(x)
