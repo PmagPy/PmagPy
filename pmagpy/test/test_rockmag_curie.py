@@ -228,6 +228,31 @@ class TestCurieDerivativeEstimates:
                                                  t_range=(400, 700))
         assert result["inflection_temp"] == pytest.approx(580.0, abs=5.0)
 
+    def test_tail_noise_does_not_capture_estimate(self, landau_heating_C):
+        # noise confined to the flat tails must not drag the derivative
+        # estimates off the field-rounded transition; both estimates are
+        # anchored to the steepest descent, which the tails do not move
+        T, M = landau_heating_C
+        rng = np.random.RandomState(1)
+        noise = np.zeros_like(M)
+        # the transition sits at 580 C; keep the noise in the flat tails and
+        # below the transition slope so the steepest descent still finds the
+        # transition (the estimates must follow it, not the tail structure)
+        tail = (T < 430) | (T > 660)
+        noise[tail] = rng.normal(0.0, 0.002, int(tail.sum()))
+        result = rmag.curie_derivative_estimates(T, M + noise)
+        assert result["inflection_temp"] == pytest.approx(580.0, abs=3.0)
+        assert result["max_curvature_temp"] > result["inflection_temp"]
+        assert result["max_curvature_temp"] - 580.0 < 25.0
+
+    def test_non_finite_values_dropped(self, landau_heating_C):
+        # a single NaN must not become the steepest-descent point
+        T, M = landau_heating_C
+        M_nan = M.copy()
+        M_nan[5] = np.nan
+        result = rmag.curie_derivative_estimates(T, M_nan)
+        assert result["inflection_temp"] == pytest.approx(580.0, abs=2.0)
+
 
 class TestCurieTwoTangent:
     def test_recovers_transition_on_landau_curve(self, landau_heating_C):

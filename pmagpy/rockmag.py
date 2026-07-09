@@ -4520,11 +4520,24 @@ def curie_derivative_estimates(T, y, t_range=None):
       implemented in many software packages (including the legacy
       ``ipmag.curie``). On M(T) curves it lies systematically above the
       inflection-point Tc (typically 10-15 degrees C) and shifts with the
-      strength of the applied field (Fabian et al., 2013).
+      strength of the applied field (Fabian et al., 2013). It is searched on
+      the concave shoulder above the steepest descent, consistent with this
+      definition.
 
-    The input arrays are assumed to be smoothed as appropriate (see
-    ``prepare_thermomag_branches``); derivatives amplify noise, so unsmoothed
-    noisy data will produce spurious extrema.
+    Non-finite temperature or magnetization values are dropped before
+    differentiation, and the steepest descent is located over the interior of
+    the branch (the one-sided derivatives at the first and last points are the
+    most noise-prone). Both estimates are anchored to that steepest-descent
+    point, so isolated noise or structure in the flat tails does not capture
+    them.
+
+    The input arrays are nonetheless assumed to be smoothed as appropriate
+    (see ``prepare_thermomag_branches``); derivatives amplify noise, and a
+    noise feature steeper than a gently field-rounded transition can still
+    displace the estimate. For noisy data or multi-phase curves, smooth the
+    branch and use ``t_range`` to isolate the transition of interest, and
+    check the returned estimate against ``first_derivative_min_temp`` and the
+    ``diagnostics`` arrays.
 
     Parameters
     ----------
@@ -4552,6 +4565,9 @@ def curie_derivative_estimates(T, y, t_range=None):
         mask = (T >= t_range[0]) & (T <= t_range[1])
         T = T[mask]
         y = y[mask]
+    finite = np.isfinite(T) & np.isfinite(y)
+    T = T[finite]
+    y = y[finite]
     T, y = _dedupe_temperatures(T, y)
     if T.size < 4:
         nan = np.nan
@@ -4566,7 +4582,11 @@ def curie_derivative_estimates(T, y, t_range=None):
     dy = np.gradient(y, T)
     d2y = np.gradient(dy, T)
 
-    i_steep = int(np.argmin(dy))
+    # locate the steepest descent over the interior only; np.gradient forms
+    # one-sided differences at the array boundaries, which are the most
+    # noise-prone points and can otherwise anchor the estimate to an edge
+    interior = np.arange(1, T.size - 1)
+    i_steep = int(interior[np.argmin(dy[interior])])
     first_derivative_min_temp = T[i_steep]
 
     # restrict the curvature analysis to the transition zone around the
@@ -4581,16 +4601,18 @@ def curie_derivative_estimates(T, y, t_range=None):
     after = np.nonzero(near_zero[i_steep:])[0]
     j_end = int(after[0]) + i_steep if after.size else T.size - 1
 
-    zone = slice(j_start, j_end + 1)
-    d2y_zone = d2y[zone]
-    T_zone = T[zone]
-    max_curvature_temp = T_zone[np.argmax(d2y_zone)]
+    # the maximum-curvature estimate lies on the concave shoulder above the
+    # inflection (Ade-Hall et al., 1965; Fabian et al., 2013), so search the
+    # second derivative from the steepest descent upward; a noise feature on
+    # the low-temperature side of the transition cannot then capture it
+    upper_zone = slice(i_steep, j_end + 1)
+    max_curvature_temp = T[upper_zone][np.argmax(d2y[upper_zone])]
 
-    # zero crossings of the second derivative between its extrema bracket the
-    # inflection point of the descending limb
-    lower, upper = sorted([int(np.argmin(d2y_zone)), int(np.argmax(d2y_zone))])
+    # the inflection is the zero of the second derivative at the steepest
+    # descent; take the zone crossing nearest that point so the estimate stays
+    # anchored to the transition rather than to tail structure
     zero_crossing_temps = _interpolated_zero_crossings(
-        T_zone[lower:upper + 1], d2y_zone[lower:upper + 1]
+        T[j_start:j_end + 1], d2y[j_start:j_end + 1]
     )
     if zero_crossing_temps.size:
         inflection_temp = zero_crossing_temps[
