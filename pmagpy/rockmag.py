@@ -4461,6 +4461,23 @@ def _inverse_susceptibility(chi):
     return np.divide(1.0, chi, out=np.full_like(chi, np.nan), where=chi > 0)
 
 
+def _repeated_value_fraction(values):
+    """
+    Fraction of points that repeat an identical neighbor.
+
+    Runs of identical values within a fitting window are the signature of a
+    resolution-limited (quantized) susceptibility tail or a flattened/altered
+    magnetization tail; either flattens a fitted slope and biases the
+    extrapolated Curie temperature. Returns a value in [0, 1].
+    """
+    values = np.asarray(values, dtype=float)
+    if values.size < 2:
+        return 0.0
+    repeated = np.concatenate([[False], values[1:] == values[:-1]])
+    repeated[:-1] |= repeated[1:]
+    return float(repeated.mean())
+
+
 def _dedupe_temperatures(T, y):
     """
     Average y-values measured at duplicate temperatures.
@@ -4928,10 +4945,7 @@ def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
     # repeated identical susceptibility values in the window are the
     # signature of a resolution-limited (quantized) tail, which flattens the
     # fitted slope and biases theta low
-    chi_fit = chi[mask]
-    repeated = np.concatenate([[False], chi_fit[1:] == chi_fit[:-1]])
-    repeated[:-1] |= repeated[1:]
-    quantized_fraction = float(repeated.mean())
+    quantized_fraction = _repeated_value_fraction(chi[mask])
     if quantized_fraction > 1.0 / 3.0:
         result["params"]["warning"] = (
             f"{quantized_fraction:.0%} of the fitted points repeat identical "
@@ -4946,6 +4960,174 @@ def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
         "inv_chi_fit": inv_chi,
         "line_T": np.array([theta, T_fit.max()]),
         "line_inv_chi": np.array([0.0, slope * T_fit.max() + intercept]),
+    }
+    return result
+
+
+def curie_ms_squared_extrapolation(T, M, fit_range=None, exponent=2.0,
+                                   min_points=5, min_m=None):
+    """
+    Mean-field (Moskowitz, 1981) extrapolation of Ms**exponent to zero.
+
+    Fits ``M**exponent`` linearly in temperature over ``fit_range`` and returns
+    the x-intercept (where ``M**exponent = 0``) as the Curie temperature. This
+    is the extrapolation method of Moskowitz (1981,
+    doi:10.1016/0012-821X(81)90028-5) for saturation-magnetization (Ms-T)
+    thermomagnetic curves whose signal terminates below Tc — e.g.
+    titanomaghemites that chemically invert on heating before Ms reaches zero,
+    so a direct Ms = 0 crossing is unavailable.
+
+    Near Tc a second-order (mean-field / Landau-Belov) treatment gives
+    Js proportional to (Tc - T)**(1/2), so Js**2 is linear in T and
+    extrapolates to zero at Tc (Moskowitz, 1981, eqs. 4-5). This is the
+    magnetization-space analog of the Curie-Weiss inverse-susceptibility
+    method: there 1/chi rises linearly to a zero at theta; here Ms**2 falls
+    linearly to a zero at Tc, so ``curie_temp = -intercept/slope`` with the
+    slope required to be negative. (Moskowitz normalizes by Js0 = Js(T0); the
+    normalization does not change the x-intercept and is omitted here.)
+
+    The mean-field form is valid for T/Tc > 0.8 (roughly the uppermost ~100 C
+    below Tc), so restrict ``fit_range`` to the steep descent below where the
+    curve flattens out or the sample alters; report the window. Following
+    Moskowitz, ``exponent=2`` (critical exponent beta = 1/2) is the
+    theoretically justified, best-conditioned choice and minimized his fit
+    error (+/-5 C) on standards (Fe3O4 572 C, Ni 360 C, CrO2 133 C). For a
+    mean-field curve exponent=2 is exact; any other exponent introduces
+    curvature into the fitted data and moves the extrapolated Tc off the true
+    value. Moskowitz reported that a smaller exponent shifted Tc lower for his
+    irreversible titanomaghemite samples; on ideal and mean-field curves a
+    smaller exponent instead biases Tc high, so the direction of the bias
+    depends on the true curve shape. For a multiphase sample only the Curie
+    temperature of the highest-Tc phase is recovered.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending (Celsius or Kelvin; Tc is returned in the same
+        unit as the input, since the x-intercept is unit-invariant).
+    M : array-like
+        Saturation-magnetization (Ms) values.
+    fit_range : tuple of (float, float), optional
+        Temperature interval for the linear fit of ``M**exponent``. If None,
+        the upper 40 percent of the temperature span is used — a starting
+        guess only; inspect the fit and set the window explicitly (below the
+        flattening/alteration temperature) for reported values.
+    exponent : float, optional
+        Power to which ``M`` is raised before the linear fit (default 2.0,
+        i.e. beta = 1/2). Any other exponent introduces curvature into the
+        fit and moves Tc off the mean-field value (Moskowitz, 1981).
+    min_points : int, optional
+        Minimum number of usable points in the window (default 5; floored at
+        3, since the covariance fit needs more than two points).
+    min_m : float, optional
+        Exclude points with magnetization below this value from the fit (same
+        units as ``M``). Useful for screening out a flattened, weak, or
+        altered tail.
+
+    Returns
+    -------
+    dict
+        ``curie_temp`` (Tc = -intercept/slope, in the input temperature unit),
+        ``curie_temp_stderr`` (1-sigma from the fit covariance), ``params``
+        with ``slope``, ``intercept``, ``r_squared``, ``n_points``,
+        ``fit_range``, ``exponent``, a ``note`` when the fit is not usable
+        (too few points or a non-negative slope), and a ``warning`` when the
+        fitted points are dominated by repeated (flattened/altered) values,
+        and ``diagnostics`` with ``T``, ``m_pow`` (= ``M**exponent``), the
+        fitted points, and the extrapolated line.
+    """
+    T = np.asarray(T, dtype=float)
+    M = np.asarray(M, dtype=float)
+    # a straight-line covariance fit needs more than two points; below three
+    # np.polyfit(..., cov=True) raises instead of returning gracefully
+    min_points = max(int(min_points), 3)
+
+    if fit_range is None:
+        t_span = T.max() - T.min()
+        fit_range = (T.min() + 0.6 * t_span, T.max())
+
+    mask = (
+        (T >= fit_range[0])
+        & (T <= fit_range[1])
+        & np.isfinite(M)
+        & (M > 0)
+    )
+    if min_m is not None:
+        mask &= M >= min_m
+    result = {
+        "curie_temp": np.nan,
+        "curie_temp_stderr": np.nan,
+        "params": {"fit_range": (float(fit_range[0]), float(fit_range[1])),
+                   "n_points": int(mask.sum()),
+                   "exponent": float(exponent)},
+        "diagnostics": {},
+    }
+    if mask.sum() < min_points:
+        result["params"]["note"] = (
+            f"only {int(mask.sum())} usable points in fit_range; "
+            f"at least {min_points} required"
+        )
+        return result
+
+    T_fit = T[mask]
+    m_pow_fit = M[mask] ** exponent
+
+    (slope, intercept), cov = np.polyfit(T_fit, m_pow_fit, 1, cov=True)
+    if slope >= 0:
+        # Ms**exponent must decrease with T toward the transition; a
+        # non-negative slope means the window is not on the descending limb
+        # below Tc (wrong window, or a flattened/altered tail)
+        result["params"]["note"] = (
+            "non-negative slope in the Ms**exponent fit; the fitting window "
+            "does not sample the descending magnetization below Tc — adjust "
+            "fit_range"
+        )
+        return result
+    tc = -intercept / slope
+
+    # 1-sigma uncertainty on Tc from the fit covariance
+    d_tc_d_slope = intercept / slope**2
+    d_tc_d_intercept = -1.0 / slope
+    var_tc = (
+        d_tc_d_slope**2 * cov[0, 0]
+        + d_tc_d_intercept**2 * cov[1, 1]
+        + 2.0 * d_tc_d_slope * d_tc_d_intercept * cov[0, 1]
+    )
+    tc_stderr = float(np.sqrt(var_tc)) if var_tc >= 0 else np.nan
+
+    predicted = slope * T_fit + intercept
+    ss_res = float(np.sum((m_pow_fit - predicted) ** 2))
+    ss_tot = float(np.sum((m_pow_fit - m_pow_fit.mean()) ** 2))
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+    result["curie_temp"] = float(tc)
+    result["curie_temp_stderr"] = tc_stderr
+    result["params"].update({
+        "slope": float(slope),
+        "intercept": float(intercept),
+        "r_squared": float(r_squared),
+    })
+
+    # repeated identical magnetization values in the window signal a flattened
+    # or altered tail, which flattens the fitted slope and biases Tc
+    fraction_repeated = _repeated_value_fraction(M[mask])
+    if fraction_repeated > 1.0 / 3.0:
+        result["params"]["warning"] = (
+            f"{fraction_repeated:.0%} of the fitted points repeat identical "
+            "magnetization values (flattened or altered tail); Tc is likely "
+            "biased — tighten fit_range or set min_m"
+        )
+
+    m_pow_all = np.full_like(M, np.nan)
+    positive = np.isfinite(M) & (M > 0)
+    m_pow_all[positive] = M[positive] ** exponent
+    result["diagnostics"] = {
+        "T": T,
+        "m_pow": m_pow_all,
+        "T_fit": T_fit,
+        "m_pow_fit": m_pow_fit,
+        "line_T": np.array([tc, T_fit.max()]),
+        "line_m_pow": np.array([0.0, slope * T_fit.max() + intercept]),
     }
     return result
 
@@ -5203,6 +5385,11 @@ _CURIE_METHOD_NOTES = {
         "fit of the in-field Landau equation of state (Fabian et al., 2013); "
         "Tc at the inflection point, with formal uncertainty"
     ),
+    "ms_squared_extrapolation": (
+        "Ms^2 extrapolation (Moskowitz, 1981); mean-field extrapolation of "
+        "Ms^2 to zero for M(T) curves that end below Tc, e.g. titanomaghemites "
+        "that invert on heating; recovers only the highest-Tc phase"
+    ),
 }
 
 
@@ -5274,6 +5461,9 @@ def curie_temperature_estimates(
     * ``'landau'`` — in-field Landau equation-of-state fit
       (``curie_landau_fit``); for M(T), supports extrapolation from runs
       that end below Tc.
+    * ``'ms_squared_extrapolation'`` — mean-field extrapolation of Ms^2 to
+      zero (``curie_ms_squared_extrapolation``; Moskowitz, 1981); for M(T)
+      curves that end below Tc. Not selectable for susceptibility data.
 
     Parameters
     ----------
@@ -5348,11 +5538,17 @@ def curie_temperature_estimates(
             methods = ("inflection", "max_curvature", "two_tangent", "landau")
 
     known = {"inflection", "max_curvature", "two_tangent",
-             "inverse_susceptibility", "landau"}
+             "inverse_susceptibility", "landau", "ms_squared_extrapolation"}
     unknown = set(methods) - known
     if unknown:
         raise ValueError(f"unknown method(s): {sorted(unknown)}; "
                          f"choose from {sorted(known)}")
+    if is_susceptibility and "ms_squared_extrapolation" in methods:
+        raise ValueError(
+            "ms_squared_extrapolation is a magnetization (Ms-T) method and "
+            "does not apply to susceptibility data; use data_type="
+            "'magnetization' for Ms(T) experiments"
+        )
     unknown_kwargs = set(method_kwargs) - known - {"derivative"}
     if unknown_kwargs:
         raise ValueError(
@@ -5425,6 +5621,14 @@ def curie_temperature_estimates(
                 landau_kwargs = dict(method_kwargs.get("landau", {}))
                 landau_kwargs.setdefault("temp_unit", temp_unit)
                 r = curie_landau_fit(T, y, **landau_kwargs)
+                curie_temp, stderr, params = (r["curie_temp"],
+                                              r["curie_temp_stderr"],
+                                              r["params"])
+                method_results[(branch, method)] = r
+            elif method == "ms_squared_extrapolation":
+                r = curie_ms_squared_extrapolation(
+                    T, y, **method_kwargs.get("ms_squared_extrapolation", {})
+                )
                 curie_temp, stderr, params = (r["curie_temp"],
                                               r["curie_temp_stderr"],
                                               r["params"])

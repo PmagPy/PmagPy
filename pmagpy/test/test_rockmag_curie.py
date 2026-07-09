@@ -484,6 +484,91 @@ class TestCurieLandauFit:
         assert reported == pytest.approx(np.std(recovered), rel=0.4)
 
 
+class TestCurieMsSquaredExtrapolation:
+    def test_exact_recovery_of_tc(self):
+        # Js proportional to (Tc - T)^(1/2), so Js**2 is exactly linear in T
+        # and extrapolates to Js**2 = 0 at Tc (Moskowitz, 1981, eqs. 4-5)
+        Tc = 580.0
+        T = np.linspace(480.0, 575.0, 40)
+        M = np.sqrt(Tc - T)
+        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        assert r["curie_temp"] == pytest.approx(580.0, abs=0.5)
+        assert r["params"]["r_squared"] == pytest.approx(1.0, abs=1e-8)
+        assert r["params"]["slope"] < 0
+        assert r["params"]["exponent"] == 2.0
+        assert np.isfinite(r["curie_temp_stderr"])
+
+    def test_exponent_two_is_exact_others_biased(self):
+        # exponent 2 (beta = 1/2) is exact for a mean-field curve; a different
+        # exponent introduces curvature that moves the extrapolation off Tc
+        Tc = 580.0
+        T = np.linspace(480.0, 575.0, 40)
+        M = np.sqrt(Tc - T)
+        two = rmag.curie_ms_squared_extrapolation(
+            T, M, fit_range=(480, 575), exponent=2.0)
+        other = rmag.curie_ms_squared_extrapolation(
+            T, M, fit_range=(480, 575), exponent=1.5)
+        assert two["curie_temp"] == pytest.approx(580.0, abs=0.5)
+        assert (abs(other["curie_temp"] - 580.0)
+                > abs(two["curie_temp"] - 580.0) + 5.0)
+        assert other["params"]["exponent"] == 1.5
+
+    def test_stderr_matches_monte_carlo(self):
+        # 1-sigma on Tc from the fit covariance must match the spread under
+        # noise (same delta-method/covariance propagation as Curie-Weiss)
+        Tc = 580.0
+        T = np.linspace(480.0, 575.0, 40)
+        M0 = np.sqrt(Tc - T)
+        sigma = 0.02
+        rng = np.random.default_rng(7)
+        reported = rmag.curie_ms_squared_extrapolation(
+            T, np.clip(M0 + rng.normal(0, sigma, T.size), 1e-6, None),
+            fit_range=(480, 575))["curie_temp_stderr"]
+        recovered = [
+            rmag.curie_ms_squared_extrapolation(
+                T, np.clip(M0 + rng.normal(0, sigma, T.size), 1e-6, None),
+                fit_range=(480, 575))["curie_temp"]
+            for _ in range(1000)
+        ]
+        assert reported == pytest.approx(np.std(recovered), rel=0.5)
+
+    def test_positive_slope_rejected_with_note(self):
+        # increasing magnetization -> Ms**2 increases -> non-negative slope
+        T = np.linspace(300.0, 400.0, 30)
+        M = np.sqrt(T - 250.0)
+        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(300, 400))
+        assert np.isnan(r["curie_temp"])
+        assert "note" in r["params"]
+
+    def test_insufficient_points_noted(self):
+        T = np.linspace(560.0, 575.0, 3)
+        M = np.sqrt(580.0 - T)
+        r = rmag.curie_ms_squared_extrapolation(
+            T, M, fit_range=(560, 575), min_points=5)
+        assert np.isnan(r["curie_temp"])
+        assert "note" in r["params"]
+
+    def test_flattened_tail_warns(self):
+        # a coarsely quantized (flattened/altered) window repeats values and
+        # must warn, as in the inverse-susceptibility case
+        Tc = 580.0
+        T = np.linspace(480.0, 575.0, 40)
+        M = np.round(np.sqrt(Tc - T) / 0.6) * 0.6
+        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        assert "warning" in r["params"]
+
+    def test_temperature_unit_invariance(self):
+        # Tc is returned in the input unit (the x-intercept is unit-invariant)
+        Tc = 580.0
+        T = np.linspace(480.0, 575.0, 40)
+        M = np.sqrt(Tc - T)
+        in_C = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        in_K = rmag.curie_ms_squared_extrapolation(
+            T + 273.15, M, fit_range=(480 + 273.15, 575 + 273.15))
+        assert in_C["curie_temp"] == pytest.approx(580.0, abs=0.5)
+        assert in_K["curie_temp"] == pytest.approx(580.0 + 273.15, abs=0.5)
+
+
 class TestCurieTemperatureEstimates:
     def test_tidy_table_shape_and_defaults_magnetization(
             self, heat_cool_experiment):
@@ -603,6 +688,32 @@ class TestCurieTemperatureEstimates:
         infl = float(est[est["branch"] == "heating"].iloc[0]["curie_temp"])
         assert infl == pytest.approx(500.0, abs=4.0)
 
+    def test_ms_squared_extrapolation_selectable_for_magnetization(self):
+        Tc = 580.0
+        T_C = np.linspace(460.0, 575.0, 60)
+        df = pd.DataFrame({
+            "meas_temp": T_C + 273.15,
+            "magn_mass": np.sqrt(Tc - T_C),
+            "specimen": "syn", "experiment": "SYN-LP-MST-1",
+        })
+        est = rmag.curie_temperature_estimates(
+            df, magnetic_column="magn_mass", remove_holder=False,
+            methods=("ms_squared_extrapolation",),
+            method_kwargs={"ms_squared_extrapolation": {"fit_range": (480, 575)}})
+        row = est[est["branch"] == "heating"].iloc[0]
+        assert row["curie_temp"] == pytest.approx(580.0, abs=1.0)
+        assert "Moskowitz" in row["notes"]
+
+    def test_ms_squared_rejected_for_susceptibility(self, curie_weiss_chi):
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({
+            "meas_temp": T + 273.15, "susc_chi_mass": chi,
+            "specimen": "chi", "experiment": "SYN-LP-X-T-1",
+        })
+        with pytest.raises(ValueError, match="magnetization"):
+            rmag.curie_temperature_estimates(
+                df, methods=("ms_squared_extrapolation",))
+
     def test_heating_only_yields_heating_rows(self):
         T = np.linspace(323.15, 973.15, 200)
         df = pd.DataFrame({
@@ -698,6 +809,31 @@ class TestAddCurieEstimatesToSpecimensTable:
             rmag.add_curie_estimates_to_specimens_table(
                 specimens, "SYN-LP-MST-1", estimates
             )
+
+    def test_writes_ms_squared_extrapolation_estimate(self):
+        Tc = 580.0
+        T_C = np.linspace(460.0, 575.0, 60)
+        df = pd.DataFrame({
+            "meas_temp": T_C + 273.15,
+            "magn_mass": np.sqrt(Tc - T_C),
+            "specimen": "syn", "experiment": "SYN-LP-MST-1",
+        })
+        estimates = rmag.curie_temperature_estimates(
+            df, magnetic_column="magn_mass", remove_holder=False,
+            methods=("ms_squared_extrapolation",),
+            method_kwargs={"ms_squared_extrapolation": {"fit_range": (480, 575)}})
+        specimens = pd.DataFrame({
+            "specimen": ["syn"],
+            "experiments": ["SYN-LP-MST-1"],
+            "description": [np.nan],
+        })
+        rmag.add_curie_estimates_to_specimens_table(
+            specimens, "SYN-LP-MST-1", estimates,
+            method="ms_squared_extrapolation", branch="heating")
+        row = specimens.iloc[0]
+        assert row["critical_temp"] == pytest.approx(580.0 + 273.15, abs=1.0)
+        assert row["critical_temp_type"] == "Curie"
+        assert "ms_squared_extrapolation" in row["description"]
 
     def test_nan_experiments_rows_are_skipped(self, heat_cool_experiment):
         """Real specimens tables include rows with no experiments recorded
