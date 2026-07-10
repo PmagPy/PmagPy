@@ -16283,7 +16283,7 @@ def MADcrit(N,alpha,niter=int(1E8)):
     
     df = N-1 #degrees of freedom of the Wishart distribution
     X = stats.wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
-    X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
+    X = np.linalg.eigvalsh(X) #find the eigenvalues of each case (real, ascending order for symmetric matrices)
     #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
     MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
     

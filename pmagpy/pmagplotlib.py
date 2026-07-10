@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 import pandas as pd
 warnings.filterwarnings("ignore")  # what you don't know won't hurt you, or will it?
-from packaging.version import Version, InvalidVersion
+from packaging.version import Version
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -3372,12 +3372,7 @@ def plot_mag_map(fignum, element, lons, lats, element_type, cmap='coolwarm', lon
     if proj == 'Mollweide':
         fig = plt.figure(fignum)
         # this issue is fixed in >=0.17
-        try:
-            cartopy_supports_lon0 = Version(Cartopy.__version__) > Version('0.16.0')
-        except InvalidVersion:
-            # If the version string is non-standard, skip this guard.
-            cartopy_supports_lon0 = True
-        if not cartopy_supports_lon0:
+        if not Version(Cartopy.__version__) > Version('0.16.0'):
             if lon_0 != 0:
                 print('This projection requires lon_0=0')
                 return
