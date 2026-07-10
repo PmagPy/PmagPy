@@ -45,7 +45,7 @@ version_num = pmag.get_version()
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
-if matplotlib.__version__ < '2.1':
+if Version(matplotlib.__version__) < Version('2.1'):
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
        conda upgrade matplotlib
