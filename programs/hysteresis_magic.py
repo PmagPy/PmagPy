@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- python-indent-offset: 4; -*-
 
 import sys
