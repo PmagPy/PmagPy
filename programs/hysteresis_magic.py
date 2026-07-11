@@ -60,8 +60,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                      meas_file="measurements.txt", fmt="svg",
                      save_plots=True, make_plots=True, pltspec="", n_specs=5, interactive=False):
     """
-    Calculate hysteresis parameters and plot hysteresis data using the rockmag backend.
-    Plots match the style of the original pmagplotlib-based implementation.
+    Calculate hysteresis parameters and plot hysteresis data.
 
     Parameters
     ----------
@@ -285,7 +284,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
                 if ans == "a":
                     for key, fig_obj in spec_figs.items():
                         outname = specimen + '_' + key + '.' + fmt
-                        fig_obj.savefig(outname, format=fmt)
+                        fig_obj.savefig(os.path.join(output_dir_path, outname), format=fmt)
                 if ans == '':
                     for fig_obj in spec_figs.values():
                         plt.close(fig_obj)
@@ -319,7 +318,7 @@ def hysteresis_magic(output_dir_path=".", input_dir_path="", spec_file="specimen
             elif save_plots:
                 for key, fig_obj in spec_figs.items():
                     outname = specimen + '_' + key + '.' + fmt
-                    fig_obj.savefig(outname, format=fmt)
+                    fig_obj.savefig(os.path.join(output_dir_path, outname), format=fmt)
                 for fig_obj in spec_figs.values():
                     plt.close(fig_obj)
                 k += 1

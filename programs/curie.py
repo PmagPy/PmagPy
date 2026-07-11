@@ -23,6 +23,7 @@ def main():
     OPTIONS
         -h           Prints help message and quits
         -f FILE      Sets M,T input file (required, two columns: T, M)
+        -u [C,K]     Temperature units in input file [default: C]
         -t <min> <max>  Temperature range (optional, restricts plot to range)
         -sav         Save figure and quit
         -fmt [svg,jpg,eps,png,pdf]  Set format for figure output [default: svg]
@@ -42,6 +43,13 @@ def main():
         sys.exit()
     t_begin = None
     t_end = None
+    input_temp_unit = 'C'
+    if '-u' in sys.argv:
+        ind = sys.argv.index('-u')
+        input_temp_unit = sys.argv[ind+1].upper()
+        if input_temp_unit not in ('C', 'K'):
+            print("-u must be 'C' or 'K'")
+            sys.exit(1)
     if '-t' in sys.argv:
         ind = sys.argv.index('-t')
         t_begin = float(sys.argv[ind+1])
@@ -54,13 +62,25 @@ def main():
 
     # Read data (expects two columns: T, M)
     data = np.loadtxt(meas_file)
-    T = data[:, 0]
+    T_input = data[:, 0]
     M = data[:, 1]
-    df = pd.DataFrame({"meas_temp": T, "magn_mass": M})
 
-    # Restrict to temperature range if requested (assume input is always Celsius)
+    # Normalize to Kelvin for rockmag.plot_ms_t, which assumes Kelvin input.
+    if input_temp_unit == 'C':
+        T_kelvin = T_input + 273.15
+    else:
+        T_kelvin = T_input
+    df = pd.DataFrame({"meas_temp": T_kelvin, "magn_mass": M})
+
+    # Restrict to temperature range in the same units as input, then convert to Kelvin.
     if t_begin is not None and t_end is not None:
-        df = df[(df["meas_temp"] >= t_begin) & (df["meas_temp"] <= t_end)]
+        if input_temp_unit == 'C':
+            t_begin_k = t_begin + 273.15
+            t_end_k = t_end + 273.15
+        else:
+            t_begin_k = t_begin
+            t_end_k = t_end
+        df = df[(df["meas_temp"] >= t_begin_k) & (df["meas_temp"] <= t_end_k)]
 
     # Plot using rockmag.plot_ms_t
     fig = rockmag.plot_ms_t(

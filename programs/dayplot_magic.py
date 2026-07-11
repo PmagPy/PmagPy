@@ -124,8 +124,9 @@ def main():
             if fig is not None:
                 suffix = getattr(fig, '_pmagplot_suffix', '_dayplot') if i > 0 else '_dayplot'
                 outname = os.path.splitext(os.path.basename(infile))[0] + f"{suffix}.{fmt}"
-                fig.savefig(outname, format=fmt)
-                print(f"Saved plot to {outname}")
+                outpath = os.path.join(dir_path, outname)
+                fig.savefig(outpath, format=fmt)
+                print(f"Saved plot to {outpath}")
     else:
         for fig in figs:
             if fig is not None:
