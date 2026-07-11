@@ -5757,7 +5757,7 @@ def plot_neel_magic(specimen_data,
                    Bc = 'hyst_bc',
                    **kwargs):
     """
-    Function to plot a Day plot from a MagIC specimens table.
+    Generate a Néel plot (squareness-coercivity) of Mr/Ms versus Bc from a MagIC specimens table.
 
     Parameters
     ----------

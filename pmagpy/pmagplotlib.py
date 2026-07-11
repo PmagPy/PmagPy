@@ -1893,7 +1893,6 @@ def plot_vs(fignum, Xs, c, ls):
             x=xv, ymin=bounds[2], ymax=bounds[3], linewidth=1, color=c, linestyle=ls)
 
 
-
 def plot_hys(fignum, B, M, s):
     """
    function to plot hysteresis data
@@ -2017,7 +2016,6 @@ def plot_hys(fignum, B, M, s):
     return hpars, deltaM, Bdm
 #
 
-
 def plot_delta_m(fignum, B, DM, Bcr, s):
     """
     function to plot Delta M curves
@@ -2130,62 +2128,8 @@ def plot_hdd(HDD, B, M, s):
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
     return hpars
-#
 
 
-def plot_day(fignum, BcrBc, S, sym, **kwargs):
-    """
-    function to plot Day plots
-
-    Parameters
-    _________
-    fignum : matplotlib figure number
-    BcrBc : list or array ratio of coercivity of remenance to coercivity
-    S : list or array ratio of saturation remanence to saturation magnetization (squareness)
-    sym : matplotlib symbol (e.g., 'rs' for red squares)
-    **kwargs :  dictionary with {'names':[list of names for symbols]}
-    """
-    plt.figure(num=fignum)
-    plt.plot(BcrBc, S, sym)
-    plt.axhline(0, color='k')
-    plt.axhline(.05, color='k')
-    plt.axhline(.5, color='k')
-    plt.axvline(1, color='k')
-    plt.axvline(4, color='k')
-    plt.xlabel('Bcr/Bc')
-    plt.ylabel('Mr/Ms')
-    plt.title('Day Plot')
-    plt.xlim(0, 6)
-    #bounds= plt.axis()
-    #plt.axis([0, bounds[1],0, 1])
-    mu_o = 4. * np.pi * 1e-7
-    Bc_sd = 46e-3  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
-    Bc_md = 5.56e-3  # (041183) dunlop and carter-stiglitz 2006 (in T)
-    chi_sd = 5.20e6 * mu_o  # now in T
-    chi_md = 4.14e6 * mu_o  # now in T
-    chi_r_sd = 4.55e6 * mu_o  # now in T
-    chi_r_md = 0.88e6 * mu_o  # now in T
-    Bcr_sd, Bcr_md = 52.5e-3, 26.1e-3  # (MV1H and 041183 in DC06 in tesla)
-    Ms = 480e3  # A/m
-    p = .1  # from Dunlop 2002
-    N = 1.0 / 3.0  # demagnetizing factor
-    f_sd = np.arange(1., 0., -.01)  # fraction of sd
-    f_md = 1. - f_sd  # fraction of md
-    f_sp = 1. - f_sd  # fraction of sp
-    # Mr/Ms ratios for USD,MD and Jax shaped
-    sdrat, mdrat, cbrat = 0.498, 0.048, 0.6
-    Mrat = f_sd * sdrat + f_md * mdrat  # linear mixing - eq. 9 in Dunlop 2002
-    Bc = (f_sd * chi_sd * Bc_sd + f_md * chi_md * Bc_md) / (f_sd * chi_sd + f_md * chi_md)  # eq. 10 in Dunlop 2002
-    Bcr = (f_sd * chi_r_sd * Bcr_sd + f_md * chi_r_md * Bcr_md) / (f_sd * chi_r_sd + f_md * chi_r_md)  # eq. 11 in Dunlop 2002
-    chi_sps = np.arange(1, 5) * chi_sd
-    plt.plot(Bcr / Bc, Mrat, 'r-')
-    if 'names' in list(kwargs.keys()):
-        names = kwargs['names']
-        for k in range(len(names)):
-            plt.text(BcrBc[k], S[k], names[k])  # ,'ha'='left'
-
-
-#
 def plot_s_bc(fignum, Bc, S, sym):
     """
     function to plot Squareness,Coercivity
@@ -2273,80 +2217,6 @@ def plot_hpars(HDD, hpars, sym):
     if Bcr != "":
         n1 = 'Bcr: ' + '%8.2e' % (Bcr) + ' T'
         plt.text(bounds[1] - .5 * bounds[1], .9 * bounds[3], n1)
-#
-
-
-def plot_irm(fignum, B, M, title):
-    """
-    function to plot IRM backfield curves
-
-    Parameters
-    _________
-    fignum : matplotlib figure number
-    B : list or array of field values
-    M : list or array of magnetizations
-    title : string title for plot
-    """
-    rpars = {}
-    Mnorm = []
-    backfield = 0
-    X, Y = [], []
-    for k in range(len(B)):
-        if M[k] < 0:
-            break
-    if k <= 5:
-        kmin = 0
-    else:
-        kmin = k - 5
-    for k in range(kmin, k + 1):
-        X.append(B[k])
-        if B[k] < 0:
-            backfield = 1
-        Y.append(M[k])
-    if backfield == 1:
-        poly = np.polyfit(X, Y, 1)
-        if poly[0] != 0:
-            bcr = (-poly[1] / poly[0])
-        else:
-            bcr = 0
-        rpars['remanence_mr_moment'] = '%8.3e' % (M[0])
-        rpars['remanence_bcr'] = '%8.3e' % (-bcr)
-        rpars['magic_method_codes'] = 'LP-BCR-BF'
-        if M[0] != 0:
-            for m in M:
-                Mnorm.append(m / M[0])  # normalize to unity Msat
-            title = title + ':' + '%8.3e' % (M[0])
-    else:
-        if M[-1] != 0:
-            for m in M:
-                Mnorm.append(m / M[-1])  # normalize to unity Msat
-            title = title + ':' + '%8.3e' % (M[-1])
-# do plots if desired
-    if fignum != 0 and M[0] != 0:  # skip plot for fignum = 0
-        plt.figure(num=fignum)
-        plt.clf()
-        if not isServer:
-            plt.figtext(.02, .01, version_num)
-        plt.plot(B, Mnorm)
-        plt.axhline(0, color='k')
-        plt.axvline(0, color='k')
-        plt.xlabel('B (T)')
-        plt.ylabel('M/Mr')
-        plt.title(title)
-        if backfield == 1:
-            plt.scatter([bcr], [0], marker='s', c='b')
-            bounds = plt.axis()
-            n1 = 'Bcr: ' + '%8.2e' % (-bcr) + ' T'
-            plt.figtext(.2, .5, n1)
-            n2 = 'Mr: ' + '%8.2e' % (M[0]) + ' Am^2'
-            plt.figtext(.2, .45, n2)
-    elif fignum != 0:
-        plt.figure(num=fignum)
-        # plt.clf()
-        if not isServer:
-            plt.figtext(.02, .01, version_num)
-        print('M[0]=0,  skipping specimen')
-    return rpars
 
 
 def plot_xtf(fignum, XTF, Fs, e, b):
