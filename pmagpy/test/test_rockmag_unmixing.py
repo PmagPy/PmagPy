@@ -260,6 +260,31 @@ class TestSpectrumFitting:
                                            np.array([0.1, 0.5, 0.1]),
                                            n_components=2)
 
+    def test_covariance_ok_flag_false_on_normal_fit(self):
+        """A well-behaved fit reports finite standard errors and flags the
+        covariance as non-singular."""
+        x, spectrum = synthetic_spectrum(noise=0.01)
+        result = rmag.unmix_coercivity_spectrum(x, spectrum, n_components=2,
+                                                vary_skew=False)
+        assert result['stats']['covariance_singular'] is False
+        assert np.isfinite(result['params']['se_location']).all()
+
+    def test_singular_covariance_warns_and_flags(self, monkeypatch):
+        """Regression: when the covariance computation fails (singular
+        Jacobian), the fit warns and sets stats['covariance_singular'] so the
+        resulting NaN standard errors are not silently mistaken for those of a
+        degenerate fit."""
+        def raise_linalg(*args, **kwargs):
+            raise np.linalg.LinAlgError('forced singular')
+        monkeypatch.setattr(np.linalg, 'pinv', raise_linalg)
+        x, spectrum = synthetic_spectrum(noise=0.01)
+        with pytest.warns(RuntimeWarning, match='covariance'):
+            result = rmag.unmix_coercivity_spectrum(x, spectrum,
+                                                    n_components=2,
+                                                    vary_skew=False)
+        assert result['stats']['covariance_singular'] is True
+        assert np.isnan(result['params']['se_location']).all()
+
 
 class TestCurveFitting:
     """unmix_backfield_curve parameter recovery."""

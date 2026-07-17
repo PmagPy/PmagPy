@@ -3,6 +3,7 @@ import numpy as np
 import copy
 import json
 import ast
+import warnings
 
 from scipy.optimize import minimize, brent, least_squares, minimize_scalar, brentq
 from scipy.signal import savgol_filter, find_peaks
@@ -6223,13 +6224,23 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
     n_pts, n_par = len(x), len(res.x)
     dof = n_pts - n_par
     se = np.full(n_par, np.nan)
+    covariance_ok = True
     if dof > 0:
         try:
             JtJ = res.jac.T @ res.jac
             cov = 2.0 * res.cost / dof * np.linalg.pinv(JtJ)
             se = np.sqrt(np.clip(np.diag(cov), 0, None))
         except np.linalg.LinAlgError:
-            pass
+            # covariance failed on an otherwise-converged fit: warn and flag it
+            # so the resulting NaN standard errors are not mistaken for those of
+            # a degenerate (dof <= 0) fit
+            covariance_ok = False
+            warnings.warn(
+                'covariance matrix could not be computed (singular Jacobian); '
+                'the linearized standard errors are NaN. The parameter '
+                'estimates are still valid -- use bootstrap or Bayesian '
+                'uncertainty for this fit instead.',
+                RuntimeWarning, stacklevel=2)
 
     c, loc, dp, skew, offset = unpack(res.x)
     se_c = se[:K] * y_scale
@@ -6251,6 +6262,7 @@ def _unmix_fit_engine(x, y, initial, method, curve_type='backfield',
         'skew': np.asarray(skew)[order], 'se_skew': np.asarray(se_skew)[order],
         'offset': offset * y_scale, 'se_offset': se_offset,
         'x': x, 'y': y, 'weights': weights, 'y_scale': y_scale,
+        'covariance_ok': covariance_ok,
     }
 
 
@@ -6309,6 +6321,10 @@ def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
         'reduced_chi_square': rss / dof if dof > 0 else np.nan,
         'aic': n * log_term + 2 * n_params,
         'bic': n * log_term + n_params * np.log(n),
+        # True when the covariance/standard-error computation failed (singular
+        # Jacobian): the se_* fields are NaN for that reason rather than
+        # because the fit was degenerate. Normally False.
+        'covariance_singular': not engine.get('covariance_ok', True),
     }
 
     scipy_result = engine['scipy_result']
