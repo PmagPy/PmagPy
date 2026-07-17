@@ -8139,8 +8139,19 @@ def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
         b_low, b_high = _rescale(*entry['B_median_mT'])
         b_low = max(b_low, 1e-3)  # keep positive for log10
         if field_max_mT is not None:
+            # clip the upper bound to the measured field, but refuse to clip a
+            # window whose lower bound is already at or above it: that would
+            # collapse the window to zero width and silently pin the component
+            # at exactly log10(field_max_mT). Such a component sits entirely
+            # beyond the measured field and cannot be constrained here.
+            if b_low >= field_max_mT:
+                raise ValueError(
+                    f"component '{name}': its coercivity window starts at "
+                    f"{b_low:g} mT, at or above the maximum applied field "
+                    f"({field_max_mT:g} mT), so this experiment cannot "
+                    f"constrain {name}. Remove it from the mineral list, "
+                    f"widen the field range, or supply an override window.")
             b_high = min(b_high, field_max_mT)
-            b_low = min(b_low, b_high)
         entries.append((name, np.sqrt(b_low * b_high),
                         (np.log10(b_low), np.log10(b_high)),
                         _rescale(*entry['dp']), _rescale(*entry['skew'])))

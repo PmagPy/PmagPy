@@ -1275,6 +1275,22 @@ class TestMineralPriors:
         # hematite window is (150, 1500) mT; a 1 T max field clips the top
         priors = rmag.mineral_priors(['hematite'], field_max_mT=1000)
         assert priors['mean'][0][1] == pytest.approx(np.log10(1000))
+        # the lower bound is untouched, so the window keeps a real width
+        assert priors['mean'][0][0] < priors['mean'][0][1]
+
+    def test_field_max_below_window_raises(self):
+        """Regression: a component whose whole coercivity window lies above
+        the maximum applied field must raise, not silently collapse to a
+        zero-width window pinned at log10(field_max)."""
+        with pytest.raises(ValueError, match='cannot constrain'):
+            rmag.mineral_priors(['hematite_detrital'], field_max_mT=300)
+
+    def test_field_max_names_the_unconstrainable_component(self):
+        """In a mixed list only the component beyond the field range trips the
+        error, and the message identifies it."""
+        with pytest.raises(ValueError, match='hematite_detrital'):
+            rmag.mineral_priors(['hematite_pigmentary', 'hematite_detrital'],
+                                field_max_mT=300)
 
     def test_accepts_single_string(self):
         priors = rmag.mineral_priors('hematite')
