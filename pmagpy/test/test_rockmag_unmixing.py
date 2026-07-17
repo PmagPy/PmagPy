@@ -18,6 +18,19 @@ from scipy.integrate import quad
 from pmagpy import rockmag as rmag
 
 
+# dynesty (nested sampling) is an optional dependency; skip the tests that
+# genuinely run a Bayesian fit when it is absent (e.g. on CI). Defined here at
+# module top so every test class below can reference it.
+try:
+    import dynesty  # noqa: F401
+    HAS_DYNESTY = True
+except ImportError:
+    HAS_DYNESTY = False
+
+needs_dynesty = pytest.mark.skipif(not HAS_DYNESTY,
+                                   reason='dynesty not installed')
+
+
 # a two-component reference model resembling red bed hematite spectra:
 # a broad lower-coercivity component and a narrow high-coercivity one
 TWO_COMPONENT_TRUTH = pd.DataFrame({
@@ -623,12 +636,10 @@ class TestBootstrap:
         unmixing_bootstrap refuses it with a clear error rather than silently
         refitting a least-squares model (previously the spectrum-space bayes
         result took the curve branch and fit the cumulative model to the
-        spectrum)."""
-        x, curve = synthetic_curve(noise=0.01)
-        result = rmag.unmix_coercivity(x, curve, method='bayes',
-                                       space='spectrum', n_components=2,
-                                       vary_skew=False, random_seed=1,
-                                       **FAST_BAYES)
+        spectrum). unmixing_bootstrap raises on method == 'bayes' before it
+        touches the result, so a minimal result marker exercises the guard
+        without needing a (dynesty-backed) fit."""
+        result = {'method': 'bayes', 'space': 'spectrum'}
         with pytest.raises(ValueError, match='posterior uncertainty'):
             rmag.unmixing_bootstrap(result)
 
@@ -708,39 +719,43 @@ class TestBatchProcessing:
         assert list(results) == ['synthetic-LP-BCR-BF-1']
         assert components_df['experiment'].nunique() == 1
 
-    def test_smoothing_routes_spectrum_but_not_bayes(self):
-        """Regression: with smoothing on, the finite-difference 'spectrum'
-        method fits the smoothed curve, but the measurement-space Bayesian
-        method must fit the UNSMOOTHED curve. Routing the denoised data to
-        the bayes likelihood (which infers its own noise level) understates
-        the noise and yields overconfident credible intervals."""
-        measurements = make_magic_measurements()
+    def test_smoothing_reaches_spectrum_method(self):
+        """The finite-difference 'spectrum' method fits the (optionally
+        smoothed) curve: the data it fits differs between a smoothed and an
+        unsmoothed run. Uses spline smoothing so it is independent of the
+        optional statsmodels/LOWESS dependency."""
+        measurements = make_magic_measurements(rng=np.random.default_rng(2027))
         experiment = 'synthetic-LP-BCR-BF-1'
-        one = measurements[measurements['experiment'] == experiment].copy()
-        processed, _bcr = rmag.backfield_data_processing(one, smooth_frac=0.2)
-        unsmoothed = processed['magn_mass_shift'].to_numpy()
-        # sanity: smoothing actually changed the curve
-        assert not np.allclose(
-            unsmoothed, processed['smoothed_magn_mass_shift'].to_numpy())
-
-        # smoothing reaches the spectrum method: the data it fits differs
-        # between a smoothed and an unsmoothed run
         _c, spec_smoothed = rmag.unmix_backfield_experiments(
             measurements, method='spectrum', n_components=2, vary_skew=False,
-            smooth_frac=0.2, verbose=False)
+            smooth_frac=0.3, smooth_mode='spline', verbose=False)
         _c0, spec_raw = rmag.unmix_backfield_experiments(
             measurements, method='spectrum', n_components=2, vary_skew=False,
             smooth_frac=0.0, verbose=False)
         assert not np.allclose(np.asarray(spec_smoothed[experiment]['y']),
                                np.asarray(spec_raw[experiment]['y']))
 
-        # measurement-space bayes fits the unsmoothed curve directly, so its
-        # fitted data is unchanged by smooth_frac and equals the raw curve
-        _c2, bayes_smoothed = rmag.unmix_backfield_experiments(
+    @needs_dynesty
+    def test_bayes_ignores_smoothing(self):
+        """Regression: the measurement-space Bayesian method fits the
+        UNSMOOTHED curve even with smoothing on, so its inferred noise model
+        sees the true measurement noise. Feeding it the denoised curve would
+        understate the noise and yield overconfident credible intervals."""
+        measurements = make_magic_measurements(rng=np.random.default_rng(2027))
+        experiment = 'synthetic-LP-BCR-BF-1'
+        one = measurements[measurements['experiment'] == experiment].copy()
+        processed, _bcr = rmag.backfield_data_processing(
+            one, smooth_frac=0.3, smooth_mode='spline')
+        unsmoothed = processed['magn_mass_shift'].to_numpy()
+        # sanity: smoothing actually changed the curve
+        assert not np.allclose(
+            unsmoothed, processed['smoothed_magn_mass_shift'].to_numpy())
+        # the bayes fit's stored data equals the unsmoothed curve
+        _c, results = rmag.unmix_backfield_experiments(
             measurements, method='bayes', n_components=2, vary_skew=False,
-            smooth_frac=0.2, random_seed=3, verbose=False, **FAST_BAYES)
-        assert np.allclose(np.asarray(bayes_smoothed[experiment]['y']),
-                           unsmoothed)
+            smooth_frac=0.3, smooth_mode='spline', random_seed=3,
+            verbose=False, **FAST_BAYES)
+        assert np.allclose(np.asarray(results[experiment]['y']), unsmoothed)
 
 
 class TestAggregateByClass:
@@ -1091,15 +1106,6 @@ class TestMultistart:
 # Bayesian unmixing (requires dynesty)
 # ---------------------------------------------------------------------------
 
-try:
-    import dynesty  # noqa: F401
-    HAS_DYNESTY = True
-except ImportError:
-    HAS_DYNESTY = False
-
-needs_dynesty = pytest.mark.skipif(not HAS_DYNESTY,
-                                   reason='dynesty not installed')
-
 
 @pytest.fixture(scope='module')
 def bayes_result():
@@ -1267,6 +1273,24 @@ def bayes_viz():
                                  random_seed=1, **FAST_BAYES)
 
 
+@pytest.fixture(scope='module')
+def posterior_result():
+    """A synthetic posterior-style result whose draws mix per-component 2-D
+    quantities with the 1-D global 'offset'/'noise' arrays. Built directly
+    (no dynesty-backed fit) so the plot helpers' handling of 1-D quantities
+    can be tested wherever numpy is available, including CI without dynesty."""
+    rng = np.random.default_rng(0)
+    n = 200
+    samples = {
+        'B_mean_mT': 10 ** rng.normal([2.4, 2.8], 0.08, size=(n, 2)),
+        'proportion': (np.tile([0.4, 0.6], (n, 1))
+                       + rng.normal(0.0, 0.03, size=(n, 2))),
+        'offset': rng.normal(0.0, 0.01, size=n),   # 1-D global quantity
+        'noise': np.abs(rng.normal(0.02, 0.004, size=n)),  # 1-D global
+    }
+    return {'bayes': {'samples': samples}}
+
+
 class TestUncertaintyVisualization:
     """The bootstrap/posterior uncertainty-visualization helpers."""
 
@@ -1304,28 +1328,29 @@ class TestUncertaintyVisualization:
         assert len(ax.collections) == 1
         plt.close(fig)
 
-    def test_posterior_plot_global_quantity(self, bayes_viz):
+    def test_posterior_plot_global_quantity(self, posterior_result):
         """Regression: a 1-D global quantity ('noise') renders as a single
         histogram rather than raising IndexError on values.shape[1]."""
-        fig, axes = rmag.plot_unmixing_posterior(bayes_viz, quantity='noise')
+        fig, axes = rmag.plot_unmixing_posterior(posterior_result,
+                                                 quantity='noise')
         assert len(axes) == 1
         assert axes[0].get_ylabel() == 'density'
         plt.close(fig)
 
-    def test_tradeoff_plot_global_vs_component(self, bayes_viz):
+    def test_tradeoff_plot_global_vs_component(self, posterior_result):
         """Regression: a global quantity ('noise') pairs with a per-component
         one, broadcasting across components instead of raising IndexError."""
-        fig, ax = rmag.plot_unmixing_tradeoff(bayes_viz, x='noise',
+        fig, ax = rmag.plot_unmixing_tradeoff(posterior_result, x='noise',
                                               y='B_mean_mT')
         n_points = sum(len(c.get_offsets()) for c in ax.collections)
         n_draws = np.asarray(
-            bayes_viz['bayes']['samples']['noise']).shape[0]
+            posterior_result['bayes']['samples']['noise']).shape[0]
         assert n_points == 2 * n_draws
         plt.close(fig)
 
-    def test_tradeoff_plot_global_vs_global(self, bayes_viz):
+    def test_tradeoff_plot_global_vs_global(self, posterior_result):
         """Two global quantities ('offset' vs 'noise') scatter as one series."""
-        fig, ax = rmag.plot_unmixing_tradeoff(bayes_viz, x='offset',
+        fig, ax = rmag.plot_unmixing_tradeoff(posterior_result, x='offset',
                                               y='noise')
         assert len(ax.collections) == 1
         plt.close(fig)
