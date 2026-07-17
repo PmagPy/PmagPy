@@ -5682,6 +5682,21 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
             where the given data points are bootstrap resampled with replacement
             and the unmixing is done with the same original estimates for each iteration
 
+    .. deprecated::
+        Use ``unmix_coercivity(x, magnetization, method='maxunmix')`` (or
+        ``unmix_backfield_experiments``) instead, which reproduces the MAX
+        UnMix resampling workflow of Maxbauer et al. (2016) more faithfully
+        (95% subsampling without replacement plus restart-parameter
+        perturbation, rather than resampling with replacement) within the
+        standard unmixing result format. Note the parameter conventions
+        differ: this function's lmfit table uses peak-height
+        'amplitude'/'center'/'sigma'/'gamma' (Fernandez-Steel skew) in
+        linear units, the replacement uses integrated-area
+        'contribution'/'location'/'dp'/'skew' (Azzalini skew) in log10 mT.
+        Maintaining two MAX UnMix implementations invites divergence, so
+        this one will not receive further fixes and may be removed in a
+        future release.
+
     Parameters
     ----------
     field : array-like
@@ -5705,6 +5720,12 @@ def backfield_MaxUnmix(field, magnetization, n_comps=1, parameters=None, skewed=
     random_seed : None, int, or numpy.random.Generator, optional
         Seed for reproducible bootstrap resampling (default None).
     '''
+    warnings.warn(
+        "backfield_MaxUnmix is deprecated: use unmix_coercivity(x, "
+        "magnetization, method='maxunmix') or unmix_backfield_experiments "
+        "instead (see the backfield_MaxUnmix docstring for the parameter-"
+        "convention differences)",
+        FutureWarning, stacklevel=2)
     _check_lmfit()
     assert parameters is not None, f"parameters should not be None"
     assert len(parameters) == n_comps, f"Number of rows in parameters ({len(parameters)}) should be equal to n_comps ({n_comps})"
@@ -5924,6 +5945,16 @@ _SQRT2 = np.sqrt(2.0)
 _SQRT2PI = np.sqrt(2.0 * np.pi)
 UNMIX_PARAM_COLUMNS = ['contribution', 'location', 'dp', 'skew']
 
+# Shared defaults for the unmixing entry points, so the sibling functions
+# (fitting, model selection, multistart, batch processing) agree on the model
+# class by default and a select_n_components -> unmix_coercivity workflow
+# fits the same model throughout. unmix_coercivity_bayes deliberately
+# deviates with vary_skew=False (free skew greatly increases the nested-
+# sampling cost and is usually better constrained through mineral priors;
+# see its docstring).
+DEFAULT_UNMIX_METHOD = 'spectrum'
+DEFAULT_UNMIX_VARY_SKEW = True
+
 
 def _trapz(y, x):
     """Trapezoidal integration compatible with numpy 1.x and 2.x."""
@@ -6027,6 +6058,107 @@ def skewnormal_stats(location, dp, skew=0.0):
                                bounds=(location - 5 * dp, location + 5 * dp),
                                method='bounded')
     return {'mean': mean, 'std': std, 'median': median, 'mode': float(mode_res.x)}
+
+
+def _skewnormal_median_z(skew, n_iter=60):
+    """Standardized median z of the skew-normal, vectorized over skew.
+
+    Solves Phi(z) - 2*T(z, skew) = 1/2 by bisection so per-draw medians can
+    be computed for whole posterior/bootstrap sample arrays at once; the
+    median in data units is location + dp * z.
+    """
+    skew = np.asarray(skew, dtype=float)
+    if np.all(skew == 0):
+        return np.zeros_like(skew)
+    lo = np.full_like(skew, -12.0)
+    hi = np.full_like(skew, 12.0)
+    for _ in range(n_iter):
+        mid = 0.5 * (lo + hi)
+        cdf = 0.5 * (1.0 + erf(mid / _SQRT2)) - 2.0 * owens_t(mid, skew)
+        below = cdf < 0.5
+        lo = np.where(below, mid, lo)
+        hi = np.where(below, hi, mid)
+    return 0.5 * (lo + hi)
+
+
+def _skewnormal_mode_z(skew, n_iter=100):
+    """Standardized mode z of the skew-normal, vectorized over skew.
+
+    Ternary search on the (unimodal) standardized density
+    phi(z) * (1 + erf(skew*z/sqrt(2))); the mode in data units is
+    location + dp * z.
+    """
+    skew = np.asarray(skew, dtype=float)
+    if np.all(skew == 0):
+        return np.zeros_like(skew)
+
+    def density(z):
+        return np.exp(-0.5 * z * z) * (1.0 + erf(skew * z / _SQRT2))
+
+    lo = np.full_like(skew, -5.0)
+    hi = np.full_like(skew, 5.0)
+    for _ in range(n_iter):
+        m1 = lo + (hi - lo) / 3.0
+        m2 = hi - (hi - lo) / 3.0
+        right = density(m1) < density(m2)
+        lo = np.where(right, m1, lo)
+        hi = np.where(right, hi, m2)
+    return 0.5 * (lo + hi)
+
+
+def _summarize_component_samples(samples, n_components,
+                                 percentiles=(2.5, 50, 97.5)):
+    """Per-component summary table of replicate/posterior samples.
+
+    Shared by the MAX UnMix resampling, unmixing_bootstrap, and the Bayesian
+    sampler so the three uncertainty flavors report identical column sets.
+
+    Parameters
+    ----------
+    samples : dict
+        Maps quantity name -> array-like of shape (n_draws, n_components).
+    n_components : int
+        Number of components (columns of each sample array).
+    percentiles : sequence of float
+        Percentiles to tabulate alongside mean and std.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per component with '<name>_mean', '<name>_std', and
+        '<name>_p<percentile>' columns for every quantity.
+    """
+    summary_rows = []
+    for comp in range(n_components):
+        row = {'component': comp + 1}
+        for name, values in samples.items():
+            column = np.asarray(values)[:, comp]
+            row[f'{name}_mean'] = column.mean()
+            row[f'{name}_std'] = column.std()
+            for pct in percentiles:
+                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
+                    np.percentile(column, pct)
+        summary_rows.append(row)
+    return pd.DataFrame(summary_rows).set_index('component')
+
+
+def _percentile_curve_bands(x_grid, total_curves, component_curves,
+                            percentiles=(2.5, 50, 97.5)):
+    """Percentile bands of replicate/posterior model curves on x_grid.
+
+    Shared by the same three uncertainty paths as
+    _summarize_component_samples; plot_coercivity_unmixing consumes the
+    returned keys ('total_p2_5', 'components_p50', ...).
+    """
+    total_curves = np.asarray(total_curves)
+    component_curves = np.asarray(component_curves)
+    bands = {'x_grid': x_grid}
+    for pct in percentiles:
+        key = f'p{str(pct).replace(".", "_")}'
+        bands[f'total_{key}'] = np.percentile(total_curves, pct, axis=0)
+        bands[f'components_{key}'] = np.percentile(component_curves, pct,
+                                                   axis=0)
+    return bands
 
 
 def _unmix_parameters_to_array(parameters):
@@ -6471,7 +6603,8 @@ def _build_unmix_result(engine, method, curve_type, vary_skew, fit_offset,
 
 
 def unmix_coercivity_spectrum(x, spectrum, n_components=None,
-                              initial_parameters=None, vary_skew=True,
+                              initial_parameters=None,
+                              vary_skew=DEFAULT_UNMIX_VARY_SKEW,
                               weights=None, dp_bounds=(0.01, 2.0),
                               skew_bounds=(-10.0, 10.0)):
     """
@@ -6537,8 +6670,9 @@ def unmix_coercivity_spectrum(x, spectrum, n_components=None,
 
 def unmix_backfield_curve(x, magnetization, n_components=None,
                           initial_parameters=None, curve_type='backfield',
-                          vary_skew=True, fit_offset=True, weights=None,
-                          dp_bounds=(0.01, 2.0), skew_bounds=(-10.0, 10.0)):
+                          vary_skew=DEFAULT_UNMIX_VARY_SKEW, fit_offset=True,
+                          weights=None, dp_bounds=(0.01, 2.0),
+                          skew_bounds=(-10.0, 10.0)):
     """
     Unmix a remanence curve by fitting cumulative components directly.
 
@@ -6607,7 +6741,7 @@ def unmix_backfield_curve(x, magnetization, n_components=None,
 
 def _unmix_method_spectrum(x, magnetization, n_components=None,
                            initial_parameters=None, curve_type='backfield',
-                           vary_skew=True, **kwargs):
+                           vary_skew=DEFAULT_UNMIX_VARY_SKEW, **kwargs):
     """Registered 'spectrum' method: finite-difference spectrum fit."""
     x_mid, spectrum = coercivity_spectrum_from_curve(x, magnetization,
                                                      curve_type)
@@ -6619,7 +6753,7 @@ def _unmix_method_spectrum(x, magnetization, n_components=None,
 
 def _unmix_method_curve(x, magnetization, n_components=None,
                         initial_parameters=None, curve_type='backfield',
-                        vary_skew=True, **kwargs):
+                        vary_skew=DEFAULT_UNMIX_VARY_SKEW, **kwargs):
     """Registered 'curve' method: direct measurement-space fit."""
     return unmix_backfield_curve(x, magnetization, n_components=n_components,
                                  initial_parameters=initial_parameters,
@@ -6629,7 +6763,8 @@ def _unmix_method_curve(x, magnetization, n_components=None,
 
 def _unmix_method_maxunmix(x, magnetization, n_components=None,
                            initial_parameters=None, curve_type='backfield',
-                           vary_skew=True, n_boot=100, proportion=0.95,
+                           vary_skew=DEFAULT_UNMIX_VARY_SKEW,
+                           n_boot=100, proportion=0.95,
                            param_noise=0.02, random_seed=None, n_grid=200,
                            **kwargs):
     """
@@ -6658,6 +6793,10 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
     of the fitted data, optionally with added measurement noise, and usable
     with the measurement-space and Bayesian fits as well -- fit with
     method='spectrum' or 'curve' and call unmixing_bootstrap directly.
+
+    n_boot=0 skips the resampling entirely and returns the point fit with no
+    'bootstrap' entry; unmixing_multistart and select_n_components use this
+    for their trial fits, whose uncertainty output would be discarded.
     """
     rng = _resolve_rng(random_seed)
     x = np.asarray(x, dtype=float)
@@ -6670,6 +6809,8 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
                                        n_components=n_components,
                                        initial_parameters=initial_parameters,
                                        vary_skew=vary_skew, **kwargs)
+    if n_boot == 0:
+        return result
     best = result['params'][UNMIX_PARAM_COLUMNS].to_numpy()
     K = result['n_components']
     n = len(x)
@@ -6724,31 +6865,9 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
                            'replicates converged; check the fit or initial '
                            'parameters')
 
-    percentiles = [2.5, 50, 97.5]
-    summary_rows = []
-    for comp in range(K):
-        row = {'component': comp + 1}
-        for name in tracked:
-            vals = np.array([s[comp] for s in samples[name]])
-            row[f'{name}_mean'] = vals.mean()
-            row[f'{name}_std'] = vals.std()
-            for pct in percentiles:
-                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
-                    np.percentile(vals, pct)
-        summary_rows.append(row)
-    param_summary = pd.DataFrame(summary_rows).set_index('component')
-
-    total_curves = np.array(total_curves)
-    comp_curves = np.array(comp_curves)
-    curves = {
-        'x_grid': x_grid,
-        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
-        'total_p50': np.percentile(total_curves, 50, axis=0),
-        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
-        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
-        'components_p50': np.percentile(comp_curves, 50, axis=0),
-        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
-    }
+    param_summary = _summarize_component_samples(
+        {name: np.array(vals) for name, vals in samples.items()}, K)
+    curves = _percentile_curve_bands(x_grid, total_curves, comp_curves)
     result['bootstrap'] = {
         'method': 'maxunmix',
         'n_boot': n_boot,
@@ -6802,9 +6921,10 @@ def register_unmixing_method(name, function):
     UNMIXING_METHODS[name] = function
 
 
-def unmix_coercivity(x, magnetization, method='spectrum', n_components=None,
-                     initial_parameters=None, curve_type='backfield',
-                     vary_skew=True, **kwargs):
+def unmix_coercivity(x, magnetization, method=DEFAULT_UNMIX_METHOD,
+                     n_components=None, initial_parameters=None,
+                     curve_type='backfield',
+                     vary_skew=DEFAULT_UNMIX_VARY_SKEW, **kwargs):
     """
     Unmix a remanence curve into coercivity components with a named method.
 
@@ -7000,11 +7120,13 @@ def estimate_measurement_noise(x, magnetization, curve_type='backfield'):
     return float(1.482602 * np.median(normalized))
 
 
-def select_n_components(x, magnetization, method='curve', min_components=1,
+def select_n_components(x, magnetization, method=DEFAULT_UNMIX_METHOD,
+                        min_components=1,
                         max_components=4, criterion='parsimony',
                         min_improvement=0.02, noise_level=None,
                         reduced_chi2_target=1.0, curve_type='backfield',
-                        vary_skew=False, verbose=False, **kwargs):
+                        vary_skew=DEFAULT_UNMIX_VARY_SKEW, verbose=False,
+                        **kwargs):
     """
     Choose the number of coercivity components by a parsimony rule.
 
@@ -7059,7 +7181,8 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
     magnetization : array-like
         Remanence curve values at x.
     method : str
-        Registered unmixing method used for each fit (default 'curve').
+        Registered unmixing method used for each fit (default
+        DEFAULT_UNMIX_METHOD, i.e. 'spectrum').
     min_components, max_components : int
         Range of component counts to consider.
     criterion : str
@@ -7122,12 +7245,20 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
             noise_x, noise_y = x, magnetization
         noise_level = estimate_measurement_noise(noise_x, noise_y, curve_type)
 
+    # trial fits only need the point fit: for method='maxunmix' suppress the
+    # per-count resampling (n_boot=0), whose uncertainty output plays no role
+    # in the selection; the selected count is re-fit with the requested
+    # resampling after the selection below
+    trial_kwargs = dict(kwargs)
+    if method == 'maxunmix':
+        trial_kwargs['n_boot'] = 0
+
     results = {}
     rows = []
     for K in counts:
         result = unmix_coercivity(x, magnetization, method=method,
                                   n_components=K, curve_type=curve_type,
-                                  vary_skew=vary_skew, **kwargs)
+                                  vary_skew=vary_skew, **trial_kwargs)
         results[K] = result
         stats = result['stats']
         rows.append({
@@ -7162,6 +7293,14 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
                     else counts[-1])
 
     table['selected'] = table['n_components'] == selected
+    if method == 'maxunmix' and kwargs.get('n_boot', 100) != 0:
+        # restore the full MAX UnMix resampling uncertainty for the selected
+        # count only
+        results[selected] = unmix_coercivity(
+            x, magnetization, method=method,
+            initial_parameters=results[selected]['params'][
+                UNMIX_PARAM_COLUMNS],
+            curve_type=curve_type, vary_skew=vary_skew, **kwargs)
     if verbose:
         print(f"selected {selected} component(s) by '{criterion}' criterion "
               f'(noise ~ {noise_level:.3g})')
@@ -7298,31 +7437,9 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
     if verbose:
         print(f'{n_success}/{n_boot} bootstrap replicates converged')
 
-    percentiles = [2.5, 50, 97.5]
-    summary_rows = []
-    for comp in range(K):
-        row = {'component': comp + 1}
-        for name in tracked:
-            vals = np.array([s[comp] for s in samples[name]])
-            row[f'{name}_mean'] = vals.mean()
-            row[f'{name}_std'] = vals.std()
-            for pct in percentiles:
-                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
-                    np.percentile(vals, pct)
-        summary_rows.append(row)
-    param_summary = pd.DataFrame(summary_rows).set_index('component')
-
-    total_curves = np.array(total_curves)
-    comp_curves = np.array(comp_curves)
-    curves = {
-        'x_grid': x_grid,
-        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
-        'total_p50': np.percentile(total_curves, 50, axis=0),
-        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
-        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
-        'components_p50': np.percentile(comp_curves, 50, axis=0),
-        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
-    }
+    param_summary = _summarize_component_samples(
+        {name: np.array(vals) for name, vals in samples.items()}, K)
+    curves = _percentile_curve_bands(x_grid, total_curves, comp_curves)
 
     result_out = copy.deepcopy(result)
     result_out['bootstrap'] = {
@@ -7339,8 +7456,10 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
     return result_out
 
 
-def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
-                        n_starts=100, vary_skew=False, curve_type='backfield',
+def unmixing_multistart(x, magnetization, method=DEFAULT_UNMIX_METHOD,
+                        n_components=2, n_starts=100,
+                        vary_skew=DEFAULT_UNMIX_VARY_SKEW,
+                        curve_type='backfield',
                         random_seed=None, location_tolerance=0.1,
                         proportion_tolerance=0.05, verbose=False, **kwargs):
     """
@@ -7364,7 +7483,8 @@ def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
     magnetization : array-like
         Remanence curve values at x (e.g. 'magn_mass_shift').
     method : str
-        Registered unmixing method used for each fit (default 'spectrum').
+        Registered unmixing method used for each fit (default
+        DEFAULT_UNMIX_METHOD, i.e. 'spectrum').
     n_components : int
         Number of components (default 2).
     n_starts : int
@@ -7422,6 +7542,15 @@ def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
             'skew': skews,
         }))
 
+    # trial fits only need the point fit: for method='maxunmix' suppress the
+    # per-trial resampling (n_boot=0) -- otherwise every trial runs the full
+    # MAX UnMix bootstrap whose uncertainty output is discarded (only rss and
+    # params feed the clustering) -- and re-run the winning solution once
+    # with the requested resampling below
+    trial_kwargs = dict(kwargs)
+    if method == 'maxunmix':
+        trial_kwargs['n_boot'] = 0
+
     fits = []
     for table in starting_tables:
         try:
@@ -7429,7 +7558,7 @@ def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
                                    n_components=K if table is None else None,
                                    initial_parameters=table,
                                    curve_type=curve_type,
-                                   vary_skew=vary_skew, **kwargs)
+                                   vary_skew=vary_skew, **trial_kwargs)
         except (ValueError, RuntimeError):
             continue
         if fit['success'] and np.isfinite(fit['stats']['rss']):
@@ -7486,6 +7615,13 @@ def unmixing_multistart(x, magnetization, method='spectrum', n_components=2,
               f'{len(clusters)} distinct solution(s)')
 
     best = copy.deepcopy(clusters[0]['representative'])
+    if method == 'maxunmix' and kwargs.get('n_boot', 100) != 0:
+        # restore the full MAX UnMix resampling uncertainty for the winning
+        # solution only
+        best = unmix_coercivity(
+            x, M, method=method,
+            initial_parameters=best['params'][UNMIX_PARAM_COLUMNS],
+            curve_type=curve_type, vary_skew=vary_skew, **kwargs)
     best['multistart'] = {
         'solutions': solutions,
         'results': [c['representative'] for c in clusters],
@@ -7590,7 +7726,10 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         the trade-offs; with space='spectrum' the offset is not used.
     vary_skew : bool
         Sample component skew (uniform prior on [-10, 10]); default False
-        (symmetric log-Gaussian components).
+        (symmetric log-Gaussian components). This deliberately deviates from
+        DEFAULT_UNMIX_VARY_SKEW: free skew multiplies the nested-sampling
+        cost and is usually better constrained through explicit `priors`
+        windows (e.g. from mineral_priors) than left fully free.
     fit_offset : bool
         Include a constant baseline offset (default True; ignored when
         space='spectrum').
@@ -7790,6 +7929,10 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     means_log = locations + dps * deltas * np.sqrt(2.0 / np.pi)
     sd_logs = dps * np.sqrt(1.0 - 2.0 * deltas ** 2 / np.pi)
     proportions = contributions / contributions.sum(axis=1, keepdims=True)
+    # per-draw medians and modes (vectorized root/mode finding) so the Bayes
+    # summary carries the same quantity set as the bootstrap summaries
+    medians_log = locations + dps * _skewnormal_median_z(skews)
+    modes_log = locations + dps * _skewnormal_mode_z(skews)
     derived = {
         'contribution': contributions,
         'proportion': proportions,
@@ -7798,21 +7941,11 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         'skew': skews,
         'sd_log': sd_logs,
         'B_mean_mT': 10 ** means_log,
+        'B_median_mT': 10 ** medians_log,
+        'B_peak_mT': 10 ** modes_log,
     }
 
-    percentiles = [2.5, 50, 97.5]
-    summary_rows = []
-    for comp in range(K):
-        row = {'component': comp + 1}
-        for name, values in derived.items():
-            column = values[:, comp]
-            row[f'{name}_mean'] = column.mean()
-            row[f'{name}_std'] = column.std()
-            for pct in percentiles:
-                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
-                    np.percentile(column, pct)
-        summary_rows.append(row)
-    param_summary = pd.DataFrame(summary_rows).set_index('component')
+    param_summary = _summarize_component_samples(derived, K)
 
     # posterior-median parameter table in the standard result format
     median_params = np.column_stack([
@@ -7875,15 +8008,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         comps = _forward_components(x_grid, draw_params)
         comp_curves[j] = comps
         total_curves[j] = comps.sum(axis=0) + offsets[index]
-    curves = {
-        'x_grid': x_grid,
-        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
-        'total_p50': np.percentile(total_curves, 50, axis=0),
-        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
-        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
-        'components_p50': np.percentile(comp_curves, 50, axis=0),
-        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
-    }
+    curves = _percentile_curve_bands(x_grid, total_curves, comp_curves)
 
     initial_df = pd.DataFrame(median_params, columns=UNMIX_PARAM_COLUMNS)
     return {
@@ -9244,8 +9369,9 @@ def interactive_coercivity_unmixing(x, magnetization, n_components=2,
 
 
 def unmix_backfield_experiments(measurements, experiments=None,
-                                n_components=2, method='spectrum',
-                                initial_parameters=None, vary_skew=True,
+                                n_components=2, method=DEFAULT_UNMIX_METHOD,
+                                initial_parameters=None,
+                                vary_skew=DEFAULT_UNMIX_VARY_SKEW,
                                 n_boot=0, resample='cases',
                                 proportion=1.0, noise_level=None,
                                 smooth_mode='spline', smooth_frac=0.0,

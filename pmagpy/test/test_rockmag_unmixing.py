@@ -1504,3 +1504,121 @@ class TestParseDescription:
             'rock chip | {"coercivity_unmixing": {"n_components": 2}}')
         assert text == 'rock chip'
         assert data['coercivity_unmixing']['n_components'] == 2
+
+
+# ---------------------------------------------------------------------------
+# shared summary helpers, unified defaults, and trial-fit economy
+# ---------------------------------------------------------------------------
+
+
+class TestSharedSummaryHelpers:
+    def test_vectorized_median_matches_scalar(self):
+        for skew in (-4.0, -1.0, 0.0, 0.7, 3.0):
+            stats = rmag.skewnormal_stats(1.7, 0.3, skew)
+            z = rmag._skewnormal_median_z(np.array([skew]))[0]
+            assert 1.7 + 0.3 * z == pytest.approx(stats['median'], abs=1e-6)
+
+    def test_vectorized_mode_matches_scalar(self):
+        for skew in (-4.0, -1.0, 0.0, 0.7, 3.0):
+            stats = rmag.skewnormal_stats(1.7, 0.3, skew)
+            z = rmag._skewnormal_mode_z(np.array([skew]))[0]
+            assert 1.7 + 0.3 * z == pytest.approx(stats['mode'], abs=2e-3)
+
+    @needs_dynesty
+    def test_bootstrap_and_bayes_summaries_share_columns(self, boot,
+                                                         bayes_viz):
+        # the three uncertainty flavors (bootstrap, maxunmix, bayes) now
+        # build their summaries through the same helper, so code written
+        # against one summary works against the others
+        boot_columns = set(boot['bootstrap']['param_summary'].columns)
+        bayes_columns = set(bayes_viz['bayes']['param_summary'].columns)
+        assert boot_columns == bayes_columns
+        assert 'B_median_mT_p2_5' in bayes_columns
+        assert 'B_peak_mT_p97_5' in bayes_columns
+
+    def test_maxunmix_summary_shares_columns_with_bootstrap(self, boot):
+        x, curve = synthetic_curve(noise=0.005)
+        res = rmag.unmix_coercivity(x, curve, method='maxunmix',
+                                    n_components=2, vary_skew=False,
+                                    n_boot=20, random_seed=11)
+        assert (set(res['bootstrap']['param_summary'].columns)
+                == set(boot['bootstrap']['param_summary'].columns))
+
+
+class TestUnifiedDefaults:
+    def test_sibling_method_defaults_agree(self):
+        import inspect
+        assert rmag.DEFAULT_UNMIX_METHOD == 'spectrum'
+        for func in (rmag.unmix_coercivity, rmag.select_n_components,
+                     rmag.unmixing_multistart,
+                     rmag.unmix_backfield_experiments):
+            assert (inspect.signature(func).parameters['method'].default
+                    == rmag.DEFAULT_UNMIX_METHOD), func.__name__
+
+    def test_sibling_vary_skew_defaults_agree(self):
+        import inspect
+        for func in (rmag.unmix_coercivity, rmag.unmix_coercivity_spectrum,
+                     rmag.unmix_backfield_curve, rmag.select_n_components,
+                     rmag.unmixing_multistart,
+                     rmag.unmix_backfield_experiments):
+            assert (inspect.signature(func).parameters['vary_skew'].default
+                    == rmag.DEFAULT_UNMIX_VARY_SKEW), func.__name__
+        # deliberate, documented deviation: nested sampling with free skew
+        # is expensive and better constrained through explicit priors
+        import inspect as _inspect
+        assert (_inspect.signature(rmag.unmix_coercivity_bayes)
+                .parameters['vary_skew'].default is False)
+
+
+class TestMaxunmixTrialEconomy:
+    def test_n_boot_zero_returns_point_fit(self):
+        x, curve = synthetic_curve(noise=0.005)
+        res = rmag.unmix_coercivity(x, curve, method='maxunmix',
+                                    n_components=2, vary_skew=False,
+                                    n_boot=0)
+        assert res['success']
+        assert 'bootstrap' not in res
+
+    def test_multistart_bootstraps_winner_only(self):
+        x, curve = synthetic_curve(noise=0.005)
+        best = rmag.unmixing_multistart(x, curve, method='maxunmix',
+                                        n_components=2, n_starts=4,
+                                        vary_skew=False, random_seed=7,
+                                        n_boot=20)
+        # the returned winner carries the full resampling uncertainty...
+        assert 'bootstrap' in best
+        assert best['bootstrap']['n_boot'] == 20
+        assert 'multistart' in best
+        # ...but the trial representatives skipped it
+        for trial in best['multistart']['results']:
+            assert 'bootstrap' not in trial
+
+    def test_select_n_components_refits_selected_only(self):
+        x, curve = synthetic_curve(noise=0.005)
+        selected, table, results = rmag.select_n_components(
+            x, curve, method='maxunmix', max_components=3, vary_skew=False,
+            n_boot=20, random_seed=13)
+        assert selected == 2
+        assert 'bootstrap' in results[selected]
+        for K, res in results.items():
+            if K != selected:
+                assert 'bootstrap' not in res
+
+
+class TestLegacyMaxUnmixDeprecation:
+    def test_backfield_MaxUnmix_warns(self):
+        x = np.linspace(0.5, 3.0, 60)
+        curve = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
+                                            curve_type='backfield')
+        params = pd.DataFrame({'amplitude': [0.5], 'center': [2.7],
+                               'sigma': [0.2], 'gamma': [0.0]})
+        with pytest.warns(FutureWarning, match='backfield_MaxUnmix is '
+                                               'deprecated'):
+            try:
+                rmag.backfield_MaxUnmix(x, curve, n_comps=1,
+                                        parameters=params, n_resample=2,
+                                        random_seed=0)
+            except ImportError:
+                pytest.skip('lmfit not installed')
+            finally:
+                plt.close('all')
