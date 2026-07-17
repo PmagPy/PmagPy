@@ -951,6 +951,49 @@ class TestSpecimensExport:
         assert list(data) == ['coercivity_unmixing']
 
 
+class TestSpecimenStatExport:
+    """add_unmixing_stats_to_specimens_table and add_Bcr_to_specimens_table
+    experiment matching."""
+
+    def test_stats_match_colon_delimited_experiments(self):
+        """A colon-delimited 'experiments' cell (several experiments per row)
+        is matched by the experiment substring, not exact equality."""
+        specs = pd.DataFrame({
+            'specimen': ['S1'],
+            'experiments': ['S1_LP-BCR-BF:S1_LP-HYS'],
+            'description': ['rock chip'],
+        })
+        rmag.add_unmixing_stats_to_specimens_table(
+            specs, 'S1_LP-BCR-BF', {'Bcr': 45.0, 'S_ratio': 0.9},
+            method='MaxUnmix')
+        text, data = rmag.parse_specimen_description(specs.at[0, 'description'])
+        assert text == 'rock chip'
+        assert data['Bcr'] == 45.0
+
+    def test_stats_raise_when_experiment_absent(self):
+        """A non-matching experiment name fails loudly instead of silently
+        recording nothing."""
+        specs = pd.DataFrame({
+            'specimen': ['S1'], 'experiments': ['S1_LP-BCR-BF'],
+            'description': [''],
+        })
+        with pytest.raises(ValueError, match='no specimens row matches'):
+            rmag.add_unmixing_stats_to_specimens_table(
+                specs, 'MISSING', {'Bcr': 1.0}, method='MaxUnmix')
+
+    def test_bcr_matches_colon_delimited_experiments(self):
+        specs = pd.DataFrame({
+            'specimen': ['S1'], 'experiments': ['S1_LP-BCR-BF:S1_LP-HYS']})
+        rmag.add_Bcr_to_specimens_table(specs, 'S1_LP-BCR-BF', 0.045)
+        assert specs.loc[0, 'rem_bcr'] == 0.045
+
+    def test_bcr_raises_when_experiment_absent(self):
+        specs = pd.DataFrame({
+            'specimen': ['S1'], 'experiments': ['S1_LP-BCR-BF']})
+        with pytest.raises(ValueError, match='no specimens row matches'):
+            rmag.add_Bcr_to_specimens_table(specs, 'MISSING', 0.045)
+
+
 # ---------------------------------------------------------------------------
 # multi-start solution mapping
 # ---------------------------------------------------------------------------

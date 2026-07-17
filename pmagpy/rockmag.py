@@ -5727,8 +5727,16 @@ def add_unmixing_stats_to_specimens_table(specimens_df, experiment_name, unmix_r
         raise ValueError(f"method should be either 'lmfit' or 'MaxUnmix', but got {method}")
     unmix_result_dict = dict_in_native_python(unmix_result_dict)
     # merge into the description cell, preserving free text and any
-    # existing structured content (parsed safely rather than with eval)
-    mask = specimens_df['experiments'] == experiment_name
+    # existing structured content (parsed safely rather than with eval).
+    # Match with the shared contains-logic so a colon-delimited 'experiments'
+    # cell (several experiments per row) is found, and fail loudly rather than
+    # silently recording nothing when the experiment is absent.
+    mask = _match_specimen_rows(specimens_df, experiment_name, None)
+    if not mask.any():
+        raise ValueError(
+            f"no specimens row matches experiment '{experiment_name}'; its "
+            "unmixing stats were not recorded. Check the name against the "
+            "specimens table's 'experiments' column.")
     for idx in specimens_df.index[mask]:
         text, description_dict = parse_specimen_description(
             specimens_df.at[idx, 'description'])
@@ -5756,8 +5764,16 @@ def add_Bcr_to_specimens_table(specimens_df, experiment_name, Bcr):
     if 'rem_bcr' not in specimens_df.columns:
         # add the rem_bcr column to the specimens table
         specimens_df['rem_bcr'] = np.nan
+    # match with the shared contains-logic so a colon-delimited 'experiments'
+    # cell is found, and fail loudly rather than silently writing nothing
+    mask = _match_specimen_rows(specimens_df, experiment_name, None)
+    if not mask.any():
+        raise ValueError(
+            f"no specimens row matches experiment '{experiment_name}'; the "
+            "Bcr value was not recorded. Check the name against the "
+            "specimens table's 'experiments' column.")
     # add the Bcr value to the specimens table
-    specimens_df.loc[specimens_df['experiments'] == experiment_name, 'rem_bcr'] = Bcr
+    specimens_df.loc[mask, 'rem_bcr'] = Bcr
 
     return
 
