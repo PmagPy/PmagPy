@@ -18,8 +18,6 @@ from scipy.integrate import quad
 from pmagpy import rockmag as rmag
 
 
-RNG = np.random.default_rng(2026)
-
 # a two-component reference model resembling red bed hematite spectra:
 # a broad lower-coercivity component and a narrow high-coercivity one
 TWO_COMPONENT_TRUTH = pd.DataFrame({
@@ -556,9 +554,16 @@ class TestBootstrap:
 # ---------------------------------------------------------------------------
 
 def make_magic_measurements(experiment='synthetic-LP-BCR-BF-1',
-                            specimen='spec1', noise=0.002, rng=RNG):
+                            specimen='spec1', noise=0.002, rng=None):
     """Build a minimal MagIC-style measurements table with a backfield
-    experiment generated from the reference two-component model."""
+    experiment generated from the reference two-component model.
+
+    Uses a fresh seeded generator by default so each call is deterministic
+    and independent of test execution order (a shared module-level RNG made
+    the noise depend on how many other tests had drawn from it first).
+    """
+    if rng is None:
+        rng = np.random.default_rng(2026)
     x = np.linspace(0.5, 3.2, 90)
     curve_shifted = rmag.coercivity_curve_model(x, TWO_COMPONENT_TRUTH,
                                                 curve_type='backfield')
@@ -625,9 +630,7 @@ class TestBatchProcessing:
         method must fit the UNSMOOTHED curve. Routing the denoised data to
         the bayes likelihood (which infers its own noise level) understates
         the noise and yields overconfident credible intervals."""
-        # use an isolated RNG so this test does not advance the module-level
-        # RNG stream that later tests' fixtures draw from
-        measurements = make_magic_measurements(rng=np.random.default_rng(2027))
+        measurements = make_magic_measurements()
         experiment = 'synthetic-LP-BCR-BF-1'
         one = measurements[measurements['experiment'] == experiment].copy()
         processed, _bcr = rmag.backfield_data_processing(one, smooth_frac=0.2)
