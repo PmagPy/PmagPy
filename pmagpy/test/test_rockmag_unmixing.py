@@ -548,6 +548,40 @@ class TestBootstrap:
         assert curves['total_p97_5'].shape == (150,)
         assert (curves['total_p97_5'] >= curves['total_p2_5']).all()
 
+    def test_maxunmix_result_bootstraps_in_spectrum_space(self):
+        """Regression: a maxunmix result is spectrum-space, so bootstrapping
+        it must refit with the spectrum model. Dispatching on the method name
+        alone (method == 'spectrum') sent maxunmix results through the
+        cumulative-curve branch, fitting the wrong model to derivative data
+        and recovering nonsense coercivities."""
+        x, curve = synthetic_curve(noise=0.002)
+        result = rmag.unmix_coercivity(x, curve, method='maxunmix',
+                                       n_components=2, vary_skew=False,
+                                       n_boot=20, random_seed=1)
+        boot = rmag.unmixing_bootstrap(result, n_boot=40, random_seed=2)
+        summary = boot['bootstrap']['param_summary']
+        assert boot['bootstrap']['n_success'] > 0
+        # the refit recovers the true coercivities (it fit the spectrum, not
+        # the cumulative curve model applied to spectrum data)
+        for comp in (1, 2):
+            true_B = 10 ** TWO_COMPONENT_TRUTH['location'].iloc[comp - 1]
+            assert (summary.loc[comp, 'B_mean_mT_p2_5']
+                    < true_B < summary.loc[comp, 'B_mean_mT_p97_5'])
+
+    def test_bayes_result_rejected(self):
+        """A Bayesian result already carries posterior uncertainty, so
+        unmixing_bootstrap refuses it with a clear error rather than silently
+        refitting a least-squares model (previously the spectrum-space bayes
+        result took the curve branch and fit the cumulative model to the
+        spectrum)."""
+        x, curve = synthetic_curve(noise=0.01)
+        result = rmag.unmix_coercivity(x, curve, method='bayes',
+                                       space='spectrum', n_components=2,
+                                       vary_skew=False, random_seed=1,
+                                       **FAST_BAYES)
+        with pytest.raises(ValueError, match='posterior uncertainty'):
+            rmag.unmixing_bootstrap(result)
+
 
 # ---------------------------------------------------------------------------
 # MagIC batch processing and specimens export

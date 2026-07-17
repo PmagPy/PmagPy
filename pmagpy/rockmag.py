@@ -7063,8 +7063,20 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
     assert 0 < proportion <= 1, 'proportion must be in (0, 1]'
     rng = _resolve_rng(random_seed)
 
-    x, y = result['x'], result['y']
     method = result['method']
+    if method == 'bayes':
+        raise ValueError(
+            "unmixing_bootstrap does not apply to Bayesian results, which "
+            "already carry full posterior uncertainty in "
+            "result['bayes']['param_summary'] (credible intervals). To "
+            "bootstrap a least-squares fit, pass a 'curve', 'spectrum', or "
+            "'maxunmix' result instead.")
+    # dispatch the refit on the stored fitting space, not the method name:
+    # 'spectrum' and 'maxunmix' both fit the derivative spectrum, so both
+    # must be refit with the spectrum model (keying on method == 'spectrum'
+    # alone sent maxunmix results through the cumulative-curve branch)
+    fits_spectrum = _result_is_spectrum(result)
+    x, y = result['x'], result['y']
     curve_type = result['curve_type']
     vary_skew = result['vary_skew']
     K = result['n_components']
@@ -7091,7 +7103,7 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
         if noise_level is not None:
             yb = yb * (1.0 + rng.normal(0.0, noise_level, size=len(yb)))
         try:
-            if method == 'spectrum':
+            if fits_spectrum:
                 fit = unmix_coercivity_spectrum(xb, yb,
                                                 initial_parameters=best,
                                                 vary_skew=vary_skew)
@@ -7109,7 +7121,7 @@ def unmixing_bootstrap(result, n_boot=500, resample='cases', proportion=1.0,
         for name in tracked:
             samples[name].append(p[name].to_numpy())
         arr = p[UNMIX_PARAM_COLUMNS].to_numpy()
-        if method == 'spectrum':
+        if fits_spectrum:
             total_curves.append(coercivity_spectrum_model(x_grid, arr))
             comp_curves.append(coercivity_spectrum_components(x_grid, arr))
         else:
