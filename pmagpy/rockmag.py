@@ -6479,27 +6479,131 @@ def _unmix_method_curve(x, magnetization, n_components=None,
 def _unmix_method_maxunmix(x, magnetization, n_components=None,
                            initial_parameters=None, curve_type='backfield',
                            vary_skew=True, n_boot=100, proportion=0.95,
-                           noise_level=0.02, random_seed=None, **kwargs):
+                           param_noise=0.02, random_seed=None, n_grid=200,
+                           **kwargs):
     """
-    Registered 'maxunmix' method: emulation of the MAX UnMix workflow.
+    Registered 'maxunmix' method: a faithful reproduction of the MAX UnMix
+    resampling workflow (Maxbauer et al., 2016), for direct comparison with
+    that program.
 
-    Fits skew-normal components to the coercivity spectrum and estimates
-    uncertainties with the MAX UnMix resampling scheme (case resampling of
-    95% of the data with 2% multiplicative Gaussian noise; Maxbauer et al.,
-    2016). Results are comparable to the MAX UnMix web application, with
-    the caveats that skewness here follows the Azzalini parameterization
-    rather than the Fernandez-Steel one used by MAX UnMix, and that
-    contributions are parameterized by component area rather than peak
-    height.
+    The coercivity spectrum dM/dlog10(B) is fit with skew-normal components,
+    and uncertainties are estimated exactly as in MAX UnMix: each of `n_boot`
+    replicates (1) recomputes the spectrum from a random `proportion`
+    (default 0.95) subset of the magnetization points drawn WITHOUT
+    replacement, (2) restarts the fit from the best-fit parameters perturbed
+    by `param_noise` (default 0.02, i.e. 2%) Gaussian noise, and (3)
+    re-optimizes; percentile intervals over the converged replicates are
+    reported (attached as the 'bootstrap' entry of the result).
+
+    Two representational differences from MAX UnMix remain because they are
+    intrinsic to the rockmagpy component model rather than to the resampling:
+    skewness follows the Azzalini rather than the Fernandez-Steel (fGarch)
+    parameterization, so skew values are not numerically comparable, and
+    components are parameterized by integrated area rather than by peak
+    height. Recovered coercivities, dispersions, and relative contributions
+    are directly comparable to the MAX UnMix web application.
+
+    For the more flexible rockmagpy resampling -- case or residual resampling
+    of the fitted data, optionally with added measurement noise, and usable
+    with the measurement-space and Bayesian fits as well -- fit with
+    method='spectrum' or 'curve' and call unmixing_bootstrap directly.
     """
-    result = _unmix_method_spectrum(x, magnetization,
-                                    n_components=n_components,
-                                    initial_parameters=initial_parameters,
-                                    curve_type=curve_type,
-                                    vary_skew=vary_skew, **kwargs)
-    return unmixing_bootstrap(result, n_boot=n_boot, resample='cases',
-                              proportion=proportion, noise_level=noise_level,
-                              random_seed=random_seed)
+    rng = _resolve_rng(random_seed)
+    x = np.asarray(x, dtype=float)
+    M = np.asarray(magnetization, dtype=float)
+    finite = np.isfinite(x) & np.isfinite(M)
+    x, M = x[finite], M[finite]
+
+    x_mid, spectrum = coercivity_spectrum_from_curve(x, M, curve_type)
+    result = unmix_coercivity_spectrum(x_mid, spectrum,
+                                       n_components=n_components,
+                                       initial_parameters=initial_parameters,
+                                       vary_skew=vary_skew, **kwargs)
+    best = result['params'][UNMIX_PARAM_COLUMNS].to_numpy()
+    K = result['n_components']
+    n = len(x)
+    n_keep = max(int(round(n * proportion)), 3 * K + 3)
+
+    tracked = ['contribution', 'proportion', 'location', 'dp', 'skew',
+               'sd_log', 'B_mean_mT', 'B_median_mT', 'B_peak_mT']
+    samples = {name: [] for name in tracked}
+    x_grid = np.linspace(x_mid.min(), x_mid.max(), n_grid)
+    total_curves, comp_curves = [], []
+    n_success = 0
+    for _ in range(n_boot):
+        # (1) recompute the spectrum from a 95% subset of the curve, w/o replacement
+        idx = np.sort(rng.choice(n, size=n_keep, replace=False))
+        x_mid_b, spectrum_b = coercivity_spectrum_from_curve(x[idx], M[idx],
+                                                             curve_type)
+        # (2) restart from the best fit perturbed by ~2% Gaussian noise
+        init = best.copy()
+        init[:, 0] *= 1.0 + rng.normal(0.0, param_noise, K)   # contribution
+        init[:, 1] *= 1.0 + rng.normal(0.0, param_noise, K)   # location
+        init[:, 2] *= 1.0 + rng.normal(0.0, param_noise, K)   # dispersion
+        if vary_skew:
+            init[:, 3] += rng.normal(0.0, 5.0 * param_noise, K)  # skew jitter
+        init[:, 0] = np.abs(init[:, 0])
+        try:
+            fit = unmix_coercivity_spectrum(
+                x_mid_b, spectrum_b, vary_skew=vary_skew,
+                initial_parameters=pd.DataFrame(init,
+                                                columns=UNMIX_PARAM_COLUMNS))
+        except (ValueError, RuntimeError):
+            continue
+        if not fit['success']:
+            continue
+        p = fit['params']
+        for name in tracked:
+            samples[name].append(p[name].to_numpy())
+        arr = p[UNMIX_PARAM_COLUMNS].to_numpy()
+        total_curves.append(coercivity_spectrum_model(x_grid, arr))
+        comp_curves.append(coercivity_spectrum_components(x_grid, arr))
+        n_success += 1
+
+    if n_success < max(10, n_boot // 10):
+        raise RuntimeError(f'only {n_success} of {n_boot} MAX UnMix '
+                           'replicates converged; check the fit or initial '
+                           'parameters')
+
+    percentiles = [2.5, 50, 97.5]
+    summary_rows = []
+    for comp in range(K):
+        row = {'component': comp + 1}
+        for name in tracked:
+            vals = np.array([s[comp] for s in samples[name]])
+            row[f'{name}_mean'] = vals.mean()
+            row[f'{name}_std'] = vals.std()
+            for pct in percentiles:
+                row[f'{name}_p{str(pct).replace(".", "_")}'] = \
+                    np.percentile(vals, pct)
+        summary_rows.append(row)
+    param_summary = pd.DataFrame(summary_rows).set_index('component')
+
+    total_curves = np.array(total_curves)
+    comp_curves = np.array(comp_curves)
+    curves = {
+        'x_grid': x_grid,
+        'total_p2_5': np.percentile(total_curves, 2.5, axis=0),
+        'total_p50': np.percentile(total_curves, 50, axis=0),
+        'total_p97_5': np.percentile(total_curves, 97.5, axis=0),
+        'components_p2_5': np.percentile(comp_curves, 2.5, axis=0),
+        'components_p50': np.percentile(comp_curves, 50, axis=0),
+        'components_p97_5': np.percentile(comp_curves, 97.5, axis=0),
+    }
+    result['bootstrap'] = {
+        'method': 'maxunmix',
+        'n_boot': n_boot,
+        'n_success': n_success,
+        'resample': 'maxunmix: 95% subsample without replacement '
+                    '+ 2% restart-parameter perturbation',
+        'proportion': proportion,
+        'param_noise': param_noise,
+        'param_summary': param_summary,
+        'param_samples': {name: np.array(vals)
+                          for name, vals in samples.items()},
+        'curves': curves,
+    }
+    return result
 
 
 UNMIXING_METHODS = {
@@ -6668,11 +6772,22 @@ def estimate_measurement_noise(x, magnetization, curve_type='backfield'):
     """
     Robustly estimate the measurement noise of a remanence curve.
 
-    Uses a third-difference (DER_SNR-style) estimator that suppresses the
-    smooth signal and returns a robust standard deviation of the residual
-    scatter, without any smoothing or model fitting. This provides the
-    noise scale needed to judge when an unmixing model fits "to within the
-    measurement noise" (see select_n_components).
+    Suppresses the smooth signal and returns a robust standard deviation of
+    the residual scatter, without any smoothing or model fitting. This
+    provides the noise scale needed to judge when an unmixing model fits "to
+    within the measurement noise" (see select_n_components).
+
+    For each interior point the smooth signal is removed by comparing the
+    point to the value predicted for it by cubic interpolation through its
+    four nearest neighbours (two on each side) at their actual field
+    positions; the residual is scaled by the standard deviation that
+    combination would have under white noise, and a robust (median-absolute)
+    scale is taken. Because the interpolation is exact for any polynomial of
+    degree <= 3, this removes not just the local slope but the curvature of
+    the sigmoidal curve, so the estimator is little biased even on the coarse
+    and non-uniform (typically log-spaced) field grids of backfield/IRM
+    measurements -- unlike a plain second difference, which cancels only a
+    linear trend and inflates the noise where the curve bends.
 
     Parameters
     ----------
@@ -6693,13 +6808,36 @@ def estimate_measurement_noise(x, magnetization, curve_type='backfield'):
     x = np.asarray(x, dtype=float)
     M = np.asarray(magnetization, dtype=float)
     order = np.argsort(x)
-    M = M[order]
+    x, M = x[order], M[order]
     if len(M) < 5:
         return float(np.std(M))
-    # |2 M_i - M_{i-2} - M_{i+2}| cancels linear trends; the median makes it
-    # robust to the minority of high-curvature points on a sigmoidal curve
-    differences = np.abs(2 * M[2:-2] - M[:-4] - M[4:])
-    return float(1.482602 / np.sqrt(6) * np.median(differences))
+    # predict each interior point by cubic interpolation through its four
+    # neighbours (i-2, i-1, i+1, i+2) at their true positions; the residual
+    # cancels any signal up to a local cubic, so both slope and curvature of
+    # the smooth curve are removed for arbitrary spacing
+    c = np.arange(2, len(x) - 2)
+    x0 = x[c]
+    xa, xb, xc, xd = x[c - 2], x[c - 1], x[c + 1], x[c + 2]
+    Ma, Mb, Mc, Md = M[c - 2], M[c - 1], M[c + 1], M[c + 2]
+
+    def lagrange(xi, xj, xk, xl):
+        # weight of the point at xi in the cubic interpolant evaluated at x0
+        return ((x0 - xj) * (x0 - xk) * (x0 - xl)
+                / ((xi - xj) * (xi - xk) * (xi - xl)))
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        La = lagrange(xa, xb, xc, xd)
+        Lb = lagrange(xb, xa, xc, xd)
+        Lc = lagrange(xc, xa, xb, xd)
+        Ld = lagrange(xd, xa, xb, xc)
+        residual = M[c] - (La * Ma + Lb * Mb + Lc * Mc + Ld * Md)
+        # under white noise var(residual) = sigma^2 (1 + La^2 + Lb^2 + ...)
+        scale = np.sqrt(1.0 + La ** 2 + Lb ** 2 + Lc ** 2 + Ld ** 2)
+        normalized = np.abs(residual / scale)
+    normalized = normalized[np.isfinite(normalized)]
+    if normalized.size == 0:
+        return float(np.std(M))
+    return float(1.482602 * np.median(normalized))
 
 
 def select_n_components(x, magnetization, method='curve', min_components=1,
@@ -6733,9 +6871,16 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
     - 'chi2': the simplest model whose reduced chi-square (using
       `noise_level`, estimated with estimate_measurement_noise if not
       given) falls at or below `reduced_chi2_target`, i.e. the simplest
-      model that fits to within the measurement noise. This is more
-      principled when a trustworthy noise level is available, but is
-      sensitive to the accuracy of that noise estimate.
+      model that fits to within the measurement noise. The noise estimator
+      is spacing-aware and unbiased on the coarse, log-spaced field grids of
+      backfield/IRM data, but 'chi2' remains the less robust criterion: like
+      the information criteria and the Bayesian evidence it tends to
+      over-select on high-resolution, low-noise curves (once the noise is
+      not over-estimated, any small departure of the data from a log-Gaussian
+      pushes the reduced chi-square of a real-count model just above one), and
+      it is sensitive to the residual scatter of the noise estimate. Prefer
+      'parsimony', or supply a trusted `noise_level` and a `reduced_chi2_target`
+      slightly above 1, when using it.
 
     In all cases the returned table reports the fit statistics, the
     fractional RSS improvement per added component, and (when a noise level
@@ -7185,7 +7330,8 @@ def _ordered_uniform_transform(u, low, high):
 
 
 def unmix_coercivity_bayes(x, magnetization, n_components=2,
-                           curve_type='backfield', vary_skew=False,
+                           curve_type='backfield', space='curve',
+                           vary_skew=False,
                            fit_offset=True, priors=None, nlive=250,
                            dlogz=0.1, sample='rslice', random_seed=None,
                            n_grid=200, n_posterior_curves=300,
@@ -7193,15 +7339,30 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     """
     Bayesian coercivity unmixing by nested sampling (requires dynesty).
 
-    The measured remanence curve is modeled in measurement space (where an
-    independent Gaussian noise model is defensible; numerically
-    differentiated spectra have correlated noise) as a sum of cumulative
-    skew-normal components plus an offset, with the noise standard
-    deviation treated as a free parameter. The posterior is sampled with
-    static nested sampling (Skilling, 2006) as implemented in dynesty
-    (Speagle, 2020), which also returns the Bayesian evidence (logz) --
-    the principled criterion for choosing the number of components
-    (compare logz between runs with different n_components).
+    The remanence data are modeled as a sum of skew-normal components, with
+    the noise standard deviation treated as a free parameter, and sampled
+    with static nested sampling (Skilling, 2006) as implemented in dynesty
+    (Speagle, 2020), which also returns the Bayesian evidence (logz) -- the
+    principled criterion for choosing the number of components (compare logz
+    between runs with different n_components). The fit can be performed in
+    either of two data spaces (see the `space` argument):
+
+    - space='curve' (default): the measured curve M(B) is fit directly with
+      cumulative skew-normal components plus a constant offset. An
+      independent Gaussian noise model is defensible here, and no numerical
+      differentiation is required. This is the more conservative choice.
+    - space='spectrum': the finite-difference coercivity spectrum
+      dM/dlog10(B) is fit with skew-normal densities (no offset). Fitting the
+      derivative directly reproduces the coercivity-distribution peak that a
+      curve fit can under-represent, and lets skewness be constrained by the
+      peak shape. The trade-off is that differencing correlates adjacent
+      points, so the i.i.d. Gaussian likelihood used here is an approximation
+      (the same one the least-squares and MAX UnMix spectrum fits make);
+      credible intervals in this space should be read with that caveat.
+
+    The component parameterization (contribution=area, location, dp, skew) is
+    identical in both spaces, so their results are directly comparable, and
+    comparing them is a useful robustness check.
 
     Unlike bootstrap resampling of a single fit, the posterior represents
     the full range of component decompositions consistent with the data
@@ -7226,20 +7387,32 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         Number of components (default 2).
     curve_type : str
         'backfield' or 'acquisition'.
+    space : str
+        'curve' (fit the measured curve, default) or 'spectrum' (fit the
+        finite-difference dM/dlog10(B) spectrum). See the summary above for
+        the trade-offs; with space='spectrum' the offset is not used.
     vary_skew : bool
         Sample component skew (uniform prior on [-10, 10]); default False
         (symmetric log-Gaussian components).
     fit_offset : bool
-        Include a constant baseline offset (default True).
+        Include a constant baseline offset (default True; ignored when
+        space='spectrum').
     priors : dict, optional
         Overrides for the default prior bounds. Recognized keys:
-        'location', 'dp', 'contribution', 'skew' map to a list of
-        (low, high) tuples, one per component (locations/dp in log10
-        units, contributions in the units of the magnetization data);
+        'mean', 'location', 'dp', 'contribution', 'skew' map to a list
+        of (low, high) tuples, one per component (in log10 units for
+        'mean'/'location'/'dp', magnetization units for 'contribution');
         'offset' and 'noise' map to a single (low, high) tuple in
-        magnetization units. When per-component 'location' bounds are
-        given they replace the ordered-uniform construction, so they
-        should be non-overlapping or ordered to keep labels meaningful.
+        magnetization units. A 'mean' window constrains each component's
+        MEAN coercivity (log10 mT): the mean is sampled uniformly in the
+        window and the skew-normal location is derived from the sampled dp
+        and skew, so the window means what it says even for skewed
+        components (this is what mineral_priors produces). A 'location'
+        window instead constrains the raw location parameter directly.
+        Either replaces the weakly-informative ordered-uniform default, so
+        the windows should be non-overlapping or ordered to keep component
+        labels meaningful. 'mean' takes precedence over 'location' if both
+        are given.
     nlive : int
         Number of live points (default 250).
     dlogz : float
@@ -7273,6 +7446,8 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     import dynesty
     assert curve_type in ('backfield', 'acquisition'), \
         "curve_type must be 'backfield' or 'acquisition'"
+    assert space in ('curve', 'spectrum'), \
+        "space must be 'curve' or 'spectrum'"
     rng = _resolve_rng(random_seed)
     priors = dict(priors or {})
 
@@ -7280,6 +7455,11 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     y = np.asarray(magnetization, dtype=float)
     finite = np.isfinite(x) & np.isfinite(y)
     x, y = x[finite], y[finite]
+    if space == 'spectrum':
+        # fit the finite-difference spectrum dM/dlog10(B); there is no
+        # baseline offset in derivative space
+        x, y = coercivity_spectrum_from_curve(x, y, curve_type)
+        fit_offset = False
     y_scale = np.max(np.abs(y))
     if y_scale == 0:
         raise ValueError('magnetization data are all zero')
@@ -7287,7 +7467,29 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     K = n_components
     n_data = len(x)
 
+    def _forward(params, offset):
+        if space == 'spectrum':
+            return coercivity_spectrum_model(x, params)
+        return coercivity_curve_model(x, params, offset=offset,
+                                      curve_type=curve_type)
+
+    def _forward_components(grid, params):
+        if space == 'spectrum':
+            return coercivity_spectrum_components(grid, params)
+        return coercivity_curve_components(grid, params, curve_type=curve_type)
+
     # prior bounds (normalized units for contribution/offset/noise)
+    # A component's coercivity window can be given either directly on the
+    # skew-normal 'location' parameter, or -- preferably, and as produced by
+    # mineral_priors -- on the component's MEAN coercivity via 'mean'. For a
+    # skewed component the location is not itself a physical coercivity, so a
+    # 'mean' window keeps the constraint on the reported mean coercivity
+    # (10**mean_log): the mean is sampled uniformly in the window and the
+    # location is derived from the sampled dp and skew.
+    mean_bounds = priors.get('mean')
+    if mean_bounds is not None:
+        mean_bounds = [tuple(b) for b in mean_bounds]
+        assert len(mean_bounds) == K
     location_bounds = priors.get('location')
     if location_bounds is not None:
         location_bounds = [tuple(b) for b in location_bounds]
@@ -7305,31 +7507,42 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
 
     ndim = 3 * K + (K if vary_skew else 0) + (1 if fit_offset else 0) + 1
 
+    # unit-cube layout: contributions[0:K], locations[K:2K], dps[2K:3K],
+    # skews[3K:4K] (if vary_skew), offset, noise. dps and skews are drawn
+    # before locations so that a 'mean' window can derive the location from
+    # the sampled dp and skew.
     def prior_transform(u):
         theta = np.empty(ndim)
-        i = 0
         for k in range(K):  # contributions
             low, high = contribution_bounds[k]
-            theta[i] = low + (high - low) * u[i]
-            i += 1
-        if location_bounds is None:  # ordered locations
-            theta[i:i + K] = _ordered_uniform_transform(
-                u[i:i + K], location_range[0], location_range[1])
-        else:
-            for k in range(K):
-                low, high = location_bounds[k]
-                theta[i + k] = low + (high - low) * u[i + k]
-        i += K
+            theta[k] = low + (high - low) * u[k]
         for k in range(K):  # dispersions, log-uniform
             low, high = dp_bounds[k]
-            theta[i] = np.exp(np.log(low)
-                              + (np.log(high) - np.log(low)) * u[i])
-            i += 1
+            theta[2 * K + k] = np.exp(np.log(low)
+                                      + (np.log(high) - np.log(low))
+                                      * u[2 * K + k])
         if vary_skew:
             for k in range(K):
                 low, high = skew_bounds[k]
-                theta[i] = low + (high - low) * u[i]
-                i += 1
+                theta[3 * K + k] = low + (high - low) * u[3 * K + k]
+            skew_vals = theta[3 * K:4 * K]
+        else:
+            skew_vals = np.zeros(K)
+        if mean_bounds is not None:  # window on the mean coercivity
+            delta = skew_vals / np.sqrt(1.0 + skew_vals ** 2)
+            shift = theta[2 * K:3 * K] * delta * np.sqrt(2.0 / np.pi)
+            for k in range(K):
+                low, high = mean_bounds[k]
+                mean_log = low + (high - low) * u[K + k]
+                theta[K + k] = mean_log - shift[k]  # location = mean - shift
+        elif location_bounds is not None:  # window on the location parameter
+            for k in range(K):
+                low, high = location_bounds[k]
+                theta[K + k] = low + (high - low) * u[K + k]
+        else:  # ordered locations (weakly informative default)
+            theta[K:2 * K] = _ordered_uniform_transform(
+                u[K:2 * K], location_range[0], location_range[1])
+        i = 4 * K if vary_skew else 3 * K
         if fit_offset:
             theta[i] = offset_low + (offset_high - offset_low) * u[i]
             i += 1
@@ -7356,8 +7569,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     def loglike(theta):
         c, loc, dp, skew, offset, noise = unpack(theta)
         params = np.column_stack([c, loc, dp, skew])
-        model = coercivity_curve_model(x, params, offset=offset,
-                                       curve_type=curve_type)
+        model = _forward(params, offset)
         residual = (model - ys) / noise
         value = log_norm - n_data * np.log(noise) \
             - 0.5 * float(residual @ residual)
@@ -7434,8 +7646,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     total = params['contribution'].sum()
     params.insert(1, 'proportion', params['contribution'] / total)
 
-    y_fit = coercivity_curve_model(x, median_params, offset=offset_median,
-                                   curve_type=curve_type)
+    y_fit = _forward(median_params, offset_median)
     residuals = y - y_fit
     rss = float(np.sum(residuals ** 2))
     tss = float(np.sum((y - y.mean()) ** 2))
@@ -7464,8 +7675,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
         draw_params = np.column_stack([
             contributions[index], locations[index], dps[index],
             skews[index]])
-        comps = coercivity_curve_components(x_grid, draw_params,
-                                            curve_type=curve_type)
+        comps = _forward_components(x_grid, draw_params)
         comp_curves[j] = comps
         total_curves[j] = comps.sum(axis=0) + offsets[index]
     curves = {
@@ -7481,6 +7691,7 @@ def unmix_coercivity_bayes(x, magnetization, n_components=2,
     initial_df = pd.DataFrame(median_params, columns=UNMIX_PARAM_COLUMNS)
     return {
         'method': 'bayes',
+        'space': space,
         'curve_type': curve_type,
         'n_components': K,
         'success': True,
@@ -7522,11 +7733,13 @@ def _unmix_method_bayes(x, magnetization, n_components=None,
     widget) and no explicit priors are given, per-component location and
     dispersion priors are centered on them.
     """
-    # a priors dict from mineral_priors() carries one entry per component,
-    # so n_components can be inferred from it
-    if (n_components is None and priors is not None
-            and priors.get('location') is not None):
-        n_components = len(priors['location'])
+    # a priors dict from mineral_priors() carries one entry per component
+    # (as a 'mean' or 'location' window), so n_components can be inferred
+    if n_components is None and priors is not None:
+        for key in ('mean', 'location'):
+            if priors.get(key) is not None:
+                n_components = len(priors[key])
+                break
     if initial_parameters is not None:
         if n_components is None:
             n_components = len(initial_parameters)
@@ -7559,143 +7772,236 @@ UNMIXING_METHODS['bayes'] = _unmix_method_bayes
 # mineral components, for use as informative priors in Bayesian unmixing
 # (unmix_coercivity_bayes) or as initial parameters for the least-squares
 # methods. Covered minerals: magnetite (igneous, detrital, eolian,
-# pedogenic/extracellular, and biogenic soft/hard), oxidized maghemite, the
-# ferrimagnetic iron sulphides greigite and pyrrhotite, and the
-# antiferromagnetic iron oxides/oxyhydroxides hematite (pigmentary/detrital)
-# and goethite. Each entry gives a plausible range for the median coercivity
-# (B_median_mT), the dispersion (dp, in log10 units), and the skew, together
-# with the literature source.
+# pedogenic/extracellular, and biogenic soft/hard), maghemite (pure/soft and
+# oxidized-magnetite/hard), the ferrimagnetic iron sulphides greigite and
+# pyrrhotite, and the antiferromagnetic hematite (pigmentary/detrital).
+#
+# GOETHITE is deliberately NOT included. It does not magnetically saturate even
+# in ~57 T fields (Roberts 2025, p. 337; only ~2-10% of its Mr is acquired by
+# 3 T), so an ordinary backfield or IRM coercivity spectrum sees only an
+# ambiguous low-coercivity tail that overlaps hematite and cannot quantify
+# goethite; a fitted "goethite" component would be a poorly-constrained minimum
+# estimate that invites over-interpretation. A high-coercivity component that
+# might be goethite is better flagged and confirmed by independent thermal or
+# low-temperature methods (see goethite_removal).
+#
+# Each entry gives, as (low, high) bounds of a uniform prior:
+#   'B_median_mT' : the characteristic (median ~ mean) coercivity window, mT.
+#                   mineral_priors passes this to unmix_coercivity_bayes as a
+#                   'mean' window, so it constrains the component's MEAN
+#                   coercivity (10**B_mean_mT) directly, whatever its skew.
+#   'dp'          : the dispersion (one standard deviation of the log10-field
+#                   distribution), log10 units.
+#   'skew'        : the Azzalini skew-normal shape parameter (alpha), SIGNED
+#                   by the physical asymmetry (see below). NB alpha is not the
+#                   moment skewness; |alpha|~2-5 gives a visibly skewed
+#                   component, alpha=0 is a symmetric log-Gaussian.
+#
+# SOURCES AND SHAPE CONVENTIONS:
+#  * Numeric coercivity (B_median) and width (dp) ranges: the magnetite-family
+#    and maghemite/loess values are from Egli (2003; 2004a Stud. Geophys.
+#    Geod. 48, 391-446) component analysis of AF-demagnetized ARM/IRM (MDF and
+#    DP), cross-checked against the grain-size systematics in Roberts (2025)
+#    "Mineral Magnetism" (magnetite pp. 105-141, maghemite pp. 284-321).
+#    Hematite, greigite, and pyrrhotite coercivity ranges are from Roberts
+#    (2025) (hematite pp. 182-228, 267-283; sulphides pp. 356-416).
+#    IMPORTANT: Roberts (2025) does NOT tabulate DP
+#    or skew; the dp windows are therefore taken from / consistent with Egli
+#    (2003, 2004a,b), Robertson & France (1994), and Kruiver et al. (2001),
+#    not from Roberts, and are deliberately broad.
+#  * SKEW SIGN (Roberts 2025, p. 117; Egli 2003, 2004b): coercivity
+#    distributions of stable-SD, MD, and interacting magnetite (and maghemite)
+#    are NEGATIVELY (left-) skewed on the log-field axis -- a heavier
+#    low-field tail -- so those entries use alpha in roughly [-5, 0].
+#    Pyrrhotite is POSITIVELY (right-) skewed (a hard, high-field tail; Roberts
+#    p. 374), so alpha in roughly [-1, 5]. Greigite (SD) is near-symmetric,
+#    left-skewed when SP/MD is present
+#    (Roberts pp. 405-406). Hematite is variable (pigmentary components are
+#    often fit skew-right, Maxbauer et al. 2016), so a broad two-sided window
+#    is used. These signs are qualitative in Roberts; no numeric skew exists
+#    to cite.
 #
 # IMPORTANT CAVEATS:
-#  * The magnetite-family values derive from Egli (2004a,b), whose component
-#    analysis is based on AF demagnetization of ARM/IRM and reports the
-#    median destructive field (MDF) of the coercivity distribution. For IRM
-#    acquisition or backfield curves the relevant quantity is the median
-#    acquisition/remanence field, which is comparable to the MDF for a given
-#    mineral population but not identical; treat these as soft, approximate
-#    priors, not calibrations.
-#  * The sulphide, hematite, and goethite values are from Roberts (2025),
-#    "Mineral Magnetism". These ranges are broad on purpose: they overlap
-#    one another (greigite and pyrrhotite overlap biogenic-hard magnetite
-#    and maghemite; pyrrhotite overlaps pigmentary hematite), so a coercivity
-#    prior constrains a window, it does not identify a mineral. Al-substitution
-#    drives hematite coercivity up to ~1300 mT and then collapses it toward
-#    zero at high substitution, while Al- and micro-goethite can fall below
-#    ~60 mT.
-#  * Pyrrhotite and goethite do not magnetically saturate in ordinary
-#    laboratory fields (pyrrhotite needs >2 T; goethite is unsaturated even
-#    in 57 T fields), so a typical backfield or IRM experiment (<= 2-5 T)
-#    captures only the low-coercivity tail of such a component and
-#    underestimates its contribution; pass field_max_mT to keep priors within
-#    the measured range and interpret any such contribution as a minimum.
+#  * A coercivity prior constrains a WINDOW, it does not identify a mineral.
+#    The windows overlap: greigite (both saturate <0.3 T) and non-SD
+#    pyrrhotite overlap magnetite/maghemite (Roberts pp. 405-407, 374), and
+#    hard SD / metamorphic pyrrhotite overlaps pigmentary hematite.
+#  * The characteristic coercivity depends on HOW it is measured, and the
+#    ordering is systematic. For submicron magnetite Dunlop (1986, EPSL 78,
+#    288-295, doi:10.1016/0012-821X(86)90068-3) measured Hc < MDF (the AF
+#    median destructive field, i.e. the
+#    Egli values) < Bcr (the backfield remanent coercive force) < the median
+#    IRM-acquisition field, with the backfield Bcr running ~1.3-1.5x and the
+#    acquisition median ~2x the AF-MDF (e.g. a 0.1-0.2 um PSD magnetite: MDF
+#    ~18 mT, Bcr ~27-28 mT, acquisition ~39-41 mT). rockmagpy unmixing fits
+#    the backfield or IRM coercivity distribution, whose median is the Bcr or
+#    acquisition field, so a window taken from an AF-demagnetization component
+#    analysis (the magnetite family, from Egli) sits somewhat low for these
+#    curves. Treat the windows as soft, approximate priors, not calibrations,
+#    and read the finer-is-harder-but-narrower trend of Dunlop (1986) as the
+#    reason biogenic/pedogenic (fine) magnetite has both higher coercivity and
+#    lower dp than coarse detrital magnetite.
+#  * Pyrrhotite does not fully saturate in ordinary laboratory fields (>2 T to
+#    saturate; Roberts p. 374), so a typical backfield/IRM experiment (<= 2-5
+#    T) captures only its lower-coercivity part and UNDERESTIMATES its
+#    contribution; pass field_max_mT to keep priors within the measured range
+#    and read any such contribution as a minimum. (Goethite is unsaturated even
+#    at 57 T, far more extreme, and is excluded from the library for that
+#    reason -- see the header.)
+#  * Hematite coercivity is grain-size controlled (Ozdemir & Dunlop 2014,
+#    Hc ~ d^-0.61): across the fitting-relevant range of ~100s of nm
+#    (pigmentary, fine specular) to ~100s of um (coarse specular) it runs from
+#    ~1 T down to ~100-200 mT, so finer hematite is harder. (The very soft
+#    Bcr of mm-scale single crystals is not a natural sedimentary population.)
+#    Al-substitution raises hematite coercivity up to ~7-13 mol% Al and then
+#    lowers it at high substitution, but this trend is strongly confounded by
+#    covarying grain size (Roberts pp. 271-272).
 #  * Component fitting near the SP/SD threshold can produce a spurious
 #    low-coercivity component (Heslop et al., 2004); an unexpectedly soft
 #    component should be checked against independent evidence.
 #  * Ranges are deliberately generous (roughly the spread of the cited
 #    populations, not a single sample). Narrow them with the `tighten`
 #    argument of mineral_priors only when justified by independent data.
-#
-# Values are the (low, high) bounds of a uniform prior on each quantity.
 COERCIVITY_COMPONENT_LIBRARY = {
     'magnetite_pedogenic': {
-        'B_median_mT': (12.0, 25.0), 'dp': (0.25, 0.38),
-        'skew': (-1.0, 0.0),
-        'source': 'Egli (2004a), components PD/EX; Roberts (2025) '
-                  '(pedogenic / extracellular ultrafine magnetite)',
-        'note': 'ultrafine SP-SSD magnetite; MDF ~16-18 mT, DP ~0.30, '
-                'strongly left-skewed'},
+        'B_median_mT': (10.0, 25.0), 'dp': (0.25, 0.40),
+        'skew': (-5.0, 0.0),
+        'source': 'Egli (2004a) components PD/EX (MDF ~17-18 mT, DP ~0.3); '
+                  'Roberts (2025) p. 112 (unstrained, fine, soft) -- note '
+                  'Roberts p. 285/301 considers pedogenic ferrimagnet often '
+                  'to be maghemite rather than magnetite',
+        'note': 'ultrafine SP-SSD magnetite; soft, narrow, left-skewed'},
     'magnetite_detrital': {
-        'B_median_mT': (18.0, 40.0), 'dp': (0.30, 0.45),
-        'skew': (-0.7, 0.0),
-        'source': 'Egli (2004a), component D; Roberts (2025) '
-                  '(detrital magnetite)',
+        'B_median_mT': (15.0, 45.0), 'dp': (0.30, 0.45),
+        'skew': (-5.0, 0.0),
+        'source': 'Egli (2004a) component D (AF MDF ~25-33 mT, DP ~0.35-0.40); '
+                  'Dunlop (1986, doi:10.1016/0012-821X(86)90068-3) measured '
+                  'submicron PSD magnetite (0.1-0.22 um) backfield Bcr ~27-28 '
+                  'mT and median IRM-acquisition field ~39-41 mT, with broader '
+                  'spectra for coarser grains; Roberts (2025) pp. 112, 121',
         'note': 'coarse detrital magnetite in water-lain sediments; '
-                'MDF ~25-33 mT, DP ~0.35-0.40'},
+                'broad/mixed, left-skewed. Backfield Bcr and IRM-acquisition '
+                'medians run above the AF MDF (see the library caveats)'},
     'magnetite_igneous': {
-        'B_median_mT': (8.0, 40.0), 'dp': (0.20, 0.50),
-        'skew': (-0.6, 0.2),
-        'source': 'Roberts (2025), magnetite chapter (grain-size '
-                  'systematics of primary magmatic magnetite)',
+        'B_median_mT': (8.0, 45.0), 'dp': (0.20, 0.50),
+        'skew': (-5.0, 0.0),
+        'source': 'Roberts (2025) pp. 112-113 (grain-size systematics; SD '
+                  'peak Bc ~15 mT; igneous grains stressed -> higher/more '
+                  'variable coercivity than grown crystals)',
         'note': 'primary magmatic (titano)magnetite; broad and grain-size '
-                'dependent, spanning low-coercivity coarse PSD-MD grains to '
-                'finer PSD/SD grains in rapidly cooled volcanics; oxidation '
-                'to titanomaghemite raises coercivity (see '
-                'maghemite_oxidized)'},
+                'dependent, from low-coercivity coarse PSD-MD grains to finer '
+                'PSD/SD grains; oxidation to titanomaghemite raises coercivity '
+                '(see maghemite_oxidized)'},
     'magnetite_eolian': {
         'B_median_mT': (18.0, 45.0), 'dp': (0.20, 0.40),
-        'skew': (-0.6, 0.0),
-        'source': 'Egli (2004a), component ED; Roberts (2025) '
-                  '(wind-blown dust magnetite)',
-        'note': 'aeolian / loess detrital magnetite'},
+        'skew': (-5.0, 0.0),
+        'source': 'Egli (2004a) component ED (aeolian dust; MDF ~28 mT); '
+                  'Roberts (2025) does not give an eolian-specific value',
+        'note': 'aeolian / loess detrital magnetite (often partly '
+                'maghemitized)'},
     'magnetite_biogenic_soft': {
         'B_median_mT': (25.0, 55.0), 'dp': (0.10, 0.25),
-        'skew': (-0.5, 0.0),
-        'source': 'Egli (2004a), component BS; Roberts (2025) '
-                  '(low-coercivity magnetosomes)',
-        'note': 'biogenic soft magnetite; diagnostic narrow DP (~0.1-0.2)'},
+        'skew': (-5.0, 0.0),
+        'source': 'Egli (2004a) component BS (MDF ~45 mT, DP ~0.17); '
+                  'Roberts (2025) pp. 119-121',
+        'note': 'biogenic soft magnetite (equant magnetosomes); diagnostic '
+                'narrow DP (~0.1-0.2)'},
     'magnetite_biogenic_hard': {
         'B_median_mT': (50.0, 100.0), 'dp': (0.08, 0.22),
-        'skew': (-0.3, 0.2),
-        'source': 'Egli (2004a), component BH; Roberts (2025) '
-                  '(high-coercivity magnetosomes)',
-        'note': 'biogenic hard magnetite; diagnostic very narrow DP'},
+        'skew': (-5.0, 0.0),
+        'source': 'Egli (2004a) component BH (MDF ~73 mT, DP ~0.11); '
+                  'Roberts (2025) pp. 119-121',
+        'note': 'biogenic hard magnetite (elongated magnetosome chains); '
+                'diagnostic very narrow DP'},
+    'magnetite': {
+        'B_median_mT': (8.0, 100.0), 'dp': (0.15, 0.50),
+        'skew': (-5.0, 0.0),
+        'source': 'generic magnetite window spanning the specific entries '
+                  '(coarse soft ~10 mT to fine/oxidized hard ~100 mT); '
+                  'Egli (2004a); Dunlop (1986, '
+                  'doi:10.1016/0012-821X(86)90068-3) measured submicron '
+                  'magnetite backfield Bcr ~27-50 mT and IRM-acquisition '
+                  'medians ~39-68 mT (0.22 um PSD to SD), finer grains harder '
+                  'but with narrower spectra; Roberts (2025) pp. 105-141',
+        'note': 'broad default for stoichiometric-to-partly-oxidized '
+                'magnetite when the grain population is unknown; left-skewed. '
+                'Use the specific entries (detrital, biogenic, ...) when the '
+                'population is known, or maghemite_oxidized for a distinctly '
+                'harder (surface-oxidized) magnetite'},
+    'maghemite': {
+        'B_median_mT': (10.0, 40.0), 'dp': (0.15, 0.35),
+        'skew': (-5.0, 0.5),
+        'source': 'Roberts (2025) pp. 300-301 (pure gamma-Fe2O3: modal '
+                  'coercivity ~14 mT equant to ~34 mT elongated; saturates '
+                  '<100-200 mT)',
+        'note': 'pure maghemite is SOFT, softer than magnetite; skewed '
+                'distributions with a high-field tail. Distinct from the '
+                'harder oxidized-magnetite phase (maghemite_oxidized)'},
     'maghemite_oxidized': {
-        'B_median_mT': (45.0, 110.0), 'dp': (0.15, 0.35),
-        'skew': (-0.6, 0.2),
-        'source': 'Egli (2004a), component L; Roberts (2025) '
-                  '(oxidized maghemite in loess)',
-        'note': 'low-temperature-oxidized magnetite/maghemite; '
-                'higher coercivity than parent magnetite'},
+        'B_median_mT': (45.0, 90.0), 'dp': (0.15, 0.35),
+        'skew': (-5.0, 0.0),
+        'source': 'Roberts (2025) pp. 300-301 (surface-maghemitized magnetite '
+                  'Bcr ~52 mT, harder than either endmember; harder in '
+                  'coarser grains); Egli (2004a) loess component L',
+        'note': 'low-temperature (surface) oxidized magnetite (core-shell); '
+                'HARDER than either pure magnetite or pure maghemite'},
     'greigite': {
-        'B_median_mT': (30.0, 95.0), 'dp': (0.15, 0.35),
-        'skew': (-0.4, 0.4),
-        'source': 'Roberts (2025), greigite chapter (Roberts et al., '
-                  '2011b compilation)',
-        'note': 'authigenic ferrimagnetic iron sulphide; stable-SD '
-                'greigite Bcr ~75 mT (60-95 mT), SD+MD mixtures ~45 mT, '
-                'MD-dominated ~25 mT; saturates below ~0.3 T'},
+        'B_median_mT': (25.0, 95.0), 'dp': (0.15, 0.35),
+        'skew': (-3.0, 1.0),
+        'source': 'Roberts (2025) pp. 401, 405-406 (SD Bcr ~75 mT [60-95], '
+                  'SD+MD ~45 mT, MD ~24.5 mT; saturates <0.3 T)',
+        'note': 'authigenic ferrimagnetic iron sulphide; SD SFD near-'
+                'symmetric and narrow, left-skewed when SP/MD present; '
+                'overlaps magnetite (both saturate <0.3 T)'},
     'pyrrhotite': {
-        'B_median_mT': (25.0, 150.0), 'dp': (0.20, 0.45),
-        'skew': (-0.5, 0.5),
-        'source': 'Roberts (2025), pyrrhotite chapter',
-        'note': 'monoclinic 4C pyrrhotite; medium- to high-coercivity '
-                'ferrimagnet, Bcr from ~15-20 mT (coarse MD) to ~100-200 mT '
-                '(fine SD), with metamorphic/3C samples reaching >300 mT; '
-                'requires >2 T to saturate, so backfield contributions are '
-                'minimum estimates'},
+        'B_median_mT': (25.0, 200.0), 'dp': (0.20, 0.50),
+        'skew': (-1.0, 5.0),
+        'source': 'Roberts (2025) pp. 369, 373-374, 383 (4C: Bc 16-70 mT by '
+                  'grain size; FORC peaks ~30 mT MD to ~75-125 mT fine SD; '
+                  'metamorphic/3C to >300-400 mT; needs >2 T to saturate)',
+        'note': 'monoclinic 4C (+3C) pyrrhotite; medium- to high-coercivity, '
+                'strongly grain-size/polytype dependent, right-skewed (hard '
+                'tail); backfield under-samples the hard fraction, so '
+                'contributions are minimum estimates'},
     'hematite_pigmentary': {
-        'B_median_mT': (150.0, 700.0), 'dp': (0.35, 0.95),
-        'skew': (-0.5, 1.5),
-        'source': 'Maxbauer et al. (2016); Swanson-Hysell et al. (2019) '
-                  'red bed pigmentary hematite',
-        'note': 'fine pigmentary hematite; broad, often skewed distribution'},
+        'B_median_mT': (150.0, 800.0), 'dp': (0.35, 0.95),
+        'skew': (-2.0, 4.0),
+        'source': 'Ozdemir & Dunlop (2014, JGR 119, 2582-2594, '
+                  'doi:10.1002/2013JB010739): fine (~100s nm) SD hematite, '
+                  'Hc ~150-350 mT for 0.12-0.45 um and up to ~670 mT near '
+                  '0.1 um, Hcr/Hc ~1.45-1.62 -> Bcr ~220 mT to ~1 T; '
+                  'Roberts (2025) pp. 190, 197, 224; Maxbauer et al. (2016) '
+                  'red-bed pigmentary hematite (often fit skew-right)',
+        'note': 'fine pigmentary/authigenic hematite (~100s of nm); intrinsic '
+                'coercivity is high (fine SD) but the natural population is '
+                'broad and often SP-affected, so the bulk median is variable '
+                'and often lower; commonly skew-right; non-saturating in '
+                'ordinary fields, so the median is a lower bound'},
     'hematite_detrital': {
-        'B_median_mT': (500.0, 1500.0), 'dp': (0.18, 0.40),
-        'skew': (-0.5, 1.0),
-        'source': 'Swanson-Hysell et al. (2019); Ozdemir & Dunlop (2014); '
-                  'Roberts (2025) specular / detrital hematite',
-        'note': 'coarser specular/detrital hematite; narrower, '
-                'higher-coercivity than pigmentary hematite; Al-substituted '
-                'hematite coercivity peaks near ~7 mol% Al (~1300 mT) and '
-                'collapses at higher substitution'},
+        'B_median_mT': (400.0, 1500.0), 'dp': (0.18, 0.40),
+        'skew': (-2.0, 3.0),
+        'source': 'Ozdemir & Dunlop (2014, doi:10.1002/2013JB010739): '
+                  'Hc ~ d^-0.61 over the fitting-relevant ~100s nm - 100s um '
+                  'range, so fine specular is hard (several 100 mT to ~1 T) '
+                  'and coarser specular softer (down to ~100-200 mT); '
+                  'Roberts (2025) pp. 197, 224 (stable-SD, narrow, high '
+                  'unblocking 660-680 C); Swanson-Hysell et al. (2019)',
+        'note': 'detrital / specular (specularite) hematite spanning ~100s '
+                'of nm to ~100s of um; well-crystallized and narrower (lower '
+                'dp) than pigmentary hematite, harder when finer. Coercivity '
+                'is grain-size controlled (finer = harder), so a coarser '
+                'specular population overlaps the pigmentary window'},
     'hematite': {
         'B_median_mT': (150.0, 1500.0), 'dp': (0.20, 0.90),
-        'skew': (-0.5, 1.5),
-        'source': 'Ozdemir & Dunlop (2014); Heslop (2015); Roberts (2025)',
-        'note': 'generic hematite window spanning pigmentary and detrital '
-                'end-members; use the specific entries when possible'},
-    'goethite': {
-        'B_median_mT': (300.0, 5000.0), 'dp': (0.20, 0.60),
-        'skew': (-0.5, 1.0),
-        'source': 'Roberts (2025) goethite chapter; Heslop (2015)',
-        'note': 'very high coercivity, but with a huge natural range: '
-                'fitted goethite components span ~300-5000 mT and FORC '
-                'coercivities in well-crystalline goethite exceed 700 mT, '
-                'while Al-substituted and microparticulate goethite can '
-                'fall below ~60 mT. Goethite remanence is unsaturated even '
-                'in 57 T fields, so ordinary backfield/IRM experiments see '
-                'only its low-coercivity tail: treat any fitted goethite '
-                'contribution as a minimum and pass field_max_mT'},
+        'skew': (-2.0, 4.0),
+        'source': 'Ozdemir & Dunlop (2014, doi:10.1002/2013JB010739): over '
+                  'the fitting-relevant ~100s nm - 100s um range hematite Hc '
+                  'varies continuously as ~d^-0.61 (fine SD hard, coarser '
+                  'specular softer); Roberts (2025); Heslop (2015)',
+        'note': 'generic hematite window spanning the pigmentary and '
+                'specular/detrital natural populations (~100s of nm to ~100s '
+                'of um); coercivity is grain-size controlled. Use the specific '
+                'entries when the population is known'},
 }
 
 
@@ -7705,10 +8011,13 @@ def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
     Build a Bayesian-unmixing prior dictionary from named mineral components.
 
     Converts a list of component names from COERCIVITY_COMPONENT_LIBRARY
-    into the `priors` dictionary accepted by unmix_coercivity_bayes, with
-    one location and dispersion (and skew) prior per component. Components
-    are sorted by their central coercivity so that the returned order
-    matches the (low-to-high coercivity) component ordering of the fit.
+    into the `priors` dictionary accepted by unmix_coercivity_bayes, with a
+    mean-coercivity, dispersion, and skew window per component. The mean
+    window constrains the component's mean coercivity directly (the
+    skew-normal location is derived from the sampled dp and skew), so the
+    window is meaningful whatever the fitted skew. Components are sorted by
+    their central coercivity so the returned order matches the (low-to-high
+    coercivity) component ordering of the fit.
 
     The library windows are broad starting points; real samples often need
     them adapted. Use `tighten` to narrow every window, `widen` to broaden
@@ -7736,10 +8045,11 @@ def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
         keeps the library width. tighten and widen compose (net width factor
         = widen / tighten).
     field_max_mT : float, optional
-        Maximum applied field of the measurement (mT). Location upper bounds
-        are clipped to this value, so that components whose window extends
-        past the measured field (e.g. goethite in a 2 T experiment) are not
-        given prior support the data cannot constrain.
+        Maximum applied field of the measurement (mT). Coercivity upper
+        bounds are clipped to this value, so that components whose window
+        extends past the measured field (e.g. hard hematite or pyrrhotite in
+        a 1-2 T experiment) are not given prior support the data cannot
+        constrain.
     overrides : dict, optional
         Per-mineral window replacements, mapping a mineral name to a dict
         with any of 'B_median_mT', 'dp', 'skew' as (low, high) tuples. The
@@ -7751,10 +8061,12 @@ def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
     Returns
     -------
     dict
-        A priors dictionary with 'location', 'dp', and 'skew' keys, each a
-        list of (low, high) tuples in the order of increasing coercivity,
-        suitable for `unmix_coercivity_bayes(..., priors=...)`. The chosen
-        component names, in the same order, are returned under the
+        A priors dictionary with 'mean', 'dp', and 'skew' keys, each a list
+        of (low, high) tuples in the order of increasing coercivity, suitable
+        for `unmix_coercivity_bayes(..., priors=...)`. The 'mean' window
+        constrains each component's MEAN coercivity (log10 mT) -- so a library
+        window means what it says regardless of the component's skew. The
+        chosen component names, in the same order, are returned under the
         'components' key.
     """
     if isinstance(mineral_names, str):
@@ -7790,7 +8102,7 @@ def mineral_priors(mineral_names, tighten=1.0, widen=1.0, field_max_mT=None,
 
     return {
         'components': [item[0] for item in entries],
-        'location': [item[2] for item in entries],
+        'mean': [item[2] for item in entries],
         'dp': [item[3] for item in entries],
         'skew': [item[4] for item in entries],
     }
@@ -7804,6 +8116,159 @@ def _format_mT_axis(ax):
         field = 10 ** value
         return f'{field:g}' if field < 1000 else f'{field:.0f}'
     ax.xaxis.set_major_formatter(FuncFormatter(_fmt))
+
+
+# mineral family (for grouping/colouring the prior library) inferred from the
+# component name, and a colour per family
+_COERCIVITY_FAMILY_COLORS = {
+    'magnetite': '#1f77b4', 'maghemite': '#17becf', 'Fe-sulphide': '#2ca02c',
+    'hematite': '#d62728', 'other': '#7f7f7f'}
+
+
+def _coercivity_family(name):
+    """Mineral family of a COERCIVITY_COMPONENT_LIBRARY component name."""
+    if name.startswith('magnetite'):
+        return 'magnetite'
+    if name.startswith('maghemite'):
+        return 'maghemite'
+    if name in ('greigite', 'pyrrhotite'):
+        return 'Fe-sulphide'
+    if name.startswith('hematite'):
+        return 'hematite'
+    return 'other'
+
+
+def coercivity_prior_table(minerals=None):
+    """
+    Summarize the coercivity-component prior library as a table.
+
+    Parameters
+    ----------
+    minerals : list of str, optional
+        Component names, each a key of COERCIVITY_COMPONENT_LIBRARY. Defaults
+        to the whole library, ordered by central (geometric-mean) coercivity.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per component with its family, mean-coercivity window (mT),
+        dispersion window (dp, log10 units), skew (Azzalini alpha) window, the
+        implied distribution asymmetry, and the leading literature source.
+    """
+    names = list(minerals) if minerals is not None \
+        else list(COERCIVITY_COMPONENT_LIBRARY)
+    rows = []
+    for name in names:
+        if name not in COERCIVITY_COMPONENT_LIBRARY:
+            raise KeyError(f"unknown mineral component '{name}'")
+        entry = COERCIVITY_COMPONENT_LIBRARY[name]
+        b_lo, b_hi = entry['B_median_mT']
+        sk_lo, sk_hi = entry['skew']
+        sk_c = 0.5 * (sk_lo + sk_hi)
+        asymmetry = ('left (low-field tail)' if sk_c < -0.3 else
+                     'right (high-field tail)' if sk_c > 0.3 else
+                     'near-symmetric')
+        rows.append({
+            'component': name,
+            'family': _coercivity_family(name),
+            'mean coercivity (mT)': f'{b_lo:g}-{b_hi:g}',
+            'dp (log10)': f"{entry['dp'][0]:g}-{entry['dp'][1]:g}",
+            'skew (alpha)': f'{sk_lo:g}-{sk_hi:g}',
+            'asymmetry': asymmetry,
+            'central coercivity (mT)': float(np.sqrt(b_lo * b_hi)),
+            'source': entry['source'].split(';')[0],
+        })
+    table = pd.DataFrame(rows).sort_values('central coercivity (mT)')
+    return table.reset_index(drop=True)
+
+
+def plot_coercivity_prior_library(minerals=None, field_range=(1.0, 5e3),
+                                  n_grid=400, figsize=None, ax=None):
+    """
+    Visualize the coercivity-component prior library.
+
+    Draws, for each named mineral component, the skew-normal coercivity
+    distribution implied by the centre of its library windows (mean
+    coercivity, dispersion, and skew) as a ridgeline over a shared log field
+    axis, with the mean-coercivity window drawn as a bar at the baseline and
+    a dot at its centre. Components are coloured by mineral family and ordered
+    by central coercivity, so the coercivity ranges of the different minerals,
+    their characteristic widths and skews, and -- importantly -- their
+    overlaps (the reason a coercivity prior constrains a window rather than
+    identifying a mineral) are all legible at a glance.
+
+    Parameters
+    ----------
+    minerals : list of str, optional
+        Component names to show (default: the whole library).
+    field_range : tuple
+        (min, max) field in mT for the coercivity axis (default 1-5000).
+    n_grid : int
+        Number of points for the density curves.
+    figsize : tuple, optional
+        Figure size; a default is chosen from the number of components.
+    ax : matplotlib.axes.Axes, optional
+        Axis to draw on; a new figure is created if omitted.
+
+    Returns
+    -------
+    tuple
+        (fig, ax).
+    """
+    from matplotlib.patches import Patch
+    names = list(minerals) if minerals is not None \
+        else list(COERCIVITY_COMPONENT_LIBRARY)
+    rows = []
+    for name in names:
+        entry = COERCIVITY_COMPONENT_LIBRARY[name]
+        b_lo, b_hi = entry['B_median_mT']
+        dp_c = 0.5 * (entry['dp'][0] + entry['dp'][1])
+        sk_c = 0.5 * (entry['skew'][0] + entry['skew'][1])
+        rows.append((name, b_lo, b_hi, float(np.sqrt(b_lo * b_hi)), dp_c,
+                     sk_c, _coercivity_family(name)))
+    rows.sort(key=lambda r: r[3])
+
+    x_grid = np.linspace(np.log10(field_range[0]), np.log10(field_range[1]),
+                         n_grid)
+    if figsize is None:
+        figsize = (8.5, 0.7 * len(rows) + 1.2)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.figure
+    for i, (name, b_lo, b_hi, b_c, dp_c, sk_c, family) in enumerate(rows):
+        color = _COERCIVITY_FAMILY_COLORS.get(family, 'grey')
+        # representative shape: centre coercivity is the MEAN, so derive the
+        # skew-normal location from the central dp and skew
+        delta = sk_c / np.sqrt(1.0 + sk_c ** 2)
+        loc = np.log10(b_c) - dp_c * delta * np.sqrt(2.0 / np.pi)
+        density = skewnormal_pdf(x_grid, loc, dp_c, sk_c)
+        density = density / density.max() * 0.85
+        ax.fill_between(x_grid, i, i + density, color=color, alpha=0.5, lw=0)
+        ax.plot(x_grid, i + density, color=color, lw=1)
+        ax.plot([np.log10(b_lo), np.log10(b_hi)], [i, i], color=color,
+                lw=3.5, solid_capstyle='butt')
+        ax.plot(np.log10(b_c), i, 'o', color=color, ms=4, zorder=5)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows], fontsize=8.5)
+    _format_mT_axis(ax)
+    decades = range(int(np.floor(np.log10(field_range[0]))),
+                    int(np.ceil(np.log10(field_range[1]))) + 1)
+    ax.set_xticks([d for d in decades])
+    ax.set_xticks([np.log10(m * 10.0 ** d) for d in decades
+                   for m in range(2, 10)], minor=True)
+    ax.set_xlabel('coercivity (mT)')
+    ax.set_xlim(np.log10(field_range[0]), np.log10(field_range[1]))
+    ax.set_ylim(-0.6, len(rows) + 0.2)
+    ax.grid(axis='x', alpha=0.25)
+    families_present = [f for f in _COERCIVITY_FAMILY_COLORS
+                        if any(r[6] == f for r in rows)]
+    ax.legend(handles=[Patch(color=_COERCIVITY_FAMILY_COLORS[f], label=f)
+                       for f in families_present],
+              fontsize=8, loc='lower right', framealpha=0.9,
+              title='mineral family')
+    fig.tight_layout()
+    return fig, ax
 
 
 def _unmixing_component_colors(b_means_mT, color_by, class_boundaries,
@@ -7831,6 +8296,29 @@ def _unmixing_component_colors(b_means_mT, color_by, class_boundaries,
     class_index = np.searchsorted(boundaries, np.asarray(b_means_mT),
                                   side='left')
     return [class_colors[k] for k in class_index]
+
+
+def _result_is_spectrum(result):
+    """
+    Whether result['x']/result['y'] hold the coercivity spectrum rather than
+    the measured curve, i.e. the fit was done in spectrum space. Plot helpers
+    use this so they do not differentiate an already-differentiated spectrum.
+    """
+    method = result.get('method')
+    if method in ('spectrum', 'maxunmix'):
+        return True
+    if method == 'bayes':
+        return result.get('space') == 'spectrum'
+    return False
+
+
+def _result_spectrum(result):
+    """Return (x_mid, spectrum) for a result, without double-differentiating a
+    spectrum-space fit whose x/y are already the spectrum."""
+    x, y = result['x'], result['y']
+    if _result_is_spectrum(result):
+        return x, y
+    return coercivity_spectrum_from_curve(x, y, result['curve_type'])
 
 
 def plot_coercivity_unmixing(result, show_components=True,
@@ -7903,7 +8391,8 @@ def plot_coercivity_unmixing(result, show_components=True,
             boot = result['bayes']
             band_label = '95% credible band'
 
-    plot_as_curve = method in ('curve', 'bayes')
+    plot_as_curve = (method in ('curve', 'bayes')
+                     and result.get('space', 'curve') != 'spectrum')
     n_panels = 2 if plot_as_curve else 1
     if figsize is None:
         figsize = (8, 4.5 * n_panels)
@@ -8205,7 +8694,7 @@ def plot_unmixing_ensemble(result, space='spectrum', n_draws=200, n_grid=300,
     fig, ax = plt.subplots(figsize=figsize)
     # data
     if space == 'spectrum':
-        x_mid, spectrum = coercivity_spectrum_from_curve(x, y, curve_type)
+        x_mid, spectrum = _result_spectrum(result)
         ax.scatter(x_mid, spectrum, s=10, c='grey', alpha=0.5, zorder=3,
                    label='data spectrum')
     else:
@@ -8312,7 +8801,7 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
     axes_flat = axes.ravel()
 
     if space == 'spectrum':
-        x_data, y_data = coercivity_spectrum_from_curve(x, y, curve_type)
+        x_data, y_data = _result_spectrum(result)
     else:
         x_data, y_data = x, y
 

@@ -336,9 +336,10 @@ class TestMethodDispatch:
                                        n_components=2, vary_skew=False,
                                        n_boot=30, random_seed=7)
         assert 'bootstrap' in result
-        assert result['bootstrap']['resample'] == 'cases'
+        assert result['bootstrap']['method'] == 'maxunmix'
         assert result['bootstrap']['proportion'] == 0.95
-        assert result['bootstrap']['noise_level'] == 0.02
+        assert result['bootstrap']['param_noise'] == 0.02
+        assert 'param_summary' in result['bootstrap']
 
     def test_unknown_method_raises(self):
         x, curve = synthetic_curve()
@@ -933,6 +934,31 @@ class TestBayesianUnmixing:
         samples = bayes_result['bayes']['samples']
         assert samples['proportion'].shape[1] == 2
 
+    def test_spectrum_space_recovers_truth(self):
+        """space='spectrum' fits the finite-difference spectrum and should
+        recover the same synthetic components as the curve-space fit, with no
+        offset parameter."""
+        x, curve = synthetic_curve(noise=0.003, n=BAYES_N)
+        result = rmag.unmix_coercivity_bayes(x, curve, n_components=2,
+                                             space='spectrum', random_seed=6,
+                                             **FAST_BAYES)
+        assert result['space'] == 'spectrum'
+        assert result['offset'] == 0.0
+        params = result['params'].sort_values('location')
+        truth = TWO_COMPONENT_TRUTH.sort_values('location')
+        assert params['location'].iloc[1] == pytest.approx(
+            truth['location'].iloc[1], abs=0.15)
+        assert result['params']['proportion'].sum() == pytest.approx(1.0)
+        # the fitted spectrum data are the finite differences (n-1 points)
+        assert len(result['x']) == BAYES_N - 1
+
+    def test_spectrum_space_dispatch(self):
+        x, curve = synthetic_curve(noise=0.003, n=BAYES_N)
+        result = rmag.unmix_coercivity(x, curve, method='bayes',
+                                       n_components=2, space='spectrum',
+                                       random_seed=6, **FAST_BAYES)
+        assert result['space'] == 'spectrum'
+
     def test_registered_in_dispatcher(self):
         assert 'bayes' in rmag.UNMIXING_METHODS
 
@@ -1071,13 +1097,13 @@ class TestMineralPriors:
         # returned in increasing coercivity order regardless of input order
         assert priors['components'] == ['magnetite_detrital',
                                         'hematite_detrital']
-        assert priors['location'][0][1] < priors['location'][1][0]
+        assert priors['mean'][0][1] < priors['mean'][1][0]
 
-    def test_location_bounds_match_library(self):
+    def test_mean_bounds_match_library(self):
         priors = rmag.mineral_priors(['magnetite_detrital'])
         low, high = rmag.COERCIVITY_COMPONENT_LIBRARY[
             'magnetite_detrital']['B_median_mT']
-        assert priors['location'][0] == pytest.approx(
+        assert priors['mean'][0] == pytest.approx(
             (np.log10(low), np.log10(high)))
 
     def test_tighten_narrows_ranges(self):
@@ -1088,17 +1114,39 @@ class TestMineralPriors:
         # same center
         assert (narrow[0] + narrow[1]) == pytest.approx(wide[0] + wide[1])
 
-    def test_field_max_clips_location(self):
-        priors = rmag.mineral_priors(['goethite'], field_max_mT=2000)
-        assert priors['location'][0][1] == pytest.approx(np.log10(2000))
+    def test_field_max_clips_mean(self):
+        # hematite window is (150, 1500) mT; a 1 T max field clips the top
+        priors = rmag.mineral_priors(['hematite'], field_max_mT=1000)
+        assert priors['mean'][0][1] == pytest.approx(np.log10(1000))
 
     def test_accepts_single_string(self):
         priors = rmag.mineral_priors('hematite')
-        assert len(priors['location']) == 1
+        assert len(priors['mean']) == 1
 
     def test_unknown_name_raises(self):
         with pytest.raises(KeyError):
             rmag.mineral_priors(['unobtainium'])
+
+    def test_prior_table(self):
+        table = rmag.coercivity_prior_table(['hematite', 'magnetite'])
+        # sorted by central coercivity (magnetite softer than hematite)
+        assert list(table['component']) == ['magnetite', 'hematite']
+        assert set(['family', 'mean coercivity (mT)', 'skew (alpha)',
+                    'asymmetry']).issubset(table.columns)
+        assert table.loc[0, 'asymmetry'].startswith('left')
+        assert table.loc[1, 'asymmetry'].startswith('right')
+
+    def test_plot_prior_library(self):
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        fig, ax = rmag.plot_coercivity_prior_library()
+        assert len(ax.get_yticklabels()) == len(
+            rmag.COERCIVITY_COMPONENT_LIBRARY)
+        fig2, _ = rmag.plot_coercivity_prior_library(
+            ['magnetite', 'hematite_detrital'])
+        plt.close(fig)
+        plt.close(fig2)
 
     def test_tighten_below_one_raises(self):
         with pytest.raises(ValueError):
@@ -1125,7 +1173,7 @@ class TestMineralPriors:
         priors = rmag.mineral_priors(
             ['magnetite_detrital'],
             overrides={'magnetite_detrital': {'B_median_mT': (20.0, 160.0)}})
-        assert priors['location'][0] == pytest.approx(
+        assert priors['mean'][0] == pytest.approx(
             (np.log10(20.0), np.log10(160.0)))
         # non-overridden windows still come from the library
         assert priors['dp'][0] == pytest.approx(
@@ -1150,11 +1198,12 @@ class TestMineralPriors:
                                        priors=priors, random_seed=3,
                                        **FAST_BAYES)
         assert result['n_components'] == 2
-        # each component stays within its mineral's coercivity window
-        samples = result['bayes']['samples']['location']
-        for comp, (low, high) in enumerate(priors['location']):
-            assert samples[:, comp].min() >= low - 1e-6
-            assert samples[:, comp].max() <= high + 1e-6
+        # each component's MEAN coercivity stays within its mineral window
+        # (the 'mean' window constrains 10**B_mean_mT directly)
+        mean_log = np.log10(result['bayes']['samples']['B_mean_mT'])
+        for comp, (low, high) in enumerate(priors['mean']):
+            assert mean_log[:, comp].min() >= low - 1e-6
+            assert mean_log[:, comp].max() <= high + 1e-6
 
 
 class TestParseDescription:
