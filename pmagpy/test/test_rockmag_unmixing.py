@@ -619,6 +619,42 @@ class TestBatchProcessing:
         assert list(results) == ['synthetic-LP-BCR-BF-1']
         assert components_df['experiment'].nunique() == 1
 
+    def test_smoothing_routes_spectrum_but_not_bayes(self):
+        """Regression: with smoothing on, the finite-difference 'spectrum'
+        method fits the smoothed curve, but the measurement-space Bayesian
+        method must fit the UNSMOOTHED curve. Routing the denoised data to
+        the bayes likelihood (which infers its own noise level) understates
+        the noise and yields overconfident credible intervals."""
+        # use an isolated RNG so this test does not advance the module-level
+        # RNG stream that later tests' fixtures draw from
+        measurements = make_magic_measurements(rng=np.random.default_rng(2027))
+        experiment = 'synthetic-LP-BCR-BF-1'
+        one = measurements[measurements['experiment'] == experiment].copy()
+        processed, _bcr = rmag.backfield_data_processing(one, smooth_frac=0.2)
+        unsmoothed = processed['magn_mass_shift'].to_numpy()
+        # sanity: smoothing actually changed the curve
+        assert not np.allclose(
+            unsmoothed, processed['smoothed_magn_mass_shift'].to_numpy())
+
+        # smoothing reaches the spectrum method: the data it fits differs
+        # between a smoothed and an unsmoothed run
+        _c, spec_smoothed = rmag.unmix_backfield_experiments(
+            measurements, method='spectrum', n_components=2, vary_skew=False,
+            smooth_frac=0.2, verbose=False)
+        _c0, spec_raw = rmag.unmix_backfield_experiments(
+            measurements, method='spectrum', n_components=2, vary_skew=False,
+            smooth_frac=0.0, verbose=False)
+        assert not np.allclose(np.asarray(spec_smoothed[experiment]['y']),
+                               np.asarray(spec_raw[experiment]['y']))
+
+        # measurement-space bayes fits the unsmoothed curve directly, so its
+        # fitted data is unchanged by smooth_frac and equals the raw curve
+        _c2, bayes_smoothed = rmag.unmix_backfield_experiments(
+            measurements, method='bayes', n_components=2, vary_skew=False,
+            smooth_frac=0.2, random_seed=3, verbose=False, **FAST_BAYES)
+        assert np.allclose(np.asarray(bayes_smoothed[experiment]['y']),
+                           unsmoothed)
+
 
 class TestAggregateByClass:
     """aggregate_by_class collapses components into coercivity classes."""

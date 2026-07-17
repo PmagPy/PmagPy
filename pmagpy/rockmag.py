@@ -9151,10 +9151,18 @@ def unmix_backfield_experiments(measurements, experiments=None,
             if initial is not None:
                 initial = initial.copy()
 
-            # methods operating on the derivative use the (optionally
-            # smoothed) curve; the measurement-space method always fits
-            # the unsmoothed data
-            x_fit, M_fit = (x, M) if method == 'curve' else (x_s, M_s)
+            # The finite-difference least-squares methods ('spectrum',
+            # 'maxunmix') fit the optionally smoothed curve, because
+            # differentiating the raw curve amplifies its noise. The
+            # measurement-space ('curve') and Bayesian methods fit the
+            # unsmoothed data so their noise models -- the Bayesian methods
+            # infer an explicit noise level -- see the true measurement noise;
+            # feeding them the denoised curve would understate the noise and
+            # yield overconfident credible intervals. (A Bayesian fit with
+            # space='spectrum' differentiates the curve it is given
+            # internally, so it too must receive the unsmoothed data.)
+            x_fit, M_fit = ((x_s, M_s) if method in ('spectrum', 'maxunmix')
+                            else (x, M))
             if method == 'maxunmix':
                 method_kwargs.setdefault('n_boot', n_boot if n_boot > 0
                                          else 100)
