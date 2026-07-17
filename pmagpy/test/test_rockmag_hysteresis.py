@@ -9,6 +9,7 @@ linearity F tests, loop closure testing, and linear vs. nonlinear
 parameters (Ms, Mr, Bc, chi_HF) provide analytical expectations.
 """
 import numpy as np
+import pandas as pd
 import pytest
 
 from pmagpy import rockmag as rmag
@@ -54,6 +55,23 @@ def synthetic_loop(n_half=200, Hmax=1.0, Ms=1.0, Bc=0.05, w=0.03, chi=0.0,
     M = M + drift * np.linspace(0, 1, M.size)
     if noise:
         M = M + noise * rng.standard_normal(M.size)
+    return H, M
+
+
+def synthetic_loop_ascending_first(n_half=200, Hmax=1.0, Ms=1.0, Bc=0.05,
+                                   w=0.03, drift=0.0):
+    """Same physics as synthetic_loop but measured -Hmax -> +Hmax -> -Hmax.
+
+    The drift is the same linear-in-time law, so processing this loop and its
+    descending-first twin should recover the same loop parameters.
+    """
+    H_lower = np.linspace(-Hmax, Hmax, n_half)
+    H_upper = np.linspace(Hmax, -Hmax, n_half)
+    M_lower = Ms * np.tanh((H_lower - Bc) / w)
+    M_upper = Ms * np.tanh((H_upper + Bc) / w)
+    H = np.concatenate([H_lower, H_upper])
+    M = np.concatenate([M_lower, M_upper])
+    M = M + drift * np.linspace(0, 1, M.size)
     return H, M
 
 
@@ -307,7 +325,7 @@ class TestClosureTest:
     def _closure(H, M, use_Me=True):
         gH, gM = rmag.grid_hysteresis_loop(H, M)
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
-        return rmag.loop_closure_test(Hu, Mrh, Me if use_Me else None)
+        return rmag.loop_closure_test(Hu, Mrh, Me=Me if use_Me else None)
 
     def test_closed_loop(self):
         H, M = synthetic_loop(noise=2e-3)
@@ -356,6 +374,77 @@ class TestDriftCorrection:
         # branches meet at both tips after correction
         assert upper[1][0] == pytest.approx(lower[1][0], abs=1e-12)
         assert upper[1][-1] == pytest.approx(lower[1][-1], abs=1e-12)
+
+    def test_measured_descending_first_detection(self):
+        H_desc, _ = synthetic_loop()
+        H_asc, _ = synthetic_loop_ascending_first()
+        assert rmag.measured_descending_first(H_desc)
+        assert not rmag.measured_descending_first(H_asc)
+
+    def test_prorated_time_order_aware(self):
+        # a linear-in-time drift is removed exactly (up to a constant and
+        # gridding interpolation error) when the prorated ramp runs in the
+        # loop's true measurement-time order -- for either sweep order
+        drift = 0.05
+        H_true, M_true = synthetic_loop()
+        gH, gM_true = rmag.grid_hysteresis_loop(H_true, M_true)
+        for loop_builder, descending_first in (
+                (synthetic_loop, True),
+                (synthetic_loop_ascending_first, False)):
+            H, M = loop_builder(drift=drift)
+            gH_d, gM_d = rmag.grid_hysteresis_loop(H, M)
+            corrected = rmag.prorated_drift_correction(
+                gH_d, gM_d, descending_first=descending_first)
+            residual = corrected - gM_true
+            # residual is a constant shift, not a branch-dependent ramp
+            assert np.std(residual) == pytest.approx(0.0, abs=drift / 50)
+
+    def test_prorated_wrong_order_leaves_ramp(self):
+        # applying the ramp with the wrong time sense leaves a residual of
+        # the drift's magnitude, confirming the flag changes the result
+        drift = 0.05
+        H_true, M_true = synthetic_loop()
+        gH, gM_true = rmag.grid_hysteresis_loop(H_true, M_true)
+        H, M = synthetic_loop_ascending_first(drift=drift)
+        gH_d, gM_d = rmag.grid_hysteresis_loop(H, M)
+        wrong = rmag.prorated_drift_correction(gH_d, gM_d,
+                                               descending_first=True)
+        assert np.std(wrong - gM_true) > drift / 10
+
+    def test_Me_correction_order_symmetric(self):
+        # identical physics and identical drift law measured in the two sweep
+        # orders: once the correction runs in true measurement-time order the
+        # two orders are treated identically (the equivalence mapping is
+        # exact) and both move the loop toward the drift-free truth, whereas
+        # the wrong time sense actively corrupts the loop
+        drift = 0.05
+        H_ref, M_ref = synthetic_loop()
+        gH_ref, gM_ref = rmag.grid_hysteresis_loop(H_ref, M_ref)
+
+        H_d, M_d = synthetic_loop(drift=drift)
+        gH_d, gM_d = rmag.grid_hysteresis_loop(H_d, M_d)
+        H_a, M_a = synthetic_loop_ascending_first(drift=drift)
+        gH_a, gM_a = rmag.grid_hysteresis_loop(H_a, M_a)
+        assert np.allclose(gH_d, gH_a)
+
+        def rms(x):
+            return float(np.sqrt(np.mean(np.square(x))))
+
+        rms_uncorrected = rms(gM_a - gM_ref)
+        corr_desc = rmag.drift_correction_Me(gH_d, gM_d,
+                                             descending_first=True)
+        corr_asc = rmag.drift_correction_Me(gH_a, gM_a,
+                                            descending_first=False)
+        wrong_asc = rmag.drift_correction_Me(gH_a, gM_a,
+                                             descending_first=True)
+
+        # both sweep orders receive the same (correct) treatment
+        assert rms(corr_asc - gM_ref) == pytest.approx(
+            rms(corr_desc - gM_ref), rel=1e-6)
+        # the correct time sense improves on the uncorrected loop; the wrong
+        # time sense makes it worse than not correcting at all
+        assert rms(corr_asc - gM_ref) < rms_uncorrected
+        assert rms(wrong_asc - gM_ref) > rms_uncorrected
 
 
 class TestParameterRecovery:
@@ -454,3 +543,149 @@ class TestProcessHystLoop:
         assert not results['loop_is_saturated']
         assert results['Fnl_lin'] is not None
         assert results['Ms'] == pytest.approx(1.0, rel=0.03)
+
+    def test_pipeline_ascending_first_matches_descending(self):
+        # the same loop physics with the same drift law, measured in the two
+        # sweep orders, must process to the same Mr and Bc now that the drift
+        # correction runs in true measurement-time order
+        H_d, M_d = synthetic_loop(drift=0.05)
+        H_a, M_a = synthetic_loop_ascending_first(drift=0.05)
+        res_d = rmag.process_hyst_loop(H_d, M_d, show_results_table=False,
+                                       show_plot=False)
+        res_a = rmag.process_hyst_loop(H_a, M_a, show_results_table=False,
+                                       show_plot=False)
+        assert res_d['measured_descending_first']
+        assert not res_a['measured_descending_first']
+        assert res_a['Mr'] == pytest.approx(res_d['Mr'], rel=0.03)
+        assert res_a['Bc'] == pytest.approx(res_d['Bc'], rel=0.05)
+
+
+class TestOpenLoopBrh:
+    def test_Brh_nan_when_Mrh_stays_high(self):
+        # hematite-like loop measured far short of saturation: Mrh never
+        # falls to Mr/2 in the measured range, so Brh is NaN with a warning
+        # rather than a TypeError (None arithmetic)
+        H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        with pytest.warns(RuntimeWarning, match='Brh'):
+            Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        assert np.isnan(Brh)
+        assert np.isfinite(Mr) and Mr > 0
+        assert np.all(np.isfinite(Mrh))
+
+    def test_closed_loop_Brh_unchanged(self):
+        # well-behaved loop: Brh is still computed from both crossings
+        H, M = synthetic_loop()
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        *_, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        assert np.isfinite(Brh) and Brh > 0
+
+    def test_Bc_nan_when_no_zero_crossing(self):
+        # loop measured far below the coercivity of its hard component:
+        # neither branch crosses zero, so Bc is NaN with a warning
+        H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        with pytest.warns(RuntimeWarning, match='Bc'):
+            Bc = rmag.calc_Bc(gH, gM)
+        assert np.isnan(Bc)
+
+    def test_pipeline_survives_open_loops(self):
+        # process_hyst_loop must complete on exactly the open-loop specimens
+        # the closure test is designed to flag, reporting NaN for the
+        # undefined parameters rather than crashing
+        import warnings as _warnings
+        # realistic: soft magnetite plus a dominant unsaturated hard phase
+        H1, M1 = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                                hard_Bc=2.0, hard_w=1.5, noise=2e-4)
+        # extreme: single hard phase, magnetization never reverses
+        H2, M2 = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
+        for H, M in ((H1, M1), (H2, M2)):
+            with _warnings.catch_warnings():
+                _warnings.simplefilter('ignore')
+                results = rmag.process_hyst_loop(H, M,
+                                                 show_results_table=False,
+                                                 show_plot=False)
+            assert not results['loop_is_closed']
+            assert np.isnan(results['Brh'])
+
+
+class TestSparseLoopSaturation:
+    def test_sparse_loop_does_not_abort(self):
+        # a coarse quick-scan loop passes the >=10-point gate but leaves too
+        # few high-field pairs for some lack-of-fit windows; those windows
+        # now report NaN with a warning instead of aborting the pipeline
+        H, M = synthetic_loop(n_half=12)
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        with pytest.warns(RuntimeWarning, match='saturation test window'):
+            results = rmag.hyst_loop_saturation_test(gH, gM)
+        assert 'saturation_cutoff' in results
+        # at least one window was skipped -> its FNL is NaN
+        fnls = [results['FNL60'], results['FNL70'], results['FNL80']]
+        assert any(np.isnan(v) for v in fnls)
+
+    def test_direct_call_still_raises(self):
+        # loop_saturation_stats itself keeps its informative error for
+        # direct callers
+        H, M = synthetic_loop(n_half=12)
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        with pytest.raises(ValueError, match='high-field'):
+            rmag.loop_saturation_stats(gH, gM, HF_cutoff=0.8)
+
+
+class TestClosureTestSignature:
+    def test_third_positional_is_HF_cutoff(self):
+        # pre-existing (master) signature was (H, Mrh, HF_cutoff=0.8): the
+        # third positional argument must still bind to HF_cutoff
+        H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
+        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
+        positional = rmag.loop_closure_test(Hu, Mrh, 0.7)
+        keyword = rmag.loop_closure_test(Hu, Mrh, HF_cutoff=0.7)
+        assert positional == keyword
+
+
+class TestHystStatsDescriptionJSON:
+    @staticmethod
+    def _hyst_results():
+        return pd.DataFrame([{
+            'specimen': 'spec1', 'experiment': 'spec1-HYS1',
+            'Ms': 1.0, 'Mr': 0.4, 'Bc': 0.05, 'chi_HF': 1e-7,
+            'Q': 5.0, 'Qf': 6.0, 'sigma': 0.5, 'Brh': 0.08,
+            'FNL': 1.0, 'FNL60': 1.1, 'FNL70': 1.2, 'FNL80': 1.3,
+            'Fnl_lin': None, 'loop_is_linear': False,
+            'loop_is_closed': True, 'loop_is_saturated': True,
+            'processed_by': 'test',
+        }])
+
+    def test_round_trip_with_unmixing_payload(self):
+        # a cell already holding the unmixing writer's 'text | JSON' payload
+        # must survive the hysteresis writer: both structured payloads and
+        # the free text are preserved and re-parseable
+        import json
+        unmix_payload = json.dumps({'coercivity_unmixing': {'B1': 30.0}})
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1:spec1-BF1',
+            'description': f'sample notes | {unmix_payload}',
+        }])
+        out = rmag.add_hyst_stats_to_specimens_table(specimens,
+                                                     self._hyst_results())
+        text, data = rmag.parse_specimen_description(
+            out.loc[0, 'description'])
+        assert text == 'sample notes'
+        assert data['coercivity_unmixing'] == {'B1': 30.0}
+        assert data['Q'] == pytest.approx(5.0)
+        assert data['loop_is_closed'] is True
+
+    def test_legacy_dict_cell_migrated(self):
+        # legacy str(dict) cells written by older versions are parsed and
+        # migrated to the JSON convention rather than corrupted
+        specimens = pd.DataFrame([{
+            'specimen': 'spec1', 'experiments': 'spec1-HYS1',
+            'description': str({'old_stat': 1.5}),
+        }])
+        out = rmag.add_hyst_stats_to_specimens_table(specimens,
+                                                     self._hyst_results())
+        text, data = rmag.parse_specimen_description(
+            out.loc[0, 'description'])
+        assert data['old_stat'] == pytest.approx(1.5)
+        assert data['Brh'] == pytest.approx(0.08)

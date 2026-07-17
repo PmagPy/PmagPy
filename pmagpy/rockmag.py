@@ -2340,6 +2340,51 @@ def split_hysteresis_loop(field, magnetization):
 
     return upper_branch, lower_branch
 
+def measured_descending_first(field):
+    """Whether the first-measured branch sweeps downward from positive field.
+
+    Gridding canonicalizes a loop to descending-upper-branch-first array
+    order regardless of how it was measured, so the original sweep order must
+    be detected from the raw field values before gridding and passed to the
+    time-order-sensitive drift corrections.
+
+    Parameters
+    ----------
+    field : array_like
+        Raw (ungridded) applied field values in measurement order.
+
+    Returns
+    -------
+    bool
+        True if the sweep starts at the positive field extreme (descending
+        branch measured first), False if it starts at the negative extreme.
+    """
+    field = np.asarray(field, dtype=float)
+    turning_point = find_hysteresis_turning_point(field)
+    return bool(field[0] > field[turning_point])
+
+def _correct_in_measurement_order(H, M, correction):
+    """Apply a time-order-sensitive drift correction to a canonically ordered
+    loop that was measured ascending-first.
+
+    The corrections assume array order equals measurement-time order with the
+    descending upper branch first. For a loop measured ascending-first the
+    canonical (gridded) arrays violate that, so the loop is mapped onto its
+    equivalent descending-first loop in true time order -- a hysteresis loop
+    is odd under (H, M) -> (-H, -M), and the corrections estimate the drift
+    from the branch mismatch without assuming its sign -- corrected there,
+    and mapped back to canonical order.
+    """
+    H = np.asarray(H, dtype=float)
+    M = np.asarray(M, dtype=float)
+    boundary = find_hysteresis_turning_point(H) + 1
+    H_equivalent = np.concatenate([-H[boundary:], -H[:boundary]])
+    M_equivalent = np.concatenate([-M[boundary:], -M[:boundary]])
+    M_cor_equivalent = np.asarray(correction(H_equivalent, M_equivalent))
+    n_second = len(H) - boundary
+    return np.concatenate([-M_cor_equivalent[n_second:],
+                           -M_cor_equivalent[:n_second]])
+
 def grid_hysteresis_loop(field, magnetization):
     '''
     function to grid a hysteresis loop into a regular grid
@@ -3114,7 +3159,26 @@ def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
     neg_Mrh = Mrh[np.where(H < 0)]
     Brh_pos = find_y_crossing(pos_H, pos_Mrh, Mr/2)
     Brh_neg = find_y_crossing(neg_H, neg_Mrh, Mr/2)
-    Brh = np.abs((Brh_pos - Brh_neg)/2)
+    # Mrh may never fall to Mr/2 within the measured field range (e.g. a loop
+    # dominated by an unsaturated high-coercivity phase such as hematite);
+    # report Brh as NaN rather than failing, so such loops still process and
+    # the closure test downstream can flag them as open
+    if Brh_pos is None and Brh_neg is None:
+        warnings.warn(
+            'Mrh does not fall to Mr/2 within the measured field range, so '
+            'the median remanent field Brh cannot be determined (NaN); the '
+            'loop likely contains an unsaturated high-coercivity component',
+            RuntimeWarning, stacklevel=2)
+        Brh = np.nan
+    elif Brh_pos is None or Brh_neg is None:
+        found = Brh_pos if Brh_pos is not None else Brh_neg
+        warnings.warn(
+            'the Mr/2 crossing of Mrh was found for only one field polarity; '
+            'Brh is taken from that crossing alone',
+            RuntimeWarning, stacklevel=2)
+        Brh = float(np.abs(found))
+    else:
+        Brh = np.abs((Brh_pos - Brh_neg)/2)
 
     return H, Mr, Mrh, Mih, Me, Brh
 
@@ -3139,6 +3203,22 @@ def calc_Bc(H, M):
 
     upper_Bc = find_y_crossing(upper_branch[0], upper_branch[1])
     lower_Bc = find_y_crossing(lower_branch[0], lower_branch[1])
+    # a branch that never crosses zero within the measured field range (a
+    # loop measured far below the coercivity of a hard component) has no
+    # defined Bc; report NaN rather than failing
+    if upper_Bc is None and lower_Bc is None:
+        warnings.warn(
+            'neither loop branch crosses zero magnetization within the '
+            'measured field range, so Bc cannot be determined (NaN)',
+            RuntimeWarning, stacklevel=2)
+        return np.nan
+    if upper_Bc is None or lower_Bc is None:
+        found = upper_Bc if upper_Bc is not None else lower_Bc
+        warnings.warn(
+            'only one loop branch crosses zero magnetization; Bc is taken '
+            'from that crossing alone',
+            RuntimeWarning, stacklevel=2)
+        return float(np.abs(found))
     Bc = np.abs((upper_Bc - lower_Bc) / 2)
 
     return Bc
@@ -3272,26 +3352,37 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     0.8 False
     """
     
-    FNL60 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.6, max_field_cutoff = max_field_cutoff)['FNL']
-    FNL70 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.7, max_field_cutoff = max_field_cutoff)['FNL']
-    FNL80 = loop_saturation_stats(grid_field, grid_magnetization, HF_cutoff=0.8, max_field_cutoff = max_field_cutoff)['FNL']
+    # a window with too few high-field pairs for the lack-of-fit test (sparse
+    # quick-scan loops) reports FNL as NaN with a warning rather than aborting
+    # the whole processing pipeline
+    FNL_by_cutoff = {}
+    for HF_cutoff in (0.6, 0.7, 0.8):
+        try:
+            FNL_by_cutoff[HF_cutoff] = loop_saturation_stats(
+                grid_field, grid_magnetization, HF_cutoff=HF_cutoff,
+                max_field_cutoff=max_field_cutoff)['FNL']
+        except ValueError as error:
+            warnings.warn(
+                f'saturation test window starting at {HF_cutoff:.0%} of the '
+                f'maximum field skipped ({error}); its FNL is NaN',
+                RuntimeWarning, stacklevel=2)
+            FNL_by_cutoff[HF_cutoff] = np.nan
+    FNL60, FNL70, FNL80 = (FNL_by_cutoff[c] for c in (0.6, 0.7, 0.8))
 
-    saturation_cutoff = 0
-    if (FNL80 > 2.5) & (FNL70 > 2.5) & (FNL60 > 2.5):
-        saturation_cutoff = 0.92 # IRM default
-    else:
-        if FNL80 < 2.5:  #saturated at 80%
-            saturation_cutoff = 0.8
-        if FNL70 < 2.5:  #saturated at 70%
-            saturation_cutoff = 0.7
-        if FNL60 < 2.5:  #saturated at 60%
-            saturation_cutoff = 0.6
+    # lowest tested window with statistically linear (FNL < 2.5) high-field
+    # behavior; 0.92 (the IRM default nonlinear-fit window) if none is linear
+    # or no window could be tested
+    saturation_cutoff = 0.92
+    for HF_cutoff in (0.8, 0.7, 0.6):
+        FNL = FNL_by_cutoff[HF_cutoff]
+        if np.isfinite(FNL) and FNL < 2.5:
+            saturation_cutoff = HF_cutoff
     results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop_is_saturated':(saturation_cutoff != 0.92)}
     results_dict = dict_in_native_python(results)
     return results_dict
 
 
-def loop_closure_test(H, Mrh, Me=None, HF_cutoff=0.8, max_field_cutoff=0.99):
+def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99):
     '''
     function for testing whether a hysteresis loop is closed at high fields
 
@@ -3314,12 +3405,12 @@ def loop_closure_test(H, Mrh, Me=None, HF_cutoff=0.8, max_field_cutoff=0.99):
         field values of the upper branch (ascending)
     Mrh: array-like
         remanent hysteretic magnetization Mrh(H)
-    Me: array-like, optional
-        error curve err(H) on the same field axis (as returned by
-        calc_Mr_Mrh_Mih_Brh); used as the noise estimate when provided
     HF_cutoff: float
         high field cutoff value taken as fraction of the max field value
-    max_field_cutoff: float
+    Me: array-like, optional, keyword-only
+        error curve err(H) on the same field axis (as returned by
+        calc_Mr_Mrh_Mih_Brh); used as the noise estimate when provided
+    max_field_cutoff: float, keyword-only
         upper trim of the high-field windows as fraction of the max field
 
     Returns
@@ -3383,7 +3474,7 @@ def loop_closure_test(H, Mrh, Me=None, HF_cutoff=0.8, max_field_cutoff=0.99):
     return results
 
 
-def drift_correction_Me(H, M):
+def drift_correction_Me(H, M, descending_first=True):
     """
     Perform default IRM drift correction for a hysteresis loop based on the Me method.
 
@@ -3392,12 +3483,24 @@ def drift_correction_Me(H, M):
     which is the sum of the upper and reversed lower branches of the hysteresis loop.
     The correction method adapts depending on whether significant drift is detected in the high-field region.
 
+    The drift estimate depends on measurement-time order, and the arrays are
+    expected in canonical order (descending upper branch first, as produced
+    by `grid_hysteresis_loop`). For a loop originally measured from negative
+    saturation, pass descending_first=False (detected from the raw field
+    values with `measured_descending_first`) so the correction is applied in
+    true time order rather than with the opposite time sense.
+
     Parameters
     ----------
     H : numpy.ndarray
-        Array of magnetic field values.
+        Array of magnetic field values, in canonical (descending-upper-
+        branch-first) order.
     M : numpy.ndarray
         Array of measured magnetization values corresponding to `H`.
+    descending_first : bool, optional
+        Whether the loop was originally measured with the descending branch
+        first (default True). Use `measured_descending_first` on the raw
+        field values to determine this for a gridded loop.
 
     Returns
     -------
@@ -3412,6 +3515,8 @@ def drift_correction_Me(H, M):
     >>> plot(H, M, label='Original')
     >>> plot(H, M_cor, label='Drift Corrected')
     """
+    if not descending_first:
+        return _correct_in_measurement_order(H, M, drift_correction_Me)
     # split loop branches
     upper_branch, lower_branch = split_hysteresis_loop(H, M)
     # calculate Me
@@ -3449,31 +3554,39 @@ def drift_correction_Me(H, M):
             M_cor[i] = M[i] - Me_running_mean[i]
         return M_cor
     
-def prorated_drift_correction(field, magnetization):
+def prorated_drift_correction(field, magnetization, descending_first=True):
     '''
     function to correct for the linear drift of a hysteresis loop
         take the difference between the magnetization measured at the maximum field on the upper and lower branches
         apply linearly prorated correction of M(H)
         this should be applied to the gridded data
 
-    Note: the prorated ramp assumes the array order corresponds to measurement
-    time with the upper (descending) branch first, which is the order produced
-    by `grid_hysteresis_loop`. For loops originally measured in the opposite
-    sweep order the correction still closes the loop but attributes the drift
-    with the opposite sense.
+    The prorated ramp runs in measurement-time order, and the arrays are
+    expected in canonical order (descending upper branch first, as produced
+    by `grid_hysteresis_loop`). For a loop originally measured from negative
+    saturation, pass descending_first=False (detected from the raw field
+    values with `measured_descending_first`) so the ramp is applied in true
+    time order rather than with the opposite time sense.
 
     Parameters
     ----------
     field : numpy array
-        field values
+        field values, in canonical (descending-upper-branch-first) order
     magnetization : numpy array
         magnetization values
+    descending_first : bool, optional
+        Whether the loop was originally measured with the descending branch
+        first (default True). Use `measured_descending_first` on the raw
+        field values to determine this for a gridded loop.
 
     Returns
     -------
     corrected_magnetization : numpy array
         corrected magnetization values
     '''
+    if not descending_first:
+        return _correct_in_measurement_order(field, magnetization,
+                                             prorated_drift_correction)
 
     field = np.array(field)
     magnetization = np.array(magnetization)
@@ -3837,6 +3950,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # pairs, warns on apparent non-tesla field units)
     field, magnetization = sanitize_hysteresis_inputs(field, magnetization)
 
+    # record the original sweep order before gridding canonicalizes it: the
+    # drift correction is time-order sensitive and needs to know whether the
+    # loop was measured from positive or negative saturation
+    descending_first = measured_descending_first(field)
+
     # first grid the data into symmetric field values
     grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
 
@@ -3860,14 +3978,15 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     centered_H, centered_M = loop_centering_results['centered_H'], loop_centering_results['centered_M']
 
-    # drift correction
-    drift_corr_M = drift_correction_Me(centered_H, centered_M)
+    # drift correction, applied in the loop's true measurement-time order
+    drift_corr_M = drift_correction_Me(centered_H, centered_M,
+                                       descending_first=descending_first)
 
     # calculate Mr, Mrh, Mih, Me, Brh
     H, Mr, Mrh, Mih, Me, Brh = calc_Mr_Mrh_Mih_Brh(centered_H, drift_corr_M)
 
     # check if the loop is closed
-    loop_closure_test_results = loop_closure_test(H, Mrh, Me)
+    loop_closure_test_results = loop_closure_test(H, Mrh, Me=Me)
 
     # check if the loop is saturated (high field linearity test)
     loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
@@ -3917,8 +4036,9 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         p_slope_corr.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
         if show_plot:
             show(p_slope_corr)
-    results = {'gridded_H': grid_fields, 
-               'gridded_M': grid_magnetizations, 
+    results = {'gridded_H': grid_fields,
+               'gridded_M': grid_magnetizations,
+               'measured_descending_first': descending_first,
                'linearity_test_results': loop_linearity_test_results,
                'loop_is_linear': loop_linearity_test_results['loop_is_linear'],
                'FNL': loop_linearity_test_results['FNL'],
@@ -4092,7 +4212,10 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
     for _, row in hyst_results.iterrows():
         specimen_name = row['specimen']
         experiment_name = row['experiment']
-        mask = specimens_df['experiments'] == experiment_name
+        # colon-delimited 'experiments' cells (several experiments per row)
+        # must match the single experiment name, so use the shared token
+        # matching rather than exact equality
+        mask = _match_specimen_rows(specimens_df, experiment_name, None)
 
         if overwrite:
             if not mask.any():
@@ -4108,7 +4231,8 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
                     [specimens_df, new_row.to_frame().T],
                     ignore_index=True,
                 )
-                mask = specimens_df['experiments'] == experiment_name
+                mask = _match_specimen_rows(specimens_df, experiment_name,
+                                            None)
             ipos = mask.values.nonzero()[0][0]
         else:
             # overwrite=False: leave existing row alone, always add a new row
@@ -4129,24 +4253,19 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         for result_key, col in zip(result_keys_MagIC, MagIC_columns):
             specimens_df.iloc[ipos, specimens_df.columns.get_loc(col)] = row[result_key]
 
-        # build and write additional stats into description
+        # merge the additional stats into the description cell using the
+        # shared 'free text | JSON' convention, so hysteresis and unmixing
+        # writers can round-trip each other's cells. parse_specimen_description
+        # also reads legacy Python-dict cells written by older versions.
         additional_stats_dict = {key: row[key] for key in additional_keys
                                  if key in row.index}
         desc_col = specimens_df.columns.get_loc('description')
-        desc = specimens_df.iloc[ipos, desc_col]
-        if isinstance(desc, str):
-            try:
-                description_dict = eval(desc)
-                if isinstance(description_dict, dict):
-                    description_dict.update(additional_stats_dict)
-                    specimens_df.iloc[ipos, desc_col] = str(description_dict)
-                else:
-                    raise ValueError
-            except (SyntaxError, ValueError, NameError):
-                additional_stats_dict['description'] = desc
-                specimens_df.iloc[ipos, desc_col] = str(additional_stats_dict)
-        else:
-            specimens_df.iloc[ipos, desc_col] = str(additional_stats_dict)
+        text, description_dict = parse_specimen_description(
+            specimens_df.iloc[ipos, desc_col])
+        description_dict.update(dict_in_native_python(additional_stats_dict))
+        payload = json.dumps(description_dict)
+        specimens_df.iloc[ipos, desc_col] = (f'{text} | {payload}' if text
+                                             else payload)
 
     return specimens_df
 
@@ -9463,10 +9582,16 @@ _UNMIXING_ROW_MARKER = 'coercivity_unmixing_component_row'
 
 
 def _match_specimen_rows(specimens_df, experiment_name, specimen_name):
-    """Boolean mask of specimens rows matching an experiment (or specimen)."""
+    """Boolean mask of specimens rows matching an experiment (or specimen).
+
+    An 'experiments' cell may hold a single name or a colon-delimited list,
+    so cells are split on ':' and each token compared exactly -- a substring
+    match would let experiment 'EXP1' also claim 'EXP10'.
+    """
+    name = str(experiment_name)
     if 'experiments' in specimens_df.columns:
-        mask = specimens_df['experiments'].astype(str).str.contains(
-            str(experiment_name), na=False, regex=False)
+        mask = specimens_df['experiments'].apply(
+            lambda cell: name in str(cell).split(':'))
     else:
         mask = pd.Series(False, index=specimens_df.index)
     if not mask.any() and 'specimen' in specimens_df.columns:
