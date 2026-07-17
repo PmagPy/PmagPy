@@ -8598,6 +8598,12 @@ def plot_unmixing_posterior(result, quantity='B_mean_mT', bins=40,
         raise KeyError(f"'{quantity}' is not in the draws; available: "
                        f'{sorted(samples)}')
     values = np.asarray(samples[quantity])
+    # per-component quantities are 2-D (n_draws, n_components); global
+    # quantities such as 'offset' and 'noise' are 1-D (n_draws,) -- show those
+    # as a single histogram rather than splitting by component
+    per_component = values.ndim > 1
+    if not per_component:
+        values = values[:, None]
     K = values.shape[1]
     log_x = quantity in ('B_mean_mT', 'B_median_mT', 'B_peak_mT')
     if figsize is None:
@@ -8623,7 +8629,7 @@ def plot_unmixing_posterior(result, quantity='B_mean_mT', bins=40,
         axes[i].axvline(low, color='k', ls='--', lw=0.9)
         axes[i].axvline(high, color='k', ls='--', lw=0.9,
                         label=f'95%: [{low:.3g}, {high:.3g}]')
-        axes[i].set_ylabel(f'component {i + 1}')
+        axes[i].set_ylabel(f'component {i + 1}' if per_component else 'density')
         axes[i].legend(fontsize=8)
     axes[-1].set_xlabel(f'{quantity} ({source} draws)')
     fig.tight_layout()
@@ -8668,13 +8674,24 @@ def plot_unmixing_tradeoff(result, x='B_mean_mT', y='proportion',
                            f'{sorted(samples)}')
     xv = np.asarray(samples[x])
     yv = np.asarray(samples[y])
-    K = xv.shape[1]
+    # global quantities ('offset', 'noise') are 1-D; treat them as a single
+    # column so they can be paired with per-component quantities (broadcast
+    # across components) or with each other (a single scatter)
+    if xv.ndim == 1:
+        xv = xv[:, None]
+    if yv.ndim == 1:
+        yv = yv[:, None]
+    Kx, Ky = xv.shape[1], yv.shape[1]
+    K = max(Kx, Ky)
     components = range(K) if component is None else [component - 1]
     if colors is None:
         colors = [f'C{i}' for i in range(K)]
     fig, ax = plt.subplots(figsize=figsize)
     for i in components:
-        ax.scatter(xv[:, i], yv[:, i], s=6, alpha=0.25, color=colors[i],
+        # a global (single-column) quantity is reused for every component
+        xi = xv[:, min(i, Kx - 1)]
+        yi = yv[:, min(i, Ky - 1)]
+        ax.scatter(xi, yi, s=6, alpha=0.25, color=colors[i],
                    edgecolors='none', label=f'component {i + 1}')
     if x in ('B_mean_mT', 'B_median_mT', 'B_peak_mT'):
         ax.set_xscale('log')

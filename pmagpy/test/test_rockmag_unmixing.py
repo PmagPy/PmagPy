@@ -1189,6 +1189,16 @@ def boot():
     return rmag.unmixing_bootstrap(fit, n_boot=60, random_seed=3)
 
 
+@pytest.fixture(scope='module')
+def bayes_viz():
+    """A Bayesian fit whose draws include the 1-D global 'offset' and 'noise'
+    arrays (per-draw scalars, not per-component)."""
+    x, curve = synthetic_curve(noise=0.01, n=BAYES_N)
+    return rmag.unmix_coercivity(x, curve, method='bayes', space='curve',
+                                 n_components=2, vary_skew=False,
+                                 random_seed=1, **FAST_BAYES)
+
+
 class TestUncertaintyVisualization:
     """The bootstrap/posterior uncertainty-visualization helpers."""
 
@@ -1223,6 +1233,32 @@ class TestUncertaintyVisualization:
 
     def test_tradeoff_single_component(self, boot):
         fig, ax = rmag.plot_unmixing_tradeoff(boot, component=1)
+        assert len(ax.collections) == 1
+        plt.close(fig)
+
+    def test_posterior_plot_global_quantity(self, bayes_viz):
+        """Regression: a 1-D global quantity ('noise') renders as a single
+        histogram rather than raising IndexError on values.shape[1]."""
+        fig, axes = rmag.plot_unmixing_posterior(bayes_viz, quantity='noise')
+        assert len(axes) == 1
+        assert axes[0].get_ylabel() == 'density'
+        plt.close(fig)
+
+    def test_tradeoff_plot_global_vs_component(self, bayes_viz):
+        """Regression: a global quantity ('noise') pairs with a per-component
+        one, broadcasting across components instead of raising IndexError."""
+        fig, ax = rmag.plot_unmixing_tradeoff(bayes_viz, x='noise',
+                                              y='B_mean_mT')
+        n_points = sum(len(c.get_offsets()) for c in ax.collections)
+        n_draws = np.asarray(
+            bayes_viz['bayes']['samples']['noise']).shape[0]
+        assert n_points == 2 * n_draws
+        plt.close(fig)
+
+    def test_tradeoff_plot_global_vs_global(self, bayes_viz):
+        """Two global quantities ('offset' vs 'noise') scatter as one series."""
+        fig, ax = rmag.plot_unmixing_tradeoff(bayes_viz, x='offset',
+                                              y='noise')
         assert len(ax.collections) == 1
         plt.close(fig)
 
