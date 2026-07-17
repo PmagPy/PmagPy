@@ -6880,7 +6880,12 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
       pushes the reduced chi-square of a real-count model just above one), and
       it is sensitive to the residual scatter of the noise estimate. Prefer
       'parsimony', or supply a trusted `noise_level` and a `reduced_chi2_target`
-      slightly above 1, when using it.
+      slightly above 1, when using it. For spectrum-space methods ('spectrum',
+      'maxunmix', or a Bayesian fit with space='spectrum') the residuals and
+      hence the noise are in dM/dlog10(B) units, so the noise is estimated on
+      the finite-difference spectrum rather than the measured curve; that
+      spectrum noise is mildly correlated, which the estimator does not model,
+      making the spectrum-space chi2 more approximate still.
 
     In all cases the returned table reports the fit statistics, the
     fractional RSS improvement per added component, and (when a noise level
@@ -6934,8 +6939,28 @@ def select_n_components(x, magnetization, method='curve', min_components=1,
     if len(counts) == 0:
         raise ValueError('max_components must be >= min_components')
 
+    # The chi2 adequacy test compares the fit residual sum of squares to the
+    # noise level, so the noise must be estimated in the SAME data space the
+    # residuals live in. Spectrum-space methods ('spectrum', 'maxunmix', and
+    # Bayesian fits with space='spectrum') fit dM/dlog10(B), not the measured
+    # curve, so their rss is in spectrum units; estimating the noise on the
+    # measured curve instead would mix units and inflate reduced_chi2 by the
+    # (large) finite-difference amplification factor, defeating the criterion.
+    # The spacing-aware estimator applied to the finite-difference spectrum
+    # returns the spectrum-space noise scale directly, accounting for the
+    # non-uniform log-grid spacing. (The finite-difference spectrum noise is
+    # mildly correlated, which this white-noise estimator does not model, so
+    # the spectrum-space chi2 is approximate -- consistent with chi2 being the
+    # less robust criterion; see the note below.)
+    fits_spectrum = (method in ('spectrum', 'maxunmix')
+                     or (method == 'bayes' and kwargs.get('space') == 'spectrum'))
     if noise_level is None:
-        noise_level = estimate_measurement_noise(x, magnetization, curve_type)
+        if fits_spectrum:
+            noise_x, noise_y = coercivity_spectrum_from_curve(
+                x, magnetization, curve_type)
+        else:
+            noise_x, noise_y = x, magnetization
+        noise_level = estimate_measurement_noise(noise_x, noise_y, curve_type)
 
     results = {}
     rows = []
@@ -9341,6 +9366,13 @@ def _unmixing_component_record(row):
     return record
 
 
+# Marker written into (and matched from) the JSON 'description' of specimens
+# rows that unmixing_to_specimens_table(mode='rows') creates, so a re-run
+# removes exactly its own previous component rows -- and never an original
+# specimen row that merely carries a mode='description' payload or a rem_cmf.
+_UNMIXING_ROW_MARKER = 'coercivity_unmixing_component_row'
+
+
 def _match_specimen_rows(specimens_df, experiment_name, specimen_name):
     """Boolean mask of specimens rows matching an experiment (or specimen)."""
     if 'experiments' in specimens_df.columns:
@@ -9418,8 +9450,14 @@ def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
                     f'{text} | {payload}' if text else payload)
         return specimens_df
 
-    # mode == 'rows': one MagIC specimens row per component
-    identity_columns = ['specimen', 'sample', 'experiments', 'citations',
+    # mode == 'rows': one MagIC specimens row per component.
+    # 'experiments' is deliberately NOT copied from the template: the template
+    # row may list several experiments (colon-delimited), but a component
+    # result derives from just this backfield experiment, so each new row's
+    # 'experiments' is set to the single experiment_name below. Copying the
+    # full colon-delimited string instead would also break the exact-match
+    # cleanup, causing rows to accumulate on re-runs.
+    identity_columns = ['specimen', 'sample', 'citations',
                         'result_quality', 'weight', 'volume']
     new_rows = []
     processed_experiments = []
@@ -9446,6 +9484,7 @@ def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
                 'method': f"rockmagpy_{row['method']}",
                 'software_version': pmagpy_version,
                 'experiment': str(experiment_name),
+                'record_type': _UNMIXING_ROW_MARKER,
                 'n_components': int(row['n_components']),
                 'r_squared': round(float(row['r_squared']), 5),
                 'component': _unmixing_component_record(row),
@@ -9453,15 +9492,21 @@ def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
             new_row['description'] = json.dumps(record)
             new_rows.append(new_row)
 
-    # drop rows added by a previous call for these experiments
-    is_previous = (specimens_df['description'].astype(str).str.contains(
-        '"coercivity_unmixing"', na=False, regex=False)
-        & specimens_df.get('rem_cmf', pd.Series(np.nan,
-                                                index=specimens_df.index))
-        .notna())
+    # Drop only the component rows a PREVIOUS mode='rows' call created for these
+    # experiments. Rows are identified by the explicit marker this function
+    # writes, never by a generic 'coercivity_unmixing' string or a populated
+    # rem_cmf -- so an original specimen row carrying a mode='description'
+    # payload (or an independently populated rem_cmf) is never removed.
+    is_previous = specimens_df['description'].astype(str).str.contains(
+        _UNMIXING_ROW_MARKER, na=False, regex=False)
     if 'experiments' in specimens_df.columns:
-        in_processed = specimens_df['experiments'].astype(str).isin(
-            processed_experiments)
+        processed_set = set(processed_experiments)
+        # split on ':' so a row is matched whether its 'experiments' cell holds
+        # the single experiment_name (as newly written) or a colon-delimited
+        # list (e.g. a legacy row from before this fix), without the substring
+        # false positives a plain str.contains would introduce
+        in_processed = specimens_df['experiments'].apply(
+            lambda cell: bool(set(str(cell).split(':')) & processed_set))
         is_previous = is_previous & in_processed
     kept = specimens_df.loc[~is_previous]
     return pd.concat([kept, pd.DataFrame(new_rows)], ignore_index=True)

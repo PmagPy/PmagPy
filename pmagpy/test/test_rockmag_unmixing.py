@@ -478,6 +478,25 @@ class TestSelectNComponents:
         assert 'reduced_chi2' in table.columns
         assert selected >= 1
 
+    def test_chi2_units_match_spectrum_space_fit(self):
+        """Regression: for spectrum-space methods the noise must be estimated
+        in spectrum units so reduced chi-square is O(1). Previously the noise
+        was taken from the measured curve while rss was in dM/dlog10(B) units,
+        inflating reduced chi-square by the finite-difference amplification
+        (~10^2-10^3) so the chi2 branch always ran to max_components."""
+        x, curve = synthetic_curve(noise=0.001)
+        selected, table, _r = rmag.select_n_components(
+            x, curve, method='spectrum', criterion='chi2',
+            reduced_chi2_target=1.0, max_components=4)
+        # at the true 2-component count the model fits to within the (spectrum)
+        # noise: reduced chi-square is order unity, not the ~10^3 unit-mismatch
+        chi2_at_two = table.loc[table['n_components'] == 2,
+                                'reduced_chi2'].iloc[0]
+        assert 0.1 < chi2_at_two < 20.0
+        # one component leaves misfit above the noise, two clears it: the
+        # criterion resolves the true count instead of running to max_components
+        assert selected == 2
+
     def test_unknown_method_raises(self):
         x, curve = synthetic_curve()
         with pytest.raises(ValueError):
@@ -770,6 +789,46 @@ class TestSpecimensExport:
         twice = rmag.unmixing_to_specimens_table(once, components_df,
                                                  mode='rows')
         assert len(once) == len(twice)
+
+    def test_rows_mode_idempotent_with_colon_delimited_experiments(
+            self, batch_output):
+        """Regression: when the specimen's 'experiments' cell lists several
+        experiments (colon-delimited), re-runs must not accumulate duplicate
+        component rows. Previously the new rows inherited the full colon
+        string while cleanup matched the single experiment name, so exact
+        matching failed and rows piled up (2 -> 4 -> 6)."""
+        components_df, specimens = batch_output
+        specimens = specimens.copy()
+        specimens['experiments'] = 'synthetic-LP-BCR-BF-1:synthetic-LP-HYS-1'
+        df = specimens
+        for _ in range(3):
+            df = rmag.unmixing_to_specimens_table(df, components_df,
+                                                  mode='rows')
+        marker = 'coercivity_unmixing_component_row'
+        component_rows = df['description'].astype(str).str.contains(
+            marker, na=False)
+        assert int(component_rows.sum()) == 2
+        # the appended rows carry the single experiment, not the full list
+        assert (df.loc[component_rows, 'experiments']
+                == 'synthetic-LP-BCR-BF-1').all()
+
+    def test_rows_mode_preserves_original_row_with_rem_cmf(self, batch_output):
+        """Regression: cleanup must remove only the component rows this
+        function created, identified by an explicit marker -- never an
+        original specimen row that happens to carry a 'coercivity_unmixing'
+        description payload (from mode='description') together with a
+        populated rem_cmf."""
+        components_df, specimens = batch_output
+        specimens = specimens.copy()
+        specimens['rem_cmf'] = 0.05
+        specimens['description'] = '{"coercivity_unmixing": {"n_components": 2}}'
+        updated = rmag.unmixing_to_specimens_table(specimens, components_df,
+                                                   mode='rows')
+        # the original row survives (2 new component rows + 1 original == 3)
+        assert len(updated) == 3
+        survived = updated['description'] == \
+            '{"coercivity_unmixing": {"n_components": 2}}'
+        assert survived.sum() == 1
 
     def test_description_mode_preserves_text(self, batch_output):
         components_df, specimens = batch_output
