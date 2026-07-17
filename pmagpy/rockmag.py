@@ -6524,6 +6524,13 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
     n = len(x)
     n_keep = max(int(round(n * proportion)), 3 * K + 3)
 
+    # forward the same fit settings (e.g. dp_bounds, skew_bounds) to every
+    # replicate so it runs under the identical constraints as the main fit.
+    # 'weights' is excluded: each replicate recomputes the spectrum from a
+    # random subset of the curve, so per-point weights of the full spectrum
+    # cannot align with the shorter resampled spectrum.
+    replicate_kwargs = {k: v for k, v in kwargs.items() if k != 'weights'}
+
     tracked = ['contribution', 'proportion', 'location', 'dp', 'skew',
                'sd_log', 'B_mean_mT', 'B_median_mT', 'B_peak_mT']
     samples = {name: [] for name in tracked}
@@ -6547,7 +6554,8 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
             fit = unmix_coercivity_spectrum(
                 x_mid_b, spectrum_b, vary_skew=vary_skew,
                 initial_parameters=pd.DataFrame(init,
-                                                columns=UNMIX_PARAM_COLUMNS))
+                                                columns=UNMIX_PARAM_COLUMNS),
+                **replicate_kwargs)
         except (ValueError, RuntimeError):
             continue
         if not fit['success']:
@@ -6687,7 +6695,8 @@ def unmix_coercivity(x, magnetization, method='spectrum', n_components=None,
         Whether skew parameters vary during fitting.
     **kwargs
         Passed through to the method implementation (e.g. n_boot,
-        proportion, noise_level for 'maxunmix'; fit_offset for 'curve').
+        proportion, param_noise for 'maxunmix'; fit_offset for 'curve';
+        dp_bounds, skew_bounds for the spectrum-based methods).
 
     Returns
     -------

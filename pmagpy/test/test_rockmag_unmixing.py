@@ -339,6 +339,31 @@ class TestMethodDispatch:
         assert result['bootstrap']['param_noise'] == 0.02
         assert 'param_summary' in result['bootstrap']
 
+    def test_maxunmix_param_noise_kwarg(self):
+        """The restart-perturbation size is controlled by 'param_noise' (the
+        name the docstring advertises), forwarded through **kwargs."""
+        x, curve = synthetic_curve(noise=0.002)
+        result = rmag.unmix_coercivity(x, curve, method='maxunmix',
+                                       n_components=2, vary_skew=False,
+                                       n_boot=30, random_seed=7,
+                                       param_noise=0.05)
+        assert result['bootstrap']['param_noise'] == 0.05
+
+    def test_maxunmix_replicates_respect_kwargs_bounds(self):
+        """Regression: replicate refits must run under the same bounds as the
+        main fit. Previously **kwargs (dp_bounds, skew_bounds) were forwarded
+        only to the main fit, so replicate dispersions escaped the user's
+        dp_bounds (reaching ~0.66 under a (0.20, 0.21) constraint)."""
+        x, curve = synthetic_curve(noise=0.002)
+        result = rmag.unmix_coercivity(x, curve, method='maxunmix',
+                                       n_components=2, vary_skew=False,
+                                       n_boot=30, random_seed=1,
+                                       dp_bounds=(0.2, 0.21))
+        summary = result['bootstrap']['param_summary']
+        # every replicate's dispersion stays inside the tight bounds
+        assert (summary['dp_p2_5'] >= 0.20 - 1e-6).all()
+        assert (summary['dp_p97_5'] <= 0.21 + 1e-6).all()
+
     def test_unknown_method_raises(self):
         x, curve = synthetic_curve()
         with pytest.raises(ValueError, match='unknown unmixing method'):
