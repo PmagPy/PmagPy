@@ -164,6 +164,17 @@ def map_legend_location(matplotlib_loc):
     return mapping.get(matplotlib_loc, 'top_left')
 
 
+def _widget_value(widget_or_value):
+    """
+    Return ``widget.value`` for an ipywidgets widget, or the input unchanged.
+
+    Lets interactive analysis functions accept either a selection widget
+    (e.g. from ``interactive_specimen_selection``) or a plain string, so the
+    same function can be driven by dropdowns or scripted reproducibly.
+    """
+    return getattr(widget_or_value, "value", widget_or_value)
+
+
 def interactive_specimen_selection(measurements):
     """
     Creates and displays a dropdown widget for selecting a specimen from a given
@@ -457,7 +468,7 @@ def plot_ms_t(
 # MPMS functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def extract_mpms_data_dc(df, specimen_name):
+def extract_mpms_data_dc(measurements, specimen_name):
     """
     Extracts and separates MPMS data for a specified specimen from a DataFrame.
 
@@ -469,7 +480,7 @@ def extract_mpms_data_dc(df, specimen_name):
     an empty DataFrame with the same columns as the specimen data is returned.
 
     Parameters:
-        df (pd.DataFrame): DataFrame containing MPMS measurement data.
+        measurements (pd.DataFrame): DataFrame containing MPMS measurement data.
         specimen_name (str): Name of the specimen to filter data for.
 
     Returns:
@@ -483,7 +494,7 @@ def extract_mpms_data_dc(df, specimen_name):
             - rtsirm_warm_data: Data filtered for 'LP-CW-SIRM:LP-MW' method if available,
               otherwise an empty DataFrame.
     """
-    specimen_df = df[df["specimen"] == specimen_name]
+    specimen_df = measurements[measurements["specimen"] == specimen_name]
     empty_df = pd.DataFrame(columns=specimen_df.columns)
 
     # If the 'method_codes' column is missing, return empty DataFrames.
@@ -747,12 +758,7 @@ def make_mpms_plots_dc(measurements):
             'method_codes'.
     """
     _check_ipywidgets()
-    experiments = (
-        measurements.groupby(["specimen", "method_codes"])
-        .size()
-        .reset_index()
-        .iloc[:, :2]
-    )
+    experiments = make_experiment_df(measurements)
     filtered = experiments[
         experiments["method_codes"].isin(
             ["LP-FC", "LP-ZFC", "LP-CW-SIRM:LP-MC", "LP-CW-SIRM:LP-MW"]
@@ -1021,7 +1027,7 @@ def verwey_estimate(temps, mags,
     return verwey_estimate, remanence_loss
 
 
-def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown, figsize=(11, 5)):
+def interactive_verwey_estimate(measurements, specimen, method, figsize=(11, 5)):
     """
     Create an interactive widget for estimating the Verwey transition temperature from low temperature remanence measurements.
 
@@ -1034,10 +1040,15 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     ----------
     measurements : pandas.DataFrame
         low temperature remanence measurement data containing temperature and magnetization columns for multiple specimens.
-    specimen_dropdown : ipywidgets.Dropdown
-        Dropdown widget for selecting the specimen to analyze.
-    method_dropdown : ipywidgets.Dropdown
-        Dropdown widget for selecting the measurement method ('LP-FC' or 'LP-ZFC').
+    specimen : str or ipywidgets.Dropdown
+        Specimen to analyze, given either as a plain specimen name or as a
+        selection widget (e.g. from
+        ``interactive_verwey_specimen_method_selection``); for a widget the
+        current ``.value`` is read when this function runs, so rerun the cell
+        after changing the dropdown.
+    method : str or ipywidgets.Dropdown
+        Measurement method ('LP-FC' or 'LP-ZFC'), as a plain string or a
+        selection widget.
     figsize : tuple of (float, float), optional
         Size of the matplotlib figure, by default (11, 5).
 
@@ -1058,11 +1069,12 @@ def interactive_verwey_estimate(measurements, specimen_dropdown, method_dropdown
     Examples
     --------
     >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
+    >>> interactive_verwey_estimate(measurements_df, 'NED2-8c', 'LP-FC')
     Displays an interactive interface for estimating the Verwey transition temperature.
     """
     _check_ipywidgets()
-    selected_specimen_name = specimen_dropdown.value
-    selected_method = method_dropdown.value
+    selected_specimen_name = _widget_value(specimen)
+    selected_method = _widget_value(method)
 
     fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
     if selected_method == 'LP-FC':
@@ -1226,7 +1238,7 @@ def interactive_verwey_specimen_method_selection(measurements):
     """
     _check_ipywidgets()
     # Filter to get specimens with desired method codes
-    experiments = measurements.groupby(['specimen', 'method_codes']).size().reset_index().iloc[:, :2]
+    experiments = make_experiment_df(measurements)
     filtered_experiments = experiments[experiments['method_codes'].isin(['LP-FC', 'LP-ZFC'])]
     specimen_options = filtered_experiments['specimen'].unique().tolist()
 
@@ -1248,7 +1260,7 @@ def interactive_verwey_specimen_method_selection(measurements):
     def update_method_options(change):
         selected_specimen = change['new']
         # Filter experiments to get methods available for the selected specimen
-        available_methods = filtered_experiments[filtered_experiments['specimen'] == selected_specimen]['method_codes'].tolist()
+        available_methods = filtered_experiments[filtered_experiments['specimen'] == selected_specimen]['method_codes'].unique().tolist()
         # Update method dropdown options and reset its value
         method_dropdown.options = available_methods
         if available_methods:
@@ -1629,7 +1641,7 @@ def goethite_removal(rtsirm_warm_data,
         return rtsirm_warm_adjusted, rtsirm_cool_adjusted
     
     
-def goethite_removal_interactive(measurements, specimen_dropdown):
+def goethite_removal_interactive(measurements, specimen):
     """
     Display an interactive widget for fitting and visualizing goethite removal from low temperature remanence data.
 
@@ -1641,8 +1653,11 @@ def goethite_removal_interactive(measurements, specimen_dropdown):
     ----------
     measurements : pandas.DataFrame
         Low temperature remanence measurement data containing temperature and magnetization information for multiple specimens.
-    specimen_dropdown : ipywidgets.Dropdown
-        Dropdown widget for selecting the specimen to analyze.
+    specimen : str or ipywidgets.Dropdown
+        Specimen to analyze, given either as a plain specimen name or as a
+        selection widget (e.g. from ``interactive_specimen_selection``); for
+        a widget the current ``.value`` is read when this function runs, so
+        rerun the cell after changing the dropdown.
 
     Notes
     -----
@@ -1660,10 +1675,11 @@ def goethite_removal_interactive(measurements, specimen_dropdown):
     Examples
     --------
     >>> goethite_removal_interactive(measurements_df, specimen_dropdown)
+    >>> goethite_removal_interactive(measurements_df, 'A73-7-1350-4B-01a')
     Displays interactive sliders and plots for fitting goethite removal to the selected specimen's data.
     """
     _check_ipywidgets()
-    selected_specimen_name = specimen_dropdown.value
+    selected_specimen_name = _widget_value(specimen)
 
     fc_data, zfc_data, rtsirm_cool_data, rtsirm_warm_data = extract_mpms_data_dc(measurements, selected_specimen_name)
 
@@ -4523,7 +4539,7 @@ def plot_X_T(
             title=title,
             sizing_mode="stretch_width",
             height=bokeh_height,
-            x_axis_label=f"Temperature (°{temp_unit})",
+            x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
             y_axis_label="χ (m³ kg⁻¹)",
             tools="pan,wheel_zoom,box_zoom,reset,save",
         )
@@ -4566,7 +4582,7 @@ def plot_X_T(
                 title=f"{title} – dχ/dT",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
-                x_axis_label=f"Temperature (°{temp_unit})",
+                x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
                 y_axis_label="dχ/dT",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
@@ -4617,7 +4633,7 @@ def plot_X_T(
                 title=f"{title} – 1/χ",
                 sizing_mode="stretch_width",
                 height=bokeh_height,
-                x_axis_label=f"Temperature (°{temp_unit})",
+                x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
                 y_axis_label="1/χ",
                 tools="pan,wheel_zoom,box_zoom,reset,save",
             )
@@ -4671,7 +4687,7 @@ def plot_X_T(
         ax1.scatter(cool_T, cool_X, label="Cooling", alpha=0.5)
         ax1.plot(scT, scX, label="Cooling – smoothed", linewidth=2)
         ax1.set_title(title)
-        ax1.set_xlabel(f"Temperature (°{temp_unit})")
+        ax1.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
         ax1.set_ylabel("χ (m³ kg⁻¹)")
         ax1.grid(True)
         ax1.legend(loc="upper left")
@@ -4690,7 +4706,7 @@ def plot_X_T(
             ax2.plot(swT_d, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
             ax2.plot(scT_d, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
             ax2.set_title(f"{title} – dχ/dT")
-            ax2.set_xlabel(f"Temperature (°{temp_unit})")
+            ax2.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
             ax2.set_ylabel("dχ/dT")
             ax2.grid(True)
             ax2.legend(loc="upper left")
@@ -4705,7 +4721,7 @@ def plot_X_T(
             ax3.plot(np.array(swT)[mask_w], inv_w[mask_w], label="Heating – 1/χ", linewidth=2, marker="o")
             ax3.plot(np.array(scT)[mask_c], inv_c[mask_c], label="Cooling – 1/χ", linewidth=2, marker="o")
             ax3.set_title(f"{title} – 1/χ")
-            ax3.set_xlabel(f"Temperature (°{temp_unit})")
+            ax3.set_xlabel(f"Temperature ({_temp_unit_label(temp_unit)})")
             ax3.set_ylabel("1/χ")
             ax3.grid(True)
             ax3.legend(loc="upper left")
@@ -5688,6 +5704,27 @@ _CURIE_METHOD_NOTES = {
 }
 
 
+def _temp_unit_label(temp_unit):
+    """
+    Axis/report label for a temperature unit: '°C' for Celsius, 'K' for
+    kelvin (which takes no degree sign).
+    """
+    return "K" if temp_unit == "K" else f"°{temp_unit}"
+
+
+def _branch_shade(color, branch):
+    """
+    Branch-dependent shade of a method color: the heating branch keeps the
+    base color and the cooling branch is lightened (blended halfway toward
+    white), so heating/cooling artists drawn in the same method color remain
+    distinguishable even where solid and dashed lines nearly coincide.
+    """
+    if branch != "cooling":
+        return color
+    r, g, b = colors.to_rgb(color)
+    return (r + (1.0 - r) * 0.5, g + (1.0 - g) * 0.5, b + (1.0 - b) * 0.5)
+
+
 def _resolve_thermomag_data_type(data_type, magnetic_column):
     """
     Resolve whether a magnetic column holds susceptibility or magnetization.
@@ -5850,6 +5887,14 @@ def curie_temperature_estimates(
             f"unknown method_kwargs key(s): {sorted(unknown_kwargs)}; "
             f"choose from {sorted(known | {'derivative'})}"
         )
+    if isinstance(branches, str):
+        branches = (branches,)
+    unknown_branches = set(branches) - {"heating", "cooling"}
+    if unknown_branches:
+        raise ValueError(
+            f"unknown branch(es): {sorted(unknown_branches)}; "
+            f"choose from ['cooling', 'heating']"
+        )
 
     derivative_kwargs = {
         "smooth_window": smooth_window,
@@ -5947,7 +5992,8 @@ def curie_temperature_estimates(
             if print_estimates and np.isfinite(curie_temp):
                 stderr_text = (f" ± {stderr:.1f}" if np.isfinite(stderr) else "")
                 print(f"{branch:<8} {method:<24} "
-                      f"Tc = {curie_temp:.1f}{stderr_text} °{temp_unit}")
+                      f"Tc = {curie_temp:.1f}{stderr_text} "
+                      f"{_temp_unit_label(temp_unit)}")
 
     estimates = pd.DataFrame(rows, columns=[
         "specimen", "experiment", "branch", "method", "curie_temp",
@@ -6078,6 +6124,7 @@ def plot_curie_estimates(
                     "linestyle": "--", "label": "cooling"},
     }
     y_label = ("χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)")
+    unit_label = _temp_unit_label(temp_unit)
 
     for branch in branches:
         data = branch_data.get(branch)
@@ -6102,7 +6149,7 @@ def plot_curie_estimates(
                 color=_CURIE_METHOD_COLORS[row["method"]],
                 linestyle=style["linestyle"], linewidth=1.2, alpha=0.9,
                 label=f"{row['method']} ({branch}): "
-                      f"{row['curie_temp']:.0f} °{temp_unit}",
+                      f"{row['curie_temp']:.0f} {unit_label}",
                 zorder=3,
             )
 
@@ -6157,28 +6204,27 @@ def plot_curie_estimates(
                                      linewidth=1.0, alpha=0.9)
 
         inverse_result = method_results.get((branch, "inverse_susceptibility"))
-        if ax_inv is not None and branch == "heating" and inverse_result is not None:
+        if ax_inv is not None and inverse_result is not None:
             r = inverse_result
             d = r["diagnostics"]
             if d:
                 ax_inv.plot(d["T"], d["inv_chi"], color=style["line_color"],
                             linestyle="none", marker="o", markersize=3,
-                            label="1/χ (heating)")
+                            label=f"1/χ ({branch})")
                 if np.isfinite(r["curie_temp"]):
+                    fit_color = _branch_shade(
+                        _CURIE_METHOD_COLORS["inverse_susceptibility"], branch)
                     ax_inv.plot(
                         d["line_T"], d["line_inv_chi"],
-                        color=_CURIE_METHOD_COLORS["inverse_susceptibility"],
-                        linewidth=1.2,
-                        label=f"Curie-Weiss fit: θ = "
-                              f"{r['curie_temp']:.0f} °{temp_unit}",
+                        color=fit_color,
+                        linestyle=style["linestyle"], linewidth=1.2,
+                        label=f"Curie-Weiss fit ({branch}): θ = "
+                              f"{r['curie_temp']:.0f} {unit_label}",
                     )
                     ax_inv.axvline(
-                        r["curie_temp"],
-                        color=_CURIE_METHOD_COLORS["inverse_susceptibility"],
-                        linestyle="-", linewidth=1.0, alpha=0.9,
+                        r["curie_temp"], color=fit_color,
+                        linestyle=style["linestyle"], linewidth=1.0, alpha=0.9,
                     )
-                ax_inv.set_ylabel("1/χ")
-                ax_inv.legend(fontsize=8, loc="upper left")
 
     title = (experiment["specimen"].unique()[0]
              if "specimen" in experiment else "")
@@ -6188,7 +6234,10 @@ def plot_curie_estimates(
     if ax_deriv is not None:
         ax_deriv.set_ylabel("dy/dT")
         ax_deriv.legend(fontsize=8, loc="lower left")
-    axes[-1].set_xlabel(f"Temperature (°{temp_unit})")
+    if ax_inv is not None and ax_inv.has_data():
+        ax_inv.set_ylabel("1/χ")
+        ax_inv.legend(fontsize=8, loc="upper left")
+    axes[-1].set_xlabel(f"Temperature ({unit_label})")
     for ax in axes:
         ax.grid(True, alpha=0.4)
 
@@ -6300,7 +6349,7 @@ def interactive_curie_inverse_susceptibility(
     p_inv = figure(
         title=f"{title} – 1/χ ({branch})",
         height=bokeh_height,
-        x_axis_label=f"Temperature (°{temp_unit})",
+        x_axis_label=f"Temperature ({_temp_unit_label(temp_unit)})",
         y_axis_label="1/χ",
         tools="pan,wheel_zoom,box_zoom,reset,save",
     )
@@ -6320,7 +6369,7 @@ def interactive_curie_inverse_susceptibility(
         styles={"font-size": "16px", "color": "darkred"},
     )
     callback = CustomJS(args=dict(source=fit_source, div=curie_estimate,
-                                  unit=temp_unit), code="""
+                                  unit=_temp_unit_label(temp_unit)), code="""
         var x = source.data.x;
         var y = source.data.y;
         if (x.length == 2) {
@@ -6328,7 +6377,7 @@ def interactive_curie_inverse_susceptibility(
             var intercept = y[0] - slope * x[0];
             var Tc = -intercept / slope;
             div.text = "Curie temperature estimate: " + Tc.toFixed(2) +
-                       " °" + unit;
+                       " " + unit;
         }
     """)
     fit_source.js_on_change("data", callback)
@@ -6368,8 +6417,6 @@ def add_curie_estimates_to_specimens_table(
     critical_temp_type : str, optional
         MagIC controlled-vocabulary temperature type (default 'Curie').
     """
-    import ast
-
     selection = estimates[(estimates["method"] == method)
                           & (estimates["branch"] == branch)]
     if selection.empty:
@@ -6414,6 +6461,16 @@ def add_curie_estimates_to_specimens_table(
     if not target.any() and row["specimen"]:
         target = (specimens_df["specimen"] == row["specimen"]).fillna(
             False).to_numpy(dtype=bool)
+        if target.any():
+            warnings.warn(
+                f"experiment '{experiment_name}' not found in the specimens "
+                f"table's experiments column; falling back to matching "
+                f"specimen '{row['specimen']}', which writes the estimate to "
+                f"all {int(target.sum())} row(s) for that specimen. Check "
+                f"that the experiment name matches the specimens table.",
+                UserWarning,
+                stacklevel=2,
+            )
     if not target.any():
         raise ValueError(
             f"experiment '{experiment_name}' (and specimen "
