@@ -1027,6 +1027,43 @@ class TestReviewFixes:
         assert np.isnan(inv[1]) and np.isnan(inv[2])
         assert inv[3] == pytest.approx(0.25)
 
+    def test_unknown_branch_raises(self, heat_cool_experiment):
+        # a typo'd branch name must raise, not silently return an empty table
+        with pytest.raises(ValueError, match="unknown branch"):
+            rmag.curie_temperature_estimates(
+                heat_cool_experiment, magnetic_column="magn_mass",
+                branches=("Heating",),
+            )
+
+    def test_branches_accepts_bare_string(self, heat_cool_experiment):
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass",
+            branches="heating",
+        )
+        assert set(estimates["branch"]) == {"heating"}
+
+    def test_temp_unit_label(self):
+        # kelvin takes no degree sign
+        assert rmag._temp_unit_label("C") == "°C"
+        assert rmag._temp_unit_label("K") == "K"
+
+    def test_specimen_fallback_warns(self, heat_cool_experiment):
+        # the specimen-name fallback can mask an experiment-name mismatch,
+        # so it must be audible
+        estimates = rmag.curie_temperature_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass"
+        )
+        specimens = pd.DataFrame({
+            "specimen": ["synthetic-01"],
+            "experiments": ["SYN-1"],  # abbreviated: no exact/token match
+            "description": [np.nan],
+        })
+        with pytest.warns(UserWarning, match="falling back"):
+            rmag.add_curie_estimates_to_specimens_table(
+                specimens, "SYN-LP-MST-1", estimates
+            )
+        assert specimens.iloc[0]["critical_temp_type"] == "Curie"
+
 
 class TestThermomagPlots:
     def test_plot_x_t_matplotlib_returns_figures(self, heat_cool_experiment):
