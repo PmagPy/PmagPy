@@ -8,6 +8,12 @@ this is for IRM decompose, based on log gaussian,
 this is based on python3.6 and PyQt5
 
 author: Jiabo Liu
+
+DEPRECATED: this program is deprecated and will be removed in a
+future PmagPy release. Use the coercivity unmixing tools in
+pmagpy.rockmag (rockmag.unmix_coercivity and related functions),
+which are documented in the RockmagPy notebooks
+(https://pmagpy.github.io/RockmagPy-notebooks).
 #====================================================================
 '''
 
@@ -384,8 +390,12 @@ class Mainwindow(QMainWindow):
     '''
     def __init__(self):
         super().__init__()
-        introducion='''irm_unmix
+        introducion='''irm_unmix (DEPRECATED)
         this is for rock magnetic irm acquisition curves decompose
+
+        This program is deprecated and will be removed in a future
+        PmagPy release. Use the coercivity unmixing tools in
+        pmagpy.rockmag (rockmag.unmix_coercivity) instead.
 
         New features: Now you can manually adjust all the parameters and see
         the results immediately, and afterwards, you could try 'refit' button
@@ -593,6 +603,18 @@ class Mainwindow(QMainWindow):
         print('ss')
 
 def main():
+    import warnings
+    warnings.warn(
+        "irm_unmix.py is deprecated and will be removed in a future "
+        "PmagPy release: use the coercivity unmixing tools in "
+        "pmagpy.rockmag (rockmag.unmix_coercivity) instead",
+        FutureWarning, stacklevel=2)
+    print("-W- irm_unmix.py is deprecated and will be removed in a "
+          "future PmagPy release.")
+    print("    Use the coercivity unmixing tools in pmagpy.rockmag "
+          "(rockmag.unmix_coercivity) instead;")
+    print("    see the RockmagPy notebooks for the documented workflow:")
+    print("    https://pmagpy.github.io/RockmagPy-notebooks")
     if "-h" in sys.argv:
         print("This is a GUI for IRM decompose, based on log gaussian")
         print("To run:")
