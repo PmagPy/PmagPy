@@ -9,6 +9,7 @@ import re
 import sys
 import time
 import urllib
+import warnings
 import zipfile
 import io
 
@@ -8338,6 +8339,22 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
+    .. deprecated::
+        ``ipmag.curie`` is deprecated and will be removed in a future release.
+        It reports a single Curie temperature from the maximum of the smoothed
+        second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
+        instead, which make method-dependent biases explicit (Fabian et al.,
+        2013, doi:10.1029/2012GC004440):
+
+        - ``rockmag.curie_temperature_estimates()`` applies the selected methods
+          to the heating/cooling branches of a MagIC experiment and returns a
+          tidy comparison table with per-method caveats.
+        - ``rockmag.curie_derivative_estimates()`` is the direct analog of this
+          function, returning both the inflection-point and maximum-curvature
+          estimates (the ``max_curvature`` method reproduces the legacy value
+          here: 552 C vs 549 C on data_files/curie/curie_example.dat with a
+          10-degree window).
+
     Parameters:
         file_name : name of file to be opened
         path_to_file : path to directory that contains file (default is current directory, '.')
@@ -8352,6 +8369,14 @@ def curie(path_to_file='.', file_name='', magic=False,
     Returns:
         A plot is shown and saved if save=True.
     """
+    warnings.warn(
+        "ipmag.curie is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.curie_temperature_estimates (MagIC experiments) or "
+        "pmagpy.rockmag.curie_derivative_estimates (the max_curvature/inflection "
+        "analog of this function) instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plot = 0
     window_len = window_length
 
