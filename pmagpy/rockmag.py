@@ -4272,17 +4272,30 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def split_warm_cool(experiment,temperature_column='meas_temp',
+def split_warm_cool(experiment, temperature_column='meas_temp',
                     magnetic_column='susc_chi_mass'):
     """
-    Split a thermomagnetic curve into heating and cooling portions. Default
-    columns are 'meas_temp' and 'susc_chi_mass' for susceptibility measurements.
-    Funcation can also be used for other warming then cooling data.
+    Split a thermomagnetic curve into heating and cooling portions.
+
+    The sequence is split at the temperature turning point (the global
+    maximum): measurements up to and including the peak form the heating
+    branch and the descending remainder forms the cooling branch. A run whose
+    temperature never descends after its peak returns an empty cooling branch,
+    and a run that descends from its first measurement returns an empty heating
+    branch. Rows with non-finite temperature or magnetic values are dropped.
+
+    Splitting at the turning point rather than on the sign of each local step
+    keeps repeated furnace-stabilization temperatures (where the step is zero)
+    and noisy readings on the heating ramp within the heating branch. A
+    point-by-point classification instead misroutes those points into a
+    spurious cooling branch, so a heating-only run with duplicated or noisy
+    temperatures would otherwise produce a phantom cooling curve. This assumes
+    a single heat-then-cool trajectory, the standard thermomagnetic protocol.
 
     Parameters
     ----------
     experiment : pandas.DataFrame
-        the experiment data
+        the experiment data (rows in measurement order)
     temperature_column : str, optional
         name of the temperature column (default 'meas_temp')
     magnetic_column : str, optional
@@ -4291,26 +4304,150 @@ def split_warm_cool(experiment,temperature_column='meas_temp',
 
     Returns
     -------
-    warm_T : list[float]
-        temperatures for the heating cycle
-    warm_X : list[float]
+    warm_T : numpy.ndarray
+        temperatures for the heating cycle (measurement order)
+    warm_X : numpy.ndarray
         magnetization/susceptibility for the heating cycle
-    cool_T : list[float]
-        temperatures for the cooling cycle
-    cool_X : list[float]
+    cool_T : numpy.ndarray
+        temperatures for the cooling cycle (measurement order)
+    cool_X : numpy.ndarray
         magnetization/susceptibility for the cooling cycle
     """
-    Tlist = experiment[temperature_column] # temperature list
-    Xlist = experiment[magnetic_column] # Chi list
-    
-    warmorcool = np.array(np.insert((np.diff(Tlist) > 0 )* 1, 0, 1))
-#     print(warmorcool)
-    warm_T = [Tlist[i] for i in range(len(warmorcool)) if warmorcool[i]==1]
-    cool_T = [Tlist[i] for i in range(len(warmorcool)) if warmorcool[i]==0]
-    warm_X = [Xlist[i] for i in range(len(warmorcool)) if warmorcool[i]==1]
-    cool_X = [Xlist[i] for i in range(len(warmorcool)) if warmorcool[i]==0]
+    T = np.asarray(experiment[temperature_column], dtype=float)
+    X = np.asarray(experiment[magnetic_column], dtype=float)
+
+    finite = np.isfinite(T) & np.isfinite(X)
+    T = T[finite]
+    X = X[finite]
+
+    if T.size == 0:
+        empty = np.array([], dtype=float)
+        return empty, empty.copy(), empty.copy(), empty.copy()
+
+    peak_index = int(np.argmax(T))
+    descends_after_peak = bool(np.any(T[peak_index + 1:] < T[peak_index]))
+    if not descends_after_peak:
+        is_heating = np.ones(T.size, dtype=bool)
+    elif peak_index == 0:
+        is_heating = np.zeros(T.size, dtype=bool)
+    else:
+        is_heating = np.arange(T.size) <= peak_index
+
+    warm_T = T[is_heating]
+    warm_X = X[is_heating]
+    cool_T = T[~is_heating]
+    cool_X = X[~is_heating]
 
     return warm_T, warm_X, cool_T, cool_X
+
+
+def prepare_thermomag_branches(
+    experiment,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    input_unit="K",
+    smooth_window=0,
+    remove_holder=True,
+    window_type="hanning",
+):
+    """
+    Preprocess a thermomagnetic experiment into clean heating/cooling branches.
+
+    This is the shared preprocessing step for the Curie temperature estimators
+    and thermomagnetic plots. It splits the measurement sequence into heating
+    and cooling branches (``split_warm_cool``), converts temperatures to the
+    requested unit, optionally subtracts the per-branch minimum as an estimate
+    of the sample-holder background, sorts each branch by ascending
+    temperature, and optionally smooths each branch with an x-space moving
+    window (``smooth_moving_avg``).
+
+    Subtracting the per-branch minimum assumes that the magnetic signal decays
+    to the holder background at the highest temperatures (i.e., the experiment
+    passes above the Curie temperature of all ferromagnetic phases). When that
+    assumption does not hold (e.g., a run that ends below the Curie
+    temperature), set ``remove_holder=False``.
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        MagIC-formatted experiment DataFrame (rows in measurement order).
+    temperature_column : str, optional
+        Name of the temperature column (default 'meas_temp').
+    magnetic_column : str, optional
+        Name of the magnetization/susceptibility column
+        (default 'susc_chi_mass').
+    temp_unit : {'C', 'K'}, optional
+        Unit for the returned temperatures (default 'C').
+    input_unit : {'K', 'C'}, optional
+        Unit of the temperatures in ``experiment`` (default 'K', the MagIC
+        convention for ``meas_temp``).
+    smooth_window : float, optional
+        Width of the smoothing window in units of ``temp_unit``. If 0
+        (default), no smoothing is applied and the smoothed arrays equal the
+        raw arrays.
+    remove_holder : bool, optional
+        Subtract the per-branch minimum value from each branch (default True).
+    window_type : {'flat', 'hanning', 'hamming', 'bartlett', 'blackman'}, optional
+        Weighting function applied within each smoothing window by
+        ``smooth_moving_avg`` (default 'hanning'). Only used when
+        ``smooth_window > 0``. The options are:
+
+        - 'flat': uniform weights, i.e. a simple unweighted running mean.
+        - 'hanning': raised-cosine (Hann) taper; weights fall smoothly to
+          zero at the window edges. A good general-purpose default that
+          suppresses edge/ringing artifacts.
+        - 'hamming': raised-cosine taper similar to 'hanning' but with
+          nonzero end weights, giving slightly less edge attenuation.
+        - 'bartlett': triangular taper; weights decrease linearly from the
+          window center to zero at the edges.
+        - 'blackman': three-term cosine taper that is more strongly peaked
+          than 'hanning'/'hamming', giving the heaviest smoothing (widest
+          effective averaging) of the tapered options.
+
+        All options other than 'flat' are the correspondingly named
+        ``numpy`` window functions.
+
+    Returns
+    -------
+    dict
+        ``{'heating': branch or None, 'cooling': branch or None}`` where each
+        branch is a dict with keys ``'T'`` and ``'y'`` (smoothed arrays,
+        ascending temperature) and ``'raw_T'`` and ``'raw_y'`` (unsmoothed
+        arrays, ascending temperature). A branch with no measurements is
+        ``None``.
+    """
+    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+        experiment,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column,
+    )
+
+    branches = {}
+    for name, T, y in (("heating", warm_T, warm_X), ("cooling", cool_T, cool_X)):
+        if T.size == 0:
+            branches[name] = None
+            continue
+        T = convert_temperature(T, input_unit, temp_unit)
+        if remove_holder:
+            y = y - np.min(y)
+        order = np.argsort(T, kind="stable")
+        T = T[order]
+        y = y[order]
+        # average duplicate temperatures once here so that every estimator
+        # receives strictly increasing temperatures and repeated logged
+        # points (furnace stabilization) do not over-weight the fits
+        analysis_T, analysis_y = _dedupe_temperatures(T, y)
+        sm_T, sm_y = smooth_moving_avg(analysis_T, analysis_y, smooth_window,
+                                       window_type=window_type)
+        branches[name] = {
+            "T": np.asarray(sm_T, dtype=float),
+            "y": np.asarray(sm_y, dtype=float),
+            "raw_T": T,
+            "raw_y": y,
+        }
+
+    return branches
 
 
 def plot_X_T(
@@ -4325,6 +4462,7 @@ def plot_X_T(
     interactive=True,
     return_figure=False,
     figsize=(6, 6),
+    window_type="hanning",
 ):
     """
     Plot the high-temperature susceptibility curve, and optionally its derivative
@@ -4334,7 +4472,8 @@ def plot_X_T(
         experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
         temperature_column (str): Name of temperature column.
         magnetic_column (str): Name of susceptibility column.
-        temp_unit (str): "C" for Celsius.
+        temp_unit (str): "C" or "K" for the plotted temperatures (input
+            temperatures are assumed to be in Kelvin, the MagIC convention).
         smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
         remove_holder (bool): Subtract holder signal.
         plot_derivative (bool): Plot derivative.
@@ -4342,24 +4481,37 @@ def plot_X_T(
         interactive (bool): True for Bokeh, False for Matplotlib.
         return_figure (bool): Return figure objects if True.
         figsize (tuple): (width, height) in inches.
+        window_type (str): Weighting function applied within each smoothing
+            window, one of 'flat', 'hanning', 'hamming', 'bartlett', or
+            'blackman' (default 'hanning'). Only used when smooth_window > 0.
+            See prepare_thermomag_branches for a description of each option.
+
+    Returns:
+        tuple or None: If return_figure is True, a tuple of the figure
+        objects created (Matplotlib Figures when interactive is False, Bokeh
+        figures when interactive is True). Otherwise the figures are displayed
+        and None is returned.
     """
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+    branches = prepare_thermomag_branches(
         experiment,
         temperature_column=temperature_column,
         magnetic_column=magnetic_column,
+        temp_unit=temp_unit,
+        smooth_window=smooth_window,
+        remove_holder=remove_holder,
+        window_type=window_type,
     )
-    if temp_unit == "C":
-        warm_T = [T - 273.15 for T in warm_T]
-        cool_T = [T - 273.15 for T in cool_T]
-    else:
-        raise ValueError('temp_unit must be "C"')
-    if remove_holder:
-        holder_w = min(warm_X)
-        holder_c = min(cool_X)
-        warm_X = [X - holder_w for X in warm_X]
-        cool_X = [X - holder_c for X in cool_X]
-    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
-    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
+    empty = np.array([], dtype=float)
+    heating = branches["heating"]
+    cooling = branches["cooling"]
+    warm_T = heating["raw_T"] if heating else empty
+    warm_X = heating["raw_y"] if heating else empty
+    cool_T = cooling["raw_T"] if cooling else empty
+    cool_X = cooling["raw_y"] if cooling else empty
+    swT = heating["T"] if heating else empty
+    swX = heating["y"] if heating else empty
+    scT = cooling["T"] if cooling else empty
+    scX = cooling["y"] if cooling else empty
     title = experiment["specimen"].unique()[0]
     figs = []
 
@@ -4420,22 +4572,28 @@ def plot_X_T(
             )
             p_dx.xaxis.axis_label_text_font_style = "normal"
             p_dx.yaxis.axis_label_text_font_style = "normal"
-            dx_w = np.gradient(swX, swT)
-            dx_c = np.gradient(scX, scT)
+            # average duplicate temperatures before differencing so that
+            # repeated logged temperatures do not produce zero spacing
+            swT_d, swX_d = _dedupe_temperatures(swT, swX)
+            scT_d, scX_d = _dedupe_temperatures(scT, scX)
+            dx_w = np.gradient(swX_d, swT_d) if swT_d.size > 1 else empty
+            dx_c = np.gradient(scX_d, scT_d) if scT_d.size > 1 else empty
+            swT_d = swT_d if swT_d.size > 1 else empty
+            scT_d = scT_d if scT_d.size > 1 else empty
             r_dx_w = p_dx.line(
-                swT, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label="Heating – dχ/dT",
                 line_width=2, color="red"
             )
             r_dx_w_c = p_dx.scatter(
-                swT, dx_w, legend_label="Heating – dχ/dT",
+                swT_d, dx_w, legend_label="Heating – dχ/dT",
                 color="red", alpha=0.5, size=6
             )
             r_dx_c = p_dx.line(
-                scT, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label="Cooling – dχ/dT",
                 line_width=2, color="blue"
             )
             r_dx_c_c = p_dx.scatter(
-                scT, dx_c, legend_label="Cooling – dχ/dT",
+                scT_d, dx_c, legend_label="Cooling – dχ/dT",
                 color="blue", alpha=0.5, size=6
             )
             p_dx.add_tools(
@@ -4465,14 +4623,8 @@ def plot_X_T(
             )
             p_inv.xaxis.axis_label_text_font_style = "normal"
             p_inv.yaxis.axis_label_text_font_style = "normal"
-            swX_arr = np.array(swX)
-            scX_arr = np.array(scX)
-            inv_w = np.divide(1.0, swX_arr,
-                              out=np.full_like(swX_arr, np.nan),
-                              where=swX_arr != 0.0)
-            inv_c = np.divide(1.0, scX_arr,
-                              out=np.full_like(scX_arr, np.nan),
-                              where=scX_arr != 0.0)
+            inv_w = _inverse_susceptibility(swX)
+            inv_c = _inverse_susceptibility(scX)
             mask_w = np.isfinite(inv_w)
             mask_c = np.isfinite(inv_c)
             r_inv_w = p_inv.line(
@@ -4526,11 +4678,17 @@ def plot_X_T(
         figs.append(fig1)
 
         if plot_derivative:
-            dx_w = np.gradient(swX, swT)
-            dx_c = np.gradient(scX, scT)
+            # average duplicate temperatures before differencing so that
+            # repeated logged temperatures do not produce zero spacing
+            swT_d, swX_d = _dedupe_temperatures(swT, swX)
+            scT_d, scX_d = _dedupe_temperatures(scT, scX)
+            dx_w = np.gradient(swX_d, swT_d) if swT_d.size > 1 else empty
+            dx_c = np.gradient(scX_d, scT_d) if scT_d.size > 1 else empty
+            swT_d = swT_d if swT_d.size > 1 else empty
+            scT_d = scT_d if scT_d.size > 1 else empty
             fig2, ax2 = plt.subplots(**fig_kwargs)
-            ax2.plot(swT, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
-            ax2.plot(scT, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
+            ax2.plot(swT_d, dx_w, label="Heating – dχ/dT", linewidth=2, marker="o")
+            ax2.plot(scT_d, dx_c, label="Cooling – dχ/dT", linewidth=2, marker="o")
             ax2.set_title(f"{title} – dχ/dT")
             ax2.set_xlabel(f"Temperature (°{temp_unit})")
             ax2.set_ylabel("dχ/dT")
@@ -4539,18 +4697,8 @@ def plot_X_T(
             figs.append(fig2)
 
         if plot_inverse:
-            swX_arr = np.array(swX)
-            scX_arr = np.array(scX)
-            inv_w = np.divide(
-                1.0, swX_arr,
-                out=np.full_like(swX_arr, np.nan),
-                where=swX_arr != 0.0,
-            )
-            inv_c = np.divide(
-                1.0, scX_arr,
-                out=np.full_like(scX_arr, np.nan),
-                where=scX_arr != 0.0,
-            )
+            inv_w = _inverse_susceptibility(swX)
+            inv_c = _inverse_susceptibility(scX)
             mask_w = np.isfinite(inv_w)
             mask_c = np.isfinite(inv_c)
             fig3, ax3 = plt.subplots(**fig_kwargs)
@@ -4563,180 +4711,1749 @@ def plot_X_T(
             ax3.legend(loc="upper left")
             figs.append(fig3)
 
-        for fig in figs:
-            plt.show(fig)
+        plt.show()
 
     if return_figure:
         return tuple(figs)
     return None
 
-def estimate_curie_temperature(
+# Curie temperature estimation
+# ------------------------------------------------------------------------------------------------------------------
+# The estimators below implement the methods reviewed by Fabian et al. (2013,
+# doi:10.1029/2012GC004440). Method applicability depends on the type of
+# thermomagnetic data:
+#
+# * in-field magnetization M(T): the Curie temperature corresponds to the
+#   inflection point of M(T) (minimum of dM/dT); the classical
+#   maximum-curvature (second-derivative maximum) and two-tangent estimates
+#   coincide with each other and lie systematically above the inflection-point
+#   Tc (typically by 10-15 degrees C, increasing with applied field).
+# * low-field susceptibility X(T): several mechanisms (para-effect, rotation
+#   against anisotropy, domain-wall motion, superparamagnetism) contribute
+#   near the ordering temperature; the Hopkinson peak marks blocking, not Tc,
+#   and the maximum-curvature and two-tangent constructions lack a rigorous
+#   physical basis (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507) --
+#   both are robust, transition-based estimators but lie above the inflection
+#   point. The inverse-susceptibility
+#   (Curie-Weiss) extrapolation yields the paramagnetic Curie temperature
+#   theta, an upper bound on Tc.
+#
+# Systematic inter-method offsets of several to tens of degrees are expected
+# and documented on synthetic titanomagnetites by Lattard et al. (2006,
+# doi:10.1029/2006JB004591); comparing estimates from multiple methods is
+# therefore diagnostic rather than redundant.
+
+
+def _inverse_susceptibility(chi):
+    """
+    Compute 1/chi with non-positive values masked to NaN.
+
+    Non-positive susceptibilities (possible after holder over-correction)
+    have no meaningful inverse for Curie-Weiss purposes; masking them here
+    keeps the displayed and fitted inverse-susceptibility curves consistent.
+    """
+    chi = np.asarray(chi, dtype=float)
+    return np.divide(1.0, chi, out=np.full_like(chi, np.nan), where=chi > 0)
+
+
+def _repeated_value_fraction(values):
+    """
+    Fraction of points that repeat an identical neighbor.
+
+    Runs of identical values within a fitting window are the signature of a
+    resolution-limited (quantized) susceptibility tail or a flattened/altered
+    magnetization tail; either flattens a fitted slope and biases the
+    extrapolated Curie temperature. Returns a value in [0, 1].
+    """
+    values = np.asarray(values, dtype=float)
+    if values.size < 2:
+        return 0.0
+    repeated = np.concatenate([[False], values[1:] == values[:-1]])
+    repeated[:-1] |= repeated[1:]
+    return float(repeated.mean())
+
+
+def _dedupe_temperatures(T, y):
+    """
+    Average y-values measured at duplicate temperatures.
+
+    Finite-difference derivatives require strictly increasing abscissae;
+    thermomagnetic instruments commonly log repeated temperatures while the
+    furnace stabilizes. Returns (unique ascending T, mean y per T).
+    """
+    T = np.asarray(T, dtype=float)
+    y = np.asarray(y, dtype=float)
+    unique_T, inverse = np.unique(T, return_inverse=True)
+    if unique_T.size == T.size:
+        order = np.argsort(T, kind="stable")
+        return T[order], y[order]
+    sums = np.bincount(inverse, weights=y)
+    counts = np.bincount(inverse)
+    return unique_T, sums / counts
+
+
+def _interpolated_zero_crossings(x, y):
+    """
+    Find zero crossings of y(x) by linear interpolation.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Monotonically ordered abscissa values.
+    y : numpy.ndarray
+        Ordinate values.
+
+    Returns
+    -------
+    numpy.ndarray
+        Interpolated x-positions where y changes sign (empty if none).
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    crossings = []
+    for i in range(y.size - 1):
+        y0, y1 = y[i], y[i + 1]
+        if not (np.isfinite(y0) and np.isfinite(y1)):
+            continue
+        if y0 == 0.0:
+            crossings.append(x[i])
+        elif y0 * y1 < 0.0:
+            crossings.append(x[i] - y0 * (x[i + 1] - x[i]) / (y1 - y0))
+    return np.array(crossings, dtype=float)
+
+
+def curie_derivative_estimates(T, y, t_range=None, smooth_window=0):
+    """
+    Derivative-based Curie temperature estimates from one thermomagnetic branch.
+
+    Two estimates are returned:
+
+    * ``inflection_temp`` — the inflection point of the curve, located as the
+      zero crossing of the second derivative between its extrema (refined by
+      linear interpolation), with the minimum of the first derivative as
+      fallback. For in-field magnetization curves M(T), Landau theory places
+      the Curie temperature at this inflection point, independent of the
+      applied field (Fabian et al., 2013, doi:10.1029/2012GC004440).
+    * ``max_curvature_temp`` — the maximum of the second derivative
+      ("maximum curvature" of the concave part of the heating curve). This is
+      the classical practical definition of Ade-Hall et al. (1965) that is
+      implemented in many software packages (including the legacy
+      ``ipmag.curie``). On M(T) curves it lies systematically above the
+      inflection-point Tc (typically 10-15 degrees C) and shifts with the
+      strength of the applied field (Fabian et al., 2013). It is searched on
+      the concave shoulder above the steepest descent, consistent with this
+      definition.
+
+    Non-finite temperature or magnetization values are dropped before
+    differentiation, and the steepest descent is located over the interior of
+    the branch (the one-sided derivatives at the first and last points are the
+    most noise-prone). Both estimates are anchored to that steepest-descent
+    point, so isolated noise or structure in the flat tails does not capture
+    them.
+
+    Differentiation amplifies noise, so even a smoothed signal can yield a
+    ragged first derivative whose global minimum is a noise spike within a
+    broad, flat-bottomed transition rather than the true steepest descent.
+    Set ``smooth_window`` to smooth the first and second derivatives on the
+    same temperature scale used to smooth the signal (as the legacy
+    ``ipmag.curie`` does), which locates the estimate at the center of the
+    transition instead of an arbitrary spike; ``curie_temperature_estimates``
+    passes its smoothing window through automatically. For multi-phase curves,
+    additionally use ``t_range`` to isolate the transition of interest, and
+    check the estimate against ``first_derivative_min_temp`` and the
+    ``diagnostics`` arrays.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending (Celsius or Kelvin; the returned temperatures
+        are in the same unit as the input).
+    y : array-like
+        Magnetization or susceptibility values.
+    t_range : tuple of (float, float), optional
+        Restrict the analysis to temperatures within ``(t_min, t_max)``.
+        Useful for isolating one Curie transition in a multi-phase curve or
+        excluding low-temperature structure (e.g., a Hopkinson peak).
+    smooth_window : float, optional
+        Width, in the temperature units of ``T``, of a moving-average window
+        applied to the first and second derivatives before their extrema are
+        located (default 0, no derivative smoothing). Recommended for noisy
+        data; a good choice is the window used to smooth the signal. The
+        ``diagnostics`` arrays reflect the smoothed derivatives actually used.
+
+    Returns
+    -------
+    dict
+        ``inflection_temp``, ``max_curvature_temp``,
+        ``first_derivative_min_temp`` (the discrete minimum of dy/dT),
+        ``zero_crossing_temps`` (all interpolated zero crossings of the second
+        derivative between its extrema), and ``diagnostics`` with the arrays
+        ``T``, ``dy_dT``, and ``d2y_dT2``.
+    """
+    T = np.asarray(T, dtype=float)
+    y = np.asarray(y, dtype=float)
+    if t_range is not None:
+        mask = (T >= t_range[0]) & (T <= t_range[1])
+        T = T[mask]
+        y = y[mask]
+    finite = np.isfinite(T) & np.isfinite(y)
+    T = T[finite]
+    y = y[finite]
+    T, y = _dedupe_temperatures(T, y)
+    if T.size < 4:
+        nan = np.nan
+        return {
+            "inflection_temp": nan,
+            "max_curvature_temp": nan,
+            "first_derivative_min_temp": nan,
+            "zero_crossing_temps": np.array([]),
+            "diagnostics": {"T": T, "dy_dT": np.array([]), "d2y_dT2": np.array([])},
+        }
+
+    dy = np.gradient(y, T)
+    if smooth_window and smooth_window > 0:
+        # np.gradient's one-sided boundary values are unreliable; replace them
+        # before smoothing so edge padding cannot propagate an outlier into a
+        # spurious plateau that captures the steepest-descent search
+        dy[0], dy[-1] = dy[1], dy[-2]
+        _, dy = smooth_moving_avg(T, dy, smooth_window)
+    d2y = np.gradient(dy, T)
+    if smooth_window and smooth_window > 0:
+        d2y[0], d2y[-1] = d2y[1], d2y[-2]
+        _, d2y = smooth_moving_avg(T, d2y, smooth_window)
+
+    # locate the steepest descent over the interior only; np.gradient forms
+    # one-sided differences at the array boundaries, which are the most
+    # noise-prone points and can otherwise anchor the estimate to an edge
+    interior = np.arange(1, T.size - 1)
+    i_steep = int(interior[np.argmin(dy[interior])])
+    first_derivative_min_temp = T[i_steep]
+
+    # restrict the curvature analysis to the transition zone around the
+    # steepest descent: from where the descent last began (slope within 5
+    # percent of zero relative to the steepest slope) to where the curve first
+    # returns to baseline above it; outside this zone, noise in the flat
+    # segments dominates the second derivative of real data
+    slope_floor = 0.05 * np.abs(dy[i_steep])
+    near_zero = np.abs(dy) <= slope_floor
+    before = np.nonzero(near_zero[:i_steep])[0]
+    j_start = int(before[-1]) if before.size else 0
+    after = np.nonzero(near_zero[i_steep:])[0]
+    j_end = int(after[0]) + i_steep if after.size else T.size - 1
+
+    # the maximum-curvature estimate lies on the concave shoulder above the
+    # inflection (Ade-Hall et al., 1965; Fabian et al., 2013), so search the
+    # second derivative from the steepest descent upward; a noise feature on
+    # the low-temperature side of the transition cannot then capture it
+    upper_zone = slice(i_steep, j_end + 1)
+    max_curvature_temp = T[upper_zone][np.argmax(d2y[upper_zone])]
+
+    # the inflection is the zero of the second derivative at the steepest
+    # descent; take the zone crossing nearest that point so the estimate stays
+    # anchored to the transition rather than to tail structure
+    zero_crossing_temps = _interpolated_zero_crossings(
+        T[j_start:j_end + 1], d2y[j_start:j_end + 1]
+    )
+    if zero_crossing_temps.size:
+        inflection_temp = zero_crossing_temps[
+            np.argmin(np.abs(zero_crossing_temps - first_derivative_min_temp))
+        ]
+    else:
+        inflection_temp = first_derivative_min_temp
+
+    return {
+        "inflection_temp": float(inflection_temp),
+        "max_curvature_temp": float(max_curvature_temp),
+        "first_derivative_min_temp": float(first_derivative_min_temp),
+        "zero_crossing_temps": zero_crossing_temps,
+        "diagnostics": {"T": T, "dy_dT": dy, "d2y_dT2": d2y},
+    }
+
+
+def curie_two_tangent(T, y, lower_range=None, upper_range=None, min_points=3):
+    """
+    Two-tangent (intersecting tangents) Curie temperature estimate.
+
+    Straight lines are fit to a segment of the steeply descending limb below
+    the Curie temperature and to the near-flat baseline above it; the
+    temperature of their intersection is returned. The construction follows
+    Gromme et al. (1969, doi:10.1029/JB074i022p05277), who applied it to
+    strong-field J-T curves.
+
+    Applicability and bias: the method is intended for magnetization curves
+    M(T). Even there it coincides with the maximum-curvature estimate and
+    therefore lies systematically above the inflection-point Curie temperature
+    (Fabian et al., 2013, doi:10.1029/2012GC004440). Applied to low-field
+    susceptibility X(T) it lacks a rigorous physical basis and can overestimate
+    Tc (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507); it remains a
+    robust, transition-based estimator useful for mineral identification and
+    for comparison with legacy results.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending (Celsius or Kelvin; the returned intersection
+        temperature is in the same unit as the input).
+    y : array-like
+        Magnetization (preferred) or susceptibility values.
+    lower_range : tuple of (float, float), optional
+        Temperature interval for the descending-limb tangent. If None, the
+        contiguous region around the steepest descent where the slope is at
+        least half the steepest slope is used.
+    upper_range : tuple of (float, float), optional
+        Temperature interval for the baseline tangent. If None, points above
+        the steepest descent where the slope has decayed to within 5 percent
+        of the steepest slope are used (falling back to the uppermost decile
+        of points).
+    min_points : int, optional
+        Minimum number of points required in each tangent segment (default 3).
+
+    Returns
+    -------
+    dict
+        ``curie_temp`` (intersection temperature, NaN if the tangents are
+        parallel or a segment has too few points), ``params`` with the two
+        (slope, intercept) pairs, the temperature ranges actually used, point
+        counts, and ``reliable`` (False when no near-flat baseline was found
+        above the transition and the upper tangent fell back to the uppermost
+        points, i.e. the curve may end below Tc), and ``diagnostics`` with the
+        segment masks for plotting.
+    """
+    T = np.asarray(T, dtype=float)
+    y = np.asarray(y, dtype=float)
+    finite = np.isfinite(T) & np.isfinite(y)
+    T, y = _dedupe_temperatures(T[finite], y[finite])
+    result = {
+        "curie_temp": np.nan,
+        "params": {"reliable": False},
+        "diagnostics": {},
+    }
+    if T.size < 2 * min_points:
+        result["params"]["note"] = "insufficient points for two-tangent fit"
+        return result
+
+    dy = np.gradient(y, T)
+    i_steep = int(np.argmin(dy))
+    steepest = dy[i_steep]
+
+    if lower_range is None:
+        # contiguous run around the steepest descent where the slope is at
+        # least half the steepest slope
+        steep_enough = dy <= 0.5 * steepest
+        i0 = i_steep
+        while i0 > 0 and steep_enough[i0 - 1]:
+            i0 -= 1
+        i1 = i_steep
+        while i1 < T.size - 1 and steep_enough[i1 + 1]:
+            i1 += 1
+        lower_mask = np.zeros(T.size, dtype=bool)
+        lower_mask[i0:i1 + 1] = True
+        lower_range = (float(T[i0]), float(T[i1]))
+    else:
+        lower_mask = (T >= lower_range[0]) & (T <= lower_range[1])
+
+    baseline_fallback = False
+    if upper_range is None:
+        baseline = (np.arange(T.size) > i_steep) & (np.abs(dy) <= 0.05 * np.abs(steepest))
+        if baseline.sum() < min_points:
+            # no near-flat baseline exists above the steepest descent: the
+            # curve may not reach above the Curie temperature, so the
+            # uppermost points used here can still be on the descending limb
+            baseline_fallback = True
+            n_tail = max(min_points, T.size // 10)
+            baseline = np.zeros(T.size, dtype=bool)
+            baseline[-n_tail:] = True
+        upper_mask = baseline
+        upper_range = (float(T[upper_mask].min()), float(T[upper_mask].max()))
+    else:
+        upper_mask = (T >= upper_range[0]) & (T <= upper_range[1])
+
+    if lower_mask.sum() < min_points or upper_mask.sum() < min_points:
+        result["params"]["note"] = "insufficient points in a tangent segment"
+        return result
+
+    lower_slope, lower_intercept = np.polyfit(T[lower_mask], y[lower_mask], 1)
+    upper_slope, upper_intercept = np.polyfit(T[upper_mask], y[upper_mask], 1)
+
+    if np.isclose(lower_slope, upper_slope):
+        result["params"]["note"] = "tangents are parallel"
+        return result
+
+    curie_temp = (upper_intercept - lower_intercept) / (lower_slope - upper_slope)
+
+    result["curie_temp"] = float(curie_temp)
+    result["params"] = {
+        "lower_slope": float(lower_slope),
+        "lower_intercept": float(lower_intercept),
+        "upper_slope": float(upper_slope),
+        "upper_intercept": float(upper_intercept),
+        "lower_range": lower_range,
+        "upper_range": upper_range,
+        "n_lower": int(lower_mask.sum()),
+        "n_upper": int(upper_mask.sum()),
+    }
+    if baseline_fallback:
+        result["params"]["note"] = (
+            "no near-flat baseline found above the steepest descent; the "
+            "upper tangent was fit to the uppermost points, which may still "
+            "be on the descending limb if the curve ends below the Curie "
+            "temperature — verify or set upper_range explicitly"
+        )
+    result["params"]["reliable"] = not baseline_fallback
+    result["diagnostics"] = {
+        "T": T,
+        "y": y,
+        "lower_mask": lower_mask,
+        "upper_mask": upper_mask,
+    }
+    return result
+
+
+def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
+                                 min_chi=None):
+    """
+    Curie-Weiss (inverse susceptibility) estimate of the ordering temperature.
+
+    Above the Curie temperature the susceptibility of the paramagnetic phase
+    follows the Curie-Weiss law chi = C / (T - theta), so 1/chi is linear in T
+    and extrapolates to zero at the paramagnetic Curie temperature theta. A
+    straight line is fit to 1/chi within ``fit_range`` and
+    ``curie_temp = -intercept/slope`` is returned.
+
+    This is the recommended quantitative approach for low-field
+    susceptibility X(T) curves (Petrovsky & Kapicka, 2006,
+    doi:10.1029/2006JB004507). Two caveats apply: (1) theta is an upper bound
+    on the Curie temperature (theta >= Tc, with the difference depending on
+    the strength of magnetic interactions); (2) the estimate is sensitive to
+    the choice of fitting window — the fit must be restricted to temperatures
+    where the signal is fully paramagnetic, above the steep decrease, and
+    where the (holder-corrected) susceptibility is still resolved above the
+    instrument's measurement resolution. Well above the transition the
+    paramagnetic signal commonly becomes so weak that successive readings
+    repeat identical values and 1/chi shows flat plateaus; including
+    such quantized points flattens the fitted slope and biases theta low —
+    a theta below an independently estimated Tc (e.g., the inflection point)
+    is a red flag for this. The function detects repeated quantized values in
+    the fitting window and attaches a warning; use ``min_chi`` or tighten
+    ``fit_range`` to exclude resolution-limited points. Report the fitting
+    window with the estimate.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending (Celsius or Kelvin; theta is returned in the
+        same unit as the input).
+    chi : array-like
+        Susceptibility values (holder-corrected).
+    fit_range : tuple of (float, float), optional
+        Temperature interval for the linear fit of 1/chi. If None, the upper
+        20 percent of the temperature span is used — a starting guess only;
+        inspect the fit and set the window explicitly for reported values.
+    min_points : int, optional
+        Minimum number of usable points in the window (default 5).
+    min_chi : float, optional
+        Exclude points with susceptibility below this value from the fit
+        (same units as ``chi``). Useful for screening out
+        resolution-limited values in the high-temperature tail.
+
+    Returns
+    -------
+    dict
+        ``curie_temp`` (theta), ``curie_temp_stderr`` (1-sigma from the fit
+        covariance), ``params`` with slope, intercept, ``r_squared``,
+        ``curie_constant`` (1/slope), ``n_points``, ``fit_range``, and a
+        ``warning`` when the fitted points are dominated by repeated
+        (quantized) susceptibility values, and ``diagnostics`` with the
+        1/chi arrays and fitted line.
+    """
+    T = np.asarray(T, dtype=float)
+    chi = np.asarray(chi, dtype=float)
+    # a straight-line covariance fit needs more than two points; below three
+    # np.polyfit(..., cov=True) raises instead of returning gracefully
+    min_points = max(int(min_points), 3)
+
+    if fit_range is None:
+        t_span = T.max() - T.min()
+        fit_range = (T.min() + 0.8 * t_span, T.max())
+
+    mask = (
+        (T >= fit_range[0])
+        & (T <= fit_range[1])
+        & np.isfinite(chi)
+        & (chi > 0)
+    )
+    if min_chi is not None:
+        mask &= chi >= min_chi
+    result = {
+        "curie_temp": np.nan,
+        "curie_temp_stderr": np.nan,
+        "params": {"fit_range": (float(fit_range[0]), float(fit_range[1])),
+                   "n_points": int(mask.sum())},
+        "diagnostics": {},
+    }
+    if mask.sum() < min_points:
+        result["params"]["note"] = (
+            f"only {int(mask.sum())} usable points in fit_range; "
+            f"at least {min_points} required"
+        )
+        return result
+
+    T_fit = T[mask]
+    inv_chi = 1.0 / chi[mask]
+
+    (slope, intercept), cov = np.polyfit(T_fit, inv_chi, 1, cov=True)
+    if slope <= 0:
+        # 1/chi must increase with T above the transition; a non-positive
+        # slope means the window is not sampling a paramagnetic Curie-Weiss
+        # tail (wrong window, over-subtracted holder, or altered signal)
+        result["params"]["note"] = (
+            "non-positive slope in the 1/chi fit; the fitting window does "
+            "not sample a paramagnetic Curie-Weiss tail — adjust fit_range"
+        )
+        return result
+    theta = -intercept / slope
+
+    # 1-sigma uncertainty on theta from the fit covariance
+    d_theta_d_slope = intercept / slope**2
+    d_theta_d_intercept = -1.0 / slope
+    var_theta = (
+        d_theta_d_slope**2 * cov[0, 0]
+        + d_theta_d_intercept**2 * cov[1, 1]
+        + 2.0 * d_theta_d_slope * d_theta_d_intercept * cov[0, 1]
+    )
+    theta_stderr = float(np.sqrt(var_theta)) if var_theta >= 0 else np.nan
+
+    predicted = slope * T_fit + intercept
+    ss_res = float(np.sum((inv_chi - predicted) ** 2))
+    ss_tot = float(np.sum((inv_chi - inv_chi.mean()) ** 2))
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+    result["curie_temp"] = float(theta)
+    result["curie_temp_stderr"] = theta_stderr
+    result["params"].update({
+        "slope": float(slope),
+        "intercept": float(intercept),
+        "r_squared": float(r_squared),
+        "curie_constant": float(1.0 / slope),
+    })
+
+    # repeated identical susceptibility values in the window are the
+    # signature of a resolution-limited (quantized) tail, which flattens the
+    # fitted slope and biases theta low
+    quantized_fraction = _repeated_value_fraction(chi[mask])
+    if quantized_fraction > 1.0 / 3.0:
+        result["params"]["warning"] = (
+            f"{quantized_fraction:.0%} of the fitted points repeat identical "
+            "susceptibility values (weak, resolution-limited signal); theta "
+            "is likely biased low — tighten fit_range or set min_chi"
+        )
+
+    result["diagnostics"] = {
+        "T": T,
+        "inv_chi": _inverse_susceptibility(chi),
+        "T_fit": T_fit,
+        "inv_chi_fit": inv_chi,
+        "line_T": np.array([theta, T_fit.max()]),
+        "line_inv_chi": np.array([0.0, slope * T_fit.max() + intercept]),
+    }
+    return result
+
+
+def curie_ms_squared_extrapolation(T, M, fit_range=None, exponent=2.0,
+                                   min_points=5, min_m=None):
+    """
+    Mean-field (Moskowitz, 1981) extrapolation of Ms**exponent to zero.
+
+    Fits ``M**exponent`` linearly in temperature over ``fit_range`` and returns
+    the x-intercept (where ``M**exponent = 0``) as the Curie temperature. This
+    is the extrapolation method of Moskowitz (1981,
+    doi:10.1016/0012-821X(81)90028-5) for saturation-magnetization (Ms-T)
+    thermomagnetic curves whose signal terminates below Tc — e.g.
+    titanomaghemites that chemically invert on heating before Ms reaches zero,
+    so a direct Ms = 0 crossing is unavailable.
+
+    Near Tc a second-order (mean-field / Landau-Belov) treatment gives
+    Js proportional to (Tc - T)**(1/2), so Js**2 is linear in T and
+    extrapolates to zero at Tc (Moskowitz, 1981, eqs. 4-5). This is the
+    magnetization-space analog of the Curie-Weiss inverse-susceptibility
+    method: there 1/chi rises linearly to a zero at theta; here Ms**2 falls
+    linearly to a zero at Tc, so ``curie_temp = -intercept/slope`` with the
+    slope required to be negative. (Moskowitz normalizes by Js0 = Js(T0); the
+    normalization does not change the x-intercept and is omitted here.)
+
+    The mean-field form is valid for T/Tc > 0.8 (roughly the uppermost ~100 C
+    below Tc), so restrict ``fit_range`` to the steep descent below where the
+    curve flattens out or the sample alters; report the window. Following
+    Moskowitz, ``exponent=2`` (critical exponent beta = 1/2) is the
+    theoretically justified, best-conditioned choice and minimized his fit
+    error (+/-5 C) on standards (Fe3O4 572 C, Ni 360 C, CrO2 133 C). For a
+    mean-field curve exponent=2 is exact; any other exponent introduces
+    curvature into the fitted data and moves the extrapolated Tc off the true
+    value. Moskowitz reported that a smaller exponent shifted Tc lower for his
+    irreversible titanomaghemite samples; on ideal and mean-field curves a
+    smaller exponent instead biases Tc high, so the direction of the bias
+    depends on the true curve shape. For a multiphase sample only the Curie
+    temperature of the highest-Tc phase is recovered.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending (Celsius or Kelvin; Tc is returned in the same
+        unit as the input, since the x-intercept is unit-invariant).
+    M : array-like
+        Saturation-magnetization (Ms) values.
+    fit_range : tuple of (float, float), optional
+        Temperature interval for the linear fit of ``M**exponent``. If None,
+        the upper 40 percent of the temperature span is used — a starting
+        guess only; inspect the fit and set the window explicitly (below the
+        flattening/alteration temperature) for reported values.
+    exponent : float, optional
+        Power to which ``M`` is raised before the linear fit (default 2.0,
+        i.e. beta = 1/2). Any other exponent introduces curvature into the
+        fit and moves Tc off the mean-field value (Moskowitz, 1981).
+    min_points : int, optional
+        Minimum number of usable points in the window (default 5; floored at
+        3, since the covariance fit needs more than two points).
+    min_m : float, optional
+        Exclude points with magnetization below this value from the fit (same
+        units as ``M``). Useful for screening out a flattened, weak, or
+        altered tail.
+
+    Returns
+    -------
+    dict
+        ``curie_temp`` (Tc = -intercept/slope, in the input temperature unit),
+        ``curie_temp_stderr`` (1-sigma from the fit covariance), ``params``
+        with ``slope``, ``intercept``, ``r_squared``, ``n_points``,
+        ``fit_range``, ``exponent``, a ``note`` when the fit is not usable
+        (too few points or a non-negative slope), and a ``warning`` when the
+        fitted points are dominated by repeated (flattened/altered) values,
+        and ``diagnostics`` with ``T``, ``m_pow`` (= ``M**exponent``), the
+        fitted points, and the extrapolated line.
+    """
+    T = np.asarray(T, dtype=float)
+    M = np.asarray(M, dtype=float)
+    # a straight-line covariance fit needs more than two points; below three
+    # np.polyfit(..., cov=True) raises instead of returning gracefully
+    min_points = max(int(min_points), 3)
+
+    if fit_range is None:
+        t_span = T.max() - T.min()
+        fit_range = (T.min() + 0.6 * t_span, T.max())
+
+    mask = (
+        (T >= fit_range[0])
+        & (T <= fit_range[1])
+        & np.isfinite(M)
+        & (M > 0)
+    )
+    if min_m is not None:
+        mask &= M >= min_m
+    result = {
+        "curie_temp": np.nan,
+        "curie_temp_stderr": np.nan,
+        "params": {"fit_range": (float(fit_range[0]), float(fit_range[1])),
+                   "n_points": int(mask.sum()),
+                   "exponent": float(exponent)},
+        "diagnostics": {},
+    }
+    if mask.sum() < min_points:
+        result["params"]["note"] = (
+            f"only {int(mask.sum())} usable points in fit_range; "
+            f"at least {min_points} required"
+        )
+        return result
+
+    T_fit = T[mask]
+    m_pow_fit = M[mask] ** exponent
+
+    (slope, intercept), cov = np.polyfit(T_fit, m_pow_fit, 1, cov=True)
+    if slope >= 0:
+        # Ms**exponent must decrease with T toward the transition; a
+        # non-negative slope means the window is not on the descending limb
+        # below Tc (wrong window, or a flattened/altered tail)
+        result["params"]["note"] = (
+            "non-negative slope in the Ms**exponent fit; the fitting window "
+            "does not sample the descending magnetization below Tc — adjust "
+            "fit_range"
+        )
+        return result
+    tc = -intercept / slope
+
+    # 1-sigma uncertainty on Tc from the fit covariance
+    d_tc_d_slope = intercept / slope**2
+    d_tc_d_intercept = -1.0 / slope
+    var_tc = (
+        d_tc_d_slope**2 * cov[0, 0]
+        + d_tc_d_intercept**2 * cov[1, 1]
+        + 2.0 * d_tc_d_slope * d_tc_d_intercept * cov[0, 1]
+    )
+    tc_stderr = float(np.sqrt(var_tc)) if var_tc >= 0 else np.nan
+
+    predicted = slope * T_fit + intercept
+    ss_res = float(np.sum((m_pow_fit - predicted) ** 2))
+    ss_tot = float(np.sum((m_pow_fit - m_pow_fit.mean()) ** 2))
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+    result["curie_temp"] = float(tc)
+    result["curie_temp_stderr"] = tc_stderr
+    result["params"].update({
+        "slope": float(slope),
+        "intercept": float(intercept),
+        "r_squared": float(r_squared),
+    })
+
+    # repeated identical magnetization values in the window signal a flattened
+    # or altered tail, which flattens the fitted slope and biases Tc
+    fraction_repeated = _repeated_value_fraction(M[mask])
+    if fraction_repeated > 1.0 / 3.0:
+        result["params"]["warning"] = (
+            f"{fraction_repeated:.0%} of the fitted points repeat identical "
+            "magnetization values (flattened or altered tail); Tc is likely "
+            "biased — tighten fit_range or set min_m"
+        )
+
+    m_pow_all = np.full_like(M, np.nan)
+    positive = np.isfinite(M) & (M > 0)
+    m_pow_all[positive] = M[positive] ** exponent
+    result["diagnostics"] = {
+        "T": T,
+        "m_pow": m_pow_all,
+        "T_fit": T_fit,
+        "m_pow_fit": m_pow_fit,
+        "line_T": np.array([tc, T_fit.max()]),
+        "line_m_pow": np.array([0.0, slope * T_fit.max() + intercept]),
+    }
+    return result
+
+
+def landau_magnetization(tau, h):
+    """
+    Reduced magnetization from the Landau equation of state with field term.
+
+    Solves ``m**3 + tau*m = h`` for the physical (largest real) root, where
+    ``tau = (T - Tc)/Tc`` is the reduced temperature and ``h`` is the reduced
+    field (Fabian et al., 2013, doi:10.1029/2012GC004440, eqs. 3-5). For
+    ``h = 0`` this reduces to ``m = sqrt(-tau)`` below the Curie temperature
+    and ``m = 0`` above it; for ``h > 0`` the transition is rounded and a
+    field-induced tail persists above Tc.
+
+    Parameters
+    ----------
+    tau : array-like
+        Reduced temperatures (T - Tc)/Tc; requires absolute temperatures
+        (Kelvin) in the ratio.
+    h : float
+        Reduced field, >= 0.
+
+    Returns
+    -------
+    numpy.ndarray
+        Reduced magnetization m at each tau.
+    """
+    tau = np.atleast_1d(np.asarray(tau, dtype=float))
+    p = tau
+    q = -float(h)
+
+    m = np.empty_like(p)
+    disc = q**2 / 4.0 + p**3 / 27.0
+
+    # one real root (Cardano); q <= 0 so -q/2 >= 0 and this root is >= 0
+    single = disc >= 0
+    if np.any(single):
+        sq = np.sqrt(disc[single])
+        m[single] = np.cbrt(-q / 2.0 + sq) + np.cbrt(-q / 2.0 - sq)
+
+    # three real roots (trigonometric form); the k=0 root is the largest
+    triple = ~single
+    if np.any(triple):
+        pt = p[triple]
+        arg = (3.0 * q) / (2.0 * pt) * np.sqrt(-3.0 / pt)
+        arg = np.clip(arg, -1.0, 1.0)
+        m[triple] = 2.0 * np.sqrt(-pt / 3.0) * np.cos(np.arccos(arg) / 3.0)
+
+    return m
+
+
+def curie_landau_fit(T, M, fit_range=None, temp_unit="C", tc_bounds=None,
+                     n_grid=40):
+    """
+    Fit the in-field Landau equation of state to a magnetization curve M(T).
+
+    The model is ``M(T) = M0 * m(tau; h)`` where m is the physical root of the
+    Landau equation of state ``m**3 + tau*m = h`` with ``tau = (T - Tc)/Tc``
+    in absolute temperature (Fabian et al., 2013, doi:10.1029/2012GC004440,
+    eqs. 3-5). The reduced field h rounds the transition and produces the
+    field-induced tail above Tc, so the fit uses the full curve without an
+    ad-hoc baseline. In the ``h = 0`` limit the model is
+    ``M = M0*sqrt(1 - T/Tc)`` below Tc — the mean-field form underlying the
+    extrapolation method of Moskowitz (1981,
+    doi:10.1016/0012-821X(81)90028-5).
+
+    The fit provides the physically grounded Curie temperature (at the
+    inflection point of the in-field curve), with a formal 1-sigma
+    uncertainty. When ``fit_range`` excludes the transition (all data below
+    Tc), the fit operates in Moskowitz-style extrapolation mode: this is the
+    only option for runs that end below Tc, but the reliability of the
+    extrapolated Tc decays rapidly with the distance between the highest
+    measured temperature and Tc, and the formal uncertainty then
+    underestimates the true (model-dependence dominated) uncertainty.
+
+    Caveats: the model describes a single ferromagnetic phase near its
+    transition; admixed paramagnetic signal, multiple phases, or alteration
+    during heating violate it — restrict ``fit_range`` to isolate one
+    transition. Applied to low-field susceptibility the model does not
+    describe the dominant susceptibility mechanisms (see Fabian et al., 2013)
+    and results should be treated as qualitative.
+
+    Parameters
+    ----------
+    T : array-like
+        Temperatures, ascending, in ``temp_unit``.
+    M : array-like
+        Magnetization values.
+    fit_range : tuple of (float, float), optional
+        Temperature interval (in ``temp_unit``) used in the fit. Default uses
+        all points.
+    temp_unit : {'C', 'K'}, optional
+        Unit of the input temperatures (default 'C'). The reduced temperature
+        is always formed in Kelvin internally; results are returned in
+        ``temp_unit``.
+    tc_bounds : tuple of (float, float), optional
+        Bounds for Tc in Kelvin (default: (min(T)+1 K, 2000 K)). Tighten for
+        extrapolation fits when independent constraints exist.
+    n_grid : int, optional
+        Number of Tc values in the coarse initialization grid (default 40).
+
+    Returns
+    -------
+    dict
+        ``curie_temp`` and ``curie_temp_stderr`` in ``temp_unit``, ``params``
+        with ``M0``, ``h``, ``rss``, ``n_points``, ``fit_range``,
+        ``tc_bounds``, and ``extrapolation`` (True when the highest fitted
+        temperature is below the fitted Tc), and ``diagnostics`` with the
+        fitted data and a dense model curve for plotting.
+    """
+    T = np.asarray(T, dtype=float)
+    M = np.asarray(M, dtype=float)
+
+    finite = np.isfinite(T) & np.isfinite(M)
+    T = T[finite]
+    M = M[finite]
+
+    T_K = convert_temperature(T, temp_unit, "K")
+    if fit_range is not None:
+        fit_mask = (T >= fit_range[0]) & (T <= fit_range[1])
+    else:
+        fit_mask = np.ones(T.size, dtype=bool)
+        fit_range = (float(T.min()), float(T.max())) if T.size else (np.nan, np.nan)
+
+    T_fit = T_K[fit_mask]
+    M_fit = M[fit_mask]
+
+    result = {
+        "curie_temp": np.nan,
+        "curie_temp_stderr": np.nan,
+        "params": {"fit_range": (float(fit_range[0]), float(fit_range[1])),
+                   "n_points": int(T_fit.size)},
+        "diagnostics": {},
+    }
+    if T_fit.size < 5:
+        result["params"]["note"] = "insufficient points for Landau fit"
+        return result
+
+    if tc_bounds is None:
+        tc_bounds = (float(T_fit.min()) + 1.0, 2000.0)
+
+    m_scale = float(np.max(np.abs(M_fit)))
+    if m_scale == 0:
+        result["params"]["note"] = "magnetization is identically zero"
+        return result
+    M_norm = M_fit / m_scale
+
+    h_init = 1e-3
+
+    def coarse_rss(tc):
+        m = landau_magnetization((T_fit - tc) / tc, h_init)
+        denom = float(np.sum(m**2))
+        if denom == 0:
+            return np.inf, 0.0
+        m0 = float(np.sum(m * M_norm)) / denom
+        return float(np.sum((M_norm - m0 * m) ** 2)), m0
+
+    tc_grid = np.linspace(tc_bounds[0], tc_bounds[1], n_grid)
+    grid_results = [coarse_rss(tc) for tc in tc_grid]
+    best_i = int(np.argmin([r[0] for r in grid_results]))
+    tc0 = float(tc_grid[best_i])
+    m00 = max(grid_results[best_i][1], 1e-6)
+
+    def residuals(params):
+        m0, tc, h = params
+        m = landau_magnetization((T_fit - tc) / tc, h)
+        return m0 * m - M_norm
+
+    fit = least_squares(
+        residuals,
+        x0=[m00, tc0, h_init],
+        bounds=([0.0, tc_bounds[0], 0.0], [np.inf, tc_bounds[1], 10.0]),
+    )
+
+    m0, tc_K, h = fit.x
+    n, n_params = T_fit.size, 3
+    rss = 2.0 * fit.cost  # least_squares cost is 0.5 * sum(residuals**2)
+
+    tc_stderr_K = np.nan
+    if n > n_params:
+        try:
+            cov = np.linalg.pinv(fit.jac.T @ fit.jac) * rss / (n - n_params)
+            tc_stderr_K = float(np.sqrt(cov[1, 1]))
+        except np.linalg.LinAlgError:
+            pass
+
+    curie_temp = float(convert_temperature(np.array([tc_K]), "K", temp_unit)[0])
+
+    # dense model curve across the data range, extended past Tc for
+    # extrapolation fits
+    T_dense_K = np.linspace(T_K.min(), max(T_K.max(), tc_K * 1.05), 500)
+    M_dense = m0 * m_scale * landau_magnetization((T_dense_K - tc_K) / tc_K, h)
+
+    result["curie_temp"] = curie_temp
+    result["curie_temp_stderr"] = tc_stderr_K  # kelvin- and celsius-degree intervals are equal
+    result["params"].update({
+        "M0": float(m0 * m_scale),
+        "h": float(h),
+        "rss": float(rss * m_scale**2),
+        "tc_bounds": (float(tc_bounds[0]), float(tc_bounds[1])),
+        "extrapolation": bool(T_fit.max() < tc_K),
+    })
+    result["diagnostics"] = {
+        "T": T,
+        "M": M,
+        "T_fit": convert_temperature(T_fit, "K", temp_unit),
+        "M_fit": M_fit,
+        "model_T": convert_temperature(T_dense_K, "K", temp_unit),
+        "model_M": M_dense,
+    }
+    return result
+
+
+_CURIE_CHI_METHOD_CAVEATS = {
+    "max_curvature": (
+        "maximum-curvature estimate on susceptibility lacks a rigorous "
+        "physical basis and lies above the inflection-point Tc; it "
+        "coincides with the two-tangent estimate and can overestimate Tc "
+        "(Fabian et al., 2013; Petrovsky & Kapicka, 2006)"
+    ),
+    "two_tangent": (
+        "two-tangent intersection on susceptibility lacks a rigorous "
+        "physical basis and lies above the inflection-point Tc; it "
+        "coincides with the maximum-curvature estimate and can overestimate "
+        "Tc (Fabian et al., 2013; Petrovsky & Kapicka, 2006)"
+    ),
+    "landau": (
+        "the Landau M(T) model does not describe the mechanisms that "
+        "dominate low-field susceptibility near Tc (Fabian et al., 2013); "
+        "treat as qualitative"
+    ),
+}
+
+_CURIE_METHOD_NOTES = {
+    "inflection": (
+        "inflection point (minimum of dy/dT); for in-field M(T) this is the "
+        "Curie temperature (Fabian et al., 2013)"
+    ),
+    "max_curvature": (
+        "maximum of d2y/dT2 (Ade-Hall et al., 1965; legacy ipmag.curie); "
+        "lies systematically above the inflection-point Tc on M(T) curves "
+        "(Fabian et al., 2013)"
+    ),
+    "two_tangent": (
+        "intersecting tangents (Gromme et al., 1969); coincides with the "
+        "max-curvature estimate and overestimates Tc on M(T) (Fabian et "
+        "al., 2013)"
+    ),
+    "inverse_susceptibility": (
+        "Curie-Weiss extrapolation of 1/chi; yields the paramagnetic Curie "
+        "temperature theta >= Tc (Petrovsky & Kapicka, 2006)"
+    ),
+    "landau": (
+        "fit of the in-field Landau equation of state (Fabian et al., 2013); "
+        "Tc at the inflection point, with formal uncertainty"
+    ),
+    "ms_squared_extrapolation": (
+        "Ms^2 extrapolation (Moskowitz, 1981); mean-field extrapolation of "
+        "Ms^2 to zero for M(T) curves that end below Tc, e.g. titanomaghemites "
+        "that invert on heating; recovers only the highest-Tc phase"
+    ),
+}
+
+
+def _resolve_thermomag_data_type(data_type, magnetic_column):
+    """
+    Resolve whether a magnetic column holds susceptibility or magnetization.
+
+    Parameters
+    ----------
+    data_type : {'susceptibility', 'magnetization', None}
+        Explicit data type; when None it is inferred from whether
+        ``magnetic_column`` contains 'susc' or 'chi'.
+    magnetic_column : str
+        Name of the magnetic data column.
+
+    Returns
+    -------
+    str
+        'susceptibility' or 'magnetization'.
+    """
+    if data_type is None:
+        column = magnetic_column.lower()
+        return ("susceptibility" if ("susc" in column or "chi" in column)
+                else "magnetization")
+    if data_type not in ("susceptibility", "magnetization"):
+        raise ValueError(
+            f"data_type must be 'susceptibility', 'magnetization', or None "
+            f"(got '{data_type}')"
+        )
+    return data_type
+
+
+def curie_temperature_estimates(
+    experiment,
+    methods=None,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    input_unit="K",
+    smooth_window=0,
+    remove_holder=True,
+    branches=("heating", "cooling"),
+    method_kwargs=None,
+    print_estimates=False,
+    data_type=None,
+    branch_data=None,
+    return_method_results=False,
+):
+    """
+    Estimate the Curie temperature of a thermomagnetic experiment with
+    multiple methods and return a tidy comparison table.
+
+    The experiment is preprocessed with ``prepare_thermomag_branches`` and
+    each requested method is applied to each requested branch. Systematic
+    differences between the estimates are expected and diagnostic: see the
+    module notes above and Lattard et al. (2006, doi:10.1029/2006JB004591)
+    for the magnitude of inter-method offsets on synthetic titanomagnetites.
+
+    Methods
+    -------
+    * ``'inflection'`` — inflection point (``curie_derivative_estimates``);
+      the recommended estimator for in-field M(T).
+    * ``'max_curvature'`` — second-derivative maximum
+      (``curie_derivative_estimates``); classical, biased high on M(T).
+    * ``'two_tangent'`` — intersecting tangents (``curie_two_tangent``);
+      for M(T), discouraged on susceptibility.
+    * ``'inverse_susceptibility'`` — Curie-Weiss extrapolation
+      (``curie_inverse_susceptibility``); for susceptibility, heating branch.
+    * ``'landau'`` — in-field Landau equation-of-state fit
+      (``curie_landau_fit``); for M(T), supports extrapolation from runs
+      that end below Tc.
+    * ``'ms_squared_extrapolation'`` — mean-field extrapolation of Ms^2 to
+      zero (``curie_ms_squared_extrapolation``; Moskowitz, 1981); for M(T)
+      curves that end below Tc. Not selectable for susceptibility data.
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        MagIC-formatted experiment DataFrame.
+    methods : sequence of str, optional
+        Methods to apply. Default depends on the data type (see
+        ``data_type``): susceptibility data use
+        ``('inflection', 'max_curvature', 'inverse_susceptibility')``;
+        magnetization data use
+        ``('inflection', 'max_curvature', 'two_tangent', 'landau')``.
+    temperature_column : str, optional
+        Name of the temperature column (default 'meas_temp').
+    magnetic_column : str, optional
+        Name of the magnetization/susceptibility column
+        (default 'susc_chi_mass').
+    temp_unit : {'C', 'K'}, optional
+        Unit for reported temperatures (default 'C').
+    input_unit : {'K', 'C'}, optional
+        Unit of the temperatures in ``experiment`` (default 'K', the MagIC
+        convention).
+    smooth_window : float, optional
+        Smoothing window width in ``temp_unit`` (default 0, no smoothing).
+        Derivative-based methods generally require smoothing of noisy data;
+        see ``optimize_moving_average_window``.
+    remove_holder : bool, optional
+        Subtract the per-branch minimum (default True). Disable for runs that
+        end below the Curie temperature.
+    branches : sequence of str, optional
+        Branches to analyze, from ('heating', 'cooling').
+    method_kwargs : dict, optional
+        Per-method keyword arguments, e.g.
+        ``{'inverse_susceptibility': {'fit_range': (620, 700)},
+        'landau': {'fit_range': (300, 650)}}``. The keys ``'inflection'``
+        and ``'max_curvature'`` (or the shared key ``'derivative'``) forward
+        options such as ``t_range`` to ``curie_derivative_estimates``.
+        Unknown keys raise a ValueError rather than being silently ignored.
+    print_estimates : bool, optional
+        Print a one-line summary per estimate (default False).
+    data_type : {'susceptibility', 'magnetization', None}, optional
+        Explicit data type, controlling the default method set and the
+        caveat notes. When None (default), inferred from whether
+        ``magnetic_column`` contains 'susc' or 'chi'.
+    branch_data : dict, optional
+        Precomputed output of ``prepare_thermomag_branches`` (with matching
+        preprocessing arguments). When provided, preprocessing is skipped —
+        used by ``plot_curie_estimates`` to avoid recomputation.
+    return_method_results : bool, optional
+        If True, also return a dict keyed by ``(branch, method)`` holding
+        each estimator's full result (including ``diagnostics``), for
+        plotting or further analysis (default False).
+
+    Returns
+    -------
+    pandas.DataFrame or (pandas.DataFrame, dict)
+        One row per (branch, method) with columns ``specimen``,
+        ``experiment``, ``branch``, ``method``, ``curie_temp``,
+        ``curie_temp_stderr``, ``temp_unit``, ``params`` (dict of
+        method-specific parameters), and ``notes``. With
+        ``return_method_results=True``, additionally the per-(branch,
+        method) result dicts.
+    """
+    if method_kwargs is None:
+        method_kwargs = {}
+
+    data_type = _resolve_thermomag_data_type(data_type, magnetic_column)
+    is_susceptibility = data_type == "susceptibility"
+    if methods is None:
+        if is_susceptibility:
+            methods = ("inflection", "max_curvature", "inverse_susceptibility")
+        else:
+            methods = ("inflection", "max_curvature", "two_tangent", "landau")
+
+    known = {"inflection", "max_curvature", "two_tangent",
+             "inverse_susceptibility", "landau", "ms_squared_extrapolation"}
+    unknown = set(methods) - known
+    if unknown:
+        raise ValueError(f"unknown method(s): {sorted(unknown)}; "
+                         f"choose from {sorted(known)}")
+    if is_susceptibility and "ms_squared_extrapolation" in methods:
+        raise ValueError(
+            "ms_squared_extrapolation is a magnetization (Ms-T) method and "
+            "does not apply to susceptibility data; use data_type="
+            "'magnetization' for Ms(T) experiments"
+        )
+    unknown_kwargs = set(method_kwargs) - known - {"derivative"}
+    if unknown_kwargs:
+        raise ValueError(
+            f"unknown method_kwargs key(s): {sorted(unknown_kwargs)}; "
+            f"choose from {sorted(known | {'derivative'})}"
+        )
+
+    derivative_kwargs = {
+        "smooth_window": smooth_window,
+        **method_kwargs.get("derivative", {}),
+        **method_kwargs.get("inflection", {}),
+        **method_kwargs.get("max_curvature", {}),
+    }
+
+    if branch_data is None:
+        branch_data = prepare_thermomag_branches(
+            experiment,
+            temperature_column=temperature_column,
+            magnetic_column=magnetic_column,
+            temp_unit=temp_unit,
+            input_unit=input_unit,
+            smooth_window=smooth_window,
+            remove_holder=remove_holder,
+        )
+
+    specimen = (experiment["specimen"].unique()[0]
+                if "specimen" in experiment else "")
+    experiment_name = (experiment["experiment"].unique()[0]
+                       if "experiment" in experiment else "")
+
+    rows = []
+    method_results = {}
+    for branch in branches:
+        data = branch_data.get(branch)
+        if data is None:
+            continue
+        T, y = data["T"], data["y"]
+
+        derivative_result = None
+        if "inflection" in methods or "max_curvature" in methods:
+            derivative_result = curie_derivative_estimates(
+                T, y, **derivative_kwargs
+            )
+
+        for method in methods:
+            curie_temp = np.nan
+            stderr = np.nan
+            params = {}
+            if method == "inflection":
+                curie_temp = derivative_result["inflection_temp"]
+                params = {"first_derivative_min_temp":
+                          derivative_result["first_derivative_min_temp"]}
+                method_results[(branch, method)] = derivative_result
+            elif method == "max_curvature":
+                curie_temp = derivative_result["max_curvature_temp"]
+                method_results[(branch, method)] = derivative_result
+            elif method == "two_tangent":
+                r = curie_two_tangent(T, y, **method_kwargs.get("two_tangent", {}))
+                curie_temp, params = r["curie_temp"], r["params"]
+                method_results[(branch, method)] = r
+            elif method == "inverse_susceptibility":
+                r = curie_inverse_susceptibility(
+                    T, y, **method_kwargs.get("inverse_susceptibility", {})
+                )
+                curie_temp, stderr, params = (r["curie_temp"],
+                                              r["curie_temp_stderr"],
+                                              r["params"])
+                method_results[(branch, method)] = r
+            elif method == "landau":
+                landau_kwargs = dict(method_kwargs.get("landau", {}))
+                landau_kwargs.setdefault("temp_unit", temp_unit)
+                r = curie_landau_fit(T, y, **landau_kwargs)
+                curie_temp, stderr, params = (r["curie_temp"],
+                                              r["curie_temp_stderr"],
+                                              r["params"])
+                method_results[(branch, method)] = r
+            elif method == "ms_squared_extrapolation":
+                r = curie_ms_squared_extrapolation(
+                    T, y, **method_kwargs.get("ms_squared_extrapolation", {})
+                )
+                curie_temp, stderr, params = (r["curie_temp"],
+                                              r["curie_temp_stderr"],
+                                              r["params"])
+                method_results[(branch, method)] = r
+
+            notes = _CURIE_METHOD_NOTES[method]
+            if is_susceptibility and method in _CURIE_CHI_METHOD_CAVEATS:
+                notes = _CURIE_CHI_METHOD_CAVEATS[method]
+
+            rows.append({
+                "specimen": specimen,
+                "experiment": experiment_name,
+                "branch": branch,
+                "method": method,
+                "curie_temp": curie_temp,
+                "curie_temp_stderr": stderr,
+                "temp_unit": temp_unit,
+                "params": params,
+                "notes": notes,
+            })
+            if print_estimates and np.isfinite(curie_temp):
+                stderr_text = (f" ± {stderr:.1f}" if np.isfinite(stderr) else "")
+                print(f"{branch:<8} {method:<24} "
+                      f"Tc = {curie_temp:.1f}{stderr_text} °{temp_unit}")
+
+    estimates = pd.DataFrame(rows, columns=[
+        "specimen", "experiment", "branch", "method", "curie_temp",
+        "curie_temp_stderr", "temp_unit", "params", "notes",
+    ])
+    if return_method_results:
+        return estimates, method_results
+    return estimates
+
+
+# Okabe & Ito (2008) colorblind-safe colors used to distinguish Curie
+# temperature estimation methods in plots
+_CURIE_METHOD_COLORS = {
+    "inflection": "#0072B2",             # blue
+    "max_curvature": "#E69F00",          # orange
+    "two_tangent": "#009E73",            # green
+    "inverse_susceptibility": "#D55E00", # vermillion
+    "landau": "#CC79A7",                 # purple
+}
+
+
+def plot_curie_estimates(
+    experiment,
+    methods=None,
+    temperature_column="meas_temp",
+    magnetic_column="susc_chi_mass",
+    temp_unit="C",
+    input_unit="K",
+    smooth_window=0,
+    remove_holder=True,
+    branches=("heating", "cooling"),
+    method_kwargs=None,
+    figsize=(10, 10),
+    return_figure=False,
+    save_path=None,
+    data_type=None,
+):
+    """
+    Plot a thermomagnetic curve with Curie temperature estimates from
+    multiple methods overlain.
+
+    Produces a static matplotlib figure with up to three stacked panels:
+    (a) the (holder-corrected) curve per branch with a vertical line at each
+    method's estimate, the two-tangent construction, and the Landau model
+    curve where those methods are requested; (b) the first and second
+    derivatives with the inflection point and curvature maximum marked; and
+    (c) 1/chi with the Curie-Weiss fit when ``'inverse_susceptibility'`` is
+    requested. Method colors follow the colorblind-safe palette of Okabe &
+    Ito (2008); heating estimates are drawn with solid lines and cooling
+    estimates with dashed lines.
+
+    Parameters mirror ``curie_temperature_estimates``; see that function for
+    the estimation details and method caveats.
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        MagIC-formatted experiment DataFrame.
+    methods : sequence of str, optional
+        Methods to display (default as in ``curie_temperature_estimates``).
+    temperature_column, magnetic_column, temp_unit, input_unit,
+    smooth_window, remove_holder, branches, method_kwargs, data_type :
+        As in ``curie_temperature_estimates``.
+    figsize : tuple, optional
+        Figure size in inches (default (10, 10)).
+    return_figure : bool, optional
+        If True, return ``(fig, axes)`` (default False).
+    save_path : str, optional
+        If given, save the figure to this path.
+
+    Returns
+    -------
+    (matplotlib.figure.Figure, numpy.ndarray of Axes) or None
+    """
+    if method_kwargs is None:
+        method_kwargs = {}
+
+    data_type = _resolve_thermomag_data_type(data_type, magnetic_column)
+    is_susceptibility = data_type == "susceptibility"
+    if methods is None:
+        if is_susceptibility:
+            methods = ("inflection", "max_curvature", "inverse_susceptibility")
+        else:
+            methods = ("inflection", "max_curvature", "two_tangent", "landau")
+
+    branch_data = prepare_thermomag_branches(
+        experiment,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column,
+        temp_unit=temp_unit,
+        input_unit=input_unit,
+        smooth_window=smooth_window,
+        remove_holder=remove_holder,
+    )
+    # single computation: the estimators run once here and both the tidy
+    # table and the plotted constructions come from the same results
+    estimates, method_results = curie_temperature_estimates(
+        experiment,
+        methods=methods,
+        temperature_column=temperature_column,
+        magnetic_column=magnetic_column,
+        temp_unit=temp_unit,
+        input_unit=input_unit,
+        smooth_window=smooth_window,
+        remove_holder=remove_holder,
+        branches=branches,
+        method_kwargs=method_kwargs,
+        data_type=data_type,
+        branch_data=branch_data,
+        return_method_results=True,
+    )
+
+    want_derivative_panel = ("inflection" in methods
+                             or "max_curvature" in methods)
+    want_inverse_panel = "inverse_susceptibility" in methods
+    n_panels = 1 + int(want_derivative_panel) + int(want_inverse_panel)
+
+    fig, axes = plt.subplots(n_panels, 1, figsize=figsize, sharex=True)
+    axes = np.atleast_1d(axes)
+    ax_main = axes[0]
+    ax_deriv = axes[1] if want_derivative_panel else None
+    ax_inv = axes[-1] if want_inverse_panel else None
+
+    branch_styles = {
+        "heating": {"data_color": "#bbbbbb", "line_color": "#333333",
+                    "linestyle": "-", "label": "heating"},
+        "cooling": {"data_color": "#dddddd", "line_color": "#888888",
+                    "linestyle": "--", "label": "cooling"},
+    }
+    y_label = ("χ (m³ kg⁻¹)" if is_susceptibility else "M (Am² kg⁻¹)")
+
+    for branch in branches:
+        data = branch_data.get(branch)
+        if data is None:
+            continue
+        style = branch_styles[branch]
+        T, y = data["T"], data["y"]
+
+        ax_main.scatter(data["raw_T"], data["raw_y"], s=8,
+                        color=style["data_color"], zorder=1)
+        ax_main.plot(T, y, color=style["line_color"],
+                     linestyle=style["linestyle"], linewidth=1.5,
+                     label=style["label"], zorder=2)
+
+        # per-method annotations
+        branch_estimates = estimates[estimates["branch"] == branch]
+        for _, row in branch_estimates.iterrows():
+            if not np.isfinite(row["curie_temp"]):
+                continue
+            ax_main.axvline(
+                row["curie_temp"],
+                color=_CURIE_METHOD_COLORS[row["method"]],
+                linestyle=style["linestyle"], linewidth=1.2, alpha=0.9,
+                label=f"{row['method']} ({branch}): "
+                      f"{row['curie_temp']:.0f} °{temp_unit}",
+                zorder=3,
+            )
+
+        two_tangent_result = method_results.get((branch, "two_tangent"))
+        if two_tangent_result is not None and np.isfinite(
+                two_tangent_result["curie_temp"]):
+            p = two_tangent_result["params"]
+            curie_temp = two_tangent_result["curie_temp"]
+            T_lower = np.array([p["lower_range"][0], curie_temp])
+            T_upper = np.array([curie_temp, T.max()])
+            ax_main.plot(
+                T_lower, p["lower_slope"] * T_lower + p["lower_intercept"],
+                color=_CURIE_METHOD_COLORS["two_tangent"],
+                linestyle=":", linewidth=1.2, zorder=3,
+            )
+            ax_main.plot(
+                T_upper, p["upper_slope"] * T_upper + p["upper_intercept"],
+                color=_CURIE_METHOD_COLORS["two_tangent"],
+                linestyle=":", linewidth=1.2, zorder=3,
+            )
+
+        landau_result = method_results.get((branch, "landau"))
+        if landau_result is not None and np.isfinite(
+                landau_result["curie_temp"]):
+            d = landau_result["diagnostics"]
+            ax_main.plot(
+                d["model_T"], d["model_M"],
+                color=_CURIE_METHOD_COLORS["landau"],
+                linestyle="-", linewidth=1.2, alpha=0.9, zorder=3,
+            )
+
+        derivative_result = (method_results.get((branch, "inflection"))
+                             or method_results.get((branch, "max_curvature")))
+        if ax_deriv is not None and derivative_result is not None:
+            r = derivative_result
+            d = r["diagnostics"]
+            if d["dy_dT"].size:
+                ax_deriv.plot(d["T"], d["dy_dT"],
+                              color=style["line_color"],
+                              linestyle=style["linestyle"], linewidth=1.2,
+                              label=f"dy/dT ({branch})")
+                if "inflection" in methods and np.isfinite(r["inflection_temp"]):
+                    ax_deriv.axvline(r["inflection_temp"],
+                                     color=_CURIE_METHOD_COLORS["inflection"],
+                                     linestyle=style["linestyle"],
+                                     linewidth=1.0, alpha=0.9)
+                if ("max_curvature" in methods
+                        and np.isfinite(r["max_curvature_temp"])):
+                    ax_deriv.axvline(r["max_curvature_temp"],
+                                     color=_CURIE_METHOD_COLORS["max_curvature"],
+                                     linestyle=style["linestyle"],
+                                     linewidth=1.0, alpha=0.9)
+
+        inverse_result = method_results.get((branch, "inverse_susceptibility"))
+        if ax_inv is not None and branch == "heating" and inverse_result is not None:
+            r = inverse_result
+            d = r["diagnostics"]
+            if d:
+                ax_inv.plot(d["T"], d["inv_chi"], color=style["line_color"],
+                            linestyle="none", marker="o", markersize=3,
+                            label="1/χ (heating)")
+                if np.isfinite(r["curie_temp"]):
+                    ax_inv.plot(
+                        d["line_T"], d["line_inv_chi"],
+                        color=_CURIE_METHOD_COLORS["inverse_susceptibility"],
+                        linewidth=1.2,
+                        label=f"Curie-Weiss fit: θ = "
+                              f"{r['curie_temp']:.0f} °{temp_unit}",
+                    )
+                    ax_inv.axvline(
+                        r["curie_temp"],
+                        color=_CURIE_METHOD_COLORS["inverse_susceptibility"],
+                        linestyle="-", linewidth=1.0, alpha=0.9,
+                    )
+                ax_inv.set_ylabel("1/χ")
+                ax_inv.legend(fontsize=8, loc="upper left")
+
+    title = (experiment["specimen"].unique()[0]
+             if "specimen" in experiment else "")
+    ax_main.set_title(title)
+    ax_main.set_ylabel(y_label)
+    ax_main.legend(fontsize=8, loc="upper right")
+    if ax_deriv is not None:
+        ax_deriv.set_ylabel("dy/dT")
+        ax_deriv.legend(fontsize=8, loc="lower left")
+    axes[-1].set_xlabel(f"Temperature (°{temp_unit})")
+    for ax in axes:
+        ax.grid(True, alpha=0.4)
+
+    fig.tight_layout()
+    if save_path is not None:
+        fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    if return_figure:
+        return fig, axes
+    plt.show()
+    return None
+
+
+def interactive_curie_inverse_susceptibility(
     experiment,
     temperature_column="meas_temp",
     magnetic_column="susc_chi_mass",
     temp_unit="C",
+    input_unit="K",
     smooth_window=0,
     remove_holder=True,
+    branch="heating",
+    initial_fit_range=None,
     figsize=(6, 6),
-    inverse_method=False,
-    print_estimates=True
 ):
     """
-    Estimate the Curie temperature from high temperature susceptibility curves in multiple ways. Automatically calculates first derivative minimum, second derivative maximum, and
-    second derivative zero-crossing. Also has option to estimate Curie temperature from inverse susceptibility (E. Petrovsky and A. Kapicka, 2006). Uses Bokeh for the interactive plot.
+    Interactive (Bokeh) Curie-Weiss fit to inverse susceptibility.
 
-    Parameters:
-        experiment (pandas.DataFrame): MagIC-formatted experiment DataFrame.
-        temperature_column (str): Name of temperature column.
-        magnetic_column (str): Name of susceptibility column.
-        temp_unit (str): "C" for Celsius.
-        smooth_window (int): Window for smoothing, if 0, no smoothing is applied.
-        remove_holder (bool): Subtracts holder signal to better isolate specimen signal.
-        figsize (tuple): (width, height) in inches.
-        inverse_method (bool): Use inverse susceptibility method.
-        print_estimates (bool): Print estimated Curie temperatures.
-    
+    Displays 1/chi versus temperature with a two-point fit line whose
+    endpoints can be dragged (Bokeh ``PointDrawTool``); the extrapolated
+    temperature where 1/chi reaches zero — the paramagnetic Curie temperature
+    theta (Petrovsky & Kapicka, 2006, doi:10.1029/2006JB004507) — updates
+    live below the plot.
+
+    This tool is for exploration: it helps identify the temperature interval
+    over which 1/chi is linear (fully paramagnetic). For reported values, use
+    ``curie_inverse_susceptibility`` with the ``fit_range`` identified here,
+    so that the fit is reproducible.
+
+    Parameters
+    ----------
+    experiment : pandas.DataFrame
+        MagIC-formatted experiment DataFrame.
+    temperature_column, magnetic_column, temp_unit, input_unit,
+    smooth_window, remove_holder :
+        As in ``curie_temperature_estimates``.
+    branch : {'heating', 'cooling'}, optional
+        Branch to display (default 'heating').
+    initial_fit_range : tuple of (float, float), optional
+        Initial temperatures (in ``temp_unit``) for the two fit-line
+        endpoints. Defaults to 70 percent and 100 percent of the branch's
+        temperature range — a starting position only, meant to be dragged.
+    figsize : tuple, optional
+        (width, height) in inches; height sets the Bokeh plot height.
+
     Returns
     -------
+    None
+        The interactive Bokeh application is displayed as a side effect; no
+        value is returned. For a reproducible, reportable estimate use
+        ``curie_inverse_susceptibility`` with the ``fit_range`` identified
+        here.
 
-    temp_of_first_derivative_min_heating : float
-        temperature of first derivative minimum for heating cycle
-    temp_of_first_derivative_min_cooling : float
-        temperature of first derivative minimum for cooling cycle
-    temp_of_second_derivative_max_heating : float
-        temperature of second derivative maximum for heating cycle
-    temp_of_second_derivative_max_cooling : float
-        temperature of second derivative maximum for cooling cycle
-    heating_zero : list of float or None
-        temperatures of second derivative zero-crossings for heating cycle, or None if none found
-    cooling_zero : list of float or None
-        temperatures of second derivative zero-crossings for cooling cycle, or None if none found
+    Raises
+    ------
+    ValueError
+        If the requested ``branch`` is not present in the experiment, or if it
+        has fewer than two usable (finite, positive-susceptibility) points.
     """
+    _check_bokeh()
 
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+    branch_data = prepare_thermomag_branches(
         experiment,
         temperature_column=temperature_column,
-        magnetic_column=magnetic_column
+        magnetic_column=magnetic_column,
+        temp_unit=temp_unit,
+        input_unit=input_unit,
+        smooth_window=smooth_window,
+        remove_holder=remove_holder,
     )
+    data = branch_data.get(branch)
+    if data is None:
+        raise ValueError(f"no {branch} data in this experiment")
 
-    if temp_unit == "C":
-        warm_T = [T - 273.15 for T in warm_T]
-        cool_T = [T - 273.15 for T in cool_T]
+    T_all, chi = data["T"], data["y"]
+    inv_chi = _inverse_susceptibility(chi)
+    mask = np.isfinite(inv_chi)
+    T = T_all[mask]
+    inv_chi = inv_chi[mask]
+    if T.size < 2:
+        raise ValueError("not enough usable points for the 1/chi plot")
+
+    if initial_fit_range is None:
+        i0 = int(T.size * 0.7)
+        i1 = T.size - 1
     else:
-        raise ValueError('temp_unit must be "C"')
+        i0 = int(np.argmin(np.abs(T - initial_fit_range[0])))
+        i1 = int(np.argmin(np.abs(T - initial_fit_range[1])))
+    if i0 == i1:
+        i0 = max(i1 - 1, 0)
 
-    if remove_holder:
-        holder_w = min(warm_X)
-        holder_c = min(cool_X)
-        warm_X = [X - holder_w for X in warm_X]
-        cool_X = [X - holder_c for X in cool_X]
-
-    swT, swX = smooth_moving_avg(warm_T, warm_X, smooth_window)
-    scT, scX = smooth_moving_avg(cool_T, cool_X, smooth_window)
-
-    dx_w = np.gradient(swX, swT)
-    dx_c = np.gradient(scX, scT)
-
-    temp_of_first_derivative_min_heating = swT[np.argmin(dx_w)]
-    temp_of_first_derivative_min_cooling = scT[np.argmin(dx_c)]
-
-    dx_2_w = np.gradient(dx_w, swT)
-    dx_2_c = np.gradient(dx_c, scT)
-
-    temp_of_second_derivative_max_heating = swT[np.argmax(dx_2_w)]
-    temp_of_second_derivative_max_cooling = scT[np.argmax(dx_2_c)]
-
-    # Physically consistent zero-crossing logic for heating
-    min_idx_w = np.argmin(dx_2_w)
-    max_idx_w = np.argmax(dx_2_w)
-    lower_w, upper_w = sorted([min_idx_w, max_idx_w])
-    dx2_slice_w = dx_2_w[lower_w:upper_w]
-    temp_slice_w = swT[lower_w:upper_w]
-    crossings_w = np.where(np.diff(np.sign(dx2_slice_w)))[0]
-    temp_of_zero_crossing_heating = [temp_slice_w[i] for i in crossings_w]
-
-    # Physically consistent zero-crossing logic for cooling
-    min_idx_c = np.argmin(dx_2_c)
-    max_idx_c = np.argmax(dx_2_c)
-    lower_c, upper_c = sorted([min_idx_c, max_idx_c])
-    dx2_slice_c = dx_2_c[lower_c:upper_c]
-    temp_slice_c = scT[lower_c:upper_c]
-    crossings_c = np.where(np.diff(np.sign(dx2_slice_c)))[0]
-    temp_of_zero_crossing_cooling = [temp_slice_c[i] for i in crossings_c]
-
-    if inverse_method:
-        _check_bokeh()
-        bokeh_height = int(figsize[1] * 96)
-        title = experiment["specimen"].unique()[0]
-        swX_arr = np.array(swX)
-        inv_w = np.divide(1.0, swX_arr, out=np.full_like(swX_arr, np.nan), where=swX_arr != 0.0)
-        mask_w = np.isfinite(inv_w)
-        T = np.array(swT)[mask_w]
-        inv_chi = inv_w[mask_w]
-
-        # Creates initial fit endpoints (choose two points in the linear region)
-        # 0.7 is Magic Number which places initial fit near expected linear region
-        fit_x = [T[int(len(T)*0.7)], T[-1]]
-        fit_y = [inv_chi[int(len(inv_chi)*0.7)], inv_chi[-1]]
-        fit_source = ColumnDataSource(data=dict(x=fit_x, y=fit_y))
-        # scatter and line for data
-        data_source = ColumnDataSource(data=dict(x=T, y=inv_chi))
-        p_inv = figure(title=f"{title} – 1/χ",
-                       height=bokeh_height,
-                       x_axis_label=f"Temperature (°{temp_unit})",
-                       y_axis_label="1/χ",
-                       tools="pan,wheel_zoom,box_zoom,reset,save",
-                      )
-        p_inv.scatter('x', 'y', source=data_source, size=8, color="red", legend_label="Heating – 1/χ")
-        renderer = p_inv.scatter('x', 'y', source=fit_source, size=12, color="blue", legend_label="Fit Endpoints")
-        p_inv.line('x', 'y', source=fit_source, line_width=2, color="blue", legend_label="Fit Line")
-        # PointDrawTool for dragging endpoints
-        draw_tool = PointDrawTool(renderers=[renderer], add=False)
-        p_inv.add_tools(draw_tool)
-        p_inv.toolbar.active_tap = draw_tool
-        p_inv.legend.location = "top_left"   
-        # Div to display Curie temperature
-        curie_estimate = Div(text="Curie temperature: --", styles={'font-size': '16px', 'color': 'darkred'})  
-        # JS callback to update fit line and Curie temperature estimate
-        callback = CustomJS(args=dict(source=fit_source, div=curie_estimate), code="""
-            var x = source.data.x;
-            var y = source.data.y;
-            if (x.length == 2) {
-                var slope = (y[1] - y[0]) / (x[1] - x[0]);
-                var intercept = y[0] - slope * x[0];
-                // Estimate Curie temperature: x where y=0
-                var Tc = -intercept / slope;
-                div.text = "Curie temperature estimate: " + Tc.toFixed(2) + " °C";
-            }
-        """)
-        fit_source.js_on_change('data', callback)       
-        show(column(p_inv, curie_estimate))
-
-    if print_estimates:
-        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_heating)} for heating')
-        print(f'First derivative minimum is at T={int(temp_of_first_derivative_min_cooling)} for cooling')
-        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_heating)} for heating')
-        print(f'Second derivative maximum is at T={int(temp_of_second_derivative_max_cooling)} for cooling')
-        if temp_of_zero_crossing_heating:  
-            print(f'The second derivative of the heating curve crosses zero at T = {int(temp_of_zero_crossing_heating[0])}')  
-        else:  
-            print('No zero crossing found for the second derivative of the heating curve.')  
-        if temp_of_zero_crossing_cooling:  
-            print(f'The second derivative of the cooling curve crosses zero at T = {int(temp_of_zero_crossing_cooling[0])}')  
-        else:
-            print('No zero crossing found for the second derivative of the cooling curve.')
-
-    heating_zero = temp_of_zero_crossing_heating[0] if temp_of_zero_crossing_heating else None
-    cooling_zero = temp_of_zero_crossing_cooling[0] if temp_of_zero_crossing_cooling else None
-
-    return (
-        temp_of_first_derivative_min_heating,
-        temp_of_first_derivative_min_cooling,
-        temp_of_second_derivative_max_heating,
-        temp_of_second_derivative_max_cooling,
-        heating_zero,
-        cooling_zero
+    fit_source = ColumnDataSource(
+        data=dict(x=[T[i0], T[i1]], y=[inv_chi[i0], inv_chi[i1]])
     )
+    data_source = ColumnDataSource(data=dict(x=T, y=inv_chi))
+
+    title = (experiment["specimen"].unique()[0]
+             if "specimen" in experiment else "")
+    bokeh_height = int(figsize[1] * 96)
+    p_inv = figure(
+        title=f"{title} – 1/χ ({branch})",
+        height=bokeh_height,
+        x_axis_label=f"Temperature (°{temp_unit})",
+        y_axis_label="1/χ",
+        tools="pan,wheel_zoom,box_zoom,reset,save",
+    )
+    p_inv.scatter("x", "y", source=data_source, size=8, color="red",
+                  legend_label=f"{branch} – 1/χ")
+    renderer = p_inv.scatter("x", "y", source=fit_source, size=12,
+                             color="blue", legend_label="Fit endpoints")
+    p_inv.line("x", "y", source=fit_source, line_width=2, color="blue",
+               legend_label="Fit line")
+    draw_tool = PointDrawTool(renderers=[renderer], add=False)
+    p_inv.add_tools(draw_tool)
+    p_inv.toolbar.active_tap = draw_tool
+    p_inv.legend.location = "top_left"
+
+    curie_estimate = Div(
+        text="Curie temperature: --",
+        styles={"font-size": "16px", "color": "darkred"},
+    )
+    callback = CustomJS(args=dict(source=fit_source, div=curie_estimate,
+                                  unit=temp_unit), code="""
+        var x = source.data.x;
+        var y = source.data.y;
+        if (x.length == 2) {
+            var slope = (y[1] - y[0]) / (x[1] - x[0]);
+            var intercept = y[0] - slope * x[0];
+            var Tc = -intercept / slope;
+            div.text = "Curie temperature estimate: " + Tc.toFixed(2) +
+                       " °" + unit;
+        }
+    """)
+    fit_source.js_on_change("data", callback)
+    show(column(p_inv, curie_estimate))
+
+
+def add_curie_estimates_to_specimens_table(
+    specimens_df,
+    experiment_name,
+    estimates,
+    method="inflection",
+    branch="heating",
+    critical_temp_type="Curie",
+):
+    """
+    Write a Curie temperature estimate to a MagIC specimens table.
+
+    Sets ``critical_temp`` (in Kelvin, per the MagIC data model) and
+    ``critical_temp_type`` (controlled vocabulary; 'Curie' by default) for
+    the rows whose ``experiments`` column matches ``experiment_name``, and
+    records the estimation method, branch, and uncertainty in the
+    ``description`` column so the processing choice is archived with the
+    result. Updates ``specimens_df`` in place.
+
+    Parameters
+    ----------
+    specimens_df : pandas.DataFrame
+        MagIC specimens table (with an 'experiments' column).
+    experiment_name : str
+        Experiment the estimate belongs to.
+    estimates : pandas.DataFrame
+        Tidy table from ``curie_temperature_estimates``.
+    method : str, optional
+        Which method's estimate to write (default 'inflection').
+    branch : str, optional
+        Which branch's estimate to write (default 'heating').
+    critical_temp_type : str, optional
+        MagIC controlled-vocabulary temperature type (default 'Curie').
+    """
+    import ast
+
+    selection = estimates[(estimates["method"] == method)
+                          & (estimates["branch"] == branch)]
+    if selection.empty:
+        raise ValueError(
+            f"no estimate with method='{method}' and branch='{branch}' "
+            f"in the estimates table"
+        )
+    row = selection.iloc[0]
+    if not np.isfinite(row["curie_temp"]):
+        raise ValueError(
+            f"the {method}/{branch} estimate is NaN; nothing to write"
+        )
+
+    curie_temp_K = float(
+        convert_temperature(np.array([row["curie_temp"]]),
+                            row["temp_unit"], "K")[0]
+    )
+
+    if "critical_temp" not in specimens_df.columns:
+        specimens_df["critical_temp"] = np.nan
+    for column_name in ("critical_temp_type", "description"):
+        if column_name not in specimens_df.columns:
+            specimens_df[column_name] = pd.Series(
+                [None] * len(specimens_df), dtype=object
+            )
+        elif specimens_df[column_name].dtype != object:
+            specimens_df[column_name] = specimens_df[column_name].astype(object)
+
+    # match on the experiments column (which may hold colon-delimited lists
+    # of experiment names in real contributions), falling back to the
+    # specimen name recorded in the estimates table; exact/token matching is
+    # used rather than substring matching so that an experiment name cannot
+    # match a longer sibling name (e.g., '...-MST-1' matching '...-MST-10')
+    experiments_column = specimens_df["experiments"]
+    target = (experiments_column == experiment_name).fillna(False).to_numpy(
+        dtype=bool)
+    if not target.any():
+        target = np.array([
+            isinstance(cell, str) and experiment_name in cell.split(":")
+            for cell in experiments_column
+        ])
+    if not target.any() and row["specimen"]:
+        target = (specimens_df["specimen"] == row["specimen"]).fillna(
+            False).to_numpy(dtype=bool)
+    if not target.any():
+        raise ValueError(
+            f"experiment '{experiment_name}' (and specimen "
+            f"'{row['specimen']}') not found in the specimens table"
+        )
+    specimens_df.loc[target, "critical_temp"] = curie_temp_K
+    specimens_df.loc[target, "critical_temp_type"] = critical_temp_type
+
+    curie_description = {
+        "curie_method": method,
+        "curie_branch": branch,
+        "curie_temp_K": round(curie_temp_K, 2),
+    }
+    if np.isfinite(row["curie_temp_stderr"]):
+        curie_description["curie_temp_stderr"] = round(
+            float(row["curie_temp_stderr"]), 2
+        )
+
+    # merge with any existing description without destroying it: a dict
+    # literal is updated in place, while free text is preserved and the
+    # Curie results appended after it
+    existing = specimens_df.loc[target, "description"].iloc[0]
+    prefix = ""
+    description_dict = {}
+    if isinstance(existing, str) and existing.strip():
+        try:
+            parsed = ast.literal_eval(existing)
+            if isinstance(parsed, dict):
+                description_dict = parsed
+            else:
+                prefix = existing.strip()
+        except (ValueError, SyntaxError):
+            prefix = existing.strip()
+    description_dict.update(curie_description)
+    new_description = str(description_dict)
+    if prefix:
+        new_description = f"{prefix}; {new_description}"
+    specimens_df.loc[target, "description"] = new_description
+    return
+
 
 def smooth_moving_avg(
     x,
@@ -4768,7 +6485,14 @@ def smooth_moving_avg(
             Otherwise, only return smoothed x and y. Defaults to False.
 
     Returns:
-        smoothed_x, smoothed_y (, x_var, y_var)
+        tuple: ``(smoothed_x, smoothed_y)`` by default, or
+        ``(smoothed_x, smoothed_y, x_var, y_var)`` when return_variance is
+        True. ``smoothed_x`` and ``smoothed_y`` are the window-averaged arrays
+        (same length as the inputs); ``x_var`` and ``y_var`` are the
+        corresponding per-point weighted variances within each window (in the
+        squared units of x and y), a measure of local spread. When
+        x_window is 0 the inputs are returned unchanged and the variances are
+        zero.
     """
     # convert to numpy arrays
     x = np.asarray(x)
@@ -4813,6 +6537,11 @@ def smooth_moving_avg(
             else:
                 w = getattr(np, window_type)(m)
             wsum = w.sum()
+            if wsum <= 0:
+                # window functions like hanning are identically zero for
+                # m <= 2; fall back to a flat window
+                w = np.ones(m)
+                wsum = float(m)
             mean_x = (w * xx).sum() / wsum
             mean_y = (w * yy).sum() / wsum
             if return_variance:
@@ -4861,7 +6590,7 @@ def X_T_running_average(temp_list, chi_list, temp_window):
     chi_vars : List[float]
         The variance of susceptibility values in each window.
     """
-    if not temp_list or not chi_list or temp_window <= 0:
+    if len(temp_list) == 0 or len(chi_list) == 0 or temp_window <= 0:
         return temp_list, chi_list, [], []
     
     avg_temps = []
@@ -5492,14 +7221,14 @@ def plot_backfield_unmixing_result(experiment, result, sigma=2, figsize=(8,6), n
                     [max(best_fit_interp[j]-dely_interp[j],0) for j in range(len(best_fit_interp))],
                     best_fit_interp+dely_interp,
                     color="#8A8A8A", 
-                    label=f'total {sigma}-$\sigma$ band', alpha=0.5)
+                    label=f'total {sigma}-$\\sigma$ band', alpha=0.5)
     if len(result.components) > 1:
         for i in range(len(result.components)):
             this_comp_interp = result.eval_components(x=x_interp)[f'g{i+1}_'] * np.max(raw_derivatives_y)
             this_dely = result.dely_comps[f'g{i+1}_'] * np.max(raw_derivatives_y)
             # impose bounds on the dely to be smaller than the best fit for the component
             this_dely = [min(this_dely[j], this_comp_interp[j]) for j in range(len(this_dely))]
-            ax.plot(x_interp, this_comp_interp, c=f'C{i}', label=f'component #{i+1}, {sigma}-$\sigma$ band')
+            ax.plot(x_interp, this_comp_interp, c=f'C{i}', label=f'component #{i+1}, {sigma}-$\\sigma$ band')
             lower_bound = [max(this_comp_interp[j]-this_dely[j],0) for j in range(len(this_comp_interp))]
             upper_bound = this_comp_interp+this_dely
             ax.fill_between(x_interp,
