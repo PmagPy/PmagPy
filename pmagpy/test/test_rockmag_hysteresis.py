@@ -547,12 +547,19 @@ class TestProcessHystLoop:
     def test_pipeline_ascending_first_matches_descending(self):
         # the same loop physics with the same drift law, measured in the two
         # sweep orders, must process to the same Mr and Bc now that the drift
-        # correction runs in true measurement-time order
+        # correction runs in true measurement-time order. fit_open_loop=True
+        # bypasses the open-loop decision-tree exit: the closure test cannot
+        # distinguish residual drift signal in Mrh from a genuinely open
+        # loop (positive drift on an ascending-first sweep leaves a positive
+        # high-field Mrh residual), and this test targets the sweep-order
+        # equivalence of the recovered parameters
         H_d, M_d = synthetic_loop(drift=0.05)
         H_a, M_a = synthetic_loop_ascending_first(drift=0.05)
-        res_d = rmag.process_hyst_loop(H_d, M_d, show_results_table=False,
+        res_d = rmag.process_hyst_loop(H_d, M_d, fit_open_loop=True,
+                                       show_results_table=False,
                                        show_plot=False)
-        res_a = rmag.process_hyst_loop(H_a, M_a, show_results_table=False,
+        res_a = rmag.process_hyst_loop(H_a, M_a, fit_open_loop=True,
+                                       show_results_table=False,
                                        show_plot=False)
         assert res_d['measured_descending_first']
         assert not res_a['measured_descending_first']
@@ -591,8 +598,10 @@ class TestOpenLoopBrh:
 
     def test_pipeline_survives_open_loops(self):
         # process_hyst_loop must complete on exactly the open-loop specimens
-        # the closure test is designed to flag, reporting NaN for the
-        # undefined parameters rather than crashing
+        # the closure test is designed to flag: the decision-tree exit
+        # reports the slope-independent parameters and quality statistics
+        # with the inseparable quantities as NaN, rather than crashing or
+        # reporting a meaningless Ms
         import warnings as _warnings
         # realistic: soft magnetite plus a dominant unsaturated hard phase
         H1, M1 = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
@@ -607,6 +616,99 @@ class TestOpenLoopBrh:
                                                  show_plot=False)
             assert not results['loop_is_closed']
             assert np.isnan(results['Brh'])
+            # Ms and chi_HF cannot be separated for an open loop
+            assert np.isnan(results['Ms'])
+            assert np.isnan(results['chi_HF'])
+            assert np.isnan(results['Bc'])
+            # slope-independent parameters and quality stats are reported
+            assert np.isfinite(results['Mr']) and results['Mr'] > 0
+            assert np.isfinite(results['Q'])
+
+    def test_fit_open_loop_overrides_exit(self):
+        # explicit fit_open_loop=True proceeds with the high-field fitting
+        # on an open loop, restoring an Ms estimate for users who ask for it
+        import warnings as _warnings
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=2.0, hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = rmag.process_hyst_loop(H, M, fit_open_loop=True,
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert not results['loop_is_closed']
+        assert np.isfinite(results['Ms'])
+
+    def test_NL_fit_implies_fit_open_loop(self):
+        # an explicit NL_fit=True is a fit request and must not be silently
+        # ignored by the open-loop exit
+        import warnings as _warnings
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=2.0, hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = rmag.process_hyst_loop(H, M, NL_fit=True,
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert np.isfinite(results['Ms'])
+        assert results['Fnl_lin'] is not None
+
+    def test_linear_loop_exits_with_chi_HF_only(self):
+        # a purely paramagnetic loop terminates at the whole-loop linearity
+        # test with chi_HF from the whole-loop regression; the ferromagnetic
+        # parameters are undefined
+        chi = 0.2
+        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4)
+        results = rmag.process_hyst_loop(H, M, show_results_table=False,
+                                         show_plot=False)
+        assert results['loop_is_linear']
+        assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7,
+                                                  rel=0.02)
+        assert np.isnan(results['Ms'])
+        assert np.isnan(results['Bc'])
+        assert np.isnan(results['Mr'])
+        assert results['loop_is_closed'] is None
+
+    def test_fit_linear_loop_overrides_exit(self):
+        # explicit fit_linear_loop=True processes a statistically linear
+        # loop in full, recovering chi_HF through the standard high-field
+        # fit rather than the whole-loop regression
+        import warnings as _warnings
+        chi = 0.2
+        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = rmag.process_hyst_loop(H, M, fit_linear_loop=True,
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert results['loop_is_linear']
+        assert results['loop_is_closed'] is not None
+        assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7,
+                                                  rel=0.02)
+
+    def test_exit_results_keep_full_key_schema(self):
+        # all three outcomes share one result key set, so batch tables from
+        # process_hyst_loops keep a stable schema (contract for
+        # add_hyst_stats_to_specimens_table)
+        import warnings as _warnings
+        H_full, M_full = synthetic_loop(noise=5e-4, chi=0.2)
+        H_lin, M_lin = synthetic_loop(Ms=0.0, chi=0.2, noise=1e-4)
+        H_open, M_open = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03,
+                                        hard_Ms=1.0, hard_Bc=2.0,
+                                        hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = [rmag.process_hyst_loop(H, M, show_results_table=False,
+                                              show_plot=False)
+                       for H, M in ((H_full, M_full), (H_lin, M_lin),
+                                    (H_open, M_open))]
+        res_full, res_lin, res_open = results
+        # guard against the comparison going vacuous: each loop must have
+        # taken the branch it was constructed for
+        assert not res_full['loop_is_linear'] and res_full['loop_is_closed']
+        assert np.isfinite(res_full['Ms'])
+        assert res_lin['loop_is_linear']
+        assert res_open['loop_is_closed'] is False
+        assert set(res_full) == set(res_lin) == set(res_open)
 
 
 class TestSparseLoopSaturation:

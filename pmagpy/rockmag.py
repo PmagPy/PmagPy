@@ -3894,8 +3894,43 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     return final_result_dict
 
 
+# Values reported by process_hyst_loop for quantities that are undefined at a
+# decision-tree exit (statistically linear loop, or loop that remains open at
+# the highest fields). The full key set is always present in the result so
+# batch tables (process_hyst_loops) and the specimens-table writer keep a
+# stable schema across all three outcomes.
+def _show_hyst_summary_table(summary, width):
+    """Display a one-row Bokeh table of hysteresis summary parameters.
+
+    Shared by the full processing path and the decision-tree exits of
+    process_hyst_loop, each of which passes only the parameters defined for
+    its outcome.
+    """
+    source = ColumnDataSource({name: [value] for name, value in summary.items()})
+    columns = [TableColumn(field=name, title=name) for name in summary]
+    data_table = DataTable(source=source, columns=columns,
+                           width=width, height=100)
+    data_table.index_position = None
+    show(column(data_table))
+
+
+_HYST_UNDEFINED_RESULTS = {
+    'loop_centering_results': None, 'centered_H': None, 'centered_M': None,
+    'drift_corrected_M': None, 'slope_corrected_M': None,
+    'loop_closure_test_results': None, 'loop_is_closed': None,
+    'loop_saturation_stats': None, 'loop_is_saturated': None,
+    'M_sn': np.nan, 'Q': np.nan,
+    'H': None, 'Mr': np.nan, 'Mrh': None, 'Mih': None, 'Me': None,
+    'Brh': np.nan, 'sigma': np.nan, 'chi_HF': np.nan,
+    'FNL60': np.nan, 'FNL70': np.nan, 'FNL80': np.nan,
+    'Ms': np.nan, 'Bc': np.nan, 'M_sn_f': np.nan, 'Qf': np.nan,
+    'Fnl_lin': None, 'plot': None,
+}
+
+
 def process_hyst_loop(field, magnetization, specimen_name='', show_results_table=True, show_plot=True,
-                      NL_fit=False, centering_protocol='legacy'):
+                      NL_fit=False, centering_protocol='legacy',
+                      fit_open_loop=False, fit_linear_loop=False):
     """
     Process a magnetic hysteresis loop using the IRM decision tree workflow.
 
@@ -3909,6 +3944,22 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     so non-finite measurement pairs are dropped with a report, numeric
     strings are converted, and either field sweep order (starting from
     positive or negative saturation) is accepted.
+
+    Two decision-tree exits terminate processing early, in both cases
+    returning the full result key set with the undefined quantities reported
+    as NaN/None so batch tables keep a stable schema:
+
+    - a loop that is statistically linear (whole-loop lack-of-fit test) is
+      dominated by paramagnetic or diamagnetic material; only the high-field
+      susceptibility (from the whole-loop regression) is reported. Passing
+      fit_linear_loop=True overrides this exit and processes the loop in
+      full;
+    - a loop that remains open at the highest fields (closure test) contains
+      unsaturated high-coercivity phases, so Ms and chi_HF cannot be
+      separated; the slope-independent parameters (Mr and Brh, computed from
+      Mrh in which linear-in-field contributions cancel) and the data
+      quality statistics are reported. Passing fit_open_loop=True overrides
+      this exit and proceeds with the high-field fitting.
 
     Parameters
     ----------
@@ -3926,10 +3977,31 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     show_plot : bool, optional
         If True (default), display the Bokeh plot of the hysteresis loop and processing steps.
     NL_fit : bool, optional
-        If True, force non-linear high-field fitting regardless of the saturation test result (default is False).
+        If True, force non-linear high-field fitting regardless of the
+        saturation test result (default is False). Because the
+        approach-to-saturation fit exists precisely for unsaturated loops,
+        NL_fit=True also proceeds through the open-loop exit (it implies
+        fit_open_loop=True).
     centering_protocol : {'legacy', 'iterative'}, optional
         Centering workflow to apply before drift and high-field corrections.
         Defaults to 'legacy' for backward compatibility.
+    fit_open_loop : bool, optional
+        If True, proceed with the high-field fitting (and the Ms estimate)
+        even when the closure test flags the loop as open. Default False:
+        open loops exit with the slope-independent parameters and data
+        quality statistics, since Ms and chi_HF cannot be separated for an
+        unsaturated loop. NL_fit=True implies this behavior. Note that
+        residual instrument drift can leave a spurious positive high-field
+        Mrh signal that trips the closure test on a visually closed loop
+        (particularly for loops measured from negative saturation); inspect
+        the loop and pass fit_open_loop=True in such cases.
+    fit_linear_loop : bool, optional
+        If True, process a statistically linear loop in full rather than
+        terminating with chi_HF only (default False). Useful when a weak
+        ferromagnetic signal near the noise level is of interest despite
+        the loop passing the whole-loop linearity test; the ferromagnetic
+        parameters from such a loop should be interpreted alongside the
+        quality statistics.
 
     Returns
     -------
@@ -3977,6 +4049,39 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     # test linearity of the gridded original loop
     loop_linearity_test_results = hyst_linearity_test(grid_fields, grid_magnetizations)
 
+    if loop_linearity_test_results['loop_is_linear'] and not fit_linear_loop:
+        # decision-tree exit (Jackson & Solheid, 2010): a statistically
+        # linear loop is dominated by paramagnetic or diamagnetic material,
+        # so the ferromagnetic parameters are undefined; processing
+        # terminates with the high-field susceptibility from the whole-loop
+        # regression (the same mu_0 conversion as linear_HF_fit) as the
+        # reported result
+        chi_HF = loop_linearity_test_results['slope'] * (4 * np.pi / 1e7)
+        print(f'-I- loop is statistically linear (FNL = '
+              f'{loop_linearity_test_results["FNL"]:.2f}): the loop is '
+              'dominated by paramagnetic or diamagnetic material and only '
+              'the high-field susceptibility is reported')
+        p = None
+        if _HAS_BOKEH:
+            p = plot_hysteresis_loop(grid_fields, grid_magnetizations,
+                                     specimen_name, line_color='orange',
+                                     label='raw loop (statistically linear)',
+                                     return_figure=True, show_plot=show_plot)
+            if show_results_table and p is not None:
+                _show_hyst_summary_table(
+                    {'chi_HF': chi_HF,
+                     'FNL': loop_linearity_test_results['FNL']}, p.width)
+        return {**_HYST_UNDEFINED_RESULTS,
+                'gridded_H': grid_fields,
+                'gridded_M': grid_magnetizations,
+                'measured_descending_first': descending_first,
+                'linearity_test_results': loop_linearity_test_results,
+                'loop_is_linear': True,
+                'FNL': loop_linearity_test_results['FNL'],
+                'centering_protocol': centering_protocol,
+                'chi_HF': chi_HF,
+                'plot': p}
+
     # loop centering
     if centering_protocol == 'legacy':
         loop_centering_results = hyst_loop_centering(grid_fields, grid_magnetizations)
@@ -4006,6 +4111,76 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     # check if the loop is saturated (high field linearity test)
     loop_saturation_stats = hyst_loop_saturation_test(centered_H, drift_corr_M)
+
+    if (not loop_closure_test_results['loop_is_closed']
+            and not (fit_open_loop or NL_fit)):
+        # decision-tree exit (Jackson & Solheid, 2010): the loop remains open
+        # at the highest fields (unsaturated high-coercivity phases such as
+        # hematite or goethite), so the ferromagnetic and paramagnetic
+        # contributions cannot be separated and Ms, chi_HF, and the
+        # slope-dependent parameters cannot be estimated. The
+        # slope-independent parameters (Mr and Brh, from Mrh, in which any
+        # linear-in-field contribution cancels) and the data quality
+        # statistics are reported. Pass fit_open_loop=True to proceed with
+        # the high-field fitting despite the open loop.
+        warnings.warn(
+            'loop remains open at the highest fields (closure test: '
+            f"SNR = {loop_closure_test_results['SNR']:.1f} dB, "
+            f"HAR = {loop_closure_test_results['HAR']:.1f} dB), so Ms and "
+            'chi_HF cannot be estimated; reporting the slope-independent '
+            'parameters (Mr, Brh) and data quality statistics only. If the '
+            'loop appears closed on inspection, residual instrument drift '
+            'may be triggering the test; pass fit_open_loop=True to force '
+            'the high-field fit.',
+            RuntimeWarning, stacklevel=2)
+        p = None
+        if _HAS_BOKEH:
+            p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop',
+                                     return_figure=True, show_plot=False)
+            p = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected',
+                                     return_figure=True, show_plot=False)
+            p = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p, line_color='pink', label=specimen_name+' drift corrected (open loop)',
+                                     return_figure=True, show_plot=False)
+            p.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
+            p.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
+            p.line(H, Me, line_color='brown', legend_label='Me', line_width=1)
+            if show_plot:
+                show(p)
+            if show_results_table:
+                _show_hyst_summary_table({
+                    'Mr': Mr, 'Brh': Brh,
+                    'Q': loop_centering_results['Q'],
+                    'FNL60': loop_saturation_stats['FNL60'],
+                    'FNL70': loop_saturation_stats['FNL70'],
+                    'FNL80': loop_saturation_stats['FNL80'],
+                    'SNR': loop_closure_test_results['SNR'],
+                    'HAR': loop_closure_test_results['HAR'],
+                }, p.width)
+        return {**_HYST_UNDEFINED_RESULTS,
+                'gridded_H': grid_fields,
+                'gridded_M': grid_magnetizations,
+                'measured_descending_first': descending_first,
+                'linearity_test_results': loop_linearity_test_results,
+                'loop_is_linear': loop_linearity_test_results['loop_is_linear'],
+                'FNL': loop_linearity_test_results['FNL'],
+                'loop_centering_results': loop_centering_results,
+                'centering_protocol': centering_protocol,
+                'centered_H': centered_H,
+                'centered_M': centered_M,
+                'drift_corrected_M': drift_corr_M,
+                'loop_closure_test_results': loop_closure_test_results,
+                'loop_is_closed': False,
+                'loop_saturation_stats': loop_saturation_stats,
+                'loop_is_saturated': loop_saturation_stats['loop_is_saturated'],
+                'M_sn': loop_centering_results['M_sn'],
+                'Q': loop_centering_results['Q'],
+                'H': H, 'Mr': Mr, 'Mrh': Mrh,
+                'Mih': Mih, 'Me': Me, 'Brh': Brh,
+                'FNL60': loop_saturation_stats['FNL60'],
+                'FNL70': loop_saturation_stats['FNL70'],
+                'FNL80': loop_saturation_stats['FNL80'],
+                'plot': p}
+
     if NL_fit:
         loop_saturation_stats['loop_is_saturated'] = False  # force non-linear high-field fitting
 
@@ -4081,31 +4256,13 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
                'plot': p}
     
     if show_results_table and _HAS_BOKEH and p_slope_corr is not None:
-        summary = {
-            'Mr':    [Mr],
-            'Ms':    [Ms],
-            'Bc':    [Bc],
-            'Brh':   [Brh],
-            'sigma': [sigma],
-            'Q':     [loop_centering_results['Q']],
-            'Qf':    [Qf],
-            'chi_HF':[chi_HF],
-            'FNL60': [loop_saturation_stats['FNL60']],
-            'FNL70': [loop_saturation_stats['FNL70']],
-            'FNL80': [loop_saturation_stats['FNL80']],
-        }
-        src = ColumnDataSource(summary)
-        cols = [
-            TableColumn(field=param, title=param)
-            for param in summary
-        ]
-        data_table = DataTable(
-            source=src, columns=cols,
-            width=p_slope_corr.width, height=100
-        )
-        data_table.index_position = None 
-        layout = column(data_table)
-        show(layout)
+        _show_hyst_summary_table({
+            'Mr': Mr, 'Ms': Ms, 'Bc': Bc, 'Brh': Brh, 'sigma': sigma,
+            'Q': loop_centering_results['Q'], 'Qf': Qf, 'chi_HF': chi_HF,
+            'FNL60': loop_saturation_stats['FNL60'],
+            'FNL70': loop_saturation_stats['FNL70'],
+            'FNL80': loop_saturation_stats['FNL80'],
+        }, p_slope_corr.width)
     return results
 
 def process_hyst_loops(
@@ -4116,6 +4273,8 @@ def process_hyst_loops(
     show_results_table=True,
     show_plots=True,
     centering_protocol='legacy',
+    fit_open_loop=False,
+    fit_linear_loop=False,
 ):
     """
     Process multiple hysteresis loops in batch.
@@ -4139,6 +4298,14 @@ def process_hyst_loops(
     centering_protocol : {'legacy', 'iterative'}, optional
         Centering workflow to pass through to process_hyst_loop.
         Defaults to 'legacy' for backward compatibility.
+    fit_open_loop : bool, optional
+        Passed through to process_hyst_loop: if True, high-field fitting
+        proceeds even for loops the closure test flags as open (default
+        False).
+    fit_linear_loop : bool, optional
+        Passed through to process_hyst_loop: if True, statistically linear
+        loops are processed in full rather than terminating with chi_HF
+        only (default False).
 
     Returns
     -------
@@ -4161,6 +4328,8 @@ def process_hyst_loops(
             show_results_table=show_results_table,
             show_plot=show_plots,
             centering_protocol=centering_protocol,
+            fit_open_loop=fit_open_loop,
+            fit_linear_loop=fit_linear_loop,
         )
         res['specimen'] = spec
         res['experiment'] = exp
@@ -8559,7 +8728,9 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
     that program.
 
     The coercivity spectrum dM/dlog10(B) is fit with skew-normal components,
-    and uncertainties are estimated exactly as in MAX UnMix: each of `n_boot`
+    and uncertainties are estimated with the MAX UnMix resampling scheme as
+    described by Maxbauer et al. (2016) (see the perturbation-step comment
+    in the code for one deliberate divergence from the R source): each of `n_boot`
     replicates (1) recomputes the spectrum from a random `proportion`
     (default 0.95) subset of the magnetization points drawn WITHOUT
     replacement, (2) restarts the fit from the best-fit parameters perturbed
@@ -8620,7 +8791,14 @@ def _unmix_method_maxunmix(x, magnetization, n_components=None,
         idx = np.sort(rng.choice(n, size=n_keep, replace=False))
         x_mid_b, spectrum_b = coercivity_spectrum_from_curve(x[idx], M[idx],
                                                              curve_type)
-        # (2) restart from the best fit perturbed by ~2% Gaussian noise
+        # (2) restart from the best fit perturbed by ~2% Gaussian noise.
+        # Note: the MAX UnMix R source intends this per parameter but passes
+        # the whole parameter vector as the sd argument of rnorm(1, ...),
+        # which silently uses only its first element, so there every
+        # parameter is actually perturbed by 2% of component 1's location.
+        # Here the algorithm is implemented as described in Maxbauer et al.
+        # (2016) -- each parameter perturbed relative to its own magnitude --
+        # rather than as that quirk executes.
         init = best.copy()
         init[:, 0] *= 1.0 + rng.normal(0.0, param_noise, K)   # contribution
         init[:, 1] *= 1.0 + rng.normal(0.0, param_noise, K)   # location
