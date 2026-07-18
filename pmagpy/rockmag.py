@@ -9088,17 +9088,17 @@ def plot_unmixing_ensemble(result, space='spectrum', n_draws=200, n_grid=300,
 
 
 def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
-                              n_grid=300, figsize=None, colors=None):
+                              n_grid=300, figsize=None, colors=None,
+                              marker_scale='uniform'):
     """
     Visualize the distinct solutions found by a multi-start analysis.
 
     Produces a panel of small multiples, one per distinct solution (ordered
-    by Akaike weight), each showing that solution's decomposition against the
+    best-fit first), each showing that solution's decomposition against the
     data, plus a final parameter-space map that places every solution's
     components on a coercivity-versus-proportion plot. Together these make
     the non-uniqueness of the decomposition concrete: how many genuinely
-    different solutions the data admit, how each partitions the spectrum, and
-    how much statistical support each carries.
+    different solutions the data admit and how each partitions the spectrum.
 
     Parameters
     ----------
@@ -9106,7 +9106,7 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
         Result from unmixing_multistart (carries a 'multistart' entry).
     max_solutions : int
         Maximum number of distinct solutions to draw as small multiples
-        (the highest-weight solutions are shown).
+        (the best-fitting solutions are shown).
     space : str
         'spectrum' (dM/dlog10 B) or 'curve' (measurement space) for the
         decomposition panels.
@@ -9116,6 +9116,16 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
         Figure size; a default is chosen from the panel count.
     colors : list, optional
         Per-solution colors; defaults to the tab10 cycle.
+    marker_scale : str
+        How the solution-map markers are sized: 'uniform' (default, all
+        equal, so no solution is visually privileged), 'n_hits' (size scaled
+        into a bounded range by the number of starts that reached each
+        solution), or 'weight' (size scaled by Akaike weight). On low-noise
+        data the Akaike weight collapses onto the lowest-RSS solution, so
+        'uniform' or 'n_hits' better reflect that the solutions are
+        alternatives; 'weight' is informative mainly when the noise is large
+        enough to spread support across solutions. The number of starts that
+        reached each solution is annotated on the map in every case.
 
     Returns
     -------
@@ -9127,6 +9137,8 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
                          'unmixing_multistart first')
     assert space in ('spectrum', 'curve'), \
         "space must be 'spectrum' or 'curve'"
+    assert marker_scale in ('uniform', 'n_hits', 'weight'), \
+        "marker_scale must be 'uniform', 'n_hits', or 'weight'"
     multistart = result['multistart']
     solutions = multistart['solutions']
     solution_results = multistart['results']
@@ -9159,7 +9171,6 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
         ax = axes_flat[panel]
         fit = solution_results[sol_idx]
         params = fit['params'][UNMIX_PARAM_COLUMNS].to_numpy()
-        weight = solutions['akaike_weight'].iloc[sol_idx]
         n_hits = int(solutions['n_hits'].iloc[sol_idx])
         ax.scatter(x_data, y_data, s=8, c='lightgrey', zorder=1)
         if space == 'spectrum':
@@ -9175,31 +9186,56 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
             ax.plot(x_grid, comps[i], color=colors[sol_idx], lw=1.2,
                     alpha=0.9)
         ax.plot(x_grid, total, color='k', lw=1.2)
-        ax.set_title(f'solution {sol_idx + 1}: weight {weight:.2f}, '
-                     f'{n_hits} starts', fontsize=9,
-                     color=colors[sol_idx])
+        ax.set_title(f'solution {sol_idx + 1}: {n_hits} starts',
+                     fontsize=9, color=colors[sol_idx])
         _format_mT_axis(ax)
         ax.set_xlabel('field (mT)', fontsize=8)
         ax.tick_params(labelsize=7)
 
     # parameter-space map panel
     ax_map = axes_flat[n_show]
+    shown_hits = solutions['n_hits'].to_numpy()[order]
+    hit_min, hit_max = shown_hits.min(), shown_hits.max()
+    component_cols = [c for c in solutions.columns
+                      if c.startswith('B_mean_mT_c')]
     for sol_idx in order:
         row = solutions.iloc[sol_idx]
-        weight = row['akaike_weight']
-        component_cols = [c for c in solutions.columns
-                          if c.startswith('B_mean_mT_c')]
+        n_hits = int(row['n_hits'])
+        if marker_scale == 'weight':
+            size = 30 + 300 * row['akaike_weight']
+        elif marker_scale == 'n_hits':
+            # bounded 40-160 pt^2 so a large basin does not dominate the panel
+            frac = ((n_hits - hit_min) / (hit_max - hit_min)
+                    if hit_max > hit_min else 0.5)
+            size = 40 + 120 * frac
+        else:  # 'uniform'
+            size = 60
+        points = []
         for col in component_cols:
             suffix = col.split('_c')[-1]
             proportion = row.get(f'proportion_c{suffix}', np.nan)
-            ax_map.scatter(row[col], proportion, s=30 + 300 * weight,
+            ax_map.scatter(row[col], proportion, s=size,
                            color=colors[sol_idx], alpha=0.7,
                            edgecolors='k', linewidths=0.5)
+            if np.isfinite(row[col]) and np.isfinite(proportion):
+                points.append((row[col], proportion))
+        # annotate the number of starts at the solution's highest-coercivity
+        # component, so the basin size is always readable
+        if points:
+            bx, by = max(points, key=lambda bp: bp[0])
+            ax_map.annotate(f'n={n_hits}', (bx, by),
+                            textcoords='offset points', xytext=(5, 3),
+                            fontsize=6.5, color=colors[sol_idx])
     # x-data are already in mT (not log10 units), so a plain log scale is used
     ax_map.set_xscale('log')
     ax_map.set_xlabel('component mean coercivity (mT)', fontsize=8)
     ax_map.set_ylabel('proportion', fontsize=8)
-    ax_map.set_title('solution map (size = Akaike weight)', fontsize=9)
+    _map_titles = {
+        'uniform': 'solution map (n = starts reaching each)',
+        'n_hits': 'solution map (size ~ starts reaching each)',
+        'weight': 'solution map (size = Akaike weight)',
+    }
+    ax_map.set_title(_map_titles[marker_scale], fontsize=9)
     ax_map.tick_params(labelsize=7)
 
     for ax in axes_flat[n_panels:]:
