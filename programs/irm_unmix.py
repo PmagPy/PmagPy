@@ -10,9 +10,14 @@ this is based on python3.6 and PyQt5
 author: Jiabo Liu
 
 DEPRECATED: this program is deprecated and will be removed in a
-future PmagPy release. Use the coercivity unmixing tools in
-pmagpy.rockmag (rockmag.unmix_coercivity and related functions),
-which are documented in the RockmagPy notebooks
+future PmagPy release. This bundled copy was last synchronized in
+2023; the author now maintains it as the standalone pyIRM package
+(https://github.com/botaoxiongyong/pyIRM, v1.0.0 released May 2026,
+citable as doi:10.5281/zenodo.20265129), which supersedes this
+version and adds component uncertainties.
+For MagIC-integrated scripted workflows, use the coercivity
+unmixing tools in pmagpy.rockmag (rockmag.unmix_coercivity and
+related functions), documented in the RockmagPy notebooks
 (https://pmagpy.github.io/RockmagPy-notebooks).
 #====================================================================
 '''
@@ -394,8 +399,10 @@ class Mainwindow(QMainWindow):
         this is for rock magnetic irm acquisition curves decompose
 
         This program is deprecated and will be removed in a future
-        PmagPy release. Use the coercivity unmixing tools in
-        pmagpy.rockmag (rockmag.unmix_coercivity) instead.
+        PmagPy release. Use the author's maintained standalone
+        package pyIRM (https://github.com/botaoxiongyong/pyIRM) or
+        the coercivity unmixing tools in pmagpy.rockmag
+        (rockmag.unmix_coercivity) instead.
 
         New features: Now you can manually adjust all the parameters and see
         the results immediately, and afterwards, you could try 'refit' button
@@ -606,13 +613,19 @@ def main():
     import warnings
     warnings.warn(
         "irm_unmix.py is deprecated and will be removed in a future "
-        "PmagPy release: use the coercivity unmixing tools in "
-        "pmagpy.rockmag (rockmag.unmix_coercivity) instead",
+        "PmagPy release: use the author's maintained pyIRM package "
+        "(https://github.com/botaoxiongyong/pyIRM) or the coercivity "
+        "unmixing tools in pmagpy.rockmag (rockmag.unmix_coercivity)",
         FutureWarning, stacklevel=2)
     print("-W- irm_unmix.py is deprecated and will be removed in a "
-          "future PmagPy release.")
-    print("    Use the coercivity unmixing tools in pmagpy.rockmag "
-          "(rockmag.unmix_coercivity) instead;")
+          "future PmagPy release. This bundled copy was last updated "
+          "in 2023.")
+    print("    For the maintained GUI, use the author's standalone "
+          "pyIRM package:")
+    print("    https://github.com/botaoxiongyong/pyIRM "
+          "(doi:10.5281/zenodo.20265129)")
+    print("    For MagIC-integrated scripted workflows, use "
+          "pmagpy.rockmag (rockmag.unmix_coercivity);")
     print("    see the RockmagPy notebooks for the documented workflow:")
     print("    https://pmagpy.github.io/RockmagPy-notebooks")
     if "-h" in sys.argv:
