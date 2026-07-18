@@ -638,6 +638,20 @@ class TestOpenLoopBrh:
         assert not results['loop_is_closed']
         assert np.isfinite(results['Ms'])
 
+    def test_NL_fit_implies_fit_open_loop(self):
+        # an explicit NL_fit=True is a fit request and must not be silently
+        # ignored by the open-loop exit
+        import warnings as _warnings
+        H, M = synthetic_loop(Ms=0.65, Bc=0.05, w=0.03, hard_Ms=1.0,
+                              hard_Bc=2.0, hard_w=1.5, noise=2e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = rmag.process_hyst_loop(H, M, NL_fit=True,
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert np.isfinite(results['Ms'])
+        assert results['Fnl_lin'] is not None
+
     def test_linear_loop_exits_with_chi_HF_only(self):
         # a purely paramagnetic loop terminates at the whole-loop linearity
         # test with chi_HF from the whole-loop regression; the ferromagnetic
@@ -654,6 +668,23 @@ class TestOpenLoopBrh:
         assert np.isnan(results['Mr'])
         assert results['loop_is_closed'] is None
 
+    def test_fit_linear_loop_overrides_exit(self):
+        # explicit fit_linear_loop=True processes a statistically linear
+        # loop in full, recovering chi_HF through the standard high-field
+        # fit rather than the whole-loop regression
+        import warnings as _warnings
+        chi = 0.2
+        H, M = synthetic_loop(Ms=0.0, chi=chi, noise=1e-4)
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore')
+            results = rmag.process_hyst_loop(H, M, fit_linear_loop=True,
+                                             show_results_table=False,
+                                             show_plot=False)
+        assert results['loop_is_linear']
+        assert results['loop_is_closed'] is not None
+        assert results['chi_HF'] == pytest.approx(chi * 4 * np.pi / 1e7,
+                                                  rel=0.02)
+
     def test_exit_results_keep_full_key_schema(self):
         # all three outcomes share one result key set, so batch tables from
         # process_hyst_loops keep a stable schema (contract for
@@ -666,11 +697,18 @@ class TestOpenLoopBrh:
                                         hard_w=1.5, noise=2e-4)
         with _warnings.catch_warnings():
             _warnings.simplefilter('ignore')
-            keys = [set(rmag.process_hyst_loop(H, M, show_results_table=False,
-                                               show_plot=False))
-                    for H, M in ((H_full, M_full), (H_lin, M_lin),
-                                 (H_open, M_open))]
-        assert keys[0] == keys[1] == keys[2]
+            results = [rmag.process_hyst_loop(H, M, show_results_table=False,
+                                              show_plot=False)
+                       for H, M in ((H_full, M_full), (H_lin, M_lin),
+                                    (H_open, M_open))]
+        res_full, res_lin, res_open = results
+        # guard against the comparison going vacuous: each loop must have
+        # taken the branch it was constructed for
+        assert not res_full['loop_is_linear'] and res_full['loop_is_closed']
+        assert np.isfinite(res_full['Ms'])
+        assert res_lin['loop_is_linear']
+        assert res_open['loop_is_closed'] is False
+        assert set(res_full) == set(res_lin) == set(res_open)
 
 
 class TestSparseLoopSaturation:
