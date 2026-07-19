@@ -593,7 +593,7 @@ def plot_mpms_dc(
 
         if fc_zfc_present:  
             p0 = figure(title="LTSIRM Data", x_axis_label="Temperature (K)", 
-                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
+                        y_axis_label="Magnetization (Am²/kg)", tools=tools, 
                         sizing_mode="stretch_width",height=400)  
             if fc is not None:  
                 p0.line(fc["meas_temp"], fc["magn_mass"], color=fc_color, legend_label="FC")  
@@ -610,7 +610,7 @@ def plot_mpms_dc(
 
         if rtsirm_present:  
             p1 = figure(title="RTSIRM Data", x_axis_label="Temperature (K)", 
-                        y_axis_label="Magnetization (Am2/kg)", tools=tools, 
+                        y_axis_label="Magnetization (Am²/kg)", tools=tools, 
                         sizing_mode="stretch_width",height=400)  
             if rc is not None:  
                 p1.line(rc["meas_temp"], rc["magn_mass"], color=rtsirm_cool_color, legend_label="cool")  
@@ -2251,7 +2251,7 @@ def sanitize_hyst_inputs(field, magnetization, drop_nonfinite=True):
         mT or Oe (max |field| > 20).
     magnetization : array_like
         Magnetization or moment values, in any unit that is consistent
-        across the loop (mass-normalized Am2/kg matches MagIC conventions).
+        across the loop (mass-normalized Am²/kg matches MagIC conventions).
     drop_nonfinite : bool, optional
         If True (default), measurement pairs where either value is NaN or
         infinite are dropped with a printed report. If False, a ValueError
@@ -3955,7 +3955,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
         to be in mT or Oe).
     magnetization : array_like
         Array of magnetization values (same length as `field`), in any
-        consistent unit; mass-normalized Am2/kg matches MagIC conventions.
+        consistent unit; mass-normalized Am²/kg matches MagIC conventions.
     specimen_name : str, optional
         Identifier for the specimen, used for labeling plots.
     show_results_table : bool, optional
