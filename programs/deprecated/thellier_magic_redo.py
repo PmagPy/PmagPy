@@ -145,7 +145,7 @@ def main():
         sys.exit()
     try:
         mk_f=open(mk_file,'r')
-    except:
+    except Exception:
         print("Bad redo file")
         sys.exit()
     mkspec=[]
