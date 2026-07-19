@@ -443,7 +443,7 @@ def main():
                                                 AniSpecRec['specimen_int'])*1e6)
                                 else:
                                     print('error on specimen ', s)
-                        except:
+                        except Exception:
                             pass
                     if verbose and found == 0:
                         print('    None found :(  ')
@@ -523,7 +523,7 @@ def main():
                                 try:
                                     specimen = sids.index(spec)
                                     keepon = 0
-                                except:
+                                except Exception:
                                     tmplist = []
                                     for qq in range(len(sids)):
                                         if spec in sids[qq]:
