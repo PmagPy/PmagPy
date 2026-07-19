@@ -96,7 +96,7 @@ class TestLandauMagnetization:
 
 class TestSplitWarmCool:
     def test_heating_then_cooling(self, heat_cool_experiment):
-        warm_T, warm_X, cool_T, cool_X = rmag.split_warm_cool(
+        warm_T, warm_X, cool_T, cool_X = rmag.split_heating_cooling(
             heat_cool_experiment, magnetic_column="magn_mass"
         )
         assert warm_T.size == 300
@@ -107,7 +107,7 @@ class TestSplitWarmCool:
     def test_cooling_only_has_empty_heating_branch(self):
         T = np.linspace(300, 20, 57)
         df = pd.DataFrame({"meas_temp": T, "magn_mass": np.linspace(38, 42, 57)})
-        warm_T, _, cool_T, _ = rmag.split_warm_cool(
+        warm_T, _, cool_T, _ = rmag.split_heating_cooling(
             df, magnetic_column="magn_mass"
         )
         assert warm_T.size == 0
@@ -118,7 +118,7 @@ class TestSplitWarmCool:
             "meas_temp": [280.0, 290.0, np.nan, 310.0],
             "magn_mass": [1.0, np.nan, 3.0, 4.0],
         })
-        warm_T, warm_X, _, _ = rmag.split_warm_cool(
+        warm_T, warm_X, _, _ = rmag.split_heating_cooling(
             df, magnetic_column="magn_mass"
         )
         assert warm_T.size == 2
@@ -132,7 +132,7 @@ class TestSplitWarmCool:
             "meas_temp": T,
             "magn_mass": np.linspace(1.0, 0.1, T.size),
         })
-        warm_T, _, cool_T, _ = rmag.split_warm_cool(
+        warm_T, _, cool_T, _ = rmag.split_heating_cooling(
             df, magnetic_column="magn_mass"
         )
         assert cool_T.size == 0
@@ -148,7 +148,7 @@ class TestSplitWarmCool:
             "meas_temp": T,
             "magn_mass": np.linspace(1.0, 0.1, T.size),
         })
-        _, _, cool_T, _ = rmag.split_warm_cool(df, magnetic_column="magn_mass")
+        _, _, cool_T, _ = rmag.split_heating_cooling(df, magnetic_column="magn_mass")
         assert cool_T.size == 0
 
 
@@ -172,7 +172,7 @@ class TestPrepareThermomagBranches:
 
     def test_duplicate_heating_temperatures_returns_none_cooling(self):
         # furnace-stabilization duplicates on a heating-only run must not
-        # produce a phantom cooling branch downstream of split_warm_cool
+        # produce a phantom cooling branch downstream of split_heating_cooling
         T = np.repeat(np.arange(300.0, 901.0, 50.0), 2)
         df = pd.DataFrame({"meas_temp": T, "susc_chi_mass": np.exp(-T / 300)})
         branches = rmag.prepare_thermomag_branches(df)
@@ -491,7 +491,7 @@ class TestCurieMsSquaredExtrapolation:
         Tc = 580.0
         T = np.linspace(480.0, 575.0, 40)
         M = np.sqrt(Tc - T)
-        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        r = rmag.curie_Ms_squared_extrapolation(T, M, fit_range=(480, 575))
         assert r["curie_temp"] == pytest.approx(580.0, abs=0.5)
         assert r["params"]["r_squared"] == pytest.approx(1.0, abs=1e-8)
         assert r["params"]["slope"] < 0
@@ -504,9 +504,9 @@ class TestCurieMsSquaredExtrapolation:
         Tc = 580.0
         T = np.linspace(480.0, 575.0, 40)
         M = np.sqrt(Tc - T)
-        two = rmag.curie_ms_squared_extrapolation(
+        two = rmag.curie_Ms_squared_extrapolation(
             T, M, fit_range=(480, 575), exponent=2.0)
-        other = rmag.curie_ms_squared_extrapolation(
+        other = rmag.curie_Ms_squared_extrapolation(
             T, M, fit_range=(480, 575), exponent=1.5)
         assert two["curie_temp"] == pytest.approx(580.0, abs=0.5)
         assert (abs(other["curie_temp"] - 580.0)
@@ -521,11 +521,11 @@ class TestCurieMsSquaredExtrapolation:
         M0 = np.sqrt(Tc - T)
         sigma = 0.02
         rng = np.random.default_rng(7)
-        reported = rmag.curie_ms_squared_extrapolation(
+        reported = rmag.curie_Ms_squared_extrapolation(
             T, np.clip(M0 + rng.normal(0, sigma, T.size), 1e-6, None),
             fit_range=(480, 575))["curie_temp_stderr"]
         recovered = [
-            rmag.curie_ms_squared_extrapolation(
+            rmag.curie_Ms_squared_extrapolation(
                 T, np.clip(M0 + rng.normal(0, sigma, T.size), 1e-6, None),
                 fit_range=(480, 575))["curie_temp"]
             for _ in range(1000)
@@ -536,14 +536,14 @@ class TestCurieMsSquaredExtrapolation:
         # increasing magnetization -> Ms**2 increases -> non-negative slope
         T = np.linspace(300.0, 400.0, 30)
         M = np.sqrt(T - 250.0)
-        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(300, 400))
+        r = rmag.curie_Ms_squared_extrapolation(T, M, fit_range=(300, 400))
         assert np.isnan(r["curie_temp"])
         assert "note" in r["params"]
 
     def test_insufficient_points_noted(self):
         T = np.linspace(560.0, 575.0, 3)
         M = np.sqrt(580.0 - T)
-        r = rmag.curie_ms_squared_extrapolation(
+        r = rmag.curie_Ms_squared_extrapolation(
             T, M, fit_range=(560, 575), min_points=5)
         assert np.isnan(r["curie_temp"])
         assert "note" in r["params"]
@@ -554,7 +554,7 @@ class TestCurieMsSquaredExtrapolation:
         Tc = 580.0
         T = np.linspace(480.0, 575.0, 40)
         M = np.round(np.sqrt(Tc - T) / 0.6) * 0.6
-        r = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        r = rmag.curie_Ms_squared_extrapolation(T, M, fit_range=(480, 575))
         assert "warning" in r["params"]
 
     def test_temperature_unit_invariance(self):
@@ -562,8 +562,8 @@ class TestCurieMsSquaredExtrapolation:
         Tc = 580.0
         T = np.linspace(480.0, 575.0, 40)
         M = np.sqrt(Tc - T)
-        in_C = rmag.curie_ms_squared_extrapolation(T, M, fit_range=(480, 575))
-        in_K = rmag.curie_ms_squared_extrapolation(
+        in_C = rmag.curie_Ms_squared_extrapolation(T, M, fit_range=(480, 575))
+        in_K = rmag.curie_Ms_squared_extrapolation(
             T + 273.15, M, fit_range=(480 + 273.15, 575 + 273.15))
         assert in_C["curie_temp"] == pytest.approx(580.0, abs=0.5)
         assert in_K["curie_temp"] == pytest.approx(580.0 + 273.15, abs=0.5)
@@ -737,7 +737,7 @@ class TestRealDataRegression:
         if not os.path.exists(path):
             pytest.skip("curie_example.dat not available")
         T, M = np.loadtxt(path, unpack=True)
-        sT, sM = rmag.smooth_moving_avg(T, M, 10)
+        sT, sM = rmag.smooth_moving_average(T, M, 10)
         result = rmag.curie_derivative_estimates(sT, sM)
         assert result["max_curvature_temp"] == pytest.approx(552.0, abs=5.0)
 
@@ -1068,7 +1068,7 @@ class TestReviewFixes:
 class TestThermomagPlots:
     def test_plot_x_t_matplotlib_returns_figures(self, heat_cool_experiment):
         import matplotlib.pyplot as plt
-        figs = rmag.plot_X_T(
+        figs = rmag.plot_chi_T(
             heat_cool_experiment, magnetic_column="magn_mass",
             interactive=False, return_figure=True,
             plot_derivative=True, plot_inverse=True,
@@ -1086,4 +1086,4 @@ class TestThermomagPlots:
             "specimen": "syn",
         })
         with pytest.raises(ValueError):
-            rmag.interactive_curie_inverse_susceptibility(df, branch="cooling")
+            rmag.curie_inverse_susceptibility_interactive(df, branch="cooling")

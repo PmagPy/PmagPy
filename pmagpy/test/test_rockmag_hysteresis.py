@@ -81,7 +81,7 @@ class TestTurningPointAndPlateaus:
 
     def test_turning_point_simple(self):
         H, M = synthetic_loop()
-        tp = rmag.find_hysteresis_turning_point(H)
+        tp = rmag.find_hyst_turning_point(H)
         assert H[tp] == pytest.approx(np.min(H))
         assert np.all(np.diff(H[:tp + 1]) <= 0)
         assert np.all(np.diff(H[tp + 1:]) >= 0)
@@ -92,9 +92,9 @@ class TestTurningPointAndPlateaus:
         H, M = synthetic_loop()
         H_rep = np.concatenate([[H[0]] * 3, H, [H[-1]] * 3])
         M_rep = np.concatenate([[M[0]] * 3, M, [M[-1]] * 3])
-        tp = rmag.find_hysteresis_turning_point(H_rep)
+        tp = rmag.find_hyst_turning_point(H_rep)
         assert H_rep[tp] == pytest.approx(np.min(H_rep))
-        upper, lower = rmag.split_hysteresis_loop(H_rep, M_rep)
+        upper, lower = rmag.split_hyst_loop(H_rep, M_rep)
         assert np.max(upper[0]) == pytest.approx(np.max(H_rep))
         assert np.max(lower[0]) == pytest.approx(np.max(H_rep))
 
@@ -104,19 +104,19 @@ class TestTurningPointAndPlateaus:
         H, M = synthetic_loop()
         H_glitch = H.copy()
         H_glitch[50] = H_glitch[49] + 1e-4  # brief backwards step mid-branch
-        tp = rmag.find_hysteresis_turning_point(H_glitch)
+        tp = rmag.find_hyst_turning_point(H_glitch)
         assert abs(H_glitch[tp] - np.min(H_glitch)) < 0.02
 
     def test_monotonic_field_raises(self):
         with pytest.raises(ValueError):
-            rmag.find_hysteresis_turning_point(np.linspace(1, -1, 50))
+            rmag.find_hyst_turning_point(np.linspace(1, -1, 50))
         with pytest.raises(ValueError):
-            rmag.find_hysteresis_turning_point(np.ones(50))
+            rmag.find_hyst_turning_point(np.ones(50))
 
     def test_collapse_plateaus_averages_moments(self):
         field = np.array([1.0, 1.0, 1.0, 0.5, 0.0, 0.0])
         moment = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 7.0])
-        cf, cm = rmag.collapse_hysteresis_field_plateaus(field, moment)
+        cf, cm = rmag.collapse_hyst_field_plateaus(field, moment)
         assert np.allclose(cf, [1.0, 0.5, 0.0])
         assert np.allclose(cm, [2.0, 4.0, 6.0])
 
@@ -127,8 +127,8 @@ class TestTurningPointAndPlateaus:
         H, M = synthetic_loop(Ms=Ms, Bc=Bc, w=w, noise=2e-4)
         H_rep = np.concatenate([[H[0]] * 3, H, [H[-1]] * 3])
         M_rep = np.concatenate([[M[0]] * 3, M, [M[-1]] * 3])
-        gH, gM = rmag.grid_hysteresis_loop(H_rep, M_rep)
-        upper, lower = rmag.split_hysteresis_loop(gH, gM)
+        gH, gM = rmag.grid_hyst_loop(H_rep, M_rep)
+        upper, lower = rmag.split_hyst_loop(gH, gM)
         assert np.allclose(upper[0], lower[0])
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         assert Mr == pytest.approx(Ms * np.tanh(Bc / w), rel=0.01)
@@ -183,29 +183,29 @@ class TestInputHandling:
 
     def test_sanitize_errors(self):
         with pytest.raises(ValueError):
-            rmag.sanitize_hysteresis_inputs([1.0, 'not a number'], [0.0, 0.0])
+            rmag.sanitize_hyst_inputs([1.0, 'not a number'], [0.0, 0.0])
         with pytest.raises(ValueError):
-            rmag.sanitize_hysteresis_inputs([1.0] * 5, [0.0] * 5)  # too few
+            rmag.sanitize_hyst_inputs([1.0] * 5, [0.0] * 5)  # too few
         with pytest.raises(ValueError):
-            rmag.sanitize_hysteresis_inputs([1.0, np.nan] * 10, [0.0] * 20,
+            rmag.sanitize_hyst_inputs([1.0, np.nan] * 10, [0.0] * 20,
                                             drop_nonfinite=False)
 
     def test_non_tesla_field_warning(self, capsys):
         H, M = synthetic_loop(noise=5e-4)
-        rmag.sanitize_hysteresis_inputs(H * 1000, M)  # fields in mT
+        rmag.sanitize_hyst_inputs(H * 1000, M)  # fields in mT
         assert 'not in tesla' in capsys.readouterr().out
 
     def test_grid_rejects_nonfinite(self):
         H, M = synthetic_loop()
         M[5] = np.nan
         with pytest.raises(ValueError):
-            rmag.grid_hysteresis_loop(H, M)
+            rmag.grid_hyst_loop(H, M)
 
 
 class TestLoopGeometry:
     def test_split_branches(self):
         H, M = synthetic_loop()
-        upper, lower = rmag.split_hysteresis_loop(H, M)
+        upper, lower = rmag.split_hyst_loop(H, M)
         # upper branch is returned in ascending field order
         assert np.all(np.diff(upper[0]) > 0)
         assert np.all(np.diff(lower[0]) > 0)
@@ -216,16 +216,16 @@ class TestLoopGeometry:
 
     def test_gridding_symmetric_fields(self):
         H, M = synthetic_loop(noise=1e-4)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
-        upper, lower = rmag.split_hysteresis_loop(gH, gM)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        upper, lower = rmag.split_hyst_loop(gH, gM)
         # the two branches share a field grid that is symmetric about zero
         assert np.allclose(upper[0], lower[0])
         assert np.allclose(np.sort(upper[0]), np.sort(-upper[0]))
 
     def test_gridding_preserves_moments(self):
         H, M = synthetic_loop()
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
-        upper, _ = rmag.split_hysteresis_loop(gH, gM)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        upper, _ = rmag.split_hyst_loop(gH, gM)
         expected = np.tanh((upper[0] + 0.05) / 0.03)
         assert np.allclose(upper[1], expected, atol=2e-3)
 
@@ -238,9 +238,9 @@ class TestQualityFactor:
         # for the values reported in Jackson and Solheid (2010) even though
         # the equation printed in that paper omits the square root
         H, M = synthetic_loop(noise=1e-3)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         _, Q = rmag.calc_Q(gH, gM)
-        r2 = rmag.loop_H_off(gH, gM, 0.0)['r2']
+        r2 = rmag._loop_H_off(gH, gM, 0.0)['r2']
         Q_expected = np.log10(1.0 / np.sqrt(1.0 - r2))
         assert Q == pytest.approx(Q_expected, abs=0.05)
 
@@ -248,7 +248,7 @@ class TestQualityFactor:
         Qs = []
         for noise in [1e-4, 1e-3, 1e-2]:
             H, M = synthetic_loop(noise=noise)
-            gH, gM = rmag.grid_hysteresis_loop(H, M)
+            gH, gM = rmag.grid_hyst_loop(H, M)
             Qs.append(rmag.calc_Q(gH, gM)[1])
         assert Qs[0] > Qs[1] > Qs[2]
         # tenfold noise increase lowers the amplitude-ratio Q by ~1
@@ -258,7 +258,7 @@ class TestQualityFactor:
 class TestCentering:
     def test_recovers_known_offsets(self):
         H, M = synthetic_loop(noise=5e-4, H_offset=0.004, M_offset=0.02)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_centering(gH, gM)
         assert results['opt_H_offset'] == pytest.approx(0.004, abs=5e-4)
         assert results['opt_M_offset'] == pytest.approx(0.02, abs=2e-3)
@@ -270,14 +270,14 @@ class TestCentering:
         # controls whether the offset correction is applied at all
         H, M = synthetic_loop(noise=5e-4)
         H_off, M_off = synthetic_loop(noise=5e-4, H_offset=0.002, M_offset=0.01)
-        Q_clean = rmag.hyst_loop_centering(*rmag.grid_hysteresis_loop(H, M))['Q']
-        Q_offset = rmag.hyst_loop_centering(*rmag.grid_hysteresis_loop(H_off, M_off))['Q']
+        Q_clean = rmag.hyst_loop_centering(*rmag.grid_hyst_loop(H, M))['Q']
+        Q_offset = rmag.hyst_loop_centering(*rmag.grid_hyst_loop(H_off, M_off))['Q']
         assert Q_offset == pytest.approx(Q_clean, abs=0.3)
         assert Q_offset > 2
 
     def test_centered_loop_crossings(self):
         H, M = synthetic_loop(noise=5e-4, H_offset=0.004, M_offset=0.02)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_centering(gH, gM)
         Bc = rmag.calc_Bc(results['centered_H'], results['centered_M'])
         assert Bc == pytest.approx(0.05, abs=1e-3)
@@ -287,13 +287,13 @@ class TestLinearityTest:
     def test_paramagnet_is_linear(self):
         # pure paramagnetic response with noise: no significant nonlinearity
         H, M = synthetic_loop(Ms=0.0, Bc=0.0, chi=1.0, noise=5e-3)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_linearity_test(gH, gM)
         assert results['loop_is_linear']
 
     def test_ferromagnet_is_nonlinear(self):
         H, M = synthetic_loop(noise=1e-3)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_linearity_test(gH, gM)
         assert not results['loop_is_linear']
         assert results['FNL'] > 1.25
@@ -304,7 +304,7 @@ class TestSaturationTest:
         # tanh ferromagnet saturates well below 0.6*Hmax; FNL should be
         # near 1 (pure noise) in all high-field windows
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_saturation_test(gH, gM)
         assert results['loop_is_saturated']
         for key in ['FNL60', 'FNL70', 'FNL80']:
@@ -313,7 +313,7 @@ class TestSaturationTest:
 
     def test_unsaturated_loop(self):
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         results = rmag.hyst_loop_saturation_test(gH, gM)
         assert not results['loop_is_saturated']
         assert results['FNL60'] > 2.5
@@ -323,7 +323,7 @@ class TestSaturationTest:
 class TestClosureTest:
     @staticmethod
     def _closure(H, M, use_Me=True):
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         return rmag.loop_closure_test(Hu, Mrh, Me=Me if use_Me else None)
 
@@ -360,7 +360,7 @@ class TestClosureTest:
 class TestDriftCorrection:
     def test_prorated_removes_closure_error(self):
         H, M = synthetic_loop(drift=0.02)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         corrected = rmag.prorated_drift_correction(gH, gM)
         assert corrected[0] - corrected[-1] == pytest.approx(0.0, abs=1e-12)
         # correction is distributed with zero mean (no net vertical shift)
@@ -368,9 +368,9 @@ class TestDriftCorrection:
 
     def test_symmetric_averaging_closes_loop(self):
         H, M = synthetic_loop(drift=0.02)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
-        corrected = rmag.symmetric_averaging_drift_corr(gH, gM)
-        upper, lower = rmag.split_hysteresis_loop(gH, corrected)
+        gH, gM = rmag.grid_hyst_loop(H, M)
+        corrected = rmag.symmetric_averaging_drift_correction(gH, gM)
+        upper, lower = rmag.split_hyst_loop(gH, corrected)
         # branches meet at both tips after correction
         assert upper[1][0] == pytest.approx(lower[1][0], abs=1e-12)
         assert upper[1][-1] == pytest.approx(lower[1][-1], abs=1e-12)
@@ -387,12 +387,12 @@ class TestDriftCorrection:
         # loop's true measurement-time order -- for either sweep order
         drift = 0.05
         H_true, M_true = synthetic_loop()
-        gH, gM_true = rmag.grid_hysteresis_loop(H_true, M_true)
+        gH, gM_true = rmag.grid_hyst_loop(H_true, M_true)
         for loop_builder, descending_first in (
                 (synthetic_loop, True),
                 (synthetic_loop_ascending_first, False)):
             H, M = loop_builder(drift=drift)
-            gH_d, gM_d = rmag.grid_hysteresis_loop(H, M)
+            gH_d, gM_d = rmag.grid_hyst_loop(H, M)
             corrected = rmag.prorated_drift_correction(
                 gH_d, gM_d, descending_first=descending_first)
             residual = corrected - gM_true
@@ -404,9 +404,9 @@ class TestDriftCorrection:
         # the drift's magnitude, confirming the flag changes the result
         drift = 0.05
         H_true, M_true = synthetic_loop()
-        gH, gM_true = rmag.grid_hysteresis_loop(H_true, M_true)
+        gH, gM_true = rmag.grid_hyst_loop(H_true, M_true)
         H, M = synthetic_loop_ascending_first(drift=drift)
-        gH_d, gM_d = rmag.grid_hysteresis_loop(H, M)
+        gH_d, gM_d = rmag.grid_hyst_loop(H, M)
         wrong = rmag.prorated_drift_correction(gH_d, gM_d,
                                                descending_first=True)
         assert np.std(wrong - gM_true) > drift / 10
@@ -419,23 +419,23 @@ class TestDriftCorrection:
         # the wrong time sense actively corrupts the loop
         drift = 0.05
         H_ref, M_ref = synthetic_loop()
-        gH_ref, gM_ref = rmag.grid_hysteresis_loop(H_ref, M_ref)
+        gH_ref, gM_ref = rmag.grid_hyst_loop(H_ref, M_ref)
 
         H_d, M_d = synthetic_loop(drift=drift)
-        gH_d, gM_d = rmag.grid_hysteresis_loop(H_d, M_d)
+        gH_d, gM_d = rmag.grid_hyst_loop(H_d, M_d)
         H_a, M_a = synthetic_loop_ascending_first(drift=drift)
-        gH_a, gM_a = rmag.grid_hysteresis_loop(H_a, M_a)
+        gH_a, gM_a = rmag.grid_hyst_loop(H_a, M_a)
         assert np.allclose(gH_d, gH_a)
 
         def rms(x):
             return float(np.sqrt(np.mean(np.square(x))))
 
         rms_uncorrected = rms(gM_a - gM_ref)
-        corr_desc = rmag.drift_correction_Me(gH_d, gM_d,
+        corr_desc = rmag.Me_drift_correction(gH_d, gM_d,
                                              descending_first=True)
-        corr_asc = rmag.drift_correction_Me(gH_a, gM_a,
+        corr_asc = rmag.Me_drift_correction(gH_a, gM_a,
                                             descending_first=False)
-        wrong_asc = rmag.drift_correction_Me(gH_a, gM_a,
+        wrong_asc = rmag.Me_drift_correction(gH_a, gM_a,
                                              descending_first=True)
 
         # both sweep orders receive the same (correct) treatment
@@ -451,7 +451,7 @@ class TestParameterRecovery:
     def test_Mr_Bc_recovery(self):
         Ms, Bc, w = 1.0, 0.05, 0.03
         H, M = synthetic_loop(Ms=Ms, Bc=Bc, w=w, noise=2e-4)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         assert Mr == pytest.approx(Ms * np.tanh(Bc / w), rel=0.01)
         assert rmag.calc_Bc(gH, gM) == pytest.approx(Bc, abs=1e-3)
@@ -459,7 +459,7 @@ class TestParameterRecovery:
     def test_linear_HF_fit_recovers_chi_and_Ms(self):
         chi = 0.2  # raw slope units (moment per Tesla)
         H, M = synthetic_loop(chi=chi, noise=2e-4)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         chi_HF, Ms = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
         # chi_HF is reported in SI units: raw slope times mu_0
         assert chi_HF == pytest.approx(chi * 4 * np.pi / 1e7, rel=0.01)
@@ -468,10 +468,10 @@ class TestParameterRecovery:
     def test_slope_correction_roundtrip(self):
         chi = 0.2
         H, M = synthetic_loop(chi=chi, noise=0.0)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         chi_HF, _ = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
         ferro = rmag.hyst_slope_correction(gH, gM, chi_HF)
-        expected_upper, _ = rmag.split_hysteresis_loop(gH, ferro)
+        expected_upper, _ = rmag.split_hyst_loop(gH, ferro)
         assert np.allclose(
             expected_upper[1],
             np.tanh((expected_upper[0] + 0.05) / 0.03),
@@ -484,7 +484,7 @@ class TestNonlinearFit:
         # unsaturated loop: linear high-field fitting underestimates Ms
         # while approach-to-saturation fitting recovers it
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
         _, Ms_linear = rmag.linear_HF_fit(gH, gM, HF_cutoff=0.8)
         assert abs(nl['Ms'] - 1.0) < abs(Ms_linear - 1.0)
@@ -493,7 +493,7 @@ class TestNonlinearFit:
     def test_Fnl_lin_is_f_statistic(self):
         # significant nonlinearity: Fnl_lin far above the ~3-3.5 critical value
         H, M = synthetic_loop(noise=1e-4, chi=0.2, ats_alpha=0.1)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
         assert nl['Fnl_lin'] > 3.5
         # verify against a direct computation of eq. 21
@@ -513,7 +513,7 @@ class TestNonlinearFit:
     def test_insignificant_when_saturated(self):
         # saturated loop: nonlinear terms should not significantly improve fit
         H, M = synthetic_loop(noise=5e-4, chi=0.2)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         nl = rmag.hyst_HF_nonlinear_optimization(gH, gM, 0.6, 'IRM')
         assert nl['Fnl_lin'] < 3.5
 
@@ -573,7 +573,7 @@ class TestOpenLoopBrh:
         # falls to Mr/2 in the measured range, so Brh is NaN with a warning
         # rather than a TypeError (None arithmetic)
         H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.warns(RuntimeWarning, match='Brh'):
             Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         assert np.isnan(Brh)
@@ -583,7 +583,7 @@ class TestOpenLoopBrh:
     def test_closed_loop_Brh_unchanged(self):
         # well-behaved loop: Brh is still computed from both crossings
         H, M = synthetic_loop()
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         *_, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         assert np.isfinite(Brh) and Brh > 0
 
@@ -591,7 +591,7 @@ class TestOpenLoopBrh:
         # loop measured far below the coercivity of its hard component:
         # neither branch crosses zero, so Bc is NaN with a warning
         H, M = synthetic_loop(Ms=1.0, Bc=1.5, w=1.0)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.warns(RuntimeWarning, match='Bc'):
             Bc = rmag.calc_Bc(gH, gM)
         assert np.isnan(Bc)
@@ -717,7 +717,7 @@ class TestSparseLoopSaturation:
         # few high-field pairs for some lack-of-fit windows; those windows
         # now report NaN with a warning instead of aborting the pipeline
         H, M = synthetic_loop(n_half=12)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.warns(RuntimeWarning, match='saturation test window'):
             results = rmag.hyst_loop_saturation_test(gH, gM)
         assert 'saturation_cutoff' in results
@@ -729,7 +729,7 @@ class TestSparseLoopSaturation:
         # loop_saturation_stats itself keeps its informative error for
         # direct callers
         H, M = synthetic_loop(n_half=12)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         with pytest.raises(ValueError, match='high-field'):
             rmag.loop_saturation_stats(gH, gM, HF_cutoff=0.8)
 
@@ -739,7 +739,7 @@ class TestClosureTestSignature:
         # pre-existing (master) signature was (H, Mrh, HF_cutoff=0.8): the
         # third positional argument must still bind to HF_cutoff
         H, M = synthetic_loop(noise=2e-3, hard_Ms=0.1)
-        gH, gM = rmag.grid_hysteresis_loop(H, M)
+        gH, gM = rmag.grid_hyst_loop(H, M)
         Hu, Mr, Mrh, Mih, Me, Brh = rmag.calc_Mr_Mrh_Mih_Brh(gH, gM)
         positional = rmag.loop_closure_test(Hu, Mrh, 0.7)
         keyword = rmag.loop_closure_test(Hu, Mrh, HF_cutoff=0.7)

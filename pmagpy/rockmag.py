@@ -97,7 +97,7 @@ mpl_to_bokeh_markers = {
 # general I/O functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def dict_in_native_python(d):
+def _to_native_python(d):
     """Convert NumPy scalar values in a dict to native Python scalars.
 
     Parameters
@@ -117,7 +117,7 @@ def dict_in_native_python(d):
     return {k: v.item() if isinstance(v, np.generic) else v for k, v in d.items()}
 
 
-def map_legend_location(matplotlib_loc):
+def _map_legend_location(matplotlib_loc):
     """
     Maps a Matplotlib legend location to a Bokeh legend location.
     Falls back to 'top_left' if no direct mapping exists.
@@ -153,13 +153,13 @@ def _widget_value(widget_or_value):
     Return ``widget.value`` for an ipywidgets widget, or the input unchanged.
 
     Lets interactive analysis functions accept either a selection widget
-    (e.g. from ``interactive_specimen_selection``) or a plain string, so the
+    (e.g. from ``specimen_selection_interactive``) or a plain string, so the
     same function can be driven by dropdowns or scripted reproducibly.
     """
     return getattr(widget_or_value, "value", widget_or_value)
 
 
-def interactive_specimen_selection(measurements):
+def specimen_selection_interactive(measurements):
     """
     Creates and displays a dropdown widget for selecting a specimen from a given
     DataFrame of measurements.
@@ -197,7 +197,7 @@ def interactive_specimen_selection(measurements):
     return specimen_dropdown
 
 
-def interactive_specimen_experiment_selection(measurements):
+def specimen_experiment_selection_interactive(measurements):
     """
     Creates interactive dropdown widgets for selecting a specimen and its associated
     experiment from a measurements DataFrame.
@@ -352,7 +352,7 @@ def convert_temperature(temp_array, input_unit, output_unit):
     raise ValueError(f"Unsupported unit conversion: {input_unit} -> {output_unit}")
 
 
-def plot_ms_t(
+def plot_M_T(
     data,
     temperature_column="meas_temp",
     magnetization_column="magn_mass",
@@ -383,7 +383,7 @@ def plot_ms_t(
         If True, use Bokeh for an interactive plot.
     return_figure : bool, default False
         If True, return the figure object(s). Assign to capture, e.g.:
-            fig, ax = plot_ms_t(..., return_figure=True)
+            fig, ax = plot_M_T(..., return_figure=True)
     show_plot : bool, default True
         If True, display the plot immediately.
     size : tuple(float, float), default (6, 3)
@@ -410,7 +410,7 @@ def plot_ms_t(
     # plotting
     if interactive:
         _check_bokeh()
-        bokeh_loc = map_legend_location(legend_location)
+        bokeh_loc = _map_legend_location(legend_location)
         tools = [
             HoverTool(tooltips=[("T", "@x"), ("M", "@y")]),
             "pan,box_zoom,wheel_zoom,reset,save",
@@ -734,7 +734,7 @@ def plot_mpms_dc(
     return fig if return_figure else None  
 
 
-def make_mpms_plots_dc(measurements):
+def plot_mpms_dc_interactive(measurements):
     """Create a UI to select specimen and plot MPMS data in Matplotlib or Bokeh.
 
     Parameters:
@@ -1011,7 +1011,7 @@ def verwey_estimate(temps, mags,
     return verwey_estimate, remanence_loss
 
 
-def interactive_verwey_estimate(measurements, specimen, method, figsize=(11, 5)):
+def verwey_estimate_interactive(measurements, specimen, method, figsize=(11, 5)):
     """
     Create an interactive widget for estimating the Verwey transition temperature from low temperature remanence measurements.
 
@@ -1027,7 +1027,7 @@ def interactive_verwey_estimate(measurements, specimen, method, figsize=(11, 5))
     specimen : str or ipywidgets.Dropdown
         Specimen to analyze, given either as a plain specimen name or as a
         selection widget (e.g. from
-        ``interactive_verwey_specimen_method_selection``); for a widget the
+        ``verwey_specimen_method_selection_interactive``); for a widget the
         current ``.value`` is read when this function runs, so rerun the cell
         after changing the dropdown.
     method : str or ipywidgets.Dropdown
@@ -1052,8 +1052,8 @@ def interactive_verwey_estimate(measurements, specimen, method, figsize=(11, 5))
 
     Examples
     --------
-    >>> interactive_verwey_estimate(measurements_df, specimen_dropdown, method_dropdown)
-    >>> interactive_verwey_estimate(measurements_df, 'NED2-8c', 'LP-FC')
+    >>> verwey_estimate_interactive(measurements_df, specimen_dropdown, method_dropdown)
+    >>> verwey_estimate_interactive(measurements_df, 'NED2-8c', 'LP-FC')
     Displays an interactive interface for estimating the Verwey transition temperature.
     """
     _check_ipywidgets()
@@ -1193,7 +1193,7 @@ def interactive_verwey_estimate(measurements, specimen, method, figsize=(11, 5))
     update_plot()
 
 
-def interactive_verwey_specimen_method_selection(measurements):
+def verwey_specimen_method_selection_interactive(measurements):
     """
     Creates and displays dropdown widgets for selecting a specimen and the corresponding
     available method codes (specifically 'LP-FC' and 'LP-ZFC') from a given DataFrame of measurements.
@@ -1639,7 +1639,7 @@ def goethite_removal_interactive(measurements, specimen):
         Low temperature remanence measurement data containing temperature and magnetization information for multiple specimens.
     specimen : str or ipywidgets.Dropdown
         Specimen to analyze, given either as a plain specimen name or as a
-        selection widget (e.g. from ``interactive_specimen_selection``); for
+        selection widget (e.g. from ``specimen_selection_interactive``); for
         a widget the current ``.value`` is read when this function runs, so
         rerun the cell after changing the dropdown.
 
@@ -1757,7 +1757,7 @@ def plot_mpms_ac(
     -------
     fig, ax or (fig, axes) or Bokeh layout or None
     """
-    bokeh_legend_location = map_legend_location(legend_location)
+    bokeh_legend_location = _map_legend_location(legend_location)
 
     if phase not in ['in', 'out', 'both']:
         raise ValueError('phase must be "in", "out", or "both"')
@@ -1772,7 +1772,9 @@ def plot_mpms_ac(
             HoverTool(tooltips=[('T', '@x'), ('χ', '@y')]),
             'pan,box_zoom,wheel_zoom,reset,save']
         n = len(freqs)
-        palette = Category10[n] if n <= 10 else Category10[10]
+        # Category10 is only keyed for 3-10 entries; clamp and cycle so any
+        # number of frequencies (including a single one) gets a color
+        palette = Category10[min(max(n, 3), 10)]
         figs = []
 
         bokeh_height = int(figsize[1] * 96)
@@ -1791,7 +1793,7 @@ def plot_mpms_ac(
             for i, f in enumerate(freqs):
                 d = experiment[experiment['meas_freq'] == f]
                 col = 'susc_chi_mass' if phase == 'in' else 'susc_chi_qdr_mass'
-                color = palette[i]
+                color = palette[i % len(palette)]
                 p.line(
                     d['meas_temp'], d[col],
                     legend_label=f'{f} Hz',
@@ -1829,7 +1831,7 @@ def plot_mpms_ac(
                 p.yaxis.axis_label_text_font_style = "normal"
             for i, f in enumerate(freqs):
                 d = experiment[experiment['meas_freq'] == f]
-                color = palette[i]
+                color = palette[i % len(palette)]
                 p1.line(
                     d['meas_temp'], d['susc_chi_mass'],
                     legend_label=f'{f} Hz',
@@ -2064,7 +2066,7 @@ def mpms_signal_blender_interactive(measurement_1, measurement_2,
 # hysteresis functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def extract_hysteresis_data(df, specimen_name):
+def extract_hyst_data(df, specimen_name):
     """
     Extracts hysteresis loop data for a specific specimen from a dataframe.
 
@@ -2080,7 +2082,7 @@ def extract_hysteresis_data(df, specimen_name):
             their method codes (empty if none are present).
 
     Example:
-        >>> hyst_data = extract_hysteresis_data(measurements_df, 'Specimen_1')
+        >>> hyst_data = extract_hyst_data(measurements_df, 'Specimen_1')
     """
 
     specimen_df = df[df['specimen'] == specimen_name]
@@ -2089,7 +2091,7 @@ def extract_hysteresis_data(df, specimen_name):
 
     return hyst_data
 
-def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
+def plot_hyst_loop(field, magnetization, specimen_name, p=None, interactive=True, show_plot=True, return_figure=False, line_color='grey', line_width=1, label='', legend_location='bottom_right'):
     '''
     function to plot a hysteresis loop
 
@@ -2146,7 +2148,7 @@ def plot_hysteresis_loop(field, magnetization, specimen_name, p=None, interactiv
         return fig, ax
     return None
 
-def collapse_hysteresis_field_plateaus(field, magnetization):
+def collapse_hyst_field_plateaus(field, magnetization):
     """Average consecutive repeated field steps into a single point."""
     field = np.asarray(field, dtype=float)
     magnetization = np.asarray(magnetization, dtype=float)
@@ -2166,7 +2168,7 @@ def collapse_hysteresis_field_plateaus(field, magnetization):
 
     return np.asarray(collapsed_field, dtype=float), np.asarray(collapsed_magnetization, dtype=float)
 
-def find_hysteresis_turning_point(field):
+def find_hyst_turning_point(field):
     """Find the single loop reversal, tolerating repeated plateaus and minor field glitches.
 
     Returns the index of the last point of the first field sweep, such that
@@ -2202,7 +2204,7 @@ def find_hysteresis_turning_point(field):
     extremum_index = int(np.argmin(field) if initial_direction < 0 else np.argmax(field))
     return int(candidates[np.argmin(np.abs(candidates - extremum_index))])
 
-def build_symmetric_hysteresis_grid(upper_branch, lower_branch):
+def build_symmetric_hyst_grid(upper_branch, lower_branch):
     """Build a symmetric field grid over the overlap shared by the two loop branches."""
     upper_field = np.asarray(upper_branch[0], dtype=float)
     lower_field = np.asarray(lower_branch[0], dtype=float)
@@ -2233,7 +2235,7 @@ def build_symmetric_hysteresis_grid(upper_branch, lower_branch):
     lower_grid = upper_grid[::-1]
     return upper_grid, lower_grid
 
-def sanitize_hysteresis_inputs(field, magnetization, drop_nonfinite=True):
+def sanitize_hyst_inputs(field, magnetization, drop_nonfinite=True):
     """Coerce hysteresis loop inputs into clean float arrays for processing.
 
     This helper makes the processing functions usable with data from any
@@ -2294,12 +2296,12 @@ def sanitize_hysteresis_inputs(field, magnetization, drop_nonfinite=True):
 
     return field, magnetization
 
-def split_hysteresis_loop(field, magnetization):
+def split_hyst_loop(field, magnetization):
     '''
     function to split a hysteresis loop into upper and lower branches
         at the reversal of the applied field sweep
 
-    The loop reversal is located with `find_hysteresis_turning_point`, which
+    The loop reversal is located with `find_hyst_turning_point`, which
     tolerates repeated field plateaus and minor field glitches. Loops measured
     in either sweep order are supported: the branch measured from the positive
     field extreme downward is returned as the upper branch regardless of
@@ -2323,7 +2325,7 @@ def split_hysteresis_loop(field, magnetization):
     field = np.asarray(field, dtype=float)
     magnetization = np.asarray(magnetization, dtype=float)
 
-    turning_point = find_hysteresis_turning_point(field)
+    turning_point = find_hyst_turning_point(field)
     first_branch = [field[:turning_point+1], magnetization[:turning_point+1]]
     second_branch = [field[turning_point+1:], magnetization[turning_point+1:]]
 
@@ -2360,7 +2362,7 @@ def measured_descending_first(field):
         branch measured first), False if it starts at the negative extreme.
     """
     field = np.asarray(field, dtype=float)
-    turning_point = find_hysteresis_turning_point(field)
+    turning_point = find_hyst_turning_point(field)
     return bool(field[0] > field[turning_point])
 
 def _correct_in_measurement_order(H, M, correction):
@@ -2377,7 +2379,7 @@ def _correct_in_measurement_order(H, M, correction):
     """
     H = np.asarray(H, dtype=float)
     M = np.asarray(M, dtype=float)
-    boundary = find_hysteresis_turning_point(H) + 1
+    boundary = find_hyst_turning_point(H) + 1
     H_equivalent = np.concatenate([-H[boundary:], -H[:boundary]])
     M_equivalent = np.concatenate([-M[boundary:], -M[:boundary]])
     M_cor_equivalent = np.asarray(correction(H_equivalent, M_equivalent))
@@ -2385,7 +2387,7 @@ def _correct_in_measurement_order(H, M, correction):
     return np.concatenate([-M_cor_equivalent[n_second:],
                            -M_cor_equivalent[:n_second]])
 
-def grid_hysteresis_loop(field, magnetization):
+def grid_hyst_loop(field, magnetization):
     '''
     function to grid a hysteresis loop into a regular grid
         with grid intervals equal to the average field step size calculated from the data
@@ -2409,18 +2411,18 @@ def grid_hysteresis_loop(field, magnetization):
     magnetization = np.asarray(magnetization, dtype=float)
     if not (np.isfinite(field).all() and np.isfinite(magnetization).all()):
         raise ValueError('Non-finite field or magnetization values present; '
-                         'clean the inputs first (see sanitize_hysteresis_inputs)')
+                         'clean the inputs first (see sanitize_hyst_inputs)')
 
-    upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
+    upper_branch, lower_branch = split_hyst_loop(field, magnetization)
 
     # average any exactly repeated field steps within each branch (e.g.
     # instrument plateaus at the loop tips) so duplicate fields do not enter
     # the interpolation; small non-monotonic field glitches are not repaired
     # here and np.interp will locally smooth over them
-    upper_branch = collapse_hysteresis_field_plateaus(upper_branch[0], upper_branch[1])
-    lower_branch = collapse_hysteresis_field_plateaus(lower_branch[0], lower_branch[1])
+    upper_branch = collapse_hyst_field_plateaus(upper_branch[0], upper_branch[1])
+    lower_branch = collapse_hyst_field_plateaus(lower_branch[0], lower_branch[1])
 
-    upper_field, lower_field = build_symmetric_hysteresis_grid(upper_branch, lower_branch)
+    upper_field, lower_field = build_symmetric_hyst_grid(upper_branch, lower_branch)
     grid_field = np.concatenate([upper_field, lower_field])
     
     upper_branch_itp = np.interp(upper_field, upper_branch[0], upper_branch[1])
@@ -2496,7 +2498,7 @@ def hyst_linearity_test(grid_field, grid_magnetization):
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
 
-    upper_branch, lower_branch = split_hysteresis_loop(grid_field, grid_magnetization)
+    upper_branch, lower_branch = split_hyst_loop(grid_field, grid_magnetization)
 
     anova_results = ANOVA(grid_field, grid_magnetization)
 
@@ -2561,7 +2563,7 @@ def hyst_linearity_test(grid_field, grid_magnetization):
 
     return results
 
-def linefit(xarr, yarr):
+def _linefit(xarr, yarr):
     """
     Perform a simple linear regression (least squares fit) on two arrays.
 
@@ -2586,7 +2588,7 @@ def linefit(xarr, yarr):
     --------
     >>> x = [0, 1, 2, 3, 4]
     >>> y = [1, 3, 5, 7, 9]
-    >>> intercept, slope, r2 = linefit(x, y)
+    >>> intercept, slope, r2 = _linefit(x, y)
     >>> print(f"Intercept: {intercept:.2f}, Slope: {slope:.2f}, R^2: {r2:.2f}")
     Intercept: 1.00, Slope: 2.00, R^2: 1.00
     """
@@ -2610,13 +2612,13 @@ def linefit(xarr, yarr):
 
     return intercept, slope, r2
 
-def branch_symmetry_mismatch(loop_fields, loop_moments, H_shift=0.0, M_shift=None,
+def _branch_symmetry_mismatch(loop_fields, loop_moments, H_shift=0.0, M_shift=None,
                               low_field_fraction=0.35, weight_power=4):
     """Measure branch inversion symmetry with optional low-field weighting."""
     corrected_fields = np.asarray(loop_fields, dtype=float) - H_shift
     corrected_moments = np.asarray(loop_moments, dtype=float)
 
-    upper_branch, lower_branch = split_hysteresis_loop(corrected_fields, corrected_moments)
+    upper_branch, lower_branch = split_hyst_loop(corrected_fields, corrected_moments)
     upper_field = np.asarray(upper_branch[0], dtype=float)
     upper_moment = np.asarray(upper_branch[1], dtype=float)
     lower_field = np.asarray(lower_branch[0], dtype=float)
@@ -2650,7 +2652,7 @@ def branch_symmetry_mismatch(loop_fields, loop_moments, H_shift=0.0, M_shift=Non
         'M_shift': float(M_shift),
     }
 
-def loop_H_off(loop_fields, loop_moments, H_shift):
+def _loop_H_off(loop_fields, loop_moments, H_shift):
     """
     Estimate the vertical shift (M_shift) and symmetry (R²) of a magnetic hysteresis loop after applying a horizontal field shift.
 
@@ -2682,7 +2684,7 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
 
     Examples
     --------
-    >>> res = loop_H_off(fields, moments, H_shift=10)
+    >>> res = _loop_H_off(fields, moments, H_shift=10)
     >>> print(res['M_shift'], res['r2'])
     """
     n = len(loop_fields)
@@ -2716,18 +2718,18 @@ def loop_H_off(loop_fields, loop_moments, H_shift):
     if len(x1) < 2:
         return {'slope': 0.0, 'M_shift': 0.0, 'r2': 0.0}
 
-    intercept, slope, r2 = linefit(x1, y1)
+    intercept, slope, r2 = _linefit(x1, y1)
     M_shift = intercept / 2
 
     result = {'slope': slope, 'M_shift': M_shift, 'r2': r2}
     return result
 
-def loop_Hshift_brent(loop_fields, loop_moments, shift_bound_fraction=0.1):
+def _loop_Hshift_brent(loop_fields, loop_moments, shift_bound_fraction=0.1):
     """
     Optimize the horizontal (field) shift of a magnetic hysteresis loop using Brent's method to maximize symmetry.
 
     This function determines the optimal horizontal field shift (H_shift) to apply to a hysteresis loop,
-    such that the R² value (symmetry) of the loop, as calculated by `loop_H_off`, is maximized.
+    such that the R² value (symmetry) of the loop, as calculated by `_loop_H_off`, is maximized.
     It uses the Brent optimization algorithm to efficiently search for the H_shift that gives the highest R².
     The function returns the optimal R², the corresponding field shift, and the vertical offset (M_shift) at this position.
 
@@ -2750,24 +2752,24 @@ def loop_Hshift_brent(loop_fields, loop_moments, shift_bound_fraction=0.1):
     Notes
     -----
     - Uses Brent's method for optimization via `scipy.optimize.minimize_scalar` with a bracket based on the loop field range.
-    - Calls `loop_H_off` to compute symmetry and vertical shift for each candidate field shift.
+    - Calls `_loop_H_off` to compute symmetry and vertical shift for each candidate field shift.
     - Useful for correcting field and moment offsets in hysteresis loop analysis.
 
     Examples
     --------
-    >>> r2, H_off, M_off = loop_Hshift_brent(fields, moments)
+    >>> r2, H_off, M_off = _loop_Hshift_brent(fields, moments)
     >>> print(f"Optimal field shift: {H_off:.2f}, R²: {r2:.3f}, M_shift: {M_off:.3e}")
     """
 
     def objective(H_shift):
-        return -loop_H_off(loop_fields, loop_moments, H_shift)['r2']
+        return -_loop_H_off(loop_fields, loop_moments, H_shift)['r2']
 
     shift_bound = shift_bound_fraction * np.max(np.abs(loop_fields))
     if shift_bound == 0:
         return 0.0, 0.0, 0.0
 
     coarse_grid = np.linspace(-shift_bound, shift_bound, 41)
-    coarse_scores = np.asarray([loop_H_off(loop_fields, loop_moments, shift)['r2'] for shift in coarse_grid])
+    coarse_scores = np.asarray([_loop_H_off(loop_fields, loop_moments, shift)['r2'] for shift in coarse_grid])
     best_index = int(np.argmax(coarse_scores))
     left_index = max(best_index - 1, 0)
     right_index = min(best_index + 1, len(coarse_grid) - 1)
@@ -2783,13 +2785,13 @@ def loop_Hshift_brent(loop_fields, loop_moments, shift_bound_fraction=0.1):
         )
         opt_H_off = float(result.x)
 
-    opt_shift = loop_H_off(loop_fields, loop_moments, opt_H_off)
+    opt_shift = _loop_H_off(loop_fields, loop_moments, opt_H_off)
     opt_r2 = opt_shift['r2']
     opt_M_off = opt_shift['M_shift']
 
     return opt_r2, opt_H_off, opt_M_off
 
-def loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
+def _loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
                          shift_bound_fraction=0.1, weight_power=4):
     """Optimize loop centering using a low-field-weighted inversion-symmetry mismatch."""
     loop_fields = np.asarray(loop_fields, dtype=float)
@@ -2797,7 +2799,7 @@ def loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
 
     shift_bound = shift_bound_fraction * np.max(np.abs(loop_fields))
     if shift_bound == 0:
-        mismatch = branch_symmetry_mismatch(
+        mismatch = _branch_symmetry_mismatch(
             loop_fields,
             loop_moments,
             low_field_fraction=low_field_fraction,
@@ -2806,7 +2808,7 @@ def loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
         return mismatch['weighted_rms'], 0.0, mismatch['M_shift'], mismatch
 
     def objective(H_shift):
-        return branch_symmetry_mismatch(
+        return _branch_symmetry_mismatch(
             loop_fields,
             loop_moments,
             H_shift=H_shift,
@@ -2821,7 +2823,7 @@ def loop_Hshift_weighted(loop_fields, loop_moments, low_field_fraction=0.35,
         options={'xatol': 1e-6},
     )
     opt_H_off = float(result.x)
-    mismatch = branch_symmetry_mismatch(
+    mismatch = _branch_symmetry_mismatch(
         loop_fields,
         loop_moments,
         H_shift=opt_H_off,
@@ -2867,7 +2869,7 @@ def calc_Q(H, M, type='Q'):
 
     Notes
     -----
-    - The function splits the hysteresis loop into upper and lower branches using `split_hysteresis_loop`.
+    - The function splits the hysteresis loop into upper and lower branches using `split_hyst_loop`.
     - For type 'Q', the numerator is the average of the sum of squares of the upper and lower branches; for 'Qf', only the upper branch is used.
     - The denominator is the sum of squares of err(H), the mismatch between the upper branch
       and the inverted lower branch, so M_sn is equivalent to the 1/(1 - R^2) signal/noise
@@ -2884,7 +2886,7 @@ def calc_Q(H, M, type='Q'):
     assert type in ['Q', 'Qf'], 'type must be either Q or Qf'
     H = np.array(H)
     M = np.array(M)
-    upper_branch, lower_branch = split_hysteresis_loop(H, M)
+    upper_branch, lower_branch = split_hyst_loop(H, M)
     Me = upper_branch[1] + lower_branch[1][::-1]
     # the square root follows the convention of the IRM software and HystLab
     # (Paterson et al., 2018, equation 4): Q = log10(1/sqrt(1 - R^2)); the
@@ -2923,10 +2925,10 @@ def hyst_loop_centering(grid_field, grid_magnetization):
     '''
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
-    R_squared, H_offset, M_offset = loop_Hshift_brent(grid_field, grid_magnetization)
+    R_squared, H_offset, M_offset = _loop_Hshift_brent(grid_field, grid_magnetization)
 
     # re-gridding after offset correction to ensure symmetry
-    centered_H, centered_M = grid_hysteresis_loop(grid_field-H_offset, grid_magnetization-M_offset)
+    centered_H, centered_M = grid_hyst_loop(grid_field-H_offset, grid_magnetization-M_offset)
 
     # quality factor from the offset-corrected loop (Jackson and Solheid, 2010,
     # section 3: Q reflects noise and drift after the effects of loop offsets
@@ -2957,7 +2959,7 @@ def hyst_loop_centering_iterative(grid_field, grid_magnetization, hf_cutoff=0.8,
     and vertical offsets on the residual loop using a low-field-weighted inversion-symmetry metric.
     This is designed for weak ferromagnetic loops superimposed on a strong linear background.
     """
-    centered_H, centered_M = grid_hysteresis_loop(grid_field, grid_magnetization)
+    centered_H, centered_M = grid_hyst_loop(grid_field, grid_magnetization)
     total_H_offset = 0.0
     total_M_offset = 0.0
     iteration_history = []
@@ -2971,7 +2973,7 @@ def hyst_loop_centering_iterative(grid_field, grid_magnetization, hf_cutoff=0.8,
             provisional_slope = 0.0
 
         ferro_like_M = hyst_slope_correction(centered_H, centered_M, provisional_slope)
-        symmetry_score, delta_H, delta_M, mismatch = loop_Hshift_weighted(
+        symmetry_score, delta_H, delta_M, mismatch = _loop_Hshift_weighted(
             centered_H,
             ferro_like_M,
             low_field_fraction=low_field_fraction,
@@ -2979,7 +2981,7 @@ def hyst_loop_centering_iterative(grid_field, grid_magnetization, hf_cutoff=0.8,
             weight_power=weight_power,
         )
 
-        centered_H, centered_M = grid_hysteresis_loop(centered_H - delta_H, centered_M - delta_M)
+        centered_H, centered_M = grid_hyst_loop(centered_H - delta_H, centered_M - delta_M)
         total_H_offset += delta_H
         total_M_offset += delta_M
         iteration_history.append({
@@ -3084,7 +3086,7 @@ def hyst_slope_correction(grid_field, grid_magnetization, chi_HF):
 
     return grid_magnetization_ferro
 
-def find_y_crossing(x, y, y_target=0.0):
+def _find_y_crossing(x, y, y_target=0.0):
     """
     Finds the x-value where y crosses a given y_target, taking the first
     crossing encountered in array order. Uses linear interpolation between
@@ -3143,7 +3145,7 @@ def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
     grid_field = np.array(grid_field)
     grid_magnetization = np.array(grid_magnetization)
 
-    upper_branch, lower_branch = split_hysteresis_loop(grid_field, grid_magnetization)
+    upper_branch, lower_branch = split_hyst_loop(grid_field, grid_magnetization)
 
     Mrh = (upper_branch[1] - lower_branch[1])/2
     Mih = (upper_branch[1] + lower_branch[1])/2
@@ -3157,8 +3159,8 @@ def calc_Mr_Mrh_Mih_Brh(grid_field, grid_magnetization):
     pos_Mrh = Mrh[np.where(H > 0)]
     neg_H = H[np.where(H < 0)]
     neg_Mrh = Mrh[np.where(H < 0)]
-    Brh_pos = find_y_crossing(pos_H, pos_Mrh, Mr/2)
-    Brh_neg = find_y_crossing(neg_H, neg_Mrh, Mr/2)
+    Brh_pos = _find_y_crossing(pos_H, pos_Mrh, Mr/2)
+    Brh_neg = _find_y_crossing(neg_H, neg_Mrh, Mr/2)
     # Mrh may never fall to Mr/2 within the measured field range (e.g. a loop
     # dominated by an unsaturated high-coercivity phase such as hematite);
     # report Brh as NaN rather than failing, so such loops still process and
@@ -3199,10 +3201,10 @@ def calc_Bc(H, M):
     Bc : float
         coercivity of the ferromagnetic component of the hysteresis loop
     '''
-    upper_branch, lower_branch = split_hysteresis_loop(H, M)
+    upper_branch, lower_branch = split_hyst_loop(H, M)
 
-    upper_Bc = find_y_crossing(upper_branch[0], upper_branch[1])
-    lower_Bc = find_y_crossing(lower_branch[0], lower_branch[1])
+    upper_Bc = _find_y_crossing(upper_branch[0], upper_branch[1])
+    lower_Bc = _find_y_crossing(lower_branch[0], lower_branch[1])
     # a branch that never crosses zero within the measured field range (a
     # loop measured far below the coercivity of a hard component) has no
     # defined Bc; report NaN rather than failing
@@ -3246,7 +3248,7 @@ def loop_saturation_stats(field, magnetization, HF_cutoff=0.8, max_field_cutoff=
     '''
     field = np.array(field)
     magnetization = np.array(magnetization)
-    upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
+    upper_branch, lower_branch = split_hyst_loop(field, magnetization)
     # filter for the high field portion of each branch
     pos_high_field_index = np.where((field >= HF_cutoff*np.max(np.abs(field))) & (field <= max_field_cutoff*np.max(np.abs(field))))[0]
     neg_high_field_index = np.where((field <= -HF_cutoff*np.max(np.abs(field))) & (field >= -max_field_cutoff*np.max(np.abs(field))))[0]
@@ -3343,7 +3345,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
     - The function uses `loop_saturation_stats` to compute FNL values for each field fraction.
     - FNL values below 2.5 indicate statistically linear (saturated) high-field behavior;
       values above 2.5 indicate significant nonlinearity (nonsaturation).
-    - The result is converted to standard Python types using `dict_in_native_python`.
+    - The result is converted to standard Python types using `_to_native_python`.
 
     Examples
     --------
@@ -3378,7 +3380,7 @@ def hyst_loop_saturation_test(grid_field, grid_magnetization, max_field_cutoff=0
         if np.isfinite(FNL) and FNL < 2.5:
             saturation_cutoff = HF_cutoff
     results = {'FNL60':FNL60, 'FNL70':FNL70, 'FNL80':FNL80, 'saturation_cutoff':saturation_cutoff, 'loop_is_saturated':(saturation_cutoff != 0.92)}
-    results_dict = dict_in_native_python(results)
+    results_dict = _to_native_python(results)
     return results_dict
 
 
@@ -3474,7 +3476,7 @@ def loop_closure_test(H, Mrh, HF_cutoff=0.8, *, Me=None, max_field_cutoff=0.99):
     return results
 
 
-def drift_correction_Me(H, M, descending_first=True):
+def Me_drift_correction(H, M, descending_first=True):
     """
     Perform default IRM drift correction for a hysteresis loop based on the Me method.
 
@@ -3485,7 +3487,7 @@ def drift_correction_Me(H, M, descending_first=True):
 
     The drift estimate depends on measurement-time order, and the arrays are
     expected in canonical order (descending upper branch first, as produced
-    by `grid_hysteresis_loop`). For a loop originally measured from negative
+    by `grid_hyst_loop`). For a loop originally measured from negative
     saturation, pass descending_first=False (detected from the raw field
     values with `measured_descending_first`) so the correction is applied in
     true time order rather than with the opposite time sense.
@@ -3511,14 +3513,14 @@ def drift_correction_Me(H, M, descending_first=True):
     --------
     >>> H = np.linspace(-1, 1, 200)
     >>> M = measure_hysteresis(H)
-    >>> M_cor = drift_correction_Me(H, M)
+    >>> M_cor = Me_drift_correction(H, M)
     >>> plot(H, M, label='Original')
     >>> plot(H, M_cor, label='Drift Corrected')
     """
     if not descending_first:
-        return _correct_in_measurement_order(H, M, drift_correction_Me)
+        return _correct_in_measurement_order(H, M, Me_drift_correction)
     # split loop branches
-    upper_branch, lower_branch = split_hysteresis_loop(H, M)
+    upper_branch, lower_branch = split_hyst_loop(H, M)
     # calculate Me
     Me = upper_branch[1][::-1] + lower_branch[1]
 
@@ -3563,7 +3565,7 @@ def prorated_drift_correction(field, magnetization, descending_first=True):
 
     The prorated ramp runs in measurement-time order, and the arrays are
     expected in canonical order (descending upper branch first, as produced
-    by `grid_hysteresis_loop`). For a loop originally measured from negative
+    by `grid_hyst_loop`). For a loop originally measured from negative
     saturation, pass descending_first=False (detected from the raw field
     values with `measured_descending_first`) so the ramp is applied in true
     time order rather than with the opposite time sense.
@@ -3590,7 +3592,7 @@ def prorated_drift_correction(field, magnetization, descending_first=True):
 
     field = np.array(field)
     magnetization = np.array(magnetization)
-    upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
+    upper_branch, lower_branch = split_hyst_loop(field, magnetization)
 
     # find the maximum field values for the upper and lower branches
     upper_branch_max_idx = np.argmax(upper_branch[0])
@@ -3606,7 +3608,7 @@ def prorated_drift_correction(field, magnetization, descending_first=True):
 
     return np.array(corrected_magnetization)
 
-def symmetric_averaging_drift_corr(field, magnetization):
+def symmetric_averaging_drift_correction(field, magnetization):
     """
     Apply symmetric averaging drift correction to a hysteresis loop.
 
@@ -3631,12 +3633,12 @@ def symmetric_averaging_drift_corr(field, magnetization):
     --------
     >>> field = np.linspace(-1, 1, 200)
     >>> magnetization = some_hysteresis_measurement(field)
-    >>> corrected = symmetric_averaging_drift_corr(field, magnetization)
+    >>> corrected = symmetric_averaging_drift_correction(field, magnetization)
     """
     field = np.array(field)
     magnetization = np.array(magnetization)
 
-    upper_branch, lower_branch = split_hysteresis_loop(field, magnetization)
+    upper_branch, lower_branch = split_hyst_loop(field, magnetization)
 
     # average the upper and inverted lower branches
     averaged_upper_branch = (upper_branch[1] - lower_branch[1][::-1]) / 2
@@ -3692,7 +3694,7 @@ def IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2):
     chi_HF = chi_HF/(4*np.pi/1e7)
     return chi_HF * H + Ms + a_1 * H**(-1) + a_2 * H**(-2)
 
-def IRM_nonlinear_fit_cost_function(params, H, M_obs):
+def _IRM_nonlinear_fit_cost_function(params, H, M_obs):
     '''
     Cost function for the IRM non-linear least squares fit optimization
 
@@ -3741,7 +3743,7 @@ def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
     chi_HF = chi_HF/(4*np.pi/1e7) # convert to Tesla
     return chi_HF * H + Ms + alpha * H**beta
 
-def Fabian_nonlinear_fit_cost_function(params, H, M_obs):
+def _Fabian_nonlinear_fit_cost_function(params, H, M_obs):
     '''
     cost function for the Fabian non-linear least squares fit optimization
 
@@ -3764,7 +3766,7 @@ def Fabian_nonlinear_fit_cost_function(params, H, M_obs):
     prediction = Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta)
     return M_obs - prediction
 
-def Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
+def _Fabian_nonlinear_fit_fix_beta_cost_function(params, H, M_obs):
     '''
     cost function for the Fabian non-linear least squares fit optimization
         with beta fixed at -2
@@ -3835,13 +3837,13 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     HF_magnetization = np.where(H[HF_index] >= 0, M[HF_index], -M[HF_index])
 
     if fit_type == 'IRM':
-        cost_function = IRM_nonlinear_fit_cost_function
+        cost_function = _IRM_nonlinear_fit_cost_function
         results = least_squares(cost_function, initial_guess, bounds=bounds, args=(HF_field, HF_magnetization))
     elif fit_type == 'Fabian':
-        cost_function = Fabian_nonlinear_fit_cost_function
+        cost_function = _Fabian_nonlinear_fit_cost_function
         results = least_squares(cost_function, initial_guess, bounds=bounds, args=(HF_field, HF_magnetization))
     elif fit_type == 'Fabian_fixed_beta':
-        cost_function = Fabian_nonlinear_fit_fix_beta_cost_function
+        cost_function = _Fabian_nonlinear_fit_fix_beta_cost_function
         results = least_squares(cost_function, initial_guess[:3], bounds=(bounds[0][:3], bounds[1][:3]), args=(HF_field, HF_magnetization))
     else:
         raise ValueError('Fit type must be either IRM or Fabian')
@@ -3874,7 +3876,7 @@ def hyst_HF_nonlinear_optimization(H, M, HF_cutoff, fit_type, initial_guess=[1, 
     Fnl_lin = ((SSD_lin - SSD_nl) / (p_nl - p_lin)) / (SSD_nl / (n_points - p_nl))
 
     final_result['Fnl_lin'] = Fnl_lin
-    final_result_dict = dict_in_native_python(final_result)
+    final_result_dict = _to_native_python(final_result)
     return final_result_dict
 
 
@@ -3924,7 +3926,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
 
     The inputs need not come from a MagIC measurements table: any pair of
     field and magnetization sequences (lists, arrays, or dataframe columns)
-    can be processed. Inputs are passed through `sanitize_hysteresis_inputs`,
+    can be processed. Inputs are passed through `sanitize_hyst_inputs`,
     so non-finite measurement pairs are dropped with a report, numeric
     strings are converted, and either field sweep order (starting from
     positive or negative saturation) is accepted.
@@ -4020,7 +4022,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     """
     # clean the inputs (accepts lists/Series/text columns, drops non-finite
     # pairs, warns on apparent non-tesla field units)
-    field, magnetization = sanitize_hysteresis_inputs(field, magnetization)
+    field, magnetization = sanitize_hyst_inputs(field, magnetization)
 
     # record the original sweep order before gridding canonicalizes it: the
     # drift correction is time-order sensitive and needs to know whether the
@@ -4028,7 +4030,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     descending_first = measured_descending_first(field)
 
     # first grid the data into symmetric field values
-    grid_fields, grid_magnetizations = grid_hysteresis_loop(field, magnetization)
+    grid_fields, grid_magnetizations = grid_hyst_loop(field, magnetization)
 
     # test linearity of the gridded original loop
     loop_linearity_test_results = hyst_linearity_test(grid_fields, grid_magnetizations)
@@ -4047,7 +4049,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
               'the high-field susceptibility is reported')
         p = None
         if _HAS_BOKEH:
-            p = plot_hysteresis_loop(grid_fields, grid_magnetizations,
+            p = plot_hyst_loop(grid_fields, grid_magnetizations,
                                      specimen_name, line_color='orange',
                                      label='raw loop (statistically linear)',
                                      return_figure=True, show_plot=show_plot)
@@ -4084,7 +4086,7 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     centered_H, centered_M = loop_centering_results['centered_H'], loop_centering_results['centered_M']
 
     # drift correction, applied in the loop's true measurement-time order
-    drift_corr_M = drift_correction_Me(centered_H, centered_M,
+    drift_corr_M = Me_drift_correction(centered_H, centered_M,
                                        descending_first=descending_first)
 
     # calculate Mr, Mrh, Mih, Me, Brh
@@ -4119,11 +4121,11 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
             RuntimeWarning, stacklevel=2)
         p = None
         if _HAS_BOKEH:
-            p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop',
+            p = plot_hyst_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop',
                                      return_figure=True, show_plot=False)
-            p = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected',
+            p = plot_hyst_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected',
                                      return_figure=True, show_plot=False)
-            p = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p, line_color='pink', label=specimen_name+' drift corrected (open loop)',
+            p = plot_hyst_loop(centered_H, drift_corr_M, specimen_name, p=p, line_color='pink', label=specimen_name+' drift corrected (open loop)',
                                      return_figure=True, show_plot=False)
             p.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
             p.line(H, Mih, line_color='purple', legend_label='Mih', line_width=1)
@@ -4194,16 +4196,16 @@ def process_hyst_loop(field, magnetization, specimen_name='', show_results_table
     p_slope_corr = None
     if _HAS_BOKEH:
         # plot original loop
-        p = plot_hysteresis_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', 
+        p = plot_hyst_loop(grid_fields, grid_magnetizations, specimen_name, line_color='orange', label='raw loop', 
                                  return_figure=True, show_plot=False)
         # plot centered loop
-        p_centered = plot_hysteresis_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', 
+        p_centered = plot_hyst_loop(centered_H, centered_M, specimen_name, p=p, line_color='red', label=specimen_name+' offset corrected', 
                                           return_figure=True, show_plot=False)
         # plot drift corrected loop
-        p_drift_corr = plot_hysteresis_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', 
+        p_drift_corr = plot_hyst_loop(centered_H, drift_corr_M, specimen_name, p=p_centered, line_color='pink', label=specimen_name+' drift corrected', 
                                             return_figure=True, show_plot=False)
         # plot slope corrected loop
-        p_slope_corr = plot_hysteresis_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', 
+        p_slope_corr = plot_hyst_loop(centered_H, slope_corr_M, specimen_name, p=p_drift_corr, line_color='blue', label=specimen_name+' slope corrected', 
                                             return_figure=True, show_plot=False)
         # plot Mrh
         p_slope_corr.line(H, Mrh, line_color='green', legend_label='Mrh', line_width=1)
@@ -4431,7 +4433,7 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
         desc_col = specimens_df.columns.get_loc('description')
         text, description_dict = parse_specimen_description(
             specimens_df.iloc[ipos, desc_col])
-        description_dict.update(dict_in_native_python(additional_stats_dict))
+        description_dict.update(_to_native_python(additional_stats_dict))
         payload = json.dumps(description_dict)
         specimens_df.iloc[ipos, desc_col] = (f'{text} | {payload}' if text
                                              else payload)
@@ -4441,7 +4443,7 @@ def add_hyst_stats_to_specimens_table(specimens_df, hyst_results, overwrite=True
 # X-T functions
 # ------------------------------------------------------------------------------------------------------------------
 
-def split_warm_cool(experiment, temperature_column='meas_temp',
+def split_heating_cooling(experiment, temperature_column='meas_temp',
                     magnetic_column='susc_chi_mass'):
     """
     Split a thermomagnetic curve into heating and cooling portions.
@@ -4525,11 +4527,11 @@ def prepare_thermomag_branches(
 
     This is the shared preprocessing step for the Curie temperature estimators
     and thermomagnetic plots. It splits the measurement sequence into heating
-    and cooling branches (``split_warm_cool``), converts temperatures to the
+    and cooling branches (``split_heating_cooling``), converts temperatures to the
     requested unit, optionally subtracts the per-branch minimum as an estimate
     of the sample-holder background, sorts each branch by ascending
     temperature, and optionally smooths each branch with an x-space moving
-    window (``smooth_moving_avg``).
+    window (``smooth_moving_average``).
 
     Subtracting the per-branch minimum assumes that the magnetic signal decays
     to the holder background at the highest temperatures (i.e., the experiment
@@ -4559,7 +4561,7 @@ def prepare_thermomag_branches(
         Subtract the per-branch minimum value from each branch (default True).
     window_type : {'flat', 'hanning', 'hamming', 'bartlett', 'blackman'}, optional
         Weighting function applied within each smoothing window by
-        ``smooth_moving_avg`` (default 'hanning'). Only used when
+        ``smooth_moving_average`` (default 'hanning'). Only used when
         ``smooth_window > 0``. The options are:
 
         - 'flat': uniform weights, i.e. a simple unweighted running mean.
@@ -4586,7 +4588,7 @@ def prepare_thermomag_branches(
         arrays, ascending temperature). A branch with no measurements is
         ``None``.
     """
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(
+    warm_T, warm_X, cool_T, cool_X = split_heating_cooling(
         experiment,
         temperature_column=temperature_column,
         magnetic_column=magnetic_column,
@@ -4607,7 +4609,7 @@ def prepare_thermomag_branches(
         # receives strictly increasing temperatures and repeated logged
         # points (furnace stabilization) do not over-weight the fits
         analysis_T, analysis_y = _dedupe_temperatures(T, y)
-        sm_T, sm_y = smooth_moving_avg(analysis_T, analysis_y, smooth_window,
+        sm_T, sm_y = smooth_moving_average(analysis_T, analysis_y, smooth_window,
                                        window_type=window_type)
         branches[name] = {
             "T": np.asarray(sm_T, dtype=float),
@@ -4619,7 +4621,7 @@ def prepare_thermomag_branches(
     return branches
 
 
-def plot_X_T(
+def plot_chi_T(
     experiment,
     temperature_column="meas_temp",
     magnetic_column="susc_chi_mass",
@@ -5085,11 +5087,11 @@ def curie_derivative_estimates(T, y, t_range=None, smooth_window=0):
         # before smoothing so edge padding cannot propagate an outlier into a
         # spurious plateau that captures the steepest-descent search
         dy[0], dy[-1] = dy[1], dy[-2]
-        _, dy = smooth_moving_avg(T, dy, smooth_window)
+        _, dy = smooth_moving_average(T, dy, smooth_window)
     d2y = np.gradient(dy, T)
     if smooth_window and smooth_window > 0:
         d2y[0], d2y[-1] = d2y[1], d2y[-2]
-        _, d2y = smooth_moving_avg(T, d2y, smooth_window)
+        _, d2y = smooth_moving_average(T, d2y, smooth_window)
 
     # locate the steepest descent over the interior only; np.gradient forms
     # one-sided differences at the array boundaries, which are the most
@@ -5428,7 +5430,7 @@ def curie_inverse_susceptibility(T, chi, fit_range=None, min_points=5,
     return result
 
 
-def curie_ms_squared_extrapolation(T, M, fit_range=None, exponent=2.0,
+def curie_Ms_squared_extrapolation(T, M, fit_range=None, exponent=2.0,
                                    min_points=5, min_m=None):
     """
     Mean-field (Moskowitz, 1981) extrapolation of Ms**exponent to zero.
@@ -5947,7 +5949,7 @@ def curie_temperature_estimates(
       (``curie_landau_fit``); for M(T), supports extrapolation from runs
       that end below Tc.
     * ``'ms_squared_extrapolation'`` — mean-field extrapolation of Ms^2 to
-      zero (``curie_ms_squared_extrapolation``; Moskowitz, 1981); for M(T)
+      zero (``curie_Ms_squared_extrapolation``; Moskowitz, 1981); for M(T)
       curves that end below Tc. Not selectable for susceptibility data.
 
     Parameters
@@ -6119,7 +6121,7 @@ def curie_temperature_estimates(
                                               r["params"])
                 method_results[(branch, method)] = r
             elif method == "ms_squared_extrapolation":
-                r = curie_ms_squared_extrapolation(
+                r = curie_Ms_squared_extrapolation(
                     T, y, **method_kwargs.get("ms_squared_extrapolation", {})
                 )
                 curie_temp, stderr, params = (r["curie_temp"],
@@ -6403,7 +6405,7 @@ def plot_curie_estimates(
     return None
 
 
-def interactive_curie_inverse_susceptibility(
+def curie_inverse_susceptibility_interactive(
     experiment,
     temperature_column="meas_temp",
     magnetic_column="susc_chi_mass",
@@ -6665,7 +6667,7 @@ def add_curie_estimates_to_specimens_table(
     return
 
 
-def smooth_moving_avg(
+def smooth_moving_average(
     x,
     y,
     x_window,
@@ -6774,71 +6776,6 @@ def smooth_moving_avg(
     return sm_x, sm_y
 
 
-def X_T_running_average(temp_list, chi_list, temp_window):
-    """
-    Compute running averages and variances of susceptibility over a sliding
-    temperature window.
-
-    Parameters
-    ----------
-    temp_list : Sequence[float]
-        Ordered list of temperatures (must be same length as chi_list).
-    chi_list : Sequence[float]
-        List of susceptibility values corresponding to each temperature.
-    temp_window : float
-        Total width of the temperature window. Each point averages data in
-        [T_i - temp_window/2, T_i + temp_window/2].
-
-    Returns
-    -------
-    avg_temps : List[float]
-        The mean temperature in each window (one per input point).
-    avg_chis : List[float]
-        The mean susceptibility in each window.
-    temp_vars : List[float]
-        The variance of temperatures in each window.
-    chi_vars : List[float]
-        The variance of susceptibility values in each window.
-    """
-    if len(temp_list) == 0 or len(chi_list) == 0 or temp_window <= 0:
-        return temp_list, chi_list, [], []
-    
-    avg_temps = []
-    avg_chis = []
-    temp_vars = []
-    chi_vars = []
-    n = len(temp_list)
-    
-    for i in range(n):
-        # Determine the temperature range for the current point
-        temp_center = temp_list[i]
-        start_temp = temp_center - temp_window / 2
-        end_temp = temp_center + temp_window / 2
-        
-        # Get the indices within the temperature range
-        indices = [j for j, t in enumerate(temp_list) if start_temp <= t <= end_temp]
-        
-        # Calculate the average temperature and susceptibility for the current window
-        if indices:
-            temp_range = [temp_list[j] for j in indices]
-            chi_range = [chi_list[j] for j in indices]
-            avg_temp = sum(temp_range) / len(temp_range)
-            avg_chi = sum(chi_range) / len(chi_range)
-            temp_var = np.var(temp_range)
-            chi_var = np.var(chi_range)
-        else:
-            avg_temp = temp_center
-            avg_chi = chi_list[i]
-            temp_var = 0
-            chi_var = 0
-        
-        avg_temps.append(avg_temp)
-        avg_chis.append(avg_chi)
-        temp_vars.append(temp_var)
-        chi_vars.append(chi_var)
-    
-    return avg_temps, avg_chis, temp_vars, chi_vars
-
 
 def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_window=50, steps=50, colormapwarm='tab20b', colormapcool='tab20c'):
     """
@@ -6852,7 +6789,7 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
     Parameters
     ----------
     experiment : object or structured array
-        Experimental data containing temperature and measurement values. It must be compatible with the `split_warm_cool` function.
+        Experimental data containing temperature and measurement values. It must be compatible with the `split_heating_cooling` function.
     min_temp_window : float, optional
         Minimum window size (in degrees Celsius) for the moving average. Default is 0.
     max_temp_window : float, optional
@@ -6876,7 +6813,7 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
     >>> fig, axs = optimize_moving_average_window(my_experiment, min_temp_window=5, max_temp_window=30, steps=20)
     >>> fig.show()
     """
-    warm_T, warm_X, cool_T, cool_X = split_warm_cool(experiment)
+    warm_T, warm_X, cool_T, cool_X = split_heating_cooling(experiment)
     windows = np.linspace(min_temp_window, max_temp_window, steps)
     fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(12, 6))
 
@@ -6884,10 +6821,10 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
     norm = colors.Normalize(vmin=min_temp_window, vmax=max_temp_window)
 
     for window in windows:
-        _, warm_avg_chis, _, warm_chi_vars = smooth_moving_avg(warm_T, warm_X, window, return_variance=True)
-        warm_avg_rms, warm_avg_variance = calculate_avg_variance_and_rms(warm_X, warm_avg_chis, warm_chi_vars)
-        _, cool_avg_chis, _, cool_chi_vars = smooth_moving_avg(cool_T, cool_X, window, return_variance=True)  
-        cool_avg_rms, cool_avg_variance = calculate_avg_variance_and_rms(cool_X, cool_avg_chis, cool_chi_vars)
+        _, warm_avg_chis, _, warm_chi_vars = smooth_moving_average(warm_T, warm_X, window, return_variance=True)
+        warm_avg_rms, warm_avg_variance = _calc_avg_variance_and_rms(warm_X, warm_avg_chis, warm_chi_vars)
+        _, cool_avg_chis, _, cool_chi_vars = smooth_moving_average(cool_T, cool_X, window, return_variance=True)  
+        cool_avg_rms, cool_avg_variance = _calc_avg_variance_and_rms(cool_X, cool_avg_chis, cool_chi_vars)
 
         axs[0].scatter(warm_avg_variance, warm_avg_rms, c=window, cmap=colormapwarm, norm=norm)
         axs[1].scatter(cool_avg_variance, cool_avg_rms, c=window, cmap=colormapcool, norm=norm)
@@ -6907,7 +6844,7 @@ def optimize_moving_average_window(experiment, min_temp_window=0, max_temp_windo
     return fig, axs
 
 
-def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
+def _calc_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
     """
     Calculate the average root mean square (RMS) deviation and average variance for a set of measurements.
 
@@ -6937,7 +6874,7 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
     >>> chi = [1.0, 2.0, 3.0]
     >>> avg_chi = [0.9, 2.1, 2.9]
     >>> vars = [0.01, 0.02, 0.03]
-    >>> avg_rms, avg_var = calculate_avg_variance_and_rms(chi, avg_chi, vars)
+    >>> avg_rms, avg_var = _calc_avg_variance_and_rms(chi, avg_chi, vars)
     >>> print(f"Average RMS: {avg_rms:.3f}, Average Variance: {avg_var:.3f}")
     """
     rms_list = np.sqrt([(chi - avg_chi)**2 for chi, avg_chi in zip(chi_list, avg_chis)])
@@ -6952,7 +6889,7 @@ def calculate_avg_variance_and_rms(chi_list, avg_chis, chi_vars):
 
 # backfield data processing functions
 # ------------------------------------------------------------------------------------------------------------------
-def backfield_data_processing(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_mode='lowess', smooth_frac=0.0, drop_first=False):
+def process_backfield_data(experiment, field='treat_dc_field', magnetization='magn_mass', smooth_mode='lowess', smooth_frac=0.0, drop_first=False):
     '''
     Function to process the backfield data including shifting the magnetic 
     moment to be positive values taking the log base 10 of the magnetic 
@@ -6991,8 +6928,8 @@ def backfield_data_processing(experiment, field='treat_dc_field', magnetization=
     if drop_first:
         experiment = experiment.iloc[1:].reset_index(drop=1)
     
-    if find_y_crossing(experiment[field], experiment[magnetization]) is not None:
-        Bcr = np.abs(find_y_crossing(experiment[field], experiment[magnetization]))
+    if _find_y_crossing(experiment[field], experiment[magnetization]) is not None:
+        Bcr = np.abs(_find_y_crossing(experiment[field], experiment[magnetization]))
     else:
         Bcr = np.nan
     # to plot the backfield data in the conventional way, we need to shift the magnetization to be positive
@@ -7134,7 +7071,7 @@ def plot_backfield_data(
                 )
             p0.xaxis.axis_label_text_font_style = "normal"
             p0.yaxis.axis_label_text_font_style = "normal"
-            p0.legend.location = map_legend_location(legend_location)
+            p0.legend.location = _map_legend_location(legend_location)
             p0.legend.click_policy = "hide"
             figs.append(p0)
 
@@ -7165,7 +7102,7 @@ def plot_backfield_data(
             )
             p1.xaxis.axis_label_text_font_style = "normal"
             p1.yaxis.axis_label_text_font_style = "normal"
-            p1.legend.location = map_legend_location(legend_location)
+            p1.legend.location = _map_legend_location(legend_location)
             p1.legend.click_policy = "hide"
             figs.append(p1)
 
@@ -7185,7 +7122,7 @@ def plot_backfield_data(
                     legend_label="smoothed spectrum")
             p2.xaxis.axis_label_text_font_style = "normal"
             p2.yaxis.axis_label_text_font_style = "normal"
-            p2.legend.location = map_legend_location(legend_location)
+            p2.legend.location = _map_legend_location(legend_location)
             p2.legend.click_policy = "hide"
             figs.append(p2)
 
@@ -7672,7 +7609,7 @@ def coercivity_spectrum_from_curve(x, magnetization, curve_type='backfield'):
         log10 of field values (mT), monotonically increasing.
     magnetization : array-like
         Magnetization values at x (shifted to positive for backfield data,
-        e.g. the 'magn_mass_shift' column from backfield_data_processing).
+        e.g. the 'magn_mass_shift' column from process_backfield_data).
     curve_type : str
         'backfield' (decaying curve, spectrum = -dM/dx) or 'acquisition'
         (growing curve, spectrum = dM/dx).
@@ -7705,7 +7642,7 @@ def estimate_coercivity_components(x, spectrum, n_components, smooth_window=None
 
     Initial choices matter for nonlinear fitting: these automatic estimates
     are a starting point that can (and often should) be refined by the user,
-    e.g. with interactive_coercivity_unmixing.
+    e.g. with coercivity_unmixing_interactive.
 
     Parameters
     ----------
@@ -8072,7 +8009,7 @@ def unmix_backfield_curve(x, magnetization, n_components=None,
     spectrum space can be more visually intuitive. Agreement between the
     two approaches is a good indication of a robust unmixing model.
 
-    For backfield data processed with backfield_data_processing, pass
+    For backfield data processed with process_backfield_data, pass
     x = 'log_dc_field' and magnetization = 'magn_mass_shift'. Note that the
     shifted backfield curve spans twice the saturation remanence, so each
     fitted 'contribution' is twice the remanence carried by that component;
@@ -8346,7 +8283,7 @@ def unmix_coercivity(x, magnetization, method=DEFAULT_UNMIX_METHOD,
     ----------
     x : array-like
         log10 of field values (mT), e.g. 'log_dc_field' from
-        backfield_data_processing.
+        process_backfield_data.
     magnetization : array-like
         Remanence curve values at x (e.g. 'magn_mass_shift').
     method : str
@@ -10483,7 +10420,7 @@ def plot_unmixing_ensemble(result, space='spectrum', n_draws=200, n_grid=300,
     return fig, ax
 
 
-def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
+def plot_unmixing_multistart(result, max_solutions=6, space='spectrum',
                               n_grid=300, figsize=None, colors=None,
                               marker_scale='uniform'):
     """
@@ -10640,7 +10577,7 @@ def plot_multistart_solutions(result, max_solutions=6, space='spectrum',
     return fig, axes_flat[:n_panels]
 
 
-def interactive_coercivity_unmixing(x, magnetization, n_components=2,
+def coercivity_unmixing_interactive(x, magnetization, n_components=2,
                                     method='spectrum',
                                     curve_type='backfield', vary_skew=True,
                                     figsize=(9, 5)):
@@ -10662,7 +10599,7 @@ def interactive_coercivity_unmixing(x, magnetization, n_components=2,
     ----------
     x : array-like
         log10 of field values (mT), e.g. 'log_dc_field' from
-        backfield_data_processing.
+        process_backfield_data.
     magnetization : array-like
         Remanence curve values at x (e.g. 'magn_mass_shift').
     n_components : int
@@ -10814,12 +10751,12 @@ def unmix_backfield_experiments(measurements, experiments=None,
     Batch coercivity unmixing of backfield experiments in a MagIC
     measurements table.
 
-    Each experiment is processed with backfield_data_processing and unmixed
+    Each experiment is processed with process_backfield_data and unmixed
     with the requested method (any name registered in UNMIXING_METHODS,
     dispatched through unmix_coercivity). When initial parameters are not
     supplied they are estimated automatically per experiment; supplying a
     common initial-parameter table (or a per-experiment dict, e.g. built
-    with interactive_coercivity_unmixing) enforces a consistent starting
+    with coercivity_unmixing_interactive) enforces a consistent starting
     model across specimens, which aids comparability of the resulting
     components.
 
@@ -10847,7 +10784,7 @@ def unmix_backfield_experiments(measurements, experiments=None,
         replicates (methods that bootstrap internally, like 'maxunmix',
         are not re-bootstrapped).
     resample, proportion, noise_level : see unmixing_bootstrap.
-    smooth_mode, smooth_frac, drop_first : see backfield_data_processing.
+    smooth_mode, smooth_frac, drop_first : see process_backfield_data.
         The defaults (spline with smooth_frac=0) leave the data unsmoothed.
     field, magnetization : str
         Column names in the measurements table.
@@ -10890,7 +10827,7 @@ def unmix_backfield_experiments(measurements, experiments=None,
         specimen = (experiment['specimen'].iloc[0]
                     if 'specimen' in experiment.columns else '')
         try:
-            processed, Bcr = backfield_data_processing(
+            processed, Bcr = process_backfield_data(
                 experiment, field=field, magnetization=magnetization,
                 smooth_mode=smooth_mode, smooth_frac=smooth_frac,
                 drop_first=drop_first)
@@ -11133,7 +11070,7 @@ def _unmixing_component_record(row):
 
 
 # Marker written into (and matched from) the JSON 'description' of specimens
-# rows that unmixing_to_specimens_table(mode='rows') creates, so a re-run
+# rows that add_unmixing_to_specimens_table(mode='rows') creates, so a re-run
 # removes exactly its own previous component rows -- and never an original
 # specimen row that merely carries a mode='description' payload or a rem_cmf.
 _UNMIXING_ROW_MARKER = 'coercivity_unmixing_component_row'
@@ -11157,7 +11094,7 @@ def _match_specimen_rows(specimens_df, experiment_name, specimen_name):
     return mask
 
 
-def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
+def add_unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
     """
     Record coercivity unmixing results in a MagIC specimens table.
 
@@ -11286,7 +11223,7 @@ def unmixing_to_specimens_table(specimens_df, components_df, mode='rows'):
 
 # Day plot functions
 # ------------------------------------------------------------------------------------------------------------------
-def plot_day_plot_MagIC(specimen_data, 
+def plot_day_magic(specimen_data, 
                    by ='specimen',
                    Mr = 'hyst_mr_mass',
                    Ms = 'hyst_ms_mass',
@@ -11321,14 +11258,14 @@ def plot_day_plot_MagIC(specimen_data,
     summary_sats = specimen_data.groupby(by).agg({Mr: 'mean', Ms: 'mean', Bcr: 'mean', Bc: 'mean'}).reset_index()
     summary_sats = summary_sats.dropna()
 
-    fig, ax = plot_day_plot(Mr = summary_sats[Mr],
+    fig, ax = plot_day(Mr = summary_sats[Mr],
                        Ms = summary_sats[Ms],
                        Bcr = summary_sats[Bcr],
                        Bc = summary_sats[Bc], 
                        **kwargs)
     return fig, ax
     
-def plot_day_plot(Mr, Ms, Bcr, Bc, 
+def plot_day(Mr, Ms, Bcr, Bc, 
              Mr_Ms_lower=0.05, Mr_Ms_upper=0.5, Bc_Bcr_lower=1.5, Bc_Bcr_upper=4, 
              plot_day_lines = True, 
              plot_MD_slope=True,
@@ -11550,31 +11487,6 @@ def plot_neel(Mr, Ms, Bc, color='black', marker = 'o', label = 'sample', alpha=1
     ax.grid(True, which='both', linestyle='--', linewidth=lw, color=lc)
     return ax
 
-
-def Langevin_alpha(V, Ms, H, T):
-    '''
-    Langevin alpha calculation
-
-    Parameters
-    ----------
-    V : float
-        volume of the particle
-    Ms : float
-        saturation magnetization
-    H : float
-        applied field
-    T : float
-        temperature in Kelvin
-
-    Returns
-    -------
-    alpha : float
-        Langevin alpha value
-    '''
-    mu0 = 4 * np.pi * 1e-7
-    k = 1.38064852e-23
-
-    return mu0*Ms * V * H / (k * T)
 
 
 def Langevin(alpha):
