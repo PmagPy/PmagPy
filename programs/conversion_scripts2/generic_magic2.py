@@ -485,7 +485,7 @@ def main(command_line=True, **kwargs):
     if magfile:
         try:
             input=open(magfile,'r')
-        except:
+        except Exception:
             print("bad mag file:",magfile)
             return False, "bad mag file"
     else:
@@ -538,7 +538,7 @@ def main(command_line=True, **kwargs):
         er_sample_data=sort_magic_file(samp_file,1,'er_sample_name')
         print("-I- Found er_samples.txt")
         print('-I- sample information will be appended to existing er_samples.txt file')
-    except:
+    except Exception:
         print("-I- Cant find file er_samples.txt")
         print('-I- sample information will be stored in new er_samples.txt file')
 

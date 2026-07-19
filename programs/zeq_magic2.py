@@ -500,7 +500,7 @@ def main():
                             try:
                                 k =sids.index(sample)
                                 keepon=0
-                            except:
+                            except Exception:
                                 tmplist=[]
                                 for qq in range(len(sids)):
                                     if sample in sids[qq]:tmplist.append(sids[qq])
@@ -531,7 +531,7 @@ def main():
                                 ind=int(answer)
                                 meas_data=pmag.mark_dmag_rec(s,ind,meas_data)
                                 changeM=1
-                        except:
+                        except Exception:
                                 'bad entry, try again'
                     if  ans=='b':
                         if end_pca=="":end_pca=len(plotblock)-1
@@ -557,7 +557,7 @@ def main():
                                     print(beg_pca,end_pca, " are bad entry of indices - try again")
                                     end_pca=len(plotblock)-1
                                     beg_pca=0
-                            except:
+                            except Exception:
                                 print(beg_pca,end_pca, " are bad entry of indices - try again")
                                 end_pca=len(plotblock)-1
                                 beg_pca=0

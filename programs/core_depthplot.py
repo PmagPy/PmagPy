@@ -91,7 +91,7 @@ def main():
     try:
         sym, size = symbol.split()
         size = int(size)
-    except:
+    except Exception:
         print('you should provide -sym in this format: ro 5')
         print('using defaults instead')
         sym, size = 'ro', 5
@@ -100,7 +100,7 @@ def main():
     if res_file:
         try:
             res_file, res_sym, res_size = res_file.split()
-        except:
+        except Exception:
             print('you must provide -fres in this format: -fres filename symbol size')
             print(
                 'could not parse {}, defaulting to using no result file'.format(res_file))
@@ -112,7 +112,7 @@ def main():
     if spc_file:
         try:
             spc_file, spc_sym, spc_size = spc_file.split()
-        except:
+        except Exception:
             print('you must provide -fsp in this format: -fsp filename symbol size')
             print(
                 'could not parse {}, defaulting to using no specimen file'.format(spc_file))
@@ -123,7 +123,7 @@ def main():
     # format min/max depth
     try:
         dmin, dmax = depth.split()
-    except:
+    except Exception:
         print('you must provide -d in this format: -d dmin dmax')
         print('could not parse {}, defaulting to plotting all depths'.format(depth))
         dmin, dmax = -1, -1
@@ -133,7 +133,7 @@ def main():
         try:
             timescale, amin, amax = timescale.split()
             pltTime = True
-        except:
+        except Exception:
             print(
                 'you must provide -ts in this format: -ts timescale minimum_age maximum_age')
             print(
@@ -155,7 +155,7 @@ def main():
     # format list of protcols and step
     try:
         method, step = meth.split()
-    except:
+    except Exception:
         print(
             'To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot')
         print('Defaulting to using no protocol')

@@ -33,7 +33,7 @@ class MagMainFrame(wx.Frame):
     """"""
     try:
         version = pmag.get_version()
-    except:
+    except Exception:
         version = ""
     title = "Pmag GUI   version: %s"%version
 
@@ -779,7 +779,7 @@ class MagMainFrame(wx.Frame):
         # also delete appropriate copy file
         try:
             self.help_window.Destroy()
-        except:
+        except Exception:
             pass
         if '-i' in sys.argv:
             self.Destroy()

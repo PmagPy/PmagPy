@@ -55,7 +55,7 @@ def main():
             try:
                 b=1e-6*float(input('B (in microtesla): <cntl-D to quit '))
                 lat=float(input('Latitude: '))
-            except:
+            except Exception:
                 print("\nGood bye\n")
                 sys.exit()
                  

@@ -65,7 +65,7 @@ def main():
                 try:
                     X.append(float(rec[xkey]))
                     Y.append(float(rec[ykey]))
-                except:
+                except Exception:
                     pass
         FIG={'fig':1}
         pmagplotlib.plot_init(FIG['fig'],5,5)
