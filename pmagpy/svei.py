@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 from scipy.interpolate import PchipInterpolator
-from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import cumulative_trapezoid, trapezoid
 from scipy import interpolate
 from scipy.stats.distributions import chi2
 import pandas as pd
@@ -1451,7 +1451,7 @@ def GGP_cdf(GGPmodel, lat, degree):
     
         xyz = np.asarray(pmag.dir2cart(di_block)).T
         p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
-        pI[j] = np.trapz(p0, x=np.deg2rad(D0)*z0[j])
+        pI[j] = trapezoid(p0, x=np.deg2rad(D0)*z0[j])
 
     cI = cumulative_trapezoid(pI, x=np.deg2rad(I0),initial=0)
     Icdf = PchipInterpolator(np.deg2rad(I0),cI) #inclination marginal distribution
@@ -1467,7 +1467,7 @@ def GGP_cdf(GGPmodel, lat, degree):
     
         xyz = np.asarray(pmag.dir2cart(di_block)).T
         p0 = GGP_pdf(GGPmodel,lat,degree,xyz)
-        pD[j] = np.trapz(p0*np.cos(np.deg2rad(I0)), x=np.deg2rad(I0))
+        pD[j] = trapezoid(p0*np.cos(np.deg2rad(I0)), x=np.deg2rad(I0))
 
     cD = cumulative_trapezoid(pD, x=np.deg2rad(D0),initial=0)
     Dcdf = PchipInterpolator(np.deg2rad(D0),cD) #declination marginal distribution
