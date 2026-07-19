@@ -744,7 +744,7 @@ class TestBatchProcessing:
         measurements = make_magic_measurements(rng=np.random.default_rng(2027))
         experiment = 'synthetic-LP-BCR-BF-1'
         one = measurements[measurements['experiment'] == experiment].copy()
-        processed, _bcr = rmag.backfield_data_processing(
+        processed, _bcr = rmag.process_backfield_data(
             one, smooth_frac=0.3, smooth_mode='spline')
         unsmoothed = processed['magn_mass_shift'].to_numpy()
         # sanity: smoothing actually changed the curve
@@ -892,7 +892,7 @@ class TestComponentColors:
 
 
 class TestSpecimensExport:
-    """unmixing_to_specimens_table in both recording modes."""
+    """add_unmixing_to_specimens_table in both recording modes."""
 
     @pytest.fixture()
     def batch_output(self):
@@ -909,7 +909,7 @@ class TestSpecimensExport:
 
     def test_rows_mode_adds_component_rows(self, batch_output):
         components_df, specimens = batch_output
-        updated = rmag.unmixing_to_specimens_table(specimens, components_df,
+        updated = rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                                    mode='rows')
         new_rows = updated[updated['rem_cmf'].notna()]
         assert len(new_rows) == 2
@@ -922,9 +922,9 @@ class TestSpecimensExport:
 
     def test_rows_mode_is_idempotent(self, batch_output):
         components_df, specimens = batch_output
-        once = rmag.unmixing_to_specimens_table(specimens, components_df,
+        once = rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                                 mode='rows')
-        twice = rmag.unmixing_to_specimens_table(once, components_df,
+        twice = rmag.add_unmixing_to_specimens_table(once, components_df,
                                                  mode='rows')
         assert len(once) == len(twice)
 
@@ -940,7 +940,7 @@ class TestSpecimensExport:
         specimens['experiments'] = 'synthetic-LP-BCR-BF-1:synthetic-LP-HYS-1'
         df = specimens
         for _ in range(3):
-            df = rmag.unmixing_to_specimens_table(df, components_df,
+            df = rmag.add_unmixing_to_specimens_table(df, components_df,
                                                   mode='rows')
         marker = 'coercivity_unmixing_component_row'
         component_rows = df['description'].astype(str).str.contains(
@@ -960,7 +960,7 @@ class TestSpecimensExport:
         specimens = specimens.copy()
         specimens['rem_cmf'] = 0.05
         specimens['description'] = '{"coercivity_unmixing": {"n_components": 2}}'
-        updated = rmag.unmixing_to_specimens_table(specimens, components_df,
+        updated = rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                                    mode='rows')
         # the original row survives (2 new component rows + 1 original == 3)
         assert len(updated) == 3
@@ -970,7 +970,7 @@ class TestSpecimensExport:
 
     def test_description_mode_preserves_text(self, batch_output):
         components_df, specimens = batch_output
-        rmag.unmixing_to_specimens_table(specimens, components_df,
+        rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                          mode='description')
         text, data = rmag.parse_specimen_description(
             specimens['description'].iloc[0])
@@ -980,10 +980,10 @@ class TestSpecimensExport:
 
     def test_description_round_trip(self, batch_output):
         components_df, specimens = batch_output
-        rmag.unmixing_to_specimens_table(specimens, components_df,
+        rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                          mode='description')
         # a second call replaces rather than duplicates the record
-        rmag.unmixing_to_specimens_table(specimens, components_df,
+        rmag.add_unmixing_to_specimens_table(specimens, components_df,
                                          mode='description')
         text, data = rmag.parse_specimen_description(
             specimens['description'].iloc[0])
@@ -1064,7 +1064,7 @@ class TestMultistart:
         result = rmag.unmixing_multistart(x, curve, method='curve',
                                           n_components=2, n_starts=20,
                                           vary_skew=True, random_seed=5)
-        fig, axes = rmag.plot_multistart_solutions(result, max_solutions=4)
+        fig, axes = rmag.plot_unmixing_multistart(result, max_solutions=4)
         n_distinct = len(result['multistart']['results'])
         # one panel per shown solution plus the parameter-space map
         assert len(axes) == min(4, n_distinct) + 1
@@ -1074,7 +1074,7 @@ class TestMultistart:
         x, curve = synthetic_curve()
         fit = rmag.unmix_coercivity(x, curve, method='curve', n_components=2)
         with pytest.raises(ValueError):
-            rmag.plot_multistart_solutions(fit)
+            rmag.plot_unmixing_multistart(fit)
 
 
 # ---------------------------------------------------------------------------
