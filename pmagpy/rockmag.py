@@ -3667,7 +3667,7 @@ def IRM_nonlinear_fit(H, chi_HF, Ms, a_1, a_2):
     H : numpy.ndarray
         Array of applied magnetic field values (in Tesla).
     chi_HF : float
-        High-field magnetic susceptibility.Cconverted to Tesla to match the unit of the field.
+        High-field magnetic susceptibility. Converted to Tesla to match the unit of the field.
     Ms : float
         Saturation magnetization (in the same units as IRM).
     a_1 : float
@@ -3730,15 +3730,15 @@ def Fabian_nonlinear_fit(H, chi_HF, Ms, alpha, beta):
     Ms : float
         saturation magnetization
     alpha : float
-        coefficient for H^(beta), needs to be negative
+        coefficient of the H^(beta) term, needs to be negative
     beta : float
-        coefficient for H^(beta), needs to be negative
+        exponent of the H^(beta) term, needs to be negative
 
     Returns
-    -----------
-
-    numpy array of the same shape as H, giving the fitted magnetization values for each field value provided
-
+    -------
+    numpy array
+        fitted magnetization values for each field value in `H`
+        (same shape as `H`)
     '''
     chi_HF = chi_HF/(4*np.pi/1e7) # convert to Tesla
     return chi_HF * H + Ms + alpha * H**beta
@@ -5935,8 +5935,8 @@ def curie_temperature_estimates(
     module notes above and Lattard et al. (2006, doi:10.1029/2006JB004591)
     for the magnitude of inter-method offsets on synthetic titanomagnetites.
 
-    Methods
-    -------
+    The available methods are:
+
     * ``'inflection'`` — inflection point (``curie_derivative_estimates``);
       the recommended estimator for in-field M(T).
     * ``'max_curvature'`` — second-derivative maximum
