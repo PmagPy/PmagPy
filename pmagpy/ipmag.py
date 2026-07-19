@@ -2113,7 +2113,11 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         Dtit = 'Mode 1 ' + dec_label
         Itit = 'Mode 1 ' + inc_label
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
+            # clear any existing figure with this number so that the figure
+            # size is applied and stale axes do not break tight_layout
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
             fignum+=1
         else:
             tmp_fig = plt.figure(figsize=(6, 3))
@@ -2163,7 +2167,9 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         if ppars['inc']<0:
             Irbar=-ppars['inc']
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
         else:
             tmp_fig = plt.figure(figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
