@@ -2,6 +2,7 @@
 
 import numpy as np
 from numpy.testing import assert_allclose
+import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgb
 
 from pmagpy import forc
@@ -170,13 +171,33 @@ def test_lower_branch_uses_curves_with_field_coverage():
     assert corrected.metadata["lower_branch_max_support"] == 2
 
 
-def test_forcme_colormap_is_the_default_palette():
-    """PmagPy reproduces the attributed FORCme version-1 color stops."""
-    cmap = forc.get_forc_cmap(1)
-    assert cmap.name == "forcme_v1"
-    assert_allclose(cmap(0.0)[:3], to_rgb("#1f4aa8"), atol=0.01)
-    assert_allclose(cmap(0.5)[:3], to_rgb("#ffffff"), atol=0.02)
-    assert_allclose(cmap(1.0)[:3], to_rgb("#d100b5"), atol=0.01)
+def test_forcme_green_red_colormap_is_the_default_palette():
+    """PmagPy defaults to the attributed FORCme green-red color scale."""
+    cmap = forc.get_forc_cmap(2)
+    assert cmap.name == "forcme_v2"
+    assert forc.get_forc_cmap().name == "forcme_v2"
+    assert_allclose(cmap(0.0)[:3], to_rgb("#8fb3ff"), atol=0.01)
+    # Matplotlib samples LinearSegmentedColormap on a 256-value lookup table,
+    # so requested stop positions can differ by roughly half a lookup bin.
+    assert_allclose(cmap(0.5)[:3], to_rgb("#ffffff"), atol=0.04)
+    assert_allclose(cmap(0.55)[:3], to_rgb("#558D36"), atol=0.04)
+    assert_allclose(cmap(0.82)[:3], to_rgb("#e84d3c"), atol=0.04)
+    assert_allclose(cmap(1.0)[:3], to_rgb("#5b1e73"), atol=0.01)
+
+    result = forc.calculate_forc(
+        quadratic_data(),
+        method="variforc",
+        sc0=2,
+        sc1=3,
+        sb0=2,
+        sb1=3,
+        lambda_c=0,
+        lambda_b=0,
+        error_method=None,
+    )
+    figure, axis, _ = forc.plot_forc(result)
+    assert axis.collections[0].cmap.name == "forcme_v2"
+    plt.close(figure)
 
 
 def test_run_forc_pipeline_retains_forcme_stages(tmp_path):

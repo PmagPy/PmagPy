@@ -1373,7 +1373,7 @@ def plot_forc_curves_hysteresis(
 
 
 def forc_colormap_v1():
-    """Return the default FORCme diverging colormap.
+    """Return FORCme's version-1 diverging colormap.
 
     This definition is adapted verbatim in color-stop content from FORCme
     1.0.0 ``forc_colormap_v1`` (Brown, 2026) under the MIT License.  Negative
@@ -1393,7 +1393,12 @@ def forc_colormap_v1():
 
 
 def forc_colormap_v2():
-    """Return FORCme's second supplied FORC colormap."""
+    """Return FORCme's green-red FORC colormap.
+
+    Negative values are light blue, zero is white, and positive values pass
+    through green, yellow, and red to purple.  The color-stop content is
+    adapted from FORCme 1.0.0 (Brown, 2026) under the MIT License.
+    """
     colors = [
         (0.00, "#8fb3ff"),
         (0.50, "#ffffff"),
@@ -1420,14 +1425,14 @@ def forc_colormap_v3():
     return LinearSegmentedColormap.from_list("forcme_v3", colors)
 
 
-def get_forc_cmap(color_scale_version=1):
-    """Return one of the three FORCme colormaps by version number."""
+def get_forc_cmap(color_scale_version=2):
+    """Return a FORCme colormap, defaulting to green-red version 2."""
     registry = {
         1: forc_colormap_v1,
         2: forc_colormap_v2,
         3: forc_colormap_v3,
     }
-    return registry.get(int(color_scale_version), forc_colormap_v1)()
+    return registry.get(int(color_scale_version), forc_colormap_v2)()
 
 
 def plot_forc(
@@ -1456,7 +1461,7 @@ def plot_forc(
         contours : bool
             Overlay positive and negative contour lines.
         cmap : str, matplotlib colormap, or None
-            Diverging color map.  ``None`` uses FORCme's default version 1
+            Diverging color map.  ``None`` uses FORCme's green-red version 2
             colormap through :func:`get_forc_cmap`.
         hc_limits, hu_limits : two-element tuple or None
             Optional plot limits in millitesla.
@@ -1485,7 +1490,7 @@ def plot_forc(
         label = r"FORC distribution, $\\rho$"
     norm = TwoSlopeNorm(vmin=-color_limit, vcenter=0.0, vmax=color_limit)
     if cmap is None:
-        cmap = get_forc_cmap(1)
+        cmap = get_forc_cmap(2)
     image = ax.pcolormesh(
         result.hc * 1e3,
         result.hu * 1e3,
