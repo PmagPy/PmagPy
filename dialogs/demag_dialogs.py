@@ -550,7 +550,7 @@ class user_input(wx.Dialog):
         for i,ctrl in enumerate(self.list_ctrls):
             if hasattr(self.parse_funcs,'__getitem__') and len(self.parse_funcs)>i and hasattr(self.parse_funcs[i],'__call__'):
                 try: return_dict[self.inputs[i]] = self.parse_funcs[i](ctrl.GetValue())
-                except: return_dict[self.inputs[i]] = ctrl.GetValue()
+                except Exception: return_dict[self.inputs[i]] = ctrl.GetValue()
             else:
                 return_dict[self.inputs[i]] = ctrl.GetValue()
         return ('' not in list(return_dict.values()), return_dict)
@@ -1146,7 +1146,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.er_sample_data={}
         try:
             self.er_sample_data=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"), 'er_sample_name')
-        except:
+        except Exception:
             print("-W- WARNING: Cant find er_samples.txt table")
 
         for i in range(self.max_files):

@@ -63,7 +63,7 @@ def main():
         mk_file=dir_path+"/"+args[ind+1]
     try:
         mk_f=open(mk_file,'r')
-    except:
+    except Exception:
         print("Bad redo file")
         sys.exit()
     mkspec,skipped=[],[]
@@ -238,7 +238,7 @@ def main():
                             CompRec["measurement_step_min"]='%8.3e '%(datablock[beg_pca][0])
                             try:
                                 CompRec["measurement_step_max"]='%8.3e '%(datablock[end_pca][0] )
-                            except:
+                            except Exception:
                                 print('error in end_pca ',PmagSpecRec['er_specimen_name'])
                             CompRec["specimen_correction"]='u'
                             if calculation_type!='DE-FM':

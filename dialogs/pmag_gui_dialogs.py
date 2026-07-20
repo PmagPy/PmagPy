@@ -605,7 +605,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         samp_naming_convention = str(self.sample_naming_convention.GetValue())
         try:
             samp_naming_convention_char=int(self.sample_naming_convention_char.GetValue())
-        except:
+        except Exception:
              samp_naming_convention_char = "0"
 
         if samp_naming_convention == 'sample=specimen':
@@ -625,7 +625,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         site_naming_convention = str(self.site_naming_convention.GetValue())
         try:
             site_naming_convention_char = int(self.site_naming_convention_char.GetValue())
-        except:
+        except Exception:
              site_naming_convention_char = "0"
 
         if site_naming_convention == 'sample=specimen':
@@ -2339,7 +2339,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             try:
                 volume = float(volume)
                 options['volume'] = volume
-            except:
+            except Exception:
                 pw.simple_warning("You must provide a valid quanity for volume, or no volume")
                 return False
 
@@ -3142,11 +3142,11 @@ class OrientFrameGrid3(wx.Frame):
         dec_correction_con = int(orient_convention_dia.dcn)
         try:
             hours_from_gmt = float(orient_convention_dia.gmt)
-        except:
+        except Exception:
             hours_from_gmt = 0
         try:
             dec_correction = float(orient_convention_dia.correct_dec)
-        except:
+        except Exception:
             dec_correction = 0
 
         method_code_dia=method_code_dialog(None)
@@ -3392,7 +3392,7 @@ class orient_convention(wx.Dialog):
             self.dcn="2"
             try:
                 self.correct_dec = float(self.dc_tb2.GetValue())
-            except:
+            except Exception:
                 dlg1 = wx.MessageDialog(None, caption="Error:", message="Add declination", style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
@@ -3409,7 +3409,7 @@ class orient_convention(wx.Dialog):
             try:
                 self.gmt = float(self.dc_alt.GetValue())
                 gmt_flags = "-gmt " + self.dc_alt.GetValue()
-            except:
+            except Exception:
                 gmt_flags=""
         else:
             self.gmt = ""

@@ -45,7 +45,7 @@ version_num = pmag.get_version()
 if isServer:
     matplotlib.pyplot.switch_backend('Agg')
 
-if matplotlib.__version__ < '2.1':
+if Version(matplotlib.__version__) < Version('2.1'):
     print("""-W- Please upgrade to matplotlib >= 2.1
     On the command line, for Anaconda users:
        conda upgrade matplotlib
@@ -1157,7 +1157,7 @@ def plot_arai(fignum, indata, s, units):
         if len(x_iz) > 0:
             plt.scatter(x_iz, y_iz, marker='s', c='b',
                         faceted="True")  # infield-zerofield
-    except:
+    except Exception:
         if len(x_zi) > 0:
             plt.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
         if len(x_iz) > 0:
@@ -1175,7 +1175,7 @@ def plot_arai(fignum, indata, s, units):
     try:
         plt.axhline(0, color='k')
         plt.axvline(0, color='k')
-    except:
+    except Exception:
         pass
     plt.xlabel("pTRM gained")
     plt.ylabel("NRM remaining")
@@ -2012,7 +2012,7 @@ def plot_hys(fignum, B, M, s):
         poly = np.polyfit(Baz, Maz, 1)
         Bac = -poly[1] / poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception:
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm
 #
@@ -2126,7 +2126,7 @@ def plot_hdd(HDD, B, M, s):
             plt.axhline(0, color='k')
             plt.axvline(0, color='k')
             plot_d_delta_m(HDD['DdeltaM'], Bdm, DdeltaM, s)
-    except:
+    except Exception:
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
     return hpars
@@ -3692,12 +3692,12 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     """
     try: 
         import seaborn as sns
-    except:
+    except Exception:
         " You must install seaborn to use this " 
         return False,False, axa, axb
     try: 
         import scipy.stats as stats
-    except:
+    except Exception:
         " You must install scipy " 
         return False,False, axa, axb
     fontsize=14

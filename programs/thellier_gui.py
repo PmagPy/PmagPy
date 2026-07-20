@@ -548,18 +548,32 @@ DESCRIPTION
 
         h_space = 4
         v_space = 4
+        v_space_half = max(0, int(round(v_space / 2.0)))
+
+        # wx font/size APIs expect integer pixel and point-size values
+        ui_w50 = max(1, int(round(50 * self.GUI_RESOLUTION)))
+        ui_w75 = max(1, int(round(75 * self.GUI_RESOLUTION)))
+        ui_w100 = max(1, int(round(100 * self.GUI_RESOLUTION)))
+        ui_w250 = max(1, int(round(250 * self.GUI_RESOLUTION)))
+        ui_h25 = 25
+        logger_w45 = max(1, int(round(45 * self.GUI_RESOLUTION)))
+        logger_w65 = max(1, int(round(65 * self.GUI_RESOLUTION)))
+        logger_w75 = max(1, int(round(75 * self.GUI_RESOLUTION)))
 
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         FONT_RATIO = self.GUI_RESOLUTION + (self.GUI_RESOLUTION - 1) * 5
-        font1 = wx.Font(9 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font1_pt = max(1, int(round(9 + FONT_RATIO)))
+        font3_pt = max(1, int(round(11 + FONT_RATIO)))
+        system_font_pt = max(1, int(round(10 + FONT_RATIO)))
+        font1 = wx.Font(font1_pt, wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         # GUI headers
 
-        font3 = wx.Font(11 + FONT_RATIO, wx.SWISS, wx.NORMAL,
+        font3 = wx.Font(font3_pt, wx.SWISS, wx.NORMAL,
                         wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10 + FONT_RATIO)
+        font.SetPointSize(system_font_pt)
 
         #--------------------------------------------------------------------
         # Create Figures and FigCanvas objects.
@@ -641,14 +655,14 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(
-            100 * self.GUI_RESOLUTION, 100 * self.GUI_RESOLUTION), style=wx.LC_REPORT)
+            ui_w100, ui_w100), style=wx.LC_REPORT)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'i', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'Step', width=45 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'Tr', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'Dec', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(4, 'Inc', width=65 * self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'M', width=75 * self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'i', width=logger_w45)
+        self.logger.InsertColumn(1, 'Step', width=logger_w45)
+        self.logger.InsertColumn(2, 'Tr', width=logger_w65)
+        self.logger.InsertColumn(3, 'Dec', width=logger_w65)
+        self.logger.InsertColumn(4, 'Inc', width=logger_w65)
+        self.logger.InsertColumn(5, 'M', width=logger_w75)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                   self.on_click_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
@@ -659,7 +673,7 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250 * self.GUI_RESOLUTION, 25),
+        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (ui_w250, ui_h25),
                                          wx.DefaultSize, self.specimens, wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER, name="specimen")
         self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen, self.specimens_box)
@@ -668,12 +682,12 @@ DESCRIPTION
 
         # buttons to move forward and backwards from specimens
         nextbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='next', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, nextbutton)
         nextbutton.SetFont(font2)
 
         prevbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='previous', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, prevbutton)
 
@@ -693,10 +707,10 @@ DESCRIPTION
             self.T_list = []
 
         self.tmin_box = wx.ComboBox(self.top_panel, wx.ID_ANY, size=(
-            100 * self.GUI_RESOLUTION, 25), choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
+            ui_w100, ui_h25), choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters, self.tmin_box)
 
-        self.tmax_box = wx.ComboBox(self.top_panel, -1, size=(100 * self.GUI_RESOLUTION, 25),
+        self.tmax_box = wx.ComboBox(self.top_panel, -1, size=(ui_w100, ui_h25),
                                     choices=self.T_list, style=wx.CB_DROPDOWN | wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters, self.tmax_box)
 
@@ -706,10 +720,10 @@ DESCRIPTION
 
         # save/delete interpretation buttons
         self.save_interpretation_button = wx.Button(self.top_panel, id=-1, label='save', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.save_interpretation_button.SetFont(font2)
         self.delete_interpretation_button = wx.Button(self.top_panel, id=-1, label='delete', size=(
-            75 * self.GUI_RESOLUTION, 25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
+            ui_w75, ui_h25))  # ,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button,
                   self.save_interpretation_button)
@@ -727,19 +741,19 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         self.Blab_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.Banc_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.Aniso_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.NLT_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.CR_factor_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.declination_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
         self.inclination_window = wx.TextCtrl(
-            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+            self.top_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
 
         for stat in ['Blab', 'Banc', 'Aniso_factor', 'NLT_factor', 'CR_factor', 'declination', 'inclination']:
             exec("self.%s_window.SetBackgroundColour(wx.WHITE)" % stat)
@@ -793,7 +807,7 @@ DESCRIPTION
         #--------------------------------------------------------------------
 
         for key in ["sample_int_n", "sample_int_uT", "sample_int_sigma", "sample_int_sigma_perc"]:
-            command = "self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))" % key
+            command = "self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(%d,%d))" % (key, ui_w50, ui_h25)
             exec(command)
             exec("self.%s_window.SetBackgroundColour(wx.WHITE)" % key)
 
@@ -836,11 +850,11 @@ DESCRIPTION
 
         for statistic in self.preferences['show_statistics_on_gui']:
             self.stat_windows[statistic] = wx.TextCtrl(
-                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
             self.stat_windows[statistic].SetBackgroundColour(wx.WHITE)
             self.stat_windows[statistic].SetFont(font2)
             self.threshold_windows[statistic] = wx.TextCtrl(
-                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(50 * self.GUI_RESOLUTION, 25))
+                self.bottom_panel, style=wx.TE_CENTER | wx.TE_READONLY, size=(ui_w50, ui_h25))
             self.threshold_windows[statistic].SetFont(font2)
             self.threshold_windows[statistic].SetBackgroundColour(wx.WHITE)
             label = statistic.replace("specimen_", "").replace("int_", "")
@@ -948,9 +962,9 @@ DESCRIPTION
         sizer_logger_plots.Add(self.plot_panel, 3, wx.EXPAND | wx.ALIGN_LEFT)
 
         sizer_outer = wx.BoxSizer(wx.VERTICAL)
-        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND | wx.ALIGN_TOP | wx.BOTTOM, v_space_half),
                              (sizer_logger_plots, 4, wx.EXPAND |
-                              wx.ALIGN_TOP | wx.BOTTOM, v_space / 2),
+                      wx.ALIGN_TOP | wx.BOTTOM, v_space_half),
                              (self.bottom_panel, 1, wx.EXPAND | wx.ALIGN_TOP)])
 
         self.SetSizer(sizer_outer)
@@ -5812,7 +5826,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             # self.mplot.clear()
             self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT']) * 1e6, self.Data[self.s]
                                ['NLT_parameters']['M_NLT_norm'], marker='o', facecolor='b', edgecolor='k', s=15, clip_on=False)
-            self.mplot.set_xlabel("$\mu$ T", fontsize=8)
+            self.mplot.set_xlabel(r"$\mu$ T", fontsize=8)
             self.mplot.set_ylabel(
                 "M / M[%.0f]" % (self.Data[self.s]['lab_dc_field'] * 1e6), fontsize=8)
             try:
@@ -7676,8 +7690,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 #  https://github.com/pandas-dev/pandas/issues/14955,
                 #  hence the try/except)
                 try:
-                    samples = samples.groupby(samples.index, sort=False).fillna(
-                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                    samples = samples.groupby(samples.index, sort=False).ffill(
+                    ).groupby(samples.index, sort=False).bfill()
                 except ValueError:
                     pass
                 # then get rid of any duplicates

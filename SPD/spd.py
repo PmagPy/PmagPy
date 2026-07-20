@@ -791,7 +791,7 @@ class PintPars(object):
                     try:
                         func(self) # this will work if the function has no dependencies
                         stats_run.append(func.__name__)
-                    except:
+                    except Exception:
                         self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
                         return 0 # since all possible statistics have been run, the function ends
         #print 'stats run: ', stats_run
