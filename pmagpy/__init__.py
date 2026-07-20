@@ -30,7 +30,8 @@ from . import controlled_vocabularies2 as controlled_vocabularies
 from . import data_model3
 from . import contribution_builder
 from . import mapping
+from . import forc
 
 __all__ = [pmag, ipmag, rockmag, pmagplotlib, find_pmag_dir, version,
            controlled_vocabularies, data_model3, contribution_builder,
-           mapping]
+           mapping, forc]
