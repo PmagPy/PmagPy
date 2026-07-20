@@ -6077,38 +6077,53 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
     else:
         Z = 1
 
-    # parse data
-    # fix .jr6 file so that there are spaces between all the columns.
-    pre_data = open(mag_file, 'r')
-    tmp_data = open(tmp_file, 'w')
-    if samp_con != '2':
-        fixed_data = pre_data.read().replace('-', ' -')
-    else:
-        fixed_data = ""
-        for line in pre_data.readlines():
-            entries = line.split()
-            if len(entries) < 2:
-                continue
-            fixed_line = entries[0] + ' ' + reduce(
-                lambda x, y: x+' '+y, [x.replace('-', ' -') for x in entries[1:]])
-            fixed_data += fixed_line+os.linesep
-    tmp_data.write(fixed_data)
-    tmp_data.close()
-    pre_data.close()
+    with open(mag_file,"r") as fin:
+        if not JR:
+            char_count= [10,8,6,6,6,4,4,4,4,4,4,4,3,3,3,3,4]
+            data_type = [str,str,np.float32,np.float32,np.float32,np.int8,np.float32,np.float32,np.float32,np.float32,np.float32,np.float32,np.int8,np.int8,np.int8,np.int8,np.float32]
+            data_dict = {'specimen':[], #10 character
+                         'step':[], #8 character
+                         'x':[], #6 character
+                         'y':[], #6 character
+                         'z':[], #6 character
+                         'expon':[], #4 character
+                         'azimuth':[], #4 character
+                         'dip':[], #4 character
+                         'foliation_azimuth_of_dip':[], #4 character
+                         'foliation_dip':[], #4 character
+                         'lineation_trend':[], #4 character
+                         'lineation_plunge':[], #4 character
+                         'param1':[], #3 character | orientation parameter
+                         'param2':[], #3 character | orientation parameter
+                         'param3':[], #3 character | orientation parameter
+                         'param4':[], #3 character | orientation parameter
+                         'dir_csd':[]} #4 character
+        else:
+            data_dict = {'specimen':[],
+                         'step':[],
+                         'negz':[],
+                         'y':[],
+                         'x':[],
+                         'expon':[],
+                         'azimuth':[],
+                         'dip':[],
+                         'foliation_azimuth_of_dip':[],
+                         'foliation_dip':[],
+                         'lineation_trend':[],
+                         'lineation_plunge':[],
+                         'param1':[],
+                         'param2':[],
+                         'param3':[],
+                         'param4':[],
+                         'dir_csd':[]}
+        for lc,line in enumerate(fin.readlines()):
+            pc = 0
+            for cc,dt,name in zip(char_count,data_type,data_dict.keys()):
+                try: data_dict[name].append(dt(line[pc:pc+cc].strip())) #try float conversion
+                except ValueError: raise ValueError("Problem in JR6 data file on line %d. Error converting data to correct datatype for processing, recieved %s for field %s, was expecting type %s"%(lc+1, line[pc:pc+cc].strip(), str(name),str(dt)))
+                pc += cc
+        data = pd.DataFrame(data_dict)
 
-    if not JR:
-        column_names = ['specimen', 'step', 'x', 'y', 'z', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
-                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
-    else:  # measured on the Joides Resolution JR6
-        column_names = ['specimen', 'step', 'negz', 'y', 'x', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
-                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
-    data = pd.read_csv(tmp_file, sep=r"\s+",
-                       names=column_names, index_col=False)
-    if isinstance(data['x'][0], str):
-        column_names = ['specimen', 'step', 'step_unit', 'x', 'y', 'z', 'expon', 'azimuth', 'dip', 'bed_dip_direction',
-                        'bed_dip', 'bed_dip_dir2', 'bed_dip2', 'param1', 'param2', 'param3', 'param4', 'dir_csd']
-        data = pd.read_csv(tmp_file, sep=r"\s+",
-                           names=column_names, index_col=False)
     if JR:
         data['z'] = -data['negz']
         
@@ -6159,8 +6174,8 @@ def jr6_jr6(mag_file, dir_path=".", input_dir_path="",
                 row['dip']=-row['dip']
             SampRec['azimuth'] = row['azimuth']
             SampRec['dip'] = row['dip']
-            SampRec['bed_dip_direction'] = row['bed_dip_direction']
-            SampRec['bed_dip'] = row['bed_dip']
+            SampRec['bed_dip_direction'] = row['azimuth']
+            SampRec['bed_dip'] = row['dip']
             SampRec['method_codes'] = meth_code
             SampRecs.append(SampRec)
         if site != "" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
