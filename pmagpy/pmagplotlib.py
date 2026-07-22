@@ -28,7 +28,7 @@ LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
 NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
     ccrs = importlib.import_module('cartopy.crs')
-    config = importlib.import_module('cartopy.config')
+    config = Cartopy.config
     cfeature = importlib.import_module('cartopy.feature')
     cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
     LongitudeFormatter = cartopy_ticker.LongitudeFormatter
@@ -3790,4 +3790,3 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         plt.tight_layout()
         plt.savefig('site.'+fmt)
     return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
-

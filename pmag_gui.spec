@@ -3,9 +3,14 @@
 # this is an example.spec file
 
 import os
+import platform
 import sys
 from pmagpy import version
 sys.setrecursionlimit(30000)
+
+if sys.platform != 'darwin' or platform.machine() != 'arm64':
+    raise SystemExit('pmag_gui must be built natively on Apple silicon (arm64)')
+
 app_name = "pmag_gui_{}".format(version.version[7:])
 current_dir = os.getcwd()
 
@@ -27,8 +32,7 @@ a = Analysis(['programs/pmag_gui.py'],
                                 'scipy.io', 'scipy.fftpack', 
                                 'scipy.cluster','scipy.optimize', 'scipy.interpolate',
                                 'scipy._lib.messagestream',
-                                'pandas._libs.tslibs.timedeltas',
-                                'pandas.concat', 'wget', 'pkg_resources.py2_warn'],
+                                'pandas._libs.tslibs.timedeltas'],
              hooksconfig={
                         "matplotlib": {
                         "backends": "WXAgg",  # collect wxpython backends
@@ -55,6 +59,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
+          target_arch='arm64',
           console=False, icon='./programs/images/pmagpy_logo.ico')
 coll = COLLECT(exe,
                a.binaries,

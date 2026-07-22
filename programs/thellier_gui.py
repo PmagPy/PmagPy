@@ -249,7 +249,7 @@ NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
     # import some cartopy stuff
     ccrs = importlib.import_module('cartopy.crs')
-    config = importlib.import_module('cartopy.config')
+    config = cartopy.config
     cfeature = importlib.import_module('cartopy.feature')
     cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
     LongitudeFormatter = cartopy_ticker.LongitudeFormatter

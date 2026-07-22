@@ -14,20 +14,12 @@ import os
 import webbrowser
 
 from pmagpy import pmag
-from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
-from dialogs import pmag_gui_dialogs
-from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
-from dialogs import ErMagicBuilder
 from dialogs import pmag_widgets as pw
 
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
-
-from programs import demag_gui
-from programs import thellier_gui
-
 
 class MagMainFrame(wx.Frame):
     """"""
@@ -434,6 +426,7 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from programs import thellier_gui
         # create custom Thellier GUI closing event and bind it
         ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
@@ -465,6 +458,7 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from programs import demag_gui
         # create custom Demag GUI closing event and bind it
         DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
@@ -493,6 +487,7 @@ class MagMainFrame(wx.Frame):
 
 
     def on_convert_file(self, event):
+        from dialogs import pmag_gui_dialogs
         pmag_dialogs_dia = pmag_gui_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
@@ -557,6 +552,7 @@ class MagMainFrame(wx.Frame):
             return
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from dialogs import ErMagicBuilder
         self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
         #
         self.ErMagic_frame.Show()
@@ -573,6 +569,7 @@ class MagMainFrame(wx.Frame):
         initiates the object that will control steps 1-6
         of checking headers, filling in cell values, etc.
         """
+        from dialogs import pmag_er_magic_dialogs
         self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame3(self, 'Check Data',
                                                                   self.WD, self.contribution)
 
@@ -584,6 +581,7 @@ class MagMainFrame(wx.Frame):
         """
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from dialogs import pmag_gui_dialogs
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
@@ -601,6 +599,8 @@ class MagMainFrame(wx.Frame):
         with download magic.
         Then run download_magic and create self.contribution.
         """
+
+        from pmagpy import ipmag
 
         def magic_download_dia(warn=""):
             dia = pw.TextDialog(self, "Download from MagIC\nusing contribution id or DOI", "MagIC id/DOI", warn)
@@ -699,6 +699,7 @@ class MagMainFrame(wx.Frame):
         Try to run upload_magic.
         Open validation mode if the upload file has problems.
         """
+        from pmagpy import ipmag
         if not self.check_for_uncombined_files():
             return
         outstring="upload_magic.py"
@@ -861,6 +862,10 @@ INFORMATION
     app.frame = MagMainFrame(WD=dir_path)
     app.frame.Show()
     app.frame.Center()
+    startup_probe_file = os.environ.get('PMAG_GUI_STARTUP_PROBE_FILE')
+    if startup_probe_file:
+        with open(startup_probe_file, 'w', encoding='utf-8') as probe:
+            probe.write('{}\n'.format(app.frame.title))
     ## use for debugging:
     #if '-i' in sys.argv:
     #    import wx.lib.inspection
