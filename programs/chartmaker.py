@@ -33,7 +33,7 @@ def main():
                 top= input(" Enter upper bound for this interval: ")
                 if top!="":
                     Top.append(int(top))
-        except:
+        except Exception:
             cont=0
     pmag.chart_maker(Int,Top)
 

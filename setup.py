@@ -100,6 +100,7 @@ setup(
         'matplotlib',
         'pandas',
         'pytz',
+        'packaging',
     ],
 
     # cartopy and shapely are only needed for map-making.

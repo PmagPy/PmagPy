@@ -118,7 +118,7 @@ def main(command_line=True, **kwargs):
             try:
                 open(samp_file,'r')
                 ErSamps,file_type=pmag.magic_read(samp_file)
-            except:
+            except Exception:
                 print(samp_file,' not found: ')
                 print('   download csv file and import to MagIC with iodp_samples_magic.py')
         if '-f' in args:

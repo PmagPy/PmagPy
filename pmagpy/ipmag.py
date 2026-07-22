@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import urllib
+import warnings
 import zipfile
 import io
 
@@ -2006,7 +2007,7 @@ def conglomerate_test_Watson(R, n):
     return result
 
 
-def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.'):
+def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save_folder='.',data_type='directions'):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -2031,6 +2032,15 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         save_folder : relative directory where plots will be saved
             (default is current directory, '.')
         fmt : format of saved plot (default is 'png')
+        data_type : 'directions' (default) or 'poles'. Controls the axis/plot
+            labels only: 'directions' labels the components 'Declinations' and
+            'Inclinations'; 'poles' labels them 'Longitudes' and 'Latitudes'
+            (appropriate when the input di_block is a set of VGPs/poles).
+
+    Note:
+        The Mu and Me test statistics are computed whether or not ``plot`` is
+        True (when ``plot`` is False they are calculated on a temporary figure
+        that is closed without display).
 
     Returns:
         dictionary 
@@ -2082,6 +2092,10 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
     QQ_dict2 = {}
     QQ = {'unf': 1, 'exp': 2}
     fignum=1
+    if data_type == 'poles':
+        dec_label, inc_label = 'Longitudes', 'Latitudes'
+    else:
+        dec_label, inc_label = 'Declinations', 'Inclinations'
     di=np.array(all_dirs).transpose()
     decs=di[0]
     incs=di[1]
@@ -2098,18 +2112,29 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         ndata=np.column_stack((Ds,Is,az,pl))
         D1,I1=pmag.dotilt_V(ndata)
         D1=(D1-180.)%360 # Somehow this got lost
-        Dtit = 'Mode 1 Declinations'
-        Itit = 'Mode 1 Inclinations'
+        Dtit = 'Mode 1 ' + dec_label
+        Itit = 'Mode 1 ' + inc_label
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
+            # clear any existing figure with this number so that the figure
+            # size is applied and stale axes do not break tight_layout
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
             fignum+=1
-            Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
-                QQ['unf'], D1, Dtit, subplot=True)  # make plot
-            Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
-                QQ['exp'], I1, Itit, subplot=True)  # make plot
+        else:
+            tmp_fig = plt.figure(figsize=(6, 3))
+        # the Mu/Me statistics are computed within the plotting functions, so
+        # they are called whether or not the plot is retained
+        Mu_n, Mu_ncr = pmagplotlib.plot_qq_unf(
+            QQ['unf'], D1, Dtit, subplot=True)  # make plot
+        Me_n, Me_ncr = pmagplotlib.plot_qq_exp(
+            QQ['exp'], I1, Itit, subplot=True)  # make plot
+        if plot:
             plt.tight_layout()
             if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode1')+'.'+fmt, dpi=450)
+        else:
+            plt.close(tmp_fig)
         if Mu_n <= Mu_ncr and Me_n <= Me_ncr:
             F_n = 'Consistent with Fisher distribution'
         else:
@@ -2136,22 +2161,29 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         rdata=np.column_stack((Ds,Is,az,pl))
         D2,I2=pmag.dotilt_V(rdata)
         D2=(D2-180.)%360 # Somehow this got lost
-        Dtit = 'Mode 2 Declinations'
-        Itit = 'Mode 2 Inclinations'
+        Dtit = 'Mode 2 ' + dec_label
+        Itit = 'Mode 2 ' + inc_label
         ppars = pmag.doprinc(rDIs)  # get principal directions
         if ppars['dec']>90 and ppars['dec']<270:
             Drbar = ppars['dec'] - 180.
         if ppars['inc']<0:
-            Irbar['inc']=-ppars['inc']
+            Irbar=-ppars['inc']
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
-            Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
-                QQ['unf'], D2, Dtit, subplot=True)  # make plot
-            Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
-                QQ['exp'], I2, Itit, subplot=True)  # make plot
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
+        else:
+            tmp_fig = plt.figure(figsize=(6, 3))
+        Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
+            QQ['unf'], D2, Dtit, subplot=True)  # make plot
+        Me_r, Me_rcr = pmagplotlib.plot_qq_exp(
+            QQ['exp'], I2, Itit, subplot=True)  # make plot
+        if plot:
             plt.tight_layout()
             if save:
                 plt.savefig(os.path.join(save_folder, 'QQ_mode2')+'.'+fmt, dpi=450)
+        else:
+            plt.close(tmp_fig)
 
         if Mu_r <= Mu_rcr and Me_r <= Me_rcr:
             F_r = 'Consistent with Fisher distribution'
@@ -2167,10 +2199,11 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         QQ_dict2['Me_critical'] = Me_rcr
         QQ_dict2['Test_result'] = F_r
 
-    if QQ_dict2:
-        return QQ_dict1, QQ_dict2
-    elif QQ_dict1:
-        return QQ_dict1
+    populated = [d for d in (QQ_dict1, QQ_dict2) if d]
+    if len(populated) == 2:
+        return populated[0], populated[1]
+    elif len(populated) == 1:
+        return populated[0]
     else:
         print('you need N> 10 for at least one mode')
 
@@ -2249,7 +2282,8 @@ def inc_from_lat(lat):
     return inc
 
 
-def plot_net(fignum=None, tick_spacing=10, ax=None):
+def plot_net(fignum=None, tick_spacing=10, ax=None, label_directions=False,
+             label_type='cardinal'):
     """
     Draws circle and tick marks for equal area projection.
 
@@ -2260,6 +2294,17 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Interval for declination tick marks, default is 10.
         ax: matplotlib.axes.Axes or None
             Axis to plot on. If None, the current axis will be used (or created if fignum is given).
+        label_directions: bool
+            If True, label the directions around the perimeter of the net.
+            Default is False.
+        label_type: str
+            Style of perimeter labels used when label_directions is True.
+            Options are:
+                'cardinal' (default): N, E, S, W
+                'numeric': 000, 090, 180, 270
+                'numeric_degree': 0°, 90°, 180°, 270°
+                'slotz_special': 0° at the top (N) and 90° at the right (E),
+                    with the bottom and left positions left blank.
     """
     if ax is None:
         if fignum is not None:
@@ -2313,7 +2358,27 @@ def plot_net(fignum=None, tick_spacing=10, ax=None):
             Ytick.append(XY[1])
         ax.plot(Xtick, Ytick, "k")
     ax.set_aspect("equal")
-    ax.axis((-1.05, 1.05, -1.05, 1.05))
+    if label_directions:
+        label_sets = {
+            'cardinal': ("N", "E", "S", "W"),
+            'numeric': ("000", "090", "180", "270"),
+            'numeric_degree': (r"  0$\degree$", r" 90$\degree$",
+                               r" 180$\degree$", r" 270$\degree$"),
+            'slotz_special': (r"  0$\degree$", r" 90$\degree$", "", ""),
+        }
+        if label_type not in label_sets:
+            raise ValueError(
+                "label_type must be one of {}".format(sorted(label_sets)))
+        north, east, south, west = label_sets[label_type]
+        offset = 0.05
+        fontsize = 12
+        ax.text(0, 1 + offset, north, ha="center", va="bottom", fontsize=fontsize)
+        ax.text(1 + offset, 0, east, ha="left", va="center", fontsize=fontsize)
+        ax.text(0, -1 - offset, south, ha="center", va="top", fontsize=fontsize)
+        ax.text(-1 - offset, 0, west, ha="right", va="center", fontsize=fontsize)
+        ax.axis((-1.1, 1.1, -1.1, 1.1))
+    else:
+        ax.axis((-1.05, 1.05, -1.05, 1.05))
 
 
 def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='', connect_points=False, lw=0.25, lc='k', la=0.5, title=None, edge=None, alpha=1, zorder=2):
@@ -5769,16 +5834,16 @@ def upload_magic(concat=False, dir_path='.',input_dir_path='.',validate=True,ver
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
-              'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
+              'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
               'Site', 'Object Number', 'version', 'site_definition')
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location','treat_mw_energy'],
                     'specimens': ['site', 'location', 'age', 'age_unit', 'age_high',
                                   'age_low', 'age_sigma', 'specimen_core_depth','result_type'],
                     'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low',
-                                'age_sigma', 'core_depth', 'composite_depth','result_type'],
+                                'age_sigma', 'core_depth', 'composite_depth'],
                     'sites': ['texture', 'azimuth', 'azimuth_dec_correction', 'dip',
-                              'orientation_quality', 'sample_alternatives', 'timestamp','result_type'],
+                              'orientation_quality', 'sample_alternatives', 'timestamp'],
                     'ages': ['level']}
 
     dmodel = data_model.DataModel()
@@ -8282,6 +8347,22 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
+    .. deprecated::
+        ``ipmag.curie`` is deprecated and will be removed in a future release.
+        It reports a single Curie temperature from the maximum of the smoothed
+        second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
+        instead, which make method-dependent biases explicit (Fabian et al.,
+        2013, doi:10.1029/2012GC004440):
+
+        - ``rockmag.curie_temperature_estimates()`` applies the selected methods
+          to the heating/cooling branches of a MagIC experiment and returns a
+          tidy comparison table with per-method caveats.
+        - ``rockmag.curie_derivative_estimates()`` is the direct analog of this
+          function, returning both the inflection-point and maximum-curvature
+          estimates (the ``max_curvature`` method reproduces the legacy value
+          here: 552 C vs 549 C on data_files/curie/curie_example.dat with a
+          10-degree window).
+
     Parameters:
         file_name : name of file to be opened
         path_to_file : path to directory that contains file (default is current directory, '.')
@@ -8296,6 +8377,14 @@ def curie(path_to_file='.', file_name='', magic=False,
     Returns:
         A plot is shown and saved if save=True.
     """
+    warnings.warn(
+        "ipmag.curie is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.curie_temperature_estimates (MagIC experiments) or "
+        "pmagpy.rockmag.curie_derivative_estimates (the max_curvature/inflection "
+        "analog of this function) instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plot = 0
     window_len = window_length
 
@@ -9694,6 +9783,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
     
     plt.figure(figsize=(4,4))
     plot_net()
+    net_ax = plt.gca()
     cNorm  = colors.Normalize(vmin=min(F), vmax=max(F))
     f_scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cmap)
     
@@ -9720,7 +9810,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         hex_color = colors.rgb2hex(rgba)
 
         plot_di(decs, unsquish_incs, color = hex_color, alpha=0.02)
-    cb = plt.colorbar(f_scalarMap,orientation='horizontal',fraction=0.05, pad=0.05)
+    cb = plt.colorbar(f_scalarMap, ax=net_ax, orientation='horizontal', fraction=0.05, pad=0.05)
     cb.ax.tick_params(labelsize=14)
     cb.ax.set_title(label='$f$ values', fontsize=14)
 
@@ -9729,7 +9819,7 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
 
     # plot paleolatitudes distribution
     EI_plats = np.degrees(np.arctan(np.tan(np.radians(I))/2))
-    plat_mode = stats.mode(np.round(EI_plats, 1))[0][0]
+    plat_mode = stats.mode(np.round(EI_plats, 1)).mode
     plat_lower, plat_upper = np.round(np.percentile(EI_plats, [2.5, 97.5]), 1)
     mu, std = stats.norm.fit(EI_plats)
     x = np.linspace(min(EI_plats), max(EI_plats), 100)
@@ -16226,7 +16316,7 @@ def MADcrit(N,alpha,niter=int(1E8)):
     
     df = N-1 #degrees of freedom of the Wishart distribution
     X = stats.wishart.rvs(df, scale=np.ones(3),size=niter) #Generate samples from the Wishart distribution
-    X = np.sort(np.linalg.eig(X)[0],axis=1) #find and sort the eigenvalues of each case
+    X = np.linalg.eigvalsh(X) #find the eigenvalues of each case (real, ascending order for symmetric matrices)
     #find the MAD values and estimate critical values based on the percentiles corresponding to alpha
     MAD_prc = np.nanpercentile(np.arctan(np.sqrt((X[:,0]+X[:,1])/X[:,2])),alpha*100) 
     

@@ -43,7 +43,7 @@ def main():
         while 1:
             try:
                 Dec=float(input("Declination: <cntl-D> to quit "))
-            except:
+            except Exception:
                 print("\n Good-bye\n")
                 sys.exit()
             Inc=float(input("Inclination: "))

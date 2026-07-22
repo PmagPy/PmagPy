@@ -220,7 +220,7 @@ class Demag_GUI(wx.Frame):
         self.list_bound_loc = 0
         self.color_dict = {}
         self.colors = ['#4ED740', '#9840D7', '#FFBD4C',
-                       '#398AAD', '#E96640', "#CB1A9F", "55C2B6", "FFD44C"]
+                       '#398AAD', '#E96640', "#CB1A9F", "#55C2B6", "#FFD44C"]
         for name, hexval in matplotlib.colors.cnames.items():
             if name == 'black' or name == 'blue' or name == 'red':
                 continue
@@ -5583,8 +5583,27 @@ class Demag_GUI(wx.Frame):
             PmagSamps, SampDirs = [], []
             PmagSites = []  # list of all site data
             SampInts = []
-            renamelnp = {'R': 'dir_r', 'n': 'dir_n_samples', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
-                         'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # n_total = number of specimens averaged.  Used for sample means and
+            # for site means computed directly over specimens.
+            renamelnp_specimens = {'R': 'dir_r', 'n_total': 'dir_n_specimens', 'alpha95': 'dir_alpha95',
+                                   'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                                   'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # n_total = number of samples averaged.  Used for site means computed over
+            # sample means.  The *_lines/_planes columns retain the dir_n_specimens_*
+            # names because the MagIC 3.0 controlled vocabulary has no dir_n_samples_*
+            # counterparts.
+            renamelnp_samples = {'R': 'dir_r', 'n_total': 'dir_n_samples', 'alpha95': 'dir_alpha95',
+                                 'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec',
+                                 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'}
+            # renamelnp is applied in the site loop below.  The condition must mirror
+            # the dirlist selection at the top of the site loop: only when both
+            # combo_site_mean == 'samples' *and* avg_directions_by_sample is True does
+            # the site loop iterate over sample means; otherwise it iterates over
+            # specimens and n_total is a specimen count.
+            if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
+                renamelnp = renamelnp_samples
+            else:
+                renamelnp = renamelnp_specimens
             for samp in samples:  # run through the sample names
                 if not avg_directions_by_sample:
                     break
@@ -5606,8 +5625,8 @@ class Demag_GUI(wx.Frame):
                             x for x in CompDir if 'result_quality' in x and x['result_quality'] == 'g']
                         if len(CompDir) <= 0:
                             continue  # no data for comp
-                        PmagSampRec = pmag.dolnp3_0(CompDir)
-                        for k, v in list(renamelnp.items()):
+                        PmagSampRec = pmag.dolnp(CompDir, 'direction_type')
+                        for k, v in list(renamelnp_specimens.items()):
                             if k in PmagSampRec:
                                 PmagSampRec[v] = PmagSampRec[k]
                                 del PmagSampRec[k]
@@ -5719,8 +5738,36 @@ class Demag_GUI(wx.Frame):
                         if len(siteD) <= 0:
                             # print("no data for comp %s in site %s. skipping"%(comp,site))
                             continue
-                        PmagSiteRec = PmagSampRec = pmag.dolnp3_0(
-                            siteD)  # get an average for this site
+                        if dia.combo_site_mean.GetValue() == 'samples' and avg_directions_by_sample:
+                            # At the site level, sample means are usually directed lines,
+                            # so DE-BFP should be stripped from method_codes to prevent
+                            # dolnp from misclassifying the sample as a pole to a plane.
+                            #
+                            # Exception: when a sample has exactly 1 BFP specimen and no
+                            # line specimens, dolnp's N=1 path stored the raw pole
+                            # (dir_dec/dir_inc = pole to great circle) in the sample
+                            # record unchanged.  In that case DE-BFP must be kept so that
+                            # dolnp at the site level correctly treats dir_dec/dir_inc
+                            # as a plane normal and applies McFadden-McElhinny rather than
+                            # using the pole as a directed line.
+                            siteD_for_mean = []
+                            for d in siteD:
+                                try:
+                                    n_lines = int(float(d.get('dir_n_specimens_lines', 0) or 0))
+                                    n_planes = int(float(d.get('dir_n_specimens_planes', 0) or 0))
+                                except (ValueError, TypeError):
+                                    n_lines, n_planes = 0, 0
+                                # single-BFP-only sample: dir_dec/dir_inc is the raw pole — keep DE-BFP
+                                if n_lines == 0 and n_planes == 1:
+                                    siteD_for_mean.append(d)
+                                else:
+                                    siteD_for_mean.append({**d, 'method_codes': ':'.join(
+                                        c for c in d.get('method_codes', '').split(':')
+                                        if c != 'DE-BFP'
+                                    )})
+                            PmagSiteRec = pmag.dolnp(siteD_for_mean, 'direction_type')  # get an average for this site
+                        else:
+                            PmagSiteRec = pmag.dolnp(siteD, 'direction_type')  # get an average for this site
                         for k, v in list(renamelnp.items()):
                             if k in PmagSiteRec:
                                 PmagSiteRec[v] = PmagSiteRec[k]

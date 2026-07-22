@@ -4,6 +4,7 @@ Tests for plotting and output formatting functions in ipmag.py.
 Covers plot_net / plot_di (stereographic projection plotting),
 fishqq (Fisher QQ plot), and igrf_print (IGRF output formatting).
 """
+import warnings
 from contextlib import redirect_stdout
 from io import StringIO
 
@@ -249,6 +250,57 @@ class TestFishqq:
         assert isinstance(summary, dict)
         assert summary.get('Mode') == 'Mode 1'
         assert summary.get('N', 0) > 10
+        plt.close('all')
+
+    def test_stats_computed_without_plot(self):
+        """fishqq returns the same statistics with plot=False as plot=True."""
+        directions = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                                    random_seed=33).tolist()
+        with_plot = ipmag.fishqq(di_block=directions, plot=True, save=False)
+        no_plot = ipmag.fishqq(di_block=directions, plot=False, save=False)
+        assert isinstance(no_plot, dict)
+        for key in ('Mu', 'Mu_critical', 'Me', 'Me_critical'):
+            assert abs(no_plot[key] - with_plot[key]) < 1e-9
+        assert no_plot['Test_result'] == with_plot['Test_result']
+        plt.close('all')
+
+    def test_data_type_poles_labels(self):
+        """data_type='poles' labels the QQ subplots Longitudes/Latitudes."""
+        vgps = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                             random_seed=33).tolist()
+        ipmag.fishqq(di_block=vgps, plot=True, save=False, data_type='poles')
+        titles = [ax.get_title() for ax in plt.gcf().get_axes()]
+        assert 'Mode 1 Longitudes' in titles
+        assert 'Mode 1 Latitudes' in titles
+        plt.close('all')
+        ipmag.fishqq(di_block=vgps, plot=True, save=False)
+        titles = [ax.get_title() for ax in plt.gcf().get_axes()]
+        assert 'Mode 1 Declinations' in titles
+        assert 'Mode 1 Inclinations' in titles
+        plt.close('all')
+
+    def test_no_warnings_with_existing_figure(self):
+        """fishqq issues no matplotlib warnings when figure 1 already exists
+        with an incompatible layout (issue #824)."""
+        directions = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                                   random_seed=33).tolist()
+        stale_fig = plt.figure(1, figsize=(5, 5))
+        stale_fig.add_subplot(111)
+        with warnings.catch_warnings():
+            warnings.simplefilter('error')
+            ipmag.fishqq(di_block=directions, plot=True, save=False)
+        plt.close('all')
+
+    def test_figure_size_applied_with_existing_figure(self):
+        """fishqq applies its 6x3 figure size even when the figure number
+        already exists at a different size (issue #824)."""
+        directions = ipmag.fishrot(k=40, n=20, dec=200, inc=50,
+                                   random_seed=33).tolist()
+        plt.figure(1, figsize=(5, 5))
+        ipmag.fishqq(di_block=directions, plot=True, save=False)
+        width, height = plt.figure(1).get_size_inches()
+        assert abs(width - 6) < 1e-6
+        assert abs(height - 3) < 1e-6
         plt.close('all')
 
 

@@ -729,7 +729,7 @@ class Criteria_Dialog(wx.Dialog):
         elif type(value) == str and str(value) != "":  # should be a number
             try:
                 acceptance_criteria[crit]['value'] = float(value)
-            except:
+            except Exception:
                 msg = "non-valid value for box {}".format(crit)
                 pw.simple_warning(msg)
                 return None, False
@@ -924,7 +924,7 @@ class Consistency_Test(wx.Frame):
             try:
                 new_dir = os.path.join(self.WD, "consistency_test")
                 os.mkdir(new_dir)
-            except:
+            except Exception:
                 pass
 
             # try:
@@ -1065,7 +1065,7 @@ class Consistency_Test(wx.Frame):
             TEXT = ""
             for line in function_in.readlines():
                 TEXT = TEXT + line
-        except:
+        except Exception:
             TEXT = "study_sample_n\ntest_group_n\nmax_group_int_sigma_uT\nmax_group_int_sigma_perc\n((max_group_int_sigma_uT < 6) or (max_group_int_sigma_perc < 10)) and  int(study_sample_n)"
 
         self.text_logger.SetValue(TEXT)
@@ -1616,7 +1616,7 @@ class preferences_stats_dialog(wx.Dialog):
         try:
             self.bootstrap_N.SetValue(
                 "%.0f" % (self.preferences["BOOTSTRAP_N"]))
-        except:
+        except Exception:
             self.bootstrap_N.SetValue("10000")
 
         #----------------------

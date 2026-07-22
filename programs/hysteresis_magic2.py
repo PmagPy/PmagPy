@@ -300,7 +300,7 @@ def main():
                     try:
                         k = sids.index(specimen)
                         keepon = 0
-                    except:
+                    except Exception:
                         tmplist = []
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:

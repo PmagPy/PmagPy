@@ -67,7 +67,7 @@ def main():
     try:
         dmin, dmax = depth.split()
         dmin, dmax = float(dmin), float(dmax)
-    except:
+    except Exception:
         print('you must provide depth in this format: -d dmin dmax')
         print('could not parse "{}", defaulting to plotting all depths'.format('-d ' + str(depth)))
         dmin, dmax = -1, -1

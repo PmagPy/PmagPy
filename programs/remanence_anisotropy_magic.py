@@ -106,7 +106,7 @@ def main():
         Data={}
         try:
             meas_data,file_type=pmag.magic_read(magic_file)
-        except:
+        except Exception:
             print("-E- ERROR: Cant read magic_measurement.txt file. File is corrupted.")
             return Data
             
@@ -614,7 +614,7 @@ def main():
             for i in range (len(rmag_anistropy_header)):
                 try:
                     String=String+Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]]+'\t'
-                except:
+                except Exception:
                     String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]])+'\t'
             rmag_anisotropy_file.write(String[:-1]+"\n")
     
@@ -625,7 +625,7 @@ def main():
             for i in range (len(rmag_results_header)):
                 try:
                     String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
-                except:
+                except Exception:
                     String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
             rmag_results_file.write(String[:-1]+"\n")
     
