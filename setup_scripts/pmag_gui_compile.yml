@@ -1,6 +1,6 @@
 name: pmag_gui_compile
-# Create this environment natively on Apple silicon.  pmag_gui.spec rejects
-# Intel/Rosetta build hosts and tells PyInstaller to emit arm64 Mach-O binaries.
+# Create this environment natively on Apple silicon.  The macOS arm64 spec
+# rejects Intel/Rosetta build hosts and emits only arm64 Mach-O binaries.
 channels:
   - conda-forge
 dependencies:

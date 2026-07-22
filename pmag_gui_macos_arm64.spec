@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 
-# this is an example.spec file
+# PyInstaller specification for the Apple-silicon-only macOS application.
 
 import os
 import platform
