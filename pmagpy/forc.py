@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import csv
 import re
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime
@@ -243,6 +244,10 @@ def build_magic_rows_from_raw_groups(
         row["measurement"] = measurement_name
         row["experiment"] = experiment
         row["specimen"] = specimen
+        # MagIC uses sequence to preserve measurement order.  Populating it also
+        # lets the importer distinguish repeated experiments whose sequence
+        # restarts within one specimen.
+        row["sequence"] = str(treat_step_num)
         row["standard"] = "u"
         row["quality"] = "g"
         row["method_codes"] = "LP-FORC"
@@ -309,6 +314,199 @@ def export_magic_measurements_from_raw(
         for row in rows:
             writer.writerow([row.get(h, "") for h in MAGIC_MEASUREMENT_HEADERS])
 
+    return out_path
+
+
+# ============================================================
+# MagIC measurement import
+# ============================================================
+
+_MAGIC_BLOCK_POINT_RE = re.compile(r"-(\d+)-(\d+)$")
+_MAGIC_MOMENT_FIELDS = ("magn_moment", "magn_uncal", "magn_mass", "magn_volume")
+
+
+def _magic_float(value) -> Optional[float]:
+    """Return a finite float for a MagIC cell, otherwise None."""
+    try:
+        number = float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return number if np.isfinite(number) else None
+
+
+def _iter_magic_forc_rows(path: PathLike):
+    """Yield normalized LP-FORC rows from a MagIC tab-delimited table."""
+    p = as_path(path)
+    with p.open("r", encoding="utf-8-sig", errors="replace", newline="") as f:
+        reader = csv.reader(f, delimiter="\t")
+        headers = None
+        for values in reader:
+            cleaned = [str(v).strip().lstrip("\ufeff") for v in values]
+            if "specimen" in cleaned and "sequence" in cleaned and "meas_field_dc" in cleaned:
+                headers = cleaned
+                break
+        if headers is None:
+            raise ValueError(
+                "Could not find a MagIC measurements header containing specimen, "
+                "sequence, and meas_field_dc."
+            )
+
+        for source_order, values in enumerate(reader):
+            if not values or not any(str(v).strip() for v in values):
+                continue
+            if len(values) < len(headers):
+                values += [""] * (len(headers) - len(values))
+            row = {h: values[i].strip() for i, h in enumerate(headers) if h and i < len(values)}
+            method_text = ":".join((row.get("method_codes", ""), row.get("experiment", ""), row.get("measurement", ""))).upper()
+            if "LP-FORC" not in method_text:
+                continue
+
+            field = _magic_float(row.get("meas_field_dc"))
+            moment = None
+            for name in _MAGIC_MOMENT_FIELDS:
+                candidate = _magic_float(row.get(name))
+                if candidate is not None:
+                    moment = candidate
+                    break
+            if field is None or moment is None:
+                continue
+
+            measurement = row.get("measurement", "")
+            match = _MAGIC_BLOCK_POINT_RE.search(measurement)
+            row["_field"] = field
+            row["_moment"] = moment
+            row["_source_order"] = source_order
+            row["_block"] = int(match.group(1)) if match else None
+            row["_point"] = int(match.group(2)) if match else None
+            yield row
+
+
+def read_magic_forc_runs(path: PathLike) -> List[Dict[str, object]]:
+    """
+    Read a MagIC measurements table and split its LP-FORC data into runs.
+
+    Runs are separated by specimen, experiment changes, sequence restarts, or
+    (for legacy tables with blank sequence) a restart of the measurement block
+    number.  Each returned item contains ``specimen``, ``experiment``, ``rows``,
+    and a stable ``run_id``.
+    """
+    by_specimen: Dict[str, List[Dict[str, object]]] = {}
+    current: Dict[str, Dict[str, object]] = {}
+
+    for row in _iter_magic_forc_rows(path):
+        specimen = row.get("specimen", "").strip() or "unknown_specimen"
+        experiment = row.get("experiment", "").strip()
+        sequence = _magic_float(row.get("sequence"))
+        block = row.get("_block")
+        previous = current.get(specimen)
+
+        new_run = previous is None
+        if previous is not None:
+            previous_experiment = str(previous["experiment"])
+            previous_sequence = previous.get("_last_sequence")
+            previous_block = previous.get("_last_block")
+            if experiment and previous_experiment and experiment != previous_experiment:
+                new_run = True
+            elif sequence is not None and previous_sequence is not None and sequence <= previous_sequence:
+                new_run = True
+            elif sequence is None and block is not None and previous_block is not None and block < previous_block:
+                new_run = True
+
+        if new_run:
+            run_number = len(by_specimen.setdefault(specimen, [])) + 1
+            repeated_experiment = bool(experiment) and any(
+                str(item.get("experiment", "")) == experiment for item in by_specimen[specimen]
+            )
+            run_id = (
+                f"{experiment}#{run_number}" if repeated_experiment
+                else experiment or f"{specimen}-run-{run_number}"
+            )
+            run = {
+                "specimen": specimen,
+                "experiment": experiment,
+                "run_id": run_id,
+                "rows": [],
+                "_last_sequence": None,
+                "_last_block": None,
+            }
+            by_specimen[specimen].append(run)
+            current[specimen] = run
+        else:
+            run = previous
+
+        run["rows"].append(row)
+        if sequence is not None:
+            run["_last_sequence"] = sequence
+        if block is not None:
+            run["_last_block"] = block
+
+    runs = [run for specimen_runs in by_specimen.values() for run in specimen_runs]
+    if not runs:
+        raise ValueError(f"No readable LP-FORC measurements found in MagIC file: {path}")
+    for run in runs:
+        run.pop("_last_sequence", None)
+        run.pop("_last_block", None)
+    return runs
+
+
+def _write_magic_run_as_forc(run: Dict[str, object], path: PathLike) -> Path:
+    """Write one parsed MagIC run in the small raw format used by the core pipeline."""
+    rows = list(run["rows"])
+    parsed_blocks: Dict[int, List[dict]] = {}
+    for row in rows:
+        if row.get("_block") is not None:
+            parsed_blocks.setdefault(int(row["_block"]), []).append(row)
+
+    blocks: List[Tuple[Optional[dict], List[dict]]] = []
+    if parsed_blocks:
+        for block_number in sorted(parsed_blocks):
+            block_rows = sorted(parsed_blocks[block_number], key=lambda r: r["_source_order"])
+            cal = next((r for r in block_rows if r.get("_point") == 0), None)
+            forc = [r for r in block_rows if r.get("_point") != 0]
+            if forc:
+                blocks.append((cal, forc))
+    else:
+        # Fallback for non-standard measurement names: increasing field belongs
+        # to one curve; a decrease starts the next curve.
+        curves: List[List[dict]] = []
+        for row in rows:
+            if curves and row["_field"] < curves[-1][-1]["_field"]:
+                curves.append([])
+            elif not curves:
+                curves.append([])
+            curves[-1].append(row)
+        blocks = [(None, curve) for curve in curves if curve]
+
+    if not blocks:
+        raise ValueError(f"MagIC run {run['run_id']!r} contains no FORC curves.")
+
+    all_fields = [float(r["_field"]) for _, curve in blocks for r in curve]
+    hb_values = [min(float(r["_field"]) for r in curve) for _, curve in blocks]
+    max_abs_field = max(abs(v) for v in all_fields) or 1.0
+    hcal_values = [float(cal["_field"]) for cal, _ in blocks if cal is not None]
+    hcal = float(np.median(hcal_values)) if hcal_values else max(all_fields)
+    synthetic_cal_moment = float(blocks[0][1][-1]["_moment"])
+    hb2 = max(abs(v) for v in hb_values) if hb_values else max_abs_field
+    hc2 = max_abs_field
+
+    out_path = ensure_parent_dir(path)
+    lines = [
+        f"HCal {hcal:.17g}",
+        f"Hb2 {hb2:.17g}",
+        f"Hc2 {hc2:.17g}",
+        "Field (T), Moment (A m^2)",
+    ]
+    for cal, curve in blocks:
+        if cal is None:
+            # One synthetic calibration point permits safe segmentation but is
+            # intentionally constant, so drift correction remains zero.
+            cal_field, cal_moment = hcal, synthetic_cal_moment
+        else:
+            cal_field, cal_moment = float(cal["_field"]), float(cal["_moment"])
+        lines.append(f"{cal_field:.17g}, {cal_moment:.17g}")
+        lines.extend(f"{float(r['_field']):.17g}, {float(r['_moment']):.17g}" for r in curve)
+        lines.extend(("", ""))
+    out_path.write_text("\n".join(lines), encoding="utf-8")
     return out_path
 
 # ============================================================
@@ -2584,6 +2782,7 @@ def run_forc_pipeline(
     stack: bool = False,
     stack_glob: Optional[str] = None,
     stack_method: str = "mean",   # "mean" or "median",
+    export_magic: bool = True,
 ) -> Dict[str, object]:
     """
     Single-file mode
@@ -2623,7 +2822,7 @@ def run_forc_pipeline(
             B_step=B_step,
             regrid_method=regrid_method,
             regrid_extrapolate=regrid_extrapolate,
-            export_magic=(not stack),
+            export_magic=(export_magic and not stack),
             verbose=verbose,
         )
         for p in input_files
@@ -4248,6 +4447,70 @@ def _derive_common_sample_title(files) -> str:
     common = common.rstrip(" _-.")
     return common if common else "stack"
 
+
+def _run_magic_pipeline(
+    path: PathLike,
+    sample_title: Optional[str],
+    stack_method: str,
+    kwargs: Dict[str, object],
+):
+    """Dispatch a MagIC table to single, stacked, or specimen-batch processing."""
+    magic_path = as_path(path)
+    kwargs = dict(kwargs)
+    kwargs.pop("export_magic", None)
+    runs = read_magic_forc_runs(magic_path)
+    by_specimen: Dict[str, List[Dict[str, object]]] = {}
+    for run in runs:
+        by_specimen.setdefault(str(run["specimen"]), []).append(run)
+
+    if len(by_specimen) > 1:
+        detected_mode = "b"
+    elif len(runs) > 1:
+        detected_mode = "s"
+    else:
+        detected_mode = "i"
+
+    verbose = bool(kwargs.get("verbose", True))
+    if verbose:
+        details = ", ".join(f"{name}: {len(items)} run(s)" for name, items in by_specimen.items())
+        print(f"MagIC import detected mode={detected_mode!r} | {details}")
+
+    outputs = []
+    with tempfile.TemporaryDirectory(prefix="forcme_magic_") as temp_name:
+        temp_root = Path(temp_name)
+        for specimen_index, (specimen, specimen_runs) in enumerate(by_specimen.items(), start=1):
+            specimen_dir = temp_root / f"specimen_{specimen_index}"
+            specimen_dir.mkdir(parents=True, exist_ok=True)
+            synthetic_files = []
+            for run_index, run in enumerate(specimen_runs, start=1):
+                synthetic_path = specimen_dir / f"run_{run_index}.txt"
+                synthetic_files.append(_write_magic_run_as_forc(run, synthetic_path))
+
+            use_stack = len(synthetic_files) > 1
+            core_path = str(specimen_dir if use_stack else synthetic_files[0])
+            one_out = _run_forc_pipeline_core(
+                path=core_path,
+                sample_title=sample_title or specimen,
+                stack=use_stack,
+                stack_glob="*.txt",
+                stack_method=stack_method,
+                export_magic=False,
+                **kwargs,
+            )
+            # Replace temporary implementation details with durable source metadata.
+            one_out["input_path"] = str(magic_path)
+            one_out["input_files"] = [str(magic_path)]
+            one_out["n_input_files"] = 1
+            one_out["magic_import"] = True
+            one_out["magic_detected_mode"] = detected_mode
+            one_out["magic_specimen_mode"] = "s" if use_stack else "i"
+            one_out["magic_specimen"] = specimen
+            one_out["magic_run_ids"] = [str(run["run_id"]) for run in specimen_runs]
+            one_out["n_magic_runs"] = len(specimen_runs)
+            outputs.append(one_out)
+
+    return outputs if detected_mode == "b" else outputs[0]
+
 def run_forc_pipeline(
     path: str,
     sample_title: Optional[str] = None,
@@ -4261,10 +4524,12 @@ def run_forc_pipeline(
 
     Parameters
     ----------
-    mode : {"i", "s", "b"}
+    mode : {"i", "s", "b", "m"}
         i = single file
         s = stacked processing over matching files in a directory
         b = batch processing of each matching file in a directory
+        m = MagIC measurements file; automatically selects i, s, or b from
+            specimen, experiment, and sequence fields
     file_type : str
         Glob used to discover files for stack/batch modes.
     sample_title : str or None
@@ -4274,8 +4539,8 @@ def run_forc_pipeline(
           s = common stem across matched files
     """
     mode_l = str(mode).strip().lower()
-    if mode_l not in {"i", "s", "b"}:
-        raise ValueError("mode must be 'i', 's', or 'b'.")
+    if mode_l not in {"i", "s", "b", "m"}:
+        raise ValueError("mode must be 'i', 's', 'b', or 'm'.")
 
     # Backward-compatibility: ignore legacy args if passed
     kwargs.pop("stack", None)
@@ -4284,6 +4549,14 @@ def run_forc_pipeline(
     user_title = None if sample_title is None else str(sample_title).strip()
     if user_title == "":
         user_title = None
+
+    if mode_l == "m":
+        return _run_magic_pipeline(
+            path=path,
+            sample_title=user_title,
+            stack_method=stack_method,
+            kwargs=kwargs,
+        )
 
     if mode_l == "i":
         auto_title = Path(path).stem
