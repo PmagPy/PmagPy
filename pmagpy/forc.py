@@ -1619,7 +1619,7 @@ def plot_forc_curves_hysteresis(
     plt.show()
 
 # ============================================================
-# Phase 2: build grid + LOESS rho (Numba)
+# Phase 2: build grid + LOESS rho
 # ============================================================
 
 def build_Hb_Ha_grid(forcs: List[Segment], Hmin=None, Hmax=None, verbose: bool = True):
@@ -1695,12 +1695,6 @@ def build_Hb_Ha_grid(forcs: List[Segment], Hmin=None, Hmax=None, verbose: bool =
         print(f"M_grid shape: {M_grid.shape}")
 
     return Hb_vals, Ha_vals, M_grid, dHa, dHb
-
-try:
-    from numba import njit
-    NUMBA_OK = True
-except Exception:
-    NUMBA_OK = False
 
 def build_Hb_Ha_grid_regridded(
     forcs: List[Segment],
@@ -1844,161 +1838,206 @@ def _build_offsets(rx: int, ry: int) -> np.ndarray:
                 offs.append((di, dj, u))
     return np.asarray(offs, dtype=np.float64)
 
-if NUMBA_OK:
-
-    @njit(cache=True)
-    def _tricube_numba(u):
-        t = 1.0 - u*u*u
-        return t*t*t
-
-    @njit(cache=True)
-    def _gauss_solve_6x6(A, b):
-        M = A.copy()
-        x = b.copy()
-
-        for k in range(6):
-            piv = k
-            piv_val = abs(M[k, k])
-            for r in range(k + 1, 6):
-                v = abs(M[r, k])
-                if v > piv_val:
-                    piv_val = v
-                    piv = r
-            if piv_val < 1e-30:
-                return False, x
-
-            if piv != k:
-                for c in range(6):
-                    tmp = M[k, c]
-                    M[k, c] = M[piv, c]
-                    M[piv, c] = tmp
-                tmp = x[k]
-                x[k] = x[piv]
-                x[piv] = tmp
-
-            diag = M[k, k]
-            for r in range(k + 1, 6):
-                f = M[r, k] / diag
-                if f != 0.0:
-                    for c in range(k, 6):
-                        M[r, c] -= f * M[k, c]
-                    x[r] -= f * x[k]
-
-        sol = np.zeros(6, dtype=np.float64)
-        for i in range(5, -1, -1):
-            s = x[i]
-            for j in range(i + 1, 6):
-                s -= M[i, j] * sol[j]
-            if abs(M[i, i]) < 1e-30:
-                return False, sol
-            sol[i] = s / M[i, i]
-        return True, sol
-
-    @njit(cache=True)
-    def loess_rho_from_grid_numba(Hb_vals, Ha_vals, M, offsets, min_pts):
-        nHb, nHa = M.shape
-        rho = np.empty((nHb, nHa), dtype=np.float64)
-        rho[:] = np.nan
-
-        for i in range(nHb):
-            Hb = Hb_vals[i]
-            for j in range(nHa):
-                Ha = Ha_vals[j]
-                if Ha < Hb:
-                    continue
-
-                z0 = M[i, j]
-                if z0 != z0:
-                    continue
-
-                A = np.zeros((6, 6), dtype=np.float64)
-                b = np.zeros(6, dtype=np.float64)
-                n = 0
-
-                for k in range(offsets.shape[0]):
-                    di = int(offsets[k, 0])
-                    dj = int(offsets[k, 1])
-                    u = offsets[k, 2]
-
-                    ii = i + di
-                    jj = j + dj
-                    if ii < 0 or ii >= nHb or jj < 0 or jj >= nHa:
-                        continue
-                    if Ha_vals[jj] < Hb_vals[ii]:
-                        continue
-
-                    z = M[ii, jj]
-                    if z != z:
-                        continue
-
-                    dx = Ha_vals[jj] - Ha
-                    dy = Hb_vals[ii] - Hb
-                    w = _tricube_numba(u)
-
-                    p0 = 1.0
-                    p1 = dx
-                    p2 = dy
-                    p3 = dx*dx
-                    p4 = dx*dy
-                    p5 = dy*dy
-
-                    b[0] += w * p0 * z
-                    b[1] += w * p1 * z
-                    b[2] += w * p2 * z
-                    b[3] += w * p3 * z
-                    b[4] += w * p4 * z
-                    b[5] += w * p5 * z
-
-                    A[0,0] += w*p0*p0; A[0,1] += w*p0*p1; A[0,2] += w*p0*p2; A[0,3] += w*p0*p3; A[0,4] += w*p0*p4; A[0,5] += w*p0*p5
-                    A[1,1] += w*p1*p1; A[1,2] += w*p1*p2; A[1,3] += w*p1*p3; A[1,4] += w*p1*p4; A[1,5] += w*p1*p5
-                    A[2,2] += w*p2*p2; A[2,3] += w*p2*p3; A[2,4] += w*p2*p4; A[2,5] += w*p2*p5
-                    A[3,3] += w*p3*p3; A[3,4] += w*p3*p4; A[3,5] += w*p3*p5
-                    A[4,4] += w*p4*p4; A[4,5] += w*p4*p5
-                    A[5,5] += w*p5*p5
-
-                    n += 1
-
-                if n < min_pts:
-                    continue
-
-                for r in range(6):
-                    for c in range(r):
-                        A[r, c] = A[c, r]
-
-                ok, coeff = _gauss_solve_6x6(A, b)
-                if not ok:
-                    continue
-
-                rho[i, j] = -0.5 * coeff[4]
-
-        return rho
-
 def loess_rho_from_grid_fast(
     Hb_vals, Ha_vals, M_grid,
     span_Ha_T: float = 0.005,
     span_Hb_T: float = 0.005,
-    min_pts: int = 50
+    min_pts: int = 50,
+    chunk_size: int = 512,
 ):
-    if not NUMBA_OK:
-        raise RuntimeError("Numba not available. Install with: pip install numba")
+    """
+    Calculate a LOESS-smoothed FORC distribution on a field grid.
 
-    Hb_vals = np.ascontiguousarray(np.asarray(Hb_vals, dtype=np.float64))
-    Ha_vals = np.ascontiguousarray(np.asarray(Ha_vals, dtype=np.float64))
-    M = np.ascontiguousarray(np.asarray(M_grid, dtype=np.float64))
+    A weighted quadratic surface is fitted around every finite grid cell using
+    a tricube-weighted elliptical neighborhood.  The FORC distribution is
+    ``-0.5 * d2M / (dHa dHb)``, obtained from the mixed term of each local fit.
 
-    dHa = float(np.median(np.diff(Ha_vals)))
-    dHb = float(np.median(np.diff(Hb_vals))) if len(Hb_vals) > 1 else dHa
+    The local systems are assembled and solved in NumPy batches.  Processing
+    the finite cells in chunks keeps memory use bounded for large FORC grids
+    while avoiding an optional just-in-time compiler dependency.
+
+    Parameters
+    ----------
+    Hb_vals, Ha_vals : array-like
+        Strictly increasing reversal- and applied-field coordinates in tesla.
+        Regularly spaced axes use a shared design matrix; measured irregular
+        spacing is handled using the actual local coordinates.
+    M_grid : array-like
+        Magnetization values with shape ``(len(Hb_vals), len(Ha_vals))``.
+        Missing or nonphysical cells should contain ``NaN``.
+    span_Ha_T, span_Hb_T : float, optional
+        Semi-axis lengths of the elliptical smoothing neighborhood in tesla.
+    min_pts : int, optional
+        Minimum number of finite neighboring measurements required for a fit.
+        At least six points are always required for the six quadratic terms.
+    chunk_size : int, optional
+        Maximum number of grid cells assembled and solved in one batch.
+        Smaller values reduce peak memory use; larger values may be faster.
+
+    Returns
+    -------
+    numpy.ndarray
+        The FORC distribution with the same shape as ``M_grid``.  Cells that
+        lack enough measurements or a full-rank quadratic fit are ``NaN``.
+
+    Notes
+    -----
+    Local coordinates are expressed relative to the median field steps when
+    the quadratic systems are solved.  This improves numerical conditioning
+    for both regular and irregular measured grids.  The mixed coefficient is
+    converted back to inverse tesla squared before returning the FORC
+    distribution.
+    """
+    Hb_vals = np.asarray(Hb_vals, dtype=np.float64)
+    Ha_vals = np.asarray(Ha_vals, dtype=np.float64)
+    M = np.asarray(M_grid, dtype=np.float64)
+
+    if Hb_vals.ndim != 1 or Ha_vals.ndim != 1:
+        raise ValueError("Hb_vals and Ha_vals must be one-dimensional.")
+    if Ha_vals.size < 2 or Hb_vals.size < 1:
+        raise ValueError("Ha_vals needs at least two values and Hb_vals at least one.")
+    if M.shape != (Hb_vals.size, Ha_vals.size):
+        raise ValueError(
+            "M_grid shape must be (len(Hb_vals), len(Ha_vals)); "
+            f"received {M.shape}."
+        )
+    if int(chunk_size) < 1:
+        raise ValueError("chunk_size must be a positive integer.")
+
+    dHa_steps = np.diff(Ha_vals)
+    dHa = float(np.median(dHa_steps))
+    if not np.all(np.isfinite(dHa_steps)) or np.any(dHa_steps <= 0):
+        raise ValueError("Ha_vals must be finite and strictly increasing.")
+    regular_Ha = np.allclose(dHa_steps, dHa, rtol=1e-6, atol=0.0)
+
+    if Hb_vals.size > 1:
+        dHb_steps = np.diff(Hb_vals)
+        dHb = float(np.median(dHb_steps))
+        if not np.all(np.isfinite(dHb_steps)) or np.any(dHb_steps <= 0):
+            raise ValueError("Hb_vals must be finite and strictly increasing.")
+        regular_Hb = np.allclose(dHb_steps, dHb, rtol=1e-6, atol=0.0)
+    else:
+        dHb = dHa
+        regular_Hb = True
+
+    if not np.isfinite(span_Ha_T) or float(span_Ha_T) <= 0:
+        raise ValueError("span_Ha_T must be a positive finite value.")
+    if not np.isfinite(span_Hb_T) or float(span_Hb_T) <= 0:
+        raise ValueError("span_Hb_T must be a positive finite value.")
 
     rx = max(1, int(np.ceil(float(span_Ha_T) / dHa)))
     ry = max(1, int(np.ceil(float(span_Hb_T) / dHb)))
-
-    offsets = np.ascontiguousarray(_build_offsets(rx, ry))
+    offsets = _build_offsets(rx, ry)
 
     max_pts = int(offsets.shape[0])
-    min_pts = int(min(min_pts, max_pts - 1))
-    min_pts = max(6, min_pts)
+    min_pts = max(6, min(int(min_pts), max_pts - 1))
+    chunk_size = int(chunk_size)
 
-    return loess_rho_from_grid_numba(Hb_vals, Ha_vals, M, offsets, int(min_pts))
+    di = offsets[:, 0].astype(np.intp)
+    dj = offsets[:, 1].astype(np.intp)
+    distance = offsets[:, 2]
+    weights = (1.0 - distance ** 3) ** 3
+
+    regular_grid = regular_Ha and regular_Hb
+    if regular_grid:
+        # Grid-step coordinates keep the quadratic systems well-conditioned.
+        dx = dj.astype(np.float64)
+        dy = di.astype(np.float64)
+        shared_design = np.column_stack([
+            np.ones_like(dx),
+            dx,
+            dy,
+            dx * dx,
+            dx * dy,
+            dy * dy,
+        ])
+
+    physical = Ha_vals[np.newaxis, :] >= Hb_vals[:, np.newaxis]
+    valid = np.isfinite(M) & physical
+    center_flat = np.flatnonzero(valid)
+    center_i, center_j = np.unravel_index(center_flat, M.shape)
+    rho = np.full(M.shape, np.nan, dtype=np.float64)
+
+    for start in range(0, center_flat.size, chunk_size):
+        stop = min(start + chunk_size, center_flat.size)
+        ii = center_i[start:stop, np.newaxis] + di
+        jj = center_j[start:stop, np.newaxis] + dj
+
+        inside = (
+            (ii >= 0) & (ii < M.shape[0])
+            & (jj >= 0) & (jj < M.shape[1])
+        )
+        ii = np.clip(ii, 0, M.shape[0] - 1)
+        jj = np.clip(jj, 0, M.shape[1] - 1)
+
+        values = M[ii, jj]
+        neighbor_valid = inside & valid[ii, jj]
+        enough_points = np.count_nonzero(neighbor_valid, axis=1) >= min_pts
+        if not np.any(enough_points):
+            continue
+
+        ii = ii[enough_points]
+        jj = jj[enough_points]
+        neighbor_valid = neighbor_valid[enough_points]
+        values = np.where(neighbor_valid, values[enough_points], 0.0)
+        weighted_valid = neighbor_valid * weights
+
+        if regular_grid:
+            normal_matrices = np.einsum(
+                "ck,kp,kq->cpq",
+                weighted_valid,
+                shared_design,
+                shared_design,
+                optimize=True,
+            )
+            right_sides = np.einsum(
+                "ck,kp,ck->cp",
+                weighted_valid,
+                shared_design,
+                values,
+                optimize=True,
+            )
+        else:
+            center_rows = center_i[start:stop][enough_points, np.newaxis]
+            center_cols = center_j[start:stop][enough_points, np.newaxis]
+            dx = (Ha_vals[jj] - Ha_vals[center_cols]) / dHa
+            dy = (Hb_vals[ii] - Hb_vals[center_rows]) / dHb
+            local_design = np.stack([
+                np.ones_like(dx),
+                dx,
+                dy,
+                dx * dx,
+                dx * dy,
+                dy * dy,
+            ], axis=2)
+            normal_matrices = np.einsum(
+                "ck,ckp,ckq->cpq",
+                weighted_valid,
+                local_design,
+                local_design,
+                optimize=True,
+            )
+            right_sides = np.einsum(
+                "ck,ckp,ck->cp",
+                weighted_valid,
+                local_design,
+                values,
+                optimize=True,
+            )
+
+        full_rank = np.linalg.matrix_rank(normal_matrices) == 6
+        if not np.any(full_rank):
+            continue
+
+        coefficients = np.linalg.solve(
+            normal_matrices[full_rank],
+            right_sides[full_rank, :, np.newaxis],
+        )[:, :, 0]
+        solved_flat = center_flat[start:stop][enough_points][full_rank]
+        mixed_derivative = coefficients[:, 4] / (dHa * dHb)
+        rho.ravel()[solved_flat] = -0.5 * mixed_derivative
+
+    return rho
 
 # ============================================================
 # Colormap + rho plotting
