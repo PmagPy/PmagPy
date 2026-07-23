@@ -67,7 +67,8 @@ def test_loess_rho_is_independent_of_chunk_size_with_missing_data():
         chunk_size=256,
     )
 
-    assert_allclose(small_chunks, large_chunks, rtol=1e-11, atol=1e-11)
+    # Batched einsum accumulation order varies slightly across NumPy versions.
+    assert_allclose(small_chunks, large_chunks, rtol=1e-9, atol=1e-10)
     assert_allclose(M, original)
     assert np.isnan(small_chunks[~np.isfinite(M)]).all()
     assert np.isfinite(small_chunks).sum() > 200
