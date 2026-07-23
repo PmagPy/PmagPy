@@ -6,6 +6,7 @@
 
 import os
 import sys
+import importlib
 import warnings
 
 import numpy as np
@@ -22,13 +23,25 @@ from pmagpy import pmag
 from pmagpy import find_pmag_dir
 from pmagpy import contribution_builder as cb
 has_cartopy, Cartopy = pmag.import_cartopy()
+cfeature = ccrs = config = LongitudeFormatter = LatitudeFormatter = None
+LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
+NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    ccrs = importlib.import_module('cartopy.crs')
+    config = Cartopy.config
+    cfeature = importlib.import_module('cartopy.feature')
+    cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
+    LongitudeFormatter = cartopy_ticker.LongitudeFormatter
+    LatitudeFormatter = cartopy_ticker.LatitudeFormatter
+    cartopy_gridliner = importlib.import_module('cartopy.mpl.gridliner')
+    LONGITUDE_FORMATTER = cartopy_gridliner.LONGITUDE_FORMATTER
+    LATITUDE_FORMATTER = cartopy_gridliner.LATITUDE_FORMATTER
+    NaturalEarthFeature = cfeature.NaturalEarthFeature
+    LAND = cfeature.LAND
+    COASTLINE = cfeature.COASTLINE
+    OCEAN = cfeature.OCEAN
+    LAKES = cfeature.LAKES
+    BORDERS = cfeature.BORDERS
 
 import os
 import matplotlib
@@ -3777,4 +3790,3 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         plt.tight_layout()
         plt.savefig('site.'+fmt)
     return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
-

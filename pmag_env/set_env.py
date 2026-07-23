@@ -1,3 +1,4 @@
+import importlib
 import matplotlib
 import sys
 import os
@@ -7,8 +8,9 @@ IS_WIN = True if sys.platform in ['win32', 'win64'] else False
 IS_LINUX = True if 'linux' in sys.platform else False
 IS_FROZEN = getattr(sys, 'frozen', False)
 try:
-    from IPython import get_ipython
-
+    if IS_FROZEN:
+        raise RuntimeError
+    get_ipython = importlib.import_module('IPython').get_ipython
     ip = get_ipython()
     shell = ip.__class__.__name__ if ip is not None else ""
     IS_NOTEBOOK = shell in {"ZMQInteractiveShell", "Shell"}

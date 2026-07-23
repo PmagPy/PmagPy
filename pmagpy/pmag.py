@@ -4,6 +4,7 @@ import os
 import string
 import sys
 import time
+import importlib
 
 import numpy as np
 from numpy import random
@@ -13432,7 +13433,7 @@ def import_cartopy():
     cartopy = None
     has_cartopy = True
     try:
-        import cartopy
+        cartopy = importlib.import_module('cartopy')
         WARNINGS['has_cartopy'] = True
     except ImportError:
         has_cartopy = False

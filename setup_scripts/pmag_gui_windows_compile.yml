@@ -1,6 +1,4 @@
-name: pmag_gui_compile
-# Create this environment natively on Apple silicon.  The macOS arm64 spec
-# rejects Intel/Rosetta build hosts and emits only arm64 Mach-O binaries.
+name: pmag_gui_windows_compile
 channels:
   - conda-forge
 dependencies:
