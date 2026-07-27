@@ -1035,6 +1035,29 @@ def test_variforc_settings_translates_a_sample_description():
         forc.variforc_settings("regular", growth_rate=-0.1)
 
 
+def test_variforc_settings_can_be_splatted_into_the_kernel():
+    """The helper's dict works directly as variforc_rho_from_grid(**settings).
+
+    variforc_settings carries provenance in underscore-prefixed keys, which the
+    kernel must accept and ignore -- while a misspelled kernel parameter must
+    still fail loudly rather than being silently dropped.
+    """
+    Ha, Hb, M, _ = preisach_grid(step=0.004)
+    settings = forc.variforc_settings("central_ridge", smoothing_factor=5,
+                                      growth_rate=0.05, central_ridge=3,
+                                      central_ridge_position=0.0004)
+    assert "_preset" in settings  # provenance travels with the dict
+
+    splatted = forc.variforc_rho_from_grid(Ha, Hb, M, min_pts=8, **settings)
+    filtered = forc.variforc_rho_from_grid(
+        Ha, Hb, M, min_pts=8,
+        **{k: v for k, v in settings.items() if not k.startswith("_")})
+    assert_allclose(splatted, filtered, equal_nan=True)
+
+    with pytest.raises(TypeError, match="unexpected keyword.*sb_0"):
+        forc.variforc_rho_from_grid(Ha, Hb, M, sb_0=3)
+
+
 def test_pipeline_selects_variforc_and_records_it(micromag_file):
     """One keyword switches estimator, and the choice is archived."""
     loess = forc.process_forc(mode="i", path=str(micromag_file),

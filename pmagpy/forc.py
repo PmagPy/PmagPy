@@ -1823,7 +1823,10 @@ def regrid_segment_BM(seg, B_grid, method="linear", extrapolate=False):
             from scipy.interpolate import PchipInterpolator
             f = PchipInterpolator(B, M, extrapolate=bool(extrapolate))
             M_i = f(B_grid)
-        except Exception:
+        except Exception as exc:
+            warnings.warn(
+                f"pchip regridding failed ({exc!r}); falling back to linear "
+                "interpolation for this curve.", RuntimeWarning, stacklevel=2)
             left = M[0] if extrapolate else np.nan
             right = M[-1] if extrapolate else np.nan
             M_i = np.interp(B_grid, B, M, left=left, right=right)
@@ -2569,7 +2572,10 @@ def build_forc_grid_regridded(
                 from scipy.interpolate import PchipInterpolator
                 f = PchipInterpolator(Hf, Mf, extrapolate=bool(regrid_extrapolate))
                 Mi = f(Hb_vals)
-            except Exception:
+            except Exception as exc:
+                warnings.warn(
+                    f"pchip regridding failed ({exc!r}); falling back to linear "
+                    "interpolation for this curve.", RuntimeWarning, stacklevel=2)
                 Mi = np.interp(Hb_vals, Hf, Mf, left=np.nan, right=np.nan)
         else:
             left = Mf[0] if regrid_extrapolate else np.nan
@@ -2612,7 +2618,10 @@ def build_forc_grid_regridded(
                 from scipy.interpolate import PchipInterpolator
                 f = PchipInterpolator(x, y, extrapolate=bool(regrid_extrapolate))
                 yc = f(Ha_vals)
-            except Exception:
+            except Exception as exc:
+                warnings.warn(
+                    f"pchip regridding failed ({exc!r}); falling back to linear "
+                    "interpolation for this column.", RuntimeWarning, stacklevel=2)
                 yc = np.interp(Ha_vals, x, y, left=np.nan, right=np.nan)
         else:
             left = y[0] if regrid_extrapolate else np.nan
@@ -3281,6 +3290,7 @@ def variforc_rho_from_grid(
     return_fit: bool = False,
     return_factors: bool = False,
     verbose: bool = False,
+    **settings_metadata,
 ):
     """Estimate the FORC distribution with VARIFORC-style variable smoothing.
 
@@ -3340,6 +3350,12 @@ def variforc_rho_from_grid(
             residual-based diagnostics.
         return_factors: Also return the smoothing factors actually used.
         verbose: Report the grouping and window statistics.
+        **settings_metadata: Underscore-prefixed keys are accepted and ignored,
+            so the dict returned by :func:`variforc_settings` — which carries
+            provenance in ``_preset`` and ``_ridge_width`` — can be splatted in
+            directly: ``variforc_rho_from_grid(Ha, Hb, M, **settings)``. Any
+            other unexpected keyword raises ``TypeError``, so misspelled
+            parameters still fail loudly.
 
     Returns:
         The FORC distribution, NaN where a node could not be fitted. If
@@ -3360,6 +3376,17 @@ def variforc_rho_from_grid(
         weight vector, is measurably faster but quantizes the smoothing and
         prints visible bands across the diagram.
     """
+    # variforc_settings() carries provenance in underscore-prefixed keys
+    # (_preset, _ridge_width) so a result can record how it was produced.
+    # They are not kernel parameters; accept and ignore them so the helper's
+    # output can be splatted in directly. Anything else is a genuine typo.
+    unknown = [k for k in settings_metadata if not k.startswith("_")]
+    if unknown:
+        raise TypeError(
+            "variforc_rho_from_grid() got unexpected keyword argument(s): "
+            + ", ".join(sorted(unknown))
+        )
+
     Ha_vals = np.asarray(Ha_vals, dtype=np.float64)
     Hb_vals = np.asarray(Hb_vals, dtype=np.float64)
     M = np.asarray(M_grid, dtype=np.float64)
@@ -4837,7 +4864,7 @@ def _process_forc_single(
         preset = settings.pop("_preset", None)
         settings.pop("_ridge_width", None)
         if verbose:
-            print(f"VARIFORC variable smoothing"
+            print("VARIFORC variable smoothing"
                   + (f" (preset {preset!r})" if preset else ""))
         rho = variforc_rho_from_grid(
             Ha_vals_used, Hb_vals_used, M_grid_used,
@@ -5059,7 +5086,13 @@ def gaussian_smooth_1d_nan(y: np.ndarray, sigma_bins: Optional[float] = 2.0) -> 
         return np.asarray(y, float)
     try:
         from scipy.ndimage import gaussian_filter1d
-    except Exception:
+    except Exception as exc:
+        # Smoothing was requested; returning the data unsmoothed without saying
+        # so is exactly the failure mode the profile pipeline once suffered.
+        warnings.warn(
+            f"scipy.ndimage is unavailable ({exc!r}); profile smoothing was "
+            "requested but the data are returned unsmoothed.",
+            RuntimeWarning, stacklevel=2)
         return np.asarray(y, float)
 
     y = np.asarray(y, float)
