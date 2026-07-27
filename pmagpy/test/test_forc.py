@@ -1318,73 +1318,12 @@ def _forc_family_with_slope(chi_slope=0.0, n=40, dH=0.002):
     return segments
 
 
-def test_paramagnetic_correction_removes_an_injected_slope():
-    """An injected high-field slope is recovered and removed."""
-    slope = 3.0e-6                      # A m^2 / T
-    segments = _forc_family_with_slope(chi_slope=slope)
-
-    corrected, report = forc.correct_paramagnetic_slope(
-        segments, fit_type="linear", verbose=False)
-    assert report["applied"]
-
-    # chi_HF is reported in SI, i.e. the fitted slope times mu_0.
-    recovered = report["chi_HF"] / (4 * np.pi / 1e7)
-    assert recovered == pytest.approx(slope, rel=0.1)
-
-    def pooled_high_field_slope(segs):
-        H = np.concatenate([s.H for s in segs if s.kind == "forc"])
-        M = np.concatenate([s.M for s in segs if s.kind == "forc"])
-        sel = H > 0.06
-        return np.polyfit(H[sel], M[sel], 1)[0]
-
-    before = pooled_high_field_slope(segments)
-    after = pooled_high_field_slope(corrected)
-    assert abs(after) < 0.15 * abs(before)
 
 
-def test_paramagnetic_correction_leaves_rho_unchanged():
-    """A term linear in the applied field has no mixed derivative."""
-    segments = _forc_family_with_slope(chi_slope=3.0e-6)
-    corrected, _ = forc.correct_paramagnetic_slope(segments, fit_type="linear",
-                                                   verbose=False)
-
-    def distribution(segs):
-        curves = [s for s in segs if s.kind == "forc"]
-        Ha, Hb, M, _, _ = forc.build_forc_grid(curves, verbose=False)
-        return forc.loess_rho_from_grid_fast(Ha, Hb, M, span_Ha_T=0.008,
-                                             span_Hb_T=0.008, min_pts=8)
-
-    before, after = distribution(segments), distribution(corrected)
-    both = np.isfinite(before) & np.isfinite(after)
-    assert both.sum() > 100
-    assert np.max(np.abs(before[both] - after[both])) < 1e-6 * np.nanmax(
-        np.abs(before[both]))
 
 
-def test_paramagnetic_correction_declines_without_signal():
-    """Degenerate input is reported rather than fitted."""
-    empty = [forc.Segment(H=np.array([0.0]), M=np.array([1e-6]), idx=0,
-                          kind="cal")]
-    out, report = forc.correct_paramagnetic_slope(empty, verbose=False)
-    assert not report["applied"] and out is empty
-
-    short = [forc.Segment(H=np.arange(3) * 0.01, M=np.zeros(3), idx=0,
-                          kind="forc", Ha=0.0)]
-    _, report = forc.correct_paramagnetic_slope(short, verbose=False)
-    assert not report["applied"]
 
 
-def test_branch_mirroring_builds_a_symmetric_loop():
-    """The reconstructed loop is closed, even in length, and antisymmetric."""
-    H = np.linspace(-0.1, 0.1, 41)
-    M = np.tanh(H * 30.0)
-    loop_H, loop_M = forc._mirror_branch_into_loop(H, M)
-    assert loop_H.size == loop_M.size
-    assert loop_H.size % 2 == 0
-    half = loop_H.size // 2
-    # The two halves are inversion images of one another.
-    assert_allclose(loop_H[:half], -loop_H[half:][::-1])
-    assert_allclose(loop_M[:half], -loop_M[half:][::-1])
 
 
 # ==========================================================================
@@ -1606,3 +1545,34 @@ def test_variforc_engines_agree_on_an_unevenly_spaced_grid():
     both = np.isfinite(a) & np.isfinite(b)
     assert np.array_equal(np.isfinite(a), np.isfinite(b))
     assert np.max(np.abs(a[both] - b[both])) < 1e-9 * np.max(np.abs(a[both]))
+
+
+def test_rho_is_invariant_to_a_paramagnetic_slope():
+    """A paramagnetic contribution has no effect on the FORC distribution.
+
+    rho is the mixed derivative d2M/dHa dHb, and a paramagnetic or diamagnetic
+    contribution chi*Hb is a function of the applied field alone, so it is
+    annihilated by the derivative with respect to Ha. The invariance survives
+    the smoothing because the local regression is linear in the moments and
+    chi*Hb is exactly representable in the quadratic basis, contributing
+    nothing to the mixed coefficient.
+
+    This is why pmagpy.forc offers no paramagnetic slope correction: there is
+    nothing for one to fix. Removing the slope is a presentational choice made
+    when plotting the curves, not a processing step.
+    """
+    def distribution(segs):
+        curves = [s for s in segs if s.kind == "forc"]
+        Ha, Hb, M, _, _ = forc.build_forc_grid(curves, verbose=False)
+        return forc.loess_rho_from_grid_fast(Ha, Hb, M, span_Ha_T=0.008,
+                                             span_Hb_T=0.008, min_pts=8)
+
+    reference = distribution(_forc_family_with_slope(chi_slope=0.0))
+
+    # up to a paramagnetic signal a hundred times the saturation moment
+    for chi_slope in (1.0e-7, 1.0e-6, 1.0e-5, 1.0e-4):
+        perturbed = distribution(_forc_family_with_slope(chi_slope=chi_slope))
+        both = np.isfinite(reference) & np.isfinite(perturbed)
+        assert both.sum() > 100
+        scale = np.nanmax(np.abs(reference[both]))
+        assert np.max(np.abs(perturbed[both] - reference[both])) < 1e-8 * scale
