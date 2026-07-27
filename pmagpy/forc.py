@@ -6537,23 +6537,119 @@ def process_forc(
     **kwargs,
 ):
     """
-    Unified public pipeline.
+    Process FORC measurements from a file or directory to a finished diagram.
 
-    Parameters
-    ----------
-    mode : {"i", "s", "b", "m"}
-        i = single file
-        s = stacked processing over matching files in a directory
-        b = batch processing of each matching file in a directory
-        m = MagIC measurements file; automatically selects i, s, or b from
-            specimen, experiment, and sequence fields
-    file_type : str
-        Glob used to discover files for stack/batch modes.
-    sample_title : str or None
-        Optional explicit override. When None or blank, titles are derived automatically:
-          i = filename stem
-          b = each filename stem
-          s = common stem across matched files
+    This is the single entry point of the FORC pipeline: it reads the
+    measurements, corrects instrument drift, estimates the FORC distribution
+    with the requested smoothing, draws the diagrams, and returns everything
+    used along the way. All keyword arguments below beyond the first four are
+    passed through to the underlying pipeline; they are listed here, grouped
+    by processing stage, because ``help(process_forc)`` is where a user looks
+    for them.
+
+    Args:
+        path: Input file (modes ``"i"``/``"m"``) or directory (``"s"``/``"b"``).
+        sample_title: Title used on figures and export filenames. When None,
+            derived automatically: the filename stem in modes ``"i"`` and
+            ``"b"``, the common stem of the matched files in ``"s"``, and the
+            specimen name in ``"m"``.
+        mode: ``"i"`` processes one raw MicroMag file; ``"m"`` a MagIC
+            measurements table, dispatching automatically to single, stacked,
+            or batch treatment from its specimen/experiment/sequence fields;
+            ``"s"`` stacks repeat measurements of one specimen found in a
+            directory; ``"b"`` processes each matching file independently.
+        file_type: Glob used to discover files in modes ``"s"`` and ``"b"``.
+        stack_method: ``"mean"`` or ``"median"`` combination of repeat
+            measurements in stacked mode; ``"median"`` resists outliers.
+
+    Keyword Args:
+        Reading and conditioning:
+            cal_tol_T: Tolerance in tesla for matching a measurement to the
+                header calibration field ``HCal`` (default 2e-3).
+            drift_fit: Interpolation of the calibration record across the run,
+                ``"linear"`` (default) or monotone piecewise-cubic ``"pchip"``.
+            endpoint_replace_n: Number of points at each end of every curve
+                replaced by linear extrapolation from the interior, where
+                instrument settling can bias them (default 1); switch the ends
+                individually with ``replace_first``/``replace_last``.
+            correct_first_point: Measure and remove a systematic first-point
+                anomaly across the curve family (default False).
+            blank_sep, jump_T, cal_drop_T: Segmentation thresholds for
+                splitting the numeric block into calibration points and
+                curves; the defaults suit MicroMag exports.
+        Reference-curve subtraction:
+            do_reference_subtract: Subtract a reference reversal curve from
+                the family before display (default False). This does not
+                change rho.
+            reference_curve: ``"lowest_reversal"`` (default) or
+                ``"first_measured"``.
+        Regridding:
+            do_regrid: Interpolate the curves onto a regular field grid before
+                gridding (default False); recommended for consistency across
+                specimens.
+            B_step: Field step of that grid in tesla; inferred when None.
+            regrid_method: ``"linear"`` (default) or ``"pchip"``.
+        Smoothing:
+            smoothing: ``"loess"`` (default) for the constant-window LOESS
+                estimator, or ``"variforc"`` for the variable smoothing of
+                Egli (2013).
+            smooth_strength: Scales the automatically chosen LOESS spans
+                (default 1.0). Assess results across a range of values and
+                report the spans in ``out['loess_params']``.
+            min_pts_strength: Scales the minimum-points threshold of the
+                local fits (default 1.0).
+            target_n_eff: Target number of usable points per LOESS window for
+                the automatic span choice (default 60).
+            variforc: Settings dict from :func:`variforc_settings`, used when
+                ``smoothing="variforc"``.
+        Display window (defaults from the file's header limits):
+            Bu_min, Bu_max: Bias-axis limits of the plotted window, in tesla.
+            Bc_min, Bc_max: Coercivity-axis limits, in tesla.
+        Plotting:
+            plot_hyst: Draw the measured reversal curves (default True), with
+                ``plot_fraction`` (default 0.10) controlling how many.
+            plot_rho: Draw the FORC diagram in Bu-Bc coordinates
+                (default True).
+            plot_rho_ha_hb: Also draw rho in measurement coordinates
+                (default False).
+            plot_hyst_dist: Draw rho over the curves in hysteresis space
+                (default False).
+            color_scale_version: Built-in colour scale, 1-3 (default 1).
+            show_contours: Overlay contours on the diagram (default True).
+            normalize_to_unit: Scale the colour axis by a percentile ``pct``
+                (default 99) of |rho| in the window, so it runs -1 to 1;
+                display only, rho itself is returned unscaled.
+            display_upsample_factor: Plotting-only grid refinement
+                (default 0, the rawest representation of the data).
+            edge_mask_bc_bins: Mask this many bins along the half-window
+                region at Bc = 0 (default 0).
+            figsize, dpi, export_dpi, bu_expand: Figure geometry.
+        Output:
+            export_magic: Write a MagIC measurements table beside a raw input
+                file (default True).
+            verbose: Print progress and processing decisions (default True).
+
+    Returns:
+        dict: The distribution ``rho`` with its grid ``Ha_vals_used``/
+        ``Hb_vals_used``/``M_grid_used``, the smoothing actually applied in
+        ``loess_params`` and ``smoothing_params``, the drift-correction record
+        (``drift_corrected``, ``n_calibration_points``), ``plot_limits``, and
+        the figure handles. Modes ``"b"`` and multi-specimen ``"m"`` return a
+        list of such dicts, one per file or specimen.
+
+    Examples:
+        A raw instrument file, regridded onto a 5 mT lattice::
+
+            out = forc.process_forc(mode='i', path='specimen.frc',
+                                    do_regrid=True, B_step=0.005)
+
+        A MagIC measurements table, with VARIFORC variable smoothing::
+
+            out = forc.process_forc(
+                mode='m', path='measurements.txt', smoothing='variforc',
+                variforc=forc.variforc_settings('central_ridge',
+                                                smoothing_factor=9,
+                                                growth_rate=0.1))
     """
     mode_l = str(mode).strip().lower()
     if mode_l not in {"i", "s", "b", "m"}:
