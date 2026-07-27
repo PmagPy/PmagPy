@@ -36,6 +36,7 @@ import csv
 import os
 import re
 import tempfile
+import warnings
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -143,7 +144,7 @@ def get_forc_output_base_dir(out: Dict[str, object]) -> Path:
     Resolve the base output directory for FORC exports.
 
     Priority:
-      1) If run_forc_pipeline stored an explicit input_path, use that.
+      1) If process_forc stored an explicit input_path, use that.
       2) Else if input_files exists, use the parent of the first file.
       3) Else fallback to current working directory.
     """
@@ -1371,6 +1372,534 @@ def select_reference_curve(forcs: List[Segment], reference: str = "lowest_revers
     raise ValueError("reference must be 'lowest_reversal' or 'first_measured'.")
 
 
+def _mirror_branch_into_loop(H: np.ndarray, M: np.ndarray):
+    """Build a closed hysteresis loop from one branch by inversion symmetry.
+
+    A hysteresis loop satisfies ``M(-H) = -M(H)`` between its two branches, so
+    a measured ascending branch determines the descending one. The pair is
+    returned in measurement order -- descending from the maximum field, then
+    ascending back -- which is the order loop-splitting routines expect.
+
+    Only the field range covered symmetrically by the measured branch is used,
+    since the mirror is undefined outside it.
+
+    Args:
+        H: Field values of the measured ascending branch, in tesla.
+        M: Corresponding magnetization.
+
+    Returns:
+        tuple: field and magnetization of the reconstructed loop.
+    """
+    order = np.argsort(H)
+    H, M = np.asarray(H, float)[order], np.asarray(M, float)[order]
+    reach = min(abs(H[0]), abs(H[-1]))
+    inside = np.abs(H) <= reach
+    if np.count_nonzero(inside) < 4:
+        return H, M
+    Hu, Mu = H[inside], M[inside]
+    # Trim to an even length so the two reconstructed branches match exactly;
+    # loop-splitting routines assume they do.
+    if Hu.size % 2:
+        Hu, Mu = Hu[:-1], Mu[:-1]
+    # Descending branch by inversion symmetry, traversed from +reach to -reach.
+    return np.concatenate([-Hu[::-1], Hu]), np.concatenate([-Mu[::-1], Mu])
+
+
+def correct_paramagnetic_slope(
+    segments: List[Segment],
+    HF_cutoff: float = 0.8,
+    fit_type: str = "auto",
+    beta: float = 2.0,
+    verbose: bool = True,
+) -> Tuple[List[Segment], Dict[str, object]]:
+    """Remove the paramagnetic or diamagnetic high-field slope from a FORC family.
+
+    The slope is estimated from the curve measured at the lowest reversal
+    field, which is the closest measured approximation to the lower branch of
+    the major hysteresis loop, and then subtracted from every curve. The fit
+    itself is delegated to :mod:`pmagpy.rockmag`, which is where RockmagPy's
+    high-field and approach-to-saturation machinery lives, so that FORC data
+    and hysteresis loops are corrected the same way rather than by two
+    independently maintained implementations.
+
+    A slope that is linear in the applied field has no mixed derivative, so
+    this does **not** change the FORC distribution. It matters for two other
+    reasons: the ferrimagnetic signal becomes visible in plots of the curves,
+    which is often the only way a first-point artefact can be seen at all
+    (compare :func:`correct_first_point_anomaly`), and the moments become
+    interpretable as ferrimagnetic magnetization.
+
+    Args:
+        segments: All segments; calibration points pass through unchanged.
+        HF_cutoff: Fraction of the maximum field defining the high-field
+            region used for the fit.
+        fit_type: ``"auto"`` tests whether the loop is saturated and uses a
+            linear high-field fit if it is, an approach-to-saturation fit if
+            it is not. ``"linear"`` and ``"Fabian_fixed_beta"``, ``"Fabian"``
+            or ``"IRM"`` force a choice. Egli fixes the approach-to-saturation
+            exponent at 2 for single-domain samples, which is
+            ``"Fabian_fixed_beta"``.
+        beta: Fixed approach-to-saturation exponent, used only by
+            ``"Fabian_fixed_beta"``.
+        verbose: Report the fitted susceptibility and which fit was used.
+
+    Returns:
+        tuple: the corrected segments and a report with ``chi_HF``, ``Ms``,
+        ``fit_type`` actually used, ``Fnl_lin`` where a nonlinear fit was made,
+        and ``saturated``.
+
+    Raises:
+        ImportError: If :mod:`pmagpy.rockmag` cannot be imported.
+    """
+    try:
+        from pmagpy import rockmag
+    except Exception as exc:  # pragma: no cover - import guard
+        raise ImportError(
+            "The paramagnetic correction uses pmagpy.rockmag for its "
+            f"high-field fitting, which could not be imported: {exc}"
+        ) from exc
+
+    forcs = [s for s in segments if s.kind == "forc"]
+    if not forcs:
+        return segments, {"applied": False, "reason": "no FORC segments"}
+
+    # Pool the high-field measurements from every curve rather than taking one
+    # curve as the lower branch. Not every protocol returns each curve to
+    # saturation -- the AGM measurements in Egli's examples sweep a fixed field
+    # window from each reversal field, so no single curve reaches the maximum
+    # field. In the saturated range all curves coincide by definition, so
+    # pooling is both valid and protocol independent.
+    H_all = np.concatenate([np.asarray(s.H, float) for s in forcs])
+    M_all = np.concatenate([np.asarray(s.M, float) for s in forcs])
+    ok = np.isfinite(H_all) & np.isfinite(M_all)
+    if ok.sum() < 24:
+        if verbose:
+            print("Paramagnetic correction skipped: too few finite measurements.")
+        return segments, {"applied": False, "reason": "too few measurements"}
+    H, M = H_all[ok], M_all[ok]
+
+    report: Dict[str, object] = {"HF_cutoff": float(HF_cutoff)}
+    choice = str(fit_type).strip()
+    saturated = None
+    if choice == "auto":
+        # rockmag's saturation test expects a closed loop, which a single
+        # reversal curve is not. A hysteresis loop is inversion symmetric, so
+        # the descending branch can be reconstructed as M(-H) -> -M and the
+        # pair assembled into a loop for the test.
+        loop_H, loop_M = _mirror_branch_into_loop(H, M)
+        try:
+            stats = rockmag.loop_saturation_stats(loop_H, loop_M,
+                                                  HF_cutoff=HF_cutoff)
+            saturated = bool(stats.get("loop_is_saturated", True))
+        except Exception as exc:
+            if verbose:
+                print(f"Saturation test unavailable ({exc}); using an "
+                      "approach-to-saturation fit.")
+            saturated = False
+        choice = "linear" if saturated else "Fabian_fixed_beta"
+    report["saturated"] = saturated
+
+    # rockmag's nonlinear optimizer starts from chi_HF = Ms = 1, which is many
+    # orders of magnitude from a raw AGM moment of order 1e-7 A m^2 and gives a
+    # meaningless fit. Normalizing the magnetization puts the problem back in
+    # the range the optimizer expects; both fitted quantities are linear in
+    # that scale, so they unscale exactly.
+    scale = float(np.nanmax(np.abs(M)))
+    if not np.isfinite(scale) or scale <= 0:
+        return segments, {"applied": False, "reason": "branch has no signal"}
+    Mn = M / scale
+
+    if choice == "linear":
+        chi_HF, Ms = rockmag.linear_HF_fit(H, Mn, HF_cutoff)
+        report.update(Fnl_lin=None)
+    else:
+        kwargs = {}
+        if choice == "Fabian_fixed_beta":
+            # Egli fixes the exponent at 2 for single-domain samples; the
+            # rockmag optimizer takes it through the initial guess slot.
+            kwargs["initial_guess"] = [1, 1, -0.1, -float(beta)]
+        fit = rockmag.hyst_HF_nonlinear_optimization(H, Mn, HF_cutoff, choice,
+                                                     **kwargs)
+        chi_HF, Ms = fit["chi_HF"], fit["Ms"]
+        report.update(Fnl_lin=fit.get("Fnl_lin"))
+    chi_HF, Ms = chi_HF * scale, Ms * scale
+
+    report.update(chi_HF=float(chi_HF), Ms=float(Ms), fit_type=choice,
+                  applied=True)
+
+    out: List[Segment] = []
+    for seg in segments:
+        if seg.kind != "forc":
+            out.append(seg)
+            continue
+        corrected = rockmag.hyst_slope_correction(
+            np.asarray(seg.H, float), np.asarray(seg.M, float), chi_HF)
+        out.append(Segment(H=np.asarray(seg.H, float).copy(),
+                           M=np.asarray(corrected, float),
+                           idx=seg.idx, kind=seg.kind, Ha=seg.Ha))
+
+    if verbose:
+        state = ("saturated" if saturated else "unsaturated") if saturated is not None else "forced"
+        print(f"Paramagnetic correction ({choice}, loop {state}): "
+              f"chi_HF = {chi_HF:.4g} SI, Ms = {Ms:.4g} A m^2. "
+              f"This does not change rho, which has no mixed derivative "
+              f"from a term linear in the applied field.")
+    return out, report
+
+
+def reconstruct_lower_branch(
+    forcs: List[Segment],
+    smooth_points: int = 9,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Assemble the lower branch of the major loop from a FORC family.
+
+    At a given applied field, the lower branch is the limit of the reversal
+    curves as the reversal field goes to negative saturation, so it is traced
+    by whichever measured curve started lowest. Taking a single curve is not
+    enough: protocols that sweep a fixed field window from each reversal field
+    -- as the AGM measurements in Egli's examples do -- give no curve that
+    spans the whole range, so the branch has to be assembled piecewise from
+    the lowest-starting curve available at each field.
+
+    The assembled branch is then smoothed. Without that it carries small steps
+    wherever it switches from one contributing curve to the next, and those
+    steps propagate into anything the branch is subtracted from.
+
+    Args:
+        forcs: FORC segments.
+        smooth_points: Length of the smoothing window applied to the assembled
+            branch, in points. Set to 0 to leave it unsmoothed.
+
+    Returns:
+        tuple: applied field and magnetization of the reconstructed branch,
+        sorted by field.
+
+    Raises:
+        ValueError: If no usable curves are supplied.
+    """
+    usable = [s for s in forcs
+              if np.isfinite(np.asarray(s.H, float)).sum() >= 2]
+    if not usable:
+        raise ValueError("No usable FORC segments to reconstruct a branch from.")
+
+    # Visit curves from the highest reversal field down, so that later writes
+    # from lower-starting curves overwrite earlier ones.
+    order = sorted(usable,
+                   key=lambda s: (float(s.Ha) if s.Ha is not None
+                                  else float(np.nanmin(s.H))),
+                   reverse=True)
+    values: Dict[float, float] = {}
+    for seg in order:
+        H = np.asarray(seg.H, float)
+        M = np.asarray(seg.M, float)
+        ok = np.isfinite(H) & np.isfinite(M)
+        for h, m in zip(H[ok], M[ok]):
+            values[float(h)] = float(m)
+
+    fields = np.array(sorted(values), dtype=float)
+    branch = np.array([values[h] for h in fields], dtype=float)
+
+    if smooth_points and branch.size > smooth_points + 2:
+        from scipy.signal import savgol_filter
+        window = int(smooth_points) | 1
+        branch = savgol_filter(branch, window_length=window, polyorder=2)
+    return fields, branch
+
+
+def subtract_lower_branch(
+    segments: List[Segment],
+    smooth_points: int = 9,
+    verbose: bool = True,
+) -> Tuple[List[Segment], Dict[str, object]]:
+    """Subtract the reconstructed major-loop lower branch from every curve.
+
+    This is the operation Egli applies before diagnosing first-point
+    anomalies: with the common reversible signal removed, a departure of a few
+    nA m^2 at the start of each curve becomes visible against curves whose
+    remaining amplitude is comparable. Like any baseline that depends only on
+    the applied field, it leaves the FORC distribution unchanged.
+
+    Args:
+        segments: All segments; calibration points pass through unchanged.
+        smooth_points: Smoothing applied to the reconstructed branch. Egli
+            reconstructs the branch from the FORC data with a comparable
+            smoothing factor.
+        verbose: Report the span of the reconstructed branch.
+
+    Returns:
+        tuple: the subtracted segments and a report holding the branch fields
+        and magnetization.
+    """
+    forcs = [s for s in segments if s.kind == "forc"]
+    if not forcs:
+        return segments, {"applied": False, "reason": "no FORC segments"}
+
+    fields, branch = reconstruct_lower_branch(forcs,
+                                              smooth_points=smooth_points)
+    if fields.size < 4:
+        return segments, {"applied": False, "reason": "branch too short"}
+
+    out: List[Segment] = []
+    for seg in segments:
+        if seg.kind != "forc":
+            out.append(seg)
+            continue
+        H = np.asarray(seg.H, float)
+        baseline = np.interp(H, fields, branch, left=np.nan, right=np.nan)
+        out.append(Segment(H=H.copy(), M=np.asarray(seg.M, float) - baseline,
+                           idx=seg.idx, kind=seg.kind, Ha=seg.Ha))
+
+    if verbose:
+        print(f"Lower branch reconstructed from {len(forcs)} curves over "
+              f"{fields[0]:+.4f} to {fields[-1]:+.4f} T and subtracted.")
+    return out, {"applied": True, "fields": fields, "branch": branch}
+
+
+def flag_outliers(
+    segments: List[Segment],
+    threshold: float = 3.0,
+    window: int = 7,
+    replace: bool = True,
+    verbose: bool = True,
+) -> Tuple[List[Segment], Dict[str, object]]:
+    """Find and optionally replace isolated outlying measurements.
+
+    Each curve is compared with a Savitzky-Golay smooth of itself: a local
+    quadratic, which follows the real curvature of a reversal curve. Points
+    departing from that by more than ``threshold`` times the robust scatter of
+    the departures are treated as outliers. A running median was tried first
+    and rejected -- it lags where the curve is steep, so its residuals carry
+    the curve's own shape and a threshold on them flags a large fraction of
+    perfectly good measurements.
+
+    Because the distribution is a second derivative, one wild point is
+    disproportionately damaging, which is why outliers are worth removing
+    before anything else is calculated.
+
+    Args:
+        segments: All segments; calibration points pass through unchanged.
+        threshold: Departure, in robust standard deviations, above which a
+            point is called an outlier.
+        window: Length of the smoothing window, in points. Must be odd.
+        replace: Replace flagged points by the local smooth. When False the
+            points are only counted.
+        verbose: Report how many points were flagged.
+
+    Returns:
+        tuple: the segments, with outliers replaced when asked, and a report
+        holding the ``n_flagged`` count, the ``fraction`` of measurements
+        affected, and the ``scatter`` used.
+    """
+    if window % 2 == 0:
+        window += 1
+    try:
+        from scipy.signal import savgol_filter
+    except Exception as exc:  # pragma: no cover - scipy is a hard dependency
+        raise ImportError(f"Outlier screening needs scipy.signal: {exc}") from exc
+
+    total = flagged = 0
+    departures = []
+    smoothed_curves = {}
+    for seg in segments:
+        if seg.kind != "forc":
+            continue
+        M = np.asarray(seg.M, float)
+        if M.size < window + 2 or not np.all(np.isfinite(M)):
+            continue
+        smooth = savgol_filter(M, window_length=window, polyorder=2)
+        smoothed_curves[id(seg)] = smooth
+        departures.append(M - smooth)
+        total += M.size
+
+    if not departures:
+        return segments, {"applied": False, "reason": "no curves long enough"}
+
+    pooled = np.concatenate(departures)
+    finite = pooled[np.isfinite(pooled)]
+    scatter = float(1.4826 * np.median(np.abs(finite - np.median(finite))))
+    if not np.isfinite(scatter) or scatter <= 0:
+        return segments, {"applied": False, "reason": "degenerate scatter"}
+
+    out: List[Segment] = []
+    for seg in segments:
+        smooth = smoothed_curves.get(id(seg))
+        if seg.kind != "forc" or smooth is None:
+            out.append(seg)
+            continue
+        M = np.asarray(seg.M, float).copy()
+        bad = np.abs(M - smooth) > threshold * scatter
+        flagged += int(np.count_nonzero(bad))
+        if replace and np.any(bad):
+            M[bad] = smooth[bad]
+        out.append(Segment(H=np.asarray(seg.H, float).copy(), M=M,
+                           idx=seg.idx, kind=seg.kind, Ha=seg.Ha))
+
+    fraction = flagged / total if total else 0.0
+    if verbose:
+        print(f"Outlier screening: {flagged} of {total} measurements "
+              f"({fraction:.3%}) beyond {threshold:g} robust sigma "
+              f"({scatter:.2e} A m^2)"
+              + (", replaced by the local smooth." if replace else ", flagged only."))
+    return out, {"applied": True, "n_flagged": flagged, "n_total": total,
+                 "fraction": fraction, "scatter": scatter,
+                 "threshold": float(threshold)}
+
+
+def measure_first_point_anomaly(
+    forcs: List[Segment],
+    n_fit: int = 4,
+    fit_order: int = 2,
+) -> Dict[str, np.ndarray]:
+    """Measure how far each curve's first point departs from the curve's trend.
+
+    The first measurement of a reversal curve is often anomalous: the
+    instrument has just changed direction, and on weak samples the point sits
+    measurably off the trend the rest of the curve establishes. The anomaly is
+    diagnosed by extrapolating a local polynomial through the next few points
+    back to the first field and comparing.
+
+    A reversal curve is strongly curved near its own reversal field, so a
+    straight-line extrapolation confuses that curvature with an anomaly. On
+    Egli's first-point-correction example a quadratic over four points reduces
+    the scatter of the measured departures from 7.4 to 4.4 nA m^2, against a
+    stated measurement noise of about 6 nA m^2 -- that is, it brings the
+    diagnostic down to the noise floor, where a linear fit was systematics
+    limited.
+
+    What distinguishes a genuine first-point artefact from noise is that its
+    amplitude varies smoothly with the reversal field, whereas noise does not.
+    That is what :func:`correct_first_point_anomaly` exploits.
+
+    Args:
+        forcs: FORC segments to examine.
+        n_fit: Number of points after the first to fit the local trend to.
+        fit_order: Polynomial order of that local fit. Quadratic follows the
+            curvature of a reversal curve near its own reversal field; linear
+            does not.
+
+    Returns:
+        dict: ``Ha`` reversal field of each curve, ``anomaly`` the measured
+        departure of its first point in A m^2, and ``usable`` marking curves
+        long enough to assess.
+    """
+    Ha, anomaly, usable = [], [], []
+    for seg in forcs:
+        H = np.asarray(seg.H, float)
+        M = np.asarray(seg.M, float)
+        ok = np.isfinite(H) & np.isfinite(M)
+        Ha.append(float(seg.Ha) if seg.Ha is not None else
+                  (float(np.nanmin(H[ok])) if ok.any() else np.nan))
+        if ok.sum() < n_fit + 1 or n_fit < fit_order + 1:
+            anomaly.append(np.nan)
+            usable.append(False)
+            continue
+        Hf, Mf = H[ok], M[ok]
+        local = np.polyfit(Hf[1:1 + n_fit], Mf[1:1 + n_fit], fit_order)
+        anomaly.append(float(Mf[0] - np.polyval(local, Hf[0])))
+        usable.append(True)
+    return {"Ha": np.array(Ha, float),
+            "anomaly": np.array(anomaly, float),
+            "usable": np.array(usable, bool)}
+
+
+def correct_first_point_anomaly(
+    segments: List[Segment],
+    n_fit: int = 4,
+    fit_order: int = 2,
+    poly_order: int = 3,
+    threshold: float = 2.0,
+    verbose: bool = True,
+) -> Tuple[List[Segment], Dict[str, object]]:
+    """Remove a systematic first-point artefact from a family of FORCs.
+
+    Each curve's first-point departure from its own trend is measured, and a
+    low-order polynomial in the reversal field is fitted to those departures
+    across the whole family. The fitted trend, not the individual measurement,
+    is subtracted from each first point. Fitting across curves matters: the
+    per-curve departure is itself noisy, so replacing each first point by its
+    own extrapolation -- what :func:`replace_endpoints` does -- removes the
+    artefact but substitutes the noise of the two points used to extrapolate.
+    Subtracting a smooth trend removes the systematic part and keeps the
+    measurement.
+
+    The correction is applied only when the trend is large enough relative to
+    the scatter of the departures to be believable, so that a family without a
+    first-point problem is left alone.
+
+    Args:
+        segments: All segments; calibration points pass through untouched.
+        n_fit: Points after the first used to establish each curve's trend.
+        fit_order: Order of that per-curve extrapolation; see
+            :func:`measure_first_point_anomaly`.
+        poly_order: Order of the polynomial fitted to the anomaly against
+            reversal field. Egli reports a monotonic, gentle dependence, so a
+            low order is appropriate.
+        threshold: The peak-to-peak fitted trend must exceed this multiple of
+            the residual scatter for the correction to be applied.
+        verbose: Report what was found and whether a correction was made.
+
+    Returns:
+        tuple: the corrected segments and a report containing ``applied``,
+        the measured ``anomaly`` and ``Ha`` arrays, the fitted ``trend``,
+        its ``amplitude`` in A m^2, and the residual ``scatter``.
+    """
+    forcs = [s for s in segments if s.kind == "forc"]
+    if len(forcs) < poly_order + 2:
+        if verbose:
+            print("First-point correction skipped: too few curves.")
+        return segments, {"applied": False, "reason": "too few curves"}
+
+    measured = measure_first_point_anomaly(forcs, n_fit=n_fit,
+                                           fit_order=fit_order)
+    good = measured["usable"] & np.isfinite(measured["anomaly"])         & np.isfinite(measured["Ha"])
+    if good.sum() < poly_order + 2:
+        if verbose:
+            print("First-point correction skipped: too few usable curves.")
+        return segments, {"applied": False, "reason": "too few usable curves"}
+
+    coefficients = np.polyfit(measured["Ha"][good], measured["anomaly"][good],
+                              poly_order)
+    trend = np.polyval(coefficients, measured["Ha"])
+    residual = measured["anomaly"][good] - trend[good]
+    scatter = float(np.std(residual))
+    amplitude = float(np.nanmax(trend[good]) - np.nanmin(trend[good]))
+
+    report = {
+        "Ha": measured["Ha"], "anomaly": measured["anomaly"],
+        "trend": trend, "amplitude": amplitude, "scatter": scatter,
+        "poly_order": poly_order,
+    }
+
+    if not (scatter > 0 and amplitude > threshold * scatter):
+        if verbose:
+            print(f"First-point correction not applied: trend amplitude "
+                  f"{amplitude:.3e} A m^2 is not large against the scatter "
+                  f"{scatter:.3e}.")
+        report["applied"] = False
+        return segments, report
+
+    index = {id(s): k for k, s in enumerate(forcs)}
+    out: List[Segment] = []
+    for seg in segments:
+        k = index.get(id(seg))
+        if k is None or not np.isfinite(trend[k]):
+            out.append(seg)
+            continue
+        M = np.asarray(seg.M, float).copy()
+        if M.size:
+            M[0] -= trend[k]
+        out.append(Segment(H=np.asarray(seg.H, float).copy(), M=M,
+                           idx=seg.idx, kind=seg.kind, Ha=seg.Ha))
+
+    if verbose:
+        print(f"First-point correction applied: trend amplitude "
+              f"{amplitude:.3e} A m^2 over the reversal-field range, "
+              f"residual scatter {scatter:.3e} "
+              f"({amplitude / scatter:.1f}x).")
+    report["applied"] = True
+    return out, report
+
+
 def subtract_reference_curve(
     segments: List[Segment],
     reference: str = "lowest_reversal",
@@ -1535,6 +2064,7 @@ def phase1_prepare_segments_dual(
     endpoint_replace_n: int = 1,
     replace_first: bool = True,
     replace_last: bool = True,
+    correct_first_point: bool = False,
     do_reference_subtract: bool = False,
     reference_curve: str = "lowest_reversal",
     require_calibration: bool = False,
@@ -1611,6 +2141,15 @@ def phase1_prepare_segments_dual(
         print(f"Warning: only {len(cal_segs)} calibration point(s) identified in "
               f"{as_path(path).name}; NO drift correction has been applied.")
 
+    # A systematic first-point artefact is removed before endpoint
+    # replacement, since it is the better-targeted of the two: it subtracts a
+    # trend fitted across the whole family rather than discarding each first
+    # measurement individually.
+    first_point_report = None
+    if correct_first_point:
+        segs, first_point_report = correct_first_point_anomaly(
+            segs, verbose=verbose)
+
     # endpoint conditioning (FORCs only)
     if endpoint_replace_n > 0 and (replace_first or replace_last):
         segs_display = [
@@ -1682,6 +2221,7 @@ def _prepare_single_input_for_rho(
     endpoint_replace_n: int = 1,
     replace_first: bool = True,
     replace_last: bool = True,
+    correct_first_point: bool = False,
     do_reference_subtract: bool = False,
     reference_curve: str = "lowest_reversal",
     blank_sep: int = 2,
@@ -1707,6 +2247,7 @@ def _prepare_single_input_for_rho(
         endpoint_replace_n=endpoint_replace_n,
         replace_first=replace_first,
         replace_last=replace_last,
+        correct_first_point=correct_first_point,
         do_reference_subtract=do_reference_subtract,
         reference_curve=reference_curve,
         blank_sep=blank_sep,
@@ -1812,25 +2353,127 @@ def _infer_common_stack_grid(
         "Ha_max": Ha_max,
     }
 
-def _stack_nan_grids(
-    grids: List[np.ndarray],
-    method: str = "mean",
-) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Stack a list of M(Ha,Hb) grids with NaN-awareness.
+def assess_stack_consistency(grids: List[np.ndarray]) -> Dict[str, object]:
+    """Test whether repeat measurement sets are consistent enough to combine.
 
-    Returns
-    -------
-    M_stack : 2D array
-    counts  : number of finite inputs contributing at each grid cell
+    Stacking assumes the sets are independent repeats of the same measurement,
+    so that averaging beats down noise as the square root of their number. That
+    assumption fails often in practice: repeat FORC runs on the same specimen
+    can drift, or shift bodily in moment, by far more than the measurement
+    noise. Averaging such sets does not reduce error, it mixes systematically
+    different surfaces together, and the result can be worse than any single
+    set. This measures the discrepancy so the caller can find out rather than
+    guess.
+
+    Each set is compared with the element-wise median of all of them. The
+    residual scatter is expressed as a multiple of that set's own measurement
+    noise: values near 1 mean the sets differ only by noise and stack cleanly,
+    while large values mean systematic disagreement.
+
+    Args:
+        grids: Magnetization grids of the same shape, one per measurement set.
+
+    Returns:
+        dict: ``noise`` per set, ``discrepancy`` as a multiple of each set's
+        noise, ``offset`` as the median difference from the consensus,
+        ``weights`` proportional to inverse noise variance and normalized to
+        sum to one, ``consistent`` a boolean per set, and ``max_discrepancy``.
+
+    Notes:
+        Egli's own analysis of the VARIFORC magnetofossil example weights four
+        repeat sets 2.4, 1.4, 0.1 and 0.14, effectively discarding two of them,
+        which is the same problem seen from the other side.
     """
     arr = np.asarray(grids, dtype=float)
     if arr.ndim != 3:
-        raise ValueError("Expected grids with shape (n_files, n_Ha, n_Hb).")
+        raise ValueError("Expected grids with shape (n_sets, n_Ha, n_Hb).")
+    if arr.shape[0] < 2:
+        raise ValueError("Need at least two sets to assess consistency.")
+
+    with np.errstate(all="ignore"):
+        consensus = np.nanmedian(arr, axis=0)
+
+    noise, discrepancy, offset = [], [], []
+    for k in range(arr.shape[0]):
+        sigma = estimate_measurement_noise(arr[k])
+        difference = arr[k] - consensus
+        finite = np.isfinite(difference)
+        if not np.any(finite) or not np.isfinite(sigma) or sigma <= 0:
+            noise.append(sigma); discrepancy.append(np.nan); offset.append(np.nan)
+            continue
+        noise.append(sigma)
+        discrepancy.append(float(np.std(difference[finite]) / sigma))
+        offset.append(float(np.median(difference[finite])))
+
+    noise = np.array(noise, dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        weights = 1.0 / noise ** 2
+    weights[~np.isfinite(weights)] = 0.0
+    total = weights.sum()
+    weights = weights / total if total > 0 else np.full(noise.size, np.nan)
+
+    discrepancy = np.array(discrepancy, dtype=float)
+    return {
+        "noise": noise,
+        "discrepancy": discrepancy,
+        "offset": np.array(offset, dtype=float),
+        "weights": weights,
+        # sqrt(2) would be pure noise against a noiseless consensus; allow a
+        # generous factor before calling a set inconsistent.
+        "consistent": discrepancy < 5.0,
+        "max_discrepancy": float(np.nanmax(discrepancy)) if discrepancy.size else np.nan,
+    }
+
+
+def _stack_nan_grids(
+    grids: List[np.ndarray],
+    method: str = "mean",
+    verbose: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Combine repeat magnetization grids, NaN-aware.
+
+    Args:
+        grids: Magnetization grids of identical shape, one per measurement set.
+        method: ``"mean"``, ``"median"``, or ``"weighted"``. The weighted
+            option combines sets in inverse proportion to their noise variance,
+            which is the right thing when the sets differ in quality but agree
+            within their errors. ``"median"`` is the safer default when a
+            minority of sets are outliers.
+        verbose: Report the consistency assessment and warn when the sets
+            disagree by far more than their measurement noise.
+
+    Returns:
+        tuple: the stacked grid and the number of finite inputs at each cell.
+
+    Raises:
+        ValueError: If the grids are not a 3-D stack or the method is unknown.
+    """
+    arr = np.asarray(grids, dtype=float)
+    if arr.ndim != 3:
+        raise ValueError("Expected grids with shape (n_sets, n_Ha, n_Hb).")
 
     counts = np.sum(np.isfinite(arr), axis=0)
-
     method_l = str(method).strip().lower()
+
+    report = None
+    if arr.shape[0] >= 2:
+        report = assess_stack_consistency(arr)
+        if verbose:
+            print("Stack consistency (discrepancy from the consensus, "
+                  "as a multiple of each set's own noise):")
+            for k, (d, w) in enumerate(zip(report["discrepancy"], report["weights"])):
+                print(f"  set {k + 1}: {d:8.1f} x noise, weight {w:.3f}")
+            if report["max_discrepancy"] > 5.0:
+                print(
+                    "  NOTE: these sets differ by much more than their "
+                    "measurement noise, so they are not independent repeats "
+                    "differing only by noise; drift or an offset between runs "
+                    "is the usual cause. Stacking can still help, but the "
+                    "improvement will fall short of the square-root-of-N that "
+                    "independent repeats would give, and 'weighted' or "
+                    "'median' is safer than 'mean'."
+                )
+
     if method_l == "mean":
         sums = np.nansum(arr, axis=0)
         out = np.full(arr.shape[1:], np.nan, dtype=float)
@@ -1843,7 +2486,23 @@ def _stack_nan_grids(
         out[counts == 0] = np.nan
         return out, counts
 
-    raise ValueError("stack_method must be 'mean' or 'median'.")
+    if method_l == "weighted":
+        if report is None:
+            return arr[0].copy(), counts
+        w = report["weights"]
+        if not np.all(np.isfinite(w)):
+            raise ValueError(
+                "Could not estimate per-set noise, so weighted stacking is "
+                "unavailable; use 'median' instead."
+            )
+        weights = w[:, np.newaxis, np.newaxis] * np.isfinite(arr)
+        total = weights.sum(axis=0)
+        out = np.full(arr.shape[1:], np.nan, dtype=float)
+        np.divide(np.nansum(np.where(np.isfinite(arr), arr, 0.0) * weights, axis=0),
+                  total, out=out, where=total > 0)
+        return out, counts
+
+    raise ValueError("stack_method must be 'mean', 'median', or 'weighted'.")
 
 # ============================================================
 # Plot: individual FORC curves (hysteresis space)
@@ -2143,7 +2802,18 @@ def build_forc_grid_regridded(
     # also return inferred steps (dHb,dHa equivalents)
     return Ha_vals, Hb_vals, M_grid, float(Hb_step), float(Ha_step)
 
-def _build_offsets(rx: int, ry: int) -> np.ndarray:
+def loess_offsets(rx: int, ry: int) -> np.ndarray:
+    """Enumerate the grid offsets inside an elliptical LOESS neighbourhood.
+
+    Args:
+        rx: Semi-axis along the applied-field index, in grid steps.
+        ry: Semi-axis along the reversal-field index, in grid steps.
+
+    Returns:
+        Array of shape (n, 3), each row ``(di, dj, u)`` giving an index offset
+        and its normalized distance u in [0, 1] from the centre of the ellipse.
+        u is the argument of the tricube weight.
+    """
     offs = []
     for di in range(-ry, ry + 1):
         for dj in range(-rx, rx + 1):
@@ -2151,6 +2821,1000 @@ def _build_offsets(rx: int, ry: int) -> np.ndarray:
             if u <= 1.0:
                 offs.append((di, dj, u))
     return np.asarray(offs, dtype=np.float64)
+
+
+# ============================================================
+# VARIFORC-style variable smoothing
+# ============================================================
+#
+# Implemented from the equations of Egli (2013), Global and Planetary Change
+# 110, 302-320, doi:10.1016/j.gloplacha.2013.08.003. The protocol differs from
+# the LOESS estimator above in three ways:
+#
+#   1. Regression is performed in the rotated coordinates (Bc, Bu) rather than
+#      the measurement coordinates (Ha, Hb), over upright rectangles. Only in
+#      the rotated frame can the smoothing be made anisotropic in the way the
+#      method requires -- fine across a ridge, coarse along it.
+#   2. In those coordinates the distribution is not a mixed derivative. Egli's
+#      Eq. 1 gives rho = (1/8) (d2M/dBc^2 - d2M/dBu^2), so it is read from the
+#      difference of the two pure second-order coefficients of the local fit.
+#   3. The smoothing factors grow with distance from the diagram origin,
+#      following Eq. 11-12, with Eq. 14 holding them at a floor over the
+#      vertical range occupied by a central ridge.
+
+
+def variforc_weight_1d(u: np.ndarray, s: float) -> np.ndarray:
+    """Evaluate the one-dimensional VARIFORC regression weight.
+
+    This is the transition function of Egli (2013), his Eq. 6: unit weight
+    over the interior of the regression interval, falling to zero across the
+    outermost step through two quadratic pieces that join with a continuous
+    first derivative. Compared with a tricube weight it keeps peripheral
+    measurements at full weight for longer, so fewer points are wasted for a
+    given resolution, while still avoiding the discontinuities that a plain
+    top-hat produces as measurements enter and leave the window.
+
+    Args:
+        u: Distance from the centre of the window, in units of the
+            measurement field step.
+        s: Half-width of the window, in units of the measurement field step.
+            The weight is 1 for ``|u| <= s - 1`` and 0 for ``|u| > s``.
+
+    Returns:
+        Weights in [0, 1] with the same shape as ``u``.
+    """
+    a = np.abs(np.asarray(u, dtype=np.float64))
+    s = np.asarray(s, dtype=np.float64)
+    a, s = np.broadcast_arrays(a, s)
+    w = np.zeros(a.shape, dtype=np.float64)
+
+    inner = a <= s - 1.0
+    w[inner] = 1.0
+    mid = (a > s - 1.0) & (a <= s - 0.5)
+    w[mid] = 1.0 - 2.0 * (a[mid] - s[mid] + 1.0) ** 2
+    outer = (a > s - 0.5) & (a <= s)
+    w[outer] = 2.0 * (a[outer] - s[outer]) ** 2
+    return w
+
+
+def _apply_factor_limit(s: np.ndarray, distance: np.ndarray, limit: float,
+                        width: float) -> np.ndarray:
+    """Cap a smoothing factor near a feature, relaxing the cap with distance.
+
+    The cap is ``max(limit, distance / width)``, the same form Egli (2013)
+    uses in his Eq. 14 to hold the vertical factor at a floor across a central
+    ridge. Right on the feature the factor cannot exceed ``limit``; moving
+    away, the cap grows just fast enough that a regression window is never
+    large enough to reach back across the feature it is meant to resolve.
+
+    Args:
+        s: Smoothing factors to cap, in units of the field step.
+        distance: Distance of each node from the feature, in tesla.
+        limit: Largest smoothing factor permitted on the feature itself.
+        width: Field scale over which the cap relaxes, in tesla. Normally the
+            measurement field step.
+
+    Returns:
+        The capped smoothing factors.
+    """
+    if not np.isfinite(width) or width <= 0:
+        raise ValueError("Smoothing-factor limit width must be positive and finite.")
+    return np.minimum(s, np.maximum(float(limit), np.abs(distance) / float(width)))
+
+
+def variforc_smoothing_factors(
+    Bc: np.ndarray,
+    Bu: np.ndarray,
+    dH: float,
+    sc0: float = 3.0,
+    sc1: float = 7.0,
+    sb0: float = 3.0,
+    sb1: float = 7.0,
+    lambda_c: float = 0.07,
+    lambda_b: float = 0.07,
+    ridge_limits: Optional[List[Tuple[str, float, float, float]]] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Compute the position-dependent VARIFORC smoothing factors.
+
+    Following Egli (2013), the smoothing factor grows linearly with distance
+    from the diagram origin, because Preisach-type FORC functions become
+    smoother away from it, so larger regression windows cost no real
+    resolution there. Near a ridge the factor is instead held at a floor, so
+    that a feature of intrinsically zero width is not smeared: his Eq. 14,
+
+        s = min[ (1 - lambda) s1 + lambda |H| / dH,  max(s0, |H| / dH) ]
+
+    The second term keeps the window from crossing the ridge it is meant to
+    resolve, since a window centred just off the ridge must not reach across
+    it. The same form is applied to both axes -- to ``Bu`` for a central ridge
+    at ``Bu = 0`` and to ``Bc`` for a vertical ridge at ``Bc = 0``.
+
+    Setting ``lambda_c = lambda_b = 0`` with ``sc1 = sb1 = SF + 1`` recovers
+    conventional constant-factor processing at the smoothing factor ``SF`` of
+    Pike et al. (1999).
+
+    Args:
+        Bc: Coercivity coordinate of each output node, in tesla.
+        Bu: Bias coordinate of each output node, in tesla.
+        dH: Measurement field step, in tesla.
+        sc0: Floor on the horizontal factor, resolving a vertical ridge at
+            ``Bc = 0``.
+        sc1: Horizontal factor away from the origin, before the linear growth.
+        sb0: Floor on the vertical factor, resolving a central ridge at
+            ``Bu = 0``. Should be just large enough to suppress noise.
+        sb1: Vertical factor away from the central ridge.
+        lambda_c: Growth rate of the horizontal factor with ``Bc``.
+        lambda_b: Growth rate of the vertical factor with ``|Bu|``.
+        ridge_limits: Extra caps for ridges away from the axes, each given as
+            ``(axis, position, limit, width)`` with ``axis`` one of ``"Bc"``
+            or ``"Bu"``. A magnetofossil central ridge, for instance, is
+            typically offset a few tenths of a millitesla above ``Bu = 0``, and
+            is capped with ``("Bu", 0.0004, 4, 0.0005)``.
+    Returns:
+        tuple: ``(s_c, s_b)`` arrays of smoothing factors, in units of the
+        measurement field step, with the shape of ``Bc``.
+
+    Raises:
+        ValueError: If ``dH`` is not positive, or a limit names an unknown
+            axis.
+
+    Notes:
+        Egli recommends growth rates of about 0.06 to 0.12, reasoning from the
+        width of the narrowest coercivity distributions found in nature; above
+        roughly 0.2 the windows grow large enough to generate artefacts of
+        their own, which is what the limits exist to control.
+    """
+    dH = float(dH)
+    if not np.isfinite(dH) or dH <= 0:
+        raise ValueError("dH must be a positive finite field step.")
+
+    Bc = np.asarray(Bc, dtype=np.float64)
+    Bu = np.asarray(Bu, dtype=np.float64)
+    nc = np.abs(Bc) / dH
+    nb = np.abs(Bu) / dH
+
+    s_c = np.minimum((1.0 - lambda_c) * sc1 + lambda_c * nc,
+                     np.maximum(sc0, nc))
+    s_b = np.minimum((1.0 - lambda_b) * sb1 + lambda_b * nb,
+                     np.maximum(sb0, nb))
+
+    for axis, position, limit, width in (ridge_limits or []):
+        width = dH if width is None else width
+        if axis == "Bc":
+            s_c = _apply_factor_limit(s_c, Bc - position, limit, width)
+        elif axis == "Bu":
+            s_b = _apply_factor_limit(s_b, Bu - position, limit, width)
+        else:
+            raise ValueError(f"ridge_limits axis must be 'Bc' or 'Bu'; got {axis!r}.")
+
+    # A regression window narrower than one step contains nothing.
+    return np.maximum(s_c, 1.0), np.maximum(s_b, 1.0)
+
+
+# Starting points for the four cases Egli (2013) distinguishes, keyed by what
+# the user can see in a conventionally processed diagram rather than by the
+# smoothing factors themselves. Each is a floor on the relevant axis: a small
+# floor preserves a narrow feature, a large one lets the window grow.
+VARIFORC_PRESETS: Dict[str, Dict[str, object]] = {
+    "regular": {
+        "description": "No sharp ridges: a smooth Preisach-type distribution.",
+        "central_ridge": None,
+        "vertical_ridge": None,
+    },
+    "central_ridge": {
+        "description": ("A horizontal ridge along Bu = 0, the signature of "
+                        "non-interacting single-domain particles such as "
+                        "magnetofossils."),
+        "central_ridge": 4.0,
+        "vertical_ridge": None,
+    },
+    "vertical_ridge": {
+        "description": ("A vertical ridge along Bc = 0, produced by thermal "
+                        "relaxation in superparamagnetic assemblages."),
+        "central_ridge": None,
+        "vertical_ridge": 3.0,
+    },
+    "both_ridges": {
+        "description": ("Both a central and a vertical ridge over a "
+                        "continuous background, as in many volcanic ash and "
+                        "pseudo-single-domain samples."),
+        "central_ridge": 3.0,
+        "vertical_ridge": 3.0,
+    },
+}
+
+
+def variforc_settings(
+    preset: str = "regular",
+    smoothing_factor: float = 7.0,
+    growth_rate: float = 0.07,
+    central_ridge: Optional[float] = "unset",
+    vertical_ridge: Optional[float] = "unset",
+    central_ridge_position: float = 0.0,
+    vertical_ridge_position: float = 0.0,
+    ridge_width: Optional[float] = None,
+    diagonal_limit: Optional[float] = None,
+) -> Dict[str, object]:
+    """Translate a description of the sample into VARIFORC smoothing parameters.
+
+    The parameters of Egli (2013) are expressed in smoothing factors and growth
+    rates. This helper lets a diagram be described instead by what is visible
+    in it -- whether it carries a central ridge, a vertical ridge, or neither --
+    and converts that into the factors the kernel needs.
+
+    Args:
+        preset: One of the keys of :data:`VARIFORC_PRESETS`: ``"regular"``,
+            ``"central_ridge"``, ``"vertical_ridge"`` or ``"both_ridges"``.
+        smoothing_factor: Baseline smoothing factor away from any ridge, in
+            units of the measurement field step. Larger values suppress more
+            noise. Egli's published analyses use 7 to 11.
+        growth_rate: Rate at which the smoothing factor grows with distance
+            from the diagram origin. Between about 0.06 and 0.12 is sensible;
+            0 reproduces conventional constant-factor processing. Above about
+            0.2 the windows become large enough to create their own artefacts.
+        central_ridge: Smoothing-factor floor held across a horizontal ridge at
+            ``Bu = 0``, which sets the vertical resolution there. Small values
+            preserve a narrow ridge. None disables the floor. Left unset, the
+            preset decides.
+        vertical_ridge: Smoothing-factor floor held across a vertical ridge at
+            ``Bc = 0``. None disables it. Left unset, the preset decides.
+        central_ridge_position: ``Bu`` of the central ridge in tesla, if it is
+            offset from zero. Magnetofossil ridges commonly sit a few tenths of
+            a millitesla above the axis.
+        vertical_ridge_position: ``Bc`` of the vertical ridge in tesla.
+        ridge_width: Field scale in tesla over which a ridge floor relaxes.
+            Defaults to the measurement field step, which is almost always
+            what is wanted.
+        diagonal_limit: Smoothing-factor cap along the two diagonals through
+            the distribution maximum. Use for samples with near-rectangular
+            hysteresis loops, where the magnetization changes abruptly at the
+            coercive fields and large windows would otherwise smear artefacts
+            along those directions. None disables it.
+
+    Returns:
+        dict: Keyword arguments for :func:`variforc_rho_from_grid`.
+
+    Raises:
+        ValueError: If ``preset`` is not recognized or a parameter is invalid.
+
+    Examples:
+        A magnetofossil-bearing sediment whose central ridge sits 0.4 mT above
+        the axis, processed with a strongly growing window::
+
+            settings = forc.variforc_settings(
+                'central_ridge', smoothing_factor=9, growth_rate=0.1,
+                central_ridge=4, central_ridge_position=0.0004)
+    """
+    if preset not in VARIFORC_PRESETS:
+        raise ValueError(
+            f"Unknown preset {preset!r}; choose from "
+            f"{sorted(VARIFORC_PRESETS)}."
+        )
+    if not np.isfinite(smoothing_factor) or smoothing_factor < 1:
+        raise ValueError("smoothing_factor must be at least 1.")
+    if not np.isfinite(growth_rate) or growth_rate < 0:
+        raise ValueError("growth_rate must be zero or positive.")
+
+    defaults = VARIFORC_PRESETS[preset]
+    if central_ridge == "unset":
+        central_ridge = defaults["central_ridge"]
+    if vertical_ridge == "unset":
+        vertical_ridge = defaults["vertical_ridge"]
+
+    # Where a ridge is present its floor sets the resolution across it; where
+    # it is absent the floor is simply the baseline factor.
+    sb0 = float(central_ridge) if central_ridge is not None else float(smoothing_factor)
+    sc0 = float(vertical_ridge) if vertical_ridge is not None else float(smoothing_factor)
+
+    ridge_limits = []
+    if central_ridge is not None and central_ridge_position:
+        ridge_limits.append(("Bu", float(central_ridge_position),
+                             float(central_ridge), ridge_width))
+    if vertical_ridge is not None and vertical_ridge_position:
+        ridge_limits.append(("Bc", float(vertical_ridge_position),
+                             float(vertical_ridge), ridge_width))
+
+    # A numeric diagonal limit is placed automatically through the
+    # distribution maximum, which is where a square-loop sample's
+    # magnetization changes most abruptly.
+    diagonal_limits = (None if diagonal_limit is None
+                       else {"mode": "automatic",
+                             "limit": float(diagonal_limit),
+                             "width": ridge_width})
+
+    return {
+        "sc0": sc0,
+        "sc1": float(smoothing_factor),
+        "sb0": sb0,
+        "sb1": float(smoothing_factor),
+        "lambda_c": float(growth_rate),
+        "lambda_b": float(growth_rate),
+        "ridge_limits": ridge_limits or None,
+        "diagonal_limits": diagonal_limits,
+        "_preset": preset,
+        "_ridge_width": ridge_width,
+    }
+
+
+def estimate_measurement_noise(M_grid: np.ndarray, order: int = 4) -> float:
+    """Estimate the measurement noise on magnetization from finite differences.
+
+    Differences of order ``n`` taken along each reversal curve annihilate any
+    polynomial of degree below ``n``, so for a curve that is locally smooth
+    they are dominated by measurement noise. The noise standard deviation
+    follows from the scatter of those differences divided by the norm of the
+    difference stencil. A median-absolute-deviation estimate is used so that a
+    few outlying points, or genuine sharp structure in part of the diagram, do
+    not inflate the result.
+
+    Args:
+        M_grid: Magnetization on the ``(Ha, Hb)`` grid, NaN where unmeasured.
+        order: Order of the finite difference. Fourth order tolerates real
+            curvature well while remaining local.
+
+    Returns:
+        The estimated standard deviation of the measurement noise, in the
+        units of ``M_grid``. NaN if there are too few usable differences.
+    """
+    M = np.asarray(M_grid, dtype=np.float64)
+    coefficients = np.array([(-1.0) ** k * _binomial(order, k)
+                             for k in range(order + 1)])
+    norm = np.sqrt(np.sum(coefficients ** 2))
+
+    stack = [coefficients[k] * M[:, k:M.shape[1] - order + k]
+             for k in range(order + 1)]
+    diffs = np.sum(stack, axis=0)
+    finite = diffs[np.isfinite(diffs)]
+    if finite.size < 32:
+        return float("nan")
+    # 1.4826 converts a median absolute deviation to a Gaussian sigma.
+    mad = np.median(np.abs(finite - np.median(finite)))
+    return float(1.4826 * mad / norm)
+
+
+def _binomial(n: int, k: int) -> float:
+    from math import comb
+    return float(comb(int(n), int(k)))
+
+
+def diagonal_truncation_factors(
+    Bc: np.ndarray,
+    Bu: np.ndarray,
+    dH: float,
+    diagonal_limits: Optional[List[Tuple[str, float, float, float]]],
+) -> Dict[str, np.ndarray]:
+    """Compute how far each regression window may extend along the diagonals.
+
+    Polynomial regression misfits are largest where the measured curves are
+    steepest and where consecutive curves differ most. In FORC coordinates
+    those two conditions fall along the diagonals ``H = +H_coerc`` and
+    ``Hr = -H_coerc``, and a window that spans them produces ridge-like
+    artefacts. Egli (2013) controls this by truncating the regression
+    rectangle along 45-degree lines, so that it becomes an octagon narrow
+    enough in the diagonal direction, rather than by shrinking the rectangle
+    as a whole. That distinction matters: shrinking the window over a narrow
+    band introduces its own discontinuity, whereas clipping the corners leaves
+    the resolution along the axes untouched.
+
+    Args:
+        Bc: Coercivity coordinate of each output node, in tesla.
+        Bu: Bias coordinate of each output node, in tesla.
+        dH: Measurement field step, in tesla.
+        diagonal_limits: Entries ``(axis, position, limit, width)`` with
+            ``axis`` either ``"H"`` for the applied-field diagonal
+            ``Bu + Bc`` or ``"Hr"`` for the reversal-field diagonal
+            ``Bu - Bc``. ``position`` is the diagonal's location in tesla,
+            ``limit`` the smoothing factor permitted across it, and ``width``
+            the field range over which the restriction relaxes.
+
+    Returns:
+        dict: Arrays ``"H"`` and ``"Hr"`` giving the maximum half-extent of
+        the window along each diagonal, in units of the field step, or an
+        empty dict if no limits were requested. Entries are ``inf`` where the
+        window is unrestricted.
+    """
+    if not diagonal_limits:
+        return {}
+    out: Dict[str, np.ndarray] = {}
+    for axis, position, limit, width in diagonal_limits:
+        if axis == "H":
+            coordinate = Bu + Bc
+        elif axis == "Hr":
+            coordinate = Bu - Bc
+        else:
+            raise ValueError(f"diagonal_limits axis must be 'H' or 'Hr'; got {axis!r}.")
+        width = dH if width is None else float(width)
+        if not np.isfinite(width) or width <= 0:
+            raise ValueError("Diagonal limit width must be positive and finite.")
+        allowed = np.maximum(float(limit), np.abs(coordinate - position) / width)
+        out[axis] = np.minimum(out[axis], allowed) if axis in out else allowed
+    return out
+
+
+def find_coercive_field(Ha_vals, Hb_vals, M_grid) -> float:
+    """Locate the coercive field at which regression artefacts are expected.
+
+    Egli places the diagonal smoothing limits at the fields where the measured
+    curves are steepest and where consecutive curves separate most, which for
+    a sample with a simple loop shape are both close to the coercivity of the
+    major loop. This estimates that field as the applied field at which the
+    mean magnitude of the gradient across the family of curves is largest.
+
+    Args:
+        Ha_vals: Reversal-field grid coordinates in tesla.
+        Hb_vals: Applied-field grid coordinates in tesla.
+        M_grid: Magnetization on the ``(Ha, Hb)`` grid.
+
+    Returns:
+        The estimated coercive field in tesla, as a positive number. NaN if it
+        cannot be determined.
+    """
+    M = np.asarray(M_grid, dtype=np.float64)
+    Hb_vals = np.asarray(Hb_vals, dtype=np.float64)
+    if M.shape[1] < 3:
+        return float("nan")
+    with np.errstate(invalid="ignore"):
+        slope = np.abs(np.gradient(M, Hb_vals, axis=1))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        profile = np.nanmean(slope, axis=0)
+    if not np.any(np.isfinite(profile)):
+        return float("nan")
+    return float(abs(Hb_vals[int(np.nanargmax(profile))]))
+
+
+# ----------------------------------------------------------------------
+# Optional compiled fast path
+# ----------------------------------------------------------------------
+#
+# The NumPy kernel batches nodes that share a candidate offset list, which
+# means it evaluates weights at offsets that lie outside many of those nodes'
+# own windows. That overhead grows with the smoothing-factor growth rate,
+# because the spread of window sizes within a band grows with it. A compiled
+# per-node loop has no candidate list and walks only the window it needs, so
+# the advantage widens exactly where the calculation is most expensive:
+# measured at 3.5x for constant smoothing, 9.6x at lambda = 0.1 and 10.5x at
+# lambda = 0.2, agreeing with the NumPy result to about 1e-11 of peak.
+#
+# numba is therefore an optional dependency: present, it is used by default;
+# absent, everything still works. It is deliberately NOT used for the LOESS
+# estimator, where the same comparison gave a 6x speedup on a calculation that
+# takes 0.35 s and is not the bottleneck.
+
+_NUMBA_KERNEL = None
+_NUMBA_UNAVAILABLE = False
+
+
+def _get_numba_kernel():
+    """Compile and cache the numba VARIFORC kernel, or return None."""
+    global _NUMBA_KERNEL, _NUMBA_UNAVAILABLE
+    if _NUMBA_KERNEL is not None or _NUMBA_UNAVAILABLE:
+        return _NUMBA_KERNEL
+    try:
+        from numba import njit, prange
+    except Exception:
+        _NUMBA_UNAVAILABLE = True
+        return None
+
+    @njit(cache=True, inline="always")
+    def _w(a, s):
+        a = abs(a)
+        if a <= s - 1.0:
+            return 1.0
+        if a <= s - 0.5:
+            t = a - s + 1.0
+            return 1.0 - 2.0 * t * t
+        if a <= s:
+            t = a - s
+            return 2.0 * t * t
+        return 0.0
+
+    @njit(cache=True, parallel=True)
+    def _kernel(M, valid, centres_ok, s_c, s_b, s_H, s_Hr, use_H, use_Hr,
+                Ha_vals, Hb_vals, dH, dHa, dHb, min_pts, want_fit,
+                want_sigma, noise):
+        nH, nA = M.shape
+        rho = np.full((nH, nA), np.nan)
+        fit = np.full((nH, nA), np.nan)
+        sigma = np.full((nH, nA), np.nan)
+        for i in prange(nH):
+            A = np.empty((6, 6))
+            S = np.empty((6, 6))
+            b = np.empty(6)
+            p = np.empty(6)
+            for j in range(nA):
+                if not centres_ok[i, j]:
+                    continue
+                sc = s_c[i, j]
+                sb = s_b[i, j]
+                ri = int(np.ceil((sc + sb) * dH / dHa))
+                rj = int(np.ceil((sc + sb) * dH / dHb))
+                for k in range(6):
+                    b[k] = 0.0
+                    for l in range(6):
+                        A[k, l] = 0.0
+                        S[k, l] = 0.0
+                n = 0
+                for di in range(-ri, ri + 1):
+                    ii = i + di
+                    if ii < 0 or ii >= nH:
+                        continue
+                    for dj in range(-rj, rj + 1):
+                        jj = j + dj
+                        if jj < 0 or jj >= nA:
+                            continue
+                        if not valid[ii, jj]:
+                            continue
+                        # True field offsets: measured reversal fields are
+                        # not exactly evenly spaced.
+                        da = Ha_vals[ii] - Ha_vals[i]
+                        db = Hb_vals[jj] - Hb_vals[j]
+                        x = 0.5 * (db - da) / dH
+                        y = 0.5 * (db + da) / dH
+                        w = _w(x, sc) * _w(y, sb)
+                        if w <= 0.0:
+                            continue
+                        if use_H:
+                            w *= _w(y + x, s_H[i, j])
+                            if w <= 0.0:
+                                continue
+                        if use_Hr:
+                            w *= _w(y - x, s_Hr[i, j])
+                            if w <= 0.0:
+                                continue
+                        n += 1
+                        p[0] = 1.0
+                        p[1] = x
+                        p[2] = y
+                        p[3] = x * x
+                        p[4] = x * y
+                        p[5] = y * y
+                        v = M[ii, jj]
+                        for k in range(6):
+                            b[k] += w * p[k] * v
+                            for l in range(6):
+                                A[k, l] += w * p[k] * p[l]
+                                if want_sigma:
+                                    S[k, l] += w * w * p[k] * p[l]
+                if n < min_pts:
+                    continue
+                c = np.linalg.solve(A, b)
+                rho[i, j] = 0.25 * (c[3] - c[5]) / (dH * dH)
+                if want_fit:
+                    fit[i, j] = c[0]
+                if want_sigma:
+                    a = np.zeros(6)
+                    a[3] = 1.0
+                    a[5] = -1.0
+                    a = a / (4.0 * dH * dH)
+                    v6 = np.linalg.solve(A, a)
+                    var = 0.0
+                    for k in range(6):
+                        for l in range(6):
+                            var += v6[k] * S[k, l] * v6[l]
+                    if var > 0.0:
+                        sigma[i, j] = noise * np.sqrt(var)
+        return rho, fit, sigma
+
+    _NUMBA_KERNEL = _kernel
+    return _NUMBA_KERNEL
+
+
+def numba_available() -> bool:
+    """Report whether the compiled VARIFORC fast path can be used.
+
+    Returns:
+        True when numba is installed and its kernel compiles. The result is
+        cached, so the compilation cost is paid at most once per session.
+    """
+    return _get_numba_kernel() is not None
+
+
+def _variforc_result(rho, M_fit, s_c, s_b, rho_sigma, noise,
+                     return_fit, return_factors, estimate_uncertainty):
+    """Assemble the return value shared by both VARIFORC engines."""
+    if not (return_fit or return_factors or estimate_uncertainty):
+        return rho
+    result = {"rho": rho}
+    if return_fit:
+        result["M_fit"] = M_fit
+    if return_factors:
+        result["s_c"] = s_c
+        result["s_b"] = s_b
+    if estimate_uncertainty:
+        result["rho_sigma"] = rho_sigma
+        result["noise"] = float(noise)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            result["snr"] = np.abs(rho) / rho_sigma
+    return result
+
+
+def variforc_rho_from_grid(
+    Ha_vals,
+    Hb_vals,
+    M_grid,
+    sc0: float = 3.0,
+    sc1: float = 7.0,
+    sb0: float = 3.0,
+    sb1: float = 7.0,
+    lambda_c: float = 0.07,
+    lambda_b: float = 0.07,
+    ridge_limits: Optional[List[Tuple[str, float, float, float]]] = None,
+    diagonal_limits: Optional[List[Tuple[str, float, float, float]]] = None,
+    lower_diagonal_trim: float = 0.0,
+    dH: Optional[float] = None,
+    group_ratio: float = 1.25,
+    min_pts: int = 12,
+    max_batch: int = 4096,
+    engine: str = "auto",
+    noise: Optional[float] = None,
+    estimate_uncertainty: bool = False,
+    return_fit: bool = False,
+    return_factors: bool = False,
+    verbose: bool = False,
+):
+    """Estimate the FORC distribution with VARIFORC-style variable smoothing.
+
+    At each output node a weighted quadratic surface is fitted to the
+    measurements inside an upright rectangle in ``(Bc, Bu)`` whose half-widths
+    ``s_c dH`` and ``s_b dH`` vary with position, following
+    :func:`variforc_smoothing_factors`. The distribution is read from the
+    second-order coefficients using Egli (2013) Eq. 1,
+    ``rho = (1/8)(d2M/dBc^2 - d2M/dBu^2)``.
+
+    Args:
+        Ha_vals: Reversal-field grid coordinates in tesla, strictly increasing.
+        Hb_vals: Applied-field grid coordinates in tesla, strictly increasing.
+        M_grid: Magnetization with shape ``(len(Ha_vals), len(Hb_vals))``, NaN
+            where unmeasured.
+        sc0: Floor on the horizontal smoothing factor, resolving a vertical
+            ridge at ``Bc = 0``.
+        sc1: Horizontal smoothing factor away from the origin.
+        sb0: Floor on the vertical smoothing factor, resolving a central ridge.
+        sb1: Vertical smoothing factor away from the central ridge.
+        lambda_c: Growth rate of the horizontal factor with ``Bc``.
+        lambda_b: Growth rate of the vertical factor with ``|Bu|``.
+        ridge_limits: Extra caps on ridges away from the axes, passed through
+            to :func:`variforc_smoothing_factors`.
+        diagonal_limits: Caps along the ``H`` and ``Hr`` diagonals, either an
+            explicit list of ``(axis, position, limit, width)`` tuples or
+            ``{"mode": "automatic", "limit": s, "width": w}``, which places
+            the two diagonals through the distribution maximum found by a
+            preliminary constant-smoothing pass.
+        lower_diagonal_trim: Discard output nodes lying within this multiple of
+            the local window height of the lower boundary of measured space.
+            Windows there are badly one-sided, and trimming is cheaper than
+            explaining the artefact.
+        dH: Measurement field step in tesla. Inferred from the grid if None.
+        group_ratio: Nodes are grouped into geometric bands of smoothing
+            factor spanning this ratio, and each band shares one offset list.
+            The weights applied within a band are still each node's own, so
+            this controls only how much larger than necessary a band's
+            candidate list is, not the accuracy of the result.
+        min_pts: Minimum number of measurements required for a fit.
+        max_batch: Largest number of nodes solved in one batch, bounding peak
+            memory. Used only by the NumPy engine.
+        engine: ``"auto"`` uses the compiled kernel when numba is installed and
+            falls back to NumPy otherwise; ``"numpy"`` and ``"numba"`` select
+            one explicitly. The two agree to about 1e-11 of peak; the compiled
+            kernel is roughly 3x faster for constant smoothing and 10x faster
+            at a growth rate of 0.2, where it matters most.
+        noise: Standard deviation of the measurement noise on magnetization.
+            Estimated from the data with
+            :func:`estimate_measurement_noise` when None and
+            ``estimate_uncertainty`` is set.
+        estimate_uncertainty: Propagate the measurement noise through each
+            local fit to a standard error on the distribution, following
+            Heslop and Roberts (2012). Adds ``rho_sigma`` and ``snr`` to the
+            returned dict.
+        return_fit: Also return the fitted magnetization surface, for
+            residual-based diagnostics.
+        return_factors: Also return the smoothing factors actually used.
+        verbose: Report the grouping and window statistics.
+
+    Returns:
+        The FORC distribution, NaN where a node could not be fitted. If
+        ``return_fit`` or ``return_factors`` is set, a dict is returned with
+        key ``rho`` plus the requested extras (``M_fit``, ``s_c``, ``s_b``).
+
+    Raises:
+        ValueError: If the axes are not strictly increasing, the shapes do not
+            match, or the smoothing parameters are not positive.
+
+    Notes:
+        Grouping determines only which candidate offsets are gathered; every
+        node is then weighted by its own exact smoothing factors, and offsets
+        outside a node's own rectangle receive zero weight. The result is
+        therefore independent of ``group_ratio`` to within floating-point
+        error, and that invariance is asserted in the test suite. Grouping by
+        *rounded factors* instead, which would let a whole band share one
+        weight vector, is measurably faster but quantizes the smoothing and
+        prints visible bands across the diagram.
+    """
+    Ha_vals = np.asarray(Ha_vals, dtype=np.float64)
+    Hb_vals = np.asarray(Hb_vals, dtype=np.float64)
+    M = np.asarray(M_grid, dtype=np.float64)
+
+    if Ha_vals.ndim != 1 or Hb_vals.ndim != 1:
+        raise ValueError("Ha_vals and Hb_vals must be one-dimensional.")
+    if M.shape != (Ha_vals.size, Hb_vals.size):
+        raise ValueError(
+            "M_grid shape must be (len(Ha_vals), len(Hb_vals)); "
+            f"received {M.shape}."
+        )
+    dHa_steps = np.diff(Ha_vals)
+    dHb_steps = np.diff(Hb_vals)
+    if dHa_steps.size and (not np.all(np.isfinite(dHa_steps)) or np.any(dHa_steps <= 0)):
+        raise ValueError("Ha_vals must be finite and strictly increasing.")
+    if dHb_steps.size and (not np.all(np.isfinite(dHb_steps)) or np.any(dHb_steps <= 0)):
+        raise ValueError("Hb_vals must be finite and strictly increasing.")
+    for name, value in (("sc0", sc0), ("sc1", sc1), ("sb0", sb0), ("sb1", sb1)):
+        if not np.isfinite(value) or value <= 0:
+            raise ValueError(f"{name} must be a positive finite smoothing factor.")
+    if not (group_ratio > 1.0):
+        raise ValueError("group_ratio must be greater than 1.")
+
+    dHa = float(np.median(dHa_steps)) if dHa_steps.size else np.nan
+    dHb = float(np.median(dHb_steps)) if dHb_steps.size else np.nan
+    if dH is None:
+        candidates = [d for d in (dHa, dHb) if np.isfinite(d) and d > 0]
+        if not candidates:
+            raise ValueError("Could not infer the measurement field step dH.")
+        dH = float(np.mean(candidates))
+    dH = float(dH)
+    if not np.isfinite(dHa) or dHa <= 0:
+        dHa = dH
+    if not np.isfinite(dHb) or dHb <= 0:
+        dHb = dH
+
+    min_dHa = float(np.min(dHa_steps)) if dHa_steps.size else dHa
+    min_dHb = float(np.min(dHb_steps)) if dHb_steps.size else dHb
+    min_dHa = min_dHa if np.isfinite(min_dHa) and min_dHa > 0 else dHa
+    min_dHb = min_dHb if np.isfinite(min_dHb) and min_dHb > 0 else dHb
+
+    Bc = 0.5 * (Hb_vals[np.newaxis, :] - Ha_vals[:, np.newaxis])
+    Bu = 0.5 * (Hb_vals[np.newaxis, :] + Ha_vals[:, np.newaxis])
+
+    valid = np.isfinite(M) & (Bc >= 0.0)
+    if not np.any(valid):
+        raise ValueError("M_grid has no finite values in the physical half-plane.")
+
+    # An automatic diagonal limit needs the position of the distribution
+    # maximum, which is only known after a first pass. Egli places the two
+    # diagonals through that maximum, since that is where the magnetization
+    # surface of a square-loop sample changes most sharply.
+    # The diagonals along which regression misfits concentrate sit at
+    # H = +Hcoerc and Hr = -Hcoerc, where the measured curves are steepest and
+    # where consecutive curves separate most. In automatic mode that field is
+    # estimated from the measurements themselves.
+    if isinstance(diagonal_limits, dict):
+        spec = dict(diagonal_limits)
+        if str(spec.get("mode", "")).lower() != "automatic":
+            raise ValueError("A dict diagonal_limits must have mode='automatic'.")
+        limit = float(spec["limit"])
+        width = spec.get("width")
+        hcoerc = spec.get("coercive_field")
+        if hcoerc is None:
+            hcoerc = find_coercive_field(Ha_vals, Hb_vals, M)
+        if not np.isfinite(hcoerc):
+            raise ValueError(
+                "Could not locate the coercive field for automatic diagonal "
+                "limits; give diagonal_limits explicitly."
+            )
+        if width is None:
+            # Default the transition width to the coercive field itself, which
+            # is the scale over which the steep part of the loop extends.
+            width = max(float(hcoerc), dH)
+        diagonal_limits = [("H", float(hcoerc), limit, width),
+                           ("Hr", -float(hcoerc), limit, width)]
+        if verbose:
+            print(f"VARIFORC: automatic diagonal limits at "
+                  f"H = +{1e3 * hcoerc:.2f} mT and Hr = -{1e3 * hcoerc:.2f} mT, "
+                  f"limit s = {limit:g}")
+
+    s_c, s_b = variforc_smoothing_factors(
+        Bc, Bu, dH, sc0=sc0, sc1=sc1, sb0=sb0, sb1=sb1,
+        lambda_c=lambda_c, lambda_b=lambda_b,
+        ridge_limits=ridge_limits,
+    )
+    s_diag = diagonal_truncation_factors(Bc, Bu, dH, diagonal_limits)
+
+    centres_mask = valid.copy()
+    if lower_diagonal_trim and lower_diagonal_trim > 0:
+        # Distance above the lower edge of measured space, the Ha = Ha_min line.
+        above_floor = (Ha_vals[:, np.newaxis] - Ha_vals[0]) * np.ones_like(Bc)
+        centres_mask &= above_floor >= lower_diagonal_trim * s_b * dH
+        if not np.any(centres_mask):
+            raise ValueError("lower_diagonal_trim removed every output node.")
+
+    engine_l = str(engine).strip().lower()
+    if engine_l not in {"auto", "numpy", "numba"}:
+        raise ValueError("engine must be 'auto', 'numpy', or 'numba'.")
+
+    rho = np.full(M.shape, np.nan, dtype=np.float64)
+    M_fit = np.full(M.shape, np.nan, dtype=np.float64) if return_fit else None
+    rho_sigma = np.full(M.shape, np.nan, dtype=np.float64) if estimate_uncertainty else None
+
+    if estimate_uncertainty and noise is None:
+        noise = estimate_measurement_noise(M)
+        if not np.isfinite(noise):
+            raise ValueError(
+                "Could not estimate the measurement noise; pass noise explicitly."
+            )
+
+    kernel = _get_numba_kernel() if engine_l in {"auto", "numba"} else None
+    if engine_l == "numba" and kernel is None:
+        raise ValueError(
+            "engine='numba' was requested but numba is not available. Install "
+            "numba, or use engine='numpy'."
+        )
+    if kernel is not None:
+        if verbose:
+            print("VARIFORC: using the compiled numba kernel")
+        sH = s_diag.get("H")
+        sHr = s_diag.get("Hr")
+        zeros = np.zeros(M.shape, dtype=np.float64)
+        rho, fit_out, sigma_out = kernel(
+            np.where(valid, M, 0.0), valid, centres_mask,
+            np.ascontiguousarray(s_c), np.ascontiguousarray(s_b),
+            zeros if sH is None else np.ascontiguousarray(sH),
+            zeros if sHr is None else np.ascontiguousarray(sHr),
+            sH is not None, sHr is not None,
+            np.ascontiguousarray(Ha_vals), np.ascontiguousarray(Hb_vals),
+            dH, min_dHa, min_dHb, max(6, int(min_pts)),
+            bool(return_fit), bool(estimate_uncertainty),
+            float(noise) if estimate_uncertainty else 0.0,
+        )
+        if return_fit:
+            M_fit = fit_out
+        if estimate_uncertainty:
+            rho_sigma = sigma_out
+        if verbose:
+            print(f"VARIFORC: s_c {s_c.min():.1f}-{s_c.max():.1f}, "
+                  f"s_b {s_b.min():.1f}-{s_b.max():.1f}")
+        return _variforc_result(rho, M_fit, s_c, s_b, rho_sigma, noise,
+                                return_fit, return_factors, estimate_uncertainty)
+
+    centres = np.flatnonzero(centres_mask)
+    ci, cj = np.unravel_index(centres, M.shape)
+    sc_flat = s_c.ravel()[centres]
+    sb_flat = s_b.ravel()[centres]
+    sH_flat = s_diag["H"].ravel()[centres] if "H" in s_diag else None
+    sHr_flat = s_diag["Hr"].ravel()[centres] if "Hr" in s_diag else None
+
+    # Geometric bands: within a band every node's own window is at most
+    # group_ratio times smaller than the band's, so the shared candidate list
+    # is never wastefully large.
+    log_ratio = np.log(group_ratio)
+    band_c = np.floor(np.log(sc_flat) / log_ratio).astype(np.int64)
+    band_b = np.floor(np.log(sb_flat) / log_ratio).astype(np.int64)
+    keys = band_c * 1000003 + band_b
+    order = np.argsort(keys, kind="stable")
+    centres, ci, cj = centres[order], ci[order], cj[order]
+    sc_flat, sb_flat, keys = sc_flat[order], sb_flat[order], keys[order]
+    # Every per-node array must follow the same permutation, or nodes are
+    # weighted with another node's limits.
+    if sH_flat is not None:
+        sH_flat = sH_flat[order]
+    if sHr_flat is not None:
+        sHr_flat = sHr_flat[order]
+    splits = np.flatnonzero(np.diff(keys)) + 1
+
+    n_bands = 0
+    cand_sizes = []
+    for band in np.split(np.arange(centres.size), splits):
+        if band.size == 0:
+            continue
+        sc_hi = float(sc_flat[band].max())
+        sb_hi = float(sb_flat[band].max())
+
+        # Offsets whose rotated displacement can fall inside the largest
+        # rectangle in this band. Moving (di, dj) on the (Ha, Hb) lattice
+        # shifts Bc by (dj dHb - di dHa)/2 and Bu by (dj dHb + di dHa)/2, so an
+        # upright rectangle in (Bc, Bu) is a diamond in index space.
+        # Size the candidate list from the *smallest* grid spacing. Using the
+        # median would under-reach wherever the measured spacing is wider than
+        # typical, silently truncating those nodes' windows.
+        ri = int(np.ceil((sc_hi + sb_hi) * dH / min_dHa))
+        rj = int(np.ceil((sc_hi + sb_hi) * dH / min_dHb))
+        di, dj = np.meshgrid(np.arange(-ri, ri + 1), np.arange(-rj, rj + 1),
+                             indexing="ij")
+        di, dj = di.ravel(), dj.ravel()
+        # No further pre-filtering on the nominal offset: on a non-uniform
+        # grid an index offset that looks outside the rectangle under median
+        # spacing can be inside it under the true spacing, and dropping it
+        # here would silently truncate that node's window. Points outside a
+        # node's own rectangle get zero weight below, which is exact.
+        if di.size < 6:
+            continue
+        n_bands += 1
+        cand_sizes.append(di.size)
+
+        for lo in range(0, band.size, max_batch):
+            sel = band[lo:lo + max_batch]
+            rows = ci[sel][:, np.newaxis] + di
+            cols = cj[sel][:, np.newaxis] + dj
+            in_grid = ((rows >= 0) & (rows < M.shape[0])
+                       & (cols >= 0) & (cols < M.shape[1]))
+            rows = np.clip(rows, 0, M.shape[0] - 1)
+            cols = np.clip(cols, 0, M.shape[1] - 1)
+            good = in_grid & valid[rows, cols]
+
+            # Local coordinates from the true field values, not from the index
+            # offset times a nominal step. Measured reversal fields are not
+            # exactly evenly spaced, and assuming they are puts both the
+            # weights and the polynomial basis slightly in the wrong place.
+            dHa_true = Ha_vals[rows] - Ha_vals[ci[sel]][:, np.newaxis]
+            dHb_true = Hb_vals[cols] - Hb_vals[cj[sel]][:, np.newaxis]
+            x = 0.5 * (dHb_true - dHa_true) / dH
+            y = 0.5 * (dHb_true + dHa_true) / dH
+
+            # Each node is weighted by its own smoothing factors, so offsets
+            # beyond that node's rectangle fall to zero weight automatically.
+            w = (variforc_weight_1d(x, sc_flat[sel][:, np.newaxis])
+                 * variforc_weight_1d(y, sb_flat[sel][:, np.newaxis]))
+            # Truncate the rectangle's corners along the 45-degree diagonals,
+            # turning it into an octagon narrow enough across the directions
+            # in which the magnetization surface changes most sharply.
+            if sH_flat is not None:
+                w = w * variforc_weight_1d(y + x, sH_flat[sel][:, np.newaxis])
+            if sHr_flat is not None:
+                w = w * variforc_weight_1d(y - x, sHr_flat[sel][:, np.newaxis])
+            wv = np.where(good, w, 0.0)
+
+            enough = np.count_nonzero(wv > 0, axis=1) >= max(6, int(min_pts))
+            if not np.any(enough):
+                continue
+            wv = wv[enough]
+            values = np.where(good[enough], M[rows[enough], cols[enough]], 0.0)
+            xk, yk = x[enough], y[enough]
+            design = np.stack([np.ones_like(xk), xk, yk,
+                               xk * xk, xk * yk, yk * yk], axis=2)
+
+            normal = np.einsum("ck,ckp,ckq->cpq", wv, design, design, optimize=True)
+            rhs = np.einsum("ck,ckp,ck->cp", wv, design, values, optimize=True)
+            full_rank = np.linalg.matrix_rank(normal) == 6
+            if not np.any(full_rank):
+                continue
+            coef = np.linalg.solve(normal[full_rank],
+                                   rhs[full_rank, :, np.newaxis])[:, :, 0]
+
+            solved = centres[sel][enough][full_rank]
+            # Undo the dH scaling of the local basis: d2M/dBc^2 = 2 a3 / dH^2
+            # and d2M/dBu^2 = 2 a5 / dH^2, so rho = (a3 - a5) / (4 dH^2).
+            rho.ravel()[solved] = 0.25 * (coef[:, 3] - coef[:, 5]) / (dH * dH)
+            if return_fit:
+                M_fit.ravel()[solved] = coef[:, 0]
+
+            if estimate_uncertainty:
+                # For a weighted least-squares fit b = N^-1 X'W y with
+                # independent noise of variance sigma^2, the covariance of b is
+                # sigma^2 N^-1 S N^-1 with S = X'W^2X. rho is the linear
+                # functional a'b with a picking out (a3 - a5) / (4 dH^2), so
+                # var(rho) = sigma^2 (N^-1 a)' S (N^-1 a).
+                a = np.zeros(6)
+                a[3], a[5] = 1.0, -1.0
+                a /= 4.0 * dH * dH
+                S = np.einsum("ck,ckp,ckq->cpq", wv[full_rank] ** 2,
+                              design[full_rank], design[full_rank],
+                              optimize=True)
+                v = np.linalg.solve(normal[full_rank],
+                                    np.broadcast_to(a, (S.shape[0], 6))[:, :, None])[:, :, 0]
+                var = np.einsum("cp,cpq,cq->c", v, S, v, optimize=True)
+                rho_sigma.ravel()[solved] = float(noise) * np.sqrt(np.maximum(var, 0.0))
+
+    if verbose:
+        if cand_sizes:
+            print(f"VARIFORC: {n_bands} bands over {centres.size} nodes, "
+                  f"{min(cand_sizes)}-{max(cand_sizes)} candidate points per band; "
+                  f"s_c {s_c.min():.1f}-{s_c.max():.1f}, "
+                  f"s_b {s_b.min():.1f}-{s_b.max():.1f}")
+        else:
+            print("VARIFORC: no usable regression windows")
+
+    return _variforc_result(rho, M_fit, s_c, s_b, rho_sigma, noise,
+                            return_fit, return_factors, estimate_uncertainty)
+
 
 def loess_rho_from_grid_fast(
     Ha_vals, Hb_vals, M_grid,
@@ -2251,7 +3915,7 @@ def loess_rho_from_grid_fast(
 
     rx = max(1, int(np.ceil(float(span_Hb_T) / dHb)))
     ry = max(1, int(np.ceil(float(span_Ha_T) / dHa)))
-    offsets = _build_offsets(rx, ry)
+    offsets = loess_offsets(rx, ry)
 
     max_pts = int(offsets.shape[0])
     min_pts = max(6, min(int(min_pts), max_pts - 1))
@@ -2468,7 +4132,7 @@ def plot_forc_distribution_hysteresis_space(
     normalize_to_unit: bool = True,
     pct: float = 99.0,
     add_origin_axes: bool = True,
-    return_fig: bool = False,
+    return_figure: bool = False,
 ):
     """
     Diagnostic plot of the FORC distribution in hysteresis space.
@@ -2582,7 +4246,7 @@ def plot_forc_distribution_hysteresis_space(
     fig.subplots_adjust(left=0.14, right=0.88, bottom=0.14, top=0.88)
     plt.show()
 
-    if return_fig:
+    if return_figure:
         return fig, ax, sc, cbar
     return None
 
@@ -2641,7 +4305,20 @@ def _low_level_contours(level_frac: float = 0.01) -> np.ndarray:
         return np.array([], dtype=float)
     return np.array([-f, +f], dtype=float)
 
-def _centers_to_edges_1d(x):
+def centers_to_edges(x):
+    """Convert bin centres to the bin edges ``pcolormesh`` expects.
+
+    Field values are recorded at the centre of each grid cell, while
+    ``pcolormesh`` wants the boundaries between cells. Interior edges are placed
+    midway between neighbouring centres, so unevenly spaced fields are handled
+    correctly; the two outer edges are extrapolated by half of the adjacent step.
+
+    Args:
+        x: Bin centres, monotonic, length n.
+
+    Returns:
+        Array of n + 1 bin edges.
+    """
     x = np.asarray(x, float)
     if x.size < 2:
         dx = 1.0
@@ -2654,7 +4331,7 @@ def _centers_to_edges_1d(x):
     edges[-1] = x[-1] + 0.5 * dx[-1]
     return edges
 
-def plot_rho_HaHb(
+def plot_forc_diagram_ha_hb(
     Ha_vals, Hb_vals, rho,
     title: str = "Sample",
     show_contours: bool = False,
@@ -2685,8 +4362,8 @@ def plot_rho_HaHb(
 
     # Use actual Ha/Hb cell edges rather than imshow extent.
     # This matters for adaptive/even-moment FORC files where Ha spacing is non-uniform.
-    Ha_edges = _centers_to_edges_1d(np.asarray(Ha_vals, float))
-    Hb_edges = _centers_to_edges_1d(np.asarray(Hb_vals, float))
+    Ha_edges = centers_to_edges(np.asarray(Ha_vals, float))
+    Hb_edges = centers_to_edges(np.asarray(Hb_vals, float))
 
     Ha2D_e, Hb2D_e = np.meshgrid(Ha_edges, Hb_edges, indexing="ij")
 
@@ -2747,7 +4424,7 @@ def plot_rho_HaHb(
     plt.show()
 
 
-def _rho_window_vmax(
+def rho_window_vmax(
     Ha_vals, Hb_vals, rho,
     pct: float = 99,
     normalize_to_unit: bool = False,
@@ -2755,9 +4432,28 @@ def _rho_window_vmax(
     Bc_min=None, Bc_max=None,
     bu_expand: float = 1.0,
 ) -> float:
-    """
-    Compute vmax from |rho| using ONLY the data inside the Bu/Bc plot window.
-    Returns a finite positive vmax (fallback to global if window empty).
+    """Set the colour-scale limit from the plotted window only.
+
+    A FORC distribution often has a large peak at low coercivity. Scaling the
+    colour map to the whole array then flattens everything outside that peak,
+    so the limit is taken from a percentile of |rho| within the Bu/Bc window
+    that will actually be drawn.
+
+    Args:
+        Ha_vals: Reversal fields of the grid, in tesla.
+        Hb_vals: Applied fields of the grid, in tesla.
+        rho: FORC distribution on that grid.
+        pct: Percentile of |rho| within the window to use as the limit.
+        normalize_to_unit: Unused here; kept for signature compatibility.
+        Bu_min: Lower bias-field bound of the window, in tesla.
+        Bu_max: Upper bias-field bound of the window, in tesla.
+        Bc_min: Lower coercivity bound of the window, in tesla.
+        Bc_max: Upper coercivity bound of the window, in tesla.
+        bu_expand: Factor by which to widen the bias-field bounds.
+
+    Returns:
+        A finite positive limit, falling back to the whole array when the
+        requested window contains no finite values.
     """
     rho = np.asarray(rho, float)
 
@@ -2838,7 +4534,7 @@ def _rho_window_vmax_bu_bc(
     return vmax
 
 
-def plot_rho_BuBc(
+def plot_forc_diagram(
     Ha_vals, Hb_vals, rho,
     Bu_min=None, Bu_max=None,
     Bc_min: Optional[float] = None,
@@ -2860,9 +4556,9 @@ def plot_rho_BuBc(
     low_level_color: str = "0.1",
     low_level_alpha: float = 0.9,
     low_level_lw: float = 0.2,
-    show: bool = True,
+    show_plot: bool = True,
     close: bool = False,
-    return_fig: bool = True,
+    return_figure: bool = True,
     upsample_factor: int = 0,
     edge_mask_bc_bins: float = 0.0,
 ):
@@ -2898,7 +4594,7 @@ def plot_rho_BuBc(
         if h_edge > 0:
             rho0[Bc0 < h_edge] = np.nan
 
-    vmax = _rho_window_vmax(
+    vmax = rho_window_vmax(
         Ha0, Hb0, rho0,
         pct=pct,
         normalize_to_unit=normalize_to_unit,
@@ -2929,8 +4625,8 @@ def plot_rho_BuBc(
     Bc_cont = 0.5 * (Hb2D_c - Ha2D_c)
 
     # Edges for pcolormesh
-    Ha_edges = _centers_to_edges_1d(Ha_plot)
-    Hb_edges = _centers_to_edges_1d(Hb_plot)
+    Ha_edges = centers_to_edges(Ha_plot)
+    Hb_edges = centers_to_edges(Hb_plot)
     Ha2D_e, Hb2D_e = np.meshgrid(Ha_edges, Hb_edges, indexing="ij")
     Bu = 0.5 * (Hb2D_e + Ha2D_e)
     Bc = 0.5 * (Hb2D_e - Ha2D_e)
@@ -2996,11 +4692,11 @@ def plot_rho_BuBc(
 
     fig.tight_layout()
 
-    if show:
+    if show_plot:
         plt.show()
     if close:
         plt.close(fig)
-    if return_fig:
+    if return_figure:
         return fig, ax, pm, cbar
     return None
 
@@ -3042,7 +4738,7 @@ def guess_loess_params(
     if (span_Hb_T is not None) and (span_Ha_T is not None):
         rx = max(1, int(np.ceil(float(span_Hb_T) / dHb)))
         ry = max(1, int(np.ceil(float(span_Ha_T) / dHa)))
-        offsets = _build_offsets(rx, ry)
+        offsets = loess_offsets(rx, ry)
         n_candidate = float(offsets.shape[0])
         n_eff = n_candidate * fill_fraction
 
@@ -3071,7 +4767,7 @@ def guess_loess_params(
         rx = min(rx, max_rx)
         ry = min(ry, max_ry)
 
-        offsets = _build_offsets(rx, ry)
+        offsets = loess_offsets(rx, ry)
         n_candidate = float(offsets.shape[0])
         n_eff = n_candidate * fill_fraction
 
@@ -3109,7 +4805,7 @@ def guess_loess_params(
 # One-call pipeline (THIS is what you use in the notebook)
 # ============================================================
 
-def run_forc_pipeline(
+def _process_forc_single(
     path: str,
     sample_title: str = "Sample",
     # preprocessing
@@ -3120,7 +4816,9 @@ def run_forc_pipeline(
     blank_sep: int = 2,
     jump_T: float = 0.05,
     cal_drop_T: float = 0.02,
-    # loess controls
+    # smoothing controls
+    smoothing: str = "loess",
+    variforc: Optional[Dict[str, object]] = None,
     smooth_strength: float = 1.0,
     min_pts_strength: float = 1.0,
     target_n_eff: float = 60.0,
@@ -3145,6 +4843,7 @@ def run_forc_pipeline(
     # endpoint replacement switches
     replace_first: bool = True,
     replace_last: bool = True,
+    correct_first_point: bool = False,
     # lower-branch subtraction
     do_reference_subtract: bool = False,
     reference_curve: str = "lowest_reversal",
@@ -3197,6 +4896,7 @@ def run_forc_pipeline(
             endpoint_replace_n=endpoint_replace_n,
             replace_first=replace_first,
             replace_last=replace_last,
+            correct_first_point=correct_first_point,
             do_reference_subtract=do_reference_subtract,
             reference_curve=reference_curve,
             blank_sep=blank_sep,
@@ -3278,6 +4978,7 @@ def run_forc_pipeline(
         M_grid_used, stack_counts = _stack_nan_grids(
             stacked_grids,
             method=stack_method,
+            verbose=verbose,
         )
 
         if verbose:
@@ -3287,7 +4988,11 @@ def run_forc_pipeline(
                 f"Finite stacked cells: {finite_cells}"
             )
 
-    # LOESS params + rho
+    # Smoothing and the distribution itself
+    smoothing_l = str(smoothing).strip().lower()
+    if smoothing_l not in {"loess", "variforc"}:
+        raise ValueError("smoothing must be 'loess' or 'variforc'.")
+
     g = guess_loess_params(
         Ha_vals_used,
         Hb_vals_used,
@@ -3298,12 +5003,33 @@ def run_forc_pipeline(
     span_Ha = float(g["span_Ha_T"]) * float(smooth_strength)
     min_pts = int(round(float(g["min_pts_suggested"]) * float(min_pts_strength)))
 
-    rho = loess_rho_from_grid_fast(
-        Ha_vals_used, Hb_vals_used, M_grid_used,
-        span_Hb_T=span_Hb,
-        span_Ha_T=span_Ha,
-        min_pts=min_pts,
-    )
+    if smoothing_l == "variforc":
+        settings = dict(variforc_settings() if variforc is None else variforc)
+        preset = settings.pop("_preset", None)
+        settings.pop("_ridge_width", None)
+        if verbose:
+            print(f"VARIFORC variable smoothing"
+                  + (f" (preset {preset!r})" if preset else ""))
+        rho = variforc_rho_from_grid(
+            Ha_vals_used, Hb_vals_used, M_grid_used,
+            min_pts=max(6, int(round(min_pts * 0.5))),
+            verbose=verbose,
+            **settings,
+        )
+        smoothing_params = {"method": "variforc", "preset": preset, **settings}
+    else:
+        rho = loess_rho_from_grid_fast(
+            Ha_vals_used, Hb_vals_used, M_grid_used,
+            span_Hb_T=span_Hb,
+            span_Ha_T=span_Ha,
+            min_pts=min_pts,
+        )
+        smoothing_params = {
+            "method": "loess",
+            "span_Ha_T": span_Ha,
+            "span_Hb_T": span_Hb,
+            "min_pts": min_pts,
+        }
 
     # Raw FORC curves
     if plot_hyst:
@@ -3348,11 +5074,11 @@ def run_forc_pipeline(
             color_scale_version=color_scale_version,
             normalize_to_unit=normalize_to_unit,
             pct=pct,
-            return_fig=True,
+            return_figure=True,
         )
 
     if plot_rho_ha_hb:
-        plot_rho_HaHb(
+        plot_forc_diagram_ha_hb(
             Ha_vals_used, Hb_vals_used, rho,
             title=sample_title,
             show_contours=show_contours,
@@ -3365,7 +5091,7 @@ def run_forc_pipeline(
 
     fig_rho = ax_rho = pm = cbar = None
     if plot_rho:
-        fig_rho, ax_rho, pm, cbar = plot_rho_BuBc(
+        fig_rho, ax_rho, pm, cbar = plot_forc_diagram(
             Ha_vals_used, Hb_vals_used, rho,
             Bu_min=Bu_min_lim, Bu_max=Bu_max_lim,
             Bc_min=Bc_min_lim,
@@ -3378,9 +5104,9 @@ def run_forc_pipeline(
             normalize_to_unit=normalize_to_unit,
             pct=pct,
             color_scale_version=color_scale_version,
-            show=True,
+            show_plot=True,
             close=False,
-            return_fig=True,
+            return_figure=True,
             upsample_factor=display_upsample_factor,
             edge_mask_bc_bins=edge_mask_bc_bins,
         )
@@ -3432,6 +5158,8 @@ def run_forc_pipeline(
             "span_Ha_T_used": span_Ha,
             "min_pts_used": min_pts,
         },
+        "smoothing": smoothing_l,
+        "smoothing_params": smoothing_params,
 
         "dpi": int(dpi) if dpi is not None else 120,
         "export_dpi": int(export_dpi) if export_dpi is not None else 300,
@@ -3710,6 +5438,195 @@ def slice_profile_smoothed(
         "bin_width": resolved_bin_width,
         "peak": pk,
     }
+
+def coercivity_distribution(
+    Ha_vals,
+    Hb_vals,
+    rho,
+    Bu_min: Optional[float] = None,
+    Bu_max: Optional[float] = None,
+    Bc_min: float = 0.0,
+    Bc_max: Optional[float] = None,
+    bin_width: Optional[float] = None,
+    smooth_sigma_bins: Optional[float] = None,
+) -> Dict[str, object]:
+    """Collapse the FORC distribution onto the coercivity axis.
+
+    Integrating rho over the interaction-field axis at each coercivity leaves a
+    one-dimensional coercivity distribution,
+
+        f(Bc) = integral rho(Bc, Bu) dBu,
+
+    which is the FORC diagram's statement about the switching-field spectrum of
+    the assemblage with the interaction spread projected out. It is directly
+    comparable with a coercivity spectrum obtained by unmixing a backfield or
+    IRM acquisition curve, so it is a useful bridge between the two kinds of
+    measurement, and it is far less sensitive to the smoothing level than the
+    peak amplitude of the two-dimensional diagram, because integrating over Bu
+    undoes much of what vertical smoothing does.
+
+    The integral is evaluated on the measurement grid, whose cells have area
+    ``dHa * dHb / 2`` in the rotated coordinates -- the Jacobian of the
+    rotation is one half -- so the sum over cells in a coercivity bin is scaled
+    by that area and divided by the bin width.
+
+    Args:
+        Ha_vals: Reversal-field grid coordinates in tesla.
+        Hb_vals: Applied-field grid coordinates in tesla.
+        rho: FORC distribution on the ``(Ha, Hb)`` grid.
+        Bu_min: Lower limit of the interaction-field integration. Defaults to
+            the finite data range. Restricting it isolates the contribution of
+            part of the diagram, at the cost of no longer being a complete
+            integral.
+        Bu_max: Upper limit of the integration.
+        Bc_min: Lowest coercivity reported.
+        Bc_max: Highest coercivity reported. Defaults to the data range.
+        bin_width: Width of the coercivity bins in tesla. Defaults to the grid
+            step.
+        smooth_sigma_bins: Optional Gaussian smoothing of the result, in bins.
+
+    Returns:
+        dict: ``Bc`` bin centres in tesla, ``f`` the distribution in A m^2 per
+        tesla, ``counts`` of contributing cells per bin, the ``bin_width``
+        used, the ``Bu_range`` integrated over, ``integral`` of ``f`` over the
+        reported range, and ``peak`` metrics from
+        :func:`profile_peak_and_fwhm`.
+
+    Raises:
+        ValueError: If rho has no finite values in the requested window.
+
+    Notes:
+        The integral of ``f`` over all coercivities is related to the
+        saturation remanence, but only when the whole distribution is covered
+        and the measurement reaches saturation; treat the returned
+        ``integral`` as a diagnostic rather than an Mrs determination.
+    """
+    Ha_vals = np.asarray(Ha_vals, dtype=np.float64)
+    Hb_vals = np.asarray(Hb_vals, dtype=np.float64)
+    rho = np.asarray(rho, dtype=np.float64)
+    if rho.shape != (Ha_vals.size, Hb_vals.size):
+        raise ValueError(
+            "rho shape must be (len(Ha_vals), len(Hb_vals)); "
+            f"received {rho.shape}."
+        )
+
+    Bu, Bc = bu_bc_from_ha_hb(Ha_vals, Hb_vals)
+    valid = np.isfinite(rho) & (Bc >= 0.0)
+    if not np.any(valid):
+        raise ValueError("rho has no finite values in the physical half-plane.")
+
+    bounds = resolve_profile_bounds(Bu, Bc, np.where(valid, rho, np.nan),
+                                    Bu_min=Bu_min, Bu_max=Bu_max,
+                                    Bc_min=Bc_min, Bc_max=Bc_max)
+    window = (valid
+              & (Bu >= bounds["Bu_min"]) & (Bu <= bounds["Bu_max"])
+              & (Bc >= bounds["Bc_min"]) & (Bc <= bounds["Bc_max"]))
+    if not np.any(window):
+        raise ValueError("No finite rho values inside the requested window.")
+
+    dHa = float(np.median(np.diff(Ha_vals))) if Ha_vals.size > 1 else np.nan
+    dHb = float(np.median(np.diff(Hb_vals))) if Hb_vals.size > 1 else np.nan
+    if not np.isfinite(dHa) or dHa <= 0:
+        dHa = dHb
+    if not np.isfinite(dHb) or dHb <= 0:
+        dHb = dHa
+    cell_area = 0.5 * dHa * dHb          # Jacobian of the 45-degree rotation
+
+    if bin_width is None:
+        _, bin_width = estimate_steps(Ha_vals, Hb_vals)
+    bin_width = float(bin_width)
+    if not np.isfinite(bin_width) or bin_width <= 0:
+        raise ValueError("bin_width must be a positive finite value.")
+
+    span = bounds["Bc_max"] - bounds["Bc_min"]
+    n_bins = max(2, int(round(span / bin_width)))
+    edges = np.linspace(bounds["Bc_min"], bounds["Bc_max"], n_bins + 1)
+    centres = 0.5 * (edges[:-1] + edges[1:])
+    width = float(edges[1] - edges[0])
+
+    index = np.digitize(Bc[window], edges) - 1
+    keep = (index >= 0) & (index < n_bins)
+    index = index[keep]
+    values = rho[window][keep]
+
+    totals = np.zeros(n_bins, dtype=float)
+    counts = np.zeros(n_bins, dtype=float)
+    np.add.at(totals, index, values)
+    np.add.at(counts, index, 1.0)
+
+    # Sum of rho over the cells in a bin, times the area each cell occupies in
+    # (Bc, Bu), divided by the bin width, is the integral over Bu.
+    f = totals * cell_area / width
+    f[counts == 0] = np.nan
+    if smooth_sigma_bins:
+        f = gaussian_smooth_1d_nan(f, sigma_bins=smooth_sigma_bins)
+
+    finite = np.isfinite(f)
+    integral = float(np.trapezoid(f[finite], centres[finite])) if finite.sum() > 1 else np.nan
+
+    return {
+        "Bc": centres,
+        "f": f,
+        "counts": counts,
+        "bin_width": width,
+        "Bu_range": (bounds["Bu_min"], bounds["Bu_max"]),
+        "Bc_range": (bounds["Bc_min"], bounds["Bc_max"]),
+        "integral": integral,
+        "peak": profile_peak_and_fwhm(centres, f, use_abs=False),
+    }
+
+
+def plot_coercivity_distribution(
+    distribution: Dict[str, object],
+    ax=None,
+    color: str = "#0072B2",
+    label: Optional[str] = None,
+    annotate: bool = True,
+    figsize: Tuple[float, float] = (6.2, 3.6),
+    dpi: int = 120,
+):
+    """Plot a coercivity distribution obtained from a FORC diagram.
+
+    Args:
+        distribution: Result of :func:`coercivity_distribution`.
+        ax: Axes to draw on. A new figure is made when None.
+        color: Line colour.
+        label: Legend label.
+        annotate: Mark the peak and the full width at half maximum.
+        figsize: Figure size, used only when creating a new figure.
+        dpi: Figure resolution, used only when creating a new figure.
+
+    Returns:
+        The axes drawn on.
+    """
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize, dpi=dpi, layout="constrained")
+
+    Bc = 1e3 * np.asarray(distribution["Bc"], float)
+    f = np.asarray(distribution["f"], float)
+    ax.plot(Bc, f, color=color, lw=1.4, label=label)
+    ax.axhline(0, color="0.85", lw=0.6, zorder=0)
+
+    peak = distribution.get("peak", {})
+    if annotate and np.isfinite(peak.get("peak_x", np.nan)):
+        ax.plot([1e3 * peak["peak_x"]], [peak["peak_y"]], "o", ms=4, color=color)
+        text = f"peak {1e3 * peak['peak_x']:.0f} mT"
+        if np.isfinite(peak.get("fwhm", np.nan)):
+            left, right = peak["left_x"], peak["right_x"]
+            if np.isfinite(left) and np.isfinite(right):
+                ax.plot([1e3 * left, 1e3 * right], [peak["half_y"]] * 2,
+                        color="0.45", lw=0.9)
+            text += f", FWHM {1e3 * peak['fwhm']:.0f} mT"
+        ax.annotate(text, xy=(1e3 * peak["peak_x"], peak["peak_y"]),
+                    xytext=(6, 2), textcoords="offset points", fontsize=8,
+                    color=color)
+
+    ax.set_xlabel(r"$B_c$ (mT)")
+    ax.set_ylabel(r"$\int \rho \, \mathrm{d}B_u$  (A m$^2$ T$^{-1}$)")
+    if label:
+        ax.legend(frameon=False, fontsize=8)
+    return ax
+
 
 def find_bounded_peak_rho(Ha_vals, Hb_vals, rho, Bu_min=None, Bu_max=None, Bc_min=None, Bc_max=None):
     rho = np.asarray(rho, float)
@@ -4093,8 +6010,8 @@ def plot_bounded_peak_profiles(
     title_prefix: str = "",
     figsize: Tuple[float, float] = (10.5, 4.5),
     dpi: int = 120,
-    show: bool = True,
-    return_fig: bool = False,
+    show_plot: bool = True,
+    return_figure: bool = False,
 ):
     """
     Two-panel plot:
@@ -4102,8 +6019,8 @@ def plot_bounded_peak_profiles(
       right = rho vs Bu at Bc = bounded peak Bc
 
     New options:
-      show=False      -> do not call plt.show()
-      return_fig=True -> return the figure handle for export
+      show_plot=False      -> do not call plt.show()
+      return_figure=True -> return the figure handle for export
     """
     prof_bc = bundle["horizontal"]
     prof_bu = bundle["vertical"]
@@ -4158,9 +6075,9 @@ def plot_bounded_peak_profiles(
         ax.text(0.68, 0.98, txt, transform=ax.transAxes, va="top", ha="left")
 
     fig.subplots_adjust(left=0.08, right=0.98, bottom=0.12, top=0.88, wspace=0.25)
-    if show:
+    if show_plot:
         plt.show()
-    if return_fig:
+    if return_figure:
         return fig
     return None
 
@@ -4210,7 +6127,7 @@ def export_current_figure_from_out(
     close: bool = False,
 ):
     """
-    Export the main FORC figure(s) from run_forc_pipeline(...) output.
+    Export the main FORC figure(s) from process_forc(...) output.
 
     Accepts either:
       - a single output dict
@@ -4297,7 +6214,7 @@ def export_forc_profiles_txt(
         fname = safe_filename(f"{specimen_name}_Bu_vs_Bc_tracking") + ".txt"
         _write_xy(export_dir / fname, "Bc_T\tBu_T\trho", np.column_stack([bc, bu, rho]))
 
-def plot_auto_forc_profiles(
+def _plot_auto_forc_profiles_single(
     out: Dict[str, object],
     smooth_sigma_bins: Optional[float] = 1.0,
     pct: float = 100.0,
@@ -4355,7 +6272,7 @@ def plot_auto_forc_profiles(
     if title_prefix is None:
         title_prefix = f"{sample_title} — "
 
-    fig = plot_bounded_peak_profiles(bundle, title_prefix=title_prefix, show=False, return_fig=True)
+    fig = plot_bounded_peak_profiles(bundle, title_prefix=title_prefix, show_plot=False, return_figure=True)
 
     png_path = None
     if export_png:
@@ -4374,7 +6291,7 @@ def plot_auto_forc_profiles(
         }
     return None
 
-def plot_custom_forc_profiles(
+def _plot_custom_forc_profiles_single(
     out: Dict[str, object],
     user_Bu: float = 0.0,
     user_Bc: float = 0.02,
@@ -4658,9 +6575,6 @@ def export_figure(
 # ============================================================
 
 # Preserve the original single/stack implementation
-_run_forc_pipeline_core = run_forc_pipeline
-_plot_auto_forc_profiles_core = plot_auto_forc_profiles
-_plot_custom_forc_profiles_core = plot_custom_forc_profiles
 
 def _is_out_list(obj) -> bool:
     return isinstance(obj, list)
@@ -4684,7 +6598,7 @@ def _derive_common_sample_title(files) -> str:
     return common if common else "stack"
 
 
-def _run_magic_pipeline(
+def _process_forc_magic(
     path: PathLike,
     sample_title: Optional[str],
     stack_method: str,
@@ -4724,7 +6638,7 @@ def _run_magic_pipeline(
 
             use_stack = len(synthetic_files) > 1
             core_path = str(specimen_dir if use_stack else synthetic_files[0])
-            one_out = _run_forc_pipeline_core(
+            one_out = _process_forc_single(
                 path=core_path,
                 sample_title=sample_title or specimen,
                 stack=use_stack,
@@ -4747,7 +6661,7 @@ def _run_magic_pipeline(
 
     return outputs if detected_mode == "b" else outputs[0]
 
-def run_forc_pipeline(
+def process_forc(
     path: str,
     sample_title: Optional[str] = None,
     mode: str = "i",
@@ -4787,7 +6701,7 @@ def run_forc_pipeline(
         user_title = None
 
     if mode_l == "m":
-        return _run_magic_pipeline(
+        return _process_forc_magic(
             path=path,
             sample_title=user_title,
             stack_method=stack_method,
@@ -4796,7 +6710,7 @@ def run_forc_pipeline(
 
     if mode_l == "i":
         auto_title = Path(path).stem
-        return _run_forc_pipeline_core(
+        return _process_forc_single(
             path=path,
             sample_title=user_title or auto_title,
             stack=False,
@@ -4813,7 +6727,7 @@ def run_forc_pipeline(
             verbose=bool(kwargs.get("verbose", True)),
         )
         auto_title = _derive_common_sample_title(files)
-        return _run_forc_pipeline_core(
+        return _process_forc_single(
             path=path,
             sample_title=user_title or auto_title,
             stack=True,
@@ -4832,7 +6746,7 @@ def run_forc_pipeline(
     outs = []
     for fp in files:
         auto_title = Path(fp).stem
-        one_out = _run_forc_pipeline_core(
+        one_out = _process_forc_single(
             path=str(fp),
             sample_title=user_title or auto_title,
             stack=False,
@@ -4850,7 +6764,7 @@ def _export_current_figure_single(
     close: bool = False,
 ) -> Path:
     """
-    Export the main FORC figure from one run_forc_pipeline(...) output dict
+    Export the main FORC figure from one process_forc(...) output dict
     into FORC_figures.
     """
     fig = out.get("fig_rho", None)
@@ -4897,7 +6811,7 @@ def plot_auto_forc_profiles(
         results = []
         for one_out in out:
             results.append(
-                _plot_auto_forc_profiles_core(
+                _plot_auto_forc_profiles_single(
                     one_out,
                     smooth_sigma_bins=smooth_sigma_bins,
                     pct=pct,
@@ -4915,7 +6829,7 @@ def plot_auto_forc_profiles(
             )
         return results if return_data else None
 
-    return _plot_auto_forc_profiles_core(
+    return _plot_auto_forc_profiles_single(
         out,
         smooth_sigma_bins=smooth_sigma_bins,
         pct=pct,
@@ -4956,7 +6870,7 @@ def plot_custom_forc_profiles(
         results = []
         for one_out in out:
             results.append(
-                _plot_custom_forc_profiles_core(
+                _plot_custom_forc_profiles_single(
                     one_out,
                     user_Bu=user_Bu,
                     user_Bc=user_Bc,
@@ -4977,7 +6891,7 @@ def plot_custom_forc_profiles(
             )
         return results if return_data else None
 
-    return _plot_custom_forc_profiles_core(
+    return _plot_custom_forc_profiles_single(
         out,
         user_Bu=user_Bu,
         user_Bc=user_Bc,
