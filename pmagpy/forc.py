@@ -4131,10 +4131,10 @@ def upsample_forc_grid(Ha_vals, Hb_vals, rho, factor=3):
     Ha_new = np.linspace(Ha_vals.min(), Ha_vals.max(), len(Ha_vals)*factor)
     Hb_new = np.linspace(Hb_vals.min(), Hb_vals.max(), len(Hb_vals)*factor)
 
-    hdr_Bu_max, Ha2 = np.meshgrid(Ha_new, Hb_new, indexing="ij")
+    Ha2D, Hb2D = np.meshgrid(Ha_new, Hb_new, indexing="ij")
 
-    pts = np.column_stack((hdr_Bu_max.ravel(), Ha2.ravel()))
-    rho_new = interp(pts).reshape(hdr_Bu_max.shape)
+    pts = np.column_stack((Ha2D.ravel(), Hb2D.ravel()))
+    rho_new = interp(pts).reshape(Ha2D.shape)
 
     return Ha_new, Hb_new, rho_new
 
