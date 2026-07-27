@@ -6101,7 +6101,9 @@ def _plot_auto_forc_profiles_single(
     Bc_max_lim = out["plot_limits"]["Bc_max_lim"]
 
     sample_title = out.get("sample_title", "Sample")
-    profiles_dir = get_forc_profiles_dir(out)
+    # Resolve (and create) the output directory only when something will
+    # actually be written there, so a plot-only call leaves no empty folders.
+    profiles_dir = get_forc_profiles_dir(out) if (export_txt or export_png) else None
 
     vmax_win = _rho_window_vmax_bu_bc(
         Ha_vals, Hb_vals, rho,
@@ -6149,7 +6151,7 @@ def _plot_auto_forc_profiles_single(
             "rho_u": rho_u,
             "vmax_win": vmax_win,
             "profiles_png_path": str(png_path) if png_path is not None else None,
-            "profiles_dir": str(profiles_dir),
+            "profiles_dir": str(profiles_dir) if profiles_dir is not None else None,
         }
     return None
 
@@ -6181,7 +6183,10 @@ def _plot_custom_forc_profiles_single(
     Bc_max_lim = out["plot_limits"]["Bc_max_lim"]
 
     sample_title = out.get("sample_title", "Sample")
-    profiles_dir = get_forc_profiles_dir(out)
+    # Resolve (and create) the output directory only when something will
+    # actually be written there, so a plot-only call leaves no empty folders.
+    profiles_dir = (get_forc_profiles_dir(out)
+                    if (export_txt or export_custom_txt or export_png) else None)
     export_dpi = int(out.get("export_dpi", 300)) if export_dpi is None else int(export_dpi)
 
     def _export_xy_profile_txt(x, y, specimen_name, suffix, xlabel, ylabel="rho_norm", out_dir=None) -> Path:
@@ -6404,7 +6409,7 @@ def _plot_custom_forc_profiles_single(
             "prof_bc_peak": prof_bc_peak,
             "Bc_axis_user": Bc_axis_user,
             "prof_bc_user": prof_bc_user,
-            "profiles_dir": str(profiles_dir),
+            "profiles_dir": str(profiles_dir) if profiles_dir is not None else None,
             "profiles_png_path": str(png_path) if png_path is not None else None,
             **custom_export_paths,
         }
