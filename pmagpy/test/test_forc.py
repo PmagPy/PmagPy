@@ -36,7 +36,7 @@ def quadratic_grid(size=25):
 
 def write_micromag(path, n_forc=40, ha_min=-0.20, ha_max=0.02, h_max=0.25,
                    step=0.005, drift_amp=0.0, units="SI", eq_header=False,
-                   third_column=False, descending=True):
+                   third_column=False, descending=True, n_repeats_of_last_curve=0):
     """Write a synthetic MicroMag FORC export.
 
     Args:
@@ -52,6 +52,10 @@ def write_micromag(path, n_forc=40, ha_min=-0.20, ha_max=0.02, h_max=0.25,
         third_column: Append a temperature column to each data row.
         descending: Measure from the highest reversal field downwards, as
             MicroMag does.
+        n_repeats_of_last_curve: Number of times the final (deepest reversal
+            field) curve is measured again at the end of the run. The Lake
+            Shore 8600 FORC script does this, so a run can contain several
+            curves sharing one reversal field.
 
     Returns:
         The reversal fields written, in measurement order.
@@ -77,8 +81,10 @@ def write_micromag(path, n_forc=40, ha_min=-0.20, ha_max=0.02, h_max=0.25,
         lines += [sep("NData", 0), ""]
 
     Has = np.linspace(ha_max, ha_min, n_forc) if descending else np.linspace(ha_min, ha_max, n_forc)
+    if n_repeats_of_last_curve:
+        Has = np.concatenate([Has, np.full(n_repeats_of_last_curve, Has[-1])])
     for k, Ha in enumerate(Has):
-        drift = drift_amp * k / max(1, n_forc - 1)
+        drift = drift_amp * k / max(1, len(Has) - 1)
         cal_m = (1.0e-6 + drift) * ms
         tail = ",+2.947547E+02" if third_column else ""
         lines.append(f"{h_max * fs:.9g},{cal_m:.9g}{tail}")
@@ -251,6 +257,63 @@ def test_bc_and_bu_are_reported_in_the_rotated_literature_coordinates():
     # The upper triangle, where the applied field is below the reversal field,
     # is unphysical and carries negative Bc.
     assert Bc[2, 0] < 0
+
+
+# --------------------------------------------- replicate reversal curves
+
+def test_merge_replicate_reversal_rows_averages_nan_aware():
+    """Rows at a repeated Ha combine by a mean that ignores missing values."""
+    Ha = np.array([-0.02, -0.01, -0.01, 0.0])
+    M = np.array([
+        [1.0, 2.0, 3.0],
+        [2.0, np.nan, 4.0],
+        [4.0, np.nan, np.nan],
+        [5.0, 6.0, 7.0],
+    ])
+    Ha_merged, M_merged, n_replicates = forc.merge_replicate_reversal_rows(Ha, M)
+
+    assert n_replicates == 1
+    assert_allclose(Ha_merged, [-0.02, -0.01, 0.0])
+    assert_allclose(M_merged[0], M[0])
+    assert_allclose(M_merged[1], [3.0, np.nan, 4.0], equal_nan=True)
+    assert_allclose(M_merged[2], M[3])
+
+
+def test_merge_replicate_reversal_rows_leaves_distinct_curves_alone():
+    """Reversal fields a full step apart are not treated as replicates."""
+    Ha = np.array([-0.02, -0.01, 0.0])
+    M = np.arange(9, dtype=float).reshape(3, 3)
+    Ha_merged, M_merged, n_replicates = forc.merge_replicate_reversal_rows(Ha, M)
+
+    assert n_replicates == 0
+    assert_allclose(Ha_merged, Ha)
+    assert_allclose(M_merged, M)
+
+
+def test_repeated_final_curves_process_and_match_the_plain_run(tmp_path):
+    """A run whose last curve was measured repeatedly gives the same rho.
+
+    The Lake Shore 8600 FORC script re-measures the deepest-reversal-field
+    curve at the end of a run. Those repeats share one reversal field, which
+    violated the strictly increasing Ha axis and made processing fail; they
+    are now averaged into one grid row.
+    """
+    plain = tmp_path / "plain.txt"
+    replicated = tmp_path / "replicated.txt"
+    write_micromag(plain)
+    write_micromag(replicated, n_repeats_of_last_curve=2)
+
+    out_plain = forc.process_forc(mode="i", path=str(plain), plot_hyst=False,
+                                  plot_rho=False, verbose=False)
+    out_rep = forc.process_forc(mode="i", path=str(replicated), plot_hyst=False,
+                                plot_rho=False, verbose=False)
+
+    Ha = out_rep["Ha_vals_used"]
+    assert (np.diff(Ha) > 0).all()
+    assert Ha.size == out_plain["Ha_vals_used"].size
+    # The fixture's curves are noise-free, so averaging identical replicates
+    # must reproduce the plain run exactly.
+    assert_allclose(out_rep["rho"], out_plain["rho"], equal_nan=True)
 
 
 # ------------------------------------------------------- drift correction
