@@ -2,11 +2,10 @@
 
 Normal and inactive controls use colours supplied by the operating system.
 Semantic states use explicit foreground/background pairs so that status
-colours remain readable in both light and dark appearance modes.
+colours remain readable in both light and dark appearance modes.  wxPython is
+loaded only when system colours or events are needed so the semantic palette
+can be tested in non-GUI environments.
 """
-
-import wx
-
 
 NORMAL = "normal"
 INACTIVE = "inactive"
@@ -48,8 +47,15 @@ _SEMANTIC_PALETTES = {
 }
 
 
+def _get_wx():
+    """Import and return wxPython only when a GUI operation requires it."""
+    import wx
+    return wx
+
+
 def is_dark_mode():
     """Return whether wxPython reports a dark system appearance."""
+    wx = _get_wx()
     try:
         return wx.SystemSettings.GetAppearance().IsDark()
     except (AttributeError, RuntimeError):
@@ -76,11 +82,13 @@ def get_control_colours(role=NORMAL, dark=None):
     """
     role = _ROLE_ALIASES.get(role, role)
     if role == NORMAL:
+        wx = _get_wx()
         return (
             wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW),
             wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT),
         )
     if role == INACTIVE:
+        wx = _get_wx()
         return (
             wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE),
             wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT),
@@ -146,6 +154,7 @@ def bind_theme_updates(window):
     """Refresh custom control colours when the operating-system theme changes."""
     if getattr(window, "_pmag_theme_updates_bound", False):
         return
+    wx = _get_wx()
 
     def on_system_colour_changed(event):
         event.Skip()

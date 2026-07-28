@@ -34,6 +34,17 @@ def test_unknown_role_is_rejected():
         gui_theme.get_control_colours("not-a-role")
 
 
+def test_semantic_colours_do_not_require_wx(monkeypatch):
+    def fail_if_wx_is_loaded():
+        pytest.fail("semantic colours should not load wxPython")
+
+    monkeypatch.setattr(gui_theme, "_get_wx", fail_if_wx_is_loaded)
+
+    assert gui_theme.get_control_colours(
+        gui_theme.WARNING, dark=True
+    ) == ("#4A3A0B", "#FFF0B3")
+
+
 class FakeControl:
     def __init__(self):
         self.background = None
