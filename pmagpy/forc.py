@@ -2400,6 +2400,55 @@ def plot_forc_curves_hysteresis(
 # Phase 2: build grid + LOESS rho
 # ============================================================
 
+def merge_replicate_reversal_rows(
+    Ha_vals: np.ndarray,
+    M_grid: np.ndarray,
+    rel_tol: float = 0.25,
+) -> Tuple[np.ndarray, np.ndarray, int]:
+    """Average grid rows measured at repeated reversal fields.
+
+    Some measurement scripts end a FORC run with replicate curves at the
+    deepest reversal field. Repeated reversal fields would violate the
+    strictly increasing Ha axis the rho estimators require, so adjacent rows
+    whose reversal fields agree to within ``rel_tol`` of the median
+    reversal-field step are treated as replicates of one curve and combined
+    by a point-by-point mean that ignores missing values.
+
+    Args:
+        Ha_vals: Reversal fields of the rows in tesla, sorted ascending.
+        M_grid: Moment grid with one row per curve, aligned with Ha_vals.
+        rel_tol: Fraction of the median positive Ha step below which two
+            adjacent reversal fields count as the same curve.
+
+    Returns:
+        Tuple ``(Ha_merged, M_merged, n_replicates)`` where ``n_replicates``
+        is the number of rows that were folded into another row.
+    """
+    Ha = np.asarray(Ha_vals, dtype=np.float64)
+    M = np.asarray(M_grid, dtype=np.float64)
+    if Ha.size <= 1:
+        return Ha, M, 0
+
+    gaps = np.diff(Ha)
+    positive = gaps[gaps > 0]
+    tol = rel_tol * float(np.median(positive)) if positive.size else np.inf
+    group = np.concatenate([[0], np.cumsum(gaps > tol)])
+    n_groups = int(group[-1]) + 1
+    if n_groups == Ha.size:
+        return Ha, M, 0
+
+    Ha_merged = np.empty(n_groups, dtype=np.float64)
+    M_merged = np.full((n_groups, M.shape[1]), np.nan, dtype=np.float64)
+    for g in range(n_groups):
+        members = group == g
+        rows = M[members, :]
+        Ha_merged[g] = float(np.mean(Ha[members]))
+        counts = np.isfinite(rows).sum(axis=0)
+        sums = np.nansum(np.where(np.isfinite(rows), rows, 0.0), axis=0)
+        M_merged[g, :] = np.where(counts > 0, sums / np.maximum(counts, 1), np.nan)
+    return Ha_merged, M_merged, int(Ha.size - n_groups)
+
+
 def build_forc_grid(forcs: List[Segment], Hb_min=None, Hb_max=None, verbose: bool = True):
     """Build rectangular grid M(Ha,Hb). Returns Ha_vals, Hb_vals, M_grid, dHb, dHa."""
     good: List[Segment] = []
@@ -2454,13 +2503,6 @@ def build_forc_grid(forcs: List[Segment], Hb_min=None, Hb_max=None, verbose: boo
     Ha_vals = Ha_vals[order]
     good = [good[i] for i in order]
 
-    if len(Ha_vals) > 1:
-        dHa = float(np.median(np.diff(Ha_vals)))
-        if not np.isfinite(dHa) or dHa <= 0:
-            dHa = dHb
-    else:
-        dHa = dHb
-
     # Assigning each measurement to its nearest column is exact only when the
     # measured applied fields already lie on the common lattice. They do not
     # when the reversal-field increment is not a whole multiple of the
@@ -2491,7 +2533,19 @@ def build_forc_grid(forcs: List[Segment], Hb_min=None, Hb_max=None, verbose: boo
             row[(Hb_vals < Hf[0]) | (Hb_vals > Hf[-1]) | (Hb_vals < float(s.Ha))] = np.nan
             M_grid[i, :] = row
 
+    Ha_vals, M_grid, n_replicates = merge_replicate_reversal_rows(Ha_vals, M_grid)
+
+    if len(Ha_vals) > 1:
+        dHa = float(np.median(np.diff(Ha_vals)))
+        if not np.isfinite(dHa) or dHa <= 0:
+            dHa = dHb
+    else:
+        dHa = dHb
+
     if verbose:
+        if n_replicates:
+            print(f"Averaged {n_replicates} replicate curve(s) measured at "
+                  f"repeated reversal fields into their companions.")
         print(f"Inferred dHb ≈ {dHb:.6g} T, Hb: {Hb_vals[0]:.6g}→{Hb_vals[-1]:.6g} (n={len(Hb_vals)})")
         print(f"Inferred dHa ≈ {dHa:.6g} T, Ha: {Ha_vals[0]:.6g}→{Ha_vals[-1]:.6g} (n={len(Ha_vals)})")
         print(f"M_grid shape: {M_grid.shape}")
@@ -2584,6 +2638,12 @@ def build_forc_grid_regridded(
 
         Mi[~tri] = np.nan
         M_meas[i, :] = Mi
+
+    Ha_vals_meas, M_meas, n_replicates = merge_replicate_reversal_rows(
+        Ha_vals_meas, M_meas)
+    if verbose and n_replicates:
+        print(f"Averaged {n_replicates} replicate curve(s) measured at "
+              f"repeated reversal fields into their companions.")
 
     # infer Ha step if needed
     if Ha_step is None:
