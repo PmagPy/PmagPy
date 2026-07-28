@@ -6,6 +6,7 @@ assorted wxPython custom widgets
 
 import os
 import wx
+from dialogs import gui_theme
 import wx.html
 import webbrowser
 # ******
@@ -69,14 +70,12 @@ class NotEmptyValidator(wx.PyValidator):
         if len(text) == 0:
             print("textCtrl.Name:", textCtrl.Name)
             wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error")
-            textCtrl.SetBackgroundColour("pink")
+            gui_theme.style_control(textCtrl, gui_theme.ERROR)
             textCtrl.SetFocus()
             textCtrl.Refresh()
             return False
         else:
-            textCtrl.SetBackgroundColour(
-                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-            textCtrl.Refresh()
+            gui_theme.style_control(textCtrl)
             return True
 
     def TransferToWindow(self):
