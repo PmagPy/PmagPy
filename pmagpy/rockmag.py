@@ -6170,6 +6170,50 @@ _CURIE_METHOD_COLORS = {
 }
 
 
+def _autoscale_y_to_xlim(ax, xlim, margin=0.05):
+    """
+    Rescale the y axis of ``ax`` to the plotted data falling within ``xlim``.
+
+    Vertical guide lines drawn with ``axvline`` live in blended (data x,
+    axes y) coordinates and are excluded, so only curves and scatter points
+    contribute to the limits.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axis to rescale.
+    xlim : tuple of float
+        (xmin, xmax) window over which to gather y values.
+    margin : float, optional
+        Fractional padding added above and below the data (default 0.05).
+    """
+    lo, hi = sorted(xlim)
+    bounds = []
+    for line in ax.get_lines():
+        if line.get_transform() is not ax.transData:
+            continue
+        x = np.asarray(line.get_xdata(), dtype=float)
+        y = np.asarray(line.get_ydata(), dtype=float)
+        in_window = (x >= lo) & (x <= hi) & np.isfinite(y)
+        if in_window.any():
+            bounds.append((y[in_window].min(), y[in_window].max()))
+    for collection in ax.collections:
+        offsets = np.asarray(collection.get_offsets(), dtype=float)
+        if offsets.ndim == 2 and offsets.shape[0]:
+            x, y = offsets[:, 0], offsets[:, 1]
+            in_window = (x >= lo) & (x <= hi) & np.isfinite(y)
+            if in_window.any():
+                bounds.append((y[in_window].min(), y[in_window].max()))
+    if not bounds:
+        return
+    ymin = min(b[0] for b in bounds)
+    ymax = max(b[1] for b in bounds)
+    pad = margin * (ymax - ymin)
+    if pad == 0:
+        pad = margin * abs(ymax) if ymax != 0 else margin
+    ax.set_ylim(ymin - pad, ymax + pad)
+
+
 def plot_curie_estimates(
     experiment,
     methods=None,
@@ -6182,6 +6226,9 @@ def plot_curie_estimates(
     branches=("heating", "cooling"),
     method_kwargs=None,
     figsize=(10, 10),
+    legend_loc="lower left",
+    xlim=None,
+    ylim=None,
     return_figure=False,
     save_path=None,
     data_type=None,
@@ -6214,6 +6261,17 @@ def plot_curie_estimates(
         As in ``curie_temperature_estimates``.
     figsize : tuple, optional
         Figure size in inches (default (10, 10)).
+    legend_loc : str, optional
+        Legend location for the main panel, passed to
+        ``matplotlib.axes.Axes.legend`` (default 'lower left').
+    xlim : tuple of float, optional
+        Temperature-axis limits ``(tmin, tmax)`` in ``temp_unit``, applied
+        to all panels (they share the x axis). Each panel's y axis is then
+        autoscaled to the data within the window. Useful for zooming in on
+        a transition temperature.
+    ylim : tuple of float, optional
+        y-axis limits for the main panel only; overrides the ``xlim``
+        autoscaling there.
     return_figure : bool, optional
         If True, return ``(fig, axes)`` (default False).
     save_path : str, optional
@@ -6385,7 +6443,7 @@ def plot_curie_estimates(
              if "specimen" in experiment else "")
     ax_main.set_title(title)
     ax_main.set_ylabel(y_label)
-    ax_main.legend(fontsize=8, loc="upper right")
+    ax_main.legend(fontsize=8, loc=legend_loc)
     if ax_deriv is not None:
         ax_deriv.set_ylabel("dy/dT")
         ax_deriv.legend(fontsize=8, loc="lower left")
@@ -6393,6 +6451,16 @@ def plot_curie_estimates(
         ax_inv.set_ylabel("1/χ")
         ax_inv.legend(fontsize=8, loc="upper left")
     axes[-1].set_xlabel(f"Temperature ({unit_label})")
+    if xlim is not None:
+        ax_main.set_xlim(xlim)
+        # rescale each panel's y axis to the data inside the zoom window;
+        # an explicit ylim takes precedence on the main panel
+        for ax in axes:
+            if ax is ax_main and ylim is not None:
+                continue
+            _autoscale_y_to_xlim(ax, xlim)
+    if ylim is not None:
+        ax_main.set_ylim(ylim)
     for ax in axes:
         ax.grid(True, alpha=0.4)
 
