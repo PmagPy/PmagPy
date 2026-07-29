@@ -87,6 +87,19 @@ def test_arason_levi_handles_steep_data_where_mcfadden_reid_fails():
     assert out['inc'] >= out['ginc']
 
 
+def test_arason_levi_warns_for_edge_solution(capsys):
+    """Steep dispersed data drive the likelihood maximum to the vertical,
+    where a unique solution does not exist (Arason and Levi, 2010,
+    Section 7); the function warns and the profile likelihood limits
+    bound the plausible inclination range."""
+    out = pmag.doincfish([50., 90., 88., 60., 89., 70., 85.],
+                         method='arason_levi')
+    assert out['inc'] == pytest.approx(90., abs=0.01)
+    assert 'unique solution' in capsys.readouterr().out
+    assert out['profile_upper_confidence_limit'] == pytest.approx(90., abs=0.01)
+    assert out['profile_lower_confidence_limit'] < out['inc']
+
+
 def test_unknown_method_raises():
     with pytest.raises(ValueError):
         pmag.doincfish([50, 60, 70], method='kono')

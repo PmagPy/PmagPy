@@ -11604,7 +11604,63 @@ def plot_gc(poles, color='g', fignum=1):
 
 
 def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
-               iboot=False, vec=0, num_bootstraps=1000, title="", iconf=True):
+               iboot=False, vec=0, num_bootstraps=1000, title="", plot_mean=True):
+    """
+    Plot anisotropy eigenvectors and optional mean-tensor confidence estimates.
+
+    The first figure (fignum) shows the individual specimen eigenvectors
+    (V1 squares, V2 triangles, V3 circles) on an equal-area net. When
+    plot_mean is True, a second figure (fignum+1) shows the eigenvectors of
+    the mean tensor with confidence estimates: Hext ellipses and/or
+    bootstrapped eigenvectors or bootstrap ellipses, with additional
+    figures for bootstrap eigenvalue and eigenvector-component CDFs as
+    requested.
+
+    Parameters
+    ----------
+    fignum : int
+        matplotlib figure number for the eigenvector plot; the mean-tensor
+        figure uses fignum+1 and bootstrap CDF figures use fignum+2 onward
+    aniso_df : pandas DataFrame
+        anisotropy data with an 'aniso_s' column of colon-delimited
+        six-element tensor strings (MagIC data model format)
+    Dir : list
+        [declination, inclination] of a comparison direction plotted on the
+        mean-tensor figure and, with iboot and ivec, compared against the
+        bootstrapped components of the eigenvector selected by vec
+    PDir : list
+        [declination, inclination] of the pole to a comparison plane,
+        plotted as a great circle on the mean-tensor figure
+    ipar : bool, default False
+        if True, the bootstrap resamples parametrically using the
+        within-specimen uncertainty
+    ihext : bool, default True
+        if True, plot Hext confidence ellipses on the mean-tensor figure
+    ivec : bool, default False
+        if True, plot the bootstrapped eigenvectors themselves along with
+        eigenvalue CDFs, instead of bootstrap confidence ellipses
+    iboot : bool, default False
+        if True, calculate bootstrap statistics for the mean tensor
+    vec : int, default 0
+        eigenvector (1, 2, or 3) whose bootstrapped cartesian components
+        are compared against Dir (requires iboot and ivec)
+    num_bootstraps : int, default 1000
+        number of bootstrap pseudo-samples
+    title : str, default ""
+        title for the eigenvector plot
+    plot_mean : bool, default True
+        whether to plot the mean tensor at all: if False, only the
+        individual specimen eigenvectors are plotted and the mean-tensor
+        figure (with its Hext/bootstrap confidence estimates) is skipped,
+        e.g. for unoriented cores where a mean direction is not meaningful
+
+    Returns
+    -------
+    figs : dict
+        figure labels mapped to figure numbers: 'data' for the eigenvector
+        plot, plus 'conf' and bootstrap CDF entries ('tcdf', 'cdf_0', ...)
+        when plot_mean and the relevant options are set
+    """
     figs = {}
     ipar = int(ipar)
     ihext = int(ihext)
@@ -11629,9 +11685,9 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
         plot_di(di_block=V3, color='k', marker='o', markersize=20)
-        if not iconf:
-            # suppress the mean-tensor / confidence-ellipse figure, e.g. for
-            # unoriented cores where mean directions are not meaningful
+        if not plot_mean:
+            # skip the mean-tensor figure and everything on it (Hext and
+            # bootstrap confidence estimates included)
             return figs
         # plot the confidence
         nf, sigma, avs = pmag.sbar(Ss)

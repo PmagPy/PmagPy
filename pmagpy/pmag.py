@@ -6325,7 +6325,7 @@ def doincfish(inc, method='mcfadden_reid'):
     idx_zeros = np.argwhere(np.diff(np.sign(misfit)))
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
-        print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method; consider doincfish(inc, method='arason_levi')."%misfit[idx_zeros])
+        print("No zeros found to fitness function of McFadden and Reid 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method; consider doincfish(inc, method='arason_levi')."%misfit[idx_zeros])
     # atleast_2d: the fallback assigns a scalar index, where argwhere gives (n, 1)
     ML_zeros = np.atleast_2d(np.array(Oo[idx_zeros]))
     ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
@@ -6412,10 +6412,24 @@ def _doincfish_arason_levi(inc):
 
     # 95% profile-likelihood interval: 2*(ll_max - ll) <= chi2_95(1) = 3.841
     threshold = ll_max - 0.5 * 3.841
-    inside = thetas[profiles >= threshold]
-    if inside.size:
-        profile_upper = 90. - np.rad2deg(inside.min())
-        profile_lower = 90. - np.rad2deg(inside.max())
+    above = profiles >= threshold
+    if above.any():
+        # outermost grid points inside the interval, with the threshold
+        # crossings interpolated linearly between the bracketing grid points
+        i_lo = int(np.argmax(above))
+        i_hi = int(above.size - 1 - np.argmax(above[::-1]))
+        theta_lo = thetas[i_lo]
+        if i_lo > 0:
+            frac = ((profiles[i_lo] - threshold)
+                    / (profiles[i_lo] - profiles[i_lo - 1]))
+            theta_lo = thetas[i_lo] - frac * (thetas[i_lo] - thetas[i_lo - 1])
+        theta_hi = thetas[i_hi]
+        if i_hi < thetas.size - 1:
+            frac = ((profiles[i_hi] - threshold)
+                    / (profiles[i_hi] - profiles[i_hi + 1]))
+            theta_hi = thetas[i_hi] + frac * (thetas[i_hi + 1] - thetas[i_hi])
+        profile_upper = 90. - np.rad2deg(theta_lo)
+        profile_lower = 90. - np.rad2deg(theta_hi)
     else:
         profile_upper = profile_lower = 90. - np.rad2deg(theta_ml)
 
@@ -6428,6 +6442,10 @@ def _doincfish_arason_levi(inc):
     cos_a95 = 1. - ((n - 1.) / (n * (k - 1.) + 1.)) * (20.**(1. / (n - 1.)) - 1.)
     a95 = np.rad2deg(np.arccos(np.clip(cos_a95, -1., 1.)))
 
+    if logk_ml > 11.9:
+        print("Arason & Levi kappa estimate is at the upper search bound "
+              "(~1.6e5): the inclinations are nearly identical and kappa "
+              "is effectively unconstrained from above.")
     if inc_ml > 89.99:
         print("Arason & Levi maximum is at the vertical: a unique solution "
               "does not exist for these data (their Section 7); the true "
