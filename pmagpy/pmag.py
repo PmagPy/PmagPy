@@ -6237,15 +6237,27 @@ def doreverse_list(decs, incs):
     return decs_flipped, incs_flipped
 
 
-def doincfish(inc):
+def doincfish(inc, method='mcfadden_reid'):
     """
-    Calculates Fisher mean inclination from inclination-only data. This function uses
-    the method of McFadden and Reid (1982), and incorporates asymmetric confidence limits
-    after McElhinny and McFadden (2000).
+    Calculates Fisher mean inclination from inclination-only data.
 
     Parameters
     ----------
     inc: list of inclination values
+    method : str, default 'mcfadden_reid'
+        'mcfadden_reid' : the estimator of McFadden and Reid (1982), with
+            asymmetric confidence limits after McElhinny and McFadden (2000).
+            Its fitness equation can have no solution for steep, scattered
+            data, in which case an absolute-minimum fallback is used and a
+            warning is printed.
+        'arason_levi' : the maximum likelihood estimator of Arason and Levi
+            (2010, doi:10.1111/j.1365-246X.2010.04671.x), which is robust for
+            steep data. The angular standard deviation and alpha95 follow
+            their eqs 22 and 23; the implementation reproduces the numerical
+            example of their Table 2 (Im = 71.85, kappa = 32.45,
+            alpha95 = 9.17). A maximum at inclination 90 indicates that a
+            unique solution does not exist for the data (their Section 7);
+            the profile-likelihood limits then bound the plausible range.
 
     Returns
     -------
@@ -6259,6 +6271,11 @@ def doincfish(inc):
         'upper_confidence_limit' : estimated upper confidence limit of inclination
         'lower_confidence_limit' : estimated lower confidence limit of inclination
         'csd' : estimated circular standard deviation
+        With method='arason_levi', two additional keys
+        'profile_lower_confidence_limit' and 'profile_upper_confidence_limit'
+        give a 95% interval on the mean inclination from the profile
+        likelihood (the marginal-likelihood style interval recommended by
+        Arason and Levi for near-vertical solutions).
 
     Examples
     --------
@@ -6274,6 +6291,10 @@ def doincfish(inc):
      'csd': 11.165922232016465}
     """
 
+    if method == 'arason_levi':
+        return _doincfish_arason_levi(inc)
+    if method != 'mcfadden_reid':
+        raise ValueError("method must be 'mcfadden_reid' or 'arason_levi'")
     abinc = []
     for i in inc:
         abinc.append(abs(i))
@@ -6304,8 +6325,9 @@ def doincfish(inc):
     idx_zeros = np.argwhere(np.diff(np.sign(misfit)))
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
-        print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method you may wish to consider an alternate technique."%misfit[idx_zeros])
-    ML_zeros = np.array(Oo[idx_zeros])
+        print("No zeros found to fitness function of McFadden and Reed 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method; consider doincfish(inc, method='arason_levi')."%misfit[idx_zeros])
+    # atleast_2d: the fallback assigns a scalar index, where argwhere gives (n, 1)
+    ML_zeros = np.atleast_2d(np.array(Oo[idx_zeros]))
     ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
     #    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
     U = 0.5 * N * ((1 / (np.cos(ML_zeros) ** 2)) - (
@@ -6331,6 +6353,98 @@ def doincfish(inc):
     fpars["lower_confidence_limit"] = lower_confidence_limit
     fpars["alpha95"] = a95
     fpars["csd"] = csd
+    return fpars
+
+
+def _doincfish_arason_levi(inc):
+    """
+    Maximum likelihood mean inclination for inclination-only data, called by
+    doincfish(inc, method='arason_levi').
+
+    Follows Arason and Levi (2010), doi:10.1111/j.1365-246X.2010.04671.x:
+    with declinations unknown, each inclination is described by the marginal
+    Fisher likelihood (their eq. 2), and the mean inclination and precision
+    parameter are found by maximizing the joint log-likelihood (their eq. 5)
+    numerically over a grid refined by golden-section search. The angular
+    standard deviation and alpha95 follow their eqs 22 and 23. Profile
+    likelihood confidence limits (chi-squared, one degree of freedom) are
+    also returned: for near-vertical solutions, where a unique maximum does
+    not exist (their Section 7), they bound the plausible inclination range
+    in the spirit of the marginal-likelihood interval of Enkin and Watson
+    (1996) that Arason and Levi recommend.
+
+    Validated against the numerical example of Arason and Levi (2010,
+    Table 2): the nine Icelandic lava-flow inclinations of Fisher (1953)
+    give Im = 71.85, kappa = 32.45, alpha95 = 9.17.
+    """
+    from scipy.special import ive
+    from scipy.optimize import minimize_scalar
+
+    inc = np.abs(np.array(inc, dtype=np.float64))
+    n = inc.size
+    cotheta = np.deg2rad(90. - inc)  # co-inclinations of the data
+
+    def loglike(theta0, logk):
+        """Marginal Fisher log-likelihood at mean co-inclination theta0."""
+        k = np.exp(logk)
+        x = k * np.sin(cotheta) * np.sin(theta0)
+        log_bessel = np.log(ive(0, x)) + np.abs(x)
+        log_norm = np.log(k) - (k + np.log1p(-np.exp(-2. * k)))
+        return np.sum(log_norm + k * np.cos(cotheta) * np.cos(theta0)
+                      + log_bessel)
+
+    def profile(theta0):
+        """Log-likelihood maximized over kappa at fixed mean co-inclination."""
+        best = minimize_scalar(lambda logk: -loglike(theta0, logk),
+                               bounds=(-3., 12.), method='bounded')
+        return -best.fun, best.x
+
+    # coarse grid over the mean co-inclination, refined by golden section
+    thetas = np.deg2rad(np.arange(0., 90.5, 0.5))
+    profiles = np.array([profile(t)[0] for t in thetas])
+    i_best = int(np.argmax(profiles))
+    lo = thetas[max(0, i_best - 1)]
+    hi = thetas[min(thetas.size - 1, i_best + 1)]
+    refine = minimize_scalar(lambda t: -profile(t)[0], bounds=(lo, hi),
+                             method='bounded')
+    theta_ml = refine.x
+    ll_max, logk_ml = profile(theta_ml)
+
+    # 95% profile-likelihood interval: 2*(ll_max - ll) <= chi2_95(1) = 3.841
+    threshold = ll_max - 0.5 * 3.841
+    inside = thetas[profiles >= threshold]
+    if inside.size:
+        profile_upper = 90. - np.rad2deg(inside.min())
+        profile_lower = 90. - np.rad2deg(inside.max())
+    else:
+        profile_upper = profile_lower = 90. - np.rad2deg(theta_ml)
+
+    inc_ml = 90. - np.rad2deg(theta_ml)
+    k = float(np.exp(logk_ml))
+
+    # angular standard deviation and alpha95, Arason & Levi (2010) eqs 22, 23
+    cos_t63 = 1. + np.log(1. - 0.63 * (1. - np.exp(-2. * k))) / k
+    csd = np.rad2deg(np.arccos(np.clip(cos_t63, -1., 1.)))
+    cos_a95 = 1. - ((n - 1.) / (n * (k - 1.) + 1.)) * (20.**(1. / (n - 1.)) - 1.)
+    a95 = np.rad2deg(np.arccos(np.clip(cos_a95, -1., 1.)))
+
+    if inc_ml > 89.99:
+        print("Arason & Levi maximum is at the vertical: a unique solution "
+              "does not exist for these data (their Section 7); the true "
+              "inclination is probably steep and kappa is likely a lower "
+              "limit. Use the profile confidence limits.")
+
+    fpars = {'n': n,
+             'ginc': inc.mean(),
+             'inc': inc_ml,
+             'r': n - (n - 1.) / k,
+             'k': k,
+             'alpha95': a95,
+             'csd': csd,
+             'upper_confidence_limit': min(90., inc_ml + a95),
+             'lower_confidence_limit': inc_ml - a95,
+             'profile_lower_confidence_limit': profile_lower,
+             'profile_upper_confidence_limit': profile_upper}
     return fpars
 
 
