@@ -103,19 +103,16 @@ def test_mcfadden_reid_works_for_shallow_data():
 
 def test_mcfadden_reid_selects_true_root_of_two():
     """For shallow data the fitness function has a second, spurious steep
-    root (near 65 degrees); the curvature criterion must select the true
-    likelihood maximum. Previously U broadcast to an (m, m) matrix indexed
-    with a flattened argmin, which was only accidentally correct."""
-    rng = np.random.default_rng(7)
-    incs = []
-    for _ in range(50):
-        dec, inc = pmag.fshdev(30., random_seed=rng)
-        _, i = pmag.dodirot(dec, inc, 0., 20.)
-        incs.append(i)
+    root; the curvature test of McFadden and Reid (1982, eq. 19a) must
+    select the true likelihood maximum. This scattered shallow set has
+    roots at 62.0 and 12.2 degrees, and the pre-fix sec-squared criterion
+    (in place of the paper's cosec-squared) selected the spurious steep
+    root."""
+    incs = [41.3, 0.1, 6.0, -0.1]
     out = pmag.doincfish(incs)
     al = pmag.doincfish(incs, method='arason_levi')
     assert out['inc'] == pytest.approx(al['inc'], abs=0.5)
-    assert out['inc'] < 30  # not the spurious steep root
+    assert out['inc'] < 30  # not the spurious root near 62 degrees
 
 
 def test_arason_levi_warns_for_edge_solution(capsys):

@@ -6325,7 +6325,13 @@ def doincfish(inc, method='mcfadden_reid'):
     # at the true likelihood maximum, positive at the spurious roots
     U = 0.5 * N * ((1 / (np.sin(ML_zeros) ** 2)) - (
                 np.cos(ML_matrix - coinc).sum(axis=1) / (N - np.cos(ML_matrix - coinc).sum(axis=1))))
-    Oo = ML_zeros[np.argmin(U)]
+    i_root = np.argmin(U)
+    if U[i_root] > 0:
+        print("Warning: no root of the McFadden and Reid 1982 fitness "
+              "function has negative curvature (their eq. 19a), so the "
+              "returned inclination is not a likelihood maximum; consider "
+              "doincfish(inc, method='arason_levi').")
+    Oo = ML_zeros[i_root]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
     k = (N - 1.) / (2. * (N - C))
