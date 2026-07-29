@@ -11604,7 +11604,7 @@ def plot_gc(poles, color='g', fignum=1):
 
 
 def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
-               iboot=False, vec=0, num_bootstraps=1000, title=""):
+               iboot=False, vec=0, num_bootstraps=1000, title="", iconf=True):
     figs = {}
     ipar = int(ipar)
     ihext = int(ihext)
@@ -11629,6 +11629,10 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
         plot_di(di_block=V3, color='k', marker='o', markersize=20)
+        if not iconf:
+            # suppress the mean-tensor / confidence-ellipse figure, e.g. for
+            # unoriented cores where mean directions are not meaningful
+            return figs
         # plot the confidence
         nf, sigma, avs = pmag.sbar(Ss)
         hpars = pmag.dohext(nf, sigma, avs)  # get the Hext parameters
