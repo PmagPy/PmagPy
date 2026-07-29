@@ -883,6 +883,46 @@ class TestPlotCurieEstimates:
         import matplotlib.pyplot as plt
         plt.close(fig)
 
+    def test_axis_limits_and_legend_loc(self, heat_cool_experiment):
+        """Issue #900: xlim/ylim zoom in on a transition; xlim propagates
+        to the shared-x derivative panel."""
+        fig, axes = rmag.plot_curie_estimates(
+            heat_cool_experiment, magnetic_column="magn_mass",
+            xlim=(500, 620), ylim=(0, 0.5), legend_loc="upper right",
+            return_figure=True,
+        )
+        import matplotlib.pyplot as plt
+        assert axes[0].get_xlim() == (500, 620)
+        assert axes[1].get_xlim() == (500, 620)  # sharex propagates
+        assert axes[0].get_ylim() == (0, 0.5)
+        assert axes[0].get_legend()._loc == 1  # 'upper right'
+        plt.close(fig)
+
+    def test_xlim_autoscales_panel_y_axes(self, curie_weiss_chi):
+        """Zooming with xlim rescales each panel's y axis to the data in
+        the window, so large 1/chi values outside it no longer squash the
+        visible points."""
+        T, chi = curie_weiss_chi
+        df = pd.DataFrame({
+            "meas_temp": T + 273.15,
+            "susc_chi_mass": chi,
+            "specimen": "chi-syn",
+            "experiment": "SYN-LP-X-T-1",
+        })
+        kwargs = dict(remove_holder=False, return_figure=True,
+                      method_kwargs={"inverse_susceptibility":
+                                     {"fit_range": (620, 700)}})
+        fig_full, axes_full = rmag.plot_curie_estimates(df, **kwargs)
+        fig_zoom, axes_zoom = rmag.plot_curie_estimates(
+            df, xlim=(550, 640), **kwargs)
+        # 1/chi grows with T above theta; excluding T > 640 must lower the
+        # panel's upper limit
+        assert (axes_zoom[-1].get_ylim()[1]
+                < axes_full[-1].get_ylim()[1])
+        import matplotlib.pyplot as plt
+        plt.close(fig_full)
+        plt.close(fig_zoom)
+
 
 class TestReviewFixes:
     """Regression tests for issues found in pre-commit review."""
