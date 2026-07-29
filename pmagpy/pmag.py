@@ -6303,15 +6303,6 @@ def doincfish(inc, method='mcfadden_reid'):
     N = len(inc)  # number of data
     fpars['n'] = N
     fpars['ginc'] = MI
-    if MI < 30:
-        fpars['inc'] = MI
-        fpars['k'] = 0
-        fpars['upper_confidence_limit'] = 0
-        fpars['lower_confidence_limit'] = 0
-        fpars['csd'] = 0
-        fpars['r'] = 0
-        print('WARNING: mean inc < 30, returning gaussian mean')
-        return fpars
     inc = np.array(inc)
     coinc = np.deg2rad(90. - np.abs(inc))  # sum over all incs (but take only positive inc)
     SCOi = np.cos(coinc).sum()
@@ -6326,26 +6317,27 @@ def doincfish(inc, method='mcfadden_reid'):
     if len(idx_zeros)==0:
         idx_zeros = np.argmin(abs(misfit))
         print("No zeros found to fitness function of McFadden and Reid 1982, returning absolute minimum which is at %.3f instead.\nThis likely indicates that your inclinations are too steep for this method; consider doincfish(inc, method='arason_levi')."%misfit[idx_zeros])
-    # atleast_2d: the fallback assigns a scalar index, where argwhere gives (n, 1)
-    ML_zeros = np.atleast_2d(np.array(Oo[idx_zeros]))
-    ML_matrix = (np.ones([len(coinc),1]) @ ML_zeros.reshape(1,ML_zeros.shape[0])).T
-    #    print(coinc.shape,ML_zeros.shape,ML_matrix.shape)
-    U = 0.5 * N * ((1 / (np.cos(ML_zeros) ** 2)) - (
+    # roots as a flat array: ravel handles both argwhere's (m, 1) output and
+    # the scalar index assigned by the no-zero fallback
+    ML_zeros = np.ravel(Oo[idx_zeros])
+    ML_matrix = (np.ones([len(coinc), 1]) @ ML_zeros.reshape(1, ML_zeros.size)).T
+    # second derivative U of McFadden and Reid (1982, eq. 19a): negative only
+    # at the true likelihood maximum, positive at the spurious roots
+    U = 0.5 * N * ((1 / (np.sin(ML_zeros) ** 2)) - (
                 np.cos(ML_matrix - coinc).sum(axis=1) / (N - np.cos(ML_matrix - coinc).sum(axis=1))))
-    #    print("Found Zeros: ", ML_zeros, "Second Derivative: ", U)
     Oo = ML_zeros[np.argmin(U)]
     C = np.cos(Oo-coinc).sum()
     S = np.sin(Oo-coinc).sum()
     k = (N - 1.) / (2. * (N - C))
     Imle = 90. - np.rad2deg(Oo)
-    fpars["inc"] = Imle[0]
+    fpars["inc"] = Imle
     fpars["r"], R = (2. * C - N), (2 * C - N)
     fpars["k"] = k
     f = fcalc(2, N - 1)  # the 'g' of MM2000
     a95 = np.rad2deg(np.arccos(1. - (0.5) * (S / C) ** 2 - (f * (N - C)) / (C * (N - 1))))
     # calculating the upper and lower confidence intervals
-    lower_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) - a95
-    upper_confidence_limit = Imle[0] + (180 * S) / (np.pi * C) + a95
+    lower_confidence_limit = Imle + (180 * S) / (np.pi * C) - a95
+    upper_confidence_limit = Imle + (180 * S) / (np.pi * C) + a95
     csd = 81. / np.sqrt(k)
 
     # the upper and lower confidence intervals as values

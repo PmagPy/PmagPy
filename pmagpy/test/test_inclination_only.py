@@ -87,6 +87,37 @@ def test_arason_levi_handles_steep_data_where_mcfadden_reid_fails():
     assert out['inc'] >= out['ginc']
 
 
+def test_mcfadden_reid_works_for_shallow_data():
+    """Shallow mean inclinations previously short-circuited to the gaussian
+    mean with zero-filled statistics and no alpha95 key; the McFadden and
+    Reid root search is valid there (Arason and Levi, 2010, note the
+    modified method is reasonable below 60 degrees) and now runs for all
+    data."""
+    shallow = [20., 15., 25., 18., 22., 12., 28.]
+    out = pmag.doincfish(shallow)
+    al = pmag.doincfish(shallow, method='arason_levi')
+    assert out['inc'] == pytest.approx(al['inc'], abs=0.5)
+    assert out['k'] > 0
+    assert np.isfinite(out['alpha95']) and out['alpha95'] > 0
+
+
+def test_mcfadden_reid_selects_true_root_of_two():
+    """For shallow data the fitness function has a second, spurious steep
+    root (near 65 degrees); the curvature criterion must select the true
+    likelihood maximum. Previously U broadcast to an (m, m) matrix indexed
+    with a flattened argmin, which was only accidentally correct."""
+    rng = np.random.default_rng(7)
+    incs = []
+    for _ in range(50):
+        dec, inc = pmag.fshdev(30., random_seed=rng)
+        _, i = pmag.dodirot(dec, inc, 0., 20.)
+        incs.append(i)
+    out = pmag.doincfish(incs)
+    al = pmag.doincfish(incs, method='arason_levi')
+    assert out['inc'] == pytest.approx(al['inc'], abs=0.5)
+    assert out['inc'] < 30  # not the spurious steep root
+
+
 def test_arason_levi_warns_for_edge_solution(capsys):
     """Steep dispersed data drive the likelihood maximum to the vertical,
     where a unique solution does not exist (Arason and Levi, 2010,
