@@ -9972,7 +9972,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     compilation_mean_lons = []
     compilation_mean_lats = []
 
-    for i in range(len(f_from_compilation)):
+    for i in range(n):
         unsquish_plon, unsquish_plats, _, _ = pmag.dia_vgp(
             original_dec, compilation_incs[i], A95, slat, slon)
         resampled_lons, resampled_lats = fisher_mean_resample(
@@ -9999,7 +9999,9 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
         dec=compilation_mean_lons, inc=compilation_mean_lats)
     print_kent_mean(f_compilation_kent_distribution_95)
     plot_pole_ellipse(
-        m, f_compilation_kent_distribution_95, color="darkred", label="Kent mean pole")
+        m, f_compilation_kent_distribution_95, color="darkred",
+        label="Kent mean pole",
+        lower=f_compilation_kent_distribution_95['inc'] >= 0)
     plot_pole(
         m, plon, plat, A95, label="uncorrected pole position", color="C0")
     plt.legend(loc=8, fontsize=14)
