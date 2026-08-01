@@ -1615,7 +1615,7 @@ def plot_teq(fignum, araiblock, s, pars):
     plt.text(-1.1, 1.15, s)
 
 
-def save_plots(Figs, filenames, dir_path=None, **kwargs):
+def save_plots(Figs, filenames, dir_path=".", **kwargs):
     """
     Parameters
     ----------
@@ -1625,7 +1625,7 @@ def save_plots(Figs, filenames, dir_path=None, **kwargs):
         dictionary of filenames, e.g. {'eqarea': 'mc01a_eqarea.svg', ...}
         dict keys should correspond with Figs
     dir_path : str
-        string of directory name where plots will be saved to
+        directory in which to save plots, default current working directory
     kwargs: other keyword arguments
     """
     saved = []

@@ -1427,7 +1427,7 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
         site_file="sites.txt", loc_file="locations.txt", locname="unknown",
         sitename="", sampname="", methods=['SO-MAG'], specnum=0, samp_con='3',
         norm='cc', noave=False, meas_n_orient='8',
-        labfield=0, phi=0, theta=0):
+        labfield=0, phi=0, theta=0, oersted=True):
     """
     Converts CIT formatted Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -1448,7 +1448,6 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG)
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
-    oersted : demag step values are in Oersted
     noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -1464,6 +1463,10 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
     labfield : DC_FIELD in microTesla (default : 0)
     phi : DC_PHI in degrees (default : 0)
     theta : DC_THETA in degrees (default : 0)
+    oersted : True if AF demag step values in the .sam file are recorded in cgs units
+        (Gauss; numerically equivalent to Oersted); False if they are recorded in
+        milliTesla (default : True, matching the standard CIT format convention where
+        e.g. an AF step of 10 means 10 G = 1 mT).
 
     Returns
     -----------
@@ -1730,15 +1733,13 @@ def cit(dir_path=".", input_dir_path="", magfile="", user="", meas_file="measure
                 if treat.strip() == '':
                     MeasRec['treat_ac_field'] = '0'
                 else:
+                    scale = 1e-4 if oersted else 1e-3
                     try:
                         MeasRec['treat_ac_field'] = '%10.3e' % (
-                            float(treat)*1e-3)
+                            float(treat) * scale)
                     except ValueError as e:
                         print(os.path.join(input_dir_path, specimen))
                         raise e
-                if MeasRec['treat_ac_field'] != '0':
-                    MeasRec['treat_ac_field'] = '%10.3e' % (
-                        float(MeasRec['treat_ac_field'])/10)
             elif treat_type.startswith('ARM'):
                 MeasRec['method_codes'] = "LP-ARM"
                 MeasRec['meas_temp'] = '273'
@@ -3635,6 +3636,7 @@ def iodp_dscr_lore(dscr_file,dscr_ex_file="", dir_path=".", input_dir_path="",vo
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    measurements_df["treat_dc_field"] = measurements_df["treat_dc_field"].astype(object)
     measurements_df["treat_step_num"] = '1'
     measurements_df["standard"] = 'u'  # assume all data are "good"
     measurements_df["dir_csd"] = '0'  # assume all data are "good"
@@ -3816,6 +3818,8 @@ def iodp_jr6_lore(jr6_file, dir_path=".", input_dir_path="",volume=7,noave=False
     measurements_df["treat_dc_field"] = '0'
     measurements_df["treat_dc_field_phi"] = '0'
     measurements_df["treat_dc_field_theta"] = '0'
+    for col in ("treat_temp", "treat_dc_field"):
+        measurements_df[col] = measurements_df[col].astype(object)
     measurements_df["treat_step_num"] = 1
     measurements_df['meas_n_orient'] = 3
     measurements_df["standard"] = 'u'  # assume all data are "good"
