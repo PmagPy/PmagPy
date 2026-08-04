@@ -30,6 +30,7 @@ from pmagpy import version
 from pmag_env import set_env
 from . import pmag
 from . import pmagplotlib
+from . import rockmag
 from . import data_model3 as data_model
 #from .contribution_builder import Contribution appears redundant
 from . import validate_upload3 as val_up3
@@ -8012,6 +8013,215 @@ class Site(object):
                                     'cong_test_result': cong_test_result},
                                    name=str(self.name))
         return self.site_data
+
+
+def dayplot_magic(path_to_file='.', hyst_file='specimens.txt', rem_file='',
+                  save=True, save_folder='.', fmt='svg', data_model=3,
+                  interactive=False, contribution=None, image_records=False):
+    """
+    Backward-compatible wrapper for the rockmag-based Day plot workflow.
+
+    Parameters
+    ----------
+    path_to_file : str, optional
+        Directory containing the specimens table. Default is current directory.
+    hyst_file : str, optional
+        Name of the input specimens table. Default is 'specimens.txt'.
+    rem_file : str, optional
+        Ignored for compatibility; retained for the old API signature.
+    save : bool, optional
+        If True, save images to disk. Default is True.
+    save_folder : str, optional
+        Directory where output plots should be written. Default is current directory.
+    fmt : str, optional
+        Plot file format. Default is 'svg'.
+    data_model : int, optional
+        Ignored for compatibility; retained for the old API signature.
+    interactive : bool, optional
+        If True, display plots interactively instead of only saving them.
+    contribution : Contribution, optional
+        A contribution object containing a specimens table.
+    image_records : bool, optional
+        If True, return a list of image record dictionaries.
+    """
+    specimen_data = None
+    if contribution is not None:
+        try:
+            specimen_data = contribution.tables['specimens'].df
+        except Exception:
+            specimen_data = None
+    if specimen_data is None:
+        if not path_to_file and not hyst_file:
+            return False, False
+        dir_path = os.path.realpath(path_to_file or '.')
+        specimen_path = os.path.join(dir_path, hyst_file)
+        if not os.path.isfile(specimen_path):
+            return False, False
+        try:
+            specimen_data = pd.read_csv(specimen_path, sep='\t', skiprows=1)
+        except Exception:
+            return False, False
+
+    def detect_col(possible_names):
+        for name in possible_names:
+            if name in specimen_data.columns:
+                return name
+        return None
+
+    mr_col = detect_col(['hyst_mr_mass', 'hyst_mr_moment', 'hyst_mr_volume', 'rem_mr_mass', 'rem_mr_moment'])
+    ms_col = detect_col(['hyst_ms_mass', 'hyst_ms_moment', 'hyst_ms_volume', 'rem_ms_mass', 'rem_ms_moment'])
+    bcr_col = detect_col(['rem_bcr', 'hyst_bcr', 'rem_bcr_mass'])
+    bc_col = detect_col(['hyst_bc', 'rem_bc'])
+
+    if not all([mr_col, ms_col, bcr_col, bc_col]):
+        return False, False
+
+    save_dir = os.path.realpath(save_folder or path_to_file or '.')
+    if save:
+        os.makedirs(save_dir, exist_ok=True)
+
+    fig1, ax1 = rockmag.plot_day_plot_MagIC(
+        specimen_data,
+        Mr=mr_col,
+        Ms=ms_col,
+        Bcr=bcr_col,
+        Bc=bc_col,
+        show_plot=interactive,
+        return_figure=True,
+    )
+
+    summary = specimen_data.groupby('specimen').agg({mr_col: 'mean', ms_col: 'mean', bcr_col: 'mean', bc_col: 'mean'}).reset_index().dropna()
+    Mr_Ms = summary[mr_col] / summary[ms_col]
+    Bc_vals = summary[bc_col]
+    Bcr_vals = summary[bcr_col]
+
+    figs = [fig1]
+    plot_specs = [
+        (Bc_vals, Mr_Ms, 'dodgerblue', 'Bc', 'Squareness-Coercivity Plot', '_neelplot'),
+        (Bcr_vals, Mr_Ms, 'seagreen', 'Bcr', 'Squareness-Bcr Plot', '_bcrplot'),
+    ]
+    for x_vals, y_vals, color, xlabel, title, suffix in plot_specs:
+        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.scatter(x_vals, y_vals, color=color, marker='s', alpha=1)
+        ax.set_xlabel(xlabel, fontsize=12)
+        ax.set_ylim(0, 1.0)
+        ax.set_ylabel('Mr/Ms', fontsize=12)
+        ax.set_title(title, fontsize=14)
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='black')
+        fig._pmagplot_suffix = suffix
+        figs.append(fig)
+
+    saved = []
+    if save:
+        stem = os.path.splitext(os.path.basename(hyst_file or 'specimens.txt'))[0]
+        for i, fig in enumerate(figs):
+            suffix = getattr(fig, '_pmagplot_suffix', '_dayplot') if i > 0 else '_dayplot'
+            fname = '{}{}.{fmt}'.format(stem, suffix, fmt=fmt)
+            outpath = os.path.join(save_dir, fname)
+            fig.savefig(outpath, format=fmt)
+            saved.append(os.path.realpath(outpath))
+
+    if interactive and not save:
+        plt.show()
+
+    for fig in figs:
+        plt.close(fig)
+
+    if image_records:
+        image_records_out = []
+        for outpath in saved[:3]:
+            image_records_out.append({'file': os.path.basename(outpath), 'type': 'dayplot', 'title': os.path.basename(outpath)})
+        return True, saved, image_records_out
+
+    return True, saved if saved else True
+
+
+def hysteresis_magic(output_dir_path='.', input_dir_path='', spec_file='specimens.txt',
+                     meas_file='measurements.txt', fmt='svg', save_plots=True,
+                     make_plots=True, pltspec='', n_specs=5, interactive=False):
+    """
+    Backward-compatible wrapper for the hysteresis workflow.
+
+    This forwards to the CLI implementation in programs/hysteresis_magic.py so
+    existing ipmag callers continue to work with the new code path.
+    """
+    try:
+        from programs.hysteresis_magic import hysteresis_magic as _hysteresis_magic_impl
+    except Exception:
+        return False, False
+
+    return _hysteresis_magic_impl(
+        output_dir_path=output_dir_path,
+        input_dir_path=input_dir_path,
+        spec_file=spec_file,
+        meas_file=meas_file,
+        fmt=fmt,
+        save_plots=save_plots,
+        make_plots=make_plots,
+        pltspec=pltspec,
+        n_specs=n_specs,
+        interactive=interactive,
+    )
+
+
+def curie(path_to_file='.', file_name='measurements.txt', save=True,
+          save_folder='.', fmt='svg', data_model=3, interactive=False,
+          contribution=None, image_records=False):
+    """
+    Backward-compatible wrapper for the Curie-temperature plotting workflow.
+    """
+    if contribution is not None:
+        try:
+            data = contribution.tables['measurements'].df
+        except Exception:
+            data = None
+    else:
+        input_path = os.path.realpath(os.path.join(path_to_file or '.', file_name))
+        if not os.path.isfile(input_path):
+            return False, False
+        try:
+            data = pd.read_csv(input_path, sep='\t', skiprows=1)
+        except Exception:
+            return False, False
+
+    if data is None:
+        return False, False
+
+    temp_col = 'meas_temp' if 'meas_temp' in data.columns else None
+    magn_col = 'magn_mass' if 'magn_mass' in data.columns else None
+    if temp_col is None or magn_col is None:
+        return False, False
+
+    outdir = os.path.realpath(save_folder or path_to_file or '.')
+    if save:
+        os.makedirs(outdir, exist_ok=True)
+
+    df = pd.DataFrame({temp_col: data[temp_col].astype(float), magn_col: data[magn_col].astype(float)})
+    fig, ax = rockmag.plot_ms_t(
+        df,
+        temperature_column=temp_col,
+        magnetization_column=magn_col,
+        temp_unit='C',
+        interactive=interactive,
+        return_figure=True,
+        show_plot=interactive and not save,
+        size=(6, 4),
+        legend_location='upper left',
+    )
+
+    saved = []
+    if save and fig is not None:
+        outname = os.path.splitext(os.path.basename(file_name))[0] + '_curie.' + fmt
+        outpath = os.path.join(outdir, outname)
+        fig.savefig(outpath, format=fmt)
+        saved.append(os.path.realpath(outpath))
+
+    if not save:
+        plt.close(fig)
+
+    if image_records:
+        return True, saved, [{'file': os.path.basename(path), 'type': 'curie', 'title': os.path.basename(path)} for path in saved]
+    return True, saved if saved else True
 
 
 def chi_magic2(path_to_file='.', file_name='magic_measurements.txt',

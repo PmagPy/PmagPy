@@ -82,12 +82,14 @@ def main():
             t_end_k = t_end
         df = df[(df["meas_temp"] >= t_begin_k) & (df["meas_temp"] <= t_end_k)]
 
-    # Plot using rockmag.plot_ms_t
+    # Plot using rockmag.plot_ms_t. The plotting helper expects Kelvin input,
+    # but the CLI should expose the same units the user supplied.
+    plot_temp_unit = 'C' if input_temp_unit == 'C' else 'K'
     fig = rockmag.plot_ms_t(
         df,
         temperature_column="meas_temp",
         magnetization_column="magn_mass",
-        temp_unit="C",
+        temp_unit=plot_temp_unit,
         interactive=False,
         return_figure=True,
         show_plot=not save_plot,
@@ -98,9 +100,12 @@ def main():
     # Save plot if requested
     if save_plot and fig is not None:
         fig_obj, ax = fig
+        outdir = os.path.dirname(os.path.abspath(meas_file))
+        os.makedirs(outdir, exist_ok=True)
         outname = os.path.splitext(os.path.basename(meas_file))[0] + f"_curie.{fmt}"
-        fig_obj.savefig(outname, format=fmt)
-        print(f"Saved plot to {outname}")
+        outpath = os.path.join(outdir, outname)
+        fig_obj.savefig(outpath, format=fmt)
+        print(f"Saved plot to {outpath}")
 
 if __name__ == "__main__":
     main()
