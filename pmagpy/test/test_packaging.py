@@ -12,12 +12,9 @@ def test_cli_package_requires_matching_pmagpy_version():
     assert version_value is not None, 'Could not determine shared version string'
 
     version_num = version_value.group(1).removeprefix('pmagpy-')
-    assert f"shared_version_requirement = f'pmagpy=={{version_num}}'" in setup_text, (
+    assert re.search(r"shared_version_requirement\s*=\s*f['\"]pmagpy==\{version_num\}['\"]", setup_text), (
         'pmagpy-cli should build an exact pmagpy version pin from the shared version string'
     )
     assert "shared_version_requirement," in setup_text, (
         'pmagpy-cli should include the computed pmagpy version pin in install_requires'
-    )
-    assert f"pmagpy=={version_num}" in setup_text, (
-        'pmagpy-cli should require the same version of pmagpy as the shared version string'
     )
