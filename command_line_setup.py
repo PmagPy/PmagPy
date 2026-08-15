@@ -3,6 +3,7 @@ from pmagpy import version
 from programs_list import programs_list
 
 version_num = version.version.removeprefix('pmagpy-')
+shared_version_requirement = f'pmagpy=={version_num}'
 
 # skip the html header at the top of README.md
 with open('README.md', encoding='utf-8') as f:
