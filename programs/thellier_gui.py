@@ -892,8 +892,9 @@ DESCRIPTION
                                   (self.canvas5, 1, wx.EXPAND)])
 
         sizer_plots_outer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_plots_outer.Add(self.canvas1, 1, wx.EXPAND)
-        sizer_plots_outer.Add(sizer_grid_plots, 1, wx.EXPAND)
+        plot_sizer_flags = wx.SHAPED | wx.ALIGN_CENTER_VERTICAL
+        sizer_plots_outer.Add(self.canvas1, 1, plot_sizer_flags)
+        sizer_plots_outer.Add(sizer_grid_plots, 1, plot_sizer_flags)
 
         # Top Bar Sizer-------------------------------------------------------
         #-------------Specimens Sizer----------------------------------------
