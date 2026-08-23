@@ -9881,6 +9881,21 @@ def find_ei_kent(data, site_latitude, site_longitude, kent_color='k', nb=1000, s
         return kent_stats
 
 
+# Measured flattening factors compiled by Pierce et al. (2022, Table S1,
+# doi:10.1029/2022GC010682) from studies that quantified inclination shallowing
+# in clastic sedimentary rocks. This is the distribution find_compilation_kent
+# uses by default when another is not supplied.
+PIERCE2022_F_COMPILATION = [
+    0.49, 0.77, 0.63, 0.59, 0.57, 0.4, 0.63, 0.66, 0.63, 0.49, 0.49,
+    0.58, 0.54, 0.73, 0.97, 0.59, 0.84, 0.9, 0.78, 0.83, 0.58, 0.94,
+    0.78, 0.9, 0.68, 0.48, 0.67, 0.66, 0.7, 0.43, 0.45, 0.58, 0.58,
+    0.53, 0.42, 0.51, 0.61, 0.52, 0.62, 0.73, 0.66, 0.55, 0.47, 0.77,
+    0.62, 0.54, 0.46, 0.56, 0.64, 0.47, 0.48, 0.44, 0.52, 0.65, 0.81,
+    0.64, 0.71, 0.79, 0.65, 0.56, 0.69, 0.43, 0.7, 0.67, 0.65, 0.49,
+    0.54, 0.64, 0.83, 0.68
+]
+
+
 def find_compilation_kent(plon, plat, A95, slon, slat,
                           f_from_compilation=None, n=10000, n_fish=100,
                           return_poles=False, return_kent_stats=True,
@@ -9931,18 +9946,7 @@ def find_compilation_kent(plon, plat, A95, slon, slat,
     original_dec, original_inc = pmag.vgp_di(plat, plon, slat, slon)
 
     if f_from_compilation is None:
-        # compilation f value list
-        f_from_compilation = pd.Series(
-            [
-                0.49, 0.77, 0.63, 0.59, 0.57, 0.4, 0.63, 0.66, 0.63, 0.49, 0.49,
-                0.58, 0.54, 0.73, 0.97, 0.59, 0.84, 0.9, 0.78, 0.83, 0.58, 0.94,
-                0.78, 0.9, 0.68, 0.48, 0.67, 0.66, 0.7, 0.43, 0.45, 0.58, 0.58,
-                0.53, 0.42, 0.51, 0.61, 0.52, 0.62, 0.73, 0.66, 0.55, 0.47, 0.77,
-                0.62, 0.54, 0.46, 0.56, 0.64, 0.47, 0.48, 0.44, 0.52, 0.65, 0.81,
-                0.64, 0.71, 0.79, 0.65, 0.56, 0.69, 0.43, 0.7, 0.67, 0.65, 0.49,
-                0.54, 0.64, 0.83, 0.68
-            ]
-        )
+        f_from_compilation = pd.Series(PIERCE2022_F_COMPILATION)
     else:
         f_from_compilation = pd.Series(f_from_compilation)
 
