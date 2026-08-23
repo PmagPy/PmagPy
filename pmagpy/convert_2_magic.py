@@ -6,9 +6,7 @@ from functools import reduce
 import math
 import os
 import sys
-
 import pytz
-import scipy
 import numpy as np
 import pandas as pd
 import pmagpy.pmag as pmag
@@ -2133,10 +2131,10 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
                     cart_t = pmag.dir2cart([dec_t, inc_t, moment])
                     carts_t.append(cart_t)
         if len(carts_s) > 0:
-            carts = scipy.array(carts_s)
-            x_mean = scipy.mean(carts[:, 0])
-            y_mean = scipy.mean(carts[:, 1])
-            z_mean = scipy.mean(carts[:, 2])
+            carts = np.array(carts_s)
+            x_mean = np.mean(carts[:, 0])
+            y_mean = np.mean(carts[:, 1])
+            z_mean = np.mean(carts[:, 2])
             mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
             mean_dec_s = "%.2f" % mean_dir[0]
             mean_inc_s = "%.2f" % mean_dir[1]
@@ -2144,10 +2142,10 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
         else:
             mean_dec_s, mean_inc_s = "", ""
         if len(carts_g) > 0:
-            carts = scipy.array(carts_g)
-            x_mean = scipy.mean(carts[:, 0])
-            y_mean = scipy.mean(carts[:, 1])
-            z_mean = scipy.mean(carts[:, 2])
+            carts = np.array(carts_g)
+            x_mean = np.mean(carts[:, 0])
+            y_mean = np.mean(carts[:, 1])
+            z_mean = np.mean(carts[:, 2])
             mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
             mean_dec_g = "%.2f" % mean_dir[0]
             mean_inc_g = "%.2f" % mean_dir[1]
@@ -2156,10 +2154,10 @@ def generic(magfile="", dir_path=".", meas_file="measurements.txt",
             mean_dec_g, mean_inc_g = "", ""
 
         if len(carts_t) > 0:
-            carts = scipy.array(carts_t)
-            x_mean = scipy.mean(carts[:, 0])
-            y_mean = scipy.mean(carts[:, 1])
-            z_mean = scipy.mean(carts[:, 2])
+            carts = np.array(carts_t)
+            x_mean = np.mean(carts[:, 0])
+            y_mean = np.mean(carts[:, 1])
+            z_mean = np.mean(carts[:, 2])
             mean_dir = pmag.cart2dir([x_mean, y_mean, z_mean])
             mean_dec_t = "%.2f" % mean_dir[0]
             mean_inc_t = "%.2f" % mean_dir[1]
