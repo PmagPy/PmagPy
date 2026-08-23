@@ -53,7 +53,13 @@ a = Analysis(
     binaries=[],
     datas=files,
     hiddenimports=hidden_imports,
-    hooksconfig={'matplotlib': {'backends': 'WXAgg'}},
+    # Keep the GUI backend and the writers exposed by the plot-save dialogs
+    # without collecting every Matplotlib backend.
+    hooksconfig={
+        'matplotlib': {
+            'backends': ['WXAgg', 'Agg', 'PDF', 'SVG', 'PS'],
+        },
+    },
     hookspath=[],
     runtime_hooks=[],
     excludes=excluded_modules,
