@@ -47,6 +47,7 @@ import os
 import matplotlib
 from matplotlib import cm as color_map
 from matplotlib import pyplot as plt
+from matplotlib.backend_bases import NonGuiException
 from pylab import meshgrid  # matplotlib's meshgrid function
 import matplotlib.ticker as mticker
 globals = 0
@@ -151,14 +152,19 @@ def plot_init(fignum, w, h):
     plt_num += 1
     fig = plt.figure(num=fignum, figsize=(w, h), dpi=dpi, clear=True)
     if (not isServer) and (not set_env.IS_NOTEBOOK):
-        plt.get_current_fig_manager().show()
-        # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
-        # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
-        fig_x_pos = fig_x_pos + dpi * (w) + 25
-        if plt_num == 3:
-            plt_num = 0
-            fig_x_pos = 25
-            fig_y_pos = fig_y_pos + dpi * (h) + 25
+        try:
+            plt.get_current_fig_manager().show()
+            # plt.get_current_fig_manager().window.wm_geometry('+%d+%d' %
+            # (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
+            fig_x_pos = fig_x_pos + dpi * (w) + 25
+            if plt_num == 3:
+                plt_num = 0
+                fig_x_pos = 25
+                fig_y_pos = fig_y_pos + dpi * (h) + 25
+        except NonGuiException:
+            # non-GUI backend (Agg, inline, the PDF/SVG writers): there is no
+            # window to raise or place, but the figure itself is fine (#781)
+            pass
         plt.figtext(.02, .01, version_num)
 # plt.connect('button_press_event',click)
 #
