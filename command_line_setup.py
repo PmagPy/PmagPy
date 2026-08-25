@@ -39,8 +39,6 @@ setup(
     install_requires=[
         shared_version_requirement,
         'wxPython',
-        'PyQt5',
-        'lmfit',
         'pillow',
         'appdirs',
     ],
