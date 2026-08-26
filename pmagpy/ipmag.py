@@ -8288,6 +8288,11 @@ def smooth(x, window_len, window='bartlett'):
     """
     Smooth the data using a sliding window with requested size - meant to be
     used with the ipmag function curie().
+
+    .. deprecated::
+        ``ipmag.smooth`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.smooth_moving_average`` instead.
+
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by padding the beginning and the end of the signal
     with average of the first (last) ten values of the signal, to evoid jumps
@@ -8307,6 +8312,12 @@ def smooth(x, window_len, window='bartlett'):
             but always ends with zeros at points 1 and n.
         -hanning,hamming,blackman are used for smoothing the Fourier transform
     """
+    warnings.warn(
+        "ipmag.smooth is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.smooth_moving_average instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
 
