@@ -12,8 +12,11 @@ def two_column_file(tmp_path):
     path = tmp_path / "curie.txt"
     np.savetxt(path, np.array([
         [300.0, 1.0],
+        [350.0, 0.9],
         [400.0, 0.8],
+        [450.0, 0.65],
         [500.0, 0.5],
+        [550.0, 0.35],
         [600.0, 0.2],
     ]))
     return path
@@ -52,7 +55,9 @@ def test_main_applies_range_and_method(two_column_file, monkeypatch):
         "-f", str(two_column_file), "--method", "inflection", "-t", "350", "550"
     ])
 
-    assert np.array_equal(captured["T"], np.array([400.0, 500.0]))
+    assert np.array_equal(
+        captured["T"], np.array([350.0, 400.0, 450.0, 500.0, 550.0])
+    )
     assert captured["t_range"] == (350.0, 550.0)
 
 
