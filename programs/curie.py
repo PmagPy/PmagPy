@@ -32,7 +32,9 @@ def _estimate(T, y, method, window, t_range):
         return rockmag.curie_inverse_susceptibility(T, y)["curie_temp"]
     if method == "landau":
         return rockmag.curie_landau_fit(T, y, temp_unit="C")["curie_temp"]
-    return rockmag.curie_Ms_squared_extrapolation(T, y)["curie_temp"]
+    if method == "ms_squared_extrapolation":
+        return rockmag.curie_Ms_squared_extrapolation(T, y)["curie_temp"]
+    raise ValueError(f"Unknown Curie estimation method: {method}")
 
 
 def main(argv=None):
