@@ -96,8 +96,7 @@ def main(argv=None):
 
     if args.sav:
         import matplotlib
-        if matplotlib.get_backend() != "TKAgg":
-            matplotlib.use("TKAgg")
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots()
