@@ -2648,9 +2648,17 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
             plt.show()
         else:
             plt.close(fig)
-    res_dict={'kappa':kappa,'lat':round(lat,1),'A2D':round(A2D,4),'A2I':round(A2I,4),'pID':round(pID,4),'H':H,'V2dec':round(V2dec,1)
-                  ,'V2sim_min':round(V2sim_min,1),'V2sim_max':round(V2sim_max,1),
-                   'E':round(E,4),'Esim_min':round(Esim_min,4),'Esim_max':round(Esim_max,4),'V2_result':V2_result,'E_result':E_result}
+    def _real(value, places):
+        # pmag.tauV takes the eigendecomposition with linalg.eig, the general
+        # routine, so on some LAPACK builds it hands back complex dtype for the
+        # real symmetric orientation matrix. The imaginary parts are rounding
+        # noise, but builtin round() refuses complex outright, so the values
+        # reaching the results dict are made real here.
+        return round(float(np.real(value)), places)
+
+    res_dict={'kappa':kappa,'lat':_real(lat,1),'A2D':_real(A2D,4),'A2I':_real(A2I,4),'pID':_real(pID,4),'H':H,'V2dec':_real(V2dec,1)
+                  ,'V2sim_min':_real(V2sim_min,1),'V2sim_max':_real(V2sim_max,1),
+                   'E':_real(E,4),'Esim_min':_real(Esim_min,4),'Esim_max':_real(Esim_max,4),'V2_result':V2_result,'E_result':E_result}
         
     
     return res_dict
