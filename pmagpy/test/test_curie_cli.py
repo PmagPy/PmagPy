@@ -70,23 +70,6 @@ def test_main_applies_range_and_method(two_column_file, monkeypatch):
     assert captured["t_range"] == (350.0, 550.0)
 
 
-@pytest.mark.parametrize("method, function", [
-    ("two_tangent", "curie_two_tangent"),
-    ("inverse_susceptibility", "curie_inverse_susceptibility"),
-    ("landau", "curie_landau_fit"),
-    ("ms_squared_extrapolation", "curie_Ms_squared_extrapolation"),
-])
-def test_main_dispatches_other_methods(two_column_file, monkeypatch, capsys,
-                                       method, function):
-    monkeypatch.setattr(
-        curie.rmag, function, lambda T, y, **kwargs: {"curie_temp": 123.0}
-    )
-
-    curie.main(["-f", str(two_column_file), "--method", method])
-
-    assert f"{method} Curie temperature: 123.00" in capsys.readouterr().out
-
-
 def test_main_rejects_missing_input(tmp_path):
     with pytest.raises(SystemExit) as error:
         curie.main(["-f", str(tmp_path / "missing.txt")])
@@ -117,6 +100,15 @@ class TestRealData:
 
     def test_max_curvature_matches_legacy(self, capsys):
         assert self._cli_value(capsys, "-w", "10") == pytest.approx(552.0, abs=5.0)
+
+    @pytest.mark.parametrize("method", curie.METHODS)
+    def test_every_method_runs(self, capsys, method):
+        """Each estimator runs end to end on real data and returns a
+        plausible Curie temperature for this magnetite-dominated sample."""
+        value = self._cli_value(capsys, "--method", method)
+
+        assert np.isfinite(value)
+        assert 450.0 < value < 650.0
 
     @pytest.mark.parametrize("method, key", [
         ("max_curvature", "max_curvature_temp"),
