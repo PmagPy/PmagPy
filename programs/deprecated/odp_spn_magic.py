@@ -83,7 +83,7 @@ followed by data
         mag_file=dir_path+'/'+args[ind+1]
         try:
             input=open(mag_file,'r')
-        except:
+        except Exception:
             print("bad mag file name")
             sys.exit()
     else:

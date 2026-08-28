@@ -52,7 +52,7 @@ def main():
             print("pick a plate: NA, SA, AF, IN, EU, AU, ANT, GL \n   cntl-D to quit")
             try:
                 plate=input("Plate\n").upper()
-            except:
+            except Exception:
                 print("Goodbye \n")
                 sys.exit()
             lat=float(input( "Site latitude\n"))

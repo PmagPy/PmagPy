@@ -51,7 +51,7 @@ def main():
                 dir2.append(float(ans))
                 ans = input('Inclination 2: ')
                 dir2.append(float(ans))
-            except:
+            except Exception:
                 print("\nGood bye\n")
                 sys.exit()
 

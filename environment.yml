@@ -26,8 +26,6 @@ dependencies:
   - shapely
   # GUI / pmagpy-cli dependencies
   - wxpython
-  - pyqt
-  - lmfit
   - pillow
   - appdirs
   # interactive use

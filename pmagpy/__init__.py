@@ -1,5 +1,6 @@
 
 import sys
+from importlib import import_module
 
 if sys.version_info <= (3,):
     raise Exception("""
@@ -20,17 +21,29 @@ https://github.com/PmagPy/PmagPy/issues
 Thanks!
 
 """.format(sys.version))
-from . import pmag
-from . import ipmag
-from . import rockmag
-from . import pmagplotlib
-from . import find_pmag_dir
-from . import version
-from . import controlled_vocabularies2 as controlled_vocabularies
-from . import data_model3
-from . import contribution_builder
-from . import mapping
+_SUBMODULES = {
+    'pmag': 'pmag',
+    'ipmag': 'ipmag',
+    'rockmag': 'rockmag',
+    'pmagplotlib': 'pmagplotlib',
+    'find_pmag_dir': 'find_pmag_dir',
+    'version': 'version',
+    'controlled_vocabularies': 'controlled_vocabularies2',
+    'data_model3': 'data_model3',
+    'contribution_builder': 'contribution_builder',
+    'mapping': 'mapping',
+}
 
-__all__ = [pmag, ipmag, rockmag, pmagplotlib, find_pmag_dir, version,
-           controlled_vocabularies, data_model3, contribution_builder,
-           mapping]
+__all__ = list(_SUBMODULES)
+
+
+def __getattr__(name):
+    if name not in _SUBMODULES:
+        raise AttributeError(f"module 'pmagpy' has no attribute {name!r}")
+    module = import_module(f'.{_SUBMODULES[name]}', __name__)
+    globals()[name] = module
+    return module
+
+
+def __dir__():
+    return sorted(list(globals().keys()) + __all__)

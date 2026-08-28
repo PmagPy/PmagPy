@@ -132,13 +132,13 @@ def main():
     except EOFError: # if version_last_checked file is empty for some reason
         pickle.dump(time.time(), fh_last)
         fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone; it will be updated automatically!')
-    except:
+    except Exception:
         pass                  # ignore any other problems opening the file handle
                               # or pickling the time stamp
     finally:
         try:
             fh_last.close()   # always close the file handle
-        except:
+        except Exception:
             pass              # ignore any problems trying to close the file handle
 
 
@@ -154,7 +154,7 @@ def main():
     finally:
         try:
             uh_remote.close() # always close the URL handle
-        except:
+        except Exception:
             pass              # ignore any problems trying to close the file handle
 
     # Warn the user if their local PmagPy installation is out of date

@@ -76,7 +76,7 @@ def main():
     if EXP != "":
         try:
             k = experiment_names.index(EXP)
-        except:
+        except Exception:
             print("Bad experiment name")
             sys.exit()
     while k < len(experiment_names):

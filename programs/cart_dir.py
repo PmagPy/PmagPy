@@ -47,7 +47,7 @@ def main():
                 cart.append(float(ans))
                 ans=input('Z: ')
                 cart.append(float(ans))
-            except:
+            except Exception:
                 print("\n Good-bye \n")
                 sys.exit()
             dir= pmag.cart2dir(cart)  # send dir to dir2cart and spit out result

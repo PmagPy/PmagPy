@@ -224,7 +224,7 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
             try:
                 samples_expected_intensity[sample] = float(
                     tmp_data['sample_int']) * 1e6  # convert form T to uT
-            except:
+            except Exception:
                 pass
         if site not in list(sites_samples.keys()):
             sites_samples[site] = []
@@ -490,7 +490,7 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                     optimization_functions_matrices[Function][stat2_index, stat1_index] = eval(
                         Function)
                     # optimization_functions_matrices[Function][stat2_index,stat1_index]=opt_func
-                except:
+                except Exception:
                     logfile.write(
                         "-E Error: something is wrong with optimization function %s. Check!\n" % Function)
 
@@ -505,11 +505,11 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
     #Command_line="mkdir %s/optimizer/"%(WD)
     try:
         os.mkdir(WD + "/consistency_test/pdf")
-    except:
+    except Exception:
         pass
     try:
         os.mkdir(WD + "/consistency_test/svg")
-    except:
+    except Exception:
         pass
 
     Fig_counter = 0
@@ -566,7 +566,7 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                     try:
                         text(stat1_value, stat2_value, "%i" % int(
                             optimization_functions_matrices[function][stat1_index, stat2_index]), fontsize=8, color='gray', horizontalalignment='center', verticalalignment='center')
-                    except:
+                    except Exception:
                         pass
                     stat2_index += 1
                 stat1_index += 1

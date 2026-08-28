@@ -120,23 +120,23 @@ def main():
             SpecRecs,file_type=pmag.magic_read(dir_path+'/er_specimens.txt')
             for spec in SpecRecs:
                 if spec['er_specimen_name'] not in specnames:specnames.append(samp['er_specimen_name'])
-        except:
+        except Exception:
             SpecRecs,specs=[],[]
         try:
             SampRecs,file_type=pmag.magic_read(dir_path+'/er_samples.txt')
             for samp in SampRecs:
                 if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
-        except:
+        except Exception:
             sampnames,SampRecs=[],[]
         try:
             SiteRecs,file_type=pmag.magic_read(dir_path+'/er_sites.txt')
             for site in SiteRecs:
                 if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
-        except:
+        except Exception:
             sitenames,SiteRecs=[],[]
     try:
         input=open(ascfile,'r')
-    except:
+    except Exception:
         print('Error opening file: ', ascfile)
     Data=input.readlines()
     k=0

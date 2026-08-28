@@ -14,26 +14,19 @@ import os
 import webbrowser
 
 from pmagpy import pmag
-from pmagpy import ipmag
 from pmagpy import contribution_builder as cb
-from dialogs import pmag_gui_dialogs
-from dialogs import pmag_er_magic_dialogs
+from dialogs import gui_theme
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
-from dialogs import ErMagicBuilder
 from dialogs import pmag_widgets as pw
 
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
-from programs import demag_gui
-from programs import thellier_gui
-
-
 class MagMainFrame(wx.Frame):
     """"""
     try:
         version = pmag.get_version()
-    except:
+    except Exception:
         version = ""
     title = "Pmag GUI   version: %s"%version
 
@@ -42,6 +35,7 @@ class MagMainFrame(wx.Frame):
         Input working directory, and data model object (optional).
         """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
+        gui_theme.bind_theme_updates(self)
 
         #set icon
         self.icon = wx.Icon()
@@ -133,9 +127,9 @@ class MagMainFrame(wx.Frame):
         in_bSizer0 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(700,35), style=wx.TE_READONLY)
+        gui_theme.style_control(self.dir_path)
         self.change_dir_button = wx.Button(self.panel, wx.ID_ANY, label="Change directory",size=(130, 35), style=wx.BORDER_NONE)
-        self.change_dir_button.SetBackgroundColour("#F8F8FF")
-        self.change_dir_button.SetForegroundColour("#000000")
+        gui_theme.style_control(self.change_dir_button, gui_theme.NEUTRAL)
         self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
 
         in_bSizer0.AddSpacer(bpad)
@@ -177,33 +171,28 @@ class MagMainFrame(wx.Frame):
         text = "1. Convert magnetometer files to MagIC format"
         self.btn1 = wx.Button(self.panel, id=-1, label=text,
                                       size=(450, 50), name='step 1', style=wx.BORDER_NONE)
-        self.btn1.SetBackgroundColour("#FDC68A")
-        self.btn1.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn1, gui_theme.ACTION)
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
 
         text = "2. (optional) Calculate geographic/tilt-corrected directions"
         self.btn2 = wx.Button(self.panel, id=-1, label=text, size=(450, 50), name='step 2', style=wx.BORDER_NONE)
-        self.btn2.SetBackgroundColour("#FDC68A")
-        self.btn2.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn2, gui_theme.ACTION)
         self.Bind(wx.EVT_BUTTON, self.on_btn_orientation, self.btn2)
         text = "3. (optional) Add MagIC metadata for uploading data to MagIC "
         self.btn3 = wx.Button(self.panel, id=-1, label=text, size=(450, 50), name='step 3', style=wx.BORDER_NONE)
-        self.btn3.SetBackgroundColour("#FDC68A")
-        self.btn3.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn3, gui_theme.ACTION)
         self.Bind(wx.EVT_BUTTON, self.on_btn_metadata, self.btn3)
 
         text = "Download or unpack MagIC text file"
         self.btn4 = wx.Button(self.panel, id=-1, label=text, size=(330, 50), style=wx.BORDER_NONE)
-        self.btn4.SetBackgroundColour("#FDC68A")
-        self.btn4.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn4, gui_theme.ACTION)
         self.Bind(wx.EVT_BUTTON, self.on_btn_unpack, self.btn4)
 
 
         text = "Convert directory to 3.0. format (legacy data only)"
         self.btn1a = wx.Button(self.panel, id=-1, label=text,
                                        size=(330, 50), name='step 1a', style=wx.BORDER_NONE)
-        self.btn1a.SetBackgroundColour("#FDC68A")
-        self.btn1a.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn1a, gui_theme.ACTION)
         self.Bind(wx.EVT_BUTTON, self.on_btn_convert_3, self.btn1a)
 
         #str = "OR"
@@ -250,14 +239,12 @@ class MagMainFrame(wx.Frame):
 
         text = "Demag GUI"
         self.btn_demag_gui = wx.Button(self.panel, id=-1, label=text, size=(300, 50), name='demag gui', style=wx.BORDER_NONE)
-        self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
-        self.btn_demag_gui.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn_demag_gui, gui_theme.ANALYSIS)
         self.Bind(wx.EVT_BUTTON, self.on_btn_demag_gui, self.btn_demag_gui)
 
         text = "Thellier GUI"
         self.btn_thellier_gui = wx.Button(self.panel, id=-1, label=text, size=(300, 50), name='thellier gui', style=wx.BORDER_NONE)
-        self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
-        self.btn_thellier_gui.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn_thellier_gui, gui_theme.ANALYSIS)
         self.Bind(wx.EVT_BUTTON, self.on_btn_thellier_gui, self.btn_thellier_gui)
 
         in_bSizer2.AddSpacer(bpad)
@@ -278,8 +265,7 @@ class MagMainFrame(wx.Frame):
 
         text = "Create MagIC txt file for upload"
         self.btn_upload = wx.Button(self.panel, id=-1, label=text, size=(300, 50), style=wx.BORDER_NONE)
-        self.btn_upload.SetBackgroundColour("#C4DF9B")
-        self.btn_upload.SetForegroundColour("#000000")
+        gui_theme.style_control(self.btn_upload, gui_theme.UPLOAD)
 
         in_bSizer3.AddSpacer(40)
         in_bSizer3.Add(self.btn_upload, 0, wx.ALIGN_CENTRE, 0)
@@ -434,6 +420,7 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from programs import thellier_gui
         # create custom Thellier GUI closing event and bind it
         ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
@@ -465,6 +452,7 @@ class MagMainFrame(wx.Frame):
         # show busyinfo
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from programs import demag_gui
         # create custom Demag GUI closing event and bind it
         DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
         self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
@@ -493,6 +481,7 @@ class MagMainFrame(wx.Frame):
 
 
     def on_convert_file(self, event):
+        from dialogs import pmag_gui_dialogs
         pmag_dialogs_dia = pmag_gui_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
@@ -557,6 +546,7 @@ class MagMainFrame(wx.Frame):
             return
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from dialogs import ErMagicBuilder
         self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
         #
         self.ErMagic_frame.Show()
@@ -573,6 +563,7 @@ class MagMainFrame(wx.Frame):
         initiates the object that will control steps 1-6
         of checking headers, filling in cell values, etc.
         """
+        from dialogs import pmag_er_magic_dialogs
         self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame3(self, 'Check Data',
                                                                   self.WD, self.contribution)
 
@@ -584,6 +575,7 @@ class MagMainFrame(wx.Frame):
         """
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.SafeYield()
+        from dialogs import pmag_gui_dialogs
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
@@ -601,6 +593,8 @@ class MagMainFrame(wx.Frame):
         with download magic.
         Then run download_magic and create self.contribution.
         """
+
+        from pmagpy import ipmag
 
         def magic_download_dia(warn=""):
             dia = pw.TextDialog(self, "Download from MagIC\nusing contribution id or DOI", "MagIC id/DOI", warn)
@@ -699,6 +693,7 @@ class MagMainFrame(wx.Frame):
         Try to run upload_magic.
         Open validation mode if the upload file has problems.
         """
+        from pmagpy import ipmag
         if not self.check_for_uncombined_files():
             return
         outstring="upload_magic.py"
@@ -779,7 +774,7 @@ class MagMainFrame(wx.Frame):
         # also delete appropriate copy file
         try:
             self.help_window.Destroy()
-        except:
+        except Exception:
             pass
         if '-i' in sys.argv:
             self.Destroy()
@@ -861,6 +856,10 @@ INFORMATION
     app.frame = MagMainFrame(WD=dir_path)
     app.frame.Show()
     app.frame.Center()
+    startup_probe_file = os.environ.get('PMAG_GUI_STARTUP_PROBE_FILE')
+    if startup_probe_file:
+        with open(startup_probe_file, 'w', encoding='utf-8') as probe:
+            probe.write('{}\n'.format(app.frame.title))
     ## use for debugging:
     #if '-i' in sys.argv:
     #    import wx.lib.inspection

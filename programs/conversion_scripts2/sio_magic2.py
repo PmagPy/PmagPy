@@ -262,7 +262,7 @@ def main(command_line=True, **kwargs):
             #with open(mag_file,'r') as finput:
             #    lines = finput.readlines()
             lines=pmag.open_file(mag_file)
-        except:
+        except Exception:
             print("bad mag file name")
             return False, "bad mag file name"
     if not mag_file:

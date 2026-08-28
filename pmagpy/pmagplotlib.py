@@ -6,6 +6,7 @@
 
 import os
 import sys
+import importlib
 import warnings
 
 import numpy as np
@@ -22,13 +23,25 @@ from pmagpy import pmag
 from pmagpy import find_pmag_dir
 from pmagpy import contribution_builder as cb
 has_cartopy, Cartopy = pmag.import_cartopy()
+cfeature = ccrs = config = LongitudeFormatter = LatitudeFormatter = None
+LONGITUDE_FORMATTER = LATITUDE_FORMATTER = None
+NaturalEarthFeature = LAND = COASTLINE = OCEAN = LAKES = BORDERS = None
 if has_cartopy:
-    import cartopy.crs as ccrs
-    from cartopy import config
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-    from cartopy import feature as cfeature
-    from cartopy.feature import NaturalEarthFeature, LAND, COASTLINE, OCEAN, LAKES, BORDERS
+    ccrs = importlib.import_module('cartopy.crs')
+    config = Cartopy.config
+    cfeature = importlib.import_module('cartopy.feature')
+    cartopy_ticker = importlib.import_module('cartopy.mpl.ticker')
+    LongitudeFormatter = cartopy_ticker.LongitudeFormatter
+    LatitudeFormatter = cartopy_ticker.LatitudeFormatter
+    cartopy_gridliner = importlib.import_module('cartopy.mpl.gridliner')
+    LONGITUDE_FORMATTER = cartopy_gridliner.LONGITUDE_FORMATTER
+    LATITUDE_FORMATTER = cartopy_gridliner.LATITUDE_FORMATTER
+    NaturalEarthFeature = cfeature.NaturalEarthFeature
+    LAND = cfeature.LAND
+    COASTLINE = cfeature.COASTLINE
+    OCEAN = cfeature.OCEAN
+    LAKES = cfeature.LAKES
+    BORDERS = cfeature.BORDERS
 
 import os
 import matplotlib
@@ -1157,7 +1170,7 @@ def plot_arai(fignum, indata, s, units):
         if len(x_iz) > 0:
             plt.scatter(x_iz, y_iz, marker='s', c='b',
                         faceted="True")  # infield-zerofield
-    except:
+    except Exception:
         if len(x_zi) > 0:
             plt.scatter(x_zi, y_zi, marker='o', c='r')  # zero field-infield
         if len(x_iz) > 0:
@@ -1175,7 +1188,7 @@ def plot_arai(fignum, indata, s, units):
     try:
         plt.axhline(0, color='k')
         plt.axvline(0, color='k')
-    except:
+    except Exception:
         pass
     plt.xlabel("pTRM gained")
     plt.ylabel("NRM remaining")
@@ -2012,7 +2025,7 @@ def plot_hys(fignum, B, M, s):
         poly = np.polyfit(Baz, Maz, 1)
         Bac = -poly[1] / poly[0]  # x intercept
         hpars['hysteresis_bc'] = '%8.3e' % (0.5 * (abs(Bc) + abs(Bac)))
-    except:
+    except Exception:
         hpars['hysteresis_bc'] = '0'
     return hpars, deltaM, Bdm
 #
@@ -2126,7 +2139,7 @@ def plot_hdd(HDD, B, M, s):
             plt.axhline(0, color='k')
             plt.axvline(0, color='k')
             plot_d_delta_m(HDD['DdeltaM'], Bdm, DdeltaM, s)
-    except:
+    except Exception:
         hpars['hysteresis_bcr'] = '0'
         hpars['magic_method_codes'] = ""
     return hpars
@@ -3692,12 +3705,12 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
     """
     try: 
         import seaborn as sns
-    except:
+    except Exception:
         " You must install seaborn to use this " 
         return False,False, axa, axb
     try: 
         import scipy.stats as stats
-    except:
+    except Exception:
         " You must install scipy " 
         return False,False, axa, axb
     fontsize=14
@@ -3777,4 +3790,3 @@ def msp_magic(spec_df,axa="",axb="",site='site',labels=['a)','b)'],save_plots=Fa
         plt.tight_layout()
         plt.savefig('site.'+fmt)
     return res.intercept,.5*ts*res.intercept_stderr,res.intercept_stderr,axa,axb
-

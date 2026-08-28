@@ -342,7 +342,7 @@ class Vocabulary(object):
                 continue
             try:
                 items = data[vocab[0]]['items']
-            except:
+            except Exception:
                 vocab_col_names.remove(vocab)
                 continue
             items = data[vocab[0]]['items']

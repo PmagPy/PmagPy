@@ -3,12 +3,14 @@
 
 import codecs
 from datetime import date
+import importlib
 import os
 import random
 import re
 import sys
 import time
 import urllib
+import warnings
 import zipfile
 import io
 
@@ -40,8 +42,9 @@ except ImportError:
     requests = None
 encoding = "ISO-8859-1"
 has_cartopy, cartopy = pmag.import_cartopy()
+ccrs = None
 if has_cartopy:
-    import cartopy.crs as ccrs
+    ccrs = importlib.import_module('cartopy.crs')
 
 
 def igrf(input_list, mod='', ghfile=""):
@@ -2112,7 +2115,11 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         Dtit = 'Mode 1 ' + dec_label
         Itit = 'Mode 1 ' + inc_label
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
+            # clear any existing figure with this number so that the figure
+            # size is applied and stale axes do not break tight_layout
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
             fignum+=1
         else:
             tmp_fig = plt.figure(figsize=(6, 3))
@@ -2162,7 +2169,9 @@ def fishqq(lon=None, lat=None, di_block=None,plot=True,save=False,fmt='png',save
         if ppars['inc']<0:
             Irbar=-ppars['inc']
         if plot:
-            plt.figure(fignum,figsize=(6, 3))
+            fig = plt.figure(fignum)
+            fig.clear()
+            fig.set_size_inches(6, 3)
         else:
             tmp_fig = plt.figure(figsize=(6, 3))
         Mu_r, Mu_rcr = pmagplotlib.plot_qq_unf(
@@ -8279,6 +8288,11 @@ def smooth(x, window_len, window='bartlett'):
     """
     Smooth the data using a sliding window with requested size - meant to be
     used with the ipmag function curie().
+
+    .. deprecated::
+        ``ipmag.smooth`` is deprecated and will be removed in a future
+        release. Use ``pmagpy.rockmag.smooth_moving_average`` instead.
+
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by padding the beginning and the end of the signal
     with average of the first (last) ten values of the signal, to evoid jumps
@@ -8298,6 +8312,12 @@ def smooth(x, window_len, window='bartlett'):
             but always ends with zeros at points 1 and n.
         -hanning,hamming,blackman are used for smoothing the Fourier transform
     """
+    warnings.warn(
+        "ipmag.smooth is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.smooth_moving_average instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
 
@@ -8338,6 +8358,22 @@ def curie(path_to_file='.', file_name='', magic=False,
     The estimated curie temperation is the maximum of the 2nd derivative.
     Temperature steps should be in multiples of 1.0 degrees.
 
+    .. deprecated::
+        ``ipmag.curie`` is deprecated and will be removed in a future release.
+        It reports a single Curie temperature from the maximum of the smoothed
+        second derivative. Use the multi-method estimators in ``pmagpy.rockmag``
+        instead, which make method-dependent biases explicit (Fabian et al.,
+        2013, doi:10.1029/2012GC004440):
+
+        - ``rockmag.curie_temperature_estimates()`` applies the selected methods
+          to the heating/cooling branches of a MagIC experiment and returns a
+          tidy comparison table with per-method caveats.
+        - ``rockmag.curie_derivative_estimates()`` is the direct analog of this
+          function, returning both the inflection-point and maximum-curvature
+          estimates (the ``max_curvature`` method reproduces the legacy value
+          here: 552 C vs 549 C on data_files/curie/curie_example.dat with a
+          10-degree window).
+
     Parameters:
         file_name : name of file to be opened
         path_to_file : path to directory that contains file (default is current directory, '.')
@@ -8352,6 +8388,14 @@ def curie(path_to_file='.', file_name='', magic=False,
     Returns:
         A plot is shown and saved if save=True.
     """
+    warnings.warn(
+        "ipmag.curie is deprecated and will be removed in a future release. "
+        "Use pmagpy.rockmag.curie_temperature_estimates (MagIC experiments) or "
+        "pmagpy.rockmag.curie_derivative_estimates (the max_curvature/inflection "
+        "analog of this function) instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
     plot = 0
     window_len = window_length
 
@@ -11571,7 +11615,63 @@ def plot_gc(poles, color='g', fignum=1):
 
 
 def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=False,
-               iboot=False, vec=0, num_bootstraps=1000, title=""):
+               iboot=False, vec=0, num_bootstraps=1000, title="", plot_mean=True):
+    """
+    Plot anisotropy eigenvectors and optional mean-tensor confidence estimates.
+
+    The first figure (fignum) shows the individual specimen eigenvectors
+    (V1 squares, V2 triangles, V3 circles) on an equal-area net. When
+    plot_mean is True, a second figure (fignum+1) shows the eigenvectors of
+    the mean tensor with confidence estimates: Hext ellipses and/or
+    bootstrapped eigenvectors or bootstrap ellipses, with additional
+    figures for bootstrap eigenvalue and eigenvector-component CDFs as
+    requested.
+
+    Parameters
+    ----------
+    fignum : int
+        matplotlib figure number for the eigenvector plot; the mean-tensor
+        figure uses fignum+1 and bootstrap CDF figures use fignum+2 onward
+    aniso_df : pandas DataFrame
+        anisotropy data with an 'aniso_s' column of colon-delimited
+        six-element tensor strings (MagIC data model format)
+    Dir : list
+        [declination, inclination] of a comparison direction plotted on the
+        mean-tensor figure and, with iboot and ivec, compared against the
+        bootstrapped components of the eigenvector selected by vec
+    PDir : list
+        [declination, inclination] of the pole to a comparison plane,
+        plotted as a great circle on the mean-tensor figure
+    ipar : bool, default False
+        if True, the bootstrap resamples parametrically using the
+        within-specimen uncertainty
+    ihext : bool, default True
+        if True, plot Hext confidence ellipses on the mean-tensor figure
+    ivec : bool, default False
+        if True, plot the bootstrapped eigenvectors themselves along with
+        eigenvalue CDFs, instead of bootstrap confidence ellipses
+    iboot : bool, default False
+        if True, calculate bootstrap statistics for the mean tensor
+    vec : int, default 0
+        eigenvector (1, 2, or 3) whose bootstrapped cartesian components
+        are compared against Dir (requires iboot and ivec)
+    num_bootstraps : int, default 1000
+        number of bootstrap pseudo-samples
+    title : str, default ""
+        title for the eigenvector plot
+    plot_mean : bool, default True
+        whether to plot the mean tensor at all: if False, only the
+        individual specimen eigenvectors are plotted and the mean-tensor
+        figure (with its Hext/bootstrap confidence estimates) is skipped,
+        e.g. for unoriented cores where a mean direction is not meaningful
+
+    Returns
+    -------
+    figs : dict
+        figure labels mapped to figure numbers: 'data' for the eigenvector
+        plot, plus 'conf' and bootstrap CDF entries ('tcdf', 'cdf_0', ...)
+        when plot_mean and the relevant options are set
+    """
     figs = {}
     ipar = int(ipar)
     ihext = int(ihext)
@@ -11596,6 +11696,10 @@ def plot_aniso(fignum, aniso_df, Dir=[], PDir=[], ipar=False, ihext=True, ivec=F
         plot_di(di_block=V1, color='r', marker='s', markersize=20)
         plot_di(di_block=V2, color='b', marker='^', markersize=20)
         plot_di(di_block=V3, color='k', marker='o', markersize=20)
+        if not plot_mean:
+            # skip the mean-tensor figure and everything on it (Hext and
+            # bootstrap confidence estimates included)
+            return figs
         # plot the confidence
         nf, sigma, avs = pmag.sbar(Ss)
         hpars = pmag.dohext(nf, sigma, avs)  # get the Hext parameters

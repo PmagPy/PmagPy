@@ -12,7 +12,7 @@ def main():
         return
     try:
         from mpl_toolkits.basemap import basemap_datadir
-    except:
+    except Exception:
         print("-I- Some mapping utilities use the Etopo package for topography and these data sets do not come standard with the Python installation of Basemap.  However, if you are using cartopy for plotting (recommended), you do not need to run install_etopo.py.")
         print("-E- Basemap does not appear to be installed, aborting program...")
 

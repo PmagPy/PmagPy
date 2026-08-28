@@ -51,12 +51,12 @@ If you have a problem with MKL:
 Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046)):
 
 
-Ok, you're finally ready.  You will need a spec file to generate the executable.  You should be able to use PmagPy/pmag_gui.spec.  To create that file from scratch, see instructions at the end of this README.
+The supported Apple-silicon build uses `PmagPy/pmag_gui_macos_arm64.spec`.
 
 
 Then run:
 
-    pyinstaller pmag_gui.spec
+    pyinstaller pmag_gui_macos_arm64.spec
 
 This will create pmag\_gui.app in PmagPy/dist.  You can then move pmag\_gui.app to PmagPy\_Standalone\_OSX, commit, and push it to Github.  Make a new release on Github, and you're done!
 
@@ -106,55 +106,26 @@ Same idea but with miniconda, (a stripped down version of Anaconda Python):
 - Then you can generate a .spec file and run Pyinstaller, as explained above!
 
 
-## Compiling on Windows (Updated 2020-03-17)
+## Compiling on Windows
 
-Windows standalone binaries are compiled using the pyinstaller utility. Before compiling you must ensure you have all dependencies installed and the Pmag GUI runs correctly on your local machine. Next, you need a spec file.  You can generate the .spec file using the instructions in the last section of this README, or you can use the file that's already been created in PmagPy/pmag_gui.spec.
+The supported 64-bit Windows build uses `PmagPy/pmag_gui_windows.spec`. It is
+separate from `pmag_gui_macos_arm64.spec` so each platform can enforce its own
+architecture and packaging requirements.
 
+Create the tested minimal environment from the repository root:
 
-```bash
-pyinstaller --clean pmag_gui.spec
-```
+    conda env create -f setup_scripts/pmag_gui_windows_compile.yml
+    conda activate pmag_gui_windows_compile
 
-The executable will be in the dist directory. If you're having trouble because your computer can't find pyinstaller try replacing pyinstaller with a direct path the the pyinstaller.exe usually in the scripts file of wherever your python environment is installed. If dependencies are not being bundled make sure all dependencies are in your $PATH variable or added to the -p flag like so -p="PATH1;PATH2".
+Then build the one-directory application:
 
-Optional: To reduce the application size, you can download [UPX](https://github.com/upx/upx/releases/latest), which is a tool for compressing executables.  After downloading, you will unzip it by selecting "extract all".  Then, you'll need to specify the full path to upx.exe in your call to pyinstaller.  So, if upx.exe is C:\path\to\upx\upx394w\upx.exe, your call will look like this:
+    pyinstaller --clean --noconfirm pmag_gui_windows.spec
 
-```bash
-pyinstaller --clean pmag_gui.spec --upx-dir C:\path\to\upx\upx394w
-```
-
-(Not like this: `--upx-dir C:\path\to\upx\upx394w\upx.exe` or this: `C:\path\to\upx`!)
-
-
-Environment (other configurations may work, but I can confirm that this way does):
-
-You need to activate a conda environment to this work -- you cannot just use your base environment.  Here are the steps to create and activate the environment, install pyinstaller, and then make the executable.
-
-    # create an environment with the required packages
-    conda create --name pmagpy-standalone python=3.8 pandas matplotlib
-    # activate that environment
-    conda activate pmagpy-standalone
-    # install wxpython for Python 3.8 (wxpython cannot be installed with conda)
-    pip install wxpython
-    # install pyinstaller
-    conda install pyinstaller --channel conda-forge
-    # install scipy
-    conda install scipy
-    # create executable (pmag_gui.spec is in PmagPy/ and the standalone is created in PmagPy/dist/)
-    pyinstaller --clean pmag_gui.spec
-
-
-Windows 10
-Conda python 3.8
-Regular dependencies, but: no cartopy, no scripttest.
-
-You can also install the `requests` module
-Conda cartopy IS NOT compatible with conda pyinstaller.
-Pyinstaller from conda-forge seems to work well currently, but you can install the latest pyinstaller directly from Github if needed:
-
-    pip install git+https://github.com/pyinstaller/pyinstaller.git
-
-If you need to install this way, but you get a weird error, you might have a pep 517 issue, and should check out this issue.  See https://github.com/PmagPy/PmagPy/issues/567.
+The result is written to `dist/pmag_gui_<version>_Windows/`. Distribute the
+entire directory (normally as a ZIP); the executable requires the adjacent
+`_internal` directory. Cartopy is intentionally omitted from this lightweight
+standalone environment and optional mapping functions remain unavailable in
+the frozen application.
 
 
 
@@ -170,11 +141,11 @@ If this doesn't help, see the [Pyinstaller troubleshooting guide](https://python
 
 ## Generating the .spec file
 
-The following commands will allow you to generate the .spec file.  You can also find it in PmagPy/pmag_gui.spec. To generate a new pmag_gui.spec file, change direcotries into your PmagPy directory and run the following command:
+The following command generates a starting spec file. Platform-specific settings must then be added and tested for the target operating system. Change directories into your PmagPy directory and run:
 
     pyi-makespec --onefile --windowed --icon=.\programs\images\PmagPy.ico  --name=PmagGUI .\programs\pmag_gui.py
 
-Then add the following to the resulting pmag_gui.spec file:
+Then add the following to the resulting spec file:
 
 
     current_dir = os.getcwd()
@@ -226,7 +197,7 @@ Installed packages:
 
 Compiled the program:
 
-```pyinstaller pmag_gui.spec```
+```pyinstaller pmag_gui_macos_arm64.spec```
 
 ## A workflow that worked on 1/30/2023 for Yiming Zhang for OSX
 
@@ -256,5 +227,4 @@ Install the nomkl package for numpy otherwise pyinstaller throws error:
 
 Compiled the program:
 
-```pyinstaller pmag_gui.spec```
-
+```pyinstaller pmag_gui_macos_arm64.spec```

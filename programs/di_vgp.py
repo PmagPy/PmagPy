@@ -60,7 +60,7 @@ def main():
                 slong = float(ans)
                 output = pmag.dia_vgp(Dec, Inc, a95, slat, slong)
                 print('%7.1f %7.1f' % (output[0], output[1]))
-            except:
+            except Exception:
                 print("\n Good-bye\n")
                 sys.exit()
     elif '-f' in sys.argv:  # input of file name

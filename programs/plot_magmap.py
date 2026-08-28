@@ -9,7 +9,7 @@ if matplotlib.get_backend() != "TKAgg":
 import pylab as plt
 try:
     import cartopy.crs as ccrs
-except:
+except Exception:
     ccrs = None
 from pylab import meshgrid
 
