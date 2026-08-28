@@ -1415,6 +1415,16 @@ def _GGP_mc_distributions(GGPmodel, lat, n, degree, num_sims,
 
     A single Generator drives both the GGP draws and the Fisher deviations so
     that one seed reproduces the complete simulation.
+
+    When kappa > 0 the results also depend on batch_size. The GGP draw and the
+    Fisher draw alternate once per batch, so where the batch boundaries fall
+    decides the order in which the stream is consumed. Holding the inputs fixed
+    reproduces the run exactly, which is what reproducibility requires here;
+    comparing across different batch_size values does not. Making it fully
+    invariant would mean either drawing every deviation up front, which
+    abandons the memory bound that batching provides, or one child Generator
+    per simulation, which gives back the vectorization. For kappa <= 0 only the
+    GGP stream is consumed, and results are invariant.
     """
     if num_sims < 1:
         raise ValueError("num_sims must be 1 or greater")
@@ -2093,11 +2103,14 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             pair of marginal CDFs. Default is 2,000,000.
         sim_batch_size (int or None, optional): Number of Monte Carlo
             simulations processed together. If None, a memory-bounded value
-            is selected automatically.
+            is selected automatically from the number of directions. This is a
+            performance control, but with the default kappa > 0 it also shifts
+            the random stream, so a seeded scan reproduces only when
+            sim_batch_size is left alone as well.
         random_seed (None, int, or numpy.random.Generator, optional): Seed for
             reproducible random number generation (default is None). A single
             Generator is shared across every unflattening factor, so one seed
-            reproduces the whole scan.
+            plus unchanged inputs reproduces the whole scan.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the following columns:

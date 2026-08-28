@@ -87,8 +87,9 @@ class TestOptimizedSampling:
         assert_allclose(actual_v2, expected_v2, atol=1e-10)
         assert_allclose(actual_e, expected_e, atol=1e-10)
 
-    def test_batching_does_not_change_results(self):
-        """Batch size is an implementation detail, not a sampling choice."""
+    def test_batching_does_not_change_results_without_kappa(self):
+        """With kappa <= 0 only the GGP stream is drawn, so batch size is a
+        pure implementation detail."""
         model = svei.GGPmodels('THG24')
         reference = svei._GGP_mc_distributions(
             model, lat=35, n=20, degree=8, num_sims=30,
@@ -101,6 +102,33 @@ class TestOptimizedSampling:
             )
             assert_allclose(batched[0], reference[0], atol=1e-10)
             assert_allclose(batched[1], reference[1], atol=1e-10)
+
+    def test_batching_shifts_the_stream_with_kappa(self):
+        """With kappa > 0 the GGP and Fisher draws alternate once per batch, so
+        batch size moves the stream. Pinned deliberately: reproducibility holds
+        for fixed inputs, and this records that batch_size is one of them."""
+        model = svei.GGPmodels('THG24')
+        reference = svei._GGP_mc_distributions(
+            model, lat=35, n=20, degree=8, num_sims=30,
+            kappa=50, batch_size=3, random_seed=5,
+        )
+        shifted = svei._GGP_mc_distributions(
+            model, lat=35, n=20, degree=8, num_sims=30,
+            kappa=50, batch_size=10, random_seed=5,
+        )
+        assert not np.allclose(shifted[0], reference[0])
+        # same distribution, different draws
+        assert stats.ks_2samp(shifted[1], reference[1]).pvalue > 0.01
+
+    def test_same_batch_size_is_reproducible_with_kappa(self):
+        """What reproducibility actually requires: fixed seed, fixed inputs."""
+        model = svei.GGPmodels('THG24')
+        kwargs = dict(lat=35, n=20, degree=8, num_sims=30, kappa=50,
+                      batch_size=7, random_seed=5)
+        first = svei._GGP_mc_distributions(model, **kwargs)
+        second = svei._GGP_mc_distributions(model, **kwargs)
+        assert_allclose(first[0], second[0])
+        assert_allclose(first[1], second[1])
 
     def test_batched_fisher_mc_returns_valid_distributions(self):
         model = svei.GGPmodels('THG24')
