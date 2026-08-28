@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-from pmagpy import rockmag
+from pmagpy import rockmag as rmag
 
 
 METHODS = (
@@ -21,33 +21,41 @@ METHODS = (
 
 def _estimate(T, y, method, window, t_range):
     if method in ("inflection", "max_curvature"):
-        result = rockmag.curie_derivative_estimates(
+        result = rmag.curie_derivative_estimates(
             T, y, t_range=t_range, smooth_window=window
         )
         key = "inflection_temp" if method == "inflection" else "max_curvature_temp"
         return result[key]
     if method == "two_tangent":
-        return rockmag.curie_two_tangent(T, y)["curie_temp"]
+        return rmag.curie_two_tangent(T, y)["curie_temp"]
     if method == "inverse_susceptibility":
-        return rockmag.curie_inverse_susceptibility(T, y)["curie_temp"]
+        return rmag.curie_inverse_susceptibility(T, y)["curie_temp"]
     if method == "landau":
-        return rockmag.curie_landau_fit(T, y, temp_unit="C")["curie_temp"]
+        return rmag.curie_landau_fit(T, y, temp_unit="C")["curie_temp"]
     if method == "ms_squared_extrapolation":
-        return rockmag.curie_Ms_squared_extrapolation(T, y)["curie_temp"]
+        return rmag.curie_Ms_squared_extrapolation(T, y)["curie_temp"]
     raise ValueError(f"Unknown Curie estimation method: {method}")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Estimate a Curie temperature from a two-column text file."
+        description=(
+            "Estimate a Curie temperature from a two-column text file "
+            "(temperature, magnetic signal) using the estimators in "
+            "pmagpy.rockmag."
+        )
     )
     parser.add_argument(
         "-f", required=True,
         help="input file containing temperature and data columns",
     )
     parser.add_argument(
-        "-w", "--smooth-window", type=float, default=3,
-        help="smoothing window in temperature units (default: 3)",
+        "-w", "--smooth-window", type=float, default=10,
+        help=(
+            "moving-average window in temperature units applied to the signal "
+            "and, for the derivative methods, to its derivatives "
+            "(default: 10; 0 disables smoothing)"
+        ),
     )
     parser.add_argument(
         "-t", nargs=2, type=float, metavar=("MIN", "MAX"),
@@ -59,7 +67,7 @@ def main(argv=None):
     )
     parser.add_argument(
         "-sav", action="store_true",
-        help="save the diagnostic plot and exit",
+        help="save the diagnostic plot as curie_<method>.<fmt> and exit",
     )
     parser.add_argument(
         "-fmt", default="svg",
@@ -69,6 +77,8 @@ def main(argv=None):
 
     if not os.path.isfile(args.f):
         parser.error(f"input file not found: {args.f}")
+    if args.smooth_window < 0:
+        parser.error("smoothing window must be non-negative")
 
     try:
         T, y = np.loadtxt(args.f, dtype=float, unpack=True)
@@ -91,8 +101,19 @@ def main(argv=None):
         if T.size < 4:
             parser.error("temperature range must contain at least four finite pairs")
 
+    # prepare the signal the same way rockmag.prepare_thermomag_branches does
+    # for MagIC experiments: ascending, unique temperatures, then a moving
+    # average of the signal itself (the derivative estimators additionally
+    # smooth the derivatives with the same window)
+    order = np.argsort(T, kind="stable")
+    raw_T, raw_y = T[order], y[order]
+    T, y = rmag._dedupe_temperatures(raw_T, raw_y)
+    T, y = rmag.smooth_moving_average(T, y, args.smooth_window)
+    T = np.asarray(T, dtype=float)
+    y = np.asarray(y, dtype=float)
+
     estimate = _estimate(T, y, args.method, args.smooth_window, t_range)
-    print(f"{args.method} Curie temperature: {estimate}")
+    print(f"{args.method} Curie temperature: {estimate:.2f}")
 
     if args.sav:
         import matplotlib
@@ -100,12 +121,16 @@ def main(argv=None):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots()
-        ax.plot(T, y, "k-")
+        ax.plot(raw_T, raw_y, color="0.7", linewidth=1, label="measured")
+        if args.smooth_window > 0:
+            ax.plot(T, y, "k-", label=f"smoothed ({args.smooth_window:g})")
         if np.isfinite(estimate):
-            ax.axvline(estimate, color="r", linestyle="--")
+            ax.axvline(estimate, color="r", linestyle="--",
+                       label=f"Tc = {estimate:.1f}")
         ax.set_xlabel("Temperature")
         ax.set_ylabel("Magnetic signal")
         ax.set_title(f"Curie temperature: {args.method}")
+        ax.legend()
         output = f"curie_{args.method}.{args.fmt}"
         fig.savefig(output)
         plt.close(fig)
