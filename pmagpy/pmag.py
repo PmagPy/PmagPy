@@ -5020,7 +5020,8 @@ def calculate_best_fit_vectors(L, E, V, n_planes):
                 V[c] = U[c] / R
             XX = vclose(L[k], V)
             ang = XX[0] * XV[k][0] + XX[1] * XV[k][1] + XX[2] * XV[k][2]
-            angles.append(np.arccos(ang) * 180. / np.pi)
+            # unit-vector dot products can exceed 1 by rounding; clip before arccos
+            angles.append(np.arccos(np.clip(ang, -1.0, 1.0)) * 180. / np.pi)
             for c in range(3):
                 XV[k][c] = XX[c]
                 U[c] = U[c] + XX[c]
