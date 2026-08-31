@@ -339,6 +339,5 @@ removed.
   the app leaves them untouched.
 * pmagpy's `validate_upload3` crashed on empty integer cells
   (`math.trunc(nan)`) and on empty cells in cross-table lookups (`isIn`);
-  fixed in [PmagPy/PmagPy#914](https://github.com/PmagPy/PmagPy/pull/914)
-  (issue [#913](https://github.com/PmagPy/PmagPy/issues/913)); this
-  working tree carries the same two guards until that merges.
+  fixed upstream in [PmagPy/PmagPy#914](https://github.com/PmagPy/PmagPy/pull/914)
+  (issue [#913](https://github.com/PmagPy/PmagPy/issues/913)), merged.
