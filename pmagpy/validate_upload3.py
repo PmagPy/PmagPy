@@ -112,7 +112,8 @@ def isIn(row, col_name, arg, dm, df, con=None):
         possible_values = con.tables[table_name].df[table_col_name].unique()
         for value in cell_values:
             if value not in possible_values:
-                trunc_possible_values = [val.replace(' ', '') for val in possible_values if val]
+                trunc_possible_values = [str(val).replace(' ', '') for val in possible_values
+                             if val and not (isinstance(val, float) and math.isnan(val))]
                 trunc_cell_value = cell_value.replace(' ', '')
                 if trunc_cell_value not in trunc_possible_values:
                     if trunc_cell_value != value:
@@ -282,6 +283,8 @@ def test_type(value, value_type):
             flt = float(value)
         except ValueError:
             return '"{}" should be an integer'.format(str(value))
+        if math.isnan(flt):
+            return None          # an empty cell is not a type error
         if math.trunc(flt) == flt:
             return None
         return '"{}" should be an integer'.format(str(value))
