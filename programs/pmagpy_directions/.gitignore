@@ -1,0 +1,5 @@
+output/
+*.redo
+logs/
+screenshots/
+__pycache__/
