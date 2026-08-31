@@ -128,22 +128,20 @@ class SpecimenView:
         self.tmax_sel = pn.widgets.Select(name="Upper bound", options=[], width=130, **same)
         self.add_btn = pn.widgets.Button(name="New fit", button_type="success", width=110, margin=(22, 5, 5, 5))
         self.del_btn = pn.widgets.Button(name="Delete", button_type="danger", width=90, margin=(22, 5, 5, 5))
-        self.flag_btn = pn.widgets.Button(name="Good/bad", button_type="warning", width=100, margin=(22, 5, 5, 5))
         self.add_btn.on_click(self._new_fit)
         self.del_btn.on_click(lambda e: s.delete_current())
-        self.flag_btn.on_click(lambda e: s.toggle_current_quality())
         # live edits of the selected fit
         self.tmin_sel.param.watch(self._on_bound_widget, "value")
         self.tmax_sel.param.watch(self._on_bound_widget, "value")
         self.fit_type_sel.param.watch(self._on_type_widget, "value")
         self.comp_name.param.watch(self._on_name_widget, "value")
-        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">selected fit: click a step (logger or plot) to move its '
-                                 'nearest bound · <b>[</b> <b>]</b> nudge the lower bound, <b>{</b> <b>}</b> the upper · '
+        self.hint = pn.pane.HTML(f'<span style="{MUTED_STYLE}">click a step to move the selected fit\'s nearest '
+                                 'bound · <b>[</b> <b>]</b> <b>{</b> <b>}</b> nudge bounds · '
                                  '<i>New fit</i>: click two steps · <b>←</b> <b>→</b> specimens</span>',
-                                 margin=(0, 0, 0, 5))
+                                 margin=(2, 0, 0, 12))
         # the one list of fits: statistics + selection (click a row to make it the current fit)
         self.comp_table = pn.widgets.Tabulator(
-            pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False,
+            pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
             configuration={"headerSort": False}, sizing_mode="stretch_width", text_align="right",
             layout="fit_data_table",
             stylesheets=[".tabulator-row.tabulator-selected { background-color: #dbe4f3 !important; "
@@ -368,7 +366,6 @@ class SpecimenView:
             if orient.has_tilt:
                 o += f" · bedding: dip direction {orient.bed_dip_direction:g}°, dip {orient.bed_dip:g}°"
         self.info.object = kpi([f"<b>{spec.name}</b>", ("sample", spec.sample), ("site", spec.site), spec.location,
-                                ("NRM", f"{spec.nrm:.3e} Am²"), f"{spec.n_steps} steps",
                                 f'<span style="{MUTED_STYLE}">{o}</span>'])
 
     # --- layout -----------------------------------------------------------------
@@ -377,9 +374,10 @@ class SpecimenView:
             self.hotkeys,
             self.specimen_sel, pn.Row(self.prev_btn, self.next_btn,
                                       pn.pane.HTML(f'<span style="{MUTED_STYLE}">← → keys</span>', margin=(12, 0, 0, 4))),
-            section("Coordinates"), self.coord_sel,
+            self.info,
+            pn.Row(pn.Column(section("Coordinates"), self.coord_sel, margin=0),
+                   pn.Column(section("Step labels"), self.label_sel, width=165, margin=0)),
             section("Zijderveld projection · x axis"), self.proj_sel,
-            section("Step labels"), self.label_sel,
             section("Steps · click = bound, right-click = good/bad"),
             self.logger,
         )
@@ -390,11 +388,9 @@ class SpecimenView:
                    pn.Column(self.eq.fig, self.decay.fig, width=ZijderveldPlot.SIDE + 10, margin=0,
                              styles={"overflow": "visible"}),
                    margin=0),
-            self.info,
-            section("Fits · click a row to select it"),
+            pn.Row(section("Fits · click a row to select it"), self.hint, margin=0),
             pn.Row(self.comp_name, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
-                   self.add_btn, self.del_btn, self.flag_btn),
-            self.hint,
+                   self.add_btn, self.del_btn),
             self.comp_table,
         )
 

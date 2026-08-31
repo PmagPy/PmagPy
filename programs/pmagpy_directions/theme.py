@@ -65,15 +65,17 @@ class ComponentColors:
 KPI_STYLE = "display:flex;gap:18px;flex-wrap:wrap;font-size:0.95rem;color:#2b2b2b;padding:4px 0"
 KPI_ITEM = "white-space:nowrap"
 SECTION_STYLE = ("font-weight:600;font-size:0.78rem;letter-spacing:.04em;text-transform:uppercase;"
-                 "color:#5b6470;margin:10px 0 2px 0")
+                 "color:#5b6470;margin:4px 0 2px 0")
 MUTED_STYLE = "color:#6b7280;font-size:0.85rem"
 # the main tabs: unmistakably tabs, in the same small bold capitals as the side-panel headings
 TABS_CSS = """
-:host .bk-header { border-bottom: 2px solid #1f4e9c !important; margin-bottom: 6px; gap: 0; }
+:host .bk-header { border-bottom: 2px solid #1f4e9c !important; margin-bottom: 1px; gap: 0;
+    height: 30px !important; min-height: 0 !important; }
 :host .bk-header .bk-tab { font-weight: 600 !important; font-size: 0.78rem !important; letter-spacing: .04em;
     text-transform: uppercase; color: #5b6470 !important; background-color: #e9edf3 !important;
     border: 1px solid #d0d4da !important; border-bottom: none !important; border-radius: 6px 6px 0 0 !important;
-    padding: 8px 18px !important; margin: 0 4px 0 0 !important; }
+    padding: 0 16px !important; margin: 0 4px 0 0 !important;
+    height: 28px !important; display: inline-flex !important; align-items: center; box-sizing: border-box; }
 :host .bk-header .bk-tab:hover { background-color: #dbe4f3 !important; color: #1f2937 !important; }
 :host .bk-header .bk-tab.bk-active, :host .bk-header .bk-tab.bk-active:hover {
     background-color: #1f4e9c !important; color: #ffffff !important; border-color: #1f4e9c !important; }
@@ -123,9 +125,18 @@ RAW_CSS = """
 :root { --demag-accent: %(accent)s; }
 .bk-root, .pn-loading { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; }
 #sidebar { padding-right: 6px; }
-#header .app-header img, #header img.app-logo, .app-header img { height: 42px; width: auto; margin-right: 6px; }
+/* a compact header and main card: vertical space belongs to the analysis */
+#header { padding: 3px 10px; height: 50px; box-sizing: border-box; }
+/* the template sizes #main for its default 64px header; reclaim the difference */
+#main { height: calc(100vh - 50px) !important; }
+#header .title { font-size: 1.15rem; }
+#header .app-header img, #header img.app-logo, .app-header img { height: 28px; width: auto; margin-right: 6px; }
+.card-margin > fast-card.pn-wrapper { padding: 2px 14px !important; }
+.card-margin { margin: 2px 0 !important; }
+.main-margin { margin: 2px 0 0 0 !important; }
+#container { height: 100vh !important; }
 .demag-section { font-weight: 600; font-size: 0.8rem; letter-spacing: .04em; text-transform: uppercase;
-                 color: #5b6470; margin: 10px 0 2px 0; }
+                 color: #5b6470; margin: 6px 0 2px 0; }
 .demag-kpi { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.95rem; color: #2b2b2b; padding: 4px 0; }
 .demag-kpi span { white-space: nowrap; }
 .demag-kpi b { color: #111; }

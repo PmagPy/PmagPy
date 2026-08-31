@@ -55,7 +55,7 @@ def create_app(directory: str, output_dir: str | None = None):
     status = pn.pane.HTML("", sizing_mode="stretch_width")
 
     def _status(event=None):
-        status.object = (f'<div style="display:flex;gap:18px;align-items:baseline;padding-top:6px">'
+        status.object = (f'<div style="display:flex;gap:18px;align-items:baseline;padding-top:2px">'
                          f'<span style="color:#e5e7eb;font-size:0.85rem">{session.status}</span></div>')
     session.param.watch(_status, "status")
     _status()
@@ -63,11 +63,15 @@ def create_app(directory: str, output_dir: str | None = None):
     # side column + drag handle + tabs (the template's collapsible sidebar is not used:
     # analysts want to *resize* the step logger column, not hide it)
     side = pn.Column(dataview.sidebar(), side_holder, width=450, sizing_mode="stretch_height",
-                     styles={"overflow-y": "auto", "overflow-x": "hidden", "max-height": "calc(100vh - 80px)",
+                     styles={"overflow-y": "auto", "overflow-x": "hidden", "max-height": "calc(100vh - 52px)",
                              "padding-right": "6px"})
     side_area = pn.Row(side, Splitter(width=14, sizing_mode="stretch_height"), width=464,
                        sizing_mode="stretch_height", margin=0)
-    body = pn.Row(side_area, tabs, sizing_mode="stretch_both")
+    # the main pane scrolls on its own, independently of the side column's scrollbar
+    main_area = pn.Column(tabs, sizing_mode="stretch_both",
+                          styles={"overflow-y": "auto", "overflow-x": "hidden",
+                                  "max-height": "calc(100vh - 60px)"})
+    body = pn.Row(side_area, main_area, sizing_mode="stretch_both")
     template = pn.template.FastListTemplate(
         title=APP_NAME, logo=asset_data_uri("pmagpy_logo_white.png"), favicon="assets/favicon.png",   # served via --static-dirs (see launch.py)
         main=[body], header=[status], accent=ACCENT, theme_toggle=False, collapsed_sidebar=True,

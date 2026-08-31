@@ -91,11 +91,13 @@ def keep_circular(fig):
 class ZijderveldPlot:
     """Orthogonal projection with box/tap selection of steps."""
 
-    # outer height = frame + legend strip + toolbar row + borders (measured in the browser)
-    FRAME = 520
+    # outer height = frame + legend strip + toolbar row + borders (measured in the browser).
+    # 430 keeps the whole Specimen pane — plots, fit controls and the first rows of the
+    # fit table — above the fold of a standard laptop window (~800 px viewport).
+    FRAME = 430
     TOP = 2              # min_border_top: the frame starts at the top of the canvas
     CHROME = 70
-    SIDE = 340           # width of the net / M/M₀ column plots
+    SIDE = 320           # width of the net / M/M₀ column plots
 
     def __init__(self, frame=FRAME):
         # a fixed square frame at the very top of the canvas; the outer width/height
@@ -292,21 +294,23 @@ class DecayPlot:
     """
 
     TOP = 8
-    AXIS_ROWS = 58          # x-axis ticks + label + bottom border, measured in the browser
+    AXIS_ROWS = 46          # x-axis ticks + label + bottom border, measured in the browser
 
     def __init__(self, size=340, height=None, frame_height=None):
         if frame_height is None:
             frame_height = (height or size) - self.TOP - self.AXIS_ROWS
+        # no toolbar: a right-hand toolbar strip would push the frame's right edge
+        # out of line with the net box above (hover and drag-pan work without one)
         self.fig = figure(height=height or (frame_height + self.TOP + self.AXIS_ROWS), width=size,
                           frame_height=frame_height, min_border_top=self.TOP, min_border_bottom=4,
-                          tools="pan,wheel_zoom,reset,save", frame_align=False,
+                          tools="pan,wheel_zoom", toolbar_location=None, frame_align=False,
                           sizing_mode="fixed", x_axis_label="treatment", y_axis_label="M / M₀")
         style_figure(self.fig)
-        # the same size as the Zijderveld axis-end labels (the template's theme
-        # would otherwise render axis text at 1.25 em)
-        self.fig.axis.axis_label_text_font_size = "11pt"
-        self.fig.axis.major_label_text_font_size = "10pt"
-        self.fig.min_border_right = 1          # the frame reaches the right edge, flush with the net's box
+        # compact axis text: this plot is an overview strip, its labels need not
+        # compete with the Zijderveld axis-end labels for attention (or height)
+        self.fig.axis.axis_label_text_font_size = "9pt"
+        self.fig.axis.major_label_text_font_size = "8pt"
+        self.fig.min_border_right = 4          # same right border as the net box above: frames end flush
         self.src = ColumnDataSource(dict(x=[], y=[], label=[], color=[]))
         self.fig.line("x", "y", source=self.src, color="#6b7280", line_width=1)
         pts = self.fig.scatter("x", "y", source=self.src, size=7, fill_color="color", line_color="#2b2b2b",
