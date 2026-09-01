@@ -35,7 +35,9 @@ a = Analysis(['programs/pmag_gui.py'],
                                 'pandas._libs.tslibs.timedeltas'],
              hooksconfig={
                         "matplotlib": {
-                        "backends": "WXAgg",  # collect wxpython backends
+                        # Keep the GUI backend and the writers exposed by the
+                        # plot-save dialogs without collecting every backend.
+                        "backends": ["WXAgg", "Agg", "PDF", "SVG", "PS"],
                         },
                 },
              hookspath=[],
@@ -60,7 +62,7 @@ exe = EXE(pyz,
           strip=True,
           upx=True,
           target_arch='arm64',
-          console=False, icon='./programs/images/pmagpy_logo.ico')
+          console=False, icon='./programs/images/PmagPy.icns')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -70,5 +72,5 @@ coll = COLLECT(exe,
                name=app_name)
 app = BUNDLE(coll,
              name=app_name + ".app",
-             icon='./programs/images/pmagpy_logo.ico',
-             bundle_identifier=None)
+             icon='./programs/images/PmagPy.icns',
+             bundle_identifier='org.pmagpy.pmag-gui')

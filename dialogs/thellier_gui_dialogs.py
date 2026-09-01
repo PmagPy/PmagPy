@@ -32,8 +32,8 @@ import scipy
 from numpy import arange
 # only this one is nessesary.
 import wx
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import pmagpy.pmag as pmag
+from dialogs.plot_export import save_figure
 from dialogs import pmag_widgets as pw
 from pmag_env import set_env
 #--------------------------------------------------------------
@@ -825,11 +825,9 @@ class SaveMyPlot(wx.Frame):
             path = dlg.GetPath()
 
         title = pars['er_specimen_name']
-        self.panel = wx.Panel(self)
         self.dpi = 300
 
-        canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
-        canvas_tmp_1.print_figure(path, dpi=self.dpi)
+        save_figure(fig, path, dpi=self.dpi)
 
 #----------------------------------------------------------------------
 

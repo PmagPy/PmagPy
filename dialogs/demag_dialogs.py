@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
+from dialogs.plot_export import save_figure
 from pmagpy.demag_gui_utilities import *
 from pmag_env import set_env
 from numpy import vstack,sqrt
@@ -400,11 +401,9 @@ class SaveMyPlot(wx.Frame):
             return
 
         title=name
-        self.panel = wx.Panel(self)
         self.dpi=300
 
-        canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
-        canvas_tmp_1.print_figure(path, dpi=self.dpi)
+        save_figure(fig, path, dpi=self.dpi)
 
 #--------------------------------------------------------------
 # MagIc results tables dialog
