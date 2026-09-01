@@ -337,7 +337,9 @@ class TestPolesView:
         view.centre.value = "pole"
         before = s.data.mean_pole(s.active_coord, view.comp.value, "site")
         view.invert.value = True
-        assert s.flip_polarity and "flipped" in view.pole.object
+        # the flip shows in the pole itself and in the control, not in a label saying so
+        assert s.flip_polarity and f'{-before["plat"]:.1f}°N' in view.pole.object
+        assert "polarity" not in view.pole.object
         assert view.plot.centre[1] == pytest.approx(-before["plat"])
         s.export_tables(levels=("location",), write_measurements=False)
         loc = pd.read_csv(tmp_path / "locations.txt", sep="\t", skiprows=1)
