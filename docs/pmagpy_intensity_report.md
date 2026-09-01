@@ -27,7 +27,7 @@ force-pushed to, or committed to directly. **No pull request has been opened.**
 | new core | 5 483 lines across four modules, no UI import anywhere |
 | shared MagIC 3 layer | 535 lines, extracted from `demag.py`, which lost 324 |
 | application | 3 673 lines |
-| tests | 279 core, 60 application, 14 toolkit, 41 browser checks — all passing |
+| tests | 283 core, 60 application, 14 toolkit, 40 browser checks — all passing |
 | statistics | the SPD v1.2.0 set in full, plus Ziggie |
 | validated against | 20 SPD calibration specimens × 48 statistics; 359 published Megiddo interpretations; synthetic known-field BiCEP sites |
 
@@ -92,6 +92,9 @@ documented where a reader will meet it.
 | **`A₂` is published per microtesla.** Used against a field in tesla it must be scaled by 10⁶, or the non-linear correction silently vanishes instead of failing. | `nlt_correction` |
 | **`IZZI_MD` is reported as *not applicable* outside IZZI**, rather than as a number that means nothing. The bare function still computes SPD's unsigned value for any protocol. | `arai_statistics` |
 | **Export inherits what it did not compute.** Intensity results on measured specimens are replaced; directional and rock-magnetic results on the same rows, tensors, ages, lithologies and every other table are preserved. Only MagIC 3 columns are written, and the first in-place export backs up the originals. | `merge_results(…, owns=)` |
+| **A group scattered wider than its own mean leaves `int_abs_sigma_perc` empty.** The data model caps that column at 100 %, so a site whose specimens disagree by more than their mean cannot express the number there — Megiddo's `mgf13` is 122 %. The uncapped `int_abs_sigma` carries the same information and the description says what the percentage was; clipping it to 100 would be a different claim. Site rows also now carry `result_type = a`. | `sites_table` |
+| **A `.redo` bound that is not a step of the specimen is reported.** Nearest-temperature matching is how a bound silently lands on the wrong step. The interpretation is still made — the nearest step is nearly always the intended one — but the mismatch is named. | `read_redo`, `REDO_STEP_TOLERANCE` |
+| **Validation failures arrive as cells, not as a frame.** `validate_upload3` hands back a DataFrame whose truthiness raises; it is normalised to one `{row, column, problem}` per failing cell, which is what the Export tab shows. The validator also no longer drops a `<table>_errors.txt` into the study directory to say so. | `failing_cells`, `validate_directory` |
 
 ### 2.4 What was added
 

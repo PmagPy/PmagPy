@@ -188,8 +188,13 @@ with sync_playwright() as playwright:
         time.sleep(4)
         text = page.evaluate(TEXT_JS)
         check(marker.lower() in text.lower(), f"the {label} tab shows its content")
-        if label in ("Group results",):
-            check_nets_circular(page, label)
+        if label == "Group results":
+            # no net here -- it is a dot plot of every specimen against the mean,
+            # on a categorical axis, and the regression worth guarding is that it
+            # renders at all with the groups on it
+            groups = frames(page, ["groups"])
+            check(bool(groups) and groups[0]["w"] > 100 and groups[0]["h"] > 100,
+                  f"the group dot plot rendered (got {groups})")
         page.screenshot(path=f"{prefix}_{label.split()[0].lower()}.png")
 
     # ---- criteria: every statistic has a definition and a source ---------
@@ -241,10 +246,16 @@ with sync_playwright() as playwright:
     page.evaluate(CLICK_TAB_JS, "Export")
     time.sleep(4)
     check(page.evaluate(CLICK_BUTTON_JS, "Validate"), "the validator can be run")
-    time.sleep(8)
-    text = page.evaluate(TEXT_JS)
+    for _ in range(60):                 # a full contribution takes a few seconds
+        text = page.evaluate(TEXT_JS)
+        if "✓" in text or "✗" in text or "nothing to check" in text:
+            break
+        time.sleep(1)
     check("✓" in text or "✗" in text or "nothing to check" in text,
           "the validator reports per table")
+    # cell-level, which is the point: a rejected upload is diagnosed here
+    check("✗" not in text or "failing cells" in text,
+          "a failing table names its failing cells")
     page.screenshot(path=f"{prefix}_export.png")
 
     browser.close()

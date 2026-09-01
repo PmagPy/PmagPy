@@ -692,6 +692,47 @@ class TestGroupsAndExport:
         finally:
             shutil.rmtree(out, ignore_errors=True)
 
+    def test_the_validator_names_the_cell_that_failed(self):
+        """Cell-level, so a rejected upload is diagnosed here and not at MagIC.
+
+        Megiddo's own specimens.txt fails: it names ATRM experiments that its
+        measurements.txt does not contain. Each failure must arrive as a row, a
+        column and a sentence -- not as a DataFrame, whose truthiness raises.
+        """
+        # measurements too: the failing check is that specimens.txt names
+        # experiments the measurements table does not contain
+        report = mp.validate_directory(MEGIDDO, tables=("specimens", "measurements"))
+        cells = report["specimens"]["failing_items"]
+        assert isinstance(cells, list) and cells
+        assert not cells[0] == {} and set(cells[0]) == {"row", "column", "problem"}
+        assert any(c["row"].startswith("hz05") for c in cells)
+        assert any("experiment" in c["column"] for c in cells)
+        # the shape a caller relies on: `if cells` must not raise
+        assert bool(cells) is True
+
+    def test_a_group_scattered_wider_than_its_mean_still_validates(self, megiddo):
+        """int_abs_sigma_perc is capped at 100 by the data model.
+
+        A site whose specimens disagree by more than their own mean cannot put
+        that percentage in the column at all. The absolute sigma carries the
+        same information and is not capped, so the percentage is left out and
+        the description says what it was -- rather than clipping the number to
+        100, which would be a different claim.
+        """
+        rows = megiddo.sites_table()
+        wide = megiddo.group_results("site", only_accepted=True)
+        wide = wide[wide["int_abs_sigma_perc"] > 100]
+        if not len(wide):
+            pytest.skip("no site in this study scatters that widely")
+        for name in wide["site"]:
+            row = rows[rows["site"] == name].iloc[0]
+            assert pd.isna(row["int_abs_sigma_perc"])
+            assert row["int_abs_sigma"] > 0
+            assert "% of the mean" in row["description"]
+
+    def test_every_group_row_says_it_is_an_average(self, megiddo):
+        assert (megiddo.sites_table()["result_type"] == "a").all()
+
     def test_provenance_is_stamped_on_every_row(self, megiddo):
         table = megiddo.specimens_table(analysts="A Tester")
         assert (table["software_packages"] == pi.SOFTWARE_TAG).all()
@@ -755,6 +796,33 @@ class TestPersistence:
             for name, interp in list(megiddo.interpretations.items())[:50]:
                 other = reloaded.interpretations[name]
                 assert (other.imin, other.imax) == (interp.imin, interp.imax)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_a_redo_bound_that_is_not_a_step_is_reported(self, megiddo):
+        """Nearest-temperature matching is how a bound lands on the wrong step.
+
+        The interpretation is still made -- the nearest step is nearly always
+        the intended one -- but a temperature that is not a step of this
+        specimen must be said out loud rather than snapped to silently.
+        """
+        tmp = tempfile.mkdtemp(prefix="pint-redo3-")
+        try:
+            data = pi.PintData.from_directory(MEGIDDO)
+            name = next(n for n, sp in data.specimens.items() if sp.arai is not None)
+            temps = data.specimens[name].arai.temps
+            path = os.path.join(tmp, "off.redo")
+            with open(path, "w") as fh:                     # 7 K off a real step
+                fh.write(f"{name}\t{temps[0] + 7:.0f}\t{temps[-1]:.0f}\n")
+            count, problems = data.read_redo(path)
+            assert count == 1
+            assert data.interpretations[name].imin == 0     # still the right step
+            assert len(problems) == 1 and "is not a step" in problems[0]
+            # and a file whose temperatures are exact says nothing
+            exact = os.path.join(tmp, "exact.redo")
+            with open(exact, "w") as fh:
+                fh.write(f"{name}\t{temps[0]:.0f}\t{temps[-1]:.0f}\n")
+            assert pi.PintData.from_directory(MEGIDDO).read_redo(exact)[1] == []
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 

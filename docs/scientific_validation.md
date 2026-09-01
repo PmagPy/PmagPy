@@ -391,7 +391,7 @@ by several percent. The reader now writes the precision the file carried.
 ```bash
 # the core suites (no Panel needed)
 pytest pmagpy/test/test_pint_stats.py -q            #  69 tests
-pytest pmagpy/test/test_paleointensity.py -q        # 116 tests
+pytest pmagpy/test/test_paleointensity.py -q        # 120 tests
 pytest pmagpy/test/test_tdt.py -q                   #  37 tests
 pytest pmagpy/test/test_bicep.py -q                 #  34 tests
 pytest pmagpy/test/test_intensity_environment.py -q #  23 tests

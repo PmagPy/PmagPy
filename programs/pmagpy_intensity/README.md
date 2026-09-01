@@ -200,9 +200,9 @@ Everything goes to the output directory, which is the data directory unless
 | `measurements.txt` | on export, optional | the measurements with the quality flags |
 | `backup_before_pmagpy_intensity/` | before the first in-place export | the original tables, copied once |
 
-The autosave and the session file are restored automatically the next time the
-same directory is opened; a legacy `thellier_gui.redo` in the directory is read
-too, if there is no session of ours.
+On opening a directory it restores, in this order: the autosave if there is
+one, then a legacy `thellier_gui.redo` if there is one, then whatever
+interpretations `specimens.txt` already holds. It says which it used.
 
 ### Settings
 
@@ -213,8 +213,9 @@ too, if there is no session of ours.
 | `PMAGPY_INTENSITY_PORT` | the port (default 5101) |
 | `PMAGPY_INTENSITY_RECENT` | where the recent-directory list is kept |
 
-`THELLIER_` works as a prefix for any of these too, for anyone with the old
-habit.
+`THELLIER_DIR`, `THELLIER_OUTPUT` and `THELLIER_RECENT` work too, for anyone
+with the old habit; the port is read from `PMAGPY_INTENSITY_PORT` only, or from
+`--port`.
 
 ---
 
@@ -265,6 +266,13 @@ have their intensity results replaced; directional and rock-magnetic results on
 the same specimens, anisotropy tensors, ages, lithologies and every other table
 are inherited unchanged. Only MagIC 3 columns are written, and the first
 in-place export backs the originals up first.
+
+**A group scattered wider than its own mean leaves `int_abs_sigma_perc`
+empty.** The data model caps that column at 100 %, so a site whose specimens
+disagree by more than their mean cannot put the number there at all. The
+absolute `int_abs_sigma` — which is not capped — carries the same information,
+and the row's description says what the percentage was. Clipping it to 100
+would be a different claim.
 
 **Curvature has no universal threshold.** `k` and `k′` are shown signed, with
 their SSE, and the presets that exist in the literature are offered by name and

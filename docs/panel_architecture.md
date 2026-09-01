@@ -186,10 +186,10 @@ that it now affects both.
 | layer | suite | count |
 |---|---|---|
 | science, directions | `pmagpy/test/test_demag.py`, `test_demag_geo.py` | in CI |
-| science, intensity | `test_pint_stats.py` (69), `test_paleointensity.py` (116), `test_tdt.py` (37), `test_bicep.py` (34), `test_intensity_environment.py` (23) | 279 |
+| science, intensity | `test_pint_stats.py` (69), `test_paleointensity.py` (120), `test_tdt.py` (37), `test_bicep.py` (34), `test_intensity_environment.py` (23) | 283 |
 | toolkit | `programs/pmagpy_panel/test_chooser.py` | 14 |
 | application | `programs/pmagpy_directions/test_app.py` (43), `programs/pmagpy_intensity/test_app.py` (60) | 103 |
-| browser | `ui_test.py` in each application | 41 checks (intensity) |
+| browser | `ui_test.py` in each application | 40 checks (intensity) |
 
 The core suites need no Panel and no browser; they are the ones that must stay
 in CI. The application suites need `panel`; the browser suites need a running

@@ -381,6 +381,9 @@ _register(CriteriaSet(
 #: the criteria set the application starts with
 DEFAULT_CRITERIA = "CCRIT"
 
+#: how far a .redo's temperature may be from a real step before it is reported (K)
+REDO_STEP_TOLERANCE = 1.0
+
 #: the extra criterion Tully & Paterson (2025) recommend for IZZI experiments
 ZIGGIE_CRITERION = Criterion("Ziggie", "<=", ps.ZIGGIE_CRITERION)
 
@@ -1695,15 +1698,25 @@ class PintData:
             return pd.DataFrame()
         rows = []
         for _, g in groups.iterrows():
+            note = ("weighted mean; " if weighted else "") + \
+                f"{int(g['corrected'])} of {int(g['n'])} specimens corrected"
+            # the data model caps int_abs_sigma_perc at 100; a group whose
+            # scatter exceeds its mean cannot be expressed in that column, so
+            # the percentage is left out and the absolute sigma -- which is not
+            # capped, and carries the same information -- says it instead
+            perc = g["int_abs_sigma_perc"]
+            if np.isfinite(perc) and perc > 100:
+                note += f"; scatter is {perc:.0f} % of the mean"
+                perc = None
             row = {level: g[level],
                    "int_abs": g["int_abs"] * 1e-6 if np.isfinite(g["int_abs"]) else None,
                    "int_abs_sigma": g["int_abs_sigma"] * 1e-6 if np.isfinite(g["int_abs_sigma"]) else None,
-                   "int_abs_sigma_perc": g["int_abs_sigma_perc"],
+                   "int_abs_sigma_perc": perc,
                    "int_n_specimens": int(g["n"]),
                    "method_codes": "IE-SPEC:LP-PI-TRM",
                    "result_quality": "g" if g["passed"] is not False else "b",
-                   "description": ("weighted mean; " if weighted else "") +
-                                  f"{int(g['corrected'])} of {int(g['n'])} specimens corrected",
+                   "result_type": "a",          # an average of the specimens below it
+                   "description": note,
                    }
             if level == "site" and "vadm" in g and np.isfinite(g.get("vadm", np.nan)):
                 row["vadm"] = g["vadm"]
@@ -1867,6 +1880,15 @@ class PintData:
                     continue
                 imin = int(np.argmin(np.abs(spec.arai.temps - tmin)))
                 imax = int(np.argmin(np.abs(spec.arai.temps - tmax)))
+                # a .redo names a temperature, and matching it to a step by
+                # nearest value is how a bound silently lands on the wrong one.
+                # The interpretation is still made -- it is almost always right
+                # -- but a bound that is not a step of this specimen is said so.
+                for want, got in ((tmin, spec.arai.temps[imin]), (tmax, spec.arai.temps[imax])):
+                    if abs(got - want) > REDO_STEP_TOLERANCE:
+                        problems.append(
+                            f"{name}: {want - KELVIN_OFFSET:.0f} C is not a step of this "
+                            f"specimen; used {got - KELVIN_OFFSET:.0f} C")
                 self.set_interpretation(name, imin, imax)
                 count += 1
         self.invalidate()

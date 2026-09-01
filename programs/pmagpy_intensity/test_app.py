@@ -496,6 +496,12 @@ class TestExportView:
 
 # ---------------------------------------------------------------------------
 class TestPublication:
+    @pytest.fixture(autouse=True)
+    def _close_figures(self):
+        """pyplot keeps every figure alive until it is closed; these tests make many."""
+        yield
+        pub.plt.close("all")
+
     def test_a_specimen_figure_carries_the_statistics(self, study):
         study.specimen = "hz05a1"
         figure = pub.specimen_figure(study.spec, study.bounds(), study.statistics(), study.result)

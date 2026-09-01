@@ -23,7 +23,7 @@ from pmagpy import bicep as bicep_core
 from pmagpy import pint_stats as ps
 from pmagpy import tdt as tdt_reader
 
-from pmagpy_panel.chooser import DirectoryChooser
+from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE,
                                 SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
@@ -49,8 +49,9 @@ def next_tick(fn):
         fn()
 
 
-def _shorten(path: str, width: int = 52) -> str:
-    return path if len(path) <= width else "…" + path[-(width - 1):]
+def _clip(text: str, width: int) -> str:
+    """A message short enough for one line, keeping the start that names the problem."""
+    return text if len(text) <= width else text[:width - 1] + "…"
 
 
 def _stat_html(stat: ps.Stat, decimals: Optional[int] = None) -> str:
@@ -1009,7 +1010,7 @@ class BicepView(LazyView):
         if status["available"]:
             self.install.object = (f'<div style="color:{PASS_COLOR}">Stan is available '
                                    f'(cmdstanpy {status["version"]}, CmdStan at '
-                                   f'{_shorten(status["cmdstan"] or "", 40)}).</div>')
+                                   f'{shorten(status["cmdstan"] or "", 40)}).</div>')
         else:
             self.install.object = (
                 f'<div style="{MUTED_STYLE}">Stan is not installed, so the built-in sampler is '
@@ -1306,10 +1307,19 @@ the original tables to a backup folder.
                 detail.append("missing columns: " + ", ".join(failure["missing_cols"]))
             if failure["bad_rows"]:
                 detail.append(f'{len(failure["bad_rows"])} bad rows')
-            for item in (failure["failing_items"] or [])[:5]:
-                detail.append(str(item))
+            cells = failure["failing_items"]
+            if cells:
+                detail.append(f"{len(cells)} failing cells")
             rows.append(f'<div style="color:{FAIL_COLOR}">✗ {table}: '
                         f'{"; ".join(detail) or "see the validator"}</div>')
+            # cell-level, so the analyst can go to the cell rather than the table
+            for cell in cells[:6]:
+                where = f'{cell["row"]} · {cell["column"]}' if cell["row"] else cell["column"]
+                rows.append(f'<div style="{MUTED_STYLE};padding-left:16px">{where}: '
+                            f'{_clip(cell["problem"], 160)}</div>')
+            if len(cells) > 6:
+                rows.append(f'<div style="{MUTED_STYLE};padding-left:16px">'
+                            f'… and {len(cells) - 6} more</div>')
         self.report.object = "".join(rows) or (
             f'<div style="{MUTED_STYLE}">nothing to check yet: write the tables first</div>')
 
