@@ -90,7 +90,7 @@ docstrings and comments and asserts that the code never says *specimen*,
 
 | module | what both applications get |
 |---|---|
-| `theme.py` | the palette, the CSS, Bokeh figure styling, `ComponentColors` (a component keeps its colour in every table, plot and figure), `kpi()`, `lighten()`, `style_figure()`, `asset_data_uri()` |
+| `theme.py` | the palette, the CSS, Bokeh figure styling, `ComponentColors` (a component keeps its colour in every table, plot and figure), `kpi()`, `lighten()`, `style_figure()`, `asset_data_uri()` — and `Theme`/`for_app(app_id)`, which derives an application's tabs, checkboxes, button groups, table rows and `raw_css` from a single accent |
 | `widgets.py` | the `JSComponent`s: `Splitter` (the side-column boundary, which moves both panes), `HeightSplitter` (resizes the plots), `Hotkeys` (forwards key presses) |
 | `nets.py` | `net_figure()` — a square, toolbar-less equal-area figure with `frame_align=False` — `keep_circular()`, and `declutter_labels()` |
 | `chooser.py` | the dataset block in the side column and the "open a different one" dialog: system folder chooser, recent list, path field, in-page browser |
@@ -121,7 +121,11 @@ asserted in both browser suites.
   a direction that was computed rather than measured. Derived symbols take the
   dark edge; a mean is drawn on top of what it averages.
 * **Colour carries identity, not category** — a component keeps its colour
-  everywhere it appears.
+  everywhere it appears. The one colour that differs between the two
+  applications is the *chrome* accent: navy for Directions, plum for Intensity,
+  both listed in `theme.ACCENTS` so a third cannot collide. Two of these
+  windows side by side have to be tellable apart at a glance; a data mark's
+  colour never says which application drew it.
 * **Layout.** A side column that changes with the task, a drag handle, then the
   main pane; only a tab that plots nothing takes the full width.
 * **Tables** get the height of what they hold, use `TABLE_ROW_CSS` so hovered
@@ -145,6 +149,7 @@ asserted in both browser suites.
 | the tabs | its own | its own |
 | the port | 5100 | 5101 |
 | identity | `pmagpy_directions` | `pmagpy_intensity` |
+| accent | navy `#1f4e9c` | plum `#6a2c5a` |
 
 A shared "analysis session" base class was considered and rejected. The two
 sessions look similar in outline — a directory, a current specimen, a version
@@ -188,8 +193,8 @@ that it now affects both.
 | science, directions | `pmagpy/test/test_demag.py`, `test_demag_geo.py` | in CI |
 | science, intensity | `test_pint_stats.py` (69), `test_paleointensity.py` (120), `test_tdt.py` (37), `test_bicep.py` (34), `test_intensity_environment.py` (23) | 283 |
 | toolkit | `programs/pmagpy_panel/test_chooser.py` | 14 |
-| application | `programs/pmagpy_directions/test_app.py` (43), `programs/pmagpy_intensity/test_app.py` (60) | 103 |
-| browser | `ui_test.py` in each application | 40 checks (intensity) |
+| application | `programs/pmagpy_directions/test_app.py` (43), `programs/pmagpy_intensity/test_app.py` (63) | 106 |
+| browser | `ui_test.py` in each application | 43 checks (intensity) |
 
 The core suites need no Panel and no browser; they are the ones that must stay
 in CI. The application suites need `panel`; the browser suites need a running

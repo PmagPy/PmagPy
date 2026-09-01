@@ -107,6 +107,36 @@ HTML_JS = """() => {
 }"""
 
 
+#: a Tabulator only keeps the visible rows in the DOM; the whole column lives
+#: on the model's data source
+TABLE_DATA_JS = """(column) => {
+  const doc = Bokeh.documents[0];
+  const models = doc._all_models ?? doc.all_models;
+  const list = models instanceof Map ? [...models.values()] : [...models];
+  for (const m of list) {
+    const data = m.source && m.source.data;
+    if (data && data[column]) return [...data[column]];
+  }
+  return [];
+}"""
+
+#: click the table row whose text contains `needle` (a MagIC column name is
+#: unique to one statistic, where a label like "n" is not)
+CLICK_ROW_JS = """(needle) => {
+  const rows = [];
+  const walk = (root) => root.querySelectorAll('*').forEach(el => {
+    if (el.shadowRoot) walk(el.shadowRoot);
+    if (el.classList && el.classList.contains('tabulator-row')
+        && !el.classList.contains('tabulator-group')) rows.push(el);
+  });
+  walk(document);
+  const target = rows.find(r => r.textContent.includes(needle));
+  if (!target) return false;
+  target.click();
+  return true;
+}"""
+
+
 def frames(page, names):
     return page.evaluate(FRAMES_JS, names)
 
@@ -197,14 +227,21 @@ with sync_playwright() as playwright:
                   f"the group dot plot rendered (got {groups})")
         page.screenshot(path=f"{prefix}_{label.split()[0].lower()}.png")
 
-    # ---- criteria: every statistic has a definition and a source ---------
+    # ---- criteria: every statistic is a row, and a row explains itself ----
     page.evaluate(CLICK_TAB_JS, "Criteria & statistics")
-    time.sleep(3)
-    text = page.evaluate(TEXT_JS)
+    time.sleep(4)
+    # the table virtualises its rows, so only the visible ones are in the DOM:
+    # the statistics have to be read from the model rather than from the page
+    listed = page.evaluate(TABLE_DATA_JS, "statistic")
     for label in ("FRAC", "DRAT", "Ziggie", "dt*", "IZZI_MD"):
-        check(label in text, f"the statistics panel lists {label}")
-    check("doi.org" in page.evaluate(HTML_JS), "each statistic carries a citation link")
-    check("-999" not in text, "the statistics panel shows no sentinel values")
+        check(label in listed, f"the statistics table has a row for {label}")
+    check(len(listed) > 40, f"the whole SPD set is there ({len(listed)} rows)")
+    check(page.evaluate(CLICK_ROW_JS, "int_frac"), "a statistic can be selected")
+    time.sleep(2)
+    detail = page.evaluate(TEXT_JS)
+    check("doi.org" in page.evaluate(HTML_JS), "the selected statistic cites its source")
+    check("NRM fraction" in detail, "the selected statistic gives its definition")
+    check("-999" not in detail, "the statistics panel shows no sentinel values")
 
     # ---- BiCEP: it runs, reports diagnostics, and does not block ----------
     page.evaluate(CLICK_TAB_JS, "BiCEP")

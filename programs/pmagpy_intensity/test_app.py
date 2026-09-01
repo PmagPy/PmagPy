@@ -303,29 +303,68 @@ class TestInterpretationsView:
 
 # ---------------------------------------------------------------------------
 class TestCriteriaView:
-    def test_every_statistic_is_listed_with_its_definition(self, study):
+    def test_every_statistic_is_a_row_with_its_criterion(self, study):
         study.specimen = "hz05a1"
         view = CriteriaView(study)
         view.set_active(True)
-        html = view.table.object
+        frame = view.table.value
+        assert set(view.COLUMNS) <= set(frame.columns)
         for label in ("FRAC", "DRAT", "Ziggie", "dt*"):
-            assert label in html
-        assert "doi.org" in html
+            assert label in set(frame["statistic"]), label
+        # a criterion appears against the statistic it tests, not in a separate list
+        tested = frame[frame["criterion"] != ""]
+        assert len(tested) and set(tested["verdict"]) <= {"pass", "fail", "not tested"}
 
-    def test_a_not_applicable_statistic_says_why(self, study):
+    def test_selecting_a_row_explains_that_statistic(self, study):
         study.specimen = "hz05a1"
         view = CriteriaView(study)
         view.set_active(True)
-        assert "n/a" in view.table.object or "—" in view.table.object
-        assert "title=" in view.table.object          # the reason is the tooltip
+        frame = view.table.value
+        index = int(frame.index[frame["statistic"] == "FRAC"][0])
+        view.table.selection = [index]
+        detail = view.detail.object
+        assert "FRAC" in detail
+        assert "doi.org" in detail                     # where it comes from
+        assert "int_frac" in detail                    # and the MagIC column
 
-    def test_the_search_box_narrows_the_list(self, study):
+    def test_a_not_applicable_statistic_says_why_when_it_is_selected(self, study):
+        study.specimen = "hz05a1"
+        view = CriteriaView(study)
+        view.set_active(True)
+        frame = view.table.value
+        no_value = frame[~frame["value"].str.replace("-", "", regex=False).str[:1].str.isdigit()]
+        assert len(no_value), "this specimen has a value for everything"
+        view.table.selection = [int(no_value.index[0])]
+        assert "—" in view.detail.object              # the state and the reason, spelt out
+
+    def test_the_search_box_narrows_the_table(self, study):
         view = CriteriaView(study)
         view.set_active(True)
         view.search.value = "tail"
-        html = view.table.object
-        assert "DRAT tail" in html
-        assert "GAP-MAX" not in html
+        names = set(view.table.value["statistic"])
+        assert "DRAT tail" in names
+        assert "GAP-MAX" not in names
+
+    def test_only_the_tested_ones_can_be_shown(self, study):
+        view = CriteriaView(study)
+        view.set_active(True)
+        everything = len(view.table.value)
+        view.only_tested.value = True
+        assert 0 < len(view.table.value) < everything
+        assert (view.table.value["criterion"] != "").all()
+        view.only_tested.value = False
+
+    def test_the_summary_names_what_failed(self, study):
+        study.criteria_name = "TTA"
+        view = CriteriaView(study)
+        view.set_active(True)
+        frame = view.table.value
+        failed = list(frame[frame["verdict"] == "fail"]["statistic"])
+        if failed:
+            assert failed[0] in view.summary.object
+        else:
+            assert "passes every criterion" in view.summary.object
+        study.criteria_name = "CCRIT"
 
     def test_the_criteria_table_shows_pass_fail_and_not_tested(self, study):
         study.criteria_name = "TTA"
@@ -338,7 +377,7 @@ class TestCriteriaView:
     def test_no_statistic_is_shown_as_minus_999(self, study):
         view = CriteriaView(study)
         view.set_active(True)
-        assert "-999" not in view.table.object
+        assert "-999" not in view.table.value.to_string()
 
 
 # ---------------------------------------------------------------------------

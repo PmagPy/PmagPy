@@ -4,7 +4,9 @@ A Panel application for Thellier-type paleointensity, built on MagIC Data
 Model 3 and on the Standard Paleointensity Definitions. It is the successor to
 `thellier_gui.py`, and it is the paleointensity half of a pair: PmagPy
 Directions does demagnetization, this does intensity, and the two share a
-toolkit so that an analyst who knows one already knows the other.
+toolkit so that an analyst who knows one already knows the other. They are told
+apart by colour — Directions is navy, this is plum — and by nothing else, which
+is the intention.
 
 ```bash
 python programs/pmagpy_intensity/launch.py --dir data_files/3_0/Megiddo
@@ -65,8 +67,15 @@ resize the plots themselves.
 
 ### Specimen
 
-Where an interpretation is made. Five linked plots — Arai, Zijderveld, equal-area
-net, NRM/pTRM decay and the checks — plus the step table and the current result.
+Where an interpretation is made. The Arai plot on the left, at the size you set;
+beside it a 2 × 2 block of the four companions — **Zijderveld**, **equal area**,
+**NRM and pTRM** decay, **alteration checks** — each captioned, all four the
+same width so the block reads as one thing. The step table is in the side
+column and the current result runs along the bottom.
+
+The whole tab fits a 1440-wide window without scrolling. Narrower than that and
+the pane scrolls sideways; drag the handle between the columns, or pull the
+**plot size** slider down — it scales the companions with the Arai plot.
 
 * **Choosing the interval.** Box-select two points on the Arai plot to set both
   bounds, click one point to move the nearer bound, use the `T min`/`T max`
@@ -98,11 +107,17 @@ and the interface stays responsive.
 
 ### Criteria & statistics
 
-Every statistic the current specimen has, grouped by SPD category, each with its
-value, its definition, its equation, its citation and DOI, and — where the active
-criteria set tests it — a pass or fail mark against the threshold. Search by
-name or filter by category. A statistic that cannot be computed says which of
-the three reasons applies:
+Every statistic the current specimen has, as **one sortable table** — statistic,
+value, units, the criterion that tests it, the verdict, and the MagIC column it
+is written to — under collapsible headings for the SPD categories. Sort by
+verdict to bring the failures to the top, search by name, filter by category, or
+tick *only the ones the criteria test*. The line above it says how many criteria
+were met and names what failed.
+
+Selecting a row explains that one statistic underneath the table: its
+definition, its equation, its value, the threshold being applied, the MagIC
+column and the paper it comes from, with a DOI link. A statistic that cannot be
+computed says which of the three reasons applies:
 
 | shown | means |
 |---|---|

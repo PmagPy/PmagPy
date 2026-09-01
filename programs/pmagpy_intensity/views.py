@@ -17,6 +17,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import panel as pn
+from bokeh.models.widgets.tables import HTMLTemplateFormatter
 
 import pmagpy.paleointensity as pint
 from pmagpy import bicep as bicep_core
@@ -25,8 +26,8 @@ from pmagpy import tdt as tdt_reader
 
 from pmagpy_panel.chooser import DirectoryChooser, shorten
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
-from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE,
-                                SECTION_STYLE, STATS_TABLE_CSS, TABLE_ROW_CSS, kpi)
+from pmagpy_panel import theme as _theme
+from pmagpy_panel.theme import INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE, STATS_TABLE_CSS, kpi
 from . import publication as pub
 from .plots import (AraiPlot, ChecksPlot, DecayPlot, GroupPlot, SpecimenZijderveldPlot,
                     StepNetPlot)
@@ -34,10 +35,55 @@ from .session import (AUTOSAVE_NAME, RECENT_FILE, REDO_NAME, SESSION_NAME, Sessi
                       load_recent, looks_like_magic_dir, native_choose_directory,
                       native_chooser_available)
 
-SIDE_PLOT = 380
+# this application's accent, not the toolkit's default -- see pmagpy_intensity/__init__
+THEME = _theme.for_app(pint.APP_ID)
+ACCENT = THEME.accent
+BUTTON_GROUP_CSS = THEME.button_group_css
+CHECKBOX_CSS = THEME.checkbox_css
+TABLE_ROW_CSS = THEME.table_row_css
+
+#: The four companion figures are a 2 x 2 block beside the Arai plot, and a
+#: block only reads as one if its tiles line up. Each figure declares what it
+#: needs around its frame (``CHROME_W``/``CHROME_H``), so a tile is defined by
+#: its *outer* width and the frame is worked back from it.
+TILE = 240                 # outer width of one companion tile
+SHORT = 0.62               # the decay and check tiles are wider than they are tall
+
+
+def tile_frames(tile: int = TILE) -> dict:
+    """Frame sizes giving the four companions the same outer width ``tile``."""
+    short = max(96, round(tile * SHORT))
+    return {"zij": tile - SpecimenZijderveldPlot.CHROME_W,
+            "net": tile,                       # net_figure's outer size *is* its size
+            "decay": (tile - DecayPlot.CHROME_W, short),
+            "checks": (tile - ChecksPlot.CHROME_W, short)}
+
+
+def captioned(caption: str, fig, width: int = TILE) -> pn.Column:
+    """A figure under a small heading.
+
+    Outside the figure rather than as a Bokeh title, because ``net_figure``
+    keeps a net circular by having no title row at all -- see the toolkit's
+    note there. Doing it the same way for all four keeps the block aligned.
+    """
+    label = pn.pane.HTML(f'<div style="{SECTION_STYLE};margin:0">{caption}</div>',
+                         width=width, height=16, margin=(0, 0, 1, 2))
+    return pn.Column(label, fig, width=width, margin=(0, 0, 6, 0))
+
+
 PASS_COLOR = "#1a7f5a"
 FAIL_COLOR = "#c0392b"
 NA_COLOR = "#6b7280"
+
+#: Tabulator's group rows default to a heavy grey bar; these are section
+#: headings, so they get the same small capitals as every other heading here
+GROUP_HEADER_CSS = f"""
+.tabulator-row.tabulator-group {{ background: #ffffff !important; border-bottom: 1px solid #d0d4da;
+    border-top: none; padding: 9px 4px 3px 4px; font-weight: 600; font-size: 0.82rem;
+    letter-spacing: .01em; color: {ACCENT}; }}
+.tabulator-row.tabulator-group:hover {{ background: #ffffff !important; }}
+.tabulator-row.tabulator-group span {{ color: #6b7280; font-weight: 400; }}
+"""
 
 
 def next_tick(fn):
@@ -194,13 +240,23 @@ class DataView:
 class SpecimenView:
     """One specimen: the Arai plot and its companions, the bounds and the result."""
 
+    COMPANION_GAP = 10
+
     def __init__(self, session: Session):
         self.s = session
         self.arai = AraiPlot()
-        self.zij = SpecimenZijderveldPlot(AraiPlot.SIDE if hasattr(AraiPlot, "SIDE") else 320)
-        self.net = StepNetPlot(320)
-        self.decay = DecayPlot(320, 190)
-        self.checks = ChecksPlot(320, 175)
+        frames = tile_frames()
+        self.zij = SpecimenZijderveldPlot(frames["zij"])
+        self.net = StepNetPlot(frames["net"])
+        self.decay = DecayPlot(*frames["decay"])
+        self.checks = ChecksPlot(*frames["checks"])
+        # one block, built here so that it exists before main() is asked for it
+        self.tiles = [captioned("Zijderveld", self.zij.fig),
+                      captioned("Equal area", self.net.fig),
+                      captioned("NRM and pTRM", self.decay.fig),
+                      captioned("Alteration checks", self.checks.fig)]
+        self.companions = pn.GridBox(*self.tiles, ncols=2,
+                                     width=2 * TILE + self.COMPANION_GAP)
         self.arai.on_select(self._on_plot_select)
 
         self.chooser = pn.widgets.Select(name="Specimen", options=[], sizing_mode="stretch_width")
@@ -257,12 +313,17 @@ class SpecimenView:
 
     # ----- events -----------------------------------------------------------
     def _on_size(self, event):
-        self.arai.set_frame(int(event.new))
-        side = max(240, int(event.new) * 0.72)
-        self.zij.set_size(int(side))
-        self.net.set_size(int(side))
-        self.decay.set_size(int(side), int(side * 0.55))
-        self.checks.set_size(int(side), int(side * 0.52))
+        frame = int(event.new)
+        self.arai.set_frame(frame)
+        tile = max(180, round(frame * TILE / AraiPlot.FRAME))
+        frames = tile_frames(tile)
+        self.zij.set_size(frames["zij"])
+        self.net.set_size(frames["net"])
+        self.decay.set_size(*frames["decay"])
+        self.checks.set_size(*frames["checks"])
+        for column in self.tiles:
+            column.width = column[0].width = tile
+        self.companions.width = 2 * tile + self.COMPANION_GAP
         self.redraw()
 
     def _on_bound(self, event):
@@ -453,9 +514,26 @@ class SpecimenView:
             self.hotkeys, sizing_mode="stretch_width")
 
     def main(self):
-        column = pn.Column(self.zij.fig, self.net.fig, self.decay.fig, self.checks.fig)
-        return pn.Column(self.header, pn.Row(self.arai.fig, column), self.result,
-                         sizing_mode="stretch_width")
+        """The Arai plot, and the four companions as one 2 x 2 block beside it.
+
+        The block is one flex item with a width of its own, rather than four
+        figures in a column -- which is what a plain Row gave, a thousand pixels
+        of companions against five hundred of Arai plot, three of them below the
+        fold.
+
+        Together they need about 910 px, which is what a 1440-wide laptop has
+        left beside the side column. Narrower than that and the pane scrolls
+        horizontally: Bokeh sizes each container to its content and writes the
+        result in pixels, so a flex box inside it never re-measures and CSS
+        wrapping does not fire. The three things that do adapt are the drag
+        handle, the plot-size slider (which scales the block with the Arai
+        plot) and the browser's own zoom.
+        """
+        figures = pn.FlexBox(self.arai.fig, self.companions, flex_wrap="wrap",
+                             align_items="flex-start", gap=f"{self.COMPANION_GAP}px",
+                             styles={"width": "100%", "min-width": "0"})
+        return pn.Column(self.header, figures, self.result, sizing_mode="stretch_width",
+                         styles={"min-width": "0", "align-self": "stretch"})
 
 
 # ---------------------------------------------------------------------------
@@ -615,7 +693,25 @@ def _front(frame: pd.DataFrame) -> pd.DataFrame:
 # Criteria and statistics
 # ---------------------------------------------------------------------------
 class CriteriaView(LazyView):
-    """Every statistic for the current specimen, with its definition and source."""
+    """Every statistic for the current specimen, as a table you can sort.
+
+    The statistics used to be a stack of paragraphs, one per statistic, which
+    is unreadable at forty-eight of them: you cannot compare two values, and
+    finding the ones that failed means reading all of it. They are a table now
+    -- sortable, filterable, one line each -- and the prose that belongs to one
+    statistic (its definition, its equation, where it comes from, why it has no
+    value) is shown for the row you select.
+    """
+
+    COLUMNS = ["statistic", "value", "units", "criterion", "verdict", "category", "MagIC column"]
+    WIDTHS = {"statistic": 130, "value": 110, "units": 70, "criterion": 120, "verdict": 100}
+    #: plain values in the cells so that sorting works; the colour is display only
+    VALUE_FORMAT = ('<span style="color:<%= isNaN(parseFloat(value)) ? \'#6b7280\' : \'#111\' %>;'
+                    'font-style:<%= isNaN(parseFloat(value)) ? \'italic\' : \'normal\' %>">'
+                    '<%= value %></span>')
+    VERDICT_FORMAT = ('<span style="font-weight:<%= value === \'fail\' ? 700 : 400 %>;color:'
+                      '<%= value === \'pass\' ? \'' + PASS_COLOR + '\' : value === \'fail\' ? \''
+                      + FAIL_COLOR + '\' : \'' + NA_COLOR + '\' %>"><%= value %></span>')
 
     def __init__(self, session: Session):
         super().__init__()
@@ -637,17 +733,63 @@ class CriteriaView(LazyView):
         self.category = pn.widgets.MultiChoice(name="Categories", options=ps.categories(),
                                                value=[], sizing_mode="stretch_width")
         self.category.param.watch(lambda e: self.redraw(), "value")
+        self.only_tested = pn.widgets.Checkbox(name="only the ones the criteria test",
+                                               value=False)
+        self.only_tested.param.watch(lambda e: self.redraw(), "value")
         self.criteria_info = pn.pane.HTML("", sizing_mode="stretch_width")
         self.criteria_table = pn.widgets.Tabulator(pd.DataFrame(), show_index=False, height=260,
                                                    disabled=True, sizing_mode="stretch_width",
                                                    theme="simple", stylesheets=[STATS_TABLE_CSS])
-        self.table = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
+        self.table = pn.widgets.Tabulator(
+            pd.DataFrame(columns=self.COLUMNS), show_index=False, disabled=True, selectable=1,
+            height=560, sizing_mode="stretch_width", theme="simple", layout="fit_data_table",
+            widths=self.WIDTHS, text_align={"value": "right", "criterion": "right"},
+            formatters={"value": HTMLTemplateFormatter(template=self.VALUE_FORMAT),
+                        "verdict": HTMLTemplateFormatter(template=self.VERDICT_FORMAT)},
+            # the SPD categories are how the standard organises these, and they
+            # are the group headings rather than a column that repeats itself
+            groupby=["category"], hidden_columns=["key", "category"],
+            stylesheets=[TABLE_ROW_CSS, GROUP_HEADER_CSS])
+        self.table.param.watch(lambda e: self._show_detail(), "selection")
+        self.detail = pn.pane.HTML("", sizing_mode="stretch_width")
         session.param.watch(self._lazy_redraw, ["specimen", "version", "directory",
                                                 "criteria_name", "add_ziggie"])
 
+    # ----- the table --------------------------------------------------------
+    def _frame(self, stats, verdict) -> pd.DataFrame:
+        query = (self.search.value or "").strip().lower()
+        wanted = set(self.category.value)
+        by_criterion = {row["key"]: row for row in verdict["rows"]}
+        rows = []
+        for key, spec in ps.CATALOG.items():
+            if key not in stats:
+                continue
+            if wanted and spec.category not in wanted:
+                continue
+            if query and query not in (key + spec.label + spec.definition).lower():
+                continue
+            rule = by_criterion.get(key)
+            if self.only_tested.value and rule is None:
+                continue
+            stat = stats[key]
+            rows.append({
+                "statistic": spec.label,
+                "value": stat.rounded(spec.decimals) if stat.is_value else stat.text(),
+                "units": spec.units,
+                "criterion": rule["criterion"] if rule else "",
+                "verdict": "" if rule is None else (
+                    "pass" if rule["pass"] is True else
+                    "fail" if rule["pass"] is False else "not tested"),
+                "category": spec.category,
+                "MagIC column": spec.magic_column,
+                "key": key})
+        return pd.DataFrame(rows, columns=self.COLUMNS + ["key"])
+
     def redraw(self, *events):
         if not self.s.ready:
-            self.table.object = "<i>no specimen</i>"
+            self.table.value = pd.DataFrame(columns=self.COLUMNS + ["key"])
+            self.detail.object = "<i>no specimen</i>"
             return
         criteria = self.s.data.criteria
         self.criteria_info.object = (
@@ -663,58 +805,77 @@ class CriteriaView(LazyView):
                                                    else "not tested"),
              "why": "" if row["pass"] is not None else row["value"].reason}
             for row in verdict["rows"]])
-        self.table.object = self._html(stats, {r["key"] for r in verdict["rows"]}, verdict)
+        frame = self._frame(stats, verdict)
+        keep = self.table.value["key"].iloc[self.table.selection[0]] \
+            if self.table.selection and len(self.table.value) else None
+        self.table.value = frame
+        self.table.selection = ([int(i) for i in frame.index[frame["key"] == keep]][:1]
+                                if keep is not None else [])
+        self._fill_summary(frame, verdict)
+        self._show_detail()
 
-    def _html(self, stats, criterion_keys, verdict):
-        query = (self.search.value or "").strip().lower()
-        wanted = set(self.category.value)
-        by_criterion = {row["key"]: row for row in verdict["rows"]}
-        out = []
-        for category in ps.categories():
-            if wanted and category not in wanted:
-                continue
-            rows = []
-            for key, spec in ps.CATALOG.items():
-                if spec.category != category or key not in stats:
-                    continue
-                if query and query not in (key + spec.label + spec.definition).lower():
-                    continue
-                stat = stats[key]
-                row = by_criterion.get(key)
-                if row is None:
-                    mark = ""
-                elif row["pass"] is True:
-                    mark = f'<span style="color:{PASS_COLOR}">✓ {row["criterion"]}</span>'
-                elif row["pass"] is False:
-                    mark = f'<span style="color:{FAIL_COLOR}">✗ {row["criterion"]}</span>'
-                else:
-                    mark = f'<span style="color:{NA_COLOR}">not tested</span>'
-                source = spec.citation + (f' (<a href="https://doi.org/{spec.doi}" '
-                                          f'target="_blank">doi</a>)' if spec.doi else "")
-                rows.append(
-                    f"<tr><td><b>{spec.label}</b><br>"
-                    f'<span style="{MUTED_STYLE}">{key}</span></td>'
-                    f'<td style="text-align:right">{_stat_html(stat, spec.decimals)}'
-                    f'{" " + spec.units if spec.units else ""}</td>'
-                    f"<td>{mark}</td>"
-                    f'<td>{spec.definition}'
-                    + (f'<div style="{MUTED_STYLE};font-family:monospace">{spec.equation}</div>'
-                       if spec.equation else "")
-                    + f'<div style="{MUTED_STYLE}">{source}</div></td></tr>')
-            if rows:
-                out.append(f'<div style="{SECTION_STYLE}">{category}</div>'
-                           f'<table style="width:100%;border-collapse:collapse">'
-                           + "".join(rows) + "</table>")
-        return "".join(out) or f'<div style="{MUTED_STYLE}">no statistic matches.</div>'
+    def _fill_summary(self, frame, verdict):
+        tested = frame[frame["verdict"] != ""]
+        failed = list(tested[tested["verdict"] == "fail"]["statistic"])
+        passed = int((tested["verdict"] == "pass").sum())
+        if not len(tested):
+            note = f'<span style="{MUTED_STYLE}">this set tests none of these</span>'
+        elif failed:
+            note = (f'<span style="color:{FAIL_COLOR}">fails {", ".join(failed)}</span>')
+        else:
+            note = f'<span style="color:{PASS_COLOR}">passes every criterion</span>'
+        self.summary.object = kpi([f"<b>{len(frame)}</b> statistics",
+                                   f"<b>{passed}</b> of {len(tested)} criteria met", note])
+
+    # ----- the selected statistic ------------------------------------------
+    def _show_detail(self):
+        frame = self.table.value
+        if not len(frame):
+            self.detail.object = ""
+            return
+        if not self.table.selection:
+            self.detail.object = (f'<div style="{MUTED_STYLE}">Select a statistic for its '
+                                  f'definition, its equation and where it comes from.</div>')
+            return
+        row = frame.iloc[self.table.selection[0]]
+        key = row["key"]
+        spec = ps.CATALOG[key]
+        stat = self.s.statistics().get(key)
+        source = spec.citation + (f' (<a href="https://doi.org/{spec.doi}" target="_blank">'
+                                  f'{spec.doi}</a>)' if spec.doi else "")
+        # the key is only worth showing when it is not the label already
+        named = f"{key} · {spec.category}" if key != spec.label else spec.category
+        bits = [f'<div style="{SECTION_STYLE}">{spec.label} <span style="{MUTED_STYLE};'
+                f'text-transform:none">{named}</span></div>',
+                f"<div>{spec.definition}</div>"]
+        if spec.equation:
+            bits.append(f'<div style="font-family:ui-monospace,Menlo,monospace;'
+                        f'background:#f6f7f9;padding:6px 8px;margin:6px 0;'
+                        f'border-radius:4px">{spec.equation}</div>')
+        value = (f"{stat.rounded(spec.decimals)}{(' ' + spec.units) if spec.units else ''}"
+                 if stat is not None and stat.is_value else
+                 f'<span style="color:{NA_COLOR}">{stat.text()} — {stat.reason}</span>'
+                 if stat is not None else "—")
+        bits.append(f"<div><b>value</b> {value}</div>")
+        if row["criterion"]:
+            bits.append(f'<div><b>criterion</b> {row["criterion"]} — {row["verdict"]}</div>')
+        if spec.magic_column:
+            bits.append(f'<div style="{MUTED_STYLE}">MagIC column '
+                        f'<code>{spec.magic_column}</code></div>')
+        bits.append(f'<div style="{MUTED_STYLE}">{source}</div>')
+        self.detail.object = ('<div style="border-left:3px solid ' + ACCENT +
+                              ';padding:2px 0 2px 10px">' + "".join(bits) + "</div>")
 
     def sidebar(self):
         return pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Criteria</div>'),
                          self.preset, self.ziggie, self.criteria_info, self.criteria_table,
                          pn.pane.HTML(f'<div style="{SECTION_STYLE}">Find</div>'),
-                         self.search, self.category, sizing_mode="stretch_width")
+                         self.search, self.category,
+                         pn.Row(self.only_tested, stylesheets=[CHECKBOX_CSS]),
+                         sizing_mode="stretch_width")
 
     def panel(self):
-        return pn.Column(self.table, sizing_mode="stretch_width")
+        return pn.Column(self.summary, self.table, self.detail, sizing_mode="stretch_width")
 
 
 # ---------------------------------------------------------------------------

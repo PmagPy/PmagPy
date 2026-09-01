@@ -27,7 +27,7 @@ force-pushed to, or committed to directly. **No pull request has been opened.**
 | new core | 5 483 lines across four modules, no UI import anywhere |
 | shared MagIC 3 layer | 535 lines, extracted from `demag.py`, which lost 324 |
 | application | 3 673 lines |
-| tests | 283 core, 60 application, 14 toolkit, 40 browser checks — all passing |
+| tests | 283 core, 63 application, 14 toolkit, 43 browser checks — all passing |
 | statistics | the SPD v1.2.0 set in full, plus Ziggie |
 | validated against | 20 SPD calibration specimens × 48 statistics; 359 published Megiddo interpretations; synthetic known-field BiCEP sites |
 
@@ -143,6 +143,34 @@ written and still read.
 
 **Publication figures callable without the GUI**, and cell-level validation
 before export.
+
+### 2.6 The panels, after a first read-through
+
+Three changes made on the strength of using it rather than testing it.
+
+**The specimen plots are a block, not a column.** A plain `Row` put the Arai
+plot beside a single column of four companions 1 185 px tall — three of them
+below the fold on any laptop. They are now a captioned 2 × 2 block of equal
+tiles beside the Arai plot, and the whole tab fits a 1440-wide window. Two
+Bokeh traps came out of it, both recorded in the toolkit's README: a container
+sized to its content is written in pixels, so CSS `flex-wrap` inside one never
+fires; and a figure's chrome is not a constant you can guess — an allowance
+that is too small silently *squashes the frame* instead of failing, which is
+what had left the decay and check plots with 70 px of frame inside a 204 px
+box.
+
+**Criteria & statistics is a table.** Forty-eight statistics as a stack of
+paragraphs cannot be scanned, compared or sorted. They are now one sortable
+table — statistic, value, units, criterion, verdict, MagIC column — under
+collapsible SPD category headings, with the prose that belongs to one statistic
+(definition, equation, threshold, citation, or the reason it has no value)
+shown for the row you select.
+
+**The two applications are told apart by colour.** `theme.for_app(app_id)`
+derives a whole application's chrome from one accent: navy for PmagPy
+Directions, plum for PmagPy Intensity, listed together in `theme.ACCENTS` so a
+third cannot collide. Chrome only — a data mark's colour still says what the
+data is, never which application drew it.
 
 ### 2.5 What was shared rather than duplicated
 

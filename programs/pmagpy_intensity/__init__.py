@@ -20,3 +20,9 @@ launch       thin wrapper over ``pmagpy_panel.launch``
 """
 
 APP_NAME = "PmagPy Intensity"
+
+#: This application's chrome is plum where PmagPy Directions' is navy, so that
+#: two of these windows side by side are tellable apart at a glance. The accent
+#: itself lives in ``pmagpy_panel.theme.ACCENTS``; ``views`` and ``app`` ask for
+#: it with ``theme.for_app(pint.APP_ID)``. Nothing is imported here: pytest
+#: loads this file before conftest puts ``programs/`` on the path.

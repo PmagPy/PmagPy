@@ -41,7 +41,7 @@ class AraiPlot:
     the SCAT box is shown when the statistics have one.
     """
 
-    FRAME = 430
+    FRAME = 340
     CHROME = 74
 
     def __init__(self, frame: int = FRAME):
@@ -94,14 +94,17 @@ class AraiPlot:
         self.check_renderers = [p, t, a]
         self.fig.add_tools(HoverTool(renderers=[points, chosen, flagged, p, t, a],
                                      tooltips=[("step", "@label")]))
-        legend = Legend(items=[LegendItem(label="ZI / IZ steps", renderers=[points]),
-                               LegendItem(label="pTRM check", renderers=[p]),
-                               LegendItem(label="tail check", renderers=[t]),
-                               LegendItem(label="additivity check", renderers=[a])],
+        # short labels and tight spacing: a legend that runs off the end of the
+        # frame is worse than no legend, and these four have to fit the frame at
+        # its smallest
+        legend = Legend(items=[LegendItem(label="ZI / IZ", renderers=[points]),
+                               LegendItem(label="pTRM", renderers=[p]),
+                               LegendItem(label="tail", renderers=[t]),
+                               LegendItem(label="additivity", renderers=[a])],
                         orientation="horizontal", location="center", click_policy="hide",
-                        border_line_color=None, background_fill_alpha=0, padding=0, spacing=18,
-                        label_text_font_size="9pt", label_text_color="#374151",
-                        glyph_height=14, glyph_width=14)
+                        border_line_color=None, background_fill_alpha=0, padding=0, spacing=10,
+                        label_text_font_size="8pt", label_text_color="#374151",
+                        glyph_height=12, glyph_width=12, label_standoff=3)
         self.fig.add_layout(legend, "below")
         self.fig.min_border_bottom = 4
 
@@ -234,10 +237,16 @@ class AraiPlot:
 class SpecimenZijderveldPlot:
     """The zero-field steps as an orthogonal projection."""
 
+    #: what the figure needs around its frame. Bokeh fits the frame into
+    #: whatever the outer box leaves over, so an allowance that is too small
+    #: silently squashes the frame instead of failing -- these are measured.
+    CHROME_W, CHROME_H = 20, 40
+
     def __init__(self, size: int = 320):
         self.size = size
-        self.fig = figure(frame_width=size, frame_height=size, width=size + 20,
-                          height=size + 60, match_aspect=True,
+        self.fig = figure(frame_width=size, frame_height=size,
+                          width=size + self.CHROME_W, height=size + self.CHROME_H,
+                          match_aspect=True,
                           tools="box_zoom,pan,wheel_zoom,reset,save", active_drag="box_zoom",
                           sizing_mode="fixed", min_border_left=8, min_border_right=8,
                           min_border_top=2, toolbar_location="below", frame_align=False,
@@ -262,7 +271,7 @@ class SpecimenZijderveldPlot:
     def set_size(self, size: int) -> None:
         self.size = size
         self.fig.frame_width = self.fig.frame_height = size
-        self.fig.width, self.fig.height = size + 20, size + 60
+        self.fig.width, self.fig.height = size + self.CHROME_W, size + self.CHROME_H
 
     def update(self, spec, bounds) -> None:
         if spec is None or spec.arai is None:
@@ -302,9 +311,10 @@ class StepNetPlot:
         keep_circular(self.fig)
 
     def set_size(self, size: int) -> None:
+        # width and height only: net_figure keeps a net circular by *not*
+        # constraining the frame as well -- see the note there
         self.size = size
-        self.fig.frame_width = self.fig.frame_height = size
-        self.fig.width = self.fig.height = size + 20
+        self.fig.width = self.fig.height = size
 
     def update(self, spec, bounds, stats=None) -> None:
         if spec is None or spec.arai is None:
@@ -339,11 +349,16 @@ class StepNetPlot:
 class DecayPlot:
     """NRM remaining and pTRM gained against temperature."""
 
+    #: axis, axis label and the legend row below the frame; no toolbar, because
+    #: at this size the strip costs more than the tools are worth
+    CHROME_W, CHROME_H = 80, 98
+
     def __init__(self, size: int = 320, height: int = 200):
-        self.fig = figure(frame_width=size, frame_height=height, width=size + 70,
-                          height=height + 60, tools="pan,box_zoom,wheel_zoom,reset,save",
-                          sizing_mode="fixed", toolbar_location="below", frame_align=False,
-                          min_border_left=54, name="decay")
+        self.fig = figure(frame_width=size, frame_height=height,
+                          width=size + self.CHROME_W, height=height + self.CHROME_H,
+                          tools="pan,box_zoom,wheel_zoom,reset,save",
+                          sizing_mode="fixed", toolbar_location=None, frame_align=False,
+                          min_border_left=54, min_border_bottom=4, name="decay")
         style_figure(self.fig)
         self.fig.xaxis.axis_label = "temperature (°C)"
         self.fig.yaxis.axis_label = "M / NRM"
@@ -357,16 +372,17 @@ class DecayPlot:
         self.bounds = ColumnDataSource(dict(x=[], y=[]))
         self.fig.scatter("x", "y", source=self.bounds, marker="circle", size=13, fill_color=None,
                          line_color=SEGMENT_COLOR, line_width=2)
-        legend = Legend(items=[LegendItem(label="NRM remaining", renderers=[n]),
-                               LegendItem(label="pTRM gained", renderers=[t])],
+        legend = Legend(items=[LegendItem(label="NRM", renderers=[n]),
+                               LegendItem(label="pTRM", renderers=[t])],
                         orientation="horizontal", location="center", border_line_color=None,
-                        background_fill_alpha=0, padding=0, spacing=18,
-                        label_text_font_size="9pt", label_text_color="#374151")
+                        background_fill_alpha=0, padding=0, spacing=10,
+                        label_text_font_size="8pt", label_text_color="#374151",
+                        glyph_height=12, glyph_width=12, label_standoff=3)
         self.fig.add_layout(legend, "below")
 
     def set_size(self, size: int, height: int) -> None:
         self.fig.frame_width, self.fig.frame_height = size, height
-        self.fig.width, self.fig.height = size + 70, height + 60
+        self.fig.width, self.fig.height = size + self.CHROME_W, height + self.CHROME_H
 
     def update(self, spec, bounds) -> None:
         if spec is None or spec.arai is None:
@@ -389,21 +405,24 @@ class DecayPlot:
 class ChecksPlot:
     """The alteration checks as differences against temperature."""
 
+    CHROME_W, CHROME_H = 80, 98
+
     def __init__(self, size: int = 320, height: int = 190):
-        self.fig = figure(frame_width=size, frame_height=height, width=size + 70,
-                          height=height + 60, tools="pan,box_zoom,wheel_zoom,reset,save",
-                          sizing_mode="fixed", toolbar_location="below", frame_align=False,
-                          min_border_left=54, name="checks")
+        self.fig = figure(frame_width=size, frame_height=height,
+                          width=size + self.CHROME_W, height=height + self.CHROME_H,
+                          tools="pan,box_zoom,wheel_zoom,reset,save",
+                          sizing_mode="fixed", toolbar_location=None, frame_align=False,
+                          min_border_left=54, min_border_bottom=4, name="checks")
         style_figure(self.fig)
         self.fig.xaxis.axis_label = "temperature (°C)"
-        self.fig.yaxis.axis_label = "difference (% of the fit)"
+        self.fig.yaxis.axis_label = "difference (%)"
         self.fig.add_layout(Span(location=0, dimension="width", line_color=NET_COLOR,
                                  line_width=1, line_dash="dotted"))
         self.sources = {}
         renderers = []
-        for kind, color, marker, label in (("ptrm", PTRM_COLOR, "triangle", "pTRM check"),
-                                           ("tail", TAIL_COLOR, "square", "tail check"),
-                                           ("add", ADD_COLOR, "diamond", "additivity check")):
+        for kind, color, marker, label in (("ptrm", PTRM_COLOR, "triangle", "pTRM"),
+                                           ("tail", TAIL_COLOR, "square", "tail"),
+                                           ("add", ADD_COLOR, "diamond", "additivity")):
             src = ColumnDataSource(dict(x=[], y=[], label=[]))
             self.sources[kind] = src
             renderer = self.fig.scatter("x", "y", source=src, marker=marker, size=10,
@@ -412,13 +431,14 @@ class ChecksPlot:
             renderers.append(LegendItem(label=label, renderers=[renderer]))
         self.fig.add_tools(HoverTool(tooltips=[("", "@label")]))
         legend = Legend(items=renderers, orientation="horizontal", location="center",
-                        border_line_color=None, background_fill_alpha=0, padding=0, spacing=18,
-                        label_text_font_size="9pt", label_text_color="#374151")
+                        border_line_color=None, background_fill_alpha=0, padding=0, spacing=10,
+                        label_text_font_size="8pt", label_text_color="#374151",
+                        glyph_height=12, glyph_width=12, label_standoff=3)
         self.fig.add_layout(legend, "below")
 
     def set_size(self, size: int, height: int) -> None:
         self.fig.frame_width, self.fig.frame_height = size, height
-        self.fig.width, self.fig.height = size + 70, height + 60
+        self.fig.width, self.fig.height = size + self.CHROME_W, height + self.CHROME_H
 
     def update(self, spec, bounds) -> None:
         empty = {k: [] for k in ("x", "y", "label")}

@@ -254,3 +254,9 @@ data_files/k15_magic/*.txt
 
 # the BiCEP Stan program, written from pmagpy/bicep.py on demand
 pmagpy/stan/
+
+# session files the Panel applications leave beside a dataset
+*_autosave.json
+*_autosave.redo
+pmagpy_intensity_session.json
+pmagpy_intensity.redo

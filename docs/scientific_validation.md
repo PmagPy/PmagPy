@@ -397,7 +397,7 @@ pytest pmagpy/test/test_bicep.py -q                 #  34 tests
 pytest pmagpy/test/test_intensity_environment.py -q #  23 tests
 
 # the application (needs panel and bokeh)
-pytest programs/pmagpy_intensity/test_app.py -q     #  60 tests
+pytest programs/pmagpy_intensity/test_app.py -q     #  63 tests
 pytest programs/pmagpy_panel/test_chooser.py -q     #  14 tests
 
 # the browser suite (needs playwright)

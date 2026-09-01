@@ -6,15 +6,24 @@ import os
 import panel as pn
 
 from pmagpy_panel.widgets import Splitter
-from pmagpy_panel.theme import ACCENT, RAW_CSS, TABS_CSS, asset_data_uri
+import pmagpy.paleointensity as pint
+
+from pmagpy_panel import theme as _theme
+from pmagpy_panel.theme import asset_data_uri
 from . import APP_NAME
 from .session import Session, env
 from .views import (BicepView, CorrectionsView, CriteriaView, DataView, ExportView, GroupView,
                     InterpretationsView, SpecimenView)
 
+THEME = _theme.for_app(pint.APP_ID)
+ACCENT, RAW_CSS, TABS_CSS = THEME.accent, THEME.raw_css, THEME.tabs_css
+
 pn.extension("tabulator", sizing_mode="stretch_width", raw_css=[RAW_CSS])
 
-SIDE_WIDTH = 460      # default width of the side column
+# The side column is narrower than Directions': the Specimen tab wants room
+# for the Arai plot and a 2 x 2 block of companions beside it, which needs
+# about 990 px of main pane -- what a 1440-wide laptop has left over at 420.
+SIDE_WIDTH = 400      # default width of the side column
 HANDLE_WIDTH = 14     # the drag handle between the side column and the main pane
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 
