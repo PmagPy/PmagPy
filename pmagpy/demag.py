@@ -521,6 +521,80 @@ def unify_polarity(directions, reference=None) -> tuple[list, np.ndarray]:
     return unified, flipped
 
 
+def fisher_means_by_polarity(directions) -> List[dict]:
+    """A Fisher mean of each polarity mode, the comparison a reversal test rests on.
+
+    The modes are separated about the principal direction
+    (``pmag.separate_directions``), so the split does not depend on how many
+    directions are reversed, and each is then averaged on its own — which a
+    mean of the set brought to one polarity hides.
+
+    The modes are reported largest first and are *not* labelled normal and
+    reversed: which one is which follows from the polarity of its VGP (see
+    ``vgp_polarity``), not from the directions themselves — in the southern
+    hemisphere normal polarity is the steeply negative mode. The Poles tab
+    settles that from the site coordinates.
+
+    Args:
+        directions: iterable of (dec, inc) pairs in degrees.
+
+    Returns:
+        One dict per mode present, largest first, with MagIC style keys plus
+        ``mode`` (1 or 2). A mode of a single direction carries no statistics.
+    """
+    block = [[float(d), float(i)] for d, i in directions]
+    if not block:
+        return []
+    if len(block) == 1:
+        return [{"mode": 1, "dir_dec": block[0][0], "dir_inc": block[0][1], "dir_n_specimens": 1}]
+    modes = [[list(d) for d in mode] for mode in pmag.separate_directions(block)]
+    out = []
+    for mode in sorted(modes, key=len, reverse=True):
+        if not len(mode):
+            continue
+        rec = {"mode": len(out) + 1, "dir_n_specimens": len(mode)}
+        if len(mode) == 1:
+            rec.update({"dir_dec": mode[0][0], "dir_inc": mode[0][1]})
+        else:
+            mean = pmag.fisher_mean(mode)
+            rec.update({"dir_dec": float(mean["dec"]), "dir_inc": float(mean["inc"]),
+                        "dir_alpha95": float(mean["alpha95"]), "dir_k": float(mean["k"]),
+                        "dir_r": float(mean["r"])})
+        out.append(rec)
+    return out
+
+
+def bingham_mean(directions) -> dict:
+    """The Bingham mean of a set of directions, with its confidence ellipse.
+
+    Bingham statistics describe an axial distribution, so — unlike Fisher —
+    the result does not depend on the polarity the directions are recorded
+    in, and the confidence region is an ellipse (Eta, Zeta) rather than a
+    circle. MagIC has no columns for those semi-axes, so this is reported in
+    the application rather than written to the tables.
+
+    Args:
+        directions: iterable of (dec, inc) pairs in degrees; at least two.
+
+    Returns:
+        dict with ``dir_dec``, ``dir_inc``, ``dir_n_specimens`` and the
+        ellipse (``eta``, ``eta_dec``, ``eta_inc``, ``zeta``, ``zeta_dec``,
+        ``zeta_inc``), or an empty dict when there is too little data.
+    """
+    block = [[float(d), float(i)] for d, i in directions]
+    if len(block) < 2:
+        return {}
+    b = pmag.dobingham(block)
+    # the ellipse comes from an eigen decomposition that numpy may hand back as
+    # complex with a zero imaginary part; take the real part rather than let the
+    # cast warn
+    real = lambda key: float(np.real(b[key]))                      # noqa: E731
+    return {"dir_dec": real("dec"), "dir_inc": real("inc"),
+            "dir_n_specimens": int(b["n"]),
+            "eta": real("Eta"), "eta_dec": real("Edec"), "eta_inc": real("Einc"),
+            "zeta": real("Zeta"), "zeta_dec": real("Zdec"), "zeta_inc": real("Zinc")}
+
+
 def antipode(dec, inc) -> tuple[float, float]:
     """The antipode of a direction or of a VGP (lon/lat)."""
     return (float(dec) + 180.0) % 360.0, -float(inc)

@@ -409,6 +409,12 @@ class MeansView(LazyView):
         self.show = pn.widgets.RadioButtonGroup(options={"specimens": "specimens"}, value="specimens",
                                                 button_type="primary", button_style="outline", stylesheets=[BUTTON_GROUP_CSS])
         self.coord = coord_selector(session)
+        # Fisher of the whole set, one Fisher mean per polarity mode (the comparison
+        # a reversal test rests on), or the axial Bingham mean with its ellipse
+        self.stat = pn.widgets.RadioButtonGroup(options={"Fisher": "fisher", "by polarity": "polarity",
+                                                         "Bingham": "bingham"},
+                                                value="fisher", button_type="primary", button_style="outline",
+                                                stylesheets=[BUTTON_GROUP_CSS])
         self.plot = DirectionsPlot("Directions")
         self.stats = pn.pane.DataFrame(pd.DataFrame(), index=False, sizing_mode="stretch_width")
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="directions.pdf",
@@ -425,7 +431,7 @@ class MeansView(LazyView):
         self.flag_btn.on_click(self._flag)
         self.on_goto = None          # set by the app: switches to the Specimen tab
         self.level.param.watch(self._on_level, "value")      # options first ...
-        for w in (self.level, self.name, self.comp, self.show):
+        for w in (self.level, self.name, self.comp, self.show, self.stat):
             w.param.watch(self.redraw, "value")               # ... then redraw
         session.param.watch(self._on_level, ["version"])
         session.param.watch(self._lazy_redraw, ["coord", "version", "unify_polarity", "flip_polarity"])
@@ -502,12 +508,38 @@ class MeansView(LazyView):
         """(mean dict, colour) per component — a star and α95 for each, even when all are shown."""
         return [(m.to_dict(), self.s.color_of(m["dir_comp_name"])) for _, m in means.iterrows()] if len(means) else []
 
+    STAT_LABELS = {"fisher": "Fisher mean", "polarity": "Fisher means, by polarity", "bingham": "Bingham mean"}
+
+    def _alternative_means(self, dirs):
+        """Means of the plotted directions under the chosen statistic, per component.
+
+        Planes take no part: both statistics average directions, and a plane
+        fit has none of its own until a mean places it on its circle.
+        """
+        by_comp = {}
+        for dec, inc, _label, comp_name, _color in dirs:
+            by_comp.setdefault(comp_name, []).append((dec, inc))
+        rows = []
+        for comp_name, block in by_comp.items():
+            found = (dc.fisher_means_by_polarity(block) if self.stat.value == "polarity"
+                     else [dc.bingham_mean(block)])
+            for mean in found:
+                if mean:
+                    rows.append({"dir_comp_name": comp_name, **mean})
+        return rows
+
+    def _plotted_means(self, means, dirs):
+        """(mean dict, colour) pairs for the net and the figure, under the chosen statistic."""
+        if self.stat.value == "fisher":
+            return self._mean_list(means)
+        return [(m, self.s.color_of(m["dir_comp_name"])) for m in self._alternative_means(dirs)]
+
     def redraw(self, *events):
         if self.s.data is None or not self.name.value:
             return
         dirs, planes, means, records = self._collect()
         title = f"{self.level.value} {self.name.value} · {self.comp.value} · {dc.COORD_NAMES[self.s.coord]}"
-        self.plot.update(dirs, planes, self._mean_list(means), title=title)
+        self.plot.update(dirs, planes, self._plotted_means(means, dirs), title=title)
         self._records = records
         df = pd.DataFrame([{k: v for k, v in r.items() if not k.startswith("_")} for r in records])
         colors = [r["_color"] for r in records]
@@ -525,8 +557,16 @@ class MeansView(LazyView):
                 return [f"border-left: 6px solid {c}; {fill}"] + [fill] * (len(row) - 1)
             if len(df):
                 self.table.style.apply(style_row, axis=1)
-        cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
-        table = means[cols].round(1) if len(means) else pd.DataFrame()
+        if self.stat.value == "fisher":
+            cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
+            table = means[cols].round(1) if len(means) else pd.DataFrame()
+        else:
+            # the alternative statistics are computed on what is plotted, so they
+            # report only the columns they define (a Bingham ellipse has no α95)
+            alt = pd.DataFrame(self._alternative_means(dirs))
+            keep = ["dir_comp_name", "mode", "dir_dec", "dir_inc", "dir_alpha95", "dir_k",
+                    "dir_n_specimens", "eta", "zeta"]
+            table = alt[[c for c in keep if c in alt.columns]].round(1) if len(alt) else pd.DataFrame()
         self.stats.object = table.rename(columns=lambda c: c.replace("dir_", "").replace("_specimens", "_spec")
                                          .replace("alpha95", "α95").replace("comp_name", "component"))
         self.download.filename = f"{self.level.value}_{self.name.value}_{self.comp.value}.pdf"
@@ -557,7 +597,9 @@ class MeansView(LazyView):
         comp = self.comp.value
         title = f"{comp} · {self.level.value} {self.name.value}" if comp != "all" else f"{self.level.value} {self.name.value}"
         fig = pub.directions_figure([(d[0], d[1], d[2], d[4]) for d in dirs], title=title, planes=planes,
-                                    caption=f"({dc.COORD_NAMES[self.s.coord]})", means=self._mean_list(means))
+                                    caption=f"({dc.COORD_NAMES[self.s.coord]})",
+                                    means=self._plotted_means(means, dirs),
+                                    mean_label=self.STAT_LABELS[self.stat.value])
         buf = io.BytesIO()
         fig.savefig(buf, format="pdf", bbox_inches="tight")
         buf.seek(0)
@@ -566,6 +608,7 @@ class MeansView(LazyView):
     def sidebar(self):
         return pn.Column(section("Coordinates"), self.coord,
                          section("Level"), self.level, self.name, pn.Row(self.comp, pn.Column(section("Show"), self.show)),
+                         section("Statistic"), self.stat,
                          section("Plotted fits · select a row"), pn.Row(self.goto_btn, self.flag_btn), self.table)
 
     def panel(self):

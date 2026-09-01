@@ -124,7 +124,15 @@ under the plots.
 **Means pane.** Sample, site or location means of the specimen fits (lines
 and planes, McFadden & McElhinny) or of the next level's means (site means
 over sample means, location means over site means), per component or for
-all, with α95, k, R, n and — where site coordinates exist — VGPs. Download
+all, with α95, k, R, n and — where site coordinates exist — VGPs.
+*Statistic* offers two more ways to average the plotted directions: a Fisher
+mean of each polarity mode on its own (the comparison a reversal test rests
+on — the modes are split about the principal direction, so the split does
+not depend on how many directions are reversed), or the Bingham mean, which
+describes an axis and so does not depend on the polarity the directions are
+recorded in, with its confidence ellipse (η, ζ) in place of the α95. Both
+draw a star per mean on the net and follow into the PDF, which names the
+statistic it shows. Download
 as PDF.
 
 **Poles pane.** Site (or sample) VGPs for a component on an orthographic
@@ -281,6 +289,10 @@ re-interpretation).
   `pmag.dolnp` (and re-uses it for means of means, carrying pure-plane
   sample means as planes); `mean_pole()` to `pmag.fisher_mean`; VGPs to
   `pmag.dia_vgp`.
+* `fisher_means_by_polarity()` averages each polarity mode on its own
+  (`pmag.separate_directions`) and `bingham_mean()` returns the axial mean
+  with its ellipse; both take plain (dec, inc) pairs and are used by the
+  Means tab's *Statistic* control.
 * `best_fit_vectors()` reports where each plane's direction falls once its
   site's lines pin it down — the point of the great circle closest to the
   lines-and-planes mean, which MM88 finds by iteration and `pmag.dolnp`
@@ -324,8 +336,15 @@ Worth knowing before relying on the app:
   against the published interpretations of two studies (Oman: 3 of 522
   fits; Jacobsville: 20 of 578).
 * **Not yet carried over from the legacy GUI:** acceptance-criteria
-  filtering on export, Fisher-by-polarity / Bingham means, the ages dialog,
-  `images.txt` records, auto-interpretation and LSQ import.
+  filtering on export, the ages dialog, `images.txt` records,
+  auto-interpretation and LSQ import.
+* **The polarity modes are not labelled normal and reversed.** Which mode is
+  which follows from the polarity of its VGP, not from the directions — in
+  the southern hemisphere normal polarity is the steeply *negative* mode, as
+  McMurdo shows. The modes are reported largest first; the Poles tab settles
+  polarity from the site coordinates. Bingham statistics have no MagIC
+  columns for the ellipse, so both statistics are reported in the
+  application and its figures, and the exported tables keep the Fisher mean.
 * **Platforms.** Developed and tested on macOS; the *Browse with Finder…*
   system chooser is untested on Windows/Linux (the path field, recent
   directories and the in-page browser work everywhere).

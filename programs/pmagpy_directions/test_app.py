@@ -484,3 +484,31 @@ class TestMeansView:
                                                                         "dir_k": 40, "dir_n_specimens": 4, "dir_comp_name": "B"}, "#654321")])
         texts = [t.get_text() for t in fig.axes[0].texts]
         assert any(t.startswith("A:") for t in texts) and any(t.startswith("B:") for t in texts)
+
+    def test_statistic_selector_switches_what_is_averaged(self, tmp_path):
+        """Fisher of the whole set, a mean per polarity mode, or the axial Bingham mean."""
+        from pmagpy_directions.views import MeansView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        means = MeansView(s)
+        means.level.value, means.comp.value = "location", "all"
+        means.name.value = means.name.options[0]
+        fisher_stars = len(means.plot.mean.data["x"])
+        assert fisher_stars >= 1 and "component" in means.stats.object.columns
+
+        means.stat.value = "polarity"
+        table = means.stats.object
+        assert "mode" in table.columns and "polarity" not in table.columns
+        assert len(means.plot.mean.data["x"]) == len(table)     # a star per mode
+        assert (table["n_spec"] > 0).all()
+
+        means.stat.value = "bingham"
+        table = means.stats.object
+        assert {"eta", "zeta"} <= set(table.columns) and "α95" not in table.columns
+        assert len(means.plot.mean.data["x"]) == len(table)
+        assert len(means.plot.a95.data["xs"]) == 0              # an ellipse is not an α95 circle
+        # the figure names the statistic rather than always saying Fisher
+        assert "Bingham" in means.STAT_LABELS[means.stat.value]
+        means.download.callback()                               # the PDF still builds
+
+        means.stat.value = "fisher"
+        assert len(means.plot.mean.data["x"]) == fisher_stars

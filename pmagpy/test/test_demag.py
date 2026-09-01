@@ -17,6 +17,7 @@ import pmagpy.pmag as pmag
 from pmagpy.demag import (DemagData, COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT,
                         zijderveld_xy, equal_area_xy, fit_line_segment,
                         great_circle_xy, step_label, build_orientation, plane_best_fit_vectors,
+                        fisher_means_by_polarity, bingham_mean,
                         add_transformed_coordinates, unify_polarity, merge_results, carry_metadata,
                         trim_to_model, validate_directory, is_metadata_column)
 
@@ -573,6 +574,57 @@ class TestBestFitVectors:
         # the direction is resolved in each system separately, so the rows differ
         both = table[planes].groupby("specimen")["dir_bfv_dec"].nunique()
         assert (both > 1).any()
+
+
+class TestPolarityAndBinghamMeans:
+    """The two statistics the Means tab offers besides the Fisher mean of the whole set."""
+
+    @staticmethod
+    def _two_modes(seed=3, n_normal=12, n_reversed=7):
+        rng = np.random.default_rng(seed)
+        normal = [[rng.normal(0, 4) % 360, 60 + rng.normal(0, 4)] for _ in range(n_normal)]
+        reversed_ = [[(180 + rng.normal(0, 4)) % 360, -60 + rng.normal(0, 4)] for _ in range(n_reversed)]
+        return normal, reversed_
+
+    def test_each_polarity_is_averaged_on_its_own(self):
+        normal, reversed_ = self._two_modes()
+        modes = fisher_means_by_polarity(normal + reversed_)
+        assert [m["mode"] for m in modes] == [1, 2]
+        assert [m["dir_n_specimens"] for m in modes] == [12, 7]
+        # the modes were drawn about 0/60 and 180/-60, so each mean recovers its own
+        assert modes[0]["dir_dec"] == pytest.approx(0, abs=4) or modes[0]["dir_dec"] == pytest.approx(360, abs=4)
+        assert modes[0]["dir_inc"] == pytest.approx(60, abs=4)
+        assert modes[1]["dir_inc"] == pytest.approx(-60, abs=4)
+        # a passing reversal test: the reversed mean's antipode sits on the normal one
+        assert pmag.angle([(modes[1]["dir_dec"] + 180) % 360, -modes[1]["dir_inc"]],
+                          [modes[0]["dir_dec"], modes[0]["dir_inc"]])[0] < 5
+
+    def test_the_larger_mode_is_reported_first(self):
+        """Neither mode is called normal: only its VGP settles that. Size orders them."""
+        normal, reversed_ = self._two_modes(n_normal=4, n_reversed=11)
+        modes = fisher_means_by_polarity(normal + reversed_)
+        assert [m["dir_n_specimens"] for m in modes] == [11, 4]
+        assert not any("dir_polarity" in m for m in modes)
+
+    def test_single_mode_and_degenerate_sets(self):
+        normal, _ = self._two_modes()
+        assert [m["mode"] for m in fisher_means_by_polarity(normal)] == [1]
+        assert fisher_means_by_polarity([]) == []
+        one = fisher_means_by_polarity([[10.0, 40.0]])
+        assert len(one) == 1 and "dir_alpha95" not in one[0]      # no statistics from one direction
+
+    def test_bingham_is_axial(self):
+        """Bingham describes an axis, so inverting directions must not move it."""
+        normal, reversed_ = self._two_modes()
+        block = normal + reversed_
+        mean = bingham_mean(block)
+        flipped = [[(d + 180) % 360, -i] for d, i in block[:5]] + block[5:]
+        again = bingham_mean(flipped)
+        assert again["dir_dec"] == pytest.approx(mean["dir_dec"], abs=0.01)
+        assert again["dir_inc"] == pytest.approx(mean["dir_inc"], abs=0.01)
+        assert mean["dir_n_specimens"] == len(block)
+        assert mean["eta"] > 0 and mean["zeta"] > 0               # a real confidence ellipse
+        assert not bingham_mean([[1.0, 2.0]])                     # one direction has no ellipse
 
 
 class TestPolarity:

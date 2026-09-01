@@ -414,7 +414,8 @@ def _empty_corners(x, y):
 
 def directions_figure(directions, mean: Optional[dict] = None, title: str = "", planes=(),
                       caption: str = "", figsize=(4.4, 4.4), legend: bool = True, ax=None,
-                      mean_color: str = MEAN_COLOR, means=None) -> Figure:
+                      mean_color: str = MEAN_COLOR, means=None,
+                      mean_label: str = "Fisher mean") -> Figure:
     """Equal-area plot of directions with an optional Fisher mean and α95.
 
     In the style of Slotznick et al. (2023): lower-hemisphere directions are
@@ -432,6 +433,8 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
         ax: draw into an existing axes (used by ``components_overview_figure``).
         means: iterable of (mean dict, colour) — one star and α95 per component
             (used when every component is shown at once); ``mean`` is then ignored.
+        mean_label: heading of the statistics block, for figures whose mean is
+            not a Fisher mean of the whole set (by polarity, or Bingham).
     """
     if ax is None:
         fig = Figure(figsize=figsize)
@@ -489,11 +492,12 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
     if legend and stats_lines:
         x, y, ha, va = _CORNERS[corners[1] if title else corners[0]]
         if len(set(stats_colors)) <= 1:
-            ax.text(x, y, "Fisher mean\n" + "\n".join(stats_lines), ha=ha, va=va, fontsize=8.5, zorder=8,
+            ax.text(x, y, mean_label + "\n" + "\n".join(stats_lines), ha=ha, va=va, fontsize=8.5, zorder=8,
                     linespacing=1.35, color="#222")
         else:
             step = 0.09 if va == "top" else -0.09
-            ax.text(x, y, "Fisher means", ha=ha, va=va, fontsize=8.5, zorder=8, color="#222")
+            plural = mean_label + "s" if mean_label.endswith("mean") else mean_label
+            ax.text(x, y, plural, ha=ha, va=va, fontsize=8.5, zorder=8, color="#222")
             for k, (line, color) in enumerate(zip(stats_lines, stats_colors)):
                 ax.text(x, y - step * (k + 1), line, ha=ha, va=va, fontsize=7.5, zorder=8, color=color)
     return fig
