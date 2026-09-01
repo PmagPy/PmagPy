@@ -35,7 +35,9 @@ a = Analysis(['programs/pmag_gui.py'],
                                 'pandas._libs.tslibs.timedeltas'],
              hooksconfig={
                         "matplotlib": {
-                        "backends": "WXAgg",  # collect wxpython backends
+                        # Keep the GUI backend and the writers exposed by the
+                        # plot-save dialogs without collecting every backend.
+                        "backends": ["WXAgg", "Agg", "PDF", "SVG", "PS"],
                         },
                 },
              hookspath=[],
