@@ -13,7 +13,9 @@ that resemble each other: an analyst who has used one should already know how
 the other behaves, and a fix to a shared behaviour should reach both. This
 package is where that shared part lives, and this file is the contract between
 the two efforts. If you are working on either application — or pointing an
-agent at one — start here.
+agent at one — start here. The family is called **PmagPy Apps**; the plan for
+its next members — the hub that replaces `pmag_gui.py`, and rock-magnetism and
+anisotropy applications — is in [HUB_PLAN.md](HUB_PLAN.md).
 
 ## Where code goes
 
@@ -24,9 +26,11 @@ agent at one — start here.
 | presentation | `programs/pmagpy_panel/` (**here**) | how a PmagPy Panel application looks and behaves |
 | the application | `programs/<app>/` | only what is specific to that subject: its panes, its plots, its session |
 
-Both `programs/` packages are excluded from the pip package (`setup.py` excludes
-`programs.*`), so nothing here may be imported by `pmagpy`. The dependency
-arrows point one way: application → toolkit → `pmagpy` → nothing of ours.
+The `programs/` packages install as top-level packages (`setup.py` maps
+`pmagpy_panel`, `pmagpy_apps` and `pmagpy_directions` to their directories;
+the wx programs stay excluded), and nothing here may be imported by `pmagpy`.
+The dependency arrows point one way: hub → application → toolkit → `pmagpy` →
+nothing of ours.
 
 When you find yourself about to copy something out of `pmagpy_directions`,
 that is the signal to move it here instead. Equally: if a thing knows what a
@@ -44,16 +48,47 @@ demagnetization step or a Thellier step *is*, it does not belong here.
 * **`nets.py`** — equal-area primitives. `net_figure()` builds a square,
   toolbar-less figure and `keep_circular()` guards it; `declutter_labels()`
   thins labels where symbols pile up.
-* **`datasets.py`** — choosing, remembering and validating a MagIC directory:
-  `env()`, `looks_like_magic_dir()`, `default_output_dir()`, the recent list,
-  and the native folder chooser (macOS/Linux/Windows, with a stub hook for
-  tests).
+* **`shell.py`** — the page every application is built on. An application
+  returns a `Body` (its side column, main pane, header line and modal); a host
+  wraps it — `shell.template()` for a standalone page, the hub when it mounts
+  the application — and fills the body's `open_modal`/`close_modal`/`show_side`
+  hooks. `Workspace` is the side column + drag handle + main pane;
+  `status_line()` follows a session's `status`; `asset_url()` names a file in
+  the application's static directory (the favicon must be a URL, not a data URI).
+* **`runtime.py`** — the one place that knows *how* the family is running:
+  `query_param()` (the `?dir=` of this session), `is_local_session()`, the
+  system folder dialog as a blocking call (`native_choose_directory`) and as a
+  coroutine (`choose_directory`, for `async` widget callbacks — no thread),
+  `hub_url()` and `open_ui()`. A packaged build (HUB_PLAN.md §8) changes this
+  file and nothing else.
+* **`datasets.py`** — a MagIC directory as a thing to choose, remember and
+  validate: `env()`, `looks_like_magic_dir()`, `default_output_dir()`,
+  `session_directory()` (`?dir=` → environment → default), the recent list
+  shared by every application (`~/.pmagpy/recent_magic_dirs.json`, seeded once
+  from the old per-application files), `example_dir()`.
 * **`launch.py`** — the one-command launcher: stops a previous server, serves
-  in dev mode, waits for the app to answer before opening a browser.
+  in dev mode with each application's `assets/` as a static directory, waits
+  for the app to answer before opening a browser. With `index=True` it serves
+  the family under a hub and tells the applications where the hub is.
+* **`conftest.py`** — puts `programs/` and the repo root on `sys.path` for the
+  toolkit's own tests (`test_shell.py`).
 
 Nothing here holds global state. An application passes its own identity —
 `AppInfo(name, app_id, env_prefixes)` — to the helpers that need it, so both
 applications can be imported into one process, which the tests do.
+
+## Running the family
+
+```bash
+pip install -e '.[apps]'      # once per environment, from the checkout
+pmagpy-apps                   # serves the hub at / with every application beside it
+```
+
+`pmagpy-apps` is `programs/pmagpy_apps/launch.py`; the hub is on port 5010 and
+opens an application with `/pmagpy_directions?dir=<directory>`. Each
+application still runs on its own (`python programs/pmagpy_directions/launch.py`,
+port 5100). The editable install is what lets the group test an unmerged
+branch without a PyPI release — HUB_PLAN.md §8, rung 0.
 
 ## Starting the second application
 
@@ -85,6 +120,15 @@ sys.exit(launch.main(APP, env_prefix="PMAGPY_INTENSITY_", default_port=5101))
 ```
 
 Pick a different default port from Directions' 5100 so the two can run at once.
+
+`app.py` should expose `build_body(session) -> shell.Body` and a `create_app()`
+that wraps it with `shell.template(body, logo=LOGO, hub_url=runtime.hub_url())`
+— see `pmagpy_directions/app.py`. The body is what the hub will mount; anything
+that only works inside `create_app` will not work under the hub. Its folder
+dialog should be `await runtime.choose_directory(...)` from an `async` callback
+rather than a thread (the intensity branch's `chooser.py` and Directions'
+`DataView._browse_native` both predate that and still use one). To appear in
+the hub, add the served file to `pmagpy_apps/launch.py::application_files()`.
 
 ## Conventions worth keeping identical
 
@@ -146,6 +190,7 @@ Each of these was found the hard way in Directions; none is obvious.
 
 ```bash
 pytest pmagpy/test/test_demag.py pmagpy/test/test_demag_geo.py -q   # cores (run in CI)
+pytest programs/pmagpy_panel programs/pmagpy_apps -q                # toolkit and hub (needs panel/bokeh)
 pytest programs/pmagpy_directions/test_app.py -q                    # app (needs panel/bokeh)
 # browser suite: serve the app, then
 python ui_test.py http://localhost:5100/pmagpy_directions screenshots/app

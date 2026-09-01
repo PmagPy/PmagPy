@@ -10,14 +10,22 @@ MagIC directory is chosen and remembered — lives here, so that the two are one
 application in two subjects rather than two applications that resemble each
 other.
 
+Together the applications are **PmagPy Apps**; ``programs/pmagpy_apps`` is the
+hub that serves them side by side (``pmagpy-apps``), and HUB_PLAN.md beside
+this file is its plan.
+
 Modules
 -------
 theme     colours, CSS and Bokeh figure styling; ``ComponentColors`` keeps a
           name's colour the same across a whole study
 widgets   the custom components: the panel splitters and the hotkey listener
 nets      equal-area primitives — a square, circular net that stays circular
-datasets  choosing, remembering and validating a MagIC directory, and the
-          environment settings that point an app at one
+shell     the page: an application builds a ``Body``, a host (``template()``
+          or the hub) wraps it and fills its modal and side-column hooks
+runtime   how the family is running — the session's URL, the system folder
+          dialog, where the hub is; the only platform-specific code
+datasets  a MagIC directory as a thing to choose, remember and validate, and
+          the environment settings that point an app at one
 launch    the one-command launcher (dev mode, restarts, opens the browser)
 
 What is *not* here: anything that knows about demagnetization or about
