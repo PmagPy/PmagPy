@@ -6,7 +6,8 @@ Microwave data. It allows export of figures and analysis results for upload
 to the MagIC database and/or publication. For more information on how to
 interpret or use the GUI's many functions see the Help menu in the open GUI.
 More documentation can be found on all of PmagPy's functionality at the
-PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
+PmagPy documentation, which can be found here:
+https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
 SYNTAX
     thellier_gui.py [command line options]
@@ -288,7 +289,8 @@ Microwave data. It allows export of figures and analysis results for upload
 to the MagIC database and/or publication. For more information on how to
 interpret or use the GUI's many functions see the Help menu in the open GUI.
 More documentation can be found on all of PmagPy's functionality at the
-PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
+PmagPy documentation, which can be found here:
+https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
 SYNTAX
     thellier_gui.py [command line options]
@@ -306,7 +308,7 @@ AUTHORS
 
 DESCRIPTION
     GUI for interpreting thellier-type paleointensity data.
-    For tutorial check PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+    For a tutorial see https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html
 
         """
         args = sys.argv
@@ -1566,7 +1568,7 @@ else:
 
         menu_Help = wx.Menu()
 
-        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
+        m_cookbook = menu_Help.Append(-1, "&PmagPy documentation\tCtrl-Shift-W", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
         m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")
@@ -4744,10 +4746,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
         return(DATA)
 
     def on_menu_docs(self, event):
-        webopen("https://earthref.org/PmagPy/cookbook/#x1-560005.1.2", new=2)
+        webopen("https://pmagpy.github.io/PmagPy-docs/programs/thellier_gui.html", new=2)
 
     def on_menu_cookbook(self, event):
-        webopen("http://earthref.org/PmagPy/cookbook/", new=2)
+        webopen("https://pmagpy.github.io/PmagPy-docs/", new=2)
 
     def on_menu_git(self, event):
         webopen("https://github.com/PmagPy/PmagPy", new=2)
