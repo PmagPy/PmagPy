@@ -5,25 +5,23 @@ import os
 
 import panel as pn
 
-from pmagpy_panel.widgets import Splitter
-from . import APP_NAME
-from .session import Session, env
-from pmagpy_panel.theme import ACCENT, RAW_CSS, TABS_CSS, asset_data_uri
+from pmagpy_panel import runtime, shell
+from pmagpy_panel.theme import TABS_CSS
+from .session import APP, Session, session_directory
 from .views import DataView, ExportView, InterpretationsView, MeansView, PolesView, SpecimenView
 
-pn.extension("tabulator", sizing_mode="stretch_width", raw_css=[RAW_CSS])
+shell.setup()
 
-SIDE_WIDTH = 450      # default width of the side column
-HANDLE_WIDTH = 14     # the drag handle between the side column and the main pane
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+LOGO = os.path.join(ASSETS, "pmagpy_logo_white.png")
 
 
-def create_app(directory: str, output_dir: str | None = None):
-    """Build the template for a MagIC directory. Returns a servable Panel template."""
-    session = Session(directory, output_dir, cache=True)
-    if session.data is None:
-        return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+def build_body(session: Session) -> shell.Body:
+    """The application's body for a loaded session: side column, tabs, status, chooser dialog.
 
+    This is what the hub mounts; :func:`create_app` wraps the same body in a
+    template of its own.
+    """
     dataview = DataView(session)
     specimen = SpecimenView(session)
     means = MeansView(session)
@@ -45,11 +43,14 @@ def create_app(directory: str, output_dir: str | None = None):
     side_holder = pn.Column(side_panels[0], sizing_mode="stretch_width")
     full_width_tabs = {4}
 
+    body = shell.Body(info=APP, main=tabs, side=pn.Column(dataview.sidebar(), side_holder, sizing_mode="stretch_width"),
+                      header=shell.status_line(session), modal=dataview.modal())
+
     def _on_tab(event):
         for i, view in lazy.items():
             view.set_active(i == event.new)
         show = event.new not in full_width_tabs
-        side_area.visible = show               # one container: the custom splitter ignores `visible`
+        body.show_side(show)
         if show:
             side_holder[:] = [side_panels.get(event.new, side_panels[0])]
     tabs.param.watch(_on_tab, "active")
@@ -57,51 +58,25 @@ def create_app(directory: str, output_dir: str | None = None):
     def _goto_specimen():
         tabs.active = 0
     means.on_goto = _goto_specimen
-    status = pn.pane.HTML("", sizing_mode="stretch_width")
 
-    def _status(event=None):
-        status.object = (f'<div style="display:flex;gap:18px;align-items:baseline;padding-top:2px">'
-                         f'<span style="color:#e5e7eb;font-size:0.85rem">{session.status}</span></div>')
-    session.param.watch(_status, "status")
-    _status()
+    dataview.change_btn.on_click(lambda e: body.open_modal())
+    dataview.on_loaded = lambda: body.close_modal()
+    return body
 
-    # side column + drag handle + tabs (the template's collapsible sidebar is not used:
-    # analysts want to *resize* the step logger column, not hide it)
-    side = pn.Column(dataview.sidebar(), side_holder, width=SIDE_WIDTH, sizing_mode="stretch_height",
-                     styles={"overflow-y": "auto", "overflow-x": "hidden", "max-height": "calc(100vh - 52px)",
-                             "padding-right": "6px"})
-    splitter = Splitter(width=HANDLE_WIDTH, sizing_mode="stretch_height", panel_default=SIDE_WIDTH)
-    side_area = pn.Row(side, splitter, width=SIDE_WIDTH + HANDLE_WIDTH,
-                       sizing_mode="stretch_height", margin=0)
-    # the main pane scrolls on its own, independently of the side column's scrollbar.
-    # min-width 0 overrides the flex default (min-width: auto, i.e. never narrower than
-    # the widest row): without it the pane cannot give width back when the side panel
-    # is dragged wider, and the panel would grow over it instead
-    main_area = pn.Column(tabs, sizing_mode="stretch_both",
-                          styles={"overflow-y": "auto", "overflow-x": "auto",
-                                  "min-width": "0", "max-height": "calc(100vh - 60px)",
-                                  # clear of the drag handle: without it the pane starts
-                                  # under the bar and text set flush left runs into it
-                                  "padding-left": "8px"})
-    # the splitter resizes both panels in the browser: the widths it writes survive the
-    # re-renders of a tab switch, so the drag needs no round trip to the server at all
-    body = pn.Row(side_area, main_area, sizing_mode="stretch_both")
-    template = pn.template.FastListTemplate(
-        title=APP_NAME, logo=asset_data_uri(os.path.join(ASSETS, "pmagpy_logo_white.png")),
-        favicon="assets/favicon.png",                          # served via --static-dirs (see launch.py)
-        main=[body], header=[status], accent=ACCENT, theme_toggle=False, collapsed_sidebar=True,
-        main_max_width="100%", raw_css=[RAW_CSS],
-    )
-    template.modal.append(dataview.modal())
-    dataview.change_btn.on_click(lambda e: template.open_modal())
-    dataview.on_loaded = template.close_modal
+
+def create_app(directory: str, output_dir: str | None = None):
+    """Build the page for a MagIC directory. Returns a servable Panel template."""
+    session = Session(directory, output_dir, cache=True)
+    if session.data is None:
+        return pn.pane.Markdown(f"## Could not load `{directory}`\n\n{session.status}")
+    template = shell.template(build_body(session), logo=LOGO, hub_url=runtime.hub_url())
     template.session = session   # handy for tests
     return template
 
 
 def serve_default():
+    """The page for the directory this session asked for: ``?dir=``, then the environment, then McMurdo."""
     repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    directory = env("DIR", os.path.join(repo, "data_files", "3_0", "McMurdo"))
     # PMAGPY_DIRECTIONS_OUTPUT is a base: every dataset gets <base>/<dataset>/ (default_output_dir),
     # the first one included
-    return create_app(directory)
+    return create_app(session_directory(os.path.join(repo, "data_files", "3_0", "McMurdo")))
