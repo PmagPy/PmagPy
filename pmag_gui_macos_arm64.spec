@@ -62,7 +62,7 @@ exe = EXE(pyz,
           strip=True,
           upx=True,
           target_arch='arm64',
-          console=False, icon='./programs/images/pmagpy_logo.ico')
+          console=False, icon='./programs/images/PmagPy.icns')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -72,5 +72,5 @@ coll = COLLECT(exe,
                name=app_name)
 app = BUNDLE(coll,
              name=app_name + ".app",
-             icon='./programs/images/pmagpy_logo.ico',
-             bundle_identifier=None)
+             icon='./programs/images/PmagPy.icns',
+             bundle_identifier='org.pmagpy.pmag-gui')
