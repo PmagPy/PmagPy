@@ -40,33 +40,19 @@ programs/pmagpy_directions/
 
 ### Sharing with the paleointensity application
 
-Thellier GUI is being rewritten the same way, as `pmagpy_paleointensity`, so the
-two are one application in two subjects rather than two applications that
-resemble each other. The rule for where code goes:
+Thellier GUI is being rewritten the same way, so the two are one application in
+two subjects rather than two applications that resemble each other. What they
+share, where a new piece of code belongs, the conventions that keep them
+looking like one program, and the traps this stack sets are written up once in
+**[`programs/pmagpy_panel/README.md`](../pmagpy_panel/README.md)** — the place
+to send a collaborator, or an agent, working on either application.
 
-* **`pmagpy/`** — the science, and anything that reads or writes MagIC tables.
-  UI-independent, ships in the pip package, no Panel import.
-* **`programs/pmagpy_panel/`** — how a PmagPy Panel application looks and
-  behaves: theme, drag handles, the equal-area net, the MagIC directory
-  chooser, the launcher. Excluded from the package like the applications
-  themselves, and imported as a top-level package (`programs/` is on the path),
-  so `import pmagpy_panel.theme` works from either app.
-* **`programs/<app>/`** — only what is specific to that subject: its panes, its
-  plots, its session.
-
-Nothing in `pmagpy_panel` holds global state; an application passes its own
-identity (`AppInfo`: name, app id, environment prefixes) to the helpers that
-need it, so both can be imported into one process.
-
+In short: `pmagpy/` holds the science and the MagIC tables (no UI import),
+`programs/pmagpy_panel/` holds how a PmagPy Panel application looks and
+behaves, and `programs/<app>/` holds only what is specific to that subject.
 The other half of this split is being made from the data end on the
-`pmagpy_intensity` branch: `pmagpy/magic_project.py` takes the MagIC table
-policy (`merge_results`, `carry_metadata`, `trim_to_model`,
-`validate_directory`) out of `demag.py`, which keeps the paleomagnetism. The
-two meet in the middle — a shared MagIC layer under a shared Panel layer, with
-each application supplying only its own science and its own panes. Still to
-move as the second application takes shape: the application shell in `app.py`
-(side column, drag handle, tabs, and the CSS that keeps them clear of one
-another), which is the same frame in both.
+`pmagpy_intensity` branch, where `pmagpy/magic_project.py` takes the MagIC
+table policy out of `demag.py` and leaves it the paleomagnetism.
 
 ## Running
 
