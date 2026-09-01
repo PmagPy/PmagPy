@@ -13,6 +13,9 @@ from .views import DataView, ExportView, InterpretationsView, MeansView, PolesVi
 
 pn.extension("tabulator", sizing_mode="stretch_width", raw_css=[RAW_CSS])
 
+SIDE_WIDTH = 450      # default width of the side column
+HANDLE_WIDTH = 14     # the drag handle between the side column and the main pane
+
 
 def create_app(directory: str, output_dir: str | None = None):
     """Build the template for a MagIC directory. Returns a servable Panel template."""
@@ -62,15 +65,21 @@ def create_app(directory: str, output_dir: str | None = None):
 
     # side column + drag handle + tabs (the template's collapsible sidebar is not used:
     # analysts want to *resize* the step logger column, not hide it)
-    side = pn.Column(dataview.sidebar(), side_holder, width=450, sizing_mode="stretch_height",
+    side = pn.Column(dataview.sidebar(), side_holder, width=SIDE_WIDTH, sizing_mode="stretch_height",
                      styles={"overflow-y": "auto", "overflow-x": "hidden", "max-height": "calc(100vh - 52px)",
                              "padding-right": "6px"})
-    side_area = pn.Row(side, Splitter(width=14, sizing_mode="stretch_height"), width=464,
+    splitter = Splitter(width=HANDLE_WIDTH, sizing_mode="stretch_height", panel_default=SIDE_WIDTH)
+    side_area = pn.Row(side, splitter, width=SIDE_WIDTH + HANDLE_WIDTH,
                        sizing_mode="stretch_height", margin=0)
-    # the main pane scrolls on its own, independently of the side column's scrollbar
+    # the main pane scrolls on its own, independently of the side column's scrollbar.
+    # min-width 0 overrides the flex default (min-width: auto, i.e. never narrower than
+    # the widest row): without it the pane cannot give width back when the side panel
+    # is dragged wider, and the panel would grow over it instead
     main_area = pn.Column(tabs, sizing_mode="stretch_both",
-                          styles={"overflow-y": "auto", "overflow-x": "hidden",
-                                  "max-height": "calc(100vh - 60px)"})
+                          styles={"overflow-y": "auto", "overflow-x": "auto",
+                                  "min-width": "0", "max-height": "calc(100vh - 60px)"})
+    # the splitter resizes both panels in the browser: the widths it writes survive the
+    # re-renders of a tab switch, so the drag needs no round trip to the server at all
     body = pn.Row(side_area, main_area, sizing_mode="stretch_both")
     template = pn.template.FastListTemplate(
         title=APP_NAME, logo=asset_data_uri("pmagpy_logo_white.png"), favicon="assets/favicon.png",   # served via --static-dirs (see launch.py)

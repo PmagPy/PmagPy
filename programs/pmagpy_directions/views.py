@@ -113,9 +113,9 @@ class SpecimenView:
             options={"east": "ew", "north": "ns", "NRM dec": "nrm"}, value=s.projection,
             button_type="primary", button_style="outline", stylesheets=[BUTTON_GROUP_CSS])
         self.proj_sel.param.watch(lambda e: setattr(s, "projection", e.new), "value")
-        self.label_sel = pn.widgets.RadioButtonGroup(options={"auto": -1, "all": 1, "none": 0}, value=s.label_every,
+        self.label_sel = pn.widgets.RadioButtonGroup(options={"auto": -1, "all": 1}, value=s.label_every,
                                                      button_type="primary", button_style="outline",
-                                                     stylesheets=[BUTTON_GROUP_CSS], width=150)
+                                                     stylesheets=[BUTTON_GROUP_CSS], width=100)
         self.label_sel.param.watch(lambda e: setattr(s, "label_every", e.new), "value")
         self.logger = StepLogger(height=540, sizing_mode="stretch_width")
         self.logger.param.watch(self._on_logger_click, "clicked")
@@ -376,7 +376,7 @@ class SpecimenView:
                                       pn.pane.HTML(f'<span style="{MUTED_STYLE}">← → keys</span>', margin=(12, 0, 0, 4))),
             self.info,
             pn.Row(pn.Column(section("Coordinates"), self.coord_sel, margin=0),
-                   pn.Column(section("Step labels"), self.label_sel, width=165, margin=0)),
+                   pn.Column(section("Step labels"), self.label_sel, width=110, margin=0)),
             section("Zijderveld projection · x axis"), self.proj_sel,
             section("Steps · click = bound, right-click = good/bad"),
             self.logger,

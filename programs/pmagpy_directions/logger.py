@@ -94,56 +94,88 @@ class StepLogger(JSComponent):
 
 
 class Splitter(JSComponent):
-    """A vertical drag handle that resizes the element to its left (the side panel)."""
+    """A vertical drag handle that moves the boundary between the side panel and the main pane.
+
+    A drag resizes the side panel *and* the row that wraps it, so that the main
+    pane beside it — the flexible item of the layout — gives up or takes back
+    exactly the width the panel gained or lost.
+    """
 
     # (not min_width/max_width: those are Panel's own layout parameters of the handle itself)
     panel_min = param.Integer(default=320, doc="smallest width the side panel may be dragged to")
     panel_max = param.Integer(default=1100, doc="largest width the side panel may be dragged to")
+    panel_default = param.Integer(default=450, doc="width restored by a double click")
+    main_min = param.Integer(default=880, doc="width the main pane keeps: the plots and fit controls stay whole")
     width_px = param.Integer(default=450, doc="width of the panel after the last drag")
 
     _esm = """
     export function render({ model, el }) {
       const bar = document.createElement('div');
       bar.className = 'splitter';
-      bar.title = 'drag to resize the side panel';
+      bar.title = 'drag to move the boundary between the panels';
       const host = () => el.getRootNode().host || el;
-      const target = () => host().previousElementSibling;
-      let startX = 0, startW = 0;
+      const target = () => host().previousElementSibling;   // the side panel
+      // the row holding panel + handle. Bokeh renders each model into a shadow root,
+      // so the handle's parent is that root, not an element: parentElement is null and
+      // only the shadow host leads on up the layout (previousElementSibling, in
+      // contrast, resolves inside the root and needs no such step)
+      const wrapper = () => { const h = host(), p = h.parentNode;
+                              return h.parentElement || (p && p.host) || null; };
+      let startX = 0, startW = 0, handleW = 14, minW = 0, maxW = 0, pending = null, frame = null;
       const apply = (w) => {
-        const t = target();
+        const t = target(), wrap = wrapper();
         if (!t) return;
-        t.style.width = w + 'px'; t.style.minWidth = w + 'px'; t.style.maxWidth = w + 'px';
+        const px = w + 'px';
+        t.style.width = px; t.style.minWidth = px; t.style.maxWidth = px;
+        // the wrapper is a rigid flex item (flex: 0 0 <width>); unless it grows with
+        // the panel the main pane keeps its place and the panel just overlaps it
+        if (wrap) {
+          const total = (w + handleW) + 'px';
+          wrap.style.flex = '0 0 ' + total;
+          wrap.style.width = total; wrap.style.minWidth = total; wrap.style.maxWidth = total;
+        }
       };
-      // While dragging only a guide line moves (re-laying out the Bokeh plots on
-      // every mouse move is what feels laggy); the width is applied on mouse-up.
-      let guide = null, pending = null;
-      const clamp = (w) => Math.min(model.panel_max, Math.max(model.panel_min, w));
+      // Measured once per drag: reading layout on every mouse move (and so forcing a
+      // synchronous reflow before each frame) is what makes a resize feel heavy.
+      // The panel may not grow so far that the plots of the main pane are squeezed
+      // out; the main pane's own right edge moves out with it once its content
+      // cannot shrink further, so bound it by the page's (symmetric) margin too.
+      const measure = () => {
+        const t = target(), wrap = wrapper();
+        handleW = host().getBoundingClientRect().width || handleW;
+        const left = t ? t.getBoundingClientRect().left : 0;
+        const main = wrap ? wrap.nextElementSibling : null;
+        const right = Math.min(main ? main.getBoundingClientRect().right : Infinity,
+                               window.innerWidth - left);
+        minW = model.panel_min;
+        maxW = Math.max(minW, Math.min(model.panel_max, right - left - handleW - model.main_min));
+      };
+      // The panels follow the cursor, at most one resize per animation frame however
+      // fast the mouse reports; the move handler itself only does arithmetic.
       const onMove = (e) => {
-        pending = clamp(startW + (e.clientX - startX));
-        if (guide) guide.style.left = (bar.getBoundingClientRect().left + (pending - startW)) + 'px';
+        pending = Math.max(minW, Math.min(maxW, startW + (e.clientX - startX)));
+        if (frame === null) frame = requestAnimationFrame(() => { frame = null; apply(pending); });
       };
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
         document.body.style.cursor = ''; document.body.style.userSelect = '';
-        if (guide) { guide.remove(); guide = null; }
+        bar.classList.remove('dragging');
+        if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
         if (pending !== null) { apply(pending); model.width_px = Math.round(pending); pending = null; }
       };
       bar.addEventListener('mousedown', (e) => {
         const t = target();
         if (!t) return;
         startX = e.clientX; startW = t.getBoundingClientRect().width;
-        guide = document.createElement('div');
-        const r = bar.getBoundingClientRect();
-        Object.assign(guide.style, { position: 'fixed', top: r.top + 'px', height: r.height + 'px', width: '3px',
-                                     left: r.left + 'px', background: '#1f4e9c', zIndex: 10000, pointerEvents: 'none' });
-        document.body.appendChild(guide);
+        measure();
+        bar.classList.add('dragging');
         document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMove);
         document.addEventListener('mouseup', onUp);
         e.preventDefault();
       });
-      bar.addEventListener('dblclick', () => { apply(model.width_px = 450); });
+      bar.addEventListener('dblclick', () => { measure(); apply(model.width_px = model.panel_default); });
       return bar;
     }
     """
@@ -152,7 +184,8 @@ class Splitter(JSComponent):
     :host { display: flex; align-self: stretch; width: 14px !important; min-width: 14px; max-width: 14px; }
     .splitter { width: 8px; min-height: 100%; cursor: col-resize; background: #e5e7eb; border-radius: 4px;
                 margin: 4px 3px; transition: background .15s; }
-    .splitter:hover { background: #9aa1ab; }
+    .splitter:hover, .splitter.dragging { background: #9aa1ab; }
+    .splitter.dragging { background: #1f4e9c; }
     """]
 
 
