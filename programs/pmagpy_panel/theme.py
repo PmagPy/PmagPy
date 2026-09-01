@@ -27,7 +27,16 @@ LAND_EDGE = "#c9bda4"
 OCEAN_COLOR = "#f3f7fb"
 SITE_COLOR = "#2e8b57"        # sampling sites on the globe
 NET_COLOR = "#2b2b2b"
-ACCENT = "#1f4e9c"
+
+# Each application gets its own accent, so that two of these windows open side
+# by side are told apart at a glance. They live together here, not in the
+# applications, so that a new one cannot quietly pick a colour already in use.
+# Chrome only: a data mark's colour says what the data is, never which
+# application drew it.
+ACCENT_DIRECTIONS = "#1f4e9c"     # navy -- PmagPy Directions
+ACCENT_INTENSITY = "#6a2c5a"      # plum -- PmagPy Intensity
+ACCENTS = {"pmagpy_directions": ACCENT_DIRECTIONS, "pmagpy_intensity": ACCENT_INTENSITY}
+ACCENT = ACCENT_DIRECTIONS        # the default the module-level CSS below is built from
 
 # a fixed mapping for the most common legacy names, then the palette in order
 PRESET_COLORS = {"HT": "#2a9d8f", "LT": "#e9a800", "MT": "#7b5ea7", "mag": "#2a9d8f", "hem": "#e76f51",
@@ -67,37 +76,6 @@ KPI_ITEM = "white-space:nowrap"
 SECTION_STYLE = ("font-weight:600;font-size:0.78rem;letter-spacing:.04em;text-transform:uppercase;"
                  "color:#5b6470;margin:4px 0 2px 0")
 MUTED_STYLE = "color:#6b7280;font-size:0.85rem"
-# the main tabs: unmistakably tabs, in the same small bold capitals as the side-panel headings
-TABS_CSS = """
-:host .bk-header { border-bottom: 2px solid #1f4e9c !important; margin-bottom: 1px; gap: 0;
-    height: 30px !important; min-height: 0 !important; }
-:host .bk-header .bk-tab { font-weight: 600 !important; font-size: 0.78rem !important; letter-spacing: .04em;
-    text-transform: uppercase; color: #5b6470 !important; background-color: #e9edf3 !important;
-    border: 1px solid #d0d4da !important; border-bottom: none !important; border-radius: 6px 6px 0 0 !important;
-    padding: 0 16px !important; margin: 0 4px 0 0 !important;
-    height: 28px !important; display: inline-flex !important; align-items: center; box-sizing: border-box; }
-:host .bk-header .bk-tab:hover { background-color: #dbe4f3 !important; color: #1f2937 !important; }
-:host .bk-header .bk-tab.bk-active, :host .bk-header .bk-tab.bk-active:hover {
-    background-color: #1f4e9c !important; color: #ffffff !important; border-color: #1f4e9c !important; }
-:host .bk-header .bk-tab:focus, :host .bk-header .bk-tab:focus-visible { outline: none !important; }
-"""
-# native checkboxes with the accent colour: the browser then draws a white tick
-CHECKBOX_CSS = """
-:host input[type='checkbox'] { accent-color: #1f4e9c; width: 15px; height: 15px; appearance: auto;
-    -webkit-appearance: auto; background: none; border: none; }
-"""
-# Tabulator turns a row's text white when it is hovered or selected, which on the pale
-# component colours these tables carry leaves it barely readable. Both states keep dark
-# text on a light blue — the same blue the step logger hovers with — and a selected row
-# is picked out by weight rather than by colour
-TABLE_ROW_CSS = """
-.tabulator-row:hover { background-color: #eef3fb !important; }
-.tabulator-row:hover .tabulator-cell, .tabulator-row:hover { color: #111 !important; }
-.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected:hover {
-    background-color: #dbe4f3 !important; font-weight: 700; }
-.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected .tabulator-cell,
-.tabulator-row.tabulator-selected:hover .tabulator-cell { color: #111 !important; }
-"""
 # result tables (the mean statistics): a handful of numbers should read as one
 # block at the left, not stretch its columns across the whole width of the pane
 STATS_TABLE_CSS = """
@@ -110,12 +88,6 @@ tbody tr:nth-child(even) td { background: #f6f7f9; }
 # text inputs and selects side by side get one box height
 INPUT_CSS = """
 :host .bk-input { height: 34px; min-height: 34px; padding-top: 0; padding-bottom: 0; box-sizing: border-box; }
-"""
-# outline-style button groups: the active choice is a filled button and must use white text
-BUTTON_GROUP_CSS = """
-.bk-btn-group .bk-btn.bk-active, .bk-btn-group .bk-btn.bk-active:hover { color: #ffffff !important;
-    background-color: #1f4e9c !important; border-color: #1f4e9c !important; font-weight: 600; }
-.bk-btn-group .bk-btn { color: #1f2937; }
 """
 
 
@@ -142,8 +114,8 @@ def lighten(hex_color: str, amount: float = 0.75) -> str:
     return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
 
 
-RAW_CSS = """
-:root { --demag-accent: %(accent)s; }
+_RAW_CSS_TEMPLATE = """
+:root { --pmagpy-accent: %(accent)s; --demag-accent: %(accent)s; }
 .bk-root, .pn-loading { font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; }
 #sidebar { padding-right: 6px; }
 /* a compact header and main card: vertical space belongs to the analysis */
@@ -162,7 +134,97 @@ RAW_CSS = """
 .demag-kpi span { white-space: nowrap; }
 .demag-kpi b { color: #111; }
 .demag-muted { color: #6b7280; font-size: 0.85rem; }
-""" % {"accent": ACCENT}
+"""
+
+
+class Theme:
+    """The accent-dependent half of the styling, for one application.
+
+    All of it comes from one colour, so giving an application its own identity
+    is a line rather than a forked stylesheet. The tints are what ``lighten()``
+    gives: at 0.93 and 0.86 the navy accent reproduces, to within a shade, the
+    hand-picked blues these tables carried before they were derived.
+    """
+
+    def __init__(self, accent: str):
+        self.accent = accent
+        self.row_hover = lighten(accent, 0.93)       # a hovered table row
+        self.row_selected = lighten(accent, 0.86)    # and a selected one
+        self.tab_rest = lighten(accent, 0.91)        # an inactive tab
+        self.tab_hover = lighten(accent, 0.84)
+
+    def __repr__(self):
+        return f"Theme({self.accent!r})"
+
+    # the main tabs: unmistakably tabs, in the same small bold capitals as the
+    # side-panel headings
+    @property
+    def tabs_css(self) -> str:
+        return f"""
+:host .bk-header {{ border-bottom: 2px solid {self.accent} !important; margin-bottom: 1px; gap: 0;
+    height: 30px !important; min-height: 0 !important; }}
+:host .bk-header .bk-tab {{ font-weight: 600 !important; font-size: 0.78rem !important; letter-spacing: .04em;
+    text-transform: uppercase; color: #5b6470 !important; background-color: {self.tab_rest} !important;
+    border: 1px solid #d0d4da !important; border-bottom: none !important; border-radius: 6px 6px 0 0 !important;
+    padding: 0 16px !important; margin: 0 4px 0 0 !important;
+    height: 28px !important; display: inline-flex !important; align-items: center; box-sizing: border-box; }}
+:host .bk-header .bk-tab:hover {{ background-color: {self.tab_hover} !important; color: #1f2937 !important; }}
+:host .bk-header .bk-tab.bk-active, :host .bk-header .bk-tab.bk-active:hover {{
+    background-color: {self.accent} !important; color: #ffffff !important; border-color: {self.accent} !important; }}
+:host .bk-header .bk-tab:focus, :host .bk-header .bk-tab:focus-visible {{ outline: none !important; }}
+"""
+
+    # native checkboxes with the accent colour: the browser then draws a white tick
+    @property
+    def checkbox_css(self) -> str:
+        return f"""
+:host input[type='checkbox'] {{ accent-color: {self.accent}; width: 15px; height: 15px; appearance: auto;
+    -webkit-appearance: auto; background: none; border: none; }}
+"""
+
+    # Tabulator turns a row's text white when it is hovered or selected, which on
+    # the pale component colours these tables carry leaves it barely readable.
+    # Both states keep dark text on a tint of the accent, and a selected row is
+    # picked out by weight rather than by colour.
+    @property
+    def table_row_css(self) -> str:
+        return f"""
+.tabulator-row:hover {{ background-color: {self.row_hover} !important; }}
+.tabulator-row:hover .tabulator-cell, .tabulator-row:hover {{ color: #111 !important; }}
+.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected:hover {{
+    background-color: {self.row_selected} !important; font-weight: 700; }}
+.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected .tabulator-cell,
+.tabulator-row.tabulator-selected:hover .tabulator-cell {{ color: #111 !important; }}
+"""
+
+    # outline-style button groups: the active choice is a filled button, and needs
+    # white text to stay readable on the accent
+    @property
+    def button_group_css(self) -> str:
+        return f"""
+.bk-btn-group .bk-btn.bk-active, .bk-btn-group .bk-btn.bk-active:hover {{ color: #ffffff !important;
+    background-color: {self.accent} !important; border-color: {self.accent} !important; font-weight: 600; }}
+.bk-btn-group .bk-btn {{ color: #1f2937; }}
+"""
+
+    @property
+    def raw_css(self) -> str:
+        return _RAW_CSS_TEMPLATE % {"accent": self.accent}
+
+
+def for_app(app_id: str) -> Theme:
+    """The theme for an application, by its ``app_id``; an unknown id gets the default."""
+    return Theme(ACCENTS.get(app_id, ACCENT))
+
+
+#: the default theme, and the module-level names built from it -- an application
+#: that wants its own calls :func:`for_app` instead
+DEFAULT_THEME = Theme(ACCENT)
+TABS_CSS = DEFAULT_THEME.tabs_css
+CHECKBOX_CSS = DEFAULT_THEME.checkbox_css
+TABLE_ROW_CSS = DEFAULT_THEME.table_row_css
+BUTTON_GROUP_CSS = DEFAULT_THEME.button_group_css
+RAW_CSS = DEFAULT_THEME.raw_css
 
 
 def style_figure(fig, hide_axes: bool = False):

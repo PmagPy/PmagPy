@@ -38,6 +38,15 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `ComponentColors`, which keeps a component's colour the same everywhere it
   appears. Also `kpi()`, `SECTION_STYLE`, `lighten()`, `style_figure()`,
   `asset_data_uri()`.
+  **Each application has its own accent**: `theme.for_app(app_id)` returns a
+  `Theme` whose tabs, checkboxes, button groups, table rows and `raw_css` are
+  all derived from one colour — navy for Directions, plum for Intensity, listed
+  together in `ACCENTS` so a third application cannot pick one already in use.
+  The module-level `TABS_CSS`, `CHECKBOX_CSS`, `TABLE_ROW_CSS`,
+  `BUTTON_GROUP_CSS` and `RAW_CSS` are the default (navy) theme's, so anything
+  that has not asked for its own keeps what it had. The accent is **chrome
+  only**: a data mark's colour says what the data is, never which application
+  drew it.
 * **`widgets.py`** — the custom `JSComponent`s: `Splitter` (the vertical
   boundary between the side column and the main pane, which moves *both*),
   `HeightSplitter` (resizes the plots), `Hotkeys` (forwards key presses).
@@ -104,7 +113,9 @@ These are what make the two feel like one program.
   plane). Derived symbols take the dark edge (`#2b2b2b`); the mean is drawn on
   top of what it averages.
 * **Colour carries identity, not category.** A component keeps its colour in
-  every table, plot and exported figure (`ComponentColors`).
+  every table, plot and exported figure (`ComponentColors`). The *chrome*
+  accent is the exception and the point: it says which application you are in,
+  and it is the only colour that differs between the two.
 * **Layout.** A side column of controls and context, a drag handle, then the
   main pane; only a tab that plots nothing takes the full width. The main pane
   is inset from the handle so text set flush left does not run into it.
@@ -149,6 +160,17 @@ Each of these was found the hard way in Directions; none is obvious.
 * **Test the assembly, not only the pieces.** Every piece of the theme was
   covered when the logo path broke; only the browser suite noticed. Build the
   template in a unit test.
+* **Bokeh sizes every container to its content and writes the answer in
+  pixels.** A `stretch_width` `FlexBox` inside one therefore never re-measures,
+  and `flex-wrap` never fires however the window is resized — the pane scrolls
+  instead. Size a block of figures for the width you expect to have and give
+  the analyst a handle, a size slider or both; do not expect CSS wrapping to
+  rescue a layout that does not fit.
+* **A figure's chrome is not a constant you can guess.** Bokeh fits the frame
+  into whatever the declared outer box leaves after the axes, labels, toolbar
+  and legend — so an allowance that is too small *silently squashes the frame*
+  rather than failing. `pmagpy_intensity/plots.py` keeps a measured
+  `CHROME_W`/`CHROME_H` per figure class for exactly this reason.
 
 ## Tests
 
