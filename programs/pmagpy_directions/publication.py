@@ -30,7 +30,7 @@ from matplotlib.patches import FancyArrowPatch
 import pmagpy.demag as dc
 import pmagpy.demag_geo as geo
 
-from .theme import (COMPONENT_PALETTE, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR, POINT_EDGE,
+from pmagpy_panel.theme import (COMPONENT_PALETTE, LAND_COLOR, LAND_EDGE, MEAN_COLOR, NET_COLOR, OCEAN_COLOR, POINT_EDGE,
                     POINT_FILL, SITE_COLOR)
 
 matplotlib.rcParams.update({

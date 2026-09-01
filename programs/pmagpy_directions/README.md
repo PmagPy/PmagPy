@@ -16,20 +16,57 @@ pmagpy/maps/                 Natural Earth 110m coastline + land (public domain,
 pmagpy/test/test_demag.py    core tests (regression against legacy-GUI interpretations)
 pmagpy/test/test_demag_geo.py
 
+programs/pmagpy_panel/         shared by this application and the paleointensity one
+├── theme.py               colours, CSS, Bokeh figure styling, ComponentColors
+├── widgets.py             the splitters and the hotkey listener (JS components)
+├── nets.py                equal-area primitives: a net that stays circular
+├── datasets.py            choosing, remembering and validating a MagIC directory
+└── launch.py              the one-command launcher, given an app and a prefix
+
 programs/pmagpy_directions/
 ├── app.py                 assembles the template (title "PmagPy Directions", PmagPy logo, favicon)
 ├── views.py               Specimen · Fits · Means · Poles · Export panes
 ├── plots.py               Bokeh figures (Zijderveld, nets, M/M₀, globe)
 ├── publication.py         matplotlib publication figures
 ├── session.py             shared state, persistence, export policy plumbing
-├── theme.py, logger.py    colours/CSS · step-logger, splitter and hotkey JS components
+├── logger.py              the step logger (its columns are demagnetization steps)
 ├── assets/                logos, favicon
 ├── pmagpy_directions.py   served file:  panel serve programs/pmagpy_directions/pmagpy_directions.py --show
-├── launch.py              one-command launcher (dev mode, restarts, opens the browser)
+├── launch.py              names the app and its settings; the work is in pmagpy_panel
 ├── PmagPy Directions.command   double-clickable macOS launcher
 ├── test_app.py            session / export / publication / logger tests
 └── ui_test.py             headless-browser suite (Playwright)
 ```
+
+### Sharing with the paleointensity application
+
+Thellier GUI is being rewritten the same way, as `pmagpy_paleointensity`, so the
+two are one application in two subjects rather than two applications that
+resemble each other. The rule for where code goes:
+
+* **`pmagpy/`** — the science, and anything that reads or writes MagIC tables.
+  UI-independent, ships in the pip package, no Panel import.
+* **`programs/pmagpy_panel/`** — how a PmagPy Panel application looks and
+  behaves: theme, drag handles, the equal-area net, the MagIC directory
+  chooser, the launcher. Excluded from the package like the applications
+  themselves, and imported as a top-level package (`programs/` is on the path),
+  so `import pmagpy_panel.theme` works from either app.
+* **`programs/<app>/`** — only what is specific to that subject: its panes, its
+  plots, its session.
+
+Nothing in `pmagpy_panel` holds global state; an application passes its own
+identity (`AppInfo`: name, app id, environment prefixes) to the helpers that
+need it, so both can be imported into one process.
+
+The other half of this split is being made from the data end on the
+`pmagpy_intensity` branch: `pmagpy/magic_project.py` takes the MagIC table
+policy (`merge_results`, `carry_metadata`, `trim_to_model`,
+`validate_directory`) out of `demag.py`, which keeps the paleomagnetism. The
+two meet in the middle — a shared MagIC layer under a shared Panel layer, with
+each application supplying only its own science and its own panes. Still to
+move as the second application takes shape: the application shell in `app.py`
+(side column, drag handle, tabs, and the CSS that keeps them clear of one
+another), which is the same frame in both.
 
 ## Running
 

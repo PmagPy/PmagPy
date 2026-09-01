@@ -14,11 +14,12 @@ import panel as pn
 import pmagpy.demag as dc
 
 from . import publication as pub
-from .logger import HeightSplitter, Hotkeys, StepLogger
+from .logger import StepLogger
+from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
 from .session import (REDO_NAME, AUTOSAVE_NAME, Session, env, load_recent, looks_like_magic_dir,
                       native_choose_directory, native_chooser_available)
-from .theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
+from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
                     STATS_TABLE_CSS, TABLE_ROW_CSS, kpi, lighten)
 
 FIT_OPTIONS = {f"{v} ({k})": k for k, v in dc.FIT_TYPES.items()}

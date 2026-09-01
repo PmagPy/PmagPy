@@ -5,16 +5,17 @@ import os
 
 import panel as pn
 
-from .logger import Splitter
+from pmagpy_panel.widgets import Splitter
 from . import APP_NAME
 from .session import Session, env
-from .theme import ACCENT, RAW_CSS, TABS_CSS, asset_data_uri
+from pmagpy_panel.theme import ACCENT, RAW_CSS, TABS_CSS, asset_data_uri
 from .views import DataView, ExportView, InterpretationsView, MeansView, PolesView, SpecimenView
 
 pn.extension("tabulator", sizing_mode="stretch_width", raw_css=[RAW_CSS])
 
 SIDE_WIDTH = 450      # default width of the side column
 HANDLE_WIDTH = 14     # the drag handle between the side column and the main pane
+ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 
 
 def create_app(directory: str, output_dir: str | None = None):
@@ -86,7 +87,8 @@ def create_app(directory: str, output_dir: str | None = None):
     # re-renders of a tab switch, so the drag needs no round trip to the server at all
     body = pn.Row(side_area, main_area, sizing_mode="stretch_both")
     template = pn.template.FastListTemplate(
-        title=APP_NAME, logo=asset_data_uri("pmagpy_logo_white.png"), favicon="assets/favicon.png",   # served via --static-dirs (see launch.py)
+        title=APP_NAME, logo=asset_data_uri(os.path.join(ASSETS, "pmagpy_logo_white.png")),
+        favicon="assets/favicon.png",                          # served via --static-dirs (see launch.py)
         main=[body], header=[status], accent=ACCENT, theme_toggle=False, collapsed_sidebar=True,
         main_max_width="100%", raw_css=[RAW_CSS],
     )

@@ -13,18 +13,17 @@ import param
 
 import pmagpy.demag as dc
 
-from .theme import ComponentColors
+from pmagpy_panel import AppInfo, datasets
+from pmagpy_panel.theme import ComponentColors
 
-ENV_PREFIXES = ("PMAGPY_DIRECTIONS_", "DEMAG_")
+APP = AppInfo(name="PmagPy Directions", app_id=dc.APP_ID,
+              # the older DEMAG_ names are still honoured
+              env_prefixes=("PMAGPY_DIRECTIONS_", "DEMAG_"))
 
 
 def env(name: str, default: str = "") -> str:
     """Environment setting ``PMAGPY_DIRECTIONS_<name>`` (the older ``DEMAG_<name>`` is still honoured)."""
-    for prefix in ENV_PREFIXES:
-        value = os.environ.get(prefix + name)
-        if value:
-            return value
-    return default
+    return datasets.env(name, APP.env_prefixes, default)
 
 
 AUTOSAVE_NAME = f"{dc.APP_ID}_autosave.redo"
@@ -32,103 +31,33 @@ LEGACY_AUTOSAVE_NAMES = ("demag_v3_autosave.redo",)          # written by earlie
 REDO_NAME = f"{dc.APP_ID}.redo"
 RECENT_FILE = env("RECENT", os.path.join(os.path.expanduser("~"), f".{dc.APP_ID}_recent.json"))
 
+# this application's bindings of the shared helpers: the same behaviour for both
+# applications, pointed at this one's recent list, output setting and test hook
+looks_like_magic_dir = datasets.looks_like_magic_dir
+
 
 def load_recent() -> list[str]:
     """Recently opened MagIC directories (most recent first), if the list exists."""
-    try:
-        import json
-        with open(RECENT_FILE) as fh:
-            return [d for d in json.load(fh) if os.path.isdir(d)]
-    except (OSError, ValueError):
-        return []
+    return datasets.load_recent(RECENT_FILE)
 
 
 def remember_recent(directory: str, limit: int = 12) -> list[str]:
-    import json
-    directory = os.path.abspath(directory)
-    recent = [d for d in load_recent() if d != directory]
-    recent.insert(0, directory)
-    recent = recent[:limit]
-    try:
-        with open(RECENT_FILE, "w") as fh:
-            json.dump(recent, fh, indent=1)
-    except OSError:
-        pass
-    return recent
+    return datasets.remember_recent(RECENT_FILE, directory, limit)
 
 
 def native_choose_directory(start: Optional[str] = None, prompt: str = "Choose a MagIC directory") -> Optional[str]:
-    """Open the operating system's folder chooser on the machine running the server.
-
-    macOS uses an AppleScript ``choose folder`` dialog shown in the frontmost
-    application, Linux uses ``zenity`` when available, Windows the .NET
-    FolderBrowserDialog. Returns the chosen absolute path, or None when the
-    dialog was cancelled or no chooser is available (remote sessions).
-    """
-    import subprocess
-    import sys
-    stub = env("CHOOSER_STUB")            # test hook: pretend the user picked this directory
-    if stub:
-        return stub
-    start = start if start and os.path.isdir(start) else os.path.expanduser("~")
-    try:
-        if sys.platform == "darwin":
-            script = (
-                'tell application (path to frontmost application as text)\n'
-                f'  set f to choose folder with prompt "{prompt}" default location POSIX file "{start}"\n'
-                "end tell\n"
-                "POSIX path of f"
-            )
-            out = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=600)
-            if out.returncode != 0:
-                return None
-            return out.stdout.strip().rstrip("/") or None
-        if sys.platform.startswith("linux"):
-            out = subprocess.run(["zenity", "--file-selection", "--directory", f"--title={prompt}",
-                                  f"--filename={start}/"], capture_output=True, text=True, timeout=600)
-            return out.stdout.strip() or None if out.returncode == 0 else None
-        if sys.platform.startswith("win"):
-            ps = ("Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog;"
-                  f"$d.Description = '{prompt}'; $d.SelectedPath = '{start}';"
-                  "if ($d.ShowDialog() -eq 'OK') { Write-Output $d.SelectedPath }")
-            out = subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, text=True, timeout=600)
-            return out.stdout.strip() or None
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return None
+    """The system folder chooser; ``PMAGPY_DIRECTIONS_CHOOSER_STUB`` answers it in tests."""
+    return datasets.native_choose_directory(start, prompt, stub=env("CHOOSER_STUB"))
 
 
 def native_chooser_available() -> bool:
     """True when a system folder dialog can be shown for this session (local browser)."""
-    import shutil
-    import sys
-    if env("CHOOSER_STUB"):
-        return True
-    try:
-        import panel as pn
-        req = pn.state.curdoc.session_context.request if pn.state.curdoc else None
-        remote_ip = getattr(req, "remote_ip", None) if req else None
-        if remote_ip and remote_ip not in ("127.0.0.1", "::1", "localhost"):
-            return False
-    except Exception:
-        pass
-    if sys.platform == "darwin":
-        return shutil.which("osascript") is not None
-    if sys.platform.startswith("linux"):
-        return shutil.which("zenity") is not None and bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
-    return sys.platform.startswith("win")
-
-
-def looks_like_magic_dir(directory: str) -> bool:
-    return os.path.isdir(directory) and os.path.exists(os.path.join(directory, "measurements.txt"))
+    return datasets.native_chooser_available(stub=env("CHOOSER_STUB"))
 
 
 def default_output_dir(directory: str) -> str:
     """The data directory itself, or <PMAGPY_DIRECTIONS_OUTPUT>/<dataset name> when that variable is set."""
-    base = env("OUTPUT", "")
-    if base:
-        return os.path.join(base, os.path.basename(os.path.abspath(directory).rstrip("/")))
-    return directory
+    return datasets.default_output_dir(directory, base=env("OUTPUT", ""))
 
 
 _DATASETS: dict = {}          # directory -> (DemagData, code stamp); shared by all browser sessions
