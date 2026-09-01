@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import numpy as np
 from bokeh.events import Reset, Tap
-from bokeh.models import (BoxAnnotation, ColumnDataSource, CustomJS, HoverTool, Label, LabelSet,
-                          Legend, LegendItem, Span, Whisker)
+from bokeh.models import (BoxAnnotation, ColumnDataSource, CustomJS, FactorRange, HoverTool,
+                          Label, LabelSet, Legend, LegendItem, Span, Whisker)
 from bokeh.plotting import figure
 
 import pmagpy.paleointensity as pint
@@ -446,10 +446,11 @@ class GroupPlot:
     """Specimen intensities within a group, with the mean and its scatter."""
 
     def __init__(self, size: int = 460, height: int = 300):
+        # a categorical x axis: one slot per specimen, named on the axis
         self.fig = figure(frame_width=size, frame_height=height, width=size + 80,
                           height=height + 60, tools="pan,box_zoom,wheel_zoom,reset,save",
                           sizing_mode="fixed", toolbar_location="below", frame_align=False,
-                          min_border_left=60, name="groups")
+                          min_border_left=60, name="groups", x_range=FactorRange())
         style_figure(self.fig)
         self.fig.xaxis.axis_label = "specimen"
         self.fig.yaxis.axis_label = "intensity (µT)"

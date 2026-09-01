@@ -1643,10 +1643,28 @@ class PintData:
             # measurements for; directional rows and rock-magnetic rows are inherited
             return mp.intensity_rows(df)
         merged = mp.merge_results(existing, new, "specimen", owned, owns=owns)
+        merged = self._keep_the_hierarchy_whole(merged)
         warnings: List[str] = []
         merged = trim_to_model(merged, "specimens", warnings)
         self.warnings.extend(warnings)
         return merged
+
+    def _keep_the_hierarchy_whole(self, specimens: pd.DataFrame) -> pd.DataFrame:
+        """Give every measured specimen a row, even without an interpretation.
+
+        A measurements table whose specimens are not all in the specimens table
+        is an invalid contribution -- the MagIC validator's cross-table check
+        fails on every measurement row -- so a specimen with no interpretation
+        keeps a minimal row carrying only its place in the hierarchy.
+        """
+        present = set(specimens["specimen"].astype(str)) if len(specimens) else set()
+        missing = [name for name in self.specimens if name not in present]
+        if not missing:
+            return specimens
+        stubs = pd.DataFrame([{"specimen": name, "sample": self.specimens[name].sample,
+                               "citations": "This study"} for name in missing])
+        stubs = carry_metadata(stubs, self._table("specimens"), "specimen")
+        return pd.concat([specimens, stubs], ignore_index=True, sort=False)
 
     def sites_table(self, analysts: Optional[str] = None, level: str = "site",
                     weighted: bool = False) -> pd.DataFrame:
