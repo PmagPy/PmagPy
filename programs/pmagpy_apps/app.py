@@ -1,20 +1,19 @@
 """Assemble the PmagPy Apps page.
 
-What is here now is the foundation the hub is built on — the page served at
-``/``, on the shared shell, with the applications reachable beside it. The Home
-page itself (the dataset as its subject, the workflow strip, the analysis
-cards) is designed from a mock first and lands next; see HUB_PLAN.md §2.
+The page served at ``/`` is Home (:mod:`.home`): one directory as its subject,
+the workflow strip, the applications as a list. The directory comes from
+``?dir=``, then ``PMAGPY_APPS_DIR``, then the shipped McMurdo example, and the
+"Change directory…" dialog swaps it without leaving the page.
 """
 from __future__ import annotations
 
 import os
-from urllib.parse import quote
 
 import panel as pn
 
 from pmagpy_panel import datasets, shell
-from pmagpy_panel.theme import MUTED_STYLE, SECTION_STYLE
 from . import APP
+from .home import HomeView, HubSession, OpenDirectory, app_link  # noqa: F401  (app_link re-exported)
 
 shell.setup()
 
@@ -23,30 +22,29 @@ LOGO = os.path.join(ASSETS, "pmagpy_logo_white.png")
 DEFAULT_EXAMPLE = "McMurdo"
 
 
-def app_link(app_id: str, directory: str) -> str:
-    """The URL that opens an application on a directory, on the server this page came from."""
-    return f"/{app_id}?dir={quote(directory)}"
+def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
+    """Home for the session's directory, with the open-directory dialog as its modal."""
+    view = HomeView(session)
+    dialog = OpenDirectory(session, chooser_stub=chooser_stub)
+    body = shell.Body(info=APP, main=view.panel(), header=shell.status_line(session), modal=dialog.modal())
+    view.change_btn.on_click(lambda e: body.open_modal())
+    dialog.on_opened = lambda: body.close_modal()
+    return body
 
 
-def build_body(directory: str) -> shell.Body:
-    """The page's body: the directory it holds and the way into each application."""
-    name = os.path.basename(directory.rstrip("/")) or directory
-    main = pn.Column(
-        pn.pane.HTML(f'<div style="{SECTION_STYLE}">MagIC directory</div>'
-                     f'<h2 style="margin:4px 0 2px 0">{name}</h2>'
-                     f'<div style="{MUTED_STYLE}">{directory}</div>'),
-        pn.pane.HTML(f'<div style="{SECTION_STYLE};margin-top:24px">Analyze</div>'
-                     f'<p><a href="{app_link("pmagpy_directions", directory)}">PmagPy Directions &rarr;</a></p>'),
-        sizing_mode="stretch_width", max_width=900, margin=(20, 40),
-    )
-    return shell.Body(info=APP, main=main)
+def create_app(directory: str, recent_file: str = "", landing: bool = False):
+    """Build the page for a directory. Returns a servable Panel template.
 
-
-def create_app(directory: str):
-    """Build the page for a MagIC directory. Returns a servable Panel template."""
-    return shell.template(build_body(directory), logo=LOGO)
+    Args:
+        landing: the directory is the default, not one the user asked for; Home
+            then lists the recent directories beside it.
+    """
+    session = HubSession(directory, recent_file=recent_file, landing=landing)
+    return shell.template(build_body(session), logo=LOGO)
 
 
 def serve_default():
     """The page for the directory this session asked for: ``?dir=``, then ``PMAGPY_APPS_DIR``, then the example."""
-    return create_app(datasets.session_directory(APP.env_prefixes, datasets.example_dir(DEFAULT_EXAMPLE)))
+    asked = datasets.session_directory(APP.env_prefixes, default="")
+    directory = asked or datasets.example_dir(DEFAULT_EXAMPLE)
+    return create_app(directory, recent_file=datasets.shared_recent_file(), landing=not asked)

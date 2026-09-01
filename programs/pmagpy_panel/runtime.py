@@ -27,18 +27,28 @@ HUB_URL_VAR = "PMAGPY_APPS_URL"       # set by the hub's launcher for the applic
 
 # ----- the session ------------------------------------------------------------
 
+def location():
+    """This session's browser location (``pn.state.location``), or None outside a server session."""
+    try:
+        import panel as pn
+        if not pn.state.curdoc:
+            return None
+        return pn.state.location
+    except Exception:
+        return None
+
+
 def query_param(name: str, default: str = "") -> str:
     """The value of ``?name=`` on the URL that opened this session, or `default`.
 
     Empty outside a server session (a notebook, a test), so callers can fall
     back to the environment and then to a built-in default.
     """
+    loc = location()
+    if loc is None:
+        return default
     try:
-        import panel as pn
-        location = pn.state.location
-        if location is None or not pn.state.curdoc:
-            return default
-        value = location.query_params.get(name)
+        value = loc.query_params.get(name)
     except Exception:
         return default
     return value if isinstance(value, str) and value else default

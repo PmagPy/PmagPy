@@ -402,6 +402,17 @@ Intensity were built.
 1. **Hub: Home and Analyze, then Download/unpack.** Design mock first (§2).
    *Retires Pmag GUI's box 0, box 2, and "Download or unpack".* From here the
    hub is the way to start the analysis applications.
+   **Home built 2026-09-01** from the approved mock: `pmagpy_apps/inventory.py`
+   reads a directory without any UI (counts, experiment kinds from the LP-
+   method codes, contribution id/DOI, what is interpreted, metadata gaps
+   ranked, lab-file format guess); `home.py` renders its three faces (MagIC
+   contribution / lab files awaiting conversion / empty directory) with the
+   workflow strip, the Analyze list (a door per application, shut with its
+   reason when the directory has nothing for it or the application is not
+   built), and an aside of tables or files. Recent directories show only on
+   the landing, before a directory is picked; the "Change directory…" dialog
+   keeps the list. Metadata on Home names the single largest gap and counts
+   the rest. Download/unpack (by ID or DOI, as an Import option) is next.
 2. **Conversion registry, then the Convert page.** Formats in order of demand:
    SIO, CIT, 2g, generic, JR6, IODP, then IRM instruments, then the rest.
    *Retires box 1 step 1 and the Import menu's converters.*

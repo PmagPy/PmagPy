@@ -90,6 +90,13 @@ application still runs on its own (`python programs/pmagpy_directions/launch.py`
 port 5100). The editable install is what lets the group test an unmerged
 branch without a PyPI release — HUB_PLAN.md §8, rung 0.
 
+The hub's Home (`pmagpy_apps/home.py`) is drawn from `pmagpy_apps/inventory.py`,
+which describes a directory with no UI attached — counts, experiment kinds from
+the LP- method codes, the contribution's id and DOI, what has been interpreted,
+metadata gaps, and a guess at the format of lab files awaiting conversion. To
+list a new application on Home add an `Application` to `home.APPLICATIONS` with
+the experiment kinds it opens; the door opens once its package imports.
+
 ## Starting the second application
 
 ```
