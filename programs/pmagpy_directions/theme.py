@@ -86,6 +86,18 @@ CHECKBOX_CSS = """
 :host input[type='checkbox'] { accent-color: #1f4e9c; width: 15px; height: 15px; appearance: auto;
     -webkit-appearance: auto; background: none; border: none; }
 """
+# Tabulator turns a row's text white when it is hovered or selected, which on the pale
+# component colours these tables carry leaves it barely readable. Both states keep dark
+# text on a light blue — the same blue the step logger hovers with — and a selected row
+# is picked out by weight rather than by colour
+TABLE_ROW_CSS = """
+.tabulator-row:hover { background-color: #eef3fb !important; }
+.tabulator-row:hover .tabulator-cell, .tabulator-row:hover { color: #111 !important; }
+.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected:hover {
+    background-color: #dbe4f3 !important; font-weight: 700; }
+.tabulator-row.tabulator-selected, .tabulator-row.tabulator-selected .tabulator-cell,
+.tabulator-row.tabulator-selected:hover .tabulator-cell { color: #111 !important; }
+"""
 # result tables (the mean statistics): a handful of numbers should read as one
 # block at the left, not stretch its columns across the whole width of the pane
 STATS_TABLE_CSS = """

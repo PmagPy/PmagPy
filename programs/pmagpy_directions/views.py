@@ -19,7 +19,7 @@ from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, Zi
 from .session import (REDO_NAME, AUTOSAVE_NAME, Session, env, load_recent, looks_like_magic_dir,
                       native_choose_directory, native_chooser_available)
 from .theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
-                    STATS_TABLE_CSS, kpi, lighten)
+                    STATS_TABLE_CSS, TABLE_ROW_CSS, kpi, lighten)
 
 FIT_OPTIONS = {f"{v} ({k})": k for k, v in dc.FIT_TYPES.items()}
 COORD_OPTIONS = {v: k for k, v in dc.COORD_NAMES.items()}
@@ -152,8 +152,7 @@ class SpecimenView:
             pd.DataFrame(), height=150, show_index=False, disabled=True, selectable=1, sortable=False, margin=(0, 5, 5, 5),
             configuration={"headerSort": False}, sizing_mode="stretch_width", text_align="right",
             layout="fit_data_table",
-            stylesheets=[".tabulator-row.tabulator-selected { background-color: #dbe4f3 !important; "
-                         "color: #111 !important; font-weight: 600; }"])
+            stylesheets=[TABLE_ROW_CSS])
         self.comp_table.param.watch(self._on_comp_select, "selection")
 
         # --- figures ---------------------------------------------------------
@@ -452,12 +451,13 @@ class MeansView(LazyView):
         def fits_table(height):
             return pn.widgets.Tabulator(pd.DataFrame(), height=height, show_index=False, disabled=True,
                                         selectable=1, sortable=False, configuration={"headerSort": False},
-                                        sizing_mode="stretch_width", layout="fit_data_table", text_align="right")
+                                        sizing_mode="stretch_width", layout="fit_data_table", text_align="right",
+                                        stylesheets=[TABLE_ROW_CSS])
         self.table = fits_table(520)
         self.plane_table = fits_table(200)
         self.table_head = pn.pane.HTML("", margin=(2, 0, 0, 0))
-        self.planes_box = pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Planes · pole to the plane and '
-                                                 'the vector it resolves to</div>', margin=(2, 0, 0, 0)),
+        self.planes_box = pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Pole to the plane and '
+                                                 'best fit vector (BFV)</div>', margin=(2, 0, 0, 0)),
                                     self.plane_table, visible=False, sizing_mode="stretch_width")
         # one selection at a time, whichever table it is in
         self.table.param.watch(lambda e: e.new and setattr(self.plane_table, "selection", []), "selection")
@@ -737,7 +737,7 @@ class PolesView(LazyView):
         # short headers and no sort arrows: eight columns have to share the side column
         self.table = pn.widgets.Tabulator(pd.DataFrame(), height=430, show_index=False, disabled=True, sortable=False,
                                           sizing_mode="stretch_width", configuration={"headerSort": False},
-                                          layout="fit_columns", text_align="right")
+                                          layout="fit_columns", text_align="right", stylesheets=[TABLE_ROW_CSS])
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="vgps.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         for w in (self.comp, self.level, self.centre):
@@ -823,10 +823,11 @@ class PolesView(LazyView):
         self.plot.update(rows, pole or None, sites, centre=centre, color=color)
         if pole:
             n_inv = int(round(pole["reversed_perc"] * pole["N"] / 100))
+            # no "polarity" item: the side column's own controls say what was chosen,
+            # and the antipode count says what it did
             items = [("pole", f'{pole["plon"]:.1f}°E, {pole["plat"]:.1f}°N'), ("A95", f'{pole["A95"]:.1f}°'),
                      ("K", f'{pole["K"]:.1f}'), ("N", pole["N"]),
-                     ("antipodes taken", f'{n_inv} ({pole["reversed_perc"]:.0f}%)'),
-                     ("polarity", "flipped" if self.s.flip_polarity else "as computed")]
+                     ("antipodes taken", f'{n_inv} ({pole["reversed_perc"]:.0f}%)')]
             if "paleolat" in pole:
                 items.append(("paleolatitude", f'{pole["paleolat"]:.1f} ± {pole["A95"]:.1f}° '
                                                f'<span style="{MUTED_STYLE}">(sites at {pole["site_lat"]:.1f}°N, '
@@ -892,6 +893,7 @@ class InterpretationsView(LazyView):
                                           # current_view (so the side plot) never sees them
                                           pagination="local", page_size=25, header_filters=True,
                                           stylesheets=[
+                                              TABLE_ROW_CSS,
                                               ".tabulator-footer { text-align: left !important; } "
                                               ".tabulator-footer .tabulator-footer-contents "
                                               "{ justify-content: flex-start !important; } "
