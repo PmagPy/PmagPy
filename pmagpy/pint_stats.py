@@ -176,6 +176,10 @@ class Experiment:
     tail_checks: List[TailCheck] = field(default_factory=list)
     additivity_checks: List[AdditivityCheck] = field(default_factory=list)
     chrm: Optional[np.ndarray] = None
+    #: measurement uncertainties on x and y, when they are known; they switch
+    #: S from SPD's printed form to York's chi-squared weighting
+    sigma_x: Optional[float] = None
+    sigma_y: Optional[float] = None
 
     @property
     def nmax(self) -> int:
@@ -338,13 +342,15 @@ def _lma(xy: np.ndarray, par_ini: Sequence[float]) -> Tuple[float, float, float]
         ui = xi * ct + yi * st
         vi = -xi * st + yi * ct
         adf = a_old * zi + d * ui + f_old
-        sq = np.sqrt(np.maximum(4 * a_old * adf + 1, 0.0))
-        den = sq + 1
-        gi = 2 * adf / den
-        fact = 2 / den * (1 - a_old * gi / np.where(sq == 0, np.nan, sq))
-        dgda = fact * (zi + 2 * f_old * ui / d) - gi * gi / np.where(sq == 0, np.nan, sq)
-        dgdf = fact * (2 * a_old * ui / d + 1)
-        dgdt = fact * d * vi
+        with np.errstate(divide="ignore", invalid="ignore"):
+            sq = np.sqrt(np.maximum(4 * a_old * adf + 1, 0.0))
+            safe_sq = np.where(sq == 0, np.nan, sq)
+            den = sq + 1
+            gi = 2 * adf / den
+            fact = 2 / den * (1 - a_old * gi / safe_sq)
+            dgda = fact * (zi + 2 * f_old * ui / d) - gi * gi / safe_sq
+            dgdf = fact * (2 * a_old * ui / d + 1)
+            dgdt = fact * d * vi
         if not np.all(np.isfinite(dgda)):
             break
         h11, h12, h13 = float(dgda @ dgda), float(dgda @ dgdf), float(dgda @ dgdt)
@@ -436,10 +442,19 @@ def arai_curvature(x, y) -> dict:
         return {"k": np.nan, "a": np.nan, "b": np.nan, "r": np.nan, "sse": np.nan, "rms": np.nan}
     xn = x / np.max(x)
     yn = y / np.max(y)
+    # collinear data have no circle: the radius is infinite and the curvature
+    # is zero, which is the answer, not a failure
+    line = york_regression(xn, yn)
+    if np.isfinite(line.get("b", np.nan)):
+        perp = np.abs(line["b"] * xn - yn + line["y_int"]) / math.hypot(line["b"], 1.0)
+        extent = max(float(np.ptp(xn)), float(np.ptp(yn)), 1e-30)
+        if float(np.max(perp)) <= 1e-10 * extent:
+            return {"k": 0.0, "a": np.nan, "b": np.nan, "r": np.inf,
+                    "sse": float(perp @ perp), "rms": float(math.sqrt(float(perp @ perp) / len(xn)))}
     xy = np.column_stack((xn, yn))
     e1 = _taubin_svd(xy)
     if not np.all(np.isfinite(e1)):
-        return {"k": np.nan, "a": np.nan, "b": np.nan, "r": np.nan, "sse": np.nan, "rms": np.nan}
+        return {"k": 0.0, "a": np.nan, "b": np.nan, "r": np.inf, "sse": np.nan, "rms": np.nan}
     est = _lma(xy, e1) if len(xn) > 3 else e1
     if not np.all(np.isfinite(est)) or est[2] == 0:
         est = e1
@@ -476,11 +491,9 @@ def _arc_length(k: float, a: float, b: float, p1, p2) -> float:
     if n1 == 0 or n2 == 0:
         return np.nan
     v1, v2 = v1 / n1, v2 / n2
-    angle = math.atan2(v1[0] * v2[1] - v1[1] * v2[0], v1[0] * v2[0] + v1[1] * v2[1])
-    if angle < 0:
-        angle += 2 * math.pi
-    if k < 0:
-        angle = 2 * math.pi - angle
+    # the segment is the *minor* arc between the two projections: an Arai plot
+    # never wraps more than half way round its best-fit circle
+    angle = math.acos(max(-1.0, min(1.0, float(np.dot(v1, v2)))))
     return r * angle
 
 
@@ -747,8 +760,16 @@ def arai_statistics(exp: Experiment, start: int, end: int,
     s["Z_star"] = (ok("Z_star", 100.0 * z_sum / abs(y_int) / (n - 1)) if y_int and n > 1
                    else undefined("Z_star", "Y_int is zero"))
 
-    # S, S' and p_chi2 (York 1966; Yu et al. 2000), added in SPD v1.2
-    var_x, var_y = sxx / (n - 1), syy / (n - 1)
+    # S, S' and p_chi2 (York 1966; Yu et al. 2000), added in SPD v1.2.
+    # SPD prints sigma_x^2 and sigma_y^2 as the variances *of the data*; York's
+    # S weights by the *measurement* uncertainties, and only that form is
+    # chi-squared distributed. The printed form is used by default so that the
+    # value matches other SPD-conformant software; supplying sigma_x/sigma_y on
+    # the Experiment switches to York's weighting (see the literature audit).
+    if exp.sigma_x is not None and exp.sigma_y is not None:
+        var_x, var_y = float(exp.sigma_x) ** 2, float(exp.sigma_y) ** 2
+    else:
+        var_x, var_y = sxx / (n - 1), syy / (n - 1)
     denom = b * b * var_x + var_y
     if denom > 0:
         resid_line = ys - b * xs - y_int
@@ -1508,28 +1529,35 @@ def _chi2_cdf(stat: float, dof: int) -> float:
     return 1.0 - _chi2_sf(stat, dof)
 
 
-def _noncentral_t_cdf(t: float, dof: int, ncp: float, terms: int = 400) -> float:
-    """CDF of the noncentral t distribution (Lenth, 1989 series)."""
+def _noncentral_t_cdf(t: float, dof: int, ncp: float, terms: int = 600) -> float:
+    """CDF of the noncentral t distribution (Lenth, 1989, Applied Statistics 38).
+
+    ``P(T <= t) = Phi(-d) + 1/2 sum_j [p_j I_x(j+1/2, v/2) + q_j I_x(j+1, v/2)]``
+    for ``t >= 0``, with ``x = t^2/(t^2+v)``; a negative ``t`` is handled by
+    ``P(T <= t; d) = 1 - P(T <= -t; -d)``, which needs the ``q_j`` term to keep
+    the sign of ``d``.
+    """
     if dof <= 0 or not np.isfinite(t):
         return np.nan
     if t < 0:
         return 1.0 - _noncentral_t_cdf(-t, dof, -ncp, terms)
     x = t * t / (t * t + dof)
-    total = 0.0
     half_ncp2 = ncp * ncp / 2.0
     log_norm = -half_ncp2
+    total = 0.0
     for j in range(terms):
-        log_pj = log_norm + j * math.log(half_ncp2) - math.lgamma(j + 1) if half_ncp2 > 0 else \
-            (log_norm if j == 0 else -np.inf)
-        log_qj = (log_norm + math.log(ncp / math.sqrt(2.0)) + j * math.log(half_ncp2)
-                  - math.lgamma(j + 1.5)) if (half_ncp2 > 0 or j == 0) and ncp > 0 else -np.inf
+        if half_ncp2 > 0:
+            log_pj = log_norm + j * math.log(half_ncp2) - math.lgamma(j + 1)
+            log_qj = log_norm + j * math.log(half_ncp2) - math.lgamma(j + 1.5) \
+                + math.log(abs(ncp) / math.sqrt(2.0)) if ncp != 0 else -np.inf
+        else:
+            log_pj = log_norm if j == 0 else -np.inf
+            log_qj = -np.inf
         pj = math.exp(log_pj) if log_pj > -700 else 0.0
-        qj = math.exp(log_qj) if log_qj > -700 else 0.0
+        qj = math.copysign(math.exp(log_qj), ncp) if log_qj > -700 else 0.0
         if pj == 0.0 and qj == 0.0 and j > 5:
             break
-        ip = _betainc(j + 0.5, dof / 2.0, x)
-        iq = _betainc(j + 1.0, dof / 2.0, x)
-        total += pj * ip + qj * iq
+        total += pj * _betainc(j + 0.5, dof / 2.0, x) + qj * _betainc(j + 1.0, dof / 2.0, x)
     phi = 0.5 * (1.0 + math.erf(-ncp / math.sqrt(2.0)))
     return min(1.0, max(0.0, phi + 0.5 * total))
 
@@ -1600,7 +1628,10 @@ def _scatter_upper_bound(n: int, mean: float, sd: float, alpha: float = 0.05) ->
     if sd <= 0 or n < 2:
         return undefined("dBN_percent", "the scatter is zero" if sd <= 0 else "N = 1")
     ncp = mean * math.sqrt(n) / sd
-    target = 1.0 - alpha
+    # SPD warns that packages differ over which tail 1 - alpha means here; its
+    # own worked value (N - 1 = 1, ncp = 1, critical value -1.193) is the alpha
+    # quantile, which is what is solved for
+    target = alpha
     lo, hi = -50.0, max(50.0, 5 * abs(ncp) + 50.0)
     for _ in range(200):
         mid = (lo + hi) / 2

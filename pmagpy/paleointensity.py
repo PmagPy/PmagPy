@@ -1696,8 +1696,8 @@ class PintData:
             df["quality"] = "g"
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
-            positions = spec.steps["meas_pos"].values
-            df.iloc[[df.index.get_loc(p) for p in positions], col] = spec.steps["quality"].values
+            # meas_pos is the row's position in the table as it was read
+            df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
         return df
 
     def write_specimens(self, dir_path: str, analysts: Optional[str] = None,
@@ -1719,7 +1719,7 @@ class PintData:
             df["quality"] = "g"
         col = df.columns.get_loc("quality")
         for spec in self.specimens.values():
-            df.loc[spec.steps["meas_pos"].values, df.columns[col]] = spec.steps["quality"].values
+            df.iloc[spec.steps["meas_pos"].values, col] = spec.steps["quality"].values
         target = os.path.join(os.path.realpath(dir_path), os.path.basename(custom_name))
         return table.write_magic_file(custom_name=target, dir_path=dir_path)
 

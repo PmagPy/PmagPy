@@ -562,8 +562,11 @@ def measurement_records(tdt: TdtFile, volume_cc: float = 12.0, moment_units: str
             "treat_dc_field_phi": f"{phi:.1f}",
             "treat_dc_field_theta": f"{theta:.1f}",
             "meas_temp": "273",
-            "dir_dec": f"{row.dec:.1f}", "dir_inc": f"{row.inc:.1f}",
-            "magn_moment": f"{row.moment * scale:.6e}",
+            # the file's own precision is kept: rounding the direction to a
+            # tenth of a degree moves the small vector differences the pTRM
+            # check statistics are built from
+            "dir_dec": f"{row.dec:.10g}", "dir_inc": f"{row.inc:.10g}",
+            "magn_moment": f"{row.moment * scale:.12e}",
             "method_codes": ":".join(sorted(set(codes))),
             "quality": "g", "standard": "u", "citations": "This study",
             "description": f"tdt {row.treatment} ({STEP_CODES.get(row.code, ('?',))[0]})",
