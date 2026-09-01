@@ -39,24 +39,27 @@ import pandas as pd
 
 import pmagpy.pmag as pmag
 import pmagpy.contribution_builder as cb
-
-try:
-    from pmagpy import version as _pmagpy_version
-    PMAGPY_VERSION = _pmagpy_version.version
-except Exception:  # pragma: no cover
-    PMAGPY_VERSION = "pmagpy"
+from pmagpy import magic_project as mp
+from pmagpy.magic_project import (      # shared MagIC 3 project infrastructure
+    PMAGPY_VERSION, Orientation, build_orientation, carry_metadata,
+    is_metadata_column, merge_results, trim_to_model, validate_directory,
+    display_value, step_label, KELVIN_OFFSET, INTENSITY_COLUMNS,
+    NON_PRIMARY_SO_CODES, COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT,
+    COORD_NAMES, COORD_CODES,
+)
 
 APP_ID = "pmagpy_directions"          # the app this core serves (PmagPy Directions); written to software_packages
-SOFTWARE_TAG = f"{PMAGPY_VERSION}:{APP_ID}"
+SOFTWARE_TAG = mp.software_tag(APP_ID)
+
+# local aliases kept for the module's own (private) call sites
+_is_null, _to_float = mp.is_null, mp.to_float
+_codes, _join_codes = mp.split_codes, mp.join_codes
+_natural_key, _first_valid = mp.natural_key, mp.first_valid
+_intensity_column, _data_model = mp.intensity_column, mp.data_model
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT = -1, 0, 100
-COORD_NAMES = {COORD_SPECIMEN: "specimen",
-               COORD_GEOGRAPHIC: "geographic",
-               COORD_TILT: "tilt-corrected"}
-COORD_CODES = {name: code for code, name in COORD_NAMES.items()}
 # DA-DIR ("direction correction") marks specimen-coordinate rows, as the legacy
 # Demag GUI and pmag_gui have always written them
 COORD_METHOD_CODES = {COORD_SPECIMEN: ["DA-DIR"],
@@ -78,98 +81,14 @@ INCLUDED_STEP_CODES = ("LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z", "LT-LT-Z")
 # experiment protocols whose steps must never be treated as demag data
 EXCLUDED_PROTOCOL_CODES = ("LP-AN-ARM", "LP-AN-TRM", "LP-ARM-AFD", "LP-ARM2-AFD",
                            "LP-TRM-AFD", "LP-TRM", "LP-TRM-TD", "LP-X", "LP-PI-ARM")
-INTENSITY_COLUMNS = ("magn_moment", "magn_volume", "magn_mass", "magn_uncal")
-# orientation codes that are never the primary azimuth source
-NON_PRIMARY_SO_CODES = ("SO-ASC", "SO-POM")
-KELVIN_OFFSET = 273.0
 
 
 # ---------------------------------------------------------------------------
-# Small helpers
+# Small helpers (shared implementations live in pmagpy.magic_project)
 # ---------------------------------------------------------------------------
-def _is_null(value) -> bool:
-    if value is None:
-        return True
-    if isinstance(value, float) and np.isnan(value):
-        return True
-    if isinstance(value, str) and value.strip() == "":
-        return True
-    return False
-
-
-def _to_float(value, default=np.nan) -> float:
-    try:
-        if _is_null(value):
-            return default
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _codes(method_codes) -> list[str]:
-    if _is_null(method_codes):
-        return []
-    return [c.strip() for c in str(method_codes).split(":") if c.strip()]
-
-
-def _join_codes(codes) -> str:
-    return ":".join(sorted(set(c for c in codes if c)))
-
-
-def _natural_key(name: str):
-    """Sort key that orders 'sp2' before 'sp10'."""
-    import re
-    return [int(tok) if tok.isdigit() else tok.lower() for tok in re.split(r"(\d+)", str(name))]
-
-
-def display_value(value_si: float, unit: str, treat_type: str = "") -> float:
-    """Convert an SI treatment value to display units (mT or degrees C)."""
-    if treat_type == "NRM":
-        return 0.0
-    if unit == "T":
-        return value_si * 1e3
-    if unit == "K":
-        return value_si - KELVIN_OFFSET
-    return value_si
-
-
-def step_label(value_si: float, unit: str, treat_type: str = "") -> str:
-    """Human readable label for a treatment step ('NRM', '10 mT', '500°C')."""
-    if treat_type == "NRM":
-        return "NRM"
-    value = display_value(value_si, unit, treat_type)
-    if unit == "T":
-        return f"{value:g} mT"
-    if unit == "K":
-        return f"{value:.0f}°C"
-    if unit == "J":
-        return f"{value:g} J"
-    return f"{value:g}"
-
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
-@dataclass
-class Orientation:
-    """Sample orientation used for the specimen -> geographic -> tilt chain."""
-    sample: str
-    azimuth: float = np.nan
-    dip: float = np.nan
-    bed_dip_direction: float = np.nan
-    bed_dip: float = np.nan
-    method_codes: list[str] = field(default_factory=list)
-
-    @property
-    def has_geographic(self) -> bool:
-        return not (np.isnan(self.azimuth) or np.isnan(self.dip))
-
-    @property
-    def has_tilt(self) -> bool:
-        return self.has_geographic and not (np.isnan(self.bed_dip_direction)
-                                            or np.isnan(self.bed_dip))
-
-
 @dataclass
 class SpecimenData:
     """One specimen's demagnetization steps plus hierarchy and orientation."""
@@ -643,59 +562,6 @@ def paleolatitude(pole_lon: float, pole_lat: float, site_lon: float, site_lat: f
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
-def _first_valid(series: pd.Series):
-    """First non-null value of a Series or None."""
-    valid = series.dropna()
-    valid = valid[valid.astype(str).str.strip() != ""]
-    return valid.iloc[0] if len(valid) else None
-
-
-def build_orientation(samp_df: Optional[pd.DataFrame], sample: str) -> Optional[Orientation]:
-    """Pick the orientation row for a sample from a MagIC 3 samples table.
-
-    MagIC 3 tables may hold several rows per sample (orientation rows, result
-    rows). Rows flagged ``orientation_quality == 'b'`` are skipped, the first
-    row with both azimuth and dip provides the geographic transform, and
-    bedding is taken from the same row or, failing that, from any row of the
-    sample that carries it.
-    """
-    if samp_df is None or "sample" not in samp_df.columns:
-        return None
-    rows = samp_df[samp_df["sample"].astype(str) == str(sample)]
-    if len(rows) == 0:
-        return None
-    if "orientation_quality" in rows.columns:
-        rows = rows[rows["orientation_quality"].astype(str).str.strip() != "b"]
-    if len(rows) == 0:
-        return None
-    orient = Orientation(sample=str(sample))
-    if "azimuth" in rows.columns and "dip" in rows.columns:
-        az = pd.to_numeric(rows["azimuth"], errors="coerce")
-        dip = pd.to_numeric(rows["dip"], errors="coerce")
-        ok = az.notna() & dip.notna()
-        if ok.any():
-            row = rows[ok].iloc[0]
-            orient.azimuth = float(az[ok].iloc[0])
-            orient.dip = float(dip[ok].iloc[0])
-            so_codes = [c for c in _codes(row.get("method_codes", ""))
-                        if c.startswith("SO-") and c not in NON_PRIMARY_SO_CODES]
-            orient.method_codes = so_codes
-            for col, attr in (("bed_dip_direction", "bed_dip_direction"), ("bed_dip", "bed_dip")):
-                if col in rows.columns:
-                    val = _to_float(row.get(col))
-                    if np.isnan(val):
-                        val = _to_float(_first_valid(pd.to_numeric(rows[col], errors="coerce")))
-                    setattr(orient, attr, val)
-    return orient
-
-
-def _intensity_column(meas_df: pd.DataFrame) -> Optional[str]:
-    for col in INTENSITY_COLUMNS:
-        if col in meas_df.columns and pd.to_numeric(meas_df[col], errors="coerce").notna().any():
-            return col
-    return None
-
-
 def build_step_table(spec_meas: pd.DataFrame, intensity_col: str, warnings: Optional[list] = None) -> pd.DataFrame:
     """Turn a specimen's measurement rows into an ordered demag step table.
 
@@ -802,29 +668,6 @@ def _protocol_codes(steps: pd.DataFrame) -> list[str]:
     return codes
 
 
-_DATA_MODEL = {}
-
-
-def _data_model(offline: bool = True):
-    """The MagIC 3 data model, parsed once per process.
-
-    With ``offline`` the bundled copies of the data model *and* of the controlled
-    vocabularies are used (``pmag_env.set_env.OFFLINE``), so loading a directory
-    never waits on earthref.org — the vocabulary fetch otherwise runs once per
-    process with several 3-second timeouts.
-    """
-    if offline not in _DATA_MODEL:
-        from pmagpy import data_model3
-        if offline:
-            try:
-                from pmag_env import set_env
-                set_env.OFFLINE = True
-            except ImportError:  # pragma: no cover
-                pass
-        _DATA_MODEL[offline] = data_model3.DataModel(offline=offline)
-    return _DATA_MODEL[offline]
-
-
 # ---------------------------------------------------------------------------
 # Export policy helpers (MagIC 3 tables)
 # ---------------------------------------------------------------------------
@@ -843,138 +686,6 @@ def vgp_polarity(vgp_lat: float) -> str:
         return ""
     colat = 90.0 - float(vgp_lat)
     return "n" if colat <= 55.0 else ("r" if colat >= 125.0 else "t")
-
-# columns that hold results rather than descriptive metadata; everything else
-# of an existing row is inherited by the row that replaces it
-_RESULT_PREFIXES = ("dir_", "vgp_", "pole_", "int_", "aniso_", "hyst_", "rem_", "meas_", "vadm", "vdm", "pdm",
-                    "padm", "paleolat", "critical_temp", "susc_", "curie", "magn_", "treat_", "result_")
-_RESULT_COLUMNS = {"method_codes", "citations", "software_packages", "description", "analysts", "experiments",
-                   "measurements", "criteria", "result_names", "timestamp"}
-
-
-def is_metadata_column(column: str) -> bool:
-    return not (column.startswith(_RESULT_PREFIXES) or column in _RESULT_COLUMNS)
-
-
-def carry_metadata(new: pd.DataFrame, existing: Optional[pd.DataFrame], key: str,
-                   columns: Optional[tuple] = None) -> pd.DataFrame:
-    """Fill empty metadata cells of ``new`` rows from existing rows with the same key.
-
-    Args:
-        new: rows about to be written (must have column ``key``).
-        existing: the table as read from the contribution (may be None).
-        key: 'specimen', 'sample', 'site' or 'location'.
-        columns: restrict to these columns (default: every metadata column).
-    """
-    if existing is None or len(new) == 0 or key not in new.columns or key not in existing.columns:
-        return new
-    cols = [c for c in existing.columns if c != key and is_metadata_column(c)]
-    if columns is not None:
-        cols = [c for c in cols if c in columns]
-    if not cols:
-        return new
-    source = existing[[key] + cols].copy()
-    source[key] = source[key].astype(str)
-    for c in cols:
-        source[c] = source[c].where(source[c].astype(str).str.strip().replace("nan", "") != "")
-    firsts = source.groupby(key, sort=False)[cols].first()
-    new = new.copy()
-    keys = new[key].astype(str)
-    for c in cols:
-        fill = keys.map(firsts[c])
-        if c not in new.columns:
-            new[c] = fill
-        else:
-            empty = new[c].isna() | (new[c].astype(str).str.strip() == "")
-            new[c] = new[c].where(~empty, fill)
-    return new
-
-
-def merge_results(existing: Optional[pd.DataFrame], new: pd.DataFrame, key: str, owned) -> pd.DataFrame:
-    """Replace the directional rows of the entities the app owns; keep everything else.
-
-    ``owned`` are the entity names (specimens, samples ...) the app has
-    measurement data for: their old directional rows are dropped whether or
-    not a new result exists (a deleted interpretation must disappear), and an
-    entity left without any row keeps one metadata-only row so that the
-    table hierarchy stays intact.
-    """
-    if existing is None or len(existing) == 0:
-        return new
-    if key not in existing.columns:
-        return pd.concat([existing, new], ignore_index=True, sort=False)
-    owned = set(str(o) for o in owned)
-    names = existing[key].astype(str)
-    # a directional result has a direction; rows that merely cite a fit code
-    # count too unless they hold an intensity result (paleointensity rows carry
-    # DE-BFL for the direction of the NRM segment and must survive)
-    directional = pd.Series(False, index=existing.index)
-    if "dir_dec" in existing.columns:
-        directional |= pd.to_numeric(existing["dir_dec"], errors="coerce").notna()
-    codes = existing["method_codes"].fillna("").astype(str) if "method_codes" in existing.columns else None
-    if codes is not None:
-        directional |= codes.str.contains("LP-DIR|DE-BF|DE-FM|DE-DI|DE-VGP", regex=True)
-    # paleointensity rows carry the direction of the NRM segment (dir_dec, DE-BFL)
-    # but are intensity results: they are never replaced by a demag interpretation
-    intensity = pd.Series(False, index=existing.index)
-    for col in ("int_abs", "int_rel", "int_abs_sigma"):
-        if col in existing.columns:
-            intensity |= pd.to_numeric(existing[col], errors="coerce").notna()
-    if codes is not None:
-        intensity |= codes.str.contains("LP-PI", regex=False)
-    directional &= ~intensity
-    keep = existing[~(directional & names.isin(owned))]
-    new_names = set(new[key].astype(str)) if len(new) and key in new.columns else set()
-    gone = (owned & set(names)) - set(keep[key].astype(str)) - new_names
-    if gone:
-        meta_cols = [c for c in existing.columns if c == key or is_metadata_column(c)]
-        lost = existing[names.isin(gone)][meta_cols].copy()
-        lost[key] = lost[key].astype(str)
-        stub = lost.groupby(key, sort=False, as_index=False).first()
-        keep = pd.concat([keep, stub], ignore_index=True, sort=False)
-    keep = keep.dropna(axis=1, how="all")
-    return pd.concat([keep, new], ignore_index=True, sort=False)
-
-
-def trim_to_model(df: pd.DataFrame, table: str, warnings: Optional[list] = None) -> pd.DataFrame:
-    """Drop columns that are not part of the MagIC 3 data model for ``table``."""
-    if len(df) == 0:
-        return df
-    known = set(_data_model(True).dm[table].index)
-    extra = [c for c in df.columns if c not in known]
-    if extra and warnings is not None:
-        warnings.append(f"{table}: dropped non-MagIC columns {extra}")
-    return df.drop(columns=extra)
-
-
-def validate_directory(dir_path: str, tables=("specimens", "samples", "sites", "locations", "measurements")) -> dict:
-    """Run pmagpy's MagIC validator on the tables in a directory.
-
-    Returns:
-        dict table -> None when the table passes (or is absent), otherwise a
-        dict with ``bad_rows``, ``bad_cols``, ``missing_cols`` and
-        ``failing_items`` as produced by ``validate_upload3.validate_table``.
-    """
-    import warnings as _warnings
-    from pmagpy import validate_upload3
-    present = [t for t in tables if os.path.exists(os.path.join(dir_path, t + ".txt"))]
-    con = cb.Contribution(dir_path, read_tables=present, dmodel=_data_model(True))
-    report = {}
-    for table in present:
-        if table not in con.tables:
-            continue
-        with _warnings.catch_warnings():          # the validator's pandas chatter is not ours to fix here
-            _warnings.simplefilter("ignore")
-            fail = validate_upload3.validate_table(con, table, output_dir=dir_path)
-        if not fail:
-            report[table] = None
-        else:
-            _, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = fail
-            report[table] = {"bad_rows": list(bad_rows), "bad_cols": list(bad_cols),
-                             "missing_cols": list(missing_cols), "missing_groups": list(missing_groups),
-                             "failing_items": failing_items}
-    return report
-
 
 # ---------------------------------------------------------------------------
 # The session object
@@ -1055,43 +766,8 @@ class DemagData:
         if not self.specimens:
             raise ValueError("No specimens with demagnetization steps found")
 
-    @staticmethod
-    def _build_hierarchy(meas, spec_df, samp_df, site_df) -> pd.DataFrame:
-        specimens = pd.Index(meas["specimen"].unique(), name="specimen")
-        hier = pd.DataFrame(index=specimens, columns=["sample", "site", "location"], dtype=object)
-
-        def lookup(df, key, value):
-            if df is None or key not in df.columns or value not in df.columns:
-                return {}
-            sub = df[[key, value]].dropna()
-            sub = sub[sub[value].astype(str).str.strip() != ""]
-            return dict(zip(sub[key].astype(str), sub[value].astype(str)))
-
-        spec_to_samp = lookup(meas, "specimen", "sample")
-        spec_to_samp.update({k: v for k, v in lookup(spec_df, "specimen", "sample").items()})
-        samp_to_site = lookup(meas, "sample", "site")
-        samp_to_site.update(lookup(samp_df, "sample", "site"))
-        site_to_loc = lookup(meas, "site", "location")
-        site_to_loc.update(lookup(site_df, "site", "location"))
-
-        hier["sample"] = [spec_to_samp.get(s, "") for s in specimens]
-        hier["site"] = [samp_to_site.get(s, "") for s in hier["sample"]]
-        hier["location"] = [site_to_loc.get(s, "") for s in hier["site"]]
-        return hier
-
-    @staticmethod
-    def _build_site_coords(site_df, samp_df) -> dict:
-        coords = {}
-        for df, key in ((site_df, "site"), (samp_df, "site")):
-            if df is None or not {key, "lat", "lon"} <= set(df.columns):
-                continue
-            sub = df[[key, "lat", "lon"]].copy()
-            sub["lat"] = pd.to_numeric(sub["lat"], errors="coerce")
-            sub["lon"] = pd.to_numeric(sub["lon"], errors="coerce")
-            sub = sub.dropna()
-            for site, grp in sub.groupby(key):
-                coords.setdefault(str(site), (float(grp["lat"].mean()), float(grp["lon"].mean())))
-        return coords
+    _build_hierarchy = staticmethod(mp.build_hierarchy)
+    _build_site_coords = staticmethod(mp.build_site_coords)
 
     # ----- convenience accessors -------------------------------------------
     @property
