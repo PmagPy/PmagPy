@@ -513,6 +513,30 @@ class TestMeansView:
         texts = [t.get_text() for t in fig.axes[0].texts]
         assert any(t.startswith("A:") for t in texts) and any(t.startswith("B:") for t in texts)
 
+    def test_planes_show_the_vector_the_mean_is_formed_from(self, tmp_path):
+        """A great circle on the net carries the point its direction resolves to."""
+        import numpy as np
+        import pmagpy.pmag as pmag
+        from pmagpy_directions.views import MeansView
+        mcmurdo = os.path.join(_HERE, "..", "..", "data_files", "3_0", "McMurdo")
+        s = Session(mcmurdo, output_dir=str(tmp_path))
+        means = MeansView(s)
+        means.level.value, means.comp.value = "site", "all"
+        means.name.value = "mc01"                       # two plane fits among its eight
+        dirs, planes, _means, _records, vectors = means._collect()
+        assert len(planes) == 2 and len(vectors) == len(planes)
+        assert len(means.plot.vectors.data["x"]) == len(planes)
+
+        cart = lambda d, i: np.asarray(pmag.dir2cart([d, i, 1.0]), dtype=float).ravel()  # noqa: E731
+        for (pdec, pinc, _c), (vdec, vinc, spec, comp, _col) in zip(planes, vectors):
+            # the vector lies on that plane's great circle: perpendicular to its pole
+            assert float(np.dot(cart(pdec, pinc), cart(vdec, vinc))) == pytest.approx(0, abs=1e-9)
+            assert spec.startswith("mc01") and comp == "A"
+        # and it is the direction the export writes for that specimen
+        stored = s.data.best_fit_vectors(s.active_coord)
+        for vdec, vinc, spec, comp, _col in vectors:
+            assert stored[(spec, comp)] == pytest.approx((vdec, vinc), abs=0.01)
+
     def test_statistic_selector_switches_what_is_averaged(self, tmp_path):
         """Fisher of the whole set, a mean per polarity mode, or the axial Bingham mean."""
         from pmagpy_directions.views import MeansView

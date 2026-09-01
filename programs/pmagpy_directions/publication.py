@@ -415,7 +415,7 @@ def _empty_corners(x, y):
 def directions_figure(directions, mean: Optional[dict] = None, title: str = "", planes=(),
                       caption: str = "", figsize=(4.4, 4.4), legend: bool = True, ax=None,
                       mean_color: str = MEAN_COLOR, means=None,
-                      mean_label: str = "Fisher mean") -> Figure:
+                      mean_label: str = "Fisher mean", plane_vectors=()) -> Figure:
     """Equal-area plot of directions with an optional Fisher mean and α95.
 
     In the style of Slotznick et al. (2023): lower-hemisphere directions are
@@ -435,6 +435,8 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
             (used when every component is shown at once); ``mean`` is then ignored.
         mean_label: heading of the statistics block, for figures whose mean is
             not a Fisher mean of the whole set (by polarity, or Bingham).
+        plane_vectors: (dec, inc, label, component, colour) per plane — the point
+            of its great circle the mean is formed from, drawn as a triangle.
     """
     if ax is None:
         fig = Figure(figsize=figsize)
@@ -453,6 +455,10 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
     for pdec, pinc, color in planes:
         gx, gy = dc.great_circle_xy(pdec, pinc)
         ax.plot(gx, gy, color=color, lw=0.9, alpha=0.8)
+    for vdec, vinc, _label, _comp, color in plane_vectors:
+        vx, vy = dc.equal_area_xy([vdec], [vinc])
+        ax.scatter(vx, vy, marker="^", s=48, zorder=6, linewidths=0.6, edgecolors=POINT_EDGE,
+                   facecolors=color if vinc >= 0 else "white")
     corners = _empty_corners(px, py)
     stats_lines, stats_colors = [], []
     if means is None:

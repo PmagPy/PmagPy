@@ -130,7 +130,12 @@ under the plots.
 **Means pane.** Sample, site or location means of the specimen fits (lines
 and planes, McFadden & McElhinny) or of the next level's means (site means
 over sample means, location means over site means), per component or for
-all, with α95, k, R, n and — where site coordinates exist — VGPs.
+all, with α95, k, R, n. Three symbols on the net: circles are the measured
+directions (filled on the lower hemisphere), a square is the mean, and a
+triangle sits on every great circle at the point that circle is resolved
+to — the plane's best-fit vector, the direction that goes into the mean
+and into `dir_bfv_*` on export. The VGP the mean implies is on the Poles
+tab, which draws it on the globe, rather than in the statistics table.
 *Statistic* offers two more ways to average the plotted directions: a Fisher
 mean of each polarity mode on its own (the comparison a reversal test rests
 on — the modes are split about the principal direction, so the split does

@@ -488,6 +488,7 @@ class MeansView(LazyView):
         if over not in ("specimens", {"site": "samples", "location": "sites"}.get(level)):
             over = "specimens"
         dirs, planes, records = [], [], []
+        by_comp = {}                 # component -> the records its mean is formed from
         if over == "specimens":
             for spec_name in s.data.specimens_in(level, name):
                 spec = s.data.specimens[spec_name]
@@ -506,6 +507,9 @@ class MeansView(LazyView):
                                 planes.append((res.dir_dec, res.dir_inc, color))
                             else:
                                 dirs.append((res.dir_dec, res.dir_inc, spec_name, c.name, color))
+                            by_comp.setdefault(c.name, []).append(
+                                {"dir_dec": res.dir_dec, "dir_inc": res.dir_inc,
+                                 "dir_type": res.direction_type, "specimen": spec_name, "color": color})
                     records.append(rec)
         else:
             lower = over[:-1]
@@ -523,7 +527,14 @@ class MeansView(LazyView):
         means = s.data.mean_directions(level, coord, comp, over=over, common_polarity=s.unify_polarity,
                                        flip=s.flip_polarity) if name else pd.DataFrame()
         means = means[means[level] == name] if len(means) else means
-        return dirs, planes, means, records
+        # each great circle carries the point the mean is actually formed from
+        # (MM88), resolved per component exactly as the mean is
+        vectors = []
+        for comp_name, recs in by_comp.items():
+            on_planes = [r for r in recs if r["dir_type"] == "p"]
+            for rec, (vdec, vinc) in zip(on_planes, dc.plane_best_fit_vectors(recs)):
+                vectors.append((vdec, vinc, rec["specimen"], comp_name, rec["color"]))
+        return dirs, planes, means, records, vectors
 
     def _mean_list(self, means):
         """(mean dict, colour) per component — a star and α95 for each, even when all are shown."""
@@ -558,9 +569,9 @@ class MeansView(LazyView):
     def redraw(self, *events):
         if self.s.data is None or not self.name.value:
             return
-        dirs, planes, means, records = self._collect()
+        dirs, planes, means, records, vectors = self._collect()
         title = f"{self.level.value} {self.name.value} · {self.comp.value} · {dc.COORD_NAMES[self.s.coord]}"
-        self.plot.update(dirs, planes, self._plotted_means(means, dirs), title=title)
+        self.plot.update(dirs, planes, self._plotted_means(means, dirs), title=title, plane_vectors=vectors)
         self._records = records
         df = pd.DataFrame([{k: v for k, v in r.items() if not k.startswith("_")} for r in records])
         colors = [r["_color"] for r in records]
@@ -619,13 +630,13 @@ class MeansView(LazyView):
             self.s.toggle_component_quality(rec["_comp"])
 
     def _figure_bytes(self):
-        dirs, planes, means, _ = self._collect()
+        dirs, planes, means, _, vectors = self._collect()
         comp = self.comp.value
         title = f"{comp} · {self.level.value} {self.name.value}" if comp != "all" else f"{self.level.value} {self.name.value}"
         fig = pub.directions_figure([(d[0], d[1], d[2], d[4]) for d in dirs], title=title, planes=planes,
                                     caption=f"({dc.COORD_NAMES[self.s.coord]})",
                                     means=self._plotted_means(means, dirs),
-                                    mean_label=self.STAT_LABELS[self.stat.value])
+                                    mean_label=self.STAT_LABELS[self.stat.value], plane_vectors=vectors)
         buf = io.BytesIO()
         fig.savefig(buf, format="pdf", bbox_inches="tight")
         buf.seek(0)

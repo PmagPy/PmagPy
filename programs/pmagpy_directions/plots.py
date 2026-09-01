@@ -372,6 +372,9 @@ class DirectionsPlot:
         self.fig.add_tools(HoverTool(renderers=[self.points], tooltips=[("", "@label"), ("component", "@comp")]))
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.great = self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=1, alpha=0.8)
+        # where each great circle is resolved to once the lines pin it down: a third
+        # kind of thing on the net, so a third symbol — circles are measured
+        # directions, the square is the mean, triangles sit on the circles
         # one star + α95 circle per component mean, in the component's colour
         self.mean = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
         self.a95 = ColumnDataSource(dict(xs=[], ys=[], color=[]))
@@ -380,9 +383,21 @@ class DirectionsPlot:
         means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=14, fill_color="color",
                                    line_color="#2b2b2b", line_width=0.8)
         self.fig.add_tools(HoverTool(renderers=[means_r], tooltips=[("mean", "@name")]))
+        # drawn last, so a vector that resolves onto the mean — which is what a
+        # well-behaved plane does — is not hidden underneath it. The dark edge groups
+        # it with the mean square: both are worked out rather than measured
+        self.vectors = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
+        bfv = self.fig.scatter("x", "y", source=self.vectors, marker="triangle", size=13,
+                               fill_color="fill", line_color="#2b2b2b", line_width=0.9)
+        self.fig.add_tools(HoverTool(renderers=[bfv], tooltips=[("best-fit vector", "@label"),
+                                                                ("component", "@comp")]))
 
-    def update(self, directions, planes=(), means=(), title=None):
-        """directions: iterable of (dec, inc, label, comp_name, colour); means: iterable of (mean dict, colour)."""
+    def update(self, directions, planes=(), means=(), title=None, plane_vectors=()):
+        """directions: iterable of (dec, inc, label, comp_name, colour); means: iterable of (mean dict, colour).
+
+        plane_vectors: the same shape as directions — the best-fit vector of each
+        plane, drawn as a triangle on its great circle.
+        """
         dirs = list(directions)
         if dirs:
             dec = np.array([d[0] for d in dirs], float)
@@ -398,6 +413,16 @@ class DirectionsPlot:
             gx, gy = dc.great_circle_xy(pdec, pinc)
             gxs.append(list(gx)); gys.append(list(gy)); gcol.append(color)
         self.circles.data = dict(xs=gxs, ys=gys, color=gcol)
+        vecs = list(plane_vectors)
+        if vecs:
+            vdec = np.array([v[0] for v in vecs], float)
+            vinc = np.array([v[1] for v in vecs], float)
+            vx, vy = dc.equal_area_xy(vdec, vinc)
+            self.vectors.data = dict(x=vx, y=vy, label=[v[2] for v in vecs], comp=[v[3] for v in vecs],
+                                     line=[v[4] for v in vecs],
+                                     fill=[v[4] if i >= 0 else "white" for v, i in zip(vecs, vinc)])
+        else:
+            self.vectors.data = dict(x=[], y=[], fill=[], line=[], label=[], comp=[])
         # a whole study's worth of directions is a crowd: thin the symbols and fade the
         # great circles so that the distribution stays readable instead of a hairball
         self.points.glyph.size = 8 if len(dirs) <= 150 else (6 if len(dirs) <= 400 else 4.5)
