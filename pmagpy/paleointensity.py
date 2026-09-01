@@ -532,9 +532,32 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
         return good.iloc[0]
 
     nrm_rows = usable[usable["kind"] == STEP_NRM]
-    zero_temps = sorted(set(usable[usable["kind"].isin([STEP_NRM, STEP_Z])]["treat_temp"]))
+    # the original Thellier-Thellier protocol has no zero-field step: each
+    # temperature is measured twice in antiparallel fields, and the NRM left
+    # and the pTRM gained are the half sum and half difference of the pair
+    antiparallel = _antiparallel_pairs(usable)
+    zero_temps = sorted(set(usable[usable["kind"].isin([STEP_NRM, STEP_Z])]["treat_temp"])
+                        | set(antiparallel))
     x, y, temps, nrmv, trmv, labels, rows = [], [], [], [], [], [], []
     for temp in zero_temps:
+        if temp in antiparallel:
+            first, second = antiparallel[temp]
+            if first["quality"] == "b" or second["quality"] == "b":
+                notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: half of the antiparallel "
+                             f"Thellier-Thellier pair is flagged bad, so the point is left out")
+                continue
+            m1 = np.array([first["x"], first["y"], first["z"]], dtype=float)
+            m2 = np.array([second["x"], second["y"], second["z"]], dtype=float)
+            zv, pt = (m1 + m2) / 2.0, (m1 - m2) / 2.0
+            x.append(float(np.linalg.norm(pt)))
+            y.append(float(np.linalg.norm(zv)))
+            temps.append(float(temp))
+            nrmv.append(zv)
+            trmv.append(pt)
+            labels.append("II")
+            rows.append({"z": int(first["sequence"]), "i": int(second["sequence"]),
+                         "temp": float(temp)})
+            continue
         kind = STEP_NRM if (len(nrm_rows) and temp in set(nrm_rows["treat_temp"])) else STEP_Z
         z_row = pick(kind, temp)
         if z_row is None and kind == STEP_NRM:
@@ -626,8 +649,35 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
                     protocol=protocol)
 
 
+def _antiparallel_pairs(steps: pd.DataFrame) -> Dict[float, Tuple[pd.Series, pd.Series]]:
+    """Temperatures measured twice in antiparallel laboratory fields.
+
+    That is the original Thellier & Thellier (1959) protocol: there is no
+    zero-field step, so the NRM remaining and the pTRM gained are the half sum
+    and the half difference of the two in-field measurements. Only used when
+    the temperature has no zero-field step of its own.
+    """
+    out: Dict[float, Tuple[pd.Series, pd.Series]] = {}
+    zero_temps = set(steps[steps["kind"].isin([STEP_NRM, STEP_Z])]["treat_temp"])
+    infield = steps[steps["kind"] == STEP_I]
+    for temp, group in infield.groupby("treat_temp"):
+        if temp in zero_temps or len(group) < 2:
+            continue
+        rows = list(group.sort_values("sequence").iterrows())
+        first = rows[0][1]
+        d1 = ps.dir_to_cart(first["field_phi"], first["field_theta"], 1.0)
+        for _, other in rows[1:]:
+            d2 = ps.dir_to_cart(other["field_phi"], other["field_theta"], 1.0)
+            if float(np.dot(d1, d2)) < -0.9:
+                out[float(temp)] = (first, other)
+                break
+    return out
+
+
 def _protocol_of(labels: Sequence[str], tail, add) -> str:
     kinds = set(labels) - {STEP_NRM}
+    if "II" in kinds:
+        return "Thellier-Thellier"
     if {"ZI", "IZ"} <= kinds:
         return "IZZI"
     if kinds == {"ZI"}:

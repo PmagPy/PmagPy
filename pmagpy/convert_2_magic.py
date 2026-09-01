@@ -11373,7 +11373,7 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     # -----------------------------------
 
     for files in os.listdir(input_dir_path):
-        if files.endswith(".tdt"):
+        if files.lower().endswith(".tdt"):   # .TDT is written by some systems too
             fname = os.path.join(input_dir_path, files)
             if verbose:print("Open file: ", fname)
             fin = open(fname, 'r')
@@ -11708,10 +11708,14 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
                             methcodes.append("LP-PI-II")
 
                     else:
-                        print("-E- ERROR in file %s" % Experiment_Type)
-                        print("-E- ERROR in treatment ",
-                              meas_line['treatment'])
-                        print("... exiting until you fix the problem")
+                        msg = ("-E- %s, specimen %s, measurement %i: treatment %r uses a step code "
+                               "this reader does not know (the code is the digit after the "
+                               "decimal point: 0 zero field, 1 in field, 2 pTRM check, 3 tail "
+                               "check, 4 additivity check, 5 antiparallel in field). Use "
+                               "pmagpy.tdt.validate() for a line-by-line report."
+                               % (Experiment_Type, specimen, i + 1, meas_line['treatment']))
+                        print(msg)
+                        return False, msg
 
                     # -----------------------------------
 
@@ -11917,7 +11921,21 @@ def tdt(input_dir_path, experiment_name="Thellier", meas_file_name="measurements
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
     #MeasOuts = pmag.measurements_methods3(MeasRecs, noave=False)
-    MeasOuts = pmag.measurements_methods3(MeasRecs, noave=True)
+    # measurements_methods3 rebuilds the method codes from the treatments, and it
+    # has no rule for the original Thellier-Thellier protocol, where every step is
+    # in field and there is no LT-T-Z to key on: it used to reduce the whole file
+    # to LT-NO, which reads as a demagnetization experiment and leaves Thellier GUI
+    # with nothing (PmagPy/PmagPy#818). Those files keep the codes assigned above.
+    if any("LP-PI-II" in (rec.get("method_codes") or "") for rec in MeasRecs):
+        MeasOuts = []
+        for num, rec in enumerate(MeasRecs, start=1):
+            rec = dict(rec)
+            rec.setdefault("measurement", "%s%i" % (rec.get("specimen", ""), num))
+            rec.setdefault("experiment", "%s:LP-PI-TRM:LP-PI-II" % rec.get("specimen", ""))
+            rec.setdefault("sequence", num)
+            MeasOuts.append(rec)
+    else:
+        MeasOuts = pmag.measurements_methods3(MeasRecs, noave=True)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
     con.write_table_to_file('specimens', spec_file_name)
     con.write_table_to_file('samples', samp_file_name)
