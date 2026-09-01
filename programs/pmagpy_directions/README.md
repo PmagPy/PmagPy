@@ -134,7 +134,13 @@ all, with α95, k, R, n. Three symbols on the net: circles are the measured
 directions (filled on the lower hemisphere), a square is the mean, and a
 triangle sits on every great circle at the point that circle is resolved
 to — the plane's best-fit vector, the direction that goes into the mean
-and into `dir_bfv_*` on export. The VGP the mean implies is on the Poles
+and into `dir_bfv_*` on export. The side column lists the lines and the
+planes in separate tables, the planes one only where the data has planes:
+their columns are different things and reading a pole to a plane under
+the same *dec/inc* heading as a line is what makes the two look alike. A
+plane is listed by the pole that defines it (*pole dec*, *pole inc*) and
+the vector it resolves to (*bfv dec*, *bfv inc*), which is the pair drawn
+as the triangle. The VGP the mean implies is on the Poles
 tab, which draws it on the globe, rather than in the statistics table.
 *Statistic* offers two more ways to average the plotted directions: a Fisher
 mean of each polarity mode on its own (the comparison a reversal test rests

@@ -87,6 +87,11 @@ class LazyView:
             self.redraw()
 
 
+def _table_height(rows: int, cap: int) -> int:
+    """Height for a side table of `rows` rows: its own size, up to `cap`."""
+    return int(min(cap, max(96, 46 + 28 * rows)))
+
+
 def _fmt(v, nd=1):
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return "–"
@@ -440,11 +445,24 @@ class MeansView(LazyView):
                                        stylesheets=[STATS_TABLE_CSS])
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="directions.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
-        # the side-column list of the fits (or lower-level means) that are plotted
-        self.table = pn.widgets.Tabulator(pd.DataFrame(), height=520, show_index=False, disabled=True, selectable=1,
-                                          sortable=False, configuration={"headerSort": False},
-                                          sizing_mode="stretch_width", layout="fit_data_table", text_align="right")
-        self._records = []
+        # the side-column list of the fits (or lower-level means) that are plotted.
+        # Planes are listed apart from the lines: their columns are different things
+        # (a pole, and the vector it resolves to) and reading them under the same
+        # dec/inc heading as a line is what makes the two look alike
+        def fits_table(height):
+            return pn.widgets.Tabulator(pd.DataFrame(), height=height, show_index=False, disabled=True,
+                                        selectable=1, sortable=False, configuration={"headerSort": False},
+                                        sizing_mode="stretch_width", layout="fit_data_table", text_align="right")
+        self.table = fits_table(520)
+        self.plane_table = fits_table(200)
+        self.table_head = pn.pane.HTML("", margin=(2, 0, 0, 0))
+        self.planes_box = pn.Column(pn.pane.HTML(f'<div style="{SECTION_STYLE}">Planes · pole to the plane and '
+                                                 'the vector it resolves to</div>', margin=(2, 0, 0, 0)),
+                                    self.plane_table, visible=False, sizing_mode="stretch_width")
+        # one selection at a time, whichever table it is in
+        self.table.param.watch(lambda e: e.new and setattr(self.plane_table, "selection", []), "selection")
+        self.plane_table.param.watch(lambda e: e.new and setattr(self.table, "selection", []), "selection")
+        self._records, self._plane_records = [], []
         self._table_df = None
         self.goto_btn = pn.widgets.Button(name="Go to specimen", button_type="primary", width=140)
         self.flag_btn = pn.widgets.Button(name="Toggle good/bad", button_type="warning", width=140)
@@ -487,7 +505,7 @@ class MeansView(LazyView):
         over = self.show.value
         if over not in ("specimens", {"site": "samples", "location": "sites"}.get(level)):
             over = "specimens"
-        dirs, planes, records = [], [], []
+        dirs, planes, records, plane_records = [], [], [], []
         by_comp = {}                 # component -> the records its mean is formed from
         if over == "specimens":
             for spec_name in s.data.specimens_in(level, name):
@@ -497,11 +515,20 @@ class MeansView(LazyView):
                         continue
                     res = s.data.fit(c, coord)
                     color = s.color_of(c.name)
-                    rec = dict(specimen=spec_name, fit=c.name, type="plane" if c.fit_type == "DE-BFP" else "line",
-                               dec="–", inc="–", MAD="–", n=0, q=c.quality, _comp=c, _color=color)
+                    is_plane = c.fit_type == "DE-BFP"
+                    # a plane's own dec/inc is the pole to it, not a direction: it is
+                    # named as such and listed apart from the lines
+                    if is_plane:
+                        rec = dict(specimen=spec_name, fit=c.name, **{"pole dec": "–", "pole inc": "–"},
+                                   MAD="–", **{"bfv dec": "–", "bfv inc": "–"}, n=0, q=c.quality,
+                                   _comp=c, _color=color)
+                    else:
+                        rec = dict(specimen=spec_name, fit=c.name, dec="–", inc="–", MAD="–", n=0,
+                                   q=c.quality, _comp=c, _color=color)
                     if res is not None:
-                        rec.update(dec=_fmt(res.dir_dec), inc=_fmt(res.dir_inc), MAD=_fmt(res.dir_mad_free),
-                                   n=res.dir_n_measurements)
+                        key = ("pole dec", "pole inc") if is_plane else ("dec", "inc")
+                        rec.update({key[0]: _fmt(res.dir_dec), key[1]: _fmt(res.dir_inc)})
+                        rec.update(MAD=_fmt(res.dir_mad_free), n=res.dir_n_measurements)
                         if c.quality == "g":
                             if res.direction_type == "p":
                                 planes.append((res.dir_dec, res.dir_inc, color))
@@ -510,7 +537,7 @@ class MeansView(LazyView):
                             by_comp.setdefault(c.name, []).append(
                                 {"dir_dec": res.dir_dec, "dir_inc": res.dir_inc,
                                  "dir_type": res.direction_type, "specimen": spec_name, "color": color})
-                    records.append(rec)
+                    (plane_records if is_plane else records).append(rec)
         else:
             lower = over[:-1]
             lower_means = s.data.mean_directions(lower, coord, comp)
@@ -534,7 +561,12 @@ class MeansView(LazyView):
             on_planes = [r for r in recs if r["dir_type"] == "p"]
             for rec, (vdec, vinc) in zip(on_planes, dc.plane_best_fit_vectors(recs)):
                 vectors.append((vdec, vinc, rec["specimen"], comp_name, rec["color"]))
-        return dirs, planes, means, records, vectors
+        resolved = {(v[2], v[3]): (v[0], v[1]) for v in vectors}
+        for rec in plane_records:
+            vec = resolved.get((rec["specimen"], rec["fit"]))
+            if vec is not None:
+                rec["bfv dec"], rec["bfv inc"] = _fmt(vec[0]), _fmt(vec[1])
+        return dirs, planes, means, records, plane_records, vectors
 
     def _mean_list(self, means):
         """(mean dict, colour) per component — a star and α95 for each, even when all are shown."""
@@ -566,29 +598,48 @@ class MeansView(LazyView):
             return self._mean_list(means)
         return [(m, self.s.color_of(m["dir_comp_name"])) for m in self._alternative_means(dirs)]
 
+    def _fill_table(self, table, records, cache):
+        """Fill one of the side tables, in the component colours, unless it is unchanged.
+
+        (Re-assigning the value from inside the table's own selection callback
+        breaks Bokeh's write batch, so an unchanged table is left alone.)
+        """
+        df = pd.DataFrame([{k: v for k, v in r.items() if not k.startswith("_")} for r in records])
+        colors = [r["_color"] for r in records]
+        if (df.equals(getattr(self, cache, (None, None))[0])
+                and colors == getattr(self, cache, (None, None))[1]):
+            return
+        setattr(self, cache, (df, colors))
+        table.value = df
+        table.style.clear()
+        flags = [r.get("q", "g") for r in records]
+
+        def style_row(row, colors=colors, flags=flags):
+            i = row.name if isinstance(row.name, int) else 0
+            c = colors[i] if i < len(colors) else "#ffffff"
+            fill = f"background: {lighten(c, 0.85)}" + ("; color:#9aa1ab; text-decoration: line-through"
+                                                        if i < len(flags) and flags[i] == "b" else "")
+            return [f"border-left: 6px solid {c}; {fill}"] + [fill] * (len(row) - 1)
+        if len(df):
+            table.style.apply(style_row, axis=1)
+
     def redraw(self, *events):
         if self.s.data is None or not self.name.value:
             return
-        dirs, planes, means, records, vectors = self._collect()
+        dirs, planes, means, records, plane_records, vectors = self._collect()
         title = f"{self.level.value} {self.name.value} · {self.comp.value} · {dc.COORD_NAMES[self.s.coord]}"
         self.plot.update(dirs, planes, self._plotted_means(means, dirs), title=title, plane_vectors=vectors)
-        self._records = records
-        df = pd.DataFrame([{k: v for k, v in r.items() if not k.startswith("_")} for r in records])
-        colors = [r["_color"] for r in records]
-        if not (df.equals(self._table_df) and colors == getattr(self, "_table_colors", None)):
-            self._table_df, self._table_colors = df, colors
-            self.table.value = df
-            self.table.style.clear()
-            flags = [r.get("q", "g") for r in records]
-
-            def style_row(row, colors=colors, flags=flags):
-                i = row.name if isinstance(row.name, int) else 0
-                c = colors[i] if i < len(colors) else "#ffffff"
-                fill = f"background: {lighten(c, 0.85)}" + ("; color:#9aa1ab; text-decoration: line-through"
-                                                            if i < len(flags) and flags[i] == "b" else "")
-                return [f"border-left: 6px solid {c}; {fill}"] + [fill] * (len(row) - 1)
-            if len(df):
-                self.table.style.apply(style_row, axis=1)
+        self._records, self._plane_records = records, plane_records
+        self._fill_table(self.table, records, "_table_cache")
+        self._fill_table(self.plane_table, plane_records, "_plane_cache")
+        # the planes table is there only when the data holds planes; both tables take
+        # the height of what they hold, so the planes are not pushed out of sight by
+        # empty rows above them
+        self.planes_box.visible = bool(plane_records)
+        self.table.height = _table_height(len(records), 300 if plane_records else 520)
+        self.plane_table.height = _table_height(len(plane_records), 220)
+        listed = "Lines" if plane_records else "Plotted fits"
+        self.table_head.object = f'<div style="{SECTION_STYLE}">{listed} · select a row</div>'
         if self.stat.value == "fisher":
             cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
             table = means[cols].round(1) if len(means) else pd.DataFrame()
@@ -609,8 +660,11 @@ class MeansView(LazyView):
         self.download.filename = f"{self.level.value}_{self.name.value}_{self.comp.value}.pdf"
 
     def _selected_record(self):
-        sel = self.table.selection
-        return self._records[sel[0]] if sel and sel[0] < len(self._records) else None
+        for table, records in ((self.table, self._records), (self.plane_table, self._plane_records)):
+            sel = table.selection
+            if sel and sel[0] < len(records):
+                return records[sel[0]]
+        return None
 
     def _goto(self, event=None):
         rec = self._selected_record()
@@ -630,7 +684,7 @@ class MeansView(LazyView):
             self.s.toggle_component_quality(rec["_comp"])
 
     def _figure_bytes(self):
-        dirs, planes, means, _, vectors = self._collect()
+        dirs, planes, means, _, _, vectors = self._collect()
         comp = self.comp.value
         title = f"{comp} · {self.level.value} {self.name.value}" if comp != "all" else f"{self.level.value} {self.name.value}"
         fig = pub.directions_figure([(d[0], d[1], d[2], d[4]) for d in dirs], title=title, planes=planes,
@@ -646,7 +700,7 @@ class MeansView(LazyView):
         return pn.Column(section("Coordinates"), self.coord,
                          section("Level"), self.level, self.name, pn.Row(self.comp, pn.Column(section("Show"), self.show)),
                          section("Statistic"), self.stat,
-                         section("Plotted fits · select a row"), pn.Row(self.goto_btn, self.flag_btn), self.table)
+                         self.table_head, pn.Row(self.goto_btn, self.flag_btn), self.table, self.planes_box)
 
     def panel(self):
         return pn.Column(pn.Row(plot_box(self.plot.fig, 460), pn.Column(section("Mean"), self.stats, self.download,

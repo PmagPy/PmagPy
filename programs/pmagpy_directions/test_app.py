@@ -523,9 +523,17 @@ class TestMeansView:
         means = MeansView(s)
         means.level.value, means.comp.value = "site", "all"
         means.name.value = "mc01"                       # two plane fits among its eight
-        dirs, planes, _means, _records, vectors = means._collect()
+        dirs, planes, _means, lines, plane_rows, vectors = means._collect()
         assert len(planes) == 2 and len(vectors) == len(planes)
         assert len(means.plot.vectors.data["x"]) == len(planes)
+
+        # the planes are listed apart from the lines, under their own headings, so a
+        # pole to a plane is never read as a direction
+        assert len(plane_rows) == 2 and means.planes_box.visible
+        assert not any(r["fit"] == "" for r in lines)
+        assert set(plane_rows[0]) >= {"pole dec", "pole inc", "bfv dec", "bfv inc"}
+        assert "dec" not in plane_rows[0] and "pole dec" not in lines[0]
+        assert all(r["bfv dec"] != "–" for r in plane_rows)
 
         cart = lambda d, i: np.asarray(pmag.dir2cart([d, i, 1.0]), dtype=float).ravel()  # noqa: E731
         for (pdec, pinc, _c), (vdec, vinc, spec, comp, _col) in zip(planes, vectors):

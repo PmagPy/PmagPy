@@ -373,6 +373,15 @@ class DirectionsPlot:
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.great = self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=1, alpha=0.8)
         # where each great circle is resolved to once the lines pin it down: a third
+        # kind of thing on the net, so a third symbol. It takes the dark edge of the
+        # mean square, both being worked out rather than measured, and is drawn under
+        # the mean — a plane that resolves onto the mean must not hide it
+        self.vectors = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
+        bfv = self.fig.scatter("x", "y", source=self.vectors, marker="triangle", size=13,
+                               fill_color="fill", line_color="#2b2b2b", line_width=0.9)
+        self.fig.add_tools(HoverTool(renderers=[bfv], tooltips=[("best-fit vector", "@label"),
+                                                                ("component", "@comp")]))
+        # where each great circle is resolved to once the lines pin it down: a third
         # kind of thing on the net, so a third symbol — circles are measured
         # directions, the square is the mean, triangles sit on the circles
         # one star + α95 circle per component mean, in the component's colour
@@ -383,14 +392,6 @@ class DirectionsPlot:
         means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=14, fill_color="color",
                                    line_color="#2b2b2b", line_width=0.8)
         self.fig.add_tools(HoverTool(renderers=[means_r], tooltips=[("mean", "@name")]))
-        # drawn last, so a vector that resolves onto the mean — which is what a
-        # well-behaved plane does — is not hidden underneath it. The dark edge groups
-        # it with the mean square: both are worked out rather than measured
-        self.vectors = ColumnDataSource(dict(x=[], y=[], fill=[], line=[], label=[], comp=[]))
-        bfv = self.fig.scatter("x", "y", source=self.vectors, marker="triangle", size=13,
-                               fill_color="fill", line_color="#2b2b2b", line_width=0.9)
-        self.fig.add_tools(HoverTool(renderers=[bfv], tooltips=[("best-fit vector", "@label"),
-                                                                ("component", "@comp")]))
 
     def update(self, directions, planes=(), means=(), title=None, plane_vectors=()):
         """directions: iterable of (dec, inc, label, comp_name, colour); means: iterable of (mean dict, colour).
