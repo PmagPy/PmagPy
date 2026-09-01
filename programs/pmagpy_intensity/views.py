@@ -51,11 +51,12 @@ def _shorten(path: str, width: int = 52) -> str:
     return path if len(path) <= width else "…" + path[-(width - 1):]
 
 
-def _stat_html(stat: ps.Stat, decimals: int = 3) -> str:
+def _stat_html(stat: ps.Stat, decimals: Optional[int] = None) -> str:
+    """A statistic at the precision SPD asks for, or the reason it has no value."""
     if stat is None:
         return f'<span style="color:{NA_COLOR}">—</span>'
     if stat.is_value:
-        return stat.text("{:." + str(decimals) + "g}")
+        return stat.rounded(decimals)
     tip = stat.reason.replace('"', "'")
     return f'<span style="color:{NA_COLOR}" title="{tip}">{stat.text()}</span>'
 
@@ -660,6 +661,20 @@ def _round(stat, decimals):
     return round(float(stat), decimals) if (stat is not None and stat.is_value) else None
 
 
+#: what an analyst looks for first in an exported table, in that order
+FRONT_COLUMNS = ("specimen", "sample", "site", "location", "int_abs", "int_abs_sigma",
+                 "int_corr", "int_corr_anisotropy", "int_corr_cooling_rate", "int_corr_nlt",
+                 "meas_step_min", "meas_step_max", "int_n_measurements", "int_b_beta",
+                 "int_frac", "int_scat", "result_quality", "method_codes")
+
+
+def _front(frame: pd.DataFrame) -> pd.DataFrame:
+    """Put the identity and the result first; a table sorted alphabetically opens
+    on the anisotropy tensor and hides what the export is actually about."""
+    lead = [c for c in FRONT_COLUMNS if c in frame.columns]
+    return frame[lead + [c for c in frame.columns if c not in lead]] if lead else frame
+
+
 # ---------------------------------------------------------------------------
 # Criteria and statistics
 # ---------------------------------------------------------------------------
@@ -670,8 +685,13 @@ class CriteriaView(LazyView):
         super().__init__()
         self.s = session
         self.preset = pn.widgets.Select(name="Criteria set", options=list(pint.CRITERIA_SETS),
-                                        value=pint.DEFAULT_CRITERIA, sizing_mode="stretch_width")
+                                        value=session.criteria_name,
+                                        sizing_mode="stretch_width")
         self.preset.link(session, value="criteria_name")
+        # and follow it when something else changes it (loading a dataset picks
+        # the study's own criteria table)
+        session.param.watch(lambda e: setattr(self.preset, "value", e.new)
+                            if e.new in self.preset.options else None, "criteria_name")
         self.ziggie = pn.widgets.Checkbox(
             name=f"add Ziggie ≤ {ps.ZIGGIE_CRITERION} (Tully & Paterson, 2025)", value=False)
         self.ziggie.link(session, value="add_ziggie")
@@ -702,7 +722,7 @@ class CriteriaView(LazyView):
         stats = self.s.statistics()
         verdict = criteria.evaluate(stats, "specimen")
         self.criteria_table.value = pd.DataFrame([
-            {"criterion": row["criterion"], "value": row["value"].text(),
+            {"criterion": row["criterion"], "value": row["value"].rounded(),
              "result": "pass" if row["pass"] else ("fail" if row["pass"] is False
                                                    else "not tested"),
              "why": "" if row["pass"] is not None else row["value"].reason}
@@ -767,6 +787,8 @@ class CriteriaView(LazyView):
 class CorrectionsView(LazyView):
     """Anisotropy, non-linear TRM and cooling rate, with their provenance."""
 
+    USE = {"use if available": None, "always": True, "never": False}
+
     def __init__(self, session: Session):
         super().__init__()
         self.s = session
@@ -775,16 +797,18 @@ class CorrectionsView(LazyView):
                                           page_size=20, header_filters=True, disabled=True,
                                           sizing_mode="stretch_width", height=460, theme="simple",
                                           stylesheets=[TABLE_ROW_CSS])
-        self.aniso = pn.widgets.Select(name="anisotropy", width=170,
-                                       options={"use if available": None, "on": True, "off": False})
-        self.nlt = pn.widgets.Select(name="non-linear TRM", width=170,
-                                     options={"use if available": None, "on": True, "off": False})
-        self.cooling = pn.widgets.Select(name="cooling rate", width=170,
-                                         options={"use if available": None, "on": True,
-                                                  "off": False})
+        # a plain list of labels: an option whose value is None renders blank
+        choices = ["use if available", "always", "never"]
+        self.aniso = pn.widgets.Select(name="anisotropy", width=170, options=choices,
+                                       value=choices[0])
+        self.nlt = pn.widgets.Select(name="non-linear TRM", width=170, options=choices,
+                                     value=choices[0])
+        self.cooling = pn.widgets.Select(name="cooling rate", width=170, options=choices,
+                                         value=choices[0])
         for widget, kind in ((self.aniso, "anisotropy"), (self.nlt, "nlt"),
                              (self.cooling, "cooling_rate")):
-            widget.param.watch(lambda e, k=kind: self.s.set_correction(k, e.new), "value")
+            widget.param.watch(lambda e, k=kind: self.s.set_correction(k, self.USE[e.new]),
+                               "value")
         self.alt_limit = pn.widgets.FloatInput(name="anisotropy alteration limit (%)",
                                                value=5.0, width=220)
         self.alt_limit.param.watch(self._on_limit, "value")
@@ -947,10 +971,16 @@ class GroupView(LazyView):
         else:
             self.table.value = pd.DataFrame()
             self.group.options = []
-        passed = int((frame["passed"] == True).sum()) if len(frame) and "passed" in frame else 0
+        criteria = self.s.data.criteria
+        if not criteria.site:
+            verdict = (f'<span style="{MUTED_STYLE}">{criteria.name} sets no site-level '
+                       f'criteria</span>')
+        else:
+            passed = int((frame["passed"] == True).sum()) if len(frame) and "passed" in frame else 0
+            verdict = (f'<span style="{MUTED_STYLE}">{passed} of {len(frame)} pass '
+                       f'{criteria.name}: {", ".join(c.describe() for c in criteria.site)}</span>')
         self.summary.object = kpi([
-            f"<b>{len(frame)}</b> {level}s",
-            f'<span style="{MUTED_STYLE}">{passed} pass the site criteria</span>',
+            f"<b>{len(frame)}</b> {level}s", verdict,
             f'<span style="{MUTED_STYLE}">{int(frame["n"].sum()) if len(frame) else 0} specimens '
             f'averaged</span>'])
         self._redraw_plot()
@@ -1308,7 +1338,7 @@ the original tables to a backup folder.
                                                    self.weighted.value)
         else:
             frame = self.s.data.criteria_table()
-        self.preview.value = frame.head(400)
+        self.preview.value = _front(frame).head(400)
 
     def _export(self, event=None):
         try:
@@ -1345,7 +1375,8 @@ the original tables to a backup folder.
                 detail.append(str(item))
             rows.append(f'<div style="color:{FAIL_COLOR}">✗ {table}: '
                         f'{"; ".join(detail) or "see the validator"}</div>')
-        self.report.object = "".join(rows) or f'<div style="{MUTED_STYLE}">nothing to check</div>'
+        self.report.object = "".join(rows) or (
+            f'<div style="{MUTED_STYLE}">nothing to check yet: write the tables first</div>')
 
     def _session(self, save: bool):
         path = self.session_path.value.strip() or SESSION_NAME

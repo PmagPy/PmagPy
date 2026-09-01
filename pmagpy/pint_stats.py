@@ -90,6 +90,20 @@ class Stat:
             return "pass" if self.value else "fail"
         return fmt.format(self.value)
 
+    def rounded(self, decimals: Optional[int] = None) -> str:
+        """The value at the precision SPD asks for, without scientific notation
+        where a reader would not expect it (``n`` reads 11, not 1e+01)."""
+        if self.state is not State.OK or self.value is None:
+            return self.text()
+        if isinstance(self.value, (bool, np.bool_)):
+            return "pass" if self.value else "fail"
+        if decimals is None:
+            decimals = describe(self.name).decimals
+        value = float(self.value)
+        if value != 0 and (abs(value) >= 1e6 or abs(value) < 10 ** -(decimals + 3)):
+            return f"{value:.3e}"
+        return f"{value:.{decimals}f}"
+
 
 def ok(name: str, value) -> Stat:
     if value is None:
