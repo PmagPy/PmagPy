@@ -40,6 +40,19 @@ class TestShell:
         assert body.open_modal == tmpl.open_modal and body.close_modal == tmpl.close_modal
         assert tmpl.body is body and tmpl.workspace.side_area is not None
 
+    def test_the_header_wears_the_applications_colour(self):
+        """Each application's header is its own colour — the same as its door on the hub."""
+        from pmagpy_panel import APP_COLORS, FAMILY_COLOR, AppInfo, text_on
+        assert AppInfo("PmagPy Directions", "pmagpy_directions").color == APP_COLORS["pmagpy_directions"] == "#00A8C8"
+        assert INFO.color == FAMILY_COLOR                                    # no colour of its own: the family's
+        body = shell.Body(info=AppInfo("D", "pmagpy_directions"), main=pn.pane.HTML("x"))
+        tmpl = shell.template(body, logo=LOGO)
+        assert tmpl.header_background == "#00A8C8" and tmpl.header_color == "#ffffff"
+        assert tmpl.accent_base_color == FAMILY_COLOR                       # buttons look alike everywhere
+        assert text_on(APP_COLORS["pmagpy_forc"]) == "#1b1b1b"              # dark ink on amber and lime
+        assert text_on(APP_COLORS["pmagpy_rockmag"]) == "#1b1b1b"
+        assert text_on(APP_COLORS["pmagpy_intensity"]) == "#ffffff"
+
     def test_show_side_hides_the_column_and_its_handle_together(self):
         body = _body(side=pn.Column(pn.pane.HTML("side")))
         tmpl = shell.template(body, logo=LOGO)

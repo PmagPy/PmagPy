@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import colorsys
 
+from . import FAMILY_COLOR
+
 # Component palette: colour-blind friendly, prints well, and distinct from the
 # red/blue used for the two Zijderveld projections.
 COMPONENT_PALETTE = [
@@ -27,7 +29,7 @@ LAND_EDGE = "#c9bda4"
 OCEAN_COLOR = "#f3f7fb"
 SITE_COLOR = "#2e8b57"        # sampling sites on the globe
 NET_COLOR = "#2b2b2b"
-ACCENT = "#1f4e9c"
+ACCENT = FAMILY_COLOR
 
 # a fixed mapping for the most common legacy names, then the palette in order
 PRESET_COLORS = {"HT": "#2a9d8f", "LT": "#e9a800", "MT": "#7b5ea7", "mag": "#2a9d8f", "hem": "#e76f51",

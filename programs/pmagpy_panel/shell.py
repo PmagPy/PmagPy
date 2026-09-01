@@ -23,14 +23,14 @@ from typing import Callable, Optional
 
 import panel as pn
 
-from . import AppInfo
+from . import AppInfo, text_on
 from .theme import ACCENT, RAW_CSS, asset_data_uri
 from .widgets import Splitter
 
 SIDE_WIDTH = 450       # default width of the side column
 HANDLE_WIDTH = 14      # the drag handle between the side column and the main pane
 HEADER_HEIGHT = 52     # the template's header, which the panes sit under
-STATUS_STYLE = "color:#e5e7eb;font-size:0.85rem"
+STATUS_STYLE = "color:inherit;opacity:.88;font-size:0.85rem"   # follows the header's text colour
 
 
 def setup(*extensions: str) -> None:
@@ -139,7 +139,7 @@ def back_link(hub_url: str) -> pn.pane.HTML:
     """The header's way back to the hub, for an application served under one."""
     return pn.pane.HTML(
         f'<a href="{hub_url}" style="{STATUS_STYLE};text-decoration:none;white-space:nowrap;'
-        f'padding-right:14px;border-right:1px solid rgba(255,255,255,.35);margin-right:4px">'
+        f'padding-right:14px;border-right:1px solid currentColor;margin-right:4px">'
         f'&larr; PmagPy Apps</a>', margin=(0, 0, 0, 0))
 
 
@@ -164,6 +164,10 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
             ``assets/favicon.png`` through :func:`asset_url`.
         hub_url: where the hub is when this application is served under one;
             adds the way back to the header. Empty when it runs alone.
+
+    The header is painted ``body.info.color`` — each application's own, the
+    same as its door on the hub — with white or dark text as that colour
+    needs; buttons keep the family accent so they look alike everywhere.
     Returns:
         the template, with ``workspace`` (the :class:`Workspace`) and ``body``
         set on it for the application and its tests.
@@ -176,7 +180,9 @@ def template(body: Body, logo: str, hub_url: str = "") -> pn.template.FastListTe
         header.append(body.header)
     tmpl = pn.template.FastListTemplate(
         title=body.info.name, logo=asset_data_uri(logo), favicon=asset_url(body.info, "favicon.png"),
-        main=[workspace.layout], header=header, accent=ACCENT, theme_toggle=False,
+        main=[workspace.layout], header=header, theme_toggle=False,
+        header_background=body.info.color, header_color=text_on(body.info.color),   # the application's colour
+        accent_base_color=ACCENT,                                                   # buttons stay the family's
         collapsed_sidebar=True, main_max_width="100%", raw_css=[RAW_CSS],
     )
     if body.modal is not None:

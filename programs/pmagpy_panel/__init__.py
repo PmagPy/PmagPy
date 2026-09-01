@@ -41,6 +41,32 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+FAMILY_COLOR = "#1f4e9c"      # the hub's blue: the family, and any application without a colour of its own
+
+# One colour per application, by app_id. It is the header of that application
+# and its door on the hub's Analyze list, so the two are recognisably the same
+# thing; the hub itself stays FAMILY_COLOR.
+APP_COLORS = {
+    "pmagpy_directions": "#00A8C8",
+    "pmagpy_intensity": "#F4633A",
+    "pmagpy_rockmag": "#A8CF3A",
+    "pmagpy_forc": "#FFB627",
+    "pmagpy_anisotropy": "#8E6BBE",
+}
+
+
+def app_color(app_id: str) -> str:
+    """The application's colour, or the family's when it has none of its own."""
+    return APP_COLORS.get(app_id, FAMILY_COLOR)
+
+
+def text_on(color: str) -> str:
+    """White or near-black, whichever reads on a header of this colour (WCAG relative luminance)."""
+    r, g, b = (int(color.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    luminance = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+    return "#1b1b1b" if luminance > 0.45 else "#ffffff"
+
 
 @dataclass(frozen=True)
 class AppInfo:
@@ -53,8 +79,15 @@ class AppInfo:
         env_prefixes: prefixes of the environment settings it answers to, most
             specific first — the second and later ones are kept for
             compatibility with names an earlier build used.
+        color: the application's colour; looked up from :data:`APP_COLORS` by
+            ``app_id`` when not given.
     """
 
     name: str
     app_id: str
     env_prefixes: tuple = ()
+    color: str = ""
+
+    def __post_init__(self):
+        if not self.color:
+            object.__setattr__(self, "color", app_color(self.app_id))

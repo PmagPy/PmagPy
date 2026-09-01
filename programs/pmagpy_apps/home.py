@@ -20,7 +20,7 @@ from urllib.parse import quote
 import panel as pn
 import param
 
-from pmagpy_panel import datasets
+from pmagpy_panel import app_color, datasets, text_on
 from pmagpy_panel.chooser import DirectoryChooser
 from . import APP
 from .inventory import Inventory, take_inventory
@@ -43,6 +43,11 @@ class Application:
     app_id: str
     kinds: tuple
     absent: str
+
+    @property
+    def color(self) -> str:
+        """The application's colour — the same one its own header wears (:data:`pmagpy_panel.APP_COLORS`)."""
+        return app_color(self.app_id)
 
     @property
     def built(self) -> bool:
@@ -147,16 +152,18 @@ CSS = """
 .stage .state { font-size:.85rem; color:var(--muted); margin-top:4px; padding-right:8px }
 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:none }
 .dot.ok { background:var(--ok) } .dot.warn { background:var(--warn) } .dot.off { background:#d5d9df; border:1px solid #b9bfc7 }
-.bars { display:flex; flex-direction:column; gap:8px }
-.bar { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 16px; display:flex; align-items:center; gap:16px;
-       border-left:4px solid var(--accent); color:inherit; text-decoration:none }
-.bar h3 { margin:0; font-size:1rem; font-weight:600; width:170px; flex:none }
-.bar .fact { font-size:.9rem; color:var(--muted); flex:1 }
-.bar .open { color:var(--accent); font-weight:600; font-size:.9rem; white-space:nowrap }
-a.bar:hover { border-color:#b9c6dd; box-shadow:0 1px 4px rgba(31,78,156,.12) }
-.bar.disabled { border-left-color:#d5d9df; background:#fbfbfc }
+.bars { display:flex; flex-direction:column; gap:10px }
+.bar { --c:var(--accent); --c-ink:#fff; background:#fff; border:1px solid var(--line); border-radius:10px; padding:15px 16px 15px 20px;
+       display:flex; align-items:center; gap:18px; border-left:7px solid var(--c); color:inherit; text-decoration:none;
+       transition:box-shadow .12s, transform .12s }
+.bar h3 { margin:0; font-size:1.1rem; font-weight:650; width:180px; flex:none; letter-spacing:-.005em }
+.bar .fact { font-size:.92rem; color:var(--muted); flex:1 }
+.bar .open { background:var(--c); color:var(--c-ink); font-weight:600; font-size:.88rem; padding:7px 16px; border-radius:7px; white-space:nowrap }
+a.bar:hover { box-shadow:0 2px 10px rgba(0,0,0,.10); transform:translateY(-1px) }
+a.bar:hover .open { filter:brightness(.93) }
+.bar.disabled { border-left-color:color-mix(in srgb, var(--c) 30%, #fff); background:#fbfbfc }
 .bar.disabled h3 { color:#7b8390 }
-.bar.disabled .open { color:var(--off); font-weight:500 }
+.bar.disabled .open { background:transparent; color:var(--off); font-weight:500; padding:7px 0 }
 .box { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 16px; margin-bottom:18px }
 .box table { border-collapse:collapse; width:100%; font-size:.88rem }
 .box td { padding:3px 0; border-bottom:1px solid #f0f2f4 }
@@ -279,13 +286,13 @@ def bars_html(inv: Inventory, applications=APPLICATIONS) -> str:
     for app in applications:
         present = [inv.kind(k) for k in app.kinds if inv.kind(k)]
         if not inv.is_magic:
-            bars.append(_bar(app.name, "no measurements yet", None))
+            bars.append(_bar(app, "no measurements yet", None))
         elif not present:
-            bars.append(_bar(app.name, app.absent, None))
+            bars.append(_bar(app, app.absent, None))
         elif not app.built:
-            bars.append(_bar(app.name, f"{_qualifier(present)} · not built yet", None, "Not yet"))
+            bars.append(_bar(app, f"{_qualifier(present)} · not built yet", None, "Not yet"))
         else:
-            bars.append(_bar(app.name, _qualifier(present), app_link(app.app_id, inv.directory)))
+            bars.append(_bar(app, _qualifier(present), app_link(app.app_id, inv.directory)))
     return f'<div class="home"><div class="section">Analyze</div><div class="bars">{"".join(bars)}</div></div>'
 
 
@@ -305,11 +312,13 @@ def _qualifier(kinds) -> str:
     return ", ".join(words)
 
 
-def _bar(name: str, fact: str, href: Optional[str], shut: str = "—") -> str:
+def _bar(app: Application, fact: str, href: Optional[str], shut: str = "—") -> str:
+    """One door, in the application's colour: a filled "Open →" when it leads somewhere, a faint edge when shut."""
+    paint = f'style="--c:{app.color};--c-ink:{text_on(app.color)}"'
     if href:
-        return (f'<a class="bar" href="{_esc(href)}"><h3>{_esc(name)}</h3><div class="fact">{_esc(fact)}</div>'
+        return (f'<a class="bar" {paint} href="{_esc(href)}"><h3>{_esc(app.name)}</h3><div class="fact">{_esc(fact)}</div>'
                 f'<div class="open">Open →</div></a>')
-    return (f'<div class="bar disabled"><h3>{_esc(name)}</h3><div class="fact">{_esc(fact)}</div>'
+    return (f'<div class="bar disabled" {paint}><h3>{_esc(app.name)}</h3><div class="fact">{_esc(fact)}</div>'
             f'<div class="open">{shut}</div></div>')
 
 

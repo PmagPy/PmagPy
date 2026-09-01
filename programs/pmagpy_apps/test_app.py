@@ -82,6 +82,8 @@ class TestThreeStates:
         assert 'href="/pmagpy_directions?dir=' in bars                  # Directions is built and has demag steps
         assert "no FORC measurements in this directory" in bars
         assert "Thellier experiments · IZZI, ZI, IZ · not built yet" in bars
+        assert 'style="--c:#00A8C8;--c-ink:#ffffff" href="/pmagpy_directions' in bars   # the door is the app's colour
+        assert '--c:#FFB627;--c-ink:#1b1b1b' in bars                                    # shut doors keep theirs, faintly
         aside = home.aside_html(inv, [])
         assert "Tables" not in aside and "measurements.txt" not in aside     # the counts line already says it
         assert "Other files" in aside and "extra_specimens.txt" in aside

@@ -134,6 +134,13 @@ sys.exit(launch.main(APP, env_prefix="PMAGPY_INTENSITY_", default_port=5101))
 
 Pick a different default port from Directions' 5100 so the two can run at once.
 
+Each application has a colour, kept in `pmagpy_panel.APP_COLORS` by `app_id`
+(Directions `#00A8C8`, Intensity `#F4633A`, Rock magnetism `#A8CF3A`, FORC
+`#FFB627`, Anisotropy `#8E6BBE`); `AppInfo.color` reads it, `shell.template`
+paints the header with it (white or dark text as the colour needs — a light
+header wants a dark logo, so ship one), and the hub's Analyze door for the
+application is the same colour. Buttons keep the family blue everywhere.
+
 `app.py` should expose `build_body(session) -> shell.Body` and a `create_app()`
 that wraps it with `shell.template(body, logo=LOGO, hub_url=runtime.hub_url())`
 — see `pmagpy_directions/app.py`. The body is what the hub will mount; anything
