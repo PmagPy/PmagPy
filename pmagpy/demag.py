@@ -32,7 +32,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field, asdict
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -440,6 +440,43 @@ def fit_line_segment(result: DirectionResult, spec: SpecimenData, coord: int,
         ends = np.vstack([np.zeros(3), centre + t.max() * direction])
     ends = rotate_about_vertical(ends, rotation_dec)
     return pd.DataFrame({"x": ends[:, 0], "y_h": -ends[:, 1], "y_v": -ends[:, 2]})
+
+
+def plane_best_fit_vectors(records) -> List[Tuple[float, float]]:
+    """Best-fit vectors of the planes in a set of directions (McFadden & McElhinny, 1988).
+
+    Combining lines and planes places every plane's direction at the point of
+    its great circle that lies closest to the mean of the whole set, found by
+    the iteration of MM88. ``pmag.dolnp`` computes those points to reach the
+    mean but does not report them; this repeats its set-up to return them.
+
+    Args:
+        records: dicts as ``mean_directions`` builds them — ``dir_dec``,
+            ``dir_inc`` and ``dir_type`` ('l' or 'p') — for one group.
+
+    Returns:
+        (dec, inc) per plane, in the order the planes appear in ``records``;
+        empty when the set holds no plane. A set of planes alone has no mean
+        to converge on: MM88 starts the iteration from a fixed direction, and
+        that is what pmag.dolnp does for the mean as well.
+    """
+    if not records:
+        return []
+    _, n_lines, poles, n_planes, lines_sum = pmag.process_data_for_mean(records, "dir_type")
+    if not n_planes:
+        return []
+    if n_lines == 0:
+        start = list(np.asarray(pmag.dir2cart([180., -45., 1.]), dtype=float).ravel())
+    else:
+        norm = float(np.sqrt(sum(c ** 2 for c in lines_sum)))
+        start = [c / norm for c in lines_sum]
+    # calculate_best_fit_vectors returns one vector per pole, in the order of `poles`
+    vectors = pmag.calculate_best_fit_vectors(list(poles), list(lines_sum), start, n_planes)
+    out = []
+    for vec in vectors:
+        dec, inc = pmag.cart2dir(list(vec))[:2]
+        out.append((float(dec), float(inc)))
+    return out
 
 
 def polarity_axis(directions) -> list:
@@ -1395,6 +1432,47 @@ class DemagData:
             out.append(rec)
         return pd.DataFrame(out)
 
+    def best_fit_vectors(self, coord: int = COORD_GEOGRAPHIC, level: str = "site",
+                         include_bad: bool = False) -> dict:
+        """Where each plane's direction falls once it is combined with the lines around it.
+
+        A plane fit constrains its direction to a great circle; the level's
+        lines-and-planes mean (McFadden & McElhinny, 1988) places it at the
+        point of that circle closest to the mean. This is the direction MagIC
+        stores as ``dir_bfv_dec`` / ``dir_bfv_inc`` on the specimen, so it is
+        resolved per group and component, exactly as the mean is.
+
+        Args:
+            coord: coordinate system the directions are taken in.
+            level: group the planes are resolved within ('sample', 'site' or
+                'location'); the site is what the legacy GUI used.
+            include_bad: include components flagged ``result_quality`` 'b'.
+
+        Returns:
+            {(specimen, component name): (dec, inc)} for every plane fit that
+            a mean could be formed for.
+        """
+        if level not in ("sample", "site", "location"):
+            raise ValueError(level)
+        groups: dict = {}
+        for r in self.fit_all(coord):
+            if r.result_quality == "b" and not include_bad:
+                continue
+            spec = self.specimens[r.specimen]
+            key = (getattr(spec, level), r.dir_comp)
+            groups.setdefault(key, []).append(
+                {"dir_dec": r.dir_dec, "dir_inc": r.dir_inc, "dir_type": r.direction_type,
+                 "dir_tilt_correction": coord, "method_codes": r.method_codes, "specimen": r.specimen})
+        out = {}
+        for (_, comp_name), recs in groups.items():
+            planes = [rec for rec in recs if rec["dir_type"] == "p"]
+            if not planes:
+                continue
+            vectors = plane_best_fit_vectors(recs)
+            for rec, (dec, inc) in zip(planes, vectors):
+                out[(rec["specimen"], comp_name)] = (dec, inc)
+        return out
+
     def _mean_of_means(self, level, coord, component, include_bad, over, common_polarity=True,
                        flip=False) -> pd.DataFrame:
         lower = {"site": "sample", "location": "site"}.get(level)
@@ -1529,6 +1607,9 @@ class DemagData:
         """MagIC 3 specimens rows for every component in every available coordinate system."""
         rows = []
         n_comps = {s: len(self.components_for(s)) for s in self.specimens}
+        # a plane only gains a direction once its site's lines pin it down (MM88),
+        # and that direction differs per coordinate system, as the mean does
+        bfv = {coord: self.best_fit_vectors(coord) for coord in coords}
         for comp in self.components:
             spec = self.specimens[comp.specimen]
             for coord in coords:
@@ -1537,6 +1618,9 @@ class DemagData:
                     continue
                 rec = result.to_record()
                 rec.update({"sample": spec.sample, "dir_n_comps": n_comps[comp.specimen]})
+                vector = bfv[coord].get((comp.specimen, comp.name)) if result.direction_type == "p" else None
+                if vector is not None:
+                    rec["dir_bfv_dec"], rec["dir_bfv_inc"] = round(vector[0], 1), round(vector[1], 1)
                 rows.append(rec)
         return self._stamp(pd.DataFrame(rows), analysts)
 

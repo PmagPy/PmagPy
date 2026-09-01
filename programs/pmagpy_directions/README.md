@@ -157,7 +157,8 @@ readable. The table paginates locally: a header filter typed in the
 browser is only visible to the application that way.
 
 **Export pane.** Writes MagIC 3 `specimens.txt` (one row per coordinate
-system chosen), `measurements.txt` with the good/bad flags, `samples.txt`
+system chosen, plane fits carrying the `dir_bfv_*` direction their site's
+lines resolve them to), `measurements.txt` with the good/bad flags, `samples.txt`
 and `sites.txt` means (site rows with VGPs, `DE-DI`, `dir_polarity`,
 `dir_n_samples`, `LP-DC4` for PCA-based means), `locations.txt` with the
 mean direction and the paleomagnetic pole of every component (`pole_*`,
@@ -280,6 +281,12 @@ re-interpretation).
   `pmag.dolnp` (and re-uses it for means of means, carrying pure-plane
   sample means as planes); `mean_pole()` to `pmag.fisher_mean`; VGPs to
   `pmag.dia_vgp`.
+* `best_fit_vectors()` reports where each plane's direction falls once its
+  site's lines pin it down — the point of the great circle closest to the
+  lines-and-planes mean, which MM88 finds by iteration and `pmag.dolnp`
+  discards after using it. `plane_best_fit_vectors()` repeats that set-up to
+  return the points themselves; `specimens_table()` writes them as
+  `dir_bfv_dec`/`dir_bfv_inc`, resolved separately in each coordinate system.
 * `mean_pole()` unifies polarity about the principal axis
   (`unify_polarity`) and reports the inverted share, the mean sampling
   location and its paleolatitude; location-level `mean_directions()` does
@@ -317,9 +324,8 @@ Worth knowing before relying on the app:
   against the published interpretations of two studies (Oman: 3 of 522
   fits; Jacobsville: 20 of 578).
 * **Not yet carried over from the legacy GUI:** acceptance-criteria
-  filtering on export, best-fit vectors (`dir_bfv_*`) for planes at site
-  level, Fisher-by-polarity / Bingham means, the ages dialog, `images.txt`
-  records, auto-interpretation and LSQ import.
+  filtering on export, Fisher-by-polarity / Bingham means, the ages dialog,
+  `images.txt` records, auto-interpretation and LSQ import.
 * **Platforms.** Developed and tested on macOS; the *Browse with Finder…*
   system chooser is untested on Windows/Linux (the path field, recent
   directories and the in-page browser work everywhere).

@@ -16,7 +16,7 @@ import pmagpy.pmag as pmag
 
 from pmagpy.demag import (DemagData, COORD_SPECIMEN, COORD_GEOGRAPHIC, COORD_TILT,
                         zijderveld_xy, equal_area_xy, fit_line_segment,
-                        great_circle_xy, step_label, build_orientation,
+                        great_circle_xy, step_label, build_orientation, plane_best_fit_vectors,
                         add_transformed_coordinates, unify_polarity, merge_results, carry_metadata,
                         trim_to_model, validate_directory, is_metadata_column)
 
@@ -499,6 +499,80 @@ def study():
     data = DemagData.from_directory(DMAG_DIR)
     data.load_components_from_specimens_table()
     return data
+
+
+class TestBestFitVectors:
+    """dir_bfv_*: where a plane's direction falls once the lines pin it down (MM88)."""
+
+    RECORDS = [{"dir_dec": 10.0, "dir_inc": 45.0, "dir_type": "l"},
+               {"dir_dec": 20.0, "dir_inc": 50.0, "dir_type": "l"},
+               {"dir_dec": 200.0, "dir_inc": 10.0, "dir_type": "p"},
+               {"dir_dec": 300.0, "dir_inc": -20.0, "dir_type": "p"}]
+
+    @staticmethod
+    def _cart(dec, inc):
+        return np.asarray(pmag.dir2cart([dec, inc, 1.0]), dtype=float).ravel()
+
+    def test_vectors_lie_on_their_great_circles(self):
+        vectors = plane_best_fit_vectors(self.RECORDS)
+        planes = [r for r in self.RECORDS if r["dir_type"] == "p"]
+        assert len(vectors) == len(planes)
+        for rec, (dec, inc) in zip(planes, vectors):
+            # on the great circle means perpendicular to its pole
+            dot = float(np.dot(self._cart(rec["dir_dec"], rec["dir_inc"]), self._cart(dec, inc)))
+            assert dot == pytest.approx(0.0, abs=1e-9)
+
+    def test_the_vectors_are_the_ones_dolnp_averages(self):
+        """Replacing every plane by its best-fit vector must reproduce dolnp's mean."""
+        vectors = plane_best_fit_vectors(self.RECORDS)
+        resultant = np.sum([self._cart(r["dir_dec"], r["dir_inc"]) for r in self.RECORDS if r["dir_type"] == "l"]
+                           + [self._cart(d, i) for d, i in vectors], axis=0)
+        dec, inc = pmag.cart2dir(list(resultant / np.linalg.norm(resultant)))[:2]
+        lnp = pmag.dolnp(self.RECORDS, "dir_type")
+        assert dec == pytest.approx(float(lnp["dec"]), abs=0.05)
+        assert inc == pytest.approx(float(lnp["inc"]), abs=0.05)
+
+    def test_sets_without_a_plane(self):
+        assert plane_best_fit_vectors([]) == []
+        assert plane_best_fit_vectors([self.RECORDS[0]]) == []
+
+    def test_planes_alone_meet_where_their_circles_cross(self):
+        # with no line to converge on, two circles leave one intersection
+        vectors = plane_best_fit_vectors([r for r in self.RECORDS if r["dir_type"] == "p"])
+        assert len(vectors) == 2
+        assert vectors[0] == pytest.approx(vectors[1], abs=0.1)
+
+    def test_mcmurdo_planes_resolve_towards_their_site_mean(self, mcmurdo):
+        mcmurdo.clear_components()
+        mcmurdo.load_components_from_specimens_table()
+        planes = [c for c in mcmurdo.components if c.fit_type == "DE-BFP"]
+        assert len(planes) > 50
+        vectors = mcmurdo.best_fit_vectors(COORD_GEOGRAPHIC)
+        assert len(vectors) == len(planes)
+        means = mcmurdo.mean_directions("site", COORD_GEOGRAPHIC)
+        for comp in planes[:12]:
+            dec, inc = vectors[(comp.specimen, comp.name)]
+            result = mcmurdo.fit(comp, COORD_GEOGRAPHIC)
+            # on its own great circle ...
+            assert float(np.dot(self._cart(result.dir_dec, result.dir_inc),
+                                self._cart(dec, inc))) == pytest.approx(0.0, abs=1e-9)
+            # ... and no further from the site mean than the pole-to-plane it came from
+            site = mcmurdo.specimens[comp.specimen].site
+            row = means[(means["site"] == site) & (means["dir_comp_name"] == comp.name)]
+            if len(row):
+                mean = self._cart(row["dir_dec"].iloc[0], row["dir_inc"].iloc[0])
+                assert np.dot(mean, self._cart(dec, inc)) > np.dot(mean, self._cart(result.dir_dec, result.dir_inc))
+
+    def test_specimens_table_carries_the_vectors_per_coordinate_system(self, mcmurdo):
+        mcmurdo.clear_components()
+        mcmurdo.load_components_from_specimens_table()
+        table = mcmurdo.specimens_table(coords=(COORD_SPECIMEN, COORD_GEOGRAPHIC))
+        planes = table["method_codes"].str.contains("DE-BFP", na=False)
+        assert table.loc[planes, "dir_bfv_dec"].notna().all()
+        assert not table.loc[~planes, "dir_bfv_dec"].notna().any()   # never on a line fit
+        # the direction is resolved in each system separately, so the rows differ
+        both = table[planes].groupby("specimen")["dir_bfv_dec"].nunique()
+        assert (both > 1).any()
 
 
 class TestPolarity:
