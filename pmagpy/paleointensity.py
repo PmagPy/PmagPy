@@ -575,9 +575,18 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
             iv = np.array([i_row["x"], i_row["y"], i_row["z"]], dtype=float)
             pt = iv - zv
             label = z_row["pair"] or i_row["pair"] or ("ZI" if z_row["sequence"] < i_row["sequence"] else "IZ")
-        else:
+        elif kind == STEP_NRM or not x:
+            # the first step is the NRM: no pTRM has been given yet, so the
+            # point belongs at the origin of the pTRM axis
             pt = np.zeros(3)
-            label = STEP_NRM if kind == STEP_NRM else (z_row["pair"] or "ZI")
+            label = STEP_NRM
+        else:
+            # a zero-field step whose temperature was never measured in field
+            # has no pTRM to plot against: it is not an Arai point at all, and
+            # placing it at x = 0 would drag the fit toward the origin
+            notes.append(f"{temp - KELVIN_OFFSET:.0f}°C: a zero-field step with no in-field "
+                         f"step, so there is no pTRM to plot it against")
+            continue
         x.append(float(np.linalg.norm(pt)))
         y.append(float(np.linalg.norm(zv)))
         temps.append(float(temp))
@@ -606,6 +615,18 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
     peak = None
     last_zero_vec = None
     last_infield_vec = {}
+
+    def peak_index(default: int) -> int:
+        """The Arai point the peak temperature corresponds to.
+
+        A check performed after a temperature that has no Arai point of its own
+        must still be compared against how far the experiment had got, so the
+        nearest point at or below the peak is used rather than the check's own.
+        """
+        if peak is None:
+            return default
+        below = [k for k, t in enumerate(temps) if t <= peak]
+        return below[-1] if below else default
     for _, row in usable.sort_values("sequence").iterrows():
         vec = np.array([row["x"], row["y"], row["z"]], dtype=float)
         kind, temp, bad = row["kind"], float(row["treat_temp"]), row["quality"] == "b"
@@ -614,7 +635,7 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
                 notes.append(f"{temp - KELVIN_OFFSET:.0f}°C pTRM check: flagged bad, left out")
             elif last_zero_vec is not None:
                 diff = vec - last_zero_vec
-                ptrm.append(ps.PtrmCheck(i=index_of[temp], j=index_of.get(peak, index_of[temp]),
+                ptrm.append(ps.PtrmCheck(i=index_of[temp], j=peak_index(index_of[temp]),
                                          x=float(np.linalg.norm(diff)), vector=diff))
                 check_rows[STEP_PTRM].append(int(row["sequence"]))
         elif kind == STEP_TAIL and temp in index_of:
@@ -629,7 +650,7 @@ def build_arai(steps: pd.DataFrame, warnings: Optional[list] = None) -> Optional
                 notes.append(f"{temp - KELVIN_OFFSET:.0f}°C additivity check: flagged bad, left out")
             elif base is not None:
                 star = base - vec
-                add.append(ps.AdditivityCheck(i=index_of[temp], j=index_of.get(peak, index_of[temp]),
+                add.append(ps.AdditivityCheck(i=index_of[temp], j=peak_index(index_of[temp]),
                                               x=float(np.linalg.norm(star)), vector=star))
                 check_rows[STEP_ADD].append(int(row["sequence"]))
         if kind in (STEP_NRM, STEP_Z, STEP_I) and not bad:
