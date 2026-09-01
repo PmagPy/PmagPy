@@ -86,6 +86,15 @@ CHECKBOX_CSS = """
 :host input[type='checkbox'] { accent-color: #1f4e9c; width: 15px; height: 15px; appearance: auto;
     -webkit-appearance: auto; background: none; border: none; }
 """
+# result tables (the mean statistics): a handful of numbers should read as one
+# block at the left, not stretch its columns across the whole width of the pane
+STATS_TABLE_CSS = """
+table { width: auto !important; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 4px 0 4px 20px; text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 0; text-align: left; }
+th { color: #5b6470; font-weight: 600; border-bottom: 1px solid #d0d4da; }
+tbody tr:nth-child(even) td { background: #f6f7f9; }
+"""
 # text inputs and selects side by side get one box height
 INPUT_CSS = """
 :host .bk-input { height: 34px; min-height: 34px; padding-top: 0; padding-bottom: 0; box-sizing: border-box; }

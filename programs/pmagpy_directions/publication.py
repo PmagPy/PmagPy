@@ -461,7 +461,7 @@ def directions_figure(directions, mean: Optional[dict] = None, title: str = "", 
         if not m or np.isnan(m.get("dir_dec", np.nan)):
             continue
         mx, my = dc.equal_area_xy([m["dir_dec"]], [m["dir_inc"]])
-        ax.scatter(mx, my, marker="*", s=170, c=color, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
+        ax.scatter(mx, my, marker="s", s=95, c=color, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
         a95 = m.get("dir_alpha95", np.nan)
         if a95 and not np.isnan(a95) and a95 > 0:
             cd, ci = dc.pmag.circ(m["dir_dec"], m["dir_inc"], a95)
@@ -574,7 +574,7 @@ def vgp_figure(vgps, pole: Optional[dict] = None, title: str = "", figsize=(4.5,
         _equal_area_points(ax, lon, lat, [POINT_FILL] * len(vg), size=20)
     if pole:
         px, py = dc.equal_area_xy([pole["plon"]], [pole["plat"]])
-        ax.scatter(px, py, marker="*", s=180, c=MEAN_COLOR, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
+        ax.scatter(px, py, marker="s", s=100, c=MEAN_COLOR, edgecolors=POINT_EDGE, linewidths=0.6, zorder=6)
         cd, ci = dc.pmag.circ(pole["plon"], pole["plat"], pole["A95"])
         cx, cy = dc.equal_area_xy(cd, np.abs(ci))
         ax.plot(cx, cy, color=MEAN_COLOR, lw=1.2)
@@ -645,7 +645,7 @@ def vgp_map_figure(vgps, pole: Optional[dict] = None, sites=(), centre=None, tit
                    label="study location")
     if pole:
         x, y, vis = geo.orthographic_xy([pole["plon"]], [pole["plat"]], lon0, lat0)
-        ax.scatter(x[vis], y[vis], marker="h", s=260, c=MEAN_COLOR, alpha=0.85, edgecolors="#2b2b2b", linewidths=0.6,
+        ax.scatter(x[vis], y[vis], marker="s", s=150, c=MEAN_COLOR, alpha=0.85, edgecolors="#2b2b2b", linewidths=0.6,
                    zorder=7, label="mean paleomagnetic pole")
         circle = geo.small_circle(pole["plon"], pole["plat"], pole["A95"])
         for xs, ys in geo.project_lines([circle], lon0, lat0):

@@ -18,13 +18,15 @@ from .logger import Hotkeys, StepLogger
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
 from .session import (REDO_NAME, AUTOSAVE_NAME, Session, env, load_recent, looks_like_magic_dir,
                       native_choose_directory, native_chooser_available)
-from .theme import BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE, kpi, lighten
+from .theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
+                    STATS_TABLE_CSS, kpi, lighten)
 
 FIT_OPTIONS = {f"{v} ({k})": k for k, v in dc.FIT_TYPES.items()}
 COORD_OPTIONS = {v: k for k, v in dc.COORD_NAMES.items()}
+# the statistics of a mean direction; the VGP it implies belongs to the Poles tab,
+# which plots it on the globe, rather than in this table
 MEAN_COLUMNS = ["dir_dec", "dir_inc", "dir_alpha95", "dir_k", "dir_r", "dir_n_specimens", "dir_n_samples",
-                "dir_n_sites", "dir_n_specimens_lines", "dir_n_specimens_planes", "vgp_lat", "vgp_lon",
-                "vgp_dp", "vgp_dm"]
+                "dir_n_sites", "dir_n_specimens_lines", "dir_n_specimens_planes"]
 SIDE_PLOT = 380      # equal-area net in the side column, inside its 450 px default width
 
 
@@ -416,7 +418,8 @@ class MeansView(LazyView):
                                                 value="fisher", button_type="primary", button_style="outline",
                                                 stylesheets=[BUTTON_GROUP_CSS])
         self.plot = DirectionsPlot("Directions")
-        self.stats = pn.pane.DataFrame(pd.DataFrame(), index=False, sizing_mode="stretch_width")
+        self.stats = pn.pane.DataFrame(pd.DataFrame(), index=False, sizing_mode="stretch_width",
+                                       stylesheets=[STATS_TABLE_CSS])
         self.download = pn.widgets.FileDownload(callback=self._figure_bytes, filename="directions.pdf",
                                                 label="Download figure (PDF)", button_type="primary", width=220)
         # the side-column list of the fits (or lower-level means) that are plotted
@@ -560,6 +563,11 @@ class MeansView(LazyView):
         if self.stat.value == "fisher":
             cols = [c for c in ["dir_comp_name"] + MEAN_COLUMNS if c in means.columns]
             table = means[cols].round(1) if len(means) else pd.DataFrame()
+            # a count that is zero throughout says nothing (no planes among the fits,
+            # no sites under a sample mean) and only widens the table
+            for col in [c for c in table.columns if c.startswith("dir_n_")]:
+                if not pd.to_numeric(table[col], errors="coerce").fillna(0).any():
+                    table = table.drop(columns=[col])
         else:
             # the alternative statistics are computed on what is plotted, so they
             # report only the columns they define (a Bingham ellipse has no α95)

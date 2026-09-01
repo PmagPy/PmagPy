@@ -576,6 +576,12 @@ def bingham_mean(directions) -> dict:
     Args:
         directions: iterable of (dec, inc) pairs in degrees; at least two.
 
+    An axis has two ends and the eigen decomposition returns whichever one it
+    lands on — for a site of steeply upward directions that is as often the
+    downward end, which would plot the mean across the net from the very
+    directions it averages. The axis is therefore pointed at the data, the
+    same way ``polarity_axis`` points the principal direction at the majority.
+
     Returns:
         dict with ``dir_dec``, ``dir_inc``, ``dir_n_specimens`` and the
         ellipse (``eta``, ``eta_dec``, ``eta_inc``, ``zeta``, ``zeta_dec``,
@@ -589,7 +595,10 @@ def bingham_mean(directions) -> dict:
     # complex with a zero imaginary part; take the real part rather than let the
     # cast warn
     real = lambda key: float(np.real(b[key]))                      # noqa: E731
-    return {"dir_dec": real("dec"), "dir_inc": real("inc"),
+    dec, inc = real("dec"), real("inc")
+    if pmag.angle([dec, inc], polarity_axis(block))[0] > 90:
+        dec, inc = (dec + 180.0) % 360.0, -inc
+    return {"dir_dec": dec, "dir_inc": inc,
             "dir_n_specimens": int(b["n"]),
             "eta": real("Eta"), "eta_dec": real("Edec"), "eta_inc": real("Einc"),
             "zeta": real("Zeta"), "zeta_dec": real("Zdec"), "zeta_inc": real("Zinc")}

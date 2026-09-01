@@ -614,17 +614,39 @@ class TestPolarityAndBinghamMeans:
         assert len(one) == 1 and "dir_alpha95" not in one[0]      # no statistics from one direction
 
     def test_bingham_is_axial(self):
-        """Bingham describes an axis, so inverting directions must not move it."""
+        """Bingham describes an axis, so inverting directions must not turn it."""
         normal, reversed_ = self._two_modes()
         block = normal + reversed_
         mean = bingham_mean(block)
         flipped = [[(d + 180) % 360, -i] for d, i in block[:5]] + block[5:]
         again = bingham_mean(flipped)
-        assert again["dir_dec"] == pytest.approx(mean["dir_dec"], abs=0.01)
-        assert again["dir_inc"] == pytest.approx(mean["dir_inc"], abs=0.01)
+        # the same axis: the end it is reported at follows the data (see below)
+        separation = pmag.angle([mean["dir_dec"], mean["dir_inc"]],
+                                [again["dir_dec"], again["dir_inc"]])[0]
+        assert min(separation, 180 - separation) == pytest.approx(0, abs=0.05)
         assert mean["dir_n_specimens"] == len(block)
         assert mean["eta"] > 0 and mean["zeta"] > 0               # a real confidence ellipse
         assert not bingham_mean([[1.0, 2.0]])                     # one direction has no ellipse
+
+    def test_the_axis_is_reported_at_the_end_the_data_are_on(self):
+        """An eigenvector has two ends; the mean must not plot opposite its own directions.
+
+        Site mc09 of McMurdo is the case that caught this: eight steeply upward
+        directions whose Bingham axis comes back pointing down.
+        """
+        block = [[283.4, -81.4], [247.9, -81.6], [245.2, -80.6], [248.8, -77.8],
+                 [265.7, -82.2], [235.1, -78.5], [297.2, -85.0], [8.5, -85.8]]
+        mean = bingham_mean(block)
+        assert mean["dir_inc"] < 0                                 # with the directions, not opposite them
+        # the axis itself is still the principal direction, and for a tight
+        # single-polarity set it lands on the Fisher mean
+        princ = pmag.doprinc(block)
+        separation = pmag.angle([mean["dir_dec"], mean["dir_inc"]], [princ["dec"], princ["inc"]])[0]
+        assert min(separation, 180 - separation) == pytest.approx(0, abs=0.05)
+        fisher = pmag.fisher_mean(block)
+        assert pmag.angle([mean["dir_dec"], mean["dir_inc"]], [fisher["dec"], fisher["inc"]])[0] < 1
+        # every direction is within 90 degrees of the reported end
+        assert all(pmag.angle(d, [mean["dir_dec"], mean["dir_inc"]])[0] < 90 for d in block)
 
 
 class TestPolarity:

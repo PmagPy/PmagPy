@@ -352,9 +352,10 @@ class DirectionsPlot:
         self.mean = ColumnDataSource(dict(x=[], y=[], color=[], name=[]))
         self.a95 = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.fig.multi_line("xs", "ys", source=self.a95, color="color", line_width=2)
-        stars = self.fig.scatter("x", "y", source=self.mean, marker="star", size=22, fill_color="color",
-                                 line_color="#2b2b2b", line_width=0.8)
-        self.fig.add_tools(HoverTool(renderers=[stars], tooltips=[("mean", "@name")]))
+        # a square mean against the circles of the directions it averages
+        means_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=14, fill_color="color",
+                                   line_color="#2b2b2b", line_width=0.8)
+        self.fig.add_tools(HoverTool(renderers=[means_r], tooltips=[("mean", "@name")]))
 
     def update(self, directions, planes=(), means=(), title=None):
         """directions: iterable of (dec, inc, label, comp_name, colour); means: iterable of (mean dict, colour)."""
@@ -429,7 +430,7 @@ class PoleMapPlot:
         self.a95 = ColumnDataSource(dict(xs=[], ys=[]))
         self.fig.multi_line("xs", "ys", source=self.a95, color=MEAN_COLOR, line_width=2)
         self.mean = ColumnDataSource(dict(x=[], y=[]))
-        mean_r = self.fig.scatter("x", "y", source=self.mean, marker="hex", size=22, fill_color=MEAN_COLOR,
+        mean_r = self.fig.scatter("x", "y", source=self.mean, marker="square", size=15, fill_color=MEAN_COLOR,
                                   fill_alpha=0.85, line_color="#2b2b2b", line_width=0.8)
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("", "@label"), ("", "@note")]))
         self.fig.add_tools(HoverTool(renderers=[site_r], tooltips=[("sites", "@label")]))
