@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import scipy as sp
+from pathlib import Path
 from scipy import special
 import matplotlib.pyplot as plt
 import pmagpy.pmag as pmag
@@ -1373,19 +1374,128 @@ def plotmap(sp, sn,GGP,lat,dx,dy):
      
     plt.show()
 
-def GGPrand(GGPmodel, lat, n,degree=8):
+def GGPrand(GGPmodel, lat, n,degree=8,random_seed=None):
+    """
+    Draw random directions from a Giant Gaussian Process model.
+
+    Parameters:
+        GGPmodel: GGP model coefficients as returned by GGPmodels().
+        lat (float): Latitude at which to evaluate the model.
+        n (int): Number of directions to draw.
+        degree (int): Maximum degree of the GGP model. Default is 8.
+        random_seed (None, int, or numpy.random.Generator): Seed for
+            reproducible random number generation (default is None).
+
+    Returns:
+        numpy array of [dec, inc, intensity] for each drawn direction
+    """
+    rng = pmag._resolve_rng(random_seed)
     m = m_TAF(GGPmodel, lat)
     Cov = Cov_modelo(GGPmodel,lat,degree)
-    X = np.random.multivariate_normal(m, Cov,n)*1000
+    X = rng.multivariate_normal(m, Cov,n)*1000
     DI = pmag.cart2dir(X)
     return DI
 
-def GGP_vMF_cdfs(GGPmodel, lat, degree,flat=1,kappa=-1,n=2E6):
-    
+
+def _cdf_grid_counts(values, lower, upper):
+    """Return empirical CDF values on an integer-degree grid."""
+    grid_size = upper - lower + 1
+    # A value in (degree - 1, degree] contributes at ``degree`` and above.
+    # This is equivalent to repeatedly evaluating values <= degree, without
+    # scanning the complete sample once for every grid point.
+    bins = np.ceil(values - lower).astype(int)
+    bins = np.clip(bins, 0, grid_size - 1)
+    counts = np.bincount(bins, minlength=grid_size)
+    return np.cumsum(counts) / values.size
+
+
+def _GGP_mc_distributions(GGPmodel, lat, n, degree, num_sims,
+                          kappa=-1, batch_size=None, random_seed=None):
+    """Simulate V2 declination and elongation distributions in batches.
+
+    A single Generator drives both the GGP draws and the Fisher deviations so
+    that one seed reproduces the complete simulation.
+
+    When kappa > 0 the results also depend on batch_size. The GGP draw and the
+    Fisher draw alternate once per batch, so where the batch boundaries fall
+    decides the order in which the stream is consumed. Holding the inputs fixed
+    reproduces the run exactly, which is what reproducibility requires here;
+    comparing across different batch_size values does not. Making it fully
+    invariant would mean either drawing every deviation up front, which
+    abandons the memory bound that batching provides, or one child Generator
+    per simulation, which gives back the vectorization. For kappa <= 0 only the
+    GGP stream is consumed, and results are invariant.
+    """
+    if num_sims < 1:
+        raise ValueError("num_sims must be 1 or greater")
+    if n < 1:
+        raise ValueError("n must be 1 or greater")
+
+    if batch_size is None:
+        # Bound the largest intermediate Fisher array while retaining enough
+        # work per batch for efficient vectorized linear algebra.
+        batch_size = max(1, min(250, num_sims, 50_000 // n))
+    elif batch_size < 1:
+        raise ValueError("batch_size must be 1 or greater")
+
+    mean = m_TAF(GGPmodel, lat)
+    covariance = Cov_modelo(GGPmodel, lat, degree)
+    rng = pmag._resolve_rng(random_seed)
+    V2decs, Es = [], []
+
+    for start in range(0, num_sims, batch_size):
+        current_batch = min(batch_size, num_sims - start)
+        xyz = rng.multivariate_normal(
+            mean, covariance, size=(current_batch, n)
+        ) * 1000
+
+        if kappa > 0:
+            directions = pmag.cart2dir(xyz.reshape(-1, 3))[:, :2]
+            direction_count = directions.shape[0]
+            fish_dec, fish_inc = pmag.fshdev(
+                np.full(direction_count * 4, kappa),
+                random_seed=rng,
+            )
+            deviations = np.column_stack((fish_dec, fish_inc))
+            means = np.repeat(directions, 4, axis=0)
+            rotated = pmag.dodirot_V(
+                deviations, means[:, 0], means[:, 1]
+            )
+            xyz = pmag.dir2cart(rotated).reshape(direction_count, 4, 3)
+            xyz = xyz.sum(axis=1)
+            xyz /= np.linalg.norm(xyz, axis=1, keepdims=True)
+            xyz = xyz.reshape(current_batch, n, 3)
+
+        # For kappa <= 0, retain the vector magnitudes returned by GGPrand.
+        # doprinc historically uses those magnitudes when its input has three
+        # columns, so doing the same here preserves existing results.
+        orientation = np.einsum(
+            'sni,snj->sij', xyz, xyz, optimize=True
+        )
+        eigenvalues, eigenvectors = np.linalg.eigh(orientation)
+        Es.append(eigenvalues[:, 1] / eigenvalues[:, 0])
+
+        V2dirs = pmag.cart2dir(eigenvectors[:, :, 1])
+        V2dec = V2dirs[:, 0]
+        V2dec = np.where(
+            V2dirs[:, 1] < 0, (V2dec + 180) % 360, V2dec
+        )
+        V2dec = np.where(
+            (V2dec < 90) | (V2dec > 270), (V2dec - 180) % 360, V2dec
+        )
+        V2decs.append(V2dec)
+
+    return np.concatenate(V2decs), np.concatenate(Es)
+
+def GGP_vMF_cdfs(GGPmodel, lat, degree,flat=1,kappa=-1,n=2E6,random_seed=None):
+
     n = int(n) #size of random samples
+    if n < 1:
+        raise ValueError("n must be 1 or greater")
+    rng = pmag._resolve_rng(random_seed)
     m = m_TAF(GGPmodel, lat) #mean for GGP
     Cov = Cov_modelo(GGPmodel,lat,degree) #covariance matrix for GGP
-    XYZ = np.random.multivariate_normal(m, Cov,n)*1000 #GGP random vectos
+    XYZ = rng.multivariate_normal(m, Cov,n)*1000 #GGP random vectos
     XYZ /= np.linalg.norm(XYZ,axis=1)[:,np.newaxis] #normalize to unit length
     
     if flat<1: #perform flattening is required
@@ -1396,7 +1506,7 @@ def GGP_vMF_cdfs(GGPmodel, lat, degree,flat=1,kappa=-1,n=2E6):
     
     if kappa>0: #add vMF errors if required
         C = np.eye(3)/kappa #covariance matrix for vMF deviations
-        XYZ += np.random.multivariate_normal([0,0,0],C,n) #add vMF deviations to vectors 
+        XYZ += rng.multivariate_normal([0,0,0],C,n) #add vMF deviations to vectors
         XYZ /= np.linalg.norm(XYZ,axis=1)[:,np.newaxis] #normalize to unit length
     
     DI = pmag.cart2dir(XYZ)
@@ -1407,15 +1517,10 @@ def GGP_vMF_cdfs(GGPmodel, lat, degree,flat=1,kappa=-1,n=2E6):
     nD = 361
     I0 = np.linspace(-90,90,nI)
     D0 = np.linspace(-180,180,nD)
-    Ic = []
-    Dc = []
-
-    for I in I0:
-        Ic.append(np.sum(DI[:,1]<=I)/n)
+    Ic = _cdf_grid_counts(DI[:, 1], -90, 90)
     Icdf = PchipInterpolator(np.deg2rad(I0),Ic)
-    
-    for D in D0:
-        Dc.append(np.sum(DI[:,0]<=D)/n)
+
+    Dc = _cdf_grid_counts(DI[:, 0], -180, 180)
     Dcdf = PchipInterpolator(np.deg2rad(D0),Dc)
     
     return Icdf, Dcdf
@@ -1705,7 +1810,7 @@ def AD_test(Ds,Is,GGPmodel,lat,degree,plot=False,cite="",saveto=False): #perform
     
     return H,A2I,A2D,pID
 
-def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="",saveto=False): #perform the AD test on observed incs and decs
+def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="",saveto=False,random_seed=None): #perform the AD test on observed incs and decs
     """
     Perform the Anderson-Darling (AD) test on observed inclinations and declinations.
 
@@ -1719,6 +1824,8 @@ def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="
         plot (bool): Whether to plot the ECDF comparison and stereonet. Default is False.
         cite (str): Citation information for the GGP model. Default is an empty string.
         saveto (bool or str): If provided, save the plot to the specified file path. Default is False.
+        random_seed (None, int, or numpy.random.Generator): Seed for reproducible
+            random number generation (default is None).
 
     Returns:
         H (int): 0 if the null hypothesis cannot be rejected, 1 otherwise.
@@ -1778,7 +1885,7 @@ def AD_test_w_kappa(Ds,Is,GGPmodel,degree=8,lat=False,kappa=-1,plot=False,cite="
     if n<5:
         raise ValueError("Insufficient data, N must be 5 or greater")
     
-    Icdf, Dcdf = GGP_vMF_cdfs(GGPmodel, lat, degree,kappa=kappa) #find marginal distributions
+    Icdf, Dcdf = GGP_vMF_cdfs(GGPmodel, lat, degree,kappa=kappa,random_seed=random_seed) #find marginal distributions
     
     A2I = AD_inc(Is,Icdf)
     pI = np.interp(A2I,A2ref,pref)
@@ -1970,8 +2077,9 @@ def svei_di(di_block,model='TK03_GAD',kappa=-1,lat=False, polarity=False,plot=Tr
             H,A2I,A2D,pID,lat = svei_test(Ds,Is,GGPmodel,lat=lat,kappa=kappa,plot=plot)
         return H,A2I,A2D,pID,lat,di_block
 
-def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50,saveto='',model_name='THG24',
-                   quick=False,verbose=False,num_sims=1000):
+def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50,saveto='find_flat.pdf',model_name='THG24',
+                   quick=False,verbose=False,num_sims=1000,cdf_samples=2_000_000,
+                   sim_batch_size=None,random_seed=None):
     """
     Finds the best unflattening factor for a given di_block and performs analysis.
 
@@ -1985,10 +2093,24 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             
         plot (bool, optional): Whether to plot the data. Default is False.
         study (bool, optional): Whether the analysis is part of a study. Default is False.
-        saveto (str, optional): The path to save the plots (if save is True). Default is 'find_flat.pdf'.
+        saveto (str, optional): The path for the summary plot (if save is True).
+            The SVEI diagnostic plot is saved beside it with ``_svei_test``
+            appended to the stem. Default is 'find_flat.pdf'.
         quick (bool, optional): Whether to perform a quick analysis with a larger step size. Default is False as this is just for 
                                  a quick look and does not provide a statistically robust answer.
         num_sims (int, optional): Number of simulations to run (higher number gives more reproducible results). Default is 1000
+        cdf_samples (int, optional): Number of GGP draws used to estimate each
+            pair of marginal CDFs. Default is 2,000,000.
+        sim_batch_size (int or None, optional): Number of Monte Carlo
+            simulations processed together. If None, a memory-bounded value
+            is selected automatically from the number of directions. This is a
+            performance control, but with the default kappa > 0 it also shifts
+            the random stream, so a seeded scan reproduces only when
+            sim_batch_size is left alone as well.
+        random_seed (None, int, or numpy.random.Generator, optional): Seed for
+            reproducible random number generation (default is None). A single
+            Generator is shared across every unflattening factor, so one seed
+            plus unchanged inputs reproduces the whole scan.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the following columns:
@@ -2041,11 +2163,23 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
     Is=flipped[1]
     rot_block=np.column_stack((Ds,Is))
     if verbose: print ('Testing distribution against model ',model_name)
-    if saveto:
-       save_svei=saveto.rstrip('.pdf')+'_svei_test.pdf'
-    else:
-       save_svei=False
-    res_dict=svei_test(rot_block,kappa=kappa,num_sims=num_sims,plot=plot,model_name=model_name,saveto=save_svei)
+    make_plot = plot or save
+    save_svei = False
+    summary_path = None
+    if save:
+        summary_path = Path(saveto or 'find_flat.pdf')
+        if not summary_path.suffix:
+            summary_path = summary_path.with_suffix('.pdf')
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        save_svei = summary_path.with_name(
+            summary_path.stem + '_svei_test' + summary_path.suffix
+        )
+    rng = pmag._resolve_rng(random_seed)
+    res_dict=svei_test(
+        rot_block,kappa=kappa,num_sims=num_sims,plot=make_plot,
+        model_name=model_name,saveto=save_svei,cdf_samples=cdf_samples,
+        sim_batch_size=sim_batch_size,show=plot,random_seed=rng,
+    )
     if (res_dict['H']==0)&(res_dict['V2_result']==1)&(res_dict['E_result']==1):
         res_dict['flat']=1
         res_dict['study']=study
@@ -2058,14 +2192,21 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         if verbose: 
             print ('distribution is not consistent with field model ',model_name)
             print ('proceeding with find_flat routine, be patient')
-        for flat in flats:
+        flat_results = [res_dict]
+        for flat in flats[1:]:
             if verbose: print ('flat: ',np.round(flat,2))
             Is=rot_block.transpose()[1]
             incs_f=pmag.unsquish(Is,flat)
             unflat_block=np.column_stack((Ds,incs_f))
-            res_dict=svei_test(unflat_block,kappa=kappa,num_sims=num_sims,plot=False,model_name=model_name,saveto=False)
+            res_dict=svei_test(
+                unflat_block,kappa=kappa,num_sims=num_sims,plot=False,
+                model_name=model_name,saveto=False,cdf_samples=cdf_samples,
+                sim_batch_size=sim_batch_size,random_seed=rng,
+            )
             if verbose: print (res_dict)
-            lat=res_dict['lat']
+            flat_results.append(res_dict)
+
+        for res_dict in flat_results:
             V2mins.append(res_dict['V2sim_min'])
             V2maxs.append(res_dict['V2sim_max'])
             Emins.append(res_dict['Esim_min'])
@@ -2075,7 +2216,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
             A2Ds.append(res_dict['A2D'])
             Hs.append(res_dict['H'])
             lats.append(res_dict['lat'])
-            inc=pmag.pinc(lat)
+            inc=pmag.pinc(res_dict['lat'])
             incs.append(inc)
             pIDs.append(res_dict['pID'])
             V2_results.append(res_dict['V2_result'])
@@ -2094,7 +2235,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
     As_df['pID']=pIDs
     As_df['V2']=V2s
     As_df['V2min']=V2mins
-    As_df['V2max']=V2mins
+    As_df['V2max']=V2maxs
     As_df['E']=Es
     As_df['Emin']=Emins
     As_df['Emax']=Emaxs
@@ -2113,7 +2254,7 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
         best_inc=np.round(best_inc,1)
         best_flat=goodflats.min()+(goodflats.max()-goodflats.min())/2
         best_flat=np.round(best_flat,2)
-    if plot:
+    if make_plot:
         fig=plt.figure(figsize=(8,10))
         if kappa ==-1:
             kap='Inf'
@@ -2210,11 +2351,16 @@ def find_flat(di_block,save=False,polarity=False,plot=False,study=False,kappa=50
 
         plt.tight_layout()
         if save:
-            plt.savefig(saveto)
+            fig.savefig(summary_path)
+        if plot:
+            plt.show()
+        else:
+            plt.close(fig)
     return(As_df) 
 
 def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=False,cite="",saveto=False,
-                      num_sims=1000,verbose=False): #perform the AD test on observed incs and decs
+                      num_sims=1000,verbose=False,cdf_samples=2_000_000,
+                      sim_batch_size=None,show=True,random_seed=None): #perform the AD test on observed incs and decs
     """
     Perform the Anderson-Darling (AD) test on observed inclinations and declinations and Monte Carlo
        simulation to estimate 95% confidence bounds on V2dec and E
@@ -2230,6 +2376,14 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         saveto (bool or str): If provided, save the plot to the specified file path. Default is False.
         num_sims (int): number of Monte Carlo simulations for V2dec, E bounds calculation
         verbose (bool): if True, print commentary
+        cdf_samples (int): Number of GGP draws used to estimate the marginal CDFs.
+        sim_batch_size (int or None): Number of Monte Carlo simulations processed
+            together. If None, select a memory-bounded batch size automatically.
+        show (bool): Whether to display a generated plot. Saving can still be
+            requested with ``saveto`` when show is False.
+        random_seed (None, int, or numpy.random.Generator): Seed for reproducible
+            random number generation (default is None). A single Generator is
+            shared by the CDF estimation and the Monte Carlo simulations.
 
     Returns:
         res_dict (dict): Dictionary with the following parameters:
@@ -2305,7 +2459,10 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
     if n<5:
         raise ValueError("Insufficient data, N must be 5 or greater")
     
-    Icdf, Dcdf = GGP_vMF_cdfs(GGPmodel, lat, degree,kappa=kappa) #find marginal distributions
+    rng = pmag._resolve_rng(random_seed)
+    Icdf, Dcdf = GGP_vMF_cdfs(
+        GGPmodel, lat, degree, kappa=kappa, n=cdf_samples, random_seed=rng
+    ) #find marginal distributions
     
     A2I = AD_inc(Is,Icdf)
     pI = np.interp(A2I,A2ref,pref)
@@ -2337,27 +2494,12 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         print ('n, lat: ',N,lat)
         print ('getting Monte Carlo simulations from model....   be patient')
 
-    V2decs,Es=[],[]
-
-    # get model simulations, given lat,n
-    for sim in range(num_sims):
-        DI=GGPrand(GGPmodel,lat,N,degree)
-        if kappa>0:
-            fish_DI,decs,incs=[],DI.T[0],DI.T[1]
-            for k in range(N):
-               di_block=ipmag.fishrot(k=kappa,n=4,dec=decs[k],inc=incs[k],di_block=True)
-               pars=pmag.fisher_mean(di_block) 
-               #print (decs[k],incs[k],pars['dec'],pars['inc'],kappa)#DEBUG
-               fish_DI.append([pars['dec'],pars['inc']])
-            DI=fish_DI
-            #print (pars) #DEBUG
-        mcpars=pmag.doprinc(DI)
-        V2dec_sim,E_sim=mcpars['V2dec'],mcpars['tau2']/mcpars['tau3']
-        if (V2dec_sim<90) or (V2dec_sim>270):V2dec_sim=(V2dec_sim-180)%360 #flip to south
-        V2decs.append(V2dec_sim)
-        Es.append(E_sim)
-    Es=np.sort(np.array(Es))
-    V2decs=np.sort(np.array(V2decs))
+    V2decs, Es = _GGP_mc_distributions(
+        GGPmodel, lat, N, degree, num_sims,
+        kappa=kappa, batch_size=sim_batch_size, random_seed=rng,
+    )
+    Es=np.sort(Es)
+    V2decs=np.sort(V2decs)
     Esim_min=Es[int(num_sims*.025)]
     Esim_max=Es[int(num_sims*.975)]
     V2sim_min=V2decs[int(num_sims*.025)]
@@ -2489,7 +2631,7 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         if Esim_max<E:
             e_fail='['+str(np.round(Esim_max,2))+'<'+str(np.round(E,2))+']'
         elif Esim_min>E:
-            e_fail='['+str(np.round(E,2))+'>'+np.round(Esim_min,2)+']'
+            e_fail='['+str(np.round(E,2))+'>'+str(np.round(Esim_min,2))+']'
         if E_result==1: 
             ax5.text(0,1.14,'d) E: Pass',transform=ax5.transAxes,fontsize=14)
             ax5.text(0,1.05,e_pass,transform=ax5.transAxes,fontsize=12)
@@ -2501,17 +2643,28 @@ def svei_test(di_block,model_name='TK03_GAD',degree=8,lat=False,kappa=-1,plot=Fa
         #plt.legend(loc='lower right')
         plt.tight_layout()
         if saveto:
-            plt.savefig(saveto)
-        plt.show()
-    res_dict={'kappa':kappa,'lat':round(lat,1),'A2D':round(A2D,4),'A2I':round(A2I,4),'pID':round(pID,4),'H':H,'V2dec':round(V2dec,1)
-                  ,'V2sim_min':round(V2sim_min,1),'V2sim_max':round(V2sim_max,1),
-                   'E':round(E,4),'Esim_min':round(Esim_min,4),'Esim_max':round(Esim_max,4),'V2_result':V2_result,'E_result':E_result}
+            fig.savefig(saveto)
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
+    def _real(value, places):
+        # pmag.tauV takes the eigendecomposition with linalg.eig, the general
+        # routine, so on some LAPACK builds it hands back complex dtype for the
+        # real symmetric orientation matrix. The imaginary parts are rounding
+        # noise, but builtin round() refuses complex outright, so the values
+        # reaching the results dict are made real here.
+        return round(float(np.real(value)), places)
+
+    res_dict={'kappa':kappa,'lat':_real(lat,1),'A2D':_real(A2D,4),'A2I':_real(A2I,4),'pID':_real(pID,4),'H':H,'V2dec':_real(V2dec,1)
+                  ,'V2sim_min':_real(V2sim_min,1),'V2sim_max':_real(V2sim_max,1),
+                   'E':_real(E,4),'Esim_min':_real(Esim_min,4),'Esim_max':_real(Esim_max,4),'V2_result':V2_result,'E_result':E_result}
         
     
     return res_dict
 
 def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,cite="",saveto=False,
-                      num_sims=1000,verbose=False): #perform the AD test on observed incs and decs
+                      num_sims=1000,verbose=False,random_seed=None): #perform the AD test on observed incs and decs
     """
     Calls svei_test to perform the Anderson-Darling (AD) test on observed inclinations and declinations and Monte Carlo
        simulation to estimate 95% confidence bounds on V2dec and E.  Uses kappa = inf to start, then 100, then 50
@@ -2527,6 +2680,10 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
         saveto (bool or str): If provided, save the plot to the specified file path. Default is False.
         num_sims (int): number of Monte Carlo simulations for V2dec, E bounds calculation
         verbose (bool): if True, print commentary
+        random_seed (None, int, or numpy.random.Generator): Seed for reproducible
+            random number generation (default is None). A single Generator is
+            shared across the kappa escalation, so one seed reproduces every
+            attempt in the ladder.
 
     Returns:
         res_dict (dict): Dictionary with the following parameters:
@@ -2549,21 +2706,22 @@ def svei_test_varkap(di_block,model_name='THG24',degree=8,lat=False,plot=False,c
         raise ValueError("Insufficient data, N must be 5 or greater")
         return {}
     else:
+        rng = pmag._resolve_rng(random_seed)
         kappa = -1 # infinite kappa
-        res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,   
-                              model_name=model_name,saveto=saveto)
+        res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,
+                              model_name=model_name,saveto=saveto,random_seed=rng)
         res_dict['model']=model_name
         res_dict['N']=len(di_block)
         if res_dict['H']==1 or res_dict['V2_result']==0 or res_dict['E_result']==0:
             kappa=100
             if verbose:print ('svei_test failed, repeating svei_test with kappa ',kappa)
-            res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,   
-                                  model_name=model_name,saveto=saveto)
+            res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,
+                                  model_name=model_name,saveto=saveto,random_seed=rng)
             if res_dict['H']==1 or res_dict['V2_result']==0 or res_dict['E_result']==0:
                 kappa=50
                 if verbose:print ('svei_test failed, repeating svei_test with kappa ',kappa)
-                res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,   
-                                      model_name=model_name,saveto=saveto)
+                res_dict=svei_test(di_block,num_sims=num_sims,plot=plot, kappa=kappa,
+                                      model_name=model_name,saveto=saveto,random_seed=rng)
         res_dict['kappa']=kappa
         res_dict['N']=len(di_block)
         res_dict['model']=model_name
