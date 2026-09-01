@@ -1193,17 +1193,15 @@ class ExportView:
                 problems.append("needs a column from: " + ", ".join(result["missing_groups"]))
             if result["bad_cols"]:
                 problems.append(f'{len(result["bad_rows"])} row(s) with bad values in: ' + ", ".join(result["bad_cols"]))
-            items = result["failing_items"]
-            examples = []
-            try:
-                for _, item in items.head(3).iterrows():
-                    issues = item.get("issues", {})
-                    examples.append(f"{item.name}: " + "; ".join(str(v) for v in dict(issues).values()))
-            except Exception:
-                pass
+            # cell-level, so the analyst can go to the cell rather than the table
+            cells = result["failing_items"]
+            examples = [f'{c["row"]} · {c["column"]}: {c["problem"]}' if c["row"] else f'{c["column"]}: {c["problem"]}'
+                        for c in cells[:6]]
+            if len(cells) > 6:
+                examples.append(f"… and {len(cells) - 6} more")
             detail = "".join(f'<div style="{MUTED_STYLE};margin-left:18px">{e}</div>' for e in examples)
             rows.append(f'<div><span style="color:#c0392b">✗</span> <b>{table}</b>: ' + "; ".join(problems) + detail
-                        + f'<div style="{MUTED_STYLE};margin-left:18px">full list in {table}_errors.txt</div></div>')
+                        + '</div>')
         self.report.object = "".join(rows) or f'<div style="{MUTED_STYLE}">no tables to validate</div>'
 
     # --- .redo ----------------------------------------------------------------

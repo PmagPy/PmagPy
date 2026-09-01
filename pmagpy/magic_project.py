@@ -364,28 +364,62 @@ def validate_directory(dir_path: str,
 
     Returns:
         dict table -> None when the table passes (or is absent), otherwise a
-        dict with ``bad_rows``, ``bad_cols``, ``missing_cols`` and
-        ``failing_items`` as produced by ``validate_upload3.validate_table``.
+        dict with ``bad_rows``, ``bad_cols``, ``missing_cols``,
+        ``missing_groups`` and ``failing_items``: one entry per failing *cell*,
+        ``{"row": name, "column": column, "problem": text}``, so a caller can
+        point at the cell rather than at the table.
     """
+    import tempfile
     import warnings as _warnings
     from pmagpy import validate_upload3
     present = [t for t in tables if os.path.exists(os.path.join(dir_path, t + ".txt"))]
     con = cb.Contribution(dir_path, read_tables=present, dmodel=data_model(True))
     report = {}
+    # the validator drops a <table>_errors.txt beside whatever it is given; the
+    # failures come back from here as cells, so it is not allowed to litter the
+    # study directory to say so
+    scratch = tempfile.mkdtemp(prefix="magic-validate-")
     for table in present:
         if table not in con.tables:
             continue
         with _warnings.catch_warnings():   # the validator's pandas chatter is not ours to fix here
             _warnings.simplefilter("ignore")
-            fail = validate_upload3.validate_table(con, table, output_dir=dir_path)
+            fail = validate_upload3.validate_table(con, table, output_dir=scratch)
         if not fail:
             report[table] = None
         else:
             _, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = fail
             report[table] = {"bad_rows": list(bad_rows), "bad_cols": list(bad_cols),
                              "missing_cols": list(missing_cols), "missing_groups": list(missing_groups),
-                             "failing_items": failing_items}
+                             "failing_items": failing_cells(failing_items)}
+    shutil.rmtree(scratch, ignore_errors=True)
     return report
+
+
+def failing_cells(failing_items) -> list[dict]:
+    """One entry per failing cell, whatever shape the validator handed back.
+
+    ``validate_upload3`` returns a frame indexed by the row's name, with a
+    ``num`` column, an ``issues`` column of ``{column: problem}`` and a column
+    per failing check -- or a plain list when nothing failed. Both become
+    ``{"row": ..., "column": ..., "problem": ...}`` so that a caller never has
+    to test the truthiness of a DataFrame, which raises.
+    """
+    if failing_items is None:
+        return []
+    if not isinstance(failing_items, pd.DataFrame):
+        return [{"row": "", "column": "", "problem": str(item)} for item in failing_items]
+    cells = []
+    for name, row in failing_items.iterrows():
+        issues = row.get("issues")
+        if not isinstance(issues, dict):
+            issues = {column: row[column] for column in failing_items.columns
+                      if column not in ("num", "issues") and not is_null(row[column])}
+        for column, problem in issues.items():
+            cells.append({"row": str(name),
+                          "column": str(column).replace("value_pass_", "").replace("_isIn", ""),
+                          "problem": str(problem)})
+    return cells
 
 
 # ---------------------------------------------------------------------------
