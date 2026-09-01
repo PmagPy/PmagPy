@@ -122,13 +122,13 @@ class TestOpenDirectory:
         datasets.remember_recent(recent, str(tmp_path))
         session = home.HubSession(MCMURDO, recent_file=recent, landing=True)
         view = home.HomeView(session)
-        dialog = home.OpenDirectory(session)
+        dialog = home.open_directory(session)
         assert "Recent" in view.aside.object
         closed = []
-        dialog.on_opened = lambda: closed.append(True)
+        dialog.on_loaded = lambda: closed.append(True)
         target = cit_only(tmp_path)
         dialog.path.value = target
-        assert dialog.open() is True
+        assert dialog.load() is True                              # no measurements.txt needed here
         assert session.directory == target and closed == [True]
         assert "PI47" in view.heading.object and "10 files to convert" in view.strip.object
         assert "Recent" not in view.aside.object                 # picked: the page is about this directory now
@@ -137,9 +137,9 @@ class TestOpenDirectory:
 
     def test_a_path_that_is_not_a_directory_is_refused_in_place(self, tmp_path):
         session = home.HubSession(MCMURDO)
-        dialog = home.OpenDirectory(session)
+        dialog = home.open_directory(session)
         dialog.path.value = str(tmp_path / "nowhere")
-        assert dialog.open() is False
+        assert dialog.load() is False
         assert "is not a directory" in dialog.message.object
         assert session.directory == MCMURDO
 

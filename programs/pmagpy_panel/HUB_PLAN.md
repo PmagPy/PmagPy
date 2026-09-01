@@ -64,7 +64,7 @@ does not run. Known breakage a web app would hit at once:
 (always raises); `upload_magic3` forwards its arguments into the wrong
 positions; `validate_contribution` discards its result and returns `None`;
 `download_magic_from_doi` has no output directory; `validate_magic` references
-an undefined name. `pmagpy/magic_project.py` on the `pmagpy_intensity` branch
+an undefined name. `pmagpy/magic_project.py` (Yiming Zhang's, now on this branch)
 is a clean, typed, UI-free layer over `Contribution` (`MagicProject`,
 `trim_to_model`, `merge_results`, `validate_directory`) and is the right base
 for the hub.
@@ -85,7 +85,7 @@ are indexed with `make_experiment_df()` and selected with
 the notebooks imports Panel.
 
 **The two Panel apps** share `pmagpy_panel` (theme, splitters, nets, datasets,
-launcher, and — on the intensity branch — `chooser.DirectoryChooser`). Each
+launcher, `chooser.DirectoryChooser`). Each
 reads its MagIC directory from an environment variable at module load, keeps
 its own recent list (`~/.<app_id>_recent.json`), and is served alone on its own
 port (5100, 5101).
@@ -325,7 +325,7 @@ accepts. Start with the 13 formats Pmag GUI offers plus the IRM instruments
 
 ### Fixes in the MagIC layer
 
-* Land `magic_project.py` from `pmagpy_intensity`; the hub reads and writes
+* `magic_project.py` landed here 2026-09-01; the hub reads and writes
   through `MagicProject`.
 * Keep every EarthRef call inside the few functions that make them today
   (`download_magic_from_id`, `download_magic_from_doi`,
@@ -396,9 +396,11 @@ Intensity were built.
    / `shared_recent_file` / `example_dir`, `setup.py` `package_dir` + `apps`
    extra + `pmagpy-apps`, `programs/pmagpy_apps/` with a placeholder Home
    (port 5010; Directions opens from it with `?dir=`); Directions rebuilt on the
-   shell with its suite unchanged. `magic_project.py` and `chooser.py` still
-   sit on the intensity branch; `chooser.py` should adopt
-   `runtime.choose_directory` when it lands.
+   shell with its suite unchanged. **Later the same day** `magic_project.py`
+   and `chooser.py` came over from the intensity branch (Yiming Zhang's; the
+   chooser now awaits `runtime.choose_directory` instead of running a thread,
+   and takes `require_measurements=False` for the hub). This branch is
+   canonical for both; the intensity app adopts them from here.
 1. **Hub: Home and Analyze, then Download/unpack.** Design mock first (§2).
    *Retires Pmag GUI's box 0, box 2, and "Download or unpack".* From here the
    hub is the way to start the analysis applications.

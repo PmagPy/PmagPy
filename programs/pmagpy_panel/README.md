@@ -22,7 +22,7 @@ anisotropy applications — is in [HUB_PLAN.md](HUB_PLAN.md).
 | layer | where | rule |
 |---|---|---|
 | science | `pmagpy/demag.py`, and the paleointensity core beside it | no UI import at all; usable from a notebook or a script |
-| MagIC tables | `pmagpy/magic_project.py` — on the `pmagpy_intensity` branch, not yet merged here | reading, merging and writing contributions: `merge_results`, `carry_metadata`, `trim_to_model`, `validate_directory`, taken out of `demag.py`. Shared by both cores |
+| MagIC tables | `pmagpy/magic_project.py` | reading, merging and writing contributions: `MagicProject`, `merge_results`, `trim_to_model`, `validate_directory`, taken out of `demag.py`. Shared by both cores; this branch is its home, the intensity branch adopts it from here |
 | presentation | `programs/pmagpy_panel/` (**here**) | how a PmagPy Panel application looks and behaves |
 | the application | `programs/<app>/` | only what is specific to that subject: its panes, its plots, its session |
 
@@ -66,6 +66,12 @@ demagnetization step or a Thellier step *is*, it does not belong here.
   `session_directory()` (`?dir=` → environment → default), the recent list
   shared by every application (`~/.pmagpy/recent_magic_dirs.json`, seeded once
   from the old per-application files), `example_dir()`.
+* **`chooser.py`** — `DirectoryChooser`: the "which dataset is open" block for
+  a side column and the open-a-directory dialog (system folder chooser, recent
+  list, path field, in-page browser). Given any session that answers
+  `directory`, `status` and `load(path) -> bool`; `require_measurements=False`
+  for the hub, which opens empty directories too. Began as Yiming Zhang's on
+  the intensity branch.
 * **`launch.py`** — the one-command launcher: stops a previous server, serves
   in dev mode with each application's `assets/` as a static directory, waits
   for the app to answer before opening a browser. With `index=True` it serves
@@ -131,11 +137,13 @@ Pick a different default port from Directions' 5100 so the two can run at once.
 `app.py` should expose `build_body(session) -> shell.Body` and a `create_app()`
 that wraps it with `shell.template(body, logo=LOGO, hub_url=runtime.hub_url())`
 — see `pmagpy_directions/app.py`. The body is what the hub will mount; anything
-that only works inside `create_app` will not work under the hub. Its folder
-dialog should be `await runtime.choose_directory(...)` from an `async` callback
-rather than a thread (the intensity branch's `chooser.py` and Directions'
-`DataView._browse_native` both predate that and still use one). To appear in
-the hub, add the served file to `pmagpy_apps/launch.py::application_files()`.
+that only works inside `create_app` will not work under the hub. Do not write a
+"which dataset is open" block or an open-directory dialog: subclass or compose
+`chooser.DirectoryChooser`, giving it your session and a `count` callable
+(Directions' `DataView` is eleven lines), and hang anything subject-specific —
+an importer for another program's files — off `modal(*extra)`. To appear in
+the hub, add the served file to `pmagpy_apps/launch.py::application_files()`
+and an `Application` to `pmagpy_apps/home.py::APPLICATIONS`.
 
 ## Conventions worth keeping identical
 

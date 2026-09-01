@@ -13,7 +13,7 @@ import panel as pn
 
 from pmagpy_panel import datasets, shell
 from . import APP
-from .home import HomeView, HubSession, OpenDirectory, app_link  # noqa: F401  (app_link re-exported)
+from .home import HomeView, HubSession, app_link, open_directory  # noqa: F401  (app_link re-exported)
 
 shell.setup()
 
@@ -25,10 +25,10 @@ DEFAULT_EXAMPLE = "McMurdo"
 def build_body(session: HubSession, chooser_stub: str = "") -> shell.Body:
     """Home for the session's directory, with the open-directory dialog as its modal."""
     view = HomeView(session)
-    dialog = OpenDirectory(session, chooser_stub=chooser_stub)
+    dialog = open_directory(session, chooser_stub=chooser_stub)
     body = shell.Body(info=APP, main=view.panel(), header=shell.status_line(session), modal=dialog.modal())
     view.change_btn.on_click(lambda e: body.open_modal())
-    dialog.on_opened = lambda: body.close_modal()
+    dialog.on_loaded = lambda: body.close_modal()
     return body
 
 

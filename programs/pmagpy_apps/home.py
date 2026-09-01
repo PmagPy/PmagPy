@@ -6,27 +6,24 @@ Home reads everything it says from an :class:`~pmagpy_apps.inventory.Inventory`
 and renders it as HTML on the shared shell. It has three faces, decided by what
 the directory holds — a MagIC contribution, lab files not yet converted, or
 nothing — and the same layout in all three. There is no form on it; the one
-control is "Change directory…", which opens the dialog in :class:`OpenDirectory`.
+control is "Change directory…", which opens the toolkit's directory chooser.
 """
 from __future__ import annotations
 
 import html
 import importlib.util
 import os
-import sys
 from dataclasses import dataclass
-from typing import Callable, List, Optional
+from typing import List, Optional
 from urllib.parse import quote
 
 import panel as pn
 import param
 
-from pmagpy_panel import datasets, runtime
-from pmagpy_panel.theme import MUTED_STYLE
+from pmagpy_panel import datasets
+from pmagpy_panel.chooser import DirectoryChooser
 from . import APP
 from .inventory import Inventory, take_inventory
-
-FAIL_COLOR = "#c0392b"
 
 # ----- which applications there are ------------------------------------------------
 
@@ -389,78 +386,12 @@ class HomeView:
 # ----- opening a different directory -----------------------------------------------------
 
 
-class OpenDirectory:
-    """The "Change directory…" dialog: the system folder dialog, the recent list, a path field.
+def open_directory(session: HubSession, chooser_stub: str = "") -> DirectoryChooser:
+    """The "Change directory…" dialog: the toolkit's chooser, told that any existing directory will do.
 
-    Any existing directory can be opened — Home is where a directory with nothing
-    in it starts its life. The system dialog runs as a coroutine
-    (:func:`pmagpy_panel.runtime.choose_directory`), so the server keeps serving
-    while it is open.
-
-    This is the hub's own until the shared ``DirectoryChooser`` lands on this
-    branch; the widgets and their order are the same as the applications' so the
-    swap is mechanical.
+    Home is where a directory with nothing in it starts its life, so there is no
+    ``measurements.txt`` requirement here; the analysis applications keep theirs.
     """
-
-    def __init__(self, session: HubSession, chooser_stub: str = ""):
-        self.s = session
-        self.stub = chooser_stub
-        self.on_opened: Optional[Callable[[], None]] = None
-        app = {"darwin": "Finder", "win32": "Explorer"}.get(sys.platform, "the system dialog")
-        available = runtime.native_chooser_available(stub=chooser_stub)
-        self.native_btn = pn.widgets.Button(name=f"Browse with {app}…", button_type="primary", width=220,
-                                            disabled=not available)
-        self.recent = pn.widgets.Select(name="Recent directories", options=[], size=6, sizing_mode="stretch_width",
-                                        stylesheets=["select { max-width: 100%; }"])
-        self.path = pn.widgets.TextInput(name="Directory", value=session.directory, sizing_mode="stretch_width")
-        self.open_btn = pn.widgets.Button(name="Open", button_type="success", width=120)
-        self.message = pn.pane.HTML("", sizing_mode="stretch_width")
-        self.native_btn.on_click(self._browse)
-        self.recent.param.watch(lambda e: setattr(self.path, "value", e.new) if e.new else None, "value")
-        self.open_btn.on_click(self.open)
-        session.param.watch(lambda e: self.refresh(), "directory")
-        self.refresh()
-
-    def refresh(self) -> None:
-        self.recent.options = {shorten_home(d): d for d in self.s.recent()}
-        self.path.value = self.s.directory
-
-    async def _browse(self, event=None) -> None:
-        self.native_btn.disabled = True
-        self.message.object = f'<div style="{MUTED_STYLE}">Choose a folder in the dialog that just opened …</div>'
-        start = os.path.expanduser(self.path.value.strip()) or self.s.directory
-        try:
-            chosen = await runtime.choose_directory(start, prompt="Choose a directory", stub=self.stub)
-        finally:
-            self.native_btn.disabled = False
-        if chosen:
-            self.path.value = chosen
-            self.open()
-        else:
-            self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
-
-    def open(self, event=None) -> bool:
-        target = os.path.abspath(os.path.expanduser(self.path.value.strip()))
-        if not self.path.value.strip():
-            return False
-        if not os.path.isdir(target):
-            self.message.object = f'<div style="color:{FAIL_COLOR}"><code>{_esc(target)}</code> is not a directory</div>'
-            return False
-        if not self.s.load(target):
-            self.message.object = f'<div style="color:{FAIL_COLOR}">{_esc(self.s.status)}</div>'
-            return False
-        self.message.object = ""
-        location = runtime.location()
-        if location is not None:
-            location.search = f"?dir={quote(target)}"     # so a reload, or a bookmark, comes back here
-        if self.on_opened:
-            self.on_opened()
-        return True
-
-    def modal(self) -> pn.Column:
-        return pn.Column(
-            pn.pane.HTML('<h3 style="margin:0 0 6px 0">Open a directory</h3>'
-                         f'<div style="{MUTED_STYLE}">A MagIC directory, a folder of files to convert, or an empty one to start in.</div>'),
-            pn.Row(self.native_btn, self.message),
-            self.recent, pn.Row(self.path, self.open_btn),
-            width=720, sizing_mode="fixed")
+    return DirectoryChooser(session, recent_file=session.recent_file, chooser_stub=chooser_stub,
+                            title="Open a directory", require_measurements=False,
+                            note="A MagIC directory, a folder of files to convert, or an empty one to start in.")

@@ -17,8 +17,8 @@ from . import publication as pub
 from .logger import StepLogger
 from pmagpy_panel.widgets import HeightSplitter, Hotkeys
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
-from .session import (REDO_NAME, AUTOSAVE_NAME, Session, env, load_recent, looks_like_magic_dir,
-                      native_choose_directory, native_chooser_available)
+from .session import REDO_NAME, AUTOSAVE_NAME, RECENT_FILE, Session, env
+from pmagpy_panel.chooser import DirectoryChooser
 from pmagpy_panel.theme import (BUTTON_GROUP_CSS, CHECKBOX_CSS, INPUT_CSS, KPI_ITEM, MUTED_STYLE, SECTION_STYLE,
                     STATS_TABLE_CSS, TABLE_ROW_CSS, kpi, lighten)
 
@@ -1310,108 +1310,18 @@ class ExportView:
 
 
 # ===========================================================================
-class DataView:
-    """Switch between MagIC directories: a compact block for the side column and a
-    modal with recent directories, a path field and a directory browser."""
+class DataView(DirectoryChooser):
+    """Switch between MagIC directories.
 
-    def __init__(self, session: Session, chooser=native_choose_directory, chooser_available=None):
-        import sys
-        self.s = session
-        self.on_loaded = None       # callback set by the app (closes the modal)
-        self.chooser = chooser
-        self.chooser_available = native_chooser_available() if chooser_available is None else chooser_available
-        self.summary = pn.pane.HTML("", sizing_mode="stretch_width")
-        self.change_btn = pn.widgets.Button(name="Change data…", button_type="primary", width=140)
-        app_name = {"darwin": "Finder", "win32": "Explorer"}.get(sys.platform, "the system dialog")
-        self.native_btn = pn.widgets.Button(name=f"Browse with {app_name}…", button_type="primary", width=220,
-                                            disabled=not self.chooser_available)
-        self.native_btn.on_click(self._browse_native)
-        self.recent = pn.widgets.Select(name="Recent directories", options=[], size=6, sizing_mode="stretch_width")
-        self.path = pn.widgets.TextInput(name="MagIC directory (must contain measurements.txt)",
-                                         value=session.directory, sizing_mode="stretch_width")
-        self.browser = pn.widgets.FileSelector(directory=os.path.dirname(session.directory) or os.getcwd(),
-                                               only_files=False, show_hidden=False, height=240,
-                                               name="select a directory, then Load")
-        self.load_btn = pn.widgets.Button(name="Load", button_type="success", width=120)
-        self.message = pn.pane.HTML("", sizing_mode="stretch_width")
-        self.recent.param.watch(lambda e: setattr(self.path, "value", e.new) if e.new else None, "value")
-        self.browser.param.watch(self._on_browse, "value")
-        self.load_btn.on_click(self._load)
-        session.param.watch(lambda e: self._refresh(), ["directory", "output_dir"])
-        self._refresh()
+    The widgets and the behaviour are the toolkit's :class:`DirectoryChooser`,
+    shared with the hub and the other applications; this only says what this
+    application counts and what it wants the dialog to say.
+    """
 
-    def _browse_native(self, event=None):
-        """Run the system folder dialog off the server thread, then load the choice."""
-        import threading
-        self.native_btn.disabled = True
-        self.message.object = f'<div style="{MUTED_STYLE}">Choose a folder in the dialog that just opened …</div>'
-        start = self.path.value.strip() or self.s.directory
-        # the document must be captured here: pn.state.curdoc is not visible from the
-        # worker thread, and model updates without the document lock are lost or
-        # half-applied (the app then shows the old dataset under the new name)
-        doc = pn.state.curdoc
+    def __init__(self, session: Session, chooser=None, chooser_available=None):
+        super().__init__(
+            session, recent_file=RECENT_FILE, chooser=chooser, chooser_available=chooser_available,
+            chooser_stub=env("CHOOSER_STUB"),
+            count=lambda s: f"{len(s.data.specimens) if s.data else 0} specimens",
+            note="Fits are auto-saved per dataset; switching datasets restores what you had there.")
 
-        def worker():
-            chosen = self.chooser(start)
-
-            def apply():
-                self.native_btn.disabled = not self.chooser_available
-                if chosen:
-                    self.path.value = chosen
-                    self._load()
-                else:
-                    self.message.object = f'<div style="{MUTED_STYLE}">No folder chosen.</div>'
-            if doc is not None and getattr(doc, "session_context", None) is not None:
-                doc.add_next_tick_callback(apply)
-            else:
-                apply()
-
-        threading.Thread(target=worker, daemon=True).start()
-
-    def _refresh(self):
-        s = self.s
-        n = len(s.data.specimens) if s.data else 0
-        self.summary.object = kpi([("<b>" + os.path.basename(s.directory.rstrip("/")) + "</b>", ""),
-                                   f'<span style="{MUTED_STYLE}">{n} specimens</span>',
-                                   f'<span style="{MUTED_STYLE}" title="{s.directory}">{_shorten(s.directory)}</span>'])
-        recent = load_recent()
-        self.recent.options = {(_shorten(d, 70)): d for d in recent}
-        self.path.value = s.directory
-
-    def _on_browse(self, event):
-        if not event.new:
-            return
-        chosen = event.new[0]
-        self.path.value = chosen if os.path.isdir(chosen) else os.path.dirname(chosen)
-
-    def _load(self, event=None):
-        target = os.path.expanduser(self.path.value.strip())
-        if not looks_like_magic_dir(target):
-            self.message.object = (f'<div style="color:#c0392b">No <code>measurements.txt</code> in '
-                                   f'<code>{target}</code></div>')
-            return
-        self.message.object = f'<div style="{MUTED_STYLE}">Loading {target} …</div>'
-        if self.s.load(target):
-            self.message.object = f'<div style="{MUTED_STYLE}">{self.s.status}</div>'
-            if self.on_loaded:
-                self.on_loaded()
-        else:
-            self.message.object = f'<div style="color:#c0392b">{self.s.status}</div>'
-
-    def sidebar(self):
-        return pn.Column(section("Data"), pn.Row(self.summary, self.change_btn))
-
-    def modal(self):
-        fallback = pn.Card(self.browser, title="In-page browser (for sessions served from another machine)",
-                           collapsed=True, sizing_mode="stretch_width")
-        return pn.Column(
-            pn.pane.HTML('<h3 style="margin:0 0 6px 0">Open a MagIC directory</h3>'
-                         f'<div style="{MUTED_STYLE}">Fits are auto-saved per dataset; switching '
-                         'datasets restores what you had there.</div>'),
-            pn.Row(self.native_btn, self.message),
-            self.recent, pn.Row(self.path, self.load_btn), fallback, width=760,
-        )
-
-
-def _shorten(path: str, n: int = 48) -> str:
-    return path if len(path) <= n else "…" + path[-(n - 1):]
