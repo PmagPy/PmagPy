@@ -14,7 +14,7 @@ import panel as pn
 import pmagpy.demag as dc
 
 from . import publication as pub
-from .logger import Hotkeys, StepLogger
+from .logger import HeightSplitter, Hotkeys, StepLogger
 from .plots import DecayPlot, DirectionsPlot, PoleMapPlot, StepEqualAreaPlot, ZijderveldPlot
 from .session import (REDO_NAME, AUTOSAVE_NAME, Session, env, load_recent, looks_like_magic_dir,
                       native_choose_directory, native_chooser_available)
@@ -162,10 +162,29 @@ class SpecimenView:
         self.zij.on_select(self._on_plot_select)
         self.eq.on_select(self._on_plot_select)
         self.info = pn.pane.HTML("", sizing_mode="stretch_width")
+        # the plots and the fits below them share the height of the window: a big
+        # screen can give the diagram more, a small one has to take some back
+        self.plot_col = pn.Column(self.eq.fig, self.decay.fig, width=side + 10, margin=0,
+                                  styles={"overflow": "visible"})
+        self.plot_size = HeightSplitter(value=ZijderveldPlot.FRAME, default_value=ZijderveldPlot.FRAME,
+                                        minimum=240, maximum=1000)
+        self.plot_size.param.watch(self._on_plot_size, "value")
 
         s.param.watch(self._reset_pending, ["specimen"])
         s.param.watch(self.redraw, ["specimen", "coord", "projection", "label_every", "version", "current"])
         self.redraw()
+
+    # the net and the M/M₀ strip keep their share of the diagram's height
+    SIDE_RATIO = ZijderveldPlot.SIDE / ZijderveldPlot.FRAME
+
+    def _on_plot_size(self, event):
+        """Rescale the three plots together, as they are built in __init__."""
+        frame = int(event.new)
+        side = max(140, int(round(frame * self.SIDE_RATIO)))
+        self.zij.set_frame(frame)
+        self.eq.set_size(side)
+        self.decay.set_size(side, ZijderveldPlot.TOP + frame - side - DecayPlot.TOP)
+        self.plot_col.width = side + 10
 
     # --- interaction ----------------------------------------------------------
     def _on_coord_widget(self, event):
@@ -387,10 +406,8 @@ class SpecimenView:
 
     def main(self):
         return pn.Column(
-            pn.Row(pn.pane.Bokeh(self.zij.fig, margin=0),
-                   pn.Column(self.eq.fig, self.decay.fig, width=ZijderveldPlot.SIDE + 10, margin=0,
-                             styles={"overflow": "visible"}),
-                   margin=0),
+            pn.Row(pn.pane.Bokeh(self.zij.fig, margin=0), self.plot_col, margin=0),
+            self.plot_size,
             pn.Row(section("Fits · click a row to select it"), self.hint, margin=0),
             pn.Row(self.comp_name, self.fit_type_sel, self.tmin_sel, self.tmax_sel,
                    self.add_btn, self.del_btn),

@@ -183,6 +183,20 @@ class ZijderveldPlot:
         self._resets += 1
         self.fig.tags = ["reset", self._resets]
 
+    def set_frame(self, frame: int):
+        """Resize the square diagram frame, keeping the axis-end labels on its edges.
+
+        The labels are placed in screen pixels (the frame is a fixed square), so
+        the two that sit at the far edges move with it.
+        """
+        frame = int(frame)
+        self.frame = frame
+        self.fig.frame_width = self.fig.frame_height = frame
+        self.fig.width = frame + 16
+        self.fig.height = frame + self.CHROME
+        self.lbl_right.x = frame - 6
+        self.lbl_top.y = frame - 6
+
     def update(self, spec, fits, coord, rotation, label_every, projection):
         # a zoom box belongs to one view of one specimen: switching specimen,
         # coordinates, projection (or the rotation of the "best-fit dec" projection)
@@ -255,6 +269,10 @@ class StepEqualAreaPlot:
         self.circles = ColumnDataSource(dict(xs=[], ys=[], color=[]))
         self.fig.multi_line("xs", "ys", source=self.circles, color="color", line_width=2)
 
+    def set_size(self, size: int):
+        """Resize the square net (the ranges are fixed, so it stays circular)."""
+        self.fig.width = self.fig.height = int(size)
+
     def on_select(self, callback):
         def handler(attr, old, new):
             if new:
@@ -318,6 +336,12 @@ class DecayPlot:
         self.fig.add_tools(HoverTool(renderers=[pts], tooltips=[("step", "@label"), ("M/M₀", "@y{0.000}")]))
         self.bounds = ColumnDataSource(dict(x=[], y=[], color=[]))
         self.fig.scatter("x", "y", source=self.bounds, size=17, fill_alpha=0.0, line_color="color", line_width=2)
+
+    def set_size(self, size: int, frame_height: int):
+        """Resize the strip: `size` is its width, `frame_height` the plot frame."""
+        self.fig.width = int(size)
+        self.fig.frame_height = int(frame_height)
+        self.fig.height = int(frame_height) + self.TOP + self.AXIS_ROWS
 
     def update(self, spec, fits):
         steps = spec.steps

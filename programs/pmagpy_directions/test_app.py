@@ -399,6 +399,34 @@ class TestColors:
         assert name not in interps.pickers
 
 
+class TestSpecimenView:
+    def test_plot_size_handle_scales_the_three_plots_together(self, tmp_path):
+        """The drag bar under the plots resizes them as one; the geometry holds."""
+        from pmagpy_directions.plots import DecayPlot, ZijderveldPlot
+        from pmagpy_directions.views import SpecimenView
+        s = Session(_DMAG, output_dir=str(tmp_path))
+        view = SpecimenView(s)
+        frame0, net0 = view.zij.fig.frame_width, view.eq.fig.width
+
+        view.plot_size.value = 300
+        assert view.zij.fig.frame_width == view.zij.fig.frame_height == 300
+        assert view.zij.fig.height == 300 + ZijderveldPlot.CHROME
+        assert view.zij.fig.width == 316
+        # the axis-end labels are placed in screen pixels: they follow the frame
+        assert view.zij.lbl_right.x == 294 and view.zij.lbl_top.y == 294
+        net = view.eq.fig.width
+        assert view.eq.fig.height == net < net0                      # square, and smaller
+        assert view.plot_col.width == net + 10
+        # the M/M₀ strip still ends level with the bottom of the diagram
+        assert view.decay.fig.frame_height == ZijderveldPlot.TOP + 300 - net - DecayPlot.TOP
+        assert view.decay.fig.width == net
+
+        view.plot_size.value = 600                                   # and back up
+        assert view.zij.fig.frame_width == 600 and view.eq.fig.width > net0
+        view.plot_size.value = frame0
+        assert view.zij.fig.frame_width == frame0 and view.eq.fig.width == net0
+
+
 class TestInterpretationsView:
     def test_side_plot_follows_the_table(self, tmp_path):
         """The Fits side column plots the ticked rows, or everything the filters leave listed."""

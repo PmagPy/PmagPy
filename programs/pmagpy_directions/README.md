@@ -76,7 +76,13 @@ the table lists on *Fits*; the list of plotted fits
 VGPs on *Poles*; only *Export* uses the full width. It is resizable —
 drag the grey handle between it and the plots: both panels follow the
 cursor and the boundary stops where the plots would be squeezed
-(double-click resets it). On the Zijderveld plot, drag = zoom
+(double-click resets it). A second handle lies across the *Specimen*
+pane, between the plots and the fits: dragging it scales the three plots
+together, so a large screen can give the diagram more room and a small
+one can take some back to bring the fits above the fold. Re-laying out
+Bokeh figures costs about 100 ms, too slow to follow a cursor, so the
+drag previews the new size with a CSS transform and the figures are
+resized once, on release. On the Zijderveld plot, drag = zoom
 box, tap = pick a step, and box-select is one click away in the toolbar.
 
 Performance notes: the loaded dataset (interpretations included) is shared by

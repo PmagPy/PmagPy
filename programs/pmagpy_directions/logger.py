@@ -189,6 +189,95 @@ class Splitter(JSComponent):
     """]
 
 
+class HeightSplitter(JSComponent):
+    """A horizontal drag handle that reports the height the plots above it should take.
+
+    The side panel's ``Splitter`` resizes DOM elements itself, but the plots are
+    Bokeh figures whose geometry belongs in ``plots.py`` — the frame, the square
+    net beside it and the M/M₀ strip under that are tied together — so this
+    handle reports a height and Python resizes the figures.
+
+    Re-laying out those figures costs about 100 ms whoever asks for it (the
+    same in the browser as through Python), far too slow to follow a cursor.
+    So the drag scales the plots with a CSS transform, which is free and
+    immediate, and the real resize happens once, on release: live to the eye,
+    crisp when it settles.
+    """
+
+    value = param.Integer(default=430, doc="height in pixels the plot frame should take")
+    default_value = param.Integer(default=430, doc="height restored by a double click")
+    minimum = param.Integer(default=240, doc="smallest the plots may be dragged to")
+    maximum = param.Integer(default=1000, doc="largest the plots may be dragged to")
+
+    _esm = """
+    export function render({ model, el }) {
+      const bar = document.createElement('div');
+      bar.className = 'hsplitter';
+      bar.title = 'drag to resize the plots · double click to reset';
+      const host = () => el.getRootNode().host || el;
+      const plots = () => host().previousElementSibling;       // the row of figures
+      let startY = 0, startV = 0, box = null, pending = null, frame = null;
+      const clamp = (v) => Math.max(model.minimum, Math.min(model.maximum, v));
+      // the preview: the row is scaled where it stands, and its box is scaled with
+      // it so that whatever sits below moves too and nothing overflows sideways
+      const preview = (scale) => {
+        const t = plots();
+        if (!t || !box) return;
+        t.style.transformOrigin = 'top left';
+        t.style.transform = scale === null ? '' : 'scale(' + scale + ')';
+        t.style.width = scale === null ? '' : (box.width * scale) + 'px';
+        t.style.height = scale === null ? '' : (box.height * scale) + 'px';
+      };
+      const onMove = (e) => {
+        pending = clamp(startV + (e.clientY - startY));
+        if (frame === null) {
+          // the frame takes the whole change in height, so the preview scales the
+          // row by the ratio that moves its bottom edge exactly that far: the
+          // handle stays under the cursor and lands where the resize will put it.
+          // (A uniform scale stretches the legend and toolbar strip too, which the
+          // resize leaves alone, so the width is a few per cent out mid-drag.)
+          frame = requestAnimationFrame(() => {
+            frame = null;
+            preview((box.height + (pending - startV)) / box.height);
+          });
+        }
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.cursor = ''; document.body.style.userSelect = '';
+        bar.classList.remove('dragging');
+        if (frame !== null) { cancelAnimationFrame(frame); frame = null; }
+        preview(null);               // hand the size over to the real figures
+        if (pending !== null) model.value = Math.round(pending);
+        pending = null; box = null;
+      };
+      bar.addEventListener('mousedown', (e) => {
+        const t = plots();
+        if (!t) return;
+        startY = e.clientY; startV = model.value;
+        const r = t.getBoundingClientRect();
+        box = {width: r.width, height: r.height};
+        bar.classList.add('dragging');
+        document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none';
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        e.preventDefault();
+      });
+      bar.addEventListener('dblclick', () => { model.value = model.default_value; });
+      return bar;
+    }
+    """
+
+    _stylesheets = ["""
+    :host { display: block; width: 100%; }
+    .hsplitter { height: 8px; cursor: row-resize; background: #e5e7eb; border-radius: 4px;
+                 margin: 2px 0; transition: background .15s; }
+    .hsplitter:hover, .hsplitter.dragging { background: #9aa1ab; }
+    .hsplitter.dragging { background: #1f4e9c; }
+    """]
+
+
 class Hotkeys(JSComponent):
     """Invisible component forwarding ← → (specimens) and [ ] { } (fit bounds) key presses to Python."""
 
